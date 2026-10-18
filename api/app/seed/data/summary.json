@@ -1,0 +1,11 @@
+{
+  "subject": "Your week in DSBA Hub, Year {year}: {week}",
+  "headings": {
+    "calendar": "Exams and deadlines this week",
+    "library": "New in the library",
+    "forum": "Questions you could answer",
+    "newsletter": "The DSBA Newsletter"
+  },
+  "closing": "Everything else:",
+  "sendAt": "08:00"
+}

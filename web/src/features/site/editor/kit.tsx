@@ -23,8 +23,8 @@ export interface DocFrameProps {
   onSave: () => void;
   problem: DocProblem | null;
   onReload: () => void;
-  /** the sections: chips that pick one */
-  nav: ReactNode;
+  /** the sections: chips that pick one (none for a document of one part) */
+  nav?: ReactNode;
   /** the section's title and what it holds */
   section: { title: string; about: string };
   children: ReactNode;
@@ -76,9 +76,11 @@ export function DocFrame({ title, savedAt, savedBy, dirty, saving, pageTo, onPre
         </div>
       ) : null}
 
-      <nav className="dedit__nav" aria-label={`Parts of ${title}`}>
-        {nav}
-      </nav>
+      {nav ? (
+        <nav className="dedit__nav" aria-label={`Parts of ${title}`}>
+          {nav}
+        </nav>
+      ) : null}
 
       <Panel as="section" padding="md" className="dedit__panel" aria-labelledby="dedit-section-title">
         <div className="dedit__section-head">
@@ -118,11 +120,13 @@ export interface ListEditorProps<T extends { id: string }> {
   savedIds?: ReadonlySet<string>;
   /** why an item can't be removed (its remove button is off and says so), or null */
   keepReason?: (item: T) => string | null;
+  /** false: items come some other way (an upload), so there's no "Add" button */
+  canAdd?: boolean;
   min?: number;
   max?: number;
 }
 
-export function ListEditor<T extends { id: string }>({ items, noun, titleOf, metaOf, onChange, make, children, hasError, savedIds, keepReason, min = 0, max = 60 }: ListEditorProps<T>) {
+export function ListEditor<T extends { id: string }>({ items, noun, titleOf, metaOf, onChange, make, children, hasError, savedIds, keepReason, canAdd = true, min = 0, max = 60 }: ListEditorProps<T>) {
   const [open, setOpen] = useState<string | null>(null);
   const [removing, setRemoving] = useState<{ id: string; title: string } | null>(null);
   const move = (from: number, by: -1 | 1) => {
@@ -175,7 +179,7 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
       ) : (
         <p className="dedit__empty">{`No ${noun}s yet.`}</p>
       )}
-      {items.length < max ? (
+      {canAdd && items.length < max ? (
         <Button
           variant="secondary"
           leadingIcon={Plus}

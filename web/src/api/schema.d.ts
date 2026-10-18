@@ -1887,6 +1887,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/newsletter/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Newsletter Settings
+         * @description The line under the newsletter's name, and the pictures its editor offers.
+         */
+        get: operations["newsletter_settings_api_v1_newsletter_settings_get"];
+        /**
+         * Save Newsletter Settings
+         * @description Save the masthead's line and the pictures the editor offers, if nobody saved them since `version`. An uploaded
+         *     picture is kept while it's offered. Audited with what changed, before and after.
+         *
+         *     Errors: newsletter_settings_changed (409: someone saved them since: load them again), invalid_input (422: a field
+         *     that doesn't fit, a picture that isn't one of the newsletter's, a picture offered twice).
+         */
+        put: operations["save_newsletter_settings_api_v1_newsletter_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/newsletter/settings/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Newsletter Settings For Editing
+         * @description The settings with the version a save names (0 until the first save).
+         */
+        get: operations["newsletter_settings_for_editing_api_v1_newsletter_settings_edit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/newsletter/issues": {
         parameters: {
             query?: never;
@@ -3202,6 +3250,54 @@ export interface paths {
         get: operations["preview_api_v1_summary_preview_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/summary/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Summary Words
+         * @description The summary's words with the version a save names (0 until the first save).
+         */
+        get: operations["summary_words_api_v1_summary_settings_get"];
+        /**
+         * Save Summary Words
+         * @description Save the subject line, the headings, the closing line and the Sunday send time, if nobody saved them since
+         *     `version`. Audited with what changed, before and after.
+         *
+         *     Errors: summary_changed (409: someone saved them since: load them again), invalid_input (422: a field that
+         *     doesn't fit, a placeholder other than {year} and {week}, a time that isn't HH:MM).
+         */
+        put: operations["save_summary_words_api_v1_summary_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/summary/settings/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Summary Words
+         * @description This week's summary for a year in a draft of the words. Nothing is saved or sent.
+         */
+        post: operations["preview_summary_words_api_v1_summary_settings_preview_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4815,6 +4911,10 @@ export interface components {
         };
         /** CareerDoc */
         CareerDoc: {
+            /** Intro */
+            intro: string;
+            /** Employersnote */
+            employersNote: string;
             /** Checkedon */
             checkedOn: string;
             /** Initialcount */
@@ -5404,7 +5504,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
             /** Message */
             message: string;
             /** Fields */
@@ -7471,6 +7571,57 @@ export interface components {
             guesses: components["schemas"]["NearestGuess"][];
             /** Answer */
             answer: string | null;
+        };
+        /**
+         * NewsletterPicture
+         * @description A picture the issue editor offers to choose: a picture of the web app or an uploaded newsletter picture. Width
+         *     and height (pixels) reserve its space while it loads.
+         */
+        NewsletterPicture: {
+            /** Id */
+            id: string;
+            /** Src */
+            src: string;
+            /** Label */
+            label: string;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /**
+             * Cover
+             * @default false
+             */
+            cover: boolean;
+        };
+        /**
+         * NewsletterSettings
+         * @description The newsletter's own words and the pictures its editor offers, edited by holders of newsletter.manage in
+         *     Manage → Newsletter (its starting content is app/seed/data/newsletter_settings.json).
+         */
+        NewsletterSettings: {
+            /** Masthead */
+            masthead: string;
+            /** Pictures */
+            pictures: components["schemas"]["NewsletterPicture"][];
+        };
+        /** NewsletterSettingsEditable */
+        NewsletterSettingsEditable: {
+            data: components["schemas"]["NewsletterSettings"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /**
+         * NewsletterSettingsSave
+         * @description PUT /newsletter/settings: everything, and the version it was edited from.
+         */
+        NewsletterSettingsSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["NewsletterSettings"];
         };
         /**
          * NooraChip
@@ -9657,6 +9808,44 @@ export interface components {
             offset: number;
         };
         /**
+         * SummaryDraftPreview
+         * @description POST /summary/settings/preview: this week's summary for a year with a draft of the words.
+         */
+        SummaryDraftPreview: {
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            words: components["schemas"]["SummaryWords"];
+        };
+        /**
+         * SummaryEditable
+         * @description The words with the version a save must name (0 until the first save: the starting content).
+         */
+        SummaryEditable: {
+            data: components["schemas"]["SummaryWords"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /**
+         * SummaryHeadings
+         * @description Above each part of the summary; a part with nothing in it this week is left out.
+         */
+        SummaryHeadings: {
+            /** Calendar */
+            calendar: string;
+            /** Library */
+            library: string;
+            /** Forum */
+            forum: string;
+            /** Newsletter */
+            newsletter: string;
+        };
+        /**
          * SummaryPreview
          * @description A year's Sunday summary for this week, as plain text with links: what the email says above its footer, and
          *     what a rep pastes into the year's group.
@@ -9680,6 +9869,25 @@ export interface components {
             empty: boolean;
             /** Subscribers */
             subscribers: number;
+        };
+        /**
+         * SummarySave
+         * @description PUT /summary/settings: the words, and the version they were edited from.
+         */
+        SummarySave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["SummaryWords"];
+        };
+        /** SummaryWords */
+        SummaryWords: {
+            /** Subject */
+            subject: string;
+            headings: components["schemas"]["SummaryHeadings"];
+            /** Closing */
+            closing: string;
+            /** Sendat */
+            sendAt: string;
         };
         /** SwitchUpdate */
         SwitchUpdate: {
@@ -10273,6 +10481,10 @@ export type MoveIn = components['schemas']['MoveIn'];
 export type MySenior = components['schemas']['MySenior'];
 export type NearestGuess = components['schemas']['NearestGuess'];
 export type NearestView = components['schemas']['NearestView'];
+export type NewsletterPicture = components['schemas']['NewsletterPicture'];
+export type NewsletterSettings = components['schemas']['NewsletterSettings'];
+export type NewsletterSettingsEditable = components['schemas']['NewsletterSettingsEditable'];
+export type NewsletterSettingsSave = components['schemas']['NewsletterSettingsSave'];
 export type NooraChip = components['schemas']['NooraChip'];
 export type NooraDoc = components['schemas']['NooraDoc'];
 export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
@@ -10400,7 +10612,12 @@ export type SuggestionCreate = components['schemas']['SuggestionCreate'];
 export type SuggestionDecline = components['schemas']['SuggestionDecline'];
 export type SuggestionOut = components['schemas']['SuggestionOut'];
 export type SuggestionPage = components['schemas']['SuggestionPage'];
+export type SummaryDraftPreview = components['schemas']['SummaryDraftPreview'];
+export type SummaryEditable = components['schemas']['SummaryEditable'];
+export type SummaryHeadings = components['schemas']['SummaryHeadings'];
 export type SummaryPreview = components['schemas']['SummaryPreview'];
+export type SummarySave = components['schemas']['SummarySave'];
+export type SummaryWords = components['schemas']['SummaryWords'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
 export type TermStart = components['schemas']['TermStart'];
 export type TextMatch = components['schemas']['TextMatch'];
@@ -19429,6 +19646,259 @@ export interface operations {
             };
         };
     };
+    newsletter_settings_api_v1_newsletter_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsletterSettings"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_newsletter_settings_api_v1_newsletter_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewsletterSettingsSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsletterSettingsEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    newsletter_settings_for_editing_api_v1_newsletter_settings_edit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsletterSettingsEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_issues_api_v1_newsletter_issues_get: {
         parameters: {
             query?: {
@@ -26576,6 +27046,263 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryPreview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    summary_words_api_v1_summary_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_summary_words_api_v1_summary_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SummarySave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_summary_words_api_v1_summary_settings_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SummaryDraftPreview"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

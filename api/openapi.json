@@ -11395,6 +11395,290 @@
         }
       }
     },
+    "/api/v1/newsletter/settings": {
+      "get": {
+        "tags": [
+          "newsletter"
+        ],
+        "summary": "Newsletter Settings",
+        "description": "The line under the newsletter's name, and the pictures its editor offers.",
+        "operationId": "newsletter_settings_api_v1_newsletter_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsletterSettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "newsletter"
+        ],
+        "summary": "Save Newsletter Settings",
+        "description": "Save the masthead's line and the pictures the editor offers, if nobody saved them since `version`. An uploaded\npicture is kept while it's offered. Audited with what changed, before and after.\n\nErrors: newsletter_settings_changed (409: someone saved them since: load them again), invalid_input (422: a field\nthat doesn't fit, a picture that isn't one of the newsletter's, a picture offered twice).",
+        "operationId": "save_newsletter_settings_api_v1_newsletter_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsletterSettingsSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsletterSettingsEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/newsletter/settings/edit": {
+      "get": {
+        "tags": [
+          "newsletter"
+        ],
+        "summary": "Newsletter Settings For Editing",
+        "description": "The settings with the version a save names (0 until the first save).",
+        "operationId": "newsletter_settings_for_editing_api_v1_newsletter_settings_edit_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsletterSettingsEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/newsletter/issues": {
       "get": {
         "tags": [
@@ -20387,6 +20671,300 @@
         }
       }
     },
+    "/api/v1/summary/settings": {
+      "get": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Summary Words",
+        "description": "The summary's words with the version a save names (0 until the first save).",
+        "operationId": "summary_words_api_v1_summary_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Save Summary Words",
+        "description": "Save the subject line, the headings, the closing line and the Sunday send time, if nobody saved them since\n`version`. Audited with what changed, before and after.\n\nErrors: summary_changed (409: someone saved them since: load them again), invalid_input (422: a field that\ndoesn't fit, a placeholder other than {year} and {week}, a time that isn't HH:MM).",
+        "operationId": "save_summary_words_api_v1_summary_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SummarySave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/summary/settings/preview": {
+      "post": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Preview Summary Words",
+        "description": "This week's summary for a year in a draft of the words. Nothing is saved or sent.",
+        "operationId": "preview_summary_words_api_v1_summary_settings_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SummaryDraftPreview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/video-suggestions": {
       "post": {
         "tags": [
@@ -26544,6 +27122,18 @@
       },
       "CareerDoc": {
         "properties": {
+          "intro": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Intro"
+          },
+          "employersNote": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Employersnote"
+          },
           "checkedOn": {
             "type": "string",
             "maxLength": 60,
@@ -26696,6 +27286,8 @@
         },
         "type": "object",
         "required": [
+          "intro",
+          "employersNote",
           "checkedOn",
           "initialCount",
           "tracks",
@@ -28216,6 +28808,8 @@
               "guides_changed",
               "forum_changed",
               "noora_changed",
+              "summary_changed",
+              "newsletter_settings_changed",
               "already_a_lesson",
               "already_suggested",
               "suggestion_closed",
@@ -34591,6 +35185,141 @@
         ],
         "title": "NearestView"
       },
+      "NewsletterPicture": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "src": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Src"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "width": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Height"
+          },
+          "cover": {
+            "type": "boolean",
+            "title": "Cover",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "src",
+          "label",
+          "width",
+          "height"
+        ],
+        "title": "NewsletterPicture",
+        "description": "A picture the issue editor offers to choose: a picture of the web app or an uploaded newsletter picture. Width\nand height (pixels) reserve its space while it loads."
+      },
+      "NewsletterSettings": {
+        "properties": {
+          "masthead": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Masthead"
+          },
+          "pictures": {
+            "items": {
+              "$ref": "#/components/schemas/NewsletterPicture"
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Pictures"
+          }
+        },
+        "type": "object",
+        "required": [
+          "masthead",
+          "pictures"
+        ],
+        "title": "NewsletterSettings",
+        "description": "The newsletter's own words and the pictures its editor offers, edited by holders of newsletter.manage in\nManage \u2192 Newsletter (its starting content is app/seed/data/newsletter_settings.json)."
+      },
+      "NewsletterSettingsEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/NewsletterSettings"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "title": "NewsletterSettingsEditable"
+      },
+      "NewsletterSettingsSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NewsletterSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "NewsletterSettingsSave",
+        "description": "PUT /newsletter/settings: everything, and the version it was edited from."
+      },
       "NooraChip": {
         "properties": {
           "text": {
@@ -40799,6 +41528,108 @@
         ],
         "title": "SuggestionPage"
       },
+      "SummaryDraftPreview": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "words": {
+            "$ref": "#/components/schemas/SummaryWords"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "words"
+        ],
+        "title": "SummaryDraftPreview",
+        "description": "POST /summary/settings/preview: this week's summary for a year with a draft of the words."
+      },
+      "SummaryEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SummaryWords"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "title": "SummaryEditable",
+        "description": "The words with the version a save must name (0 until the first save: the starting content)."
+      },
+      "SummaryHeadings": {
+        "properties": {
+          "calendar": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Calendar"
+          },
+          "library": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Library"
+          },
+          "forum": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Forum"
+          },
+          "newsletter": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Newsletter"
+          }
+        },
+        "type": "object",
+        "required": [
+          "calendar",
+          "library",
+          "forum",
+          "newsletter"
+        ],
+        "title": "SummaryHeadings",
+        "description": "Above each part of the summary; a part with nothing in it this week is left out."
+      },
       "SummaryPreview": {
         "properties": {
           "year": {
@@ -40843,6 +41674,57 @@
         ],
         "title": "SummaryPreview",
         "description": "A year's Sunday summary for this week, as plain text with links: what the email says above its footer, and\nwhat a rep pastes into the year's group."
+      },
+      "SummarySave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SummaryWords"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "SummarySave",
+        "description": "PUT /summary/settings: the words, and the version they were edited from."
+      },
+      "SummaryWords": {
+        "properties": {
+          "subject": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Subject"
+          },
+          "headings": {
+            "$ref": "#/components/schemas/SummaryHeadings"
+          },
+          "closing": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Closing"
+          },
+          "sendAt": {
+            "type": "string",
+            "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$",
+            "title": "Sendat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "headings",
+          "closing",
+          "sendAt"
+        ],
+        "title": "SummaryWords"
       },
       "SwitchUpdate": {
         "properties": {

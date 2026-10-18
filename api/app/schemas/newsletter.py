@@ -18,7 +18,7 @@ from uuid import UUID
 from pydantic import AfterValidator, Field, StringConstraints, ValidationInfo, field_validator, model_validator
 from pydantic_core import PydanticCustomError
 
-from app.schemas.common import ApiModel
+from app.schemas.common import ApiModel, UserPublic
 from app.schemas.links import MARKUP, HubLink, PictureSrc
 
 Reaction = Literal["useful", "love", "laugh"]
@@ -321,3 +321,50 @@ class IssueUpdate(ApiModel):
     summary: Standfirst | None = None
     editors: list[Editor] | None = Field(default=None, max_length=12)
     sections: Sections | None = None
+
+
+# ── the newsletter's settings ────────────────────────────────────────────────────────────────
+
+
+class NewsletterPicture(ApiModel):
+    """A picture the issue editor offers to choose: a picture of the web app or an uploaded newsletter picture. Width
+    and height (pixels) reserve its space while it loads."""
+
+    id: Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=64)]
+    src: PictureSrc
+    label: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]  # what it shows
+    width: int = Field(ge=1, le=10_000)
+    height: int = Field(ge=1, le=10_000)
+    cover: bool = False  # portrait 3:4, made to fill an issue's cover: offered for covers too
+
+
+class NewsletterSettings(ApiModel):
+    """The newsletter's own words and the pictures its editor offers, edited by holders of newsletter.manage in
+    Manage → Newsletter (its starting content is app/seed/data/newsletter_settings.json)."""
+
+    masthead: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]  # under its name
+    pictures: list[NewsletterPicture] = Field(max_length=24)
+
+    @model_validator(mode="after")
+    def _unique(self) -> NewsletterSettings:
+        ids = [p.id for p in self.pictures]
+        if len(set(ids)) != len(ids):
+            raise PydanticCustomError("duplicate", "Two pictures have the same id.")
+        srcs = [p.src for p in self.pictures]
+        if len(set(srcs)) != len(srcs):
+            raise PydanticCustomError("duplicate", "A picture is offered twice.")
+        return self
+
+
+class NewsletterSettingsEditable(ApiModel):
+    data: NewsletterSettings
+    version: int  # 0 until the first save
+    updated_at: dt.datetime | None
+    updated_by: UserPublic | None
+
+
+class NewsletterSettingsSave(ApiModel):
+    """PUT /newsletter/settings: everything, and the version it was edited from."""
+
+    version: int = Field(ge=0)
+    data: NewsletterSettings

@@ -4,9 +4,10 @@
 //   POST/PATCH/DELETE …/issues[/{id}], POST …/{id}/publish       moderators
 //   PUT/DELETE …/{id}/sections/{section}/reactions/{reaction}    signed in (optimistic)
 // The email about new issues is an account preference: PATCH /api/v1/me { preferences: { emailNewIssues } }.
+//   GET  /api/v1/newsletter/settings[/edit], PUT …/settings    the masthead's line and the pictures the editor offers
 import { useMutation, useQueries, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
-import type { IssueCreate, IssueDetail, IssueSummary, IssueUpdate, Me, ReactionCounts } from '../../api/types';
+import type { IssueCreate, IssueDetail, IssueSummary, IssueUpdate, Me, NewsletterSettingsEditable, NewsletterSettingsSave, ReactionCounts } from '../../api/types';
 import { ME_KEY } from '../../auth';
 import { readMinutes } from './lib/text';
 import type { Issue, IssueCard, Reaction } from './types';
@@ -234,4 +235,45 @@ export function useNewIssueEmails() {
     },
     onSuccess: (me) => qc.setQueryData(ME_KEY, me),
   });
+}
+
+// ── the newsletter's settings ───────────────────────────────────────────────────────────────────
+
+// Outside the newsletter's own keys, so refreshing the issues never refetches the editor's copy.
+const SETTINGS_KEY = ['newsletter-settings'] as const;
+const EDIT_SETTINGS_KEY = ['newsletter-settings', 'edit'] as const;
+
+/** The line under the newsletter's name and the pictures its editor offers. They change rarely. */
+export function useNewsletterSettings() {
+  return useQuery({
+    queryKey: SETTINGS_KEY,
+    queryFn: ({ signal }) => call(api.GET('/api/v1/newsletter/settings', { signal })),
+    staleTime: 10 * 60_000,
+  });
+}
+
+export function useNewsletterSettingsForEditing() {
+  return useQuery({
+    queryKey: EDIT_SETTINGS_KEY,
+    queryFn: ({ signal }) => call(api.GET('/api/v1/newsletter/settings/edit', { signal })),
+    // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useSaveNewsletterSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: NewsletterSettingsSave) => call(api.PUT('/api/v1/newsletter/settings', { body })),
+    onSuccess: (saved: NewsletterSettingsEditable) => {
+      qc.setQueryData(EDIT_SETTINGS_KEY, saved);
+      qc.setQueryData(SETTINGS_KEY, saved.data);
+    },
+  });
+}
+
+export function useReloadNewsletterSettings() {
+  const qc = useQueryClient();
+  return () => qc.refetchQueries({ queryKey: EDIT_SETTINGS_KEY, exact: true });
 }

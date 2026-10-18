@@ -11,7 +11,7 @@ import { ForumSettingsEditor, ReportsQueue } from '../forum/public';
 import { ModulesEditor, SuggestionsQueue } from '../modules/public';
 import { FlaggedQuestions, UploadsQueue } from '../library/public';
 import { RequestsQueue } from '../requests/public';
-import { IssuesManager } from '../newsletter/public';
+import { IssuesManager, NewsletterSettingsEditor } from '../newsletter/public';
 import { NooraEditor } from '../noora/public';
 import { SiteEditor } from '../site/public';
 import { GuidesEditor } from '../start/public';
@@ -19,6 +19,7 @@ import { useAdminStats } from './api';
 import { Gaps } from './Gaps';
 import { NooraNumbers } from './NooraNumbers';
 import { SundaySummary } from './SundaySummary';
+import { SummaryWords } from './SummaryWords';
 import { BugReports } from '../bugs/public';
 import { groupSections, sectionsFor, type SectionId } from './sections';
 import './ManagePage.css';
@@ -96,7 +97,13 @@ function LinkOut({ icon, title, body, to, label }: { icon: Icon; title: string; 
 
 function SummaryForMe() {
   const { me } = useAuth();
-  return <SundaySummary defaultYear={normalizeYear(me?.year)} />;
+  const year = normalizeYear(me?.year);
+  return (
+    <div className="manage-stack">
+      <SundaySummary defaultYear={year} />
+      <SummaryWords defaultYear={year} />
+    </div>
+  );
 }
 
 const BODIES: Record<SectionId, () => ReactNode> = {
@@ -109,7 +116,12 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   ),
   requests: () => <RequestsQueue />,
   bugs: () => <BugReports />,
-  newsletter: () => <IssuesManager />,
+  newsletter: () => (
+    <div className="manage-stack">
+      <IssuesManager />
+      <NewsletterSettingsEditor />
+    </div>
+  ),
   calendar: () => <LinkOut icon={CalendarDots} title="The calendar" body="Add, edit and delete events from the calendar itself." to="/calendar" label="Open the calendar" />,
   summary: () => <SummaryForMe />,
   career: () => <CareerEditor />,
@@ -126,7 +138,7 @@ const BODIES: Record<SectionId, () => ReactNode> = {
 };
 
 /** The tabs that hold a draft. */
-const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['career', 'guides', 'forum', 'noora', 'site']);
+const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['newsletter', 'summary', 'career', 'guides', 'forum', 'noora', 'site']);
 
 const HEADER = <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />;
 

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import re
 from typing import Generic, Literal, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AfterValidator, BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
+from pydantic_core import PydanticCustomError
 
 T = TypeVar("T")
 
@@ -17,6 +19,22 @@ class ApiModel(BaseModel):
     """Base for every API model: camelCase on the wire, snake_case in Python, built from ORM objects."""
 
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
+
+
+_PLACEHOLDER = re.compile(r"\{([^{}]*)\}")
+
+
+def placeholders(allowed: tuple[str, ...]) -> AfterValidator:
+    """Copy whose {curly brackets} hold only these names ('{module}'), which the hub fills in when it shows it."""
+
+    def check(value: str) -> str:
+        for name in _PLACEHOLDER.findall(value):
+            if name not in allowed:
+                shown = " and ".join(f"{{{a}}}" for a in allowed)
+                raise PydanticCustomError("placeholder", "Use only {shown} between curly brackets.", {"shown": shown})
+        return value
+
+    return AfterValidator(check)
 
 
 class Page(ApiModel, Generic[T]):
@@ -91,12 +109,14 @@ ErrorCode = Literal[
     # modules and lessons (R-9)
     "module_changed",  # 409: another editor saved the module since it was loaded: load it again
     "content_in_use",  # 409: notes, cards, files or threads refer to it: hide it instead
-    # the documents edited whole in Manage: Career Navigator, Site settings, the guides, the forum, Mini Noora
+    # documents edited whole in Manage: Career Navigator, Site settings, the guides, the forum, Mini Noora, summary
     "career_changed",  # 409: someone saved Career Navigator since it was loaded: load it again
     "site_changed",  # 409: someone saved the site settings since they were loaded: load them again
     "guides_changed",  # 409: someone saved the guides since they were loaded: load them again
     "forum_changed",  # 409: someone saved the forum's settings since they were loaded: load them again
     "noora_changed",  # 409: someone saved Mini Noora's words since they were loaded: load them again
+    "summary_changed",  # 409: someone saved the Sunday summary's words since they were loaded: load them again
+    "newsletter_settings_changed",  # 409: someone saved the newsletter's settings since they were loaded
     # suggested videos
     "already_a_lesson",  # 409: the module already has this video as a lesson
     "already_suggested",  # 409: this video already waits for review for the module

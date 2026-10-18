@@ -8,8 +8,9 @@ The forum's categories and tags become tables that moderators edit in Manage →
 forum has had so far. A thread's category is a foreign key to its category: a category that threads use can't be
 deleted, only retired (it stops being offered and its threads keep it).
 
-Site settings gain Home's blocks for a new student, the tour's steps, and search's nicknames and suggestions. Site
-settings saved before this get them as they start (app/seed/data/site.json); unsaved ones read the seed anyway.
+Site settings gain Home's blocks for a new student, the tour's steps, and search's nicknames and suggestions; the
+Career Navigator's document gains the page's intro and the note under the employers. Documents saved before this get
+them as they start (app/seed/data/site.json and career.json); unsaved site settings read the seed anyway.
 """
 
 from __future__ import annotations
@@ -97,6 +98,25 @@ SITE_ADDITIONS: dict[str, Any] = {
     "searchSuggestions": ["Econometrics", "Past papers", "Regression", "ST2133"],
 }
 
+CAREER_ADDITIONS = {
+    "intro": "Graduate programmes, internships and careers pages at employers in Bahrain.",
+    "employersNote": (
+        "Every button opens the employer\u2019s own careers or programme page in a new tab. Programmes open and close "
+        "during the year and each sets its own entry rules, so check the page for current dates. The track tags are "
+        "our guide to the kind of work, not a list of vacancies. Logos belong to their owners and are shown only to "
+        "identify each organisation; DSBA Hub is not affiliated with or endorsed by any of them."
+    ),
+}
+
+
+def _add(key: str, marker: str, additions: dict[str, Any]) -> None:
+    """Gives a saved document the parts it lacks, as they start."""
+    op.execute(
+        sa.text(
+            "UPDATE content_docs SET data = CAST(:extra AS jsonb) || data WHERE key = :key AND data->:marker IS NULL"
+        ).bindparams(extra=json.dumps(additions, ensure_ascii=False), key=key, marker=marker)
+    )
+
 
 def upgrade() -> None:
     categories = op.create_table(
@@ -136,14 +156,12 @@ def upgrade() -> None:
         ["id"],
         ondelete="RESTRICT",
     )
-    op.execute(
-        sa.text(
-            "UPDATE content_docs SET data = data || CAST(:extra AS jsonb) WHERE key = 'site' AND data->'homeBlocks' IS NULL"
-        ).bindparams(extra=json.dumps(SITE_ADDITIONS, ensure_ascii=False))
-    )
+    _add("site", "homeBlocks", SITE_ADDITIONS)
+    _add("career", "intro", CAREER_ADDITIONS)
 
 
 def downgrade() -> None:
+    op.execute("UPDATE content_docs SET data = data - 'intro' - 'employersNote' WHERE key = 'career'")
     op.execute(
         "UPDATE content_docs SET data = data - 'homeBlocks' - 'tour' - 'searchNicknames' - 'searchSuggestions' "
         "WHERE key = 'site'"

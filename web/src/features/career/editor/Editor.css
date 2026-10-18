@@ -10,7 +10,6 @@
   gap: var(--sp-12);
 }
 .cedit__intro { display: grid; gap: var(--sp-4); min-width: 0; }
-.cedit__title { margin: 0; font-size: var(--fs-20); line-height: var(--lh-heading); letter-spacing: var(--tracking-head); }
 .cedit__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
 .cedit__note { margin: 0; max-width: 75ch; color: var(--ink-2); font-size: var(--fs-14); }
 .cedit__empty { margin: 0; color: var(--ink-2); }

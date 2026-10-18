@@ -16,6 +16,8 @@ import {
 
 function mockDoc(): CareerDoc {
   return {
+    intro: 'Employers in Bahrain.',
+    employersNote: 'Buttons open the employer’s own page.',
     checkedOn: 'October 2026',
     initialCount: 6,
     defaultRoleId: 'quant',

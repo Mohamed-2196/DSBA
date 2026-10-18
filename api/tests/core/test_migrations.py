@@ -131,3 +131,35 @@ def test_the_database_refuses_what_the_contract_does_not_list(scratch: tuple[Con
     for constraint, statement in refused.items():
         with pytest.raises(IntegrityError, match=constraint), engine.begin() as c:
             c.execute(text(statement), ids)
+
+
+def test_documents_saved_before_their_new_parts_get_them_as_they_start(scratch: tuple[Config, Engine]) -> None:
+    """Site settings and Career Navigator saved before the parts added since then get those parts from the seed; the
+    forum gets the categories and tags it had, as tables."""
+    import json
+
+    seed = API_ROOT / "app" / "seed" / "data"
+    site, career = (json.loads((seed / f"{name}.json").read_text(encoding="utf-8")) for name in ("site", "career"))
+    cfg, engine = scratch
+    command.upgrade(cfg, "0028")
+    saved_site = {
+        k: v for k, v in site.items() if k not in ("homeBlocks", "tour", "searchNicknames", "searchSuggestions")
+    }
+    saved_career = {k: v for k, v in career.items() if k not in ("intro", "employersNote")}
+    with engine.begin() as c:
+        for key, data in (("site", saved_site), ("career", saved_career)):
+            c.execute(
+                text("INSERT INTO content_docs (key, data, version) VALUES (:key, CAST(:data AS jsonb), 3)"),
+                {"key": key, "data": json.dumps(data)},
+            )
+    command.upgrade(cfg, "head")
+    with engine.connect() as c:
+        docs = dict(c.execute(text("SELECT key, data FROM content_docs")).tuples().all())
+        assert docs["site"] == site
+        assert docs["career"] == career
+        assert c.scalar(text("SELECT count(*) FROM forum_categories WHERE NOT retired")) == 5
+        assert c.scalar(text("SELECT count(*) FROM forum_tags")) == 12
+    command.downgrade(cfg, "0028")
+    with engine.connect() as c:
+        docs = dict(c.execute(text("SELECT key, data FROM content_docs")).tuples().all())
+        assert (docs["site"], docs["career"]) == (saved_site, saved_career)

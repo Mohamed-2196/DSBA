@@ -161,7 +161,6 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
       <div className="cedit">
         <div className="cedit__head">
           <div className="cedit__intro">
-            <h3 className="cedit__title">Career Navigator</h3>
             <p className="cedit__note">
               {loaded.updatedAt ? `Saved ${timeAgo(loaded.updatedAt)}${savedBy ? ` by ${savedBy}` : ''}. ` : ''}
               {dirty ? 'You have changes that aren’t saved.' : 'No unsaved changes.'}

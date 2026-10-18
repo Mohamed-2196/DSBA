@@ -1,0 +1,15 @@
+/* Manage → Newsletter, its settings: a picture beside its fields, and the upload button under the list. */
+.nl-set__thumb {
+  display: block;
+  max-width: 12rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+}
+.nl-set__thumb img { display: block; width: 100%; height: auto; max-height: 14rem; object-fit: contain; }
+.nl-set__fields { display: grid; gap: var(--sp-12); min-width: 0; }
+.nl-set__meta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); }
+.nl-set__add { display: grid; gap: var(--sp-8); justify-items: start; }
+.nl-set { display: grid; gap: var(--sp-12); min-width: 0; }
+.nl-set__title { margin: 0; font-size: var(--fs-16); font-weight: var(--fw-semibold); }

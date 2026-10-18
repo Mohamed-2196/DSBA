@@ -6,7 +6,7 @@ import { useAuth } from '../../auth';
 import { formatDay, formatMonthYear, parseDay } from '../../lib/dates';
 import { useDocumentTitle } from '../../state';
 import { Badge, Button, IconButton, Page, Panel, QueryError, Skeleton } from '../../ui';
-import { toCard, useIssueDetails, useIssues } from './api';
+import { toCard, useIssueDetails, useIssues, useNewsletterSettings } from './api';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
 import { IssueCover } from './components/IssueCover';
 import { Nameplate } from './components/Nameplate';
@@ -19,6 +19,7 @@ import './NewsletterPage.css';
 const issueHref = (issue: { slug: string }, section?: string): string => `/newsletter/${issue.slug}${section ? `?section=${section}` : ''}`;
 
 function Masthead({ first, latest }: { first: IssueCard | undefined; latest: IssueCard | undefined }) {
+  const line = useNewsletterSettings().data?.masthead;
   return (
     <header className="nl-masthead" data-hub="nl-masthead">
       <h1 className="nl-masthead__title">
@@ -26,7 +27,7 @@ function Masthead({ first, latest }: { first: IssueCard | undefined; latest: Iss
       </h1>
       <div className="nl-masthead__rules" aria-hidden="true" />
       <div className="nl-masthead__folio">
-        <p className="nl-masthead__tagline">News from the DSBA programme, written by students for students. We publish when there’s something worth your time.</p>
+        <p className="nl-masthead__tagline">{line ?? <Skeleton width="90%" height="1em" />}</p>
         <dl className="nl-masthead__facts">
           {first ? (
             <div className="nl-masthead__fact">

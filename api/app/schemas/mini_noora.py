@@ -21,11 +21,10 @@ from typing import Annotated, Literal
 from pydantic import AfterValidator, Field, StringConstraints, model_validator
 from pydantic_core import PydanticCustomError
 
-from app.schemas.common import ApiModel, UserPublic
+from app.schemas.common import ApiModel, UserPublic, placeholders
 
 ItemId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=64)]
 _DATA_TAGS = re.compile(r"<\s*/?\s*(hub_data|student_note)", re.IGNORECASE)
-_PLACEHOLDER = re.compile(r"\{([^{}]*)\}")
 
 
 def _no_data_tags(value: str) -> str:
@@ -36,17 +35,6 @@ def _no_data_tags(value: str) -> str:
     return value
 
 
-def _placeholders(allowed: tuple[str, ...]) -> AfterValidator:
-    def check(value: str) -> str:
-        for name in _PLACEHOLDER.findall(value):
-            if name not in allowed:
-                shown = " and ".join(f"{{{a}}}" for a in allowed)
-                raise PydanticCustomError("placeholder", "Use only {shown} between curly brackets.", {"shown": shown})
-        return value
-
-    return AfterValidator(check)
-
-
 Instructions = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=40, max_length=8000), AfterValidator(_no_data_tags)
 ]
@@ -55,7 +43,7 @@ Fact = Annotated[
 ]
 Line = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]
 Question = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
-PageQuestion = Annotated[Question, _placeholders(("module", "module2"))]
+PageQuestion = Annotated[Question, placeholders(("module", "module2"))]
 StarterText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]
 # The pages her questions are offered on; 'other' is every page without questions of its own.
 NooraPage = Literal["home", "modules", "module", "library", "calendar", "forum", "notes", "grades", "other"]
@@ -108,9 +96,9 @@ class NooraStarter(ApiModel):
     icon: StarterIcon
     title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]
     example: Annotated[
-        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80), _placeholders(("module",))
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80), placeholders(("module",))
     ]
-    template: Annotated[StarterText, _placeholders(("module",))]
+    template: Annotated[StarterText, placeholders(("module",))]
 
 
 class NooraScript(ApiModel):
