@@ -52,7 +52,7 @@ FeatureKey = Literal[
     "requests.autoclose",
     "requests.done",
     "summary",
-    "video_suggestions",
+    "modules.video-suggestions",
     "daily",
 ]
 

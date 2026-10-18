@@ -11,8 +11,8 @@ from sqlalchemy import Computed, ForeignKey, Index, Integer, SmallInteger, Strin
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk
-from app.schemas.library import ZONES, LibraryKind
+from app.models.base import Base, check_in, created_ts, in_range, str_enum, uuid_pk
+from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, ZONES, LibraryKind
 from app.schemas.requests import RequestKind
 
 
@@ -40,9 +40,12 @@ class StudentRequest(Base):
         Index("ix_requests_event", "event_id"),  # a confirmed date closes its requests; event deletion (SET NULL)
         Index("ix_requests_found_item", "found_item_id"),
         Index("ix_requests_queue", "me_too_count", "created_at", postgresql_where=text("removed_at IS NULL")),
+        # "You asked, we did": the requests done lately, newest answer first (services/requests.py done)
+        Index("ix_requests_done", "answered_at", postgresql_where=text("status = 'done' AND removed_at IS NULL")),
         Index("ix_requests_search", "search_vector", postgresql_using="gin"),
         check_in("kind", get_args(RequestKind)),
         check_in("wanted_kind", get_args(LibraryKind)),
+        in_range("exam_year", EXAM_YEAR_MIN, EXAM_YEAR_MAX),
         check_in("zone", ZONES),
     )
 

@@ -23,8 +23,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import SLUG, Base, check_in, created_ts, str_enum, uuid_pk, year_range
-from app.schemas.library import ZONES, ExamSession, LibraryKind
+from app.models.base import SLUG, Base, check_in, created_ts, in_range, str_enum, uuid_pk, year_range
+from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, ZONES, ExamSession, LibraryKind
 
 
 class ItemSource(enum.StrEnum):
@@ -48,7 +48,9 @@ class LibraryItem(Base):
         Index("ix_library_items_search", "search_vector", postgresql_using="gin"),
         Index("ix_library_items_content_hash", "content_hash"),  # the same file twice (services/library.py duplicate)
         Index("ix_library_items_drive_folder", "drive_folder_id"),  # a module's shelves; folder deletion
-        check_in("kind", get_args(LibraryKind)),  # code quality review CQ-15
+        check_in("kind", get_args(LibraryKind)),
+        # A sitting: the exam year and session, and the zone's paper (schemas/library.py)
+        in_range("exam_year", EXAM_YEAR_MIN, EXAM_YEAR_MAX),
         check_in("exam_session", get_args(ExamSession)),
         check_in("zone", ZONES),
         year_range(),

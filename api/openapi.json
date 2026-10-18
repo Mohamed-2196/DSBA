@@ -3747,7 +3747,7 @@
                 "requests.autoclose",
                 "requests.done",
                 "summary",
-                "video_suggestions",
+                "modules.video-suggestions",
                 "daily"
               ],
               "type": "string",
@@ -34258,7 +34258,7 @@
               "requests.autoclose",
               "requests.done",
               "summary",
-              "video_suggestions",
+              "modules.video-suggestions",
               "daily"
             ],
             "title": "Feature"
@@ -34352,7 +34352,7 @@
                 "requests.autoclose",
                 "requests.done",
                 "summary",
-                "video_suggestions",
+                "modules.video-suggestions",
                 "daily"
               ]
             },
@@ -38478,7 +38478,7 @@
                 "requests.autoclose",
                 "requests.done",
                 "summary",
-                "video_suggestions",
+                "modules.video-suggestions",
                 "daily"
               ]
             },
@@ -41382,7 +41382,7 @@
                   "requests.autoclose",
                   "requests.done",
                   "summary",
-                  "video_suggestions",
+                  "modules.video-suggestions",
                   "daily"
                 ]
               },

@@ -24,7 +24,7 @@ VIDEO = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 @pytest.fixture(autouse=True)
 def suggestions_on(set_feature: Callable[..., None]) -> None:
-    set_feature("video_suggestions", "everyone")
+    set_feature("modules.video-suggestions", "everyone")
 
 
 @pytest.fixture
@@ -243,7 +243,7 @@ def test_no_notice_while_the_feature_is_off_for_the_student(
     client_for: Clients, student: User, manager: User, module: Module, db: Session, set_feature: Callable[..., None]
 ) -> None:
     made = suggest(client_for(student), module)
-    set_feature("video_suggestions", "roles", ["content-manager"])
+    set_feature("modules.video-suggestions", "roles", ["content-manager"])
     r = client_for(manager).post(f"{API}/content/video-suggestions/{made['id']}/decline", json={"reply": "Off topic."})
     assert r.status_code == 200, r.text
     assert told(db, student) == []
