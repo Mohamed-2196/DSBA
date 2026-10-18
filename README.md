@@ -1,9 +1,10 @@
 # DSBA Hub
 
 The student hub for BIBF's BSc Data Science and Business Analytics (University of London): modules and lessons,
-a library of past papers and notes, a forum, the newsletter, the programme calendar, the Career Navigator, search
-and a grades calculator. Reading is open to everyone. Posting, uploading, notifications and synced lesson progress
-need an account: students sign in with a one-time code sent to their email or phone, with no passwords.
+a library of past papers and notes, a forum, the newsletter, the programme calendar, the Career Navigator, search,
+a grades calculator, Mini Noora (the hub's helper) and the Daily puzzles. Reading is open to everyone. Posting,
+uploading, notifications, synced lesson progress and a student's own notebook, boards and calendar need an account:
+students sign in with a one-time code sent to their email or phone, with no passwords.
 
 ```
 api/            the API: Python 3.11+, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL, S3 (managed with uv)
@@ -21,9 +22,11 @@ docker compose up --build
 
 Then open http://localhost:5173. The stack runs PostgreSQL, MinIO (the S3 store, console at
 http://localhost:9001), Mailpit (every email the Hub sends, sign-in codes included: http://localhost:8025), the
-API (http://localhost:8000, interactive docs at `/api/v1/docs`), the mail worker (notification emails) and the
-Vite dev server. The API applies the
-migrations and loads the reference content when it starts, and reloads when a file under `api/app` changes.
+API (http://localhost:8000, interactive docs at `/api/v1/docs`), the mail worker (emails, the Sunday summary and
+reminders), the text worker (search inside papers) and the Vite dev server. The API applies the migrations and
+loads the reference content when it starts, and reloads when a file under `api/app` changes. Every feature added
+after the first ones arrives switched off: `docker compose exec api python -m app.cli enable-features` turns them
+all on.
 Codes sent by text appear in the API's log: `docker compose logs -f api`.
 
 The defaults need no `.env`; to change them, copy `.env.example` to `.env`. To make yourself an admin, put your
@@ -84,8 +87,9 @@ CI (`.github/workflows/ci.yml`) runs it with `--fail-fast` on every push and on 
   four workers, each with a database of its own: `uv run --no-sync pytest -n auto --maxprocesses 4` (as
   `scripts/check.sh` runs it).
 - **Web unit tests:** `cd web && npm test` (Vitest). Put `name.test.ts` next to the module it checks.
-- **End-to-end:** `cd web && npx playwright test`, against a running stack. It signs up two students with real
-  codes, so it reads the API's emails and texts from files (settings in `web/e2e/support.ts`).
+- **End-to-end:** `scripts/e2e.sh` (about three minutes; `scripts/e2e.sh --restore` afterwards), against the Docker
+  stack. It signs up students with real codes, so it switches the stack to write emails and texts to files
+  (`compose.e2e.yaml`) and reads them there; arguments go on to `npx playwright test` (pick tests with `-g "title"`).
 
 After changing the API's request or response shapes, regenerate both contract files:
 `cd api && uv run --no-sync python -m app.cli openapi > openapi.json && cd ../web && npm run api:types`.
@@ -95,14 +99,18 @@ and read what it generated.
 ## Deploy
 
 Production is one server running Docker Compose (`compose.prod.yaml`: Caddy with TLS in front of the built app and
-the API, PostgreSQL, a daily backup and a daily clean-up) and an S3 bucket outside it. The settings, the bucket,
-the security headers, backups and restores are in [docs/backend/DEPLOYMENT.md](docs/backend/DEPLOYMENT.md).
+the API, PostgreSQL, the mail and text workers, a daily backup and a daily clean-up) and an S3 bucket outside it.
+Every setting, the bucket, the security headers, backups and restores are in
+[docs/backend/DEPLOYMENT.md](docs/backend/DEPLOYMENT.md). Every push to `feature/backend` deploys to the Railway dev
+environment (DEPLOYMENT.md, section 12).
 
 ## Docs
 
 | | |
 |---|---|
-| [docs/backend/ARCHITECTURE.md](docs/backend/ARCHITECTURE.md) | how the code is organised and who owns what, the API contract, conventions, the security baseline, and the product decisions |
-| [docs/backend/DEPLOYMENT.md](docs/backend/DEPLOYMENT.md) | production: settings, object storage, the proxy and headers, backups and restore, the sweep, analytics |
+| [docs/STATUS.md](docs/STATUS.md) | where the work stands, what's next and what Mohamed still has to decide |
+| [docs/backend/ARCHITECTURE.md](docs/backend/ARCHITECTURE.md) | how the code is organised and where each area lives, the API contract, conventions, access, the security baseline, and the product decisions |
+| [docs/backend/CMS.md](docs/backend/CMS.md) | every piece of content students see, where it is edited in Manage, by whom, and what it starts from |
+| [docs/backend/DEPLOYMENT.md](docs/backend/DEPLOYMENT.md) | production: every setting, object storage, the proxy and headers, backups and restore, the sweep, analytics, the workers |
 | [docs/reviews/](docs/reviews/) | the security, code-quality, UI/UX and student-test reviews |
 | [docs/prototype/](docs/prototype/) | the product spec and the design foundation of the prototype the app grew from |
