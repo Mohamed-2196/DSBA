@@ -511,6 +511,12 @@
   margin: 0;
   font-size: var(--fs-14);
 }
+/* The browser sets list numbers in tabular figures, which in this typeface widen the full stop after them. */
+.dcms-preview__groups > li::marker,
+.dcms-preview__questions > li::marker {
+  color: var(--ink-2);
+  font-variant-numeric: normal;
+}
 .dcms-preview__grid {
   margin: 0;
   justify-self: start;
@@ -683,7 +689,6 @@
   margin: 0;
   color: var(--ink-2);
   font-size: var(--fs-14);
-  font-variant-numeric: tabular-nums;
 }
 .dcms-today__rows,
 .dcms-today__words-list {

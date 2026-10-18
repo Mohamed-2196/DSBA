@@ -72,6 +72,7 @@ export function ItemDialog({ game, item, themes, defaultTheme, fixToday = false,
   const today = useTodayPuzzles(inToday);
   const todayGame = today.data?.games.find((g) => g.game === game);
   const fixing = inToday && fix;
+  const themeTitle = themes.find((t) => t.id === theme)?.title ?? theme;
   const [check, setCheck] = useState<TodayFixOut | null>(null);
   const pending = create.isPending || save.isPending || fixer.isPending;
   const error = fixing ? fixer.error : item ? save.error : create.error;
@@ -112,7 +113,7 @@ export function ItemDialog({ game, item, themes, defaultTheme, fixToday = false,
           toast(
             out.changes.length
               ? {
-                  title: `Today’s ${info.label.toLowerCase()} is fixed.`,
+                  title: 'Fixed for today and the days to come.',
                   body: out.playing ? 'Students partway through start again.' : undefined,
                   tone: 'success',
                 }
@@ -224,15 +225,21 @@ export function ItemDialog({ game, item, themes, defaultTheme, fixToday = false,
             }
           />
         ) : null}
-        <Select
-          label="Theme"
-          value={theme}
-          onChange={(e) => setTheme(e.target.value)}
-          options={themes.map((t) => ({ value: t.id, label: t.title }))}
-          error={err('theme')}
-          disabled={fixing}
-          hint={fixing ? 'A fix keeps the item in its theme.' : undefined}
-        />
+        {fixing ? (
+          <p className="dcms__note">
+            {data.game === 'groups'
+              ? `In ${themeTitle}, at level ${data.level}. A fix keeps both: today’s board has one group a level.`
+              : `In ${themeTitle}. A fix keeps it there.`}
+          </p>
+        ) : (
+          <Select
+            label="Theme"
+            value={theme}
+            onChange={(e) => setTheme(e.target.value)}
+            options={themes.map((t) => ({ value: t.id, label: t.title }))}
+            error={err('theme')}
+          />
+        )}
         {data.game === 'word' ? (
           <AnswerField word={data.word} error={err('data.word')} onChange={(word) => setData({ game: 'word', word })} />
         ) : data.game === 'search' ? (
@@ -358,7 +365,7 @@ function GroupFields({
   data: Extract<ItemData, { game: 'groups' }>;
   err: Err;
   onChange: (data: ItemData) => void;
-  /** fixing today's puzzle, whose board has one group a level */
+  /** fixing today's puzzle, whose board has one group a level: the level stays */
   fixing: boolean;
 }) {
   const [text, setText] = useState(data.words.join('\n'));
@@ -374,19 +381,16 @@ function GroupFields({
         hint="Shown once the group is found: “Measures of centre”."
         data-autofocus
       />
-      <Select
-        label="Level"
-        value={data.level}
-        onChange={(e) => onChange({ ...data, level: Number(e.target.value) })}
-        options={LEVELS.map((l) => ({ value: l.level, label: l.label }))}
-        error={err('data.level')}
-        disabled={fixing}
-        hint={
-          fixing
-            ? 'Today’s board has one group a level, so a fix keeps the level.'
-            : 'Each day has one group at each level.'
-        }
-      />
+      {fixing ? null : (
+        <Select
+          label="Level"
+          value={data.level}
+          onChange={(e) => onChange({ ...data, level: Number(e.target.value) })}
+          options={LEVELS.map((l) => ({ value: l.level, label: l.label }))}
+          error={err('data.level')}
+          hint="Each day has one group at each level."
+        />
+      )}
       <TextArea
         label="Words"
         value={text}
