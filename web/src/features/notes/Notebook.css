@@ -1222,7 +1222,7 @@ html:has(.nb--full) .noora {
     height: calc(18px / var(--z, 1));
   }
   .nb-free-chrome__corner::before {
-    inset: calc(-13px / var(--z, 1));
+    inset: calc(-14px / var(--z, 1));
   }
   .nb-free-chrome__turn::before {
     inset: calc(-11px / var(--z, 1));
@@ -1392,7 +1392,8 @@ html:has(.nb--full) .noora {
   font-size: 14px;
   line-height: 1.2;
   white-space: nowrap;
-  transform: translateX(-50%) scale(calc(1 / var(--z, 1)));
+  /* moved across in the screen's pixels (--bar-shift), centred over its block, scaled back to its own size */
+  transform: translateX(calc(var(--bar-shift, 0px) / var(--z, 1))) translateX(-50%) scale(calc(1 / var(--z, 1)));
   transform-origin: bottom center;
   user-select: none;
   -webkit-user-select: none;
