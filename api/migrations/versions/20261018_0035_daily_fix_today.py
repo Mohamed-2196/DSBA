@@ -1,7 +1,7 @@
 """a fix to today's Daily puzzle: versions of a day's puzzle, and plays that start again; every win counts
 
 Revision ID: 0035
-Revises: 0033
+Revises: 0034
 Create Date: 2026-10-18 11:15:00
 
 An editor can correct today's puzzle in Manage → Daily puzzles. The day's puzzle (daily_sets) counts its fixes in
@@ -22,7 +22,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0035"
-down_revision: str | None = "0033"
+down_revision: str | None = "0034"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
