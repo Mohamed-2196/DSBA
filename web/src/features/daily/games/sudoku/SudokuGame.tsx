@@ -6,7 +6,18 @@ import { ArrowCounterClockwise, Eraser, Lightbulb, PencilSimple } from '@phospho
 import { todayKey } from '../../../../lib/dates';
 import { SegmentedControl, cx } from '../../../../ui';
 import { loadNotes, saveNotes, type Notes } from '../../lib/storage';
-import { arePeers, boxOf, colOf, digitsOf, firstEmpty, leftToPlace, placeInNotes, rowOf, step, toggleNote } from '../../lib/sudoku';
+import {
+  arePeers,
+  boxOf,
+  colOf,
+  digitsOf,
+  firstEmpty,
+  leftToPlace,
+  placeInNotes,
+  rowOf,
+  step,
+  toggleNote,
+} from '../../lib/sudoku';
 import { DIFFICULTIES, type SudokuDifficulty } from '../../types';
 import type { GameProps } from '../registry';
 import './SudokuGame.css';
@@ -15,7 +26,8 @@ const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const LABEL: Record<SudokuDifficulty, string> = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 const calm = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const typingInto = (target: EventTarget | null) =>
-  target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+  target instanceof HTMLElement &&
+  (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
 export function SudokuGame({ out, busy, play, flash, paused, onVariant }: GameProps) {
   const { play: state } = out;
@@ -150,7 +162,9 @@ export function SudokuGame({ out, busy, play, flash, paused, onVariant }: GamePr
     return () => window.removeEventListener('keydown', onKey);
   }, [paused, over]);
 
-  const boxes = Array.from({ length: 9 }, (_, b) => Array.from({ length: 9 }, (_, k) => (Math.floor(b / 3) * 3 + Math.floor(k / 3)) * 9 + (b % 3) * 3 + (k % 3)));
+  const boxes = Array.from({ length: 9 }, (_, b) =>
+    Array.from({ length: 9 }, (_, k) => (Math.floor(b / 3) * 3 + Math.floor(k / 3)) * 9 + (b % 3) * 3 + (k % 3)),
+  );
 
   return (
     <div className="dsu">
@@ -181,7 +195,8 @@ export function SudokuGame({ out, busy, play, flash, paused, onVariant }: GamePr
                 const digit = digits[cell] ?? 0;
                 const isWrong = wrong?.cell === cell;
                 const cellNotes = digit ? [] : (notes[cell] ?? []);
-                const distance = wave === null ? 0 : Math.abs(rowOf(cell) - rowOf(wave)) + Math.abs(colOf(cell) - colOf(wave));
+                const distance =
+                  wave === null ? 0 : Math.abs(rowOf(cell) - rowOf(wave)) + Math.abs(colOf(cell) - colOf(wave));
                 return (
                   <button
                     key={cell}
@@ -192,7 +207,14 @@ export function SudokuGame({ out, busy, play, flash, paused, onVariant }: GamePr
                     role="gridcell"
                     tabIndex={cell === selected ? 0 : -1}
                     aria-selected={cell === selected}
-                    aria-label={cellLabel(cell, given, digit, hinted.has(cell), cellNotes, isWrong ? wrong.digit : null)}
+                    aria-label={cellLabel(
+                      cell,
+                      given,
+                      digit,
+                      hinted.has(cell),
+                      cellNotes,
+                      isWrong ? wrong.digit : null,
+                    )}
                     className={cx(
                       'dsu-cell',
                       given ? 'is-given' : digit ? (hinted.has(cell) ? 'is-hinted' : 'is-placed') : '',
@@ -232,11 +254,21 @@ export function SudokuGame({ out, busy, play, flash, paused, onVariant }: GamePr
               <ArrowCounterClockwise aria-hidden="true" />
               <span>Undo</span>
             </button>
-            <button type="button" className="dsu-tool" onClick={erase} disabled={!editable(selected) || !notes[selected]?.length}>
+            <button
+              type="button"
+              className="dsu-tool"
+              onClick={erase}
+              disabled={!editable(selected) || !notes[selected]?.length}
+            >
               <Eraser aria-hidden="true" />
               <span>Erase</span>
             </button>
-            <button type="button" className={cx('dsu-tool', noting && 'is-on')} onClick={() => setNoting((n) => !n)} aria-pressed={noting}>
+            <button
+              type="button"
+              className={cx('dsu-tool', noting && 'is-on')}
+              onClick={() => setNoting((n) => !n)}
+              aria-pressed={noting}
+            >
               <PencilSimple aria-hidden="true" />
               <span>Notes {noting ? 'on' : 'off'}</span>
             </button>
@@ -269,7 +301,14 @@ export function SudokuGame({ out, busy, play, flash, paused, onVariant }: GamePr
   );
 }
 
-function cellLabel(cell: number, given: number, digit: number, hint: boolean, notes: number[], wrong: number | null): string {
+function cellLabel(
+  cell: number,
+  given: number,
+  digit: number,
+  hint: boolean,
+  notes: number[],
+  wrong: number | null,
+): string {
   const where = `Row ${rowOf(cell) + 1}, column ${colOf(cell) + 1}, box ${boxOf(cell) + 1}`;
   if (given) return `${where}: ${given}, given`;
   if (digit) return `${where}: ${digit}${hint ? ', from a hint' : ''}`;

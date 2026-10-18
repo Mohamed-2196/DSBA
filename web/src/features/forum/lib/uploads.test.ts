@@ -31,7 +31,9 @@ describe('uploadName', () => {
     const heic = picture('IMG_1.HEIC', 'image/heic');
     expect(uploadName(heic)).toBe('IMG_1.HEIC');
     expect(uploadContentType('forum_image', uploadName(heic))).toBeNull();
-    expect(checkUpload('forum_image', { name: heic.name, size: 1024 }, uploadName(heic))).toMatch(/^That file type can’t be attached\./);
+    expect(checkUpload('forum_image', { name: heic.name, size: 1024 }, uploadName(heic))).toMatch(
+      /^That file type can’t be attached\./,
+    );
     expect(uploadName(picture('notes.pdf', 'application/pdf'))).toBe('notes.pdf');
   });
 });

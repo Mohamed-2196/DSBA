@@ -1,5 +1,9 @@
 /* Manage → Modules: the module list and the module editor. Mainly a laptop screen; phones stack everything. */
-.medit { display: grid; gap: var(--sp-16); min-width: 0; }
+.medit {
+  display: grid;
+  gap: var(--sp-16);
+  min-width: 0;
+}
 .medit__bar,
 .medit__head,
 .medit__foot {
@@ -9,11 +13,28 @@
   justify-content: space-between;
   gap: var(--sp-12);
 }
-.medit__lede { margin: 0; max-width: 75ch; color: var(--ink-2); }
-.medit__back { justify-self: start; justify-content: flex-start; }
-.medit__head { align-items: flex-start; }
-.medit__head .medit__back { margin-inline-end: 100%; }
-.medit__title-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); min-width: 0; }
+.medit__lede {
+  margin: 0;
+  max-width: 75ch;
+  color: var(--ink-2);
+}
+.medit__back {
+  justify-self: start;
+  justify-content: flex-start;
+}
+.medit__head {
+  align-items: flex-start;
+}
+.medit__head .medit__back {
+  margin-inline-end: 100%;
+}
+.medit__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+  min-width: 0;
+}
 .medit__title {
   margin: 0;
   font-size: var(--fs-20);
@@ -21,9 +42,19 @@
   letter-spacing: var(--tracking-head);
   overflow-wrap: anywhere;
 }
-.medit__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
-.medit__title:focus { outline: none; }
-.medit__title:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 4px; border-radius: 4px; }
+.medit__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
+.medit__title:focus {
+  outline: none;
+}
+.medit__title:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
 .medit__savebar {
   display: flex;
   flex-wrap: wrap;
@@ -35,9 +66,20 @@
   border-radius: var(--r-panel);
   background: var(--surface);
 }
-.medit__savebar.is-active { position: sticky; bottom: var(--sp-16); z-index: var(--z-sticky); box-shadow: var(--shadow-float); }
-.medit__savebar-status { color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
-.medit__savebar .medit__actions { margin-left: auto; }
+.medit__savebar.is-active {
+  position: sticky;
+  bottom: var(--sp-16);
+  z-index: var(--z-sticky);
+  box-shadow: var(--shadow-float);
+}
+.medit__savebar-status {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.medit__savebar .medit__actions {
+  margin-left: auto;
+}
 /* a module's picture: the tile students see, how to change it, and the icon for when there is none */
 .medit-art {
   display: grid;
@@ -48,9 +90,20 @@
   border-radius: var(--r-panel);
   min-width: 0;
 }
-.medit-art__legend { padding: 0 var(--sp-4); font-weight: var(--fw-semibold); }
-.medit-art__row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--sp-12) var(--sp-16); min-width: 0; }
-.medit-art__preview { --modart-size: 72px; }
+.medit-art__legend {
+  padding: 0 var(--sp-4);
+  font-weight: var(--fw-semibold);
+}
+.medit-art__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--sp-12) var(--sp-16);
+  min-width: 0;
+}
+.medit-art__preview {
+  --modart-size: 72px;
+}
 .medit-art__none {
   display: grid;
   place-items: center;
@@ -63,17 +116,57 @@
   color: var(--cobalt);
   font-size: 28px;
 }
-.medit-art__none .u-code { font-size: var(--fs-14); font-weight: var(--fw-semibold); color: var(--ink-2); }
-.medit-art__text { display: grid; gap: var(--sp-8); flex: 1 1 18rem; min-width: 0; }
-.medit-art__state { margin: 0; max-width: 75ch; }
-.medit-art__hint { margin: 0; max-width: 75ch; color: var(--ink-2); font-size: var(--fs-14); }
-.medit-art__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); }
-.medit-form__wide { grid-column: 1 / -1; min-width: 0; }
-.medit__section { margin: 0 0 var(--sp-12); font-size: var(--fs-16); }
-.medit__panel { display: grid; gap: var(--sp-16); min-width: 0; }
-.medit__panel > .medit__section { margin: 0; }
-.medit__empty { margin: 0; color: var(--ink-2); }
-.medit__error { margin: 0; color: var(--alert-strong); }
+.medit-art__none .u-code {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-2);
+}
+.medit-art__text {
+  display: grid;
+  gap: var(--sp-8);
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+.medit-art__state {
+  margin: 0;
+  max-width: 75ch;
+}
+.medit-art__hint {
+  margin: 0;
+  max-width: 75ch;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.medit-art__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+}
+.medit-form__wide {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.medit__section {
+  margin: 0 0 var(--sp-12);
+  font-size: var(--fs-16);
+}
+.medit__panel {
+  display: grid;
+  gap: var(--sp-16);
+  min-width: 0;
+}
+.medit__panel > .medit__section {
+  margin: 0;
+}
+.medit__empty {
+  margin: 0;
+  color: var(--ink-2);
+}
+.medit__error {
+  margin: 0;
+  color: var(--alert-strong);
+}
 .medit__banner {
   display: flex;
   flex-wrap: wrap;
@@ -85,8 +178,14 @@
   background: var(--alert-soft);
   color: var(--ink);
 }
-.medit__banner p { margin: 0; flex: 1 1 24ch; max-width: 75ch; }
-.medit__remove { color: var(--alert-strong); }
+.medit__banner p {
+  margin: 0;
+  flex: 1 1 24ch;
+  max-width: 75ch;
+}
+.medit__remove {
+  color: var(--alert-strong);
+}
 
 .medit-form__grid {
   display: grid;
@@ -96,9 +195,24 @@
 }
 
 /* the list of modules, a year at a time */
-.medit__year { display: grid; gap: var(--sp-8); }
-.medit__year-title { margin: var(--sp-8) 0 0; font-size: var(--fs-14); color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.04em; }
-.medit__list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-4); }
+.medit__year {
+  display: grid;
+  gap: var(--sp-8);
+}
+.medit__year-title {
+  margin: var(--sp-8) 0 0;
+  font-size: var(--fs-14);
+  color: var(--ink-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.medit__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--sp-4);
+}
 .medit__row {
   display: flex;
   align-items: center;
@@ -109,9 +223,18 @@
   background: var(--surface);
   min-width: 0;
 }
-.medit__grip { flex: none; color: var(--ink-3); cursor: grab; }
-.medit__icon { flex: none; color: var(--cobalt); }
-.medit__row-art { --modart-size: 40px; }
+.medit__grip {
+  flex: none;
+  color: var(--ink-3);
+  cursor: grab;
+}
+.medit__icon {
+  flex: none;
+  color: var(--cobalt);
+}
+.medit__row-art {
+  --modart-size: 40px;
+}
 .medit__open {
   display: grid;
   flex: 1 1 auto;
@@ -126,23 +249,69 @@
   text-align: start;
   cursor: pointer;
 }
-.medit__open:hover .medit__name { color: var(--cobalt); text-decoration: underline; }
-.medit__name { font-weight: var(--fw-semibold); overflow-wrap: anywhere; }
-.medit__meta { color: var(--ink-2); font-size: var(--fs-14); }
+.medit__open:hover .medit__name {
+  color: var(--cobalt);
+  text-decoration: underline;
+}
+.medit__name {
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+.medit__meta {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
 .medit__steps,
-.medit__tools { display: flex; flex: none; align-items: center; gap: var(--sp-4); }
+.medit__tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--sp-4);
+}
 
-.is-dragging { opacity: 0.5; }
-.is-drop-before { box-shadow: 0 -3px 0 0 var(--cobalt); }
+.is-dragging {
+  opacity: 0.5;
+}
+.is-drop-before {
+  box-shadow: 0 -3px 0 0 var(--cobalt);
+}
 
 /* chapters and lessons */
-.medit__chapters { display: grid; gap: var(--sp-12); justify-items: start; }
-.medit__chapter-list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-12); width: 100%; }
-.medit-chapter { border-radius: var(--r-panel); }
-.medit-chapter__panel { display: grid; gap: var(--sp-12); justify-items: start; }
-.medit-chapter__head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-8) var(--sp-12); width: 100%; }
-.medit-chapter__title { flex: 1 1 18rem; min-width: 0; }
-.medit-chapter.is-hidden .medit-chapter__panel { background: var(--surface-2); }
+.medit__chapters {
+  display: grid;
+  gap: var(--sp-12);
+  justify-items: start;
+}
+.medit__chapter-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--sp-12);
+  width: 100%;
+}
+.medit-chapter {
+  border-radius: var(--r-panel);
+}
+.medit-chapter__panel {
+  display: grid;
+  gap: var(--sp-12);
+  justify-items: start;
+}
+.medit-chapter__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--sp-8) var(--sp-12);
+  width: 100%;
+}
+.medit-chapter__title {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+.medit-chapter.is-hidden .medit-chapter__panel {
+  background: var(--surface-2);
+}
 .medit__handle {
   display: inline-grid;
   place-items: center;
@@ -153,8 +322,19 @@
   cursor: grab;
   border-radius: var(--r-xs);
 }
-.medit__handle:hover { color: var(--ink); background: var(--surface-2); }
-.medit__lessons { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-8); width: 100%; min-height: var(--sp-8); }
+.medit__handle:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+.medit__lessons {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--sp-8);
+  width: 100%;
+  min-height: var(--sp-8);
+}
 .medit-lesson {
   display: flex;
   flex-wrap: wrap;
@@ -166,8 +346,18 @@
   background: var(--surface);
   min-width: 0;
 }
-.medit-lesson.is-hidden { background: var(--surface-2); border-style: dashed; }
-.medit-lesson__num { flex: none; min-width: 2ch; padding-top: 34px; color: var(--ink-2); font-weight: var(--fw-semibold); text-align: end; }
+.medit-lesson.is-hidden {
+  background: var(--surface-2);
+  border-style: dashed;
+}
+.medit-lesson__num {
+  flex: none;
+  min-width: 2ch;
+  padding-top: 34px;
+  color: var(--ink-2);
+  font-weight: var(--fw-semibold);
+  text-align: end;
+}
 .medit-lesson__fields {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
@@ -175,19 +365,40 @@
   flex: 1 1 28rem;
   min-width: 0;
 }
-.medit-lesson .medit__tools { padding-top: 26px; }
-.medit-lesson__end { min-height: var(--sp-16); border-radius: var(--r-control); }
+.medit-lesson .medit__tools {
+  padding-top: 26px;
+}
+.medit-lesson__end {
+  min-height: var(--sp-16);
+  border-radius: var(--r-control);
+}
 
 @media (max-width: 699px) {
-  .medit__row { flex-wrap: wrap; }
-  .medit__open { flex-basis: calc(100% - 80px); }
-  .medit-lesson__fields { grid-template-columns: minmax(0, 1fr); flex-basis: 100%; }
-  .medit-lesson__num { padding-top: 10px; }
-  .medit-lesson .medit__tools { padding-top: 0; margin-inline-start: auto; }
+  .medit__row {
+    flex-wrap: wrap;
+  }
+  .medit__open {
+    flex-basis: calc(100% - 80px);
+  }
+  .medit-lesson__fields {
+    grid-template-columns: minmax(0, 1fr);
+    flex-basis: 100%;
+  }
+  .medit-lesson__num {
+    padding-top: 10px;
+  }
+  .medit-lesson .medit__tools {
+    padding-top: 0;
+    margin-inline-start: auto;
+  }
   .medit__handle,
-  .medit__grip { display: none; } /* drag and drop is for a mouse: phones use the up and down buttons */
+  .medit__grip {
+    display: none;
+  } /* drag and drop is for a mouse: phones use the up and down buttons */
 }
 @media (pointer: coarse) {
   .medit__handle,
-  .medit__grip { display: none; }
+  .medit__grip {
+    display: none;
+  }
 }

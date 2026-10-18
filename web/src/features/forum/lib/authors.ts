@@ -16,7 +16,10 @@ export function roleFlair(user: UserPublic | null | undefined): string | null {
 }
 
 /** The cohort to show for a post: the author's year when they posted, else their year now. */
-export function postYear(authorYear: CohortYear | null | undefined, user: UserPublic | null | undefined): CohortYear | null {
+export function postYear(
+  authorYear: CohortYear | null | undefined,
+  user: UserPublic | null | undefined,
+): CohortYear | null {
   return authorYear ?? user?.year ?? null;
 }
 

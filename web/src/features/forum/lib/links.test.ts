@@ -7,7 +7,10 @@ const MEDIA = '/api/v1/media/7511c4f7-ffbf-4f8e-8500-93334507e674';
 describe('safeLink: links in posts', () => {
   it('keeps paths inside the app, with their query and fragment', () => {
     expect(safeLink('/forum/how-do-i-find-the-mgf')).toEqual({ kind: 'internal', to: '/forum/how-do-i-find-the-mgf' });
-    expect(safeLink(' /forum/x?order=oldest#reply-2 ')).toEqual({ kind: 'internal', to: '/forum/x?order=oldest#reply-2' });
+    expect(safeLink(' /forum/x?order=oldest#reply-2 ')).toEqual({
+      kind: 'internal',
+      to: '/forum/x?order=oldest#reply-2',
+    });
   });
 
   it.each([
@@ -37,12 +40,20 @@ describe('safeLink: links in posts', () => {
     expect(safeLink('mailto:rep@example.com')).toEqual({ kind: 'mailto', href: 'mailto:rep@example.com' });
   });
 
-  it.each(['javascript:alert(1)', 'JaVaScRiPt:alert(1)', ' javascript:alert(1)', 'data:text/html,<script>alert(1)</script>', 'vbscript:x', 'file:///etc/passwd', 'ftp://example.com', 'page.html', '../x', ''])(
-    'leaves %s as plain text',
-    (href) => {
-      expect(kind(href)).toBeNull();
-    },
-  );
+  it.each([
+    'javascript:alert(1)',
+    'JaVaScRiPt:alert(1)',
+    ' javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:x',
+    'file:///etc/passwd',
+    'ftp://example.com',
+    'page.html',
+    '../x',
+    '',
+  ])('leaves %s as plain text', (href) => {
+    expect(kind(href)).toBeNull();
+  });
 
   it('turns down links longer than any real one', () => {
     expect(kind(`https://example.com/${'a'.repeat(2000)}`)).toBeNull();

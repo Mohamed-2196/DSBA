@@ -133,7 +133,10 @@ function LabelEdit({ label, onDone }: { label: BoardLabel; onDone: () => void })
       setError('Give the label a name.');
       return;
     }
-    update.mutate({ id: label.id, patch: { name: n, color } }, { onSuccess: onDone, onError: (err) => setError(nameError(err)) });
+    update.mutate(
+      { id: label.id, patch: { name: n, color } },
+      { onSuccess: onDone, onError: (err) => setError(nameError(err)) },
+    );
   };
   return (
     <form className="label-dialog__edit" onSubmit={submit} noValidate>

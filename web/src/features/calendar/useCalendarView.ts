@@ -8,7 +8,16 @@ import { addDaysToKey, dayKey } from '../../lib/dates';
 import { addMonths, monthKey, monthOfDate, type MonthRef, parseMonthKey, sameMonth } from './dates';
 import { isEventType, TYPE_ORDER } from './eventMeta';
 import { findEvent as findIn, oneRowPerRepeat } from './mine';
-import { eventDate, filterEvents, lastDay, nextExamFor, upcomingFrom, weekAhead, weekEnd, type NextExam } from './queries';
+import {
+  eventDate,
+  filterEvents,
+  lastDay,
+  nextExamFor,
+  upcomingFrom,
+  weekAhead,
+  weekEnd,
+  type NextExam,
+} from './queries';
 import type { CalendarEvent, EventFilter } from './types';
 
 export const monthOfEvent = (e: CalendarEvent): MonthRef => monthOfDate(eventDate(e));
@@ -75,11 +84,17 @@ export function useCalendarView(events: CalendarEvent[], today: Date, signedIn =
   const cohortYear = year && cohortParam !== 'all' ? year : null;
   const types = useMemo(() => new Set<EventFilter>((typesParam || '').split(',').filter(isFilter)), [typesParam]);
   const shownPapers = cohortYear ? papers : null;
-  const visible = useMemo(() => filterEvents(events, { year: cohortYear, types, papers: shownPapers }), [events, cohortYear, types, shownPapers]);
+  const visible = useMemo(
+    () => filterEvents(events, { year: cohortYear, types, papers: shownPapers }),
+    [events, cohortYear, types, shownPapers],
+  );
   const findEvent = useCallback((id: string | null) => findIn(events, id, todayKey), [events, todayKey]);
   const openEvent = findEvent(eventId);
 
-  const nextExam = useMemo(() => nextExamFor(events, { year, today: todayKey, papers }), [events, year, todayKey, papers]);
+  const nextExam = useMemo(
+    () => nextExamFor(events, { year, today: todayKey, papers }),
+    [events, year, todayKey, papers],
+  );
   const week = useMemo(() => weekAhead(events, { year, today: todayKey, papers }), [events, year, todayKey, papers]);
   // The top of the page lists the student's week, every type. When the list shows the same cohort and every type,
   // it starts after that week and leaves out the week's events, so nothing is listed twice.
@@ -99,7 +114,10 @@ export function useCalendarView(events: CalendarEvent[], today: Date, signedIn =
   const parsed = parseMonthKey(monthParam);
   const py = parsed?.y;
   const pm = parsed?.m;
-  const month = useMemo<MonthRef>(() => (py != null && pm != null ? { y: py, m: pm } : defaultMonth), [py, pm, defaultMonth]);
+  const month = useMemo<MonthRef>(
+    () => (py != null && pm != null ? { y: py, m: pm } : defaultMonth),
+    [py, pm, defaultMonth],
+  );
   const monthEvents = useMemo(() => {
     const first = `${monthKey(month)}-01`;
     const next = `${monthKey(addMonths(month, 1))}-01`;
@@ -141,7 +159,10 @@ export function useCalendarView(events: CalendarEvent[], today: Date, signedIn =
     [types, setTypesParam],
   );
   const clearTypes = useCallback(() => setTypesParam(null, { replace: true }), [setTypesParam]);
-  const setAllYears = useCallback((all: boolean) => setCohortParam(all ? 'all' : 'mine', { replace: true }), [setCohortParam]);
+  const setAllYears = useCallback(
+    (all: boolean) => setCohortParam(all ? 'all' : 'mine', { replace: true }),
+    [setCohortParam],
+  );
   const setMode = useCallback((m: CalendarMode) => setModeParam(m, { replace: true }), [setModeParam]);
 
   return {

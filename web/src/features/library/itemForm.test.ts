@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { ModuleSummary } from '../../api/types';
-import { NO_MODULE, checkValues, emptyValues, errorsFromApi, linkProblem, toCreateBody, toUpdateBody, type ItemFormValues } from './itemForm';
+import {
+  NO_MODULE,
+  checkValues,
+  emptyValues,
+  errorsFromApi,
+  linkProblem,
+  toCreateBody,
+  toUpdateBody,
+  type ItemFormValues,
+} from './itemForm';
 
 const ST2133: ModuleSummary = {
   id: 'advanced-stats-distribution',
@@ -16,7 +25,12 @@ const ST2133: ModuleSummary = {
   libraryCount: 5,
 };
 const getModule = (id: string) => (id === ST2133.id ? ST2133 : null);
-const values = (patch: Partial<ItemFormValues> = {}): ItemFormValues => ({ ...emptyValues(), title: 'Chapter 4 notes', module: ST2133.id, ...patch });
+const values = (patch: Partial<ItemFormValues> = {}): ItemFormValues => ({
+  ...emptyValues(),
+  title: 'Chapter 4 notes',
+  module: ST2133.id,
+  ...patch,
+});
 const UPLOAD = '9f0a3b2c-1d4e-4f5a-8b6c-7d8e9f0a1b2c';
 
 describe('checkValues', () => {
@@ -30,7 +44,9 @@ describe('checkValues', () => {
   });
 
   it('checks the exam year only for exam kinds', () => {
-    expect(checkValues(values({ kind: 'past-paper', examYear: '1890' })).examYear).toMatch(/^Enter a year between 1990 and /);
+    expect(checkValues(values({ kind: 'past-paper', examYear: '1890' })).examYear).toMatch(
+      /^Enter a year between 1990 and /,
+    );
     expect(checkValues(values({ kind: 'past-paper', examYear: '2024' }))).toEqual({});
     expect(checkValues(values({ kind: 'notes', examYear: '1890' }))).toEqual({});
   });
@@ -53,18 +69,30 @@ describe('request bodies', () => {
   });
 
   it('keeps a year for files about no one module', () => {
-    expect(toCreateBody(UPLOAD, values({ module: NO_MODULE, year: '3' }), getModule)).toMatchObject({ moduleId: null, year: 3 });
-    expect(toCreateBody(UPLOAD, values({ module: NO_MODULE, year: '' }), getModule)).toMatchObject({ moduleId: null, year: null });
+    expect(toCreateBody(UPLOAD, values({ module: NO_MODULE, year: '3' }), getModule)).toMatchObject({
+      moduleId: null,
+      year: 3,
+    });
+    expect(toCreateBody(UPLOAD, values({ module: NO_MODULE, year: '' }), getModule)).toMatchObject({
+      moduleId: null,
+      year: null,
+    });
   });
 
   it('sends the exam sitting only for exam kinds', () => {
-    expect(toUpdateBody(values({ kind: 'past-paper', examYear: '2024', session: 'may', zone: 'B' }), getModule)).toMatchObject({
+    expect(
+      toUpdateBody(values({ kind: 'past-paper', examYear: '2024', session: 'may', zone: 'B' }), getModule),
+    ).toMatchObject({
       examYear: 2024,
       examSession: 'may',
       zone: 'B',
     });
-    expect(toUpdateBody(values({ kind: 'exam-solutions', examYear: '2025', session: 'october' }), getModule)).toMatchObject({ examSession: 'october' });
-    expect(toUpdateBody(values({ kind: 'notes', examYear: '2024', session: 'may', zone: 'B' }), getModule)).toMatchObject({
+    expect(
+      toUpdateBody(values({ kind: 'exam-solutions', examYear: '2025', session: 'october' }), getModule),
+    ).toMatchObject({ examSession: 'october' });
+    expect(
+      toUpdateBody(values({ kind: 'notes', examYear: '2024', session: 'may', zone: 'B' }), getModule),
+    ).toMatchObject({
       examYear: null,
       examSession: null,
       zone: null,
@@ -72,7 +100,9 @@ describe('request bodies', () => {
   });
 
   it('trims text and clears empty fields', () => {
-    expect(toUpdateBody(values({ title: '  Notes  ', description: '   ', authorName: ' UoL ' }), getModule)).toMatchObject({
+    expect(
+      toUpdateBody(values({ title: '  Notes  ', description: '   ', authorName: ' UoL ' }), getModule),
+    ).toMatchObject({
       title: 'Notes',
       description: null,
       authorName: 'UoL',
@@ -82,7 +112,9 @@ describe('request bodies', () => {
 
 describe('errorsFromApi', () => {
   it('puts the API’s field messages on the form’s fields', () => {
-    expect(errorsFromApi({ moduleId: 'Pick a module from the list.', 'body.title': 'Too long.', unknown: 'x' })).toEqual({
+    expect(
+      errorsFromApi({ moduleId: 'Pick a module from the list.', 'body.title': 'Too long.', unknown: 'x' }),
+    ).toEqual({
       module: 'Pick a module from the list.',
       title: 'Too long.',
     });

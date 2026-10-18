@@ -64,7 +64,9 @@ describe('file names and types', () => {
 
   it('lets the library picker offer pictures (D9)', () => {
     const accept = UPLOAD_RULES.library.accept.split(',');
-    expect(accept).toEqual(expect.arrayContaining(['.pdf', '.R', '.r', '.jpg', '.jpeg', '.png', '.webp', 'image/jpeg']));
+    expect(accept).toEqual(
+      expect.arrayContaining(['.pdf', '.R', '.r', '.jpg', '.jpeg', '.png', '.webp', 'image/jpeg']),
+    );
     expect(accept).not.toContain('.gif');
     expect(UPLOAD_RULES.library.summary).toContain('JPG, PNG or WebP');
     expect(UPLOAD_RULES.library.summary).toContain('50 MB');
@@ -104,13 +106,19 @@ describe('checkUpload', () => {
   });
 
   it('refuses other types, saying what to use', () => {
-    expect(checkUpload('library', fileOf('setup.exe', 1000))).toBe(`This type of file can’t be added to the library. ${UPLOAD_RULES.library.allowed}`);
-    expect(checkUpload('forum_image', fileOf('notes.pdf', 1000))).toBe('That file type can’t be attached. Use a PNG, JPEG, WebP or GIF image.');
+    expect(checkUpload('library', fileOf('setup.exe', 1000))).toBe(
+      `This type of file can’t be added to the library. ${UPLOAD_RULES.library.allowed}`,
+    );
+    expect(checkUpload('forum_image', fileOf('notes.pdf', 1000))).toBe(
+      'That file type can’t be attached. Use a PNG, JPEG, WebP or GIF image.',
+    );
   });
 
   it('refuses empty and oversized files', () => {
     expect(checkUpload('library', fileOf('empty.csv', 0))).toBe('That file is empty. Choose another one.');
-    expect(checkUpload('library', fileOf('big.pdf', 51 * MB))).toBe('That file is 51 MB, over the 50 MB limit. Compress it or split it into parts.');
+    expect(checkUpload('library', fileOf('big.pdf', 51 * MB))).toBe(
+      'That file is 51 MB, over the 50 MB limit. Compress it or split it into parts.',
+    );
     expect(checkUpload('forum_image', fileOf('photo.jpg', 9 * MB))).toContain('over the 8 MB limit');
   });
 
@@ -132,13 +140,19 @@ describe('progress', () => {
 });
 
 describe('bucketError', () => {
-  const xml = (code: string) => `<?xml version="1.0" encoding="UTF-8"?><Error><Code>${code}</Code><Message>No.</Message></Error>`;
+  const xml = (code: string) =>
+    `<?xml version="1.0" encoding="UTF-8"?><Error><Code>${code}</Code><Message>No.</Message></Error>`;
 
   it('reads S3’s XML', () => {
     const e = bucketError(400, xml('EntityTooLarge'), 'library');
-    expect([e.code, e.message]).toEqual(['too_large', 'That file is over the 50 MB limit. Compress it or split it into parts.']);
+    expect([e.code, e.message]).toEqual([
+      'too_large',
+      'That file is over the 50 MB limit. Compress it or split it into parts.',
+    ]);
     expect(bucketError(400, xml('RequestTimeout'), 'library').message).toContain('took too long');
-    expect(bucketError(503, xml('SlowDown'), 'forum_image').message).toBe('File storage is busy. Try again in a moment.');
+    expect(bucketError(503, xml('SlowDown'), 'forum_image').message).toBe(
+      'File storage is busy. Try again in a moment.',
+    );
   });
 
   it('treats a refused policy as an expired form', () => {
@@ -159,26 +173,39 @@ describe('uploadErrorMessage', () => {
   it('shows the API’s own words', () => {
     const pending = 'You have 10 files waiting for review. Share more once a student rep has looked at them.';
     expect(uploadErrorMessage(err('too_many_pending', pending), 'library')).toBe(pending);
-    const mismatch = "This isn't a real .pdf file: what's inside doesn't match its name. Save or export it again, or choose another file.";
+    const mismatch =
+      "This isn't a real .pdf file: what's inside doesn't match its name. Save or export it again, or choose another file.";
     expect(uploadErrorMessage(err('mismatch', mismatch, { status: 422 }), 'library')).toBe(mismatch);
-    expect(uploadErrorMessage(err('forbidden', 'Your account is suspended. Contact a student rep.', { status: 403 }), 'library')).toBe(
-      'Your account is suspended. Contact a student rep.',
-    );
+    expect(
+      uploadErrorMessage(
+        err('forbidden', 'Your account is suspended. Contact a student rep.', { status: 403 }),
+        'library',
+      ),
+    ).toBe('Your account is suspended. Contact a student rep.');
   });
 
   it('has words when the API gave none', () => {
     expect(uploadErrorMessage(err('rate_limited', '', { status: 429, retryAfter: 700 }), 'library')).toBe(
       'You’ve uploaded a lot in the last hour. Try again in 12 minutes.',
     );
-    expect(uploadErrorMessage(err('too_large', '', { status: 422 }), 'forum_image')).toBe('That image is over the 8 MB limit. Save a smaller copy and try again.');
-    expect(uploadErrorMessage(err('unsupported_type', '', { status: 422 }), 'library')).toContain('can’t be added to the library');
+    expect(uploadErrorMessage(err('too_large', '', { status: 422 }), 'forum_image')).toBe(
+      'That image is over the 8 MB limit. Save a smaller copy and try again.',
+    );
+    expect(uploadErrorMessage(err('unsupported_type', '', { status: 422 }), 'library')).toContain(
+      'can’t be added to the library',
+    );
   });
 
   it('blames the connection only when there was no answer', () => {
-    expect(uploadErrorMessage(new ApiError({ status: 0, code: 'network', message: 'x' }), 'library')).toBe(NETWORK_MESSAGE);
-    expect(uploadErrorMessage(new ApiError({ status: 500, code: 'internal', message: 'Something went wrong on our side.' }), 'library')).toBe(
-      'Something went wrong on our side. Try again in a minute.',
+    expect(uploadErrorMessage(new ApiError({ status: 0, code: 'network', message: 'x' }), 'library')).toBe(
+      NETWORK_MESSAGE,
     );
+    expect(
+      uploadErrorMessage(
+        new ApiError({ status: 500, code: 'internal', message: 'Something went wrong on our side.' }),
+        'library',
+      ),
+    ).toBe('Something went wrong on our side. Try again in a minute.');
     expect(uploadErrorMessage(new Error('boom'), 'library')).toBe('Something went wrong. Try again.');
   });
 
@@ -209,7 +236,9 @@ class FakeXhr {
   method = '';
   url = '';
   sent: FormData | null = null;
-  upload: { onprogress: ((e: { lengthComputable: boolean; loaded: number; total: number }) => void) | null } = { onprogress: null };
+  upload: { onprogress: ((e: { lengthComputable: boolean; loaded: number; total: number }) => void) | null } = {
+    onprogress: null,
+  };
   onload: (() => void) | null = null;
   onerror: (() => void) | null = null;
   onabort: (() => void) | null = null;
@@ -233,7 +262,8 @@ class FakeXhr {
         this.onerror?.();
         return;
       }
-      for (const loaded of script.progress ?? []) this.upload.onprogress?.({ lengthComputable: true, loaded, total: 2000 });
+      for (const loaded of script.progress ?? [])
+        this.upload.onprogress?.({ lengthComputable: true, loaded, total: 2000 });
       this.status = script.status;
       this.responseText = script.body ?? '';
       this.onload?.();
@@ -241,18 +271,34 @@ class FakeXhr {
   }
 }
 
-const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+const json = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 const UPLOAD_ID = '6f1c2b0e-8d2a-4a8f-9f62-0d6c2c1f9a11';
 
 function serveUploads({ presign = 201, complete = 200 }: { presign?: number; complete?: number } = {}) {
   net.answer = (method, path) => {
     if (method === 'POST' && path === '/api/v1/uploads') {
-      if (presign !== 201) return json(presign, { error: { code: 'too_many_pending', message: 'You have 10 files waiting for review.' } });
-      return json(201, { uploadId: UPLOAD_ID, url: 'https://bucket.test/dsba-hub', fields: { key: `incoming/${UPLOAD_ID}`, 'Content-Type': 'x', policy: 'p' }, expiresIn: 300, maxBytes: 1000 });
+      if (presign !== 201)
+        return json(presign, { error: { code: 'too_many_pending', message: 'You have 10 files waiting for review.' } });
+      return json(201, {
+        uploadId: UPLOAD_ID,
+        url: 'https://bucket.test/dsba-hub',
+        fields: { key: `incoming/${UPLOAD_ID}`, 'Content-Type': 'x', policy: 'p' },
+        expiresIn: 300,
+        maxBytes: 1000,
+      });
     }
     if (method === 'POST' && path === `/api/v1/uploads/${UPLOAD_ID}/complete`) {
-      if (complete !== 200) return json(complete, { error: { code: 'mismatch', message: 'This isn’t a real .pdf file.' } });
-      return json(200, { uploadId: UPLOAD_ID, status: 'uploaded', fileName: 'nb.ipynb', contentType: 'application/x-ipynb+json', sizeBytes: 1000, mediaUrl: null });
+      if (complete !== 200)
+        return json(complete, { error: { code: 'mismatch', message: 'This isn’t a real .pdf file.' } });
+      return json(200, {
+        uploadId: UPLOAD_ID,
+        status: 'uploaded',
+        fileName: 'nb.ipynb',
+        contentType: 'application/x-ipynb+json',
+        sizeBytes: 1000,
+        mediaUrl: null,
+      });
     }
     return json(404, { error: { code: 'not_found', message: 'No.' } });
   };
@@ -272,12 +318,23 @@ describe('uploadFile', () => {
     const seen: number[] = [];
     let checking = false;
     const file = new File(['x'.repeat(1000)], 'nb.ipynb', { type: '' });
-    const out = await uploadFile('library', file, { onProgress: (p) => seen.push(p.loaded), onChecking: () => (checking = true) });
+    const out = await uploadFile('library', file, {
+      onProgress: (p) => seen.push(p.loaded),
+      onChecking: () => (checking = true),
+    });
 
     expect(out.uploadId).toBe(UPLOAD_ID);
     expect(checking).toBe(true);
-    expect(net.requests.map((r) => `${r.method} ${r.path}`)).toEqual(['POST /api/v1/uploads', `POST /api/v1/uploads/${UPLOAD_ID}/complete`]);
-    expect(net.requests[0].body).toEqual({ purpose: 'library', fileName: 'nb.ipynb', contentType: 'application/x-ipynb+json', sizeBytes: 1000 });
+    expect(net.requests.map((r) => `${r.method} ${r.path}`)).toEqual([
+      'POST /api/v1/uploads',
+      `POST /api/v1/uploads/${UPLOAD_ID}/complete`,
+    ]);
+    expect(net.requests[0].body).toEqual({
+      purpose: 'library',
+      fileName: 'nb.ipynb',
+      contentType: 'application/x-ipynb+json',
+      sizeBytes: 1000,
+    });
 
     const xhr = FakeXhr.last;
     expect([xhr?.method, xhr?.url, xhr?.withCredentials]).toEqual(['POST', 'https://bucket.test/dsba-hub', false]);
@@ -287,8 +344,14 @@ describe('uploadFile', () => {
 
   it('declares a renamed picture under its new name', async () => {
     serveUploads();
-    await uploadFile('forum_image', new File(['x'.repeat(1000)], 'image', { type: 'image/png' }), { fileName: 'image.png' });
-    expect(net.requests[0].body).toMatchObject({ purpose: 'forum_image', fileName: 'image.png', contentType: 'image/png' });
+    await uploadFile('forum_image', new File(['x'.repeat(1000)], 'image', { type: 'image/png' }), {
+      fileName: 'image.png',
+    });
+    expect(net.requests[0].body).toMatchObject({
+      purpose: 'forum_image',
+      fileName: 'image.png',
+      contentType: 'image/png',
+    });
   });
 
   it('passes the API’s refusals on', async () => {

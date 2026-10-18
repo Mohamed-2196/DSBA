@@ -40,7 +40,9 @@ test('a student adds a card, moves it, and adds an exam from the calendar', asyn
   const columnOf = async () => {
     const { boards } = (await api<Boards>(sara, 'GET', '/api/v1/boards')).body;
     for (const board of boards) {
-      const found = (await api<BoardDetail>(sara, 'GET', `/api/v1/boards/${board.id}`)).body.cards.find((c) => c.title === title);
+      const found = (await api<BoardDetail>(sara, 'GET', `/api/v1/boards/${board.id}`)).body.cards.find(
+        (c) => c.title === title,
+      );
       if (found) return board.columns.find((c) => c.id === found.columnId)?.name;
     }
     return undefined;

@@ -26,7 +26,15 @@ export function DailyCard() {
     );
   }
   if (today.isError) {
-    return <QueryError error={today.error} title="The daily puzzles didn’t load" size="sm" onRetry={() => void today.refetch()} retrying={today.isFetching} />;
+    return (
+      <QueryError
+        error={today.error}
+        title="The daily puzzles didn’t load"
+        size="sm"
+        onRetry={() => void today.refetch()}
+        retrying={today.isFetching}
+      />
+    );
   }
 
   const { data } = today;
@@ -50,7 +58,11 @@ export function DailyCard() {
             {data.done} of {data.games.length} done
           </span>
         </div>
-        <span className="home-daily__bar" style={{ '--pct': `${Math.round((data.done / total) * 100)}%` } as CSSProperties} aria-hidden="true" />
+        <span
+          className="home-daily__bar"
+          style={{ '--pct': `${Math.round((data.done / total) * 100)}%` } as CSSProperties}
+          aria-hidden="true"
+        />
       </div>
 
       <ul role="list" className="home-daily__grid">
@@ -66,7 +78,13 @@ export function DailyCard() {
                 </span>
                 <span className="home-daily__text">
                   <span className="home-daily__name">{g.info.title}</span>
-                  <span className={cx('home-daily__meta dy-num', status.tone === 'playing' && 'is-playing', status.tone === 'won' && 'is-won')}>
+                  <span
+                    className={cx(
+                      'home-daily__meta dy-num',
+                      status.tone === 'playing' && 'is-playing',
+                      status.tone === 'won' && 'is-won',
+                    )}
+                  >
                     {status.tone === 'new' ? 'Not started' : status.label}
                   </span>
                 </span>

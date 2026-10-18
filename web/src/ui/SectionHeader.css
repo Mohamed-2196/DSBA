@@ -1,13 +1,46 @@
-.ui-section-header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-16); margin-bottom: var(--sp-16); }
-.ui-section-header__text { min-width: 0; }
-.ui-section-header__title { font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: var(--lh-heading); }
-h3.ui-section-header__title { font-size: var(--fs-16); }
-.ui-section-header__desc { margin-top: 4px; max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-14); }
-.ui-section-header__action { flex: 0 0 auto; display: flex; gap: var(--sp-8); align-items: center; }
+.ui-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-16);
+  margin-bottom: var(--sp-16);
+}
+.ui-section-header__text {
+  min-width: 0;
+}
+.ui-section-header__title {
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.015em;
+  line-height: var(--lh-heading);
+}
+h3.ui-section-header__title {
+  font-size: var(--fs-16);
+}
+.ui-section-header__desc {
+  margin-top: 4px;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.ui-section-header__action {
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--sp-8);
+  align-items: center;
+}
 /* Phones: the action stays beside the title when both fit, and goes under it, at the start, when they don't; the title
    never narrows below 14 characters to make room. */
 @media (max-width: 699px) {
-  .ui-section-header { flex-wrap: wrap; align-items: center; row-gap: var(--sp-4); }
-  .ui-section-header__text { flex: 1 1 14ch; }
-  .ui-section-header__action { flex-wrap: wrap; }
+  .ui-section-header {
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: var(--sp-4);
+  }
+  .ui-section-header__text {
+    flex: 1 1 14ch;
+  }
+  .ui-section-header__action {
+    flex-wrap: wrap;
+  }
 }

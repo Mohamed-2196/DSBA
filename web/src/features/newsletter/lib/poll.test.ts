@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { blankBlock, draftFrom, fieldOfApiPath, fieldPath, toUpdate, validate, type IssueContent } from './draft';
 import { readMinutes } from './text';
 
-const POLL = { type: 'poll' as const, id: 'emails', question: 'Should emails be on by default?', answers: ['Yes', 'No'], closed: false };
+const POLL = {
+  type: 'poll' as const,
+  id: 'emails',
+  question: 'Should emails be on by default?',
+  answers: ['Yes', 'No'],
+  closed: false,
+};
 const ISSUE: IssueContent = {
   title: 'The October issue',
   number: 2,
@@ -13,7 +19,20 @@ const ISSUE: IssueContent = {
   editors: [],
   cover: { tone: 'navy', art: null, lines: [] },
   sections: [
-    { id: 'ask', title: 'Ask the cohort', label: null, icon: null, kind: null, blocks: [POLL], after: [], figure: null, aside: null, window: null, fallback: null, estWords: null },
+    {
+      id: 'ask',
+      title: 'Ask the cohort',
+      label: null,
+      icon: null,
+      kind: null,
+      blocks: [POLL],
+      after: [],
+      figure: null,
+      aside: null,
+      window: null,
+      fallback: null,
+      estWords: null,
+    },
   ],
 };
 
@@ -40,7 +59,9 @@ describe('polls in the editor', () => {
     const s = d.sections[0];
     const poll = s?.blocks[0];
     if (!s || poll?.type !== 'poll') throw new Error('no poll');
-    expect(fieldOfApiPath('sections.0.blocks.0.poll.answers.1', d)).toBe(fieldPath.item(s.key, poll.key, poll.answers[1]?.key ?? ''));
+    expect(fieldOfApiPath('sections.0.blocks.0.poll.answers.1', d)).toBe(
+      fieldPath.item(s.key, poll.key, poll.answers[1]?.key ?? ''),
+    );
   });
 
   it('gives a new poll an id of its own and two empty answers', () => {

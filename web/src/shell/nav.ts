@@ -1,5 +1,20 @@
 // Navigation config for the shell (rail, mobile tab bar, More drawer).
-import { Books, Calculator, CalendarDots, ChatTeardropText, ChatsCircle, Compass, GameController, HandWaving, House, Kanban, Newspaper, NotePencil, SquaresFour, type Icon } from '@phosphor-icons/react';
+import {
+  Books,
+  Calculator,
+  CalendarDots,
+  ChatTeardropText,
+  ChatsCircle,
+  Compass,
+  GameController,
+  HandWaving,
+  House,
+  Kanban,
+  Newspaper,
+  NotePencil,
+  SquaresFour,
+  type Icon,
+} from '@phosphor-icons/react';
 import type { Feature } from '../auth';
 
 export interface NavItem {

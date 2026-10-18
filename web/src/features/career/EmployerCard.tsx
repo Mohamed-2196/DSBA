@@ -14,12 +14,17 @@ import { LogoSlot } from './LogoSlot';
 
 type OfferType = CareerOffer['type'];
 
-const TYPE_TONE: Record<OfferType, 'cobalt' | 'signal' | 'outline'> = { graduate: 'cobalt', internship: 'signal', careers: 'outline' };
+const TYPE_TONE: Record<OfferType, 'cobalt' | 'signal' | 'outline'> = {
+  graduate: 'cobalt',
+  internship: 'signal',
+  careers: 'outline',
+};
 
 const OFFER_ORDER: readonly OfferType[] = ['graduate', 'internship', 'careers'];
 
 /** The distinct offer types of an employer, in the order graduate, internship, careers. */
-const offerTypes = (employer: CareerEmployer): OfferType[] => OFFER_ORDER.filter((type) => employer.offers.some((o) => o.type === type));
+const offerTypes = (employer: CareerEmployer): OfferType[] =>
+  OFFER_ORDER.filter((type) => employer.offers.some((o) => o.type === type));
 
 /** 'EVOLVE and THRIVE' from the named offers of an employer. */
 function programmeLine(employer: CareerEmployer): string {
@@ -41,7 +46,15 @@ function useApplicationDate(employerId: string): { event: CalendarEvent; line: s
   return null;
 }
 
-export function EmployerCard({ employer, track, tracks }: { employer: CareerEmployer; track: string; tracks: Map<string, CareerTrack> }) {
+export function EmployerCard({
+  employer,
+  track,
+  tracks,
+}: {
+  employer: CareerEmployer;
+  track: string;
+  tracks: Map<string, CareerTrack>;
+}) {
   const { offerTypes: labels, ctaLabel } = useCareerData();
   const types = offerTypes(employer);
   const programme = programmeLine(employer);
@@ -50,7 +63,15 @@ export function EmployerCard({ employer, track, tracks }: { employer: CareerEmpl
   const SectorIcon = SECTOR_ICONS[employer.sector] ?? Buildings;
   const applications = useApplicationDate(employer.id);
   return (
-    <Panel as="li" padding="none" id={`career-emp-${employer.id}`} className="career-emp" data-hub="career-employer" data-employer-id={employer.id} data-offer-types={types.join(' ')}>
+    <Panel
+      as="li"
+      padding="none"
+      id={`career-emp-${employer.id}`}
+      className="career-emp"
+      data-hub="career-employer"
+      data-employer-id={employer.id}
+      data-offer-types={types.join(' ')}
+    >
       <div className="career-emp__top">
         <LogoSlot kind="employer" id={employer.id} logo={employer.logo} mono={employer.mono} />
         <ul role="list" className="career-emp__types" aria-label="What it offers">
@@ -91,7 +112,14 @@ export function EmployerCard({ employer, track, tracks }: { employer: CareerEmpl
 
       {url ? (
         <footer className="career-emp__foot">
-          <Button variant="secondary" size="sm" href={url} trailingIcon={ArrowUpRight} className="career-emp__cta" data-hub="career-apply">
+          <Button
+            variant="secondary"
+            size="sm"
+            href={url}
+            trailingIcon={ArrowUpRight}
+            className="career-emp__cta"
+            data-hub="career-apply"
+          >
             {ctaLabel[employer.cta]}
             <span className="visually-hidden">{` at ${employer.name}, opens ${host} in a new tab`}</span>
           </Button>

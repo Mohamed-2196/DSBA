@@ -7,15 +7,60 @@
    --tone the solid fill, --tone-on text on that fill (AA), --tone-soft a tint, --tone-text the type
    as small text on a surface (AA). Yellow, green, amber and the break grey are bright in both themes,
    so they take the same dark text everywhere (--highlight-ink). */
-.cal-row { --tone: var(--ink-3); --tone-on: var(--highlight-ink); --tone-soft: var(--surface-2); --tone-text: var(--ink-2); } /* a type this file has not met yet */
-.cal-tone--exam { --tone: var(--alert-strong); --tone-on: var(--alert-ink); --tone-soft: var(--alert-soft); --tone-text: var(--alert-strong); }
-.cal-tone--mock { --tone: var(--cobalt); --tone-on: var(--cobalt-ink); --tone-soft: var(--cobalt-soft); --tone-text: var(--cobalt); }
-.cal-tone--revision { --tone: var(--signal); --tone-on: var(--highlight-ink); --tone-soft: var(--signal-soft); --tone-text: var(--signal-strong); }
-.cal-tone--deadline { --tone: var(--highlight); --tone-on: var(--highlight-ink); --tone-soft: var(--highlight-soft); --tone-text: var(--ink); }
-.cal-tone--careers { --tone: var(--ink); --tone-on: var(--surface); --tone-soft: var(--surface-2); --tone-text: var(--ink); }
-.cal-tone--event { --tone: var(--y3); --tone-on: var(--on-y3); --tone-soft: color-mix(in srgb, var(--y3) 15%, var(--surface)); --tone-text: var(--y3-strong); }
-.cal-tone--break { --tone: var(--ink-3); --tone-on: var(--highlight-ink); --tone-soft: var(--surface-2); --tone-text: var(--ink-2); }
-.cal-tone--term { --tone: var(--ink-2); --tone-on: var(--surface); --tone-soft: var(--surface-2); --tone-text: var(--ink-2); }
+.cal-row {
+  --tone: var(--ink-3);
+  --tone-on: var(--highlight-ink);
+  --tone-soft: var(--surface-2);
+  --tone-text: var(--ink-2);
+} /* a type this file has not met yet */
+.cal-tone--exam {
+  --tone: var(--alert-strong);
+  --tone-on: var(--alert-ink);
+  --tone-soft: var(--alert-soft);
+  --tone-text: var(--alert-strong);
+}
+.cal-tone--mock {
+  --tone: var(--cobalt);
+  --tone-on: var(--cobalt-ink);
+  --tone-soft: var(--cobalt-soft);
+  --tone-text: var(--cobalt);
+}
+.cal-tone--revision {
+  --tone: var(--signal);
+  --tone-on: var(--highlight-ink);
+  --tone-soft: var(--signal-soft);
+  --tone-text: var(--signal-strong);
+}
+.cal-tone--deadline {
+  --tone: var(--highlight);
+  --tone-on: var(--highlight-ink);
+  --tone-soft: var(--highlight-soft);
+  --tone-text: var(--ink);
+}
+.cal-tone--careers {
+  --tone: var(--ink);
+  --tone-on: var(--surface);
+  --tone-soft: var(--surface-2);
+  --tone-text: var(--ink);
+}
+.cal-tone--event {
+  --tone: var(--y3);
+  --tone-on: var(--on-y3);
+  --tone-soft: color-mix(in srgb, var(--y3) 15%, var(--surface));
+  --tone-text: var(--y3-strong);
+}
+.cal-tone--break {
+  --tone: var(--ink-3);
+  --tone-on: var(--highlight-ink);
+  --tone-soft: var(--surface-2);
+  --tone-text: var(--ink-2);
+}
+.cal-tone--term {
+  --tone: var(--ink-2);
+  --tone-on: var(--surface);
+  --tone-soft: var(--surface-2);
+  --tone-text: var(--ink-2);
+}
 
 .cal-dot {
   display: inline-block;
@@ -25,14 +70,32 @@
   border-radius: var(--r-pill);
   background: var(--ink-3);
 }
-.cal-dot--exam { background: var(--alert); }
-.cal-dot--mock { background: var(--cobalt); }
-.cal-dot--revision { background: var(--signal); }
-.cal-dot--deadline { background: var(--highlight); box-shadow: 0 0 0 1px var(--ink); }
-.cal-dot--careers { background: var(--surface); box-shadow: inset 0 0 0 2px var(--ink); }
-.cal-dot--event { background: var(--y3); }
-.cal-dot--break { background: var(--ink-3); }
-.cal-dot--term { background: var(--ink-2); }
+.cal-dot--exam {
+  background: var(--alert);
+}
+.cal-dot--mock {
+  background: var(--cobalt);
+}
+.cal-dot--revision {
+  background: var(--signal);
+}
+.cal-dot--deadline {
+  background: var(--highlight);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+.cal-dot--careers {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.cal-dot--event {
+  background: var(--y3);
+}
+.cal-dot--break {
+  background: var(--ink-3);
+}
+.cal-dot--term {
+  background: var(--ink-2);
+}
 
 /* The date leaf: weekday on the band, day number, month. The band takes the event type's colour. */
 .cal-leaf {
@@ -51,7 +114,13 @@
   line-height: 1;
   text-align: center;
 }
-.cal-leaf__wd { padding: 4px 0 3px; background: var(--leaf-band); color: var(--leaf-band-ink); font-size: var(--fs-12); font-weight: var(--fw-bold); }
+.cal-leaf__wd {
+  padding: 4px 0 3px;
+  background: var(--leaf-band);
+  color: var(--leaf-band-ink);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+}
 .cal-leaf__day {
   padding-top: 5px;
   font-size: var(--fs-20);
@@ -59,25 +128,77 @@
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
-.cal-leaf__mon { padding: 2px 0 5px; color: var(--ink-2); font-size: 11px; font-weight: var(--fw-semibold); }
-.cal-leaf--exam { --leaf-band: var(--alert-soft); --leaf-band-ink: var(--alert-strong); --leaf-edge: color-mix(in srgb, var(--alert) 38%, var(--line)); }
-.cal-leaf--exam.is-solid { --leaf-band: var(--alert-strong); --leaf-band-ink: var(--alert-ink); --leaf-edge: var(--alert-strong); }
-.cal-leaf--mock { --leaf-band: var(--cobalt-soft); --leaf-band-ink: var(--cobalt); --leaf-edge: color-mix(in srgb, var(--cobalt) 32%, var(--line)); }
-.cal-leaf--revision { --leaf-band: var(--signal-soft); --leaf-band-ink: var(--signal-strong); --leaf-edge: color-mix(in srgb, var(--signal) 38%, var(--line)); }
-.cal-leaf--event { --leaf-band: color-mix(in srgb, var(--y3) 15%, var(--surface)); --leaf-band-ink: var(--y3-strong); --leaf-edge: color-mix(in srgb, var(--y3) 42%, var(--line)); }
-.cal-leaf--careers { --leaf-band: var(--surface-2); --leaf-band-ink: var(--ink); --leaf-edge: var(--line-strong); }
-.cal-leaf--deadline { --leaf-band: var(--highlight-soft); --leaf-band-ink: var(--ink); --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong)); }
-.cal-leaf--today.is-solid { --leaf-band: var(--cobalt); --leaf-band-ink: var(--cobalt-ink); --leaf-edge: var(--cobalt); }
+.cal-leaf__mon {
+  padding: 2px 0 5px;
+  color: var(--ink-2);
+  font-size: 11px;
+  font-weight: var(--fw-semibold);
+}
+.cal-leaf--exam {
+  --leaf-band: var(--alert-soft);
+  --leaf-band-ink: var(--alert-strong);
+  --leaf-edge: color-mix(in srgb, var(--alert) 38%, var(--line));
+}
+.cal-leaf--exam.is-solid {
+  --leaf-band: var(--alert-strong);
+  --leaf-band-ink: var(--alert-ink);
+  --leaf-edge: var(--alert-strong);
+}
+.cal-leaf--mock {
+  --leaf-band: var(--cobalt-soft);
+  --leaf-band-ink: var(--cobalt);
+  --leaf-edge: color-mix(in srgb, var(--cobalt) 32%, var(--line));
+}
+.cal-leaf--revision {
+  --leaf-band: var(--signal-soft);
+  --leaf-band-ink: var(--signal-strong);
+  --leaf-edge: color-mix(in srgb, var(--signal) 38%, var(--line));
+}
+.cal-leaf--event {
+  --leaf-band: color-mix(in srgb, var(--y3) 15%, var(--surface));
+  --leaf-band-ink: var(--y3-strong);
+  --leaf-edge: color-mix(in srgb, var(--y3) 42%, var(--line));
+}
+.cal-leaf--careers {
+  --leaf-band: var(--surface-2);
+  --leaf-band-ink: var(--ink);
+  --leaf-edge: var(--line-strong);
+}
+.cal-leaf--deadline {
+  --leaf-band: var(--highlight-soft);
+  --leaf-band-ink: var(--ink);
+  --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong));
+}
+.cal-leaf--today.is-solid {
+  --leaf-band: var(--cobalt);
+  --leaf-band-ink: var(--cobalt-ink);
+  --leaf-edge: var(--cobalt);
+}
 
 /* A student's own events: the colour they picked (--mine), on a square dot so it never reads as a programme type,
    and a bar down a list row's or a chip's edge. */
-.cal-colour--violet { --mine: var(--mine-violet); }
-.cal-colour--teal { --mine: var(--mine-teal); }
-.cal-colour--green { --mine: var(--mine-green); }
-.cal-colour--orange { --mine: var(--mine-orange); }
-.cal-colour--rose { --mine: var(--mine-rose); }
-.cal-colour--slate { --mine: var(--mine-slate); }
-.cal-dot--mine { border-radius: 2px; background: var(--mine, var(--mine-violet)); }
+.cal-colour--violet {
+  --mine: var(--mine-violet);
+}
+.cal-colour--teal {
+  --mine: var(--mine-teal);
+}
+.cal-colour--green {
+  --mine: var(--mine-green);
+}
+.cal-colour--orange {
+  --mine: var(--mine-orange);
+}
+.cal-colour--rose {
+  --mine: var(--mine-rose);
+}
+.cal-colour--slate {
+  --mine: var(--mine-slate);
+}
+.cal-dot--mine {
+  border-radius: 2px;
+  background: var(--mine, var(--mine-violet));
+}
 .cal-tone--mine {
   --tone: var(--mine);
   --tone-on: var(--surface);

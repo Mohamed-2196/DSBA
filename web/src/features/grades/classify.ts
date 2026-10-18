@@ -63,7 +63,13 @@ export function bandOf(grade: number, rules: Rules): BandId {
   return 'fail';
 }
 
-const DESCRIPTION: Record<BandId, string> = { first: 'First Class', upper: 'Upper Second Class', lower: 'Lower Second Class', third: 'Third Class', fail: 'Fail' };
+const DESCRIPTION: Record<BandId, string> = {
+  first: 'First Class',
+  upper: 'Upper Second Class',
+  lower: 'Lower Second Class',
+  third: 'Third Class',
+  fail: 'Fail',
+};
 
 /** A mark's class, in words. */
 export const gradeDescription = (grade: number, rules: Rules): string => DESCRIPTION[bandOf(grade, rules)];
@@ -147,10 +153,14 @@ export function classify(input: unknown, rules: Rules): Classification {
   const upperSecondClass = classificationMarks.filter((g) => g >= upper.floor && g < first.floor).length;
   const lowerSecondClass = classificationMarks.filter((g) => g >= lower.floor && g < upper.floor).length;
   const thirdClass = classificationMarks.filter((g) => g >= third.floor && g < lower.floor).length;
-  const average = classificationMarks.length > 0 ? classificationMarks.reduce((sum, grade) => sum + grade, 0) / classificationMarks.length : 0;
+  const average =
+    classificationMarks.length > 0
+      ? classificationMarks.reduce((sum, grade) => sum + grade, 0) / classificationMarks.length
+      : 0;
 
   const { needed, fewer, averages } = rules;
-  const reaches = (marks: number, bar: number | null) => marks >= needed || (bar != null && marks >= fewer && average >= bar);
+  const reaches = (marks: number, bar: number | null) =>
+    marks >= needed || (bar != null && marks >= fewer && average >= bar);
   let kind: ClassKind;
   if (failed) kind = 'resit';
   else if (reaches(firstClass, averages.first)) kind = 'first';

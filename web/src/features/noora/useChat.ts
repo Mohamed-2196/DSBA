@@ -35,7 +35,17 @@ function thinkingTime(text: string, attachments: readonly Attachment[]): number 
  * and then null again.
  */
 export type Pending =
-  | { phase: 'thinking'; label: string; wait: number; since: number; question: Question; replyId: number; ai: boolean; notice?: string; retry?: boolean }
+  | {
+      phase: 'thinking';
+      label: string;
+      wait: number;
+      since: number;
+      question: Question;
+      replyId: number;
+      ai: boolean;
+      notice?: string;
+      retry?: boolean;
+    }
   | { phase: 'typing'; reply: NooraMessage; shown: number; live?: boolean }
   | { phase: 'done'; reply: NooraMessage };
 
@@ -78,11 +88,19 @@ const STOPPED = 'You stopped this answer.';
 /** Why an answer comes from her script instead of her AI, and whether to stop asking her AI for this visit. */
 export function fallback(e: unknown): { notice: string; pause: Pause | null } {
   const code = isApiError(e) ? e.code : null;
-  if (code === 'noora_daily_limit') return { notice: 'You’ve used today’s AI questions, so this answer is from my script. Ask again tomorrow.', pause: 'limit' };
-  if (code === 'noora_budget_reached') return { notice: 'My AI answers are paused until next month, so this answer is from my script.', pause: 'budget' };
-  if (code === 'rate_limited') return { notice: 'One question at a time, so this answer is from my script.', pause: null };
-  if (code === 'noora_busy') return { notice: 'Lots of students are asking me right now, so this answer is from my script.', pause: null };
-  const off = code === 'noora_unavailable' || code === 'feature_off' || code === 'unauthenticated' || code === 'forbidden';
+  if (code === 'noora_daily_limit')
+    return {
+      notice: 'You’ve used today’s AI questions, so this answer is from my script. Ask again tomorrow.',
+      pause: 'limit',
+    };
+  if (code === 'noora_budget_reached')
+    return { notice: 'My AI answers are paused until next month, so this answer is from my script.', pause: 'budget' };
+  if (code === 'rate_limited')
+    return { notice: 'One question at a time, so this answer is from my script.', pause: null };
+  if (code === 'noora_busy')
+    return { notice: 'Lots of students are asking me right now, so this answer is from my script.', pause: null };
+  const off =
+    code === 'noora_unavailable' || code === 'feature_off' || code === 'unauthenticated' || code === 'forbidden';
   return { notice: 'I couldn’t reach my AI, so this answer is from my script.', pause: off ? 'off' : null };
 }
 
@@ -101,12 +119,43 @@ export function lastQuestionAt(messages: readonly Message[]): number {
 }
 
 /** The reply on its way, stopped where it is: what has arrived, marked as stopped. */
-export function stoppedReply(pending: Pending, partial: string, modules: readonly ModuleSummary[], at: number): NooraMessage | null {
+export function stoppedReply(
+  pending: Pending,
+  partial: string,
+  modules: readonly ModuleSummary[],
+  at: number,
+): NooraMessage | null {
   if (pending.phase === 'done') return null;
-  if (pending.phase === 'thinking') return { id: pending.replyId, from: 'noora', at, mood: 'neutral', text: '', refs: [], notice: STOPPED, ai: pending.ai };
+  if (pending.phase === 'thinking')
+    return {
+      id: pending.replyId,
+      from: 'noora',
+      at,
+      mood: 'neutral',
+      text: '',
+      refs: [],
+      notice: STOPPED,
+      ai: pending.ai,
+    };
   const { reply } = pending;
-  if (pending.live) return { ...replyFromAnswer(visibleText(partial), modules), id: reply.id, from: 'noora', at: reply.at, ai: true, notice: STOPPED };
-  return { ...reply, text: Array.from(reply.text).slice(0, pending.shown).join(''), formula: undefined, steps: undefined, refs: [], suggestions: undefined, notice: STOPPED };
+  if (pending.live)
+    return {
+      ...replyFromAnswer(visibleText(partial), modules),
+      id: reply.id,
+      from: 'noora',
+      at: reply.at,
+      ai: true,
+      notice: STOPPED,
+    };
+  return {
+    ...reply,
+    text: Array.from(reply.text).slice(0, pending.shown).join(''),
+    formula: undefined,
+    steps: undefined,
+    refs: [],
+    suggestions: undefined,
+    notice: STOPPED,
+  };
 }
 
 const highestId = (messages: readonly Message[]): number => messages.reduce((top, m) => Math.max(top, m.id), 0);
@@ -118,7 +167,19 @@ const highestId = (messages: readonly Message[]): number => messages.reduce((top
  * leaves the browser. When her AI can't answer, her script does, with a short notice. initial: a conversation to
  * carry on with. script: what she says in her own words.
  */
-export function useChat({ year, calm, ai, script, initial = [] }: { year: number | null; calm: boolean; ai: ChatAi | null; script: NooraScript; initial?: Message[] }): Chat {
+export function useChat({
+  year,
+  calm,
+  ai,
+  script,
+  initial = [],
+}: {
+  year: number | null;
+  calm: boolean;
+  ai: ChatAi | null;
+  script: NooraScript;
+  initial?: Message[];
+}): Chat {
   const { knowledge, ready } = useKnowledge(script);
   const latest = useRef(knowledge);
   useEffect(() => {
@@ -157,7 +218,9 @@ export function useChat({ year, calm, ai, script, initial = [] }: { year: number
 
   /** Puts her reply in the list, or replaces the one with its id (an answer that is still arriving). */
   const put = useCallback((reply: NooraMessage) => {
-    setMessages((list) => (list.some((m) => m.id === reply.id) ? list.map((m) => (m.id === reply.id ? reply : m)) : [...list, reply]));
+    setMessages((list) =>
+      list.some((m) => m.id === reply.id) ? list.map((m) => (m.id === reply.id ? reply : m)) : [...list, reply],
+    );
   }, []);
 
   const askAi = useCallback(
@@ -174,7 +237,15 @@ export function useChat({ year, calm, ai, script, initial = [] }: { year: number
         now.question(question.text, history),
         (piece) => {
           partial.current += piece;
-          const reply: NooraMessage = { id: replyId, from: 'noora', at, mood: 'neutral', text: visibleText(partial.current), refs: [], ai: true };
+          const reply: NooraMessage = {
+            id: replyId,
+            from: 'noora',
+            at,
+            mood: 'neutral',
+            text: visibleText(partial.current),
+            refs: [],
+            ai: true,
+          };
           put(reply);
           setPending({ phase: 'typing', reply, shown: Array.from(reply.text).length, live: true });
         },
@@ -187,12 +258,31 @@ export function useChat({ year, calm, ai, script, initial = [] }: { year: number
         .catch((e: unknown) => {
           if (controller.signal.aborted) return;
           if (e instanceof AnswerCutOff && e.said) {
-            finish({ ...replyFromAnswer(partial.current, now.modules), id: replyId, from: 'noora', at, ai: true, mood: 'sad', notice: e.message, retry: true });
+            finish({
+              ...replyFromAnswer(partial.current, now.modules),
+              id: replyId,
+              from: 'noora',
+              at,
+              ai: true,
+              mood: 'sad',
+              notice: e.message,
+              retry: true,
+            });
             return;
           }
           const { notice, pause } = fallback(e);
           if (pause) setPaused(pause);
-          setPending({ phase: 'thinking', label: THINKING, wait: 0, since: Date.now(), question, replyId, ai: false, notice, retry: !pause });
+          setPending({
+            phase: 'thinking',
+            label: THINKING,
+            wait: 0,
+            since: Date.now(),
+            question,
+            replyId,
+            ai: false,
+            notice,
+            retry: !pause,
+          });
         });
     },
     [put],
@@ -212,7 +302,15 @@ export function useChat({ year, calm, ai, script, initial = [] }: { year: number
       // Her AI reads words only: a message of only pictures or files goes to her script.
       const toAi = now !== null && !pausedRef.current && text.trim().length > 0;
       setMessages([...base, mine]);
-      setPending({ phase: 'thinking', label: THINKING, wait: thinkingTime(text, attachments), since: Date.now(), question, replyId, ai: toAi });
+      setPending({
+        phase: 'thinking',
+        label: THINKING,
+        wait: thinkingTime(text, attachments),
+        since: Date.now(),
+        question,
+        replyId,
+        ai: toAi,
+      });
       if (toAi) askAi(now, question, replyId, historyOf(base));
       return true;
     },
@@ -265,7 +363,14 @@ export function useChat({ year, calm, ai, script, initial = [] }: { year: number
       const elapsed = Date.now() - pending.since;
       wait = Math.max(0, (thinkingReady ? pending.wait : Math.max(pending.wait, MAX_WAIT)) - elapsed);
       next = () => {
-        const reply: NooraMessage = { id: replyId, from: 'noora', at: Date.now(), ...answer(question, latest.current), ...(notice ? { notice } : {}), ...(retry ? { retry } : {}) };
+        const reply: NooraMessage = {
+          id: replyId,
+          from: 'noora',
+          at: Date.now(),
+          ...answer(question, latest.current),
+          ...(notice ? { notice } : {}),
+          ...(retry ? { retry } : {}),
+        };
         put(reply);
         setPending(calm ? { phase: 'done', reply } : { phase: 'typing', reply, shown: 0 });
       };

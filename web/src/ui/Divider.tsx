@@ -10,6 +10,14 @@ export interface DividerProps extends HTMLAttributes<HTMLHRElement> {
 
 /** Hairline divider. */
 export function Divider({ orientation = 'horizontal', spacing, className, style, ...rest }: DividerProps) {
-  const s = spacing != null ? (orientation === 'vertical' ? { marginInline: spacing } : { marginBlock: spacing }) : null;
-  return <hr aria-orientation={orientation} className={cx('ui-divider', `ui-divider--${orientation}`, className)} style={{ ...s, ...style }} {...rest} />;
+  const s =
+    spacing != null ? (orientation === 'vertical' ? { marginInline: spacing } : { marginBlock: spacing }) : null;
+  return (
+    <hr
+      aria-orientation={orientation}
+      className={cx('ui-divider', `ui-divider--${orientation}`, className)}
+      style={{ ...s, ...style }}
+      {...rest}
+    />
+  );
 }

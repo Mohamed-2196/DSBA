@@ -26,9 +26,22 @@ export interface QueryErrorProps {
  * The one "couldn't load, try again" state (code quality review CQ-5, UX review UX-10). A feature switched off
  * while the page was open says so instead, with nothing to retry.
  */
-export function QueryError({ error, title = 'This didn’t load', onRetry, retrying = false, size = 'md', panel = true, className }: QueryErrorProps) {
+export function QueryError({
+  error,
+  title = 'This didn’t load',
+  onRetry,
+  retrying = false,
+  size = 'md',
+  panel = true,
+  className,
+}: QueryErrorProps) {
   const content = isFeatureOff(error) ? (
-    <EmptyState size={size} icon={Power} title="This part of the hub is switched off right now." body="Come back later." />
+    <EmptyState
+      size={size}
+      icon={Power}
+      title="This part of the hub is switched off right now."
+      body="Come back later."
+    />
   ) : (
     <EmptyState
       size={size}

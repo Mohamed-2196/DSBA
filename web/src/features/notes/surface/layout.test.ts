@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { LINE, PAGE_GAP, PAPER_BASE, PAPER_LINES, SHEET_HEIGHT, TEXT_TOP, clampZoom, fitZoom, layoutSheets, paperFor, sheetAt, sheetsOf, textSheets } from './layout';
+import {
+  LINE,
+  PAGE_GAP,
+  PAPER_BASE,
+  PAPER_LINES,
+  SHEET_HEIGHT,
+  TEXT_TOP,
+  clampZoom,
+  fitZoom,
+  layoutSheets,
+  paperFor,
+  sheetAt,
+  sheetsOf,
+  textSheets,
+} from './layout';
 
 describe('layout', () => {
   it('rules a sheet of paper in whole lines, about A4’s shape', () => {
@@ -9,7 +23,13 @@ describe('layout', () => {
   });
 
   it('stacks PDF pages, then paper, in sheet units', () => {
-    const sheets = sheetsOf([{ width: 600, height: 800 }, { width: 800, height: 600 }], 2);
+    const sheets = sheetsOf(
+      [
+        { width: 600, height: 800 },
+        { width: 800, height: 600 },
+      ],
+      2,
+    );
     expect(sheets.map((s) => [s.index, s.kind, s.height])).toEqual([
       [0, 'pdf', 1067],
       [1, 'pdf', 600],

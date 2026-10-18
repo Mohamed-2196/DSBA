@@ -2,7 +2,19 @@
 // The files are final. This module only names them, says where they are and how to size them.
 
 /** Full-body poses. They all share one canvas, so swapping one for another never moves her. */
-export const POSES = ['idle', 'side-right', 'side-left', 'back', 'walk-right', 'walk-left', 'talking', 'happy', 'excited', 'surprised', 'sad'] as const;
+export const POSES = [
+  'idle',
+  'side-right',
+  'side-left',
+  'back',
+  'walk-right',
+  'walk-left',
+  'talking',
+  'happy',
+  'excited',
+  'surprised',
+  'sad',
+] as const;
 export type Pose = (typeof POSES)[number];
 
 /** Head-and-shoulders portraits, used for her face in the chat. */
@@ -49,7 +61,13 @@ export function figure(height: number): Figure {
 
 // The bust canvas is 600 × 600. Her head is about 320 px wide and sits around (300, 212); in the
 // wave she leans away from her raised hand, so the head is a little to the left there.
-const FACE: { size: number; y: number; x: Partial<Record<Bust, number>>; defaultX: number; canvas: number } = { size: 340, y: 212, x: { wave: 272 }, defaultX: 300, canvas: 600 };
+const FACE: { size: number; y: number; x: Partial<Record<Bust, number>>; defaultX: number; canvas: number } = {
+  size: 340,
+  y: 212,
+  x: { wave: 272 },
+  defaultX: 300,
+  canvas: 600,
+};
 
 /** How to place a bust inside a round frame so that her face fills it (percentages of the frame). */
 export function faceCrop(bust: Bust): { width: string; left: string; top: string } {

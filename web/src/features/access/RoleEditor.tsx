@@ -63,7 +63,8 @@ export function RoleEditor({ role, boxes, open, onClose, onSaved }: RoleEditorPr
 
   const fail = (e: unknown) => {
     if (e instanceof ApiError && e.code === 'role_changed') setProblems({ other: STALE });
-    else if (e instanceof ApiError && (e.fields.name || e.fields.badge)) setProblems({ name: e.fields.name, badge: e.fields.badge });
+    else if (e instanceof ApiError && (e.fields.name || e.fields.badge))
+      setProblems({ name: e.fields.name, badge: e.fields.badge });
     else if (e instanceof ApiError && e.fields.boxes) setProblems({ other: e.fields.boxes });
     else setProblems({ other: errorMessage(e) });
   };

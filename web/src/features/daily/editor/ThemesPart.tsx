@@ -7,7 +7,18 @@ import { errorMessage, isApiError } from '../../../api/errors';
 import type { DailyContentOverview, ThemeOut, WeekOut } from '../../../api/types';
 import { formatDay } from '../../../lib/dates';
 import { useToast } from '../../../state';
-import { Badge, Button, ConfirmDialog, IconButton, Modal, Panel, Select, Switch, TextArea, TextField } from '../../../ui';
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  IconButton,
+  Modal,
+  Panel,
+  Select,
+  Switch,
+  TextArea,
+  TextField,
+} from '../../../ui';
 import { useCreateTheme, useDeleteTheme, useOrderThemes, useSaveTheme, useSetWeek } from './api';
 import { countsLine, themeIdFrom } from './lib/items';
 import { weekRange, weeksAway } from './lib/weeks';
@@ -28,7 +39,10 @@ export function ThemesPart({ overview }: { overview: DailyContentOverview }) {
     const [id] = ids.splice(from, 1);
     if (id === undefined) return;
     ids.splice(from + by, 0, id);
-    order.mutate({ ids }, { onError: (e) => toast({ title: 'The new order wasn’t saved', body: errorMessage(e), tone: 'alert' }) });
+    order.mutate(
+      { ids },
+      { onError: (e) => toast({ title: 'The new order wasn’t saved', body: errorMessage(e), tone: 'alert' }) },
+    );
   };
 
   return (
@@ -40,7 +54,8 @@ export function ThemesPart({ overview }: { overview: DailyContentOverview }) {
               Themes
             </h3>
             <p className="dcms__note">
-              Each week runs one theme, from Sunday. The themes in the rotation take turns in this order; a theme out of the rotation runs only on the weeks you give it below.
+              Each week runs one theme, from Sunday. The themes in the rotation take turns in this order; a theme out of
+              the rotation runs only on the weeks you give it below.
             </p>
           </div>
           <Button leadingIcon={Plus} onClick={() => setEditing('new')}>
@@ -50,8 +65,20 @@ export function ThemesPart({ overview }: { overview: DailyContentOverview }) {
         <ol className="dcms-themes" aria-label="The rotation" aria-busy={order.isPending || undefined}>
           {rotation.map((t, i) => (
             <ThemeRow key={t.id} theme={t} onEdit={() => setEditing(t)} onRemove={() => setRemoving(t)}>
-              <IconButton size="sm" icon={ArrowUp} label={`Move ${t.title} earlier`} disabled={i === 0 || order.isPending} onClick={() => move(i, -1)} />
-              <IconButton size="sm" icon={ArrowDown} label={`Move ${t.title} later`} disabled={i === rotation.length - 1 || order.isPending} onClick={() => move(i, 1)} />
+              <IconButton
+                size="sm"
+                icon={ArrowUp}
+                label={`Move ${t.title} earlier`}
+                disabled={i === 0 || order.isPending}
+                onClick={() => move(i, -1)}
+              />
+              <IconButton
+                size="sm"
+                icon={ArrowDown}
+                label={`Move ${t.title} later`}
+                disabled={i === rotation.length - 1 || order.isPending}
+                onClick={() => move(i, 1)}
+              />
             </ThemeRow>
           ))}
         </ol>
@@ -69,7 +96,13 @@ export function ThemesPart({ overview }: { overview: DailyContentOverview }) {
 
       <WeeksPanel overview={overview} />
 
-      {editing ? <ThemeDialog key={editing === 'new' ? 'new' : editing.id} theme={editing === 'new' ? null : editing} onClose={() => setEditing(null)} /> : null}
+      {editing ? (
+        <ThemeDialog
+          key={editing === 'new' ? 'new' : editing.id}
+          theme={editing === 'new' ? null : editing}
+          onClose={() => setEditing(null)}
+        />
+      ) : null}
       <ConfirmDialog
         open={removing !== null}
         title={`Delete ${removing?.title ?? 'this theme'}?`}
@@ -99,7 +132,17 @@ export function ThemesPart({ overview }: { overview: DailyContentOverview }) {
   );
 }
 
-function ThemeRow({ theme: t, onEdit, onRemove, children }: { theme: ThemeOut; onEdit: () => void; onRemove: () => void; children?: ReactNode }) {
+function ThemeRow({
+  theme: t,
+  onEdit,
+  onRemove,
+  children,
+}: {
+  theme: ThemeOut;
+  onEdit: () => void;
+  onRemove: () => void;
+  children?: ReactNode;
+}) {
   const removable = !t.used && !t.inRotation && !hasItems(t);
   return (
     <li className="dcms-theme">
@@ -125,7 +168,9 @@ function ThemeRow({ theme: t, onEdit, onRemove, children }: { theme: ThemeOut; o
       <div className="dcms-theme__tools">
         {children}
         <IconButton size="sm" icon={PencilSimple} label={`Edit ${t.title}`} tooltip onClick={onEdit} />
-        {removable ? <IconButton size="sm" icon={Trash} label={`Delete ${t.title}`} tooltip onClick={onRemove} /> : null}
+        {removable ? (
+          <IconButton size="sm" icon={Trash} label={`Delete ${t.title}`} tooltip onClick={onRemove} />
+        ) : null}
       </div>
     </li>
   );
@@ -152,9 +197,15 @@ function ThemeDialog({ theme, onClose }: { theme: ThemeOut | null; onClose: () =
       onClose();
     };
     if (theme) {
-      save.mutate({ id: theme.id, title, blurb, inRotation, version: theme.version }, { onSuccess: () => done('Theme saved.') });
+      save.mutate(
+        { id: theme.id, title, blurb, inRotation, version: theme.version },
+        { onSuccess: () => done('Theme saved.') },
+      );
     } else {
-      create.mutate({ id: shownId, title, blurb }, { onSuccess: () => done(`${title.trim() || 'The theme'} is added, out of the rotation for now.`) });
+      create.mutate(
+        { id: shownId, title, blurb },
+        { onSuccess: () => done(`${title.trim() || 'The theme'} is added, out of the rotation for now.`) },
+      );
     }
   };
 
@@ -163,7 +214,11 @@ function ThemeDialog({ theme, onClose }: { theme: ThemeOut | null; onClose: () =
       open
       onClose={pending ? () => undefined : onClose}
       title={theme ? `Edit ${theme.title}` : 'Add a theme'}
-      description={theme ? undefined : 'A new theme starts out of the rotation. Give it puzzles for every game, then add it to the rotation.'}
+      description={
+        theme
+          ? undefined
+          : 'A new theme starts out of the rotation. Give it puzzles for every game, then add it to the rotation.'
+      }
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={pending}>
@@ -182,15 +237,36 @@ function ThemeDialog({ theme, onClose }: { theme: ThemeOut | null; onClose: () =
           submit();
         }}
       >
-        <TextField label="Title" value={title} maxLength={60} required onChange={(e) => setTitle(e.target.value)} error={fields.title} data-autofocus hint="As the hub shows it: “Statistics week”." />
-        <TextArea label="A line under the title" value={blurb} maxLength={200} rows={2} onChange={(e) => setBlurb(e.target.value)} error={fields.blurb} hint="What the week is about, in a few words." />
+        <TextField
+          label="Title"
+          value={title}
+          maxLength={60}
+          required
+          onChange={(e) => setTitle(e.target.value)}
+          error={fields.title}
+          data-autofocus
+          hint="As the hub shows it: “Statistics week”."
+        />
+        <TextArea
+          label="A line under the title"
+          value={blurb}
+          maxLength={200}
+          rows={2}
+          onChange={(e) => setBlurb(e.target.value)}
+          error={fields.blurb}
+          hint="What the week is about, in a few words."
+        />
         {theme ? (
           <>
             <Switch
               checked={inRotation}
               onChange={setInRotation}
               label="In the rotation"
-              description={theme.problems.length && !theme.inRotation ? `Not ready yet: ${theme.problems[0]}` : 'Themes in the rotation take turns, a week each.'}
+              description={
+                theme.problems.length && !theme.inRotation
+                  ? `Not ready yet: ${theme.problems[0]}`
+                  : 'Themes in the rotation take turns, a week each.'
+              }
             />
             {fields.inRotation ? <p className="dcms__error">{fields.inRotation}</p> : null}
           </>
@@ -237,7 +313,10 @@ function WeeksPanel({ overview }: { overview: DailyContentOverview }) {
         <h3 id="dcms-weeks-title" className="dcms-part__title">
           The weeks to come
         </h3>
-        <p className="dcms__note">A week follows the rotation unless you give it a theme, and the rotation carries on after it. A week that has started keeps its theme.</p>
+        <p className="dcms__note">
+          A week follows the rotation unless you give it a theme, and the rotation carries on after it. A week that has
+          started keeps its theme.
+        </p>
       </div>
       <ol className="dcms-weeks" aria-busy={setWeek.isPending || undefined}>
         {overview.weeks.map((w, n) => (
@@ -258,7 +337,11 @@ function WeeksPanel({ overview }: { overview: DailyContentOverview }) {
                 onChange={(e) => choose(w, e.target.value)}
                 options={[
                   { value: '', label: w.pinned ? 'Back to the rotation' : `${titleOf(w.theme)}, by rotation` },
-                  ...overview.themes.map((t) => ({ value: t.id, label: t.problems.length ? `${t.title} (not ready)` : t.title, disabled: t.problems.length > 0 })),
+                  ...overview.themes.map((t) => ({
+                    value: t.id,
+                    label: t.problems.length ? `${t.title} (not ready)` : t.title,
+                    disabled: t.problems.length > 0,
+                  })),
                 ]}
               />
             )}

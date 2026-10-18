@@ -60,9 +60,18 @@ export function asPens(value: unknown): PenSettings {
   const hl = isRecord(v.highlighter) ? v.highlighter : {};
   const er = isRecord(v.eraser) ? v.eraser : {};
   return {
-    pen: { color: oneOf(PEN_COLORS, pen.color, DEFAULT_PENS.pen.color), width: oneOf(PEN_WIDTHS, pen.width, DEFAULT_PENS.pen.width) },
-    highlighter: { color: oneOf(HIGHLIGHTER_COLORS, hl.color, DEFAULT_PENS.highlighter.color), width: oneOf(HIGHLIGHTER_WIDTHS, hl.width, DEFAULT_PENS.highlighter.width) },
-    eraser: { mode: er.mode === 'partial' ? 'partial' : 'stroke', size: oneOf(ERASER_SIZES, er.size, DEFAULT_PENS.eraser.size) },
+    pen: {
+      color: oneOf(PEN_COLORS, pen.color, DEFAULT_PENS.pen.color),
+      width: oneOf(PEN_WIDTHS, pen.width, DEFAULT_PENS.pen.width),
+    },
+    highlighter: {
+      color: oneOf(HIGHLIGHTER_COLORS, hl.color, DEFAULT_PENS.highlighter.color),
+      width: oneOf(HIGHLIGHTER_WIDTHS, hl.width, DEFAULT_PENS.highlighter.width),
+    },
+    eraser: {
+      mode: er.mode === 'partial' ? 'partial' : 'stroke',
+      size: oneOf(ERASER_SIZES, er.size, DEFAULT_PENS.eraser.size),
+    },
   };
 }
 

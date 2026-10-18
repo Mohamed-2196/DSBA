@@ -10,7 +10,8 @@ import { moduleDetailQuery } from '../modules/public';
 export const CAREER_KEY = ['career'] as const;
 
 /** The document, or null while it has nothing to show (before an admin loads it). */
-const usable = (doc: CareerDoc | null): CareerDoc | null => (doc && (doc.employers.length || doc.roles.length || doc.certs.length) ? doc : null);
+const usable = (doc: CareerDoc | null): CareerDoc | null =>
+  doc && (doc.employers.length || doc.roles.length || doc.certs.length) ? doc : null;
 
 /** The Career Navigator's content; data is null when there is nothing to show yet. */
 export function useCareer() {

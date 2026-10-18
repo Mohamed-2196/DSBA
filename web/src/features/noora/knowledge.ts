@@ -41,6 +41,9 @@ export function useKnowledge(script: NooraScript): KnowledgeState {
   const events = useCalendarEvents({ from: dayKeyFromToday() }, { enabled: calendarOn });
   const name = status === 'signed-in' ? firstNameOf(me?.displayName) : null;
   const eventList = events.data ?? null;
-  const knowledge = useMemo(() => buildKnowledge(modules, details.byId, eventList, name, featureOn, script), [modules, details.byId, eventList, name, featureOn, script]);
+  const knowledge = useMemo(
+    () => buildKnowledge(modules, details.byId, eventList, name, featureOn, script),
+    [modules, details.byId, eventList, name, featureOn, script],
+  );
   return { knowledge, ready: details.settled && (!calendarOn || !events.isPending) };
 }

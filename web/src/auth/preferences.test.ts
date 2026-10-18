@@ -18,7 +18,10 @@ const prefs: Me['preferences'] = {
 
 describe('applyPreferences', () => {
   it('changes the switches sent and keeps the rest', () => {
-    expect(applyPreferences(prefs, { trackProgress: true, emailReplies: null })).toEqual({ ...prefs, trackProgress: true });
+    expect(applyPreferences(prefs, { trackProgress: true, emailReplies: null })).toEqual({
+      ...prefs,
+      trackProgress: true,
+    });
   });
   it('sets Home’s blocks, and null goes back to the default', () => {
     expect(applyPreferences(prefs, { homeBlocks: ['modules', 'todo'] }).homeBlocks).toEqual(['modules', 'todo']);

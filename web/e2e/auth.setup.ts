@@ -60,11 +60,17 @@ setup('Sara signs up with her phone number: wrong code, resend, profile', async 
   const resend = dialog.getByRole('button', { name: 'Send a new code', exact: true });
   await expect(resend).toBeEnabled({ timeout: 45_000 });
   const since2 = Date.now();
-  const [resp2] = await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/v1/auth/otp')), resend.click()]);
+  const [resp2] = await Promise.all([
+    page.waitForResponse((r) => r.url().endsWith('/api/v1/auth/otp')),
+    resend.click(),
+  ]);
   const second = { challengeId: (await resp2.json()).challengeId as string };
   await expect(dialog).toContainText('We sent you a new code.');
   const code2 = await waitForCode('sms', run.sara.e164, since2);
-  const retired = await api<{ error: { code: string } }>(page, 'POST', '/api/v1/auth/otp/verify', { challengeId: first.challengeId, code: code1 });
+  const retired = await api<{ error: { code: string } }>(page, 'POST', '/api/v1/auth/otp/verify', {
+    challengeId: first.challengeId,
+    code: code1,
+  });
   expect(retired.status).toBe(410);
   expect(retired.body.error.code).toBe('code_expired');
 
@@ -73,7 +79,10 @@ setup('Sara signs up with her phone number: wrong code, resend, profile', async 
   await expect(dialog).toContainText('Set up your profile');
   await expect(dialog.getByRole('group', { name: 'Your cohort' }).getByLabel('Year 2')).toBeChecked(); // the year chosen on the first visit
   // A used code can't be used again.
-  const reused = await api<{ error: { code: string } }>(page, 'POST', '/api/v1/auth/otp/verify', { challengeId: second.challengeId, code: code2 });
+  const reused = await api<{ error: { code: string } }>(page, 'POST', '/api/v1/auth/otp/verify', {
+    challengeId: second.challengeId,
+    code: code2,
+  });
   expect(reused.status).toBe(410);
 
   await dialog.getByLabel('Display name').fill('S');
@@ -84,76 +93,90 @@ setup('Sara signs up with her phone number: wrong code, resend, profile', async 
   await expect(page.getByText('Welcome to DSBA Hub, Sara')).toBeVisible();
   await expect(page.getByRole('heading', { name: /Sara/ })).toBeVisible();
 
-  const me = await api<{ phone: string; year: number; displayName: string; roles: { slug: string }[] }>(page, 'GET', '/api/v1/me');
+  const me = await api<{ phone: string; year: number; displayName: string; roles: { slug: string }[] }>(
+    page,
+    'GET',
+    '/api/v1/me',
+  );
   expect(me.body).toMatchObject({ phone: run.sara.e164, year: 2, displayName: run.sara.name });
   expect(me.body.roles.map((r) => r.slug)).toEqual(['student']);
   await ctx.storageState({ path: statePath('sara') });
   await ctx.close();
 });
 
-setup('Sara signs out and back in: grades are cleared, guest lesson progress is added to her account', async ({ browser }) => {
-  const run = readRun();
-  const ctx = await browser.newContext({ baseURL: env.baseURL, storageState: statePath('sara') });
-  await prepareContext(ctx);
-  const page = await ctx.newPage();
+setup(
+  'Sara signs out and back in: grades are cleared, guest lesson progress is added to her account',
+  async ({ browser }) => {
+    const run = readRun();
+    const ctx = await browser.newContext({ baseURL: env.baseURL, storageState: statePath('sara') });
+    await prepareContext(ctx);
+    const page = await ctx.newPage();
 
-  // Grades stay in this browser across a reload...
-  await page.goto('/grades');
-  const marks = page.locator('[data-hub="grades-inputs"] input[inputmode="decimal"]');
-  for (const [i, m] of ['68', '74', '61', '72'].entries()) await marks.nth(i).fill(m);
-  await page.reload();
-  await expect(marks.nth(3)).toHaveValue('72');
+    // Grades stay in this browser across a reload...
+    await page.goto('/grades');
+    const marks = page.locator('[data-hub="grades-inputs"] input[inputmode="decimal"]');
+    for (const [i, m] of ['68', '74', '61', '72'].entries()) await marks.nth(i).fill(m);
+    await page.reload();
+    await expect(marks.nth(3)).toHaveValue('72');
 
-  // ...and signing out clears them.
-  await page.getByRole('button', { name: /Open the account menu/ }).first().click();
-  await page.getByRole('menuitem', { name: 'Sign out' }).click();
-  await expect(page.getByRole('button', { name: 'Sign in', exact: true }).first()).toBeVisible();
-  expect((await page.request.get('/api/v1/me')).status()).toBe(401);
-  await page.goto('/grades');
-  await expect(marks.nth(3)).toHaveValue('');
+    // ...and signing out clears them.
+    await page
+      .getByRole('button', { name: /Open the account menu/ })
+      .first()
+      .click();
+    await page.getByRole('menuitem', { name: 'Sign out' }).click();
+    await expect(page.getByRole('button', { name: 'Sign in', exact: true }).first()).toBeVisible();
+    expect((await page.request.get('/api/v1/me')).status()).toBe(401);
+    await page.goto('/grades');
+    await expect(marks.nth(3)).toHaveValue('');
 
-  // As a guest she marks two ST2133 lessons as watched.
-  const lessons = ['ik3fr6mt', 'crvr85s7']; // chapter 1's first two lessons (app/seed/data/modules.json)
-  for (const [i, lesson] of lessons.entries()) {
-    await page.goto(`/modules/advanced-stats-distribution/lessons/${lesson}`);
-    // Lesson progress is opt in: the first lesson offers it once.
-    if (i === 0) await page.locator('[data-hub="progress-offer"]').getByRole('button', { name: 'Turn on' }).click();
-    const watched = page.locator('[data-hub="lesson-watched"]');
-    await watched.click();
-    await expect(watched).toHaveAttribute('aria-pressed', 'true');
-  }
-  await page.reload();
-  await expect(page.locator('[data-hub="lesson-list"]')).toContainText(/2 of \d+ lessons watched/);
+    // As a guest she marks two ST2133 lessons as watched.
+    const lessons = ['ik3fr6mt', 'crvr85s7']; // chapter 1's first two lessons (app/seed/data/modules.json)
+    for (const [i, lesson] of lessons.entries()) {
+      await page.goto(`/modules/advanced-stats-distribution/lessons/${lesson}`);
+      // Lesson progress is opt in: the first lesson offers it once.
+      if (i === 0) await page.locator('[data-hub="progress-offer"]').getByRole('button', { name: 'Turn on' }).click();
+      const watched = page.locator('[data-hub="lesson-watched"]');
+      await watched.click();
+      await expect(watched).toHaveAttribute('aria-pressed', 'true');
+    }
+    await page.reload();
+    await expect(page.locator('[data-hub="lesson-list"]')).toContainText(/2 of \d+ lessons watched/);
 
-  // Sign back in, this time typing the number in international format.
-  await page.getByRole('button', { name: 'Sign in', exact: true }).first().click();
-  const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Email or phone number').fill(`+973 ${run.sara.local}`);
-  const { since } = await sendCode(page);
-  await dialog.getByLabel('6-digit code').fill(await waitForCode('sms', run.sara.e164, since));
-  await expect(page.getByText(`Signed in as ${run.sara.name}`)).toBeVisible();
+    // Sign back in, this time typing the number in international format.
+    await page.getByRole('button', { name: 'Sign in', exact: true }).first().click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Email or phone number').fill(`+973 ${run.sara.local}`);
+    const { since } = await sendCode(page);
+    await dialog.getByLabel('6-digit code').fill(await waitForCode('sms', run.sara.e164, since));
+    await expect(page.getByText(`Signed in as ${run.sara.name}`)).toBeVisible();
 
-  const prompt = page.getByRole('dialog').filter({ hasText: 'Is this lesson progress yours?' });
-  await expect(prompt).toContainText('someone marked 2 lessons as watched on this computer');
-  await prompt.getByRole('button', { name: 'Add to my account' }).click();
-  await expect(page.getByText('Lesson progress added')).toBeVisible();
-  const progress = await api<{ watched: Record<string, { moduleId: string }> }>(page, 'GET', '/api/v1/me/progress');
-  expect(Object.keys(progress.body.watched).sort()).toEqual([...lessons].sort());
+    const prompt = page.getByRole('dialog').filter({ hasText: 'Is this lesson progress yours?' });
+    await expect(prompt).toContainText('someone marked 2 lessons as watched on this computer');
+    await prompt.getByRole('button', { name: 'Add to my account' }).click();
+    await expect(page.getByText('Lesson progress added')).toBeVisible();
+    const progress = await api<{ watched: Record<string, { moduleId: string }> }>(page, 'GET', '/api/v1/me/progress');
+    expect(Object.keys(progress.body.watched).sort()).toEqual([...lessons].sort());
 
-  // Home picks up where she left off; clearing the module's progress offers an undo.
-  await page.goto('/');
-  await expect(page.locator('[data-hub="continue-learning"]')).toContainText('ST2133');
-  await page.goto('/modules/advanced-stats-distribution?tab=lessons');
-  await page.getByRole('button', { name: 'Lesson options' }).click();
-  await page.getByRole('menuitem', { name: 'Clear my progress in this module' }).click();
-  await expect(page.getByText('Progress cleared for ST2133')).toBeVisible();
-  await expect
-    .poll(async () => Object.keys((await api<{ watched: Record<string, string> }>(page, 'GET', '/api/v1/me/progress')).body.watched).length)
-    .toBe(0);
+    // Home picks up where she left off; clearing the module's progress offers an undo.
+    await page.goto('/');
+    await expect(page.locator('[data-hub="continue-learning"]')).toContainText('ST2133');
+    await page.goto('/modules/advanced-stats-distribution?tab=lessons');
+    await page.getByRole('button', { name: 'Lesson options' }).click();
+    await page.getByRole('menuitem', { name: 'Clear my progress in this module' }).click();
+    await expect(page.getByText('Progress cleared for ST2133')).toBeVisible();
+    await expect
+      .poll(
+        async () =>
+          Object.keys((await api<{ watched: Record<string, string> }>(page, 'GET', '/api/v1/me/progress')).body.watched)
+            .length,
+      )
+      .toBe(0);
 
-  await ctx.storageState({ path: statePath('sara') });
-  await ctx.close();
-});
+    await ctx.storageState({ path: statePath('sara') });
+    await ctx.close();
+  },
+);
 
 setup('Sara adds an email address to her phone account', async ({ browser }) => {
   const run = readRun();
@@ -176,7 +199,12 @@ setup('Sara adds an email address to her phone account', async ({ browser }) => 
 
 setup('Ali signs up with his email on a phone-sized screen', async ({ browser }) => {
   const run = readRun();
-  const ctx = await browser.newContext({ baseURL: env.baseURL, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const ctx = await browser.newContext({
+    baseURL: env.baseURL,
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
   await prepareContext(ctx, { year: null });
   const page = await ctx.newPage();
   await page.goto('/');
@@ -212,7 +240,10 @@ setup('the student rep and the admin sign in (dev-login)', async ({ browser }) =
     await ctx.addCookies([{ name: 'dsba_session', value: token, domain: env.host, path: '/' }]);
     const page = await ctx.newPage();
     const me = await api<{ roles: { slug: string }[]; status: string }>(page, 'GET', '/api/v1/me');
-    expect(me.body).toMatchObject({ status: 'active', roles: expect.arrayContaining([expect.objectContaining({ slug: who === 'rep' ? 'rep' : 'admin' })]) });
+    expect(me.body).toMatchObject({
+      status: 'active',
+      roles: expect.arrayContaining([expect.objectContaining({ slug: who === 'rep' ? 'rep' : 'admin' })]),
+    });
     await ctx.storageState({ path: statePath(who) });
     await ctx.close();
   }

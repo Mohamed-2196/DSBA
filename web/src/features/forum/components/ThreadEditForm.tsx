@@ -14,7 +14,10 @@ import './dialogs.css';
 type Errors = ThreadErrors & { form?: string };
 
 /** What changed between the thread and the form (only that is sent). */
-function changes(thread: ThreadDetail, form: { title: string; body: string; place: Placement; tags: string[] }): ThreadUpdate {
+function changes(
+  thread: ThreadDetail,
+  form: { title: string; body: string; place: Placement; tags: string[] },
+): ThreadUpdate {
   const patch: ThreadUpdate = {};
   if (form.title !== thread.title) patch.title = form.title;
   if (form.body !== thread.body.trim()) patch.body = form.body;
@@ -25,7 +28,13 @@ function changes(thread: ThreadDetail, form: { title: string; body: string; plac
 }
 
 /** Edit the original post in place: title, details (with pictures), where it lives and its tags. */
-export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDone: (updated: ThreadDetail | null) => void }) {
+export function ThreadEditForm({
+  thread,
+  onDone,
+}: {
+  thread: ThreadDetail;
+  onDone: (updated: ThreadDetail | null) => void;
+}) {
   const update = useUpdateThread();
   const rules = usePlacementRules();
   const [title, setTitle] = useState(thread.title);
@@ -58,7 +67,8 @@ export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDon
           onDone(updated);
         },
         // A field the API turned down (an unknown module, too many tags) says so under that field.
-        onError: (e) => setErrors(threadFieldErrors(e) ?? { form: errorMessage(e, "Your changes weren't saved. Try again.") }),
+        onError: (e) =>
+          setErrors(threadFieldErrors(e) ?? { form: errorMessage(e, "Your changes weren't saved. Try again.") }),
       },
     );
   };
@@ -86,7 +96,11 @@ export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDon
         autoFocus
       />
       <div className="forum-composer__row">
-        <CategorySelect value={place.category} error={errors.category} onChange={(id) => setPlace((p) => rules.withCategory(p, id))} />
+        <CategorySelect
+          value={place.category}
+          error={errors.category}
+          onChange={(id) => setPlace((p) => rules.withCategory(p, id))}
+        />
         <ModuleSelect
           value={place.moduleId}
           error={errors.moduleId}

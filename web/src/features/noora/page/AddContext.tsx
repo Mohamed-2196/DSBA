@@ -16,31 +16,60 @@ import { useNotes } from '../../notes/public';
 import type { Added, NotePick, PaperPick, Subject } from './added';
 
 type Kind = 'module' | 'lesson' | 'paper' | 'note';
-const TITLES: Record<Kind, string> = { module: 'Add a module', lesson: 'Add a lesson', paper: 'Add a past paper question', note: 'Add one of your notes' };
+const TITLES: Record<Kind, string> = {
+  module: 'Add a module',
+  lesson: 'Add a lesson',
+  paper: 'Add a past paper question',
+  note: 'Add one of your notes',
+};
 
 const moduleName = (m: ModuleSummary): string => [m.unitCode, m.name].filter(Boolean).join(' ');
 
 function useModuleOptions(year: number | null) {
   const { modules } = useModules();
   return useMemo(() => {
-    const sorted = [...modules].sort((a, b) => (a.year === year ? -1 : 0) - (b.year === year ? -1 : 0) || a.year - b.year);
+    const sorted = [...modules].sort(
+      (a, b) => (a.year === year ? -1 : 0) - (b.year === year ? -1 : 0) || a.year - b.year,
+    );
     return sorted.map((m) => ({ value: m.id, label: `Year ${m.year} · ${moduleName(m)}` }));
   }, [modules, year]);
 }
 
-function ModulePicker({ year, onAdd, onClose }: { year: number | null; onAdd: (s: Subject) => void; onClose: () => void }) {
+function ModulePicker({
+  year,
+  onAdd,
+  onClose,
+}: {
+  year: number | null;
+  onAdd: (s: Subject) => void;
+  onClose: () => void;
+}) {
   const { modules } = useModules();
   const options = useModuleOptions(year);
   const [id, setId] = useState(options[0]?.value.toString() ?? '');
   const module = modules.find((m) => m.id === id);
   return (
-    <PickerFrame title={TITLES.module} description="Noora reads its chapters and lessons with each question." onClose={onClose} canAdd={!!module} onAdd={() => module && onAdd({ kind: 'module', moduleId: module.id, label: moduleName(module) })}>
+    <PickerFrame
+      title={TITLES.module}
+      description="Noora reads its chapters and lessons with each question."
+      onClose={onClose}
+      canAdd={!!module}
+      onAdd={() => module && onAdd({ kind: 'module', moduleId: module.id, label: moduleName(module) })}
+    >
       <Select label="Module" value={id} onChange={(e) => setId(e.target.value)} options={options} data-autofocus />
     </PickerFrame>
   );
 }
 
-function LessonPicker({ year, onAdd, onClose }: { year: number | null; onAdd: (s: Subject) => void; onClose: () => void }) {
+function LessonPicker({
+  year,
+  onAdd,
+  onClose,
+}: {
+  year: number | null;
+  onAdd: (s: Subject) => void;
+  onClose: () => void;
+}) {
   const { modules } = useModules();
   const options = useModuleOptions(year);
   const [moduleId, setModuleId] = useState(options[0]?.value.toString() ?? '');
@@ -49,7 +78,11 @@ function LessonPicker({ year, onAdd, onClose }: { year: number | null; onAdd: (s
   const lessons = useMemo(
     () =>
       (detail.data?.chapters ?? []).flatMap((c, ci) =>
-        c.videos.map((v, vi) => ({ value: v.id, label: `Chapter ${ci + 1} · ${v.title?.trim() || `Lesson ${vi + 1}`}`, chapter: c.title })),
+        c.videos.map((v, vi) => ({
+          value: v.id,
+          label: `Chapter ${ci + 1} · ${v.title?.trim() || `Lesson ${vi + 1}`}`,
+          chapter: c.title,
+        })),
       ),
     [detail.data],
   );
@@ -61,7 +94,16 @@ function LessonPicker({ year, onAdd, onClose }: { year: number | null; onAdd: (s
       description="Noora knows which lesson you mean, and the module around it."
       onClose={onClose}
       canAdd={!!chosen && !!module}
-      onAdd={() => chosen && module && onAdd({ kind: 'lesson', moduleId, lessonId: chosen.value, label: `${module.unitCode ?? module.shortName}: ${chosen.label.replace(/^Chapter \d+ · /, '')}` })}
+      onAdd={() =>
+        chosen &&
+        module &&
+        onAdd({
+          kind: 'lesson',
+          moduleId,
+          lessonId: chosen.value,
+          label: `${module.unitCode ?? module.shortName}: ${chosen.label.replace(/^Chapter \d+ · /, '')}`,
+        })
+      }
     >
       <Select
         label="Module"
@@ -76,9 +118,21 @@ function LessonPicker({ year, onAdd, onClose }: { year: number | null; onAdd: (s
       {detail.isPending ? (
         <Skeleton height={44} radius={10} />
       ) : detail.isError ? (
-        <QueryError error={detail.error} title="The lessons didn’t load" onRetry={() => void detail.refetch()} retrying={detail.isFetching} size="sm" panel={false} />
+        <QueryError
+          error={detail.error}
+          title="The lessons didn’t load"
+          onRetry={() => void detail.refetch()}
+          retrying={detail.isFetching}
+          size="sm"
+          panel={false}
+        />
       ) : lessons.length ? (
-        <Select label="Lesson" value={chosen?.value ?? ''} onChange={(e) => setLessonId(e.target.value)} options={lessons.map(({ value, label }) => ({ value, label }))} />
+        <Select
+          label="Lesson"
+          value={chosen?.value ?? ''}
+          onChange={(e) => setLessonId(e.target.value)}
+          options={lessons.map(({ value, label }) => ({ value, label }))}
+        />
       ) : (
         <p className="np-pick__empty">This module has no lessons yet. Add the module instead.</p>
       )}
@@ -86,7 +140,15 @@ function LessonPicker({ year, onAdd, onClose }: { year: number | null; onAdd: (s
   );
 }
 
-function PaperPicker({ year, onAdd, onClose }: { year: number | null; onAdd: (p: PaperPick) => void; onClose: () => void }) {
+function PaperPicker({
+  year,
+  onAdd,
+  onClose,
+}: {
+  year: number | null;
+  onAdd: (p: PaperPick) => void;
+  onClose: () => void;
+}) {
   const options = useModuleOptions(year);
   const [moduleId, setModuleId] = useState(options[0]?.value.toString() ?? '');
   const [questionId, setQuestionId] = useState('');
@@ -94,7 +156,20 @@ function PaperPicker({ year, onAdd, onClose }: { year: number | null; onAdd: (p:
   const list = useMemo(
     () =>
       (questions.data ?? []).flatMap((q) =>
-        q.page == null ? [] : [{ value: q.id, label: `${q.paper.title} · Question ${q.question} · page ${q.page}`, pick: { itemId: q.paper.id, page: q.page, question: String(q.question), label: `${q.paper.title}, question ${q.question}` } }],
+        q.page == null
+          ? []
+          : [
+              {
+                value: q.id,
+                label: `${q.paper.title} · Question ${q.question} · page ${q.page}`,
+                pick: {
+                  itemId: q.paper.id,
+                  page: q.page,
+                  question: String(q.question),
+                  label: `${q.paper.title}, question ${q.question}`,
+                },
+              },
+            ],
       ),
     [questions.data],
   );
@@ -120,11 +195,26 @@ function PaperPicker({ year, onAdd, onClose }: { year: number | null; onAdd: (p:
       {questions.isPending ? (
         <Skeleton height={44} radius={10} />
       ) : questions.isError ? (
-        <QueryError error={questions.error} title="The questions didn’t load" onRetry={() => void questions.refetch()} retrying={questions.isFetching} size="sm" panel={false} />
+        <QueryError
+          error={questions.error}
+          title="The questions didn’t load"
+          onRetry={() => void questions.refetch()}
+          retrying={questions.isFetching}
+          size="sm"
+          panel={false}
+        />
       ) : list.length ? (
-        <Select label="Question" value={chosen?.value ?? ''} onChange={(e) => setQuestionId(e.target.value)} options={list.map(({ value, label }) => ({ value, label }))} />
+        <Select
+          label="Question"
+          value={chosen?.value ?? ''}
+          onChange={(e) => setQuestionId(e.target.value)}
+          options={list.map(({ value, label }) => ({ value, label }))}
+        />
       ) : (
-        <p className="np-pick__empty">No questions of this module’s papers are tagged yet. Open a past paper in the library and ask about a question there.</p>
+        <p className="np-pick__empty">
+          No questions of this module’s papers are tagged yet. Open a past paper in the library and ask about a question
+          there.
+        </p>
       )}
     </PickerFrame>
   );
@@ -136,17 +226,42 @@ function NotePicker({ onAdd, onClose }: { onAdd: (n: NotePick) => void; onClose:
   const notes = useNotes({ q });
   const items = notes.data?.pages.flatMap((p) => p.items) ?? [];
   return (
-    <PickerFrame title={TITLES.note} description="Its words go to Noora with your questions, until you take it off." onClose={onClose} canAdd={false} onAdd={() => undefined}>
-      <SearchField value={query} onValueChange={setQuery} onClear={() => setQuery('')} placeholder="Search your notes" label="Search your notes" data-autofocus />
+    <PickerFrame
+      title={TITLES.note}
+      description="Its words go to Noora with your questions, until you take it off."
+      onClose={onClose}
+      canAdd={false}
+      onAdd={() => undefined}
+    >
+      <SearchField
+        value={query}
+        onValueChange={setQuery}
+        onClear={() => setQuery('')}
+        placeholder="Search your notes"
+        label="Search your notes"
+        data-autofocus
+      />
       {notes.isPending ? (
         <Skeleton height={120} radius={10} />
       ) : notes.isError ? (
-        <QueryError error={notes.error} title="Your notes didn’t load" onRetry={() => void notes.refetch()} retrying={notes.isFetching} size="sm" panel={false} />
+        <QueryError
+          error={notes.error}
+          title="Your notes didn’t load"
+          onRetry={() => void notes.refetch()}
+          retrying={notes.isFetching}
+          size="sm"
+          panel={false}
+        />
       ) : items.length ? (
         <ul role="list" className="np-pick__notes">
           {items.map((n) => (
             <li key={n.id}>
-              <button type="button" className="np-pick__note" onClick={() => onAdd({ noteId: n.id, label: n.title.trim() || 'Untitled note' })} data-hub="noora-pick-note">
+              <button
+                type="button"
+                className="np-pick__note"
+                onClick={() => onAdd({ noteId: n.id, label: n.title.trim() || 'Untitled note' })}
+                data-hub="noora-pick-note"
+              >
                 <span className="np-pick__note-title">{n.title.trim() || 'Untitled note'}</span>
                 {n.excerpt ? <span className="np-pick__note-excerpt">{n.excerpt}</span> : null}
               </button>
@@ -154,13 +269,29 @@ function NotePicker({ onAdd, onClose }: { onAdd: (n: NotePick) => void; onClose:
           ))}
         </ul>
       ) : (
-        <p className="np-pick__empty">{q ? 'No notes match. Try other words.' : 'You have no notes yet. Write one in Notes, then add it here.'}</p>
+        <p className="np-pick__empty">
+          {q ? 'No notes match. Try other words.' : 'You have no notes yet. Write one in Notes, then add it here.'}
+        </p>
       )}
     </PickerFrame>
   );
 }
 
-function PickerFrame({ title, description, onClose, onAdd, canAdd, children }: { title: string; description: string; onClose: () => void; onAdd: () => void; canAdd: boolean; children: ReactNode }) {
+function PickerFrame({
+  title,
+  description,
+  onClose,
+  onAdd,
+  canAdd,
+  children,
+}: {
+  title: string;
+  description: string;
+  onClose: () => void;
+  onAdd: () => void;
+  canAdd: boolean;
+  children: ReactNode;
+}) {
   const choosing = title === TITLES.note; // a note is added by choosing it
   return (
     <Modal
@@ -207,7 +338,13 @@ export function AddContext({ added, onChange, year, onDone }: AddContextProps) {
     setKind(null);
     onDone();
   };
-  const entry = (id: Kind, label: string, icon: Icon, disabled = false) => ({ id, label, icon, disabled, onSelect: () => setKind(id) });
+  const entry = (id: Kind, label: string, icon: Icon, disabled = false) => ({
+    id,
+    label,
+    icon,
+    disabled,
+    onSelect: () => setKind(id),
+  });
   const items = [
     entry('module', 'A module', SquaresFour),
     entry('lesson', 'A lesson', BookOpenText),
@@ -224,7 +361,12 @@ export function AddContext({ added, onChange, year, onDone }: AddContextProps) {
         side="top"
         label="Add context"
         trigger={
-          <button type="button" className={cx('nc-tool', 'nc-toggle', 'np-add')} aria-haspopup="menu" data-hub="noora-add-context">
+          <button
+            type="button"
+            className={cx('nc-tool', 'nc-toggle', 'np-add')}
+            aria-haspopup="menu"
+            data-hub="noora-add-context"
+          >
             <Plus aria-hidden="true" weight="bold" />
             <span>Add context</span>
           </button>

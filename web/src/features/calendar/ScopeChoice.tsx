@@ -22,7 +22,16 @@ export interface ScopeChoiceProps {
  * Which days of a repeat a change or a deletion covers: the day the student opened, it and the later ones, or all of
  * them. Each choice says its days. data-hub="calendar-scope".
  */
-export function ScopeChoice({ legend, value, onChange, event, day, disabled = false, autoFocus = false, className }: ScopeChoiceProps) {
+export function ScopeChoice({
+  legend,
+  value,
+  onChange,
+  event,
+  day,
+  disabled = false,
+  autoFocus = false,
+  className,
+}: ScopeChoiceProps) {
   const name = `cal-scope-${useId().replace(/:/g, '')}`;
   const when = formatShort(parseDay(day));
   const choices: { value: ChangeScope; label: string; hint: string }[] = [

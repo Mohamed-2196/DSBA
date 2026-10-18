@@ -75,8 +75,10 @@ export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
     types: LIBRARY_TYPES,
     maxMb: 50,
     accept: acceptFor(LIBRARY_TYPES, [JPEG, PNG, WEBP]),
-    summary: 'PDF, Word, Excel, PowerPoint, Jupyter notebook, R script, text or CSV file, or a JPG, PNG or WebP picture. Up to 50 MB.',
-    allowed: 'Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, or a JPG, PNG or WebP picture.',
+    summary:
+      'PDF, Word, Excel, PowerPoint, Jupyter notebook, R script, text or CSV file, or a JPG, PNG or WebP picture. Up to 50 MB.',
+    allowed:
+      'Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, or a JPG, PNG or WebP picture.',
     refused: 'This type of file can’t be added to the library.',
     noun: 'file',
     smaller: 'Compress it or split it into parts.',
@@ -126,7 +128,8 @@ export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
     maxMb: 50,
     accept: acceptFor(NOTE_TYPES, [JPEG, PNG, WEBP, 'image/gif']),
     summary: 'A picture, a PDF, or a Word, Excel, PowerPoint, notebook, R, text or CSV file. Up to 50 MB.',
-    allowed: 'Use a picture (JPG, PNG, WebP or GIF), a PDF, or a Word, Excel, PowerPoint, notebook (.ipynb), R, text or CSV file.',
+    allowed:
+      'Use a picture (JPG, PNG, WebP or GIF), a PDF, or a Word, Excel, PowerPoint, notebook (.ipynb), R, text or CSV file.',
     refused: 'This type of file can’t go in a note.',
     noun: 'file',
     smaller: 'Compress it or split it into parts.',
@@ -186,7 +189,11 @@ export function formatSize(bytes: number | null | undefined): string {
 }
 
 /** A quick check before anything is sent: null when the file can go, else what is wrong (in words). */
-export function checkUpload(purpose: UploadPurpose, file: Pick<File, 'name' | 'size'>, fileName: string = file.name): string | null {
+export function checkUpload(
+  purpose: UploadPurpose,
+  file: Pick<File, 'name' | 'size'>,
+  fileName: string = file.name,
+): string | null {
   const rules = UPLOAD_RULES[purpose];
   if (!uploadContentType(purpose, fileName)) return `${rules.refused} ${rules.allowed}`;
   if (file.size <= 0) return 'That file is empty. Choose another one.';
@@ -222,7 +229,11 @@ const abortedError = () => new ApiError({ status: 0, code: 'aborted', message: '
 
 function tooLarge(purpose: UploadPurpose, status = 422): ApiError {
   const rules = UPLOAD_RULES[purpose];
-  return new ApiError({ status, code: 'too_large', message: `That ${rules.noun} is over the ${rules.maxMb} MB limit. ${rules.smaller}` });
+  return new ApiError({
+    status,
+    code: 'too_large',
+    message: `That ${rules.noun} is over the ${rules.maxMb} MB limit. ${rules.smaller}`,
+  });
 }
 
 /** The bucket refused or failed the POST. S3 and MinIO say why in XML:
@@ -246,7 +257,11 @@ export function bucketError(status: number, body: string, purpose: UploadPurpose
   }
   if (status === 403 || code === 'AccessDenied' || code === 'InvalidPolicyDocument' || code === 'ExpiredToken') {
     // The presigned form lives 5 minutes and pins the file's name, type and size.
-    return new ApiError({ status, code: 'upload_refused', message: 'The upload was refused, perhaps because it took too long. Try again.' });
+    return new ApiError({
+      status,
+      code: 'upload_refused',
+      message: 'The upload was refused, perhaps because it took too long. Try again.',
+    });
   }
   return failed('The file couldn’t be uploaded. Try again in a moment.');
 }
@@ -271,13 +286,20 @@ export function uploadErrorMessage(e: unknown, purpose: UploadPurpose): string {
     case 'too_large':
       return e.message || tooLarge(purpose).message;
     case 'mismatch':
-      return e.message || `This ${rules.noun} isn’t what its name says. Save or export it again, or choose another one.`;
+      return (
+        e.message || `This ${rules.noun} isn’t what its name says. Save or export it again, or choose another one.`
+      );
     case 'not_uploaded':
       return e.message || 'The file didn’t arrive. Try again.';
     case 'too_many_pending':
       return e.message || 'You have 10 files waiting for review. Share more once a student rep has looked at them.';
     case 'rate_limited':
-      return e.message || (e.retryAfter ? `You’ve uploaded a lot in the last hour. Try again in ${waitLabel(e.retryAfter)}.` : 'You’ve uploaded a lot in the last hour. Try again later.');
+      return (
+        e.message ||
+        (e.retryAfter
+          ? `You’ve uploaded a lot in the last hour. Try again in ${waitLabel(e.retryAfter)}.`
+          : 'You’ve uploaded a lot in the last hour. Try again later.')
+      );
     case 'unauthenticated':
       return 'You were signed out. Sign in again, then try again.';
     case 'forbidden':
@@ -294,7 +316,9 @@ export function uploadErrorMessage(e: unknown, purpose: UploadPurpose): string {
  *  or contents that don't match the name can't). */
 export function canRetryUpload(e: unknown): boolean {
   if (!isApiError(e)) return true;
-  return !['unsupported_type', 'too_large', 'mismatch', 'invalid_input', 'too_many_pending', 'forbidden'].includes(e.code);
+  return !['unsupported_type', 'too_large', 'mismatch', 'invalid_input', 'too_many_pending', 'forbidden'].includes(
+    e.code,
+  );
 }
 
 // ── Sending ───────────────────────────────────────────────────────────────────
@@ -324,7 +348,8 @@ function postToBucket(
     xhr.withCredentials = false;
     xhr.upload.onprogress = (e) => {
       // The body is the form: scale to the file, so the bar ends with the file and not with the form's fields.
-      if (e.lengthComputable && e.total > 0) onProgress?.({ loaded: Math.round((Math.min(e.loaded, e.total) / e.total) * file.size), total: file.size });
+      if (e.lengthComputable && e.total > 0)
+        onProgress?.({ loaded: Math.round((Math.min(e.loaded, e.total) / e.total) * file.size), total: file.size });
     };
     xhr.onload = () => {
       done();
@@ -337,7 +362,13 @@ function postToBucket(
     };
     xhr.onerror = () => {
       done();
-      reject(new ApiError({ status: 0, code: 'upload_failed', message: 'The upload stopped. Check your connection and try again.' }));
+      reject(
+        new ApiError({
+          status: 0,
+          code: 'upload_failed',
+          message: 'The upload stopped. Check your connection and try again.',
+        }),
+      );
     };
     xhr.onabort = () => {
       done();
@@ -365,14 +396,22 @@ export interface UploadOptions {
  * upload (`uploadId`, and `mediaUrl` for a forum picture). Rejects with an ApiError: show it with
  * uploadErrorMessage(e, purpose).
  */
-export async function uploadFile(purpose: UploadPurpose, file: File, { onProgress, onChecking, signal, fileName = file.name }: UploadOptions = {}): Promise<UploadOut> {
+export async function uploadFile(
+  purpose: UploadPurpose,
+  file: File,
+  { onProgress, onChecking, signal, fileName = file.name }: UploadOptions = {},
+): Promise<UploadOut> {
   const contentType = uploadContentType(purpose, fileName) ?? (file.type || 'application/octet-stream');
   try {
-    const target = await call(api.POST('/api/v1/uploads', { body: { purpose, fileName, contentType, sizeBytes: file.size }, signal }));
+    const target = await call(
+      api.POST('/api/v1/uploads', { body: { purpose, fileName, contentType, sizeBytes: file.size }, signal }),
+    );
     if (file.size > target.maxBytes) throw tooLarge(purpose);
     await postToBucket(target, file, purpose, onProgress, signal);
     onChecking?.();
-    return await call(api.POST('/api/v1/uploads/{upload_id}/complete', { params: { path: { upload_id: target.uploadId } }, signal }));
+    return await call(
+      api.POST('/api/v1/uploads/{upload_id}/complete', { params: { path: { upload_id: target.uploadId } }, signal }),
+    );
   } catch (e) {
     // A cancelled request fails like a lost connection: say what really happened.
     if (signal?.aborted) throw abortedError();

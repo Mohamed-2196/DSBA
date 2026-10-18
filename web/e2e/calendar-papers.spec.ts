@@ -6,11 +6,17 @@ import { api, remember } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-const inDays = (n: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date(Date.now() + n * 86_400_000));
+const inDays = (n: number) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date(Date.now() + n * 86_400_000));
 
 test('a Year 2 student picks her option and the calendar follows it', async ({ rep, sara, run }) => {
   const tag = `[e2e ${run.tag}]`;
-  const is = await api<{ id: string }>(rep, 'POST', '/api/v1/calendar/events', { title: `IS mock ${tag}`, type: 'mock', date: inDays(3), moduleId: 'information-systems' });
+  const is = await api<{ id: string }>(rep, 'POST', '/api/v1/calendar/events', {
+    title: `IS mock ${tag}`,
+    type: 'mock',
+    date: inDays(3),
+    moduleId: 'information-systems',
+  });
   const em = await api<{ id: string }>(rep, 'POST', '/api/v1/calendar/events', {
     title: `Econometrics exam ${tag}`,
     type: 'exam',
@@ -29,9 +35,14 @@ test('a Year 2 student picks her option and the calendar follows it', async ({ r
   await expect(sara.getByText(`IS mock ${tag}`).first()).toBeVisible();
   await sara.locator('[data-hub="papers-open"]').first().click();
   const dialog = sara.locator('[data-hub="papers-dialog"]');
-  await dialog.getByLabel(/Econometrics/).first().check();
+  await dialog
+    .getByLabel(/Econometrics/)
+    .first()
+    .check();
   await sara.locator('[data-hub="papers-save"]').click();
-  await expect.poll(async () => (await api<{ papers: string[] }>(sara, 'GET', '/api/v1/me')).body.papers).toEqual(['econometrics']);
+  await expect
+    .poll(async () => (await api<{ papers: string[] }>(sara, 'GET', '/api/v1/me')).body.papers)
+    .toEqual(['econometrics']);
   await expect(sara.getByText(`IS mock ${tag}`)).toHaveCount(0);
 
   await sara.goto(`/calendar?event=${encodeURIComponent(em.body.id)}`);

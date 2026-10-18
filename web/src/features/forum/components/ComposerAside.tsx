@@ -35,7 +35,10 @@ export function SimilarList({ threads }: { threads: ThreadSummary[] }) {
 /** Under the title on narrow layouts (the margin shows the list on wide ones). */
 export function SimilarInline({ similar }: { similar: SimilarState }) {
   return (
-    <div className={similar.threads.length ? 'forum-composer__similar' : 'forum-composer__similar is-empty'} aria-live="polite">
+    <div
+      className={similar.threads.length ? 'forum-composer__similar' : 'forum-composer__similar is-empty'}
+      aria-live="polite"
+    >
       {similar.threads.length ? (
         <>
           <p className="forum-composer__similar-title">Similar threads. Your question may already have an answer.</p>
@@ -50,7 +53,11 @@ export function ComposerAside({ similar, module }: { similar: SimilarState; modu
   const { tips } = useTaxonomy();
   return (
     <aside className="forum-new__side" aria-label="Before you post">
-      <section className="forum-new__block forum-new__block--similar" aria-live="polite" aria-labelledby="forum-new-similar">
+      <section
+        className="forum-new__block forum-new__block--similar"
+        aria-live="polite"
+        aria-labelledby="forum-new-similar"
+      >
         <h2 id="forum-new-similar" className="forum-side__title">
           Similar threads
         </h2>
@@ -92,7 +99,8 @@ export function ComposerAside({ similar, module }: { similar: SimilarState; modu
             <ModuleTag module={module} />
           </p>
           <p className="forum-new__note">
-            <CheckCircle aria-hidden="true" weight="fill" className="forum-new__ok" /> It will also show on the module’s Discussion tab.
+            <CheckCircle aria-hidden="true" weight="fill" className="forum-new__ok" /> It will also show on the module’s
+            Discussion tab.
           </p>
         </section>
       ) : null}

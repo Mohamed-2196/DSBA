@@ -34,14 +34,26 @@ export default function DailyPage() {
       {today.isError ? (
         <>
           <h1 className="dh-title">Daily puzzles</h1>
-          <QueryError error={today.error} title="Today’s puzzles didn’t load" onRetry={() => void today.refetch()} retrying={today.isFetching} />
+          <QueryError
+            error={today.error}
+            title="Today’s puzzles didn’t load"
+            onRetry={() => void today.refetch()}
+            retrying={today.isFetching}
+          />
         </>
       ) : today.isPending ? (
         <HubSkeleton />
       ) : (
         <>
           <Head today={today.data} />
-          <Tabs idBase="daily" tabs={TABS} value={tab} onChange={(id) => setTab(id, { replace: true })} label="Daily" className="dh-tabs" />
+          <Tabs
+            idBase="daily"
+            tabs={TABS}
+            value={tab}
+            onChange={(id) => setTab(id, { replace: true })}
+            label="Daily"
+            className="dh-tabs"
+          />
           <TabPanel idBase="daily" id="today" value={tab}>
             <TodayView today={today.data} />
           </TabPanel>
@@ -81,13 +93,21 @@ function Head({ today }: { today: DailyToday }) {
 
       <section className="dh-summary" aria-label="Today so far">
         <div className="dh-summary__progress">
-          <ProgressRing value={(today.done / Math.max(total, 1)) * 100} size={64} stroke={6} color="var(--signal)" label={`${today.done} of ${total} done`}>
+          <ProgressRing
+            value={(today.done / Math.max(total, 1)) * 100}
+            size={64}
+            stroke={6}
+            color="var(--signal)"
+            label={`${today.done} of ${total} done`}
+          >
             <span className="dh-summary__ring dy-num">
               {today.done}/{total}
             </span>
           </ProgressRing>
           <div className="dh-summary__lines">
-            <p className="dh-summary__big">{allDone ? 'All six done' : today.done ? `${today.done} of ${total} done` : 'Six new puzzles'}</p>
+            <p className="dh-summary__big">
+              {allDone ? 'All six done' : today.done ? `${today.done} of ${total} done` : 'Six new puzzles'}
+            </p>
             <p className="dh-summary__small dy-num">{me ? `${today.points} points today` : 'Playing as a guest'}</p>
           </div>
         </div>
@@ -95,7 +115,9 @@ function Head({ today }: { today: DailyToday }) {
           {streak ? (
             <p className={cx('dh-fact', streak.current > 0 && 'is-lit')}>
               <Flame weight={streak.current > 0 ? 'fill' : 'regular'} aria-hidden="true" />
-              <span className="dy-num">{streak.current === 0 ? 'Start a streak today' : `${streak.current}-day streak`}</span>
+              <span className="dy-num">
+                {streak.current === 0 ? 'Start a streak today' : `${streak.current}-day streak`}
+              </span>
               {streak.freezeReady && streak.current > 0 ? (
                 <span className="dh-fact__freeze" title="Miss a day this week and your streak carries on">
                   <Snowflake weight="fill" aria-hidden="true" />
@@ -126,9 +148,7 @@ function TodayView({ today }: { today: DailyToday }) {
   const allDone = today.done >= today.games.length;
   return (
     <>
-      {allDone ? (
-        <p className="dh-done dy-rise">That’s all six for today. A new set comes out at midnight.</p>
-      ) : null}
+      {allDone ? <p className="dh-done dy-rise">That’s all six for today. A new set comes out at midnight.</p> : null}
       <ul className="dh-games" aria-label="Today’s puzzles">
         {today.games.map((g) => (
           <li key={g.info.id}>

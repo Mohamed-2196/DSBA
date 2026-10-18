@@ -136,7 +136,10 @@ function BoardApp() {
   const current = (boardParam ? boards.find((b) => b.id === boardParam) : undefined) ?? active[0] ?? null;
   const detail = useBoard(view === 'today' ? null : current?.id);
   const labels = useMemo(() => boardsQuery.data?.labels ?? [], [boardsQuery.data]);
-  const labelMap = useMemo(() => Object.fromEntries(labels.map((l) => [l.id, l])) as Record<string, BoardLabel>, [labels]);
+  const labelMap = useMemo(
+    () => Object.fromEntries(labels.map((l) => [l.id, l])) as Record<string, BoardLabel>,
+    [labels],
+  );
 
   const move = useMoveCard();
   const removeCard = useDeleteCard();
@@ -216,7 +219,12 @@ function BoardApp() {
     return (
       <Page width="wide" className="board-page">
         <PageHeader title="Boards" description={DESCRIPTION} />
-        <QueryError error={boardsQuery.error} title="Your boards didn’t load" onRetry={() => void boardsQuery.refetch()} retrying={boardsQuery.isFetching} />
+        <QueryError
+          error={boardsQuery.error}
+          title="Your boards didn’t load"
+          onRetry={() => void boardsQuery.refetch()}
+          retrying={boardsQuery.isFetching}
+        />
       </Page>
     );
   }
@@ -240,7 +248,9 @@ function BoardApp() {
       setFocus({ kind: 'column', columnId: phoneColumn, at });
       return;
     }
-    const placed = placeCard(allCards, columns, card.id, columnId, afterId, '').filter((c) => c.id === card.id || matches(c, filter, today));
+    const placed = placeCard(allCards, columns, card.id, columnId, afterId, '').filter(
+      (c) => c.id === card.id || matches(c, filter, today),
+    );
     const there = cardsIn(placed, columnId);
     const prevId = there[there.findIndex((c) => c.id === card.id) - 1]?.id ?? null;
     setFocus({ kind: 'card', cardId: card.id, columnId, prevId, part, at });
@@ -258,7 +268,14 @@ function BoardApp() {
       setFocus({ kind: 'column', columnId: card.columnId, at });
       return;
     }
-    setFocus({ kind: 'card', cardId: next.id, columnId: next.columnId, prevId: rest[rest.indexOf(next) - 1]?.id ?? null, part: 'title', at });
+    setFocus({
+      kind: 'card',
+      cardId: next.id,
+      columnId: next.columnId,
+      prevId: rest[rest.indexOf(next) - 1]?.id ?? null,
+      part: 'title',
+      at,
+    });
   };
 
   const moveTo = (card: BoardCard, columnId: string, afterId: string | null) => {
@@ -317,19 +334,28 @@ function BoardApp() {
       const others = columns.filter((c) => c.id !== column.id);
       const to = i + by;
       if (to < 0 || to >= columns.length) return;
-      placeColumn.mutate({ boardId: current.id, columnId: column.id, afterId: to === 0 ? null : (others[to - 1]?.id ?? null) });
+      placeColumn.mutate({
+        boardId: current.id,
+        columnId: column.id,
+        afterId: to === 0 ? null : (others[to - 1]?.id ?? null),
+      });
       announce(by === -1 ? `${column.name} moved left.` : `${column.name} moved right.`);
     },
     onToggleDone: (column) => {
       if (!current) return;
       updateColumn.mutate({ boardId: current.id, columnId: column.id, patch: { done: !column.done } });
-      announce(column.done ? `Cards in ${column.name} no longer count as done.` : `Cards in ${column.name} count as done.`);
+      announce(
+        column.done ? `Cards in ${column.name} no longer count as done.` : `Cards in ${column.name} count as done.`,
+      );
     },
     onDrop: (column: BoardColumn, place: DropPlace) => {
       const card = allCards.find((c) => c.id === dragging);
       setDragging(null);
       if (!card || ('before' in place && place.before === card.id)) return;
-      const afterId = 'before' in place ? afterIdBefore(allCards, card.id, column.id, place.before) : lastIn(allCards, column.id, card.id);
+      const afterId =
+        'before' in place
+          ? afterIdBefore(allCards, card.id, column.id, place.before)
+          : lastIn(allCards, column.id, card.id);
       const there = cardsIn(allCards, card.columnId);
       const now = there[there.findIndex((c) => c.id === card.id) - 1]?.id ?? null;
       if (card.columnId === column.id && afterId === now) return;
@@ -374,7 +400,14 @@ function BoardApp() {
             tone: 'success',
             title: `${board.name} is archived`,
             body: 'Its cards are kept. Find it under All boards.',
-            action: { label: 'Undo', onClick: () => updateBoard.mutate({ id: board.id, patch: { archived: false } }, { onSuccess: () => go({ board: board.id }) }) },
+            action: {
+              label: 'Undo',
+              onClick: () =>
+                updateBoard.mutate(
+                  { id: board.id, patch: { archived: false } },
+                  { onSuccess: () => go({ board: board.id }) },
+                ),
+            },
           });
         },
       },
@@ -396,7 +429,13 @@ function BoardApp() {
       { id: 'column', label: 'Add column', icon: Columns, onSelect: () => setColumnDialog('new') },
       { id: 'labels', label: 'Labels', icon: Tag, onSelect: () => setLabelsOpen(true) },
       { id: 'left', label: 'Move board left', icon: ArrowLeft, disabled: i <= 0, onSelect: () => moveBoard(board, -1) },
-      { id: 'right', label: 'Move board right', icon: ArrowRight, disabled: i < 0 || i >= active.length - 1, onSelect: () => moveBoard(board, 1) },
+      {
+        id: 'right',
+        label: 'Move board right',
+        icon: ArrowRight,
+        disabled: i < 0 || i >= active.length - 1,
+        onSelect: () => moveBoard(board, 1),
+      },
       { divider: true, id: 'd' },
       { id: 'archive', label: 'Archive board', icon: Archive, onSelect: () => archive(board) },
       { id: 'delete', label: 'Delete board', icon: Trash, danger: true, onSelect: () => setDeletingBoard(board) },
@@ -414,9 +453,25 @@ function BoardApp() {
       }),
     ),
     ...(archived.length
-      ? ([{ divider: true, id: 'd' }, { heading: 'Archived', id: 'h2' }, ...archived.map((b): MenuItem => ({ id: b.id, label: <BoardName board={b} />, icon: Archive, onSelect: () => openBoard(b.id) }))] satisfies MenuItem[])
+      ? ([
+          { divider: true, id: 'd' },
+          { heading: 'Archived', id: 'h2' },
+          ...archived.map(
+            (b): MenuItem => ({
+              id: b.id,
+              label: <BoardName board={b} />,
+              icon: Archive,
+              onSelect: () => openBoard(b.id),
+            }),
+          ),
+        ] satisfies MenuItem[])
       : []),
-    ...(suspended ? [] : ([{ divider: true, id: 'd3' }, { id: 'new', label: 'New board', icon: Plus, onSelect: () => setBoardDialog('new') }] satisfies MenuItem[])),
+    ...(suspended
+      ? []
+      : ([
+          { divider: true, id: 'd3' },
+          { id: 'new', label: 'New board', icon: Plus, onSelect: () => setBoardDialog('new') },
+        ] satisfies MenuItem[])),
   ];
 
   const tabValue = view === 'today' ? 'today' : current && !current.archived ? current.id : null;
@@ -433,11 +488,16 @@ function BoardApp() {
           <div className="board-archived" data-hub="board-archived">
             <Archive aria-hidden="true" className="board-archived__icon" />
             <p className="board-archived__text">
-              <strong>{current.name} is archived.</strong> Its cards are kept but stay out of Today. Bring it back to change it.
+              <strong>{current.name} is archived.</strong> Its cards are kept but stay out of Today. Bring it back to
+              change it.
             </p>
             {suspended ? null : (
               <div className="board-archived__actions">
-                <Button leadingIcon={ArrowCounterClockwise} onClick={() => updateBoard.mutate({ id: current.id, patch: { archived: false } })} loading={updateBoard.isPending}>
+                <Button
+                  leadingIcon={ArrowCounterClockwise}
+                  onClick={() => updateBoard.mutate({ id: current.id, patch: { archived: false } })}
+                  loading={updateBoard.isPending}
+                >
                   Bring back
                 </Button>
                 <Button variant="ghost" leadingIcon={Trash} onClick={() => setDeletingBoard(current)}>
@@ -486,7 +546,20 @@ function BoardApp() {
               </Button>
             )}
             {suspended || current.archived ? null : (
-              <Menu label={`Board ${current.name}`} align="end" items={boardMenu(current)} trigger={<IconButton label="Board options" icon={DotsThree} variant="secondary" size="sm" data-hub="board-menu" />} />
+              <Menu
+                label={`Board ${current.name}`}
+                align="end"
+                items={boardMenu(current)}
+                trigger={
+                  <IconButton
+                    label="Board options"
+                    icon={DotsThree}
+                    variant="secondary"
+                    size="sm"
+                    data-hub="board-menu"
+                  />
+                }
+              />
             )}
           </span>
         </div>
@@ -498,7 +571,12 @@ function BoardApp() {
                 Due
               </span>
               {DUE_FILTERS.map((d) => (
-                <Chip key={d.id} size="sm" selected={filter.due === d.id} onChange={() => setFilter((f) => ({ ...f, due: d.id }))}>
+                <Chip
+                  key={d.id}
+                  size="sm"
+                  selected={filter.due === d.id}
+                  onChange={() => setFilter((f) => ({ ...f, due: d.id }))}
+                >
                   {d.label}
                 </Chip>
               ))}
@@ -516,7 +594,12 @@ function BoardApp() {
                       size="sm"
                       color={colorVar(l.color)}
                       selected={on}
-                      onChange={() => setFilter((f) => ({ ...f, labels: on ? f.labels.filter((id) => id !== l.id) : [...f.labels, l.id] }))}
+                      onChange={() =>
+                        setFilter((f) => ({
+                          ...f,
+                          labels: on ? f.labels.filter((id) => id !== l.id) : [...f.labels, l.id],
+                        }))
+                      }
                     >
                       {l.name}
                     </Chip>
@@ -544,7 +627,12 @@ function BoardApp() {
         ) : null}
 
         {detail.isError ? (
-          <QueryError error={detail.error} title="This board didn’t load" onRetry={() => void detail.refetch()} retrying={detail.isFetching} />
+          <QueryError
+            error={detail.error}
+            title="This board didn’t load"
+            onRetry={() => void detail.refetch()}
+            retrying={detail.isFetching}
+          />
         ) : detail.isPending ? (
           <ColumnsSkeleton count={Math.min(columns.length || 3, 4)} />
         ) : view === 'list' ? (
@@ -594,13 +682,18 @@ function BoardApp() {
         }
       />
 
-      {suspended ? <p className="board-page__notice">Your account is suspended, so your boards are read only.</p> : null}
+      {suspended ? (
+        <p className="board-page__notice">Your account is suspended, so your boards are read only.</p>
+      ) : null}
 
       {!boards.length ? (
         <BoardStart taken={names} readOnly={suspended} onStarted={opened} />
       ) : (
         <>
-          <div ref={tabEdges.ref} className={cx('board-tabs', tabEdges.start && 'has-more-start', tabEdges.end && 'has-more-end')}>
+          <div
+            ref={tabEdges.ref}
+            className={cx('board-tabs', tabEdges.start && 'has-more-start', tabEdges.end && 'has-more-end')}
+          >
             <Tabs
               idBase="boards"
               label="Your boards"
@@ -617,7 +710,13 @@ function BoardApp() {
               align="end"
               items={allBoardsMenu}
               trigger={
-                <Button size="sm" variant="ghost" trailingIcon={CaretDown} className="board-tabs__all" data-hub="board-all">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  trailingIcon={CaretDown}
+                  className="board-tabs__all"
+                  data-hub="board-all"
+                >
                   All boards
                 </Button>
               }
@@ -648,9 +747,20 @@ function BoardApp() {
       ) : null}
 
       {boardDialog ? (
-        <BoardDialog board={boardDialog === 'new' ? null : boardDialog} taken={names} onClose={() => setBoardDialog(null)} onCreated={opened} />
+        <BoardDialog
+          board={boardDialog === 'new' ? null : boardDialog}
+          taken={names}
+          onClose={() => setBoardDialog(null)}
+          onCreated={opened}
+        />
       ) : null}
-      {columnDialog && current ? <ColumnDialog boardId={current.id} column={columnDialog === 'new' ? null : columnDialog} onClose={() => setColumnDialog(null)} /> : null}
+      {columnDialog && current ? (
+        <ColumnDialog
+          boardId={current.id}
+          column={columnDialog === 'new' ? null : columnDialog}
+          onClose={() => setColumnDialog(null)}
+        />
+      ) : null}
       {deletingColumn && current ? (
         <DeleteColumnDialog
           boardId={current.id}
@@ -787,7 +897,9 @@ function PlanRow({ plan, readOnly, onRemove }: { plan: BoardPlan; readOnly: bool
         <strong>{plan.moduleName} revision</strong>
         <span>
           {plan.done} of {total} done. {planPace(plan)}
-          {plan.left && plan.daysLeft > 0 ? ` until the exam on ${formatDay(plan.examDate, { weekday: 'short', month: 'short', year: false })}.` : ''}
+          {plan.left && plan.daysLeft > 0
+            ? ` until the exam on ${formatDay(plan.examDate, { weekday: 'short', month: 'short', year: false })}.`
+            : ''}
         </span>
       </p>
       {readOnly ? null : (

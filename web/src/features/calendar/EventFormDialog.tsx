@@ -101,7 +101,8 @@ function validate(f: FormState): FieldErrors {
   if (f.rules.trim().length > 300) errors.rules = 'Keep the rules under 300 characters.';
   if (f.source.trim().length > 300) errors.source = 'Keep the source under 300 characters.';
   if (f.checkedOn && !DATE_RE.test(f.checkedOn)) errors.checkedOn = 'Choose the day it was checked, or leave it empty.';
-  if (f.type === 'careers' && !f.source.trim()) errors.source = 'Add where this date comes from. Careers dates show only with their source.';
+  if (f.type === 'careers' && !f.source.trim())
+    errors.source = 'Add where this date comes from. Careers dates show only with their source.';
   return errors;
 }
 
@@ -127,12 +128,23 @@ const API_FIELDS: Record<string, keyof FormState> = {
 const EXAM_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock']);
 
 /** Moderators: add a programme date to the calendar, or edit one. */
-export function EventFormDialog({ open, event, defaultDate, preset, employers = [], onClose, onSaved }: EventFormDialogProps) {
+export function EventFormDialog({
+  open,
+  event,
+  defaultDate,
+  preset,
+  employers = [],
+  onClose,
+  onSaved,
+}: EventFormDialogProps) {
   const uid = useId().replace(/:/g, '');
   const { modules, getModule } = useModules();
   const create = useCreateEvent();
   const update = useUpdateEvent();
-  const [form, setForm] = useState<FormState>(() => ({ ...fromEvent(event, getModule, defaultDate), ...(event ? {} : preset) }));
+  const [form, setForm] = useState<FormState>(() => ({
+    ...fromEvent(event, getModule, defaultDate),
+    ...(event ? {} : preset),
+  }));
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const saving = create.isPending || update.isPending;
@@ -151,16 +163,25 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
   const year = toYear(form.year);
   const narrowTo = form.yearPicked ? year : null;
   const moduleOptions = useMemo(
-    () => modules.filter((m) => !narrowTo || m.year === narrowTo).map((m) => ({ value: m.id, label: `${moduleLabel(m)} (Year ${m.year})` })),
+    () =>
+      modules
+        .filter((m) => !narrowTo || m.year === narrowTo)
+        .map((m) => ({ value: m.id, label: `${moduleLabel(m)} (Year ${m.year})` })),
     [modules, narrowTo],
   );
   const module = getModule(form.moduleId);
-  const yearHint = module && !form.yearPicked ? 'From the module. Pick “Every cohort” if it’s for everyone.' : undefined;
+  const yearHint =
+    module && !form.yearPicked ? 'From the module. Pick “Every cohort” if it’s for everyone.' : undefined;
 
   /** The cohort, picked by the rep: a year that isn't the module's own drops the module. */
   const pickYear = (value: string) => {
     const y = toYear(value);
-    setForm((f) => ({ ...f, year: value, yearPicked: true, moduleId: y && getModule(f.moduleId)?.year !== y ? '' : f.moduleId }));
+    setForm((f) => ({
+      ...f,
+      year: value,
+      yearPicked: true,
+      moduleId: y && getModule(f.moduleId)?.year !== y ? '' : f.moduleId,
+    }));
     if (errors.year) setErrors((e) => ({ ...e, year: undefined }));
   };
   /** The module: until a cohort is picked, the event is for the module's year (student test ST-2). */
@@ -212,13 +233,15 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
     if (event) {
       const patch = { ...body, notify: tellable && form.tell };
       update.mutate({ id: event.id, patch }, { onSuccess: (saved) => onSaved(saved, false, saved), onError: fail });
-    }
-    else {
+    } else {
       // 409 retry: another date took the same id at the same moment. Once more, without bothering the rep.
       const created = (saved: CalendarEvent) => onSaved(saved, true);
       create.mutate(body, {
         onSuccess: created,
-        onError: (err) => (isApiError(err) && err.code === 'retry' ? create.mutate(body, { onSuccess: created, onError: fail }) : fail(err)),
+        onError: (err) =>
+          isApiError(err) && err.code === 'retry'
+            ? create.mutate(body, { onSuccess: created, onError: fail })
+            : fail(err),
       });
     }
   };
@@ -228,7 +251,11 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
       open={open}
       onClose={saving ? () => undefined : onClose}
       title={event ? 'Edit programme date' : 'New programme date'}
-      description={event ? 'Changes show on everyone’s calendar and in the calendar feed.' : 'It shows on the calendar of the cohort you choose, and in the calendar feed.'}
+      description={
+        event
+          ? 'Changes show on everyone’s calendar and in the calendar feed.'
+          : 'It shows on the calendar of the cohort you choose, and in the calendar feed.'
+      }
       size="md"
       className="cal-form-dialog"
       footer={
@@ -243,7 +270,16 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
       }
     >
       <form id={`cal-form-${uid}`} className="cal-form" onSubmit={submit} noValidate>
-        <TextField label="Title" required value={form.title} onChange={(e) => set('title', e.target.value)} error={errors.title} placeholder="ST2133 Distribution Theory mock exam" className="cal-form__wide" data-autofocus />
+        <TextField
+          label="Title"
+          required
+          value={form.title}
+          onChange={(e) => set('title', e.target.value)}
+          error={errors.title}
+          placeholder="ST2133 Distribution Theory mock exam"
+          className="cal-form__wide"
+          data-autofocus
+        />
         <Select
           label="Type"
           value={form.type}
@@ -257,12 +293,30 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
           label="Cohort"
           value={form.year}
           onChange={(e) => pickYear(e.target.value)}
-          options={[{ value: '', label: 'Every cohort' }, ...YEARS.map((y) => ({ value: String(y), label: cohortLabel(y) }))]}
+          options={[
+            { value: '', label: 'Every cohort' },
+            ...YEARS.map((y) => ({ value: String(y), label: cohortLabel(y) })),
+          ]}
           error={errors.year}
           hint={yearHint}
         />
-        <TextField label="Date" type="date" required value={form.date} onChange={(e) => set('date', e.target.value)} error={errors.date} />
-        <TextField label="End date" type="date" value={form.endDate} min={form.date || undefined} onChange={(e) => set('endDate', e.target.value)} error={errors.endDate} hint="Only for something longer than a day." />
+        <TextField
+          label="Date"
+          type="date"
+          required
+          value={form.date}
+          onChange={(e) => set('date', e.target.value)}
+          error={errors.date}
+        />
+        <TextField
+          label="End date"
+          type="date"
+          value={form.endDate}
+          min={form.date || undefined}
+          onChange={(e) => set('endDate', e.target.value)}
+          error={errors.endDate}
+          hint="Only for something longer than a day."
+        />
         <Select
           label="Module"
           value={form.moduleId}
@@ -271,12 +325,39 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
           error={errors.moduleId}
           className="cal-form__wide"
         />
-        <TextField label="Time" value={form.time} onChange={(e) => set('time', e.target.value)} error={errors.time} placeholder="12:30 PM" hint="As the organiser published it." />
-        <TextField label="Place" value={form.place} onChange={(e) => set('place', e.target.value)} error={errors.place} placeholder="Auditorium" />
+        <TextField
+          label="Time"
+          value={form.time}
+          onChange={(e) => set('time', e.target.value)}
+          error={errors.time}
+          placeholder="12:30 PM"
+          hint="As the organiser published it."
+        />
+        <TextField
+          label="Place"
+          value={form.place}
+          onChange={(e) => set('place', e.target.value)}
+          error={errors.place}
+          placeholder="Auditorium"
+        />
         {EXAM_TYPES.has(form.type) ? (
           <>
-            <TextField label="Length" value={form.duration} onChange={(e) => set('duration', e.target.value)} error={errors.duration} placeholder="3 hours" />
-            <TextField label="Rules" value={form.rules} onChange={(e) => set('rules', e.target.value)} error={errors.rules} placeholder="Bring your student ID. Casio fx-83 or fx-85 only." hint="What to bring, and which calculators." className="cal-form__wide" />
+            <TextField
+              label="Length"
+              value={form.duration}
+              onChange={(e) => set('duration', e.target.value)}
+              error={errors.duration}
+              placeholder="3 hours"
+            />
+            <TextField
+              label="Rules"
+              value={form.rules}
+              onChange={(e) => set('rules', e.target.value)}
+              error={errors.rules}
+              placeholder="Bring your student ID. Casio fx-83 or fx-85 only."
+              hint="What to bring, and which calculators."
+              className="cal-form__wide"
+            />
           </>
         ) : null}
         {form.type === 'careers' ? (
@@ -300,7 +381,14 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
           hint="Where the date comes from: a name or a link. Students see it."
           className="cal-form__wide"
         />
-        <TextField label="Checked on" type="date" value={form.checkedOn} onChange={(e) => set('checkedOn', e.target.value)} error={errors.checkedOn} hint="When you last checked it against the source." />
+        <TextField
+          label="Checked on"
+          type="date"
+          value={form.checkedOn}
+          onChange={(e) => set('checkedOn', e.target.value)}
+          error={errors.checkedOn}
+          hint="When you last checked it against the source."
+        />
         <label className="cal-form__check cal-form__wide">
           <input type="checkbox" checked={form.sample} onChange={(e) => set('sample', e.target.checked)} />
           <span>
@@ -310,10 +398,18 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
         </label>
         {event && TOLD_TYPES.has(form.type) ? (
           <label className="cal-form__check cal-form__wide">
-            <input type="checkbox" checked={form.tell} onChange={(e) => set('tell', e.target.checked)} data-hub="calendar-tell" />
+            <input
+              type="checkbox"
+              checked={form.tell}
+              onChange={(e) => set('tell', e.target.checked)}
+              data-hub="calendar-tell"
+            />
             <span>
               <span className="cal-form__check-title">Tell {year ? cohortLabel(year) : 'every cohort'}</span>
-              <span className="cal-form__check-hint">If the date, time or place changes, or you confirm it, they get a notification. At most once a day for each event.</span>
+              <span className="cal-form__check-hint">
+                If the date, time or place changes, or you confirm it, they get a notification. At most once a day for
+                each event.
+              </span>
             </span>
           </label>
         ) : null}

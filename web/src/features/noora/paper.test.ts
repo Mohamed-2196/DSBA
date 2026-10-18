@@ -22,4 +22,3 @@ describe('questionNumber', () => {
     expect(questionNumber('1'.repeat(17))).toBeNull();
   });
 });
-

@@ -13,7 +13,12 @@ export const NOORA_STATUS_KEY = ['noora', 'status'] as const;
 
 /** Whether her AI answers work for this student now, and how many questions are left today. */
 export function useNooraStatus(enabled: boolean) {
-  return useQuery({ queryKey: NOORA_STATUS_KEY, queryFn: () => call(api.GET('/api/v1/noora/status')), enabled, staleTime: 60_000 });
+  return useQuery({
+    queryKey: NOORA_STATUS_KEY,
+    queryFn: () => call(api.GET('/api/v1/noora/status')),
+    enabled,
+    staleTime: 60_000,
+  });
 }
 
 /** The answer stopped part-way (`said`: some of it had arrived). */
@@ -47,7 +52,11 @@ function parseEvent(block: string): NooraEvent | null {
  * Reads an answer's event stream: `onText` gets each piece as it arrives. Resolves with the questions left today
  * when it is complete; throws AnswerCutOff when it stops part-way.
  */
-export async function readAnswer(body: ReadableStream<Uint8Array>, onText: (text: string) => void, signal?: AbortSignal): Promise<number> {
+export async function readAnswer(
+  body: ReadableStream<Uint8Array>,
+  onText: (text: string) => void,
+  signal?: AbortSignal,
+): Promise<number> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -88,7 +97,11 @@ export async function readAnswer(body: ReadableStream<Uint8Array>, onText: (text
  * before the answer starts (noora_unavailable, noora_budget_reached, noora_busy, noora_daily_limit, rate_limited, feature_off,
  * network...), or AnswerCutOff when it stops part-way.
  */
-export async function streamAnswer(question: NooraQuestion, onText: (text: string) => void, signal?: AbortSignal): Promise<number> {
+export async function streamAnswer(
+  question: NooraQuestion,
+  onText: (text: string) => void,
+  signal?: AbortSignal,
+): Promise<number> {
   const body = await call(api.POST('/api/v1/noora/ask', { body: question, parseAs: 'stream', signal }));
   if (!body) throw new AnswerCutOff(CUT_OFF, false);
   return readAnswer(body, onText, signal);

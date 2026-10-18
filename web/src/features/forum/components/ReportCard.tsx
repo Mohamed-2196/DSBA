@@ -1,7 +1,16 @@
 // One report in the moderators' queue (ReportsQueue.tsx): what was reported, why, by whom (admins only), what the
 // post is now, and Resolve / Dismiss while it is open.
 import { Link } from 'react-router-dom';
-import { ArrowBendUpLeft, ArrowSquareOut, ChatCircleText, CheckCircle, FileText, Flag, HandWaving, XCircle } from '@phosphor-icons/react';
+import {
+  ArrowBendUpLeft,
+  ArrowSquareOut,
+  ChatCircleText,
+  CheckCircle,
+  FileText,
+  Flag,
+  HandWaving,
+  XCircle,
+} from '@phosphor-icons/react';
 import type { ReportOut } from '../../../api/types';
 import { Badge, Button, timeAgo } from '../../../ui';
 import { authorName } from '../lib/authors';
@@ -54,7 +63,13 @@ function TargetLink({ report }: { report: ReportOut }) {
   );
 }
 
-export function ReportCard({ report, onDecide }: { report: ReportOut; onDecide: (r: ReportOut, status: Decision) => void }) {
+export function ReportCard({
+  report,
+  onDecide,
+}: {
+  report: ReportOut;
+  onDecide: (r: ReportOut, status: Decision) => void;
+}) {
   const target = TARGET[report.targetType];
   const Icon = target.icon;
   const now = report.targetStatus ? STATUS_BADGE[report.targetStatus] : undefined;

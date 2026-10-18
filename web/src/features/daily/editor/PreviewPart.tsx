@@ -26,14 +26,28 @@ export function PreviewPart({ overview }: { overview: DailyContentOverview }) {
           Preview a day
         </h3>
         <p className="dcms__note">
-          A day’s puzzles with their answers. A day that is out shows what went out. A day to come shows what the content makes now, so adding or retiring items before then can change it.
+          A day’s puzzles with their answers. A day that is out shows what went out. A day to come shows what the
+          content makes now, so adding or retiring items before then can change it.
         </p>
       </div>
       <div className="dcms-preview__pick">
-        <TextField label="Day" type="date" value={day} min={overview.firstDay} max={last} onChange={(e) => setDay(e.target.value)} className="dcms-preview__day" />
+        <TextField
+          label="Day"
+          type="date"
+          value={day}
+          min={overview.firstDay}
+          max={last}
+          onChange={(e) => setDay(e.target.value)}
+          className="dcms-preview__day"
+        />
         <div className="dcms-preview__quick" role="group" aria-label="Go to">
           {quick.map((q) => (
-            <Button key={q.label} size="sm" variant={q.day === day ? 'primary' : 'secondary'} onClick={() => setDay(q.day)}>
+            <Button
+              key={q.label}
+              size="sm"
+              variant={q.day === day ? 'primary' : 'secondary'}
+              onClick={() => setDay(q.day)}
+            >
               {q.label}
             </Button>
           ))}
@@ -42,7 +56,13 @@ export function PreviewPart({ overview }: { overview: DailyContentOverview }) {
       {!valid ? (
         <p className="dcms__note">Pick a day.</p>
       ) : preview.isError ? (
-        <QueryError error={preview.error} title="The preview didn’t load" onRetry={() => void preview.refetch()} retrying={preview.isFetching} size="sm" />
+        <QueryError
+          error={preview.error}
+          title="The preview didn’t load"
+          onRetry={() => void preview.refetch()}
+          retrying={preview.isFetching}
+          size="sm"
+        />
       ) : preview.isPending ? (
         <Skeleton lines={8} />
       ) : (
@@ -88,7 +108,8 @@ function PreviewBody({ game }: { game: PreviewGame }) {
         <ol className="dcms-preview__groups">
           {p.groups.map((g) => (
             <li key={g.label}>
-              <Badge tone="outline" size="sm">{`Level ${g.level}`}</Badge> <strong>{g.label}</strong>: {g.words.join(', ')}
+              <Badge tone="outline" size="sm">{`Level ${g.level}`}</Badge> <strong>{g.label}</strong>:{' '}
+              {g.words.join(', ')}
             </li>
           ))}
         </ol>

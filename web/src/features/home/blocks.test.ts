@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { SiteDoc } from '../../api/types';
 import { readSeed } from '../../testing/seed';
-import { guestDefault, layoutOf, offeredBlocks, moveBlock, normalizeBlocks, showBlock, withUnavailable, type HomeBlock } from './blocks';
+import {
+  guestDefault,
+  layoutOf,
+  offeredBlocks,
+  moveBlock,
+  normalizeBlocks,
+  showBlock,
+  withUnavailable,
+  type HomeBlock,
+} from './blocks';
 
 // The hub's default for a new student, as Site settings start.
 const STUDENT_DEFAULT = readSeed<SiteDoc>('site').homeBlocks;
@@ -48,19 +57,31 @@ describe('moving and showing', () => {
   });
   it('keeps blocks that are unavailable now in their place', () => {
     const saved: HomeBlock[] = ['coming_up', 'todo', 'modules'];
-    expect(withUnavailable(['modules', 'coming_up'], saved, STUDENT_DEFAULT, all('coming_up', 'modules'))).toEqual(['modules', 'todo', 'coming_up']);
+    expect(withUnavailable(['modules', 'coming_up'], saved, STUDENT_DEFAULT, all('coming_up', 'modules'))).toEqual([
+      'modules',
+      'todo',
+      'coming_up',
+    ]);
   });
 });
 
 describe('offeredBlocks', () => {
-  const on = (...features: string[]) => (f: string) => features.includes(f);
+  const on =
+    (...features: string[]) =>
+    (f: string) =>
+      features.includes(f);
   it('offers a block only when every feature it needs is on', () => {
     const offered = offeredBlocks(on('calendar', 'library', 'forum'), { signedIn: true, tracking: false });
     expect(offered).not.toContain('daily_question');
     expect(offered).not.toContain('help_below');
     expect(offered).toContain('files');
     expect(offered).toContain('forum');
-    expect(offeredBlocks(on('calendar', 'library', 'library.questions', 'library.daily-question'), { signedIn: false, tracking: false })).toContain('daily_question');
+    expect(
+      offeredBlocks(on('calendar', 'library', 'library.questions', 'library.daily-question'), {
+        signedIn: false,
+        tracking: false,
+      }),
+    ).toContain('daily_question');
   });
   it('needs an account for account blocks and lesson progress for Continue', () => {
     const guest = offeredBlocks(on('board', 'forum', 'forum.help-below'), { signedIn: false, tracking: false });
@@ -70,6 +91,17 @@ describe('offeredBlocks', () => {
     expect(offeredBlocks(on(), { signedIn: false, tracking: true })).toContain('continue');
   });
   it('starts with the dashboard first', () => {
-    expect(STUDENT_DEFAULT).toEqual(['start_here', 'results_day', 'coming_up', 'todo', 'continue', 'modules', 'files', 'forum', 'daily', 'noora']);
+    expect(STUDENT_DEFAULT).toEqual([
+      'start_here',
+      'results_day',
+      'coming_up',
+      'todo',
+      'continue',
+      'modules',
+      'files',
+      'forum',
+      'daily',
+      'noora',
+    ]);
   });
 });

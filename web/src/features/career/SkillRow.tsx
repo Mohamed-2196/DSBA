@@ -10,7 +10,13 @@ import { jumpTo } from './lib/jump';
 import { appPath, lessonPath, libraryLink, resolveClose, type CloseStep } from './lib/links';
 import { ModuleLink } from './ModuleLink';
 
-const CLOSE_ICONS: Record<CloseStep['kind'], Icon> = { lesson: PlayCircle, file: FileText, cert: Certificate, forum: ChatsCircle, opps: Trophy };
+const CLOSE_ICONS: Record<CloseStep['kind'], Icon> = {
+  lesson: PlayCircle,
+  file: FileText,
+  cert: Certificate,
+  forum: ChatsCircle,
+  opps: Trophy,
+};
 
 function CloseBody({ close }: { close: CloseStep }) {
   const Glyph = CLOSE_ICONS[close.kind];
@@ -27,7 +33,17 @@ function CloseBody({ close }: { close: CloseStep }) {
 }
 
 /** A lesson: the chapter is found by its title in the module's lessons (the module's lessons while they load). */
-function LessonLink({ moduleId, chapter, className, children }: { moduleId: string; chapter: string; className: string; children: ReactNode }) {
+function LessonLink({
+  moduleId,
+  chapter,
+  className,
+  children,
+}: {
+  moduleId: string;
+  chapter: string;
+  className: string;
+  children: ReactNode;
+}) {
   const detail = useModuleDetail(moduleId);
   return (
     <Link to={lessonPath(moduleId, chapter, detail.data)} className={className}>
@@ -61,7 +77,11 @@ function CloseAction({ close }: { close: CloseStep }) {
     }
     case 'cert':
       return (
-        <button type="button" className="career-close" onClick={() => jumpTo(`career-cert-${close.cert}`, { flash: true, block: 'center' })}>
+        <button
+          type="button"
+          className="career-close"
+          onClick={() => jumpTo(`career-cert-${close.cert}`, { flash: true, block: 'center' })}
+        >
           <CloseBody close={close} />
         </button>
       );
@@ -87,7 +107,12 @@ export function SkillRow({ row, roleId }: { row: SkillFit; roleId: string }) {
   const data = useCareerData();
   const close = row.status === 'gap' ? resolveClose(data, row.id, roleId) : null;
   return (
-    <li className={cx('career-skill', `is-${row.status}`)} data-hub="career-skill" data-skill-id={row.id} data-skill-status={row.status}>
+    <li
+      className={cx('career-skill', `is-${row.status}`)}
+      data-hub="career-skill"
+      data-skill-id={row.id}
+      data-skill-status={row.status}
+    >
       <p className="career-skill__name">{row.skill.name}</p>
       {row.status === 'gap' ? (
         <>

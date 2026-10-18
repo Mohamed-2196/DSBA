@@ -3,12 +3,35 @@ import type { AdminUser, BoxOut, RoleOut } from '../../api/types';
 import { boxClosed, followOpening, followPerson, groupBoxes, roleChanges, startEditing, ticksOf } from './grid';
 
 const box = (key: BoxOut['key'], area: string): BoxOut => ({ key, area, label: key });
-const role: RoleOut = { id: 'r1', slug: 'newsletter-manager', name: 'Newsletter manager', badge: 'Newsletter', position: 3, builtIn: false, locked: false, version: 4, boxes: ['newsletter.manage'], holders: 2 };
-const student: RoleOut = { ...role, id: 'r0', slug: 'student', name: 'Student', badge: null, builtIn: true, boxes: ['forum.post'] };
+const role: RoleOut = {
+  id: 'r1',
+  slug: 'newsletter-manager',
+  name: 'Newsletter manager',
+  badge: 'Newsletter',
+  position: 3,
+  builtIn: false,
+  locked: false,
+  version: 4,
+  boxes: ['newsletter.manage'],
+  holders: 2,
+};
+const student: RoleOut = {
+  ...role,
+  id: 'r0',
+  slug: 'student',
+  name: 'Student',
+  badge: null,
+  builtIn: true,
+  boxes: ['forum.post'],
+};
 
 describe('groupBoxes', () => {
   it('keeps the catalogue’s order of areas and of boxes inside them', () => {
-    const groups = groupBoxes([box('forum.post', 'Forum'), box('library.upload', 'Library'), box('forum.moderate', 'Forum')]);
+    const groups = groupBoxes([
+      box('forum.post', 'Forum'),
+      box('library.upload', 'Library'),
+      box('forum.moderate', 'Forum'),
+    ]);
     expect(groups.map((g) => g.area)).toEqual(['Forum', 'Library']);
     expect(groups[0].boxes.map((b) => b.key)).toEqual(['forum.post', 'forum.moderate']);
   });
@@ -16,11 +39,19 @@ describe('groupBoxes', () => {
 
 describe('roleChanges', () => {
   it('sends nothing when nothing changed', () => {
-    expect(roleChanges(role, { name: 'Newsletter manager', badge: 'Newsletter', boxes: new Set(['newsletter.manage']) })).toBeNull();
+    expect(
+      roleChanges(role, { name: 'Newsletter manager', badge: 'Newsletter', boxes: new Set(['newsletter.manage']) }),
+    ).toBeNull();
   });
 
   it('sends only what changed, with the version it was loaded at', () => {
-    expect(roleChanges(role, { name: 'Newsletter team', badge: 'Newsletter', boxes: new Set(['newsletter.manage', 'calendar.manage']) })).toEqual({
+    expect(
+      roleChanges(role, {
+        name: 'Newsletter team',
+        badge: 'Newsletter',
+        boxes: new Set(['newsletter.manage', 'calendar.manage']),
+      }),
+    ).toEqual({
       version: 4,
       name: 'Newsletter team',
       boxes: ['calendar.manage', 'newsletter.manage'],
@@ -28,7 +59,9 @@ describe('roleChanges', () => {
   });
 
   it('removes the badge when it is emptied', () => {
-    expect(roleChanges(role, { name: 'Newsletter manager', badge: '  ', boxes: new Set(['newsletter.manage']) })).toEqual({ version: 4, badge: null });
+    expect(
+      roleChanges(role, { name: 'Newsletter manager', badge: '  ', boxes: new Set(['newsletter.manage']) }),
+    ).toEqual({ version: 4, badge: null });
   });
 });
 

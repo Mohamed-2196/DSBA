@@ -1,4 +1,7 @@
-.shell-footer { margin-top: var(--sp-32); border-top: 1px solid var(--line); }
+.shell-footer {
+  margin-top: var(--sp-32);
+  border-top: 1px solid var(--line);
+}
 .shell-footer__inner {
   max-width: calc(var(--content-max) + var(--page-pad-left) + var(--page-pad-right));
   margin-inline: auto;
@@ -6,26 +9,98 @@
   display: grid;
   gap: var(--sp-24);
 }
-.shell-footer__top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-16); }
-.shell-footer__brand { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); font-weight: var(--fw-heavy); letter-spacing: -0.02em; text-decoration: none; }
-.shell-footer__links { display: flex; flex-wrap: wrap; gap: var(--sp-8) var(--sp-24); }
-.shell-footer__links a { color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-medium); text-decoration: none; }
-.shell-footer__links a:hover { color: var(--cobalt); text-decoration: underline; }
-.shell-footer__affil { max-width: 62ch; padding: var(--sp-16) 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
-.shell-footer__people { display: flex; flex-wrap: wrap; gap: var(--sp-16) var(--sp-32); }
-.shell-footer__people li { display: grid; gap: 2px; }
-.shell-footer__name { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); text-decoration: none; }
-a.shell-footer__name:hover { color: var(--cobalt); text-decoration: underline; }
-.shell-footer__role { color: var(--ink-2); font-size: var(--fs-12); }
-.shell-footer__legal { display: grid; gap: 4px; max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-12); }
+.shell-footer__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-16);
+}
+.shell-footer__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink);
+  font-weight: var(--fw-heavy);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+.shell-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8) var(--sp-24);
+}
+.shell-footer__links a {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+}
+.shell-footer__links a:hover {
+  color: var(--cobalt);
+  text-decoration: underline;
+}
+.shell-footer__affil {
+  max-width: 62ch;
+  padding: var(--sp-16) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
+.shell-footer__people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-16) var(--sp-32);
+}
+.shell-footer__people li {
+  display: grid;
+  gap: 2px;
+}
+.shell-footer__name {
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+a.shell-footer__name:hover {
+  color: var(--cobalt);
+  text-decoration: underline;
+}
+.shell-footer__role {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
+.shell-footer__legal {
+  display: grid;
+  gap: 4px;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
 
 @media (max-width: 699px) {
-  .shell-footer__inner { padding-bottom: var(--sp-32); }
+  .shell-footer__inner {
+    padding-bottom: var(--sp-32);
+  }
 }
 
 /* Touch screens: the footer's links get 44px rows (UX review UX-11). */
 @media (pointer: coarse) {
-  .shell-footer__links { gap: 0 var(--sp-24); }
-  .shell-footer__links a, .shell-footer__brand, a.shell-footer__name { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
-  .shell-footer__people { row-gap: var(--sp-8); }
+  .shell-footer__links {
+    gap: 0 var(--sp-24);
+  }
+  .shell-footer__links a,
+  .shell-footer__brand,
+  a.shell-footer__name {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .shell-footer__people {
+    row-gap: var(--sp-8);
+  }
 }

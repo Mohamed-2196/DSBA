@@ -5,12 +5,28 @@ import { useState } from 'react';
 import { errorMessage } from '../../../api/errors';
 import type { GuessAddReport } from '../../../api/types';
 import { useDebouncedValue, useToast } from '../../../state';
-import { Button, IconButton, Modal, Panel, QueryError, SearchField, Skeleton, TextArea, formatCount } from '../../../ui';
+import {
+  Button,
+  IconButton,
+  Modal,
+  Panel,
+  QueryError,
+  SearchField,
+  Skeleton,
+  TextArea,
+  formatCount,
+} from '../../../ui';
 import { useAddGuesses, useGuessList, useRemoveGuess } from './api';
 
 export function GuessList() {
   const [query, setQuery] = useState('');
-  const q = useDebouncedValue(query.replace(/[^a-z]/gi, '').toUpperCase().slice(0, 5), 250);
+  const q = useDebouncedValue(
+    query
+      .replace(/[^a-z]/gi, '')
+      .toUpperCase()
+      .slice(0, 5),
+    250,
+  );
   const list = useGuessList(q);
   const [adding, setAdding] = useState(false);
   const remove = useRemoveGuess();
@@ -36,18 +52,34 @@ export function GuessList() {
             Guess list
           </h3>
           <p className="dcms__note">
-            {list.data ? `${formatCount(list.data.total)} five-letter words players may type.` : 'The five-letter words players may type.'} Every answer word must be in it.
+            {list.data
+              ? `${formatCount(list.data.total)} five-letter words players may type.`
+              : 'The five-letter words players may type.'}{' '}
+            Every answer word must be in it.
           </p>
         </div>
         <Button leadingIcon={Plus} onClick={() => setAdding(true)}>
           Add words
         </Button>
       </div>
-      <SearchField className="dcms-guesses__search" label="Find words in the guess list" placeholder="How the word starts" value={query} onValueChange={setQuery} onClear={() => setQuery('')} />
+      <SearchField
+        className="dcms-guesses__search"
+        label="Find words in the guess list"
+        placeholder="How the word starts"
+        value={query}
+        onValueChange={setQuery}
+        onClear={() => setQuery('')}
+      />
       {!q ? (
         <p className="dcms__note">Type how a word starts to see the words in the list.</p>
       ) : list.isError ? (
-        <QueryError error={list.error} title="The guess list didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} size="sm" />
+        <QueryError
+          error={list.error}
+          title="The guess list didn’t load"
+          onRetry={() => void list.refetch()}
+          retrying={list.isFetching}
+          size="sm"
+        />
       ) : list.isPending ? (
         <Skeleton lines={2} />
       ) : list.data.words.length === 0 ? (
@@ -58,7 +90,13 @@ export function GuessList() {
             {list.data.words.map((word) => (
               <li key={word} className="dcms-word">
                 <span className="dcms-word__text">{word}</span>
-                <IconButton size="sm" icon={X} label={`Take ${word} off the guess list`} disabled={remove.isPending && remove.variables === word} onClick={() => takeOff(word)} />
+                <IconButton
+                  size="sm"
+                  icon={X}
+                  label={`Take ${word} off the guess list`}
+                  disabled={remove.isPending && remove.variables === word}
+                  onClick={() => takeOff(word)}
+                />
               </li>
             ))}
           </ul>
@@ -89,7 +127,11 @@ function AddGuesses({ onClose }: { onClose: () => void }) {
           <Button variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button loading={check.isPending} disabled={!text.trim() || add.isPending} onClick={() => check.mutate({ text, dryRun: true })}>
+          <Button
+            loading={check.isPending}
+            disabled={!text.trim() || add.isPending}
+            onClick={() => check.mutate({ text, dryRun: true })}
+          >
             Check
           </Button>
           <Button
@@ -101,7 +143,10 @@ function AddGuesses({ onClose }: { onClose: () => void }) {
                 { text, dryRun: false },
                 {
                   onSuccess: (done) => {
-                    toast({ title: `Added ${formatCount(done.new.length)} ${done.new.length === 1 ? 'word' : 'words'} to the guess list.`, tone: 'success' });
+                    toast({
+                      title: `Added ${formatCount(done.new.length)} ${done.new.length === 1 ? 'word' : 'words'} to the guess list.`,
+                      tone: 'success',
+                    });
                     onClose();
                   },
                 },
@@ -138,7 +183,9 @@ function AddGuesses({ onClose }: { onClose: () => void }) {
               {formatCount(report.new.length)} new, {formatCount(report.known.length)} in the list already
               {report.refused.length ? `, ${formatCount(report.refused.length)} not five letters A to Z` : ''}.
             </p>
-            {report.refused.length ? <p className="dcms__note">Left out: {report.refused.slice(0, 30).join(', ')}</p> : null}
+            {report.refused.length ? (
+              <p className="dcms__note">Left out: {report.refused.slice(0, 30).join(', ')}</p>
+            ) : null}
           </div>
         ) : null}
       </div>

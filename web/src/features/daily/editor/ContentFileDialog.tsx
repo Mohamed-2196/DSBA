@@ -37,7 +37,11 @@ export function ContentFileDialog({ themes, onClose }: { themes: ThemeOut[]; onC
   const inputId = useId();
   const report = check.data;
   const error = check.error ?? load.error;
-  const problem = isApiError(error) ? (error.fields.content ?? errorMessage(error)) : error ? errorMessage(error) : null;
+  const problem = isApiError(error)
+    ? (error.fields.content ?? errorMessage(error))
+    : error
+      ? errorMessage(error)
+      : null;
   const busy = check.isPending || load.isPending;
   const added = report ? countsLine(report, 'added') : null;
   const kept = report ? countsLine(report, 'kept') : null;
@@ -73,7 +77,11 @@ export function ContentFileDialog({ themes, onClose }: { themes: ThemeOut[]; onC
           <Button variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button loading={check.isPending} disabled={!file || load.isPending} onClick={() => file && check.mutate({ content: file.text, dryRun: true })}>
+          <Button
+            loading={check.isPending}
+            disabled={!file || load.isPending}
+            onClick={() => file && check.mutate({ content: file.text, dryRun: true })}
+          >
             Check
           </Button>
           <Button
@@ -103,9 +111,17 @@ export function ContentFileDialog({ themes, onClose }: { themes: ThemeOut[]; onC
           <label htmlFor={inputId} className="dcms-file__label">
             The content file
           </label>
-          <input id={inputId} type="file" accept=".json,application/json" className="dcms-file__input" onChange={(e) => void pick(e.target.files?.[0])} data-autofocus />
+          <input
+            id={inputId}
+            type="file"
+            accept=".json,application/json"
+            className="dcms-file__input"
+            onChange={(e) => void pick(e.target.files?.[0])}
+            data-autofocus
+          />
           <p className="dcms__note">
-            <FileArrowUp aria-hidden="true" /> It holds every answer: keep it private, out of the repository and out of chats.
+            <FileArrowUp aria-hidden="true" /> It holds every answer: keep it private, out of the repository and out of
+            chats.
           </p>
         </div>
         {readError || problem ? (
@@ -127,7 +143,9 @@ export function ContentFileDialog({ themes, onClose }: { themes: ThemeOut[]; onC
               </ul>
             ) : null}
             {kept ? <p className="dcms__note">{`In the hub already, and left as they are: ${kept}.`}</p> : null}
-            {report.rotation.length ? <p className="dcms__note">{`It puts ${report.rotation.map((id) => titles.get(id) ?? id).join(', ')} in the rotation.`}</p> : null}
+            {report.rotation.length ? (
+              <p className="dcms__note">{`It puts ${report.rotation.map((id) => titles.get(id) ?? id).join(', ')} in the rotation.`}</p>
+            ) : null}
             {report.problems.length ? (
               <>
                 <p className="dcms__note">{`${formatCount(report.problems.length)} ${report.problems.length === 1 ? 'entry stays out' : 'entries stay out'}:`}</p>

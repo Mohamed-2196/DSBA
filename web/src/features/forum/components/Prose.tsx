@@ -26,13 +26,23 @@ function LinkToken({ token }: { token: Extract<InlineToken, { type: 'link' }> })
   if (!target) return <>{`[${token.text}](${token.href})`}</>;
   // A page of the app moves inside it; an API path (a download) is a plain request to the API.
   if (target.kind === 'internal') {
-    return target.to.startsWith('/api/') ? <a href={`${API_ORIGIN}${target.to}`}>{token.text}</a> : <Link to={target.to}>{token.text}</Link>;
+    return target.to.startsWith('/api/') ? (
+      <a href={`${API_ORIGIN}${target.to}`}>{token.text}</a>
+    ) : (
+      <Link to={target.to}>{token.text}</Link>
+    );
   }
   if (target.kind === 'mailto') return <a href={target.href}>{token.text}</a>;
   // Another site: opens in a new tab, never passes on who sent it, and says where it goes.
   const showsHost = token.text.toLowerCase().includes(target.host.toLowerCase());
   return (
-    <a href={target.href} target="_blank" rel="noopener noreferrer nofollow ugc" className="forum-prose__ext" title={target.href}>
+    <a
+      href={target.href}
+      target="_blank"
+      rel="noopener noreferrer nofollow ugc"
+      className="forum-prose__ext"
+      title={target.href}
+    >
       {token.text}
       {showsHost ? null : <span className="forum-prose__host"> ({target.host})</span>}
       <ArrowSquareOut aria-hidden="true" className="forum-prose__ext-icon" />
@@ -68,9 +78,7 @@ function Picture({ src, alt }: { src: string; alt: string }) {
     return (
       <p className="forum-figure is-broken" role="note">
         <ImageBroken aria-hidden="true" />
-        <span>
-          This picture isn’t available{alt ? `: ${alt}` : ''}.
-        </span>
+        <span>This picture isn’t available{alt ? `: ${alt}` : ''}.</span>
       </p>
     );
   }

@@ -28,7 +28,17 @@ export interface CardDetailDrawerProps {
   onManageLabels: () => void;
 }
 
-export function CardDetailDrawer({ cardId, boards, labels, readOnly, onClose, onMoveColumn, onMoveBoard, onDelete, onManageLabels }: CardDetailDrawerProps) {
+export function CardDetailDrawer({
+  cardId,
+  boards,
+  labels,
+  readOnly,
+  onClose,
+  onMoveColumn,
+  onMoveBoard,
+  onDelete,
+  onManageLabels,
+}: CardDetailDrawerProps) {
   const isPhone = useMediaQuery(BREAKPOINTS.mobile);
   const detail = useCardDetail(cardId);
   const card = detail.data;
@@ -47,7 +57,12 @@ export function CardDetailDrawer({ cardId, boards, labels, readOnly, onClose, on
       data-hub="board-card-drawer"
     >
       {detail.isError ? (
-        <QueryError error={detail.error} title="This card didn’t open" onRetry={() => void detail.refetch()} retrying={detail.isFetching} />
+        <QueryError
+          error={detail.error}
+          title="This card didn’t open"
+          onRetry={() => void detail.refetch()}
+          retrying={detail.isFetching}
+        />
       ) : !card || !board ? (
         <div className="card-detail__loading" aria-busy="true">
           <span className="visually-hidden">Loading the card</span>
@@ -85,7 +100,17 @@ interface CardFormProps {
   onManageLabels: () => void;
 }
 
-function CardForm({ card, board, boards, labels, readOnly, onMoveColumn, onMoveBoard, onDelete, onManageLabels }: CardFormProps) {
+function CardForm({
+  card,
+  board,
+  boards,
+  labels,
+  readOnly,
+  onMoveColumn,
+  onMoveBoard,
+  onDelete,
+  onManageLabels,
+}: CardFormProps) {
   const labelsId = useId();
   const dueId = useId();
   const update = useUpdateCard();
@@ -208,7 +233,9 @@ function CardForm({ card, board, boards, labels, readOnly, onMoveColumn, onMoveB
                   selected={on}
                   color={colorVar(l.color)}
                   disabled={readOnly}
-                  onChange={() => save({ labelIds: on ? card.labelIds.filter((id) => id !== l.id) : [...card.labelIds, l.id] })}
+                  onChange={() =>
+                    save({ labelIds: on ? card.labelIds.filter((id) => id !== l.id) : [...card.labelIds, l.id] })
+                  }
                 >
                   {l.name}
                 </Chip>
@@ -246,8 +273,13 @@ function CardForm({ card, board, boards, labels, readOnly, onMoveColumn, onMoveB
             label="Reminder"
             value={card.dueDate && card.remindBefore != null ? String(card.remindBefore) : 'none'}
             disabled={readOnly || !card.dueDate}
-            onChange={(e) => save({ remindBefore: e.target.value === 'none' ? null : (Number(e.target.value) as RemindBefore) })}
-            options={[{ value: 'none', label: card.dueDate ? 'No reminder' : 'Set a date first' }, ...REMINDERS.map((r) => ({ value: String(r.id), label: r.label }))]}
+            onChange={(e) =>
+              save({ remindBefore: e.target.value === 'none' ? null : (Number(e.target.value) as RemindBefore) })
+            }
+            options={[
+              { value: 'none', label: card.dueDate ? 'No reminder' : 'Set a date first' },
+              ...REMINDERS.map((r) => ({ value: String(r.id), label: r.label })),
+            ]}
           />
         </div>
         {otherDue ? (
@@ -256,7 +288,9 @@ function CardForm({ card, board, boards, labels, readOnly, onMoveColumn, onMoveB
             {formatDay(otherDue, { weekday: 'short', month: 'short', year: false })}. A date here comes first.
           </p>
         ) : card.dueDate && card.remindBefore != null ? (
-          <p className="card-detail__note">The reminder comes as a notification{card.dueTime ? '' : ', at 09:00 when there’s no time'}.</p>
+          <p className="card-detail__note">
+            The reminder comes as a notification{card.dueTime ? '' : ', at 09:00 when there’s no time'}.
+          </p>
         ) : null}
       </section>
 
@@ -282,7 +316,13 @@ function CardForm({ card, board, boards, labels, readOnly, onMoveColumn, onMoveB
       <footer className="card-detail__foot">
         <span className="card-detail__added">Added {formatDay(new Date(card.createdAt), { month: 'short' })}</span>
         {readOnly ? null : (
-          <Button variant="ghost" leadingIcon={Trash} className="card-detail__delete" onClick={() => onDelete(card)} data-hub="board-card-delete">
+          <Button
+            variant="ghost"
+            leadingIcon={Trash}
+            className="card-detail__delete"
+            onClick={() => onDelete(card)}
+            data-hub="board-card-delete"
+          >
             Delete card
           </Button>
         )}

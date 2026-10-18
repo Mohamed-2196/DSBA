@@ -34,8 +34,23 @@ export interface Draft {
 }
 
 export const MODULE_ICONS = [
-  'BookOpenText', 'Brain', 'Briefcase', 'ChartBar', 'ChartLineUp', 'ChartScatter', 'Coins', 'Database', 'Function',
-  'ListChecks', 'Megaphone', 'PresentationChart', 'Scales', 'Sigma', 'Storefront', 'TerminalWindow', 'WaveSine',
+  'BookOpenText',
+  'Brain',
+  'Briefcase',
+  'ChartBar',
+  'ChartLineUp',
+  'ChartScatter',
+  'Coins',
+  'Database',
+  'Function',
+  'ListChecks',
+  'Megaphone',
+  'PresentationChart',
+  'Scales',
+  'Sigma',
+  'Storefront',
+  'TerminalWindow',
+  'WaveSine',
 ] as const satisfies readonly NonNullable<ModuleSave['icon']>[];
 type IconName = (typeof MODULE_ICONS)[number];
 
@@ -89,7 +104,13 @@ export function toSave(d: Draft, version: number): ModuleSave {
       title: ch.title.trim(),
       hidden: ch.hidden,
       id: ch.id,
-      lessons: ch.lessons.map((l) => ({ url: l.url.trim(), title: orNull(l.title), channel: orNull(l.channel), hidden: l.hidden, id: l.id })),
+      lessons: ch.lessons.map((l) => ({
+        url: l.url.trim(),
+        title: orNull(l.title),
+        channel: orNull(l.channel),
+        hidden: l.hidden,
+        id: l.id,
+      })),
     })),
   };
 }
@@ -145,14 +166,20 @@ export function canStepLesson(d: Draft, at: LessonPlace, step: -1 | 1): boolean 
   return stepLesson(d, at, step) !== d;
 }
 
-export function updateChapter(d: Draft, index: number, patch: Partial<Omit<DraftChapter, 'key' | 'id' | 'lessons'>>): Draft {
+export function updateChapter(
+  d: Draft,
+  index: number,
+  patch: Partial<Omit<DraftChapter, 'key' | 'id' | 'lessons'>>,
+): Draft {
   return { ...d, chapters: d.chapters.map((ch, i) => (i === index ? { ...ch, ...patch } : ch)) };
 }
 
 export function updateLesson(d: Draft, at: LessonPlace, patch: Partial<Omit<DraftLesson, 'key' | 'id'>>): Draft {
   return {
     ...d,
-    chapters: d.chapters.map((ch, i) => (i === at.chapter ? { ...ch, lessons: ch.lessons.map((l, j) => (j === at.lesson ? { ...l, ...patch } : l)) } : ch)),
+    chapters: d.chapters.map((ch, i) =>
+      i === at.chapter ? { ...ch, lessons: ch.lessons.map((l, j) => (j === at.lesson ? { ...l, ...patch } : l)) } : ch,
+    ),
   };
 }
 
@@ -162,7 +189,10 @@ export function addChapter(d: Draft): Draft {
 
 export function addLesson(d: Draft, chapter: number): Draft {
   const lesson: DraftLesson = { key: newKey('l'), id: null, url: '', title: '', channel: '', hidden: false };
-  return { ...d, chapters: d.chapters.map((ch, i) => (i === chapter ? { ...ch, lessons: [...ch.lessons, lesson] } : ch)) };
+  return {
+    ...d,
+    chapters: d.chapters.map((ch, i) => (i === chapter ? { ...ch, lessons: [...ch.lessons, lesson] } : ch)),
+  };
 }
 
 export function removeChapter(d: Draft, index: number): Draft {
@@ -170,12 +200,24 @@ export function removeChapter(d: Draft, index: number): Draft {
 }
 
 export function removeLesson(d: Draft, at: LessonPlace): Draft {
-  return { ...d, chapters: d.chapters.map((ch, i) => (i === at.chapter ? { ...ch, lessons: ch.lessons.filter((_, j) => j !== at.lesson) } : ch)) };
+  return {
+    ...d,
+    chapters: d.chapters.map((ch, i) =>
+      i === at.chapter ? { ...ch, lessons: ch.lessons.filter((_, j) => j !== at.lesson) } : ch,
+    ),
+  };
 }
 
 // ── video links (the API has the final say: api/app/services/module_editor.py parse_video) ─────
 
-const YOUTUBE = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtube-nocookie.com', 'www.youtube-nocookie.com', 'youtu.be']);
+const YOUTUBE = new Set([
+  'youtube.com',
+  'www.youtube.com',
+  'm.youtube.com',
+  'youtube-nocookie.com',
+  'www.youtube-nocookie.com',
+  'youtu.be',
+]);
 export const VIDEO_RULE = 'Paste a YouTube video or playlist link, or a class recording link from vc.bibf.com.';
 
 /** What a pasted link is, or null when the app can't embed it. */
@@ -190,7 +232,8 @@ export function videoKind(url: string): 'youtube' | 'youtube-playlist' | 'bbb' |
   const host = u.hostname.toLowerCase();
   if (host === 'vc.bibf.com') return 'bbb';
   if (!YOUTUBE.has(host)) return null;
-  if (u.pathname === '/playlist' || u.pathname === '/embed/videoseries') return u.searchParams.get('list') ? 'youtube-playlist' : null;
+  if (u.pathname === '/playlist' || u.pathname === '/embed/videoseries')
+    return u.searchParams.get('list') ? 'youtube-playlist' : null;
   return 'youtube';
 }
 
@@ -199,7 +242,8 @@ export function draftProblems(d: Draft): Record<string, string> {
   const out: Record<string, string> = {};
   if (d.name.trim().length < 3) out.name = 'Give the module a name of at least 3 characters.';
   if (d.shortName.trim().length < 2) out.shortName = 'Give it a short name of at least 2 characters.';
-  if (d.unitCode.trim() && !/^[A-Za-z]{2}\d{4}$/.test(d.unitCode.trim())) out.unitCode = 'A unit code is two letters and four digits, like ST2133.';
+  if (d.unitCode.trim() && !/^[A-Za-z]{2}\d{4}$/.test(d.unitCode.trim()))
+    out.unitCode = 'A unit code is two letters and four digits, like ST2133.';
   d.chapters.forEach((ch, c) => {
     if (!ch.title.trim()) out[`chapters.${c}.title`] = 'Give the chapter a title.';
     ch.lessons.forEach((l, v) => {

@@ -36,13 +36,21 @@ test('every page loads for a guest, without errors', async ({ guest }) => {
 
 test('every page fits a 390×844 phone screen, in dark mode too', async ({ browser }) => {
   for (const colorScheme of ['light', 'dark'] as const) {
-    const ctx = await browser.newContext({ baseURL: env.baseURL, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, colorScheme });
+    const ctx = await browser.newContext({
+      baseURL: env.baseURL,
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+      colorScheme,
+    });
     await prepareContext(ctx);
     const page = await ctx.newPage();
     for (const [url, heading] of PAGES) {
       await page.goto(url);
       await expect(page.getByRole('heading', { level: 1, name: heading }).first(), url).toBeVisible();
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
       expect(overflow, `${url} scrolls sideways at 390 px (${colorScheme})`).toBeLessThanOrEqual(0);
     }
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);

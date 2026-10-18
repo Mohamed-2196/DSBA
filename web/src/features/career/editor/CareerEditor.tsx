@@ -12,7 +12,13 @@ import { useCareerForEditing, useReloadCareer, useSaveCareer } from './api';
 import { SECTIONS, errorPlace, generalErrors, publicDoc, type EditorSection } from './doc';
 import { EditorContext, openKey, type EditorState } from './state';
 import { EmployersSection } from './sections/Employers';
-import { CertsSection, ChecklistSection, FeaturedSection, FurtherStudySection, PageTextSection } from './sections/Others';
+import {
+  CertsSection,
+  ChecklistSection,
+  FeaturedSection,
+  FurtherStudySection,
+  PageTextSection,
+} from './sections/Others';
 import { RolesSection } from './sections/Roles';
 import { ElectivesSection, SkillsSection } from './sections/Skills';
 import { TracksSection } from './sections/Tracks';
@@ -32,7 +38,8 @@ const LABELS: Record<EditorSection, string> = {
 };
 
 const ABOUT: Record<EditorSection, string> = {
-  employers: 'Real employers in Bahrain: what they offer, the tracks they suit, their own page, their logo and their application dates.',
+  employers:
+    'Real employers in Bahrain: what they offer, the tracks they suit, their own page, their logo and their application dates.',
   tracks: 'The filters above the employers, each with its closest modules.',
   roles: 'The jobs in “Build the skills”: what each is, its tools and the skills it needs.',
   skills: 'Which modules teach each skill and how far, and the step to take when they don’t go far enough.',
@@ -81,7 +88,16 @@ function countOf(doc: CareerDoc, section: EditorSection): number | null {
 
 export function CareerEditor() {
   const query = useCareerForEditing();
-  if (query.isError) return <QueryError error={query.error} title="Career Navigator didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} size="sm" />;
+  if (query.isError)
+    return (
+      <QueryError
+        error={query.error}
+        title="Career Navigator didn’t load"
+        onRetry={() => void query.refetch()}
+        retrying={query.isFetching}
+        size="sm"
+      />
+    );
   if (query.isPending) {
     return (
       <Panel padding="md">
@@ -92,7 +108,11 @@ export function CareerEditor() {
   if (!query.data.data) {
     return (
       <Panel padding="none">
-        <EmptyState size="sm" title="Career Navigator has no content yet" body="Its starting content loads when the hub starts. Ask whoever runs the server to load it." />
+        <EmptyState
+          size="sm"
+          title="Career Navigator has no content yet"
+          body="Its starting content loads when the hub starts. Ask whoever runs the server to load it."
+        />
       </Panel>
     );
   }
@@ -123,7 +143,14 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
   }, [dirty]);
 
   const state: EditorState = useMemo(
-    () => ({ doc, saved, update: (change) => setDoc((d) => change(d)), err: (path) => fields[`data.${path}`], open, setOpen }),
+    () => ({
+      doc,
+      saved,
+      update: (change) => setDoc((d) => change(d)),
+      err: (path) => fields[`data.${path}`],
+      open,
+      setOpen,
+    }),
     [doc, saved, fields, open],
   );
 
@@ -141,12 +168,24 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
           const found = isApiError(e) ? e.fields : {};
           setFields(found);
           const general = generalErrors(found);
-          setProblem({ kind: 'other', messages: general.length ? general : [Object.keys(found).length ? 'Some fields need a look before saving. They’re marked below.' : errorMessage(e)] });
+          setProblem({
+            kind: 'other',
+            messages: general.length
+              ? general
+              : [
+                  Object.keys(found).length
+                    ? 'Some fields need a look before saving. They’re marked below.'
+                    : errorMessage(e),
+                ],
+          });
           const place = errorPlace(found);
           if (place) {
             setSection(place.section);
             const list = place.section === 'skills' ? null : (doc as unknown as Record<string, unknown>)[place.section];
-            const item = Array.isArray(list) && place.item !== null ? (list[Number(place.item)] as { id?: string } | undefined) : undefined;
+            const item =
+              Array.isArray(list) && place.item !== null
+                ? (list[Number(place.item)] as { id?: string } | undefined)
+                : undefined;
             const id = place.section === 'skills' ? place.item : (item?.id ?? null);
             if (id) setOpen(openKey(place.section, id));
           }
@@ -194,7 +233,10 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
           <div className="cedit__banner" role="alert">
             {problem.kind === 'changed' ? (
               <>
-                <p>Someone else saved Career Navigator while you were editing. Load their version, then make your changes again.</p>
+                <p>
+                  Someone else saved Career Navigator while you were editing. Load their version, then make your changes
+                  again.
+                </p>
                 <Button size="sm" onClick={() => void reload()}>
                   Load it again
                 </Button>
@@ -210,7 +252,13 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
             const n = countOf(doc, s);
             const hasError = Object.keys(fields).some((k) => errorPlace({ [k]: '' })?.section === s);
             return (
-              <Chip key={s} selected={s === section} onChange={() => setSection(s)} count={n} className={hasError ? 'cedit__nav-error' : undefined}>
+              <Chip
+                key={s}
+                selected={s === section}
+                onChange={() => setSection(s)}
+                count={n}
+                className={hasError ? 'cedit__nav-error' : undefined}
+              >
                 {LABELS[s]}
               </Chip>
             );
@@ -235,7 +283,14 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
         </div>
       </div>
 
-      <Drawer open={previewing} onClose={() => setPreviewing(false)} title="Preview" description="Career Navigator with your changes, as students will see it once you save." width="min(1280px, 100vw)" bodyClassName="cedit-page-preview">
+      <Drawer
+        open={previewing}
+        onClose={() => setPreviewing(false)}
+        title="Preview"
+        description="Career Navigator with your changes, as students will see it once you save."
+        width="min(1280px, 100vw)"
+        bodyClassName="cedit-page-preview"
+      >
         {previewing ? <CareerBody data={publicDoc(doc)} /> : null}
       </Drawer>
     </EditorContext.Provider>

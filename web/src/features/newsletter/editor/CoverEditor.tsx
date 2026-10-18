@@ -3,7 +3,18 @@
 import { Plus } from '@phosphor-icons/react';
 import { Button, SegmentedControl, Select } from '../../../ui';
 import { IssueCover } from '../components/IssueCover';
-import { LIMITS, blankCoverLine, controlId, fieldPath, moveByKey, previewOf, removeByKey, updateByKey, type FieldErrors, type IssueDraft } from '../lib/draft';
+import {
+  LIMITS,
+  blankCoverLine,
+  controlId,
+  fieldPath,
+  moveByKey,
+  previewOf,
+  removeByKey,
+  updateByKey,
+  type FieldErrors,
+  type IssueDraft,
+} from '../lib/draft';
 import { plainText, sectionLabel } from '../lib/text';
 import { ItemTools, TextBox, TextInput } from './fields';
 import { PicturePicker } from './BesideEditor';
@@ -29,7 +40,10 @@ export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorPro
   const offered = useOfferedPictures().data ?? [];
   const lines = cover.lines;
   const preview = previewOf(draft);
-  const stories = draft.sections.map((s) => ({ value: s.id, label: plainText(sectionLabel({ label: s.label, title: s.title || 'Untitled section' })) }));
+  const stories = draft.sections.map((s) => ({
+    value: s.id,
+    label: plainText(sectionLabel({ label: s.label, title: s.title || 'Untitled section' })),
+  }));
   const shown = cover.art ? LIMITS.coverLinesWithArt : LIMITS.coverLines;
   const setLines = (fn: (l: Cover['lines']) => Cover['lines']) => onChange((c) => ({ ...c, lines: fn(c.lines) }));
   const add = () => {
@@ -44,7 +58,13 @@ export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorPro
       <div className="nl-ed-cover__top">
         <div className="nl-ed-cover__thumb" aria-hidden="true">
           <IssueCover
-            issue={{ number: Number(draft.number) || 0, title: draft.title || 'Untitled', date: /^\d{4}-\d{2}-\d{2}$/.test(draft.date) ? draft.date : '', cover: preview.cover, sections: preview.sections }}
+            issue={{
+              number: Number(draft.number) || 0,
+              title: draft.title || 'Untitled',
+              date: /^\d{4}-\d{2}-\d{2}$/.test(draft.date) ? draft.date : '',
+              cover: preview.cover,
+              sections: preview.sections,
+            }}
             decorative
           />
         </div>
@@ -59,7 +79,9 @@ export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorPro
           <PicturePicker
             name="cover-art"
             label="Illustration"
-            choices={pictureChoices(offered, cover.art ? { src: cover.art, width: 3, height: 4 } : null, { cover: true })}
+            choices={pictureChoices(offered, cover.art ? { src: cover.art, width: 3, height: 4 } : null, {
+              cover: true,
+            })}
             value={cover.art}
             onChoose={(p) => onChange((c) => ({ ...c, art: p ? p.src : null }))}
             none="Type only"
@@ -72,7 +94,11 @@ export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorPro
               label="Description"
               rows={2}
               max={LIMITS.artAlt}
-              hint={cover.artAlt?.trim() ? 'Read out to people who can’t see the illustration.' : 'Describe the illustration for people who can’t see it: what it shows, and any words on it.'}
+              hint={
+                cover.artAlt?.trim()
+                  ? 'Read out to people who can’t see the illustration.'
+                  : 'Describe the illustration for people who can’t see it: what it shows, and any words on it.'
+              }
               value={cover.artAlt}
               onValue={(artAlt) => onChange((c) => ({ ...c, artAlt }))}
             />
@@ -83,7 +109,8 @@ export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorPro
       <div className="nl-ed-lines">
         <p className="ui-field__label">Cover lines</p>
         <p className="nl-ed-note">
-          Each line points to a story; the story’s label is printed beside it. A cover shows {shown} lines{cover.art ? ' over an illustration' : ''}.
+          Each line points to a story; the story’s label is printed beside it. A cover shows {shown} lines
+          {cover.art ? ' over an illustration' : ''}.
           {lines.length ? '' : ' With none, it lists the first five stories by name.'}
         </p>
         {lines.length ? (
@@ -98,7 +125,11 @@ export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorPro
                     const section = e.target.value;
                     setLines((l) => updateByKey(l, line.key, (x) => ({ ...x, section })));
                   }}
-                  options={stories.some((s) => s.value === line.section) ? stories : [{ value: line.section, label: 'Choose a story' }, ...stories]}
+                  options={
+                    stories.some((s) => s.value === line.section)
+                      ? stories
+                      : [{ value: line.section, label: 'Choose a story' }, ...stories]
+                  }
                   error={errors[fieldPath.line(line.key, 'section')]}
                   className="nl-ed-line__story"
                 />
@@ -129,7 +160,14 @@ export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorPro
             {linesError}
           </p>
         ) : null}
-        <Button size="sm" variant="secondary" leadingIcon={Plus} onClick={add} disabled={lines.length >= LIMITS.coverLines || !draft.sections.length} className="nl-ed-start">
+        <Button
+          size="sm"
+          variant="secondary"
+          leadingIcon={Plus}
+          onClick={add}
+          disabled={lines.length >= LIMITS.coverLines || !draft.sections.length}
+          className="nl-ed-start"
+        >
           Add a cover line
         </Button>
       </div>

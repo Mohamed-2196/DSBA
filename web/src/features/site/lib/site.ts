@@ -18,7 +18,8 @@ export function copyrightYears(launchYear: number, now: Date = new Date()): stri
 }
 
 /** Where a student's shared notes for a module are: the module's notes in the library. */
-export const notesInLibrary = (moduleId: string): string => `/library?module=${encodeURIComponent(moduleId)}&type=notes`;
+export const notesInLibrary = (moduleId: string): string =>
+  `/library?module=${encodeURIComponent(moduleId)}&type=notes`;
 
 /** An https:// address from the settings, for an `href`; null for anything else (the API allows https:// only). */
 export function httpsHref(url: string | null | undefined): string | null {

@@ -14,7 +14,8 @@ export default function NotFoundPage() {
         </p>
         <h1 className="notfound__title">This page doesn’t exist</h1>
         <p className="notfound__body">
-          Nothing lives at <code>{pathname}</code>. The link may be old or mistyped. Search for what you need or go back home.
+          Nothing lives at <code>{pathname}</code>. The link may be old or mistyped. Search for what you need or go back
+          home.
         </p>
         <div className="notfound__actions">
           <Button variant="primary" to="/" leadingIcon={House}>

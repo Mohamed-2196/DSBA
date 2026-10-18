@@ -1,11 +1,42 @@
 // Bell + dropdown in the top bar: the signed-in person's notifications from the API (hidden for guests).
 import { Link } from 'react-router-dom';
-import { Alarm, Bell, BellRinging, Bug, CalendarDots, ChatsCircle, Check, Checks, FileArrowUp, FileX, HandWaving, Kanban, Newspaper, SealCheck, ShieldCheck, Student, YoutubeLogo, type Icon } from '@phosphor-icons/react';
+import {
+  Alarm,
+  Bell,
+  BellRinging,
+  Bug,
+  CalendarDots,
+  ChatsCircle,
+  Check,
+  Checks,
+  FileArrowUp,
+  FileX,
+  HandWaving,
+  Kanban,
+  Newspaper,
+  SealCheck,
+  ShieldCheck,
+  Student,
+  YoutubeLogo,
+  type Icon,
+} from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { NotificationOut } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import { Button, EmptyState, HubLogo, IconButton, Menu, QueryError, Skeleton, Tooltip, cx, safeInternalPath, timeAgo } from '../../ui';
+import {
+  Button,
+  EmptyState,
+  HubLogo,
+  IconButton,
+  Menu,
+  QueryError,
+  Skeleton,
+  Tooltip,
+  cx,
+  safeInternalPath,
+  timeAgo,
+} from '../../ui';
 import { useMarkAllRead, useMarkRead, useNotifications } from './api';
 import './NotificationsMenu.css';
 
@@ -117,13 +148,22 @@ export function NotificationsMenu() {
       onOpenChange={(open) => {
         if (open) void query.refetch();
       }}
-      trigger={<IconButton label={unread ? `Notifications, ${unread} unread` : 'Notifications'} icon={Bell} badge={unread || undefined} data-hub="notifications" />}
+      trigger={
+        <IconButton
+          label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
+          icon={Bell}
+          badge={unread || undefined}
+          data-hub="notifications"
+        />
+      }
     >
       {({ close }) => (
         <div className="notif" data-hub="notif-menu">
           <div className="notif__head">
             <h2 className="notif__title">Notifications</h2>
-            <span className={cx('notif__count', unread > 0 && 'has-unread')}>{unread ? `${unread} new` : query.isSuccess ? 'You’re all caught up' : ''}</span>
+            <span className={cx('notif__count', unread > 0 && 'has-unread')}>
+              {unread ? `${unread} new` : query.isSuccess ? 'You’re all caught up' : ''}
+            </span>
           </div>
           {query.isPending ? (
             <ul role="list" className="notif__list" aria-busy="true" aria-label="Loading notifications">
@@ -147,7 +187,12 @@ export function NotificationsMenu() {
               panel={false}
             />
           ) : !items.length ? (
-            <EmptyState size="sm" icon={Bell} title="No notifications yet" body="Replies to your threads, accepted answers and reviews of your uploads show up here." />
+            <EmptyState
+              size="sm"
+              icon={Bell}
+              title="No notifications yet"
+              body="Replies to your threads, accepted answers and reviews of your uploads show up here."
+            />
           ) : (
             <ul role="list" className="notif__list">
               {items.map((n) => (
@@ -163,7 +208,13 @@ export function NotificationsMenu() {
               ))}
               {query.hasNextPage ? (
                 <li className="notif__more">
-                  <Button variant="ghost" size="sm" fullWidth onClick={() => void query.fetchNextPage()} loading={query.isFetchingNextPage}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    fullWidth
+                    onClick={() => void query.fetchNextPage()}
+                    loading={query.isFetchingNextPage}
+                  >
                     Show older notifications
                   </Button>
                 </li>
@@ -172,7 +223,14 @@ export function NotificationsMenu() {
           )}
           {items.length ? (
             <div className="notif__foot">
-              <Button variant="ghost" size="sm" leadingIcon={Checks} disabled={!unread} loading={markAll.isPending} onClick={readAll}>
+              <Button
+                variant="ghost"
+                size="sm"
+                leadingIcon={Checks}
+                disabled={!unread}
+                loading={markAll.isPending}
+                onClick={readAll}
+              >
                 Mark all as read
               </Button>
             </div>

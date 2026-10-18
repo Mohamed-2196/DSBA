@@ -16,7 +16,8 @@ export const TODAY_DAYS = 7;
 function whenText(section: AgendaSection['id'], card: AgendaCard, today: string): string | null {
   const at = card.dueTime ? timeText(card.dueTime) : null;
   if (section === 'overdue') return dueLabel(card.due, today, '');
-  if (section === 'week') return `${formatDay(card.due, { weekday: 'short', month: 'short', year: false })}${at ? ` at ${at}` : ''}`;
+  if (section === 'week')
+    return `${formatDay(card.due, { weekday: 'short', month: 'short', year: false })}${at ? ` at ${at}` : ''}`;
   return at ? `At ${at}` : null;
 }
 
@@ -45,7 +46,14 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
     );
   }
   if (agenda.isError) {
-    return <QueryError error={agenda.error} title="What’s due didn’t load" onRetry={() => void agenda.refetch()} retrying={agenda.isFetching} />;
+    return (
+      <QueryError
+        error={agenda.error}
+        title="What’s due didn’t load"
+        onRetry={() => void agenda.refetch()}
+        retrying={agenda.isFetching}
+      />
+    );
   }
 
   const sections = agendaSections(agenda.data.cards, today);
@@ -83,7 +91,10 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
                         checked={done}
                         disabled={done}
                         onChange={() => {
-                          setTicked((prev) => ({ on: agenda.data, ids: new Set(prev.on === agenda.data ? prev.ids : []).add(card.id) }));
+                          setTicked((prev) => ({
+                            on: agenda.data,
+                            ids: new Set(prev.on === agenda.data ? prev.ids : []).add(card.id),
+                          }));
                           onDone(card);
                         }}
                       />
@@ -96,7 +107,11 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
                     </button>
                     <div className="board-list__meta">
                       <span className="board-today__board">
-                        <span className="board-card__label-dot" style={{ background: colorVar(card.boardColor) }} aria-hidden="true" />
+                        <span
+                          className="board-card__label-dot"
+                          style={{ background: colorVar(card.boardColor) }}
+                          aria-hidden="true"
+                        />
                         {card.boardName}
                       </span>
                       {when ? (
@@ -105,7 +120,9 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
                           {when}
                         </span>
                       ) : null}
-                      {card.priority === 'high' || card.priority === 'medium' ? <PriorityBadge priority={card.priority} /> : null}
+                      {card.priority === 'high' || card.priority === 'medium' ? (
+                        <PriorityBadge priority={card.priority} />
+                      ) : null}
                     </div>
                   </div>
                 </li>

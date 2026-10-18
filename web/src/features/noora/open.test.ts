@@ -6,20 +6,26 @@ describe('open', () => {
 
   beforeEach(() => {
     listeners = new Map();
-    vi.stubGlobal('Event', class Event {
-      type: string;
-      constructor(type: string) {
-        this.type = type;
-      }
-    });
-    vi.stubGlobal('CustomEvent', class CustomEvent<T> {
-      type: string;
-      detail: T;
-      constructor(type: string, init?: { detail: T }) {
-        this.type = type;
-        this.detail = init?.detail as T;
-      }
-    });
+    vi.stubGlobal(
+      'Event',
+      class Event {
+        type: string;
+        constructor(type: string) {
+          this.type = type;
+        }
+      },
+    );
+    vi.stubGlobal(
+      'CustomEvent',
+      class CustomEvent<T> {
+        type: string;
+        detail: T;
+        constructor(type: string, init?: { detail: T }) {
+          this.type = type;
+          this.detail = init?.detail as T;
+        }
+      },
+    );
     vi.stubGlobal('window', {
       addEventListener: (type: string, listener: (e: unknown) => void) => {
         if (!listeners.has(type)) listeners.set(type, new Set());

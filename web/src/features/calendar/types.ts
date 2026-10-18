@@ -1,6 +1,14 @@
 // Shapes of the calendar feature. Programme dates come from the API (GET /api/v1/calendar/events); a student's own
 // events from GET /api/v1/calendar/mine/events, laid out as occurrences (mine.ts).
-import type { CalendarEventCreate, CalendarEventOut, CalendarEventUpdate, CalendarPrefsOut, PersonalEventCreate, PersonalEventOut, PersonalEventUpdate } from '../../api/types';
+import type {
+  CalendarEventCreate,
+  CalendarEventOut,
+  CalendarEventUpdate,
+  CalendarPrefsOut,
+  PersonalEventCreate,
+  PersonalEventOut,
+  PersonalEventUpdate,
+} from '../../api/types';
 import type { CohortYear } from '../../state';
 
 /** One of a student's own events, as stored: a repeat is one event. */

@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { addPoint, eraseFrom, inPolygon, lassoed, moved, strokeBounds, strokePath, touches, type InkStroke } from './geometry';
+import {
+  addPoint,
+  eraseFrom,
+  inPolygon,
+  lassoed,
+  moved,
+  strokeBounds,
+  strokePath,
+  touches,
+  type InkStroke,
+} from './geometry';
 import { laserSegments, liveTrail } from './laser';
 
 const line = (id: string, from: number, to: number, y = 10): InkStroke => {

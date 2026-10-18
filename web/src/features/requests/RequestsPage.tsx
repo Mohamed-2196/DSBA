@@ -4,7 +4,19 @@
 import { HandWaving, Plus } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { useQueryParam } from '../../state';
-import { Button, Chip, Count, EmptyState, Page, PageHeader, PageSection, QueryError, SegmentedControl, Select, Skeleton } from '../../ui';
+import {
+  Button,
+  Chip,
+  Count,
+  EmptyState,
+  Page,
+  PageHeader,
+  PageSection,
+  QueryError,
+  SegmentedControl,
+  Select,
+  Skeleton,
+} from '../../ui';
 import { useRequests } from './api';
 import { DoneLately } from './components/DoneLately';
 import { NewRequestDialog } from './components/NewRequestDialog';
@@ -49,7 +61,14 @@ export default function RequestsPage() {
 
   let body;
   if (list.isError && !list.data) {
-    body = <QueryError error={list.error} title="Requests didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} />;
+    body = (
+      <QueryError
+        error={list.error}
+        title="Requests didn’t load"
+        onRetry={() => void list.refetch()}
+        retrying={list.isFetching}
+      />
+    );
   } else if (list.isPending) {
     body = <Skeleton lines={5} />;
   } else if (!items.length) {
@@ -71,7 +90,12 @@ export default function RequestsPage() {
         }
       />
     ) : (
-      <EmptyState icon={HandWaving} title="No requests yet" body="Need a past paper, a fix or a date the hub doesn’t have? Ask the reps here." action={askButton} />
+      <EmptyState
+        icon={HandWaving}
+        title="No requests yet"
+        body="Need a past paper, a fix or a date the hub doesn’t have? Ask the reps here."
+        action={askButton}
+      />
     );
   } else {
     body = (
@@ -97,7 +121,11 @@ export default function RequestsPage() {
 
   return (
     <Page className="req-page">
-      <PageHeader title="Requests" description="Ask the reps for a past paper, a fix, a date or a feature. Say “me too” to what you need as well: the most wanted come first." actions={askButton} />
+      <PageHeader
+        title="Requests"
+        description="Ask the reps for a past paper, a fix, a date or a feature. Say “me too” to what you need as well: the most wanted come first."
+        actions={askButton}
+      />
       {anyFilter ? null : <DoneLately onShowAll={() => setStatus('done', { replace: true })} />}
       <PageSection aria-label="Requests" className="req-browse">
         <div className="req-filters">
@@ -118,7 +146,13 @@ export default function RequestsPage() {
             onChange={(v) => setStatus(v === ALL ? null : v, { replace: true })}
             className="req-filters__status"
           />
-          <SegmentedControl label="Sort" size="sm" options={SORTS} value={filters.sort} onChange={(v) => setSort(v === 'me_too' ? null : v, { replace: true })} />
+          <SegmentedControl
+            label="Sort"
+            size="sm"
+            options={SORTS}
+            value={filters.sort}
+            onChange={(v) => setSort(v === 'me_too' ? null : v, { replace: true })}
+          />
           {me ? (
             <Chip selected={filters.mine} onChange={(on) => setMine(on ? '1' : null, { replace: true })}>
               Yours
@@ -127,7 +161,9 @@ export default function RequestsPage() {
         </div>
         {body}
       </PageSection>
-      {newParam !== null && mayAsk === 'yes' ? <NewRequestDialog open onClose={() => setNew(null, { replace: true })} kind={parseKind(newParam)} /> : null}
+      {newParam !== null && mayAsk === 'yes' ? (
+        <NewRequestDialog open onClose={() => setNew(null, { replace: true })} kind={parseKind(newParam)} />
+      ) : null}
     </Page>
   );
 }

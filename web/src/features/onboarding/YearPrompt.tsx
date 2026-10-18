@@ -25,7 +25,18 @@ export interface YearPromptProps {
   onDone: () => void;
 }
 
-export function YearPrompt({ stage, year, signedIn, busy, onChoose, onNotStudent, onSignIn, onLater, onTour, onDone }: YearPromptProps) {
+export function YearPrompt({
+  stage,
+  year,
+  signedIn,
+  busy,
+  onChoose,
+  onNotStudent,
+  onSignIn,
+  onLater,
+  onTour,
+  onDone,
+}: YearPromptProps) {
   const titleId = useId();
   const tourRef = useRef<HTMLElement>(null);
   // The year buttons go when one is picked: the keyboard moves on to the tour question.
@@ -43,9 +54,19 @@ export function YearPrompt({ stage, year, signedIn, busy, onChoose, onNotStudent
               <h2 id={titleId} className="onb-prompt__title">
                 Which year are you in?
               </h2>
-              <p className="onb-prompt__desc">We’ll put your modules and exams first. You can change it any time from the year switcher.</p>
+              <p className="onb-prompt__desc">
+                We’ll put your modules and exams first. You can change it any time from the year switcher.
+              </p>
             </div>
-            <IconButton label="Not now" icon={X} size="sm" tooltip tooltipSide="top" onClick={onLater} className="onb-prompt__close" />
+            <IconButton
+              label="Not now"
+              icon={X}
+              size="sm"
+              tooltip
+              tooltipSide="top"
+              onClick={onLater}
+              className="onb-prompt__close"
+            />
           </div>
           <div className="onb-prompt__years" role="group" aria-label="Your year">
             {YEARS.map((y) => (

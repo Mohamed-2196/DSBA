@@ -5,7 +5,20 @@ import { useId, useState, type KeyboardEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { VocabularyOut } from '../../../api/types';
 import { useDebouncedValue, useToast } from '../../../state';
-import { Badge, Button, ConfirmDialog, EmptyState, IconButton, Modal, Panel, QueryError, SearchField, Skeleton, TextField, formatCount } from '../../../ui';
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  IconButton,
+  Modal,
+  Panel,
+  QueryError,
+  SearchField,
+  Skeleton,
+  TextField,
+  formatCount,
+} from '../../../ui';
 import { useAddVocabulary, useDeleteVocabulary, useSaveVocabulary, useVocabulary } from './api';
 
 export function Vocabulary({ tags }: { tags: string[] }) {
@@ -27,24 +40,44 @@ export function Vocabulary({ tags }: { tags: string[] }) {
             Vocabulary
           </h3>
           <p className="dcms__note">
-            Every word a player may guess. Words that share tags count as close, and the words listed as close to each other count as closer still. Secret words are ranked again after every change.
+            Every word a player may guess. Words that share tags count as close, and the words listed as close to each
+            other count as closer still. Secret words are ranked again after every change.
           </p>
         </div>
         <Button leadingIcon={Plus} onClick={() => setEditing('new')}>
           Add a word
         </Button>
       </div>
-      <SearchField className="dcms-guesses__search" label="Find words in the vocabulary" placeholder="A word, or a tag" value={query} onValueChange={setQuery} onClear={() => setQuery('')} />
+      <SearchField
+        className="dcms-guesses__search"
+        label="Find words in the vocabulary"
+        placeholder="A word, or a tag"
+        value={query}
+        onValueChange={setQuery}
+        onClear={() => setQuery('')}
+      />
       {list.isError ? (
-        <QueryError error={list.error} title="The vocabulary didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} size="sm" />
+        <QueryError
+          error={list.error}
+          title="The vocabulary didn’t load"
+          onRetry={() => void list.refetch()}
+          retrying={list.isFetching}
+          size="sm"
+        />
       ) : list.isPending ? (
         <Skeleton lines={4} />
       ) : words.length === 0 ? (
-        <EmptyState size="sm" title={q ? 'No word or tag matches' : 'The vocabulary is empty'} body={q ? 'Try the start of another word, or a tag.' : 'Add the words players may guess, with their tags.'} />
+        <EmptyState
+          size="sm"
+          title={q ? 'No word or tag matches' : 'The vocabulary is empty'}
+          body={q ? 'Try the start of another word, or a tag.' : 'Add the words players may guess, with their tags.'}
+        />
       ) : (
         <>
           <p className="dcms__count" aria-live="polite">
-            {words.length < total ? `${formatCount(words.length)} of ${formatCount(total)} words` : `${formatCount(total)} ${total === 1 ? 'word' : 'words'}`}
+            {words.length < total
+              ? `${formatCount(words.length)} of ${formatCount(total)} words`
+              : `${formatCount(total)} ${total === 1 ? 'word' : 'words'}`}
           </p>
           <ul className="dcms-items">
             {words.map((w) => (
@@ -62,8 +95,22 @@ export function Vocabulary({ tags }: { tags: string[] }) {
                   {w.near.length ? <span className="dcms-item__meta">Close to {w.near.join(', ')}</span> : null}
                 </button>
                 <span className="dcms-item__tools">
-                  <IconButton size="sm" icon={PencilSimple} label={`Edit ${w.word}`} tooltip onClick={() => setEditing(w)} />
-                  {w.secretIn ? null : <IconButton size="sm" icon={Trash} label={`Delete ${w.word}`} tooltip onClick={() => setRemoving(w)} />}
+                  <IconButton
+                    size="sm"
+                    icon={PencilSimple}
+                    label={`Edit ${w.word}`}
+                    tooltip
+                    onClick={() => setEditing(w)}
+                  />
+                  {w.secretIn ? null : (
+                    <IconButton
+                      size="sm"
+                      icon={Trash}
+                      label={`Delete ${w.word}`}
+                      tooltip
+                      onClick={() => setRemoving(w)}
+                    />
+                  )}
                 </span>
               </li>
             ))}
@@ -75,7 +122,14 @@ export function Vocabulary({ tags }: { tags: string[] }) {
           ) : null}
         </>
       )}
-      {editing ? <WordDialog key={editing === 'new' ? 'new' : editing.word} word={editing === 'new' ? null : editing} tags={tags} onClose={() => setEditing(null)} /> : null}
+      {editing ? (
+        <WordDialog
+          key={editing === 'new' ? 'new' : editing.word}
+          word={editing === 'new' ? null : editing}
+          tags={tags}
+          onClose={() => setEditing(null)}
+        />
+      ) : null}
       <ConfirmDialog
         open={removing !== null}
         title={`Delete “${removing?.word ?? ''}”?`}
@@ -105,7 +159,15 @@ export function Vocabulary({ tags }: { tags: string[] }) {
   );
 }
 
-function WordDialog({ word, tags: known, onClose }: { word: VocabularyOut | null; tags: string[]; onClose: () => void }) {
+function WordDialog({
+  word,
+  tags: known,
+  onClose,
+}: {
+  word: VocabularyOut | null;
+  tags: string[];
+  onClose: () => void;
+}) {
   const [text, setText] = useState(word?.word ?? '');
   const [tags, setTags] = useState<string[]>(word?.tags ?? []);
   const [near, setNear] = useState<string[]>(word?.near ?? []);
@@ -120,7 +182,10 @@ function WordDialog({ word, tags: known, onClose }: { word: VocabularyOut | null
 
   const submit = () => {
     const done = () => {
-      toast({ title: word ? `“${word.word}” is saved. The secret words are ranked again.` : `“${text}” is in the vocabulary.`, tone: 'success' });
+      toast({
+        title: word ? `“${word.word}” is saved. The secret words are ranked again.` : `“${text}” is in the vocabulary.`,
+        tone: 'success',
+      });
       onClose();
     };
     if (word) save.mutate({ word: word.word, tags, near, version: word.version }, { onSuccess: done });
@@ -168,8 +233,21 @@ function WordDialog({ word, tags: known, onClose }: { word: VocabularyOut | null
             data-autofocus
           />
         )}
-        <WordChips label="Tags" values={tags} onChange={setTags} suggestions={known} error={fields.tags} hint="3 to 8 short words, such as stats or money. Words that share tags count as close." />
-        <WordChips label="Close words" values={near} onChange={setNear} error={fields.near} hint="Up to 6 words from the vocabulary that are very close to it. It works both ways." />
+        <WordChips
+          label="Tags"
+          values={tags}
+          onChange={setTags}
+          suggestions={known}
+          error={fields.tags}
+          hint="3 to 8 short words, such as stats or money. Words that share tags count as close."
+        />
+        <WordChips
+          label="Close words"
+          values={near}
+          onChange={setNear}
+          error={fields.near}
+          hint="Up to 6 words from the vocabulary that are very close to it. It works both ways."
+        />
         {general ? (
           <p className="dcms__error" role="alert">
             {general}
@@ -182,7 +260,21 @@ function WordDialog({ word, tags: known, onClose }: { word: VocabularyOut | null
 }
 
 /** Words picked one at a time: type one and press Enter (or a comma); each shows as a chip that can be taken off. */
-function WordChips({ label, values, onChange, suggestions, error, hint }: { label: string; values: string[]; onChange: (values: string[]) => void; suggestions?: string[]; error?: string; hint: string }) {
+function WordChips({
+  label,
+  values,
+  onChange,
+  suggestions,
+  error,
+  hint,
+}: {
+  label: string;
+  values: string[];
+  onChange: (values: string[]) => void;
+  suggestions?: string[];
+  error?: string;
+  hint: string;
+}) {
   const [draft, setDraft] = useState('');
   const listId = useId().replace(/:/g, '');
   const take = (raw: string) => {
@@ -240,7 +332,12 @@ function WordChips({ label, values, onChange, suggestions, error, hint }: { labe
           {values.map((v) => (
             <li key={v} className="dcms-word">
               <span className="dcms-word__text">{v}</span>
-              <IconButton size="sm" icon={X} label={`Take ${v} off`} onClick={() => onChange(values.filter((x) => x !== v))} />
+              <IconButton
+                size="sm"
+                icon={X}
+                label={`Take ${v} off`}
+                onClick={() => onChange(values.filter((x) => x !== v))}
+              />
             </li>
           ))}
         </ul>

@@ -10,12 +10,22 @@ import type { CohortYear } from '../../state';
 const NOORA_USAGE_KEY = ['admin', 'noora'] as const;
 
 export function useAdminStats(enabled: boolean) {
-  return useQuery({ queryKey: ADMIN_STATS_KEY, queryFn: () => call(api.GET('/api/v1/admin/stats')), refetchInterval: 60_000, enabled });
+  return useQuery({
+    queryKey: ADMIN_STATS_KEY,
+    queryFn: () => call(api.GET('/api/v1/admin/stats')),
+    refetchInterval: 60_000,
+    enabled,
+  });
 }
 
 /** Mini Noora's AI: the limits, and the questions and estimated cost today and this month. */
 export function useNooraUsage(enabled: boolean) {
-  return useQuery({ queryKey: NOORA_USAGE_KEY, queryFn: () => call(api.GET('/api/v1/admin/noora')), refetchInterval: 60_000, enabled });
+  return useQuery({
+    queryKey: NOORA_USAGE_KEY,
+    queryFn: () => call(api.GET('/api/v1/admin/noora')),
+    refetchInterval: 60_000,
+    enabled,
+  });
 }
 
 /** Admins set the questions per student per day and the monthly budget. */

@@ -34,7 +34,11 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
     return programme.filter((e) => ids.has(e.id));
   }, [prefs, programme]);
   const hiddenModules = (prefs?.hiddenModules ?? []).map((id) => getModule(id)).filter((m) => m !== null);
-  const following = papers ? `${papers.size} ${papers.size === 1 ? 'paper' : 'papers'} you picked` : year ? `every ${cohortLabel(year)} module` : 'every module (pick your year first)';
+  const following = papers
+    ? `${papers.size} ${papers.size === 1 ? 'paper' : 'papers'} you picked`
+    : year
+      ? `every ${cohortLabel(year)} module`
+      : 'every module (pick your year first)';
 
   return (
     <Modal
@@ -54,9 +58,7 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
           <h3 id="cal-cust-modules" className="cal-customise__h">
             Modules you follow
           </h3>
-          <p className="cal-customise__line">
-            Dates of {following}, and the dates for your whole year.
-          </p>
+          <p className="cal-customise__line">Dates of {following}, and the dates for your whole year.</p>
           {year ? (
             <Button size="sm" onClick={onPapers} data-hub="calendar-papers">
               Change your papers
@@ -71,7 +73,15 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
           <p className="cal-customise__line">Turn a type off to hide all its dates.</p>
           <div className="cal-customise__types" role="group" aria-label="Types of date on your calendar">
             {TYPE_ORDER.map((type) => (
-              <Chip key={type} size="sm" selected={!hiddenTypes.has(type)} onChange={(on) => my.setHidden('hiddenTypes', type, !on)} color={EVENT_TYPES[type].color} className={cx('cal-typechip', `cal-typechip--${type}`)} disabled={!prefs}>
+              <Chip
+                key={type}
+                size="sm"
+                selected={!hiddenTypes.has(type)}
+                onChange={(on) => my.setHidden('hiddenTypes', type, !on)}
+                color={EVENT_TYPES[type].color}
+                className={cx('cal-typechip', `cal-typechip--${type}`)}
+                disabled={!prefs}
+              >
                 {typeLabel(type)}
               </Chip>
             ))}

@@ -6,7 +6,15 @@ import { Button, Modal, QueryError, Skeleton } from '../../ui';
 import { useRoleCatalogue, useSetUserRoles } from './api';
 import { followPerson, ticksOf, type Ticks } from './grid';
 
-export function RolesDialog({ person, onClose, onSaved }: { person: AdminUser | null; onClose: () => void; onSaved: (p: AdminUser) => void }) {
+export function RolesDialog({
+  person,
+  onClose,
+  onSaved,
+}: {
+  person: AdminUser | null;
+  onClose: () => void;
+  onSaved: (p: AdminUser) => void;
+}) {
   const uid = useId();
   const catalogue = useRoleCatalogue();
   const save = useSetUserRoles();
@@ -46,7 +54,10 @@ export function RolesDialog({ person, onClose, onSaved }: { person: AdminUser | 
             onClick={() => {
               if (!person) return;
               setProblem(null);
-              save.mutate({ id: person.id, roleIds: [...ticked] }, { onSuccess: onSaved, onError: (e) => setProblem(errorMessage(e)) });
+              save.mutate(
+                { id: person.id, roleIds: [...ticked] },
+                { onSuccess: onSaved, onError: (e) => setProblem(errorMessage(e)) },
+              );
             }}
           >
             Save roles
@@ -57,7 +68,14 @@ export function RolesDialog({ person, onClose, onSaved }: { person: AdminUser | 
       {catalogue.isPending ? (
         <Skeleton lines={4} />
       ) : catalogue.isError ? (
-        <QueryError error={catalogue.error} title="The roles didn’t load" onRetry={() => void catalogue.refetch()} retrying={catalogue.isFetching} size="sm" panel={false} />
+        <QueryError
+          error={catalogue.error}
+          title="The roles didn’t load"
+          onRetry={() => void catalogue.refetch()}
+          retrying={catalogue.isFetching}
+          size="sm"
+          panel={false}
+        />
       ) : (
         <fieldset className="access-area">
           <legend>They get every box any of these roles has.</legend>

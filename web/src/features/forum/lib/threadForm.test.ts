@@ -20,7 +20,9 @@ describe('titleProblem', () => {
 
 describe('threadFieldErrors', () => {
   it('puts what the API says about a field under that field', () => {
-    expect(threadFieldErrors(refusal({ moduleId: 'Pick a module from the list.', tags: 'Pick up to 3 tags.' }))).toEqual({
+    expect(
+      threadFieldErrors(refusal({ moduleId: 'Pick a module from the list.', tags: 'Pick up to 3 tags.' })),
+    ).toEqual({
       moduleId: 'Pick a module from the list.',
       tags: 'Pick up to 3 tags.',
     });

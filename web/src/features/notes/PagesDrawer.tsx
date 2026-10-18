@@ -8,7 +8,15 @@ import { StrokePaths, type InkStroke } from '../../lib/ink';
 import { Button, ConfirmDialog, IconButton, Menu, cx, type MenuItem } from '../../ui';
 import type { Paper } from './draft';
 import type { LoadedPdf } from './pdf';
-import { PAPER_BASE, SHEET_HEIGHT, SHEET_WIDTH, TEXT_SIDE, TEXT_TOP, TEXT_WIDTH, type SheetSpec } from './surface/layout';
+import {
+  PAPER_BASE,
+  SHEET_HEIGHT,
+  SHEET_WIDTH,
+  TEXT_SIDE,
+  TEXT_TOP,
+  TEXT_WIDTH,
+  type SheetSpec,
+} from './surface/layout';
 
 export type PageAction =
   | { kind: 'go'; sheet: number }
@@ -28,7 +36,9 @@ const PdfThumb = memo(function PdfThumb({ pdf, page, height }: { pdf: LoadedPdf;
   useEffect(() => {
     const el = canvas.current;
     if (!el) return undefined;
-    const io = new IntersectionObserver((entries) => setNear(entries.some((e) => e.isIntersecting)), { rootMargin: '200px 0px' });
+    const io = new IntersectionObserver((entries) => setNear(entries.some((e) => e.isIntersecting)), {
+      rootMargin: '200px 0px',
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -51,7 +61,14 @@ const PdfThumb = memo(function PdfThumb({ pdf, page, height }: { pdf: LoadedPdf;
       task?.cancel();
     };
   }, [pdf, page, near]);
-  return <canvas ref={canvas} className="nb-thumb__pdf" style={{ width: THUMB, height: height * SCALE }} aria-hidden="true" />;
+  return (
+    <canvas
+      ref={canvas}
+      className="nb-thumb__pdf"
+      style={{ width: THUMB, height: height * SCALE }}
+      aria-hidden="true"
+    />
+  );
 });
 
 /** The typed text on one page of paper: a copy of the text as it is on screen, shifted to that page. `stamp` changes
@@ -70,7 +87,13 @@ function TextSlice({ text, page, stamp }: { text: HTMLElement | null; page: numb
     copy.setAttribute('inert', '');
     el.replaceChildren(copy);
   }, [text, stamp]);
-  return <div ref={box} className="nb-thumb__text" style={{ top: TEXT_TOP - page * SHEET_HEIGHT, left: TEXT_SIDE, width: TEXT_WIDTH }} />;
+  return (
+    <div
+      ref={box}
+      className="nb-thumb__text"
+      style={{ top: TEXT_TOP - page * SHEET_HEIGHT, left: TEXT_SIDE, width: TEXT_WIDTH }}
+    />
+  );
 }
 
 interface PagesDrawerProps {
@@ -89,7 +112,17 @@ interface PagesDrawerProps {
   onClose: () => void;
 }
 
-export function PagesDrawer({ sheets, pdf, paper, strokesOf, typedPages, readOnly, scrollerRef, onAction, onClose }: PagesDrawerProps) {
+export function PagesDrawer({
+  sheets,
+  pdf,
+  paper,
+  strokesOf,
+  typedPages,
+  readOnly,
+  scrollerRef,
+  onAction,
+  onClose,
+}: PagesDrawerProps) {
   const [deleting, setDeleting] = useState<number | null>(null);
   // The text copied into the paper pages follows the text a moment after it changes.
   const [text, setText] = useState<HTMLElement | null>(null);
@@ -127,9 +160,27 @@ export function PagesDrawer({ sheets, pdf, paper, strokesOf, typedPages, readOnl
           const items: MenuItem[] =
             s.kind === 'paper' && !readOnly
               ? [
-                  { id: 'up', label: 'Move up', icon: ArrowUp, disabled: typed || k === 0 || k - 1 < typedPages, onSelect: () => onAction({ kind: 'move', sheet: s.index, by: -1 }) },
-                  { id: 'down', label: 'Move down', icon: ArrowDown, disabled: typed || k >= paperCount - 1, onSelect: () => onAction({ kind: 'move', sheet: s.index, by: 1 }) },
-                  { id: 'clear', label: 'Clear the handwriting', icon: Eraser, disabled: strokesOf(s.index).length === 0, onSelect: () => onAction({ kind: 'clear', sheet: s.index }) },
+                  {
+                    id: 'up',
+                    label: 'Move up',
+                    icon: ArrowUp,
+                    disabled: typed || k === 0 || k - 1 < typedPages,
+                    onSelect: () => onAction({ kind: 'move', sheet: s.index, by: -1 }),
+                  },
+                  {
+                    id: 'down',
+                    label: 'Move down',
+                    icon: ArrowDown,
+                    disabled: typed || k >= paperCount - 1,
+                    onSelect: () => onAction({ kind: 'move', sheet: s.index, by: 1 }),
+                  },
+                  {
+                    id: 'clear',
+                    label: 'Clear the handwriting',
+                    icon: Eraser,
+                    disabled: strokesOf(s.index).length === 0,
+                    onSelect: () => onAction({ kind: 'clear', sheet: s.index }),
+                  },
                   { divider: true },
                   {
                     id: 'delete',
@@ -144,12 +195,26 @@ export function PagesDrawer({ sheets, pdf, paper, strokesOf, typedPages, readOnl
           const label = s.kind === 'pdf' ? `PDF page ${s.page ?? i + 1}` : `Page ${k + 1}`;
           return (
             <li key={s.index} className="nb-thumb">
-              <button type="button" className="nb-thumb__open" onClick={() => onAction({ kind: 'go', sheet: s.index })} aria-label={`Go to ${label.toLowerCase()}`}>
+              <button
+                type="button"
+                className="nb-thumb__open"
+                onClick={() => onAction({ kind: 'go', sheet: s.index })}
+                aria-label={`Go to ${label.toLowerCase()}`}
+              >
                 <span className="nb-thumb__sheet" style={{ height: s.height * SCALE }}>
                   {s.kind === 'pdf' && pdf && s.page ? <PdfThumb pdf={pdf} page={s.page} height={s.height} /> : null}
-                  <span className={cx('nb-thumb__scaled', s.kind === 'paper' && `nb-paper--${paper}`)} style={{ width: SHEET_WIDTH, height: s.height, transform: `scale(${SCALE})` }}>
+                  <span
+                    className={cx('nb-thumb__scaled', s.kind === 'paper' && `nb-paper--${paper}`)}
+                    style={{ width: SHEET_WIDTH, height: s.height, transform: `scale(${SCALE})` }}
+                  >
                     {typed ? <TextSlice text={text} page={k} stamp={stamp} /> : null}
-                    <svg className="nb-thumb__ink" width={SHEET_WIDTH} height={s.height} viewBox={`0 0 ${SHEET_WIDTH} ${s.height}`} aria-hidden="true">
+                    <svg
+                      className="nb-thumb__ink"
+                      width={SHEET_WIDTH}
+                      height={s.height}
+                      viewBox={`0 0 ${SHEET_WIDTH} ${s.height}`}
+                      aria-hidden="true"
+                    >
                       <StrokePaths strokes={strokesOf(s.index) as readonly InkStroke[]} />
                     </svg>
                   </span>
@@ -157,7 +222,14 @@ export function PagesDrawer({ sheets, pdf, paper, strokesOf, typedPages, readOnl
                 <span className="nb-thumb__label">{label}</span>
               </button>
               {items.length ? (
-                <Menu align="end" label={`${label} options`} items={items} trigger={<IconButton icon={DotsThree} label={`${label} options`} size="sm" className="nb-thumb__more" />} />
+                <Menu
+                  align="end"
+                  label={`${label} options`}
+                  items={items}
+                  trigger={
+                    <IconButton icon={DotsThree} label={`${label} options`} size="sm" className="nb-thumb__more" />
+                  }
+                />
               ) : null}
             </li>
           );

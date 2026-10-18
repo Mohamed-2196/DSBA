@@ -14,10 +14,15 @@ const MODES: Record<string, string> = { off: 'off', roles: 'on for some roles', 
 /** `name` is the target account's name when we know it. */
 type Describe = (data: Record<string, unknown>, name: string | null) => string;
 
-const via = (d: Record<string, unknown>) => (d.via === 'bootstrap' ? ' (from the server settings)' : d.via === 'cli' ? ' (from the server)' : '');
+const via = (d: Record<string, unknown>) =>
+  d.via === 'bootstrap' ? ' (from the server settings)' : d.via === 'cli' ? ' (from the server)' : '';
 
 /** What a report was about: "the thread “X”", "a reply in “X”", "the library file “X”". */
-const REPORTED: Record<string, string> = { thread: 'the thread', reply: 'a reply in', library_item: 'the library file' };
+const REPORTED: Record<string, string> = {
+  thread: 'the thread',
+  reply: 'a reply in',
+  library_item: 'the library file',
+};
 const reported = (d: Record<string, unknown>): string => {
   const title = quoted(d.title);
   if (!title) return 'a post';
@@ -64,7 +69,8 @@ const CAREER_PARTS: Record<string, string> = {
 const IDENTIFIER_NOUN: Record<string, string> = { email: 'email address', phone: 'phone number' };
 
 const ACTIONS: Record<string, Describe> = {
-  'user.roles': (d, name) => `changed ${name ? `${name}’s roles` : 'someone’s roles'} from ${list(names(d.from))} to ${list(names(d.to))}${via(d)}`,
+  'user.roles': (d, name) =>
+    `changed ${name ? `${name}’s roles` : 'someone’s roles'} from ${list(names(d.from))} to ${list(names(d.to))}${via(d)}`,
   'role.create': (d) => `created the role${quoted(d.name)}`,
   'role.update': (d) => {
     const after = typeof d.after === 'object' && d.after !== null ? (d.after as Record<string, unknown>) : {};
@@ -86,7 +92,8 @@ const ACTIONS: Record<string, Describe> = {
   'forum.thread.unlock': (d) => `unlocked a thread:${quoted(d.title)}`,
   'forum.thread.edit': (d) => `edited a thread:${quoted(d.title)}`,
   'forum.thread.delete': (d) => `deleted a thread:${quoted(d.title)}`,
-  'forum.thread.accept': (d) => (d.replyId ? `accepted an answer in${quoted(d.title)}` : `cleared the accepted answer in${quoted(d.title)}`),
+  'forum.thread.accept': (d) =>
+    d.replyId ? `accepted an answer in${quoted(d.title)}` : `cleared the accepted answer in${quoted(d.title)}`,
   'forum.reply.hide': (d) => `hid a reply in${quoted(d.title)}`,
   'forum.reply.unhide': (d) => `brought back a reply in${quoted(d.title)}`,
   'forum.reply.edit': (d) => `edited a reply in${quoted(d.title)}`,
@@ -101,7 +108,8 @@ const ACTIONS: Record<string, Describe> = {
     if (from) return `removed ${whose} ${noun}, ${from}`;
     return `changed ${whose} ${noun}`;
   },
-  'report.resolve': (d) => (d.status === 'dismissed' ? `dismissed a report about ${reported(d)}` : `acted on a report about ${reported(d)}`),
+  'report.resolve': (d) =>
+    d.status === 'dismissed' ? `dismissed a report about ${reported(d)}` : `acted on a report about ${reported(d)}`,
   'library.publish': (d) => `published${quoted(d.title) || ' an upload'}`,
   'library.reject': (d) => `rejected${quoted(d.title) || ' an upload'}`,
   'library.link': (d) => `added a link to the library:${quoted(d.title)}`,
@@ -133,7 +141,8 @@ const ACTIONS: Record<string, Describe> = {
   'daily.theme.delete': (d) => `deleted the Daily theme${quoted(d.title)}`,
   'daily.theme.order': () => 'changed the order of the Daily themes',
   'daily.schedule.update': (d) => `changed the Daily theme for ${str(d.title) ?? 'a week'}`,
-  'daily.guesses.add': (d) => `added ${formatCount(count(d.count))} ${count(d.count) === 1 ? 'word' : 'words'} to the Daily guess list`,
+  'daily.guesses.add': (d) =>
+    `added ${formatCount(count(d.count))} ${count(d.count) === 1 ? 'word' : 'words'} to the Daily guess list`,
   'daily.guesses.remove': (d) => `took${quoted(d.title)} off the Daily guess list`,
   'daily.vocabulary.create': (d) => `added${quoted(d.title)} to Nearest neighbour’s vocabulary`,
   'daily.vocabulary.update': (d) => `edited${quoted(d.title)} in Nearest neighbour’s vocabulary`,

@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { blankData, countsLine, fieldError, gameInfo, listWords, otherErrors, parseWords, rightOption, themeIdFrom, titleOf, usesLine } from './items';
+import {
+  blankData,
+  countsLine,
+  fieldError,
+  gameInfo,
+  listWords,
+  otherErrors,
+  parseWords,
+  rightOption,
+  themeIdFrom,
+  titleOf,
+  usesLine,
+} from './items';
 
 describe('parseWords', () => {
   it('reads a group’s words however they are typed, in capitals, each once', () => {
@@ -34,7 +46,11 @@ describe('rightOption and listWords', () => {
 });
 
 describe('field errors', () => {
-  const fields = { 'data.word': 'Answer words are five letters.', 'data.groups.level': 'Too high.', theme: 'Pick a theme.' };
+  const fields = {
+    'data.word': 'Answer words are five letters.',
+    'data.groups.level': 'Too high.',
+    theme: 'Pick a theme.',
+  };
 
   it('finds a field’s message by its name, or by the schema’s game-qualified path', () => {
     expect(fieldError(fields, 'data.word')).toBe('Answer words are five letters.');
@@ -56,7 +72,9 @@ describe('gameInfo', () => {
 
 describe('lines', () => {
   it('says what a theme has, and how often an item ran', () => {
-    expect(countsLine({ word: 1, groups: 20, search: 0, quiz: 26, nearest: 2 })).toBe('1 answer word · 20 groups · 0 search words · 26 questions · 2 secret words');
+    expect(countsLine({ word: 1, groups: 20, search: 0, quiz: 26, nearest: 2 })).toBe(
+      '1 answer word · 20 groups · 0 search words · 26 questions · 2 secret words',
+    );
     expect(usesLine(0, null, (d) => d)).toBe('Not run yet');
     expect(usesLine(3, '2026-10-12', (d) => `on ${d}`)).toBe('Ran on 3 days, last on 2026-10-12');
   });

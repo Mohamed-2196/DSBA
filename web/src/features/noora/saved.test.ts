@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { Message } from './types';
-import { CHATS_KEY, CHATS_MAX, CURRENT_KEY, forStorage, groupChats, parseChats, parseCurrent, renameChat, searchChats, titleOf, withChat, withoutChat } from './saved';
+import {
+  CHATS_KEY,
+  CHATS_MAX,
+  CURRENT_KEY,
+  forStorage,
+  groupChats,
+  parseChats,
+  parseCurrent,
+  renameChat,
+  searchChats,
+  titleOf,
+  withChat,
+  withoutChat,
+} from './saved';
 
 const q = (id: number, text: string): Message => ({ id, from: 'me', at: id, text, attachments: [] });
 const a = (id: number, text: string): Message => ({ id, from: 'noora', at: id, mood: 'neutral', text, refs: [] });
@@ -81,7 +94,16 @@ describe('groupChats', () => {
     const now = new Date(2026, 9, 14, 15).getTime();
     const day = 86_400_000;
     const chat = (id: string, at: number) => ({ id, at, title: id, messages: [] });
-    const groups = groupChats([chat('old', now - 60 * day), chat('today', now - 1000), chat('yesterday', now - day), chat('week', now - 3 * day), chat('month', now - 20 * day)], now);
+    const groups = groupChats(
+      [
+        chat('old', now - 60 * day),
+        chat('today', now - 1000),
+        chat('yesterday', now - day),
+        chat('week', now - 3 * day),
+        chat('month', now - 20 * day),
+      ],
+      now,
+    );
     expect(groups.map((g) => [g.name, g.chats.map((c) => c.id)])).toEqual([
       ['Today', ['today']],
       ['Yesterday', ['yesterday']],

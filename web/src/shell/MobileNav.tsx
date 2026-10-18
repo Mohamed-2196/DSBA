@@ -30,13 +30,23 @@ export function MobileNav() {
     <>
       <nav className="shell-tabbar" aria-label="Main">
         {tabs.map((item) => (
-          <NavLink key={item.id} to={item.to} end={item.end} className={({ isActive }) => cx('shell-tabbar__item', isActive && 'is-active')} data-hub={`tab-${item.id}`}>
+          <NavLink
+            key={item.id}
+            to={item.to}
+            end={item.end}
+            className={({ isActive }) => cx('shell-tabbar__item', isActive && 'is-active')}
+            data-hub={`tab-${item.id}`}
+          >
             {({ isActive }) => (
               <>
                 <span className="shell-tabbar__mark" aria-hidden="true" />
                 <span className="shell-tabbar__icon">
                   {/* Noora's tab shows her face: on a phone this is where Mini Noora waits. */}
-                  {item.id === 'noora' ? <NooraFace size={26} className="shell-tabbar__face" /> : createElement(item.icon, { weight: isActive ? 'duotone' : 'regular', 'aria-hidden': true })}
+                  {item.id === 'noora' ? (
+                    <NooraFace size={26} className="shell-tabbar__face" />
+                  ) : (
+                    createElement(item.icon, { weight: isActive ? 'duotone' : 'regular', 'aria-hidden': true })
+                  )}
                   {item.isNew ? <span className="shell-tabbar__newdot" aria-hidden="true" /> : null}
                 </span>
                 <span className="shell-tabbar__label">{item.label}</span>
@@ -66,7 +76,11 @@ export function MobileNav() {
           <ul role="list" className="shell-more__list">
             {more.map((item) => (
               <li key={item.id}>
-                <NavLink to={item.to} onClick={close} className={({ isActive }) => cx('shell-more__item', isActive && 'is-active')}>
+                <NavLink
+                  to={item.to}
+                  onClick={close}
+                  className={({ isActive }) => cx('shell-more__item', isActive && 'is-active')}
+                >
                   {createElement(item.icon, { 'aria-hidden': true })}
                   <span>{item.label}</span>
                 </NavLink>

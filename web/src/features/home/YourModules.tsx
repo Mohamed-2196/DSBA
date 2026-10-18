@@ -30,7 +30,11 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
   const pct = progress.total > 0 ? Math.round((progress.watched / progress.total) * 100) : 0;
   return (
     <li>
-      <Link to={`/modules/${m.id}`} className="home-mods__row" aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, exam ${formatLongDay(exam.date)}` : ''}`}>
+      <Link
+        to={`/modules/${m.id}`}
+        className="home-mods__row"
+        aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, exam ${formatLongDay(exam.date)}` : ''}`}
+      >
         {hasArt ? (
           <span className="home-mods__lead">
             <ModuleArt art={m.art} className="home-mods__art" />
@@ -58,7 +62,9 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
             <span className="u-tabular">{formatDayMonth(exam.date)}</span>
           </span>
         ) : null}
-        {pct > 0 ? <span className="home-mods__bar" style={{ '--pct': `${pct}%` } as CSSProperties} aria-hidden="true" /> : null}
+        {pct > 0 ? (
+          <span className="home-mods__bar" style={{ '--pct': `${pct}%` } as CSSProperties} aria-hidden="true" />
+        ) : null}
       </Link>
     </li>
   );

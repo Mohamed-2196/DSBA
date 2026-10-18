@@ -1,11 +1,26 @@
 // "What if" hints for the grade calculator. Every answer here is found by running classify()
 // on modified marks, so a hint can never disagree with the result it explains.
-import { bandFloor, classify, normalizeGrades, pooledIndexes, RANK, subjectsOf, type ClassKind, type Rules, type TargetKind } from './classify';
+import {
+  bandFloor,
+  classify,
+  normalizeGrades,
+  pooledIndexes,
+  RANK,
+  subjectsOf,
+  type ClassKind,
+  type Rules,
+  type TargetKind,
+} from './classify';
 
 export type { TargetKind } from './classify';
 
 /** Next outcome up from a classified (non-resit) result. */
-export const NEXT_CLASS: Partial<Record<ClassKind, TargetKind>> = { none: 'third', third: 'lower', lower: 'upper', upper: 'first' };
+export const NEXT_CLASS: Partial<Record<ClassKind, TargetKind>> = {
+  none: 'third',
+  third: 'lower',
+  lower: 'upper',
+  upper: 'first',
+};
 
 const TARGETS: readonly TargetKind[] = ['first', 'upper', 'lower', 'third'];
 

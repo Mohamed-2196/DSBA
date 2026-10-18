@@ -63,7 +63,12 @@ export default function ThreadPage() {
   return (
     <Page className="forum-page">
       <ThreadCrumbs />
-      <QueryError error={query.error} title="This thread didn’t load" onRetry={() => void reload()} retrying={query.isFetching} />
+      <QueryError
+        error={query.error}
+        title="This thread didn’t load"
+        onRetry={() => void reload()}
+        retrying={query.isFetching}
+      />
     </Page>
   );
 }
@@ -140,9 +145,19 @@ function ThreadView({ thread, reload, unavailable }: ThreadViewProps) {
 
       <div className="forum-thread__layout">
         <div className="forum-thread__main" ref={mainRef}>
-          {unavailable ? <UnavailableBanner /> : <HiddenBanner thread={thread} onUnhide={moderation.unhide} unhiding={moderation.pending} />}
+          {unavailable ? (
+            <UnavailableBanner />
+          ) : (
+            <HiddenBanner thread={thread} onUnhide={moderation.unhide} unhiding={moderation.pending} />
+          )}
           {target.missing ? <MissingReplyNote /> : null}
-          <OriginalPost thread={thread} moderation={moderation} onReply={focusComposer} onCopyLink={() => void copyLink()} unavailable={unavailable} />
+          <OriginalPost
+            thread={thread}
+            moderation={moderation}
+            onReply={focusComposer}
+            onCopyLink={() => void copyLink()}
+            unavailable={unavailable}
+          />
           <ReplyList
             thread={thread}
             targetId={target.id}
@@ -155,7 +170,12 @@ function ThreadView({ thread, reload, unavailable }: ThreadViewProps) {
             }}
             unavailable={unavailable}
           />
-          <ThreadCompose thread={thread} textareaRef={composerInput} onPosted={scrollToReply} unavailable={unavailable} />
+          <ThreadCompose
+            thread={thread}
+            textareaRef={composerInput}
+            onPosted={scrollToReply}
+            unavailable={unavailable}
+          />
         </div>
 
         <ThreadSidebar thread={thread} unavailable={unavailable} />

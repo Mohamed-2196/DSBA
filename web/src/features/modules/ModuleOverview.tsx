@@ -16,8 +16,18 @@ import { MiniPoster } from './Poster';
 import { computeChapterProgress, type ProgressState, type ResumeKind, type ResumePoint } from './progress';
 import { buildShelves, joinAnd, type Shelf } from './resources';
 
-const PICKUP_TITLE: Record<ResumeKind, string> = { resume: 'Pick up where you left off', next: 'Up next', start: 'Start the lessons', done: 'All lessons watched' };
-const PICKUP_ACTION: Record<ResumeKind, string> = { resume: 'Resume lesson', next: 'Continue', start: 'Start lesson 1', done: 'Watch again' };
+const PICKUP_TITLE: Record<ResumeKind, string> = {
+  resume: 'Pick up where you left off',
+  next: 'Up next',
+  start: 'Start the lessons',
+  done: 'All lessons watched',
+};
+const PICKUP_ACTION: Record<ResumeKind, string> = {
+  resume: 'Resume lesson',
+  next: 'Continue',
+  start: 'Start lesson 1',
+  done: 'Watch again',
+};
 const MAX_CHAPTERS = 6;
 
 function ShelfRow({ shelf, onTab }: { shelf: Shelf; onTab: (tab: string, hash?: string) => void }) {
@@ -29,14 +39,23 @@ function ShelfRow({ shelf, onTab }: { shelf: Shelf; onTab: (tab: string, hash?: 
         <span>{shelf.label}</span>
       </dt>
       <dd className="mod-res__body">
-        <p className="mod-res__desc">{shelf.beingAdded ? 'Being added: these files are on their way into the Hub. Check back soon.' : shelf.description}</p>
+        <p className="mod-res__desc">
+          {shelf.beingAdded
+            ? 'Being added: these files are on their way into the Hub. Check back soon.'
+            : shelf.description}
+        </p>
         <div className="mod-res__actions">
           {shelf.beingAdded ? (
             <Badge tone="neutral" size="sm">
               Being added
             </Badge>
           ) : (
-            <Button size="sm" leadingIcon={Files} onClick={() => onTab('files', shelf.hash)} aria-label={`${shelf.label}: ${countOf(shelf.files, 'file')}`}>
+            <Button
+              size="sm"
+              leadingIcon={Files}
+              onClick={() => onTab('files', shelf.hash)}
+              aria-label={`${shelf.label}: ${countOf(shelf.files, 'file')}`}
+            >
               {shelf.kind === 'past-paper' ? 'See past papers' : `Open ${countOf(shelf.files, 'file')}`}
             </Button>
           )}
@@ -46,7 +65,17 @@ function ShelfRow({ shelf, onTab }: { shelf: Shelf; onTab: (tab: string, hash?: 
   );
 }
 
-function LibraryRow({ count, name, onTab, onUpload }: { count: number | null; name: string; onTab: (tab: string) => void; onUpload: (() => void) | null }) {
+function LibraryRow({
+  count,
+  name,
+  onTab,
+  onUpload,
+}: {
+  count: number | null;
+  name: string;
+  onTab: (tab: string) => void;
+  onUpload: (() => void) | null;
+}) {
   return (
     <div className="mod-res__entry mod-res__entry--library">
       <dt className="mod-res__label">
@@ -142,7 +171,11 @@ function ProgressSection({
           const firstOpen = ch.videos.findIndex((video) => !state.watched[video.id]);
           return (
             <li key={c}>
-              <button type="button" className={cx('mod-prog__ch', complete && 'is-done')} onClick={() => onOpenLesson(c, firstOpen < 0 ? 0 : firstOpen)}>
+              <button
+                type="button"
+                className={cx('mod-prog__ch', complete && 'is-done')}
+                onClick={() => onOpenLesson(c, firstOpen < 0 ? 0 : firstOpen)}
+              >
                 <span className="mod-prog__num u-tabular">{c + 1}</span>
                 <span className="mod-prog__name">{ch.title}</span>
                 {tracking ? (
@@ -191,7 +224,10 @@ function UpcomingDates({ module: m }: { module: ModuleDetail }) {
             const days = daysUntil(e.date, now);
             return (
               <li key={e.id}>
-                <Link to={`/calendar?event=${encodeURIComponent(e.id)}`} className={cx('mod-dates__row', `mod-dates__row--${e.type}`)}>
+                <Link
+                  to={`/calendar?event=${encodeURIComponent(e.id)}`}
+                  className={cx('mod-dates__row', `mod-dates__row--${e.type}`)}
+                >
                   <span className="mod-dates__dot" aria-hidden="true" />
                   <span className="mod-dates__text">
                     <span className="mod-dates__title">{e.title}</span>
@@ -200,7 +236,9 @@ function UpcomingDates({ module: m }: { module: ModuleDetail }) {
                       {e.sample ? ', to be confirmed' : ''}
                     </span>
                   </span>
-                  <span className={cx('mod-dates__when', days <= 14 && 'is-soon')}>{days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days} days`}</span>
+                  <span className={cx('mod-dates__when', days <= 14 && 'is-soon')}>
+                    {days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days} days`}
+                  </span>
                 </Link>
               </li>
             );
@@ -251,7 +289,13 @@ export function ModuleOverview({
           description="Everything opens here in the Hub: read it in your browser or download it."
           action={
             libraryOn ? (
-              <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files')} className="mod-ov__files">
+              <Button
+                variant="ghost"
+                size="sm"
+                leadingIcon={Files}
+                onClick={() => onTab('files')}
+                className="mod-ov__files"
+              >
                 {libraryCount ? `${libraryCount} ${libraryCount === 1 ? 'file' : 'files'} in the library` : 'Files'}
               </Button>
             ) : undefined
@@ -262,7 +306,9 @@ export function ModuleOverview({
             {shelves.map((sh) => (
               <ShelfRow key={sh.kind} shelf={sh} onTab={onTab} />
             ))}
-            {libraryOn && !shelves.length ? <LibraryRow count={libraryCount} name={name} onTab={onTab} onUpload={onUpload} /> : null}
+            {libraryOn && !shelves.length ? (
+              <LibraryRow count={libraryCount} name={name} onTab={onTab} onUpload={onUpload} />
+            ) : null}
           </dl>
           {libraryOn && missing.length ? (
             <div className="mod-res__missing">
@@ -288,13 +334,17 @@ export function ModuleOverview({
               <h2 id="mod-nolessons-title" className="mod-side__title">
                 Have notes for {name}?
               </h2>
-              <p className="mod-side__text">Share your notes, a cheat sheet or a past paper. A student rep checks every upload before it appears.</p>
+              <p className="mod-side__text">
+                Share your notes, a cheat sheet or a past paper. A student rep checks every upload before it appears.
+              </p>
               <Button size="sm" leadingIcon={UploadSimple} onClick={onUpload}>
                 Upload a file
               </Button>
             </section>
           ) : null}
-          {resume ? <ProgressSection module={m} state={state} tracking={tracking} onOpenLesson={onOpenLesson} onTab={onTab} /> : null}
+          {resume ? (
+            <ProgressSection module={m} state={state} tracking={tracking} onOpenLesson={onOpenLesson} onTab={onTab} />
+          ) : null}
           {featureOn('calendar') ? <UpcomingDates module={m} /> : null}
         </Panel>
       </aside>

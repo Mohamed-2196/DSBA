@@ -110,15 +110,21 @@ function patchThread(qc: QueryClient, id: string, patch: ThreadPatch): void {
       : data,
   );
   for (const family of ['hot', 'similar', 'related'] as const) {
-    qc.setQueriesData<ThreadSummary[]>({ queryKey: [FORUM, family] }, (data) => (data && data.some((t) => t.id === id) ? data.map(one) : data));
+    qc.setQueriesData<ThreadSummary[]>({ queryKey: [FORUM, family] }, (data) =>
+      data && data.some((t) => t.id === id) ? data.map(one) : data,
+    );
   }
-  qc.setQueriesData<ThreadDetail>({ queryKey: forumKeys.threads }, (data) => (data && data.id === id ? one(data) : data));
+  qc.setQueriesData<ThreadDetail>({ queryKey: forumKeys.threads }, (data) =>
+    data && data.id === id ? one(data) : data,
+  );
 }
 
 /** Apply `patch` to a reply in whichever cached thread holds it. */
 function patchReply(qc: QueryClient, replyId: string, patch: (r: Reply) => Reply): void {
   qc.setQueriesData<ThreadDetail>({ queryKey: forumKeys.threads }, (data) =>
-    data && data.replies.some((r) => r.id === replyId) ? { ...data, replies: data.replies.map((r) => (r.id === replyId ? patch(r) : r)) } : data,
+    data && data.replies.some((r) => r.id === replyId)
+      ? { ...data, replies: data.replies.map((r) => (r.id === replyId ? patch(r) : r)) }
+      : data,
   );
 }
 
@@ -164,7 +170,10 @@ function withVote<T extends { voted: boolean; voteCount: number }>(t: T, up: boo
 
 /** Voting for a thread or replying in it can start following it (on the server): read the thread again. */
 function refreshFollow(qc: QueryClient, threadId: string): void {
-  void qc.invalidateQueries({ queryKey: forumKeys.threads, predicate: (q) => (q.state.data as ThreadDetail | undefined)?.id === threadId });
+  void qc.invalidateQueries({
+    queryKey: forumKeys.threads,
+    predicate: (q) => (q.state.data as ThreadDetail | undefined)?.id === threadId,
+  });
 }
 
 // ── Reads ───────────────────────────────────────────────────────────────────────────────────────
@@ -192,7 +201,10 @@ function listQuery(params: ThreadListParams, offset: number, limit: number) {
 }
 
 /** A page-by-page thread list (pinned first when not searching, then by `sort`). */
-export function useThreadList(params: ThreadListParams, { pageSize = 20, enabled = true }: { pageSize?: number; enabled?: boolean } = {}) {
+export function useThreadList(
+  params: ThreadListParams,
+  { pageSize = 20, enabled = true }: { pageSize?: number; enabled?: boolean } = {},
+) {
   return useInfiniteQuery({
     queryKey: forumKeys.list(params, pageSize),
     queryFn: ({ pageParam, signal }) =>
@@ -220,23 +232,45 @@ export function flattenPages(data: { pages: ThreadPage[] } | undefined): ThreadS
 }
 
 /** The hottest threads (pinned ones left out) for a cohort plus forum-wide ones; year null: every cohort. */
-export function useHotThreads({ n = 5, year = null, enabled = true }: { n?: number; year?: CohortYear | null; enabled?: boolean } = {}) {
+export function useHotThreads({
+  n = 5,
+  year = null,
+  enabled = true,
+}: { n?: number; year?: CohortYear | null; enabled?: boolean } = {}) {
   const size = Math.max(1, Math.min(20, Math.round(n)));
   return useQuery({
     enabled,
     queryKey: forumKeys.hot(size, year ?? null),
-    queryFn: ({ signal }) => call(api.GET('/api/v1/forum/threads/hot', { params: { query: { limit: size, year: year ?? undefined } }, signal })),
+    queryFn: ({ signal }) =>
+      call(
+        api.GET('/api/v1/forum/threads/hot', { params: { query: { limit: size, year: year ?? undefined } }, signal }),
+      ),
   });
 }
 
 /** Home's "Help the year below": up to `n` unanswered questions from the cohorts in `years`, newest first. */
-export function useHelpBelow({ years, n = 3, enabled = true }: { years: readonly CohortYear[]; n?: number; enabled?: boolean }) {
+export function useHelpBelow({
+  years,
+  n = 3,
+  enabled = true,
+}: {
+  years: readonly CohortYear[];
+  n?: number;
+  enabled?: boolean;
+}) {
   return useQuery({
     enabled: enabled && years.length > 0,
     queryKey: forumKeys.below(years, n),
     queryFn: async ({ signal }) => {
       const pages = await Promise.all(
-        years.map((year) => call(api.GET('/api/v1/forum/threads', { params: { query: { year, unanswered: true, sort: 'new', limit: 10 } }, signal }))),
+        years.map((year) =>
+          call(
+            api.GET('/api/v1/forum/threads', {
+              params: { query: { year, unanswered: true, sort: 'new', limit: 10 } },
+              signal,
+            }),
+          ),
+        ),
       );
       return pickBelow(
         pages.flatMap((p) => p.items),
@@ -257,7 +291,8 @@ export function useSimilarThreads(title: string) {
   return useQuery({
     queryKey: forumKeys.similar(q),
     queryFn: async ({ signal }) =>
-      (await call(api.GET('/api/v1/forum/threads', { params: { query: { q, limit: 30, sort: 'top' } }, signal }))).items,
+      (await call(api.GET('/api/v1/forum/threads', { params: { query: { q, limit: 30, sort: 'top' } }, signal })))
+        .items,
     enabled: q.length >= 3,
     staleTime: 60_000,
     placeholderData: keepPreviousData,
@@ -291,7 +326,12 @@ export function useRelatedThreads(threadId: string | null | undefined, n = 4) {
   return useQuery({
     queryKey: forumKeys.related(threadId ?? '', n),
     queryFn: ({ signal }) =>
-      call(api.GET('/api/v1/forum/threads/{thread_id}/related', { params: { path: { thread_id: threadId ?? '' }, query: { limit: n } }, signal })),
+      call(
+        api.GET('/api/v1/forum/threads/{thread_id}/related', {
+          params: { path: { thread_id: threadId ?? '' }, query: { limit: n } },
+          signal,
+        }),
+      ),
     enabled: !!threadId,
     staleTime: 5 * 60_000,
   });
@@ -305,7 +345,11 @@ export function useThreadVote() {
   return useMutation({
     mutationFn: ({ threadId, up }: { threadId: string; up: boolean }) => {
       const opts = { params: { path: { thread_id: threadId } } };
-      return call(up ? api.PUT('/api/v1/forum/threads/{thread_id}/vote', opts) : api.DELETE('/api/v1/forum/threads/{thread_id}/vote', opts));
+      return call(
+        up
+          ? api.PUT('/api/v1/forum/threads/{thread_id}/vote', opts)
+          : api.DELETE('/api/v1/forum/threads/{thread_id}/vote', opts),
+      );
     },
     onMutate: ({ threadId, up }) => {
       const seq = nextVote(`t:${threadId}`);
@@ -317,7 +361,8 @@ export function useThreadVote() {
       push({ title: "Your vote wasn't saved", body: errorMessage(err), tone: 'alert' });
     },
     onSuccess: (res, { threadId }, ctx) => {
-      if (ctx && isLatestVote(`t:${threadId}`, ctx.seq)) patchThread(qc, threadId, (t) => ({ ...t, voted: res.voted, voteCount: res.voteCount }));
+      if (ctx && isLatestVote(`t:${threadId}`, ctx.seq))
+        patchThread(qc, threadId, (t) => ({ ...t, voted: res.voted, voteCount: res.voteCount }));
       if (res.voted) refreshFollow(qc, threadId);
     },
   });
@@ -329,7 +374,11 @@ export function useReplyVote() {
   return useMutation({
     mutationFn: ({ replyId, up }: { replyId: string; up: boolean }) => {
       const opts = { params: { path: { reply_id: replyId } } };
-      return call(up ? api.PUT('/api/v1/forum/replies/{reply_id}/vote', opts) : api.DELETE('/api/v1/forum/replies/{reply_id}/vote', opts));
+      return call(
+        up
+          ? api.PUT('/api/v1/forum/replies/{reply_id}/vote', opts)
+          : api.DELETE('/api/v1/forum/replies/{reply_id}/vote', opts),
+      );
     },
     onMutate: ({ replyId, up }) => {
       const seq = nextVote(`r:${replyId}`);
@@ -341,7 +390,8 @@ export function useReplyVote() {
       push({ title: "Your vote wasn't saved", body: errorMessage(err), tone: 'alert' });
     },
     onSuccess: (res, { replyId }, ctx) => {
-      if (ctx && isLatestVote(`r:${replyId}`, ctx.seq)) patchReply(qc, replyId, (r) => ({ ...r, voted: res.voted, voteCount: res.voteCount }));
+      if (ctx && isLatestVote(`r:${replyId}`, ctx.seq))
+        patchReply(qc, replyId, (r) => ({ ...r, voted: res.voted, voteCount: res.voteCount }));
     },
   });
 }
@@ -392,9 +442,16 @@ export function useFollowThread() {
   const { push } = useToast();
   return useMutation({
     mutationFn: ({ threadId, level }: { threadId: string; level: FollowRequest['level'] }) =>
-      call(api.PUT('/api/v1/forum/threads/{thread_id}/follow', { params: { path: { thread_id: threadId } }, body: { level } })),
+      call(
+        api.PUT('/api/v1/forum/threads/{thread_id}/follow', {
+          params: { path: { thread_id: threadId } },
+          body: { level },
+        }),
+      ),
     onSuccess: ({ following }, { threadId }) => {
-      qc.setQueriesData<ThreadDetail>({ queryKey: forumKeys.threads }, (data) => (data && data.id === threadId ? { ...data, following } : data));
+      qc.setQueriesData<ThreadDetail>({ queryKey: forumKeys.threads }, (data) =>
+        data && data.id === threadId ? { ...data, following } : data,
+      );
     },
     onError: (err) => push({ title: "That wasn't saved", body: errorMessage(err), tone: 'alert' }),
   });
@@ -405,7 +462,12 @@ export function useAcceptAnswer() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ threadId, replyId }: { threadId: string; replyId: string | null }) =>
-      call(api.POST('/api/v1/forum/threads/{thread_id}/accept', { params: { path: { thread_id: threadId } }, body: { replyId } })),
+      call(
+        api.POST('/api/v1/forum/threads/{thread_id}/accept', {
+          params: { path: { thread_id: threadId } },
+          body: { replyId },
+        }),
+      ),
     onSuccess: (thread) => {
       storeThread(qc, thread);
       void invalidateLists(qc);
@@ -418,7 +480,12 @@ export function useModerateThread() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ threadId, change }: { threadId: string; change: ThreadModeration }) =>
-      call(api.POST('/api/v1/forum/threads/{thread_id}/moderate', { params: { path: { thread_id: threadId } }, body: change })),
+      call(
+        api.POST('/api/v1/forum/threads/{thread_id}/moderate', {
+          params: { path: { thread_id: threadId } },
+          body: change,
+        }),
+      ),
     onSuccess: (thread, { change }) => {
       storeThread(qc, thread);
       void invalidateLists(qc);
@@ -433,7 +500,12 @@ export function useCreateReply() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ threadId, body, parentId }: { threadId: string; body: string; parentId: string | null }) =>
-      call(api.POST('/api/v1/forum/threads/{thread_id}/replies', { params: { path: { thread_id: threadId } }, body: { body, parentId } })),
+      call(
+        api.POST('/api/v1/forum/threads/{thread_id}/replies', {
+          params: { path: { thread_id: threadId } },
+          body: { body, parentId },
+        }),
+      ),
     onSuccess: (reply) => {
       qc.setQueriesData<ThreadDetail>({ queryKey: forumKeys.threads }, (data) =>
         data && data.id === reply.threadId && !data.replies.some((r) => r.id === reply.id)
@@ -496,7 +568,12 @@ export function useModerateReply() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ replyId, change }: { replyId: string; change: ReplyModeration }) =>
-      call(api.POST('/api/v1/forum/replies/{reply_id}/moderate', { params: { path: { reply_id: replyId } }, body: change })),
+      call(
+        api.POST('/api/v1/forum/replies/{reply_id}/moderate', {
+          params: { path: { reply_id: replyId } },
+          body: change,
+        }),
+      ),
     onSuccess: (reply) => {
       patchReply(qc, reply.id, () => reply);
       void qc.invalidateQueries({ queryKey: forumKeys.threads });
@@ -520,11 +597,16 @@ export function useCreateReport() {
 }
 
 /** Moderators: reports with a status, newest first, page by page. */
-export function useReports(status: ReportStatus, { pageSize = 20, enabled = true }: { pageSize?: number; enabled?: boolean } = {}) {
+export function useReports(
+  status: ReportStatus,
+  { pageSize = 20, enabled = true }: { pageSize?: number; enabled?: boolean } = {},
+) {
   return useInfiniteQuery({
     queryKey: [...reportKeys.list(status), pageSize] as const,
     queryFn: ({ pageParam, signal }) =>
-      call(api.GET('/api/v1/admin/reports', { params: { query: { status, limit: pageSize, offset: pageParam } }, signal })),
+      call(
+        api.GET('/api/v1/admin/reports', { params: { query: { status, limit: pageSize, offset: pageParam } }, signal }),
+      ),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
     enabled,
@@ -534,8 +616,21 @@ export function useReports(status: ReportStatus, { pageSize = 20, enabled = true
 export function useResolveReport() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ reportId, status, note }: { reportId: string; status: 'resolved' | 'dismissed'; note: string | null }) =>
-      call(api.POST('/api/v1/admin/reports/{report_id}/resolve', { params: { path: { report_id: reportId } }, body: { status, note } })),
+    mutationFn: ({
+      reportId,
+      status,
+      note,
+    }: {
+      reportId: string;
+      status: 'resolved' | 'dismissed';
+      note: string | null;
+    }) =>
+      call(
+        api.POST('/api/v1/admin/reports/{report_id}/resolve', {
+          params: { path: { report_id: reportId } },
+          body: { status, note },
+        }),
+      ),
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: reportKeys.all });
       void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });

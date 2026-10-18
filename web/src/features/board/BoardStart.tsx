@@ -21,7 +21,10 @@ export function BoardStart({ taken, readOnly, onStarted }: BoardStartProps) {
     const t = TEMPLATES.find((x) => x.id === id);
     if (!t || create.isPending) return;
     setStarting(id);
-    create.mutate({ name: startName(t.suggested, taken), template: t.id, color: t.color }, { onSuccess: (board) => onStarted(board.id), onSettled: () => setStarting(null) });
+    create.mutate(
+      { name: startName(t.suggested, taken), template: t.id, color: t.color },
+      { onSuccess: (board) => onStarted(board.id), onSettled: () => setStarting(null) },
+    );
   };
 
   return (
@@ -49,7 +52,11 @@ export function BoardStart({ taken, readOnly, onStarted }: BoardStartProps) {
             >
               <span className="board-start__head">
                 <span className="board-start__name">{t.name}</span>
-                {starting === t.id ? <Spinner size={18} /> : <ArrowRight aria-hidden="true" className="board-start__go" />}
+                {starting === t.id ? (
+                  <Spinner size={18} />
+                ) : (
+                  <ArrowRight aria-hidden="true" className="board-start__go" />
+                )}
               </span>
               <span className="board-start__blurb" id={`board-start-${t.id}`}>
                 {t.blurb}
@@ -72,8 +79,8 @@ export function BoardStart({ taken, readOnly, onStarted }: BoardStartProps) {
       </ul>
       <div className="board-start__aside">
         <p>
-          Revising for an exam? Open its module and choose <strong>Plan my revision</strong>: the lessons and past papers
-          go on a board, spread over the days you have.
+          Revising for an exam? Open its module and choose <strong>Plan my revision</strong>: the lessons and past
+          papers go on a board, spread over the days you have.
         </p>
         <Button size="sm" variant="ghost" to="/modules" trailingIcon={ArrowRight}>
           Your modules

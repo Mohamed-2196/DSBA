@@ -31,5 +31,7 @@ export function sittingLabel(examYear: number, session: ExamSession | null | und
 /** 'May 2025, Zone A'; null when the file says neither. */
 export function examLabel(item: Pick<LibraryItem, 'examYear' | 'examSession' | 'zone'>): string | null {
   if (!item.examYear && !item.zone) return null;
-  return [item.examYear ? sittingLabel(item.examYear, item.examSession) : null, item.zone ? zoneLabel(item.zone) : null].filter(Boolean).join(', ');
+  return [item.examYear ? sittingLabel(item.examYear, item.examSession) : null, item.zone ? zoneLabel(item.zone) : null]
+    .filter(Boolean)
+    .join(', ');
 }

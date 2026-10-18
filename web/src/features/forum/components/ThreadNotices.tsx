@@ -24,8 +24,9 @@ export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) 
       <div className="forum-notice is-alert" role="note" data-hub="thread-hidden-note">
         <EyeSlash aria-hidden="true" weight="bold" className="forum-notice__icon" />
         <span className="forum-notice__text">
-          <strong>A student rep hid this thread.</strong> Only you and the student reps can see it, and it can’t take replies or votes. If
-          the rep gave a reason, it’s in your notifications. Contact a student rep if you think this is a mistake.
+          <strong>A student rep hid this thread.</strong> Only you and the student reps can see it, and it can’t take
+          replies or votes. If the rep gave a reason, it’s in your notifications. Contact a student rep if you think
+          this is a mistake.
         </span>
       </div>
     );
@@ -54,8 +55,8 @@ export function UnavailableBanner() {
     <div className="forum-notice is-alert" role="status" data-hub="thread-unavailable">
       <WarningCircle aria-hidden="true" weight="bold" className="forum-notice__icon" />
       <span className="forum-notice__text">
-        <strong>This thread isn’t available any more.</strong> It was hidden or deleted after you opened it. You can still read what’s on the
-        page, but it can’t take replies.
+        <strong>This thread isn’t available any more.</strong> It was hidden or deleted after you opened it. You can
+        still read what’s on the page, but it can’t take replies.
       </span>
     </div>
   );
@@ -66,7 +67,9 @@ export function MissingReplyNote() {
   return (
     <p className="forum-notice" role="note" data-hub="reply-missing">
       <ChatCircleText aria-hidden="true" weight="bold" className="forum-notice__icon" />
-      <span className="forum-notice__text">The reply this link points to isn’t here any more. It may have been deleted or hidden.</span>
+      <span className="forum-notice__text">
+        The reply this link points to isn’t here any more. It may have been deleted or hidden.
+      </span>
     </p>
   );
 }
@@ -83,7 +86,9 @@ function whyClosed(thread: ThreadDetail, unavailable: boolean): string {
   if (unavailable) return 'This thread was hidden or deleted after you opened it, so new replies are off.';
   if (thread.status === 'deleted') return 'This thread was deleted, so new replies are off.';
   if (thread.status === 'hidden') {
-    return thread.canModerate ? 'This thread is hidden, so new replies are off. Unhide it to let people reply.' : 'New replies are off while this thread is hidden.';
+    return thread.canModerate
+      ? 'This thread is hidden, so new replies are off. Unhide it to let people reply.'
+      : 'New replies are off while this thread is hidden.';
   }
   return 'This thread is locked, so new replies are off.';
 }
@@ -94,7 +99,9 @@ export function CantPostNote({ suspended }: { suspended: boolean }) {
     <p className="forum-notice" role="note" data-hub="cant-post">
       <Prohibit aria-hidden="true" weight="bold" className="forum-notice__icon" />
       <span className="forum-notice__text">
-        {suspended ? 'Your account is suspended, so you can’t post in the forum for now. Contact a student rep.' : 'Your account can’t post in the forum. Ask an admin if you need to.'}
+        {suspended
+          ? 'Your account is suspended, so you can’t post in the forum for now. Contact a student rep.'
+          : 'Your account can’t post in the forum. Ask an admin if you need to.'}
       </span>
     </p>
   );
@@ -122,15 +129,23 @@ export function ThreadCompose({ thread, textareaRef, onPosted, unavailable = fal
     <section className="forum-thread__compose" aria-label="Reply to this thread">
       {open && thread.locked ? (
         <p className="forum-compose-note forum-compose-note--locked" role="note">
-          <LockSimple aria-hidden="true" weight="bold" /> This thread is locked. As a student rep you can still reply; everyone else can’t.
+          <LockSimple aria-hidden="true" weight="bold" /> This thread is locked. As a student rep you can still reply;
+          everyone else can’t.
         </p>
       ) : null}
       {!open ? (
         <p className="forum-compose-note forum-compose-note--locked" role="alert">
-          <LockSimple aria-hidden="true" weight="bold" /> {whyClosed(thread, unavailable)} Copy your reply if you want to keep it.
+          <LockSimple aria-hidden="true" weight="bold" /> {whyClosed(thread, unavailable)} Copy your reply if you want
+          to keep it.
         </p>
       ) : null}
-      <ReplyComposer thread={thread} textareaRef={textareaRef} onPosted={onPosted} onTextChange={setUnsent} closed={!open} />
+      <ReplyComposer
+        thread={thread}
+        textareaRef={textareaRef}
+        onPosted={onPosted}
+        onTextChange={setUnsent}
+        closed={!open}
+      />
     </section>
   );
 }

@@ -9,7 +9,11 @@ export type { FilterPatch } from './filters';
  * All forum list filters live in the URL (lib/filters.ts). One setter for several params at once (react-router's
  * functional setter reads render-time params, so separate setters in one tick would overwrite each other).
  */
-export function useForumFilters(): [ForumFilters, (patch: FilterPatch, opts?: { replace?: boolean }) => void, (keep?: (keyof ForumFilters)[]) => void] {
+export function useForumFilters(): [
+  ForumFilters,
+  (patch: FilterPatch, opts?: { replace?: boolean }) => void,
+  (keep?: (keyof ForumFilters)[]) => void,
+] {
   const [params, setParams] = useSearchParams();
   const filters = useMemo(() => readFilters(params), [params]);
 

@@ -7,14 +7,61 @@
   border-radius: var(--r-control);
   background: var(--surface-2);
 }
-.nl-set__thumb img { display: block; width: 100%; height: auto; max-height: 14rem; object-fit: contain; }
-.nl-set__fields { display: grid; gap: var(--sp-12); min-width: 0; }
-.nl-set__meta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); }
-.nl-set__add { display: grid; gap: var(--sp-8); justify-items: start; }
-.nl-set { display: grid; gap: var(--sp-12); min-width: 0; }
-.nl-set__title { margin: 0; font-size: var(--fs-16); font-weight: var(--fw-semibold); }
-.nl-set__masthead { margin-bottom: 0; }
-.nl-set__gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: var(--sp-16); margin: 0; }
-.nl-set__gallery li { display: grid; align-content: start; gap: var(--sp-8); min-width: 0; }
-.nl-set__gallery .nl-set__thumb { max-width: none; }
-.nl-set__caption { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); font-size: var(--fs-14); }
+.nl-set__thumb img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 14rem;
+  object-fit: contain;
+}
+.nl-set__fields {
+  display: grid;
+  gap: var(--sp-12);
+  min-width: 0;
+}
+.nl-set__meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+}
+.nl-set__add {
+  display: grid;
+  gap: var(--sp-8);
+  justify-items: start;
+}
+.nl-set {
+  display: grid;
+  gap: var(--sp-12);
+  min-width: 0;
+}
+.nl-set__title {
+  margin: 0;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+}
+.nl-set__masthead {
+  margin-bottom: 0;
+}
+.nl-set__gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--sp-16);
+  margin: 0;
+}
+.nl-set__gallery li {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-8);
+  min-width: 0;
+}
+.nl-set__gallery .nl-set__thumb {
+  max-width: none;
+}
+.nl-set__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+  font-size: var(--fs-14);
+}

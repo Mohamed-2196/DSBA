@@ -3,7 +3,20 @@ import { cells, parseInline, parseRich, plainText } from './rich';
 
 describe('parseRich', () => {
   it('reads headings, lists, quotes, rules and code', () => {
-    const src = ['### The method', 'Two steps:', '1. Write the MGF', '2. Differentiate', '', '- one', '- two', '> a quote', '---', '```r', 'mean(x)', '```'].join('\n');
+    const src = [
+      '### The method',
+      'Two steps:',
+      '1. Write the MGF',
+      '2. Differentiate',
+      '',
+      '- one',
+      '- two',
+      '> a quote',
+      '---',
+      '```r',
+      'mean(x)',
+      '```',
+    ].join('\n');
     expect(parseRich(src)).toEqual([
       { type: 'heading', text: 'The method' },
       { type: 'p', text: 'Two steps:' },
@@ -16,12 +29,22 @@ describe('parseRich', () => {
   });
 
   it('keeps a numbered list’s start and folds indented lines into the item above', () => {
-    expect(parseRich('3. third\n   carries on\n4. fourth')).toEqual([{ type: 'ol', start: 3, items: ['third\ncarries on', 'fourth'] }]);
+    expect(parseRich('3. third\n   carries on\n4. fourth')).toEqual([
+      { type: 'ol', start: 3, items: ['third\ncarries on', 'fourth'] },
+    ]);
   });
 
   it('reads a table with its alignment, padding short rows', () => {
     expect(parseRich('| Test | p |\n|:---|---:|\n| t | 0.04 |\n| z |')).toEqual([
-      { type: 'table', head: ['Test', 'p'], align: ['left', 'right'], rows: [['t', '0.04'], ['z', '']] },
+      {
+        type: 'table',
+        head: ['Test', 'p'],
+        align: ['left', 'right'],
+        rows: [
+          ['t', '0.04'],
+          ['z', ''],
+        ],
+      },
     ]);
   });
 
@@ -47,7 +70,9 @@ describe('cells', () => {
 
 describe('parseInline', () => {
   it('reads code, formulas, bold, italic and links', () => {
-    expect(parseInline('Use `lm()`, $x^2$, \\(\\beta\\), **the MGF**, *roughly* and [the lessons](/modules/st2133).')).toEqual([
+    expect(
+      parseInline('Use `lm()`, $x^2$, \\(\\beta\\), **the MGF**, *roughly* and [the lessons](/modules/st2133).'),
+    ).toEqual([
       { type: 'text', text: 'Use ' },
       { type: 'code', text: 'lm()' },
       { type: 'text', text: ', ' },
@@ -65,16 +90,28 @@ describe('parseInline', () => {
   });
 
   it('leaves prices and underscores alone', () => {
-    expect(parseInline('It costs $5 or $10 and R_f is the rate')).toEqual([{ type: 'text', text: 'It costs $5 or $10 and R_f is the rate' }]);
+    expect(parseInline('It costs $5 or $10 and R_f is the rate')).toEqual([
+      { type: 'text', text: 'It costs $5 or $10 and R_f is the rate' },
+    ]);
   });
 
   it('reads a formula inside bold', () => {
-    expect(parseInline('**mean $\\mu$**')).toEqual([{ type: 'strong', children: [{ type: 'text', text: 'mean ' }, { type: 'math', tex: '\\mu' }] }]);
+    expect(parseInline('**mean $\\mu$**')).toEqual([
+      {
+        type: 'strong',
+        children: [
+          { type: 'text', text: 'mean ' },
+          { type: 'math', tex: '\\mu' },
+        ],
+      },
+    ]);
   });
 });
 
 describe('plainText', () => {
   it('drops the marks and keeps the words', () => {
-    expect(plainText('### Steps\n**Bold** and [the calendar](/calendar).\n```r\nx\n```')).toBe('Steps\nBold and the calendar.\n\nx');
+    expect(plainText('### Steps\n**Bold** and [the calendar](/calendar).\n```r\nx\n```')).toBe(
+      'Steps\nBold and the calendar.\n\nx',
+    );
   });
 });

@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { cacheNames, overflow, parseManifest, routeFor, staleCaches } from './routes';
 
 const ORIGIN = 'https://hub.example.com';
-const get = (path: string, mode = 'cors') => ({ method: 'GET', url: path.startsWith('http') ? path : `${ORIGIN}${path}`, mode });
+const get = (path: string, mode = 'cors') => ({
+  method: 'GET',
+  url: path.startsWith('http') ? path : `${ORIGIN}${path}`,
+  mode,
+});
 
 describe('routeFor', () => {
   it('never touches the API, whatever the request', () => {
@@ -13,7 +17,9 @@ describe('routeFor', () => {
   });
 
   it('leaves other sites alone: the bucket’s file links, YouTube, analytics', () => {
-    expect(routeFor(get('https://dsba-hub.s3.eu-central-1.amazonaws.com/f.pdf?X-Amz-Signature=1'), ORIGIN)).toBe('network');
+    expect(routeFor(get('https://dsba-hub.s3.eu-central-1.amazonaws.com/f.pdf?X-Amz-Signature=1'), ORIGIN)).toBe(
+      'network',
+    );
     expect(routeFor(get('https://i.ytimg.com/vi/x/hq.jpg', 'no-cors'), ORIGIN)).toBe('network');
   });
 
@@ -59,12 +65,18 @@ describe('caches', () => {
 
 describe('parseManifest', () => {
   it('reads what the build wrote', () => {
-    expect(parseManifest('{"version":"abc","precache":["/","/assets/a.js"]}')).toEqual({ version: 'abc', precache: ['/', '/assets/a.js'] });
+    expect(parseManifest('{"version":"abc","precache":["/","/assets/a.js"]}')).toEqual({
+      version: 'abc',
+      precache: ['/', '/assets/a.js'],
+    });
   });
 
   it('refuses the placeholder, bad JSON and API paths', () => {
     expect(parseManifest('__DSBA_SW_MANIFEST__')).toBeNull();
     expect(parseManifest('{"version":"","precache":[]}')).toBeNull();
-    expect(parseManifest('{"version":"v","precache":["/api/v1/me","https://x.com/a","/ok.js",3]}')).toEqual({ version: 'v', precache: ['/ok.js'] });
+    expect(parseManifest('{"version":"v","precache":["/api/v1/me","https://x.com/a","/ok.js",3]}')).toEqual({
+      version: 'v',
+      precache: ['/ok.js'],
+    });
   });
 });

@@ -8,7 +8,11 @@ import type { ModuleSummary, NooraStarter } from '../../../api/types';
 export type Starter = NooraStarter;
 
 /** The cards, with {module} as a module of the student's year when there is one. */
-export function starters(cards: readonly NooraStarter[], modules: readonly ModuleSummary[], year: number | null): Starter[] {
+export function starters(
+  cards: readonly NooraStarter[],
+  modules: readonly ModuleSummary[],
+  year: number | null,
+): Starter[] {
   const mine = modules.find((m) => year == null || m.year === year);
   const code = mine ? (mine.unitCode ?? mine.shortName) : 'my next exam';
   const fillIn = (text: string) => text.replaceAll('{module}', code);

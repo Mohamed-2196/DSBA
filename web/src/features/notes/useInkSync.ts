@@ -80,7 +80,8 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
 
   const keepCopy = useCallback(() => {
     const draft: InkDraft = {};
-    for (const n of dirty.current) draft[n] = { strokes: [...(strokes.current.get(n) ?? NONE)], base: versions.current.get(n) ?? 0 };
+    for (const n of dirty.current)
+      draft[n] = { strokes: [...(strokes.current.get(n) ?? NONE)], base: versions.current.get(n) ?? 0 };
     writeInkDraft(noteId, draft);
   }, [noteId]);
 
@@ -193,7 +194,8 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
       keepCopy();
       bump();
       if (conflict.current.has(sheet)) return;
-      if (stateRef.current !== 'offline' && stateRef.current !== 'error' && stateRef.current !== 'conflict') setState('unsaved');
+      if (stateRef.current !== 'offline' && stateRef.current !== 'error' && stateRef.current !== 'conflict')
+        setState('unsaved');
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => void flush(), SAVE_AFTER);
     },

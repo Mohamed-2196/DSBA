@@ -30,13 +30,34 @@ function LimitsForm({ usage }: { usage: NooraUsageOut }) {
     setProblem(null);
     set.mutate(
       { dailyQuestions, monthlyBudgetCents },
-      { onSuccess: () => push({ tone: 'success', title: 'Mini Noora’s limits are saved' }), onError: (err) => setProblem(errorMessage(err)) },
+      {
+        onSuccess: () => push({ tone: 'success', title: 'Mini Noora’s limits are saved' }),
+        onError: (err) => setProblem(errorMessage(err)),
+      },
     );
   };
   return (
     <form className="manage-noora__form" onSubmit={submit} data-hub="noora-limits">
-      <TextField label="Questions per student a day" hint="0 pauses her AI answers." type="number" inputMode="numeric" min={0} max={500} value={daily} onChange={(e) => setDaily(e.target.value)} />
-      <TextField label="Monthly budget (US$)" hint="Estimated from the tokens she uses. Over it, she answers from her script." type="number" inputMode="decimal" min={0} step="0.01" value={budget} onChange={(e) => setBudget(e.target.value)} />
+      <TextField
+        label="Questions per student a day"
+        hint="0 pauses her AI answers."
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={500}
+        value={daily}
+        onChange={(e) => setDaily(e.target.value)}
+      />
+      <TextField
+        label="Monthly budget (US$)"
+        hint="Estimated from the tokens she uses. Over it, she answers from her script."
+        type="number"
+        inputMode="decimal"
+        min={0}
+        step="0.01"
+        value={budget}
+        onChange={(e) => setBudget(e.target.value)}
+      />
       <div className="manage-noora__save">
         <Button type="submit" variant="primary" loading={set.isPending}>
           Save limits
@@ -53,7 +74,16 @@ function LimitsForm({ usage }: { usage: NooraUsageOut }) {
 
 export function NooraNumbers({ canEdit }: { canEdit: boolean }) {
   const usage = useNooraUsage(true);
-  if (usage.isError) return <QueryError error={usage.error} title="Mini Noora’s numbers didn’t load" onRetry={() => void usage.refetch()} retrying={usage.isFetching} size="sm" />;
+  if (usage.isError)
+    return (
+      <QueryError
+        error={usage.error}
+        title="Mini Noora’s numbers didn’t load"
+        onRetry={() => void usage.refetch()}
+        retrying={usage.isFetching}
+        size="sm"
+      />
+    );
   const u = usage.data;
   const numbers: [string, string | null][] = [
     ['AI questions today', u ? formatCount(u.today.questions) : null],

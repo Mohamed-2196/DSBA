@@ -44,7 +44,12 @@ export function parseDay(key: DayKey): Date {
   return new Date(Number.isFinite(y) ? y : 1970, (Number.isFinite(m) ? m : 1) - 1, Number.isFinite(d) ? d : 1);
 }
 
-const bahrainDay = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
+const bahrainDay = new Intl.DateTimeFormat('en-CA', {
+  timeZone: TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
 
 /** Today in Bahrain, as a day key: what the API calls today, whatever zone this device is set to. */
 export function todayKey(now: Date | number = Date.now()): DayKey {
@@ -108,8 +113,34 @@ export function relativeDays(days: number): string {
 
 // ── Names ────────────────────────────────────────────────────────────────────────────────────────
 
-export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
-export const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+export const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const;
+export const MONTHS_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
 
 export interface Weekday {
   short: string;

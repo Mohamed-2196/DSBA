@@ -1,17 +1,69 @@
 /* Manage → Grades calculator: a band's two fields together, and the worked example. Wide tables scroll inside their
    own box on phones, never the page. */
-.grades-set__band { display: grid; gap: var(--sp-8); min-width: 0; }
-.grades-set__example { display: grid; gap: var(--sp-12); min-width: 0; }
-.grades-set__example-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--sp-12); }
-.grades-set__table-wrap { max-width: 100%; overflow-x: auto; }
-.grades-set__table { width: 100%; border-collapse: collapse; font-size: var(--fs-14); }
-.grades-set__table th, .grades-set__table td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-.grades-set__table thead th { color: var(--ink-2); font-weight: var(--fw-semibold); }
-.grades-set__table tbody th { font-weight: var(--fw-regular); }
-.grades-set__result { display: grid; gap: var(--sp-8); margin: 0; }
-.grades-set__result > div { display: grid; grid-template-columns: minmax(10rem, 16rem) minmax(0, 1fr); gap: var(--sp-12); }
-.grades-set__result dt { color: var(--ink-2); font-size: var(--fs-14); }
-.grades-set__result dd { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); margin: 0; }
+.grades-set__band {
+  display: grid;
+  gap: var(--sp-8);
+  min-width: 0;
+}
+.grades-set__example {
+  display: grid;
+  gap: var(--sp-12);
+  min-width: 0;
+}
+.grades-set__example-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--sp-12);
+}
+.grades-set__table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.grades-set__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-14);
+}
+.grades-set__table th,
+.grades-set__table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.grades-set__table thead th {
+  color: var(--ink-2);
+  font-weight: var(--fw-semibold);
+}
+.grades-set__table tbody th {
+  font-weight: var(--fw-regular);
+}
+.grades-set__result {
+  display: grid;
+  gap: var(--sp-8);
+  margin: 0;
+}
+.grades-set__result > div {
+  display: grid;
+  grid-template-columns: minmax(10rem, 16rem) minmax(0, 1fr);
+  gap: var(--sp-12);
+}
+.grades-set__result dt {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.grades-set__result dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+  margin: 0;
+}
 @media (max-width: 600px) {
-  .grades-set__result > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .grades-set__result > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
 }

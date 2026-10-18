@@ -5,7 +5,8 @@ import { api, gotoAccount, personaContext, remember, setSwitch } from './support
 
 test.describe.configure({ mode: 'serial' });
 
-const inDays = (n: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date(Date.now() + n * 86_400_000));
+const inDays = (n: number) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date(Date.now() + n * 86_400_000));
 
 interface Note {
   kind: string;
@@ -15,7 +16,13 @@ interface Note {
 
 test('a rep moves a Year 2 mock and Year 2 is told', async ({ rep, sara, run }) => {
   const title = `Mock exam [e2e ${run.tag}]`;
-  const made = await api<{ id: string }>(rep, 'POST', '/api/v1/calendar/events', { title, type: 'mock', date: inDays(20), year: 2, time: '12:30 PM' });
+  const made = await api<{ id: string }>(rep, 'POST', '/api/v1/calendar/events', {
+    title,
+    type: 'mock',
+    date: inDays(20),
+    year: 2,
+    time: '12:30 PM',
+  });
   expect(made.status).toBe(201);
   const id = made.body.id;
   remember('events', id);
@@ -52,7 +59,13 @@ test('reps see the Sunday summary to paste, and a student turns its email on', a
   const toggle = sara.getByRole('switch', { name: /Sunday summary/ });
   await expect(toggle).not.toBeChecked();
   await toggle.click();
-  await expect.poll(async () => (await api<{ preferences: { emailWeeklySummary: boolean } }>(sara, 'GET', '/api/v1/me')).body.preferences.emailWeeklySummary).toBe(true);
+  await expect
+    .poll(
+      async () =>
+        (await api<{ preferences: { emailWeeklySummary: boolean } }>(sara, 'GET', '/api/v1/me')).body.preferences
+          .emailWeeklySummary,
+    )
+    .toBe(true);
   await toggle.click(); // back off: the summary is opt-in
 });
 

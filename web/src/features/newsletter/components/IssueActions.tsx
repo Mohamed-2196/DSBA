@@ -14,7 +14,15 @@ interface ActionIssue {
   title: string;
 }
 
-export function PublishButton({ issue, size = 'md', onPublished }: { issue: ActionIssue; size?: ButtonSize; onPublished?: () => void }) {
+export function PublishButton({
+  issue,
+  size = 'md',
+  onPublished,
+}: {
+  issue: ActionIssue;
+  size?: ButtonSize;
+  onPublished?: () => void;
+}) {
   const { push } = useToast();
   const publish = usePublishIssue();
   const send = useSingleFlight(publish);
@@ -53,7 +61,10 @@ export function PublishButton({ issue, size = 'md', onPublished }: { issue: Acti
             <p>
               <b>{issue.title}</b> goes on the newsletter page for everyone to read.
             </p>
-            <p>Everyone who hasn’t turned off newsletter news gets a notification straight away. Check the issue once more before you publish.</p>
+            <p>
+              Everyone who hasn’t turned off newsletter news gets a notification straight away. Check the issue once
+              more before you publish.
+            </p>
           </>
         }
         confirmLabel="Publish and notify everyone"
@@ -66,7 +77,17 @@ export function PublishButton({ issue, size = 'md', onPublished }: { issue: Acti
   );
 }
 
-export function DeleteIssueButton({ issue, iconOnly = false, size = 'md', onDeleted }: { issue: ActionIssue; iconOnly?: boolean; size?: ButtonSize; onDeleted?: () => void }) {
+export function DeleteIssueButton({
+  issue,
+  iconOnly = false,
+  size = 'md',
+  onDeleted,
+}: {
+  issue: ActionIssue;
+  iconOnly?: boolean;
+  size?: ButtonSize;
+  onDeleted?: () => void;
+}) {
   const { push } = useToast();
   const remove = useDeleteIssue();
   const [asking, setAsking] = useState(false);
@@ -81,7 +102,11 @@ export function DeleteIssueButton({ issue, iconOnly = false, size = 'md', onDele
       {
         onSuccess: () => {
           setAsking(false);
-          push({ tone: 'success', title: `Issue ${no} deleted`, body: `“${issue.title}” is gone, with its reactions.` });
+          push({
+            tone: 'success',
+            title: `Issue ${no} deleted`,
+            body: `“${issue.title}” is gone, with its reactions.`,
+          });
           onDeleted?.();
         },
       },
@@ -89,7 +114,15 @@ export function DeleteIssueButton({ issue, iconOnly = false, size = 'md', onDele
   return (
     <>
       {iconOnly ? (
-        <IconButton label={`Delete issue ${no}`} icon={Trash} variant="secondary" size={size} tooltip onClick={open} data-hub="issue-delete" />
+        <IconButton
+          label={`Delete issue ${no}`}
+          icon={Trash}
+          variant="secondary"
+          size={size}
+          tooltip
+          onClick={open}
+          data-hub="issue-delete"
+        />
       ) : (
         <Button variant="ghost" size={size} leadingIcon={Trash} onClick={open} data-hub="issue-delete">
           Delete

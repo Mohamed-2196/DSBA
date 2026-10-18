@@ -36,14 +36,31 @@ export interface DocFrameProps {
   children: ReactNode;
 }
 
-export function DocFrame({ title, savedAt, savedBy, dirty, saving, pageTo, onPreview, onUndo, onSave, problem, onReload, nav, section, children }: DocFrameProps) {
+export function DocFrame({
+  title,
+  savedAt,
+  savedBy,
+  dirty,
+  saving,
+  pageTo,
+  onPreview,
+  onUndo,
+  onSave,
+  problem,
+  onReload,
+  nav,
+  section,
+  children,
+}: DocFrameProps) {
   useWarnBeforeLeaving(dirty);
   return (
     <div className="dedit">
       <div className="dedit__head">
         <div className="dedit__intro">
           <p className="dedit__note" role="status" tabIndex={-1} data-doc-status>
-            {savedAt ? `Saved ${timeAgo(savedAt)}${savedBy ? ` by ${savedBy}` : ''}. ` : 'Not changed in the hub yet: this is its starting content. '}
+            {savedAt
+              ? `Saved ${timeAgo(savedAt)}${savedBy ? ` by ${savedBy}` : ''}. `
+              : 'Not changed in the hub yet: this is its starting content. '}
             {dirty ? 'You have changes that aren’t saved.' : 'No unsaved changes.'}
           </p>
         </div>
@@ -71,7 +88,10 @@ export function DocFrame({ title, savedAt, savedBy, dirty, saving, pageTo, onPre
         <div className="dedit__banner" role="alert">
           {problem.kind === 'changed' ? (
             <>
-              <p>Someone else saved {problem.what} while you were editing. Load their version, then make your changes again.</p>
+              <p>
+                Someone else saved {problem.what} while you were editing. Load their version, then make your changes
+                again.
+              </p>
               <Button size="sm" onClick={onReload}>
                 Load it again
               </Button>
@@ -99,7 +119,11 @@ export function DocFrame({ title, savedAt, savedBy, dirty, saving, pageTo, onPre
       </Panel>
 
       <div className={cx('dedit__savebar', dirty && 'is-active')}>
-        <span className="dedit__note">{dirty ? 'Saving changes the page for everyone at once, and goes to the activity log.' : 'No unsaved changes.'}</span>
+        <span className="dedit__note">
+          {dirty
+            ? 'Saving changes the page for everyone at once, and goes to the activity log.'
+            : 'No unsaved changes.'}
+        </span>
         <Button variant="primary" onClick={onSave} loading={saving} disabled={!dirty}>
           Save
         </Button>
@@ -132,7 +156,21 @@ export interface ListEditorProps<T extends { id: string }> {
   max?: number;
 }
 
-export function ListEditor<T extends { id: string }>({ items, noun, titleOf, metaOf, onChange, make, children, hasError, savedIds, keepReason, canAdd = true, min = 0, max = 60 }: ListEditorProps<T>) {
+export function ListEditor<T extends { id: string }>({
+  items,
+  noun,
+  titleOf,
+  metaOf,
+  onChange,
+  make,
+  children,
+  hasError,
+  savedIds,
+  keepReason,
+  canAdd = true,
+  min = 0,
+  max = 60,
+}: ListEditorProps<T>) {
   const [open, setOpen] = useState<string | null>(null);
   const [removing, setRemoving] = useState<{ id: string; title: string } | null>(null);
   const move = (from: number, by: -1 | 1) => {
@@ -153,9 +191,19 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
             const formId = `dedit-item-${item.id}`;
             const kept = keepReason?.(item) ?? null;
             return (
-              <li key={item.id} className={cx('dedit-item', isOpen && 'is-open', hasError?.(i) && 'has-error')} data-item-id={item.id}>
+              <li
+                key={item.id}
+                className={cx('dedit-item', isOpen && 'is-open', hasError?.(i) && 'has-error')}
+                data-item-id={item.id}
+              >
                 <div className="dedit-item__row">
-                  <button type="button" className="dedit-item__open" aria-expanded={isOpen} aria-controls={formId} onClick={() => setOpen(isOpen ? null : item.id)}>
+                  <button
+                    type="button"
+                    className="dedit-item__open"
+                    aria-expanded={isOpen}
+                    aria-controls={formId}
+                    onClick={() => setOpen(isOpen ? null : item.id)}
+                  >
                     <span className="dedit-item__title">
                       {title}
                       {savedIds && !savedIds.has(item.id) ? (
@@ -168,9 +216,28 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
                     <CaretDown className="dedit-item__caret" weight="bold" aria-hidden="true" />
                   </button>
                   <span className="dedit-item__tools">
-                    <IconButton size="sm" icon={ArrowUp} label={`Move ${title} up`} disabled={i === 0} onClick={() => move(i, -1)} />
-                    <IconButton size="sm" icon={ArrowDown} label={`Move ${title} down`} disabled={i === items.length - 1} onClick={() => move(i, 1)} />
-                    <IconButton size="sm" icon={Trash} label={kept ?? `Remove ${title}`} tooltip disabled={items.length <= min || kept !== null} onClick={() => setRemoving({ id: item.id, title })} />
+                    <IconButton
+                      size="sm"
+                      icon={ArrowUp}
+                      label={`Move ${title} up`}
+                      disabled={i === 0}
+                      onClick={() => move(i, -1)}
+                    />
+                    <IconButton
+                      size="sm"
+                      icon={ArrowDown}
+                      label={`Move ${title} down`}
+                      disabled={i === items.length - 1}
+                      onClick={() => move(i, 1)}
+                    />
+                    <IconButton
+                      size="sm"
+                      icon={Trash}
+                      label={kept ?? `Remove ${title}`}
+                      tooltip
+                      disabled={items.length <= min || kept !== null}
+                      onClick={() => setRemoving({ id: item.id, title })}
+                    />
                   </span>
                 </div>
                 {isOpen ? (
@@ -247,11 +314,31 @@ export function RowsEditor<T>({
         <ol role="list" className="dedit-rows__items">
           {items.map((item, i) => (
             <li key={i} className="dedit-row">
-              <div className="dedit-row__fields">{children(item, i, (next) => onChange(items.map((x, j) => (j === i ? next : x))))}</div>
+              <div className="dedit-row__fields">
+                {children(item, i, (next) => onChange(items.map((x, j) => (j === i ? next : x))))}
+              </div>
               <span className="dedit-row__tools">
-                <IconButton size="sm" icon={ArrowUp} label={`Move ${noun} ${i + 1} up`} disabled={i === 0} onClick={() => move(i, -1)} />
-                <IconButton size="sm" icon={ArrowDown} label={`Move ${noun} ${i + 1} down`} disabled={i === items.length - 1} onClick={() => move(i, 1)} />
-                <IconButton size="sm" icon={Trash} label={`Remove ${noun} ${i + 1}`} disabled={items.length <= min} onClick={() => onChange(items.filter((_, j) => j !== i))} />
+                <IconButton
+                  size="sm"
+                  icon={ArrowUp}
+                  label={`Move ${noun} ${i + 1} up`}
+                  disabled={i === 0}
+                  onClick={() => move(i, -1)}
+                />
+                <IconButton
+                  size="sm"
+                  icon={ArrowDown}
+                  label={`Move ${noun} ${i + 1} down`}
+                  disabled={i === items.length - 1}
+                  onClick={() => move(i, 1)}
+                />
+                <IconButton
+                  size="sm"
+                  icon={Trash}
+                  label={`Remove ${noun} ${i + 1}`}
+                  disabled={items.length <= min}
+                  onClick={() => onChange(items.filter((_, j) => j !== i))}
+                />
               </span>
             </li>
           ))}

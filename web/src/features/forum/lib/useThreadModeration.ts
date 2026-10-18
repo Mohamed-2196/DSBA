@@ -27,16 +27,32 @@ export function useThreadModeration(thread: Pick<ThreadDetail, 'id'>) {
   return {
     pending: moderate.isPending,
     /** what went wrong with the last hide (for its dialog) */
-    hideError: moderate.isError && moderate.variables?.change.status === 'hidden' ? errorMessage(moderate.error, "The thread wasn't hidden. Try again.") : null,
+    hideError:
+      moderate.isError && moderate.variables?.change.status === 'hidden'
+        ? errorMessage(moderate.error, "The thread wasn't hidden. Try again.")
+        : null,
     reset: moderate.reset,
     pin: (pinned: boolean) =>
-      run({ pinned }, pinned ? { title: 'Thread pinned', body: 'It now sits at the top of the forum.' } : { title: 'Thread unpinned' }),
+      run(
+        { pinned },
+        pinned
+          ? { title: 'Thread pinned', body: 'It now sits at the top of the forum.' }
+          : { title: 'Thread unpinned' },
+      ),
     lock: (locked: boolean) =>
-      run({ locked }, locked ? { title: 'Thread locked', body: 'No one can reply until you unlock it.' } : { title: 'Thread unlocked', body: 'People can reply again.' }),
+      run(
+        { locked },
+        locked
+          ? { title: 'Thread locked', body: 'No one can reply until you unlock it.' }
+          : { title: 'Thread unlocked', body: 'People can reply again.' },
+      ),
     hide: (reason: string | null, onDone: () => void) =>
       run(
         { status: 'hidden', reason },
-        { title: 'Thread hidden', body: 'Only student reps can see it now. Resolve the report in Manage if there is one.' },
+        {
+          title: 'Thread hidden',
+          body: 'Only student reps can see it now. Resolve the report in Manage if there is one.',
+        },
         onDone,
       ),
     unhide: () =>
@@ -46,7 +62,11 @@ export function useThreadModeration(thread: Pick<ThreadDetail, 'id'>) {
           onSuccess: (t) =>
             push(
               t.status === 'deleted'
-                ? { title: 'Thread shown as deleted', body: 'Its text was deleted while it was hidden, so it comes back without it.', tone: 'info' }
+                ? {
+                    title: 'Thread shown as deleted',
+                    body: 'Its text was deleted while it was hidden, so it comes back without it.',
+                    tone: 'info',
+                  }
                 : { title: 'Thread visible again', body: 'Everyone can see it now.', tone: 'success' },
             ),
           onError: (e) => push({ title: "That didn't work", body: errorMessage(e), tone: 'alert' }),

@@ -23,7 +23,8 @@ function useWebOtp(enabled: boolean, format: CodeFormat, onCode: (code: string) 
   const onCodeRef = useRef(onCode);
   onCodeRef.current = onCode;
   useEffect(() => {
-    if (!enabled || typeof window === 'undefined' || !('OTPCredential' in window) || !navigator.credentials) return undefined;
+    if (!enabled || typeof window === 'undefined' || !('OTPCredential' in window) || !navigator.credentials)
+      return undefined;
     const ac = new AbortController();
     const options = { otp: { transport: ['sms'] }, signal: ac.signal } as unknown as CredentialRequestOptions;
     navigator.credentials
@@ -71,7 +72,15 @@ export interface CodeEntryProps {
 }
 
 /** One paste-friendly input for the code, Verify, "Send a new code" (after a countdown) and a way back. */
-export function CodeEntry({ challenge, receivedAt, onVerify, onResend, onBack, backLabel = 'Use a different email or number', submitLabel = 'Verify' }: CodeEntryProps) {
+export function CodeEntry({
+  challenge,
+  receivedAt,
+  onVerify,
+  onResend,
+  onBack,
+  backLabel = 'Use a different email or number',
+  submitLabel = 'Verify',
+}: CodeEntryProps) {
   const format: CodeFormat = challenge.codeFormat ?? 'digits';
   const length = LENGTH[format];
   const [code, setCode] = useState('');
@@ -107,7 +116,11 @@ export function CodeEntry({ challenge, receivedAt, onVerify, onResend, onBack, b
   const verify = async (value: string) => {
     if (busyRef.current) return;
     if (value.length !== length) {
-      setError(format === 'long' ? 'Enter the 10 letters and digits from the message.' : 'Enter the 6-digit code from the message.');
+      setError(
+        format === 'long'
+          ? 'Enter the 10 letters and digits from the message.'
+          : 'Enter the 6-digit code from the message.',
+      );
       inputRef.current?.focus();
       return;
     }
@@ -206,7 +219,13 @@ export function CodeEntry({ challenge, receivedAt, onVerify, onResend, onBack, b
               You can ask for a new code in {clock(wait)}.
             </span>
           ) : dead ? null : (
-            <Button variant="ghost" size="sm" onClick={() => void resend()} disabled={busy !== null} loading={busy === 'resend'}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void resend()}
+              disabled={busy !== null}
+              loading={busy === 'resend'}
+            >
               Send a new code
             </Button>
           )}

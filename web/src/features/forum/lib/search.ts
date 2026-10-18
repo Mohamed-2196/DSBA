@@ -38,7 +38,11 @@ export function similarQuery(title: string): string {
  * The threads most like a title, best first: words of the title that start a word of the other title count double,
  * words found in its excerpt count once. Threads with no word in common with the title are left out.
  */
-export function rankSimilar<T extends { title: string; excerpt: string; voteCount: number }>(threads: T[], title: string, n = 4): T[] {
+export function rankSimilar<T extends { title: string; excerpt: string; voteCount: number }>(
+  threads: T[],
+  title: string,
+  n = 4,
+): T[] {
   const terms = tokenize(title).filter((w) => w.length > 2 || /\d/.test(w));
   if (!terms.length) return [];
   const words = (text: string) => tokenize(text);

@@ -32,12 +32,28 @@ export function ArchiveView({ today }: { today: DailyToday }) {
             {monthTitle(month)}
           </h2>
           <div className="dh-cal__nav">
-            <IconButton label="Previous month" icon={CaretLeft} disabled={month <= first} onClick={() => setMonth(shiftMonth(month, -1), { replace: true })} />
-            <IconButton label="Next month" icon={CaretRight} disabled={month >= last} onClick={() => setMonth(shiftMonth(month, 1), { replace: true })} />
+            <IconButton
+              label="Previous month"
+              icon={CaretLeft}
+              disabled={month <= first}
+              onClick={() => setMonth(shiftMonth(month, -1), { replace: true })}
+            />
+            <IconButton
+              label="Next month"
+              icon={CaretRight}
+              disabled={month >= last}
+              onClick={() => setMonth(shiftMonth(month, 1), { replace: true })}
+            />
           </div>
         </div>
         {calendar.isError ? (
-          <QueryError error={calendar.error} title="Past days didn’t load" onRetry={() => void calendar.refetch()} retrying={calendar.isFetching} size="sm" />
+          <QueryError
+            error={calendar.error}
+            title="Past days didn’t load"
+            onRetry={() => void calendar.refetch()}
+            retrying={calendar.isFetching}
+            size="sm"
+          />
         ) : (
           <table className="dh-cal__grid" aria-busy={calendar.isPending || undefined}>
             <thead>
@@ -53,7 +69,18 @@ export function ArchiveView({ today }: { today: DailyToday }) {
               {monthWeeks(month).map((week, i) => (
                 <tr key={i}>
                   {week.map((d, j) => (
-                    <td key={d ?? `x${j}`}>{d ? <DayCell day={d} data={days.get(d)} total={total} today={today.day} picked={chosen === d} onPick={() => setPicked(d, { replace: true })} /> : null}</td>
+                    <td key={d ?? `x${j}`}>
+                      {d ? (
+                        <DayCell
+                          day={d}
+                          data={days.get(d)}
+                          total={total}
+                          today={today.day}
+                          picked={chosen === d}
+                          onPick={() => setPicked(d, { replace: true })}
+                        />
+                      ) : null}
+                    </td>
                   ))}
                 </tr>
               ))}
@@ -76,12 +103,33 @@ export function ArchiveView({ today }: { today: DailyToday }) {
   );
 }
 
-function DayCell({ day, data, total, today, picked, onPick }: { day: DayKey; data: CalendarDay | undefined; total: number; today: DayKey; picked: boolean; onPick: () => void }) {
+function DayCell({
+  day,
+  data,
+  total,
+  today,
+  picked,
+  onPick,
+}: {
+  day: DayKey;
+  data: CalendarDay | undefined;
+  total: number;
+  today: DayKey;
+  picked: boolean;
+  onPick: () => void;
+}) {
   const out = Boolean(data) || day === today;
   const done = data?.finished.length ?? 0;
   const label = `${dayLabel(day, today)}${data ? `, ${done} of ${total} finished` : ''}${day === today ? ', today' : ''}`;
   return (
-    <button type="button" className={cx('dh-cal__day', day === today && 'is-today', picked && 'is-picked', done >= total && 'is-full')} disabled={!out} onClick={onPick} aria-label={label} aria-pressed={picked}>
+    <button
+      type="button"
+      className={cx('dh-cal__day', day === today && 'is-today', picked && 'is-picked', done >= total && 'is-full')}
+      disabled={!out}
+      onClick={onPick}
+      aria-label={label}
+      aria-pressed={picked}
+    >
       <span className="dh-cal__num">{Number(day.slice(8))}</span>
       {out ? (
         <span className="dh-cal__dots" aria-hidden="true">
@@ -94,7 +142,17 @@ function DayCell({ day, data, total, today, picked, onPick }: { day: DayKey; dat
   );
 }
 
-function DayPanel({ day, data, today, loading }: { day: DayKey; data: CalendarDay | undefined; today: DailyToday; loading: boolean }) {
+function DayPanel({
+  day,
+  data,
+  today,
+  loading,
+}: {
+  day: DayKey;
+  data: CalendarDay | undefined;
+  today: DailyToday;
+  loading: boolean;
+}) {
   const isToday = day === today.day;
   const theme = isToday ? today.theme : data?.theme;
   return (
@@ -102,10 +160,16 @@ function DayPanel({ day, data, today, loading }: { day: DayKey; data: CalendarDa
       <p className="dh-day__kicker dy-num">Daily #{setNumber(day, today.firstDay)}</p>
       <h3 className="dh-day__title">{dayLabel(day, today.day)}</h3>
       {theme ? <p className="dh-day__theme">{theme.title}</p> : loading ? <Skeleton width="8em" /> : null}
-      <p className="dh-day__note">{isToday ? 'Today’s puzzles count for points and your streak.' : 'Practice: puzzles from past days don’t count for points.'}</p>
+      <p className="dh-day__note">
+        {isToday
+          ? 'Today’s puzzles count for points and your streak.'
+          : 'Practice: puzzles from past days don’t count for points.'}
+      </p>
       <ul className="dh-day__games">
         {today.games.map((g) => {
-          const finished = isToday ? g.status === 'won' || g.status === 'lost' : (data?.finished.includes(g.info.id) ?? false);
+          const finished = isToday
+            ? g.status === 'won' || g.status === 'lost'
+            : (data?.finished.includes(g.info.id) ?? false);
           return (
             <li key={g.info.id}>
               <Link className="dh-day__game" to={isToday ? `/daily/${g.info.id}` : `/daily/${day}/${g.info.id}`}>

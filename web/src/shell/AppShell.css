@@ -5,13 +5,23 @@
   min-height: 100dvh;
   background: var(--paper);
 }
-.shell-main { min-width: 0; display: flex; flex-direction: column; }
+.shell-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
 /* Ultra-wide screens: the shell is one centred column, so the rail stays next to the page instead of at the far
    edge of the screen. */
 @media (min-width: 2200px) {
-  .shell { max-width: 2000px; margin-inline: auto; }
+  .shell {
+    max-width: 2000px;
+    margin-inline: auto;
+  }
 }
-.shell-content { flex: 1 0 auto; outline: none; }
+.shell-content {
+  flex: 1 0 auto;
+  outline: none;
+}
 
 .shell-skip {
   position: fixed;
@@ -25,7 +35,9 @@
   font-weight: var(--fw-semibold);
   transform: translateY(-160%);
 }
-.shell-skip:focus-visible { transform: none; }
+.shell-skip:focus-visible {
+  transform: none;
+}
 
 .shell-loader {
   display: grid;
@@ -34,12 +46,22 @@
   opacity: 0;
   animation: shell-loader-in var(--dur) var(--ease) 120ms forwards;
 }
-@keyframes shell-loader-in { to { opacity: 1; } }
+@keyframes shell-loader-in {
+  to {
+    opacity: 1;
+  }
+}
 
 @media (max-width: 699px) {
-  .shell { grid-template-columns: minmax(0, 1fr); }
-  .shell .shell-rail-col { display: none; }
-  .shell-main { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .shell .shell-rail-col {
+    display: none;
+  }
+  .shell-main {
+    padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  }
 }
 
 /* "Off for others" above a page an admin opens while its feature is off for everyone else. */

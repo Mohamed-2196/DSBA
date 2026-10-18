@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowBendUpLeft, Eye, EyeSlash, LinkSimple, LockSimple, LockSimpleOpen, PencilSimple, PushPin, PushPinSlash, Trash } from '@phosphor-icons/react';
+import {
+  ArrowBendUpLeft,
+  Eye,
+  EyeSlash,
+  LinkSimple,
+  LockSimple,
+  LockSimpleOpen,
+  PencilSimple,
+  PushPin,
+  PushPinSlash,
+  Trash,
+} from '@phosphor-icons/react';
 import type { ThreadDetail } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { Button, Panel, timeAgo } from '../../../ui';
@@ -80,7 +91,13 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
   return (
     <Panel as="article" padding="none" className="forum-op" data-hub="thread-op" aria-label="Original post">
       <div className="forum-op__vote">
-        <VoteButton size="lg" count={thread.voteCount} voted={thread.voted} onToggle={toggleVote} disabled={deleted || hidden || unavailable} />
+        <VoteButton
+          size="lg"
+          count={thread.voteCount}
+          voted={thread.voted}
+          onToggle={toggleVote}
+          disabled={deleted || hidden || unavailable}
+        />
       </div>
       <div className="forum-op__main">
         <header className="forum-byline">
@@ -91,9 +108,13 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
               <AuthorFlair author={thread.author} />
             </span>
             <span className="forum-byline__meta">
-              {byline ? `${byline}, posted` : 'Posted'} <time dateTime={thread.createdAt}>{timeAgo(thread.createdAt)}</time>
+              {byline ? `${byline}, posted` : 'Posted'}{' '}
+              <time dateTime={thread.createdAt}>{timeAgo(thread.createdAt)}</time>
               {thread.editedAt && !gone ? (
-                <span className="forum-byline__edited" title={`Edited ${new Date(thread.editedAt).toLocaleString('en-GB')}`}>
+                <span
+                  className="forum-byline__edited"
+                  title={`Edited ${new Date(thread.editedAt).toLocaleString('en-GB')}`}
+                >
                   {' '}
                   · edited
                 </span>
@@ -115,13 +136,21 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
           </Button>
           <FollowButton thread={thread} />
           <span className="forum-op__end">
-            {!thread.isMine && thread.status === 'visible' ? <ReportButton targetType="thread" targetId={thread.id} /> : null}
+            {!thread.isMine && thread.status === 'visible' ? (
+              <ReportButton targetType="thread" targetId={thread.id} />
+            ) : null}
             <PostMenu
               label="More actions for this thread"
               groups={[
                 [
                   actions.edit && { id: 'edit', label: 'Edit', icon: PencilSimple, onSelect: () => setEditing(true) },
-                  actions.remove && { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setConfirmDelete(true) },
+                  actions.remove && {
+                    id: 'delete',
+                    label: 'Delete',
+                    icon: Trash,
+                    danger: true,
+                    onSelect: () => setConfirmDelete(true),
+                  },
                 ],
                 thread.canModerate
                   ? [
@@ -130,11 +159,32 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
                         ? { id: 'unpin', label: 'Unpin', icon: PushPinSlash, onSelect: () => moderation.pin(false) }
                         : { id: 'pin', label: 'Pin to the top', icon: PushPin, onSelect: () => moderation.pin(true) },
                       thread.locked
-                        ? { id: 'unlock', label: 'Unlock replies', icon: LockSimpleOpen, onSelect: () => moderation.lock(false) }
-                        : { id: 'lock', label: 'Lock replies', icon: LockSimple, onSelect: () => moderation.lock(true) },
+                        ? {
+                            id: 'unlock',
+                            label: 'Unlock replies',
+                            icon: LockSimpleOpen,
+                            onSelect: () => moderation.lock(false),
+                          }
+                        : {
+                            id: 'lock',
+                            label: 'Lock replies',
+                            icon: LockSimple,
+                            onSelect: () => moderation.lock(true),
+                          },
                       hidden
-                        ? { id: 'unhide', label: gone ? 'Unhide as deleted' : 'Unhide thread', icon: Eye, onSelect: moderation.unhide }
-                        : { id: 'hide', label: 'Hide thread', icon: EyeSlash, danger: true, onSelect: () => setHiding(true) },
+                        ? {
+                            id: 'unhide',
+                            label: gone ? 'Unhide as deleted' : 'Unhide thread',
+                            icon: Eye,
+                            onSelect: moderation.unhide,
+                          }
+                        : {
+                            id: 'hide',
+                            label: 'Hide thread',
+                            icon: EyeSlash,
+                            danger: true,
+                            onSelect: () => setHiding(true),
+                          },
                     ]
                   : [],
               ]}

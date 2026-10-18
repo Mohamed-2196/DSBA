@@ -34,7 +34,10 @@ afterEach(() => {
 
 it('SEC-31: signing out removes Noora’s chats from both storage areas', () => {
   local.setItem('theme', '"dark"');
-  local.setItem(CHATS_KEY, JSON.stringify([{ id: 'chat-1', at: 1, title: 'Is my resit fee refundable?', messages: [] }]));
+  local.setItem(
+    CHATS_KEY,
+    JSON.stringify([{ id: 'chat-1', at: 1, title: 'Is my resit fee refundable?', messages: [] }]),
+  );
   session.setItem(CURRENT_KEY, JSON.stringify({ id: 'chat-1', messages: [] }));
   session.setItem('hub.other', '1');
   clearPersonalStorage();

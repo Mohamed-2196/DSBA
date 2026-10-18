@@ -31,7 +31,11 @@ export function getExamSession(
   year: number,
   getModule: (id: string | null | undefined) => ModuleSummary | null,
   today: Date = bahrainToday(),
-  { horizon = 120, maxGap = 21, papers = null }: { horizon?: number; maxGap?: number; papers?: ReadonlySet<string> | null } = {},
+  {
+    horizon = 120,
+    maxGap = 21,
+    papers = null,
+  }: { horizon?: number; maxGap?: number; papers?: ReadonlySet<string> | null } = {},
 ): ExamSession | null {
   const upcoming: SessionEvent[] = events
     .filter((e) => isMine(e, year, papers) && !e.sample && e.type !== 'event' && e.type !== 'careers')

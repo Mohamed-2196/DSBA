@@ -41,7 +41,16 @@ export function ResultsDayBody({ guide }: { guide: ResultsDay }) {
   const n = ticks.done.size;
   return (
     <>
-      <PageHeader title={guide.title} description={guide.intro} meta={<Badge tone={n === ticks.total ? 'signal' : 'neutral'} aria-live="polite">{`${n} of ${ticks.total} done`}</Badge>} />
+      <PageHeader
+        title={guide.title}
+        description={guide.intro}
+        meta={
+          <Badge
+            tone={n === ticks.total ? 'signal' : 'neutral'}
+            aria-live="polite"
+          >{`${n} of ${ticks.total} done`}</Badge>
+        }
+      />
       <PageSection aria-labelledby="results-steps-title">
         <SectionHeader id="results-steps-title" title="What to do next" />
         <Panel as="div" padding="none" radius="feature" className="start-page__panel">
@@ -50,7 +59,11 @@ export function ResultsDayBody({ guide }: { guide: ResultsDay }) {
       </PageSection>
       {featureOn('grades') ? (
         <PageSection aria-labelledby="results-marks-title">
-          <SectionHeader id="results-marks-title" title="Your marks in the calculator" description="Read from this browser. Nothing is sent anywhere." />
+          <SectionHeader
+            id="results-marks-title"
+            title="Your marks in the calculator"
+            description="Read from this browser. Nothing is sent anywhere."
+          />
           <Panel as="div" padding="none" radius="feature" className="start-page__panel start-page__panel--roomy">
             <ProjectedClass />
           </Panel>
@@ -71,7 +84,12 @@ export default function ResultsDayPage() {
       {guides.data ? (
         <ResultsDayBody guide={guides.data.resultsDay} />
       ) : guides.isError ? (
-        <QueryError error={guides.error} title="Results day didn’t load" onRetry={() => void guides.refetch()} retrying={guides.isFetching} />
+        <QueryError
+          error={guides.error}
+          title="Results day didn’t load"
+          onRetry={() => void guides.refetch()}
+          retrying={guides.isFetching}
+        />
       ) : (
         <Skeleton lines={10} />
       )}

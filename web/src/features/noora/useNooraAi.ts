@@ -37,8 +37,13 @@ export function useNooraAi(context: () => AskContext): NooraAi {
       ready
         ? {
             modules,
-            question: (text: string, history: NooraTurn[]): NooraQuestion => ({ ...read.current(), question: text, history }),
-            onAnswered: (left) => qc.setQueryData<NooraStatus>(NOORA_STATUS_KEY, (old) => (old ? { ...old, questionsLeft: left } : old)),
+            question: (text: string, history: NooraTurn[]): NooraQuestion => ({
+              ...read.current(),
+              question: text,
+              history,
+            }),
+            onAnswered: (left) =>
+              qc.setQueryData<NooraStatus>(NOORA_STATUS_KEY, (old) => (old ? { ...old, questionsLeft: left } : old)),
           }
         : null,
     [ready, modules, qc],
@@ -58,7 +63,8 @@ const SCRIPT_CAN = 'I answer from my script: modules, lessons, exam dates and wh
 
 /** Why her AI isn't answering, said plainly, with what she can still do. */
 export function pausedLine(why: Pause, status: NooraStatus | undefined): string {
-  if (why === 'limit') return `You’ve used today’s ${status ? `${status.dailyQuestions} ` : ''}AI questions. Until tomorrow, ${SCRIPT_CAN}`;
+  if (why === 'limit')
+    return `You’ve used today’s ${status ? `${status.dailyQuestions} ` : ''}AI questions. Until tomorrow, ${SCRIPT_CAN}`;
   if (why === 'budget') return `My AI answers are paused until next month. Until then, ${SCRIPT_CAN}`;
   return `My AI answers aren’t available right now. ${SCRIPT_CAN}`;
 }

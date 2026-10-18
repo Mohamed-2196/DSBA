@@ -28,7 +28,15 @@ export function LatestIssueCard() {
     );
   }
   if (latest.isError) {
-    return <QueryError error={latest.error} title="The newsletter didn’t load" size="sm" onRetry={() => void latest.refetch()} retrying={latest.isFetching} />;
+    return (
+      <QueryError
+        error={latest.error}
+        title="The newsletter didn’t load"
+        size="sm"
+        onRetry={() => void latest.refetch()}
+        retrying={latest.isFetching}
+      />
+    );
   }
   const summary = latest.data;
   if (!summary) {

@@ -73,7 +73,12 @@ export async function call<T>(request: Promise<Result<T>>): Promise<T> {
   try {
     result = await request;
   } catch (e) {
-    throw new ApiError({ status: 0, code: 'network', message: 'Could not reach the server. Check your connection.', cause: e });
+    throw new ApiError({
+      status: 0,
+      code: 'network',
+      message: 'Could not reach the server. Check your connection.',
+      cause: e,
+    });
   }
   if (result.error !== undefined || !result.response.ok) throw toApiError(result.response, result.error);
   return result.data as T;

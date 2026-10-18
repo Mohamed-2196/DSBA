@@ -2,12 +2,20 @@ import { describe, expect, it } from 'vitest';
 import type { Box, Feature } from '../../auth';
 import { groupSections, sectionsFor } from './sections';
 
-const holds = (...boxes: Box[]) => (box: Box) => boxes.includes(box);
-const onlyOn = (...features: Feature[]) => (feature: Feature) => features.includes(feature);
+const holds =
+  (...boxes: Box[]) =>
+  (box: Box) =>
+    boxes.includes(box);
+const onlyOn =
+  (...features: Feature[]) =>
+  (feature: Feature) =>
+    features.includes(feature);
 
 describe('sectionsFor', () => {
   it('gives a rep the queues, the newsletter, the calendar and the numbers', () => {
-    expect(sectionsFor(holds('forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view'))).toEqual(['reports', 'uploads', 'newsletter', 'calendar', 'forum', 'gaps', 'numbers']);
+    expect(
+      sectionsFor(holds('forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view')),
+    ).toEqual(['reports', 'uploads', 'newsletter', 'calendar', 'forum', 'gaps', 'numbers']);
   });
 
   it('gives a newsletter manager only the newsletter', () => {
@@ -32,7 +40,9 @@ describe('sectionsFor', () => {
 
   it('gives content editors the Daily puzzles while Daily is on', () => {
     expect(sectionsFor(holds('content.edit'), onlyOn('daily'))).toEqual(['content', 'daily', 'gaps']);
-    expect(groupSections(['content', 'daily'])).toEqual([{ id: 'publish', label: 'Publish', sections: ['content', 'daily'] }]);
+    expect(groupSections(['content', 'daily'])).toEqual([
+      { id: 'publish', label: 'Publish', sections: ['content', 'daily'] },
+    ]);
   });
 
   it('gives the Sunday summary to its box while it is on', () => {
@@ -45,7 +55,14 @@ describe('sectionsFor', () => {
   });
 
   it('leaves out the sections of switched-off features', () => {
-    const rep = holds('forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'career.edit', 'stats.view');
+    const rep = holds(
+      'forum.moderate',
+      'library.manage',
+      'newsletter.manage',
+      'calendar.manage',
+      'career.edit',
+      'stats.view',
+    );
     expect(sectionsFor(rep, onlyOn('forum'))).toEqual(['reports', 'forum', 'numbers']);
     expect(sectionsFor(rep, onlyOn('library', 'career'))).toEqual(['reports', 'uploads', 'career', 'gaps', 'numbers']);
   });

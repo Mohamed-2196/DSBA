@@ -2,15 +2,41 @@ import { useCallback, useState, type ReactNode } from 'react';
 import { useModules } from '../../state/modules';
 import { Badge, cx } from '../../ui';
 import { bandMeta, bandsOf, CLASS_NAME, CLASS_SHORT } from './bands';
-import { bandOf, pooledIndexes, RESULT, subjectsOf, totalMarks, type BandId, type Classification, type ClassificationMark, type ClassKind, type Picks, type Rules } from './classify';
+import {
+  bandOf,
+  pooledIndexes,
+  RESULT,
+  subjectsOf,
+  totalMarks,
+  type BandId,
+  type Classification,
+  type ClassificationMark,
+  type ClassKind,
+  type Picks,
+  type Rules,
+} from './classify';
 import { countsSentence, countsSummary } from './rulesText';
 import { subjectDisplay } from './subjects';
-import { blankIndexes, holdingFloors, improvementPlan, NEXT_CLASS, resitOutlook, targetsForRemaining, type HoldingFloor, type TargetKind } from './whatif';
+import {
+  blankIndexes,
+  holdingFloors,
+  improvementPlan,
+  NEXT_CLASS,
+  resitOutlook,
+  targetsForRemaining,
+  type HoldingFloor,
+  type TargetKind,
+} from './whatif';
 
 type HeroState = 'empty' | 'partial' | 'resit' | 'classified';
 type NameOf = (index: number) => string;
 
-const BAND_FLOOR_FOR: Record<TargetKind, string> = { first: 'first-class', upper: 'upper second-class', lower: 'lower second-class', third: 'third-class' };
+const BAND_FLOOR_FOR: Record<TargetKind, string> = {
+  first: 'first-class',
+  upper: 'upper second-class',
+  lower: 'lower second-class',
+  third: 'third-class',
+};
 const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ''));
 
 /** Classification marks that come only from entered fields (classify() counts a blank as 0; those aren't drawn). */
@@ -72,7 +98,11 @@ export function ResultHero({ marks, picks, result, rules }: ResultHeroProps) {
   }
 
   return (
-    <section className={cx('grades-hero', `grades-hero--${state}`, state === 'classified' && `grades-hero--${result.kind}`)} data-hub="grades-result" aria-labelledby="grades-result-title">
+    <section
+      className={cx('grades-hero', `grades-hero--${state}`, state === 'classified' && `grades-hero--${result.kind}`)}
+      data-hub="grades-result"
+      aria-labelledby="grades-result-title"
+    >
       <div className="grades-hero__main">
         <p className="grades-hero__kicker">{kicker}</p>
         <h2 id="grades-result-title" className="grades-hero__title">
@@ -86,10 +116,23 @@ export function ResultHero({ marks, picks, result, rules }: ResultHeroProps) {
         ) : null}
         <div className="grades-hero__body">{body}</div>
         <p className="visually-hidden" aria-live="polite">
-          {state === 'classified' ? `${CLASS_NAME[result.kind]}, average ${result.average.toFixed(2)}` : state === 'resit' ? RESULT.resit : ''}
+          {state === 'classified'
+            ? `${CLASS_NAME[result.kind]}, average ${result.average.toFixed(2)}`
+            : state === 'resit'
+              ? RESULT.resit
+              : ''}
         </p>
       </div>
-      {state !== 'empty' ? <Breakdown cells={cells} state={state} nameOf={nameOf} kind={result.kind} rules={rules} pooledLabel={summary.pooled?.label ?? null} /> : null}
+      {state !== 'empty' ? (
+        <Breakdown
+          cells={cells}
+          state={state}
+          nameOf={nameOf}
+          kind={result.kind}
+          rules={rules}
+          pooledLabel={summary.pooled?.label ?? null}
+        />
+      ) : null}
     </section>
   );
 }
@@ -99,7 +142,9 @@ function Targets({ marks, rules }: { marks: string[]; rules: Rules }) {
   const blocked = targets.every((t) => t.mark == null);
   const pass = rules.bands.third.floor;
   if (blocked) {
-    return <p className="grades-hero__lede">{`A mark under ${pass} means a resit, whatever you score in the modules left. Pass it and the targets for each class show up here.`}</p>;
+    return (
+      <p className="grades-hero__lede">{`A mark under ${pass} means a resit, whatever you score in the modules left. Pass it and the targets for each class show up here.`}</p>
+    );
   }
   return (
     <div className="grades-targets">
@@ -128,12 +173,29 @@ function Targets({ marks, rules }: { marks: string[]; rules: Rules }) {
   );
 }
 
-function Resit({ marks, result, nameOf, rules, label }: { marks: string[]; result: Classification; nameOf: NameOf; rules: Rules; label: string | null }) {
+function Resit({
+  marks,
+  result,
+  nameOf,
+  rules,
+  label,
+}: {
+  marks: string[];
+  result: Classification;
+  nameOf: NameOf;
+  rules: Rules;
+  label: string | null;
+}) {
   const outlook = resitOutlook(marks, rules);
   if (!outlook) return null;
   const pass = rules.bands.third.floor;
-  const modules = outlook.failing.filter((f) => rules.subjects[f.index]?.counts !== 'average').map((f) => `${nameOf(f.index)} (${fmt(f.mark)})`);
-  const pooled = outlook.groupAverageFails && result.groupAverage != null ? [`your ${label ?? 'averaged modules’'} average (${fmt(Number(result.groupAverage.toFixed(2)))})`] : [];
+  const modules = outlook.failing
+    .filter((f) => rules.subjects[f.index]?.counts !== 'average')
+    .map((f) => `${nameOf(f.index)} (${fmt(f.mark)})`);
+  const pooled =
+    outlook.groupAverageFails && result.groupAverage != null
+      ? [`your ${label ?? 'averaged modules’'} average (${fmt(Number(result.groupAverage.toFixed(2)))})`]
+      : [];
   const parts = [...pooled, ...modules];
   const many = parts.length > 1;
   return (
@@ -142,13 +204,24 @@ function Resit({ marks, result, nameOf, rules, label }: { marks: string[]; resul
         <strong>Under {pass}:</strong> {parts.join(', ')}.
       </p>
       <p className="grades-hints__line">
-        Pass {many ? 'them' : 'it'} with {pass} or more and this calculator gives <strong>{CLASS_NAME[outlook.outcome]}</strong>.
+        Pass {many ? 'them' : 'it'} with {pass} or more and this calculator gives{' '}
+        <strong>{CLASS_NAME[outlook.outcome]}</strong>.
       </p>
     </div>
   );
 }
 
-function Classified({ marks, result, nameOf, rules }: { marks: string[]; result: Classification; nameOf: NameOf; rules: Rules }) {
+function Classified({
+  marks,
+  result,
+  nameOf,
+  rules,
+}: {
+  marks: string[];
+  result: Classification;
+  nameOf: NameOf;
+  rules: Rules;
+}) {
   const { needed, fewer, averages } = rules;
   const bar: Partial<Record<TargetKind, number>> = averages;
   const pass = rules.bands.third.floor;
@@ -172,13 +245,17 @@ function Classified({ marks, result, nameOf, rules }: { marks: string[]; result:
       lines.push(
         <>
           You have <strong>{n} first-class marks</strong>
-          {n > needed ? `, ${n - needed} more than the ${needed} a First needs` : `, exactly the ${needed} a First needs`}.
+          {n > needed
+            ? `, ${n - needed} more than the ${needed} a First needs`
+            : `, exactly the ${needed} a First needs`}
+          .
         </>,
       );
     else
       lines.push(
         <>
-          You have <strong>{n} first-class marks</strong> and an average of <strong>{avg}</strong>: with {between}, a First needs an average of {averages.first} or more.
+          You have <strong>{n} first-class marks</strong> and an average of <strong>{avg}</strong>: with {between}, a
+          First needs an average of {averages.first} or more.
         </>,
       );
   } else if (t && t !== 'third') {
@@ -189,7 +266,8 @@ function Classified({ marks, result, nameOf, rules }: { marks: string[]; result:
         <strong>
           {atOrAbove[t]} {word(t)} marks
         </strong>
-        . {CLASS_SHORT[t] === 'First' ? 'A First' : `A ${CLASS_SHORT[t]}`} needs {needed}, or {fewer} with an average of {bar[t]} or more (yours is {avg}).
+        . {CLASS_SHORT[t] === 'First' ? 'A First' : `A ${CLASS_SHORT[t]}`} needs {needed}, or {fewer} with an average of{' '}
+        {bar[t]} or more (yours is {avg}).
       </>,
     );
   } else if (k === 'none') {
@@ -218,13 +296,15 @@ function Classified({ marks, result, nameOf, rules }: { marks: string[]; result:
         hold.fragile.length === 0 ? (
           <div className="grades-plan">
             <p className="grades-plan__title">
-              <strong>Room to spare.</strong> Any one module could fall to {hold.floor} and this calculator would still give a First.
+              <strong>Room to spare.</strong> Any one module could fall to {hold.floor} and this calculator would still
+              give a First.
             </p>
           </div>
         ) : (
           <div className="grades-plan">
             <p className="grades-plan__title">
-              To keep <strong>First Class Honours</strong>, hold {hold.fragile.length === 1 ? 'this module' : 'these modules'} at
+              To keep <strong>First Class Honours</strong>, hold{' '}
+              {hold.fragile.length === 1 ? 'this module' : 'these modules'} at
             </p>
             <ul role="list" className="grades-plan__list">
               {hold.fragile.slice(0, 4).map((f) => (
@@ -264,7 +344,21 @@ function Classified({ marks, result, nameOf, rules }: { marks: string[]; result:
  * The classification marks as cells, best first, coloured by band (ordinal cobalt ramp), with the
  * rule thresholds (rules.fewer and rules.needed marks) drawn on the strip. The legend doubles as the table view.
  */
-function Breakdown({ cells, state, nameOf, kind, rules, pooledLabel }: { cells: ClassificationMark[]; state: HeroState; nameOf: NameOf; kind: ClassKind; rules: Rules; pooledLabel: string | null }) {
+function Breakdown({
+  cells,
+  state,
+  nameOf,
+  kind,
+  rules,
+  pooledLabel,
+}: {
+  cells: ClassificationMark[];
+  state: HeroState;
+  nameOf: NameOf;
+  kind: ClassKind;
+  rules: Rules;
+  pooledLabel: string | null;
+}) {
   const [hover, setHover] = useState<number | null>(null);
   const sorted = [...cells].sort((a, b) => b.value - a.value);
   const total = Math.max(totalMarks(rules), sorted.length);
@@ -290,49 +384,72 @@ function Breakdown({ cells, state, nameOf, kind, rules, pooledLabel }: { cells: 
     <figure className="grades-chart" data-hub="grades-breakdown" aria-labelledby="grades-chart-title">
       <figcaption id="grades-chart-title" className="grades-chart__title">
         Classification marks
-        <span className="grades-chart__sub">{state === 'empty' ? `${total} in all` : `${sorted.length} of ${total} counted`}</span>
+        <span className="grades-chart__sub">
+          {state === 'empty' ? `${total} in all` : `${sorted.length} of ${total} counted`}
+        </span>
       </figcaption>
       <div className="grades-chart__plot">
-        <div className="grades-chart__cells" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))`, gap: GAP }} aria-hidden="true" onMouseLeave={() => setHover(null)}>
+        <div
+          className="grades-chart__cells"
+          style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))`, gap: GAP }}
+          aria-hidden="true"
+          onMouseLeave={() => setHover(null)}
+        >
           {sorted.map((c, i) => (
-            <span key={i} className={cx('grades-cell', `grades-cell--${bandOf(c.value, rules)}`, hover === i && 'is-hover')} onMouseEnter={() => setHover(i)} />
+            <span
+              key={i}
+              className={cx('grades-cell', `grades-cell--${bandOf(c.value, rules)}`, hover === i && 'is-hover')}
+              onMouseEnter={() => setHover(i)}
+            />
           ))}
           {Array.from({ length: pending }, (_, i) => (
             <span key={`p${i}`} className="grades-cell grades-cell--pending" />
           ))}
         </div>
         {[...new Set([rules.fewer, rules.needed])].map((k) => (
-          <span key={k} className={cx('grades-chart__rule', k === rules.needed && 'is-ten')} style={{ left: at(k) }} aria-hidden="true">
+          <span
+            key={k}
+            className={cx('grades-chart__rule', k === rules.needed && 'is-ten')}
+            style={{ left: at(k) }}
+            aria-hidden="true"
+          >
             <span className="grades-chart__rule-label">{k}</span>
           </span>
         ))}
         {hover != null && hovered ? (
-          <span className="grades-chart__tip" style={{ left: `calc(${at(hover + 0.5)} + ${GAP / 2}px)` }} role="presentation">
+          <span
+            className="grades-chart__tip"
+            style={{ left: `calc(${at(hover + 0.5)} + ${GAP / 2}px)` }}
+            role="presentation"
+          >
             {describe(hovered)}
           </span>
         ) : null}
       </div>
       <p className="grades-chart__rulecap">
-        A class needs <strong>{rules.needed}</strong> marks in its band or better, or <strong>{rules.fewer}</strong> with a high enough average.
+        A class needs <strong>{rules.needed}</strong> marks in its band or better, or <strong>{rules.fewer}</strong>{' '}
+        with a high enough average.
       </p>
       <table className="grades-legend">
         <caption className="visually-hidden">Classification marks per band</caption>
         <tbody>
-          {bandsOf(rules).filter((band) => band.id !== 'fail' || counts.fail > 0).map((band) => (
-            <tr key={band.id}>
-              <th scope="row">
-                <span className={cx('grades-swatch', `grades-cell--${band.id}`)} aria-hidden="true" />
-                {band.label}
-                <span className="grades-legend__range">{band.range}</span>
-                {state === 'classified' && kind === band.id ? (
-                  <Badge tone="highlight" size="sm" className="grades-legend__tag">
-                    Decides your class
-                  </Badge>
-                ) : null}
-              </th>
-              <td>{counts[band.id]}</td>
-            </tr>
-          ))}
+          {bandsOf(rules)
+            .filter((band) => band.id !== 'fail' || counts.fail > 0)
+            .map((band) => (
+              <tr key={band.id}>
+                <th scope="row">
+                  <span className={cx('grades-swatch', `grades-cell--${band.id}`)} aria-hidden="true" />
+                  {band.label}
+                  <span className="grades-legend__range">{band.range}</span>
+                  {state === 'classified' && kind === band.id ? (
+                    <Badge tone="highlight" size="sm" className="grades-legend__tag">
+                      Decides your class
+                    </Badge>
+                  ) : null}
+                </th>
+                <td>{counts[band.id]}</td>
+              </tr>
+            ))}
           {pending > 0 ? (
             <tr className="is-pending">
               <th scope="row">

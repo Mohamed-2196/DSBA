@@ -6,7 +6,26 @@ import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ForumSettings, ForumSettingsEditable } from '../../../api/types';
 import { useToast } from '../../../state';
-import { Badge, Chip, DocFrame, Drawer, ListEditor, Panel, QueryError, Select, Skeleton, Switch, TextArea, TextField, cx, docErrors, focusDocStatus, hasErrorUnder, newItemId, type DocProblem } from '../../../ui';
+import {
+  Badge,
+  Chip,
+  DocFrame,
+  Drawer,
+  ListEditor,
+  Panel,
+  QueryError,
+  Select,
+  Skeleton,
+  Switch,
+  TextArea,
+  TextField,
+  cx,
+  docErrors,
+  focusDocStatus,
+  hasErrorUnder,
+  newItemId,
+  type DocProblem,
+} from '../../../ui';
 import { FORUM_ICONS } from '../components/forumIcons';
 import { CategoryMark } from '../components/ForumSidebar';
 import type { ForumCategory, ForumGuideline, ForumIcon, ForumTag, ForumTip } from '../types';
@@ -23,11 +42,22 @@ const SECTIONS: { id: Section; label: string; about: string; parts: string[] }[]
   {
     id: 'categories',
     label: 'Categories',
-    about: 'Where threads live: the forum’s tabs and sidebar, and “Post in” when writing one. A category for a year shows that year’s threads to its students first.',
+    about:
+      'Where threads live: the forum’s tabs and sidebar, and “Post in” when writing one. A category for a year shows that year’s threads to its students first.',
     parts: ['categories', 'defaultCategory'],
   },
-  { id: 'tags', label: 'Tags', about: 'Up to three on each thread, so people can find it later. The most used show above the list.', parts: ['tags'] },
-  { id: 'guidelines', label: 'Guidelines', about: 'In the forum’s sidebar, each with a picture beside it.', parts: ['guidelines'] },
+  {
+    id: 'tags',
+    label: 'Tags',
+    about: 'Up to three on each thread, so people can find it later. The most used show above the list.',
+    parts: ['tags'],
+  },
+  {
+    id: 'guidelines',
+    label: 'Guidelines',
+    about: 'In the forum’s sidebar, each with a picture beside it.',
+    parts: ['guidelines'],
+  },
   { id: 'tips', label: 'Posting tips', about: 'Beside the form for a new thread.', parts: ['tips'] },
 ];
 
@@ -45,7 +75,16 @@ export function ForumSettingsEditor() {
   const query = useForumSettings();
   // Kept here, so loading someone else's save stays on the same part.
   const [section, setSection] = useState<Section>('categories');
-  if (query.isError) return <QueryError error={query.error} title="The forum’s settings didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} size="sm" />;
+  if (query.isError)
+    return (
+      <QueryError
+        error={query.error}
+        title="The forum’s settings didn’t load"
+        onRetry={() => void query.refetch()}
+        retrying={query.isFetching}
+        size="sm"
+      />
+    );
   if (query.isPending) {
     return (
       <Panel padding="md">
@@ -57,7 +96,15 @@ export function ForumSettingsEditor() {
   return <Editor key={query.data.version} loaded={query.data} section={section} setSection={setSection} />;
 }
 
-function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable; section: Section; setSection: (s: Section) => void }) {
+function Editor({
+  loaded,
+  section,
+  setSection,
+}: {
+  loaded: ForumSettingsEditable;
+  section: Section;
+  setSection: (s: Section) => void;
+}) {
   const saved = loaded.data;
   const [doc, setDoc] = useState<ForumSettings>(saved);
   const [fields, setFields] = useState<Record<string, string>>({});
@@ -69,7 +116,11 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
   const dirty = useMemo(() => JSON.stringify(doc) !== JSON.stringify(saved), [doc, saved]);
   const savedCategories = useMemo(() => new Set(saved.categories.map((c) => c.id)), [saved]);
   const savedTags = useMemo(() => new Set(saved.tags.map((t) => t.id)), [saved]);
-  const savedIds = useMemo(() => new Set([...savedCategories, ...savedTags, ...saved.guidelines.map((g) => g.id), ...saved.tips.map((t) => t.id)]), [saved, savedCategories, savedTags]);
+  const savedIds = useMemo(
+    () =>
+      new Set([...savedCategories, ...savedTags, ...saved.guidelines.map((g) => g.id), ...saved.tips.map((t) => t.id)]),
+    [saved, savedCategories, savedTags],
+  );
   const set = (patch: Partial<ForumSettings>) => setDoc((d) => ({ ...d, ...patch }));
   const err = (path: string) => fields[path];
   const usedBy = (id: string) => loaded.threadsByCategory[id] ?? 0;
@@ -80,7 +131,8 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
     // A new category or tag gets its lasting id from its label now; the draft's was a stand-in.
     const categories = withSavedIds(doc.categories, savedCategories, (c) => c.label, 'category', ['all']);
     const tags = withSavedIds(doc.tags, savedTags, (t) => t.label, 'tag');
-    const defaultCategory = categories[doc.categories.findIndex((c) => c.id === doc.defaultCategory)]?.id ?? doc.defaultCategory;
+    const defaultCategory =
+      categories[doc.categories.findIndex((c) => c.id === doc.defaultCategory)]?.id ?? doc.defaultCategory;
     save.mutate(
       { version: loaded.version, data: { ...doc, categories, tags, defaultCategory } },
       {
@@ -91,10 +143,13 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
           focusDocStatus();
         },
         onError: (e) => {
-          if (isApiError(e) && e.code === 'forum_changed') return setProblem({ kind: 'changed', what: 'the forum’s settings' });
+          if (isApiError(e) && e.code === 'forum_changed')
+            return setProblem({ kind: 'changed', what: 'the forum’s settings' });
           const found = docErrors(isApiError(e) ? e.fields : {}, ['categories', 'tags', 'guidelines', 'tips']);
           setFields(found.fields);
-          const marked = Object.keys(found.fields).length ? ['Some fields need a look before saving. They’re marked below.'] : [];
+          const marked = Object.keys(found.fields).length
+            ? ['Some fields need a look before saving. They’re marked below.']
+            : [];
           const messages = [...found.general, ...marked];
           setProblem({ kind: 'other', messages: messages.length ? messages : [errorMessage(e)] });
           const first = SECTIONS.find((s) => s.parts.some((p) => hasErrorUnder(found.fields, p)));
@@ -129,7 +184,12 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
         onReload={() => void reload()}
         section={{ title: current.label, about: current.about }}
         nav={SECTIONS.map((s) => (
-          <Chip key={s.id} selected={s.id === section} onChange={() => setSection(s.id)} className={cx(s.parts.some((p) => hasErrorUnder(fields, p)) && 'dedit__nav-error')}>
+          <Chip
+            key={s.id}
+            selected={s.id === section}
+            onChange={() => setSection(s.id)}
+            className={cx(s.parts.some((p) => hasErrorUnder(fields, p)) && 'dedit__nav-error')}
+          >
             {s.label}
           </Chip>
         ))}
@@ -141,8 +201,14 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
               hint="A thread without a module, from someone without a year. Only a category for every year can take them."
               value={doc.defaultCategory}
               onChange={(e) => set({ defaultCategory: e.target.value })}
-              options={[...everyYear, ...(defaultNow ? [defaultNow] : [])].map((c) => ({ value: c.id, label: c.label || 'New category' }))}
-              error={err('defaultCategory') ?? (defaultOk ? undefined : 'Choose a category for every year that isn’t retired.')}
+              options={[...everyYear, ...(defaultNow ? [defaultNow] : [])].map((c) => ({
+                value: c.id,
+                label: c.label || 'New category',
+              }))}
+              error={
+                err('defaultCategory') ??
+                (defaultOk ? undefined : 'Choose a category for every year that isn’t retired.')
+              }
             />
             <ListEditor<ForumCategory>
               items={doc.categories}
@@ -150,17 +216,50 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
               titleOf={(c) => c.label}
               metaOf={(c) => <CategoryMeta category={c} threads={usedBy(c.id)} />}
               savedIds={savedIds}
-              keepReason={(c) => (usedBy(c.id) ? `${c.label} has ${threads(usedBy(c.id))}: retire it instead` : c.id === doc.defaultCategory ? 'Threads that fit no year go here: choose another first' : null)}
+              keepReason={(c) =>
+                usedBy(c.id)
+                  ? `${c.label} has ${threads(usedBy(c.id))}: retire it instead`
+                  : c.id === doc.defaultCategory
+                    ? 'Threads that fit no year go here: choose another first'
+                    : null
+              }
               onChange={(categories) => set({ categories })}
-              make={() => ({ id: newItemId('category', doc.categories.map((c) => c.id)), label: '', short: '', year: null, blurb: '', icon: 'chat', retired: false })}
+              make={() => ({
+                id: newItemId(
+                  'category',
+                  doc.categories.map((c) => c.id),
+                ),
+                label: '',
+                short: '',
+                year: null,
+                blurb: '',
+                icon: 'chat',
+                retired: false,
+              })}
               hasError={(i) => hasErrorUnder(fields, `categories.${i}`)}
               min={1}
               max={20}
             >
               {(c, i, change) => (
                 <div className="dedit-grid">
-                  <TextField label="Name" hint="On the forum’s tabs and in its sidebar." value={c.label} onChange={(e) => change({ label: e.target.value })} error={err(`categories.${i}.label`)} maxLength={40} required />
-                  <TextField label="Short name" hint="On a thread’s row, like Year 1 or Study group." value={c.short} onChange={(e) => change({ short: e.target.value })} error={err(`categories.${i}.short`)} maxLength={20} required />
+                  <TextField
+                    label="Name"
+                    hint="On the forum’s tabs and in its sidebar."
+                    value={c.label}
+                    onChange={(e) => change({ label: e.target.value })}
+                    error={err(`categories.${i}.label`)}
+                    maxLength={40}
+                    required
+                  />
+                  <TextField
+                    label="Short name"
+                    hint="On a thread’s row, like Year 1 or Study group."
+                    value={c.short}
+                    onChange={(e) => change({ short: e.target.value })}
+                    error={err(`categories.${i}.short`)}
+                    maxLength={20}
+                    required
+                  />
                   <Select
                     label="For"
                     hint="A year’s category shows its number; its threads are that year’s."
@@ -170,13 +269,33 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
                     error={err(`categories.${i}.year`)}
                   />
                   {c.year == null ? (
-                    <Select label="Picture" hint="Beside the name in the sidebar." value={c.icon ?? 'chat'} onChange={(e) => change({ icon: e.target.value as ForumIcon })} options={ICONS} error={err(`categories.${i}.icon`)} />
+                    <Select
+                      label="Picture"
+                      hint="Beside the name in the sidebar."
+                      value={c.icon ?? 'chat'}
+                      onChange={(e) => change({ icon: e.target.value as ForumIcon })}
+                      options={ICONS}
+                      error={err(`categories.${i}.icon`)}
+                    />
                   ) : null}
-                  <TextField className="dedit-grid__wide" label="Under the name" hint="One line in the sidebar. A year’s category lists its modules there instead." value={c.blurb} onChange={(e) => change({ blurb: e.target.value })} error={err(`categories.${i}.blurb`)} maxLength={120} required />
+                  <TextField
+                    className="dedit-grid__wide"
+                    label="Under the name"
+                    hint="One line in the sidebar. A year’s category lists its modules there instead."
+                    value={c.blurb}
+                    onChange={(e) => change({ blurb: e.target.value })}
+                    error={err(`categories.${i}.blurb`)}
+                    maxLength={120}
+                    required
+                  />
                   <Switch
                     className="dedit-grid__wide"
                     label="Retired"
-                    description={usedBy(c.id) ? `No longer offered. Its ${threads(usedBy(c.id))} stay in it.` : 'No longer offered for new threads.'}
+                    description={
+                      usedBy(c.id)
+                        ? `No longer offered. Its ${threads(usedBy(c.id))} stay in it.`
+                        : 'No longer offered for new threads.'
+                    }
                     checked={c.retired}
                     disabled={!c.retired && c.id === doc.defaultCategory}
                     onChange={(retired) => change({ retired })}
@@ -194,19 +313,39 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
             titleOf={(t) => t.label}
             metaOf={(t) => (t.retired ? `Retired · ${threads(taggedBy(t.id))}` : threads(taggedBy(t.id)))}
             savedIds={savedIds}
-            keepReason={(t) => (taggedBy(t.id) ? `${t.label} is on ${threads(taggedBy(t.id))}: retire it instead` : null)}
+            keepReason={(t) =>
+              taggedBy(t.id) ? `${t.label} is on ${threads(taggedBy(t.id))}: retire it instead` : null
+            }
             onChange={(tags) => set({ tags })}
-            make={() => ({ id: newItemId('tag', doc.tags.map((t) => t.id)), label: '', retired: false })}
+            make={() => ({
+              id: newItemId(
+                'tag',
+                doc.tags.map((t) => t.id),
+              ),
+              label: '',
+              retired: false,
+            })}
             hasError={(i) => hasErrorUnder(fields, `tags.${i}`)}
             max={40}
           >
             {(t, i, change) => (
               <div className="dedit-grid">
-                <TextField label="Name" value={t.label} onChange={(e) => change({ label: e.target.value })} error={err(`tags.${i}.label`)} maxLength={40} required />
+                <TextField
+                  label="Name"
+                  value={t.label}
+                  onChange={(e) => change({ label: e.target.value })}
+                  error={err(`tags.${i}.label`)}
+                  maxLength={40}
+                  required
+                />
                 <Switch
                   className="dedit-grid__wide"
                   label="Retired"
-                  description={taggedBy(t.id) ? `No longer offered. The ${threads(taggedBy(t.id))} that have it keep it.` : 'No longer offered for new threads.'}
+                  description={
+                    taggedBy(t.id)
+                      ? `No longer offered. The ${threads(taggedBy(t.id))} that have it keep it.`
+                      : 'No longer offered for new threads.'
+                  }
                   checked={t.retired}
                   onChange={(retired) => change({ retired })}
                 />
@@ -223,15 +362,37 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
             metaOf={(g) => <GuidelineIcon icon={g.icon} />}
             savedIds={savedIds}
             onChange={(guidelines) => set({ guidelines })}
-            make={() => ({ id: newItemId('guideline', doc.guidelines.map((g) => g.id)), icon: 'info', text: '' })}
+            make={() => ({
+              id: newItemId(
+                'guideline',
+                doc.guidelines.map((g) => g.id),
+              ),
+              icon: 'info',
+              text: '',
+            })}
             hasError={(i) => hasErrorUnder(fields, `guidelines.${i}`)}
             min={1}
             max={8}
           >
             {(g, i, change) => (
               <div className="dedit-grid">
-                <TextArea className="dedit-grid__wide" label="Guideline" value={g.text} onChange={(e) => change({ text: e.target.value })} error={err(`guidelines.${i}.text`)} rows={2} maxLength={200} required />
-                <Select label="Picture" value={g.icon} onChange={(e) => change({ icon: e.target.value as ForumIcon })} options={ICONS} error={err(`guidelines.${i}.icon`)} />
+                <TextArea
+                  className="dedit-grid__wide"
+                  label="Guideline"
+                  value={g.text}
+                  onChange={(e) => change({ text: e.target.value })}
+                  error={err(`guidelines.${i}.text`)}
+                  rows={2}
+                  maxLength={200}
+                  required
+                />
+                <Select
+                  label="Picture"
+                  value={g.icon}
+                  onChange={(e) => change({ icon: e.target.value as ForumIcon })}
+                  options={ICONS}
+                  error={err(`guidelines.${i}.icon`)}
+                />
               </div>
             )}
           </ListEditor>
@@ -244,19 +405,40 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
             titleOf={(t) => t.text}
             savedIds={savedIds}
             onChange={(tips) => set({ tips })}
-            make={() => ({ id: newItemId('tip', doc.tips.map((t) => t.id)), text: '' })}
+            make={() => ({
+              id: newItemId(
+                'tip',
+                doc.tips.map((t) => t.id),
+              ),
+              text: '',
+            })}
             hasError={(i) => hasErrorUnder(fields, `tips.${i}`)}
             min={1}
             max={8}
           >
             {(t, i, change) => (
-              <TextArea label="Tip" hint="Words between `backticks` show as code." value={t.text} onChange={(e) => change({ text: e.target.value })} error={err(`tips.${i}.text`)} rows={2} maxLength={200} required />
+              <TextArea
+                label="Tip"
+                hint="Words between `backticks` show as code."
+                value={t.text}
+                onChange={(e) => change({ text: e.target.value })}
+                error={err(`tips.${i}.text`)}
+                rows={2}
+                maxLength={200}
+                required
+              />
             )}
           </ListEditor>
         ) : null}
       </DocFrame>
 
-      <Drawer open={previewing} onClose={() => setPreviewing(false)} title="Preview" description="The forum’s categories, guidelines and tips with your changes, as everyone will see them once you save." width="min(720px, 100vw)">
+      <Drawer
+        open={previewing}
+        onClose={() => setPreviewing(false)}
+        title="Preview"
+        description="The forum’s categories, guidelines and tips with your changes, as everyone will see them once you save."
+        width="min(720px, 100vw)"
+      >
         {previewing ? <ForumPreview doc={doc} /> : null}
       </Drawer>
     </>

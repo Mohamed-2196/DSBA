@@ -43,7 +43,16 @@ export function StartHereBody({ guide }: { guide: StartHere }) {
   const n = ticks.done.size;
   return (
     <>
-      <PageHeader title={guide.title} description={guide.intro} meta={<Badge tone={n === ticks.total ? 'signal' : 'neutral'} aria-live="polite">{`${n} of ${ticks.total} done`}</Badge>} />
+      <PageHeader
+        title={guide.title}
+        description={guide.intro}
+        meta={
+          <Badge
+            tone={n === ticks.total ? 'signal' : 'neutral'}
+            aria-live="polite"
+          >{`${n} of ${ticks.total} done`}</Badge>
+        }
+      />
       <PageSection aria-labelledby="start-steps-title">
         <SectionHeader id="start-steps-title" title="Your first weeks" />
         <Panel as="div" padding="none" radius="feature" className="start-page__panel">
@@ -68,7 +77,12 @@ export default function StartHerePage() {
       {guides.data ? (
         <StartHereBody guide={guides.data.startHere} />
       ) : guides.isError ? (
-        <QueryError error={guides.error} title="Start here didn’t load" onRetry={() => void guides.refetch()} retrying={guides.isFetching} />
+        <QueryError
+          error={guides.error}
+          title="Start here didn’t load"
+          onRetry={() => void guides.refetch()}
+          retrying={guides.isFetching}
+        />
       ) : (
         <Skeleton lines={10} />
       )}

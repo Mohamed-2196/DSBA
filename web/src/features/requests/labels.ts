@@ -74,7 +74,10 @@ export function parseSort(value: string | null | undefined): RequestSort {
 /** "3 others want this too" under a request; nothing to say at 0. */
 export function meTooLine(count: number, meToo: boolean): string | null {
   if (count <= 0) return null;
-  if (meToo) return count === 1 ? 'You want this too' : `You and ${count - 1} ${count - 1 === 1 ? 'other' : 'others'} want this too`;
+  if (meToo)
+    return count === 1
+      ? 'You want this too'
+      : `You and ${count - 1} ${count - 1 === 1 ? 'other' : 'others'} want this too`;
   return `${count} ${count === 1 ? 'other wants' : 'others want'} this too`;
 }
 
@@ -98,7 +101,9 @@ export function needsReply(status: RequestStatus): boolean {
 /** What a paper request names: "Past paper · 2019 · Zone B"; null when it names no file. */
 export function wantsLine(r: Pick<RequestOut, 'wantedKind' | 'examYear' | 'zone'>): string | null {
   if (!r.wantedKind) return null;
-  return [libraryKindLabel(r.wantedKind), r.examYear ? String(r.examYear) : null, r.zone ? `Zone ${r.zone}` : null].filter(Boolean).join(' · ');
+  return [libraryKindLabel(r.wantedKind), r.examYear ? String(r.examYear) : null, r.zone ? `Zone ${r.zone}` : null]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 /** The exam years a paper request can name: this year back to 2010, newest first. */

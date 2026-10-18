@@ -12,7 +12,17 @@ const LABEL: Record<ShareOutcome, string> = {
   failed: 'Couldn’t copy. Try again',
 };
 
-export function ShareButton({ share, variant = 'primary', size = 'md', fullWidth }: { share: string; variant?: ButtonVariant; size?: ButtonSize; fullWidth?: boolean }) {
+export function ShareButton({
+  share,
+  variant = 'primary',
+  size = 'md',
+  fullWidth,
+}: {
+  share: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  fullWidth?: boolean;
+}) {
   const [outcome, setOutcome] = useState<ShareOutcome | null>(null);
   const timer = useRef<number>();
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -26,7 +36,14 @@ export function ShareButton({ share, variant = 'primary', size = 'md', fullWidth
 
   const done = outcome === 'copied' || outcome === 'shared';
   return (
-    <Button variant={variant} size={size} fullWidth={fullWidth} leadingIcon={done ? Check : ShareNetwork} onClick={() => void onClick()} aria-live="polite">
+    <Button
+      variant={variant}
+      size={size}
+      fullWidth={fullWidth}
+      leadingIcon={done ? Check : ShareNetwork}
+      onClick={() => void onClick()}
+      aria-live="polite"
+    >
       {outcome ? LABEL[outcome] : 'Share result'}
     </Button>
   );

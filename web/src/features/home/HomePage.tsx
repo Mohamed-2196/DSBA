@@ -7,7 +7,20 @@ import { SignIn, SlidersHorizontal, SquaresFour } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { COHORTS, YEARS, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, CohortBadge, EmptyState, ErrorBoundary, Menu, Page, PageSection, Panel, QueryError, SectionHeader, Skeleton, cx } from '../../ui';
+import {
+  Button,
+  CohortBadge,
+  EmptyState,
+  ErrorBoundary,
+  Menu,
+  Page,
+  PageSection,
+  Panel,
+  QueryError,
+  SectionHeader,
+  Skeleton,
+  cx,
+} from '../../ui';
 import { BoardTodo } from '../board/public';
 import { useMyCalendarEvents } from '../calendar/public';
 import { HelpBelow } from '../forum/public';
@@ -37,7 +50,11 @@ const firstNameOf = (name: string | null | undefined): string | null => name?.tr
 function Block({ id, action, children }: { id: HomeBlock; action?: ReactNode; children: ReactNode }) {
   const titleId = `home-${id}`;
   return (
-    <PageSection className={cx('home-block', `home-block--${BLOCKS[id].span}`, `home-block--${id}`)} aria-labelledby={titleId} data-block={id}>
+    <PageSection
+      className={cx('home-block', `home-block--${BLOCKS[id].span}`, `home-block--${id}`)}
+      aria-labelledby={titleId}
+      data-block={id}
+    >
       <SectionHeader id={titleId} title={BLOCKS[id].title} action={action} />
       <ErrorBoundary name={`Home ${id}`}>{children}</ErrorBoundary>
     </PageSection>
@@ -71,7 +88,10 @@ export default function HomePage() {
   const todayIs = todayKey(now);
   const today = useMemo(() => parseDay(todayIs), [todayIs]);
   const calendar = useMyCalendarEvents({ from: todayIs, to: dayKey(addDays(today, 120)) }, { enabled: calendarOn });
-  const session = useMemo(() => getExamSession(calendar.data ?? [], activeYear, getModule, today, { papers }), [calendar.data, activeYear, getModule, today, papers]);
+  const session = useMemo(
+    () => getExamSession(calendar.data ?? [], activeYear, getModule, today, { papers }),
+    [calendar.data, activeYear, getModule, today, papers],
+  );
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
 
   // The blocks this person can have: every feature each needs is on, and an account or lesson progress if it needs one.
@@ -96,7 +116,12 @@ export default function HomePage() {
       case 'daily_question':
         return nextExam?.module ? (
           <Notice key={b} id={b}>
-            <DailyQuestion moduleId={nextExam.module.id} moduleName={nextExam.module.name} examDays={nextExam.days} day={todayIs} />
+            <DailyQuestion
+              moduleId={nextExam.module.id}
+              moduleName={nextExam.module.name}
+              examDays={nextExam.days}
+              day={todayIs}
+            />
           </Notice>
         ) : null;
       case 'help_below':
@@ -245,7 +270,12 @@ export default function HomePage() {
                 <Menu
                   align="start"
                   label="Pick your year"
-                  items={YEARS.map((y) => ({ id: `y${y}`, label: COHORTS[y].label, icon: <span className={`yr-dot yr-dot--y${y}`} />, onSelect: () => setYear(y) }))}
+                  items={YEARS.map((y) => ({
+                    id: `y${y}`,
+                    label: COHORTS[y].label,
+                    icon: <span className={`yr-dot yr-dot--y${y}`} />,
+                    onSelect: () => setYear(y),
+                  }))}
                   trigger={
                     <Button size="sm" variant="ghost" data-hub="home-pick-year">
                       Pick your year
@@ -261,20 +291,35 @@ export default function HomePage() {
           </h1>
           {status === 'guest' ? (
             <p className="home-head__guest" data-hub="home-signin">
-              <span>{forumOn ? 'Sign in for a study board, your Home on every device, and the forum.' : 'Sign in for a study board and your Home on every device.'}</span>
+              <span>
+                {forumOn
+                  ? 'Sign in for a study board, your Home on every device, and the forum.'
+                  : 'Sign in for a study board and your Home on every device.'}
+              </span>
               <Button size="sm" variant="ghost" leadingIcon={SignIn} onClick={() => openSignIn()}>
                 Sign in
               </Button>
             </p>
           ) : null}
         </div>
-        <Button size="sm" leadingIcon={SlidersHorizontal} onClick={() => setCustomizing(true)} className="home-head__custom" data-hub="home-customize-open">
+        <Button
+          size="sm"
+          leadingIcon={SlidersHorizontal}
+          onClick={() => setCustomizing(true)}
+          className="home-head__custom"
+          data-hub="home-customize-open"
+        >
           Customise Home
         </Button>
       </header>
 
       {layout.problem ? (
-        <QueryError error={layout.problem.error} title="Your Home didn’t load" onRetry={layout.problem.retry} retrying={layout.problem.retrying} />
+        <QueryError
+          error={layout.problem.error}
+          title="Your Home didn’t load"
+          onRetry={layout.problem.retry}
+          retrying={layout.problem.retrying}
+        />
       ) : layout.waiting ? (
         <div className="home-blocks" aria-busy="true">
           <span className="visually-hidden">Loading your Home</span>

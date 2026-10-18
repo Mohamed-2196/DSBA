@@ -21,11 +21,20 @@ export function RequestsQueue() {
   return (
     <section className="req-queue" aria-label="Requests" data-hub="requests-queue">
       <div className="req-queue__head">
-        <p className="req-queue__intro">Answer with a status and a reply everyone can read. The student who asked, and everyone who said “me too”, get a notification.</p>
+        <p className="req-queue__intro">
+          Answer with a status and a reply everyone can read. The student who asked, and everyone who said “me too”, get
+          a notification.
+        </p>
         <SegmentedControl label="Show" size="sm" options={SHOWN} value={status} onChange={setStatus} />
       </div>
       {list.isError && !list.data ? (
-        <QueryError error={list.error} title="Requests didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} size="sm" />
+        <QueryError
+          error={list.error}
+          title="Requests didn’t load"
+          onRetry={() => void list.refetch()}
+          retrying={list.isFetching}
+          size="sm"
+        />
       ) : list.isPending ? (
         <Skeleton lines={4} />
       ) : items.length ? (

@@ -17,13 +17,20 @@ const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'obj
 const isText = (v: unknown): v is string => typeof v === 'string';
 
 function isCover(v: unknown): v is IssueCover {
-  return isRecord(v) && (v.tone === 'navy' || v.tone === 'paper') && Array.isArray(v.lines) && v.lines.every((l) => isRecord(l) && isText(l.section) && isText(l.text));
+  return (
+    isRecord(v) &&
+    (v.tone === 'navy' || v.tone === 'paper') &&
+    Array.isArray(v.lines) &&
+    v.lines.every((l) => isRecord(l) && isText(l.section) && isText(l.text))
+  );
 }
 
 function readStored(issueId: string): StoredCopy | null {
   try {
     const raw: unknown = JSON.parse(window.localStorage.getItem(keyOf(issueId)) ?? 'null');
-    return isRecord(raw) && typeof raw.savedAt === 'number' && isRecord(raw.content) ? { savedAt: raw.savedAt, content: raw.content } : null;
+    return isRecord(raw) && typeof raw.savedAt === 'number' && isRecord(raw.content)
+      ? { savedAt: raw.savedAt, content: raw.content }
+      : null;
   } catch {
     return null;
   }
@@ -41,7 +48,8 @@ function draftOfCopy(copy: StoredCopy, detail: IssueDetail): IssueDraft | null {
     summary: isText(c.summary) ? c.summary : detail.summary,
     editors: Array.isArray(c.editors) && c.editors.every(isText) ? c.editors : detail.editors,
     cover: isCover(c.cover) ? c.cover : detail.cover,
-    sections: Array.isArray(c.sections) && c.sections.every(isRecord) ? (c.sections as IssueSection[]) : detail.sections,
+    sections:
+      Array.isArray(c.sections) && c.sections.every(isRecord) ? (c.sections as IssueSection[]) : detail.sections,
   };
   try {
     const draft = draftFrom(merged);
@@ -86,7 +94,9 @@ export function useDraftCopy(detail: IssueDetail, draft: IssueDraft, dirty: bool
   const found = useMemo(() => {
     const copy = readStored(issueId);
     const earlierDraft = copy ? draftOfCopy(copy, detail) : null;
-    return copy && earlierDraft && !sameContent(earlierDraft, draftFrom(detail)) ? { savedAt: copy.savedAt, draft: earlierDraft } : null;
+    return copy && earlierDraft && !sameContent(earlierDraft, draftFrom(detail))
+      ? { savedAt: copy.savedAt, draft: earlierDraft }
+      : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on opening: later versions of the issue don't bring an old copy back
   }, [issueId]);
   const [earlier, setEarlier] = useState(found);

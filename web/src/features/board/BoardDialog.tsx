@@ -71,7 +71,13 @@ export function BoardDialog({ board, taken, onClose, onCreated }: BoardDialogPro
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" form={`board-form-${uid}`} loading={create.isPending || update.isPending} data-hub="board-save">
+          <Button
+            variant="primary"
+            type="submit"
+            form={`board-form-${uid}`}
+            loading={create.isPending || update.isPending}
+            data-hub="board-save"
+          >
             {editing ? 'Save' : 'Make board'}
           </Button>
         </>
@@ -96,7 +102,9 @@ export function BoardDialog({ board, taken, onClose, onCreated }: BoardDialogPro
                     {t.name}
                     {template === t.id ? <CheckCircle weight="fill" aria-hidden="true" /> : null}
                   </span>
-                  <span className="board-dialog__template-cols">{t.id === 'weekly' ? 'Monday to Sunday, Done' : t.columns.join(', ')}</span>
+                  <span className="board-dialog__template-cols">
+                    {t.id === 'weekly' ? 'Monday to Sunday, Done' : t.columns.join(', ')}
+                  </span>
                 </label>
               ))}
             </div>

@@ -57,7 +57,7 @@ function ExternalItem({ item, collapsed }: { item: PortalLink; collapsed: boolea
       data-hub={`ext-${item.id}`}
     >
       <span className="shell-nav__icon">
-        <BrandLogo name={item.logo} height={collapsed ? 20 : item.logoHeight ?? 18} decorative />
+        <BrandLogo name={item.logo} height={collapsed ? 20 : (item.logoHeight ?? 18)} decorative />
       </span>
       <span className="shell-nav__label">{item.label}</span>
       <ArrowSquareOut className="shell-nav__out" aria-hidden="true" />

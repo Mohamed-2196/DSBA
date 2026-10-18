@@ -39,7 +39,11 @@ export function kindLabel(kind: LibraryKind, { plural = false }: { plural?: bool
 }
 
 /** Kinds that belong to an exam sitting: they carry an exam year, a session and a zone. */
-export const EXAM_KINDS: ReadonlySet<LibraryKind> = new Set<LibraryKind>(['past-paper', 'examiners-report', 'exam-solutions']);
+export const EXAM_KINDS: ReadonlySet<LibraryKind> = new Set<LibraryKind>([
+  'past-paper',
+  'examiners-report',
+  'exam-solutions',
+]);
 
 // ── Formats ─────────────────────────────────────────────────────────────────
 

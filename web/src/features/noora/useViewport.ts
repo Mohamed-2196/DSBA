@@ -27,7 +27,13 @@ function measure(top: HTMLElement | null, bottom: HTMLElement | null): View {
   };
 }
 
-const same = (a: View, b: View): boolean => a.w === b.w && a.h === b.h && a.floor === b.floor && a.ceiling === b.ceiling && a.left === b.left && a.right === b.right;
+const same = (a: View, b: View): boolean =>
+  a.w === b.w &&
+  a.h === b.h &&
+  a.floor === b.floor &&
+  a.ceiling === b.ceiling &&
+  a.left === b.left &&
+  a.right === b.right;
 
 /** The space Mini Noora lives in, kept up to date as the window and the rail change. */
 export function useViewport(top: RefObject<HTMLElement>, bottom: RefObject<HTMLElement>): View {

@@ -11,7 +11,16 @@ import type { CohortYear } from '../../state';
 import { dayKeyFromToday, sortEvents } from './queries';
 import type { CalendarPrefsUpdate } from '../../api/types';
 import type { DayKey } from '../../lib/dates';
-import type { CalendarEvent, CalendarPrefs, DayScope, EventFilters, EventInput, EventPatch, PersonalInput, PersonalPatch } from './types';
+import type {
+  CalendarEvent,
+  CalendarPrefs,
+  DayScope,
+  EventFilters,
+  EventInput,
+  EventPatch,
+  PersonalInput,
+  PersonalPatch,
+} from './types';
 
 export const CALENDAR_KEY = ['calendar'] as const;
 
@@ -60,13 +69,20 @@ export function useUpcomingEvents({ n = 5, year = null }: { n?: number; year?: C
   return useQuery({
     queryKey: calendarKeys.upcoming(size, year ?? null),
     queryFn: async () =>
-      sortEvents(await call(api.GET('/api/v1/calendar/upcoming', { params: { query: { limit: size, year: year ?? undefined } } }))),
+      sortEvents(
+        await call(
+          api.GET('/api/v1/calendar/upcoming', { params: { query: { limit: size, year: year ?? undefined } } }),
+        ),
+      ),
     staleTime: STALE,
   });
 }
 
 /** The next exam (today or later) for a module; data is null when none is on the calendar. */
-export function useNextExamForModule(moduleId: string | null | undefined, { enabled = true }: { enabled?: boolean } = {}) {
+export function useNextExamForModule(
+  moduleId: string | null | undefined,
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   const from = dayKeyFromToday();
   return useQuery({
     queryKey: [...calendarKeys.events({ moduleId: moduleId ?? null, type: 'exam', from }), 'next'] as const,
@@ -95,13 +111,15 @@ export function feedUrl(year: CohortYear | null, papers?: ReadonlySet<string> | 
 }
 
 /** The address of a date on the calendar page, to share. */
-export const eventPageUrl = (e: Pick<CalendarEvent, 'id'>): string => appUrl(`/calendar?event=${encodeURIComponent(e.id)}`);
+export const eventPageUrl = (e: Pick<CalendarEvent, 'id'>): string =>
+  appUrl(`/calendar?event=${encodeURIComponent(e.id)}`);
 
 /** One date as an .ics file to import ("Add to calendar"): all day, with a reminder the day before an exam or a deadline. */
 export const eventIcsUrl = (id: string): string => apiUrl(`/api/v1/calendar/events/${encodeURIComponent(id)}.ics`);
 
 /** Every exam of a cohort (and the exams for everyone; null: every cohort) as one .ics file. */
-export const examsIcsUrl = (year: CohortYear | null, papers?: ReadonlySet<string> | null): string => apiUrl(`/api/v1/calendar/feed.ics${feedQuery(year, papers, 'exam')}`);
+export const examsIcsUrl = (year: CohortYear | null, papers?: ReadonlySet<string> | null): string =>
+  apiUrl(`/api/v1/calendar/feed.ics${feedQuery(year, papers, 'exam')}`);
 
 // ── Moderators ─────────────────────────────────────────────────────────────────────────────────
 
@@ -125,7 +143,8 @@ export function useUpdateEvent() {
 export function useDeleteEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => call(api.DELETE('/api/v1/calendar/events/{event_id}', { params: { path: { event_id: id } } })),
+    mutationFn: (id: string) =>
+      call(api.DELETE('/api/v1/calendar/events/{event_id}', { params: { path: { event_id: id } } })),
     onSuccess: () => qc.invalidateQueries({ queryKey: CALENDAR_KEY }),
   });
 }
@@ -186,7 +205,8 @@ export function useUpdateMyEvent() {
 export function useDeleteMyEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => call(api.DELETE('/api/v1/calendar/mine/events/{event_id}', { params: { path: { event_id: id } } })),
+    mutationFn: (id: string) =>
+      call(api.DELETE('/api/v1/calendar/mine/events/{event_id}', { params: { path: { event_id: id } } })),
     onSuccess: () => qc.invalidateQueries({ queryKey: mineKeys.events }),
   });
 }
@@ -197,7 +217,12 @@ export function useEditMyOccurrence() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, day, scope, patch }: { id: string; day: DayKey; scope: DayScope; patch: PersonalPatch }) =>
-      call(api.PATCH('/api/v1/calendar/mine/events/{event_id}/occurrences/{day}', { params: { path: { event_id: id, day }, query: { scope } }, body: patch })),
+      call(
+        api.PATCH('/api/v1/calendar/mine/events/{event_id}/occurrences/{day}', {
+          params: { path: { event_id: id, day }, query: { scope } },
+          body: patch,
+        }),
+      ),
     onSuccess: () => qc.invalidateQueries({ queryKey: mineKeys.events }),
   });
 }
@@ -207,7 +232,11 @@ export function useDeleteMyOccurrence() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, day, scope }: { id: string; day: DayKey; scope: DayScope }) =>
-      call(api.DELETE('/api/v1/calendar/mine/events/{event_id}/occurrences/{day}', { params: { path: { event_id: id, day }, query: { scope } } })),
+      call(
+        api.DELETE('/api/v1/calendar/mine/events/{event_id}/occurrences/{day}', {
+          params: { path: { event_id: id, day }, query: { scope } },
+        }),
+      ),
     onSuccess: () => qc.invalidateQueries({ queryKey: mineKeys.events }),
   });
 }
@@ -247,13 +276,19 @@ export function useUpdatePrefs() {
 export function usePrivateFeed() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (action: 'new' | 'off') => call(action === 'new' ? api.POST('/api/v1/calendar/mine/feed') : api.DELETE('/api/v1/calendar/mine/feed')),
-    onSuccess: (saved) => qc.setQueryData<CalendarPrefs>(mineKeys.settings, (before) => (before ? { ...before, feedPath: saved.feedPath } : saved)),
+    mutationFn: (action: 'new' | 'off') =>
+      call(action === 'new' ? api.POST('/api/v1/calendar/mine/feed') : api.DELETE('/api/v1/calendar/mine/feed')),
+    onSuccess: (saved) =>
+      qc.setQueryData<CalendarPrefs>(mineKeys.settings, (before) =>
+        before ? { ...before, feedPath: saved.feedPath } : saved,
+      ),
   });
 }
 
 /** The private feed's absolute address, for calendar apps. */
-export const privateFeedUrl = (path: string): string => new URL(apiUrl(path as `/api/v1/${string}`), window.location.origin).href;
+export const privateFeedUrl = (path: string): string =>
+  new URL(apiUrl(path as `/api/v1/${string}`), window.location.origin).href;
 
 /** One of the student's events as an .ics file to import. */
-export const myEventIcsUrl = (id: string): string => apiUrl(`/api/v1/calendar/mine/events/${encodeURIComponent(id)}.ics`);
+export const myEventIcsUrl = (id: string): string =>
+  apiUrl(`/api/v1/calendar/mine/events/${encodeURIComponent(id)}.ics`);

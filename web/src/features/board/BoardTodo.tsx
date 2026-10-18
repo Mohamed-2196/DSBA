@@ -10,8 +10,11 @@ import './BoardTodo.css';
 
 function TodoRow({ card, today }: { card: AgendaCard; today: string }) {
   const overdue = isOverdue(card, today);
-  const to = (card.link?.url ? safeInternalPath(card.link.url) : null) ?? `/board?board=${card.boardId}&card=${card.id}`;
-  const when = overdue ? 'Overdue' : dueLabel(card.due, today, formatDay(card.due, { weekday: 'short', month: 'short', year: false }));
+  const to =
+    (card.link?.url ? safeInternalPath(card.link.url) : null) ?? `/board?board=${card.boardId}&card=${card.id}`;
+  const when = overdue
+    ? 'Overdue'
+    : dueLabel(card.due, today, formatDay(card.due, { weekday: 'short', month: 'short', year: false }));
   return (
     <li>
       <Link to={to} className="board-todo__row">
@@ -19,7 +22,10 @@ function TodoRow({ card, today }: { card: AgendaCard; today: string }) {
         <span className="board-todo__text">
           <span className="board-todo__title">{card.title}</span>
           <span className="board-todo__meta">
-            <span>{card.boardEmoji ? `${card.boardEmoji} ` : ''}{card.boardName}</span>
+            <span>
+              {card.boardEmoji ? `${card.boardEmoji} ` : ''}
+              {card.boardName}
+            </span>
             {when && !overdue ? <span>{when}</span> : null}
           </span>
         </span>
@@ -51,7 +57,15 @@ export function BoardTodo({ n = 5 }: { n?: number }) {
     );
   }
   if (agenda.isError) {
-    return <QueryError error={agenda.error} title="Your to-do didn’t load" size="sm" onRetry={() => void agenda.refetch()} retrying={agenda.isFetching} />;
+    return (
+      <QueryError
+        error={agenda.error}
+        title="Your to-do didn’t load"
+        size="sm"
+        onRetry={() => void agenda.refetch()}
+        retrying={agenda.isFetching}
+      />
+    );
   }
   const cards = agenda.data.cards;
   if (!cards.length) {

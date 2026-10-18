@@ -102,11 +102,19 @@ export function SearchGame({ out, busy, play, flash, paused }: GameProps) {
   const cellRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (paused) return;
-    const moves: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+    const moves: Record<string, [number, number]> = {
+      ArrowUp: [-1, 0],
+      ArrowDown: [1, 0],
+      ArrowLeft: [0, -1],
+      ArrowRight: [0, 1],
+    };
     const step = moves[e.key];
     if (step) {
       e.preventDefault();
-      const next = { row: Math.min(size - 1, Math.max(0, focus.row + step[0])), col: Math.min(size - 1, Math.max(0, focus.col + step[1])) };
+      const next = {
+        row: Math.min(size - 1, Math.max(0, focus.row + step[0])),
+        col: Math.min(size - 1, Math.max(0, focus.col + step[1])),
+      };
       setFocus(next);
       cellRefs.current[next.row * size + next.col]?.focus();
     } else if (e.key === 'Escape' && anchor) {
@@ -121,11 +129,23 @@ export function SearchGame({ out, busy, play, flash, paused }: GameProps) {
 
   return (
     <div className="ds">
-      <ul className="ds-words" aria-label={`Words to find: ${found.filter((f) => !f.revealed).length} of ${view?.words.length ?? 8} found`}>
+      <ul
+        className="ds-words"
+        aria-label={`Words to find: ${found.filter((f) => !f.revealed).length} of ${view?.words.length ?? 8} found`}
+      >
         {(view?.words ?? []).map((w) => {
           const f = found.find((x) => x.word === w);
           return (
-            <li key={w} className={cx('ds-word', f && !f.revealed && 'is-found', f?.revealed && 'is-revealed', fresh === w && 'is-fresh')} style={f ? { '--tone': `var(--ds-tone-${findTone(found.indexOf(f))})` } as CSSProperties : undefined}>
+            <li
+              key={w}
+              className={cx(
+                'ds-word',
+                f && !f.revealed && 'is-found',
+                f?.revealed && 'is-revealed',
+                fresh === w && 'is-fresh',
+              )}
+              style={f ? ({ '--tone': `var(--ds-tone-${findTone(found.indexOf(f))})` } as CSSProperties) : undefined}
+            >
               {w}
               {f ? <span className="visually-hidden">{f.revealed ? ' (not found)' : ' (found)'}</span> : null}
             </li>
@@ -135,53 +155,62 @@ export function SearchGame({ out, busy, play, flash, paused }: GameProps) {
 
       <div className="ds-grid-wrap">
         <div className="ds-frame">
-        <div
-          ref={gridRef}
-          className={cx('ds-grid', drag && 'is-dragging')}
-          style={{ '--size': size } as CSSProperties}
-          role="group"
-          aria-label={anchor ? `Letters. First letter picked: row ${anchor.row + 1}, column ${anchor.col + 1}. Pick the last letter.` : 'Letters. Pick a word’s first letter, then its last.'}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={() => setDrag(null)}
-          onKeyDown={onKeyDown}
-        >
-          <svg className="ds-lines" viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-            {found.map((f, i) => (
-              <Line key={f.word} item={f} tone={findTone(i)} fresh={fresh === f.word} />
-            ))}
-            {live ? <Line item={{ ...live, revealed: false }} tone={-1} fresh={false} /> : null}
-            {missed ? <Line item={{ ...missed, revealed: false }} tone={-2} fresh={false} /> : null}
-          </svg>
-          {grid.map((row, r) =>
-            [...row].map((letter, c) => {
-              const pos = { row: r, col: c };
-              const key = posKey(pos);
-              return (
-                <button
-                  key={key}
-                  ref={(el) => {
-                    cellRefs.current[r * size + c] = el;
-                  }}
-                  type="button"
-                  tabIndex={samePos(focus, pos) ? 0 : -1}
-                  className={cx('ds-cell', samePos(anchor, pos) && 'is-anchor', liveCells.has(key) && 'is-live', hints.has(key) && !over && 'is-hint')}
-                  aria-label={`${letter}, row ${r + 1}, column ${c + 1}`}
-                  aria-pressed={samePos(anchor, pos)}
-                  disabled={over}
-                  onFocus={() => setFocus(pos)}
-                  onClick={(e) => {
-                    // Pointer taps arrive through the grid's pointer handlers; this is Enter and Space.
-                    if (e.detail === 0) tap(pos);
-                  }}
-                >
-                  {letter}
-                </button>
-              );
-            }),
-          )}
-        </div>
+          <div
+            ref={gridRef}
+            className={cx('ds-grid', drag && 'is-dragging')}
+            style={{ '--size': size } as CSSProperties}
+            role="group"
+            aria-label={
+              anchor
+                ? `Letters. First letter picked: row ${anchor.row + 1}, column ${anchor.col + 1}. Pick the last letter.`
+                : 'Letters. Pick a word’s first letter, then its last.'
+            }
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={() => setDrag(null)}
+            onKeyDown={onKeyDown}
+          >
+            <svg className="ds-lines" viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+              {found.map((f, i) => (
+                <Line key={f.word} item={f} tone={findTone(i)} fresh={fresh === f.word} />
+              ))}
+              {live ? <Line item={{ ...live, revealed: false }} tone={-1} fresh={false} /> : null}
+              {missed ? <Line item={{ ...missed, revealed: false }} tone={-2} fresh={false} /> : null}
+            </svg>
+            {grid.map((row, r) =>
+              [...row].map((letter, c) => {
+                const pos = { row: r, col: c };
+                const key = posKey(pos);
+                return (
+                  <button
+                    key={key}
+                    ref={(el) => {
+                      cellRefs.current[r * size + c] = el;
+                    }}
+                    type="button"
+                    tabIndex={samePos(focus, pos) ? 0 : -1}
+                    className={cx(
+                      'ds-cell',
+                      samePos(anchor, pos) && 'is-anchor',
+                      liveCells.has(key) && 'is-live',
+                      hints.has(key) && !over && 'is-hint',
+                    )}
+                    aria-label={`${letter}, row ${r + 1}, column ${c + 1}`}
+                    aria-pressed={samePos(anchor, pos)}
+                    disabled={over}
+                    onFocus={() => setFocus(pos)}
+                    onClick={(e) => {
+                      // Pointer taps arrive through the grid's pointer handlers; this is Enter and Space.
+                      if (e.detail === 0) tap(pos);
+                    }}
+                  >
+                    {letter}
+                  </button>
+                );
+              }),
+            )}
+          </div>
         </div>
       </div>
 
@@ -209,7 +238,15 @@ export function SearchGame({ out, busy, play, flash, paused }: GameProps) {
   );
 }
 
-function Line({ item, tone, fresh }: { item: Pick<SearchFound, 'start' | 'end' | 'revealed'>; tone: number; fresh: boolean }) {
+function Line({
+  item,
+  tone,
+  fresh,
+}: {
+  item: Pick<SearchFound, 'start' | 'end' | 'revealed'>;
+  tone: number;
+  fresh: boolean;
+}) {
   const x1 = item.start.col + 0.5;
   const y1 = item.start.row + 0.5;
   const x2 = item.end.col + 0.5;
@@ -237,7 +274,13 @@ export function SearchExample() {
         <svg className="ds-lines" viewBox="0 0 4 4">
           <line className="ds-line is-tone-0" x1={0.5} y1={0.5} x2={3.5} y2={3.5} />
         </svg>
-        {rows.map((row, r) => [...row].map((l, c) => <span key={`${r}${c}`} className="ds-cell">{l}</span>))}
+        {rows.map((row, r) =>
+          [...row].map((l, c) => (
+            <span key={`${r}${c}`} className="ds-cell">
+              {l}
+            </span>
+          )),
+        )}
       </div>
       <p className="dg-eg__caption">
         <strong>DATA</strong> runs diagonally. Drag from its first letter to its last, or tap D and then A.

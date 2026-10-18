@@ -24,7 +24,13 @@ export function ModuleForm({ id, onClose }: Props) {
     return (
       <div className="medit">
         <BackButton onClose={onClose} />
-        <QueryError error={query.error} title="This module didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} size="sm" />
+        <QueryError
+          error={query.error}
+          title="This module didn’t load"
+          onRetry={() => void query.refetch()}
+          retrying={query.isFetching}
+          size="sm"
+        />
       </div>
     );
   }
@@ -138,8 +144,23 @@ function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }
       <Panel padding="md" className="medit__panel">
         <h4 className="medit__section">Details</h4>
         <div className="medit-form__grid">
-          <TextField label="Name" value={draft.name} onChange={(e) => set({ name: e.target.value })} error={fields.name} required maxLength={120} />
-          <TextField label="Short name" hint="On cards and in menus." value={draft.shortName} onChange={(e) => set({ shortName: e.target.value })} error={fields.shortName} required maxLength={60} />
+          <TextField
+            label="Name"
+            value={draft.name}
+            onChange={(e) => set({ name: e.target.value })}
+            error={fields.name}
+            required
+            maxLength={120}
+          />
+          <TextField
+            label="Short name"
+            hint="On cards and in menus."
+            value={draft.shortName}
+            onChange={(e) => set({ shortName: e.target.value })}
+            error={fields.shortName}
+            required
+            maxLength={60}
+          />
           <TextField
             label="Unit code"
             hint="Like ST2133. Leave it empty if there is none."
@@ -148,9 +169,21 @@ function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }
             error={fields.unitCode}
             maxLength={6}
           />
-          <Select label="Year" value={draft.year} onChange={(e) => set({ year: Number(e.target.value) as 1 | 2 | 3 })} options={YEARS.map((y) => ({ value: y, label: `Year ${y}` }))} />
+          <Select
+            label="Year"
+            value={draft.year}
+            onChange={(e) => set({ year: Number(e.target.value) as 1 | 2 | 3 })}
+            options={YEARS.map((y) => ({ value: y, label: `Year ${y}` }))}
+          />
         </div>
-        <ArtField art={draft.art} icon={draft.icon} unitCode={draft.unitCode} onArt={(art) => set({ art })} onIcon={(icon) => set({ icon })} error={fields.art} />
+        <ArtField
+          art={draft.art}
+          icon={draft.icon}
+          unitCode={draft.unitCode}
+          onArt={(art) => set({ art })}
+          onIcon={(icon) => set({ icon })}
+          error={fields.art}
+        />
         <MarkdownEditor
           label="Description"
           hint="Markdown works: **bold**, *italic*, lists, links and $formulas$."
@@ -209,7 +242,11 @@ function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }
             },
             onError: (e) => {
               setRemoving(false);
-              setProblem(isApiError(e) && e.code === 'module_changed' ? { kind: 'changed' } : { kind: 'other', message: errorMessage(e) });
+              setProblem(
+                isApiError(e) && e.code === 'module_changed'
+                  ? { kind: 'changed' }
+                  : { kind: 'other', message: errorMessage(e) },
+              );
             },
           });
         }}

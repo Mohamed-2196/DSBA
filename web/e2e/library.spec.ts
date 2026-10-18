@@ -25,14 +25,20 @@ async function openUpload(page: Page) {
   return dialog;
 }
 
-async function upload(page: Page, file: string, fields: { title: string; module: string; kind: string }): Promise<Item> {
+async function upload(
+  page: Page,
+  file: string,
+  fields: { title: string; module: string; kind: string },
+): Promise<Item> {
   const dialog = await openUpload(page);
   await dialog.locator('input[type="file"]').setInputFiles(file);
   await dialog.getByLabel('Title').fill(fields.title);
   await dialog.getByLabel('Module').selectOption(fields.module);
   await dialog.getByLabel('Type').selectOption(fields.kind);
   const [resp] = await Promise.all([
-    page.waitForResponse((r) => r.url().endsWith('/api/v1/library/items') && r.request().method() === 'POST', { timeout: 30_000 }),
+    page.waitForResponse((r) => r.url().endsWith('/api/v1/library/items') && r.request().method() === 'POST', {
+      timeout: 30_000,
+    }),
     dialog.locator('[data-hub="upload-submit"]').click(),
   ]);
   expect(resp.status(), await resp.text()).toBe(201);
@@ -120,9 +126,15 @@ test('the rep publishes three uploads and rejects one with a note; Ali is told',
   await row(t.csv).getByRole('button', { name: 'Don’t publish' }).click();
   await expect(rep.getByText('Not published').first()).toBeVisible();
 
-  const notes = await api<{ items: { kind: string; title: string; body: string | null; url: string | null }[] }>(ali, 'GET', '/api/v1/notifications?limit=50');
+  const notes = await api<{ items: { kind: string; title: string; body: string | null; url: string | null }[] }>(
+    ali,
+    'GET',
+    '/api/v1/notifications?limit=50',
+  );
   const published = notes.body.items.filter((n) => n.kind === 'upload_published').map((n) => n.title);
-  expect(published).toEqual(expect.arrayContaining([`Your file is in the library: ${t.pdf}`, `Your file is in the library: ${t.docx}`]));
+  expect(published).toEqual(
+    expect.arrayContaining([`Your file is in the library: ${t.pdf}`, `Your file is in the library: ${t.docx}`]),
+  );
   const rejected = notes.body.items.find((n) => n.kind === 'upload_rejected');
   expect(rejected?.body).toBe(note);
 
@@ -148,20 +160,36 @@ test('anyone can preview the PDF and download the files unchanged', async ({ gue
   expect(shown.headers()['content-type']).toBe('application/pdf');
   expect(shown.headers()['content-disposition']).toMatch(/^inline/);
 
-  const [download] = await Promise.all([guest.waitForEvent('download'), guest.getByRole('link', { name: /^Download/ }).first().click()]);
+  const [download] = await Promise.all([
+    guest.waitForEvent('download'),
+    guest
+      .getByRole('link', { name: /^Download/ })
+      .first()
+      .click(),
+  ]);
   expect(fs.readFileSync(await download.path()).equals(fs.readFileSync(files.pdf))).toBe(true);
-  await expect.poll(async () => (await api<Item>(guest, 'GET', `/api/v1/library/items/${pdf?.slug}`)).body.downloadCount).toBeGreaterThan(0);
+  await expect
+    .poll(async () => (await api<Item>(guest, 'GET', `/api/v1/library/items/${pdf?.slug}`)).body.downloadCount)
+    .toBeGreaterThan(0);
 
   // Word files have no preview: the page offers the download, which is the same file.
   await guest.goto(`/library/${docx?.slug}`);
   await expect(guest.locator('[data-hub="file-nopreview"]')).toContainText('No preview');
-  const [d2] = await Promise.all([guest.waitForEvent('download'), guest.locator('[data-hub="file-nopreview"]').getByRole('link', { name: /^Download/ }).click()]);
+  const [d2] = await Promise.all([
+    guest.waitForEvent('download'),
+    guest
+      .locator('[data-hub="file-nopreview"]')
+      .getByRole('link', { name: /^Download/ })
+      .click(),
+  ]);
   expect(fs.readFileSync(await d2.path()).equals(fs.readFileSync(files.docx))).toBe(true);
 });
 
 test('Sara stars a file and finds it under Starred; search and filters find it', async ({ sara, guest, run }) => {
   const t = titles(run.tag);
-  const pdf = (await api<{ items: Item[] }>(sara, 'GET', `/api/v1/library/items?q=${run.tag}`)).body.items.find((i) => i.title === t.pdf);
+  const pdf = (await api<{ items: Item[] }>(sara, 'GET', `/api/v1/library/items?q=${run.tag}`)).body.items.find(
+    (i) => i.title === t.pdf,
+  );
   await api(sara, 'DELETE', `/api/v1/library/items/${pdf?.id}/star`); // not starred yet, even on a re-run
   await sara.goto(`/library/${pdf?.slug}`);
   const star = sara.getByRole('button', { name: `Star ${t.pdf}` }).first();
@@ -185,16 +213,23 @@ test('Sara stars a file and finds it under Starred; search and filters find it',
 
 test('ST-1: a starred file from another year shows under Starred', async ({ ali }) => {
   // A Year 2 file someone else shared (Ali is Year 1, and his own uploads show under "Your uploads" anyway).
-  const other = (await api<{ items: Item[] }>(ali, 'GET', '/api/v1/library/items?year=2&source=link&limit=1')).body.items[0];
+  const other = (await api<{ items: Item[] }>(ali, 'GET', '/api/v1/library/items?year=2&source=link&limit=1')).body
+    .items[0];
   expect((await api(ali, 'PUT', `/api/v1/library/items/${other.id}/star`)).status).toBe(200);
   await ali.goto('/library?starred=1');
   // Starred is Ali's own list: it covers every year unless he picks one.
-  await expect(ali.locator('[data-hub="library-filters"]').getByRole('radio', { name: 'All years' })).toHaveAttribute('aria-checked', 'true');
+  await expect(ali.locator('[data-hub="library-filters"]').getByRole('radio', { name: 'All years' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
   const results = ali.locator('main article[data-hub="file-card"], main tr[data-hub="file-card"]');
   await expect(results.locator(`a[href$="/library/${other.slug}"]`).first()).toBeVisible({ timeout: 5_000 });
   // Leaving Starred brings his own year back.
   await ali.goto('/library');
-  await expect(ali.locator('[data-hub="library-filters"]').getByRole('radio', { name: 'Year 1' })).toHaveAttribute('aria-checked', 'true');
+  await expect(ali.locator('[data-hub="library-filters"]').getByRole('radio', { name: 'Year 1' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
   await api(ali, 'DELETE', `/api/v1/library/items/${other.id}/star`);
 });
 
@@ -208,7 +243,9 @@ test('D9: a photo of notes is checked, reviewed and shown on its page', async ({
   await dialog.getByLabel('Module').selectOption('advanced-stats-distribution');
   await dialog.getByLabel('Type').selectOption('notes');
   const [resp] = await Promise.all([
-    ali.waitForResponse((r) => r.url().endsWith('/api/v1/library/items') && r.request().method() === 'POST', { timeout: 30_000 }),
+    ali.waitForResponse((r) => r.url().endsWith('/api/v1/library/items') && r.request().method() === 'POST', {
+      timeout: 30_000,
+    }),
     dialog.locator('[data-hub="upload-submit"]').click(),
   ]);
   expect(resp.status(), await resp.text()).toBe(201);
@@ -233,11 +270,17 @@ test('D9: a photo of notes is checked, reviewed and shown on its page', async ({
 
 test('ST-14: two publishes at once tell the uploader once', async ({ rep, ali, run }) => {
   // The CSV the rep turned down earlier: two publishes sent together, as a double click sends them.
-  const csv = (await api<{ items: Item[] }>(ali, 'GET', `/api/v1/library/items?mine=true&q=${run.tag}`)).body.items.find((i) => i.title === titles(run.tag).csv);
+  const csv = (
+    await api<{ items: Item[] }>(ali, 'GET', `/api/v1/library/items?mine=true&q=${run.tag}`)
+  ).body.items.find((i) => i.title === titles(run.tag).csv);
   const published = async () =>
-    (await api<{ items: { kind: string; title: string }[] }>(ali, 'GET', '/api/v1/notifications?limit=50')).body.items.filter((n) => n.kind === 'upload_published' && n.title.endsWith(titles(run.tag).csv)).length;
+    (
+      await api<{ items: { kind: string; title: string }[] }>(ali, 'GET', '/api/v1/notifications?limit=50')
+    ).body.items.filter((n) => n.kind === 'upload_published' && n.title.endsWith(titles(run.tag).csv)).length;
   expect(await published()).toBe(0);
-  const answers = await Promise.all([1, 2].map(() => api(rep, 'POST', `/api/v1/library/items/${csv?.id}/review`, { decision: 'publish' })));
+  const answers = await Promise.all(
+    [1, 2].map(() => api(rep, 'POST', `/api/v1/library/items/${csv?.id}/review`, { decision: 'publish' })),
+  );
   expect(answers.map((a) => a.status)).toEqual([200, 200]);
   expect(await published()).toBe(1);
 });

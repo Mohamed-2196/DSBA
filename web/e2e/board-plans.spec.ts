@@ -24,7 +24,8 @@ test('a student plans a module’s revision to the exam date and removes the pla
   await dialog.locator('[data-hub="board-plan-save"]').click();
   await expect(dialog).toBeHidden();
 
-  const plan = async () => (await api<Boards>(sara, 'GET', '/api/v1/boards')).body.plans.find((p) => p.moduleId === 'economics');
+  const plan = async () =>
+    (await api<Boards>(sara, 'GET', '/api/v1/boards')).body.plans.find((p) => p.moduleId === 'economics');
   await expect.poll(async () => (await plan()) !== undefined).toBe(true);
   const boardId = (await plan())?.boardId ?? '';
   const detail = (await api<BoardDetail>(sara, 'GET', `/api/v1/boards/${boardId}`)).body;

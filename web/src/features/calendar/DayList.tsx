@@ -35,7 +35,15 @@ export function DayList({ days, today, selectedId, showCohort, onOpen, className
             <ul role="list" className="cal-days__events">
               {day.events.map((e) => (
                 <li key={e.id}>
-                  <EventRow event={e} day={day.date} days={n} today={today} selected={e.id === selectedId} showCohort={showCohort} onOpen={onOpen} />
+                  <EventRow
+                    event={e}
+                    day={day.date}
+                    days={n}
+                    today={today}
+                    selected={e.id === selectedId}
+                    showCohort={showCohort}
+                    onOpen={onOpen}
+                  />
                 </li>
               ))}
             </ul>
@@ -77,7 +85,15 @@ function EventRow({ event: e, day, days, today, selected, showCohort, onOpen }: 
           <span className={cx('cal-dot', dotClass(e))} aria-hidden="true" />
           {kindLabel(e)}
         </span>
-        {e.mine ? (e.mine.repeat !== 'none' ? <span className="cal-row__all">{repeatLabel(e.mine)}</span> : null) : showCohort ? <CohortBadge year={e.year} variant="dot" size="sm" short /> : e.year == null ? <span className="cal-row__all">All years</span> : null}
+        {e.mine ? (
+          e.mine.repeat !== 'none' ? (
+            <span className="cal-row__all">{repeatLabel(e.mine)}</span>
+          ) : null
+        ) : showCohort ? (
+          <CohortBadge year={e.year} variant="dot" size="sm" short />
+        ) : e.year == null ? (
+          <span className="cal-row__all">All years</span>
+        ) : null}
         {e.sample ? <span className="cal-unconfirmed">Not confirmed yet</span> : null}
       </span>
       <span className="cal-row__when">{left ?? countdownLabel(days)}</span>
@@ -85,7 +101,9 @@ function EventRow({ event: e, day, days, today, selected, showCohort, onOpen }: 
         {code ? <span className="u-code">{code} </span> : null}
         {rest}
       </span>
-      {detail ? <span className={cx('cal-row__where', e.type === 'exam' && !e.time && 'is-unset')}>{detail}</span> : null}
+      {detail ? (
+        <span className={cx('cal-row__where', e.type === 'exam' && !e.time && 'is-unset')}>{detail}</span>
+      ) : null}
     </button>
   );
 }

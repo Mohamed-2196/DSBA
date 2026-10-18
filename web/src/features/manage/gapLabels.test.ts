@@ -2,9 +2,30 @@ import { describe, expect, it } from 'vitest';
 import type { EventGap, GapModule, LessonGap } from '../../api/types';
 import { eventMissing, lessonLine, moduleEditor, moduleFiles, moduleName, sittingName } from './gapLabels';
 
-const st2133: GapModule = { id: 'advanced-stats-distribution', name: 'Advanced statistics', unitCode: 'ST2133', year: 2 };
-const lessons = (g: Partial<LessonGap>): LessonGap => ({ module: st2133, chapters: 8, emptyChapters: 0, lessons: 10, unavailable: 0, ...g });
-const exam = (g: Partial<EventGap>): EventGap => ({ id: 'e', title: 'Exam', date: '2026-11-01', moduleId: null, sample: false, noTime: false, noPlace: false, ...g });
+const st2133: GapModule = {
+  id: 'advanced-stats-distribution',
+  name: 'Advanced statistics',
+  unitCode: 'ST2133',
+  year: 2,
+};
+const lessons = (g: Partial<LessonGap>): LessonGap => ({
+  module: st2133,
+  chapters: 8,
+  emptyChapters: 0,
+  lessons: 10,
+  unavailable: 0,
+  ...g,
+});
+const exam = (g: Partial<EventGap>): EventGap => ({
+  id: 'e',
+  title: 'Exam',
+  date: '2026-11-01',
+  moduleId: null,
+  sample: false,
+  noTime: false,
+  noPlace: false,
+  ...g,
+});
 
 describe('gaps', () => {
   it('names modules and links to where they are fixed', () => {
@@ -23,7 +44,9 @@ describe('gaps', () => {
   it('says what a module lacks in lessons', () => {
     expect(lessonLine(lessons({ chapters: 0, lessons: 0 }))).toBe('No chapters or lessons yet');
     expect(lessonLine(lessons({ chapters: 3, emptyChapters: 3, lessons: 0 }))).toBe('No lessons in its 3 chapters');
-    expect(lessonLine(lessons({ emptyChapters: 2, unavailable: 1 }))).toBe('2 of 8 chapters have no lessons · 1 video gone from YouTube');
+    expect(lessonLine(lessons({ emptyChapters: 2, unavailable: 1 }))).toBe(
+      '2 of 8 chapters have no lessons · 1 video gone from YouTube',
+    );
   });
 
   it('says what an exam lacks', () => {

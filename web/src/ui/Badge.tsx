@@ -61,11 +61,28 @@ export interface CohortBadgeProps extends Omit<HTMLAttributes<HTMLSpanElement>, 
 }
 
 /** Cohort label in the cohort colour. */
-export function CohortBadge({ year, variant = 'soft', size = 'md', short = false, label: words, className, ...rest }: CohortBadgeProps) {
+export function CohortBadge({
+  year,
+  variant = 'soft',
+  size = 'md',
+  short = false,
+  label: words,
+  className,
+  ...rest
+}: CohortBadgeProps) {
   const y = normalizeYear(year);
   const label = words ?? (y ? (short ? COHORTS[y].short : COHORTS[y].label) : cohortLabel(null));
   return (
-    <span className={cx('ui-cohort', `ui-cohort--${variant}`, `ui-badge--${size}`, y ? `ui-cohort--y${y}` : 'ui-cohort--all', className)} {...rest}>
+    <span
+      className={cx(
+        'ui-cohort',
+        `ui-cohort--${variant}`,
+        `ui-badge--${size}`,
+        y ? `ui-cohort--y${y}` : 'ui-cohort--all',
+        className,
+      )}
+      {...rest}
+    >
       {variant !== 'solid' ? <span className="ui-cohort__dot" aria-hidden="true" /> : null}
       {label}
     </span>

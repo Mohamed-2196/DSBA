@@ -21,62 +21,74 @@ teardown('every feature is switched back on for everyone', async ({ browser }) =
   await ctx.close();
 });
 
-teardown('the students download their data and delete their accounts; their posts stay as a deleted account', async ({ browser }) => {
-  teardown.skip(env.keep, 'E2E_KEEP=1');
-  const run = readRun();
-  for (const who of ['ali', 'sara'] as const) {
-    if (!fs.existsSync(statePath(who))) continue;
-    const ctx = await personaContext(browser, who);
-    const page = await ctx.newPage();
-    const me = await api<{ id: string; displayName: string; email: string | null; phone: string | null }>(page, 'GET', '/api/v1/me');
-    if (me.status !== 200) {
-      await ctx.close();
-      continue;
-    }
-    const mine = await api<{ items: { slug: string }[] }>(page, 'GET', '/api/v1/forum/threads?mine=true&limit=50');
-
-    await gotoAccount(page);
-    const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download', exact: true }).click()]);
-    const data = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-    expect(data.user.id).toBe(me.body.id);
-
-    await page.getByRole('button', { name: 'Delete account' }).click();
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toContainText('Your threads and replies stay, shown as from a deleted user.');
-    const word = (await dialog.locator('.u-mono').first().innerText()).trim();
-    await dialog.getByRole('textbox').fill(word);
-    const since = Date.now();
-    await dialog.getByRole('button', { name: /Delete my account/ }).click();
-    // D2: a session that started more than 10 minutes ago confirms it's you first, with a code to the account's
-    // email address (or phone). After the code the deletion goes ahead by itself.
-    const deleted = page.getByText('Your account is deleted');
-    const stepUp = page.locator('[data-hub="step-up"]');
-    await expect(deleted.or(stepUp).first()).toBeVisible();
-    if (await stepUp.isVisible()) {
-      const code = me.body.email ? await waitForCode('email', me.body.email, since) : await waitForCode('sms', me.body.phone ?? '', since);
-      await stepUp.getByLabel('6-digit code').fill(code);
-    }
-    await expect(deleted).toBeVisible();
-    expect((await page.request.get('/api/v1/me')).status()).toBe(401);
-    await ctx.close();
-
-    // What classmates see now.
-    const visible = mine.body.items[0];
-    if (visible) {
-      const guest = await browser.newContext({ baseURL: env.baseURL });
-      const g = await guest.newPage();
-      const thread = await api<{ author: unknown; title: string }>(g, 'GET', `/api/v1/forum/threads/${visible.slug}`);
-      if (thread.status === 200) {
-        expect(thread.body.author).toBeNull();
-        await g.goto(`/forum/${visible.slug}`);
-        await expect(g.locator('main')).toContainText('Deleted account');
+teardown(
+  'the students download their data and delete their accounts; their posts stay as a deleted account',
+  async ({ browser }) => {
+    teardown.skip(env.keep, 'E2E_KEEP=1');
+    const run = readRun();
+    for (const who of ['ali', 'sara'] as const) {
+      if (!fs.existsSync(statePath(who))) continue;
+      const ctx = await personaContext(browser, who);
+      const page = await ctx.newPage();
+      const me = await api<{ id: string; displayName: string; email: string | null; phone: string | null }>(
+        page,
+        'GET',
+        '/api/v1/me',
+      );
+      if (me.status !== 200) {
+        await ctx.close();
+        continue;
       }
-      await guest.close();
+      const mine = await api<{ items: { slug: string }[] }>(page, 'GET', '/api/v1/forum/threads?mine=true&limit=50');
+
+      await gotoAccount(page);
+      const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByRole('button', { name: 'Download', exact: true }).click(),
+      ]);
+      const data = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
+      expect(data.user.id).toBe(me.body.id);
+
+      await page.getByRole('button', { name: 'Delete account' }).click();
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toContainText('Your threads and replies stay, shown as from a deleted user.');
+      const word = (await dialog.locator('.u-mono').first().innerText()).trim();
+      await dialog.getByRole('textbox').fill(word);
+      const since = Date.now();
+      await dialog.getByRole('button', { name: /Delete my account/ }).click();
+      // D2: a session that started more than 10 minutes ago confirms it's you first, with a code to the account's
+      // email address (or phone). After the code the deletion goes ahead by itself.
+      const deleted = page.getByText('Your account is deleted');
+      const stepUp = page.locator('[data-hub="step-up"]');
+      await expect(deleted.or(stepUp).first()).toBeVisible();
+      if (await stepUp.isVisible()) {
+        const code = me.body.email
+          ? await waitForCode('email', me.body.email, since)
+          : await waitForCode('sms', me.body.phone ?? '', since);
+        await stepUp.getByLabel('6-digit code').fill(code);
+      }
+      await expect(deleted).toBeVisible();
+      expect((await page.request.get('/api/v1/me')).status()).toBe(401);
+      await ctx.close();
+
+      // What classmates see now.
+      const visible = mine.body.items[0];
+      if (visible) {
+        const guest = await browser.newContext({ baseURL: env.baseURL });
+        const g = await guest.newPage();
+        const thread = await api<{ author: unknown; title: string }>(g, 'GET', `/api/v1/forum/threads/${visible.slug}`);
+        if (thread.status === 200) {
+          expect(thread.body.author).toBeNull();
+          await g.goto(`/forum/${visible.slug}`);
+          await expect(g.locator('main')).toContainText('Deleted account');
+        }
+        await guest.close();
+      }
+      fs.rmSync(statePath(who));
     }
-    fs.rmSync(statePath(who));
-  }
-  expect(run.tag).toBeTruthy();
-});
+    expect(run.tag).toBeTruthy();
+  },
+);
 
 teardown('the rep removes what the run created', async ({ browser }) => {
   teardown.skip(env.keep, 'E2E_KEEP=1');

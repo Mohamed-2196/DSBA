@@ -38,7 +38,15 @@ describe('tryLevels', () => {
       { label: 'One', level: 1, words: ['A', 'B', 'C', 'D'] },
       { label: 'Four', level: 4, words: ['E', 'F', 'G', 'H'] },
     ];
-    expect(tryLevels([['E', 'A', 'B', 'C'], ['E', 'F', 'G', 'H']], groups)).toEqual([
+    expect(
+      tryLevels(
+        [
+          ['E', 'A', 'B', 'C'],
+          ['E', 'F', 'G', 'H'],
+        ],
+        groups,
+      ),
+    ).toEqual([
       [1, 1, 1, 4],
       [4, 4, 4, 4],
     ]);

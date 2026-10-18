@@ -13,13 +13,23 @@ function Senior({ s, ask }: { s: SeniorData; ask: boolean }) {
       <div className="career-senior__body">
         <p className="career-senior__who">
           <span className="career-senior__name">{s.user.displayName}</span>
-          {s.user.badge ? <Badge tone="neutral">{s.user.badge}</Badge> : s.user.year ? <CohortBadge year={s.user.year} /> : null}
+          {s.user.badge ? (
+            <Badge tone="neutral">{s.user.badge}</Badge>
+          ) : s.user.year ? (
+            <CohortBadge year={s.user.year} />
+          ) : null}
         </p>
         <p className="career-senior__helps">{topicLine(s.topics)}</p>
         {s.note ? <p className="career-senior__note">{s.note}</p> : null}
       </div>
       {ask ? (
-        <Button variant="ghost" size="sm" leadingIcon={ChatsCircle} to={askSeniorLink(s.user.id)} className="career-senior__ask">
+        <Button
+          variant="ghost"
+          size="sm"
+          leadingIcon={ChatsCircle}
+          to={askSeniorLink(s.user.id)}
+          className="career-senior__ask"
+        >
           {`Ask ${first}`}
         </Button>
       ) : null}
@@ -32,7 +42,14 @@ export function Seniors({ seniors }: { seniors: SeniorData[] }) {
   const startsThreads = useStartsThreads();
   if (!seniors.length) return null;
   return (
-    <Panel as="section" padding="none" id="career-seniors" className="career-seniors" aria-labelledby="career-seniors-title" data-hub="career-seniors">
+    <Panel
+      as="section"
+      padding="none"
+      id="career-seniors"
+      className="career-seniors"
+      aria-labelledby="career-seniors-title"
+      data-hub="career-seniors"
+    >
       <div className="career-seniors__head">
         <div className="career-seniors__titles">
           <h3 id="career-seniors-title" className="career-seniors__title">
@@ -40,7 +57,10 @@ export function Seniors({ seniors }: { seniors: SeniorData[] }) {
           </h3>
         </div>
       </div>
-      <p className="career-seniors__desc">Year 3 students who answer questions about applying, interviews and what comes next. Asking one starts a forum thread and tells them.</p>
+      <p className="career-seniors__desc">
+        Year 3 students who answer questions about applying, interviews and what comes next. Asking one starts a forum
+        thread and tells them.
+      </p>
       <ul role="list" className="career-seniors__list">
         {seniors.map((s) => (
           <Senior key={s.user.id} s={s} ask={startsThreads} />

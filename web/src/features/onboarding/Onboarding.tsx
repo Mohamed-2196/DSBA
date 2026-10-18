@@ -49,7 +49,8 @@ export function Onboarding() {
   const [touring, setTouring] = useState(false);
 
   const signedIn = status === 'signed-in' && !!me;
-  const stage: PromptStage | null = status === 'loading' ? null : picked ? 'set' : year == null && !notStudent && !later ? 'year' : null;
+  const stage: PromptStage | null =
+    status === 'loading' ? null : picked ? 'set' : year == null && !notStudent && !later ? 'year' : null;
   const showPrompt = stage !== null && !touring;
   const signal = touring ? 'open' : showPrompt ? 'prompt' : null;
 

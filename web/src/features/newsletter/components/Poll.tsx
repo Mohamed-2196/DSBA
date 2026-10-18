@@ -35,7 +35,10 @@ export function Poll({ block, issue }: { block: PollBlock; issue: PollIssue }) {
   const send = (choice: number) =>
     vote.mutate(
       { issueId: issue.issueId, slug: issue.slug, pollId: block.id, choice },
-      { onError: (e) => push({ tone: 'alert', title: 'Your vote wasn’t saved', body: errorMessage(e, 'Try again in a moment.') }) },
+      {
+        onError: (e) =>
+          push({ tone: 'alert', title: 'Your vote wasn’t saved', body: errorMessage(e, 'Try again in a moment.') }),
+      },
     );
   const choose = (choice: number) => {
     if (requireAuth('Sign in to vote', () => send(choice))) send(choice);
@@ -62,7 +65,10 @@ export function Poll({ block, issue }: { block: PollBlock; issue: PollIssue }) {
                   {result?.mine === i ? <span className="nl-poll__you"> (your vote)</span> : null}
                 </span>
                 <span className="nl-poll__share">
-                  {share}%<span className="visually-hidden">, {n} {n === 1 ? 'vote' : 'votes'}</span>
+                  {share}%
+                  <span className="visually-hidden">
+                    , {n} {n === 1 ? 'vote' : 'votes'}
+                  </span>
                 </span>
               </li>
             );
@@ -71,7 +77,13 @@ export function Poll({ block, issue }: { block: PollBlock; issue: PollIssue }) {
       ) : (
         <div className="nl-poll__answers" role="group" aria-labelledby={headId}>
           {block.answers.map((answer, i) => (
-            <button key={`${i}-${answer}`} type="button" className="nl-poll__choice" disabled={!votes || vote.isPending} onClick={() => choose(i)}>
+            <button
+              key={`${i}-${answer}`}
+              type="button"
+              className="nl-poll__choice"
+              disabled={!votes || vote.isPending}
+              onClick={() => choose(i)}
+            >
               {answer}
             </button>
           ))}
@@ -79,7 +91,15 @@ export function Poll({ block, issue }: { block: PollBlock; issue: PollIssue }) {
       )}
       <p className="nl-poll__foot">
         {total === 1 ? '1 vote' : `${total} votes`}
-        {block.closed ? '. This poll is closed.' : counts ? '. Nobody sees who voted.' : votes ? '. You’ll see the results once you vote.' : issue.readOnly ? '' : '. Voting isn’t on your account.'}
+        {block.closed
+          ? '. This poll is closed.'
+          : counts
+            ? '. Nobody sees who voted.'
+            : votes
+              ? '. You’ll see the results once you vote.'
+              : issue.readOnly
+                ? ''
+                : '. Voting isn’t on your account.'}
       </p>
     </section>
   );

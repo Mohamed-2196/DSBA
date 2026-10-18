@@ -2,13 +2,30 @@ import { CheckCircle, CloudArrowUp, FileText, HourglassMedium, Info, Prohibit, X
 import { useEffect, useId, useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isApiError } from '../../../api/errors';
-import { UPLOAD_RULES, checkUpload, formatSize, progressPercent, progressText, uploadContentType, uploadErrorMessage, uploadFile, type UploadProgress } from '../../../api/uploads';
+import {
+  UPLOAD_RULES,
+  checkUpload,
+  formatSize,
+  progressPercent,
+  progressText,
+  uploadContentType,
+  uploadErrorMessage,
+  uploadFile,
+  type UploadProgress,
+} from '../../../api/uploads';
 import { useAuth } from '../../../auth';
 import { useModules } from '../../../state/modules';
 import { Button, IconButton, Modal, cx } from '../../../ui';
 import { useLibraryAccess } from '../access';
 import { itemPath, useCreateItem, useLibraryList } from '../api';
-import { checkValues, emptyValues, errorsFromApi, toCreateBody, type ItemFormErrors, type ItemFormValues } from '../itemForm';
+import {
+  checkValues,
+  emptyValues,
+  errorsFromApi,
+  toCreateBody,
+  type ItemFormErrors,
+  type ItemFormValues,
+} from '../itemForm';
 import { MAX_PENDING_UPLOADS, extensionOf, titleFromFileName } from '../kinds';
 import type { CohortYear, LibraryItem } from '../types';
 import { ItemFields } from './ItemFields';
@@ -17,7 +34,8 @@ import './UploadDialog.css';
 type Phase = 'form' | 'sending' | 'checking' | 'saving' | 'done';
 
 const RULES = UPLOAD_RULES.library;
-const reducedMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = () =>
+  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 /** What went wrong with the last try, and whether "Your uploads" is the way forward (too many waiting). */
 interface Problem {
@@ -62,7 +80,10 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
   const { getModule } = useModules();
   const createItem = useCreateItem();
   // A student may have MAX_PENDING_UPLOADS files waiting for review at once (security review SEC-14).
-  const waiting = useLibraryList({ mine: true, status: 'pending' }, { limit: 1, enabled: open && !!me && !managesLibrary && !suspended });
+  const waiting = useLibraryList(
+    { mine: true, status: 'pending' },
+    { limit: 1, enabled: open && !!me && !managesLibrary && !suspended },
+  );
   const full = !managesLibrary && (waiting.data?.total ?? 0) >= MAX_PENDING_UPLOADS;
   const blocked = suspended || full;
 
@@ -75,7 +96,9 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [values, setValues] = useState<ItemFormValues>(() => emptyValues({ moduleId: defaultModuleId, year: defaultYear }));
+  const [values, setValues] = useState<ItemFormValues>(() =>
+    emptyValues({ moduleId: defaultModuleId, year: defaultYear }),
+  );
   const [errors, setErrors] = useState<ItemFormErrors>({});
   const [phase, setPhase] = useState<Phase>('form');
   const [progress, setProgress] = useState<UploadProgress>({ loaded: 0, total: 0 });
@@ -133,7 +156,12 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
   const reset = () => {
     setFile(null);
     setFileError(null);
-    setValues(emptyValues({ moduleId: values.module && values.module !== 'none' ? values.module : defaultModuleId, year: defaultYear }));
+    setValues(
+      emptyValues({
+        moduleId: values.module && values.module !== 'none' ? values.module : defaultModuleId,
+        year: defaultYear,
+      }),
+    );
     setErrors({});
     setProblem(null);
     setUploadId(null);
@@ -153,7 +181,10 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
       // Take keyboard and screen reader users to the first thing to fix.
       requestAnimationFrame(() => {
         const form = formRef.current;
-        (form?.querySelector<HTMLElement>('[aria-invalid="true"]') ?? form?.querySelector<HTMLElement>('[data-autofocus]'))?.focus();
+        (
+          form?.querySelector<HTMLElement>('[aria-invalid="true"]') ??
+          form?.querySelector<HTMLElement>('[data-autofocus]')
+        )?.focus();
       });
       return;
     }
@@ -165,7 +196,11 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
       if (!id) {
         setPhase('sending');
         setProgress({ loaded: 0, total: file.size });
-        const upload = await uploadFile('library', file, { signal: controller.signal, onProgress: setProgress, onChecking: () => setPhase('checking') });
+        const upload = await uploadFile('library', file, {
+          signal: controller.signal,
+          onProgress: setProgress,
+          onChecking: () => setPhase('checking'),
+        });
         id = upload.uploadId;
         setUploadId(id);
       }
@@ -188,7 +223,10 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
         }
         if (err.code === 'too_many_pending') void waiting.refetch();
       }
-      setProblem({ message: uploadErrorMessage(err, 'library'), toYourUploads: isApiError(err) && err.code === 'too_many_pending' });
+      setProblem({
+        message: uploadErrorMessage(err, 'library'),
+        toYourUploads: isApiError(err) && err.code === 'too_many_pending',
+      });
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
     }
@@ -262,8 +300,8 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
       <div className="lib-upload__blocked" role="status" data-hub="upload-blocked">
         <Prohibit className="lib-upload__blocked-icon" weight="duotone" aria-hidden="true" />
         <p>
-          <strong>Your account is suspended, so you can’t upload files.</strong> You can still read and download everything in the library.
-          Contact a student rep if you think this is a mistake.
+          <strong>Your account is suspended, so you can’t upload files.</strong> You can still read and download
+          everything in the library. Contact a student rep if you think this is a mistake.
         </p>
       </div>
     );
@@ -272,8 +310,8 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
       <div className="lib-upload__blocked" role="status" data-hub="upload-blocked">
         <HourglassMedium className="lib-upload__blocked-icon" weight="duotone" aria-hidden="true" />
         <p>
-          <strong>You have {MAX_PENDING_UPLOADS} files waiting for review.</strong> You can share more once a student rep has looked at them. Until
-          then they’re in Your uploads, where you can still edit or delete them.
+          <strong>You have {MAX_PENDING_UPLOADS} files waiting for review.</strong> You can share more once a student
+          rep has looked at them. Until then they’re in Your uploads, where you can still edit or delete them.
         </p>
       </div>
     );
@@ -289,8 +327,8 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
         ) : (
           <>
             <p>
-              A student rep checks every upload before it’s public. Until then “{created.title}” is in <strong>Your uploads</strong>, marked{' '}
-              <em>Waiting for review</em>, and only you and the reps can see it.
+              A student rep checks every upload before it’s public. Until then “{created.title}” is in{' '}
+              <strong>Your uploads</strong>, marked <em>Waiting for review</em>, and only you and the reps can see it.
             </p>
             <p>You’ll get a notification when it has been reviewed.</p>
           </>
@@ -385,7 +423,11 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
           <div className="lib-upload__progress">
             {/* Screen readers hear each step once; the bar carries the percentage. */}
             <span className="visually-hidden" role="status">
-              {phase === 'sending' ? 'Uploading the file' : phase === 'checking' ? 'Checking the file' : 'Adding it to the library'}
+              {phase === 'sending'
+                ? 'Uploading the file'
+                : phase === 'checking'
+                  ? 'Checking the file'
+                  : 'Adding it to the library'}
             </span>
             <div
               className="lib-upload__bar"
@@ -398,7 +440,11 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
               <span style={{ width: `${phase === 'sending' ? pct : 100}%` }} />
             </div>
             <p className="lib-upload__progress-text" aria-hidden="true">
-              {phase === 'sending' ? progressText(progress) : phase === 'checking' ? 'Checking the file…' : 'Adding it to the library…'}
+              {phase === 'sending'
+                ? progressText(progress)
+                : phase === 'checking'
+                  ? 'Checking the file…'
+                  : 'Adding it to the library…'}
             </p>
           </div>
         ) : null}
@@ -408,8 +454,8 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
         <p className="lib-upload__rights">
           <Info aria-hidden="true" weight="bold" />
           <span>
-            Only share what you’re allowed to share: your own work, or material the course lets students pass on. Leave out anyone’s personal
-            details.
+            Only share what you’re allowed to share: your own work, or material the course lets students pass on. Leave
+            out anyone’s personal details.
           </span>
         </p>
       </form>

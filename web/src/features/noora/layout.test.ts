@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { avoid, clampPoint, fromAnchor, hintSide, homePoint, laneWidth, LANE_PAD, nearestSide, perchOnSheet, placeChat, restPoint, toAnchor, type View } from './layout';
+import {
+  avoid,
+  clampPoint,
+  fromAnchor,
+  hintSide,
+  homePoint,
+  laneWidth,
+  LANE_PAD,
+  nearestSide,
+  perchOnSheet,
+  placeChat,
+  restPoint,
+  toAnchor,
+  type View,
+} from './layout';
 import { HEIGHT, figure } from './sprites';
 
 // A laptop with the rail (264 px) on the left; a phone; a very wide screen where the shell is centred (2000 px).

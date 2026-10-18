@@ -4,8 +4,26 @@
 import { useId, useRef, useState } from 'react';
 import { Plus, TextAa, UploadSimple } from '@phosphor-icons/react';
 import { Button, SegmentedControl, Switch, cx } from '../../../ui';
-import { UPLOAD_RULES, checkUpload, progressText, uploadErrorMessage, uploadFile, type UploadProgress } from '../../../api/uploads';
-import { LIMITS, blankStat, controlId, fieldPath, moveByKey, removeByKey, updateByKey, type Beside, type FieldErrors, type SectionDraft } from '../lib/draft';
+import {
+  UPLOAD_RULES,
+  checkUpload,
+  progressText,
+  uploadErrorMessage,
+  uploadFile,
+  type UploadProgress,
+} from '../../../api/uploads';
+import {
+  LIMITS,
+  blankStat,
+  controlId,
+  fieldPath,
+  moveByKey,
+  removeByKey,
+  updateByKey,
+  type Beside,
+  type FieldErrors,
+  type SectionDraft,
+} from '../lib/draft';
 import { pictureSrc } from '../../../api/pictures';
 import { ItemTools, MARKUP_HINT, TextBox, TextInput } from './fields';
 import { useOfferedPictures } from '../api';
@@ -72,7 +90,15 @@ export function PicturePicker({ name, label, choices, value, onChoose, none, id,
       <div className="nl-ed-pictures__grid">
         {none !== undefined ? (
           <label className="nl-ed-picture nl-ed-picture--none">
-            <input type="radio" name={name} className="nl-ed-picture__input" checked={!value} onChange={() => onChoose(null)} id={id} aria-invalid={error ? true : undefined} />
+            <input
+              type="radio"
+              name={name}
+              className="nl-ed-picture__input"
+              checked={!value}
+              onChange={() => onChoose(null)}
+              id={id}
+              aria-invalid={error ? true : undefined}
+            />
             <span className="nl-ed-picture__thumb" aria-hidden="true">
               <TextAa weight="duotone" />
             </span>
@@ -92,7 +118,11 @@ export function PicturePicker({ name, label, choices, value, onChoose, none, id,
                 id={none === undefined && i === 0 ? id : undefined}
                 aria-invalid={error ? true : undefined}
               />
-              <span className="nl-ed-picture__thumb">{src ? <img src={src} alt="" width={p.width} height={p.height} loading="lazy" decoding="async" /> : null}</span>
+              <span className="nl-ed-picture__thumb">
+                {src ? (
+                  <img src={src} alt="" width={p.width} height={p.height} loading="lazy" decoding="async" />
+                ) : null}
+              </span>
               <span className="nl-ed-picture__label">{p.label}</span>
             </label>
           );
@@ -140,10 +170,13 @@ export interface BesideEditorProps {
 export function BesideEditor({ section: s, errors, onChange }: BesideEditorProps) {
   const path = (field: string) => fieldPath.section(s.key, field);
   const offered = useOfferedPictures().data ?? [];
-  const setFigure = (patch: Partial<SectionDraft['figure']>) => onChange((x) => ({ ...x, figure: { ...x.figure, ...patch } }));
+  const setFigure = (patch: Partial<SectionDraft['figure']>) =>
+    onChange((x) => ({ ...x, figure: { ...x.figure, ...patch } }));
   const setCard = (patch: Partial<SectionDraft['card']>) => onChange((x) => ({ ...x, card: { ...x.card, ...patch } }));
-  const setStats = (patch: Partial<SectionDraft['stats']>) => onChange((x) => ({ ...x, stats: { ...x.stats, ...patch } }));
-  const setItems = (fn: (items: SectionDraft['stats']['items']) => SectionDraft['stats']['items']) => onChange((x) => ({ ...x, stats: { ...x.stats, items: fn(x.stats.items) } }));
+  const setStats = (patch: Partial<SectionDraft['stats']>) =>
+    onChange((x) => ({ ...x, stats: { ...x.stats, ...patch } }));
+  const setItems = (fn: (items: SectionDraft['stats']['items']) => SectionDraft['stats']['items']) =>
+    onChange((x) => ({ ...x, stats: { ...x.stats, items: fn(x.stats.items) } }));
   const itemsError = errors[path('stats.items')];
 
   return (
@@ -164,7 +197,9 @@ export function BesideEditor({ section: s, errors, onChange }: BesideEditorProps
             label="Picture"
             choices={pictureChoices(offered, s.figure)}
             value={s.figure.src || null}
-            onChoose={(p) => setFigure(p ? { src: p.src, width: p.width, height: p.height } : { src: '', width: 0, height: 0 })}
+            onChoose={(p) =>
+              setFigure(p ? { src: p.src, width: p.width, height: p.height } : { src: '', width: 0, height: 0 })
+            }
             id={controlId(path('figure.src'))}
             error={errors[path('figure.src')]}
           />
@@ -175,26 +210,78 @@ export function BesideEditor({ section: s, errors, onChange }: BesideEditorProps
             label="Description"
             rows={2}
             max={LIMITS.alt}
-            hint={s.figure.alt.trim() ? 'Read out to people who can’t see the picture.' : 'Describe the picture for people who can’t see it: what it shows, and any words on it.'}
+            hint={
+              s.figure.alt.trim()
+                ? 'Read out to people who can’t see the picture.'
+                : 'Describe the picture for people who can’t see it: what it shows, and any words on it.'
+            }
             value={s.figure.alt}
             onValue={(alt) => setFigure({ alt })}
           />
-          <TextInput path={path('figure.caption')} errors={errors} label="Caption" max={LIMITS.short} hint="A line under the picture (optional)." value={s.figure.caption} onValue={(caption) => setFigure({ caption })} />
+          <TextInput
+            path={path('figure.caption')}
+            errors={errors}
+            label="Caption"
+            max={LIMITS.short}
+            hint="A line under the picture (optional)."
+            value={s.figure.caption}
+            onValue={(caption) => setFigure({ caption })}
+          />
         </div>
       ) : null}
 
       {s.beside === 'card' ? (
         <div className="nl-ed-stack">
-          <TextInput path={path('card.kicker')} errors={errors} label="Line above" max={LIMITS.label} placeholder="Student Council 2026/27" value={s.card.kicker} onValue={(kicker) => setCard({ kicker })} />
-          <TextInput path={path('card.title')} errors={errors} label="Big words" max={LIMITS.line} hint="Set very large, on a highlight." placeholder="Vote" value={s.card.title} onValue={(title) => setCard({ title })} />
-          <TextBox path={path('card.text')} errors={errors} label="Line below" rows={2} max={LIMITS.short} hint={MARKUP_HINT} value={s.card.text} onValue={(text) => setCard({ text })} />
-          <Switch checked={s.card.wide} onChange={(wide) => setCard({ wide })} label="Wide" description="Takes a picture’s wider column beside the text." className="nl-ed-switch" />
+          <TextInput
+            path={path('card.kicker')}
+            errors={errors}
+            label="Line above"
+            max={LIMITS.label}
+            placeholder="Student Council 2026/27"
+            value={s.card.kicker}
+            onValue={(kicker) => setCard({ kicker })}
+          />
+          <TextInput
+            path={path('card.title')}
+            errors={errors}
+            label="Big words"
+            max={LIMITS.line}
+            hint="Set very large, on a highlight."
+            placeholder="Vote"
+            value={s.card.title}
+            onValue={(title) => setCard({ title })}
+          />
+          <TextBox
+            path={path('card.text')}
+            errors={errors}
+            label="Line below"
+            rows={2}
+            max={LIMITS.short}
+            hint={MARKUP_HINT}
+            value={s.card.text}
+            onValue={(text) => setCard({ text })}
+          />
+          <Switch
+            checked={s.card.wide}
+            onChange={(wide) => setCard({ wide })}
+            label="Wide"
+            description="Takes a picture’s wider column beside the text."
+            className="nl-ed-switch"
+          />
         </div>
       ) : null}
 
       {s.beside === 'stats' ? (
         <div className="nl-ed-stack">
-          <TextInput path={path('stats.title')} errors={errors} label="Title" max={LIMITS.line} placeholder="DSBA Hub in numbers" value={s.stats.title} onValue={(title) => setStats({ title })} />
+          <TextInput
+            path={path('stats.title')}
+            errors={errors}
+            label="Title"
+            max={LIMITS.line}
+            placeholder="DSBA Hub in numbers"
+            value={s.stats.title}
+            onValue={(title) => setStats({ title })}
+          />
           <ol className="nl-ed-stats" aria-label="Numbers">
             {s.stats.items.map((item, i) => (
               <li key={item.key} className="nl-ed-stat">
@@ -234,11 +321,32 @@ export function BesideEditor({ section: s, errors, onChange }: BesideEditorProps
               {itemsError}
             </p>
           ) : null}
-          <Button size="sm" variant="ghost" leadingIcon={Plus} disabled={s.stats.items.length >= LIMITS.stats} onClick={() => setItems((items) => [...items, blankStat()])} className="nl-ed-start">
+          <Button
+            size="sm"
+            variant="ghost"
+            leadingIcon={Plus}
+            disabled={s.stats.items.length >= LIMITS.stats}
+            onClick={() => setItems((items) => [...items, blankStat()])}
+            className="nl-ed-start"
+          >
             Add a number
           </Button>
-          <TextInput path={path('stats.foot')} errors={errors} label="Note under the numbers" max={LIMITS.short} hint="Optional." value={s.stats.foot} onValue={(foot) => setStats({ foot })} />
-          <Switch checked={s.stats.wide} onChange={(wide) => setStats({ wide })} label="Wide" description="Takes a picture’s wider column, with the numbers two by two." className="nl-ed-switch" />
+          <TextInput
+            path={path('stats.foot')}
+            errors={errors}
+            label="Note under the numbers"
+            max={LIMITS.short}
+            hint="Optional."
+            value={s.stats.foot}
+            onValue={(foot) => setStats({ foot })}
+          />
+          <Switch
+            checked={s.stats.wide}
+            onChange={(wide) => setStats({ wide })}
+            label="Wide"
+            description="Takes a picture’s wider column, with the numbers two by two."
+            className="nl-ed-switch"
+          />
         </div>
       ) : null}
     </div>

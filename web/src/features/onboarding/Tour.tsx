@@ -30,7 +30,16 @@ export function Tour({ open, year, onClose }: TourProps) {
   const Art = tourArtOf(tour.art);
   const last = step >= TOUR.length;
   return (
-    <Modal open={open} onClose={onClose} title={`What’s new: ${tour.title}`} hideHeader size="xl" className="onb onb--tour" bodyClassName="onb-body" data-hub="onboarding-tour">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={`What’s new: ${tour.title}`}
+      hideHeader
+      size="xl"
+      className="onb onb--tour"
+      bodyClassName="onb-body"
+      data-hub="onboarding-tour"
+    >
       <div className="onb-step onb-step--tour" key={tour.id}>
         <div className="onb-tour">
           <div className="onb-tour__art">
@@ -38,7 +47,9 @@ export function Tour({ open, year, onClose }: TourProps) {
           </div>
           <div className="onb-tour__text">
             <p className="onb-tour__kicker">
-              <span className={cx('onb-tour__year', year && `onb-tour__year--y${year}`)}>{year ? `${COHORTS[year].label} is set` : 'What’s new'}</span>
+              <span className={cx('onb-tour__year', year && `onb-tour__year--y${year}`)}>
+                {year ? `${COHORTS[year].label} is set` : 'What’s new'}
+              </span>
               <span className="onb-tour__progress u-tabular" aria-label={`Step ${step} of ${TOUR.length}`}>
                 {TOUR.map((t, i) => (
                   <span key={t.id} className={cx('onb-dot', i + 1 === step && 'is-on', i + 1 < step && 'is-done')} />

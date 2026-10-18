@@ -16,13 +16,17 @@ function changed(qc: QueryClient, id?: string): void {
 }
 
 export function useModulesForEditing() {
-  return useQuery({ queryKey: EDIT_MODULES_KEY, queryFn: ({ signal }) => call(api.GET('/api/v1/content/modules', { signal })) });
+  return useQuery({
+    queryKey: EDIT_MODULES_KEY,
+    queryFn: ({ signal }) => call(api.GET('/api/v1/content/modules', { signal })),
+  });
 }
 
 export function useModuleForEditing(id: string) {
   return useQuery({
     queryKey: editKey(id),
-    queryFn: ({ signal }) => call(api.GET('/api/v1/content/modules/{module_id}', { params: { path: { module_id: id } }, signal })),
+    queryFn: ({ signal }) =>
+      call(api.GET('/api/v1/content/modules/{module_id}', { params: { path: { module_id: id } }, signal })),
     // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
     staleTime: Infinity,
     refetchOnWindowFocus: false,
@@ -43,7 +47,8 @@ export function useCreateModule() {
 export function useSaveModule(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: ModuleSave) => call(api.PUT('/api/v1/content/modules/{module_id}', { params: { path: { module_id: id } }, body })),
+    mutationFn: (body: ModuleSave) =>
+      call(api.PUT('/api/v1/content/modules/{module_id}', { params: { path: { module_id: id } }, body })),
     onSuccess: (m: ModuleEdit) => {
       qc.setQueryData(editKey(id), m);
       changed(qc, id);
@@ -73,7 +78,9 @@ export function useDeleteModule() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, version }: { id: string; version: number }) =>
-      call(api.DELETE('/api/v1/content/modules/{module_id}', { params: { path: { module_id: id }, query: { version } } })),
+      call(
+        api.DELETE('/api/v1/content/modules/{module_id}', { params: { path: { module_id: id }, query: { version } } }),
+      ),
     onSuccess: (_, { id }) => {
       qc.removeQueries({ queryKey: editKey(id), exact: true });
       changed(qc, id);

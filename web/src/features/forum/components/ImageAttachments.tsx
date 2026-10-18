@@ -36,7 +36,11 @@ export function AttachmentList({ uploads, onRemove, onRetry }: AttachmentListPro
               <span className="forum-attachment__name">{u.fileName}</span>
               {/* Announced once per phase (uploading, added, the problem); the percentage is for the eyes only. */}
               <span className={cx('forum-attachment__meta', u.phase === 'error' && 'is-error')} aria-live="polite">
-                {u.phase === 'uploading' ? 'Uploading…' : u.phase === 'error' ? u.error : `${formatSize(u.size)} · in your post`}
+                {u.phase === 'uploading'
+                  ? 'Uploading…'
+                  : u.phase === 'error'
+                    ? u.error
+                    : `${formatSize(u.size)} · in your post`}
               </span>
               {u.phase === 'uploading' ? (
                 <span className="forum-attachment__pct u-tabular" aria-hidden="true">
@@ -44,7 +48,14 @@ export function AttachmentList({ uploads, onRemove, onRetry }: AttachmentListPro
                 </span>
               ) : null}
               {u.phase === 'error' && u.retryable ? (
-                <IconButton size="sm" icon={ArrowClockwise} label={`Try ${u.fileName} again`} tooltip tooltipSide="top" onClick={() => onRetry(u.key)} />
+                <IconButton
+                  size="sm"
+                  icon={ArrowClockwise}
+                  label={`Try ${u.fileName} again`}
+                  tooltip
+                  tooltipSide="top"
+                  onClick={() => onRetry(u.key)}
+                />
               ) : null}
               <IconButton
                 size="sm"

@@ -46,7 +46,12 @@ export function useMyCalendar(): MyCalendar {
       const next = hidden ? (list.includes(value) ? list : [...list, value]) : list.filter((v) => v !== value);
       const body = kind === 'hiddenTypes' ? { hiddenTypes: next.filter(isEventType) } : { [kind]: next };
       mutate(body, {
-        onError: () => push({ tone: 'alert', title: 'That change wasn’t saved', body: 'Your calendar shows what was kept. Check your connection and try again.' }),
+        onError: () =>
+          push({
+            tone: 'alert',
+            title: 'That change wasn’t saved',
+            body: 'Your calendar shows what was kept. Check your connection and try again.',
+          }),
       });
     },
     [qc, mutate, push],
@@ -82,7 +87,10 @@ export function useMyCalendarEvents(filters: EventFilters = {}, { enabled = true
   const prefs = useCalendarPrefs({ enabled: signedIn && enabled });
   const hidden = prefs.data ?? null;
   const settled = !signedIn || prefs.isSuccess || prefs.isError;
-  const select = useCallback((events: CalendarEvent[]) => (hidden ? events.filter((e) => !isHidden(e, hidden)) : events), [hidden]);
+  const select = useCallback(
+    (events: CalendarEvent[]) => (hidden ? events.filter((e) => !isHidden(e, hidden)) : events),
+    [hidden],
+  );
   return useQuery({
     queryKey: calendarKeys.events(filters),
     queryFn: () => fetchEvents(filters),

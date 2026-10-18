@@ -1,7 +1,17 @@
 // /account: profile, sign-in methods, emails, signed-in devices, data export and account deletion.
 import { useEffect, useState, type FormEvent } from 'react';
 import {
-  DeviceMobile, DeviceTablet, DownloadSimple, EnvelopeSimple, Monitor, Phone, SignIn, SignOut, Trash, UserCircle, WarningCircle,
+  DeviceMobile,
+  DeviceTablet,
+  DownloadSimple,
+  EnvelopeSimple,
+  Monitor,
+  Phone,
+  SignIn,
+  SignOut,
+  Trash,
+  UserCircle,
+  WarningCircle,
 } from '@phosphor-icons/react';
 import { ApiError, errorMessage } from '../../api/errors';
 import type { Me, SessionInfo } from '../../api/types';
@@ -12,9 +22,31 @@ import { PageLoader } from '../../shell/PageLoader';
 import { useToast } from '../../state';
 import { ModulesGate } from '../../state/ModulesProvider';
 import {
-  Badge, Button, ConfirmDialog, Divider, EmptyState, Page, PageHeader, PageSection, Panel, QueryError, SectionHeader, Skeleton, Switch, TextField, formatDate, timeAgo,
+  Badge,
+  Button,
+  ConfirmDialog,
+  Divider,
+  EmptyState,
+  Page,
+  PageHeader,
+  PageSection,
+  Panel,
+  QueryError,
+  SectionHeader,
+  Skeleton,
+  Switch,
+  TextField,
+  formatDate,
+  timeAgo,
 } from '../../ui';
-import { downloadAccountData, useRemoveIdentifier, useRevokeSessions, useSessions, useUpdateMe, type IdentifierKind } from './api';
+import {
+  downloadAccountData,
+  useRemoveIdentifier,
+  useRevokeSessions,
+  useSessions,
+  useUpdateMe,
+  type IdentifierKind,
+} from './api';
 import { SeniorListing } from '../career/public';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { describeDevice } from './device';
@@ -44,7 +76,12 @@ function ProfileSection({ me }: { me: Me }) {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     const displayName = name.trim().replace(/\s+/g, ' ');
-    const nErr = displayName.length < 2 ? 'Enter your name (at least 2 characters).' : displayName.length > 40 ? 'Keep it to 40 characters.' : null;
+    const nErr =
+      displayName.length < 2
+        ? 'Enter your name (at least 2 characters).'
+        : displayName.length > 40
+          ? 'Keep it to 40 characters.'
+          : null;
     const cErr = cohort === null ? 'Choose your year, or “Not a current student”.' : null;
     setNameError(nErr);
     setCohortError(cErr);
@@ -139,7 +176,12 @@ function SignInMethods({ me }: { me: Me }) {
                 Change
               </Button>
               {both ? (
-                <Button size="sm" variant="ghost" onClick={() => setRemoving(kind)} aria-label={`Remove your ${kind === 'email' ? 'email address' : 'phone number'}`}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setRemoving(kind)}
+                  aria-label={`Remove your ${kind === 'email' ? 'email address' : 'phone number'}`}
+                >
                   Remove
                 </Button>
               ) : null}
@@ -172,10 +214,16 @@ function SignInMethods({ me }: { me: Me }) {
         </ul>
       </Panel>
       <p className="acct-note">
-        {both ? 'Sign in with either one.' : 'Add the other one too, so you can still sign in if you lose access to this one.'} To change or remove
-        one, we may first send a code to confirm it’s you.
+        {both
+          ? 'Sign in with either one.'
+          : 'Add the other one too, so you can still sign in if you lose access to this one.'}{' '}
+        To change or remove one, we may first send a code to confirm it’s you.
       </p>
-      <IdentifierDialog kind={editing} current={editing ? value(editing) : value(lastEdited)} onClose={() => setEditing(null)} />
+      <IdentifierDialog
+        kind={editing}
+        current={editing ? value(editing) : value(lastEdited)}
+        onClose={() => setEditing(null)}
+      />
       <ConfirmDialog
         open={removing !== null}
         title={`Remove your ${removing === 'phone' ? 'phone number' : 'email address'}?`}
@@ -217,16 +265,43 @@ function SignInMethods({ me }: { me: Me }) {
 
 // ── Emails ───────────────────────────────────────────────────────────────────────────────────
 
-type EmailSwitch = 'emailReplies' | 'emailAnswerAccepted' | 'emailUploadReviews' | 'emailNewIssues' | 'emailDateChanges' | 'emailWeeklySummary';
+type EmailSwitch =
+  | 'emailReplies'
+  | 'emailAnswerAccepted'
+  | 'emailUploadReviews'
+  | 'emailNewIssues'
+  | 'emailDateChanges'
+  | 'emailWeeklySummary';
 
 /** One switch per kind of email (decision D1); the notification in the Hub shows whatever they say. The Sunday
  *  summary is an email of its own, off until you turn it on, and only while its feature is on. */
 const EMAIL_SWITCHES: { key: EmailSwitch; label: string; description: string; feature?: Feature }[] = [
-  { key: 'emailReplies', label: 'Replies', description: 'When someone replies to your thread, to one of your replies or in a thread you follow, or asks you a question as a senior.' },
-  { key: 'emailAnswerAccepted', label: 'Accepted answers', description: 'When the person who asked marks your reply as the answer, or a thread you follow gets one.' },
-  { key: 'emailUploadReviews', label: 'Your uploads', description: 'When a student rep publishes a file you uploaded, or decides not to.' },
-  { key: 'emailNewIssues', label: 'New newsletter issues', description: 'When a new issue of The DSBA Newsletter is out.' },
-  { key: 'emailDateChanges', label: 'Date changes', description: 'When an exam, mock or deadline of your year moves, or its date is confirmed.' },
+  {
+    key: 'emailReplies',
+    label: 'Replies',
+    description:
+      'When someone replies to your thread, to one of your replies or in a thread you follow, or asks you a question as a senior.',
+  },
+  {
+    key: 'emailAnswerAccepted',
+    label: 'Accepted answers',
+    description: 'When the person who asked marks your reply as the answer, or a thread you follow gets one.',
+  },
+  {
+    key: 'emailUploadReviews',
+    label: 'Your uploads',
+    description: 'When a student rep publishes a file you uploaded, or decides not to.',
+  },
+  {
+    key: 'emailNewIssues',
+    label: 'New newsletter issues',
+    description: 'When a new issue of The DSBA Newsletter is out.',
+  },
+  {
+    key: 'emailDateChanges',
+    label: 'Date changes',
+    description: 'When an exam, mock or deadline of your year moves, or its date is confirmed.',
+  },
   {
     key: 'emailWeeklySummary',
     label: 'Sunday summary',
@@ -240,17 +315,28 @@ function EmailPreferences({ me }: { me: Me }) {
   const { push } = useToast();
   const update = useUpdatePreferences();
   const save = (patch: Parameters<typeof update.mutate>[0]) =>
-    update.mutate(patch, { onError: (err) => push({ tone: 'alert', title: 'Your choice wasn’t saved', body: errorMessage(err) }) });
+    update.mutate(patch, {
+      onError: (err) => push({ tone: 'alert', title: 'Your choice wasn’t saved', body: errorMessage(err) }),
+    });
   return (
     <Panel className="acct-switches">
-      {!me.email ? <p className="acct-note acct-note--inset">These go to your email address. Add one above to get them.</p> : null}
+      {!me.email ? (
+        <p className="acct-note acct-note--inset">These go to your email address. Add one above to get them.</p>
+      ) : null}
       {EMAIL_SWITCHES.filter((s) => !s.feature || featureOn(s.feature)).map((s, i) => (
         <div key={s.key} className="acct-switches__item">
           {i > 0 ? <Divider /> : null}
-          <Switch label={s.label} description={s.description} checked={me.preferences[s.key]} onChange={(on) => save({ [s.key]: on })} />
+          <Switch
+            label={s.label}
+            description={s.description}
+            checked={me.preferences[s.key]}
+            onChange={(on) => save({ [s.key]: on })}
+          />
         </div>
       ))}
-      <p className="acct-note acct-note--inset">We always email you when how you sign in changes, so you’d know if it wasn’t you.</p>
+      <p className="acct-note acct-note--inset">
+        We always email you when how you sign in changes, so you’d know if it wasn’t you.
+      </p>
     </Panel>
   );
 }
@@ -279,7 +365,11 @@ const DEVICE_ICON = { desktop: Monitor, phone: DeviceMobile, tablet: DeviceTable
 function SessionRow({ s, onSignOut, busy }: { s: SessionInfo; onSignOut: () => void; busy: boolean }) {
   const device = describeDevice(s.userAgent);
   const Icon = DEVICE_ICON[device.kind];
-  const seen = s.current ? 'Active now' : s.lastSeenAt ? `Active ${timeAgo(s.lastSeenAt)}` : `Signed in ${timeAgo(s.createdAt)}`;
+  const seen = s.current
+    ? 'Active now'
+    : s.lastSeenAt
+      ? `Active ${timeAgo(s.lastSeenAt)}`
+      : `Signed in ${timeAgo(s.createdAt)}`;
   return (
     <li className="acct-row">
       <span className="acct-row__icon" aria-hidden="true">
@@ -322,7 +412,8 @@ function Sessions() {
 
   const signOut = (ids: string[], many: boolean) =>
     revoke.mutate(ids, {
-      onSuccess: () => push({ tone: 'success', title: many ? 'Signed out of your other devices' : 'That device is signed out' }),
+      onSuccess: () =>
+        push({ tone: 'success', title: many ? 'Signed out of your other devices' : 'That device is signed out' }),
       onError: (err) => push({ tone: 'alert', title: 'Couldn’t sign that out', body: errorMessage(err) }),
     });
 
@@ -334,7 +425,18 @@ function Sessions() {
         description="Sign out anywhere you don’t recognise, like a lab computer you forgot to sign out of."
         action={
           others.length > 0 ? (
-            <Button size="sm" variant="ghost" leadingIcon={SignOut} onClick={() => signOut(others.map((s) => s.id), true)} loading={revoke.isPending}>
+            <Button
+              size="sm"
+              variant="ghost"
+              leadingIcon={SignOut}
+              onClick={() =>
+                signOut(
+                  others.map((s) => s.id),
+                  true,
+                )
+              }
+              loading={revoke.isPending}
+            >
               Sign out other devices
             </Button>
           ) : null
@@ -395,8 +497,8 @@ function YourData() {
         <div className="acct-data__text">
           <h3 className="acct-data__title">Download your data</h3>
           <p>
-            Everything the Hub keeps about you, as a JSON file: your profile, devices, posts, votes, reports, bug reports, uploads, stars, reactions,
-            progress, notifications and the emails we sent you.
+            Everything the Hub keeps about you, as a JSON file: your profile, devices, posts, votes, reports, bug
+            reports, uploads, stars, reactions, progress, notifications and the emails we sent you.
           </p>
         </div>
         <Button leadingIcon={DownloadSimple} onClick={() => void download()} loading={downloading}>
@@ -434,7 +536,11 @@ export default function AccountPage() {
             title="Sign in to see your account"
             body="Your profile, how you sign in, your devices and your data are here once you’re signed in."
             action={
-              <Button variant="primary" leadingIcon={SignIn} onClick={() => openSignIn({ reason: 'Sign in to see your account' })}>
+              <Button
+                variant="primary"
+                leadingIcon={SignIn}
+                onClick={() => openSignIn({ reason: 'Sign in to see your account' })}
+              >
                 Sign in
               </Button>
             }
@@ -450,12 +556,19 @@ export default function AccountPage() {
       {me.status === 'suspended' ? (
         <p className="acct-banner" role="status">
           <WarningCircle aria-hidden="true" weight="fill" />
-          <span>Your account is suspended. You can still sign in and read, but you can’t post, upload or react. Contact a student rep.</span>
+          <span>
+            Your account is suspended. You can still sign in and read, but you can’t post, upload or react. Contact a
+            student rep.
+          </span>
         </p>
       ) : null}
 
       <PageSection aria-labelledby="acct-profile">
-        <SectionHeader id="acct-profile" title="Profile" description="How classmates see you on the forum and in the library." />
+        <SectionHeader
+          id="acct-profile"
+          title="Profile"
+          description="How classmates see you on the forum and in the library."
+        />
         <Panel>
           <ProfileSection me={me} />
         </Panel>
@@ -463,24 +576,38 @@ export default function AccountPage() {
 
       {featureOn('career.seniors') && me.year === 3 ? (
         <PageSection aria-labelledby="acct-senior">
-          <SectionHeader id="acct-senior" title="Answer as a senior" description="List yourself in Career Navigator so Year 1 and 2 students can ask you about what you’ve done." />
+          <SectionHeader
+            id="acct-senior"
+            title="Answer as a senior"
+            description="List yourself in Career Navigator so Year 1 and 2 students can ask you about what you’ve done."
+          />
           <SeniorListing />
         </PageSection>
       ) : null}
 
       <PageSection aria-labelledby="acct-papers">
-        <SectionHeader id="acct-papers" title="Your modules" description="Your option or electives, any module from another year, and your exam zone. Only you see them." />
+        <SectionHeader
+          id="acct-papers"
+          title="Your modules"
+          description="Your option or electives, any module from another year, and your exam zone. Only you see them."
+        />
         {/* The page doesn't wait for the module catalogue; picking papers needs it. */}
         <ModulesGate
           fallback={<Skeleton lines={1} />}
-          error={(retry, error, retrying) => <QueryError error={error} title="Your modules didn’t load" onRetry={retry} retrying={retrying} size="sm" />}
+          error={(retry, error, retrying) => (
+            <QueryError error={error} title="Your modules didn’t load" onRetry={retry} retrying={retrying} size="sm" />
+          )}
         >
           <PapersButton />
         </ModulesGate>
       </PageSection>
 
       <PageSection aria-labelledby="acct-signin">
-        <SectionHeader id="acct-signin" title="How you sign in" description="We send a code to one of these each time you sign in." />
+        <SectionHeader
+          id="acct-signin"
+          title="How you sign in"
+          description="We send a code to one of these each time you sign in."
+        />
         <SignInMethods me={me} />
       </PageSection>
 
@@ -490,7 +617,11 @@ export default function AccountPage() {
       </PageSection>
 
       <PageSection aria-labelledby="acct-emails">
-        <SectionHeader id="acct-emails" title="Emails" description="Every notification shows in the Hub. Choose which ones we also email you." />
+        <SectionHeader
+          id="acct-emails"
+          title="Emails"
+          description="Every notification shows in the Hub. Choose which ones we also email you."
+        />
         <EmailPreferences me={me} />
       </PageSection>
 

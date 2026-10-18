@@ -97,7 +97,13 @@ describe('daysBetween', () => {
 describe('words for days', () => {
   it('says how far a day is', () => {
     expect([0, 1, 17, -3].map(inDays)).toEqual(['today', 'tomorrow', 'in 17 days', 'today']);
-    expect([0, 1, -1, 13, -3].map(relativeDays)).toEqual(['today', 'tomorrow', 'yesterday', 'in 13 days', '3 days ago']);
+    expect([0, 1, -1, 13, -3].map(relativeDays)).toEqual([
+      'today',
+      'tomorrow',
+      'yesterday',
+      'in 13 days',
+      '3 days ago',
+    ]);
   });
 
   it('writes dates in the British order, without commas or "Sept"', () => {
@@ -120,6 +126,11 @@ describe('words for days', () => {
   });
 
   it('knows the Bahraini weekend', () => {
-    expect(['2026-10-22', '2026-10-23', '2026-10-24', '2026-10-25'].map((k) => isWeekend(parseDay(k)))).toEqual([false, true, true, false]);
+    expect(['2026-10-22', '2026-10-23', '2026-10-24', '2026-10-25'].map((k) => isWeekend(parseDay(k)))).toEqual([
+      false,
+      true,
+      true,
+      false,
+    ]);
   });
 });

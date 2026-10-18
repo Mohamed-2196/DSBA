@@ -20,7 +20,8 @@ const FIELDS: readonly ThreadField[] = ['title', 'body', 'category', 'moduleId',
 export function titleProblem(title: string): string | null {
   const t = title.trim();
   if (!t) return 'Add a title so classmates know what you’re asking.';
-  if (t.length < TITLE_MIN) return `Make the title a little longer (at least ${TITLE_MIN} characters) so classmates know what you’re asking.`;
+  if (t.length < TITLE_MIN)
+    return `Make the title a little longer (at least ${TITLE_MIN} characters) so classmates know what you’re asking.`;
   return null;
 }
 

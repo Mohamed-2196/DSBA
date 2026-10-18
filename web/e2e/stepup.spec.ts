@@ -4,7 +4,18 @@
 // yesterday would. About 5 codes: two emails and three texts.
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { ageSessions, api, gotoAccount, mailedSince, newestText, personaContext, readRun, saveRun, statePath, waitForCode } from './support';
+import {
+  ageSessions,
+  api,
+  gotoAccount,
+  mailedSince,
+  newestText,
+  personaContext,
+  readRun,
+  saveRun,
+  statePath,
+  waitForCode,
+} from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -24,7 +35,9 @@ function newMobile(old: string): { local: string; e164: string } {
   }
 }
 
-test('Sara changes her email address: a code to her current address first, then one to the new address', async ({ browser }) => {
+test('Sara changes her email address: a code to her current address first, then one to the new address', async ({
+  browser,
+}) => {
   const run = readRun();
   const ctx = await personaContext(browser, 'sara');
   const page = await ctx.newPage();
@@ -67,7 +80,9 @@ test('Sara changes her email address: a code to her current address first, then 
   await expect(page.getByText('Your email address is changed')).toBeVisible();
   expect((await me(page)).email).toBe(newEmail);
   // The old address is told, in case it wasn't her.
-  await expect.poll(() => mailedSince(before.email ?? '', 'Your DSBA Hub account changed', since2), { timeout: 30_000 }).toBe(true);
+  await expect
+    .poll(() => mailedSince(before.email ?? '', 'Your DSBA Hub account changed', since2), { timeout: 30_000 })
+    .toBe(true);
 
   await ctx.storageState({ path: statePath('sara') }); // the step-up renewed her session
   saveRun({ ...readRun(), sara: { ...run.sara, email: newEmail } });
@@ -92,7 +107,9 @@ test('Sara changes her phone number, confirming by text instead of email', async
   // The dialog tries her email address first (within 30 s of the last code there it says how long to wait); she
   // asks for a text instead.
   const stepUp = page.locator('[data-hub="step-up"]');
-  await expect(stepUp).toContainText(new RegExp(`(we sent to|send a code to) ${before.email?.replace(/[.+]/g, '\\$&')}\\.`));
+  await expect(stepUp).toContainText(
+    new RegExp(`(we sent to|send a code to) ${before.email?.replace(/[.+]/g, '\\$&')}\\.`),
+  );
   const since = Date.now();
   await stepUp.getByRole('button', { name: 'Text my phone instead' }).click();
   await expect(stepUp).toContainText(`enter the code we sent to +973 ${run.sara.local}.`);
@@ -104,10 +121,15 @@ test('Sara changes her phone number, confirming by text instead of email', async
   await expect(page.getByText('Your phone number is changed')).toBeVisible();
   expect((await me(page)).phone).toBe(next.e164);
   // The old number is told by text.
-  await expect.poll(() => newestText(run.sara.e164), { timeout: 20_000 }).toContain('The phone number on your DSBA Hub account was changed');
+  await expect
+    .poll(() => newestText(run.sara.e164), { timeout: 20_000 })
+    .toContain('The phone number on your DSBA Hub account was changed');
 
   await ctx.storageState({ path: statePath('sara') });
-  saveRun({ ...readRun(), sara: { ...readRun().sara, local: `${next.local.slice(0, 4)} ${next.local.slice(4)}`, e164: next.e164 } });
+  saveRun({
+    ...readRun(),
+    sara: { ...readRun().sara, local: `${next.local.slice(0, 4)} ${next.local.slice(4)}`, e164: next.e164 },
+  });
   await ctx.close();
 });
 
@@ -118,7 +140,11 @@ test('closing "Confirm it’s you" changes nothing', async ({ browser }) => {
   await ageSessions(before.id, 11);
   await gotoAccount(page);
   await page.getByRole('button', { name: 'Remove your phone number' }).click();
-  await page.getByRole('dialog').filter({ hasText: 'Remove your phone number?' }).getByRole('button', { name: 'Remove', exact: true }).click();
+  await page
+    .getByRole('dialog')
+    .filter({ hasText: 'Remove your phone number?' })
+    .getByRole('button', { name: 'Remove', exact: true })
+    .click();
   const stepUp = page.locator('[data-hub="step-up"]');
   await expect(stepUp).toContainText('To remove your phone number');
   await stepUp.getByRole('button', { name: 'Close' }).click();

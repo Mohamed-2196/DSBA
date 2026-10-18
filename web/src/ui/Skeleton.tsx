@@ -21,7 +21,11 @@ export function Skeleton({ width, height, radius, circle = false, lines, classNa
     return (
       <span className={cx('ui-skeleton-lines', className)} style={style} aria-hidden="true">
         {Array.from({ length: lines }, (_, i) => (
-          <span key={i} className="ui-skeleton" style={{ width: i === lines - 1 && lines > 1 ? '62%' : '100%', height: height || '0.9em' }} />
+          <span
+            key={i}
+            className="ui-skeleton"
+            style={{ width: i === lines - 1 && lines > 1 ? '62%' : '100%', height: height || '0.9em' }}
+          />
         ))}
       </span>
     );

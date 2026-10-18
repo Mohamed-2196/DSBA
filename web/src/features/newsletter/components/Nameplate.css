@@ -38,9 +38,16 @@
   line-height: 0.8;
   color: var(--ink);
 }
-.nl-plate .nl-wordmark__line { display: block; }
+.nl-plate .nl-wordmark__line {
+  display: block;
+}
 
 @container nl-masthead (min-width: 560px) {
-  .nl-plate { padding-top: 0.06em; font-size: 10cqi; }
-  .nl-plate .nl-wordmark__line { display: inline; }
+  .nl-plate {
+    padding-top: 0.06em;
+    font-size: 10cqi;
+  }
+  .nl-plate .nl-wordmark__line {
+    display: inline;
+  }
 }

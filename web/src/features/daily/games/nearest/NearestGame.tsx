@@ -90,7 +90,12 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
           <Button type="submit" variant="primary" disabled={!word.trim()} loading={busy}>
             Guess
           </Button>
-          <Button variant="secondary" leadingIcon={Lightbulb} onClick={() => void hint()} disabled={busy || best === 1 || (best !== null && best <= 2)}>
+          <Button
+            variant="secondary"
+            leadingIcon={Lightbulb}
+            onClick={() => void hint()}
+            disabled={busy || best === 1 || (best !== null && best <= 2)}
+          >
             Hint
           </Button>
         </form>
@@ -140,7 +145,10 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
       ) : (
         <div className="dn-empty">
           <p className="dn-empty__title">Guess any word to begin</p>
-          <p className="dn-empty__body">Each guess shows how close it is in meaning. #1 is the secret word, and the lower the number, the closer you are.</p>
+          <p className="dn-empty__body">
+            Each guess shows how close it is in meaning. #1 is the secret word, and the lower the number, the closer you
+            are.
+          </p>
         </div>
       )}
     </div>
@@ -150,7 +158,11 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
 function Meter({ rank, vocabulary }: { rank: number; vocabulary: number }) {
   const b = band(rank);
   return (
-    <span className={cx('dn-meter', `is-${b}`)} style={{ '--fill': `${Math.max(4, Math.round(closeness(rank, vocabulary) * 100))}%` } as CSSProperties} aria-hidden="true">
+    <span
+      className={cx('dn-meter', `is-${b}`)}
+      style={{ '--fill': `${Math.max(4, Math.round(closeness(rank, vocabulary) * 100))}%` } as CSSProperties}
+      aria-hidden="true"
+    >
       <span className="dn-meter__fill" />
     </span>
   );
@@ -187,7 +199,8 @@ export function NearestExample() {
         ))}
       </div>
       <p className="dg-eg__caption">
-        If the secret word were <strong>revenue</strong>, profit would be #2: the closest word to it. Money is close; weather is far away.
+        If the secret word were <strong>revenue</strong>, profit would be #2: the closest word to it. Money is close;
+        weather is far away.
       </p>
     </div>
   );

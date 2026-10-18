@@ -60,15 +60,28 @@ export function DeleteAccountDialog({ open, onClose }: { open: boolean; onClose:
           <Button variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button variant="danger" leadingIcon={Trash} type="submit" form="delete-account-form" disabled={!confirmed} loading={busy}>
+          <Button
+            variant="danger"
+            leadingIcon={Trash}
+            type="submit"
+            form="delete-account-form"
+            disabled={!confirmed}
+            loading={busy}
+          >
             Delete my account
           </Button>
         </>
       }
     >
       <form id="delete-account-form" className="acct-delete" onSubmit={onSubmit} noValidate>
-        <p>Your name, email address, phone number, stars, votes, reactions, lesson progress, notifications and bug reports are deleted, and you’re signed out everywhere.</p>
-        <p>Your threads and replies stay, shown as from a deleted user. Library files that were published stay, without your name.</p>
+        <p>
+          Your name, email address, phone number, stars, votes, reactions, lesson progress, notifications and bug
+          reports are deleted, and you’re signed out everywhere.
+        </p>
+        <p>
+          Your threads and replies stay, shown as from a deleted user. Library files that were published stay, without
+          your name.
+        </p>
         <TextField
           label={
             <>

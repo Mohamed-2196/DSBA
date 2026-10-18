@@ -33,10 +33,21 @@ export interface ReplyListProps {
 }
 
 /** "N replies" with Top / Oldest, the replies (one level nested, the accepted answer first) and the inline composer. */
-export function ReplyList({ thread, targetId, replyingTo, onReplyTo, onCancelReply, onPosted, unavailable = false }: ReplyListProps) {
+export function ReplyList({
+  thread,
+  targetId,
+  replyingTo,
+  onReplyTo,
+  onCancelReply,
+  onPosted,
+  unavailable = false,
+}: ReplyListProps) {
   const [params, setParams] = useSearchParams();
   const order: ReplyOrder = params.get('order') === 'oldest' ? 'oldest' : 'top';
-  const replies = useMemo(() => nestReplies(thread.replies, order, thread.acceptedReplyId), [thread.replies, order, thread.acceptedReplyId]);
+  const replies = useMemo(
+    () => nestReplies(thread.replies, order, thread.acceptedReplyId),
+    [thread.replies, order, thread.acceptedReplyId],
+  );
   const { mayTry } = useAuth();
   const canReply = takesReplies(thread) && !unavailable && mayTry('forum.post');
   const onReply = canReply ? onReplyTo : undefined;
@@ -73,7 +84,13 @@ export function ReplyList({ thread, targetId, replyingTo, onReplyTo, onCancelRep
           )}
         </h2>
         {thread.replyCount > 1 ? (
-          <SegmentedControl size="sm" label="Order replies" options={ORDERS} value={order} onChange={(v) => setOrder(v === 'oldest' ? 'oldest' : 'top')} />
+          <SegmentedControl
+            size="sm"
+            label="Order replies"
+            options={ORDERS}
+            value={order}
+            onChange={(v) => setOrder(v === 'oldest' ? 'oldest' : 'top')}
+          />
         ) : null}
       </div>
 
@@ -97,7 +114,15 @@ export function ReplyList({ thread, targetId, replyingTo, onReplyTo, onCancelRep
                       <ol role="list" className="forum-replies__nested">
                         {r.children.map((c) => (
                           <li key={c.id}>
-                            <ReplyItem reply={c} thread={thread} nested fresh={isFresh(c.id)} targeted={c.id === targetId} readOnly={unavailable} onReply={onReply} />
+                            <ReplyItem
+                              reply={c}
+                              thread={thread}
+                              nested
+                              fresh={isFresh(c.id)}
+                              targeted={c.id === targetId}
+                              readOnly={unavailable}
+                              onReply={onReply}
+                            />
                           </li>
                         ))}
                         {composing && replyingTo ? (

@@ -51,7 +51,12 @@ export default function NewThreadPage() {
       <Page className="forum-page forum-new">
         <Crumbs />
         <PageHeader {...HEADER} />
-        <QueryError error={meta.error} title="The forum’s categories didn’t load" onRetry={() => void meta.refetch()} retrying={meta.isFetching} />
+        <QueryError
+          error={meta.error}
+          title="The forum’s categories didn’t load"
+          onRetry={() => void meta.refetch()}
+          retrying={meta.isFetching}
+        />
       </Page>
     );
   }
@@ -81,7 +86,10 @@ function Crumbs() {
   );
 }
 
-const HEADER = { title: 'Start a thread', description: 'Ask your cohort a question, or share something that helped you.' };
+const HEADER = {
+  title: 'Start a thread',
+  description: 'Ask your cohort a question, or share something that helped you.',
+};
 
 function ComposerPlaceholder() {
   return (
@@ -123,12 +131,22 @@ function Composer() {
 
   // What the link asks for (?category, ?module, ?title): it wins over a stored draft.
   const [presets] = useState<ThreadForm | null>(() =>
-    composerPresets(params, { getModule, getModuleByUnitCode, getCategory: offered, categoryForYear, defaultCategory: fallback }, ownYear),
+    composerPresets(
+      params,
+      { getModule, getModuleByUnitCode, getCategory: offered, categoryForYear, defaultCategory: fallback },
+      ownYear,
+    ),
   );
   const { form, setForm, restored, startOver, finish } = useThreadDraft({
     viewer,
     presets,
-    restore: (raw, who) => restoreDraft(raw, who, { knownModule: (id) => !!getModule(id), offeredCategory: (id) => !!offered(id), fallbackCategory: defaultCategory(), maxTags }),
+    restore: (raw, who) =>
+      restoreDraft(raw, who, {
+        knownModule: (id) => !!getModule(id),
+        offeredCategory: (id) => !!offered(id),
+        fallbackCategory: defaultCategory(),
+        maxTags,
+      }),
     empty: () => ({ title: '', body: '', moduleId: '', category: defaultCategory(), tags: [] }),
   });
   const [errors, setErrors] = useState<ThreadErrors>({});
@@ -150,7 +168,8 @@ function Composer() {
   const set = (patch: Partial<ThreadForm>) => {
     setForm((f) => ({ ...f, ...patch }));
     const touched = Object.keys(patch) as (keyof ThreadErrors)[];
-    if (touched.some((k) => errors[k])) setErrors((e) => ({ ...e, ...Object.fromEntries(touched.map((k) => [k, undefined])) }));
+    if (touched.some((k) => errors[k]))
+      setErrors((e) => ({ ...e, ...Object.fromEntries(touched.map((k) => [k, undefined])) }));
   };
 
   const images = useAttachImages({
@@ -209,7 +228,11 @@ function Composer() {
             return;
           }
           // Anything else (too many threads in an hour, the server down): the API's words, and the draft is kept.
-          push({ title: "Your thread wasn't posted", body: errorMessage(e, 'Try again in a moment. Your draft is saved.'), tone: 'alert' });
+          push({
+            title: "Your thread wasn't posted",
+            body: errorMessage(e, 'Try again in a moment. Your draft is saved.'),
+            tone: 'alert',
+          });
         },
       },
     );
@@ -231,7 +254,8 @@ function Composer() {
     navigate('/forum');
   };
 
-  const author: UserPublic | null = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, badge: badgeOf(me) } : null;
+  const author: UserPublic | null =
+    me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, badge: badgeOf(me) } : null;
 
   return (
     <Page className="forum-page forum-new">
@@ -274,7 +298,10 @@ function Composer() {
               if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submit();
             }}
             trailing={
-              <span className={cx('forum-composer__count', form.title.length > TITLE_MAX - 15 && 'is-near')} aria-hidden="true">
+              <span
+                className={cx('forum-composer__count', form.title.length > TITLE_MAX - 15 && 'is-near')}
+                aria-hidden="true"
+              >
                 {form.title.length}/{TITLE_MAX}
               </span>
             }
@@ -284,7 +311,11 @@ function Composer() {
           <SimilarInline similar={similar} />
 
           <div className="forum-composer__row">
-            <CategorySelect value={form.category} error={errors.category} onChange={(id) => setForm((f) => ({ ...f, ...rules.withCategory(f, id) }))} />
+            <CategorySelect
+              value={form.category}
+              error={errors.category}
+              onChange={(id) => setForm((f) => ({ ...f, ...rules.withCategory(f, id) }))}
+            />
             <ModuleSelect
               value={form.moduleId}
               error={errors.moduleId}
@@ -329,7 +360,12 @@ function Composer() {
             />
           ) : null}
 
-          <ComposerFooter author={author} checking={authStatus === 'loading'} posting={create.isPending} onDiscard={discard} />
+          <ComposerFooter
+            author={author}
+            checking={authStatus === 'loading'}
+            posting={create.isPending}
+            onDiscard={discard}
+          />
         </form>
 
         <ComposerAside similar={similar} module={getModule(form.moduleId)} />

@@ -24,15 +24,39 @@ export function NewFiles({ year, n = 5 }: { year: CohortYear; n?: number }) {
     return newFileRows(files.data ?? [], mine, n).map((r) => {
       if (r.kind === 'batch') {
         const code = codeOf(r.moduleId) ?? 'a module';
-        return { id: r.id, icon: Files, title: `${r.count} files added to ${code}`, to: `/library?module=${encodeURIComponent(r.moduleId)}`, code: null, what: 'Open them in the library', at: r.at };
+        return {
+          id: r.id,
+          icon: Files,
+          title: `${r.count} files added to ${code}`,
+          to: `/library?module=${encodeURIComponent(r.moduleId)}`,
+          code: null,
+          what: 'Open them in the library',
+          at: r.at,
+        };
       }
-      return { id: r.id, icon: FileText, title: r.item.title, to: libraryItemPath(r.item), code: codeOf(r.item.moduleId), what: libraryKindLabel(r.item.kind), at: r.at };
+      return {
+        id: r.id,
+        icon: FileText,
+        title: r.item.title,
+        to: libraryItemPath(r.item),
+        code: codeOf(r.item.moduleId),
+        what: libraryKindLabel(r.item.kind),
+        at: r.at,
+      };
     });
   }, [files.data, mine, getModule, n]);
 
   if (files.isPending) return <HomeListLoading label="Loading new files" />;
   if (files.isError) {
-    return <QueryError error={files.error} title="New files didn’t load" size="sm" onRetry={() => void files.refetch()} retrying={files.isFetching} />;
+    return (
+      <QueryError
+        error={files.error}
+        title="New files didn’t load"
+        size="sm"
+        onRetry={() => void files.refetch()}
+        retrying={files.isFetching}
+      />
+    );
   }
   if (!rows.length) {
     return (

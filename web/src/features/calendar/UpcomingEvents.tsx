@@ -76,7 +76,14 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
   if (query.isError) {
     return (
       <div className="cal-upcoming cal-upcoming--empty" data-hub="upcoming-events">
-        <QueryError error={query.error} title="The calendar didn’t load" size="sm" panel={false} onRetry={() => void query.refetch()} retrying={query.isFetching} />
+        <QueryError
+          error={query.error}
+          title="The calendar didn’t load"
+          size="sm"
+          panel={false}
+          onRetry={() => void query.refetch()}
+          retrying={query.isFetching}
+        />
       </div>
     );
   }
@@ -84,7 +91,15 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
   const programme = query.data.filter((e) => (!papers || isMine(e, year ?? null, papers)) && !isHidden(e, prefs));
   const events = oneRowPerRepeat(sortEvents<CalendarEvent>([...programme, ...own])).slice(0, n);
   const ownFailed = my.loadError ? (
-    <QueryError error={my.loadError} title="Your own events didn’t load" size="sm" panel={false} onRetry={my.retry} retrying={my.retrying} className="cal-upcoming__error" />
+    <QueryError
+      error={my.loadError}
+      title="Your own events didn’t load"
+      size="sm"
+      panel={false}
+      onRetry={my.retry}
+      retrying={my.retrying}
+      className="cal-upcoming__error"
+    />
   ) : null;
   if (!events.length) {
     return (
@@ -114,13 +129,21 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
           const date = parseDay(e.date);
           const days = daysUntil(date, today);
           const end = e.endDate ? parseDay(e.endDate) : null;
-          const count = windowCountdown(days, end ? daysUntil(end, today) : null, end ? formatDay(end, { year: false, month: 'short' }) : '');
+          const count = windowCountdown(
+            days,
+            end ? daysUntil(end, today) : null,
+            end ? formatDay(end, { year: false, month: 'short' }) : '',
+          );
           const { code, rest } = splitTitle(e);
           const module = getModule(e.moduleId);
           const name = code && module ? module.name : rest;
           return (
             <li key={e.id}>
-              <Link to={`/calendar?event=${encodeURIComponent(e.id)}`} className={cx('cal-upcoming__row', e.mine ? 'cal-upcoming__row--mine' : `cal-upcoming__row--${e.type}`)} data-event-id={e.id}>
+              <Link
+                to={`/calendar?event=${encodeURIComponent(e.id)}`}
+                className={cx('cal-upcoming__row', e.mine ? 'cal-upcoming__row--mine' : `cal-upcoming__row--${e.type}`)}
+                data-event-id={e.id}
+              >
                 <DateLeaf date={date} tone={leafTone(e)} className="cal-upcoming__date" />
                 <span className="cal-upcoming__body">
                   <span className="cal-upcoming__title">
@@ -144,7 +167,15 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
                     <span className="visually-hidden">, {formatLong(date)}</span>
                   </span>
                 </span>
-                <span className={cx('cal-upcoming__count', days >= 0 && days <= 7 && 'is-soon', e.type === 'exam' && 'is-exam')}>{count}</span>
+                <span
+                  className={cx(
+                    'cal-upcoming__count',
+                    days >= 0 && days <= 7 && 'is-soon',
+                    e.type === 'exam' && 'is-exam',
+                  )}
+                >
+                  {count}
+                </span>
               </Link>
             </li>
           );

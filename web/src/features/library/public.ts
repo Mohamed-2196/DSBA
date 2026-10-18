@@ -54,7 +54,10 @@ export function ModuleFiles({ moduleId }: { moduleId: string }) {
  * the first time it opens. `start` is null while the library takes no uploads or the account can't upload: leave
  * the button out then.
  */
-export function useLibraryUpload({ moduleId = null, year = null }: { moduleId?: string | null; year?: CohortYear | null } = {}): {
+export function useLibraryUpload({
+  moduleId = null,
+  year = null,
+}: { moduleId?: string | null; year?: CohortYear | null } = {}): {
   start: (() => void) | null;
   dialog: ReactNode;
 } {
@@ -71,7 +74,13 @@ export function useLibraryUpload({ moduleId = null, year = null }: { moduleId?: 
       ? createElement(
           Suspense,
           { fallback: null },
-          createElement(LazyUploadDialog, { key: state.key, open: state.open, onClose: close, defaultModuleId: moduleId, defaultYear: year }),
+          createElement(LazyUploadDialog, {
+            key: state.key,
+            open: state.open,
+            onClose: close,
+            defaultModuleId: moduleId,
+            defaultYear: year,
+          }),
         )
       : null;
   return { start: shown ? start : null, dialog };

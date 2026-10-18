@@ -19,7 +19,13 @@ import { issueNo, listNames, plainText, sectionDomId, sectionLabel } from './lib
 import type { Issue, IssueCard } from './types';
 import './IssuePage.css';
 
-function RunningHead({ issue, share = true }: { issue: Pick<Issue, 'number' | 'date' | 'slug' | 'title'>; share?: boolean }) {
+function RunningHead({
+  issue,
+  share = true,
+}: {
+  issue: Pick<Issue, 'number' | 'date' | 'slug' | 'title'>;
+  share?: boolean;
+}) {
   return (
     <div className="nl-runhead">
       <Link to="/newsletter" className="nl-runhead__name">
@@ -29,7 +35,13 @@ function RunningHead({ issue, share = true }: { issue: Pick<Issue, 'number' | 'd
         <span className="u-tabular">Issue {issueNo(issue.number)}</span>
         <span className="u-tabular">{formatDay(issue.date)}</span>
       </p>
-      {share ? <ShareActions route={`/newsletter/${issue.slug}`} title={`The DSBA Newsletter ${issueNo(issue.number)}: ${issue.title}`} className="nl-runhead__share" /> : null}
+      {share ? (
+        <ShareActions
+          route={`/newsletter/${issue.slug}`}
+          title={`The DSBA Newsletter ${issueNo(issue.number)}: ${issue.title}`}
+          className="nl-runhead__share"
+        />
+      ) : null}
     </div>
   );
 }
@@ -43,7 +55,12 @@ function Toc({ issue, active, onGo }: { issue: Issue; active: string | undefined
           const on = active === s.id;
           return (
             <li key={s.id}>
-              <button type="button" className={cx('nl-toc__item', on && 'is-active')} aria-current={on ? 'location' : undefined} onClick={() => onGo(s.id)}>
+              <button
+                type="button"
+                className={cx('nl-toc__item', on && 'is-active')}
+                aria-current={on ? 'location' : undefined}
+                onClick={() => onGo(s.id)}
+              >
                 <span>{plainText(sectionLabel(s))}</span>
               </button>
             </li>
@@ -105,7 +122,11 @@ function ModeratorBar({ issue }: { issue: Issue }) {
     <div className={cx('nl-modbar', draft && 'is-draft')} data-hub="issue-modbar">
       <p className="nl-modbar__text">
         <Badge tone={draft ? 'highlight' : 'signal'}>{draft ? 'Draft' : 'Published'}</Badge>
-        <span>{draft ? 'Only people who manage the newsletter can see this issue until it’s published.' : `Published${issue.publishedAt ? ` ${formatDay(new Date(issue.publishedAt))}` : ''}. Changes show to everyone as soon as you save them.`}</span>
+        <span>
+          {draft
+            ? 'Only people who manage the newsletter can see this issue until it’s published.'
+            : `Published${issue.publishedAt ? ` ${formatDay(new Date(issue.publishedAt))}` : ''}. Changes show to everyone as soon as you save them.`}
+        </span>
       </p>
       <div className="nl-modbar__actions">
         <Button size="sm" leadingIcon={PencilSimple} to={`/newsletter/${issue.slug}/edit`} data-hub="issue-edit">
@@ -238,17 +259,25 @@ function IssueReader({ issue }: { issue: Issue }) {
                 {startsThreads ? (
                   <>
                     {' '}
-                    Spotted a mistake, or have a story we should tell? <Link to="/forum/new">Tell us in the forum</Link>.
+                    Spotted a mistake, or have a story we should tell? <Link to="/forum/new">Tell us in the forum</Link>
+                    .
                   </>
                 ) : null}
               </p>
-              {draft ? null : <ShareActions route={`/newsletter/${issue.slug}`} title={`The DSBA Newsletter ${no}: ${issue.title}`} />}
+              {draft ? null : (
+                <ShareActions route={`/newsletter/${issue.slug}`} title={`The DSBA Newsletter ${no}: ${issue.title}`} />
+              )}
             </footer>
           </article>
         </div>
       ) : (
         <Panel padding="none" className="nl-issue__empty">
-          <EmptyState icon={Newspaper} title="This issue has no stories yet" body={manages ? 'Add its sections in the editor.' : 'Come back soon.'} action={manages ? <Button to={`/newsletter/${issue.slug}/edit`}>Open the editor</Button> : null} />
+          <EmptyState
+            icon={Newspaper}
+            title="This issue has no stories yet"
+            body={manages ? 'Add its sections in the editor.' : 'Come back soon.'}
+            action={manages ? <Button to={`/newsletter/${issue.slug}/edit`}>Open the editor</Button> : null}
+          />
         </Panel>
       )}
 
@@ -309,7 +338,12 @@ export default function IssuePage() {
     return (
       <Page>
         <h1 className="visually-hidden">The DSBA Newsletter</h1>
-        <QueryError error={q.error} title="This issue didn’t load" onRetry={() => void q.refetch()} retrying={q.isFetching} />
+        <QueryError
+          error={q.error}
+          title="This issue didn’t load"
+          onRetry={() => void q.refetch()}
+          retrying={q.isFetching}
+        />
       </Page>
     );
   }

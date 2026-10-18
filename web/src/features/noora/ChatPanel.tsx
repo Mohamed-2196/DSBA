@@ -4,7 +4,16 @@
 // copies and her scripted "brain" with it.
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { matchPath, useLocation } from 'react-router-dom';
-import { ArrowCounterClockwise, ArrowsOutSimple, ClockCounterClockwise, DotsThree, EyeSlash, NotePencil, TrayArrowDown, X } from '@phosphor-icons/react';
+import {
+  ArrowCounterClockwise,
+  ArrowsOutSimple,
+  ClockCounterClockwise,
+  DotsThree,
+  EyeSlash,
+  NotePencil,
+  TrayArrowDown,
+  X,
+} from '@phosphor-icons/react';
 import type { NooraScript } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useOpenNote } from '../notes/public';
@@ -51,7 +60,17 @@ export interface ChatPanelProps {
   onMood: (mood: ChatMood | null) => void;
 }
 
-export default function ChatPanel({ script, open, sheet, calm, panelRef, onClose, onFollow, onHide, onMood }: ChatPanelProps) {
+export default function ChatPanel({
+  script,
+  open,
+  sheet,
+  calm,
+  panelRef,
+  onClose,
+  onFollow,
+  onHide,
+  onMood,
+}: ChatPanelProps) {
   const { year } = useYear();
   const { pathname, search } = useLocation();
   const { modules } = useModules();
@@ -70,7 +89,9 @@ export default function ChatPanel({ script, open, sheet, calm, panelRef, onClose
   // What goes with a question: read when it is sent.
   const context = (): AskContext => {
     const lesson = pageShared ? matchPath('/modules/:moduleId/lessons/:lessonId', pathname)?.params : undefined;
-    const moduleId = pageShared ? (lesson?.moduleId ?? matchPath('/modules/:moduleId', pathname)?.params.moduleId ?? null) : null;
+    const moduleId = pageShared
+      ? (lesson?.moduleId ?? matchPath('/modules/:moduleId', pathname)?.params.moduleId ?? null)
+      : null;
     return {
       route: pageShared ? `${pathname}${search}`.slice(0, 300) : '',
       year,
@@ -83,7 +104,21 @@ export default function ChatPanel({ script, open, sheet, calm, panelRef, onClose
   const { on: aiOn, status, ai } = useNooraAi(context);
 
   const chat = useConversation({ year, calm, ai, script });
-  const { greeting, messages, pending, busy, paused, send, stop, regenerate, chatId, chats, switchTo, remove, removeAll } = chat;
+  const {
+    greeting,
+    messages,
+    pending,
+    busy,
+    paused,
+    send,
+    stop,
+    regenerate,
+    chatId,
+    chats,
+    switchTo,
+    remove,
+    removeAll,
+  } = chat;
   const draft = useDraft(send);
 
   const usingAi = ai !== null && !paused;
@@ -91,9 +126,16 @@ export default function ChatPanel({ script, open, sheet, calm, panelRef, onClose
   // "Include my note": offered while a note with words in it is open; ticked for one question at a time.
   const noteChoice: NoteChoice | null =
     usingAi && openNote && openNote.body.trim()
-      ? { title: openNote.title.trim() || 'Untitled note', checked: withNote, long: openNote.body.length > NOTE_MAX, onChange: setWithNote }
+      ? {
+          title: openNote.title.trim() || 'Untitled note',
+          checked: withNote,
+          long: openNote.body.length > NOTE_MAX,
+          onChange: setWithNote,
+        }
       : null;
-  const pageChoice: PageChoice | null = usingAi ? { label: pageLabel(pathname, modules), shared: pageShared, onChange: setPageShared } : null;
+  const pageChoice: PageChoice | null = usingAi
+    ? { label: pageLabel(pathname, modules), shared: pageShared, onChange: setPageShared }
+    : null;
   // A paper's question from the file viewer: it goes with every question until the student takes it off. Asking
   // about one fills the box once.
   const paperChoice: PaperChoice | null = usingAi && paper ? { ...paper, onRemove: clearPaperAsk } : null;
@@ -110,13 +152,18 @@ export default function ChatPanel({ script, open, sheet, calm, panelRef, onClose
   const input = useRef<HTMLTextAreaElement>(null);
 
   // Questions for the page the student is on.
-  const pageChips = useMemo(() => pageSuggestions({ pathname, year, modules, isOn: featureOn, pages: script.pageChips }), [pathname, year, modules, featureOn, script.pageChips]);
+  const pageChips = useMemo(
+    () => pageSuggestions({ pathname, year, modules, isOn: featureOn, pages: script.pageChips }),
+    [pathname, year, modules, featureOn, script.pageChips],
+  );
 
   // Opening: she waves, and the keyboard goes to the text box. On a sheet it goes to the panel instead, so the
   // on-screen keyboard only comes up when the student taps the box.
   useEffect(() => {
     if (!open) return undefined;
-    const frame = requestAnimationFrame(() => (sheet ? panelRef.current : input.current)?.focus({ preventScroll: true }));
+    const frame = requestAnimationFrame(() =>
+      (sheet ? panelRef.current : input.current)?.focus({ preventScroll: true }),
+    );
     setWaving(true);
     const done = setTimeout(() => setWaving(false), calm ? 0 : WAVE);
     return () => {
@@ -178,7 +225,13 @@ export default function ChatPanel({ script, open, sheet, calm, panelRef, onClose
   };
 
   const left = questionsLeftLine(status.data);
-  const subline = busy ? 'Answering…' : why ? 'Script answers only' : usingAi ? (left ?? 'Knows your modules and this page') : 'Knows your modules';
+  const subline = busy
+    ? 'Answering…'
+    : why
+      ? 'Script answers only'
+      : usingAi
+        ? (left ?? 'Knows your modules and this page')
+        : 'Knows your modules';
   const footNote = usingAi
     ? `Answers by Claude, an AI: they can be wrong.${left ? ` ${left}.` : ''} Chats stay in this browser.`
     : 'She answers from the Hub’s modules and calendar. What you send her stays in this browser.';
@@ -213,8 +266,23 @@ export default function ChatPanel({ script, open, sheet, calm, panelRef, onClose
             {subline}
           </p>
         </div>
-        <IconButton label="Open full chat" icon={ArrowsOutSimple} size="sm" tooltip onClick={openPage} data-hub="noora-open-page" />
-        <IconButton label="New chat" icon={NotePencil} size="sm" tooltip disabled={!messages.length && !pending} onClick={() => leave(null)} data-hub="noora-new" />
+        <IconButton
+          label="Open full chat"
+          icon={ArrowsOutSimple}
+          size="sm"
+          tooltip
+          onClick={openPage}
+          data-hub="noora-open-page"
+        />
+        <IconButton
+          label="New chat"
+          icon={NotePencil}
+          size="sm"
+          tooltip
+          disabled={!messages.length && !pending}
+          onClick={() => leave(null)}
+          data-hub="noora-new"
+        />
         <Menu
           align="end"
           className="nc-menu"
@@ -222,7 +290,13 @@ export default function ChatPanel({ script, open, sheet, calm, panelRef, onClose
           trigger={<IconButton label="Chat options" icon={DotsThree} size="sm" data-hub="noora-more" />}
           items={[
             { id: 'recent', label: 'Recent chats', icon: ClockCounterClockwise, onSelect: () => setView('recent') },
-            { id: 'clear', label: 'Clear chat', icon: ArrowCounterClockwise, disabled: !messages.length && !pending, onSelect: () => setConfirming('clear') },
+            {
+              id: 'clear',
+              label: 'Clear chat',
+              icon: ArrowCounterClockwise,
+              disabled: !messages.length && !pending,
+              onSelect: () => setConfirming('clear'),
+            },
             { id: 'hide', label: 'Hide Mini Noora', icon: EyeSlash, onSelect: onHide },
             { divider: true, id: 'about-divider' },
             { heading: <span className="nc-menu__note">{footNote}</span>, id: 'about' },

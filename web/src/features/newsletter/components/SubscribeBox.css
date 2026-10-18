@@ -7,8 +7,15 @@
   padding: var(--sp-24);
   min-width: 0;
 }
-.nl-subscribe__text { min-width: 0; }
-.nl-subscribe__icon { display: block; font-size: 32px; color: var(--cobalt); margin-bottom: var(--sp-12); }
+.nl-subscribe__text {
+  min-width: 0;
+}
+.nl-subscribe__icon {
+  display: block;
+  font-size: 32px;
+  color: var(--cobalt);
+  margin-bottom: var(--sp-12);
+}
 .nl-subscribe__title {
   font-family: var(--font-serif);
   font-size: var(--fs-31);
@@ -16,20 +23,62 @@
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
-.nl-subscribe__body { margin-top: var(--sp-8); color: var(--ink-2); font-size: var(--fs-16); line-height: var(--lh-sans); max-width: 52ch; overflow-wrap: anywhere; }
-.nl-subscribe__manage { margin-top: var(--sp-8); font-size: var(--fs-14); font-weight: var(--fw-medium); }
-.nl-subscribe__manage a { color: var(--ink-2); }
-.nl-subscribe__manage a:hover { color: var(--ink); }
+.nl-subscribe__body {
+  margin-top: var(--sp-8);
+  color: var(--ink-2);
+  font-size: var(--fs-16);
+  line-height: var(--lh-sans);
+  max-width: 52ch;
+  overflow-wrap: anywhere;
+}
+.nl-subscribe__manage {
+  margin-top: var(--sp-8);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+}
+.nl-subscribe__manage a {
+  color: var(--ink-2);
+}
+.nl-subscribe__manage a:hover {
+  color: var(--ink);
+}
 /* Touch screens: a 44px target. The extra height is padding, taken back with negative margins, so the line sits as
    it does with a mouse. */
 @media (pointer: coarse) {
-  .nl-subscribe__manage a { display: inline-flex; align-items: center; min-height: 44px; margin-block: -13px; }
+  .nl-subscribe__manage a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-block: -13px;
+  }
 }
-.nl-subscribe__action { display: flex; align-items: center; min-width: 0; }
-.nl-subscribe__submit { width: 100%; }
-.nl-subscribe__done { display: flex; flex: 1 1 auto; align-items: center; justify-content: space-between; gap: var(--sp-12); flex-wrap: wrap; }
-.nl-subscribe__status { display: inline-flex; align-items: center; gap: 8px; font-weight: var(--fw-semibold); color: var(--signal-strong); }
-.nl-subscribe__status svg { font-size: 20px; color: var(--signal); }
+.nl-subscribe__action {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.nl-subscribe__submit {
+  width: 100%;
+}
+.nl-subscribe__done {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-12);
+  flex-wrap: wrap;
+}
+.nl-subscribe__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: var(--fw-semibold);
+  color: var(--signal-strong);
+}
+.nl-subscribe__status svg {
+  font-size: 20px;
+  color: var(--signal);
+}
 
 /* Band: a wide strip at the end of an issue (text left, the action right) */
 .nl-subscribe--band {
@@ -39,18 +88,43 @@
   padding: var(--sp-32) var(--sp-48) var(--sp-32) var(--sp-32);
   border-radius: var(--r-feature);
 }
-.nl-subscribe--band .nl-subscribe__title { font-size: var(--fs-39); }
-.nl-subscribe--band .nl-subscribe__action { justify-content: flex-end; }
-.nl-subscribe--band .nl-subscribe__submit { width: auto; }
-.nl-subscribe--band .nl-subscribe__done { flex: 0 1 auto; justify-content: flex-end; }
+.nl-subscribe--band .nl-subscribe__title {
+  font-size: var(--fs-39);
+}
+.nl-subscribe--band .nl-subscribe__action {
+  justify-content: flex-end;
+}
+.nl-subscribe--band .nl-subscribe__submit {
+  width: auto;
+}
+.nl-subscribe--band .nl-subscribe__done {
+  flex: 0 1 auto;
+  justify-content: flex-end;
+}
 
 @media (max-width: 1099px) {
-  .nl-subscribe--band { grid-template-columns: minmax(0, 1fr); padding: var(--sp-32); }
-  .nl-subscribe--band .nl-subscribe__action { justify-content: flex-start; }
+  .nl-subscribe--band {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--sp-32);
+  }
+  .nl-subscribe--band .nl-subscribe__action {
+    justify-content: flex-start;
+  }
 }
 @media (max-width: 699px) {
-  .nl-subscribe { padding: var(--sp-16); gap: var(--sp-16); }
-  .nl-subscribe__title, .nl-subscribe--band .nl-subscribe__title { font-size: var(--fs-25); }
-  .nl-subscribe--band { padding: var(--sp-24) var(--sp-16); border-radius: var(--r-panel); }
-  .nl-subscribe--band .nl-subscribe__submit { width: 100%; }
+  .nl-subscribe {
+    padding: var(--sp-16);
+    gap: var(--sp-16);
+  }
+  .nl-subscribe__title,
+  .nl-subscribe--band .nl-subscribe__title {
+    font-size: var(--fs-25);
+  }
+  .nl-subscribe--band {
+    padding: var(--sp-24) var(--sp-16);
+    border-radius: var(--r-panel);
+  }
+  .nl-subscribe--band .nl-subscribe__submit {
+    width: 100%;
+  }
 }

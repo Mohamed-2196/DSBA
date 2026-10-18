@@ -36,7 +36,12 @@ export function FlaggedQuestions() {
                 tagged <strong>{t.chapterTitle}</strong>. Flagged by {t.flagCount ?? 0}.
               </p>
               <span className="lib-flagged__acts">
-                <Button size="sm" leadingIcon={Check} onClick={() => keep.mutate({ id: t.id }, { onError: failed('Couldn’t keep the tag') })} disabled={keep.isPending}>
+                <Button
+                  size="sm"
+                  leadingIcon={Check}
+                  onClick={() => keep.mutate({ id: t.id }, { onError: failed('Couldn’t keep the tag') })}
+                  disabled={keep.isPending}
+                >
                   Keep
                 </Button>
                 <Button

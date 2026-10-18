@@ -10,7 +10,8 @@ import './QuizGame.css';
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 const typingInto = (target: EventTarget | null) =>
-  target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+  target instanceof HTMLElement &&
+  (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
 export function QuizGame({ out, busy, play, flash, paused, showResult }: GameProps) {
   const { play: state } = out;
@@ -82,8 +83,18 @@ export function QuizGame({ out, busy, play, flash, paused, showResult }: GamePro
         {questions.map((_, i) => {
           const a = answered[i];
           return (
-            <li key={i} className={cx('dq-step', a && (a.correct ? 'is-right' : 'is-wrong'), i === index && 'is-current')}>
-              <button type="button" className="dq-step__hit" disabled={!over} onClick={() => setIndex(i)} aria-label={`Question ${i + 1}${a ? (a.correct ? ', right' : ', wrong') : ''}`} aria-current={i === index ? 'step' : undefined} />
+            <li
+              key={i}
+              className={cx('dq-step', a && (a.correct ? 'is-right' : 'is-wrong'), i === index && 'is-current')}
+            >
+              <button
+                type="button"
+                className="dq-step__hit"
+                disabled={!over}
+                onClick={() => setIndex(i)}
+                aria-label={`Question ${i + 1}${a ? (a.correct ? ', right' : ', wrong') : ''}`}
+                aria-current={i === index ? 'step' : undefined}
+              />
             </li>
           );
         })}
@@ -116,14 +127,21 @@ export function QuizGame({ out, busy, play, flash, paused, showResult }: GamePro
                   {right ? <Check weight="bold" /> : chosen && !answer?.correct ? <X weight="bold" /> : LETTERS[i]}
                 </span>
                 <span className="dq-option__text">{option}</span>
-                {answer ? <span className="visually-hidden">{right ? ' (right answer)' : chosen ? ' (your answer, wrong)' : ''}</span> : null}
+                {answer ? (
+                  <span className="visually-hidden">
+                    {right ? ' (right answer)' : chosen ? ' (your answer, wrong)' : ''}
+                  </span>
+                ) : null}
               </button>
             );
           })}
         </div>
 
         {answer ? (
-          <div className={cx('dq-explain', answer.correct ? 'is-right' : 'is-wrong', just === index && 'dy-rise')} role="status">
+          <div
+            className={cx('dq-explain', answer.correct ? 'is-right' : 'is-wrong', just === index && 'dy-rise')}
+            role="status"
+          >
             <p className="dq-explain__head">{answer.correct ? 'Right' : 'Not quite'}</p>
             <p className="dq-explain__body">{answer.explain}</p>
           </div>

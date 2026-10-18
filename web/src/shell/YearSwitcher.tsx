@@ -14,7 +14,12 @@ interface YearSwitcherProps {
  * Year 1/2/3 switcher in cohort colours.
  * Full: a segmented control (rail, More drawer). Compact: a "Y2" pill that opens a menu (icon rail, mobile top bar).
  */
-export function YearSwitcher({ compact = false, menuSide = 'right', className, hookId = 'year-switcher' }: YearSwitcherProps) {
+export function YearSwitcher({
+  compact = false,
+  menuSide = 'right',
+  className,
+  hookId = 'year-switcher',
+}: YearSwitcherProps) {
   const { year, setYear } = useYear();
   if (compact) {
     return (
@@ -57,7 +62,13 @@ export function YearSwitcher({ compact = false, menuSide = 'right', className, h
         fullWidth
         value={year}
         onChange={setYear}
-        options={YEARS.map((y) => ({ value: y, label: String(y), ariaLabel: COHORTS[y].label, color: COHORTS[y].color, onColor: COHORTS[y].on }))}
+        options={YEARS.map((y) => ({
+          value: y,
+          label: String(y),
+          ariaLabel: COHORTS[y].label,
+          color: COHORTS[y].color,
+          onColor: COHORTS[y].on,
+        }))}
       />
     </div>
   );

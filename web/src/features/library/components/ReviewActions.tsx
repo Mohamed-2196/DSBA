@@ -8,7 +8,15 @@ import type { LibraryItem } from '../types';
 import './ReviewActions.css';
 
 /** Moderators: Publish, or Reject with a note the uploader will see. */
-export function ReviewActions({ item, onDone, className }: { item: LibraryItem; onDone?: (item: LibraryItem) => void; className?: string }) {
+export function ReviewActions({
+  item,
+  onDone,
+  className,
+}: {
+  item: LibraryItem;
+  onDone?: (item: LibraryItem) => void;
+  className?: string;
+}) {
   const uid = useId().replace(/:/g, '');
   const { push } = useToast();
   const review = useReviewItem();
@@ -33,7 +41,10 @@ export function ReviewActions({ item, onDone, className }: { item: LibraryItem; 
         onSuccess: (saved) => {
           push({
             title: decision === 'publish' ? 'Published' : 'Not published',
-            body: decision === 'publish' ? `“${item.title}” is in the library now.` : `The uploader can see your note on “${item.title}”.`,
+            body:
+              decision === 'publish'
+                ? `“${item.title}” is in the library now.`
+                : `The uploader can see your note on “${item.title}”.`,
             tone: decision === 'publish' ? 'success' : 'info',
           });
           onDone?.(saved);
@@ -66,7 +77,13 @@ export function ReviewActions({ item, onDone, className }: { item: LibraryItem; 
             <Button variant="ghost" size="sm" onClick={() => setRejecting(false)} disabled={!!pending}>
               Cancel
             </Button>
-            <Button variant="danger" size="sm" leadingIcon={X} loading={pending === 'reject'} onClick={() => decide('reject')}>
+            <Button
+              variant="danger"
+              size="sm"
+              leadingIcon={X}
+              loading={pending === 'reject'}
+              onClick={() => decide('reject')}
+            >
               Don’t publish
             </Button>
           </div>
@@ -76,7 +93,13 @@ export function ReviewActions({ item, onDone, className }: { item: LibraryItem; 
           <Button size="sm" leadingIcon={X} onClick={() => setRejecting(true)} disabled={!!pending}>
             Reject
           </Button>
-          <Button variant="primary" size="sm" leadingIcon={Check} loading={pending === 'publish'} onClick={() => decide('publish')}>
+          <Button
+            variant="primary"
+            size="sm"
+            leadingIcon={Check}
+            loading={pending === 'publish'}
+            onClick={() => decide('publish')}
+          >
             Publish
           </Button>
         </div>

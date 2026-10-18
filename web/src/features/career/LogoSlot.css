@@ -19,7 +19,11 @@
   overflow: hidden;
   user-select: none;
 }
-.career-logo--sm { --logo-w: 104px; --logo-h: 48px; border-radius: 10px; }
+.career-logo--sm {
+  --logo-w: 104px;
+  --logo-h: 48px;
+  border-radius: 10px;
+}
 
 .career-logo__img {
   /* Out of the grid's flow: as a grid item a tall mark stretches the auto row past the tile and gets cut off. */
@@ -33,9 +37,13 @@
   object-fit: contain;
   object-position: center;
 }
-.career-logo--sm .career-logo__img { padding: 7px 10px; }
+.career-logo--sm .career-logo__img {
+  padding: 7px 10px;
+}
 /* Nothing shows until the file has loaded, so there is never a broken-image icon. */
-.career-logo.is-loading .career-logo__img { opacity: 0; }
+.career-logo.is-loading .career-logo__img {
+  opacity: 0;
+}
 
 /* The fallback: initials on a tint of the page's own ink. */
 .career-logo.is-missing {
@@ -50,7 +58,17 @@
   letter-spacing: -0.02em;
   line-height: 1;
 }
-.career-logo__mono[data-length='3'] { font-size: 1.25rem; letter-spacing: -0.01em; }
-.career-logo__mono[data-length='4'] { font-size: 1.125rem; letter-spacing: 0; }
-.career-logo--sm .career-logo__mono { font-size: 1.125rem; }
-.career-logo--sm .career-logo__mono[data-length='4'] { font-size: 1rem; }
+.career-logo__mono[data-length='3'] {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+.career-logo__mono[data-length='4'] {
+  font-size: 1.125rem;
+  letter-spacing: 0;
+}
+.career-logo--sm .career-logo__mono {
+  font-size: 1.125rem;
+}
+.career-logo--sm .career-logo__mono[data-length='4'] {
+  font-size: 1rem;
+}

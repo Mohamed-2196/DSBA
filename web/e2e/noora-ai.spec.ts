@@ -29,13 +29,19 @@ const sse = (...events: object[]) => events.map((e) => `data: ${JSON.stringify(e
 /** Claude, stood in for: answers every question with a link to the calendar, and keeps what was asked. */
 async function standIn(page: Page): Promise<Request[]> {
   const asked: Request[] = [];
-  await page.route('**/api/v1/noora/status', (route) => route.fulfill({ json: { available: true, dailyQuestions: 30, questionsLeft: 29 } }));
+  await page.route('**/api/v1/noora/status', (route) =>
+    route.fulfill({ json: { available: true, dailyQuestions: 30, questionsLeft: 29 } }),
+  );
   await page.route('**/api/v1/noora/ask', async (route) => {
     asked.push(route.request());
     await route.fulfill({
       status: 200,
       headers: { 'content-type': 'text/event-stream' },
-      body: sse({ type: 'text', text: 'Your next exam is on ' }, { type: 'text', text: 'the [calendar](/calendar).' }, { type: 'done', questionsLeft: 28 }),
+      body: sse(
+        { type: 'text', text: 'Your next exam is on ' },
+        { type: 'text', text: 'the [calendar](/calendar).' },
+        { type: 'done', questionsLeft: 28 },
+      ),
     });
   });
   return asked;
@@ -69,14 +75,17 @@ test('her answer streams in with a card, and she is told the page and the lesson
   const asked = await standIn(page);
   const modules = (await api<{ id: string }[]>(page, 'GET', '/api/v1/modules')).body;
   const moduleId = modules[0]?.id ?? '';
-  const detail = (await api<{ chapters: { videos: { id: string }[] }[] }>(page, 'GET', `/api/v1/modules/${moduleId}`)).body;
+  const detail = (await api<{ chapters: { videos: { id: string }[] }[] }>(page, 'GET', `/api/v1/modules/${moduleId}`))
+    .body;
   const lessonId = detail.chapters[0]?.videos[0]?.id ?? '';
   await page.goto(`/modules/${moduleId}/lessons/${lessonId}`);
   const chat = await openNoora(page);
   await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('Claude');
   await chat.getByLabel('Message Mini Noora').fill('What is this lesson about?');
   await chat.getByLabel('Message Mini Noora').press('Enter');
-  await expect(chat.locator('[data-hub="noora-message"][data-from="noora"]').last()).toContainText('Your next exam is on the calendar.');
+  await expect(chat.locator('[data-hub="noora-message"][data-from="noora"]').last()).toContainText(
+    'Your next exam is on the calendar.',
+  );
   await expect(chat.locator('[data-hub="noora-refs"]').getByRole('link', { name: /calendar/ })).toBeVisible();
   await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('28 of 30 left today');
   const body: unknown = asked[0]?.postDataJSON();
@@ -100,7 +109,9 @@ test('the open note goes only when the student ticks Include my note, for one qu
   await chat.getByLabel('Message Mini Noora').fill('Is my note right?');
   await chat.getByLabel('Message Mini Noora').press('Enter');
   await expect(chat.locator('[data-hub="noora-refs"]').first()).toBeVisible();
-  expect(asked[0]?.postDataJSON()).toMatchObject({ note: { title: `Moments for Noora [e2e ${run.tag}]`, body: 'M(t) = E[e^{tX}]' } });
+  expect(asked[0]?.postDataJSON()).toMatchObject({
+    note: { title: `Moments for Noora [e2e ${run.tag}]`, body: 'M(t) = E[e^{tX}]' },
+  });
   await expect(include.getByRole('checkbox')).not.toBeChecked();
   await chat.getByLabel('Message Mini Noora').fill('And the variance?');
   await chat.getByLabel('Message Mini Noora').press('Enter');
@@ -138,6 +149,8 @@ test('an answer can be asked again, and a new chat keeps the last one in Recent 
   await chat.locator('[data-hub="noora-more"]').click();
   await page.getByRole('menuitem', { name: 'Recent chats' }).click();
   await chat.locator('[data-hub="noora-recent-chat"]').filter({ hasText: 'When is my next exam?' }).click();
-  await expect(chat.locator('[data-hub="noora-message"][data-from="me"]').first()).toContainText('When is my next exam?');
+  await expect(chat.locator('[data-hub="noora-message"][data-from="me"]').first()).toContainText(
+    'When is my next exam?',
+  );
   await ctx.close();
 });

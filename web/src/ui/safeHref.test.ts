@@ -19,16 +19,26 @@ describe('safeHref', () => {
     expect(safeHref('mailto:rep@example.com')).toEqual({ kind: 'external', href: 'mailto:rep@example.com' });
   });
 
-  it.each(['https://drive.google.com/drive/folders/1abc', 'https://DOCS.google.com/document/d/1abc/edit'])('never sends anyone to Google Drive: %s', (raw) => {
-    expect(safeHref(raw)).toBeNull();
-  });
-
-  it.each(['javascript:alert(1)', ' JavaScript:alert(1)', 'data:text/html,<script>alert(1)</script>', 'vbscript:x', 'file:///etc/passwd', 'forum/relative', '', null, undefined])(
-    'turns %s into plain text',
+  it.each(['https://drive.google.com/drive/folders/1abc', 'https://DOCS.google.com/document/d/1abc/edit'])(
+    'never sends anyone to Google Drive: %s',
     (raw) => {
       expect(safeHref(raw)).toBeNull();
     },
   );
+
+  it.each([
+    'javascript:alert(1)',
+    ' JavaScript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:x',
+    'file:///etc/passwd',
+    'forum/relative',
+    '',
+    null,
+    undefined,
+  ])('turns %s into plain text', (raw) => {
+    expect(safeHref(raw)).toBeNull();
+  });
 
   it('keeps notification targets inside the Hub', () => {
     expect(safeInternalPath('/forum/abc#reply-1')).toBe('/forum/abc#reply-1');

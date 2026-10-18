@@ -22,15 +22,31 @@ function Card({ guide, eventId }: { guide: ResultsDay; eventId: string }) {
   if (hiddenFor === eventId) return null;
   const n = ticks.done.size;
   return (
-    <Panel as="section" padding="none" radius="feature" className="start-card start-card--results" aria-labelledby="results-card-title" data-hub="results-card">
+    <Panel
+      as="section"
+      padding="none"
+      radius="feature"
+      className="start-card start-card--results"
+      aria-labelledby="results-card-title"
+      data-hub="results-card"
+    >
       <div className="start-card__head">
         <div className="start-card__titles">
           <h2 id="results-card-title" className="start-card__title">
             {guide.title}
           </h2>
-          <Badge tone={n === ticks.total ? 'signal' : 'neutral'} aria-live="polite">{`${n} of ${ticks.total} done`}</Badge>
+          <Badge
+            tone={n === ticks.total ? 'signal' : 'neutral'}
+            aria-live="polite"
+          >{`${n} of ${ticks.total} done`}</Badge>
         </div>
-        <IconButton icon={X} label="Hide Results day" size="sm" onClick={() => setHiddenFor(eventId)} data-hub="results-hide" />
+        <IconButton
+          icon={X}
+          label="Hide Results day"
+          size="sm"
+          onClick={() => setHiddenFor(eventId)}
+          data-hub="results-hide"
+        />
       </div>
       <p className="start-card__intro">{guide.intro}</p>
       <GuideSteps steps={guide.steps} ticks={ticks} variant="card" />

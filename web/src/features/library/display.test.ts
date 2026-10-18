@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import type { LibraryItem } from '../../api/types';
-import { addedAt, cardMeta, downloadsLabel, isNew, linkPlace, matchLine, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
+import {
+  addedAt,
+  cardMeta,
+  downloadsLabel,
+  isNew,
+  linkPlace,
+  matchLine,
+  moduleTag,
+  pageParam,
+  sizeLabel,
+  statusInfo,
+} from './display';
 import { examLabel } from '../../lib/exams';
 
 const DAY = 24 * 3600 * 1000;
@@ -71,8 +82,16 @@ describe('labels', () => {
 
   it('gives a file’s format and size, and a link’s place', () => {
     expect(sizeLabel(item())).toBe('PDF, 412 KB');
-    expect(sizeLabel(item({ format: 'JPG', fileName: 'board.jpg', contentType: 'image/jpeg', sizeBytes: 3.4 * 1024 * 1024 }))).toBe('JPG, 3.4 MB');
-    expect(sizeLabel(item({ source: 'link', url: 'https://vle.example.ac.uk/x', format: null, fileName: null, sizeBytes: null }))).toBe('vle.example.ac.uk');
+    expect(
+      sizeLabel(
+        item({ format: 'JPG', fileName: 'board.jpg', contentType: 'image/jpeg', sizeBytes: 3.4 * 1024 * 1024 }),
+      ),
+    ).toBe('JPG, 3.4 MB');
+    expect(
+      sizeLabel(
+        item({ source: 'link', url: 'https://vle.example.ac.uk/x', format: null, fileName: null, sizeBytes: null }),
+      ),
+    ).toBe('vle.example.ac.uk');
   });
 
   it('tags a module by its code, or its short name', () => {
@@ -107,8 +126,12 @@ describe('labels', () => {
 describe('matches inside files', () => {
   it('says where the words were found', () => {
     expect(matchLine(item())).toBeNull();
-    expect(matchLine(item({ match: { snippet: 'the Cramér–Rao bound', page: 3 } }))).toBe('Page 3: the Cramér–Rao bound');
-    expect(matchLine(item({ match: { snippet: 'the likelihood principle', page: null } }))).toBe('the likelihood principle');
+    expect(matchLine(item({ match: { snippet: 'the Cramér–Rao bound', page: 3 } }))).toBe(
+      'Page 3: the Cramér–Rao bound',
+    );
+    expect(matchLine(item({ match: { snippet: 'the likelihood principle', page: null } }))).toBe(
+      'the likelihood principle',
+    );
   });
 
   it('reads ?page= as a page number or nothing', () => {

@@ -7,8 +7,9 @@ export type SafeHref = { kind: 'internal'; to: string } | { kind: 'external'; hr
 // Browsers delete tabs and newlines inside a URL ('/\t/evil.example' becomes '//evil.example') and treat a
 // backslash as a slash, so none of these may appear anywhere in a link: whitespace (Unicode spaces and the
 // zero-width ones included), control characters, and backslashes. Spaces in a real link are written %20.
-// eslint-disable-next-line no-control-regex
-const SPACE_CONTROL_OR_BACKSLASH = /[\u0000-\u0020\u007f-\u00a0\u00ad\u1680\u180e\u2000-\u200f\u2028-\u202f\u205f-\u206f\u3000\ufeff\\]/;
+const SPACE_CONTROL_OR_BACKSLASH =
+  // eslint-disable-next-line no-control-regex
+  /[\u0000-\u0020\u007f-\u00a0\u00ad\u1680\u180e\u2000-\u200f\u2028-\u202f\u205f-\u206f\u3000\ufeff\\]/;
 
 // Any origin works: an app path must resolve to the origin it is resolved against, whatever that origin is.
 const PROBE_ORIGIN = 'https://hub.invalid';
@@ -36,7 +37,8 @@ export function safeHref(raw: string | null | undefined): SafeHref | null {
   try {
     const u = new URL(s);
     if (GOOGLE_FILE_HOSTS.has(u.hostname.toLowerCase())) return null;
-    if (u.protocol === 'https:' || u.protocol === 'http:' || u.protocol === 'mailto:') return { kind: 'external', href: u.href };
+    if (u.protocol === 'https:' || u.protocol === 'http:' || u.protocol === 'mailto:')
+      return { kind: 'external', href: u.href };
   } catch {
     /* not a URL */
   }

@@ -6,12 +6,20 @@ import { subjectsOf, type ChoiceSlot, type Picks, type Rules, type Subject } fro
 
 type ModuleLookup = (id: string | null | undefined) => ModuleSummary | null;
 
-const optionsFor = (choice: ChoiceSlot, rules: Rules): GradeOption[] => (choice === 'year2Option' ? rules.year2Options : rules.electives);
-const optionLabel = (o: GradeOption, getModule: ModuleLookup): string => (o.moduleId ? (getModule(o.moduleId)?.name ?? o.label ?? o.id) : (o.label ?? o.id));
+const optionsFor = (choice: ChoiceSlot, rules: Rules): GradeOption[] =>
+  choice === 'year2Option' ? rules.year2Options : rules.electives;
+const optionLabel = (o: GradeOption, getModule: ModuleLookup): string =>
+  o.moduleId ? (getModule(o.moduleId)?.name ?? o.label ?? o.id) : (o.label ?? o.id);
 
 /** Select options for a choice slot, given the picks so far (an elective can't be picked twice). */
-export function choiceOptions(choice: ChoiceSlot, picks: Picks, getModule: ModuleLookup, rules: Rules): { value: string; label: string }[] {
-  if (choice === 'year2Option') return rules.year2Options.map((o) => ({ value: o.id, label: optionLabel(o, getModule) }));
+export function choiceOptions(
+  choice: ChoiceSlot,
+  picks: Picks,
+  getModule: ModuleLookup,
+  rules: Rules,
+): { value: string; label: string }[] {
+  if (choice === 'year2Option')
+    return rules.year2Options.map((o) => ({ value: o.id, label: optionLabel(o, getModule) }));
   const other = choice === 'elective1' ? picks.elective2 : picks.elective1;
   return rules.electives.filter((o) => o.id !== other).map((o) => ({ value: o.id, label: optionLabel(o, getModule) }));
 }
@@ -33,18 +41,32 @@ export function subjectDisplay(subject: Subject, picks: Picks, getModule: Module
     if (opt) {
       const m = opt.moduleId ? getModule(opt.moduleId) : null;
       const label = opt.label ?? opt.id;
-      return { code: m?.unitCode ?? null, name: m ? m.name : label, short: m ? m.shortName : label, moduleId: m?.id ?? null, placeholder: false };
+      return {
+        code: m?.unitCode ?? null,
+        name: m ? m.name : label,
+        short: m ? m.shortName : label,
+        moduleId: m?.id ?? null,
+        placeholder: false,
+      };
     }
     return { code: null, name: subject.name, short: subject.name, moduleId: null, placeholder: true };
   }
   const m = getModule(subject.moduleId);
-  return { code: m?.unitCode ?? null, name: m ? m.name : subject.name, short: m ? m.shortName : subject.name, moduleId: m?.id ?? null, placeholder: false };
+  return {
+    code: m?.unitCode ?? null,
+    name: m ? m.name : subject.name,
+    short: m ? m.shortName : subject.name,
+    moduleId: m?.id ?? null,
+    placeholder: false,
+  };
 }
 
 /** Rows grouped by year, in subject order; years without subjects are left out. */
 export function yearsOf(rules: Rules): { year: 1 | 2 | 3; subjects: Subject[] }[] {
   const all = subjectsOf(rules);
-  return ([1, 2, 3] as const).map((year) => ({ year, subjects: all.filter((s) => s.year === year) })).filter((y) => y.subjects.length > 0);
+  return ([1, 2, 3] as const)
+    .map((year) => ({ year, subjects: all.filter((s) => s.year === year) }))
+    .filter((y) => y.subjects.length > 0);
 }
 
 /**

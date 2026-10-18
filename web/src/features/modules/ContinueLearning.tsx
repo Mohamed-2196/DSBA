@@ -111,7 +111,15 @@ export function ContinueLearning() {
   let body: ReactNode;
   if (!ready || (recent.length > 0 && details.pending && !items.length)) body = <Loading />;
   else if (details.failed) {
-    body = <QueryError error={details.error} title="Your lessons didn’t load" onRetry={details.retry} retrying={details.retrying} size="sm" />;
+    body = (
+      <QueryError
+        error={details.error}
+        title="Your lessons didn’t load"
+        onRetry={details.retry}
+        retrying={details.retrying}
+        size="sm"
+      />
+    );
   } else if (!items.length) {
     body = (
       <Panel padding="none" data-hub="continue-learning">

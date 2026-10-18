@@ -2,7 +2,8 @@ import { useId, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cx } from './internal';
 import './Switch.css';
 
-export interface SwitchProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange' | 'size' | 'checked'> {
+export interface SwitchProps
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange' | 'size' | 'checked'> {
   checked: boolean;
   onChange: (checked: boolean) => void;
   /** what it turns on, plainly */
@@ -12,7 +13,16 @@ export interface SwitchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
 }
 
 /** An on/off setting: label (and description) on the left, the switch on the right. A native checkbox (role=switch). */
-export function Switch({ checked, onChange, label, description, disabled, className, id: idProp, ...rest }: SwitchProps) {
+export function Switch({
+  checked,
+  onChange,
+  label,
+  description,
+  disabled,
+  className,
+  id: idProp,
+  ...rest
+}: SwitchProps) {
   const auto = useId().replace(/:/g, '');
   const id = idProp || `sw${auto}`;
   const descId = description ? `${id}-d` : undefined;

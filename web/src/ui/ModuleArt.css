@@ -11,4 +11,9 @@
   background: var(--art-tile);
   box-shadow: inset 0 0 0 1px var(--art-tile-stroke);
 }
-.ui-modart__img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.ui-modart__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

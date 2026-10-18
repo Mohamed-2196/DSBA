@@ -74,8 +74,14 @@ export default function ForumPage() {
   const tagCounts = cohort === 'all' ? stats.data?.byTag : stats.data?.tagsByCategory?.[cohort];
   // A retired tag still filters (a thread's link to it), so it keeps its chip while it's picked.
   const pickedTag = getTag(tag);
-  const allTags = useMemo(() => (pickedTag?.retired ? [...offeredTags, pickedTag] : offeredTags), [offeredTags, pickedTag]);
-  const chips = useMemo(() => tagChips({ counts: tagCounts, shownTags: loaded.map((t) => t.tags), allTags, selected: tag }), [tagCounts, loaded, allTags, tag]);
+  const allTags = useMemo(
+    () => (pickedTag?.retired ? [...offeredTags, pickedTag] : offeredTags),
+    [offeredTags, pickedTag],
+  );
+  const chips = useMemo(
+    () => tagChips({ counts: tagCounts, shownTags: loaded.map((t) => t.tags), allTags, selected: tag }),
+    [tagCounts, loaded, allTags, tag],
+  );
 
   const terms = highlightTerms(q);
   const scope = cohort === 'all' ? null : (getCategory(cohort)?.label ?? null);
@@ -103,12 +109,18 @@ export default function ForumPage() {
               {stats.data.repliesToday ? (
                 <span className="forum-live__live">
                   <span className="forum-live__dot" aria-hidden="true" />
-                  <span className="u-tabular">{formatCount(stats.data.repliesToday)}</span> {stats.data.repliesToday === 1 ? 'reply' : 'replies'} today
+                  <span className="u-tabular">{formatCount(stats.data.repliesToday)}</span>{' '}
+                  {stats.data.repliesToday === 1 ? 'reply' : 'replies'} today
                 </span>
               ) : null}
               {stats.data.noReplies ? (
-                <button type="button" className="forum-live__link" onClick={() => update({ cohort: 'all', status: 'no-replies', tag: '', q: '' })}>
-                  <span className="u-tabular">{formatCount(stats.data.noReplies)}</span> {stats.data.noReplies === 1 ? 'question is' : 'questions are'} waiting for a first reply
+                <button
+                  type="button"
+                  className="forum-live__link"
+                  onClick={() => update({ cohort: 'all', status: 'no-replies', tag: '', q: '' })}
+                >
+                  <span className="u-tabular">{formatCount(stats.data.noReplies)}</span>{' '}
+                  {stats.data.noReplies === 1 ? 'question is' : 'questions are'} waiting for a first reply
                 </button>
               ) : null}
             </div>
@@ -148,19 +160,42 @@ export default function ForumPage() {
               </span>
             </Panel>
           ) : list.isError && !list.data ? (
-            <QueryError error={list.error} title="The forum didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} />
+            <QueryError
+              error={list.error}
+              title="The forum didn’t load"
+              onRetry={() => void list.refetch()}
+              retrying={list.isFetching}
+            />
           ) : visible.length ? (
             <>
-              <Panel as="div" padding="none" className={cx('forum-list-panel', searching && 'is-updating')} aria-busy={searching || undefined}>
+              <Panel
+                as="div"
+                padding="none"
+                className={cx('forum-list-panel', searching && 'is-updating')}
+                aria-busy={searching || undefined}
+              >
                 <ul role="list" className="forum-list">
                   {visible.map((t) => (
                     <ThreadRow key={t.id} thread={t} onVote={onVote} fresh={t.id === posted?.id} terms={terms} />
                   ))}
                 </ul>
               </Panel>
-              {list.hasNextPage ? <LoadMore remaining={remainingCount(list.data?.pages)} loading={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()} /> : null}
+              {list.hasNextPage ? (
+                <LoadMore
+                  remaining={remainingCount(list.data?.pages)}
+                  loading={list.isFetchingNextPage}
+                  onClick={() => void list.fetchNextPage()}
+                />
+              ) : null}
               {list.isFetchNextPageError ? (
-                <QueryError error={list.error} title="More threads didn’t load" onRetry={() => void list.fetchNextPage()} retrying={list.isFetchingNextPage} size="sm" panel={false} />
+                <QueryError
+                  error={list.error}
+                  title="More threads didn’t load"
+                  onRetry={() => void list.fetchNextPage()}
+                  retrying={list.isFetchingNextPage}
+                  size="sm"
+                  panel={false}
+                />
               ) : null}
             </>
           ) : (
@@ -170,14 +205,30 @@ export default function ForumPage() {
           )}
         </TabPanel>
 
-        <ForumSidebar stats={stats.data} cohort={cohort} onPickCategory={(id: CategoryId | 'all') => update({ cohort: id, tag: '' })} />
+        <ForumSidebar
+          stats={stats.data}
+          cohort={cohort}
+          onPickCategory={(id: CategoryId | 'all') => update({ cohort: id, tag: '' })}
+        />
       </div>
     </Page>
   );
 }
 
 /** The list is empty: nothing matches the search, or the filters, or there is nothing in the category yet. */
-function NoThreads({ q, refined, scope, cohort, onClear }: { q: string; refined: boolean; scope: string | null; cohort: CategoryId | 'all'; onClear: () => void }) {
+function NoThreads({
+  q,
+  refined,
+  scope,
+  cohort,
+  onClear,
+}: {
+  q: string;
+  refined: boolean;
+  scope: string | null;
+  cohort: CategoryId | 'all';
+  onClear: () => void;
+}) {
   const posts = useAuth().mayTry('forum.post');
   if (q) {
     return (
@@ -203,11 +254,19 @@ function NoThreads({ q, refined, scope, cohort, onClear }: { q: string; refined:
     <EmptyState
       icon={ChatCircle}
       title={refined ? 'No threads match these filters' : `No threads in ${scope || 'the forum'} yet`}
-      body={refined ? 'Clear a filter or two, or start the conversation yourself.' : 'Start the first one and your classmates will see it here.'}
+      body={
+        refined
+          ? 'Clear a filter or two, or start the conversation yourself.'
+          : 'Start the first one and your classmates will see it here.'
+      }
       action={
         <>
           {posts ? (
-            <Button variant="primary" leadingIcon={Plus} to={cohort === 'all' ? '/forum/new' : `/forum/new?category=${cohort}`}>
+            <Button
+              variant="primary"
+              leadingIcon={Plus}
+              to={cohort === 'all' ? '/forum/new' : `/forum/new?category=${cohort}`}
+            >
               Start a thread
             </Button>
           ) : null}

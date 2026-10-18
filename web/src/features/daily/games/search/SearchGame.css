@@ -39,16 +39,27 @@
   color: var(--ink);
   font-size: var(--fs-13);
   font-weight: var(--fw-bold);
-  letter-spacing: .03em;
+  letter-spacing: 0.03em;
   transition: background-color var(--dur) var(--ease);
 }
-.ds-word.is-found { border-color: transparent; background: var(--tone); color: var(--ink); }
-.ds-word.is-revealed { border-style: dashed; color: var(--ink-2); }
+.ds-word.is-found {
+  border-color: transparent;
+  background: var(--tone);
+  color: var(--ink);
+}
+.ds-word.is-revealed {
+  border-style: dashed;
+  color: var(--ink-2);
+}
 @media (prefers-reduced-motion: no-preference) {
-  .ds-word.is-fresh { animation: ds-chip 520ms var(--ease); }
+  .ds-word.is-fresh {
+    animation: ds-chip 520ms var(--ease);
+  }
 }
 @keyframes ds-chip {
-  40% { transform: scale(1.12); }
+  40% {
+    transform: scale(1.12);
+  }
 }
 
 /* As big as fits: square while there's room, and shrinking with the screen's height when there isn't. */
@@ -88,29 +99,68 @@
   overflow: visible;
   pointer-events: none;
 }
-.ds-line { stroke-width: .78; stroke-linecap: round; fill: none; }
-.ds-line.is-live { stroke: color-mix(in srgb, var(--dy-pick) 30%, transparent); }
-.ds-line.is-miss { stroke: color-mix(in srgb, var(--alert) 30%, transparent); }
-.ds-line.is-tone-0 { stroke: var(--ds-tone-0); }
-.ds-line.is-tone-1 { stroke: var(--ds-tone-1); }
-.ds-line.is-tone-2 { stroke: var(--ds-tone-2); }
-.ds-line.is-tone-3 { stroke: var(--ds-tone-3); }
-.ds-line.is-tone-4 { stroke: var(--ds-tone-4); }
-.ds-line.is-tone-5 { stroke: var(--ds-tone-5); }
-.ds-line.is-tone-6 { stroke: var(--ds-tone-6); }
-.ds-line.is-tone-7 { stroke: var(--ds-tone-7); }
+.ds-line {
+  stroke-width: 0.78;
+  stroke-linecap: round;
+  fill: none;
+}
+.ds-line.is-live {
+  stroke: color-mix(in srgb, var(--dy-pick) 30%, transparent);
+}
+.ds-line.is-miss {
+  stroke: color-mix(in srgb, var(--alert) 30%, transparent);
+}
+.ds-line.is-tone-0 {
+  stroke: var(--ds-tone-0);
+}
+.ds-line.is-tone-1 {
+  stroke: var(--ds-tone-1);
+}
+.ds-line.is-tone-2 {
+  stroke: var(--ds-tone-2);
+}
+.ds-line.is-tone-3 {
+  stroke: var(--ds-tone-3);
+}
+.ds-line.is-tone-4 {
+  stroke: var(--ds-tone-4);
+}
+.ds-line.is-tone-5 {
+  stroke: var(--ds-tone-5);
+}
+.ds-line.is-tone-6 {
+  stroke: var(--ds-tone-6);
+}
+.ds-line.is-tone-7 {
+  stroke: var(--ds-tone-7);
+}
 /* A word the player didn't find, shown at the end: an outline, not a find. */
-.ds-line.is-revealed { stroke: color-mix(in srgb, var(--ink-3) 55%, transparent); stroke-width: .74; stroke-dasharray: .14 .16; }
+.ds-line.is-revealed {
+  stroke: color-mix(in srgb, var(--ink-3) 55%, transparent);
+  stroke-width: 0.74;
+  stroke-dasharray: 0.14 0.16;
+}
 @media (prefers-reduced-motion: no-preference) {
-  .ds-line.is-fresh { stroke-dasharray: var(--len) var(--len); animation: ds-draw 380ms var(--ease) both; }
-  .ds-line.is-miss { animation: ds-fade 450ms var(--ease) both; }
+  .ds-line.is-fresh {
+    stroke-dasharray: var(--len) var(--len);
+    animation: ds-draw 380ms var(--ease) both;
+  }
+  .ds-line.is-miss {
+    animation: ds-fade 450ms var(--ease) both;
+  }
 }
 @keyframes ds-draw {
-  from { stroke-dashoffset: var(--len); }
-  to { stroke-dashoffset: 0; }
+  from {
+    stroke-dashoffset: var(--len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 @keyframes ds-fade {
-  to { opacity: 0; }
+  to {
+    opacity: 0;
+  }
 }
 
 .ds-cell {
@@ -125,15 +175,23 @@
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: calc(var(--cell) * .52);
+  font-size: calc(var(--cell) * 0.52);
   font-weight: var(--fw-bold);
   line-height: 1;
   cursor: inherit;
   -webkit-tap-highlight-color: transparent;
 }
-.ds-cell:disabled { cursor: default; color: var(--ink); }
-.ds-cell.is-live { color: var(--dy-pick); }
-.ds-cell.is-anchor { background: var(--dy-pick); color: var(--dy-on-pick); }
+.ds-cell:disabled {
+  cursor: default;
+  color: var(--ink);
+}
+.ds-cell.is-live {
+  color: var(--dy-pick);
+}
+.ds-cell.is-anchor {
+  background: var(--dy-pick);
+  color: var(--dy-on-pick);
+}
 .ds-cell.is-hint::after {
   content: '';
   position: absolute;
@@ -142,10 +200,15 @@
   border-radius: 50%;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .ds-cell.is-hint::after { animation: ds-ring 1.6s var(--ease) infinite; }
+  .ds-cell.is-hint::after {
+    animation: ds-ring 1.6s var(--ease) infinite;
+  }
 }
 @keyframes ds-ring {
-  50% { transform: scale(1.14); opacity: .55; }
+  50% {
+    transform: scale(1.14);
+    opacity: 0.55;
+  }
 }
 
 .ds-foot {
@@ -156,11 +219,20 @@
   width: min(100%, 560px);
   min-height: 44px;
 }
-.ds-foot__count { color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.ds-foot__count {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
 
 @media (max-height: 640px) {
-  .ds { gap: var(--sp-6); }
-  .ds-word { padding: 2px 8px; font-size: var(--fs-12); }
+  .ds {
+    gap: var(--sp-6);
+  }
+  .ds-word {
+    padding: 2px 8px;
+    font-size: var(--fs-12);
+  }
 }
 /* A phone on its side: the grid on the left, the words and the hint on the right. */
 @media (max-height: 500px) {
@@ -171,9 +243,21 @@
     align-content: center;
     column-gap: var(--sp-16);
   }
-  .ds-grid-wrap { grid-row: 1 / -1; grid-column: 1; width: auto; height: 100%; }
-  .ds-words { grid-column: 2; align-self: center; justify-content: flex-start; }
-  .ds-foot { grid-column: 2; width: 100%; }
+  .ds-grid-wrap {
+    grid-row: 1 / -1;
+    grid-column: 1;
+    width: auto;
+    height: 100%;
+  }
+  .ds-words {
+    grid-column: 2;
+    align-self: center;
+    justify-content: flex-start;
+  }
+  .ds-foot {
+    grid-column: 2;
+    width: 100%;
+  }
 }
 
 /* The rules' example: four by four letters with one word found. */
@@ -185,5 +269,9 @@
   grid-auto-rows: var(--cell);
   width: max-content;
 }
-.ds-eg .ds-line { stroke: var(--ds-tone-0, color-mix(in srgb, var(--highlight) 78%, transparent)); }
-.dg-rules .ds-eg { --ds-tone-0: color-mix(in srgb, var(--highlight) 78%, transparent); }
+.ds-eg .ds-line {
+  stroke: var(--ds-tone-0, color-mix(in srgb, var(--highlight) 78%, transparent));
+}
+.dg-rules .ds-eg {
+  --ds-tone-0: color-mix(in srgb, var(--highlight) 78%, transparent);
+}

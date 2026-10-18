@@ -3,7 +3,9 @@ import { contributorLine, copyrightYears, httpsHref, notesInLibrary } from './si
 
 describe('contributorLine', () => {
   it('is the role, with the affiliation when there is one', () => {
-    expect(contributorLine({ role: 'Lecture recordings', affiliation: 'BIBF faculty' })).toBe('Lecture recordings, BIBF faculty');
+    expect(contributorLine({ role: 'Lecture recordings', affiliation: 'BIBF faculty' })).toBe(
+      'Lecture recordings, BIBF faculty',
+    );
     expect(contributorLine({ role: 'Creator and maintainer', affiliation: null })).toBe('Creator and maintainer');
   });
 
@@ -25,7 +27,9 @@ describe('copyrightYears', () => {
 
 describe('notesInLibrary', () => {
   it('opens the module’s notes in the library', () => {
-    expect(notesInLibrary('advanced-stats-distribution')).toBe('/library?module=advanced-stats-distribution&type=notes');
+    expect(notesInLibrary('advanced-stats-distribution')).toBe(
+      '/library?module=advanced-stats-distribution&type=notes',
+    );
   });
 });
 

@@ -13,7 +13,10 @@ export function initials(name: string | null | undefined = ''): string {
 /** '⌘' on Apple platforms, 'Ctrl' elsewhere. */
 export function modKeyLabel(): string {
   if (typeof navigator === 'undefined') return 'Ctrl';
-  return /Mac|iPhone|iPad|iPod/i.test(navigator.platform || '') || /Macintosh|Mac OS X|iPhone|iPad/.test(navigator.userAgent || '') ? '⌘' : 'Ctrl';
+  return /Mac|iPhone|iPad|iPod/i.test(navigator.platform || '') ||
+    /Macintosh|Mac OS X|iPhone|iPad/.test(navigator.userAgent || '')
+    ? '⌘'
+    : 'Ctrl';
 }
 
 const counts = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 0 });

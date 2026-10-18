@@ -86,7 +86,9 @@ export function YourUploads({ linkState, onShowAll }: { linkState?: LinkState; o
           <p className="lib-yours__desc">
             {pending
               ? `${pending === 1 ? 'One upload is' : `${pending} uploads are`} waiting for review. A student rep checks every upload before it’s public; until then only you and the reps can see it.${
-                  pending >= MAX_PENDING_UPLOADS ? ` That’s as many as can wait at once: you can share more once a rep has looked at them.` : ''
+                  pending >= MAX_PENDING_UPLOADS
+                    ? ` That’s as many as can wait at once: you can share more once a rep has looked at them.`
+                    : ''
                 }`
               : open.length === 1
                 ? 'A student rep didn’t publish this one. Their note says why.'

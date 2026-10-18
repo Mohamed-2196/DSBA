@@ -23,9 +23,35 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { showsUpload, useAuth } from '../../auth';
-import { BREAKPOINTS, cohortLabel, normalizeYear, useDebouncedValue, useDocumentTitle, useMediaQuery, useYear } from '../../state';
+import {
+  BREAKPOINTS,
+  cohortLabel,
+  normalizeYear,
+  useDebouncedValue,
+  useDocumentTitle,
+  useMediaQuery,
+  useYear,
+} from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, Chip, Count, EmptyState, Kbd, Menu, Page, PageHeader, PageSection, QueryError, SearchField, SegmentedControl, Skeleton, cx, formatCount, timeAgo } from '../../ui';
+import {
+  Badge,
+  Button,
+  Chip,
+  Count,
+  EmptyState,
+  Kbd,
+  Menu,
+  Page,
+  PageHeader,
+  PageSection,
+  QueryError,
+  SearchField,
+  SegmentedControl,
+  Skeleton,
+  cx,
+  formatCount,
+  timeAgo,
+} from '../../ui';
 import { itemPath, useLibraryFacets, useLibraryList, useLibraryPages } from './api';
 import { FileCard, type LinkState } from './components/FileCard';
 import { FileTable } from './components/FileTable';
@@ -45,7 +71,12 @@ import './LibraryPage.css';
 const DEFAULT_SORT: LibrarySort = 'popular';
 // A search lists the best matches first, unless the student picks another order.
 const SEARCH_SORT: LibrarySort = 'relevance';
-const SORTS: Record<LibrarySort, string> = { relevance: 'Best match', popular: 'Most downloaded', new: 'Newest', title: 'Name, A to Z' };
+const SORTS: Record<LibrarySort, string> = {
+  relevance: 'Best match',
+  popular: 'Most downloaded',
+  new: 'Newest',
+  title: 'Name, A to Z',
+};
 
 const KIND_ICONS: Partial<Record<LibraryKind, Icon>> = {
   'past-paper': Exam,
@@ -93,7 +124,15 @@ function readSort(raw: string | null, searching: boolean): LibrarySort {
 }
 
 /** The shelf: files published in the last 7 days (for the year being browsed). */
-function NewThisWeek({ year, yearLabel, linkState }: { year: CohortYear | null; yearLabel: string | null; linkState: LinkState }) {
+function NewThisWeek({
+  year,
+  yearLabel,
+  linkState,
+}: {
+  year: CohortYear | null;
+  yearLabel: string | null;
+  linkState: LinkState;
+}) {
   const { getModule } = useModules();
   const recent = useLibraryList({ sort: 'new', year }, { limit: 12 });
   const items = (recent.data?.items ?? []).filter((f) => isNew(f));
@@ -105,7 +144,8 @@ function NewThisWeek({ year, yearLabel, linkState }: { year: CohortYear | null; 
           New this week
         </h2>
         <p className="lib-new__desc">
-          {items.length === 12 ? 'The latest' : items.length} {items.length === 1 ? 'file' : 'files'} added {yearLabel ? `for ${yearLabel} ` : ''}in the last 7 days
+          {items.length === 12 ? 'The latest' : items.length} {items.length === 1 ? 'file' : 'files'} added{' '}
+          {yearLabel ? `for ${yearLabel} ` : ''}in the last 7 days
         </p>
       </div>
       <ul className="lib-new__list" role="list">
@@ -115,7 +155,9 @@ function NewThisWeek({ year, yearLabel, linkState }: { year: CohortYear | null; 
               <FileThumb item={f} size="strip" />
               <span className="lib-new__name">{f.title}</span>
               <span className="lib-new__meta">
-                {moduleTag(getModule(f.moduleId)) ? <span className="lib-new__code">{moduleTag(getModule(f.moduleId))}</span> : null}
+                {moduleTag(getModule(f.moduleId)) ? (
+                  <span className="lib-new__code">{moduleTag(getModule(f.moduleId))}</span>
+                ) : null}
                 <span>{timeAgo(addedAt(f))}</span>
               </span>
             </Link>
@@ -197,14 +239,26 @@ export default function LibraryPage() {
   // The request follows the settled search text, so its order changes with the results, not a keystroke earlier.
   const querySort = readSort(params.get('sort'), !!debouncedQ.trim());
   const list = useLibraryPages(
-    { q: debouncedQ, moduleId: module?.id ?? null, year, kind, source, sort: querySort, starred: starredOnly, mine: mineOnly },
+    {
+      q: debouncedQ,
+      moduleId: module?.id ?? null,
+      year,
+      kind,
+      source,
+      sort: querySort,
+      starred: starredOnly,
+      mine: mineOnly,
+    },
     { enabled: !needsAccount || signedIn },
   );
   const facets = useLibraryFacets();
   const items: LibraryItem[] = useMemo(() => list.data?.pages.flatMap((p) => p.items) ?? [], [list.data]);
   const total = list.data?.pages[0]?.total ?? 0;
   const modules = getModulesForYear(year);
-  const linkState = useMemo<LinkState>(() => ({ from: `${location.pathname}${location.search}` }), [location.pathname, location.search]);
+  const linkState = useMemo<LinkState>(
+    () => ({ from: `${location.pathname}${location.search}` }),
+    [location.pathname, location.search],
+  );
 
   // "/" focuses the search field.
   useEffect(() => {
@@ -223,7 +277,10 @@ export default function LibraryPage() {
   const setYear = (v: 'all' | CohortYear) => {
     const y = v === 'all' ? null : v;
     const isDefault = y === defaultYear;
-    update({ year: isDefault ? null : v === 'all' ? 'all' : String(v), module: module && y && module.year !== y ? null : moduleParam });
+    update({
+      year: isDefault ? null : v === 'all' ? 'all' : String(v),
+      module: module && y && module.year !== y ? null : moduleParam,
+    });
   };
   const anyFilter = Boolean(module || kind || q || starredOnly || mineOnly || source);
   const clearFilters = () => update({ module: null, type: null, q: null, starred: null, mine: null, source: null });
@@ -265,10 +322,21 @@ export default function LibraryPage() {
         <EmptyState
           icon={starredOnly ? Star : UserCircle}
           title={starredOnly ? 'Sign in to see your starred files' : 'Sign in to see your uploads'}
-          body={starredOnly ? 'Stars are kept with your account, so they follow you to every device.' : 'Files you upload are kept with your account.'}
+          body={
+            starredOnly
+              ? 'Stars are kept with your account, so they follow you to every device.'
+              : 'Files you upload are kept with your account.'
+          }
           action={
             <>
-              <Button variant="primary" onClick={() => openSignIn({ reason: starredOnly ? 'Sign in to see your starred files' : 'Sign in to see your uploads' })}>
+              <Button
+                variant="primary"
+                onClick={() =>
+                  openSignIn({
+                    reason: starredOnly ? 'Sign in to see your starred files' : 'Sign in to see your uploads',
+                  })
+                }
+              >
                 Sign in
               </Button>
               <Button variant="ghost" onClick={() => update({ starred: null, mine: null })}>
@@ -280,7 +348,14 @@ export default function LibraryPage() {
       </div>
     );
   } else if (list.isError && !list.data) {
-    results = <QueryError error={list.error} title="The library didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} />;
+    results = (
+      <QueryError
+        error={list.error}
+        title="The library didn’t load"
+        onRetry={() => void list.refetch()}
+        retrying={list.isFetching}
+      />
+    );
   } else if (list.isPending) {
     results = <ResultsSkeleton view={view} isMobile={isMobile} />;
   } else if (!items.length) {
@@ -374,23 +449,41 @@ export default function LibraryPage() {
     );
   } else {
     results = (
-      <div className={cx('lib-results', list.isPlaceholderData && 'is-updating')} aria-busy={list.isFetching || undefined}>
+      <div
+        className={cx('lib-results', list.isPlaceholderData && 'is-updating')}
+        aria-busy={list.isFetching || undefined}
+      >
         {mineOnly && items.some((f) => f.status === 'pending') ? (
           <p className="lib-review-note">
             <Badge tone="highlight" size="sm">
               Waiting for review
             </Badge>
-            <span>A student rep checks every upload before it’s public. Until then only you and the reps can see it.</span>
+            <span>
+              A student rep checks every upload before it’s public. Until then only you and the reps can see it.
+            </span>
           </p>
         ) : null}
         {view === 'grid' ? (
           <div className="lib-grid">
             {items.map((f) => (
-              <FileCard key={f.id} item={f} sort={sort} onToggleStar={toggleStar} linkState={linkState} thumbSize={isMobile ? 'strip' : 'grid'} />
+              <FileCard
+                key={f.id}
+                item={f}
+                sort={sort}
+                onToggleStar={toggleStar}
+                linkState={linkState}
+                thumbSize={isMobile ? 'strip' : 'grid'}
+              />
             ))}
           </div>
         ) : (
-          <FileTable items={items} sort={sort} onSort={(id) => update({ sort: id === defaultSort ? null : id })} onToggleStar={toggleStar} linkState={linkState} />
+          <FileTable
+            items={items}
+            sort={sort}
+            onSort={(id) => update({ sort: id === defaultSort ? null : id })}
+            onToggleStar={toggleStar}
+            linkState={linkState}
+          />
         )}
         {list.hasNextPage ? (
           <div className="lib-more">
@@ -404,7 +497,10 @@ export default function LibraryPage() {
         ) : null}
         {list.isError ? (
           <p className="lib-more__error" role="alert">
-            Some files didn’t load. <button type="button" onClick={() => void list.refetch()}>Try again</button>
+            Some files didn’t load.{' '}
+            <button type="button" onClick={() => void list.refetch()}>
+              Try again
+            </button>
           </p>
         ) : null}
         {anyFilter ? (
@@ -427,7 +523,11 @@ export default function LibraryPage() {
           uploadShown || linksShown ? (
             <>
               {linksShown ? (
-                <Button leadingIcon={LinkSimple} onClick={() => setLinking((l) => ({ open: true, key: l.key + 1 }))} data-hub="link-button">
+                <Button
+                  leadingIcon={LinkSimple}
+                  onClick={() => setLinking((l) => ({ open: true, key: l.key + 1 }))}
+                  data-hub="link-button"
+                >
                   Add a link
                 </Button>
               ) : null}
@@ -442,7 +542,8 @@ export default function LibraryPage() {
         meta={
           yearTotal != null ? (
             <span className="lib-head-meta">
-              <strong className="u-tabular">{formatCount(yearTotal)}</strong> {yearTotal === 1 ? 'file' : 'files'} {yearLabel ? `for ${yearLabel}` : 'across all years'}
+              <strong className="u-tabular">{formatCount(yearTotal)}</strong> {yearTotal === 1 ? 'file' : 'files'}{' '}
+              {yearLabel ? `for ${yearLabel}` : 'across all years'}
             </span>
           ) : (
             <Skeleton width={140} height={18} />
@@ -450,7 +551,9 @@ export default function LibraryPage() {
         }
       />
 
-      {signedIn && !mineOnly ? <YourUploads linkState={linkState} onShowAll={() => update({ mine: '1', starred: null })} /> : null}
+      {signedIn && !mineOnly ? (
+        <YourUploads linkState={linkState} onShowAll={() => update({ mine: '1', starred: null })} />
+      ) : null}
 
       {needsAccount ? null : <NewThisWeek year={year} yearLabel={yearLabel} linkState={linkState} />}
 
@@ -467,7 +570,14 @@ export default function LibraryPage() {
               shortcut={isMobile ? null : <Kbd>/</Kbd>}
               size="lg"
             />
-            <SegmentedControl label="Year" options={yearOptions} value={yearValue} onChange={setYear} className="lib-filters__year" fullWidth={isMobile} />
+            <SegmentedControl
+              label="Year"
+              options={yearOptions}
+              value={yearValue}
+              onChange={setYear}
+              className="lib-filters__year"
+              fullWidth={isMobile}
+            />
           </div>
           <div className="lib-filters__row" role="group" aria-label="Module">
             <div className="lib-filters__chips">
@@ -495,7 +605,12 @@ export default function LibraryPage() {
                   All types
                 </Chip>
                 {availableKinds.map((k) => (
-                  <Chip key={k.id} selected={kind === k.id} onChange={(on) => update({ type: on ? k.id : null })} icon={KIND_ICONS[k.id] ?? null}>
+                  <Chip
+                    key={k.id}
+                    selected={kind === k.id}
+                    onChange={(on) => update({ type: on ? k.id : null })}
+                    icon={KIND_ICONS[k.id] ?? null}
+                  >
                     {k.plural}
                   </Chip>
                 ))}
@@ -531,7 +646,11 @@ export default function LibraryPage() {
               Starred
             </Chip>
             {signedIn ? (
-              <Chip selected={mineOnly} onChange={(on) => update({ mine: on ? '1' : null, starred: null })} icon={UploadSimple}>
+              <Chip
+                selected={mineOnly}
+                onChange={(on) => update({ mine: on ? '1' : null, starred: null })}
+                icon={UploadSimple}
+              >
                 Your uploads
               </Chip>
             ) : null}
@@ -588,7 +707,15 @@ export default function LibraryPage() {
           defaultYear={year}
         />
       ) : null}
-      {linksShown ? <AddLinkDialog key={`link-${linking.key}`} open={linking.open} onClose={() => setLinking((l) => ({ ...l, open: false }))} moduleId={module?.id ?? null} year={year} /> : null}
+      {linksShown ? (
+        <AddLinkDialog
+          key={`link-${linking.key}`}
+          open={linking.open}
+          onClose={() => setLinking((l) => ({ ...l, open: false }))}
+          moduleId={module?.id ?? null}
+          year={year}
+        />
+      ) : null}
     </Page>
   );
 }

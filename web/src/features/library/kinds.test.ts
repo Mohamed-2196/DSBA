@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import type { LibraryItem } from '../../api/types';
-import { EXAM_KINDS, KINDS, KIND_BY_ID, MAX_PENDING_UPLOADS, extensionOf, formatOf, isLibraryKind, kindLabel, previewKind, titleFromFileName } from './kinds';
+import {
+  EXAM_KINDS,
+  KINDS,
+  KIND_BY_ID,
+  MAX_PENDING_UPLOADS,
+  extensionOf,
+  formatOf,
+  isLibraryKind,
+  kindLabel,
+  previewKind,
+  titleFromFileName,
+} from './kinds';
 
 // Every kind the API knows (schemas/library.py LibraryKind), in the library's order.
 const API_KINDS: LibraryItem['kind'][] = [
@@ -47,7 +58,12 @@ describe('kinds', () => {
 });
 
 describe('formats', () => {
-  const file = (patch: Partial<Pick<LibraryItem, 'source' | 'format' | 'fileName'>>) => ({ source: 'file' as const, format: null, fileName: null, ...patch });
+  const file = (patch: Partial<Pick<LibraryItem, 'source' | 'format' | 'fileName'>>) => ({
+    source: 'file' as const,
+    format: null,
+    fileName: null,
+    ...patch,
+  });
 
   it('reads the extension', () => {
     expect(extensionOf('Week 3 notes.pdf')).toBe('PDF');

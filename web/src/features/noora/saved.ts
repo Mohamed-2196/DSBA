@@ -31,7 +31,13 @@ export const newChatId = (): string => `chat-${Date.now().toString(36)}-${Math.r
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 
 function isAttachment(v: unknown): v is Attachment {
-  return isObject(v) && typeof v.id === 'string' && (v.kind === 'image' || v.kind === 'file') && typeof v.name === 'string' && typeof v.size === 'number';
+  return (
+    isObject(v) &&
+    typeof v.id === 'string' &&
+    (v.kind === 'image' || v.kind === 'file') &&
+    typeof v.name === 'string' &&
+    typeof v.size === 'number'
+  );
 }
 
 function isMessage(v: unknown): v is Message {
@@ -54,10 +60,18 @@ function isChat(c: unknown): c is SavedChat {
 
 /** A conversation as it is stored: the newest messages, and pictures without their URLs. */
 export function forStorage(messages: readonly Message[]): Message[] {
-  return messages.slice(-MESSAGES_MAX).map((m): Message => (m.from === 'me' ? ({ ...m, attachments: m.attachments.map((a) => ({ ...a, url: null })) } satisfies MyMessage) : (m satisfies NooraMessage)));
+  return messages
+    .slice(-MESSAGES_MAX)
+    .map(
+      (m): Message =>
+        m.from === 'me'
+          ? ({ ...m, attachments: m.attachments.map((a) => ({ ...a, url: null })) } satisfies MyMessage)
+          : (m satisfies NooraMessage),
+    );
 }
 
-const shorten = (text: string): string => (text.length > TITLE_MAX ? `${text.slice(0, TITLE_MAX - 1).trimEnd()}…` : text);
+const shorten = (text: string): string =>
+  text.length > TITLE_MAX ? `${text.slice(0, TITLE_MAX - 1).trimEnd()}…` : text;
 
 /** What a conversation is called in the list: its first question. */
 export function titleOf(messages: readonly Message[]): string {
@@ -75,7 +89,9 @@ export function withChat(list: readonly SavedChat[], id: string, messages: reado
   if (!messages.length) return others;
   const stored = forStorage(messages);
   const at = stored[stored.length - 1]?.at ?? Date.now();
-  const chat: SavedChat = before?.named ? { id, at, title: before.title, named: true, messages: stored } : { id, at, title: titleOf(stored), messages: stored };
+  const chat: SavedChat = before?.named
+    ? { id, at, title: before.title, named: true, messages: stored }
+    : { id, at, title: titleOf(stored), messages: stored };
   return [chat, ...others].slice(0, CHATS_MAX);
 }
 
@@ -84,7 +100,9 @@ export function renameChat(list: readonly SavedChat[], id: string, title: string
   const name = shorten(title.replace(/\s+/g, ' ').trim());
   return list.map((c): SavedChat => {
     if (c.id !== id) return c;
-    return name ? { ...c, title: name, named: true } : { id: c.id, at: c.at, title: titleOf(c.messages), messages: c.messages };
+    return name
+      ? { ...c, title: name, named: true }
+      : { id: c.id, at: c.at, title: titleOf(c.messages), messages: c.messages };
   });
 }
 
@@ -135,7 +153,13 @@ export function groupChats(list: readonly SavedChat[], now: number = Date.now())
 
 /** The tab's conversation, from whatever was stored. */
 export function parseCurrent(value: unknown): { id: string; messages: Message[] } | null {
-  if (!isObject(value) || typeof value.id !== 'string' || !Array.isArray(value.messages) || !value.messages.every(isMessage)) return null;
+  if (
+    !isObject(value) ||
+    typeof value.id !== 'string' ||
+    !Array.isArray(value.messages) ||
+    !value.messages.every(isMessage)
+  )
+    return null;
   return { id: value.id, messages: value.messages };
 }
 
@@ -150,7 +174,8 @@ export function readCurrent(): { id: string; messages: Message[] } | null {
 
 export function writeCurrent(id: string, messages: readonly Message[]): void {
   try {
-    if (messages.length) window.sessionStorage.setItem(CURRENT_KEY, JSON.stringify({ id, messages: forStorage(messages) }));
+    if (messages.length)
+      window.sessionStorage.setItem(CURRENT_KEY, JSON.stringify({ id, messages: forStorage(messages) }));
     else window.sessionStorage.removeItem(CURRENT_KEY);
   } catch {
     /* storage unavailable or full: the conversation lasts as long as the page */

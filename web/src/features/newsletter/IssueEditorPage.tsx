@@ -45,12 +45,23 @@ function IssueEditor({ slug }: { slug: string | undefined }) {
   if (q.isPending) return <EditorSkeleton />;
   if (q.isError) {
     if (isApiError(q.error) && q.error.status === 404) {
-      return <Notice title="We couldn’t find that issue" body="It may have been deleted, or its address changed." action={<Button to="/newsletter">See all issues</Button>} />;
+      return (
+        <Notice
+          title="We couldn’t find that issue"
+          body="It may have been deleted, or its address changed."
+          action={<Button to="/newsletter">See all issues</Button>}
+        />
+      );
     }
     return (
       <Page>
         <h1 className="visually-hidden">Edit issue</h1>
-        <QueryError error={q.error} title="The issue didn’t load" onRetry={() => void q.refetch()} retrying={q.isFetching} />
+        <QueryError
+          error={q.error}
+          title="The issue didn’t load"
+          onRetry={() => void q.refetch()}
+          retrying={q.isFetching}
+        />
       </Page>
     );
   }

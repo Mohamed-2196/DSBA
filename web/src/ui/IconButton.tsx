@@ -34,7 +34,25 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLElement>,
 
 /** Square icon-only button. `label` is required (becomes aria-label). */
 export const IconButton = forwardRef<HTMLElement, IconButtonProps>(function IconButton(
-  { label, icon, variant = 'ghost', size = 'md', badge, tooltip = false, tooltipSide = 'bottom', active = false, toggle = false, to, href, external, target, rel, className, type, ...rest },
+  {
+    label,
+    icon,
+    variant = 'ghost',
+    size = 'md',
+    badge,
+    tooltip = false,
+    tooltipSide = 'bottom',
+    active = false,
+    toggle = false,
+    to,
+    href,
+    external,
+    target,
+    rel,
+    className,
+    type,
+    ...rest
+  },
   ref,
 ) {
   if (!label && import.meta.env.DEV) console.warn('IconButton requires a `label`');
@@ -42,7 +60,13 @@ export const IconButton = forwardRef<HTMLElement, IconButtonProps>(function Icon
   const props: Record<string, unknown> = {
     ref,
     'aria-label': label,
-    className: cx('ui-iconbutton', `ui-iconbutton--${variant}`, `ui-iconbutton--${size}`, active && 'is-active', className),
+    className: cx(
+      'ui-iconbutton',
+      `ui-iconbutton--${variant}`,
+      `ui-iconbutton--${size}`,
+      active && 'is-active',
+      className,
+    ),
     ...rest,
   };
   if (Comp === 'button') props.type = type || 'button';
@@ -61,7 +85,10 @@ export const IconButton = forwardRef<HTMLElement, IconButtonProps>(function Icon
     <Comp {...props}>
       {renderIcon(icon, { className: 'ui-iconbutton__icon' })}
       {badge ? (
-        <span className={cx('ui-iconbutton__badge', typeof badge === 'number' && 'ui-iconbutton__badge--count')} aria-hidden="true">
+        <span
+          className={cx('ui-iconbutton__badge', typeof badge === 'number' && 'ui-iconbutton__badge--count')}
+          aria-hidden="true"
+        >
           {typeof badge === 'number' ? (badge > 9 ? '9+' : badge) : null}
         </span>
       ) : null}

@@ -149,7 +149,12 @@ export const newKey = (prefix = 'k'): string => `${prefix}${(made += 1)}`;
 
 const emptyFigure = (): FigureDraft => ({ src: '', width: 0, height: 0, alt: '', caption: '' });
 const emptyCard = (): CardDraft => ({ kicker: '', title: '', text: '', wide: false });
-const emptyStats = (): StatsDraft => ({ title: '', items: [{ key: newKey('st'), value: '', label: '' }], foot: '', wide: false });
+const emptyStats = (): StatsDraft => ({
+  title: '',
+  items: [{ key: newKey('st'), value: '', label: '' }],
+  foot: '',
+  wide: false,
+});
 
 function blockDraft(b: Block): BlockDraft {
   switch (b.type) {
@@ -162,7 +167,14 @@ function blockDraft(b: Block): BlockDraft {
     case 'cta':
       return { key: newKey('b'), type: 'cta', label: b.label, to: b.to };
     case 'poll':
-      return { key: newKey('b'), type: 'poll', id: b.id, question: b.question, answers: b.answers.map((text) => ({ key: newKey('i'), text })), closed: b.closed };
+      return {
+        key: newKey('b'),
+        type: 'poll',
+        id: b.id,
+        question: b.question,
+        answers: b.answers.map((text) => ({ key: newKey('i'), text })),
+        closed: b.closed,
+      };
   }
 }
 
@@ -185,11 +197,27 @@ function sectionDraft(s: IssueSection): SectionDraft {
     blocks: s.blocks.map(blockDraft),
     after: s.after.map(blockDraft),
     beside: besideOf(s),
-    figure: s.figure ? { src: s.figure.src, width: s.figure.width, height: s.figure.height, alt: s.figure.alt, caption: s.figure.caption ?? '' } : emptyFigure(),
-    card: aside?.type === 'card' ? { kicker: aside.kicker, title: aside.title, text: aside.text, wide: aside.wide } : emptyCard(),
+    figure: s.figure
+      ? {
+          src: s.figure.src,
+          width: s.figure.width,
+          height: s.figure.height,
+          alt: s.figure.alt,
+          caption: s.figure.caption ?? '',
+        }
+      : emptyFigure(),
+    card:
+      aside?.type === 'card'
+        ? { kicker: aside.kicker, title: aside.title, text: aside.text, wide: aside.wide }
+        : emptyCard(),
     stats:
       aside?.type === 'stats'
-        ? { title: aside.title, items: aside.items.map((i) => ({ key: newKey('st'), value: i.value, label: i.label })), foot: aside.foot ?? '', wide: aside.wide }
+        ? {
+            title: aside.title,
+            items: aside.items.map((i) => ({ key: newKey('st'), value: i.value, label: i.label })),
+            foot: aside.foot ?? '',
+            wide: aside.wide,
+          }
         : emptyStats(),
     window: { from: s.window?.from ?? '', to: s.window?.to ?? '' },
     fallback: { title: s.fallback?.title ?? '', text: s.fallback?.text ?? '' },
@@ -197,7 +225,10 @@ function sectionDraft(s: IssueSection): SectionDraft {
   };
 }
 
-export type IssueContent = Pick<IssueDetail, 'title' | 'number' | 'date' | 'slug' | 'dek' | 'summary' | 'editors' | 'cover' | 'sections'>;
+export type IssueContent = Pick<
+  IssueDetail,
+  'title' | 'number' | 'date' | 'slug' | 'dek' | 'summary' | 'editors' | 'cover' | 'sections'
+>;
 
 /** A draft of an issue as the API has it. */
 export function draftFrom(issue: IssueContent): IssueDraft {
@@ -239,7 +270,13 @@ function blockPayload(b: BlockDraft): Block {
     case 'cta':
       return { type: 'cta', label: b.label.trim(), to: b.to.trim() };
     case 'poll':
-      return { type: 'poll', id: b.id, question: b.question.trim(), answers: b.answers.map((a) => a.text.trim()), closed: b.closed };
+      return {
+        type: 'poll',
+        id: b.id,
+        question: b.question.trim(),
+        answers: b.answers.map((a) => a.text.trim()),
+        closed: b.closed,
+      };
   }
 }
 
@@ -250,7 +287,13 @@ function asidePayload(s: SectionDraft): Aside | null {
   }
   if (s.beside === 'stats') {
     const st = s.stats;
-    return { type: 'stats', title: st.title.trim(), items: st.items.map((i) => ({ value: i.value.trim(), label: i.label.trim() })), foot: st.foot.trim() || null, wide: st.wide };
+    return {
+      type: 'stats',
+      title: st.title.trim(),
+      items: st.items.map((i) => ({ value: i.value.trim(), label: i.label.trim() })),
+      foot: st.foot.trim() || null,
+      wide: st.wide,
+    };
   }
   return null;
 }
@@ -269,17 +312,29 @@ export function sectionPayload(s: SectionDraft): IssueSection {
     kind: s.kind,
     blocks: s.blocks.map(blockPayload),
     after: s.after.map(blockPayload),
-    figure: s.beside === 'figure' ? { src: f.src.trim(), width: f.width, height: f.height, alt: f.alt.trim(), caption: f.caption.trim() || null } : null,
+    figure:
+      s.beside === 'figure'
+        ? { src: f.src.trim(), width: f.width, height: f.height, alt: f.alt.trim(), caption: f.caption.trim() || null }
+        : null,
     aside: asidePayload(s),
-    window: s.kind === 'deadlines' && (s.window.from || s.window.to) ? { from: s.window.from || null, to: s.window.to || null } : null,
-    fallback: isLiveList(s.kind) && fallbackSet ? { title: s.fallback.title.trim(), text: s.fallback.text.trim() } : null,
+    window:
+      s.kind === 'deadlines' && (s.window.from || s.window.to)
+        ? { from: s.window.from || null, to: s.window.to || null }
+        : null,
+    fallback:
+      isLiveList(s.kind) && fallbackSet ? { title: s.fallback.title.trim(), text: s.fallback.text.trim() } : null,
     estWords: s.estWords,
   };
 }
 
 /** The issue's cover as the API takes it. */
 export function coverPayload(d: IssueDraft): IssueCover {
-  return { tone: d.cover.tone, art: d.cover.art, artAlt: d.cover.art ? d.cover.artAlt.trim() || null : null, lines: d.cover.lines.map((l) => ({ section: l.section, text: l.text.trim() })) };
+  return {
+    tone: d.cover.tone,
+    art: d.cover.art,
+    artAlt: d.cover.art ? d.cover.artAlt.trim() || null : null,
+    lines: d.cover.lines.map((l) => ({ section: l.section, text: l.text.trim() })),
+  };
 }
 
 /** Everything the editor saves (PATCH /newsletter/issues/{id}). */
@@ -311,7 +366,12 @@ const length = (s: string): number => Array.from(s).length; // code points, as P
 export function jsonBytes(value: unknown): number {
   const strip = (v: unknown): unknown => {
     if (Array.isArray(v)) return v.map(strip);
-    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).filter(([, x]) => x !== null && x !== undefined).map(([k, x]) => [k, strip(x)]));
+    if (v && typeof v === 'object')
+      return Object.fromEntries(
+        Object.entries(v)
+          .filter(([, x]) => x !== null && x !== undefined)
+          .map(([k, x]) => [k, strip(x)]),
+      );
     return v;
   };
   const json = JSON.stringify(strip(value)) ?? '';
@@ -344,7 +404,8 @@ export const fieldPath = {
 };
 
 /** The section a path belongs to, or null for the issue's own fields and the cover. */
-export const sectionOfPath = (path: string): string | null => (path.startsWith('s:') ? (path.split(':')[1] ?? null) : null);
+export const sectionOfPath = (path: string): string | null =>
+  path.startsWith('s:') ? (path.split(':')[1] ?? null) : null;
 
 /** An HTML id for the control of a field path, so the editor can focus the first problem. */
 export const controlId = (path: string): string => `nl-ed-${path.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
@@ -354,7 +415,11 @@ export const controlId = (path: string): string => `nl-ed-${path.replace(/[^a-zA
 const thousands = (n: number): string => n.toLocaleString('en-GB');
 
 /** '' when fine; else what to do. `what` names the thing in a sentence ('the title'). */
-function textProblem(value: string, max: number, { required, empty, markup = true }: { required: boolean; empty: string; markup?: boolean }): string {
+function textProblem(
+  value: string,
+  max: number,
+  { required, empty, markup = true }: { required: boolean; empty: string; markup?: boolean },
+): string {
   const v = value.trim();
   if (!v) return required ? empty : '';
   const n = length(v);
@@ -362,15 +427,26 @@ function textProblem(value: string, max: number, { required, empty, markup = tru
   return (markup && markupProblem(v)) || '';
 }
 
-function checkBlocks(errors: FieldErrors, s: SectionDraft, blocks: BlockDraft[], max: number, listName: 'blocks' | 'after'): void {
-  if (blocks.length > max) errors[fieldPath.section(s.key, listName)] = `A section holds ${max} blocks here at most: remove ${blocks.length - max}.`;
+function checkBlocks(
+  errors: FieldErrors,
+  s: SectionDraft,
+  blocks: BlockDraft[],
+  max: number,
+  listName: 'blocks' | 'after',
+): void {
+  if (blocks.length > max)
+    errors[fieldPath.section(s.key, listName)] =
+      `A section holds ${max} blocks here at most: remove ${blocks.length - max}.`;
   for (const b of blocks) {
     const put = (field: string, message: string) => {
       if (message) errors[fieldPath.block(s.key, b.key, field)] = message;
     };
     switch (b.type) {
       case 'p':
-        put('text', textProblem(b.text, LIMITS.paragraph, { required: true, empty: 'Write the paragraph, or remove it.' }));
+        put(
+          'text',
+          textProblem(b.text, LIMITS.paragraph, { required: true, empty: 'Write the paragraph, or remove it.' }),
+        );
         break;
       case 'signoff':
         put('text', textProblem(b.text, LIMITS.line, { required: true, empty: 'Write the sign-off, or remove it.' }));
@@ -380,11 +456,18 @@ function checkBlocks(errors: FieldErrors, s: SectionDraft, blocks: BlockDraft[],
         put('to', linkProblem(b.to) ?? '');
         break;
       case 'poll':
-        put('question', textProblem(b.question, LIMITS.heading, { required: true, empty: 'Write the question, or remove the poll.' }));
+        put(
+          'question',
+          textProblem(b.question, LIMITS.heading, { required: true, empty: 'Write the question, or remove the poll.' }),
+        );
         if (b.answers.length < 2) put('answers', 'A poll needs at least two answers.');
-        else if (b.answers.length > LIMITS.pollAnswers) put('answers', `A poll holds ${LIMITS.pollAnswers} answers at most.`);
+        else if (b.answers.length > LIMITS.pollAnswers)
+          put('answers', `A poll holds ${LIMITS.pollAnswers} answers at most.`);
         for (const a of b.answers) {
-          const message = textProblem(a.text, LIMITS.pollAnswer, { required: true, empty: 'Write the answer, or remove it.' });
+          const message = textProblem(a.text, LIMITS.pollAnswer, {
+            required: true,
+            empty: 'Write the answer, or remove it.',
+          });
           if (message) errors[fieldPath.item(s.key, b.key, a.key)] = message;
         }
         break;
@@ -409,13 +492,20 @@ function checkBeside(errors: FieldErrors, s: SectionDraft): void {
     if (!f.src.trim()) put('figure.src', 'Choose a picture.');
     else if (!isPicture(f.src) || f.width < 1 || f.height < 1) put('figure.src', 'Choose one of the pictures.');
     if (!f.alt.trim()) put('figure.alt', 'Describe the picture for people who can’t see it.');
-    else if (length(f.alt.trim()) > LIMITS.alt) put('figure.alt', `Keep the description to ${LIMITS.alt} characters (it has ${length(f.alt.trim())}).`);
+    else if (length(f.alt.trim()) > LIMITS.alt)
+      put('figure.alt', `Keep the description to ${LIMITS.alt} characters (it has ${length(f.alt.trim())}).`);
     put('figure.caption', textProblem(f.caption, LIMITS.short, { required: false, empty: '' }));
   } else if (s.beside === 'card') {
     const c = s.card;
-    put('card.kicker', textProblem(c.kicker, LIMITS.label, { required: true, empty: 'Write the line above the title.' }));
+    put(
+      'card.kicker',
+      textProblem(c.kicker, LIMITS.label, { required: true, empty: 'Write the line above the title.' }),
+    );
     put('card.title', textProblem(c.title, LIMITS.line, { required: true, empty: 'Write the card’s title.' }));
-    put('card.text', textProblem(c.text, LIMITS.short, { required: true, empty: 'Write a line of text under the title.' }));
+    put(
+      'card.text',
+      textProblem(c.text, LIMITS.short, { required: true, empty: 'Write a line of text under the title.' }),
+    );
   } else if (s.beside === 'stats') {
     const st = s.stats;
     put('stats.title', textProblem(st.title, LIMITS.line, { required: true, empty: 'Give the numbers a title.' }));
@@ -424,7 +514,8 @@ function checkBeside(errors: FieldErrors, s: SectionDraft): void {
     for (const i of st.items) {
       const value = i.value.trim();
       if (!value) errors[fieldPath.stat(s.key, i.key, 'value')] = 'Write the number.';
-      else if (length(value) > LIMITS.statValue) errors[fieldPath.stat(s.key, i.key, 'value')] = `Keep it to ${LIMITS.statValue} characters.`;
+      else if (length(value) > LIMITS.statValue)
+        errors[fieldPath.stat(s.key, i.key, 'value')] = `Keep it to ${LIMITS.statValue} characters.`;
       const label = textProblem(i.label, LIMITS.line, { required: true, empty: 'Say what the number counts.' });
       if (label) errors[fieldPath.stat(s.key, i.key, 'label')] = label;
     }
@@ -453,8 +544,20 @@ function checkSection(errors: FieldErrors, s: SectionDraft, idCount: Map<string,
     else if (from && to && isDayKey(from) && to < from) put('window.to', 'The last day can’t be before the first.');
   }
   if (isLiveList(s.kind) && (s.fallback.title.trim() || s.fallback.text.trim())) {
-    put('fallback.title', textProblem(s.fallback.title, LIMITS.line, { required: true, empty: 'Add a headline for when there is nothing to list.' }));
-    put('fallback.text', textProblem(s.fallback.text, LIMITS.item, { required: true, empty: 'Add a line for when there is nothing to list.' }));
+    put(
+      'fallback.title',
+      textProblem(s.fallback.title, LIMITS.line, {
+        required: true,
+        empty: 'Add a headline for when there is nothing to list.',
+      }),
+    );
+    put(
+      'fallback.text',
+      textProblem(s.fallback.text, LIMITS.item, {
+        required: true,
+        empty: 'Add a line for when there is nothing to list.',
+      }),
+    );
   }
 }
 
@@ -476,36 +579,70 @@ export function validate(d: IssueDraft): FieldErrors {
   put('summary', textProblem(d.summary, LIMITS.standfirst, { required: false, empty: '' }));
   const names = editorNames(d.editors);
   const long = names.find((name) => length(name) > LIMITS.editor);
-  if (names.length > LIMITS.editors) put('editors', `List ${LIMITS.editors} editors at most (there are ${names.length}).`);
+  if (names.length > LIMITS.editors)
+    put('editors', `List ${LIMITS.editors} editors at most (there are ${names.length}).`);
   else if (long) put('editors', `Keep each name to ${LIMITS.editor} characters: “${long.slice(0, 24)}…” is longer.`);
 
   // The cover
   if (d.cover.art && !isPicture(d.cover.art)) put('cover.art', 'Choose one of the pictures.');
-  if (d.cover.art && !d.cover.artAlt.trim()) put('cover.artAlt', 'Describe the illustration for people who can’t see it.');
-  else if (length(d.cover.artAlt.trim()) > LIMITS.artAlt) put('cover.artAlt', `Keep the description to ${LIMITS.artAlt} characters (it has ${length(d.cover.artAlt.trim())}).`);
-  if (d.cover.lines.length > LIMITS.coverLines) put('cover.lines', `A cover has ${LIMITS.coverLines} lines at most: remove ${d.cover.lines.length - LIMITS.coverLines}.`);
+  if (d.cover.art && !d.cover.artAlt.trim())
+    put('cover.artAlt', 'Describe the illustration for people who can’t see it.');
+  else if (length(d.cover.artAlt.trim()) > LIMITS.artAlt)
+    put(
+      'cover.artAlt',
+      `Keep the description to ${LIMITS.artAlt} characters (it has ${length(d.cover.artAlt.trim())}).`,
+    );
+  if (d.cover.lines.length > LIMITS.coverLines)
+    put(
+      'cover.lines',
+      `A cover has ${LIMITS.coverLines} lines at most: remove ${d.cover.lines.length - LIMITS.coverLines}.`,
+    );
   const ids = new Set(d.sections.map((s) => s.id.trim()));
   for (const l of d.cover.lines) {
-    if (!l.section || !ids.has(l.section)) put(fieldPath.line(l.key, 'section'), 'Choose the story this line points to.');
-    put(fieldPath.line(l.key, 'text'), textProblem(l.text, LIMITS.coverText, { required: true, empty: 'Write the cover line, or remove it.' }));
+    if (!l.section || !ids.has(l.section))
+      put(fieldPath.line(l.key, 'section'), 'Choose the story this line points to.');
+    put(
+      fieldPath.line(l.key, 'text'),
+      textProblem(l.text, LIMITS.coverText, { required: true, empty: 'Write the cover line, or remove it.' }),
+    );
   }
 
   // The sections
-  if (d.sections.length > LIMITS.sections) put('sections', `An issue holds ${LIMITS.sections} sections at most: remove ${d.sections.length - LIMITS.sections}.`);
+  if (d.sections.length > LIMITS.sections)
+    put(
+      'sections',
+      `An issue holds ${LIMITS.sections} sections at most: remove ${d.sections.length - LIMITS.sections}.`,
+    );
   const idCount = new Map<string, number>();
   for (const s of d.sections) idCount.set(s.id.trim(), (idCount.get(s.id.trim()) ?? 0) + 1);
   for (const s of d.sections) checkSection(errors, s, idCount);
 
   // The whole issue, as the API measures it
   const u = toUpdate(d);
-  const bytes = jsonBytes({ title: u.title, dek: u.dek, summary: u.summary, editors: u.editors, cover: u.cover, sections: u.sections });
+  const bytes = jsonBytes({
+    title: u.title,
+    dek: u.dek,
+    summary: u.summary,
+    editors: u.editors,
+    cover: u.cover,
+    sections: u.sections,
+  });
   if (bytes > LIMITS.issueBytes) put('sections', 'This issue is too long: shorten it or split it into two issues.');
   return errors;
 }
 
 // ── The API's 422 paths → field paths ────────────────────────────────────────────────────────────
 
-const BLOCK_FIELDS: Record<string, string> = { text: 'text', lead: 'text', label: 'label', to: 'to', items: 'items', question: 'question', answers: 'answers', id: 'question' };
+const BLOCK_FIELDS: Record<string, string> = {
+  text: 'text',
+  lead: 'text',
+  label: 'label',
+  to: 'to',
+  items: 'items',
+  question: 'question',
+  answers: 'answers',
+  id: 'question',
+};
 const ISSUE_FIELDS = new Set(['title', 'number', 'date', 'slug', 'dek', 'summary', 'editors']);
 
 /** One error path of the API, for the draft that was saved, as a field path (or null when it names no field). */
@@ -550,10 +687,12 @@ export function fieldOfApiPath(apiPath: string, d: IssueDraft): string | null {
       const stat = s.stats.items[Number(statIndex)];
       if (stat) return fieldPath.stat(s.key, stat.key, statField === 'value' ? 'value' : 'label');
     }
-    if (tag === 'card' || tag === 'stats') return fieldPath.section(s.key, `${tag}.${field === 'items' ? 'items' : (field ?? 'title')}`);
+    if (tag === 'card' || tag === 'stats')
+      return fieldPath.section(s.key, `${tag}.${field === 'items' ? 'items' : (field ?? 'title')}`);
     return fieldPath.section(s.key, s.beside === 'stats' ? 'stats.title' : 'card.title');
   }
-  if (part === 'figure') return fieldPath.section(s.key, `figure.${more[0] === 'alt' || more[0] === 'caption' ? more[0] : 'src'}`);
+  if (part === 'figure')
+    return fieldPath.section(s.key, `figure.${more[0] === 'alt' || more[0] === 'caption' ? more[0] : 'src'}`);
   if (part === 'window') return fieldPath.section(s.key, more[0] === 'from' ? 'window.from' : 'window.to');
   if (part === 'fallback') return fieldPath.section(s.key, more[0] === 'text' ? 'fallback.text' : 'fallback.title');
   if (part === 'id' || part === 'title' || part === 'label') return fieldPath.section(s.key, part);
@@ -618,7 +757,10 @@ export function updateSection(d: IssueDraft, key: string, fn: (s: SectionDraft) 
 
 function renameCoverLines(d: IssueDraft, from: string, to: string): IssueDraft {
   if (from === to || !d.cover.lines.some((l) => l.section === from)) return d;
-  return { ...d, cover: { ...d.cover, lines: d.cover.lines.map((l) => (l.section === from ? { ...l, section: to } : l)) } };
+  return {
+    ...d,
+    cover: { ...d.cover, lines: d.cover.lines.map((l) => (l.section === from ? { ...l, section: to } : l)) },
+  };
 }
 
 /** Give a section another link name; its cover lines follow. `touched`: the rep typed it. */
@@ -640,7 +782,12 @@ export function removeSection(d: IssueDraft, key: string): IssueDraft {
   return {
     ...d,
     sections: removeByKey(d.sections, key),
-    cover: { ...d.cover, lines: d.cover.lines.filter((l) => l.section !== gone.id || d.sections.some((s) => s.key !== key && s.id === gone.id)) },
+    cover: {
+      ...d.cover,
+      lines: d.cover.lines.filter(
+        (l) => l.section !== gone.id || d.sections.some((s) => s.key !== key && s.id === gone.id),
+      ),
+    },
   };
 }
 
@@ -649,26 +796,38 @@ export type NewSection = 'story' | SectionKind;
 /** The words a live list adds to the read time (as the launch edition counts them). */
 const LIVE_WORDS: Record<SectionKind, number> = { deadlines: 90, forum: 60, library: 50, requests: 50 };
 
-const TEMPLATES: Record<NewSection, Pick<SectionDraft, 'label' | 'icon' | 'title'> & { fallback?: SectionDraft['fallback'] }> = {
+const TEMPLATES: Record<
+  NewSection,
+  Pick<SectionDraft, 'label' | 'icon' | 'title'> & { fallback?: SectionDraft['fallback'] }
+> = {
   story: { label: '', icon: 'NotePencil', title: '' },
   deadlines: { label: 'Deadlines and dates', icon: 'CalendarCheck', title: 'What’s coming up' },
   forum: {
     label: 'From the forum',
     icon: 'ChatsCircle',
     title: 'What your cohort is asking',
-    fallback: { title: 'The forum is waiting for your question', text: 'Ask the question you have been saving: your cohort can reply, and vote up the answers that help.' },
+    fallback: {
+      title: 'The forum is waiting for your question',
+      text: 'Ask the question you have been saving: your cohort can reply, and vote up the answers that help.',
+    },
   },
   library: {
     label: 'New in the library',
     icon: 'Books',
     title: 'Fresh in the library',
-    fallback: { title: 'Share your notes', text: 'The library gathers every module’s study guides, past papers and the notes students share. Yours could be next.' },
+    fallback: {
+      title: 'Share your notes',
+      text: 'The library gathers every module’s study guides, past papers and the notes students share. Yours could be next.',
+    },
   },
   requests: {
     label: 'You asked, we did',
     icon: 'Megaphone',
     title: 'What you asked for, done',
-    fallback: { title: 'Ask the reps for what you need', text: 'Missing a past paper, a fix or a date? [Ask for it](/requests), and say “me too” to what others asked.' },
+    fallback: {
+      title: 'Ask the reps for what you need',
+      text: 'Missing a past paper, a fix or a date? [Ask for it](/requests), and say “me too” to what others asked.',
+    },
   },
 };
 
@@ -679,7 +838,10 @@ export function blankSection(kind: NewSection, d: IssueDraft): SectionDraft {
   const base = kind === 'story' ? 'section' : kind;
   return {
     key: newKey('s'),
-    id: uniqueSectionId(t.title || base, d.sections.map((s) => s.id)),
+    id: uniqueSectionId(
+      t.title || base,
+      d.sections.map((s) => s.id),
+    ),
     isNew: true,
     idTouched: false,
     title: t.title,
@@ -692,7 +854,8 @@ export function blankSection(kind: NewSection, d: IssueDraft): SectionDraft {
     figure: emptyFigure(),
     card: emptyCard(),
     stats: emptyStats(),
-    window: kind === 'deadlines' && isDayKey(d.date) ? { from: d.date, to: addDaysToKey(d.date, 55) } : { from: '', to: '' },
+    window:
+      kind === 'deadlines' && isDayKey(d.date) ? { from: d.date, to: addDaysToKey(d.date, 55) } : { from: '', to: '' },
     fallback: t.fallback ?? { title: '', text: '' },
     estWords: live ? LIVE_WORDS[live] : null,
   };
@@ -700,7 +863,9 @@ export function blankSection(kind: NewSection, d: IssueDraft): SectionDraft {
 
 /** After a save: every section is on the API now, so a new section's link name stops following its headline. */
 export function markSaved(d: IssueDraft): IssueDraft {
-  return d.sections.some((s) => s.isNew) ? { ...d, sections: d.sections.map((s) => (s.isNew ? { ...s, isNew: false } : s)) } : d;
+  return d.sections.some((s) => s.isNew)
+    ? { ...d, sections: d.sections.map((s) => (s.isNew ? { ...s, isNew: false } : s)) }
+    : d;
 }
 
 /** Add a section at the end (or after `afterKey`); returns the draft and the new section's key. */
@@ -715,8 +880,14 @@ export function addSection(d: IssueDraft, kind: NewSection, afterKey?: string): 
 /** Make a section a story or a live section; a live one gets its usual read-time estimate. */
 export function setKind(s: SectionDraft, kind: SectionKind | null, issueDate: string): SectionDraft {
   if (kind === s.kind) return s;
-  const window = kind === 'deadlines' && !s.window.from && !s.window.to && isDayKey(issueDate) ? { from: issueDate, to: addDaysToKey(issueDate, 55) } : s.window;
-  const fallback = kind && isLiveList(kind) && !s.fallback.title && !s.fallback.text ? (TEMPLATES[kind].fallback ?? s.fallback) : s.fallback;
+  const window =
+    kind === 'deadlines' && !s.window.from && !s.window.to && isDayKey(issueDate)
+      ? { from: issueDate, to: addDaysToKey(issueDate, 55) }
+      : s.window;
+  const fallback =
+    kind && isLiveList(kind) && !s.fallback.title && !s.fallback.text
+      ? (TEMPLATES[kind].fallback ?? s.fallback)
+      : s.fallback;
   return { ...s, kind, window, fallback, estWords: kind ? (s.kind ? s.estWords : LIVE_WORDS[kind]) : null };
 }
 
@@ -740,7 +911,14 @@ export function blankBlock(type: BlockKind): BlockDraft {
     case 'cta':
       return { key: newKey('b'), type: 'cta', label: '', to: '' };
     case 'poll':
-      return { key: newKey('b'), type: 'poll', id: pollId(), question: '', answers: [blankItem(), blankItem()], closed: false };
+      return {
+        key: newKey('b'),
+        type: 'poll',
+        id: pollId(),
+        question: '',
+        answers: [blankItem(), blankItem()],
+        closed: false,
+      };
   }
 }
 

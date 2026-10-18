@@ -5,7 +5,15 @@
 import { memo, useState } from 'react';
 import { CaretDown, PencilSimple, WarningCircle } from '@phosphor-icons/react';
 import { Badge, Button, Select, cx } from '../../../ui';
-import { LIMITS, controlId, fieldPath, sectionOfPath, setKind, type FieldErrors, type SectionDraft } from '../lib/draft';
+import {
+  LIMITS,
+  controlId,
+  fieldPath,
+  sectionOfPath,
+  setKind,
+  type FieldErrors,
+  type SectionDraft,
+} from '../lib/draft';
 import { plainText } from '../lib/text';
 import type { SectionIcon, SectionKind } from '../types';
 import { BesideEditor } from './BesideEditor';
@@ -15,14 +23,39 @@ import { SECTION_ICONS, sectionIcon } from '../components/sectionIcons';
 
 const KINDS: { value: '' | SectionKind; label: string; note: string }[] = [
   { value: '', label: 'A story', note: '' },
-  { value: 'deadlines', label: 'Deadlines from the calendar', note: 'Lists the exams between two days, from the calendar, with a countdown from the issue date.' },
-  { value: 'forum', label: 'Hot threads from the forum', note: 'Lists the threads getting the most attention when someone reads the issue.' },
-  { value: 'library', label: 'New files in the library', note: 'Lists the newest files in the library when someone reads the issue.' },
-  { value: 'requests', label: 'Requests done', note: 'Lists the requests done in the 30 days up to the issue date, with how many asked for each.' },
+  {
+    value: 'deadlines',
+    label: 'Deadlines from the calendar',
+    note: 'Lists the exams between two days, from the calendar, with a countdown from the issue date.',
+  },
+  {
+    value: 'forum',
+    label: 'Hot threads from the forum',
+    note: 'Lists the threads getting the most attention when someone reads the issue.',
+  },
+  {
+    value: 'library',
+    label: 'New files in the library',
+    note: 'Lists the newest files in the library when someone reads the issue.',
+  },
+  {
+    value: 'requests',
+    label: 'Requests done',
+    note: 'Lists the requests done in the 30 days up to the issue date, with how many asked for each.',
+  },
 ];
 
-const KIND_BADGE: Record<SectionKind, string> = { deadlines: 'Deadlines', forum: 'Forum', library: 'Library', requests: 'Requests' };
-const NOTHING_YET: Record<'forum' | 'library' | 'requests', string> = { forum: 'forum has threads', library: 'library has files', requests: 'reps have done requests' };
+const KIND_BADGE: Record<SectionKind, string> = {
+  deadlines: 'Deadlines',
+  forum: 'Forum',
+  library: 'Library',
+  requests: 'Requests',
+};
+const NOTHING_YET: Record<'forum' | 'library' | 'requests', string> = {
+  forum: 'forum has threads',
+  library: 'library has files',
+  requests: 'reps have done requests',
+};
 
 const ICON_NAMES: Record<SectionIcon, string> = {
   NotePencil: 'Note',
@@ -43,7 +76,15 @@ const ICON_NAMES: Record<SectionIcon, string> = {
 
 const ICONS = Object.keys(ICON_NAMES) as SectionIcon[];
 
-function IconPicker({ name, value, onChange }: { name: string; value: SectionIcon | null; onChange: (icon: SectionIcon | null) => void }) {
+function IconPicker({
+  name,
+  value,
+  onChange,
+}: {
+  name: string;
+  value: SectionIcon | null;
+  onChange: (icon: SectionIcon | null) => void;
+}) {
   return (
     <fieldset className="nl-ed-icons">
       <legend className="ui-field__label">Icon</legend>
@@ -52,7 +93,14 @@ function IconPicker({ name, value, onChange }: { name: string; value: SectionIco
           const Glyph = SECTION_ICONS[icon];
           return (
             <label key={icon} className="nl-ed-icon" title={ICON_NAMES[icon]}>
-              <input type="radio" name={name} value={icon} checked={value === icon} onChange={() => onChange(icon)} className="nl-ed-icon__input" />
+              <input
+                type="radio"
+                name={name}
+                value={icon}
+                checked={value === icon}
+                onChange={() => onChange(icon)}
+                className="nl-ed-icon__input"
+              />
               <Glyph weight="duotone" aria-hidden="true" />
               <span className="visually-hidden">{ICON_NAMES[icon]}</span>
             </label>
@@ -80,7 +128,21 @@ export interface SectionCardProps {
   onFocus: (path: string) => void;
 }
 
-function SectionCardImpl({ section: s, index, count, issueDate, published, errors, open, onToggle, onChange, onRename, onMove, onRemove, onFocus }: SectionCardProps) {
+function SectionCardImpl({
+  section: s,
+  index,
+  count,
+  issueDate,
+  published,
+  errors,
+  open,
+  onToggle,
+  onChange,
+  onRename,
+  onMove,
+  onRemove,
+  onFocus,
+}: SectionCardProps) {
   const [editingId, setEditingId] = useState(false);
   const change = (fn: (x: SectionDraft) => SectionDraft) => onChange(s.key, fn);
   const path = (field: string) => fieldPath.section(s.key, field);
@@ -93,32 +155,43 @@ function SectionCardImpl({ section: s, index, count, issueDate, published, error
   const live = s.kind !== null;
 
   return (
-    <li className={cx('nl-ed-section', open && 'is-open', problems > 0 && 'has-problems')} data-hub="editor-section" data-section-id={s.id}>
+    <li
+      className={cx('nl-ed-section', open && 'is-open', problems > 0 && 'has-problems')}
+      data-hub="editor-section"
+      data-section-id={s.id}
+    >
       <div className="nl-ed-section__head">
         <h3 className="nl-ed-section__heading">
-          <button type="button" id={controlId(`toggle:${s.key}`)} className="nl-ed-section__toggle" aria-expanded={open} aria-controls={bodyId} onClick={() => onToggle(s.key)}>
-          <span className="nl-ed-section__no u-tabular" aria-hidden="true">
-            {index + 1}
-          </span>
-          <Icon className="nl-ed-section__icon" weight="duotone" aria-hidden="true" />
-          <span className="nl-ed-section__names">
-            <span className="nl-ed-section__label">
-              {label}
-              {s.kind ? (
-                <Badge tone="outline" size="sm" className="nl-ed-section__kind">
-                  {KIND_BADGE[s.kind]}
-                </Badge>
-              ) : null}
+          <button
+            type="button"
+            id={controlId(`toggle:${s.key}`)}
+            className="nl-ed-section__toggle"
+            aria-expanded={open}
+            aria-controls={bodyId}
+            onClick={() => onToggle(s.key)}
+          >
+            <span className="nl-ed-section__no u-tabular" aria-hidden="true">
+              {index + 1}
             </span>
-            {headline && headline !== label ? <span className="nl-ed-section__title">{headline}</span> : null}
-          </span>
-          {problems > 0 ? (
-            <span className="nl-ed-section__problems">
-              <WarningCircle weight="fill" aria-hidden="true" />
-              {problems === 1 ? '1 problem' : `${problems} problems`}
+            <Icon className="nl-ed-section__icon" weight="duotone" aria-hidden="true" />
+            <span className="nl-ed-section__names">
+              <span className="nl-ed-section__label">
+                {label}
+                {s.kind ? (
+                  <Badge tone="outline" size="sm" className="nl-ed-section__kind">
+                    {KIND_BADGE[s.kind]}
+                  </Badge>
+                ) : null}
+              </span>
+              {headline && headline !== label ? <span className="nl-ed-section__title">{headline}</span> : null}
             </span>
-          ) : null}
-          <span className="visually-hidden">{open ? ', open' : ', closed'}</span>
+            {problems > 0 ? (
+              <span className="nl-ed-section__problems">
+                <WarningCircle weight="fill" aria-hidden="true" />
+                {problems === 1 ? '1 problem' : `${problems} problems`}
+              </span>
+            ) : null}
+            <span className="visually-hidden">{open ? ', open' : ', closed'}</span>
             <CaretDown className="nl-ed-section__caret" weight="bold" aria-hidden="true" />
           </button>
         </h3>
@@ -147,8 +220,25 @@ function SectionCardImpl({ section: s, index, count, issueDate, published, error
               hint={kindNote || undefined}
               className="nl-ed-wide"
             />
-            <TextInput path={path('label')} errors={errors} label="Label" max={LIMITS.label} hint="Beside the icon, above the headline. Leave it empty to show the headline." placeholder="Deadlines and dates" value={s.label} onValue={(label) => change((x) => ({ ...x, label }))} />
-            <TextInput path={path('title')} errors={errors} label="Headline" required max={LIMITS.heading} value={s.title} onValue={(title) => change((x) => ({ ...x, title }))} />
+            <TextInput
+              path={path('label')}
+              errors={errors}
+              label="Label"
+              max={LIMITS.label}
+              hint="Beside the icon, above the headline. Leave it empty to show the headline."
+              placeholder="Deadlines and dates"
+              value={s.label}
+              onValue={(label) => change((x) => ({ ...x, label }))}
+            />
+            <TextInput
+              path={path('title')}
+              errors={errors}
+              label="Headline"
+              required
+              max={LIMITS.heading}
+              value={s.title}
+              onValue={(title) => change((x) => ({ ...x, title }))}
+            />
           </div>
 
           <IconPicker name={`icon-${s.key}`} value={s.icon} onChange={(icon) => change((x) => ({ ...x, icon }))} />
@@ -160,7 +250,11 @@ function SectionCardImpl({ section: s, index, count, issueDate, published, error
                 errors={errors}
                 label="Link name"
                 max={LIMITS.sectionId}
-                hint={published && !s.isNew ? 'Changing it breaks links to this section and resets its reactions.' : 'The end of the section’s link (…?section=link-name). Lowercase letters, numbers and hyphens.'}
+                hint={
+                  published && !s.isNew
+                    ? 'Changing it breaks links to this section and resets its reactions.'
+                    : 'The end of the section’s link (…?section=link-name). Lowercase letters, numbers and hyphens.'
+                }
                 value={s.id}
                 onValue={(id) => onRename(s.key, id.toLowerCase())}
                 autoComplete="off"
@@ -178,7 +272,9 @@ function SectionCardImpl({ section: s, index, count, issueDate, published, error
 
           <section className="nl-ed-part" aria-label={live ? 'Before the list' : 'The text'}>
             <h4 className="nl-ed-part__title">{live ? 'Before the list' : 'The text'}</h4>
-            <p className="nl-ed-note">Format the text with **bold**, *italic*, ==highlight== and [link text](/calendar).</p>
+            <p className="nl-ed-note">
+              Format the text with **bold**, *italic*, ==highlight== and [link text](/calendar).
+            </p>
             <BlockList
               sectionKey={s.key}
               title={live ? `the words before the list of section ${index + 1}` : `the text of section ${index + 1}`}
@@ -195,8 +291,25 @@ function SectionCardImpl({ section: s, index, count, issueDate, published, error
             <section className="nl-ed-part" aria-label="The dates listed">
               <h4 className="nl-ed-part__title">The dates listed</h4>
               <div className="nl-ed-grid">
-                <TextInput path={path('window.from')} errors={errors} type="date" label="From" hint="Empty: the issue’s date." value={s.window.from} onValue={(from) => change((x) => ({ ...x, window: { ...x.window, from } }))} />
-                <TextInput path={path('window.to')} errors={errors} type="date" label="To" min={s.window.from || undefined} hint="Empty: three months after." value={s.window.to} onValue={(to) => change((x) => ({ ...x, window: { ...x.window, to } }))} />
+                <TextInput
+                  path={path('window.from')}
+                  errors={errors}
+                  type="date"
+                  label="From"
+                  hint="Empty: the issue’s date."
+                  value={s.window.from}
+                  onValue={(from) => change((x) => ({ ...x, window: { ...x.window, from } }))}
+                />
+                <TextInput
+                  path={path('window.to')}
+                  errors={errors}
+                  type="date"
+                  label="To"
+                  min={s.window.from || undefined}
+                  hint="Empty: three months after."
+                  value={s.window.to}
+                  onValue={(to) => change((x) => ({ ...x, window: { ...x.window, to } }))}
+                />
               </div>
             </section>
           ) : null}
@@ -204,9 +317,27 @@ function SectionCardImpl({ section: s, index, count, issueDate, published, error
           {s.kind === 'forum' || s.kind === 'library' || s.kind === 'requests' ? (
             <section className="nl-ed-part" aria-label="When there’s nothing to list">
               <h4 className="nl-ed-part__title">When there’s nothing to list</h4>
-              <p className="nl-ed-note">Shown instead of the headline and the words above, until the {NOTHING_YET[s.kind]} to list.</p>
-              <TextInput path={path('fallback.title')} errors={errors} label="Headline" max={LIMITS.line} value={s.fallback.title} onValue={(title) => change((x) => ({ ...x, fallback: { ...x.fallback, title } }))} />
-              <TextBox path={path('fallback.text')} errors={errors} label="Text" rows={2} max={LIMITS.item} hint={MARKUP_HINT} value={s.fallback.text} onValue={(text) => change((x) => ({ ...x, fallback: { ...x.fallback, text } }))} />
+              <p className="nl-ed-note">
+                Shown instead of the headline and the words above, until the {NOTHING_YET[s.kind]} to list.
+              </p>
+              <TextInput
+                path={path('fallback.title')}
+                errors={errors}
+                label="Headline"
+                max={LIMITS.line}
+                value={s.fallback.title}
+                onValue={(title) => change((x) => ({ ...x, fallback: { ...x.fallback, title } }))}
+              />
+              <TextBox
+                path={path('fallback.text')}
+                errors={errors}
+                label="Text"
+                rows={2}
+                max={LIMITS.item}
+                hint={MARKUP_HINT}
+                value={s.fallback.text}
+                onValue={(text) => change((x) => ({ ...x, fallback: { ...x.fallback, text } }))}
+              />
             </section>
           ) : null}
 

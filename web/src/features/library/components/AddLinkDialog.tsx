@@ -7,19 +7,42 @@ import { useToast } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { Button, Modal, TextField } from '../../../ui';
 import { useCreateLink } from '../api';
-import { checkValues, emptyValues, errorsFromApi, linkProblem, toLinkBody, type ItemFormErrors, type ItemFormValues } from '../itemForm';
+import {
+  checkValues,
+  emptyValues,
+  errorsFromApi,
+  linkProblem,
+  toLinkBody,
+  type ItemFormErrors,
+  type ItemFormValues,
+} from '../itemForm';
 import type { CohortYear, LibraryItem } from '../types';
 import { ItemFields } from './ItemFields';
 import './UploadDialog.css';
 
-export function AddLinkDialog({ open, onClose, moduleId, year, onAdded }: { open: boolean; onClose: () => void; moduleId?: string | null; year?: CohortYear | null; onAdded?: (item: LibraryItem) => void }) {
+export function AddLinkDialog({
+  open,
+  onClose,
+  moduleId,
+  year,
+  onAdded,
+}: {
+  open: boolean;
+  onClose: () => void;
+  moduleId?: string | null;
+  year?: CohortYear | null;
+  onAdded?: (item: LibraryItem) => void;
+}) {
   const uid = useId().replace(/:/g, '');
   const { getModule } = useModules();
   const create = useCreateLink();
   const { push } = useToast();
   const [url, setUrl] = useState('');
   const [urlError, setUrlError] = useState<string | null>(null);
-  const [values, setValues] = useState<ItemFormValues>(() => ({ ...emptyValues({ moduleId, year }), kind: 'course-materials' }));
+  const [values, setValues] = useState<ItemFormValues>(() => ({
+    ...emptyValues({ moduleId, year }),
+    kind: 'course-materials',
+  }));
   const [errors, setErrors] = useState<ItemFormErrors>({});
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -32,7 +55,8 @@ export function AddLinkDialog({ open, onClose, moduleId, year, onAdded }: { open
       return next;
     });
   };
-  const focusFirstProblem = () => requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
+  const focusFirstProblem = () =>
+    requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
 
   const submit = (e: FormEvent) => {
     e.preventDefault();

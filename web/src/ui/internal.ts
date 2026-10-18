@@ -36,7 +36,10 @@ interface IconRenderProps {
 type ElementProps = { className?: string } & Record<string, unknown>;
 
 /** Render an icon given as a component (Phosphor `Plus`) or an element (`<Plus weight="bold" />`). */
-export function renderIcon(icon: IconSource | null | undefined | false, { className, ...props }: IconRenderProps = {}): ReactNode {
+export function renderIcon(
+  icon: IconSource | null | undefined | false,
+  { className, ...props }: IconRenderProps = {},
+): ReactNode {
   if (!icon) return null;
   if (isValidElement<ElementProps>(icon)) {
     return cloneElement(icon, { 'aria-hidden': true, ...props, className: cx(icon.props.className, className) });
@@ -59,7 +62,9 @@ const FOCUSABLE =
 
 export function getFocusable(root: HTMLElement | null): HTMLElement[] {
   if (!root) return [];
-  return [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.getClientRects().length > 0 && !el.closest('[inert]'));
+  return [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+    (el) => el.getClientRects().length > 0 && !el.closest('[inert]'),
+  );
 }
 
 // ── Scroll lock (ref-counted so nested overlays work) ──────────────────────
@@ -87,7 +92,11 @@ export interface Layer {
 const layers: Layer[] = [];
 const isTopLayer = (layer: Layer | null): boolean => !!layer && layers[layers.length - 1] === layer;
 
-export function useLayer(open: boolean, onEscape?: (e: KeyboardEvent) => void, panelRef?: RefObject<HTMLElement>): RefObject<Layer | null> {
+export function useLayer(
+  open: boolean,
+  onEscape?: (e: KeyboardEvent) => void,
+  panelRef?: RefObject<HTMLElement>,
+): RefObject<Layer | null> {
   const escRef = useRef(onEscape);
   const layerRef = useRef<Layer | null>(null);
   useEffect(() => {

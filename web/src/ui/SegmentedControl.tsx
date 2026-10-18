@@ -14,7 +14,8 @@ export interface SegmentOption<V extends string | number> {
   onColor?: string;
 }
 
-export interface SegmentedControlProps<V extends string | number> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
+export interface SegmentedControlProps<V extends string | number>
+  extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
   options: SegmentOption<V>[];
   /** the selected value; nothing is selected when it matches no option */
   value: V | null | undefined;
@@ -71,7 +72,14 @@ export function SegmentedControl<V extends string | number>({
 
   const sel = index >= 0 ? options[index] : null;
   return (
-    <div ref={listRef} role="radiogroup" aria-label={label} className={cx('ui-seg', `ui-seg--${size}`, fullWidth && 'ui-seg--full', className)} onKeyDown={onKeyDown} {...rest}>
+    <div
+      ref={listRef}
+      role="radiogroup"
+      aria-label={label}
+      className={cx('ui-seg', `ui-seg--${size}`, fullWidth && 'ui-seg--full', className)}
+      onKeyDown={onKeyDown}
+      {...rest}
+    >
       {thumb ? (
         <span
           className={cx('ui-seg__thumb', !!sel?.color && 'has-color')}

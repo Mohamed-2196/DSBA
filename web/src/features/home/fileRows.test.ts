@@ -31,7 +31,13 @@ describe('newFileRows', () => {
 
   it('leaves out links and other modules, and stops at n', () => {
     const rows = newFileRows(
-      [item({ source: 'link' }), item({ moduleId: 'other' }), item({ moduleId: 'st2133' }), item({ moduleId: null }), item({ moduleId: 'st2133', publishedAt: '2026-10-01T00:00:00Z' })],
+      [
+        item({ source: 'link' }),
+        item({ moduleId: 'other' }),
+        item({ moduleId: 'st2133' }),
+        item({ moduleId: null }),
+        item({ moduleId: 'st2133', publishedAt: '2026-10-01T00:00:00Z' }),
+      ],
       new Set(['st2133']),
       2,
     );

@@ -7,7 +7,20 @@ import { safeInternalPath } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, type EventType } from '../calendar/public';
 import { scoreEntry, tokenize } from './match';
 
-export type GroupId = 'recent' | 'suggested' | 'modules' | 'lessons' | 'files' | 'threads' | 'issues' | 'events' | 'actions' | 'pages' | 'quick' | 'goto' | 'fallback';
+export type GroupId =
+  | 'recent'
+  | 'suggested'
+  | 'modules'
+  | 'lessons'
+  | 'files'
+  | 'threads'
+  | 'issues'
+  | 'events'
+  | 'actions'
+  | 'pages'
+  | 'quick'
+  | 'goto'
+  | 'fallback';
 
 export type IconName =
   | 'ArrowsLeftRight'
@@ -35,7 +48,11 @@ export type IconName =
  * switches and the library.upload box). */
 export type OfferId = 'threads' | 'upload';
 
-export type Run = { type: 'theme' } | { type: 'bug' } | { type: 'year'; year: 1 | 2 | 3 } | { type: 'noora'; act: 'ask' | 'hide' | 'show' };
+export type Run =
+  | { type: 'theme' }
+  | { type: 'bug' }
+  | { type: 'year'; year: 1 | 2 | 3 }
+  | { type: 'noora'; act: 'ask' | 'hide' | 'show' };
 
 interface Base {
   id: string;
@@ -45,13 +62,36 @@ interface Base {
 }
 
 export type Item =
-  | (Base & { kind: 'module'; moduleId: string; year: number | null; code: string | null; art: string | null; to: string })
+  | (Base & {
+      kind: 'module';
+      moduleId: string;
+      year: number | null;
+      code: string | null;
+      art: string | null;
+      to: string;
+    })
   | (Base & { kind: 'lesson'; to: string; chapter: boolean })
   | (Base & { kind: 'file'; to: string; meta: string | null })
   | (Base & { kind: 'thread'; to: string; meta: string | null })
   | (Base & { kind: 'issue'; to: string; number: number | null })
-  | (Base & { kind: 'event'; to: string; when: Date | null; eventType: EventType | null; rel: string | null; past: boolean })
-  | (Base & { kind: 'action'; icon: IconName; keywords: string[]; to?: string; href?: string; run?: Run; feature?: Feature; offer?: OfferId })
+  | (Base & {
+      kind: 'event';
+      to: string;
+      when: Date | null;
+      eventType: EventType | null;
+      rel: string | null;
+      past: boolean;
+    })
+  | (Base & {
+      kind: 'action';
+      icon: IconName;
+      keywords: string[];
+      to?: string;
+      href?: string;
+      run?: Run;
+      feature?: Feature;
+      offer?: OfferId;
+    })
   | (Base & { kind: 'page'; icon: IconName; keywords: string[]; to: string; feature?: Feature })
   | (Base & { kind: 'recent' | 'suggestion'; query: string })
   | (Base & { kind: 'more'; target: GroupId })
@@ -94,20 +134,73 @@ const CONTENT_ORDER: readonly GroupId[] = ['modules', 'lessons', 'files', 'threa
 export const PAGE_ENTRIES: Item[] = (
   [
     { path: '/', title: 'Home', icon: 'House', keywords: ['dashboard', 'start'] },
-    { path: '/modules', title: 'Modules', icon: 'SquaresFour', keywords: ['subjects', 'courses', 'lessons', 'videos', 'chapters'] },
-    { path: '/library', feature: 'library', title: 'Library', icon: 'Books', keywords: ['files', 'notes', 'past papers', 'exams', 'study guide', 'documents'] },
-    { path: '/newsletter', feature: 'newsletter', title: 'The DSBA newsletter', icon: 'Newspaper', keywords: ['newsletter', 'issues', 'news'] },
-    { path: '/forum', feature: 'forum', title: 'Forum', icon: 'ChatsCircle', keywords: ['threads', 'questions', 'discussion', 'ask'] },
+    {
+      path: '/modules',
+      title: 'Modules',
+      icon: 'SquaresFour',
+      keywords: ['subjects', 'courses', 'lessons', 'videos', 'chapters'],
+    },
+    {
+      path: '/library',
+      feature: 'library',
+      title: 'Library',
+      icon: 'Books',
+      keywords: ['files', 'notes', 'past papers', 'exams', 'study guide', 'documents'],
+    },
+    {
+      path: '/newsletter',
+      feature: 'newsletter',
+      title: 'The DSBA newsletter',
+      icon: 'Newspaper',
+      keywords: ['newsletter', 'issues', 'news'],
+    },
+    {
+      path: '/forum',
+      feature: 'forum',
+      title: 'Forum',
+      icon: 'ChatsCircle',
+      keywords: ['threads', 'questions', 'discussion', 'ask'],
+    },
     {
       path: '/career',
       feature: 'career',
       title: 'Career Navigator',
       icon: 'GraduationCap',
-      keywords: ['careers', 'jobs', 'roles', 'skills', 'internships', 'graduate', 'opportunities', 'certificates', 'cfa', 'frm', 'cv'],
+      keywords: [
+        'careers',
+        'jobs',
+        'roles',
+        'skills',
+        'internships',
+        'graduate',
+        'opportunities',
+        'certificates',
+        'cfa',
+        'frm',
+        'cv',
+      ],
     },
-    { path: '/calendar', feature: 'calendar', title: 'Calendar', icon: 'CalendarDots', keywords: ['exams', 'timetable', 'dates', 'deadlines', 'ics', 'subscribe'] },
-    { path: '/board', feature: 'board', title: 'Study board', icon: 'Kanban', keywords: ['to do', 'todo', 'tasks', 'kanban', 'planner', 'revision plan', 'progress'] },
-    { path: '/grades', feature: 'grades', title: 'Grade calculator', icon: 'Calculator', keywords: ['grades', 'gpa', 'classification', 'marks', 'degree'] },
+    {
+      path: '/calendar',
+      feature: 'calendar',
+      title: 'Calendar',
+      icon: 'CalendarDots',
+      keywords: ['exams', 'timetable', 'dates', 'deadlines', 'ics', 'subscribe'],
+    },
+    {
+      path: '/board',
+      feature: 'board',
+      title: 'Study board',
+      icon: 'Kanban',
+      keywords: ['to do', 'todo', 'tasks', 'kanban', 'planner', 'revision plan', 'progress'],
+    },
+    {
+      path: '/grades',
+      feature: 'grades',
+      title: 'Grade calculator',
+      icon: 'Calculator',
+      keywords: ['grades', 'gpa', 'classification', 'marks', 'degree'],
+    },
     { path: '/about', title: 'About DSBA Hub', icon: 'Info', keywords: ['contributors', 'disclaimer', 'credits'] },
   ] as const
 ).map(
@@ -136,7 +229,17 @@ const PORTAL_ACTIONS: Record<Portal['id'], { icon: IconName; keywords: string[] 
 };
 
 /** Actions depend on the current year, the theme, whether Mini Noora is hidden, and the sites the hub links to. */
-export function buildActions({ year, theme, nooraHidden = false, portals = [] }: { year: number | null; theme: 'light' | 'dark'; nooraHidden?: boolean; portals?: readonly Portal[] }): Item[] {
+export function buildActions({
+  year,
+  theme,
+  nooraHidden = false,
+  portals = [],
+}: {
+  year: number | null;
+  theme: 'light' | 'dark';
+  nooraHidden?: boolean;
+  portals?: readonly Portal[];
+}): Item[] {
   const switches = ([1, 2, 3] as const)
     .filter((y) => y !== year)
     .map(
@@ -151,7 +254,17 @@ export function buildActions({ year, theme, nooraHidden = false, portals = [] }:
       }),
     );
   return [
-    { id: 'action:new-thread', group: 'actions', kind: 'action', title: 'Start a thread', icon: 'PencilSimpleLine', keywords: ['new thread', 'ask a question', 'post', 'forum'], to: '/forum/new', feature: 'forum', offer: 'threads' },
+    {
+      id: 'action:new-thread',
+      group: 'actions',
+      kind: 'action',
+      title: 'Start a thread',
+      icon: 'PencilSimpleLine',
+      keywords: ['new thread', 'ask a question', 'post', 'forum'],
+      to: '/forum/new',
+      feature: 'forum',
+      offer: 'threads',
+    },
     // Contributing means uploading to the library (decision D6).
     {
       id: 'action:upload',
@@ -173,19 +286,80 @@ export function buildActions({ year, theme, nooraHidden = false, portals = [] }:
       keywords: ['theme', 'dark mode', 'light mode', 'toggle theme', 'appearance', 'night'],
       run: { type: 'theme' },
     },
-    { id: 'action:grades', group: 'actions', kind: 'action', title: 'Calculate my grade', icon: 'Calculator', keywords: ['gpa', 'classification', 'grade calculator', 'marks'], to: '/grades', feature: 'grades' },
-    { id: 'action:subscribe', group: 'actions', kind: 'action', title: 'Subscribe to the calendar', icon: 'CalendarDots', keywords: ['ics', 'google calendar', 'outlook', 'feed', 'subscribe'], to: '/calendar', feature: 'calendar' },
-    { id: 'action:ask-noora', group: 'actions', kind: 'action', title: 'Ask Mini Noora', icon: 'ChatCircleText', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'ask', 'chat', 'help'], run: { type: 'noora', act: 'ask' }, feature: 'noora' },
+    {
+      id: 'action:grades',
+      group: 'actions',
+      kind: 'action',
+      title: 'Calculate my grade',
+      icon: 'Calculator',
+      keywords: ['gpa', 'classification', 'grade calculator', 'marks'],
+      to: '/grades',
+      feature: 'grades',
+    },
+    {
+      id: 'action:subscribe',
+      group: 'actions',
+      kind: 'action',
+      title: 'Subscribe to the calendar',
+      icon: 'CalendarDots',
+      keywords: ['ics', 'google calendar', 'outlook', 'feed', 'subscribe'],
+      to: '/calendar',
+      feature: 'calendar',
+    },
+    {
+      id: 'action:ask-noora',
+      group: 'actions',
+      kind: 'action',
+      title: 'Ask Mini Noora',
+      icon: 'ChatCircleText',
+      keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'ask', 'chat', 'help'],
+      run: { type: 'noora', act: 'ask' },
+      feature: 'noora',
+    },
     nooraHidden
-      ? { id: 'action:noora', group: 'actions', kind: 'action', title: 'Show Mini Noora', icon: 'Eye', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot', 'bring back'], run: { type: 'noora', act: 'show' }, feature: 'noora' }
-      : { id: 'action:noora', group: 'actions', kind: 'action', title: 'Hide Mini Noora', icon: 'EyeSlash', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot'], run: { type: 'noora', act: 'hide' }, feature: 'noora' },
-    { id: 'action:report', group: 'actions', kind: 'action', title: 'Report a bug', icon: 'Bug', keywords: ['bug', 'problem', 'broken', 'feedback', 'issue', 'report', 'not working'], run: { type: 'bug' } },
-    ...portals.map((p): Item => ({ id: `action:${p.id}`, group: 'actions', kind: 'action', title: `Open ${p.label}`, ...PORTAL_ACTIONS[p.id], href: p.href })),
+      ? {
+          id: 'action:noora',
+          group: 'actions',
+          kind: 'action',
+          title: 'Show Mini Noora',
+          icon: 'Eye',
+          keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot', 'bring back'],
+          run: { type: 'noora', act: 'show' },
+          feature: 'noora',
+        }
+      : {
+          id: 'action:noora',
+          group: 'actions',
+          kind: 'action',
+          title: 'Hide Mini Noora',
+          icon: 'EyeSlash',
+          keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot'],
+          run: { type: 'noora', act: 'hide' },
+          feature: 'noora',
+        },
+    {
+      id: 'action:report',
+      group: 'actions',
+      kind: 'action',
+      title: 'Report a bug',
+      icon: 'Bug',
+      keywords: ['bug', 'problem', 'broken', 'feedback', 'issue', 'report', 'not working'],
+      run: { type: 'bug' },
+    },
+    ...portals.map(
+      (p): Item => ({
+        id: `action:${p.id}`,
+        group: 'actions',
+        kind: 'action',
+        title: `Open ${p.label}`,
+        ...PORTAL_ACTIONS[p.id],
+        href: p.href,
+      }),
+    ),
   ];
 }
 
 // ── API hits → palette items ───────────────────────────────────────────────────────────────────
-
 
 /** Local midnight of the hit's calendar day ('2026-10-23T00:00:00+03:00' → 23 Oct). */
 function hitDay(iso: string | null): Date | null {
@@ -216,7 +390,12 @@ const eventTypeOf = (meta: string | null): EventType | null => {
 /** The API's meta ('ST2133 · 3 replies') in the Hub's own style: parts joined with commas, never middle dots. */
 const plainMeta = (meta: string | null): string | null => (meta ? meta.split(/\s+·\s+/).join(', ') : null);
 
-function toItem(hit: SearchHit, group: GroupId, getModule: (id: string) => ModuleSummary | null, now: Date): Item | null {
+function toItem(
+  hit: SearchHit,
+  group: GroupId,
+  getModule: (id: string) => ModuleSummary | null,
+  now: Date,
+): Item | null {
   // Only a page of the Hub ('/forum/x', never '//host' or '/\\host') is navigated to (security review, finding 12).
   const to = safeInternalPath(hit.url);
   if (!to) return null;
@@ -224,7 +403,16 @@ function toItem(hit: SearchHit, group: GroupId, getModule: (id: string) => Modul
   switch (hit.type) {
     case 'module': {
       const m = getModule(hit.id);
-      return { ...base, kind: 'module', moduleId: hit.id, year: m?.year ?? null, code: m?.unitCode ?? null, art: m?.art ?? null, subtitle: m ? `Year ${m.year} module${m.lessonCount ? `, ${m.lessonCount} lessons` : ''}` : plainMeta(hit.meta), to };
+      return {
+        ...base,
+        kind: 'module',
+        moduleId: hit.id,
+        year: m?.year ?? null,
+        code: m?.unitCode ?? null,
+        art: m?.art ?? null,
+        subtitle: m ? `Year ${m.year} module${m.lessonCount ? `, ${m.lessonCount} lessons` : ''}` : plainMeta(hit.meta),
+        to,
+      };
     }
     case 'lesson': {
       // meta: 'EC1002 · Chapter' or 'EC1002 · Video'; a video's snippet is its chapter.
@@ -234,19 +422,40 @@ function toItem(hit: SearchHit, group: GroupId, getModule: (id: string) => Modul
       return { ...base, kind: 'lesson', chapter, subtitle: hit.snippet ? `${label}, in ${hit.snippet}` : label, to };
     }
     case 'library':
-      return { ...base, kind: 'file', subtitle: [plainMeta(hit.meta), hit.snippet].filter(Boolean).join(': ') || null, meta: null, to };
+      return {
+        ...base,
+        kind: 'file',
+        subtitle: [plainMeta(hit.meta), hit.snippet].filter(Boolean).join(': ') || null,
+        meta: null,
+        to,
+      };
     case 'thread':
       return { ...base, kind: 'thread', subtitle: hit.snippet, meta: plainMeta(hit.meta), to };
     case 'issue': {
       const n = /Issue (\d+)/.exec(hit.meta ?? '');
-      return { ...base, kind: 'issue', subtitle: hit.snippet ?? plainMeta(hit.meta), number: n ? Number(n[1]) : null, to };
+      return {
+        ...base,
+        kind: 'issue',
+        subtitle: hit.snippet ?? plainMeta(hit.meta),
+        number: n ? Number(n[1]) : null,
+        to,
+      };
     }
     case 'event': {
       const when = hitDay(hit.date);
       const past = when ? daysBetween(today(now), when) < 0 : false;
       const date = when ? formatLong(when) : null;
       const subtitle = [plainMeta(hit.meta), date].filter(Boolean).join(', ') + (hit.snippet ? `. ${hit.snippet}` : '');
-      return { ...base, kind: 'event', subtitle, when, eventType: eventTypeOf(hit.meta), rel: when ? relativeDay(when, now) : null, past, to };
+      return {
+        ...base,
+        kind: 'event',
+        subtitle,
+        when,
+        eventType: eventTypeOf(hit.meta),
+        rel: when ? relativeDay(when, now) : null,
+        past,
+        to,
+      };
     }
   }
 }
@@ -300,7 +509,22 @@ export function textOf(query: string): string {
   return query.replace(YEAR_RE, ' ').replace(/\s+/g, ' ').trim();
 }
 
-export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, isOn, offers, portals = [], suggestions = [], now = new Date() }: SearchInput): Results {
+export function runSearch({
+  query,
+  year,
+  theme,
+  nooraHidden = false,
+  expanded,
+  recent,
+  results,
+  getModule,
+  getModulesForYear,
+  isOn,
+  offers,
+  portals = [],
+  suggestions = [],
+  now = new Date(),
+}: SearchInput): Results {
   const cohortMatch = YEAR_RE.exec(query);
   const cohort = cohortMatch ? Number(cohortMatch[1]) : null;
   const text = textOf(query);
@@ -321,20 +545,51 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
     if (sw) groups.push({ id: 'actions', items: [sw], total: 1 });
     const mods = getModulesForYear(cohort).map(moduleItem);
     groups.push({ id: 'modules', items: mods, total: mods.length });
-    return finish(groups, groups.reduce((n, g) => n + g.total, 0));
+    return finish(
+      groups,
+      groups.reduce((n, g) => n + g.total, 0),
+    );
   }
 
   // Nothing typed: recent searches (or suggestions), quick actions and pages.
   if (!tokens.length) {
     const groups: Omit<Group, 'label'>[] = [];
-    if (recent.length) groups.push({ id: 'recent', items: recent.map((q) => ({ id: `recent:${q}`, kind: 'recent', group: 'recent', title: q, query: q })), total: 0 });
-    else if (suggestions.length) groups.push({ id: 'suggested', items: suggestions.map((q) => ({ id: `suggest:${q}`, kind: 'suggestion', group: 'suggested', title: q, query: q })), total: 0 });
+    if (recent.length)
+      groups.push({
+        id: 'recent',
+        items: recent.map((q) => ({ id: `recent:${q}`, kind: 'recent', group: 'recent', title: q, query: q })),
+        total: 0,
+      });
+    else if (suggestions.length)
+      groups.push({
+        id: 'suggested',
+        items: suggestions.map((q) => ({
+          id: `suggest:${q}`,
+          kind: 'suggestion',
+          group: 'suggested',
+          title: q,
+          query: q,
+        })),
+        total: 0,
+      });
     groups.push({
       id: 'quick',
-      items: actions.filter((a) => a.id === 'action:new-thread' || a.id === 'action:upload' || a.id === 'action:theme' || a.id.startsWith('action:year-')).map((a) => ({ ...a, group: 'quick' })),
+      items: actions
+        .filter(
+          (a) =>
+            a.id === 'action:new-thread' ||
+            a.id === 'action:upload' ||
+            a.id === 'action:theme' ||
+            a.id.startsWith('action:year-'),
+        )
+        .map((a) => ({ ...a, group: 'quick' })),
       total: 0,
     });
-    groups.push({ id: 'goto', items: pages.filter((p) => p.id !== 'page:/about').map((p) => ({ ...p, group: 'goto' })), total: 0 });
+    groups.push({
+      id: 'goto',
+      items: pages.filter((p) => p.id !== 'page:/about').map((p) => ({ ...p, group: 'goto' })),
+      total: 0,
+    });
     return finish(groups, 0);
   }
 
@@ -351,10 +606,18 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
     lessons: (results?.lessons ?? []).map((h) => toItem(h, 'lessons', lookup, now)).filter((i): i is Item => !!i),
     // The API leaves out switched-off features' hits too; this keeps a cached answer from showing them after a
     // switch flips.
-    files: off('library') ? [] : (results?.library ?? []).map((h) => toItem(h, 'files', lookup, now)).filter((i): i is Item => !!i),
-    threads: off('forum') ? [] : (results?.threads ?? []).map((h) => toItem(h, 'threads', lookup, now)).filter((i): i is Item => !!i),
-    issues: off('newsletter') ? [] : (results?.issues ?? []).map((h) => toItem(h, 'issues', lookup, now)).filter((i): i is Item => !!i),
-    events: off('calendar') ? [] : (results?.events ?? []).map((h) => toItem(h, 'events', lookup, now)).filter((i): i is Item => !!i),
+    files: off('library')
+      ? []
+      : (results?.library ?? []).map((h) => toItem(h, 'files', lookup, now)).filter((i): i is Item => !!i),
+    threads: off('forum')
+      ? []
+      : (results?.threads ?? []).map((h) => toItem(h, 'threads', lookup, now)).filter((i): i is Item => !!i),
+    issues: off('newsletter')
+      ? []
+      : (results?.issues ?? []).map((h) => toItem(h, 'issues', lookup, now)).filter((i): i is Item => !!i),
+    events: off('calendar')
+      ? []
+      : (results?.events ?? []).map((h) => toItem(h, 'events', lookup, now)).filter((i): i is Item => !!i),
   };
   // A cohort in the query narrows the modules to that year.
   if (cohort) content.modules = content.modules.filter((i) => i.kind !== 'module' || i.year === cohort);
@@ -362,7 +625,14 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
   // The palette's own entries, scored locally.
   const scored = (list: Item[]) =>
     list
-      .map((e, i) => ({ e, i, s: e.kind === 'action' || e.kind === 'page' ? scoreEntry({ title: e.title, keywords: e.keywords }, tokens, text) : 0 }))
+      .map((e, i) => ({
+        e,
+        i,
+        s:
+          e.kind === 'action' || e.kind === 'page'
+            ? scoreEntry({ title: e.title, keywords: e.keywords }, tokens, text)
+            : 0,
+      }))
       .filter((x) => x.s > 0)
       .sort((a, b) => b.s - a.s || a.i - b.i);
   const actionHits = scored(actions);
@@ -387,7 +657,17 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
     const cap = expanded.has(id) ? Infinity : (GROUPS[id].cap ?? Infinity);
     let items = list.slice(0, cap);
     const hidden = list.length - items.length;
-    if (hidden > 0) items = [...items, { id: `more:${id}`, kind: 'more', group: id, title: `Show ${hidden} more ${GROUPS[id].noun ?? 'results'}`, target: id }];
+    if (hidden > 0)
+      items = [
+        ...items,
+        {
+          id: `more:${id}`,
+          kind: 'more',
+          group: id,
+          title: `Show ${hidden} more ${GROUPS[id].noun ?? 'results'}`,
+          target: id,
+        },
+      ];
     groups.push({ id, items, total: list.length });
   }
 
@@ -397,9 +677,34 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
       id: 'fallback',
       items: (
         [
-          { id: 'fallback:library', kind: 'fallback', group: 'fallback', icon: 'Books', title: `Search the library for “${q}”`, to: `/library?q=${encodeURIComponent(q)}`, feature: 'library' },
-          { id: 'fallback:forum', kind: 'fallback', group: 'fallback', icon: 'ChatsCircle', title: `Search the forum for “${q}”`, to: `/forum?q=${encodeURIComponent(q)}`, feature: 'forum' },
-          { id: 'fallback:ask', kind: 'fallback', group: 'fallback', icon: 'PencilSimpleLine', title: `Ask the forum about “${q}”`, to: `/forum/new?title=${encodeURIComponent(q)}`, feature: 'forum', offer: 'threads' },
+          {
+            id: 'fallback:library',
+            kind: 'fallback',
+            group: 'fallback',
+            icon: 'Books',
+            title: `Search the library for “${q}”`,
+            to: `/library?q=${encodeURIComponent(q)}`,
+            feature: 'library',
+          },
+          {
+            id: 'fallback:forum',
+            kind: 'fallback',
+            group: 'fallback',
+            icon: 'ChatsCircle',
+            title: `Search the forum for “${q}”`,
+            to: `/forum?q=${encodeURIComponent(q)}`,
+            feature: 'forum',
+          },
+          {
+            id: 'fallback:ask',
+            kind: 'fallback',
+            group: 'fallback',
+            icon: 'PencilSimpleLine',
+            title: `Ask the forum about “${q}”`,
+            to: `/forum/new?title=${encodeURIComponent(q)}`,
+            feature: 'forum',
+            offer: 'threads',
+          },
         ] satisfies Item[]
       ).filter(shown),
       total: 0,

@@ -26,14 +26,16 @@ export function checkIdentifier(raw: string): IdentifierCheck {
       : { kind: 'email', error: 'That email address doesn’t look right. Check it and try again.', phone: null };
   }
   const compact = value.replace(/[\s().-]/g, '');
-  if (!/^(\+|00)?\d+$/.test(compact)) return { kind: null, error: 'Enter an email address or a phone number.', phone: null };
+  if (!/^(\+|00)?\d+$/.test(compact))
+    return { kind: null, error: 'Enter an email address or a phone number.', phone: null };
   const international = /^(\+|00)/.test(compact);
   const digits = compact.replace(/^(\+|00)/, '');
   if (digits.length < 7 || digits.length > 15) {
     return { kind: 'phone', error: 'That number doesn’t look right. Bahraini numbers have 8 digits.', phone: null };
   }
   if (!international && digits.length === 8) return { kind: 'phone', error: null, phone: bahraini(digits) };
-  if (digits.length === 11 && digits.startsWith('973')) return { kind: 'phone', error: null, phone: bahraini(digits.slice(3)) };
+  if (digits.length === 11 && digits.startsWith('973'))
+    return { kind: 'phone', error: null, phone: bahraini(digits.slice(3)) };
   return { kind: 'phone', error: null, phone: international ? `+${digits}` : null };
 }
 
@@ -46,7 +48,8 @@ export function formatPhone(e164: string): string {
 export function identifierHint(raw: string): string {
   const c = checkIdentifier(raw);
   if (c.kind === 'email' && !c.error) return 'We’ll email you a 6-digit code.';
-  if (c.kind === 'phone' && !c.error) return c.phone ? `We’ll text a 6-digit code to ${c.phone}.` : 'We’ll text you a 6-digit code.';
+  if (c.kind === 'phone' && !c.error)
+    return c.phone ? `We’ll text a 6-digit code to ${c.phone}.` : 'We’ll text you a 6-digit code.';
   return 'We’ll send you a 6-digit code. No password needed.';
 }
 

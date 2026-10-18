@@ -24,9 +24,12 @@ function AppFrame() {
 
 // A data router, so a page can hold a navigation until it is answered: the newsletter editor asks before its unsaved
 // changes are left behind by a link, the ⌘K palette or Back (useBlocker; UX review UX-3).
-const router = createBrowserRouter([{ id: 'app', element: <AppFrame />, errorElement: <AppCrashed />, children: pageRoutes }], {
-  basename: import.meta.env.BASE_URL,
-});
+const router = createBrowserRouter(
+  [{ id: 'app', element: <AppFrame />, errorElement: <AppCrashed />, children: pageRoutes }],
+  {
+    basename: import.meta.env.BASE_URL,
+  },
+);
 
 export default function App() {
   return (

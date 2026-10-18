@@ -8,7 +8,8 @@ import type { CalendarEvent, EventFilter, EventType } from './types';
 export const eventDate = (e: Pick<CalendarEvent, 'date'>): Date => parseDay(e.date);
 
 /** The last day an event covers: its end date, or its date. */
-export const lastDay = (e: Pick<CalendarEvent, 'date' | 'endDate'>): DayKey => (e.endDate && e.endDate > e.date ? e.endDate : e.date);
+export const lastDay = (e: Pick<CalendarEvent, 'date' | 'endDate'>): DayKey =>
+  e.endDate && e.endDate > e.date ? e.endDate : e.date;
 
 const typeRank = (type: EventType): number => {
   const i = TYPE_ORDER.indexOf(type);
@@ -30,7 +31,13 @@ export function sortEvents<T extends Pick<CalendarEvent, 'date'>>(events: readon
 export function listOrder<T extends Pick<CalendarEvent, 'date' | 'sample' | 'type'>>(events: readonly T[]): T[] {
   return events
     .map((e, i) => ({ e, i }))
-    .sort((a, b) => a.e.date.localeCompare(b.e.date) || Number(a.e.sample) - Number(b.e.sample) || typeRank(a.e.type) - typeRank(b.e.type) || a.i - b.i)
+    .sort(
+      (a, b) =>
+        a.e.date.localeCompare(b.e.date) ||
+        Number(a.e.sample) - Number(b.e.sample) ||
+        typeRank(a.e.type) - typeRank(b.e.type) ||
+        a.i - b.i,
+    )
     .map(({ e }) => e);
 }
 
@@ -42,9 +49,14 @@ type Papers = ReadonlySet<string> | null | undefined;
  * those modules) and, optionally, a set of filters (empty: everything): programme types, and 'mine' for the
  * student's own events, which every cohort shows.
  */
-export function filterEvents(events: readonly CalendarEvent[], { year, types, papers }: { year?: number | null; types?: ReadonlySet<EventFilter>; papers?: Papers } = {}): CalendarEvent[] {
+export function filterEvents(
+  events: readonly CalendarEvent[],
+  { year, types, papers }: { year?: number | null; types?: ReadonlySet<EventFilter>; papers?: Papers } = {},
+): CalendarEvent[] {
   const any = !types || types.size === 0;
-  return events.filter((e) => (e.mine ? any || types.has('mine') : isMine(e, year ?? null, papers ?? null) && (any || types.has(e.type))));
+  return events.filter((e) =>
+    e.mine ? any || types.has('mine') : isMine(e, year ?? null, papers ?? null) && (any || types.has(e.type)),
+  );
 }
 
 /** Events still to come on `from` (a day key): starting that day or later, or running through it. In list order. */
@@ -66,9 +78,17 @@ export interface NextExam {
  * dates come first: an unconfirmed exam never takes the place of a confirmed one, it is listed as coming before
  * it. null when no exam is ahead.
  */
-export function nextExamFor(events: readonly CalendarEvent[], { year, today, papers }: { year: number | null; today: DayKey; papers?: Papers }): NextExam | null {
-  const ahead = listOrder(events.filter((e) => e.type === 'exam' && isMine(e, year, papers ?? null) && e.date >= today));
-  const i = Math.max(0, ahead.findIndex((e) => !e.sample));
+export function nextExamFor(
+  events: readonly CalendarEvent[],
+  { year, today, papers }: { year: number | null; today: DayKey; papers?: Papers },
+): NextExam | null {
+  const ahead = listOrder(
+    events.filter((e) => e.type === 'exam' && isMine(e, year, papers ?? null) && e.date >= today),
+  );
+  const i = Math.max(
+    0,
+    ahead.findIndex((e) => !e.sample),
+  );
   const exam = ahead[i];
   if (!exam) return null;
   return { exam, unconfirmedBefore: ahead.slice(0, i), after: ahead.length - i - 1 };
@@ -78,7 +98,10 @@ export function nextExamFor(events: readonly CalendarEvent[], { year, today, pap
 export const weekEnd = (today: DayKey, days = 7): DayKey => addDaysToKey(today, days - 1);
 
 /** What a cohort has on in the week ahead (today and the six days after it), every type, in list order. */
-export function weekAhead(events: readonly CalendarEvent[], { year, today, days = 7, papers }: { year: number | null; today: DayKey; days?: number; papers?: Papers }): CalendarEvent[] {
+export function weekAhead(
+  events: readonly CalendarEvent[],
+  { year, today, days = 7, papers }: { year: number | null; today: DayKey; days?: number; papers?: Papers },
+): CalendarEvent[] {
   const end = weekEnd(today, days);
   return listOrder(events.filter((e) => isMine(e, year, papers ?? null) && e.date <= end && lastDay(e) >= today));
 }

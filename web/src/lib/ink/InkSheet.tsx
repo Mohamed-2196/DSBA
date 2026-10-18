@@ -20,7 +20,12 @@ export const StrokePaths = memo(function StrokePaths({ strokes }: { strokes: rea
   return (
     <>
       {strokes.map((s) => (
-        <path key={s.id} d={cachedPath(s)} fill={s.color} className={s.tool === 'highlighter' ? 'ink-highlighter' : undefined} />
+        <path
+          key={s.id}
+          d={cachedPath(s)}
+          fill={s.color}
+          className={s.tool === 'highlighter' ? 'ink-highlighter' : undefined}
+        />
       ))}
     </>
   );

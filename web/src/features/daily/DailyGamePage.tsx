@@ -31,11 +31,17 @@ export default function DailyGamePage() {
   if (!isGameId(params.game) || (params.day !== undefined && !isDayKey(params.day))) {
     return (
       <div className="dy dg dg--missing">
-        <EmptyState title="There’s no such puzzle" body="Pick one of today’s puzzles instead." action={<Button to="/daily">Go to Daily</Button>} />
+        <EmptyState
+          title="There’s no such puzzle"
+          body="Pick one of today’s puzzles instead."
+          action={<Button to="/daily">Go to Daily</Button>}
+        />
       </div>
     );
   }
-  return <GameScreen key={`${params.day ?? 'today'}:${params.game}`} game={params.game} dayParam={params.day ?? null} />;
+  return (
+    <GameScreen key={`${params.day ?? 'today'}:${params.game}`} game={params.game} dayParam={params.day ?? null} />
+  );
 }
 
 function GameScreen({ game, dayParam }: { game: GameId; dayParam: string | null }) {
@@ -158,7 +164,8 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
   const status = out?.play.status;
   const over = status ? isOver(status) : false;
   const next = isToday && today ? nextToPlay(today.games, game) : null;
-  const scoredVariant = isToday && game === 'sudoku' ? today?.games.find((g) => g.info.id === 'sudoku' && g.scored)?.variant : undefined;
+  const scoredVariant =
+    isToday && game === 'sudoku' ? today?.games.find((g) => g.info.id === 'sudoku' && g.scored)?.variant : undefined;
   const secret = !signedIn && isToday; // a guest's play of today's set: its answers wait
 
   const { Component } = plugin;
@@ -189,14 +196,22 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
             onOpenChange={setMenuOpen}
             trigger={<IconButton label="More" icon={DotsThreeVertical} disabled={!out} />}
             items={[
-              { label: 'Give up and see the answer', icon: Flag, danger: true, disabled: !out || over || status === 'new', onSelect: () => setConfirmGiveUp(true) },
+              {
+                label: 'Give up and see the answer',
+                icon: Flag,
+                danger: true,
+                disabled: !out || over || status === 'new',
+                onSelect: () => setConfirmGiveUp(true),
+              },
               ...(over ? [{ label: 'See your result', onSelect: () => setResultOpen(true) }] : []),
             ]}
           />
         </div>
       </header>
 
-      {out && !over ? <Notice out={out} isToday={isToday} signedIn={signedIn} scoredVariant={scoredVariant} onSignIn={onSignIn} /> : null}
+      {out && !over ? (
+        <Notice out={out} isToday={isToday} signedIn={signedIn} scoredVariant={scoredVariant} onSignIn={onSignIn} />
+      ) : null}
 
       <section ref={stage} tabIndex={-1} className="dg-stage" aria-label={out?.info.title ?? 'Puzzle'}>
         <Flash message={message} />
@@ -204,14 +219,35 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
           <StageSkeleton />
         ) : query.isError ? (
           isApiError(query.error) && query.error.code === 'not_out_yet' ? (
-            <EmptyState title="That day’s puzzles aren’t out yet" body="New puzzles come out at midnight in Bahrain." action={<Button to="/daily">Go to today’s puzzles</Button>} />
+            <EmptyState
+              title="That day’s puzzles aren’t out yet"
+              body="New puzzles come out at midnight in Bahrain."
+              action={<Button to="/daily">Go to today’s puzzles</Button>}
+            />
           ) : isApiError(query.error) && query.error.status === 422 ? (
-            <EmptyState title="Your play of this puzzle can’t be shown" body="The puzzle changed after you played it." action={<Button to="/daily">Go to Daily</Button>} />
+            <EmptyState
+              title="Your play of this puzzle can’t be shown"
+              body="The puzzle changed after you played it."
+              action={<Button to="/daily">Go to Daily</Button>}
+            />
           ) : (
-            <QueryError error={query.error} title="This puzzle didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} />
+            <QueryError
+              error={query.error}
+              title="This puzzle didn’t load"
+              onRetry={() => void query.refetch()}
+              retrying={query.isFetching}
+            />
           )
         ) : out ? (
-          <Component out={out} busy={move.isPending} play={play} flash={flash} paused={paused} showResult={() => setResultOpen(true)} onVariant={onVariant} />
+          <Component
+            out={out}
+            busy={move.isPending}
+            play={play}
+            flash={flash}
+            paused={paused}
+            showResult={() => setResultOpen(true)}
+            onVariant={onVariant}
+          />
         ) : null}
       </section>
 
@@ -252,7 +288,19 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
 }
 
 /** Why a play won't count, when it won't: a guest's isn't kept, a past day's is practice, and so is a second Sudoku. */
-function Notice({ out, isToday, signedIn, scoredVariant, onSignIn }: { out: PlayOut; isToday: boolean; signedIn: boolean; scoredVariant: string | undefined; onSignIn: () => void }) {
+function Notice({
+  out,
+  isToday,
+  signedIn,
+  scoredVariant,
+  onSignIn,
+}: {
+  out: PlayOut;
+  isToday: boolean;
+  signedIn: boolean;
+  scoredVariant: string | undefined;
+  onSignIn: () => void;
+}) {
   if (!signedIn) {
     return (
       <p className="dg-notice">

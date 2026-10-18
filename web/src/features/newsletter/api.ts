@@ -7,7 +7,16 @@
 //   GET  /api/v1/newsletter/settings[/edit], PUT …/settings    the masthead's line and the pictures the editor offers
 import { useMutation, useQueries, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
-import type { IssueCreate, IssueDetail, IssueSummary, IssueUpdate, Me, NewsletterSettingsEditable, NewsletterSettingsSave, ReactionCounts } from '../../api/types';
+import type {
+  IssueCreate,
+  IssueDetail,
+  IssueSummary,
+  IssueUpdate,
+  Me,
+  NewsletterSettingsEditable,
+  NewsletterSettingsSave,
+  ReactionCounts,
+} from '../../api/types';
 import { ME_KEY } from '../../auth';
 import { readMinutes } from './lib/text';
 import type { Issue, IssueCard, Reaction } from './types';
@@ -37,7 +46,11 @@ export function toIssue(detail: IssueDetail): Issue {
 /** An issue in a list; its detail (when it has been read) adds the section labels and the read time. */
 export function toCard(summary: IssueSummary, detail?: IssueDetail): IssueCard {
   if (!detail) return { ...summary, sections: null, readMinutes: null };
-  return { ...summary, sections: detail.sections.map((s) => ({ id: s.id, label: s.label, title: s.title })), readMinutes: readMinutes(detail) };
+  return {
+    ...summary,
+    sections: detail.sections.map((s) => ({ id: s.id, label: s.label, title: s.title })),
+    readMinutes: readMinutes(detail),
+  };
 }
 
 async function fetchIssue(slug: string): Promise<IssueDetail> {
@@ -48,7 +61,9 @@ async function fetchIssue(slug: string): Promise<IssueDetail> {
 
 /** Issues, newest first. With includeDrafts (moderators), drafts too; others only ever get published ones. */
 async function fetchIssues(includeDrafts: boolean): Promise<IssueSummary[]> {
-  const list = await call(api.GET('/api/v1/newsletter/issues', { params: { query: includeDrafts ? { include_drafts: true } : {} } }));
+  const list = await call(
+    api.GET('/api/v1/newsletter/issues', { params: { query: includeDrafts ? { include_drafts: true } : {} } }),
+  );
   return [...list].sort(byNewest);
 }
 
@@ -96,7 +111,11 @@ export function useIssueDetail(slug: string | undefined) {
 /** The details of several issues at once (covers and read times on the archive shelf). */
 export function useIssueDetails(slugs: readonly string[]) {
   return useQueries({
-    queries: slugs.map((slug) => ({ queryKey: newsletterKeys.issue(slug), queryFn: () => fetchIssue(slug), staleTime: STALE })),
+    queries: slugs.map((slug) => ({
+      queryKey: newsletterKeys.issue(slug),
+      queryFn: () => fetchIssue(slug),
+      staleTime: STALE,
+    })),
   });
 }
 
@@ -130,7 +149,8 @@ export function useUpdateIssue() {
 export function usePublishIssue() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id }: { id: string; slug: string }) => call(api.POST('/api/v1/newsletter/issues/{issue_id}/publish', { params: { path: { issue_id: id } } })),
+    mutationFn: ({ id }: { id: string; slug: string }) =>
+      call(api.POST('/api/v1/newsletter/issues/{issue_id}/publish', { params: { path: { issue_id: id } } })),
     onSuccess: (detail, { slug }) => remember(qc, detail, slug),
   });
 }
@@ -138,7 +158,8 @@ export function usePublishIssue() {
 export function useDeleteIssue() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id }: { id: string; slug: string }) => call(api.DELETE('/api/v1/newsletter/issues/{issue_id}', { params: { path: { issue_id: id } } })),
+    mutationFn: ({ id }: { id: string; slug: string }) =>
+      call(api.DELETE('/api/v1/newsletter/issues/{issue_id}', { params: { path: { issue_id: id } } })),
     onSuccess: (_data, { slug }) => {
       qc.removeQueries({ queryKey: newsletterKeys.issue(slug), exact: true });
       void qc.invalidateQueries({ queryKey: newsletterKeys.lists });
@@ -181,14 +202,20 @@ export function useReact() {
       const key = newsletterKeys.issue(slug);
       await qc.cancelQueries({ queryKey: key, exact: true });
       const prev = qc.getQueryData<IssueDetail>(key);
-      if (prev) qc.setQueryData<IssueDetail>(key, { ...prev, reactions: { ...prev.reactions, [sectionId]: applyReaction(prev.reactions[sectionId], reaction, on) } });
+      if (prev)
+        qc.setQueryData<IssueDetail>(key, {
+          ...prev,
+          reactions: { ...prev.reactions, [sectionId]: applyReaction(prev.reactions[sectionId], reaction, on) },
+        });
       return { prev };
     },
     onError: (_err, { slug }, ctx) => {
       if (ctx?.prev) qc.setQueryData(newsletterKeys.issue(slug), ctx.prev);
     },
     onSuccess: (counts, { slug, sectionId }) => {
-      qc.setQueryData<IssueDetail>(newsletterKeys.issue(slug), (d) => (d ? { ...d, reactions: { ...d.reactions, [sectionId]: counts } } : d));
+      qc.setQueryData<IssueDetail>(newsletterKeys.issue(slug), (d) =>
+        d ? { ...d, reactions: { ...d.reactions, [sectionId]: counts } } : d,
+      );
     },
   });
 }
@@ -207,9 +234,16 @@ export function useVote() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ issueId, pollId, choice }: VoteVars) =>
-      call(api.PUT('/api/v1/newsletter/issues/{issue_id}/polls/{poll_id}/vote', { params: { path: { issue_id: issueId, poll_id: pollId } }, body: { choice } })),
+      call(
+        api.PUT('/api/v1/newsletter/issues/{issue_id}/polls/{poll_id}/vote', {
+          params: { path: { issue_id: issueId, poll_id: pollId } },
+          body: { choice },
+        }),
+      ),
     onSuccess: (result, { slug, pollId }) => {
-      qc.setQueryData<IssueDetail>(newsletterKeys.issue(slug), (d) => (d ? { ...d, polls: { ...d.polls, [pollId]: result } } : d));
+      qc.setQueryData<IssueDetail>(newsletterKeys.issue(slug), (d) =>
+        d ? { ...d, polls: { ...d.polls, [pollId]: result } } : d,
+      );
     },
     onError: (_e, { slug }) => {
       void qc.invalidateQueries({ queryKey: newsletterKeys.issue(slug), exact: true });

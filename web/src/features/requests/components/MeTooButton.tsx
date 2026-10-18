@@ -17,7 +17,13 @@ export function MeTooButton({ request, size = 'md' }: { request: RequestOut; siz
   const meToo = useMeToo();
   const { push } = useToast();
   const closed = request.status === 'done' || request.status === 'declined';
-  const why = request.mine ? 'You asked for this' : mayAsk === 'suspended' ? 'Your account is suspended' : closed ? 'This request is closed' : null;
+  const why = request.mine
+    ? 'You asked for this'
+    : mayAsk === 'suspended'
+      ? 'Your account is suspended'
+      : closed
+        ? 'This request is closed'
+        : null;
   const count = request.meTooCount;
   const toggle = () => {
     const on = !request.meToo;

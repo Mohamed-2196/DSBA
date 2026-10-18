@@ -2,7 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import { monthMatrix, windowCountdown } from './dates';
 
-const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const key = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 describe('monthMatrix', () => {
   it('covers the month in whole weeks, Sunday first', () => {

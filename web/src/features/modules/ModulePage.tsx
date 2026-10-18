@@ -2,14 +2,42 @@
 // ?tab=overview|lessons|files|discussion. A lesson has its own address, /modules/:moduleId/lessons/:lessonId (the
 // Lessons tab with that lesson on screen); ?tab=lessons opens where the student left off.
 // The header comes from the catalogue at once; chapters, videos and shelves load with GET /modules/{id}.
-import { BookOpenText, CalendarBlank, CaretLeft, ChatsCircle, Files, Info, MagnifyingGlass, Play, PlayCircle, UploadSimple } from '@phosphor-icons/react';
+import {
+  BookOpenText,
+  CalendarBlank,
+  CaretLeft,
+  ChatsCircle,
+  Files,
+  Info,
+  MagnifyingGlass,
+  Play,
+  PlayCircle,
+  UploadSimple,
+} from '@phosphor-icons/react';
 import { useCallback, useEffect, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
 import { COHORTS, cohortColor, useDocumentTitle, useYear } from '../../state';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
-import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleArt, ModuleIcon, Page, Panel, ProgressRing, QueryError, Skeleton, TabPanel, Tabs, countOf, moduleArtSrc } from '../../ui';
+import {
+  Badge,
+  Button,
+  CohortBadge,
+  EmptyState,
+  ErrorBoundary,
+  ModuleArt,
+  ModuleIcon,
+  Page,
+  Panel,
+  ProgressRing,
+  QueryError,
+  Skeleton,
+  TabPanel,
+  Tabs,
+  countOf,
+  moduleArtSrc,
+} from '../../ui';
 import { PlanRevision } from '../board/public';
 import { ModuleThreads, Prose } from '../forum/public';
 import { ModuleFiles, useLibraryUpload } from '../library/public';
@@ -19,12 +47,26 @@ import { ImportProgressPrompt } from './ImportProgressPrompt';
 import { LessonsTab } from './LessonsTab';
 import { chapterPosition, isModuleTab, lessonHref, moduleTabOn, type ModuleTab } from './lessons';
 import { ModuleOverview } from './ModuleOverview';
-import { computeModuleProgress, computeResumePoint, findLesson, summaryProgress, useProgress, type Fraction, type ResumeKind, type ResumePoint } from './progress';
+import {
+  computeModuleProgress,
+  computeResumePoint,
+  findLesson,
+  summaryProgress,
+  useProgress,
+  type Fraction,
+  type ResumeKind,
+  type ResumePoint,
+} from './progress';
 import { resourceSummary, shelfHash, shelfWithFiles } from './resources';
 import { SuggestVideo } from './suggestions/SuggestVideo';
 import './ModulePage.css';
 
-const RESUME_LABEL: Record<ResumeKind, string> = { resume: 'Resume lesson', next: 'Continue', start: 'Start lesson 1', done: 'Watch again' };
+const RESUME_LABEL: Record<ResumeKind, string> = {
+  resume: 'Resume lesson',
+  next: 'Continue',
+  start: 'Start lesson 1',
+  done: 'Watch again',
+};
 
 function ModuleHeader({
   summary: m,
@@ -48,11 +90,20 @@ function ModuleHeader({
   const { year } = useYear();
   const { featureOn } = useAuth();
   const plan = featureOn('board') ? (
-    <PlanRevision moduleId={m.id} moduleName={m.unitCode || m.shortName || m.name} examDate={exam?.event.date ?? null} className="mod-head__action" />
+    <PlanRevision
+      moduleId={m.id}
+      moduleName={m.unitCode || m.shortName || m.name}
+      examDate={exam?.event.date ?? null}
+      className="mod-head__action"
+    />
   ) : null;
   // The Files tab, at its past papers and its books.
-  const pastPapers = shelfWithFiles(detail, 'past-paper') ? `/modules/${m.id}?tab=files#${shelfHash('past-paper')}` : null;
-  const studyGuide = shelfWithFiles(detail, 'course-materials') ? `/modules/${m.id}?tab=files#${shelfHash('course-materials')}` : null;
+  const pastPapers = shelfWithFiles(detail, 'past-paper')
+    ? `/modules/${m.id}?tab=files#${shelfHash('past-paper')}`
+    : null;
+  const studyGuide = shelfWithFiles(detail, 'course-materials')
+    ? `/modules/${m.id}?tab=files#${shelfHash('course-materials')}`
+    : null;
   const backTo = year === m.year ? '/modules' : `/modules?year=${m.year}`;
   const resumeChapter = resume && detail ? detail.chapters[resume.c] : null;
   const hasArt = moduleArtSrc(m.art) != null;
@@ -65,7 +116,11 @@ function ModuleHeader({
   }
 
   const counts = [
-    m.lessonCount ? `${countOf(m.chapterCount, 'chapter')}, ${countOf(m.lessonCount, 'video lesson')}` : detail ? resourceSummary(detail) : null,
+    m.lessonCount
+      ? `${countOf(m.chapterCount, 'chapter')}, ${countOf(m.lessonCount, 'video lesson')}`
+      : detail
+        ? resourceSummary(detail)
+        : null,
     m.libraryCount ? `${countOf(m.libraryCount, 'file')} in the library` : null,
   ].filter(Boolean);
 
@@ -123,7 +178,8 @@ function ModuleHeader({
                   <div className="mod-head__progress-text">
                     {progressReady ? (
                       <p className="mod-head__progress-num">
-                        <b className="u-tabular">{progress.watched}</b> of <span className="u-tabular">{progress.total}</span> lessons watched
+                        <b className="u-tabular">{progress.watched}</b> of{' '}
+                        <span className="u-tabular">{progress.total}</span> lessons watched
                       </p>
                     ) : (
                       <Skeleton width={180} height={18} />
@@ -144,7 +200,12 @@ function ModuleHeader({
               )}
               <div className="mod-head__actions">
                 {resume ? (
-                  <Button variant="primary" leadingIcon={Play} onClick={() => onOpenLesson(resume.c, resume.v)} className="mod-head__action">
+                  <Button
+                    variant="primary"
+                    leadingIcon={Play}
+                    onClick={() => onOpenLesson(resume.c, resume.v)}
+                    className="mod-head__action"
+                  >
                     {RESUME_LABEL[resume.kind]}
                   </Button>
                 ) : (
@@ -217,7 +278,8 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
 
   const go = useCallback((to: string) => navigate(to, { replace: true }), [navigate]);
   const setTab = useCallback(
-    (id: string, hash?: string) => go(id === 'overview' ? `/modules/${m.id}` : `/modules/${m.id}?tab=${id}${hash ? `#${hash}` : ''}`),
+    (id: string, hash?: string) =>
+      go(id === 'overview' ? `/modules/${m.id}` : `/modules/${m.id}?tab=${id}${hash ? `#${hash}` : ''}`),
     [go, m.id],
   );
   const selectLesson = useCallback(
@@ -258,14 +320,20 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
   let detailProblem: ReactNode = null;
   if (detailQ.isError) {
     detailProblem = (
-      <QueryError error={detailQ.error} title="This module’s lessons didn’t load" onRetry={() => void detailQ.refetch()} retrying={detailQ.isFetching} />
+      <QueryError
+        error={detailQ.error}
+        title="This module’s lessons didn’t load"
+        onRetry={() => void detailQ.refetch()}
+        retrying={detailQ.isFetching}
+      />
     );
   }
 
   let lessonsPanel: ReactNode;
   if (detailProblem) lessonsPanel = detailProblem;
   else if (!detail || (m.lessonCount > 0 && !ready)) lessonsPanel = <PanelSkeleton />;
-  else if (selection) lessonsPanel = <LessonsTab module={detail} selection={selection} progress={progressApi} onSelect={selectLesson} />;
+  else if (selection)
+    lessonsPanel = <LessonsTab module={detail} selection={selection} progress={progressApi} onSelect={selectLesson} />;
   else {
     lessonsPanel = (
       <Panel padding="none">
@@ -290,9 +358,26 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
 
   return (
     <Page className={`mod-page mod-page--y${m.year}`}>
-      <ModuleHeader summary={m} detail={detail} progress={progress} progressReady={ready} tracking={tracking} resume={resume} exam={exam} onOpenLesson={openLesson} />
+      <ModuleHeader
+        summary={m}
+        detail={detail}
+        progress={progress}
+        progressReady={ready}
+        tracking={tracking}
+        resume={resume}
+        exam={exam}
+        onOpenLesson={openLesson}
+      />
 
-      <Tabs idBase="module" label="Module sections" className="mod-tabs" data-hub="module-tabs" tabs={tabs} value={tab} onChange={setTab} />
+      <Tabs
+        idBase="module"
+        label="Module sections"
+        className="mod-tabs"
+        data-hub="module-tabs"
+        tabs={tabs}
+        value={tab}
+        onChange={setTab}
+      />
 
       <div className="mod-panels">
         <TabPanel idBase="module" id="overview" value={tab}>
@@ -367,6 +452,7 @@ export default function ModulePage() {
       </Page>
     );
   }
-  if (m.id !== moduleId) return <Navigate replace to={`/modules/${m.id}${pathname.slice(`/modules/${moduleId}`.length)}${search}`} />;
+  if (m.id !== moduleId)
+    return <Navigate replace to={`/modules/${m.id}${pathname.slice(`/modules/${moduleId}`.length)}${search}`} />;
   return <ModuleView key={m.id} summary={m} lessonId={lessonId} />;
 }

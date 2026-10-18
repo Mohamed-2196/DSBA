@@ -52,7 +52,10 @@ export function releaseAll(): void {
  * Add files to what is already attached, within the limits (four at a time, 10 MB each).
  * note: a line about anything left out.
  */
-export function addFiles(attached: readonly Attachment[], files: Iterable<File>): { list: Attachment[]; note: string | null } {
+export function addFiles(
+  attached: readonly Attachment[],
+  files: Iterable<File>,
+): { list: Attachment[]; note: string | null } {
   const list = [...attached];
   const tooBig: string[] = [];
   let tooMany = false;
@@ -62,7 +65,8 @@ export function addFiles(attached: readonly Attachment[], files: Iterable<File>)
     else list.push(toAttachment(file));
   }
   let note: string | null = null;
-  if (tooBig.length) note = `${tooBig.length === 1 ? `${tooBig[0] ?? 'One file'} is` : `${tooBig.length} files are`} over 10 MB, so I left ${tooBig.length === 1 ? 'it' : 'them'} out.`;
+  if (tooBig.length)
+    note = `${tooBig.length === 1 ? `${tooBig[0] ?? 'One file'} is` : `${tooBig.length} files are`} over 10 MB, so I left ${tooBig.length === 1 ? 'it' : 'them'} out.`;
   else if (tooMany) note = `I can take ${MAX_FILES} files at a time, so I kept the first ${MAX_FILES}.`;
   return { list, note };
 }

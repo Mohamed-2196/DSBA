@@ -31,9 +31,22 @@ import './Notes.css';
 
 const STYLUS_KEY = 'hub.mine.notes.stylus';
 
-const isTyping = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+const isTyping = (t: EventTarget | null) =>
+  t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
-function Notices({ editor, ink, readOnly, pdfFailed, onPdfRetry }: { editor: NoteEditor; ink: InkSync; readOnly: boolean; pdfFailed: boolean; onPdfRetry: () => void }) {
+function Notices({
+  editor,
+  ink,
+  readOnly,
+  pdfFailed,
+  onPdfRetry,
+}: {
+  editor: NoteEditor;
+  ink: InkSync;
+  readOnly: boolean;
+  pdfFailed: boolean;
+  onPdfRetry: () => void;
+}) {
   const out = [];
   if (readOnly) {
     out.push(
@@ -145,7 +158,12 @@ function NoteWorkspace({ noteId, readOnly, fresh }: { noteId: string; readOnly: 
     if (editor.missing) {
       return (
         <div className="nb nb--message">
-          <EmptyState icon={NotePencil} title="This note doesn’t exist" body="It may have been deleted." action={<Button to="/notes">See all notes</Button>} />
+          <EmptyState
+            icon={NotePencil}
+            title="This note doesn’t exist"
+            body="It may have been deleted."
+            action={<Button to="/notes">See all notes</Button>}
+          />
         </div>
       );
     }
@@ -159,7 +177,9 @@ function NoteWorkspace({ noteId, readOnly, fresh }: { noteId: string; readOnly: 
       </div>
     );
   }
-  return <NoteDesk noteId={noteId} readOnly={readOnly} fresh={fresh} editor={editor} doc={editor.doc} ink={ink} pdf={pdf} />;
+  return (
+    <NoteDesk noteId={noteId} readOnly={readOnly} fresh={fresh} editor={editor} doc={editor.doc} ink={ink} pdf={pdf} />
+  );
 }
 
 interface NoteDeskProps {
@@ -439,7 +459,13 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         readOnly={readOnly}
       />
 
-      <Notices editor={editor} ink={ink} readOnly={readOnly} pdfFailed={onPdf && pdf.state.status === 'error'} onPdfRetry={pdf.retry} />
+      <Notices
+        editor={editor}
+        ink={ink}
+        readOnly={readOnly}
+        pdfFailed={onPdf && pdf.state.status === 'error'}
+        onPdfRetry={pdf.retry}
+      />
 
       <div className="nb-body">
         {pagesShown ? (
@@ -567,7 +593,11 @@ export default function NotePage() {
 
   return (
     <Gate title="Notes" description="Your own notes, saved as you write." signedIn>
-      {!noteId || noteId === 'new' ? <NewNoteRedirect /> : <NoteWorkspace key={noteId} noteId={noteId} readOnly={readOnly} fresh={fresh} />}
+      {!noteId || noteId === 'new' ? (
+        <NewNoteRedirect />
+      ) : (
+        <NoteWorkspace key={noteId} noteId={noteId} readOnly={readOnly} fresh={fresh} />
+      )}
     </Gate>
   );
 }

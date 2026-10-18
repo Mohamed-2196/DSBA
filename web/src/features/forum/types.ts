@@ -1,6 +1,16 @@
 // Shapes of the forum feature. API models (ThreadSummary, ThreadDetail, Reply, UserPublic, ...) come from
 // src/api/types; these are the forum's own view and filter types around them.
-import type { ForumCategoryOut, ForumGuideline as ApiGuideline, ForumTagOut, ForumTip as ApiTip, ReportCreate, ReportOut, Reply, ThreadSummary, paths } from '../../api/types';
+import type {
+  ForumCategoryOut,
+  ForumGuideline as ApiGuideline,
+  ForumTagOut,
+  ForumTip as ApiTip,
+  ReportCreate,
+  ReportOut,
+  Reply,
+  ThreadSummary,
+  paths,
+} from '../../api/types';
 
 export type CategoryId = ThreadSummary['category'];
 export type ThreadSort = 'hot' | 'new' | 'top';
@@ -23,7 +33,10 @@ export interface ForumFilters {
 }
 
 /** What GET /forum/threads is asked for, without the paging: its query, as the API states it. */
-export type ThreadListParams = Omit<NonNullable<paths['/api/v1/forum/threads']['get']['parameters']['query']>, 'limit' | 'offset'>;
+export type ThreadListParams = Omit<
+  NonNullable<paths['/api/v1/forum/threads']['get']['parameters']['query']>,
+  'limit' | 'offset'
+>;
 
 /** A top-level reply with its nested replies (one level). */
 export interface ReplyNode extends Reply {

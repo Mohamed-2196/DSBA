@@ -12,9 +12,7 @@ import { SearchExample, SearchGame } from './search/SearchGame';
 import { SudokuExample, SudokuGame } from './sudoku/SudokuGame';
 import { WordExample, WordGame } from './word/WordGame';
 
-export type MoveResult =
-  | { ok: true; out: PlayOut }
-  | { ok: false; code: ApiErrorCode | null; message: string };
+export type MoveResult = { ok: true; out: PlayOut } | { ok: false; code: ApiErrorCode | null; message: string };
 
 export interface GameProps {
   out: PlayOut;

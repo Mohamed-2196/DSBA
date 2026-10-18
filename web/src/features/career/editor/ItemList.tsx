@@ -34,7 +34,23 @@ export interface ItemListProps<T> {
   hasError?: (index: number) => boolean;
 }
 
-export function ItemList<T>({ section, items, idOf, titleOf, metaOf, leadOf, noun, isHidden, onHide, onMove, onRemove, blocker, onAdd, children, hasError }: ItemListProps<T>) {
+export function ItemList<T>({
+  section,
+  items,
+  idOf,
+  titleOf,
+  metaOf,
+  leadOf,
+  noun,
+  isHidden,
+  onHide,
+  onMove,
+  onRemove,
+  blocker,
+  onAdd,
+  children,
+  hasError,
+}: ItemListProps<T>) {
   const { open, setOpen, saved } = useEditor();
   const [removing, setRemoving] = useState<{ id: string; title: string } | null>(null);
   const [blocked, setBlocked] = useState<string | null>(null);
@@ -56,10 +72,20 @@ export function ItemList<T>({ section, items, idOf, titleOf, metaOf, leadOf, nou
               else go();
             };
             return (
-              <li key={id} className={cx('cedit-item', isOpen && 'is-open', hidden && 'is-hidden', hasError?.(i) && 'has-error')} data-item-id={id}>
+              <li
+                key={id}
+                className={cx('cedit-item', isOpen && 'is-open', hidden && 'is-hidden', hasError?.(i) && 'has-error')}
+                data-item-id={id}
+              >
                 <div className="cedit-item__row">
                   {leadOf ? <span className="cedit-item__lead">{leadOf(item)}</span> : null}
-                  <button type="button" className="cedit-item__open" aria-expanded={isOpen} aria-controls={`cedit-${section}-${id}`} onClick={() => setOpen(isOpen ? null : key)}>
+                  <button
+                    type="button"
+                    className="cedit-item__open"
+                    aria-expanded={isOpen}
+                    aria-controls={`cedit-${section}-${id}`}
+                    onClick={() => setOpen(isOpen ? null : key)}
+                  >
                     <span className="cedit-item__title">
                       {title}
                       {hidden ? (
@@ -79,8 +105,20 @@ export function ItemList<T>({ section, items, idOf, titleOf, metaOf, leadOf, nou
                   <span className="cedit-item__tools">
                     {onMove ? (
                       <>
-                        <IconButton size="sm" icon={ArrowUp} label={`Move ${title} up`} disabled={i === 0} onClick={() => onMove(i, -1)} />
-                        <IconButton size="sm" icon={ArrowDown} label={`Move ${title} down`} disabled={i === items.length - 1} onClick={() => onMove(i, 1)} />
+                        <IconButton
+                          size="sm"
+                          icon={ArrowUp}
+                          label={`Move ${title} up`}
+                          disabled={i === 0}
+                          onClick={() => onMove(i, -1)}
+                        />
+                        <IconButton
+                          size="sm"
+                          icon={ArrowDown}
+                          label={`Move ${title} down`}
+                          disabled={i === items.length - 1}
+                          onClick={() => onMove(i, 1)}
+                        />
                       </>
                     ) : null}
                     {onHide ? (
@@ -92,7 +130,13 @@ export function ItemList<T>({ section, items, idOf, titleOf, metaOf, leadOf, nou
                         onClick={() => (hidden ? onHide(id, false) : tryOr(() => onHide(id, true)))}
                       />
                     ) : null}
-                    <IconButton size="sm" icon={Trash} label={`Remove ${title}`} tooltip onClick={() => tryOr(() => setRemoving({ id, title }))} />
+                    <IconButton
+                      size="sm"
+                      icon={Trash}
+                      label={`Remove ${title}`}
+                      tooltip
+                      onClick={() => tryOr(() => setRemoving({ id, title }))}
+                    />
                   </span>
                 </div>
                 {isOpen ? (
@@ -107,7 +151,12 @@ export function ItemList<T>({ section, items, idOf, titleOf, metaOf, leadOf, nou
       ) : (
         <p className="cedit__empty">{`No ${noun}s yet.`}</p>
       )}
-      <Button variant="secondary" leadingIcon={Plus} onClick={() => setOpen(openKey(section, onAdd()))} className="cedit-list__add">
+      <Button
+        variant="secondary"
+        leadingIcon={Plus}
+        onClick={() => setOpen(openKey(section, onAdd()))}
+        className="cedit-list__add"
+      >
         {`Add ${/^[aeiou]/i.test(noun) ? 'an' : 'a'} ${noun}`}
       </Button>
 
@@ -124,7 +173,14 @@ export function ItemList<T>({ section, items, idOf, titleOf, metaOf, leadOf, nou
         }}
         onClose={() => setRemoving(null)}
       />
-      <ConfirmDialog open={blocked !== null} title="Not yet" body={blocked} confirmLabel="OK" onConfirm={() => setBlocked(null)} onClose={() => setBlocked(null)} />
+      <ConfirmDialog
+        open={blocked !== null}
+        title="Not yet"
+        body={blocked}
+        confirmLabel="OK"
+        onConfirm={() => setBlocked(null)}
+        onClose={() => setBlocked(null)}
+      />
     </div>
   );
 }

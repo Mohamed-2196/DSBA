@@ -74,7 +74,9 @@ export function parseManifest(raw: string): SwManifest | null {
     if (!v || typeof v !== 'object') return null;
     const { version, precache } = v as Record<string, unknown>;
     if (typeof version !== 'string' || !version || !Array.isArray(precache)) return null;
-    const files = precache.filter((p): p is string => typeof p === 'string' && p.startsWith('/') && !p.startsWith('/api/'));
+    const files = precache.filter(
+      (p): p is string => typeof p === 'string' && p.startsWith('/') && !p.startsWith('/api/'),
+    );
     return { version, precache: files };
   } catch {
     return null;

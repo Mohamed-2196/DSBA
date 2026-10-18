@@ -41,7 +41,10 @@ const isRow = (line: string | undefined): line is string => line !== undefined &
 
 /** A table row's cells: split at each | that is not escaped, without the outer pipes. */
 export function cells(line: string): string[] {
-  const trimmed = line.trim().replace(/^\|/, '').replace(/(?<!\\)\|$/, '');
+  const trimmed = line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/(?<!\\)\|$/, '');
   return trimmed.split(/(?<!\\)\|/).map((c) => c.trim().replaceAll('\\|', '|'));
 }
 
@@ -54,7 +57,14 @@ function alignOf(cell: string): Align {
 }
 
 const startsBlock = (line: string, next: string | undefined): boolean =>
-  FENCE.test(line) || HEADING.test(line) || UL.test(line) || OL.test(line) || QUOTE.test(line) || HR.test(line) || MATH_OPEN.test(line) || (isRow(line) && next !== undefined && TABLE_RULE.test(next));
+  FENCE.test(line) ||
+  HEADING.test(line) ||
+  UL.test(line) ||
+  OL.test(line) ||
+  QUOTE.test(line) ||
+  HR.test(line) ||
+  MATH_OPEN.test(line) ||
+  (isRow(line) && next !== undefined && TABLE_RULE.test(next));
 
 /** A formula on lines of its own, from the line at `i`: the formula and the line after it. */
 function mathBlock(lines: string[], i: number): { block: Block; next: number } {
@@ -104,7 +114,13 @@ export function parseRich(src: string): Block[] {
       continue;
     }
     if (HEADING.test(line)) {
-      blocks.push({ type: 'heading', text: line.replace(HEADING, '').replace(/\s#+\s*$/, '').trim() });
+      blocks.push({
+        type: 'heading',
+        text: line
+          .replace(HEADING, '')
+          .replace(/\s#+\s*$/, '')
+          .trim(),
+      });
       i += 1;
       continue;
     }
@@ -136,7 +152,10 @@ export function parseRich(src: string): Block[] {
           items.push(cur.replace(marker, ''));
         } else if (cur.trim() && /^\s{2,}/.test(cur) && items.length) {
           // a line that carries on the item above, or a list inside it (drawn as part of the item)
-          items[items.length - 1] += `\n${cur.trim().replace(UL, '– ').replace(OL, (m) => m.trim() + ' ')}`;
+          items[items.length - 1] += `\n${cur
+            .trim()
+            .replace(UL, '– ')
+            .replace(OL, (m) => m.trim() + ' ')}`;
         } else {
           break;
         }

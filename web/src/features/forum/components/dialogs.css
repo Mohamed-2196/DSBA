@@ -1,7 +1,23 @@
 /* Forum dialogs: report (ReportButton.tsx, also used on library files) and resolve (ReportsQueue.tsx). Tokens only. */
-.forum-report { display: grid; gap: var(--sp-16); }
-.forum-report__reasons { display: grid; gap: 4px; min-width: 0; margin: 0; padding: 0; border: 0; }
-.forum-report__legend { margin-bottom: 6px; padding: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.forum-report {
+  display: grid;
+  gap: var(--sp-16);
+}
+.forum-report__reasons {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.forum-report__legend {
+  margin-bottom: 6px;
+  padding: 0;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
 .forum-report__reason {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
@@ -12,19 +28,56 @@
   border-radius: var(--r-control);
   background: var(--surface);
   cursor: pointer;
-  transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
 }
-.forum-report__reason:hover { border-color: var(--line-strong); background: color-mix(in srgb, var(--surface-2) 50%, var(--surface)); }
-.forum-report__reason.is-checked { border-color: var(--cobalt); background: var(--cobalt-soft); }
-.forum-report__reason:has(input:focus-visible) { box-shadow: 0 0 0 var(--focus-width, 2px) var(--focus-color); }
-.forum-report__reason input { width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--cobalt); }
-.forum-report__reason input:focus-visible { outline: none; }
-.forum-report__text { display: grid; gap: 1px; min-width: 0; }
-.forum-report__label { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); line-height: 1.35; }
-.forum-report__hint { color: var(--ink-2); font-size: var(--fs-12); line-height: 1.4; }
+.forum-report__reason:hover {
+  border-color: var(--line-strong);
+  background: color-mix(in srgb, var(--surface-2) 50%, var(--surface));
+}
+.forum-report__reason.is-checked {
+  border-color: var(--cobalt);
+  background: var(--cobalt-soft);
+}
+.forum-report__reason:has(input:focus-visible) {
+  box-shadow: 0 0 0 var(--focus-width, 2px) var(--focus-color);
+}
+.forum-report__reason input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--cobalt);
+}
+.forum-report__reason input:focus-visible {
+  outline: none;
+}
+.forum-report__text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.forum-report__label {
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+}
+.forum-report__hint {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  line-height: 1.4;
+}
 
 /* "You reported this already" at the top of the report dialog */
-.forum-report__already { padding: 10px 12px; border-radius: var(--r-control); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.forum-report__already {
+  padding: 10px 12px;
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
 
 /* A form's own problem (not tied to one field), above its buttons. Shared with the forum's dialogs. */
 .forum-form-error {
@@ -41,4 +94,7 @@
 }
 
 /* A dialog's form (resolving a report) */
-.forum-confirm { display: grid; gap: var(--sp-16); }
+.forum-confirm {
+  display: grid;
+  gap: var(--sp-16);
+}

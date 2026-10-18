@@ -25,7 +25,18 @@ export interface EmptyStateProps {
 }
 
 /** Empty state that invites action. */
-export function EmptyState({ icon, illustration, title, titleAs: Title = 'p', titleId, body, action, size = 'md', className, children }: EmptyStateProps) {
+export function EmptyState({
+  icon,
+  illustration,
+  title,
+  titleAs: Title = 'p',
+  titleId,
+  body,
+  action,
+  size = 'md',
+  className,
+  children,
+}: EmptyStateProps) {
   return (
     <div className={cx('ui-empty', `ui-empty--${size}`, className)}>
       {illustration ? (

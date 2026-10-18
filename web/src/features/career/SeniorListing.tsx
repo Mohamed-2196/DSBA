@@ -42,7 +42,13 @@ function ListingForm({ mine }: { mine: MySenior }) {
       { topics, note: note.trim(), paused },
       {
         onSuccess: (saved) =>
-          push({ tone: 'success', title: saved.paused ? 'Listing paused' : mine.listed ? 'Listing saved' : 'You’re listed', body: saved.paused ? 'Nobody can ask you until you turn it back on.' : 'Students can ask you from Career Navigator.' }),
+          push({
+            tone: 'success',
+            title: saved.paused ? 'Listing paused' : mine.listed ? 'Listing saved' : 'You’re listed',
+            body: saved.paused
+              ? 'Nobody can ask you until you turn it back on.'
+              : 'Students can ask you from Career Navigator.',
+          }),
         onError: (err) => push({ tone: 'alert', title: 'Your listing wasn’t saved', body: errorMessage(err) }),
       },
     );
@@ -73,7 +79,14 @@ function ListingForm({ mine }: { mine: MySenior }) {
         onChange={(e) => setNote(e.target.value)}
         placeholder="I did NBB’s summer internship in Year 2."
       />
-      {mine.listed ? <Switch label="Pause my listing" description="You stay signed up, but nobody can ask you until you turn it back on." checked={paused} onChange={setPaused} /> : null}
+      {mine.listed ? (
+        <Switch
+          label="Pause my listing"
+          description="You stay signed up, but nobody can ask you until you turn it back on."
+          checked={paused}
+          onChange={setPaused}
+        />
+      ) : null}
       <div className="senior-form__actions">
         <Button type="submit" variant="primary" loading={save.isPending}>
           {mine.listed ? 'Save' : 'List me as a senior'}
@@ -111,7 +124,15 @@ export function SeniorListing() {
   const mine = useMySenior(true);
   return (
     <Panel>
-      {mine.isPending ? <Skeleton lines={3} /> : mine.isError ? <QueryError error={mine.error} onRetry={() => void mine.refetch()} /> : mine.data.eligible ? <ListingForm mine={mine.data} /> : <p className="senior-form__note">{notEligible(mine.data)}</p>}
+      {mine.isPending ? (
+        <Skeleton lines={3} />
+      ) : mine.isError ? (
+        <QueryError error={mine.error} onRetry={() => void mine.refetch()} />
+      ) : mine.data.eligible ? (
+        <ListingForm mine={mine.data} />
+      ) : (
+        <p className="senior-form__note">{notEligible(mine.data)}</p>
+      )}
     </Panel>
   );
 }

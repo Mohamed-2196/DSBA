@@ -32,7 +32,8 @@ export async function resetPersonalQueries(qc: QueryClient): Promise<void> {
  */
 export const PERSONAL_STORAGE_PREFIXES = ['hub.mine.'] as const;
 
-const isPersonalKey = (key: string | null): key is string => key !== null && PERSONAL_STORAGE_PREFIXES.some((p) => key.startsWith(p));
+const isPersonalKey = (key: string | null): key is string =>
+  key !== null && PERSONAL_STORAGE_PREFIXES.some((p) => key.startsWith(p));
 
 /** The personal keys in one storage area (none when it is unavailable). */
 function personalKeys(area: () => Storage): string[] {

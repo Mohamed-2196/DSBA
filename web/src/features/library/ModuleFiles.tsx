@@ -22,7 +22,17 @@ import './ModuleFiles.css';
 
 const LIMIT = 100;
 
-function FileRow({ item, linkState, onToggleStar, board }: { item: LibraryItem; linkState: LinkState; onToggleStar: (item: LibraryItem) => void; board: boolean }) {
+function FileRow({
+  item,
+  linkState,
+  onToggleStar,
+  board,
+}: {
+  item: LibraryItem;
+  linkState: LinkState;
+  onToggleStar: (item: LibraryItem) => void;
+  board: boolean;
+}) {
   const exam = examLabel(item);
   return (
     <li className="lib-mf__row">
@@ -49,7 +59,12 @@ function FileRow({ item, linkState, onToggleStar, board }: { item: LibraryItem; 
       <span className="lib-mf__actions">
         <StarButton on={item.starred} onToggle={() => onToggleStar(item)} title={item.title} />
         {item.source === 'link' ? (
-          <IconButton label={`Open ${item.title} on ${linkPlace(item)} (opens in a new tab)`} icon={ArrowSquareOut} href={openLinkHref(item)} size="sm" />
+          <IconButton
+            label={`Open ${item.title} on ${linkPlace(item)} (opens in a new tab)`}
+            icon={ArrowSquareOut}
+            href={openLinkHref(item)}
+            size="sm"
+          />
         ) : (
           <IconButton label={`Download ${item.title}`} icon={DownloadSimple} href={downloadHref(item)} size="sm" />
         )}
@@ -69,7 +84,10 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
   const m = getModule(moduleId);
   const files = useLibraryList({ moduleId, sort: 'title' }, { limit: LIMIT });
   const [upload, setUpload] = useState({ open: false, key: 0 });
-  const linkState = useMemo<LinkState>(() => ({ from: `${location.pathname}${location.search}` }), [location.pathname, location.search]);
+  const linkState = useMemo<LinkState>(
+    () => ({ from: `${location.pathname}${location.search}` }),
+    [location.pathname, location.search],
+  );
   const name = moduleTag(m) ?? 'this module';
   const libraryHref = `/library?module=${encodeURIComponent(moduleId)}`;
 
@@ -81,7 +99,9 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
     }
     return KINDS.filter((k) => byKind.has(k.id)).map((k) => ({ kind: k, items: byKind.get(k.id) ?? [] }));
   }, [files.data]);
-  const hasPapers = (files.data?.items ?? []).some((f) => f.status === 'published' && f.source === 'file' && EXAM_KINDS.has(f.kind));
+  const hasPapers = (files.data?.items ?? []).some(
+    (f) => f.status === 'published' && f.source === 'file' && EXAM_KINDS.has(f.kind),
+  );
   const fileList = (items: LibraryItem[]) => (
     <Panel as="div" padding="none" className="lib-mf__panel">
       <ul role="list" className="lib-mf__list">
@@ -126,7 +146,14 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
       </Panel>
     );
   } else if (files.isError) {
-    body = <QueryError error={files.error} title={`The files for ${name} didn’t load`} onRetry={() => void files.refetch()} retrying={files.isFetching} />;
+    body = (
+      <QueryError
+        error={files.error}
+        title={`The files for ${name} didn’t load`}
+        onRetry={() => void files.refetch()}
+        retrying={files.isFetching}
+      />
+    );
   } else if (!groups.length && !hasPapers) {
     body = (
       <Panel padding="none">
@@ -149,7 +176,12 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
       <div className="lib-mf__groups">
         <PaperSittings moduleId={moduleId} linkState={linkState} renderOther={fileList} board={board} />
         {groups.map(({ kind, items }) => (
-          <section key={kind.id} id={`files-${kind.id}`} className="lib-mf__group" aria-labelledby={`lib-mf-${kind.id}`}>
+          <section
+            key={kind.id}
+            id={`files-${kind.id}`}
+            className="lib-mf__group"
+            aria-labelledby={`lib-mf-${kind.id}`}
+          >
             <h3 id={`lib-mf-${kind.id}`} className="lib-mf__h">
               {kind.plural}
               <span className="lib-mf__count">{items.length}</span>
@@ -172,7 +204,8 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
         <p className="lib-mf__sum">
           {files.data ? (
             <>
-              <strong className="u-tabular">{formatCount(total)}</strong> {total === 1 ? 'file' : 'files'} for {name}, shared by students and the course
+              <strong className="u-tabular">{formatCount(total)}</strong> {total === 1 ? 'file' : 'files'} for {name},
+              shared by students and the course
             </>
           ) : (
             <Skeleton width={220} height={18} />
@@ -191,7 +224,13 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
       </div>
       {body}
       {uploadShown ? (
-        <UploadDialog key={upload.key} open={upload.open} onClose={() => setUpload((u) => ({ ...u, open: false }))} defaultModuleId={moduleId} defaultYear={m?.year ?? null} />
+        <UploadDialog
+          key={upload.key}
+          open={upload.open}
+          onClose={() => setUpload((u) => ({ ...u, open: false }))}
+          defaultModuleId={moduleId}
+          defaultYear={m?.year ?? null}
+        />
       ) : null}
     </div>
   );

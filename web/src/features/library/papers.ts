@@ -2,7 +2,14 @@
 // hooks, and the pure helpers the paper page and the chapter lists share.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
-import type { LibraryItem, PaperQuestion, PaperQuestionCreate, PaperSittings, Sitting, SittingZone } from '../../api/types';
+import type {
+  LibraryItem,
+  PaperQuestion,
+  PaperQuestionCreate,
+  PaperSittings,
+  Sitting,
+  SittingZone,
+} from '../../api/types';
 import { ZONES } from '../../lib/exams';
 
 export const PAPERS_KEY = ['library', 'papers'] as const;
@@ -31,13 +38,18 @@ export function usePaperQuestions(itemId: string | null, { enabled = true }: { e
   return useQuery({
     queryKey: paperKeys.paper(itemId ?? ''),
     queryFn: ({ signal }): Promise<PaperQuestion[]> =>
-      call(api.GET('/api/v1/library/items/{item_id}/questions', { params: { path: { item_id: itemId ?? '' } }, signal })),
+      call(
+        api.GET('/api/v1/library/items/{item_id}/questions', { params: { path: { item_id: itemId ?? '' } }, signal }),
+      ),
     enabled: enabled && !!itemId,
   });
 }
 
 /** A module's tagged questions, chapter by chapter (`flagged`: library managers' list of tags said to be wrong). */
-export function useModuleQuestions(moduleId: string | null | undefined, { enabled = true, flagged = false }: { enabled?: boolean; flagged?: boolean } = {}) {
+export function useModuleQuestions(
+  moduleId: string | null | undefined,
+  { enabled = true, flagged = false }: { enabled?: boolean; flagged?: boolean } = {},
+) {
   return useQuery({
     queryKey: paperKeys.module(moduleId ?? '', flagged),
     queryFn: ({ signal }): Promise<PaperQuestion[]> =>
@@ -51,7 +63,8 @@ export function useModuleQuestions(moduleId: string | null | undefined, { enable
 export function useFlaggedQuestions({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: paperKeys.flagged,
-    queryFn: ({ signal }): Promise<PaperQuestion[]> => call(api.GET('/api/v1/library/questions', { params: { query: { flagged: true } }, signal })),
+    queryFn: ({ signal }): Promise<PaperQuestion[]> =>
+      call(api.GET('/api/v1/library/questions', { params: { query: { flagged: true } }, signal })),
     enabled,
   });
 }
@@ -83,7 +96,8 @@ export function useTagQuestion(itemId: string) {
 export function useRemoveQuestion() {
   const refresh = useRefreshQuestions();
   return useMutation({
-    mutationFn: ({ id }: { id: string }) => call(api.DELETE('/api/v1/library/questions/{question_id}', { params: { path: { question_id: id } } })),
+    mutationFn: ({ id }: { id: string }) =>
+      call(api.DELETE('/api/v1/library/questions/{question_id}', { params: { path: { question_id: id } } })),
     onSuccess: refresh,
   });
 }
@@ -126,13 +140,16 @@ export function paperContext(sittings: Sitting[] | undefined, itemId: string): P
     const zone = sitting.zones.find((z) => [...z.papers, ...z.reports, ...z.solutions].some((f) => f.id === itemId));
     if (!zone) continue;
     const both = zone.zone ? sitting.zones.filter((z) => z.zone === null) : [];
-    const pick = (key: 'reports' | 'solutions') => [zone, ...both].flatMap((z) => z[key]).filter((f) => f.id !== itemId);
+    const pick = (key: 'reports' | 'solutions') =>
+      [zone, ...both].flatMap((z) => z[key]).filter((f) => f.id !== itemId);
     return {
       sitting,
       zone,
       reports: pick('reports'),
       solutions: pick('solutions'),
-      otherPapers: sitting.zones.filter((z) => z !== zone).flatMap((z) => z.papers.map((item) => ({ zone: z.zone, item }))),
+      otherPapers: sitting.zones
+        .filter((z) => z !== zone)
+        .flatMap((z) => z.papers.map((item) => ({ zone: z.zone, item }))),
     };
   }
   return null;
@@ -190,8 +207,12 @@ export function cleanClock(raw: unknown, now: number): ExamClock | null {
   const { total, endsAt, pausedLeft } = raw as Record<string, unknown>;
   const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
   if (!num(total) || (total as number) < CLOCK_MIN || (total as number) > CLOCK_MAX) return null;
-  if (num(endsAt) && pausedLeft == null) return (endsAt as number) + 6 * 3600_000 < now ? null : { total: total as number, endsAt: endsAt as number, pausedLeft: null };
-  if (num(pausedLeft) && endsAt == null) return { total: total as number, endsAt: null, pausedLeft: Math.min(pausedLeft as number, total as number) };
+  if (num(endsAt) && pausedLeft == null)
+    return (endsAt as number) + 6 * 3600_000 < now
+      ? null
+      : { total: total as number, endsAt: endsAt as number, pausedLeft: null };
+  if (num(pausedLeft) && endsAt == null)
+    return { total: total as number, endsAt: null, pausedLeft: Math.min(pausedLeft as number, total as number) };
   return null;
 }
 
@@ -238,7 +259,11 @@ export interface PaperCard {
  * first; a sitting without a paper shows its reports and solutions as cards of their own. `only`: one zone's cards
  * (and those for every zone).
  */
-export function sittingCards(sitting: Sitting, yours: SittingZone['zone'], only: SittingZone['zone'] = null): PaperCard[] {
+export function sittingCards(
+  sitting: Sitting,
+  yours: SittingZone['zone'],
+  only: SittingZone['zone'] = null,
+): PaperCard[] {
   const every = sitting.zones.find((z) => z.zone === null);
   const zones = yourZoneFirst(sitting.zones, yours).filter((z) => !only || z.zone === only || z.zone === null);
   const cards: PaperCard[] = zones.flatMap((z) =>
@@ -251,7 +276,9 @@ export function sittingCards(sitting: Sitting, yours: SittingZone['zone'], only:
     })),
   );
   if (cards.length || sitting.zones.some((z) => z.papers.length)) return cards;
-  return zones.flatMap((z) => [...z.reports, ...z.solutions].map((item) => ({ key: item.id, item, zone: z.zone, reports: [], solutions: [] })));
+  return zones.flatMap((z) =>
+    [...z.reports, ...z.solutions].map((item) => ({ key: item.id, item, zone: z.zone, reports: [], solutions: [] })),
+  );
 }
 
 /** The zones a module's sittings have papers for, in the library's order. */

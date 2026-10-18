@@ -20,7 +20,17 @@ interface Shot {
   preview: string;
 }
 
-function BugForm({ id, page, onDone, onSending }: { id: string; page: string; onDone: () => void; onSending: (sending: boolean) => void }) {
+function BugForm({
+  id,
+  page,
+  onDone,
+  onSending,
+}: {
+  id: string;
+  page: string;
+  onDone: () => void;
+  onSending: (sending: boolean) => void;
+}) {
   const uid = useId();
   const { status } = useAuth();
   const signedIn = status === 'signed-in';
@@ -68,9 +78,20 @@ function BugForm({ id, page, onDone, onSending }: { id: string; page: string; on
           return;
         }
       }
-      await report.mutateAsync({ whatHappened: what.trim(), expected: expected.trim(), pageUrl: page, appVersion: __APP_VERSION__, browser, screenshotUploadId });
+      await report.mutateAsync({
+        whatHappened: what.trim(),
+        expected: expected.trim(),
+        pageUrl: page,
+        appVersion: __APP_VERSION__,
+        browser,
+        screenshotUploadId,
+      });
       if (shot) URL.revokeObjectURL(shot.preview);
-      push({ tone: 'success', title: 'Thanks, your report is in', body: 'The people who build the Hub will look at it.' });
+      push({
+        tone: 'success',
+        title: 'Thanks, your report is in',
+        body: 'The people who build the Hub will look at it.',
+      });
       onDone();
     } catch (err) {
       if (isApiError(err) && err.fields.whatHappened) setErrors({ what: err.fields.whatHappened });
@@ -113,11 +134,23 @@ function BugForm({ id, page, onDone, onSending }: { id: string; page: string; on
               <IconButton label="Remove the screenshot" icon={X} size="sm" onClick={dropShot} />
             </div>
           ) : (
-            <Button leadingIcon={ImageSquare} onClick={() => fileRef.current?.click()} aria-describedby={`${uid}-shot ${uid}-shot-hint`}>
+            <Button
+              leadingIcon={ImageSquare}
+              onClick={() => fileRef.current?.click()}
+              aria-describedby={`${uid}-shot ${uid}-shot-hint`}
+            >
               Add a screenshot
             </Button>
           )}
-          <input ref={fileRef} type="file" accept={UPLOAD_RULES.bug_screenshot.accept} className="visually-hidden" tabIndex={-1} aria-hidden="true" onChange={(e) => pick(e.target.files?.[0])} />
+          <input
+            ref={fileRef}
+            type="file"
+            accept={UPLOAD_RULES.bug_screenshot.accept}
+            className="visually-hidden"
+            tabIndex={-1}
+            aria-hidden="true"
+            onChange={(e) => pick(e.target.files?.[0])}
+          />
           <p className="bug-form__hint" id={`${uid}-shot-hint`}>
             {UPLOAD_RULES.bug_screenshot.summary} Only admins see it.
           </p>

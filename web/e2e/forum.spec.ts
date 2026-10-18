@@ -25,14 +25,21 @@ const reply = (page: Page, text: string) => page.locator('[data-hub="reply"]').f
 test('Sara starts a thread with a picture of her working', async ({ sara, run }) => {
   const files = makeFiles(run.tag);
   await sara.goto('/forum/new');
-  await sara.getByLabel('Title').fill(`ST2133: is the MGF of a sum of independent Poissons the product? [e2e ${run.tag}]`);
+  await sara
+    .getByLabel('Title')
+    .fill(`ST2133: is the MGF of a sum of independent Poissons the product? [e2e ${run.tag}]`);
   await sara.locator('[data-hub="composer-category"]').selectOption({ label: 'Year 2' });
   await sara.locator('[data-hub="composer-module"]').selectOption('advanced-stats-distribution');
   await sara.getByRole('button', { name: 'Exam prep', exact: true }).click();
   const body = sara.locator('[data-hub="composer-body"]');
-  await body.fill(`X ~ Poisson(2) and Y ~ Poisson(3) are independent. Is M of X+Y just M_X(t) M_Y(t)? Here is my working (run ${run.tag}):\n\n`);
+  await body.fill(
+    `X ~ Poisson(2) and Y ~ Poisson(3) are independent. Is M of X+Y just M_X(t) M_Y(t)? Here is my working (run ${run.tag}):\n\n`,
+  );
   await body.evaluate((el: HTMLTextAreaElement) => el.setSelectionRange(el.value.length, el.value.length));
-  const [chooser] = await Promise.all([sara.waitForEvent('filechooser'), sara.locator('[data-hub="attach-image"]').click()]);
+  const [chooser] = await Promise.all([
+    sara.waitForEvent('filechooser'),
+    sara.locator('[data-hub="attach-image"]').click(),
+  ]);
   await chooser.setFiles(files.png);
   await expect(body).toHaveValue(/!\[[^\]]*\]\(\/api\/v1\/media\/[0-9a-f-]{36}\)/, { timeout: 20_000 });
 
@@ -61,7 +68,10 @@ test('Sara starts a thread with a picture of her working', async ({ sara, run })
 
 test('Ali answers and votes; Sara replies to his answer, accepts it and edits her question', async ({ ali, sara }) => {
   await ali.goto(`/forum/${slug}`);
-  await postReply(ali, 'Yes. For independent X and Y, M_{X+Y}(t) = M_X(t) M_Y(t) = exp(5(e^t - 1)), so X + Y ~ Poisson(5).');
+  await postReply(
+    ali,
+    'Yes. For independent X and Y, M_{X+Y}(t) = M_X(t) M_Y(t) = exp(5(e^t - 1)), so X + Y ~ Poisson(5).',
+  );
   const answer = reply(ali, 'exp(5(e^t - 1))');
   await expect(answer).toBeVisible();
 
@@ -84,7 +94,10 @@ test('Ali answers and votes; Sara replies to his answer, accepts it and edits he
   await inline.locator('textarea').fill('Thank you! So the parameters just add up.');
   const [nested] = await Promise.all([
     sara.waitForResponse((r) => /\/replies$/.test(r.url()) && r.request().method() === 'POST'),
-    inline.getByRole('button', { name: /post|reply/i }).last().click(),
+    inline
+      .getByRole('button', { name: /post|reply/i })
+      .last()
+      .click(),
   ]);
   expect((await nested.json()).parentId).toBeTruthy();
   await expect(his.locator('[data-hub="reply"]').filter({ hasText: 'the parameters just add up' })).toBeVisible(); // nested inside the answer
@@ -115,13 +128,22 @@ test('ST-13: a double click on "Post reply" posts one reply', async ({ ali, run 
   await ali.locator('[data-hub="reply-input"]').fill(text);
   await ali.locator('[data-hub="post-reply"]').last().dblclick();
   await expect(reply(ali, text)).toBeVisible();
-  await expect.poll(async () => (await api<{ replies: unknown[] }>(ali, 'GET', `/api/v1/forum/threads/${slug}`)).body.replies.length).toBeGreaterThan(0);
-  const replies = (await api<{ replies: { id: string; body: string }[] }>(ali, 'GET', `/api/v1/forum/threads/${slug}`)).body.replies.filter((r) => r.body === text);
+  await expect
+    .poll(
+      async () => (await api<{ replies: unknown[] }>(ali, 'GET', `/api/v1/forum/threads/${slug}`)).body.replies.length,
+    )
+    .toBeGreaterThan(0);
+  const replies = (
+    await api<{ replies: { id: string; body: string }[] }>(ali, 'GET', `/api/v1/forum/threads/${slug}`)
+  ).body.replies.filter((r) => r.body === text);
   for (const r of replies) await api(ali, 'DELETE', `/api/v1/forum/replies/${r.id}`); // the other tests count on the thread as it was
   expect(replies).toHaveLength(1);
 });
 
-test('Ali deletes a reply; Sara reports an off-topic one, and reporting twice is answered kindly', async ({ ali, sara }) => {
+test('Ali deletes a reply; Sara reports an off-topic one, and reporting twice is answered kindly', async ({
+  ali,
+  sara,
+}) => {
   await ali.goto(`/forum/${slug}`);
   await postReply(ali, 'Sorry, wrong thread.');
   const mine = reply(ali, 'Sorry, wrong thread.');
@@ -146,10 +168,16 @@ test('Ali deletes a reply; Sara reports an off-topic one, and reporting twice is
   await offTopic.locator('[data-hub="report-button"]').click();
   await sara.getByRole('dialog').getByText('Spam', { exact: true }).click();
   await sara.getByRole('dialog').locator('[data-hub="report-send"]').click();
-  await expect(sara.getByText('You’ve already reported this reply').or(sara.getByText("You've already reported this reply"))).toBeVisible();
+  await expect(
+    sara.getByText('You’ve already reported this reply').or(sara.getByText("You've already reported this reply")),
+  ).toBeVisible();
 });
 
-test('the rep hides the reply, resolves the report and locks the thread; students see it locked', async ({ rep, sara, ali }) => {
+test('the rep hides the reply, resolves the report and locks the thread; students see it locked', async ({
+  rep,
+  sara,
+  ali,
+}) => {
   await rep.goto('/manage?tab=reports');
   const report = rep.locator('[data-hub="report"]').filter({ hasText: 'WhatsApp group please' }).first();
   await expect(report).toContainText('Something else');
@@ -180,7 +208,9 @@ test('the rep hides the reply, resolves the report and locks the thread; student
   await ali.goto(`/forum/${slug}`);
   await expect(ali.locator('main')).toContainText('This thread is locked, so new replies are off.');
   await expect(ali.locator('[data-hub="reply-input"]')).toHaveCount(0);
-  const locked = await api<{ error: { code: string } }>(ali, 'POST', `/api/v1/forum/threads/${threadId}/replies`, { body: 'One more thing.' });
+  const locked = await api<{ error: { code: string } }>(ali, 'POST', `/api/v1/forum/threads/${threadId}/replies`, {
+    body: 'One more thing.',
+  });
   expect(locked.status).toBe(409);
   expect(locked.body.error.code).toBe('thread_locked');
 });
@@ -206,7 +236,9 @@ test('a hidden thread is gone for students and guests', async ({ ali, rep, sara,
 
   for (const page of [sara, guest]) {
     await page.goto(`/forum/${hiddenSlug}`);
-    await expect(page.getByText('We couldn’t find that thread').or(page.getByText("We couldn't find that thread"))).toBeVisible();
+    await expect(
+      page.getByText('We couldn’t find that thread').or(page.getByText("We couldn't find that thread")),
+    ).toBeVisible();
   }
   await sara.goto('/forum?cohort=year-1&sort=new');
   await expect(sara.locator('main')).not.toContainText('ST1215 mock: the questions from this morning');

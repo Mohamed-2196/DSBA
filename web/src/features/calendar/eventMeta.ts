@@ -19,7 +19,16 @@ export const EVENT_TYPES: Record<EventType, EventTypeMeta> = {
 };
 
 /** Legend / filter order. Also the order of importance when one day holds several events. */
-export const TYPE_ORDER: readonly EventType[] = ['exam', 'mock', 'revision', 'deadline', 'careers', 'event', 'break', 'term'];
+export const TYPE_ORDER: readonly EventType[] = [
+  'exam',
+  'mock',
+  'revision',
+  'deadline',
+  'careers',
+  'event',
+  'break',
+  'term',
+];
 
 export const isEventType = (value: unknown): value is EventType => typeof value === 'string' && value in EVENT_TYPES;
 
@@ -47,7 +56,8 @@ export const typePlural = (type: string): string => (isEventType(type) ? EVENT_T
  * code is null when the event has no unit code or the title doesn't start with it.
  */
 export function splitTitle(e: Pick<CalendarEvent, 'unitCode' | 'title'>): { code: string | null; rest: string } {
-  if (e.unitCode && e.title.startsWith(`${e.unitCode} `)) return { code: e.unitCode, rest: e.title.slice(e.unitCode.length + 1) };
+  if (e.unitCode && e.title.startsWith(`${e.unitCode} `))
+    return { code: e.unitCode, rest: e.title.slice(e.unitCode.length + 1) };
   return { code: null, rest: e.title };
 }
 
@@ -80,7 +90,8 @@ export function chipText(e: CalendarEvent, m: ModuleSummary | null): { code: str
 }
 
 /** '12:30 PM, Auditorium' when the organiser published a time or a place, else null. */
-export const timeAndPlace = (e: Pick<CalendarEvent, 'time' | 'place'>): string | null => [e.time, e.place].filter(Boolean).join(', ') || null;
+export const timeAndPlace = (e: Pick<CalendarEvent, 'time' | 'place'>): string | null =>
+  [e.time, e.place].filter(Boolean).join(', ') || null;
 
 export const TIME_NOT_SET = 'Time not set yet';
 
@@ -117,7 +128,9 @@ export function applicationLine(e: Pick<CalendarEvent, 'date' | 'endDate'>, toda
   const close = e.endDate && e.endDate > e.date ? e.endDate : null;
   if (close && e.date > today) {
     const opens = parseDay(e.date);
-    return daysBetween(today, e.date) > 31 ? `Opens in ${monthName(opens.getMonth())}` : `Opens ${formatDay(opens, { year: false })}`;
+    return daysBetween(today, e.date) > 31
+      ? `Opens in ${monthName(opens.getMonth())}`
+      : `Opens ${formatDay(opens, { year: false })}`;
   }
   const last = close ?? e.date;
   if (last < today) return null;
@@ -133,16 +146,20 @@ export function sourceLine(e: Pick<CalendarEvent, 'source' | 'checkedOn'>): stri
 // ── a programme date or one of the student's own events ──────────────────────────────────────
 
 /** 'Exam', 'Mock exam', … or 'Your event'. */
-export const kindLabel = (e: Pick<CalendarEvent, 'type' | 'mine'>): string => (e.mine ? 'Your event' : typeLabel(e.type));
+export const kindLabel = (e: Pick<CalendarEvent, 'type' | 'mine'>): string =>
+  e.mine ? 'Your event' : typeLabel(e.type);
 
 /** The class that colours an event's dot: its type's, or the colour the student gave their own event. */
-export const dotClass = (e: Pick<CalendarEvent, 'type' | 'mine'>): string => (e.mine ? `cal-dot--mine cal-colour--${e.mine.colour}` : `cal-dot--${e.type}`);
+export const dotClass = (e: Pick<CalendarEvent, 'type' | 'mine'>): string =>
+  e.mine ? `cal-dot--mine cal-colour--${e.mine.colour}` : `cal-dot--${e.type}`;
 
 /** The tone class of a list row. */
-export const toneClass = (e: Pick<CalendarEvent, 'type' | 'mine'>): string => (e.mine ? `cal-tone--mine cal-colour--${e.mine.colour}` : `cal-tone--${e.type}`);
+export const toneClass = (e: Pick<CalendarEvent, 'type' | 'mine'>): string =>
+  e.mine ? `cal-tone--mine cal-colour--${e.mine.colour}` : `cal-tone--${e.type}`;
 
 /** The class of a month-grid chip. */
-export const chipClass = (e: Pick<CalendarEvent, 'type' | 'mine'>): string => (e.mine ? `cal-chip--mine cal-colour--${e.mine.colour}` : `cal-chip--${e.type}`);
+export const chipClass = (e: Pick<CalendarEvent, 'type' | 'mine'>): string =>
+  e.mine ? `cal-chip--mine cal-colour--${e.mine.colour}` : `cal-chip--${e.type}`;
 
 /** The band colour of a date leaf. */
 export const leafTone = (e: Pick<CalendarEvent, 'type' | 'mine'>): string => (e.mine ? 'neutral' : e.type);

@@ -14,4 +14,6 @@
   font-weight: var(--fw-semibold);
   line-height: 1;
 }
-.ui-kbd + .ui-kbd { margin-left: 3px; }
+.ui-kbd + .ui-kbd {
+  margin-left: 3px;
+}

@@ -57,7 +57,11 @@ test('a lesson keeps its own notes', async ({ sara, run }) => {
   await panel.locator('[data-hub="lesson-note-text"]').fill(`A quick note [e2e ${run.tag}]`);
   await panel.getByRole('button', { name: 'Add note' }).click();
   await expect(panel.getByRole('link', { name: `A quick note [e2e ${run.tag}]` })).toBeVisible();
-  const notes = await api<{ items: { id: string }[] }>(sara, 'GET', '/api/v1/notes?module_id=economics&lesson_id=xfm6xyvy');
+  const notes = await api<{ items: { id: string }[] }>(
+    sara,
+    'GET',
+    '/api/v1/notes?module_id=economics&lesson_id=xfm6xyvy',
+  );
   for (const n of notes.body.items) expect((await api(sara, 'DELETE', `/api/v1/notes/${n.id}`)).status).toBe(204);
 });
 

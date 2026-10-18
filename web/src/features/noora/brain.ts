@@ -12,7 +12,14 @@ import type { Feature } from '../../auth';
 import { eventDate, type CalendarEvent } from '../calendar/public';
 // The modules feature owns the address of a lesson. Using its helper means these links cannot drift.
 import { lessonHref } from '../modules/public';
-import { BY_PARTS_FORMULA, distributionAsked, LAPLACE_MGF_STEPS, MGF_DEFINITION, REDUCTION_FORMULA, type Distribution } from './formulas';
+import {
+  BY_PARTS_FORMULA,
+  distributionAsked,
+  LAPLACE_MGF_STEPS,
+  MGF_DEFINITION,
+  REDUCTION_FORMULA,
+  type Distribution,
+} from './formulas';
 import type { Question, Ref, Reply } from './types';
 
 // ── The index: every module, chapter and titled lesson, with its link ─────────────────────────────────
@@ -85,7 +92,13 @@ function indexModule(m: ModuleSummary, detail: ModuleDetail | undefined): Indexe
     chapterCount: detail ? detail.chapters.length : m.chapterCount,
     lessonCount: m.lessonCount,
     to: `/modules/${m.id}`,
-    names: [m.name, m.shortName, /mathemat/i.test(m.name) ? 'maths' : '', /statistic/i.test(m.name) ? 'stats' : '', /econometric/i.test(m.name) ? 'metrics' : '']
+    names: [
+      m.name,
+      m.shortName,
+      /mathemat/i.test(m.name) ? 'maths' : '',
+      /statistic/i.test(m.name) ? 'stats' : '',
+      /econometric/i.test(m.name) ? 'metrics' : '',
+    ]
       .filter(Boolean)
       .map((s) => s.toLowerCase()),
     chapters: (detail?.chapters ?? []).map((c, ci) => ({
@@ -113,7 +126,24 @@ const FILLER = new Set(
 );
 
 const ODD_PLURALS: Record<string, string> = { matrix: 'matr', matrices: 'matr', maths: 'math', analyses: 'analys' };
-const ENDINGS = ['isations', 'izations', 'isation', 'ization', 'ations', 'ation', 'ices', 'ings', 'ions', 'ing', 'ion', 'ies', 'es', 'ed', 'al', 's'];
+const ENDINGS = [
+  'isations',
+  'izations',
+  'isation',
+  'ization',
+  'ations',
+  'ation',
+  'ices',
+  'ings',
+  'ions',
+  'ing',
+  'ion',
+  'ies',
+  'es',
+  'ed',
+  'al',
+  's',
+];
 
 /** The start of a word that its other forms share: 'testing' and 'tests' → 'test', 'matrices' → 'matr'. */
 function stem(word: string): string {
@@ -145,7 +175,14 @@ function topicsOf(modules: IndexedModule[]): Topic[] {
   return modules.flatMap((m) =>
     m.chapters.flatMap((c) => [
       { m, c, l: null, title: c.title.toLowerCase(), around: '', size: sizeOf(c.title) },
-      ...c.lessons.map((l) => ({ m, c, l, title: l.title.toLowerCase(), around: c.title.toLowerCase(), size: sizeOf(l.title) })),
+      ...c.lessons.map((l) => ({
+        m,
+        c,
+        l,
+        title: l.title.toLowerCase(),
+        around: c.title.toLowerCase(),
+        size: sizeOf(l.title),
+      })),
     ]),
   );
 }
@@ -165,7 +202,8 @@ export function buildKnowledge(
 
 // What a title word may add to a short query word and still be the same word: 'test' finds 'testing',
 // but 'life' does not find 'lifecycle'. (Longer query words are specific enough to match as they are.)
-const SAME_WORD = /^(s|es|ed|ing|ings|ion|ions|al|e|y|ies|ix|ices|ity|ic|ics|ical|ation|ations|ate|ated|ating|ator|ators|er|ers|ive|ives)?$/;
+const SAME_WORD =
+  /^(s|es|ed|ing|ings|ion|ions|al|e|y|ies|ix|ices|ity|ic|ics|ical|ation|ations|ate|ated|ating|ator|ators|er|ers|ive|ives)?$/;
 
 /**
  * How well a query word sits in a title: 2 if the title starts with it, 1 if one of its words does,
@@ -213,7 +251,13 @@ function findModule(k: Knowledge, text: string, stems: string[], year: number | 
  * one stray match is not passed off as an answer. Equal matches stay in syllabus order. `inside`: look in this
  * module only.
  */
-function findTopics(k: Knowledge, stems: string[], phrase: string, year: number | null, inside: IndexedModule | null = null): FoundTopic[] {
+function findTopics(
+  k: Knowledge,
+  stems: string[],
+  phrase: string,
+  year: number | null,
+  inside: IndexedModule | null = null,
+): FoundTopic[] {
   if (!stems.length) return [];
   const found: FoundTopic[] = [];
   k.topics.forEach((t, order) => {
@@ -232,22 +276,33 @@ function findTopics(k: Knowledge, stems: string[], phrase: string, year: number 
       }
     }
     if (!inTitle) return;
-    if (inTitle === stems.length && t.size === stems.length) score += 100; // the title is just what was asked, no more
+    if (inTitle === stems.length && t.size === stems.length)
+      score += 100; // the title is just what was asked, no more
     else if (phrase.includes(' ') && t.title.includes(phrase)) score += 40; // the words appear together
     if (!t.l) score += 20; // a chapter is a better place to send someone than one video in it
     if (year && t.m.year === year) score += 12; // ties go to the student's own year
     found.push({ ...t, hits: inTitle + nearby, score, order });
   });
   const needed = stems.length <= 2 ? stems.length : Math.ceil(stems.length * 0.6);
-  return found.filter((t) => t.hits >= needed).sort((a, b) => b.hits - a.hits || b.score - a.score || a.order - b.order);
+  return found
+    .filter((t) => t.hits >= needed)
+    .sort((a, b) => b.hits - a.hits || b.score - a.score || a.order - b.order);
 }
 
 // ── References ────────────────────────────────────────────────────────────────────────────────────
 // A chapter that brings its own numbering ("Block 10: Hypothesis Testing") keeps it.
 const ownNumbering = (c: Chapter): boolean => /^block \d/i.test(c.title);
-const chapterRef = (m: IndexedModule, c: Chapter): Ref => ({ code: m.code ?? m.name, label: ownNumbering(c) ? c.title : `Chapter ${c.n} · ${c.title}`, to: c.to });
+const chapterRef = (m: IndexedModule, c: Chapter): Ref => ({
+  code: m.code ?? m.name,
+  label: ownNumbering(c) ? c.title : `Chapter ${c.n} · ${c.title}`,
+  to: c.to,
+});
 const lessonRef = (c: Chapter, l: Lesson, label: string = l.title): Ref => ({ code: `${c.n}.${l.n}`, label, to: l.to });
-const moduleRef = (m: IndexedModule, label: string = m.code ? m.name : 'Module page'): Ref => ({ code: m.code ?? m.name, label, to: m.to });
+const moduleRef = (m: IndexedModule, label: string = m.code ? m.name : 'Module page'): Ref => ({
+  code: m.code ?? m.name,
+  label,
+  to: m.to,
+});
 const isRef = (r: Ref | null | undefined | false): r is Ref => !!r;
 
 /** Up to four references for a ranked list of topics: the best chapter first, then what else matched as well. */
@@ -289,7 +344,11 @@ function findIntegration(k: Knowledge): { m: IndexedModule | undefined; chapter:
   if (!m || !chapter) return { m, chapter, refs: m ? [moduleRef(m)] : [] };
   const di = chapter.lessons.find((l) => /\bdi method/i.test(l.title));
   const byParts = chapter.lessons.find((l) => l !== di && /integration by parts/i.test(l.title));
-  const refs = [chapterRef(m, chapter), byParts && lessonRef(chapter, byParts, 'Integration by parts'), di && lessonRef(chapter, di, 'The DI method')];
+  const refs = [
+    chapterRef(m, chapter),
+    byParts && lessonRef(chapter, byParts, 'Integration by parts'),
+    di && lessonRef(chapter, di, 'The DI method'),
+  ];
   return { m, chapter, refs: refs.filter(isRef) };
 }
 
@@ -299,7 +358,9 @@ function lessonOn(k: Knowledge, d: Distribution, home: IndexedModule | undefined
   const best = found.find((t) => t.m === home) ?? found[0];
   if (!best?.l) return null;
   const label = d.name.replace(/^the /, '').replace(/^./, (c) => c.toUpperCase());
-  return best.m === home ? lessonRef(best.c, best.l, label) : { code: best.m.code ?? best.m.name, label: best.l.title, to: best.l.to };
+  return best.m === home
+    ? lessonRef(best.c, best.l, label)
+    : { code: best.m.code ?? best.m.name, label: best.l.title, to: best.l.to };
 }
 
 /**
@@ -315,13 +376,30 @@ function aboutTheMgf(k: Knowledge, said: string, photo: boolean): Reply {
   const refs = [
     m && chapter ? chapterRef(m, chapter) : m && moduleRef(m),
     d && lessonOn(k, d, m),
-    m && k.isOn('library') && { code: 'Library', label: `${m.code ?? m.name} notes and past papers`, to: `/library?module=${encodeURIComponent(m.id)}` },
+    m &&
+      k.isOn('library') && {
+        code: 'Library',
+        label: `${m.code ?? m.name} notes and past papers`,
+        to: `/library?module=${encodeURIComponent(m.id)}`,
+      },
   ].filter(isRef);
   // She can't see pictures: she says so before anything else (student test ST-3).
   const first = photo ? `${k.script.noPhotos} ` : '';
-  if (d?.id === 'laplace') return { mood: 'happy', text: `${first}The MGF of the Laplace distribution, density k·e^(−λ|x|), step by step:`, steps: LAPLACE_MGF_STEPS, refs };
+  if (d?.id === 'laplace')
+    return {
+      mood: 'happy',
+      text: `${first}The MGF of the Laplace distribution, density k·e^(−λ|x|), step by step:`,
+      steps: LAPLACE_MGF_STEPS,
+      refs,
+    };
   if (d?.mgf) return { mood: 'happy', text: `${first}The MGF of ${d.name}:`, formula: d.mgf, refs };
-  if (d) return { mood: 'neutral', text: `${first}I don’t have a worked MGF for ${d.name}. Start from the definition, with its probability function or density:`, formula: MGF_DEFINITION, refs };
+  if (d)
+    return {
+      mood: 'neutral',
+      text: `${first}I don’t have a worked MGF for ${d.name}. Start from the definition, with its probability function or density:`,
+      formula: MGF_DEFINITION,
+      refs,
+    };
   return {
     mood: 'happy',
     text: `${first}Start from the definition, with the distribution’s probability function or density. Tell me which distribution and I’ll show you its MGF.`,
@@ -345,7 +423,12 @@ function aboutTheReductionFormula(k: Knowledge): Reply {
 function aboutIntegrationByParts(k: Knowledge): Reply {
   const { m, chapter, refs } = findIntegration(k);
   const where = m && chapter ? `${m.code ?? m.name}, Chapter ${chapter.n}` : m ? m.called : 'Mathematical Methods';
-  return { mood: 'happy', text: `Integration by parts is in ${where}. It swaps one integral for an easier one:`, formula: BY_PARTS_FORMULA, refs };
+  return {
+    mood: 'happy',
+    text: `Integration by parts is in ${where}. It swaps one integral for an easier one:`,
+    formula: BY_PARTS_FORMULA,
+    refs,
+  };
 }
 
 function aboutModule(k: Knowledge, m: IndexedModule, year: number | null): Reply {
@@ -366,7 +449,10 @@ function aboutModule(k: Knowledge, m: IndexedModule, year: number | null): Reply
   return {
     mood: 'happy',
     text: `${intro} It has ${count} ${count === 1 ? 'chapter' : 'chapters'} and ${lessons}${more && shown.length ? '; here are the first five.' : '.'}`,
-    refs: [moduleRef(m, more ? `All ${count} chapters` : 'Module page'), ...shown.map((c) => ({ code: String(c.n), label: c.title, to: c.to }))],
+    refs: [
+      moduleRef(m, more ? `All ${count} chapters` : 'Module page'),
+      ...shown.map((c) => ({ code: String(c.n), label: c.title, to: c.to })),
+    ],
   };
 }
 
@@ -374,7 +460,9 @@ function aboutTopic(topics: FoundTopic[], stems: string[]): Reply | null {
   const [best] = topics;
   if (!best) return null;
   const chapter = ownNumbering(best.c) ? best.c.title : `Chapter ${best.c.n}: ${best.c.title}`;
-  const others = [...new Set(topics.filter((t) => t.hits === best.hits && t.m !== best.m && t.m.code).map((t) => t.m.code ?? ''))].slice(0, 2);
+  const others = [
+    ...new Set(topics.filter((t) => t.hits === best.hits && t.m !== best.m && t.m.code).map((t) => t.m.code ?? '')),
+  ].slice(0, 2);
   let text: string;
   if (best.hits < stems.length) text = `The closest I can find is in ${best.m.called}, ${chapter}.`;
   else if (best.l) text = `There’s a lesson on that in ${best.m.called}: ${best.c.n}.${best.l.n}.`;
@@ -396,15 +484,30 @@ function aboutExams(k: Knowledge, said: string, year: number | null, named: Inde
   const what = /\bmocks?\b/.test(said) ? 'mock' : 'exam';
   const whose = named ? named.called : year ? `Year ${year}` : 'the programme';
   if (!k.isOn('calendar')) {
-    return { mood: 'neutral', text: `The Hub’s calendar is switched off right now, so I can’t check the ${what} dates for ${whose}.`, refs: named ? [moduleRef(named)] : [] };
+    return {
+      mood: 'neutral',
+      text: `The Hub’s calendar is switched off right now, so I can’t check the ${what} dates for ${whose}.`,
+      refs: named ? [moduleRef(named)] : [],
+    };
   }
-  const calendar: Ref = { code: 'Calendar', label: !named && year ? `Year ${year} dates` : 'Every date in one place', to: '/calendar' };
+  const calendar: Ref = {
+    code: 'Calendar',
+    label: !named && year ? `Year ${year} dates` : 'Every date in one place',
+    to: '/calendar',
+  };
   if (!k.events) {
-    return { mood: 'neutral', text: `I can’t reach the calendar right now, so I can’t check the ${what} dates for ${whose}. The calendar page has them all.`, refs: [calendar] };
+    return {
+      mood: 'neutral',
+      text: `I can’t reach the calendar right now, so I can’t check the ${what} dates for ${whose}. The calendar page has them all.`,
+      refs: [calendar],
+    };
   }
   // A cohort's own dates plus the ones for everyone; a named module's dates whatever its year.
   const ahead = k.events.filter(
-    (e) => e.type === what && eventDate(e) >= today && (named ? e.moduleId === named.id : !year || e.year == null || e.year === year),
+    (e) =>
+      e.type === what &&
+      eventDate(e) >= today &&
+      (named ? e.moduleId === named.id : !year || e.year == null || e.year === year),
   );
   const confirmed = ahead.filter((e) => !e.sample);
 
@@ -419,16 +522,22 @@ function aboutExams(k: Knowledge, said: string, year: number | null, named: Inde
   const when = eventDate(next);
   const m = k.modules.find((x) => x.id === next.moduleId);
   const name = m ? m.called : next.title;
-  let text = named ? `The next ${name} ${what} is ${onDay(when, today)}.` : `Your next ${what} is ${name} ${onDay(when, today)}.`;
+  let text = named
+    ? `The next ${name} ${what} is ${onDay(when, today)}.`
+    : `Your next ${what} is ${name} ${onDay(when, today)}.`;
   const last = later[later.length - 1];
   if (!named && last) {
     const lastDay = formatLongDay(eventDate(last));
-    text += later.length === 1 ? ` One more follows on ${lastDay}.` : ` ${later.length} more follow, the last on ${lastDay}.`;
+    text +=
+      later.length === 1 ? ` One more follows on ${lastDay}.` : ` ${later.length} more follow, the last on ${lastDay}.`;
   }
   return {
     mood: 'happy',
     text,
-    refs: [{ ...calendar, code: formatShort(when), to: `/calendar?event=${encodeURIComponent(next.id)}` }, ...(m ? [moduleRef(m)] : [])],
+    refs: [
+      { ...calendar, code: formatShort(when), to: `/calendar?event=${encodeURIComponent(next.id)}` },
+      ...(m ? [moduleRef(m)] : []),
+    ],
   };
 }
 
@@ -461,11 +570,14 @@ const ASKS_TO_CHEAT =
 const ABOUT_MGF = /\bmgfs?\b|\bmoment generating\b|\blaplace\b/;
 const THE_FORUM_QUESTION = /\bcooked\b|\bwhat\s?i?s this\b|\breduction formula/;
 const BY_PARTS = /\bby parts\b|\bdi method\b/;
-const ABOUT_FILES = /\b(past|previous|old)\s+(exam\s+)?(papers?|exams?)\b|\bcheat\s?sheets?\b|\bstudy guides?\b|\bnotes\b/;
+const ABOUT_FILES =
+  /\b(past|previous|old)\s+(exam\s+)?(papers?|exams?)\b|\bcheat\s?sheets?\b|\bstudy guides?\b|\bnotes\b/;
 const ABOUT_EXAMS = /\b(exams?|mocks?|finals)\b/;
 const SAYS_THANKS = /^(many |ok |okay |great |nice |cool )?(thanks|thank you|thx|cheers|shukran|appreciate)/;
-const SAYS_HELLO = /^(hi|hello|hey|heya|hiya|salam|marhaba|good (morning|afternoon|evening))( there| noora| mini noora)?$/;
-const ASKS_WHO = /\bwho are you\b|\bwhat are you\b|\bwhat can you do\b|\bwhat do you do\b|\bhow do (you|i) (work|use)\b|^help( me)?$/;
+const SAYS_HELLO =
+  /^(hi|hello|hey|heya|hiya|salam|marhaba|good (morning|afternoon|evening))( there| noora| mini noora)?$/;
+const ASKS_WHO =
+  /\bwho are you\b|\bwhat are you\b|\bwhat can you do\b|\bwhat do you do\b|\bhow do (you|i) (work|use)\b|^help( me)?$/;
 
 /** A module by name, a topic inside one, or a topic anywhere; null when nothing in the material matches. */
 function lookUp(k: Knowledge, text: string, said: string, year: number | null): Reply | null {
@@ -493,7 +605,8 @@ export function answer({ text, attachments, year }: Question, k: Knowledge, now:
   const photo = attachments.some((a) => a.kind === 'image');
   const said = wordsOf(text).join(' ');
   const withNames = wordsOf([text, ...attachments.map((a) => a.name.replace(/\.[a-z0-9]+$/i, ''))].join(' ')).join(' ');
-  const honest = (r: Reply): Reply => (photo ? { ...r, text: `${script.noPhotos} Going by your message: ${r.text}` } : r);
+  const honest = (r: Reply): Reply =>
+    photo ? { ...r, text: `${script.noPhotos} Going by your message: ${r.text}` } : r;
   const named = (): IndexedModule | null => {
     const found = findModule(k, text, topicWords(said).map(stem), year);
     return found && found.sure ? found.module : null;
@@ -515,10 +628,20 @@ export function answer({ text, attachments, year }: Question, k: Knowledge, now:
   if (found) return honest(found);
 
   if (photo) {
-    return { mood: 'neutral', text: `${script.noPhotos} ${script.photoAsk}`, refs: [], suggestions: script.tryInstead.slice(0, 2) };
+    return {
+      mood: 'neutral',
+      text: `${script.noPhotos} ${script.photoAsk}`,
+      refs: [],
+      suggestions: script.tryInstead.slice(0, 2),
+    };
   }
   if (SAYS_HELLO.test(said)) {
-    return { mood: 'wave', text: `${hello(k.name)} ${script.greeting}`, refs: [], suggestions: script.greetingChips.slice(0, 3) };
+    return {
+      mood: 'wave',
+      text: `${hello(k.name)} ${script.greeting}`,
+      refs: [],
+      suggestions: script.greetingChips.slice(0, 3),
+    };
   }
   if (ASKS_WHO.test(said)) {
     return { mood: 'wave', text: script.who, refs: [], suggestions: script.greetingChips.slice(0, 3) };

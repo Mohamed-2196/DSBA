@@ -102,7 +102,9 @@ export function PapersDialog({ open, onClose, onSaved }: PapersDialogProps) {
       }
     >
       <div className="papers" data-hub="papers-dialog">
-        {!home ? <p className="papers__note">Choose your year first. Then you can pick your option or electives here.</p> : null}
+        {!home ? (
+          <p className="papers__note">Choose your year first. Then you can pick your option or electives here.</p>
+        ) : null}
         {home && choice?.pick === 1 ? (
           <fieldset className="papers__group">
             <legend>{choice.label}</legend>
@@ -166,12 +168,27 @@ export function PapersDialog({ open, onClose, onSaved }: PapersDialogProps) {
         </fieldset>
         <fieldset className="papers__group" data-hub="papers-zone">
           <legend>Your exam zone</legend>
-          <p className="papers__note">Your exam timetable says which zone you sit. Its paper comes first in past papers. {RTC_NOTE}</p>
+          <p className="papers__note">
+            Your exam timetable says which zone you sit. Its paper comes first in past papers. {RTC_NOTE}
+          </p>
           <div className="papers__zones">
             {ZONES.map((z) => (
-              <Option key={z} type="radio" name={`${groupName}-zone`} checked={zone === z} onChange={() => setZone(z)} title={zoneLabel(z)} />
+              <Option
+                key={z}
+                type="radio"
+                name={`${groupName}-zone`}
+                checked={zone === z}
+                onChange={() => setZone(z)}
+                title={zoneLabel(z)}
+              />
             ))}
-            <Option type="radio" name={`${groupName}-zone`} checked={zone === 'unsure'} onChange={() => setZone('unsure')} title="Not sure" />
+            <Option
+              type="radio"
+              name={`${groupName}-zone`}
+              checked={zone === 'unsure'}
+              onChange={() => setZone('unsure')}
+              title="Not sure"
+            />
           </div>
         </fieldset>
         {error ? (
@@ -190,7 +207,14 @@ export function PapersButton({ className }: { className?: string }) {
   const { home, picks, papers } = usePapers();
   return (
     <>
-      <Button size="sm" variant="ghost" className={className} onClick={() => setOpen(true)} data-hub="papers-open" aria-haspopup="dialog">
+      <Button
+        size="sm"
+        variant="ghost"
+        className={className}
+        onClick={() => setOpen(true)}
+        data-hub="papers-open"
+        aria-haspopup="dialog"
+      >
         Your modules: {picksSummary(home, picks, papers)}
       </Button>
       <PapersDialog open={open} onClose={() => setOpen(false)} />

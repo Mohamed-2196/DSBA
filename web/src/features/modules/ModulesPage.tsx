@@ -8,15 +8,36 @@ import { useEffect, useId, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleSummary } from '../../api/types';
 import { useAuth } from '../../auth';
-import { COHORTS, YEARS, cohortColor, normalizeYear, useDocumentTitle, useQueryParam, useYear, type CohortYear } from '../../state';
+import {
+  COHORTS,
+  YEARS,
+  cohortColor,
+  normalizeYear,
+  useDocumentTitle,
+  useQueryParam,
+  useYear,
+  type CohortYear,
+} from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, CohortBadge, ModuleArt, ModuleIcon, Page, PageHeader, ProgressRing, SegmentedControl, Skeleton, cx, countOf, moduleArtSrc } from '../../ui';
+import {
+  Button,
+  CohortBadge,
+  ModuleArt,
+  ModuleIcon,
+  Page,
+  PageHeader,
+  ProgressRing,
+  SegmentedControl,
+  Skeleton,
+  cx,
+  countOf,
+  moduleArtSrc,
+} from '../../ui';
 import { prefetchModule } from './api';
 import { useExamsByModule, type ExamInfo } from './exams';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
 import { summaryProgress, useProgress, type Fraction } from './progress';
 import './ModulesPage.css';
-
 
 function ModuleRow({
   module: m,
@@ -39,12 +60,19 @@ function ModuleRow({
   const hasArt = moduleArtSrc(m.art) != null;
   // With an illustration, the unit code moves next to the name as a label.
   const labelled = hasArt ? [m.unitCode && `${uid}-code`, `${uid}-name`] : [`${uid}-anchor`, `${uid}-name`];
-  const described = [`${uid}-desc`, `${uid}-counts`, showExam && `${uid}-exam`, showProgress && `${uid}-prog`].filter(Boolean).join(' ');
+  const described = [`${uid}-desc`, `${uid}-counts`, showExam && `${uid}-exam`, showProgress && `${uid}-prog`]
+    .filter(Boolean)
+    .join(' ');
   return (
     <li className="mod-toc__item">
       <Link
         to={`/modules/${m.id}`}
-        className={cx('mod-row', `mod-row--y${m.year}`, !showExam && 'mod-row--no-exam', !showProgress && 'mod-row--no-prog')}
+        className={cx(
+          'mod-row',
+          `mod-row--y${m.year}`,
+          !showExam && 'mod-row--no-exam',
+          !showProgress && 'mod-row--no-prog',
+        )}
         data-hub="module-tile"
         data-module-id={m.id}
         aria-labelledby={labelled.filter(Boolean).join(' ')}
@@ -120,10 +148,16 @@ function ModuleRow({
               progressReady ? (
                 <>
                   <span aria-hidden="true">
-                    <ProgressRing value={progress.pct} size={56} stroke={5} color={progress.pct === 100 ? 'var(--signal)' : cohortColor(m.year)} />
+                    <ProgressRing
+                      value={progress.pct}
+                      size={56}
+                      stroke={5}
+                      color={progress.pct === 100 ? 'var(--signal)' : cohortColor(m.year)}
+                    />
                   </span>
                   <span className="mod-row__watched">
-                    <span className="u-tabular">{progress.watched}</span> of <span className="u-tabular">{progress.total}</span>
+                    <span className="u-tabular">{progress.watched}</span> of{' '}
+                    <span className="u-tabular">{progress.total}</span>
                     <span className="visually-hidden"> lessons watched</span>
                   </span>
                 </>
@@ -171,7 +205,10 @@ export default function ModulesPage() {
     [getModulesForYear, viewYear, state, exams],
   );
 
-  const totals = rows.reduce((acc, r) => ({ videos: acc.videos + r.progress.total, watched: acc.watched + r.progress.watched }), { videos: 0, watched: 0 });
+  const totals = rows.reduce(
+    (acc, r) => ({ videos: acc.videos + r.progress.total, watched: acc.watched + r.progress.watched }),
+    { videos: 0, watched: 0 },
+  );
   const nextExam = rows
     .filter((r): r is typeof r & { exam: ExamInfo } => !!r.exam)
     .sort((a, b) => a.exam.days - b.exam.days)[0];
@@ -191,7 +228,12 @@ export default function ModulesPage() {
             className="mod-index__years"
             value={viewYear}
             onChange={(y) => setPeek(y === activeYear ? null : y, { replace: true })}
-            options={YEARS.map((y) => ({ value: y, label: COHORTS[y].label, color: COHORTS[y].color, onColor: COHORTS[y].on }))}
+            options={YEARS.map((y) => ({
+              value: y,
+              label: COHORTS[y].label,
+              color: COHORTS[y].color,
+              onColor: COHORTS[y].on,
+            }))}
           />
         }
         meta={
@@ -202,7 +244,8 @@ export default function ModulesPage() {
               <span className="mod-index__fact">
                 {ready && tracking ? (
                   <span>
-                    <b className="u-tabular">{totals.watched}</b> of <b className="u-tabular">{totals.videos}</b> lessons watched
+                    <b className="u-tabular">{totals.watched}</b> of <b className="u-tabular">{totals.videos}</b>{' '}
+                    lessons watched
                   </span>
                 ) : (
                   <span>
@@ -229,7 +272,12 @@ export default function ModulesPage() {
             You&rsquo;re looking at {COHORTS[viewYear].label}. Your modules are in {COHORTS[year].label}.
           </p>
           <div className="mod-peek__actions">
-            <Button size="sm" variant="ghost" leadingIcon={ArrowCounterClockwise} onClick={() => setPeek(null, { replace: true })}>
+            <Button
+              size="sm"
+              variant="ghost"
+              leadingIcon={ArrowCounterClockwise}
+              onClick={() => setPeek(null, { replace: true })}
+            >
               Back to {COHORTS[year].label}
             </Button>
             <Button size="sm" onClick={() => setYear(viewYear)}>
@@ -240,7 +288,11 @@ export default function ModulesPage() {
       ) : null}
 
       <div className="mod-toc-wrap">
-        <ol className={cx('mod-toc', `mod-toc--y${viewYear}`)} role="list" aria-label={`${COHORTS[viewYear].label} modules`}>
+        <ol
+          className={cx('mod-toc', `mod-toc--y${viewYear}`)}
+          role="list"
+          aria-label={`${COHORTS[viewYear].label} modules`}
+        >
           {rows.map((r) => (
             <ModuleRow
               key={r.module.id}

@@ -32,7 +32,8 @@ export const GAMES: readonly GameInfo[] = [
     id: 'groups',
     label: 'Groups',
     noun: 'group',
-    about: 'Four groups a day, one at each level from 1 (plainest) to 4 (trickiest), four words each. A word belongs to one group of a theme.',
+    about:
+      'Four groups a day, one at each level from 1 (plainest) to 4 (trickiest), four words each. A word belongs to one group of a theme.',
     importHint: 'Rows with a header: label, level, words. Copy them from a spreadsheet or write them as CSV.',
     importExample: 'label,level,words\nMeasures of centre,1,MEAN MEDIAN MODE MIDRANGE',
   },
@@ -49,14 +50,17 @@ export const GAMES: readonly GameInfo[] = [
     label: 'Quiz',
     noun: 'question',
     about: 'Four questions a day from the theme, then one about the modules. The options are shuffled each day.',
-    importHint: 'Rows with a header: question, answer, wrong 1, wrong 2, wrong 3, explanation, module (a unit code, or empty).',
-    importExample: 'question,answer,wrong 1,wrong 2,wrong 3,explanation,module\nWhich average do outliers move most?,Mean,Median,Mode,Midrange,The mean uses every value.,ST1215',
+    importHint:
+      'Rows with a header: question, answer, wrong 1, wrong 2, wrong 3, explanation, module (a unit code, or empty).',
+    importExample:
+      'question,answer,wrong 1,wrong 2,wrong 3,explanation,module\nWhich average do outliers move most?,Mean,Median,Mode,Midrange,The mean uses every value.,ST1215',
   },
   {
     id: 'nearest',
     label: 'Nearest neighbour',
     noun: 'secret word',
-    about: 'One secret word a day, found by closeness. A secret word must be in the vocabulary, which decides what is close.',
+    about:
+      'One secret word a day, found by closeness. A secret word must be in the vocabulary, which decides what is close.',
     importHint: 'Words from the vocabulary, separated by new lines, commas or spaces.',
     importExample: 'mean\nregression',
   },

@@ -1,21 +1,81 @@
 /* Before you apply (career-). A readiness checklist beside the seniors, then one line about further study.
    The wrapper is the container: wide, the two panels sit side by side; narrower, everything stacks. */
 
-.career-after { container: career-after / inline-size; display: flex; flex-direction: column; gap: var(--sp-16); }
-.career-after__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-16); }
+.career-after {
+  container: career-after / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-16);
+}
+.career-after__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-16);
+}
 
 /* ── Checklist ───────────────────────────────────────────────────────────────────────────────── */
-.career-after__grid > .career-ready { display: flex; flex-direction: column; padding: var(--sp-24); }
-.career-ready__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); min-height: 32px; }
-.career-ready__title { font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: var(--lh-heading); }
-.career-ready__bar { height: 6px; margin: var(--sp-12) 0 var(--sp-8); border-radius: var(--r-pill); background: var(--career-track); overflow: hidden; }
-.career-ready__fill { display: block; height: 100%; border-radius: var(--r-pill); background: var(--cobalt); transition: width var(--dur) var(--ease); }
-.career-ready__list { list-style: none; }
-.career-ready__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4) var(--sp-16); padding: var(--sp-12) 0; border-top: 1px solid var(--line); }
-.career-ready__row:first-child { border-top: 0; }
-.career-ready__done { margin-top: var(--sp-8); color: var(--signal-strong); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.career-after__grid > .career-ready {
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-24);
+}
+.career-ready__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-12);
+  min-height: 32px;
+}
+.career-ready__title {
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.015em;
+  line-height: var(--lh-heading);
+}
+.career-ready__bar {
+  height: 6px;
+  margin: var(--sp-12) 0 var(--sp-8);
+  border-radius: var(--r-pill);
+  background: var(--career-track);
+  overflow: hidden;
+}
+.career-ready__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--cobalt);
+  transition: width var(--dur) var(--ease);
+}
+.career-ready__list {
+  list-style: none;
+}
+.career-ready__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4) var(--sp-16);
+  padding: var(--sp-12) 0;
+  border-top: 1px solid var(--line);
+}
+.career-ready__row:first-child {
+  border-top: 0;
+}
+.career-ready__done {
+  margin-top: var(--sp-8);
+  color: var(--signal-strong);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
 
-.career-check { display: flex; flex: 1 1 280px; align-items: flex-start; gap: var(--sp-12); min-width: 0; cursor: pointer; }
+.career-check {
+  display: flex;
+  flex: 1 1 280px;
+  align-items: flex-start;
+  gap: var(--sp-12);
+  min-width: 0;
+  cursor: pointer;
+}
 .career-check__box {
   appearance: none;
   flex: none;
@@ -28,7 +88,9 @@
   border-radius: 7px;
   background: var(--surface);
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
 }
 .career-check__box::after {
   content: '';
@@ -39,12 +101,34 @@
   transform: scale(0);
   transition: transform var(--dur-fast) var(--ease);
 }
-.career-check__box:checked { background: var(--cobalt); border-color: var(--cobalt); }
-.career-check__box:checked::after { transform: scale(1); }
-.career-check:hover .career-check__box:not(:checked) { border-color: var(--ink); }
-.career-check__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: var(--measure); }
-.career-check__title { color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); line-height: 1.35; }
-.career-check__hint { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.career-check__box:checked {
+  background: var(--cobalt);
+  border-color: var(--cobalt);
+}
+.career-check__box:checked::after {
+  transform: scale(1);
+}
+.career-check:hover .career-check__box:not(:checked) {
+  border-color: var(--ink);
+}
+.career-check__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: var(--measure);
+}
+.career-check__title {
+  color: var(--ink);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+}
+.career-check__hint {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
 
 .career-ready__link {
   display: inline-flex;
@@ -62,26 +146,69 @@
   text-decoration: none;
   cursor: pointer;
 }
-.career-ready__link:hover { text-decoration: underline; text-underline-offset: 3px; }
-.career-ready__link svg { font-size: 12px; }
+.career-ready__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.career-ready__link svg {
+  font-size: 12px;
+}
 @media (pointer: coarse) {
-  .career-ready__link { min-height: 44px; }
+  .career-ready__link {
+    min-height: 44px;
+  }
 }
 
 /* ── Further study: one line and one button ──────────────────────────────────────────────────── */
-.career-after > .career-study { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-12) var(--sp-16); padding: var(--sp-16) var(--sp-24); }
-.career-study__icon { flex: none; font-size: 28px; color: var(--cobalt); }
-.career-study__text { flex: 1 1 320px; min-width: 0; max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
-.career-study__text strong { color: var(--ink); font-weight: var(--fw-bold); }
-.career-study__projected { flex: 1 1 100%; padding-top: var(--sp-12); border-top: 1px solid var(--line); }
+.career-after > .career-study {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-12) var(--sp-16);
+  padding: var(--sp-16) var(--sp-24);
+}
+.career-study__icon {
+  flex: none;
+  font-size: 28px;
+  color: var(--cobalt);
+}
+.career-study__text {
+  flex: 1 1 320px;
+  min-width: 0;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+.career-study__text strong {
+  color: var(--ink);
+  font-weight: var(--fw-bold);
+}
+.career-study__projected {
+  flex: 1 1 100%;
+  padding-top: var(--sp-12);
+  border-top: 1px solid var(--line);
+}
 
 @container career-after (min-width: 900px) {
-  .career-after__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .career-after__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   /* No seniors yet: the checklist has the row to itself (its rows run in two columns). */
-  .career-after__grid--single { grid-template-columns: minmax(0, 1fr); }
-  .career-after__grid--single .career-ready__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-32); }
+  .career-after__grid--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .career-after__grid--single .career-ready__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--sp-32);
+  }
 }
 @media (max-width: 699px) {
-  .career-after__grid > .career-ready { padding: var(--sp-16); }
-  .career-after > .career-study { padding: var(--sp-16); }
+  .career-after__grid > .career-ready {
+    padding: var(--sp-16);
+  }
+  .career-after > .career-study {
+    padding: var(--sp-16);
+  }
 }

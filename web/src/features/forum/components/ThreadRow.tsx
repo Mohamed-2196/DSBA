@@ -28,7 +28,14 @@ export interface ThreadRowProps {
  * Titles and excerpts are dir="auto": an Arabic title sits right-aligned, an English one stays left-aligned
  * (the vote, author, badges and counts around them stay left-to-right).
  */
-export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = true, headingLevel = 3 }: ThreadRowProps) {
+export function ThreadRow({
+  thread,
+  onVote,
+  fresh = false,
+  terms,
+  showModule = true,
+  headingLevel = 3,
+}: ThreadRowProps) {
   const { getModule } = useModules();
   const Heading = `h${headingLevel}` as const;
   // A picture that can't load (removed, or hidden with its post) leaves no broken thumbnail behind.
@@ -39,12 +46,24 @@ export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = t
   const deleted = thread.status === 'deleted';
   return (
     <li
-      className={cx('forum-row', thread.pinned && 'is-pinned', fresh && 'is-fresh', thumb && 'has-image', hidden && 'is-hidden', deleted && 'is-deleted')}
+      className={cx(
+        'forum-row',
+        thread.pinned && 'is-pinned',
+        fresh && 'is-fresh',
+        thumb && 'has-image',
+        hidden && 'is-hidden',
+        deleted && 'is-deleted',
+      )}
       data-hub="thread-row"
       data-thread-id={thread.id}
     >
       <div className="forum-row__vote">
-        <VoteButton count={thread.voteCount} voted={thread.voted} onToggle={() => onVote?.(thread)} disabled={hidden || deleted} />
+        <VoteButton
+          count={thread.voteCount}
+          voted={thread.voted}
+          onToggle={() => onVote?.(thread)}
+          disabled={hidden || deleted}
+        />
       </div>
       <div className="forum-row__main">
         <Heading className="forum-row__title" dir="auto">

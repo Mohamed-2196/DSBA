@@ -19,9 +19,21 @@ const sameSrc = (a: string, b: string): boolean => a.replace(/^\//, '') === b.re
  * The pictures to choose from: those the settings offer (only covers, for a cover), plus the one the issue already
  * uses when it isn't among them (a picture uploaded for the issue), so opening the editor never drops it.
  */
-export function pictureChoices(offered: readonly NewsletterPicture[], current: Pick<FigureDraft, 'src' | 'width' | 'height'> | null, { cover = false }: { cover?: boolean } = {}): AppPicture[] {
-  const list: AppPicture[] = offered.filter((p) => !cover || p.cover).map(({ src, label, width, height, cover: isCover }) => ({ src, label, width, height, cover: isCover }));
-  if (current?.src && !offered.some((p) => sameSrc(p.src, current.src))) list.unshift({ src: current.src, label: 'The picture this issue uses now', width: current.width, height: current.height });
+export function pictureChoices(
+  offered: readonly NewsletterPicture[],
+  current: Pick<FigureDraft, 'src' | 'width' | 'height'> | null,
+  { cover = false }: { cover?: boolean } = {},
+): AppPicture[] {
+  const list: AppPicture[] = offered
+    .filter((p) => !cover || p.cover)
+    .map(({ src, label, width, height, cover: isCover }) => ({ src, label, width, height, cover: isCover }));
+  if (current?.src && !offered.some((p) => sameSrc(p.src, current.src)))
+    list.unshift({
+      src: current.src,
+      label: 'The picture this issue uses now',
+      width: current.width,
+      height: current.height,
+    });
   return list;
 }
 

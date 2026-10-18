@@ -13,7 +13,15 @@ export interface HighlightProps extends HTMLAttributes<HTMLElement> {
 }
 
 /** Highlighter swipe behind inline text (rough-edged marker). Wraps across lines. */
-export function Highlight({ as: Comp = 'mark', animate = false, delay = 0, className, style, children, ...rest }: HighlightProps) {
+export function Highlight({
+  as: Comp = 'mark',
+  animate = false,
+  delay = 0,
+  className,
+  style,
+  children,
+  ...rest
+}: HighlightProps) {
   const css: CSSProperties | undefined = animate ? ({ '--hl-delay': `${delay}ms`, ...style } as CSSProperties) : style;
   return (
     <Comp className={cx('ui-highlight', animate && 'ui-highlight--animate', className)} style={css} {...rest}>

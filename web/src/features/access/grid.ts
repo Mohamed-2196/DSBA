@@ -17,10 +17,18 @@ export interface Editing {
   draft: Draft;
 }
 
-export const draftOf = (role: RoleOut | null): Draft => ({ name: role?.name ?? '', badge: role?.badge ?? '', boxes: new Set(role?.boxes ?? []) });
+export const draftOf = (role: RoleOut | null): Draft => ({
+  name: role?.name ?? '',
+  badge: role?.badge ?? '',
+  boxes: new Set(role?.boxes ?? []),
+});
 
 /** A fresh draft from `role`, for the dialog opening on it or for "Load it again". */
-export const startEditing = (opening: string | null, role: RoleOut | null): Editing => ({ opening, base: role, draft: draftOf(role) });
+export const startEditing = (opening: string | null, role: RoleOut | null): Editing => ({
+  opening,
+  base: role,
+  draft: draftOf(role),
+});
 
 /** The editor's state for this render: a fresh draft when the dialog opens, or opens on another role; otherwise the
  *  same state. A newer version of the role loading in the background never resets the admin's unsaved draft, and
@@ -63,7 +71,10 @@ export interface Ticks {
   ticked: ReadonlySet<string>;
 }
 
-export const ticksOf = (person: AdminUser | null): Ticks => ({ personId: person?.id ?? null, ticked: new Set(person?.roles.map((r) => r.id)) });
+export const ticksOf = (person: AdminUser | null): Ticks => ({
+  personId: person?.id ?? null,
+  ticked: new Set(person?.roles.map((r) => r.id)),
+});
 
 /** The ticks for this render: the person's roles when the dialog opens on someone else, otherwise the admin's ticks,
  *  which a reload of the people list leaves alone. */

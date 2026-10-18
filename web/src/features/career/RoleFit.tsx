@@ -41,7 +41,13 @@ const ROLE_ICONS: Record<string, Icon> = {
   consultant: Handshake,
 };
 
-const GROUPS: { status: SkillStatus; key: 'covered' | 'later' | 'gaps'; title: string; icon: Icon; weight: 'fill' | 'bold' }[] = [
+const GROUPS: {
+  status: SkillStatus;
+  key: 'covered' | 'later' | 'gaps';
+  title: string;
+  icon: Icon;
+  weight: 'fill' | 'bold';
+}[] = [
   { status: 'covered', key: 'covered', title: 'Covered by your modules so far', icon: CheckCircle, weight: 'fill' },
   { status: 'later', key: 'later', title: 'Coming in later years', icon: CircleDashed, weight: 'bold' },
   { status: 'gap', key: 'gaps', title: 'Yours to close', icon: Wrench, weight: 'bold' },
@@ -83,8 +89,18 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
   const fitCerts = useMemo(() => data.certs.filter((c) => c.roles.includes(role.id)), [data.certs, role]);
 
   return (
-    <PageSection className="career-fit-section" id="career-role-fit" aria-labelledby="career-fit-heading" data-hub="career-fit" data-role-id={role.id}>
-      <SectionHeader id="career-fit-heading" title="Build the skills" description="Pick a role to see which of its skills your modules already cover, and what is left to you." />
+    <PageSection
+      className="career-fit-section"
+      id="career-role-fit"
+      aria-labelledby="career-fit-heading"
+      data-hub="career-fit"
+      data-role-id={role.id}
+    >
+      <SectionHeader
+        id="career-fit-heading"
+        title="Build the skills"
+        description="Pick a role to see which of its skills your modules already cover, and what is left to you."
+      />
 
       <div className="career-roles" role="group" aria-label="Choose a role">
         {data.roles.map((r) => (
@@ -107,10 +123,25 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
       </div>
 
       <div className="career-fit-wrap">
-        <Panel as="section" radius="feature" padding="none" className="career-fit" id="career-fit-panel" aria-labelledby="career-fit-title" data-hub="career-fit-panel" data-role-id={role.id}>
+        <Panel
+          as="section"
+          radius="feature"
+          padding="none"
+          className="career-fit"
+          id="career-fit-panel"
+          aria-labelledby="career-fit-title"
+          data-hub="career-fit-panel"
+          data-role-id={role.id}
+        >
           <div className="career-fit__summary">
             <div className="career-score" aria-live="polite">
-              <ProgressRing value={fit.total ? (n / fit.total) * 100 : 0} size={92} stroke={9} color={cohortColor(year)} label={`${n} of ${fit.total} skills covered by ${cohort}`}>
+              <ProgressRing
+                value={fit.total ? (n / fit.total) * 100 : 0}
+                size={92}
+                stroke={9}
+                color={cohortColor(year)}
+                label={`${n} of ${fit.total} skills covered by ${cohort}`}
+              >
                 <span className="career-score__num" aria-hidden="true">
                   {n}
                   <small>/{fit.total}</small>
@@ -152,7 +183,11 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
                 <ul role="list" className="career-fitcerts__list">
                   {fitCerts.map((c) => (
                     <li key={c.id}>
-                      <button type="button" className="career-fitcert" onClick={() => jumpTo(`career-cert-${c.id}`, { flash: true, block: 'center' })}>
+                      <button
+                        type="button"
+                        className="career-fitcert"
+                        onClick={() => jumpTo(`career-cert-${c.id}`, { flash: true, block: 'center' })}
+                      >
                         <Certificate className="career-fitcert__icon" aria-hidden="true" />
                         {c.short}
                       </button>
@@ -163,7 +198,13 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
             ) : null}
 
             {startsThreads && role.ask ? (
-              <Button variant="secondary" size="sm" leadingIcon={ChatsCircle} to={askLink(role.ask)} className="career-fit__ask">
+              <Button
+                variant="secondary"
+                size="sm"
+                leadingIcon={ChatsCircle}
+                to={askLink(role.ask)}
+                className="career-fit__ask"
+              >
                 Ask seniors about this role
               </Button>
             ) : null}
@@ -175,7 +216,11 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
               if (!rows.length) return null;
               const GroupIcon = g.icon;
               return (
-                <section key={g.status} className={cx('career-group', `is-${g.status}`)} aria-label={`${g.title}: ${rows.length}`}>
+                <section
+                  key={g.status}
+                  className={cx('career-group', `is-${g.status}`)}
+                  aria-label={`${g.title}: ${rows.length}`}
+                >
                   <h4 className="career-group__title">
                     <GroupIcon className="career-group__icon" weight={g.weight} aria-hidden="true" />
                     {g.title}
@@ -195,8 +240,8 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
         <div className="career-fit__note">
           <CohortBadge year={year} />
           <p className="career-note">
-            {data.yearHints[String(year)] ?? ''} A guide built from each module’s description and lessons, not an official syllabus. Modules marked option or elective count if you choose
-            them.
+            {data.yearHints[String(year)] ?? ''} A guide built from each module’s description and lessons, not an
+            official syllabus. Modules marked option or elective count if you choose them.
           </p>
         </div>
       </div>

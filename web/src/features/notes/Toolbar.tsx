@@ -30,7 +30,15 @@ import {
 import { useEditorState, type Editor } from '@tiptap/react';
 import type { ReactNode } from 'react';
 import { cx, modKeyLabel } from '../../ui';
-import { ERASER_SIZES, HIGHLIGHTER_COLORS, HIGHLIGHTER_WIDTHS, PEN_COLORS, PEN_WIDTHS, type PenSettings, type Tool } from './surface/tools';
+import {
+  ERASER_SIZES,
+  HIGHLIGHTER_COLORS,
+  HIGHLIGHTER_WIDTHS,
+  PEN_COLORS,
+  PEN_WIDTHS,
+  type PenSettings,
+  type Tool,
+} from './surface/tools';
 
 /** A shortcut as this computer writes it: ⌘B on a Mac, Ctrl+B elsewhere. */
 function combo(key: string, shift = false): string {
@@ -47,7 +55,25 @@ const TOOLS: { id: Tool; label: string; icon: Icon; key: string }[] = [
   { id: 'laser', label: 'Laser pointer', icon: HandPointing, key: 'K' },
 ];
 
-function ToolButton({ label, icon: I, active, onClick, disabled, hint, className, toggle = true }: { label: string; icon: Icon; active?: boolean; onClick: () => void; disabled?: boolean; hint?: string; className?: string; toggle?: boolean }) {
+function ToolButton({
+  label,
+  icon: I,
+  active,
+  onClick,
+  disabled,
+  hint,
+  className,
+  toggle = true,
+}: {
+  label: string;
+  icon: Icon;
+  active?: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+  hint?: string;
+  className?: string;
+  toggle?: boolean;
+}) {
   return (
     <button
       type="button"
@@ -63,7 +89,17 @@ function ToolButton({ label, icon: I, active, onClick, disabled, hint, className
   );
 }
 
-function Swatches({ label, options, value, onChange }: { label: string; options: readonly { value: string; label: string }[]; value: string; onChange: (v: string) => void }) {
+function Swatches({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <div className="nb-swatches" role="radiogroup" aria-label={label}>
       {options.map((o) => (
@@ -84,7 +120,19 @@ function Swatches({ label, options, value, onChange }: { label: string; options:
   );
 }
 
-function Sizes({ label, options, value, onChange, color }: { label: string; options: readonly { value: number; label: string }[]; value: number; onChange: (v: number) => void; color: string }) {
+function Sizes({
+  label,
+  options,
+  value,
+  onChange,
+  color,
+}: {
+  label: string;
+  options: readonly { value: number; label: string }[];
+  value: number;
+  onChange: (v: number) => void;
+  color: string;
+}) {
   return (
     <div className="nb-sizes" role="radiogroup" aria-label={label}>
       {options.map((o, i) => {
@@ -108,11 +156,28 @@ function Sizes({ label, options, value, onChange, color }: { label: string; opti
   );
 }
 
-function Choice<T extends string | number>({ label, options, value, onChange }: { label: string; options: readonly { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+function Choice<T extends string | number>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
   return (
     <div className="nb-choice" role="radiogroup" aria-label={label}>
       {options.map((o) => (
-        <button key={String(o.value)} type="button" role="radio" aria-checked={o.value === value} className={cx('nb-choice__item', o.value === value && 'is-active')} onClick={() => onChange(o.value)}>
+        <button
+          key={String(o.value)}
+          type="button"
+          role="radio"
+          aria-checked={o.value === value}
+          className={cx('nb-choice__item', o.value === value && 'is-active')}
+          onClick={() => onChange(o.value)}
+        >
           {o.label}
         </button>
       ))}
@@ -139,11 +204,27 @@ function TextOptions({ editor, onPicture, onFile }: { editor: Editor; onPicture:
   });
   const chain = () => editor.chain().focus();
   const items: { label: string; keys?: string; icon?: Icon; glyph?: ReactNode; active?: boolean; run: () => void }[] = [
-    { label: 'Heading', glyph: <span className="nb-tool__glyph">H1</span>, active: s.h1, run: () => chain().toggleHeading({ level: 1 }).run() },
-    { label: 'Subheading', glyph: <span className="nb-tool__glyph">H2</span>, active: s.h2, run: () => chain().toggleHeading({ level: 2 }).run() },
+    {
+      label: 'Heading',
+      glyph: <span className="nb-tool__glyph">H1</span>,
+      active: s.h1,
+      run: () => chain().toggleHeading({ level: 1 }).run(),
+    },
+    {
+      label: 'Subheading',
+      glyph: <span className="nb-tool__glyph">H2</span>,
+      active: s.h2,
+      run: () => chain().toggleHeading({ level: 2 }).run(),
+    },
     { label: 'Bold', keys: combo('B'), icon: TextB, active: s.bold, run: () => chain().toggleBold().run() },
     { label: 'Italic', keys: combo('I'), icon: TextItalic, active: s.italic, run: () => chain().toggleItalic().run() },
-    { label: 'Underline', keys: combo('U'), icon: TextUnderline, active: s.underline, run: () => chain().toggleUnderline().run() },
+    {
+      label: 'Underline',
+      keys: combo('U'),
+      icon: TextUnderline,
+      active: s.underline,
+      run: () => chain().toggleUnderline().run(),
+    },
     { label: 'Bulleted list', icon: ListBullets, active: s.bullets, run: () => chain().toggleBulletList().run() },
     { label: 'Numbered list', icon: ListNumbers, active: s.numbers, run: () => chain().toggleOrderedList().run() },
     { label: 'Checklist', icon: ListChecks, active: s.checks, run: () => chain().toggleTaskList().run() },
@@ -214,21 +295,65 @@ export interface ToolbarProps {
 }
 
 export function Toolbar(props: ToolbarProps) {
-  const { tool, onTool, pens, onPens, editor, canType, onAddPage, canUndo, canRedo, onUndo, onRedo, onPicture, onFile, touch, fingerDraws, onFingerDraws, zoom, fitted, onZoomStep, onFit, readOnly } = props;
+  const {
+    tool,
+    onTool,
+    pens,
+    onPens,
+    editor,
+    canType,
+    onAddPage,
+    canUndo,
+    canRedo,
+    onUndo,
+    onRedo,
+    onPicture,
+    onFile,
+    touch,
+    fingerDraws,
+    onFingerDraws,
+    zoom,
+    fitted,
+    onZoomStep,
+    onFit,
+    readOnly,
+  } = props;
   const visible = readOnly ? TOOLS.filter((t) => t.id === 'laser') : TOOLS;
   let options: ReactNode = null;
   if (tool === 'pen') {
     options = (
       <>
-        <Swatches label="Pen colour" options={PEN_COLORS} value={pens.pen.color} onChange={(color) => onPens({ ...pens, pen: { ...pens.pen, color } })} />
-        <Sizes label="Pen width" options={PEN_WIDTHS} value={pens.pen.width} color={pens.pen.color} onChange={(width) => onPens({ ...pens, pen: { ...pens.pen, width } })} />
+        <Swatches
+          label="Pen colour"
+          options={PEN_COLORS}
+          value={pens.pen.color}
+          onChange={(color) => onPens({ ...pens, pen: { ...pens.pen, color } })}
+        />
+        <Sizes
+          label="Pen width"
+          options={PEN_WIDTHS}
+          value={pens.pen.width}
+          color={pens.pen.color}
+          onChange={(width) => onPens({ ...pens, pen: { ...pens.pen, width } })}
+        />
       </>
     );
   } else if (tool === 'highlighter') {
     options = (
       <>
-        <Swatches label="Highlighter colour" options={HIGHLIGHTER_COLORS} value={pens.highlighter.color} onChange={(color) => onPens({ ...pens, highlighter: { ...pens.highlighter, color } })} />
-        <Sizes label="Highlighter width" options={HIGHLIGHTER_WIDTHS} value={pens.highlighter.width} color={pens.highlighter.color} onChange={(width) => onPens({ ...pens, highlighter: { ...pens.highlighter, width } })} />
+        <Swatches
+          label="Highlighter colour"
+          options={HIGHLIGHTER_COLORS}
+          value={pens.highlighter.color}
+          onChange={(color) => onPens({ ...pens, highlighter: { ...pens.highlighter, color } })}
+        />
+        <Sizes
+          label="Highlighter width"
+          options={HIGHLIGHTER_WIDTHS}
+          value={pens.highlighter.width}
+          color={pens.highlighter.color}
+          onChange={(width) => onPens({ ...pens, highlighter: { ...pens.highlighter, width } })}
+        />
       </>
     );
   } else if (tool === 'eraser') {
@@ -243,13 +368,22 @@ export function Toolbar(props: ToolbarProps) {
           value={pens.eraser.mode}
           onChange={(mode) => onPens({ ...pens, eraser: { ...pens.eraser, mode } })}
         />
-        <Choice label="Eraser size" options={ERASER_SIZES} value={pens.eraser.size} onChange={(size) => onPens({ ...pens, eraser: { ...pens.eraser, size } })} />
+        <Choice
+          label="Eraser size"
+          options={ERASER_SIZES}
+          value={pens.eraser.size}
+          onChange={(size) => onPens({ ...pens, eraser: { ...pens.eraser, size } })}
+        />
       </>
     );
   } else if (tool === 'lasso') {
-    options = <p className="nb-toolbar__hint">Draw around handwriting to select it. Then drag it, recolour it or delete it.</p>;
+    options = (
+      <p className="nb-toolbar__hint">Draw around handwriting to select it. Then drag it, recolour it or delete it.</p>
+    );
   } else if (tool === 'laser') {
-    options = <p className="nb-toolbar__hint">Point at the page to show what you mean. The trail fades and is never saved.</p>;
+    options = (
+      <p className="nb-toolbar__hint">Point at the page to show what you mean. The trail fades and is never saved.</p>
+    );
   } else if (tool === 'type' && editor && canType) {
     options = <TextOptions editor={editor} onPicture={onPicture} onFile={onFile} />;
   } else if (tool === 'type') {
@@ -269,13 +403,34 @@ export function Toolbar(props: ToolbarProps) {
       <div className="nb-toolbar__row" role="toolbar" aria-label="Tools">
         <div className="nb-tools" role="group" aria-label="Tool">
           {visible.map((t) => (
-            <ToolButton key={t.id} label={t.label} icon={t.icon} hint={t.key} active={tool === t.id} onClick={() => onTool(t.id)} />
+            <ToolButton
+              key={t.id}
+              label={t.label}
+              icon={t.icon}
+              hint={t.key}
+              active={tool === t.id}
+              onClick={() => onTool(t.id)}
+            />
           ))}
         </div>
         {readOnly ? null : (
           <div className="nb-tools" role="group" aria-label="History">
-            <ToolButton label="Undo" icon={ArrowCounterClockwise} hint={combo('Z')} onClick={onUndo} disabled={!canUndo} toggle={false} />
-            <ToolButton label="Redo" icon={ArrowClockwise} hint={combo('Z', true)} onClick={onRedo} disabled={!canRedo} toggle={false} />
+            <ToolButton
+              label="Undo"
+              icon={ArrowCounterClockwise}
+              hint={combo('Z')}
+              onClick={onUndo}
+              disabled={!canUndo}
+              toggle={false}
+            />
+            <ToolButton
+              label="Redo"
+              icon={ArrowClockwise}
+              hint={combo('Z', true)}
+              onClick={onRedo}
+              disabled={!canRedo}
+              toggle={false}
+            />
           </div>
         )}
         <div className="nb-tools nb-tools--end" role="group" aria-label="Zoom">
@@ -285,21 +440,35 @@ export function Toolbar(props: ToolbarProps) {
               className={cx('nb-finger', fingerDraws && 'is-active')}
               aria-pressed={fingerDraws}
               onClick={() => onFingerDraws(!fingerDraws)}
-              title={fingerDraws ? 'Your finger draws. Turn off to scroll with it' : 'Your finger scrolls. Turn on to draw with it'}
+              title={
+                fingerDraws
+                  ? 'Your finger draws. Turn off to scroll with it'
+                  : 'Your finger scrolls. Turn on to draw with it'
+              }
             >
               <Hand aria-hidden="true" weight={fingerDraws ? 'fill' : 'regular'} />
               <span>Draw with finger</span>
             </button>
           ) : null}
           <ToolButton label="Zoom out" icon={MagnifyingGlassMinus} onClick={() => onZoomStep(-1)} toggle={false} />
-          <button type="button" className={cx('nb-zoom', fitted && 'is-fitted')} onClick={onFit} title="Fit the page to the window" aria-label={`Zoom ${Math.round(zoom * 100)}%. Fit the page to the window`}>
+          <button
+            type="button"
+            className={cx('nb-zoom', fitted && 'is-fitted')}
+            onClick={onFit}
+            title="Fit the page to the window"
+            aria-label={`Zoom ${Math.round(zoom * 100)}%. Fit the page to the window`}
+          >
             {Math.round(zoom * 100)}%
           </button>
           <ToolButton label="Zoom in" icon={MagnifyingGlassPlus} onClick={() => onZoomStep(1)} toggle={false} />
         </div>
       </div>
       {options && !readOnly ? (
-        <div className="nb-toolbar__row nb-toolbar__row--options" role="group" aria-label={`${TOOLS.find((t) => t.id === tool)?.label ?? 'Tool'} options`}>
+        <div
+          className="nb-toolbar__row nb-toolbar__row--options"
+          role="group"
+          aria-label={`${TOOLS.find((t) => t.id === tool)?.label ?? 'Tool'} options`}
+        >
           {options}
         </div>
       ) : null}

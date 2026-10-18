@@ -34,7 +34,25 @@ export const BY_PARTS_FORMULA: FormulaData = {
 export const MGF_DEFINITION: FormulaData = {
   say: 'M X of t equals the expected value of e to the t X: the sum of e to the t x times p of x for a discrete X, or the integral of e to the t x times f of x for a continuous one.',
   line: [...mgf, ' = E(', pow('e', t, v('X')), ')'],
-  note: ['Σ ', pow('e', t, x), ' ', p, '(', x, ') for a discrete ', v('X'), ', ∫ ', pow('e', t, x), ' ', v('f'), '(', x, ') d', x, ' for a continuous one'],
+  note: [
+    'Σ ',
+    pow('e', t, x),
+    ' ',
+    p,
+    '(',
+    x,
+    ') for a discrete ',
+    v('X'),
+    ', ∫ ',
+    pow('e', t, x),
+    ' ',
+    v('f'),
+    '(',
+    x,
+    ') d',
+    x,
+    ' for a continuous one',
+  ],
 };
 
 // The moment generating function of the Laplace distribution with density k·e^(−λ|x|), worked in three steps.
@@ -43,7 +61,22 @@ export const LAPLACE_MGF_STEPS: Step[] = [
   {
     label: ['With ', v('k'), ' = λ/2 from (a), split at ', x, ' = 0'],
     say: 'M X of t equals lambda over 2, times the integral from minus infinity to 0 of e to the lambda plus t, x, plus the integral from 0 to infinity of e to the minus lambda minus t, x.',
-    line: [...mgf, ' = ', half, big('['), int('−∞', '0'), pow('e', '(λ+', t, ')', x), ' ', v('dx'), ' + ', int('0', '∞'), pow('e', '−(λ−', t, ')', x), ' ', v('dx'), big(']')],
+    line: [
+      ...mgf,
+      ' = ',
+      half,
+      big('['),
+      int('−∞', '0'),
+      pow('e', '(λ+', t, ')', x),
+      ' ',
+      v('dx'),
+      ' + ',
+      int('0', '∞'),
+      pow('e', '−(λ−', t, ')', x),
+      ' ',
+      v('dx'),
+      big(']'),
+    ],
   },
   {
     label: ['Integrate each piece, for |', t, '| < λ'],
@@ -73,9 +106,24 @@ export interface Distribution {
 
 export const DISTRIBUTIONS: Distribution[] = [
   { id: 'laplace', name: 'the Laplace distribution', asked: /\blaplace\b|\bdouble exponential\b/, lesson: /laplace/i },
-  { id: 'negative-binomial', name: 'the negative binomial distribution', asked: /\bnegative binomial\b/, lesson: /negative binomial/i },
-  { id: 'hypergeometric', name: 'the hypergeometric distribution', asked: /\bhypergeometric\b/, lesson: /hypergeometric/i },
-  { id: 'discrete-uniform', name: 'the discrete uniform distribution', asked: /\bdiscrete uniform\b/, lesson: /discrete uniform/i },
+  {
+    id: 'negative-binomial',
+    name: 'the negative binomial distribution',
+    asked: /\bnegative binomial\b/,
+    lesson: /negative binomial/i,
+  },
+  {
+    id: 'hypergeometric',
+    name: 'the hypergeometric distribution',
+    asked: /\bhypergeometric\b/,
+    lesson: /hypergeometric/i,
+  },
+  {
+    id: 'discrete-uniform',
+    name: 'the discrete uniform distribution',
+    asked: /\bdiscrete uniform\b/,
+    lesson: /discrete uniform/i,
+  },
   {
     id: 'bernoulli',
     name: 'the Bernoulli distribution',
@@ -173,7 +221,11 @@ export const DISTRIBUTIONS: Distribution[] = [
     lesson: /\buniform\b/i,
     mgf: {
       say: 'For a continuous uniform variable on a to b: M X of t equals e to the t b minus e to the t a, over t times b minus a, for t not 0, and 1 at t equals 0.',
-      line: [...mgf, ' = ', frac([pow('e', t, v('b')), ' − ', pow('e', t, v('a'))], [t, '(', v('b'), ' − ', v('a'), ')'])],
+      line: [
+        ...mgf,
+        ' = ',
+        frac([pow('e', t, v('b')), ' − ', pow('e', t, v('a'))], [t, '(', v('b'), ' − ', v('a'), ')']),
+      ],
       note: ['continuous, on (', v('a'), ', ', v('b'), '), for ', t, ' ≠ 0; ', sub('M', v('X')), '(0) = 1'],
     },
   },

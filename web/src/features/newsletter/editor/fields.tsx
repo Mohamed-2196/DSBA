@@ -53,7 +53,18 @@ export interface TextInputProps extends FieldCommon {
 
 /** A one-line field of the editor. */
 export function TextInput({ path, errors, value, onValue, max, hint, type = 'text', ...rest }: TextInputProps) {
-  return <TextField id={controlId(path)} type={type} value={value} onChange={(e) => onValue(e.target.value)} error={errors[path]} hint={withCount(value, max, hint)} spellCheck={type === 'text'} {...rest} />;
+  return (
+    <TextField
+      id={controlId(path)}
+      type={type}
+      value={value}
+      onChange={(e) => onValue(e.target.value)}
+      error={errors[path]}
+      hint={withCount(value, max, hint)}
+      spellCheck={type === 'text'}
+      {...rest}
+    />
+  );
 }
 
 export interface TextBoxProps extends FieldCommon {
@@ -62,7 +73,17 @@ export interface TextBoxProps extends FieldCommon {
 
 /** A multi-line field of the editor. */
 export function TextBox({ path, errors, value, onValue, max, hint, rows = 3, ...rest }: TextBoxProps) {
-  return <TextArea id={controlId(path)} rows={rows} value={value} onChange={(e) => onValue(e.target.value)} error={errors[path]} hint={withCount(value, max, hint)} {...rest} />;
+  return (
+    <TextArea
+      id={controlId(path)}
+      rows={rows}
+      value={value}
+      onChange={(e) => onValue(e.target.value)}
+      error={errors[path]}
+      hint={withCount(value, max, hint)}
+      {...rest}
+    />
+  );
 }
 
 /** The hint for copy that takes the inline markup. */
@@ -82,8 +103,22 @@ export interface ItemToolsProps {
 export function ItemTools({ name, first, last, onMove, onRemove, className }: ItemToolsProps) {
   return (
     <div className={cx('nl-ed-tools', className)} role="group" aria-label={`Arrange ${name}`}>
-      <IconButton label={`Move ${name} up`} icon={ArrowUp} size="sm" tooltip disabled={first} onClick={() => onMove(-1)} />
-      <IconButton label={`Move ${name} down`} icon={ArrowDown} size="sm" tooltip disabled={last} onClick={() => onMove(1)} />
+      <IconButton
+        label={`Move ${name} up`}
+        icon={ArrowUp}
+        size="sm"
+        tooltip
+        disabled={first}
+        onClick={() => onMove(-1)}
+      />
+      <IconButton
+        label={`Move ${name} down`}
+        icon={ArrowDown}
+        size="sm"
+        tooltip
+        disabled={last}
+        onClick={() => onMove(1)}
+      />
       <IconButton label={`Remove ${name}`} icon={Trash} size="sm" tooltip onClick={onRemove} />
     </div>
   );

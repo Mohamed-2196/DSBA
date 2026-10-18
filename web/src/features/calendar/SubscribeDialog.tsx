@@ -50,8 +50,16 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
         setConfirming(null);
         push(
           action === 'new'
-            ? { tone: 'success', title: 'New link made', body: 'The old one stopped working. Paste the new one into your calendar app.' }
-            : { tone: 'success', title: 'Your link is off', body: 'Calendar apps that used it stop getting your dates. You can make a new link at any time.' },
+            ? {
+                tone: 'success',
+                title: 'New link made',
+                body: 'The old one stopped working. Paste the new one into your calendar app.',
+              }
+            : {
+                tone: 'success',
+                title: 'Your link is off',
+                body: 'Calendar apps that used it stop getting your dates. You can make a new link at any time.',
+              },
         );
       },
     });
@@ -62,9 +70,21 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
   const papersHere = chosen && chosen === year && papers ? papers : null;
   const url = isMine ? (path ? privateFeedUrl(path) : null) : feedUrl(chosen, papersHere);
   const webcal = url ? url.replace(/^https?:/, 'webcal:') : null;
-  const fileName = isMine ? 'dsba-hub-my-calendar.ics' : chosen ? `dsba-hub-year-${chosen}${papersHere ? '-papers' : ''}.ics` : 'dsba-hub.ics';
+  const fileName = isMine
+    ? 'dsba-hub-my-calendar.ics'
+    : chosen
+      ? `dsba-hub-year-${chosen}${papersHere ? '-papers' : ''}.ics`
+      : 'dsba-hub.ics';
 
-  const copy = () => (url ? copyLink(url, isMine ? 'Paste it into your calendar app. Keep it to yourself: it shows your own events.' : 'Paste it into your calendar app to subscribe.') : undefined);
+  const copy = () =>
+    url
+      ? copyLink(
+          url,
+          isMine
+            ? 'Paste it into your calendar app. Keep it to yourself: it shows your own events.'
+            : 'Paste it into your calendar app to subscribe.',
+        )
+      : undefined;
 
   const hint = isMine
     ? 'Your year’s and papers’ dates, less what you hid, and your own events with their reminders. Anyone with this link sees them: keep it to yourself.'
@@ -93,7 +113,13 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
             </Button>
           </>
         ) : (
-          <Button variant="primary" leadingIcon={Key} loading={feed.isPending} onClick={() => feed.mutate('new')} data-hub="calendar-feed-new">
+          <Button
+            variant="primary"
+            leadingIcon={Key}
+            loading={feed.isPending}
+            onClick={() => feed.mutate('new')}
+            data-hub="calendar-feed-new"
+          >
             Make my private link
           </Button>
         )
@@ -138,7 +164,9 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
             <Button size="sm" variant="ghost" onClick={() => setConfirming('off')} data-hub="calendar-feed-off">
               Turn the link off
             </Button>
-            <p className="cal-subscribe__note">Shared it by mistake? A new link stops the old one working, wherever you pasted it.</p>
+            <p className="cal-subscribe__note">
+              Shared it by mistake? A new link stops the old one working, wherever you pasted it.
+            </p>
           </div>
         ) : null}
         {feed.isError && !confirming ? (
@@ -157,7 +185,9 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
             <b>Apple Calendar:</b> use <i>Open in my calendar app</i>, or File, then <i>New Calendar Subscription</i>.
           </li>
         </ul>
-        <p className="cal-subscribe__note">Each date’s notes say whether it’s confirmed, with its time and place once they’re published.</p>
+        <p className="cal-subscribe__note">
+          Each date’s notes say whether it’s confirmed, with its time and place once they’re published.
+        </p>
       </div>
       <ConfirmDialog
         open={!!confirming}

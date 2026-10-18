@@ -30,7 +30,13 @@ export function AskNoora() {
         autoComplete="off"
         enterKeyHint="send"
       />
-      <IconButton type="submit" variant="primary" label={text.trim() ? 'Ask Noora' : 'Open Noora'} icon={ArrowRight} className="home-ask__go" />
+      <IconButton
+        type="submit"
+        variant="primary"
+        label={text.trim() ? 'Ask Noora' : 'Open Noora'}
+        icon={ArrowRight}
+        className="home-ask__go"
+      />
     </form>
   );
 }

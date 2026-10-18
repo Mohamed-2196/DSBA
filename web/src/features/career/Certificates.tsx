@@ -33,7 +33,14 @@ export function CertCard({ cert }: { cert: CareerCert }) {
   const url = webUrl(cert.url);
   const host = hostOf(url);
   return (
-    <Panel as="li" padding="none" id={`career-cert-${cert.id}`} className="career-cert" data-hub="career-cert" data-cert-id={cert.id}>
+    <Panel
+      as="li"
+      padding="none"
+      id={`career-cert-${cert.id}`}
+      className="career-cert"
+      data-hub="career-cert"
+      data-cert-id={cert.id}
+    >
       <div className="career-cert__top">
         {url ? (
           <LogoSlot kind="cert" id={cert.id} logo={cert.logo} mono={cert.mono ?? ''} />
@@ -97,8 +104,17 @@ export function Certificates() {
   const { certs, certNote } = useCareerData();
   if (!certs.length) return null;
   return (
-    <PageSection id="career-certificates" className="career-certs" aria-labelledby="career-certs-title" data-hub="career-certs">
-      <SectionHeader id="career-certs-title" title="Certificates and courses" description="What each one is good for, how much work it takes and which DSBA modules already cover part of it." />
+    <PageSection
+      id="career-certificates"
+      className="career-certs"
+      aria-labelledby="career-certs-title"
+      data-hub="career-certs"
+    >
+      <SectionHeader
+        id="career-certs-title"
+        title="Certificates and courses"
+        description="What each one is good for, how much work it takes and which DSBA modules already cover part of it."
+      />
       <ul role="list" className="career-certs__grid">
         {certs.map((c) => (
           <CertCard key={c.id} cert={c} />

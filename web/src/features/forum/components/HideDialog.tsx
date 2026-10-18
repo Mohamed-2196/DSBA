@@ -37,7 +37,9 @@ export function HideDialog({ open, what, author, busy, error, onConfirm, onClose
   // Nobody is told when a rep hides their own post, or a post of a deleted account.
   const toldBy = author && author.id !== me?.id ? name : null;
   const count = remainingNote(reason.length, REASON_MAX);
-  const hint = toldBy ? `Optional. ${toldBy} sees it in the notification; it also goes into the activity log.` : 'Optional. It goes into the activity log.';
+  const hint = toldBy
+    ? `Optional. ${toldBy} sees it in the notification; it also goes into the activity log.`
+    : 'Optional. It goes into the activity log.';
 
   return (
     <ConfirmDialog

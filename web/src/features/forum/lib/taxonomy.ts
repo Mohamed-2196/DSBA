@@ -40,7 +40,9 @@ export type Place = { year: number; label: string } | { year: null; label: strin
 /** The place of a thread in `category`, or null while the categories haven't loaded. */
 export function placeOf(category: ForumCategory | null): Place | null {
   if (!category) return null;
-  return category.year == null ? { year: null, label: category.short, icon: category.icon ?? 'chat' } : { year: category.year, label: category.short };
+  return category.year == null
+    ? { year: null, label: category.short, icon: category.icon ?? 'chat' }
+    : { year: category.year, label: category.short };
 }
 
 /** The taxonomy from GET /forum/meta; empty (and not ready) before it has loaded. */

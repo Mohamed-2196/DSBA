@@ -1,6 +1,14 @@
 // The boards' rules, kept out of the components so they can be tested: templates and colours, moves, due dates and
 // times, checklists, filters, the agenda's sections, revision plans and past papers.
-import type { AgendaCard, BoardCard, BoardCardUpdate, BoardColumn, BoardPlan, BoardSummary, ChecklistItem } from '../../api/types';
+import type {
+  AgendaCard,
+  BoardCard,
+  BoardCardUpdate,
+  BoardColumn,
+  BoardPlan,
+  BoardSummary,
+  ChecklistItem,
+} from '../../api/types';
 import { formatSize } from '../../api/uploads';
 import { addDaysToKey, daysBetween, type DayKey } from '../../lib/dates';
 
@@ -27,11 +35,46 @@ export interface TemplateInfo {
 /** The templates a student starts a board from. The API's "revision" template is left out: it is three renamed
  *  Study columns, and its name promises the revision plan that "Plan my revision" on a module makes. */
 export const TEMPLATES: readonly TemplateInfo[] = [
-  { id: 'study', name: 'Study', blurb: 'What to study, what you’re on and what’s done.', columns: ['To do', 'In progress', 'Done'], suggested: 'Study', color: 'cobalt' },
-  { id: 'assignment', name: 'Assignment', blurb: 'Coursework from research to hand-in.', columns: ['Research', 'Draft', 'Review', 'Submitted'], suggested: 'Coursework', color: 'coral' },
-  { id: 'weekly', name: 'Weekly planner', blurb: 'A column for each day of the week.', columns: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Done'], suggested: 'This week', color: 'teal' },
-  { id: 'personal', name: 'Personal', blurb: 'Errands and everything outside study.', columns: ['Today', 'This week', 'Later', 'Done'], suggested: 'Personal', color: 'green' },
-  { id: 'blank', name: 'Blank', blurb: 'Two columns to make your own.', columns: ['To do', 'Done'], suggested: 'My board', color: 'slate' },
+  {
+    id: 'study',
+    name: 'Study',
+    blurb: 'What to study, what you’re on and what’s done.',
+    columns: ['To do', 'In progress', 'Done'],
+    suggested: 'Study',
+    color: 'cobalt',
+  },
+  {
+    id: 'assignment',
+    name: 'Assignment',
+    blurb: 'Coursework from research to hand-in.',
+    columns: ['Research', 'Draft', 'Review', 'Submitted'],
+    suggested: 'Coursework',
+    color: 'coral',
+  },
+  {
+    id: 'weekly',
+    name: 'Weekly planner',
+    blurb: 'A column for each day of the week.',
+    columns: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Done'],
+    suggested: 'This week',
+    color: 'teal',
+  },
+  {
+    id: 'personal',
+    name: 'Personal',
+    blurb: 'Errands and everything outside study.',
+    columns: ['Today', 'This week', 'Later', 'Done'],
+    suggested: 'Personal',
+    color: 'green',
+  },
+  {
+    id: 'blank',
+    name: 'Blank',
+    blurb: 'Two columns to make your own.',
+    columns: ['To do', 'Done'],
+    suggested: 'My board',
+    color: 'slate',
+  },
 ];
 
 /** The template's own name, or "Study 2", "Study 3"… when a board already has it (case aside). */
@@ -103,7 +146,8 @@ export const REMINDERS: readonly { id: RemindBefore; label: string }[] = [
 export const FOLD_AFTER_DAYS = 14;
 
 /** One column's cards, in order (the board keeps each column's cards in order). */
-export const cardsIn = (cards: readonly BoardCard[], columnId: string): BoardCard[] => cards.filter((c) => c.columnId === columnId);
+export const cardsIn = (cards: readonly BoardCard[], columnId: string): BoardCard[] =>
+  cards.filter((c) => c.columnId === columnId);
 
 /** The cards column by column, as the API sends them; cards of a column that's gone go last. */
 export function inColumnOrder(cards: readonly BoardCard[], columns: readonly BoardColumn[]): BoardCard[] {
@@ -113,7 +157,14 @@ export function inColumnOrder(cards: readonly BoardCard[], columns: readonly Boa
 
 /** Puts a card in `columnId` right after `afterId` (null: the top), as the API does. A card that lands in a done
  *  column is done now; one that leaves it isn't. */
-export function placeCard(cards: readonly BoardCard[], columns: readonly BoardColumn[], id: string, columnId: string, afterId: string | null, now: string): BoardCard[] {
+export function placeCard(
+  cards: readonly BoardCard[],
+  columns: readonly BoardColumn[],
+  id: string,
+  columnId: string,
+  afterId: string | null,
+  now: string,
+): BoardCard[] {
   const card = cards.find((c) => c.id === id);
   const target = columns.find((c) => c.id === columnId);
   if (!card || !target) return [...cards];
@@ -136,10 +187,19 @@ export function placeAfter<T extends { id: string }>(list: readonly T[], id: str
 }
 
 /** A new card at the end of its column. */
-export const appendCard = (cards: readonly BoardCard[], columns: readonly BoardColumn[], card: BoardCard): BoardCard[] => inColumnOrder([...cards, card], columns);
+export const appendCard = (
+  cards: readonly BoardCard[],
+  columns: readonly BoardColumn[],
+  card: BoardCard,
+): BoardCard[] => inColumnOrder([...cards, card], columns);
 
 /** The card to go after when `id` is dropped right before `beforeId` in `columnId`. */
-export function afterIdBefore(cards: readonly BoardCard[], id: string, columnId: string, beforeId: string): string | null {
+export function afterIdBefore(
+  cards: readonly BoardCard[],
+  id: string,
+  columnId: string,
+  beforeId: string,
+): string | null {
   const there = cardsIn(cards, columnId).filter((c) => c.id !== id);
   const i = there.findIndex((c) => c.id === beforeId);
   return i > 0 ? (there[i - 1]?.id ?? null) : null;
@@ -147,7 +207,11 @@ export function afterIdBefore(cards: readonly BoardCard[], id: string, columnId:
 
 /** The last card of a column, leaving out `id`: where a card dropped on the column's free space goes after. */
 export function lastIn(cards: readonly BoardCard[], columnId: string, id: string | null): string | null {
-  return cardsIn(cards, columnId).filter((c) => c.id !== id).at(-1)?.id ?? null;
+  return (
+    cardsIn(cards, columnId)
+      .filter((c) => c.id !== id)
+      .at(-1)?.id ?? null
+  );
 }
 
 /** Where "Move up" and "Move down" put a card: the afterId for the move, or undefined when it can't go that way. */
@@ -195,7 +259,8 @@ export function splitDone(done: readonly BoardCard[], today: DayKey): { recent: 
 // ── due dates, times, checklists ───────────────────────────────────────────────────────────
 
 /** The day a card is due: its own due date, else the day its revision plan gives it, else its event's last day. */
-export const dueOf = (card: Pick<BoardCard, 'dueDate' | 'planDate' | 'link'>): DayKey | null => card.dueDate ?? card.planDate ?? card.link?.date ?? null;
+export const dueOf = (card: Pick<BoardCard, 'dueDate' | 'planDate' | 'link'>): DayKey | null =>
+  card.dueDate ?? card.planDate ?? card.link?.date ?? null;
 
 /** Past its due day and not done. */
 export function isOverdue(card: Pick<BoardCard, 'dueDate' | 'planDate' | 'link' | 'doneAt'>, today: DayKey): boolean {
@@ -325,7 +390,8 @@ export function agendaSections(cards: readonly AgendaCard[], today: DayKey): Age
 // ── revision plans and past papers ─────────────────────────────────────────────────────────
 
 /** A past paper from the library. */
-export const isPastPaper = (card: Pick<BoardCard, 'link'>): boolean => card.link?.type === 'library_item' && card.link.kind === 'past-paper';
+export const isPastPaper = (card: Pick<BoardCard, 'link'>): boolean =>
+  card.link?.type === 'library_item' && card.link.kind === 'past-paper';
 
 /** "About 4 a day", "1 every 3 days", or what to say once the exam day has come. */
 export function planPace(plan: Pick<BoardPlan, 'left' | 'daysLeft'>): string {

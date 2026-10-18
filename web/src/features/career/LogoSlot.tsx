@@ -38,13 +38,26 @@ export function LogoSlot({ kind = 'employer', id, logo, mono = '', size = 'md', 
     setState(next);
   };
   return (
-    <span className={cx('career-logo', `career-logo--${size}`, `is-${state}`, className)} data-hub="career-logo" data-logo-state={state} aria-hidden="true">
+    <span
+      className={cx('career-logo', `career-logo--${size}`, `is-${state}`, className)}
+      data-hub="career-logo"
+      data-logo-state={state}
+      aria-hidden="true"
+    >
       {state === 'missing' ? (
         <span className="career-logo__mono" data-length={Math.min(mono.length, 4)}>
           {mono}
         </span>
       ) : (
-        <img className="career-logo__img" src={src} alt="" decoding="async" draggable="false" onLoad={() => settle('ok')} onError={() => settle('missing')} />
+        <img
+          className="career-logo__img"
+          src={src}
+          alt=""
+          decoding="async"
+          draggable="false"
+          onLoad={() => settle('ok')}
+          onError={() => settle('missing')}
+        />
       )}
     </span>
   );

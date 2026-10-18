@@ -20,7 +20,12 @@ export function AskNoora({ item, page, compact }: { item: LibraryItem; page: num
   return (
     <>
       {compact ? (
-        <IconButton label="Ask Mini Noora about a question" icon={ChatCircleText} onClick={(e) => start(e.currentTarget)} data-hub="file-ask-noora" />
+        <IconButton
+          label="Ask Mini Noora about a question"
+          icon={ChatCircleText}
+          onClick={(e) => start(e.currentTarget)}
+          data-hub="file-ask-noora"
+        />
       ) : (
         <Button leadingIcon={ChatCircleText} onClick={(e) => start(e.currentTarget)} data-hub="file-ask-noora">
           Ask Mini Noora
@@ -41,7 +46,17 @@ export function AskNoora({ item, page, compact }: { item: LibraryItem; page: num
   );
 }
 
-function AskDialog({ item, page, onClose, onAsk }: { item: LibraryItem; page: number | null; onClose: () => void; onAsk: (question: string, page: number) => void }) {
+function AskDialog({
+  item,
+  page,
+  onClose,
+  onAsk,
+}: {
+  item: LibraryItem;
+  page: number | null;
+  onClose: () => void;
+  onAsk: (question: string, page: number) => void;
+}) {
   const [question, setQuestion] = useState('');
   const [at, setAt] = useState(String(page ?? 1));
   const [tried, setTried] = useState(false);

@@ -28,7 +28,10 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
   const onAdd = (e: FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
-    create.mutate({ title: '', doc: docFromText(text), moduleId, lessonId, paper: 'lined', sheets: 1 }, { onSuccess: () => setText('') });
+    create.mutate(
+      { title: '', doc: docFromText(text), moduleId, lessonId, paper: 'lined', sheets: 1 },
+      { onSuccess: () => setText('') },
+    );
   };
 
   const items = notes.data?.items ?? [];
@@ -49,7 +52,14 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
       {notes.isPending ? (
         <Skeleton lines={2} />
       ) : notes.isError ? (
-        <QueryError error={notes.error} title="Your notes didn’t load" size="sm" panel={false} onRetry={() => void notes.refetch()} retrying={notes.isFetching} />
+        <QueryError
+          error={notes.error}
+          title="Your notes didn’t load"
+          size="sm"
+          panel={false}
+          onRetry={() => void notes.refetch()}
+          retrying={notes.isFetching}
+        />
       ) : items.length ? (
         <ul className="notes-lesson__list">
           {items.map((n) => (
@@ -62,7 +72,9 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
           ))}
         </ul>
       ) : (
-        <p className="notes-lesson__empty">Nothing yet. Notes you write here stay with this lesson, and only you see them.</p>
+        <p className="notes-lesson__empty">
+          Nothing yet. Notes you write here stay with this lesson, and only you see them.
+        </p>
       )}
       {readOnly ? null : (
         <form className="notes-lesson__add" onSubmit={onAdd}>
@@ -79,7 +91,14 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
             data-hub="lesson-note-text"
           />
           <div className="notes-lesson__actions">
-            <Button type="submit" size="sm" variant="primary" leadingIcon={Plus} loading={create.isPending} disabled={!text.trim()}>
+            <Button
+              type="submit"
+              size="sm"
+              variant="primary"
+              leadingIcon={Plus}
+              loading={create.isPending}
+              disabled={!text.trim()}
+            >
               Add note
             </Button>
             <Button size="sm" variant="ghost" to={`/notes/new?${place}`}>

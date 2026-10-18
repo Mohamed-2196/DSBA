@@ -8,7 +8,21 @@ import type { DailyContentOverview, ItemOut } from '../../../api/types';
 import { formatDay } from '../../../lib/dates';
 import { useDebouncedValue, useToast } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Badge, Button, ConfirmDialog, EmptyState, IconButton, Panel, QueryError, SearchField, SegmentedControl, Select, Skeleton, cx, formatCount } from '../../../ui';
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  IconButton,
+  Panel,
+  QueryError,
+  SearchField,
+  SegmentedControl,
+  Select,
+  Skeleton,
+  cx,
+  formatCount,
+} from '../../../ui';
 import { useDailyItems, useDeleteItem, useRetireItem } from './api';
 import { GuessList } from './GuessList';
 import { ImportDialog } from './ImportDialog';
@@ -61,9 +75,19 @@ export function ItemsPart({ game, overview }: { game: ContentGame; overview: Dai
             title: retired ? `“${title}” is retired` : `“${title}” is back`,
             body: retired ? 'It won’t run again. The days it ran keep it.' : 'It can run again from the next new day.',
             tone: 'success',
-            action: retired ? { label: 'Bring it back', onClick: () => retire.mutate({ id: out.id, version: out.version, retired: false }) } : undefined,
+            action: retired
+              ? {
+                  label: 'Bring it back',
+                  onClick: () => retire.mutate({ id: out.id, version: out.version, retired: false }),
+                }
+              : undefined,
           }),
-        onError: (e) => toast({ title: retired ? 'It wasn’t retired' : 'It wasn’t brought back', body: errorMessage(e), tone: 'alert' }),
+        onError: (e) =>
+          toast({
+            title: retired ? 'It wasn’t retired' : 'It wasn’t brought back',
+            body: errorMessage(e),
+            tone: 'alert',
+          }),
       },
     );
   };
@@ -110,9 +134,18 @@ export function ItemsPart({ game, overview }: { game: ContentGame; overview: Dai
               className="dcms-filters__theme"
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
-              options={[{ value: '', label: 'Every theme' }, ...overview.themes.map((t) => ({ value: t.id, label: t.title }))]}
+              options={[
+                { value: '', label: 'Every theme' },
+                ...overview.themes.map((t) => ({ value: t.id, label: t.title })),
+              ]}
             />
-            <SegmentedControl label="Show" options={STATUSES} value={status} onChange={setStatus} className="dcms-filters__status" />
+            <SegmentedControl
+              label="Show"
+              options={STATUSES}
+              value={status}
+              onChange={setStatus}
+              className="dcms-filters__status"
+            />
             <SearchField
               className="dcms-filters__search"
               label={`Find ${info.noun}s`}
@@ -124,7 +157,13 @@ export function ItemsPart({ game, overview }: { game: ContentGame; overview: Dai
           </div>
 
           {list.isError ? (
-            <QueryError error={list.error} title={`The ${info.noun}s didn’t load`} onRetry={() => void list.refetch()} retrying={list.isFetching} size="sm" />
+            <QueryError
+              error={list.error}
+              title={`The ${info.noun}s didn’t load`}
+              onRetry={() => void list.refetch()}
+              retrying={list.isFetching}
+              size="sm"
+            />
           ) : list.isPending ? (
             <Skeleton lines={6} />
           ) : items.length === 0 ? (
@@ -143,9 +182,14 @@ export function ItemsPart({ game, overview }: { game: ContentGame; overview: Dai
           ) : (
             <>
               <p className="dcms__count" aria-live="polite">
-                {items.length < total ? `${formatCount(items.length)} of ${formatCount(total)}` : `${formatCount(total)} ${total === 1 ? info.noun : `${info.noun}s`}`}
+                {items.length < total
+                  ? `${formatCount(items.length)} of ${formatCount(total)}`
+                  : `${formatCount(total)} ${total === 1 ? info.noun : `${info.noun}s`}`}
               </p>
-              <ul className={cx('dcms-items', WORDS.has(game) && 'is-grid', list.isPlaceholderData && 'is-stale')} aria-busy={list.isFetching || undefined}>
+              <ul
+                className={cx('dcms-items', WORDS.has(game) && 'is-grid', list.isPlaceholderData && 'is-stale')}
+                aria-busy={list.isFetching || undefined}
+              >
                 {items.map((item) => (
                   <ItemRow
                     key={item.id}
@@ -159,7 +203,11 @@ export function ItemsPart({ game, overview }: { game: ContentGame; overview: Dai
                 ))}
               </ul>
               {list.hasNextPage ? (
-                <Button className="dcms__more" onClick={() => void list.fetchNextPage()} loading={list.isFetchingNextPage}>
+                <Button
+                  className="dcms__more"
+                  onClick={() => void list.fetchNextPage()}
+                  loading={list.isFetchingNextPage}
+                >
                   Show more
                 </Button>
               ) : null}
@@ -168,11 +216,19 @@ export function ItemsPart({ game, overview }: { game: ContentGame; overview: Dai
         </Panel>
       )}
 
-
       {editing ? (
-        <ItemDialog key={editing === 'new' ? 'new' : editing.id} game={game} item={editing === 'new' ? null : editing} themes={overview.themes} defaultTheme={theme} onClose={() => setEditing(null)} />
+        <ItemDialog
+          key={editing === 'new' ? 'new' : editing.id}
+          game={game}
+          item={editing === 'new' ? null : editing}
+          themes={overview.themes}
+          defaultTheme={theme}
+          onClose={() => setEditing(null)}
+        />
       ) : null}
-      {importing ? <ImportDialog game={game} themes={overview.themes} defaultTheme={theme} onClose={() => setImporting(false)} /> : null}
+      {importing ? (
+        <ImportDialog game={game} themes={overview.themes} defaultTheme={theme} onClose={() => setImporting(false)} />
+      ) : null}
       <ConfirmDialog
         open={removing !== null}
         title={`Delete “${removing ? titleOf(removing.data) : ''}”?`}
@@ -235,8 +291,17 @@ function ItemRow({ item, themeTitle, busy, onOpen, onRetire, onRemove }: ItemRow
         </span>
       </button>
       <span className="dcms-item__tools">
-        <IconButton size="sm" icon={item.retired ? ArrowCounterClockwise : Archive} label={item.retired ? `Bring back “${title}”` : `Retire “${title}”`} tooltip disabled={busy} onClick={onRetire} />
-        {item.uses === 0 ? <IconButton size="sm" icon={Trash} label={`Delete “${title}”`} tooltip onClick={onRemove} /> : null}
+        <IconButton
+          size="sm"
+          icon={item.retired ? ArrowCounterClockwise : Archive}
+          label={item.retired ? `Bring back “${title}”` : `Retire “${title}”`}
+          tooltip
+          disabled={busy}
+          onClick={onRetire}
+        />
+        {item.uses === 0 ? (
+          <IconButton size="sm" icon={Trash} label={`Delete “${title}”`} tooltip onClick={onRemove} />
+        ) : null}
       </span>
     </li>
   );

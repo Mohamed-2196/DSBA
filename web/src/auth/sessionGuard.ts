@@ -17,7 +17,9 @@ async function errorCode(response: Response): Promise<string | null> {
     const body: unknown = await response.clone().json();
     if (typeof body !== 'object' || body === null || !('error' in body)) return null;
     const { error } = body;
-    return typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string' ? error.code : null;
+    return typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string'
+      ? error.code
+      : null;
   } catch {
     return null;
   }

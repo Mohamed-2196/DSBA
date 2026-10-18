@@ -1,5 +1,16 @@
 /* Manage → Guides: the preview drawer's note, and the install link's line. */
-.gedit-preview .ui-page-header { margin-top: 0; }
-.gedit-note { display: flex; gap: var(--sp-8); padding: var(--sp-12) var(--sp-16); }
-.gedit-note p { margin: 0; max-width: 75ch; }
-.gedit-install { align-self: center; }
+.gedit-preview .ui-page-header {
+  margin-top: 0;
+}
+.gedit-note {
+  display: flex;
+  gap: var(--sp-8);
+  padding: var(--sp-12) var(--sp-16);
+}
+.gedit-note p {
+  margin: 0;
+  max-width: 75ch;
+}
+.gedit-install {
+  align-self: center;
+}

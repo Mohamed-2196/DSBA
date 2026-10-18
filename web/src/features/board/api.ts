@@ -59,7 +59,9 @@ export function useBoards({ enabled = true }: { enabled?: boolean } = {}) {
 export function useBoard(boardId: string | null | undefined) {
   return useQuery({
     queryKey: BOARD_KEY(boardId),
-    queryFn: boardId ? () => call(api.GET('/api/v1/boards/{board_id}', { params: { path: { board_id: boardId } } })) : skipToken,
+    queryFn: boardId
+      ? () => call(api.GET('/api/v1/boards/{board_id}', { params: { path: { board_id: boardId } } }))
+      : skipToken,
     refetchOnMount: 'always',
   });
 }
@@ -85,7 +87,9 @@ export function useBoardLinks({ enabled = true }: { enabled?: boolean } = {}) {
 export function useCardDetail(cardId: string | null | undefined) {
   return useQuery({
     queryKey: CARD_DETAIL_KEY(cardId),
-    queryFn: cardId ? () => call(api.GET('/api/v1/board-cards/{card_id}', { params: { path: { card_id: cardId } } })) : skipToken,
+    queryFn: cardId
+      ? () => call(api.GET('/api/v1/board-cards/{card_id}', { params: { path: { card_id: cardId } } }))
+      : skipToken,
   });
 }
 
@@ -142,7 +146,9 @@ export function usePlaceBoard() {
       call(api.PUT('/api/v1/boards/{board_id}/place', { params: { path: { board_id: id } }, body: { afterId } })),
     onMutate: async ({ id, afterId }) => {
       const snapshot = await hold(qc, [BOARDS_KEY]);
-      qc.setQueryData<Boards>(BOARDS_KEY, (prev) => (prev ? { ...prev, boards: placeAfter(prev.boards, id, afterId) } : prev));
+      qc.setQueryData<Boards>(BOARDS_KEY, (prev) =>
+        prev ? { ...prev, boards: placeAfter(prev.boards, id, afterId) } : prev,
+      );
       return snapshot;
     },
     onError: (e, _vars, snapshot) => {
@@ -196,7 +202,12 @@ export function useUpdateColumn() {
   const toast = useToast();
   return useMutation({
     mutationFn: ({ boardId, columnId, patch }: { boardId: string; columnId: string; patch: ColumnUpdate }) =>
-      call(api.PATCH('/api/v1/boards/{board_id}/columns/{column_id}', { params: { path: { board_id: boardId, column_id: columnId } }, body: patch })),
+      call(
+        api.PATCH('/api/v1/boards/{board_id}/columns/{column_id}', {
+          params: { path: { board_id: boardId, column_id: columnId } },
+          body: patch,
+        }),
+      ),
     onError: (e) => toast.push({ tone: 'alert', title: 'The column wasn’t saved', body: errorMessage(e) }),
     onSuccess: (_summary, { boardId, patch }) => columnsChanged(qc, boardId, patch.done != null),
   });
@@ -207,12 +218,22 @@ export function usePlaceColumn() {
   const toast = useToast();
   return useMutation({
     mutationFn: ({ boardId, columnId, afterId }: { boardId: string; columnId: string; afterId: string | null }) =>
-      call(api.PUT('/api/v1/boards/{board_id}/columns/{column_id}/place', { params: { path: { board_id: boardId, column_id: columnId } }, body: { afterId } })),
+      call(
+        api.PUT('/api/v1/boards/{board_id}/columns/{column_id}/place', {
+          params: { path: { board_id: boardId, column_id: columnId } },
+          body: { afterId },
+        }),
+      ),
     onMutate: async ({ boardId, columnId, afterId }) => {
       const snapshot = await hold(qc, [BOARDS_KEY]);
       qc.setQueryData<Boards>(BOARDS_KEY, (prev) =>
         prev
-          ? { ...prev, boards: prev.boards.map((b) => (b.id === boardId ? { ...b, columns: placeAfter(b.columns, columnId, afterId) } : b)) }
+          ? {
+              ...prev,
+              boards: prev.boards.map((b) =>
+                b.id === boardId ? { ...b, columns: placeAfter(b.columns, columnId, afterId) } : b,
+              ),
+            }
           : prev,
       );
       return snapshot;
@@ -230,7 +251,11 @@ export function useDeleteColumn() {
   const toast = useToast();
   return useMutation({
     mutationFn: ({ boardId, columnId, moveTo }: { boardId: string; columnId: string; moveTo?: string }) =>
-      call(api.DELETE('/api/v1/boards/{board_id}/columns/{column_id}', { params: { path: { board_id: boardId, column_id: columnId }, query: { moveTo } } })),
+      call(
+        api.DELETE('/api/v1/boards/{board_id}/columns/{column_id}', {
+          params: { path: { board_id: boardId, column_id: columnId }, query: { moveTo } },
+        }),
+      ),
     onError: (e) => toast.push({ tone: 'alert', title: 'The column wasn’t deleted', body: errorMessage(e) }),
     onSuccess: (_summary, { boardId }) => columnsChanged(qc, boardId, true),
   });
@@ -261,7 +286,8 @@ export function useDeleteLabel() {
   const qc = useQueryClient();
   const toast = useToast();
   return useMutation({
-    mutationFn: (id: string) => call(api.DELETE('/api/v1/board-labels/{label_id}', { params: { path: { label_id: id } } })),
+    mutationFn: (id: string) =>
+      call(api.DELETE('/api/v1/board-labels/{label_id}', { params: { path: { label_id: id } } })),
     onError: (e) => toast.push({ tone: 'alert', title: 'The label wasn’t deleted', body: errorMessage(e) }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: BOARDS_KEY });
@@ -288,7 +314,12 @@ function cardWriteSettled(qc: QueryClient, keys: readonly (readonly unknown[])[]
 
 /** After a card was added, moved or deleted: its board(s), the open counts and the limits, the agenda, and the hub's
  *  "On your board" buttons. */
-const cardsChanged = (...boardIds: string[]): (readonly unknown[])[] => [...[...new Set(boardIds)].map((id) => BOARD_KEY(id)), BOARDS_KEY, AGENDA_KEY, LINKS_KEY];
+const cardsChanged = (...boardIds: string[]): (readonly unknown[])[] => [
+  ...[...new Set(boardIds)].map((id) => BOARD_KEY(id)),
+  BOARDS_KEY,
+  AGENDA_KEY,
+  LINKS_KEY,
+];
 
 /** Adds a card. Given its board and column, it shows at the end of the column at once (it can't be opened until
  *  the API has it); from elsewhere in the hub (a link) the API picks the board. */
@@ -338,7 +369,11 @@ export function useAddCard() {
       toast.push({ tone: 'alert', title: 'The card wasn’t added', body: errorMessage(e) });
     },
     onSuccess: (card, _body, context) => {
-      if (context?.tempId) editBoard(qc, card.boardId, (detail) => ({ ...detail, cards: detail.cards.map((c) => (c.id === context.tempId ? card : c)) }));
+      if (context?.tempId)
+        editBoard(qc, card.boardId, (detail) => ({
+          ...detail,
+          cards: detail.cards.map((c) => (c.id === context.tempId ? card : c)),
+        }));
     },
     onSettled: (card, _e, body) => {
       const boardId = card?.boardId ?? body.boardId;
@@ -359,10 +394,14 @@ export function useUpdateCard() {
   return useMutation({
     scope: SCOPE,
     mutationKey: CARD_WRITE,
-    mutationFn: ({ id, patch }: CardUpdate) => call(api.PATCH('/api/v1/board-cards/{card_id}', { params: { path: { card_id: id } }, body: patch })),
+    mutationFn: ({ id, patch }: CardUpdate) =>
+      call(api.PATCH('/api/v1/board-cards/{card_id}', { params: { path: { card_id: id } }, body: patch })),
     onMutate: async ({ id, boardId, patch }) => {
       const snapshot = await hold(qc, [BOARD_KEY(boardId), CARD_DETAIL_KEY(id)]);
-      editBoard(qc, boardId, (detail) => ({ ...detail, cards: detail.cards.map((c) => (c.id === id ? patchCard(c, patch) : c)) }));
+      editBoard(qc, boardId, (detail) => ({
+        ...detail,
+        cards: detail.cards.map((c) => (c.id === id ? patchCard(c, patch) : c)),
+      }));
       qc.setQueryData<BoardCardDetail>(CARD_DETAIL_KEY(id), (prev) => (prev ? patchCard(prev, patch) : prev));
       return snapshot;
     },
@@ -370,7 +409,8 @@ export function useUpdateCard() {
       putBack(qc, snapshot);
       toast.push({ tone: 'alert', title: 'The card wasn’t saved', body: errorMessage(e) });
     },
-    onSettled: (_card, _e, { id, boardId }) => cardWriteSettled(qc, [BOARD_KEY(boardId), CARD_DETAIL_KEY(id), AGENDA_KEY]),
+    onSettled: (_card, _e, { id, boardId }) =>
+      cardWriteSettled(qc, [BOARD_KEY(boardId), CARD_DETAIL_KEY(id), AGENDA_KEY]),
   });
 }
 
@@ -391,13 +431,21 @@ export function useMoveCard() {
     scope: SCOPE,
     mutationKey: CARD_WRITE,
     mutationFn: ({ id, columnId, afterId }: CardMove) =>
-      call(api.PUT('/api/v1/board-cards/{card_id}/place', { params: { path: { card_id: id } }, body: { columnId, afterId } })),
+      call(
+        api.PUT('/api/v1/board-cards/{card_id}/place', {
+          params: { path: { card_id: id } },
+          body: { columnId, afterId },
+        }),
+      ),
     onMutate: async ({ id, boardId, toBoardId, columnId, afterId }) => {
       const snapshot = await hold(qc, [BOARD_KEY(boardId)]);
       editBoard(qc, boardId, (detail) =>
         toBoardId && toBoardId !== boardId
           ? { ...detail, cards: detail.cards.filter((c) => c.id !== id) }
-          : { ...detail, cards: placeCard(detail.cards, detail.board.columns, id, columnId, afterId, new Date().toISOString()) },
+          : {
+              ...detail,
+              cards: placeCard(detail.cards, detail.board.columns, id, columnId, afterId, new Date().toISOString()),
+            },
       );
       return snapshot;
     },
@@ -405,7 +453,8 @@ export function useMoveCard() {
       putBack(qc, snapshot);
       toast.push({ tone: 'alert', title: 'The card wasn’t moved', body: errorMessage(e) });
     },
-    onSettled: (_card, _e, { id, boardId, toBoardId }) => cardWriteSettled(qc, [...cardsChanged(boardId, toBoardId ?? boardId), CARD_DETAIL_KEY(id)]),
+    onSettled: (_card, _e, { id, boardId, toBoardId }) =>
+      cardWriteSettled(qc, [...cardsChanged(boardId, toBoardId ?? boardId), CARD_DETAIL_KEY(id)]),
   });
 }
 
@@ -415,7 +464,8 @@ export function useDeleteCard() {
   return useMutation({
     scope: SCOPE,
     mutationKey: CARD_WRITE,
-    mutationFn: ({ id }: { id: string; boardId: string }) => call(api.DELETE('/api/v1/board-cards/{card_id}', { params: { path: { card_id: id } } })),
+    mutationFn: ({ id }: { id: string; boardId: string }) =>
+      call(api.DELETE('/api/v1/board-cards/{card_id}', { params: { path: { card_id: id } } })),
     onMutate: async ({ id, boardId }) => {
       const snapshot = await hold(qc, [BOARD_KEY(boardId)]);
       editBoard(qc, boardId, (detail) => ({ ...detail, cards: detail.cards.filter((c) => c.id !== id) }));
@@ -449,7 +499,12 @@ export function useAttachFile() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ cardId, uploadId }: OnCard & { uploadId: string }) =>
-      call(api.POST('/api/v1/board-cards/{card_id}/attachments', { params: { path: { card_id: cardId } }, body: { uploadId } })),
+      call(
+        api.POST('/api/v1/board-cards/{card_id}/attachments', {
+          params: { path: { card_id: cardId } },
+          body: { uploadId },
+        }),
+      ),
     onSettled: (_attachment, _e, vars) => cardDetailChanged(qc, vars, true),
   });
 }
@@ -459,7 +514,11 @@ export function useDetachFile() {
   const toast = useToast();
   return useMutation({
     mutationFn: ({ cardId, uploadId }: OnCard & { uploadId: string }) =>
-      call(api.DELETE('/api/v1/board-cards/{card_id}/attachments/{upload_id}', { params: { path: { card_id: cardId, upload_id: uploadId } } })),
+      call(
+        api.DELETE('/api/v1/board-cards/{card_id}/attachments/{upload_id}', {
+          params: { path: { card_id: cardId, upload_id: uploadId } },
+        }),
+      ),
     onError: (e) => toast.push({ tone: 'alert', title: 'The file wasn’t removed', body: errorMessage(e) }),
     onSettled: (_res, _e, vars) => cardDetailChanged(qc, vars, true),
   });
@@ -470,7 +529,9 @@ export function useAddComment() {
   const toast = useToast();
   return useMutation({
     mutationFn: ({ cardId, body }: OnCard & { body: string }) =>
-      call(api.POST('/api/v1/board-cards/{card_id}/comments', { params: { path: { card_id: cardId } }, body: { body } })),
+      call(
+        api.POST('/api/v1/board-cards/{card_id}/comments', { params: { path: { card_id: cardId } }, body: { body } }),
+      ),
     onError: (e) => toast.push({ tone: 'alert', title: 'The comment wasn’t added', body: errorMessage(e) }),
     onSuccess: (_comment, vars) => cardDetailChanged(qc, vars, false),
   });
@@ -481,7 +542,11 @@ export function useDeleteComment() {
   const toast = useToast();
   return useMutation({
     mutationFn: ({ cardId, commentId }: OnCard & { commentId: string }) =>
-      call(api.DELETE('/api/v1/board-cards/{card_id}/comments/{comment_id}', { params: { path: { card_id: cardId, comment_id: commentId } } })),
+      call(
+        api.DELETE('/api/v1/board-cards/{card_id}/comments/{comment_id}', {
+          params: { path: { card_id: cardId, comment_id: commentId } },
+        }),
+      ),
     onError: (e) => toast.push({ tone: 'alert', title: 'The comment wasn’t deleted', body: errorMessage(e) }),
     onSuccess: (_res, vars) => cardDetailChanged(qc, vars, false),
   });
@@ -511,7 +576,8 @@ export function useDeletePlan() {
   const toast = useToast();
   return useMutation({
     scope: SCOPE,
-    mutationFn: (moduleId: string) => call(api.DELETE('/api/v1/board-plans/{module_id}', { params: { path: { module_id: moduleId } } })),
+    mutationFn: (moduleId: string) =>
+      call(api.DELETE('/api/v1/board-plans/{module_id}', { params: { path: { module_id: moduleId } } })),
     onError: (e) => toast.push({ tone: 'alert', title: 'The plan wasn’t removed', body: errorMessage(e) }),
     onSettled: () => plansChanged(qc),
   });

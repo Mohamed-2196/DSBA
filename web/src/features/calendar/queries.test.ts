@@ -1,12 +1,40 @@
 import { describe, expect, it } from 'vitest';
 import { whenAndWhere } from './eventMeta';
-import { eventDays, filterEvents, groupByDay, groupByMonth, listOrder, nextExamFor, upcomingFrom, weekAhead, weekEnd } from './queries';
+import {
+  eventDays,
+  filterEvents,
+  groupByDay,
+  groupByMonth,
+  listOrder,
+  nextExamFor,
+  upcomingFrom,
+  weekAhead,
+  weekEnd,
+} from './queries';
 import type { CalendarEvent } from './types';
 
 let seq = 0;
 const ev = (date: string, over: Partial<CalendarEvent> = {}): CalendarEvent => {
   seq += 1;
-  return { id: `e${seq}`, date, endDate: null, time: null, place: null, title: `Event ${seq}`, type: 'exam', year: 2, moduleId: null, unitCode: null, duration: null, rules: null, source: null, checkedOn: null, employerId: null, sample: false, ...over };
+  return {
+    id: `e${seq}`,
+    date,
+    endDate: null,
+    time: null,
+    place: null,
+    title: `Event ${seq}`,
+    type: 'exam',
+    year: 2,
+    moduleId: null,
+    unitCode: null,
+    duration: null,
+    rules: null,
+    source: null,
+    checkedOn: null,
+    employerId: null,
+    sample: false,
+    ...over,
+  };
 };
 const ids = (events: CalendarEvent[]) => events.map((e) => e.id);
 
@@ -17,7 +45,9 @@ describe('listOrder', () => {
     const examSample = ev('2026-10-15', { sample: true });
     const exam = ev('2026-10-15');
     const early = ev('2026-10-14', { type: 'term' });
-    expect(ids(listOrder([mockSample, deadline, examSample, exam, early]))).toEqual(ids([early, exam, deadline, examSample, mockSample]));
+    expect(ids(listOrder([mockSample, deadline, examSample, exam, early]))).toEqual(
+      ids([early, exam, deadline, examSample, mockSample]),
+    );
   });
 });
 
@@ -69,7 +99,9 @@ describe('weekAhead', () => {
     const otherYear = ev('2026-10-14', { year: 3 });
     const forAll = ev('2026-10-15', { year: null, type: 'event' });
     expect(weekEnd(today)).toBe('2026-10-19');
-    expect(ids(weekAhead([t, last, tooLate, yesterday, otherYear, forAll], { year: 2, today }))).toEqual(ids([t, forAll, last]));
+    expect(ids(weekAhead([t, last, tooLate, yesterday, otherYear, forAll], { year: 2, today }))).toEqual(
+      ids([t, forAll, last]),
+    );
   });
 
   it('keeps a break that started earlier and runs into the week', () => {
@@ -105,7 +137,12 @@ describe('filterEvents and eventDays', () => {
   });
 
   it('lists every day an event covers', () => {
-    expect(eventDays({ date: '2026-12-30', endDate: '2027-01-02' })).toEqual(['2026-12-30', '2026-12-31', '2027-01-01', '2027-01-02']);
+    expect(eventDays({ date: '2026-12-30', endDate: '2027-01-02' })).toEqual([
+      '2026-12-30',
+      '2026-12-31',
+      '2027-01-01',
+      '2027-01-02',
+    ]);
     expect(eventDays({ date: '2026-12-30', endDate: null })).toEqual(['2026-12-30']);
   });
 });
@@ -125,7 +162,12 @@ describe('whenAndWhere', () => {
 
 describe('eventDays and groupByDay', () => {
   it('lists every day of an event that spans days, across the end of a month', () => {
-    expect(eventDays({ date: '2026-05-30', endDate: '2026-06-02' })).toEqual(['2026-05-30', '2026-05-31', '2026-06-01', '2026-06-02']);
+    expect(eventDays({ date: '2026-05-30', endDate: '2026-06-02' })).toEqual([
+      '2026-05-30',
+      '2026-05-31',
+      '2026-06-01',
+      '2026-06-02',
+    ]);
   });
 
   it('gives the date alone without an end date, or with one that is not after it', () => {

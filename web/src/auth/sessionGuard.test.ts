@@ -5,7 +5,8 @@ import { SIGNED_OUT_REASON, createSessionGuard, stepUpPurpose, type SessionGuard
 const API = 'http://127.0.0.1:8000';
 type Params = Parameters<NonNullable<Middleware['onResponse']>>[0];
 
-const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+const json = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 const refusal = (status: number, code: string) => json(status, { error: { code, message: 'x' } });
 
 function setup(over: Partial<SessionGuardHooks> = {}) {
@@ -39,7 +40,9 @@ function setup(over: Partial<SessionGuardHooks> = {}) {
 describe('session guard: 401 (UX-1)', () => {
   it('signs the same person in again and sends the action again, body and fresh token included', async () => {
     const { hooks, run, sent } = setup();
-    const result = await run('POST', '/api/v1/forum/threads/t1/replies', refusal(401, 'unauthenticated'), { body: 'My answer' });
+    const result = await run('POST', '/api/v1/forum/threads/t1/replies', refusal(401, 'unauthenticated'), {
+      body: 'My answer',
+    });
 
     expect(hooks.sessionEnded).toHaveBeenCalledWith({ userId: 'u1', write: true });
     expect(hooks.signIn).toHaveBeenCalledWith(SIGNED_OUT_REASON);
@@ -92,8 +95,12 @@ describe('session guard: 401 (UX-1)', () => {
 
   it('leaves sign-in and step-up requests alone', async () => {
     const { hooks, run } = setup();
-    expect(await run('POST', '/api/v1/auth/otp/verify', refusal(401, 'unauthenticated'), { code: '1' })).toBeUndefined();
-    expect(await run('POST', '/api/v1/me/step-up/verify', refusal(401, 'unauthenticated'), { code: '1' })).toBeUndefined();
+    expect(
+      await run('POST', '/api/v1/auth/otp/verify', refusal(401, 'unauthenticated'), { code: '1' }),
+    ).toBeUndefined();
+    expect(
+      await run('POST', '/api/v1/me/step-up/verify', refusal(401, 'unauthenticated'), { code: '1' }),
+    ).toBeUndefined();
     expect(hooks.sessionEnded).not.toHaveBeenCalled();
     expect(hooks.signIn).not.toHaveBeenCalled();
   });
@@ -102,7 +109,9 @@ describe('session guard: 401 (UX-1)', () => {
 describe('session guard: step-up (D2)', () => {
   it('asks for a code, then sends the change again', async () => {
     const { hooks, run, sent } = setup();
-    const result = await run('POST', '/api/v1/me/identifiers/otp', refusal(403, 'step_up_required'), { identifier: '+97333000000' });
+    const result = await run('POST', '/api/v1/me/identifiers/otp', refusal(403, 'step_up_required'), {
+      identifier: '+97333000000',
+    });
     expect(hooks.stepUp).toHaveBeenCalledWith('change how you sign in');
     expect(result?.status).toBe(200);
     expect(await sent[0].json()).toEqual({ identifier: '+97333000000' });
@@ -111,7 +120,10 @@ describe('session guard: step-up (D2)', () => {
 
   it('asks an admin for a code before a role change, then sends the change again (AD-1)', async () => {
     const { hooks, run, sent } = setup();
-    const result = await run('PATCH', '/api/v1/admin/roles/r1', refusal(403, 'step_up_required'), { version: 4, name: 'Newsletter team' });
+    const result = await run('PATCH', '/api/v1/admin/roles/r1', refusal(403, 'step_up_required'), {
+      version: 4,
+      name: 'Newsletter team',
+    });
     expect(hooks.stepUp).toHaveBeenCalledWith('change roles');
     expect(result?.status).toBe(200);
     expect(sent[0].method).toBe('PATCH');
@@ -133,14 +145,20 @@ describe('session guard: step-up (D2)', () => {
 
   it('says what the code is for', () => {
     expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me` })).toBe('delete your account');
-    expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me/identifiers/phone` })).toBe('remove your phone number');
-    expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me/identifiers/email` })).toBe('remove your email address');
+    expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me/identifiers/phone` })).toBe(
+      'remove your phone number',
+    );
+    expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me/identifiers/email` })).toBe(
+      'remove your email address',
+    );
     expect(stepUpPurpose({ method: 'POST', url: `${API}/api/v1/me/identifiers/otp` })).toBe('change how you sign in');
     expect(stepUpPurpose({ method: 'POST', url: `${API}/api/v1/admin/roles` })).toBe('change roles');
     expect(stepUpPurpose({ method: 'PATCH', url: `${API}/api/v1/admin/roles/r1` })).toBe('change roles');
     expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/admin/roles/r1` })).toBe('change roles');
     expect(stepUpPurpose({ method: 'PUT', url: `${API}/api/v1/admin/users/u1/roles` })).toBe('change someone’s roles');
     expect(stepUpPurpose({ method: 'PUT', url: `${API}/api/v1/admin/features/calendar` })).toBe('switch a feature');
-    expect(stepUpPurpose({ method: 'PUT', url: `${API}/api/v1/mini-noora/settings` })).toBe('change Mini Noora’s words');
+    expect(stepUpPurpose({ method: 'PUT', url: `${API}/api/v1/mini-noora/settings` })).toBe(
+      'change Mini Noora’s words',
+    );
   });
 });

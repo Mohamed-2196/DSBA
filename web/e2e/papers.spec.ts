@@ -25,7 +25,13 @@ test.afterAll(async ({ browser }) => {
   await ctx.close();
 });
 
-async function share(page: Page, file: string, title: string, kind: 'past-paper' | 'examiners-report', zone: '' | 'A'): Promise<Item> {
+async function share(
+  page: Page,
+  file: string,
+  title: string,
+  kind: 'past-paper' | 'examiners-report',
+  zone: '' | 'A',
+): Promise<Item> {
   await page.goto('/library?upload=1');
   const dialog = page.getByRole('dialog');
   await expect(dialog).toContainText('Upload a file');
@@ -37,7 +43,9 @@ async function share(page: Page, file: string, title: string, kind: 'past-paper'
   await dialog.getByLabel('Session').selectOption('may');
   await dialog.getByLabel('Zone').selectOption(zone);
   const [resp] = await Promise.all([
-    page.waitForResponse((r) => r.url().endsWith('/api/v1/library/items') && r.request().method() === 'POST', { timeout: 30_000 }),
+    page.waitForResponse((r) => r.url().endsWith('/api/v1/library/items') && r.request().method() === 'POST', {
+      timeout: 30_000,
+    }),
     dialog.locator('[data-hub="upload-submit"]').click(),
   ]);
   expect(resp.status(), await resp.text()).toBe(201);
@@ -48,7 +56,11 @@ async function share(page: Page, file: string, title: string, kind: 'past-paper'
   return item;
 }
 
-test('a paper sits with its report, Sara times herself, tags a question and finds it under its chapter', async ({ sara, rep, run }) => {
+test('a paper sits with its report, Sara times herself, tags a question and finds it under its chapter', async ({
+  sara,
+  rep,
+  run,
+}) => {
   const files = makeFiles(run.tag);
   const made: Item[] = [];
   try {
@@ -60,13 +72,23 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     const sittings = sara.locator('[data-hub="paper-sittings"]');
     // Imported papers may share the sitting, so a label can carry a number ("Paper 2").
     const may = sittings.getByRole('listitem').filter({ has: sara.getByRole('heading', { name: 'May 2024' }) });
-    await expect(may.getByRole('link', { name: new RegExp(`^Examiners’ report( \\d)?: EC1002 commentary May 2024 \\[e2e ${run.tag}\\]$`) })).toBeVisible();
-    await may.getByRole('link', { name: new RegExp(`^Paper( \\d)?: EC1002 ZA May 2024 \\[e2e ${run.tag}\\]$`) }).click();
+    await expect(
+      may.getByRole('link', {
+        name: new RegExp(`^Examiners’ report( \\d)?: EC1002 commentary May 2024 \\[e2e ${run.tag}\\]$`),
+      }),
+    ).toBeVisible();
+    await may
+      .getByRole('link', { name: new RegExp(`^Paper( \\d)?: EC1002 ZA May 2024 \\[e2e ${run.tag}\\]$`) })
+      .click();
     await expect(sara).toHaveURL(new RegExp(`/library/${paper.slug}$`));
 
     const sitting = sara.locator('[data-hub="file-sitting"]');
     await expect(sitting.getByRole('heading', { name: 'May 2024 sitting' })).toBeVisible();
-    await expect(sitting.getByRole('link', { name: /Examiners’ report/ }).and(sara.getByTitle(`EC1002 commentary May 2024 [e2e ${run.tag}]`))).toBeVisible();
+    await expect(
+      sitting
+        .getByRole('link', { name: /Examiners’ report/ })
+        .and(sara.getByTitle(`EC1002 commentary May 2024 [e2e ${run.tag}]`)),
+    ).toBeVisible();
 
     await sara.getByRole('button', { name: 'Time me' }).click();
     await sara.getByRole('menuitem', { name: '1 hour' }).click();
@@ -77,7 +99,8 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     await tags.getByLabel('Question').selectOption('3');
     await tags.getByLabel('Page').fill('2');
     await tags.getByLabel('Chapter').selectOption({ index: 1 });
-    const chapter = (await tags.getByLabel('Chapter').locator('option:checked').textContent())?.replace(/^\d+\.\s*/, '') ?? '';
+    const chapter =
+      (await tags.getByLabel('Chapter').locator('option:checked').textContent())?.replace(/^\d+\.\s*/, '') ?? '';
     await tags.getByRole('button', { name: 'Tag the question' }).click();
     await expect(tags.getByRole('listitem').filter({ hasText: chapter })).toContainText('Q3 (p. 2)');
 

@@ -7,7 +7,9 @@
   border-bottom: 1px solid transparent;
   transition: border-color var(--dur) var(--ease);
 }
-.shell-topbar.is-scrolled { border-bottom-color: var(--line); }
+.shell-topbar.is-scrolled {
+  border-bottom-color: var(--line);
+}
 .shell-topbar__inner {
   display: flex;
   align-items: center;
@@ -17,22 +19,59 @@
   margin-inline: auto;
   padding: 0 var(--page-pad-right) 0 var(--page-pad-left);
 }
-.shell-topbar__brand { display: none; }
-.shell-topbar__search { flex: 0 1 440px; }
-.shell-topbar__actions { display: flex; align-items: center; gap: var(--sp-8); margin-left: auto; }
-.shell-topbar__search-icon, .shell-topbar__year { display: none; }
+.shell-topbar__brand {
+  display: none;
+}
+.shell-topbar__search {
+  flex: 0 1 440px;
+}
+.shell-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  margin-left: auto;
+}
+.shell-topbar__search-icon,
+.shell-topbar__year {
+  display: none;
+}
 
 @media (max-width: 699px) {
-  .shell-topbar { background: var(--surface); border-bottom-color: var(--line); height: 56px; }
-  .shell-topbar__inner { gap: var(--sp-8); padding: 0 var(--sp-8) 0 var(--sp-16); }
-  .shell-topbar__brand { display: inline-flex; gap: 9px; }
-  .shell-topbar__brand .shell-brand__name { font-size: 17px; }
-  .shell-topbar__search, .shell-topbar__contribute { display: none; }
-  .shell-topbar__search-icon { display: inline-grid; }
-  .shell-topbar__year { display: inline-flex; margin-right: 2px; }
-  .shell-topbar__actions { gap: 2px; }
+  .shell-topbar {
+    background: var(--surface);
+    border-bottom-color: var(--line);
+    height: 56px;
+  }
+  .shell-topbar__inner {
+    gap: var(--sp-8);
+    padding: 0 var(--sp-8) 0 var(--sp-16);
+  }
+  .shell-topbar__brand {
+    display: inline-flex;
+    gap: 9px;
+  }
+  .shell-topbar__brand .shell-brand__name {
+    font-size: 17px;
+  }
+  .shell-topbar__search,
+  .shell-topbar__contribute {
+    display: none;
+  }
+  .shell-topbar__search-icon {
+    display: inline-grid;
+  }
+  .shell-topbar__year {
+    display: inline-flex;
+    margin-right: 2px;
+  }
+  .shell-topbar__actions {
+    gap: 2px;
+  }
 }
 
 @media (pointer: coarse) {
-  .shell-topbar__brand { align-items: center; min-height: 44px; }
+  .shell-topbar__brand {
+    align-items: center;
+    min-height: 44px;
+  }
 }

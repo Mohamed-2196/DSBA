@@ -23,7 +23,11 @@ export interface PresetLookups {
  *              choice). Without one: the module's year, then the person's own year, then the default category.
  *   ?title     the title, cut to the composer's limit
  */
-export function composerPresets(params: URLSearchParams, find: PresetLookups, ownYear: number | null | undefined): ThreadForm | null {
+export function composerPresets(
+  params: URLSearchParams,
+  find: PresetLookups,
+  ownYear: number | null | undefined,
+): ThreadForm | null {
   const moduleParam = params.get('module')?.trim() ?? '';
   const mod = moduleParam ? (find.getModule(moduleParam) ?? find.getModuleByUnitCode(moduleParam.toUpperCase())) : null;
   const categoryParam = params.get('category');

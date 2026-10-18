@@ -39,9 +39,18 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
   pointer-events: none;
 }
-.nl-cover--navy::after { box-shadow: inset 0 0 0 1px var(--tile-stroke); }
+.nl-cover--navy::after {
+  box-shadow: inset 0 0 0 1px var(--tile-stroke);
+}
 /* geometricPrecision: no hinting and fractional advances, so the letterspacing survives at thumbnail size */
-.nl-cover__svg { position: relative; z-index: 2; display: block; width: 100%; height: 100%; text-rendering: geometricPrecision; }
+.nl-cover__svg {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-rendering: geometricPrecision;
+}
 
 /* ── Type on every cover ───────────────────────────────────────────────── */
 .nl-cover__nameplate {
@@ -52,9 +61,16 @@
   fill: var(--cover-ink);
 }
 /* "DSBA" sits on the highlighter swipe, in the ink that is legible on it on any stock */
-.nl-cover .nl-cover__dsba { fill: var(--highlight-ink); }
-.nl-cover__swipe { fill: var(--highlight); }
-.nl-cover__swipe .nl-cover__swipe-low { fill: #f5c400; fill-opacity: 0.22; }
+.nl-cover .nl-cover__dsba {
+  fill: var(--highlight-ink);
+}
+.nl-cover__swipe {
+  fill: var(--highlight);
+}
+.nl-cover__swipe .nl-cover__swipe-low {
+  fill: #f5c400;
+  fill-opacity: 0.22;
+}
 
 .nl-cover__folio {
   font-family: var(--font-sans);
@@ -87,9 +103,20 @@
 }
 
 /* ── The typographic cover ─────────────────────────────────────────────── */
-.nl-cover__rule { stroke: var(--cover-ink); stroke-width: 0.6; fill: none; }
-.nl-cover__rule--heavy { stroke-width: 2.4; }
-.nl-cover__hair { stroke: var(--cover-ink); stroke-opacity: .24; stroke-width: 0.5; fill: none; }
+.nl-cover__rule {
+  stroke: var(--cover-ink);
+  stroke-width: 0.6;
+  fill: none;
+}
+.nl-cover__rule--heavy {
+  stroke-width: 2.4;
+}
+.nl-cover__hair {
+  stroke: var(--cover-ink);
+  stroke-opacity: 0.24;
+  stroke-width: 0.5;
+  fill: none;
+}
 .nl-cover__numeral {
   font-family: var(--font-serif);
   font-weight: 400;
@@ -100,7 +127,15 @@
 }
 
 /* ── The cover with an illustration ────────────────────────────────────── */
-.nl-cover__art { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
+.nl-cover__art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
 /* Only as much scrim as the type needs: it fades out before the middle of the picture. */
 .nl-cover--art .nl-cover__sheet::before {
   content: '';
@@ -108,19 +143,25 @@
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(to bottom,
+    linear-gradient(
+      to bottom,
       color-mix(in srgb, var(--cover-scrim) 58%, transparent) 0%,
       color-mix(in srgb, var(--cover-scrim) 46%, transparent) 10%,
       color-mix(in srgb, var(--cover-scrim) 24%, transparent) 20%,
       color-mix(in srgb, var(--cover-scrim) 8%, transparent) 27%,
-      transparent 33%),
-    linear-gradient(to top,
+      transparent 33%
+    ),
+    linear-gradient(
+      to top,
       color-mix(in srgb, var(--cover-scrim) 74%, transparent) 0%,
       color-mix(in srgb, var(--cover-scrim) 62%, transparent) 9%,
       color-mix(in srgb, var(--cover-scrim) 36%, transparent) 19%,
       color-mix(in srgb, var(--cover-scrim) 12%, transparent) 27%,
-      transparent 34%);
+      transparent 34%
+    );
   pointer-events: none;
 }
 /* on a picture the small type is nearly as strong as the rest */
-.nl-cover--art .nl-cover__sheet { --cover-soft: color-mix(in srgb, var(--cover-ink) 86%, transparent); }
+.nl-cover--art .nl-cover__sheet {
+  --cover-soft: color-mix(in srgb, var(--cover-ink) 86%, transparent);
+}

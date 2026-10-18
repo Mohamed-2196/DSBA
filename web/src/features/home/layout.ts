@@ -27,17 +27,29 @@ export function useHomeLayout(available: ReadonlySet<HomeBlock>): HomeLayout {
   const { mutate } = useUpdatePreferences();
   const { push } = useToast();
   const accountBlocks = account?.preferences.homeBlocks ?? null;
-  const saved = useMemo(() => (account ? accountBlocks : normalizeBlocks(guestRaw)), [account, accountBlocks, guestRaw]);
+  const saved = useMemo(
+    () => (account ? accountBlocks : normalizeBlocks(guestRaw)),
+    [account, accountBlocks, guestRaw],
+  );
   const site = useSite();
   const hubDefault = site.data?.homeBlocks ?? null;
-  const defaults = useMemo(() => (hubDefault ? (account ? hubDefault : guestDefault(hubDefault)) : []), [hubDefault, account]);
+  const defaults = useMemo(
+    () => (hubDefault ? (account ? hubDefault : guestDefault(hubDefault)) : []),
+    [hubDefault, account],
+  );
   const layout = useMemo(() => layoutOf(saved, defaults, available), [saved, defaults, available]);
 
   const save = useCallback(
     (shown: HomeBlock[] | null) => {
       const next = shown === null ? null : withUnavailable(shown, saved, defaults, available);
       if (account) {
-        mutate({ homeBlocks: next }, { onError: (e) => push({ tone: 'alert', title: 'Your Home wasn’t saved', body: errorMessage(e, 'Try again in a moment.') }) });
+        mutate(
+          { homeBlocks: next },
+          {
+            onError: (e) =>
+              push({ tone: 'alert', title: 'Your Home wasn’t saved', body: errorMessage(e, 'Try again in a moment.') }),
+          },
+        );
       } else setGuestRaw(next ?? undefined);
     },
     [account, saved, defaults, available, mutate, push, setGuestRaw],
@@ -45,6 +57,9 @@ export function useHomeLayout(available: ReadonlySet<HomeBlock>): HomeLayout {
 
   const waiting = saved === null && hubDefault === null;
   const { error, isError, isFetching, refetch } = site;
-  const problem = useMemo(() => (waiting && isError ? { error, retry: () => void refetch(), retrying: isFetching } : null), [waiting, isError, error, isFetching, refetch]);
+  const problem = useMemo(
+    () => (waiting && isError ? { error, retry: () => void refetch(), retrying: isFetching } : null),
+    [waiting, isError, error, isFetching, refetch],
+  );
   return { ...layout, custom: saved !== null, waiting, problem, save };
 }

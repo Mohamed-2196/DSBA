@@ -1,6 +1,14 @@
 import type { CaptureResult } from 'posthog-js';
 import { describe, expect, it } from 'vitest';
-import { analyticsConfig, DEFAULT_POSTHOG_HOST, featuresProperty, prepareEvent, scrubEvent, setVisitFeatures, withoutQuery } from './analytics';
+import {
+  analyticsConfig,
+  DEFAULT_POSTHOG_HOST,
+  featuresProperty,
+  prepareEvent,
+  scrubEvent,
+  setVisitFeatures,
+  withoutQuery,
+} from './analytics';
 
 describe('analyticsConfig (security review SEC-8)', () => {
   const config = analyticsConfig();
@@ -83,13 +91,20 @@ describe('featuresProperty (D13)', () => {
   });
 
   it('survives the scrub: page views keep it', () => {
-    const event = { event: '$pageview', properties: { features: ['forum'], $current_url: 'https://hub.example.com/forum?q=x' } } as unknown as CaptureResult;
+    const event = {
+      event: '$pageview',
+      properties: { features: ['forum'], $current_url: 'https://hub.example.com/forum?q=x' },
+    } as unknown as CaptureResult;
     expect(scrubEvent(event)?.properties.features).toEqual(['forum']);
   });
 });
 
 describe('the features list on events (D13)', () => {
-  const page = () => ({ event: '$pageview', properties: { $current_url: 'https://hub.example.com/forum?q=x' } }) as unknown as CaptureResult;
+  const page = () =>
+    ({
+      event: '$pageview',
+      properties: { $current_url: 'https://hub.example.com/forum?q=x' },
+    }) as unknown as CaptureResult;
 
   it('gives every event the current list, and follows setVisitFeatures', () => {
     setVisitFeatures(['noora', 'forum']);

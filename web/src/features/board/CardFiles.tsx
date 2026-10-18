@@ -16,7 +16,16 @@ import {
 } from '@phosphor-icons/react';
 import { useId, useRef, useState, type ChangeEvent } from 'react';
 import type { BoardCardDetail, CardAttachment } from '../../api/types';
-import { checkUpload, fileExtension, formatSize, progressText, uploadErrorMessage, uploadFile, UPLOAD_RULES, type UploadProgress } from '../../api/uploads';
+import {
+  checkUpload,
+  fileExtension,
+  formatSize,
+  progressText,
+  uploadErrorMessage,
+  uploadFile,
+  UPLOAD_RULES,
+  type UploadProgress,
+} from '../../api/uploads';
 import { useToast } from '../../state';
 import { Badge, Button, ConfirmDialog, IconButton } from '../../ui';
 import { boardFileHref, useAttachFile, useDetachFile, useUpdateCard } from './api';
@@ -53,7 +62,11 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
     let room = MAX_FILES - files.length;
     for (const file of chosen) {
       if (room <= 0) {
-        toast.push({ tone: 'alert', title: `${file.name} wasn’t added`, body: `A card holds ${MAX_FILES} files. Delete one first.` });
+        toast.push({
+          tone: 'alert',
+          title: `${file.name} wasn’t added`,
+          body: `A card holds ${MAX_FILES} files. Delete one first.`,
+        });
         continue;
       }
       const problem = checkUpload('board', file);
@@ -63,7 +76,9 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
       }
       setSending({ name: file.name, progress: { loaded: 0, total: file.size } });
       try {
-        const up = await uploadFile('board', file, { onProgress: (progress) => setSending({ name: file.name, progress }) });
+        const up = await uploadFile('board', file, {
+          onProgress: (progress) => setSending({ name: file.name, progress }),
+        });
         await attach.mutateAsync({ cardId: card.id, boardId: card.boardId, uploadId: up.uploadId });
         room -= 1;
       } catch (e) {
@@ -79,7 +94,8 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
     if (chosen.length) void send(chosen);
   };
 
-  const setCover = (file: CardAttachment | null) => update.mutate({ id: card.id, boardId: card.boardId, patch: { coverId: file ? file.id : null } });
+  const setCover = (file: CardAttachment | null) =>
+    update.mutate({ id: card.id, boardId: card.boardId, patch: { coverId: file ? file.id : null } });
 
   const actions = (file: CardAttachment) => (
     <span className="card-files__actions">
@@ -94,8 +110,17 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
           </Button>
         )
       ) : null}
-      <IconButton label={`Download ${file.fileName}`} icon={DownloadSimple} size="sm" href={boardFileHref(file.id, true)} external={false} download={file.fileName} />
-      {readOnly ? null : <IconButton label={`Delete ${file.fileName}`} icon={Trash} size="sm" onClick={() => setDeleting(file)} />}
+      <IconButton
+        label={`Download ${file.fileName}`}
+        icon={DownloadSimple}
+        size="sm"
+        href={boardFileHref(file.id, true)}
+        external={false}
+        download={file.fileName}
+      />
+      {readOnly ? null : (
+        <IconButton label={`Delete ${file.fileName}`} icon={Trash} size="sm" onClick={() => setDeleting(file)} />
+      )}
     </span>
   );
 
@@ -109,8 +134,25 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
         </h3>
         {readOnly ? null : (
           <>
-            <input ref={inputRef} type="file" multiple className="visually-hidden" tabIndex={-1} aria-hidden="true" accept={UPLOAD_RULES.board.accept} onChange={onPick} />
-            <Button size="sm" variant="secondary" leadingIcon={Plus} loading={!!sending} disabled={full} onClick={() => inputRef.current?.click()} data-hub="board-add-file">
+            <input
+              ref={inputRef}
+              type="file"
+              multiple
+              className="visually-hidden"
+              tabIndex={-1}
+              aria-hidden="true"
+              accept={UPLOAD_RULES.board.accept}
+              onChange={onPick}
+            />
+            <Button
+              size="sm"
+              variant="secondary"
+              leadingIcon={Plus}
+              loading={!!sending}
+              disabled={full}
+              onClick={() => inputRef.current?.click()}
+              data-hub="board-add-file"
+            >
               Add files
             </Button>
           </>
@@ -158,7 +200,13 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
               <li key={file.id} className="card-files__file">
                 <KindIcon className="card-files__icon" aria-hidden="true" />
                 <div className="card-files__meta">
-                  <a href={boardFileHref(file.id)} target="_blank" rel="noopener noreferrer" className="card-files__name" title={file.fileName}>
+                  <a
+                    href={boardFileHref(file.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="card-files__name"
+                    title={file.fileName}
+                  >
                     {file.fileName}
                     <span className="visually-hidden"> (opens in a new tab)</span>
                   </a>
@@ -172,9 +220,15 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
       ) : null}
 
       {!files.length && !sending ? (
-        <p className="card-detail__none">{readOnly ? 'No files.' : 'Add a brief, a PDF or photos of your notes. Pictures show here, and one can be the card’s cover.'}</p>
+        <p className="card-detail__none">
+          {readOnly
+            ? 'No files.'
+            : 'Add a brief, a PDF or photos of your notes. Pictures show here, and one can be the card’s cover.'}
+        </p>
       ) : null}
-      {full && !readOnly ? <p className="card-detail__none">A card holds {MAX_FILES} files. Delete one to add another.</p> : null}
+      {full && !readOnly ? (
+        <p className="card-detail__none">A card holds {MAX_FILES} files. Delete one to add another.</p>
+      ) : null}
 
       <ConfirmDialog
         open={!!deleting}

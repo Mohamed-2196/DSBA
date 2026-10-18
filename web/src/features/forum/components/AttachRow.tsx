@@ -22,7 +22,8 @@ export function AttachRow({ images }: { images: AttachImages }) {
         {images.cards.length ? 'Attach another image' : 'Attach image'}
       </Button>
       <span className="forum-composer__attach-note">
-        A photo of the question or your working. {UPLOAD_RULES.forum_image.summary} It goes into your post where the cursor is.
+        A photo of the question or your working. {UPLOAD_RULES.forum_image.summary} It goes into your post where the
+        cursor is.
       </span>
     </div>
   );

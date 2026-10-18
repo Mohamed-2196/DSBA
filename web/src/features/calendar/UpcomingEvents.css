@@ -7,8 +7,13 @@
   background: var(--surface);
   overflow: hidden;
 }
-.cal-upcoming__list { display: flex; flex-direction: column; }
-.cal-upcoming__list > li + li { border-top: 1px solid var(--line); }
+.cal-upcoming__list {
+  display: flex;
+  flex-direction: column;
+}
+.cal-upcoming__list > li + li {
+  border-top: 1px solid var(--line);
+}
 
 .cal-upcoming__row {
   display: grid;
@@ -20,10 +25,20 @@
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease);
 }
-.cal-upcoming__row:hover { background: var(--surface-2); }
-.cal-upcoming__row:focus-visible { outline-offset: -2px; border-radius: var(--r-panel); }
+.cal-upcoming__row:hover {
+  background: var(--surface-2);
+}
+.cal-upcoming__row:focus-visible {
+  outline-offset: -2px;
+  border-radius: var(--r-panel);
+}
 
-.cal-upcoming__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cal-upcoming__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
 .cal-upcoming__title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -49,7 +64,13 @@
   font-size: var(--fs-12);
   font-weight: var(--fw-medium);
 }
-.cal-upcoming__all { margin-left: 4px; padding-left: 8px; border-left: 1px solid var(--line-strong); line-height: 1; white-space: nowrap; } /* UX-13: one line each */
+.cal-upcoming__all {
+  margin-left: 4px;
+  padding-left: 8px;
+  border-left: 1px solid var(--line-strong);
+  line-height: 1;
+  white-space: nowrap;
+} /* UX-13: one line each */
 
 .cal-upcoming__count {
   color: var(--ink);
@@ -60,20 +81,54 @@
   text-align: right;
   text-wrap: balance;
 }
-.cal-upcoming__count.is-soon.is-exam { color: var(--alert-strong); }
+.cal-upcoming__count.is-soon.is-exam {
+  color: var(--alert-strong);
+}
 
 /* Narrow containers (a phone, the forum sidebar): the title gets the full width, the countdown shares the meta line. */
 @container (max-width: 420px) {
-  .cal-upcoming__row { grid-template-columns: 44px minmax(0, 1fr) auto; row-gap: 4px; column-gap: 12px; padding: 12px 14px; }
-  .cal-upcoming__date { grid-row: 1 / span 2; width: 44px; }
-  .cal-upcoming__body { display: contents; }
-  .cal-upcoming__title { grid-column: 2 / span 2; grid-row: 1; align-self: end; }
-  .cal-upcoming__meta { grid-column: 2; grid-row: 2; align-self: start; }
-  .cal-upcoming__count { grid-column: 3; grid-row: 2; align-self: start; color: var(--ink-2); font-size: var(--fs-12); }
+  .cal-upcoming__row {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    row-gap: 4px;
+    column-gap: 12px;
+    padding: 12px 14px;
+  }
+  .cal-upcoming__date {
+    grid-row: 1 / span 2;
+    width: 44px;
+  }
+  .cal-upcoming__body {
+    display: contents;
+  }
+  .cal-upcoming__title {
+    grid-column: 2 / span 2;
+    grid-row: 1;
+    align-self: end;
+  }
+  .cal-upcoming__meta {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+  }
+  .cal-upcoming__count {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: start;
+    color: var(--ink-2);
+    font-size: var(--fs-12);
+  }
 }
 
 /* Loading: the same rows, drawn as skeletons. */
-.cal-upcoming__row--loading { cursor: default; }
-.cal-upcoming__row--loading:hover { background: none; }
-.cal-upcoming__row--loading .cal-upcoming__body { gap: 8px; }
-.cal-upcoming__error { margin-bottom: var(--sp-8); }
+.cal-upcoming__row--loading {
+  cursor: default;
+}
+.cal-upcoming__row--loading:hover {
+  background: none;
+}
+.cal-upcoming__row--loading .cal-upcoming__body {
+  gap: 8px;
+}
+.cal-upcoming__error {
+  margin-bottom: var(--sp-8);
+}

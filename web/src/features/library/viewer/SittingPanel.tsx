@@ -12,10 +12,16 @@ export function SittingPanel({ item, linkState }: { item: LibraryItem; linkState
   const ctx = paperContext(papers.data?.sittings, item.id);
   if (!ctx) return null;
   const links: { item: LibraryItem; label: string }[] = [
-    ...ctx.reports.map((f) => ({ item: f, label: f.zone && f.zone !== item.zone ? `Examiners’ report, ${zoneLabel(f.zone)}` : 'Examiners’ report' })),
+    ...ctx.reports.map((f) => ({
+      item: f,
+      label: f.zone && f.zone !== item.zone ? `Examiners’ report, ${zoneLabel(f.zone)}` : 'Examiners’ report',
+    })),
     ...ctx.solutions.map((f) => ({ item: f, label: 'Solutions' })),
     ...(item.kind === 'past-paper' ? [] : ctx.zone.papers.map((f) => ({ item: f, label: 'The paper' }))),
-    ...ctx.otherPapers.map(({ zone, item: f }) => ({ item: f, label: zone ? `${zoneLabel(zone)} paper` : 'Paper for all zones' })),
+    ...ctx.otherPapers.map(({ zone, item: f }) => ({
+      item: f,
+      label: zone ? `${zoneLabel(zone)} paper` : 'Paper for all zones',
+    })),
   ];
   return (
     <section className="lib-meta__sitting" aria-labelledby="lib-meta-sitting" data-hub="file-sitting">

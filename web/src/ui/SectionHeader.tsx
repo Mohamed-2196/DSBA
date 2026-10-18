@@ -16,7 +16,15 @@ export interface SectionHeaderProps {
 }
 
 /** Heading row for a page section: title (+ optional description) left, action right. */
-export function SectionHeader({ title, description, action, as: H = 'h2', id, className, children }: SectionHeaderProps) {
+export function SectionHeader({
+  title,
+  description,
+  action,
+  as: H = 'h2',
+  id,
+  className,
+  children,
+}: SectionHeaderProps) {
   return (
     <div className={cx('ui-section-header', className)}>
       <div className="ui-section-header__text">

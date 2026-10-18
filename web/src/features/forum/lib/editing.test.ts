@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { altFromFileName, bold, bulletList, code, imageMarkdown, insertBlock, italic, link, numberedList, quote, removeImageLines } from './editing';
+import {
+  altFromFileName,
+  bold,
+  bulletList,
+  code,
+  imageMarkdown,
+  insertBlock,
+  italic,
+  link,
+  numberedList,
+  quote,
+  removeImageLines,
+} from './editing';
 
 const MEDIA = '/api/v1/media/7511c4f7-ffbf-4f8e-8500-93334507e674';
 

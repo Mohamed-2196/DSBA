@@ -1,7 +1,22 @@
-.yr { display: flex; align-items: center; gap: var(--sp-12); }
-.yr__label { flex: 0 0 auto; color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
-.yr__seg { flex: 1 1 auto; }
-.yr__seg .ui-seg__item { font-size: var(--fs-14); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+.yr {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+}
+.yr__label {
+  flex: 0 0 auto;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.yr__seg {
+  flex: 1 1 auto;
+}
+.yr__seg .ui-seg__item {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
 
 .yr-compact {
   --c: var(--surface-2);
@@ -19,22 +34,53 @@
   font-size: var(--fs-14);
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
-  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  transition:
+    background-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
 }
-.yr-compact--y1 { --c: var(--y1); --c-on: var(--on-y1); }
-.yr-compact--y2 { --c: var(--y2); --c-on: var(--on-y2); }
-.yr-compact--y3 { --c: var(--y3); --c-on: var(--on-y3); }
-.yr-compact__caret { font-size: 12px; opacity: .75; }
+.yr-compact--y1 {
+  --c: var(--y1);
+  --c-on: var(--on-y1);
+}
+.yr-compact--y2 {
+  --c: var(--y2);
+  --c-on: var(--on-y2);
+}
+.yr-compact--y3 {
+  --c: var(--y3);
+  --c-on: var(--on-y3);
+}
+.yr-compact__caret {
+  font-size: 12px;
+  opacity: 0.75;
+}
 
-.yr-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; background: var(--c); }
-.yr-dot--y1 { --c: var(--y1); }
-.yr-dot--y2 { --c: var(--y2); }
-.yr-dot--y3 { --c: var(--y3); }
+.yr-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  background: var(--c);
+}
+.yr-dot--y1 {
+  --c: var(--y1);
+}
+.yr-dot--y2 {
+  --c: var(--y2);
+}
+.yr-dot--y3 {
+  --c: var(--y3);
+}
 
 /* Touch screens: the button is a 44px target (UX review UX-11) with the 32px pill drawn inside it. The focus ring
    goes round the pill, 2px off it, as everywhere else. */
 @media (pointer: coarse) {
-  .yr-compact { position: relative; z-index: 0; height: 44px; background: none; }
+  .yr-compact {
+    position: relative;
+    z-index: 0;
+    height: 44px;
+    background: none;
+  }
   .yr-compact::before {
     content: '';
     position: absolute;
@@ -44,6 +90,12 @@
     background: var(--c);
     transition: background-color var(--dur) var(--ease);
   }
-  .yr-compact:focus-visible { outline: none; }
-  .yr-compact:focus-visible::before { box-shadow: 0 0 0 var(--focus-offset) var(--surface), 0 0 0 calc(var(--focus-offset) + var(--focus-width)) var(--focus-color); }
+  .yr-compact:focus-visible {
+    outline: none;
+  }
+  .yr-compact:focus-visible::before {
+    box-shadow:
+      0 0 0 var(--focus-offset) var(--surface),
+      0 0 0 calc(var(--focus-offset) + var(--focus-width)) var(--focus-color);
+  }
 }

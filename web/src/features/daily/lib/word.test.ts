@@ -11,9 +11,7 @@ describe('keyMarks', () => {
   });
 
   it('never lets a later miss hide a letter found before (a repeated letter)', () => {
-    const marks = keyMarks([
-      { word: 'SPEED', marks: ['hit', 'near', 'hit', 'miss', 'miss'] },
-    ]);
+    const marks = keyMarks([{ word: 'SPEED', marks: ['hit', 'near', 'hit', 'miss', 'miss'] }]);
     expect(marks.E).toBe('hit');
   });
 

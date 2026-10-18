@@ -43,7 +43,8 @@ import { MetaPanel } from './viewer/MetaPanel';
 import { Preview } from './viewer/Preview';
 import './FileViewerPage.css';
 
-const isTyping = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+const isTyping = (t: EventTarget | null) =>
+  t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
 function ViewerSkeleton() {
   return (
@@ -88,13 +89,19 @@ export default function FileViewerPage() {
             />
           </Panel>
         ) : (
-          <QueryError error={item.error} title="This file didn’t load" onRetry={() => void item.refetch()} retrying={item.isFetching} />
+          <QueryError
+            error={item.error}
+            title="This file didn’t load"
+            onRetry={() => void item.refetch()}
+            retrying={item.isFetching}
+          />
         )}
       </Page>
     );
   }
   // Opened by its id: the address becomes the one every link uses, its slug's.
-  if (fileId !== item.data.slug) return <Navigate to={{ pathname: `/library/${item.data.slug}`, search }} state={state} replace />;
+  if (fileId !== item.data.slug)
+    return <Navigate to={{ pathname: `/library/${item.data.slug}`, search }} state={state} replace />;
   return <FileView key={item.data.id} item={item.data} page={pageParam(params.get('page'))} />;
 }
 
@@ -128,7 +135,9 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
               'This file wasn’t published.'
             )}{' '}
             {/* Rejected files leave storage a week after the review (security review SEC-14). */}
-            {item.isMine ? 'This copy is deleted a week after the review: to share a fixed version, upload it as a new file.' : 'Its file is deleted a week after the review.'}
+            {item.isMine
+              ? 'This copy is deleted a week after the review: to share a fixed version, upload it as a new file.'
+              : 'Its file is deleted a week after the review.'}
           </p>
         ) : (
           <p>This file was removed from the library.</p>
@@ -231,14 +240,20 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   // The download is counted by the API: re-read the item a moment later (cached by id or by slug).
   const counted = () =>
     window.setTimeout(
-      () => void qc.invalidateQueries({ queryKey: libraryKeys.items, predicate: (q) => (q.state.data as LibraryItem | undefined)?.id === item.id }),
+      () =>
+        void qc.invalidateQueries({
+          queryKey: libraryKeys.items,
+          predicate: (q) => (q.state.data as LibraryItem | undefined)?.id === item.id,
+        }),
       1500,
     );
 
   const copyLink = () => copy(appUrl(itemPath(item)), 'Anyone can open this file with it.');
 
   const moreItems = [
-    ...(item.canEdit ? [{ id: 'edit', label: 'Edit details', icon: PencilSimple, onSelect: () => setDialog('edit') }] : []),
+    ...(item.canEdit
+      ? [{ id: 'edit', label: 'Edit details', icon: PencilSimple, onSelect: () => setDialog('edit') }]
+      : []),
     ...((item.isMine || managesLibrary) && item.status !== 'removed'
       ? [{ id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setDialog('delete') }]
       : []),
@@ -258,9 +273,21 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
       {isMobile ? 'Open' : `Open in ${linkPlace(item)}`}
     </Button>
   ) : isMobile ? (
-    <IconButton label={`Download ${item.title}`} icon={DownloadSimple} href={downloadHref(item)} onClick={counted} variant="primary" />
+    <IconButton
+      label={`Download ${item.title}`}
+      icon={DownloadSimple}
+      href={downloadHref(item)}
+      onClick={counted}
+      variant="primary"
+    />
   ) : (
-    <Button variant="primary" leadingIcon={DownloadSimple} href={downloadHref(item)} onClick={counted} className="lib-tb__download">
+    <Button
+      variant="primary"
+      leadingIcon={DownloadSimple}
+      href={downloadHref(item)}
+      onClick={counted}
+      className="lib-tb__download"
+    >
       Download
     </Button>
   );
@@ -279,12 +306,15 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
             {m ? (
               <li>
                 <Link to={`/library?module=${m.id}`}>
-                  {m.unitCode ? <strong className="u-tabular">{m.unitCode}</strong> : null} {m.unitCode ? m.shortName : m.name}
+                  {m.unitCode ? <strong className="u-tabular">{m.unitCode}</strong> : null}{' '}
+                  {m.unitCode ? m.shortName : m.name}
                 </Link>
               </li>
             ) : null}
             <li>
-              <Link to={m ? `/library?module=${m.id}&type=${item.kind}` : `/library?type=${item.kind}&year=all`}>{kind.plural}</Link>
+              <Link to={m ? `/library?module=${m.id}&type=${item.kind}` : `/library?type=${item.kind}&year=all`}>
+                {kind.plural}
+              </Link>
             </li>
           </ol>
         </nav>
@@ -295,7 +325,9 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
             {isNew(item) ? <Badge tone="highlight">New</Badge> : null}
             {featureOn('board') && item.kind === 'past-paper' ? <PaperDone itemId={item.id} /> : null}
           </span>
-          {featureOn('board') && item.status === 'published' ? <AddToBoard link={{ type: 'library_item', id: item.id }} className="lib-viewer__board" /> : null}
+          {featureOn('board') && item.status === 'published' ? (
+            <AddToBoard link={{ type: 'library_item', id: item.id }} className="lib-viewer__board" />
+          ) : null}
         </div>
       </header>
 
@@ -307,12 +339,35 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           </span>
         </div>
         <div className="lib-tb__group lib-tb__actions">
-          {item.status === 'published' ? <StarButton on={item.starred} onToggle={() => toggleStar(item)} title={item.title} size="md" tooltip={isDesktop} /> : null}
-          {item.status === 'published' ? <IconButton label="Copy link" icon={LinkSimple} onClick={() => void copyLink()} tooltip={isDesktop} className="lib-tb__copy" /> : null}
-          {item.status === 'published' && !item.isMine ? <ReportButton targetType="library_item" targetId={item.id} className="lib-tb__report" /> : null}
+          {item.status === 'published' ? (
+            <StarButton
+              on={item.starred}
+              onToggle={() => toggleStar(item)}
+              title={item.title}
+              size="md"
+              tooltip={isDesktop}
+            />
+          ) : null}
+          {item.status === 'published' ? (
+            <IconButton
+              label="Copy link"
+              icon={LinkSimple}
+              onClick={() => void copyLink()}
+              tooltip={isDesktop}
+              className="lib-tb__copy"
+            />
+          ) : null}
+          {item.status === 'published' && !item.isMine ? (
+            <ReportButton targetType="library_item" targetId={item.id} className="lib-tb__report" />
+          ) : null}
           {isPaper ? <TimeMeButton compact={isMobile} onClick={() => setTimeMeOpen(true)} /> : null}
           {canManage && moreItems.length ? (
-            <Menu align="end" label="More actions" items={moreItems} trigger={<IconButton label="More actions" icon={DotsThree} tooltip={isDesktop} />} />
+            <Menu
+              align="end"
+              label="More actions"
+              items={moreItems}
+              trigger={<IconButton label="More actions" icon={DotsThree} tooltip={isDesktop} />}
+            />
           ) : null}
           {featureOn('notes') && fmt?.tag === 'PDF' && item.status === 'published' ? (
             <Button
@@ -345,15 +400,25 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
         </div>
       </div>
 
-      {clock ? <ExamTimer item={item} clock={clock} report={report} onPause={pause} onResume={resume} onStop={stop} /> : null}
-      {status ? <StatusBanner item={item} onEdit={() => setDialog('edit')} onDelete={() => setDialog('delete')} /> : null}
+      {clock ? (
+        <ExamTimer item={item} clock={clock} report={report} onPause={pause} onResume={resume} onStop={stop} />
+      ) : null}
+      {status ? (
+        <StatusBanner item={item} onEdit={() => setDialog('edit')} onDelete={() => setDialog('delete')} />
+      ) : null}
 
       <div className={cx('lib-viewer__body', isDesktop && metaOpen && 'has-meta')}>
         <div className="lib-viewer__canvas" role="region" aria-label={`${item.title}, preview`}>
           <Preview item={item} compact={isMobile} page={page} />
         </div>
         {metaOpen ? (
-          <MetaPanel id="lib-file-meta" item={item} linkState={linkState} className={isDesktop ? undefined : 'lib-meta--stacked'} onPage={openPage} />
+          <MetaPanel
+            id="lib-file-meta"
+            item={item}
+            linkState={linkState}
+            className={isDesktop ? undefined : 'lib-meta--stacked'}
+            onPage={openPage}
+          />
         ) : null}
       </div>
 

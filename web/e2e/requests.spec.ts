@@ -17,7 +17,12 @@ test.afterAll(async ({ browser }) => {
   await ctx.close();
 });
 
-test('a student asks, a classmate says me too, a rep answers and the student is told', async ({ sara, ali, rep, run }) => {
+test('a student asks, a classmate says me too, a rep answers and the student is told', async ({
+  sara,
+  ali,
+  rep,
+  run,
+}) => {
   const title = `ST2133 past papers from 2019 [e2e ${run.tag}]`;
   let id = '';
   try {
@@ -47,7 +52,9 @@ test('a student asks, a classmate says me too, a rep answers and the student is 
     await expect(rep.getByText('Status changed')).toBeVisible();
 
     const told = await api<{ items: { title: string; url: string | null }[] }>(sara, 'GET', '/api/v1/notifications');
-    expect(told.body.items.some((n) => n.url === `/requests/${id}` && n.title.startsWith('Request planned'))).toBe(true);
+    expect(told.body.items.some((n) => n.url === `/requests/${id}` && n.title.startsWith('Request planned'))).toBe(
+      true,
+    );
     await sara.goto(`/requests/${id}`);
     await expect(sara.getByText('Asking the tutor for them this week.')).toBeVisible();
     // her own request shows that she asked and that Ali joined her, not "0 Me too"
@@ -66,8 +73,20 @@ test('ST-19: a double tap on "Send request" sends one request', async ({ ali, re
   await dialog.getByLabel('Title').fill(title);
   await dialog.getByRole('button', { name: 'Send request' }).dblclick();
   await expect(ali).toHaveURL(/\/requests\/[0-9a-f-]{36}$/);
-  await expect.poll(async () => (await api<{ items: { title: string }[] }>(ali, 'GET', `/api/v1/requests?q=${encodeURIComponent(run.tag)}`)).body.items.length).toBeGreaterThan(0);
-  const made = (await api<{ items: { id: string; title: string }[] }>(ali, 'GET', `/api/v1/requests?q=${encodeURIComponent(run.tag)}`)).body.items.filter((r) => r.title === title);
+  await expect
+    .poll(
+      async () =>
+        (await api<{ items: { title: string }[] }>(ali, 'GET', `/api/v1/requests?q=${encodeURIComponent(run.tag)}`))
+          .body.items.length,
+    )
+    .toBeGreaterThan(0);
+  const made = (
+    await api<{ items: { id: string; title: string }[] }>(
+      ali,
+      'GET',
+      `/api/v1/requests?q=${encodeURIComponent(run.tag)}`,
+    )
+  ).body.items.filter((r) => r.title === title);
   for (const r of made) await api(rep, 'DELETE', `/api/v1/requests/${r.id}`);
   expect(made).toHaveLength(1);
 });

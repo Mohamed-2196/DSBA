@@ -27,7 +27,17 @@ import { formatDay } from '../../lib/dates';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
 import { Badge, IconButton, Menu, cx, safeInternalPath, type MenuItem } from '../../ui';
 import { apiFileSrc, isUnsaved } from './api';
-import { checklistProgress, colorVar, dueLabel, dueOf, isOverdue, isPastPaper, plainText, PRIORITIES, type Priority } from './board';
+import {
+  checklistProgress,
+  colorVar,
+  dueLabel,
+  dueOf,
+  isOverdue,
+  isPastPaper,
+  plainText,
+  PRIORITIES,
+  type Priority,
+} from './board';
 import { FOCUS_WAIT_MS, type CardActions } from './types';
 
 const LINK_ICON: Record<BoardLink['type'], Icon> = {
@@ -116,19 +126,54 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
     { divider: true, id: 'd1' },
     ...columns
       .filter((c) => c.id !== card.columnId)
-      .map((c): MenuItem => ({ id: `to-${c.id}`, label: `Move to ${c.name}`, icon: ArrowRight, onSelect: () => actions.onMove(card, c.id, 'menu') })),
-    { id: 'up', label: 'Move up', icon: ArrowUp, hint: 'Alt+↑', disabled: !actions.canNudge(card, -1), onSelect: () => actions.onNudge(card, -1, 'menu') },
-    { id: 'down', label: 'Move down', icon: ArrowDown, hint: 'Alt+↓', disabled: !actions.canNudge(card, 1), onSelect: () => actions.onNudge(card, 1, 'menu') },
+      .map(
+        (c): MenuItem => ({
+          id: `to-${c.id}`,
+          label: `Move to ${c.name}`,
+          icon: ArrowRight,
+          onSelect: () => actions.onMove(card, c.id, 'menu'),
+        }),
+      ),
+    {
+      id: 'up',
+      label: 'Move up',
+      icon: ArrowUp,
+      hint: 'Alt+↑',
+      disabled: !actions.canNudge(card, -1),
+      onSelect: () => actions.onNudge(card, -1, 'menu'),
+    },
+    {
+      id: 'down',
+      label: 'Move down',
+      icon: ArrowDown,
+      hint: 'Alt+↓',
+      disabled: !actions.canNudge(card, 1),
+      onSelect: () => actions.onNudge(card, 1, 'menu'),
+    },
     { divider: true, id: 'd2' },
     ...(paper && isDone
-      ? ([{ id: 'score', label: score == null ? 'Add your score' : 'Change your score', icon: Trophy, onSelect: () => actions.onScore(card) }] satisfies MenuItem[])
+      ? ([
+          {
+            id: 'score',
+            label: score == null ? 'Add your score' : 'Change your score',
+            icon: Trophy,
+            onSelect: () => actions.onScore(card),
+          },
+        ] satisfies MenuItem[])
       : []),
     { id: 'delete', label: 'Delete card', icon: Trash, danger: true, onSelect: () => actions.onDelete(card) },
   ];
 
   return (
     <article
-      className={cx('board-card', overdue && 'is-overdue', isDone && 'is-done', actions.dragging === card.id && 'is-dragging', unsaved && 'is-unsaved', locked && 'is-locked')}
+      className={cx(
+        'board-card',
+        overdue && 'is-overdue',
+        isDone && 'is-done',
+        actions.dragging === card.id && 'is-dragging',
+        unsaved && 'is-unsaved',
+        locked && 'is-locked',
+      )}
       draggable={draggable}
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = 'move';
@@ -169,7 +214,17 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
             label={`Card “${card.title}”`}
             align="end"
             items={items}
-            trigger={<IconButton ref={wants('menu')} label={`Actions for “${card.title}”`} icon={DotsThree} size="sm" className="board-card__menu" data-part="menu" data-hub="board-card-menu" />}
+            trigger={
+              <IconButton
+                ref={wants('menu')}
+                label={`Actions for “${card.title}”`}
+                icon={DotsThree}
+                size="sm"
+                className="board-card__menu"
+                data-part="menu"
+                data-hub="board-card-menu"
+              />
+            }
           />
         )}
       </div>

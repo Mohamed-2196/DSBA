@@ -14,7 +14,8 @@ interface InstallPromptEvent extends Event {
   readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-const isInstallPrompt = (e: Event): e is InstallPromptEvent => 'prompt' in e && typeof (e as { prompt?: unknown }).prompt === 'function';
+const isInstallPrompt = (e: Event): e is InstallPromptEvent =>
+  'prompt' in e && typeof (e as { prompt?: unknown }).prompt === 'function';
 
 interface PwaState {
   waiting: ServiceWorker | null;

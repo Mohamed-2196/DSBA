@@ -47,13 +47,23 @@ function SkillForm({ skill: s }: { skill: SkillRow }) {
   const nameToId = useNameToId('skills', 'skill');
   const modules = useModuleOptions();
   const at = `skills.${s.id}`;
-  const set = (patch: Partial<CareerSkill>) => update((d) => ({ ...d, skills: { ...d.skills, [s.id]: { ...(d.skills[s.id] as CareerSkill), ...patch } } }));
-  const setTaught = (n: number, patch: Partial<SkillTaught>) => set({ taught: s.taught.map((t, k) => (k === n ? { ...t, ...patch } : t)) });
+  const set = (patch: Partial<CareerSkill>) =>
+    update((d) => ({ ...d, skills: { ...d.skills, [s.id]: { ...(d.skills[s.id] as CareerSkill), ...patch } } }));
+  const setTaught = (n: number, patch: Partial<SkillTaught>) =>
+    set({ taught: s.taught.map((t, k) => (k === n ? { ...t, ...patch } : t)) });
   const depths = (['0', '1', '2', '3'] as const).map((d) => ({ value: d, label: doc.depthLabel[d] ?? d }));
   return (
     <div className="cedit-form">
       <div className="cedit-grid">
-        <TextField label="Name" value={s.name} onChange={(v) => set({ name: v.target.value })} onBlur={() => nameToId(s.id, s.name)} error={err(`${at}.name`)} maxLength={160} required />
+        <TextField
+          label="Name"
+          value={s.name}
+          onChange={(v) => set({ name: v.target.value })}
+          onBlur={() => nameToId(s.id, s.name)}
+          error={err(`${at}.name`)}
+          maxLength={160}
+          required
+        />
         <IdField section="skills" kind="skill" id={s.id} error={err(`${at}.id`)} />
       </div>
       <fieldset className="cedit-group">
@@ -61,15 +71,45 @@ function SkillForm({ skill: s }: { skill: SkillRow }) {
         <ol role="list" className="cedit-rows">
           {s.taught.map((t, n) => (
             <li key={n} className="cedit-rows__row cedit-rows__row--taught">
-              <Select label="Module" value={t.module} onChange={(v) => setTaught(n, { module: v.target.value })} options={modules} error={err(`${at}.taught.${n}.module`)} />
-              <Select label="How far" value={String(t.depth)} onChange={(v) => setTaught(n, { depth: Number(v.target.value) as SkillTaught['depth'] })} options={depths} />
-              <TextField label="What it covers" value={t.what} onChange={(v) => setTaught(n, { what: v.target.value })} error={err(`${at}.taught.${n}.what`)} maxLength={600} required />
-              <IconButton icon={Trash} label={`Remove module ${n + 1}`} onClick={() => set({ taught: s.taught.filter((_, k) => k !== n) })} className="cedit-rows__remove" />
+              <Select
+                label="Module"
+                value={t.module}
+                onChange={(v) => setTaught(n, { module: v.target.value })}
+                options={modules}
+                error={err(`${at}.taught.${n}.module`)}
+              />
+              <Select
+                label="How far"
+                value={String(t.depth)}
+                onChange={(v) => setTaught(n, { depth: Number(v.target.value) as SkillTaught['depth'] })}
+                options={depths}
+              />
+              <TextField
+                label="What it covers"
+                value={t.what}
+                onChange={(v) => setTaught(n, { what: v.target.value })}
+                error={err(`${at}.taught.${n}.what`)}
+                maxLength={600}
+                required
+              />
+              <IconButton
+                icon={Trash}
+                label={`Remove module ${n + 1}`}
+                onClick={() => set({ taught: s.taught.filter((_, k) => k !== n) })}
+                className="cedit-rows__remove"
+              />
             </li>
           ))}
         </ol>
         {s.taught.length < 20 ? (
-          <Button variant="ghost" size="sm" leadingIcon={Plus} onClick={() => set({ taught: [...s.taught, { module: String(modules[0]?.value ?? ''), depth: 2, what: '' }] })}>
+          <Button
+            variant="ghost"
+            size="sm"
+            leadingIcon={Plus}
+            onClick={() =>
+              set({ taught: [...s.taught, { module: String(modules[0]?.value ?? ''), depth: 2, what: '' }] })
+            }
+          >
             Add a module
           </Button>
         ) : null}
@@ -83,7 +123,12 @@ function SkillForm({ skill: s }: { skill: SkillRow }) {
         error={err(`${at}.gapNote`)}
         maxLength={600}
       />
-      <StepField legend="The usual step to close the gap" value={s.close ?? null} onChange={(close) => set({ close })} path={`${at}.close`} />
+      <StepField
+        legend="The usual step to close the gap"
+        value={s.close ?? null}
+        onChange={(close) => set({ close })}
+        path={`${at}.close`}
+      />
     </div>
   );
 }
@@ -109,7 +154,8 @@ export function ElectivesSection() {
   return (
     <div className="cedit-form">
       <p className="cedit__note">
-        Which modules a student chooses. The electives guide lists the electives, with the skills each teaches (from Skills) and the roles that need them (from Roles).
+        Which modules a student chooses. The electives guide lists the electives, with the skills each teaches (from
+        Skills) and the roles that need them (from Roles).
       </p>
       {err('chosen') ? <p className="cedit__error">{err('chosen')}</p> : null}
       {years.map(({ year, list }) =>
@@ -119,7 +165,12 @@ export function ElectivesSection() {
             <ul role="list" className="cedit-choices">
               {list.map((m) => (
                 <li key={m.id}>
-                  <Select label={moduleLabel(m)} value={doc.chosen[m.id] ?? ''} onChange={(v) => choose(m.id, v.target.value)} options={CHOICES} />
+                  <Select
+                    label={moduleLabel(m)}
+                    value={doc.chosen[m.id] ?? ''}
+                    onChange={(v) => choose(m.id, v.target.value)}
+                    options={CHOICES}
+                  />
                 </li>
               ))}
             </ul>
@@ -133,8 +184,14 @@ export function ElectivesSection() {
             {guide.map((g) => (
               <li key={g.module.id}>
                 <strong>{moduleLabel(g.module)}</strong>
-                <span>{g.skills.length ? g.skills.map((s) => `${s.name}${s.adds ? ' (adds)' : ''}`).join(', ') : 'No skills listed yet.'}</span>
-                <span className="cedit__note">{g.roles.length ? `Roles: ${g.roles.map((r) => r.label).join(', ')}` : 'No roles yet.'}</span>
+                <span>
+                  {g.skills.length
+                    ? g.skills.map((s) => `${s.name}${s.adds ? ' (adds)' : ''}`).join(', ')
+                    : 'No skills listed yet.'}
+                </span>
+                <span className="cedit__note">
+                  {g.roles.length ? `Roles: ${g.roles.map((r) => r.label).join(', ')}` : 'No roles yet.'}
+                </span>
               </li>
             ))}
           </ul>

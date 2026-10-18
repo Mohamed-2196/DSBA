@@ -10,7 +10,14 @@ export const CLASS_NAME: Record<ClassKind, string> = {
   none: 'Not classified',
   resit: 'Resit required',
 };
-export const CLASS_SHORT: Record<ClassKind, string> = { first: 'First', upper: '2:1', lower: '2:2', third: 'Third', none: 'None', resit: 'Resit' };
+export const CLASS_SHORT: Record<ClassKind, string> = {
+  first: 'First',
+  upper: '2:1',
+  lower: '2:2',
+  third: 'Third',
+  none: 'None',
+  resit: 'Resit',
+};
 
 export interface Band {
   id: BandId;
@@ -28,7 +35,14 @@ export function bandsOf(rules: Rules): Band[] {
   const { first, upper, lower, third } = rules.bands;
   const between = (from: number, below: number) => ({ range: `${from} to ${below - 1}`, span: `${from}–${below - 1}` });
   return [
-    { id: 'first', label: 'First class', range: `${first.floor} and above`, span: `${first.floor}–100`, short: 'First', gpa: first.gpa },
+    {
+      id: 'first',
+      label: 'First class',
+      range: `${first.floor} and above`,
+      span: `${first.floor}–100`,
+      short: 'First',
+      gpa: first.gpa,
+    },
     { id: 'upper', label: 'Upper second', ...between(upper.floor, first.floor), short: '2:1', gpa: upper.gpa },
     { id: 'lower', label: 'Lower second', ...between(lower.floor, upper.floor), short: '2:2', gpa: lower.gpa },
     { id: 'third', label: 'Third', ...between(third.floor, lower.floor), short: 'Third', gpa: third.gpa },
@@ -36,4 +50,5 @@ export function bandsOf(rules: Rules): Band[] {
   ];
 }
 
-export const bandMeta = (id: BandId, rules: Rules): Band => bandsOf(rules).find((b) => b.id === id) ?? (bandsOf(rules)[4] as Band);
+export const bandMeta = (id: BandId, rules: Rules): Band =>
+  bandsOf(rules).find((b) => b.id === id) ?? (bandsOf(rules)[4] as Band);

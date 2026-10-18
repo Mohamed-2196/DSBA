@@ -7,7 +7,18 @@ import type { CareerDoc } from '../../../api/types';
 export type RefKind = 'track' | 'role' | 'skill' | 'cert' | 'employer';
 
 /** The editor's sections, in the order they are listed. */
-export const SECTIONS = ['employers', 'tracks', 'roles', 'skills', 'electives', 'certs', 'featured', 'checklist', 'furtherStudy', 'text'] as const;
+export const SECTIONS = [
+  'employers',
+  'tracks',
+  'roles',
+  'skills',
+  'electives',
+  'certs',
+  'featured',
+  'checklist',
+  'furtherStudy',
+  'text',
+] as const;
 export type EditorSection = (typeof SECTIONS)[number];
 
 /** 'Bank of Bahrain & Kuwait' -> 'bank-of-bahrain-kuwait': lowercase words joined by dashes, 64 characters at most. */
@@ -80,27 +91,43 @@ export function replaceRef(doc: CareerDoc, kind: RefKind, from: string, to: stri
         certs: doc.certs.map((c) => ({ ...c, roles: swap(c.roles, from, to) })),
       };
     case 'skill':
-      return { ...doc, roles: doc.roles.map((r) => ({ ...r, skills: swap(r.skills, from, to), close: renameKey(r.close, from, to) })) };
+      return {
+        ...doc,
+        roles: doc.roles.map((r) => ({ ...r, skills: swap(r.skills, from, to), close: renameKey(r.close, from, to) })),
+      };
     case 'cert': {
       type Step = CareerDoc['skills'][string]['close'];
-      const step = (s: Step): Step => (s?.kind === 'cert' && s.cert === from ? (to === null ? null : { ...s, cert: to }) : s);
-      const featured = doc.featured && doc.featured.logo.kind === 'cert' && doc.featured.logo.id === from && to !== null ? { ...doc.featured, logo: { kind: 'cert' as const, id: to } } : doc.featured;
+      const step = (s: Step): Step =>
+        s?.kind === 'cert' && s.cert === from ? (to === null ? null : { ...s, cert: to }) : s;
+      const featured =
+        doc.featured && doc.featured.logo.kind === 'cert' && doc.featured.logo.id === from && to !== null
+          ? { ...doc.featured, logo: { kind: 'cert' as const, id: to } }
+          : doc.featured;
       return {
         ...doc,
         featured,
         skills: Object.fromEntries(Object.entries(doc.skills).map(([k, s]) => [k, { ...s, close: step(s.close) }])),
         roles: doc.roles.map((r) => ({
           ...r,
-          close: Object.fromEntries(Object.entries(r.close).flatMap(([k, s]) => {
-            const next = step(s);
-            return next ? [[k, next]] : [];
-          })),
+          close: Object.fromEntries(
+            Object.entries(r.close).flatMap(([k, s]) => {
+              const next = step(s);
+              return next ? [[k, next]] : [];
+            }),
+          ),
         })),
-        checklist: doc.checklist.map((i) => (i.link?.kind === 'cert' && i.link.cert === from ? { ...i, link: to === null ? null : { ...i.link, cert: to } } : i)),
+        checklist: doc.checklist.map((i) =>
+          i.link?.kind === 'cert' && i.link.cert === from
+            ? { ...i, link: to === null ? null : { ...i.link, cert: to } }
+            : i,
+        ),
       };
     }
     case 'employer': {
-      const featured = doc.featured && doc.featured.logo.kind === 'employer' && doc.featured.logo.id === from && to !== null ? { ...doc.featured, logo: { kind: 'employer' as const, id: to } } : doc.featured;
+      const featured =
+        doc.featured && doc.featured.logo.kind === 'employer' && doc.featured.logo.id === from && to !== null
+          ? { ...doc.featured, logo: { kind: 'employer' as const, id: to } }
+          : doc.featured;
       return { ...doc, featured };
     }
   }
@@ -108,7 +135,8 @@ export function replaceRef(doc: CareerDoc, kind: RefKind, from: string, to: stri
 
 /** Why the item can't be removed or hidden as things are (null when it can). */
 export function removalBlocker(doc: CareerDoc, kind: RefKind, id: string): string | null {
-  if (kind === 'role' && doc.defaultRoleId === id) return 'The page opens on this role. Choose another one first, at the top of Roles.';
+  if (kind === 'role' && doc.defaultRoleId === id)
+    return 'The page opens on this role. Choose another one first, at the top of Roles.';
   if ((kind === 'employer' || kind === 'cert') && doc.featured?.logo.kind === kind && doc.featured.logo.id === id) {
     return 'The featured competition shows this logo. Choose another one in Featured first.';
   }
@@ -167,11 +195,17 @@ export function publicDoc(doc: CareerDoc): CareerDoc {
   return {
     ...doc,
     tracks,
-    employers: doc.employers.filter((e) => !e.hidden).map((e) => ({ ...e, tracks: e.tracks.filter((t) => trackIds.has(t)) })),
+    employers: doc.employers
+      .filter((e) => !e.hidden)
+      .map((e) => ({ ...e, tracks: e.tracks.filter((t) => trackIds.has(t)) })),
     certs: certs.map((c) => ({ ...c, roles: c.roles.filter((r) => roleIds.has(r)) })),
     roles: roles.map((r) => ({ ...r, close: Object.fromEntries(Object.entries(r.close).filter(([, s]) => shown(s))) })),
-    skills: Object.fromEntries(Object.entries(doc.skills).map(([k, s]) => [k, { ...s, close: shown(s.close) ? s.close : null }])),
-    checklist: doc.checklist.filter((i) => !i.hidden).map((i) => (i.link?.kind === 'cert' && !certIds.has(i.link.cert) ? { ...i, link: null } : i)),
+    skills: Object.fromEntries(
+      Object.entries(doc.skills).map(([k, s]) => [k, { ...s, close: shown(s.close) ? s.close : null }]),
+    ),
+    checklist: doc.checklist
+      .filter((i) => !i.hidden)
+      .map((i) => (i.link?.kind === 'cert' && !certIds.has(i.link.cert) ? { ...i, link: null } : i)),
   };
 }
 

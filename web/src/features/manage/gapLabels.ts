@@ -30,7 +30,8 @@ export function scanLine(s: ScanGap): string {
 
 export function lessonLine(g: LessonGap): string {
   const parts: string[] = [];
-  if (g.lessons === 0) parts.push(g.chapters ? `No lessons in its ${countOf(g.chapters, 'chapter')}` : 'No chapters or lessons yet');
+  if (g.lessons === 0)
+    parts.push(g.chapters ? `No lessons in its ${countOf(g.chapters, 'chapter')}` : 'No chapters or lessons yet');
   else if (g.emptyChapters) parts.push(`${g.emptyChapters} of ${countOf(g.chapters, 'chapter')} have no lessons`);
   if (g.unavailable) parts.push(`${countOf(g.unavailable, 'video')} gone from YouTube`);
   return parts.join(' · ');

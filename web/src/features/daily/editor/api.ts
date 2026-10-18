@@ -1,7 +1,14 @@
 // Manage → Daily puzzles' data (holders of content.edit): the overview (themes, weeks, sizes), each game's items, the
 // guess list, Nearest neighbour's vocabulary and the preview of a day, with the writes. Theme and week writes answer
 // with the whole overview; item writes refresh the lists and the counts.
-import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { api, call } from '../../../api/client';
 import { nextOffset } from '../../../api/paging';
 import type {
@@ -24,7 +31,8 @@ import type { ContentGame, ItemStatus } from './lib/items';
 export const DAILY_CONTENT_KEY = ['daily-content'] as const;
 export const dailyContentKeys = {
   overview: () => [...DAILY_CONTENT_KEY, 'overview'] as const,
-  items: (game: ContentGame, theme: string, status: ItemStatus, q: string) => [...DAILY_CONTENT_KEY, 'items', game, theme, status, q] as const,
+  items: (game: ContentGame, theme: string, status: ItemStatus, q: string) =>
+    [...DAILY_CONTENT_KEY, 'items', game, theme, status, q] as const,
   guesses: (q: string) => [...DAILY_CONTENT_KEY, 'guesses', q] as const,
   vocabulary: (q: string) => [...DAILY_CONTENT_KEY, 'vocabulary', q] as const,
   preview: (day: string) => [...DAILY_CONTENT_KEY, 'preview', day] as const,
@@ -49,7 +57,12 @@ export function useDailyItems(game: ContentGame, theme: string, status: ItemStat
   return useInfiniteQuery({
     queryKey: dailyContentKeys.items(game, theme, status, q),
     queryFn: ({ pageParam, signal }) =>
-      call(api.GET('/api/v1/content/daily/items', { params: { query: { game, theme: theme || undefined, status, q, limit: PAGE, offset: pageParam } }, signal })),
+      call(
+        api.GET('/api/v1/content/daily/items', {
+          params: { query: { game, theme: theme || undefined, status, q, limit: PAGE, offset: pageParam } },
+          signal,
+        }),
+      ),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
     placeholderData: keepPreviousData,
@@ -83,7 +96,9 @@ export function useOrderThemes() {
 
 export function useDeleteTheme() {
   return useOverviewWrite(({ id, version }: { id: string; version: number }) =>
-    call(api.DELETE('/api/v1/content/daily/themes/{theme_id}', { params: { path: { theme_id: id }, query: { version } } })),
+    call(
+      api.DELETE('/api/v1/content/daily/themes/{theme_id}', { params: { path: { theme_id: id }, query: { version } } }),
+    ),
   );
 }
 
@@ -103,20 +118,34 @@ export function useCreateItem() {
 }
 
 export function useSaveItem() {
-  return useItemWrite(({ id, ...body }: ItemSave & { id: string }) => call(api.PUT('/api/v1/content/daily/items/{item_id}', { params: { path: { item_id: id } }, body })));
+  return useItemWrite(({ id, ...body }: ItemSave & { id: string }) =>
+    call(api.PUT('/api/v1/content/daily/items/{item_id}', { params: { path: { item_id: id } }, body })),
+  );
 }
 
 export function useRetireItem() {
   return useItemWrite(({ id, version, retired }: { id: string; version: number; retired: boolean }) =>
     retired
-      ? call(api.POST('/api/v1/content/daily/items/{item_id}/retire', { params: { path: { item_id: id } }, body: { version } }))
-      : call(api.POST('/api/v1/content/daily/items/{item_id}/restore', { params: { path: { item_id: id } }, body: { version } })),
+      ? call(
+          api.POST('/api/v1/content/daily/items/{item_id}/retire', {
+            params: { path: { item_id: id } },
+            body: { version },
+          }),
+        )
+      : call(
+          api.POST('/api/v1/content/daily/items/{item_id}/restore', {
+            params: { path: { item_id: id } },
+            body: { version },
+          }),
+        ),
   );
 }
 
 export function useDeleteItem() {
   return useItemWrite(({ id, version }: { id: string; version: number }) =>
-    call(api.DELETE('/api/v1/content/daily/items/{item_id}', { params: { path: { item_id: id }, query: { version } } })),
+    call(
+      api.DELETE('/api/v1/content/daily/items/{item_id}', { params: { path: { item_id: id }, query: { version } } }),
+    ),
   );
 }
 
@@ -151,13 +180,21 @@ export function useAddGuesses() {
 }
 
 export function useRemoveGuess() {
-  return useItemWrite((word: string) => call(api.DELETE('/api/v1/content/daily/guesses/{word}', { params: { path: { word } } })));
+  return useItemWrite((word: string) =>
+    call(api.DELETE('/api/v1/content/daily/guesses/{word}', { params: { path: { word } } })),
+  );
 }
 
 export function useVocabulary(q: string, enabled = true) {
   return useInfiniteQuery({
     queryKey: dailyContentKeys.vocabulary(q),
-    queryFn: ({ pageParam, signal }) => call(api.GET('/api/v1/content/daily/vocabulary', { params: { query: { q, limit: PAGE, offset: pageParam } }, signal })),
+    queryFn: ({ pageParam, signal }) =>
+      call(
+        api.GET('/api/v1/content/daily/vocabulary', {
+          params: { query: { q, limit: PAGE, offset: pageParam } },
+          signal,
+        }),
+      ),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
     placeholderData: keepPreviousData,

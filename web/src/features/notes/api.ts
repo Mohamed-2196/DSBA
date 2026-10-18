@@ -12,7 +12,14 @@
 //   PUT    /api/v1/notes/{id}/ink/{sheet}    save one sheet's ink, with its version (409 ink_changed)
 //   DELETE /api/v1/notes/{id}
 //   GET    /api/v1/notes/files/{uploadId}    one of your note's pictures or files (a redirect; ?download=true)
-import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { API_ORIGIN, api, call } from '../../api/client';
 import { nextOffset } from '../../api/paging';
 import type { InkSave, InkSheet, Note, NoteCreate, NoteUpdate, Notebook, NotebookCreate } from '../../api/types';
@@ -32,7 +39,11 @@ export const noteKeys = {
   notebooks: [...NOTES_KEY, 'notebooks'] as const,
   lists: [...NOTES_KEY, 'list'] as const,
   list: (f: NoteFilters) =>
-    [...NOTES_KEY, 'list', { q: f.q ?? '', notebookId: f.notebookId ?? null, moduleId: f.moduleId ?? null, lessonId: f.lessonId ?? null }] as const,
+    [
+      ...NOTES_KEY,
+      'list',
+      { q: f.q ?? '', notebookId: f.notebookId ?? null, moduleId: f.moduleId ?? null, lessonId: f.lessonId ?? null },
+    ] as const,
   one: (id: string) => [...NOTES_KEY, 'one', id] as const,
 };
 
@@ -75,9 +86,11 @@ export function useLessonNotes(moduleId: string, lessonId: string, { enabled = t
   return useQuery({ queryKey: [...noteKeys.list(filters), 'first'], queryFn: () => listQuery(filters, 5, 0), enabled });
 }
 
-export const fetchNote = (id: string): Promise<Note> => call(api.GET('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
+export const fetchNote = (id: string): Promise<Note> =>
+  call(api.GET('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
 export const createNote = (body: NoteCreate): Promise<Note> => call(api.POST('/api/v1/notes', { body }));
-export const saveNote = (id: string, body: NoteUpdate): Promise<Note> => call(api.PUT('/api/v1/notes/{note_id}', { params: { path: { note_id: id } }, body }));
+export const saveNote = (id: string, body: NoteUpdate): Promise<Note> =>
+  call(api.PUT('/api/v1/notes/{note_id}', { params: { path: { note_id: id } }, body }));
 export const fetchInk = (id: string, sheet: number): Promise<InkSheet> =>
   call(api.GET('/api/v1/notes/{note_id}/ink/{sheet}', { params: { path: { note_id: id, sheet } } }));
 export const saveInk = (id: string, sheet: number, body: InkSave): Promise<InkSheet> =>
@@ -118,7 +131,8 @@ export function useAnnotate() {
   });
 }
 
-export const deleteNote = (id: string): Promise<unknown> => call(api.DELETE('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
+export const deleteNote = (id: string): Promise<unknown> =>
+  call(api.DELETE('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
 
 export function useDeleteNote() {
   const qc = useQueryClient();
@@ -151,7 +165,8 @@ export function useRenameNotebook() {
 export function useDeleteNotebook() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => call(api.DELETE('/api/v1/notebooks/{notebook_id}', { params: { path: { notebook_id: id } } })),
+    mutationFn: (id: string) =>
+      call(api.DELETE('/api/v1/notebooks/{notebook_id}', { params: { path: { notebook_id: id } } })),
     onSuccess: () => {
       qc.removeQueries({ queryKey: [...NOTES_KEY, 'one'] });
       notesChanged(qc);

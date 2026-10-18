@@ -33,7 +33,15 @@ const plainOf = (editor: Editor) => editor.getText({ blockSeparator: '\n' });
 /** The editor's history keeps more steps than the note's timeline, so the timeline never points at one it lost. */
 const HISTORY_DEPTH = 500;
 
-export function useNoteText({ doc, readOnly, onChange, onReady, onFiles, onUndo, onRedo }: NoteTextOptions): Editor | null {
+export function useNoteText({
+  doc,
+  readOnly,
+  onChange,
+  onReady,
+  onFiles,
+  onUndo,
+  onRedo,
+}: NoteTextOptions): Editor | null {
   // the document the editor holds now: a different one coming in (the other version, after a conflict) replaces it
   const emitted = useRef<RichDoc>(doc);
   const handlers = useRef({ onChange, onReady, onFiles, onUndo, onRedo });
@@ -46,7 +54,12 @@ export function useNoteText({ doc, readOnly, onChange, onReady, onFiles, onUndo,
       extensions: [
         StarterKit.configure({
           heading: { levels: [1, 2, 3] },
-          link: { openOnClick: false, autolink: true, protocols: ['https', 'http', 'mailto'], HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' } },
+          link: {
+            openOnClick: false,
+            autolink: true,
+            protocols: ['https', 'http', 'mailto'],
+            HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' },
+          },
           undoRedo: { depth: HISTORY_DEPTH },
           dropcursor: { color: '#1558f0', width: 2 },
         }),
@@ -82,9 +95,13 @@ export function useNoteText({ doc, readOnly, onChange, onReady, onFiles, onUndo,
             return {
               Tab: ({ editor: e }) => {
                 const sel = e.state.selection;
-                if (!(sel instanceof NodeSelection) || !['image', 'attachment'].includes(sel.node.type.name)) return false;
+                if (!(sel instanceof NodeSelection) || !['image', 'attachment'].includes(sel.node.type.name))
+                  return false;
                 const dom = e.view.nodeDOM(sel.from);
-                const first = dom instanceof HTMLElement ? dom.querySelector<HTMLElement>('.nb-blockbar button:not(:disabled), .nb-blockbar a') : null;
+                const first =
+                  dom instanceof HTMLElement
+                    ? dom.querySelector<HTMLElement>('.nb-blockbar button:not(:disabled), .nb-blockbar a')
+                    : null;
                 if (!first) return false;
                 first.focus();
                 return true;
@@ -98,7 +115,13 @@ export function useNoteText({ doc, readOnly, onChange, onReady, onFiles, onUndo,
       immediatelyRender: true,
       shouldRerenderOnTransaction: false,
       editorProps: {
-        attributes: { class: 'nb-text', 'aria-label': 'Typed notes', 'data-hub': 'note-text', spellcheck: 'true', dir: 'auto' },
+        attributes: {
+          class: 'nb-text',
+          'aria-label': 'Typed notes',
+          'data-hub': 'note-text',
+          spellcheck: 'true',
+          dir: 'auto',
+        },
         handlePaste: (_view, event) => {
           const files = [...(event.clipboardData?.files ?? [])];
           if (!files.length) return false;

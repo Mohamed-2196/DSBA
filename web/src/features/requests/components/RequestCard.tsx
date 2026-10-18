@@ -41,7 +41,8 @@ export function RequestCard({ request, children }: { request: RequestOut; childr
             </Badge>
           ) : null}
           <span>
-            {request.author?.displayName ?? 'A deleted account'} · <time dateTime={request.createdAt}>{timeAgo(request.createdAt)}</time>
+            {request.author?.displayName ?? 'A deleted account'} ·{' '}
+            <time dateTime={request.createdAt}>{timeAgo(request.createdAt)}</time>
           </span>
           {others ? <span>{others}</span> : null}
         </div>

@@ -28,7 +28,9 @@ export function StarButton({
   return (
     <IconButton
       label={`Star ${title}`}
-      icon={<Star weight={on ? 'fill' : 'regular'} className={cx('lib-star__glyph', on && 'is-on', pop && 'is-popping')} />}
+      icon={
+        <Star weight={on ? 'fill' : 'regular'} className={cx('lib-star__glyph', on && 'is-on', pop && 'is-popping')} />
+      }
       size={size}
       aria-pressed={on}
       tooltip={tooltip}

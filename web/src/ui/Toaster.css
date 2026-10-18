@@ -22,36 +22,116 @@
   box-shadow: var(--shadow-float);
   animation: ui-toast-in var(--dur-slow) var(--ease);
 }
-.ui-toast.is-leaving { animation: ui-toast-out 180ms var(--ease) forwards; }
-.ui-toast__icon { font-size: 20px; margin-top: 1px; color: var(--cobalt); }
-.ui-toast--success .ui-toast__icon { color: var(--signal); }
-.ui-toast--alert .ui-toast__icon { color: var(--alert); }
-.ui-toast__text { flex: 1 1 auto; min-width: 0; }
-.ui-toast__title { font-size: var(--fs-14); font-weight: var(--fw-semibold); color: var(--ink); line-height: 1.4; }
-.ui-toast__body { margin-top: 2px; font-size: var(--fs-14); color: var(--ink-2); line-height: 1.45; }
-.ui-toast__action { margin-top: 8px; color: var(--cobalt); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
-.ui-toast__action:hover { text-decoration: underline; }
-.ui-toast__close { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; color: var(--ink-3); font-size: 13px; flex: 0 0 auto; }
-.ui-toast__close:hover { background: var(--surface-2); color: var(--ink); }
-@keyframes ui-toast-in { from { opacity: 0; transform: translateY(10px) scale(.98); } }
-@keyframes ui-toast-out { to { opacity: 0; transform: translateX(16px); } }
+.ui-toast.is-leaving {
+  animation: ui-toast-out 180ms var(--ease) forwards;
+}
+.ui-toast__icon {
+  font-size: 20px;
+  margin-top: 1px;
+  color: var(--cobalt);
+}
+.ui-toast--success .ui-toast__icon {
+  color: var(--signal);
+}
+.ui-toast--alert .ui-toast__icon {
+  color: var(--alert);
+}
+.ui-toast__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ui-toast__title {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  line-height: 1.4;
+}
+.ui-toast__body {
+  margin-top: 2px;
+  font-size: var(--fs-14);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.ui-toast__action {
+  margin-top: 8px;
+  color: var(--cobalt);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.ui-toast__action:hover {
+  text-decoration: underline;
+}
+.ui-toast__close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--ink-3);
+  font-size: 13px;
+  flex: 0 0 auto;
+}
+.ui-toast__close:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+@keyframes ui-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+@keyframes ui-toast-out {
+  to {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
 
 @media (max-width: 699px) {
-  .ui-toaster { left: var(--sp-16); right: var(--sp-16); bottom: calc(var(--tabbar-h) + var(--sp-12) + env(safe-area-inset-bottom)); align-items: stretch; }
-  .ui-toast { width: auto; }
+  .ui-toaster {
+    left: var(--sp-16);
+    right: var(--sp-16);
+    bottom: calc(var(--tabbar-h) + var(--sp-12) + env(safe-area-inset-bottom));
+    align-items: stretch;
+  }
+  .ui-toast {
+    width: auto;
+  }
   /* Dialogs are bottom sheets on phones: while one is open, toasts move to the top so they never cover its fields
      and buttons (UX review UX-8). */
-  body:has(.ui-modal, .ui-drawer) .ui-toaster { top: calc(env(safe-area-inset-top) + var(--sp-8)); bottom: auto; }
-  body:has(.ui-modal, .ui-drawer) .ui-toast { animation-name: ui-toast-in-top; }
+  body:has(.ui-modal, .ui-drawer) .ui-toaster {
+    top: calc(env(safe-area-inset-top) + var(--sp-8));
+    bottom: auto;
+  }
+  body:has(.ui-modal, .ui-drawer) .ui-toast {
+    animation-name: ui-toast-in-top;
+  }
 }
 /* Short screens (a phone on its side): the same, as a dialog fills the height. */
 @media (max-height: 560px) {
-  body:has(.ui-modal, .ui-drawer) .ui-toaster { top: calc(env(safe-area-inset-top) + var(--sp-8)); bottom: auto; }
-  body:has(.ui-modal, .ui-drawer) .ui-toast { animation-name: ui-toast-in-top; }
+  body:has(.ui-modal, .ui-drawer) .ui-toaster {
+    top: calc(env(safe-area-inset-top) + var(--sp-8));
+    bottom: auto;
+  }
+  body:has(.ui-modal, .ui-drawer) .ui-toast {
+    animation-name: ui-toast-in-top;
+  }
 }
-@keyframes ui-toast-in-top { from { opacity: 0; transform: translateY(-10px) scale(.98); } }
+@keyframes ui-toast-in-top {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+}
 
 @media (pointer: coarse) {
-  .ui-toast__close { width: 40px; height: 40px; margin: -6px -4px 0 0; }
-  .ui-toast__action { min-height: 40px; }
+  .ui-toast__close {
+    width: 40px;
+    height: 40px;
+    margin: -6px -4px 0 0;
+  }
+  .ui-toast__action {
+    min-height: 40px;
+  }
 }

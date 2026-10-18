@@ -8,7 +8,9 @@
 /* ── Non-colour tokens ───────────────────────────────────────────────── */
 :root {
   /* Type */
-  --font-sans: 'Schibsted Grotesk Variable', 'Schibsted Grotesk', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans:
+    'Schibsted Grotesk Variable', 'Schibsted Grotesk', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Newsreader Variable', 'Newsreader', 'IBM Plex Sans Arabic', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   /* major third, 16px base (+ intermediate steps used across feature views) */
@@ -26,11 +28,11 @@
   --fs-49: 3.0625rem;
   --fs-61: 3.8125rem;
   --fs-76: 4.75rem;
-  --lh-display: 1.05;     /* 49+ */
-  --lh-heading: 1.2;      /* 20–39 */
-  --lh-sans: 1.55;        /* sans body */
+  --lh-display: 1.05; /* 49+ */
+  --lh-heading: 1.2; /* 20–39 */
+  --lh-sans: 1.55; /* sans body */
   --lh-body: var(--lh-sans);
-  --lh-serif: 1.65;       /* serif body */
+  --lh-serif: 1.65; /* serif body */
   --tracking-head: -0.02em;
   --tracking-display: -0.03em;
   /* Longest line of running text: about 75 characters. A ch is the width of a zero, so the count depends on the
@@ -60,17 +62,17 @@
   --sp-96: 96px;
 
   /* Radii by hierarchy */
-  --r-pill: 999px;     /* chips, pills, badges */
+  --r-pill: 999px; /* chips, pills, badges */
   --r-full: var(--r-pill);
-  --r-control: 10px;   /* inputs, buttons */
+  --r-control: 10px; /* inputs, buttons */
   --r-sm: 8px;
-  --r-panel: 16px;     /* panels, menus, toasts */
-  --r-feature: 24px;   /* large feature panels, modals, drawers */
-  --r-page: 4px;       /* document pages */
-  --r-xs: 6px;         /* kbd, tiny swatches, tooltips */
+  --r-panel: 16px; /* panels, menus, toasts */
+  --r-feature: 24px; /* large feature panels, modals, drawers */
+  --r-page: 4px; /* document pages */
+  --r-xs: 6px; /* kbd, tiny swatches, tooltips */
 
   /* Motion: 150–250ms, one easing */
-  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dur-fast: 150ms;
   --t-fast: var(--dur-fast) var(--ease);
   --dur: 200ms;
@@ -110,78 +112,86 @@
 /* Big screens: somewhat wider pages (text keeps its own measure in ch). Beyond that the shell stops growing
    (shell/AppShell.css), so lines never get endless. */
 @media (min-width: 1800px) {
-  :root { --content-max: 1320px; --content-max-wide: 1600px; }
+  :root {
+    --content-max: 1320px;
+    --content-max-wide: 1600px;
+  }
 }
 @media (max-width: 1099px) {
-  :root { --content-pad: 32px; }
+  :root {
+    --content-pad: 32px;
+  }
 }
 @media (max-width: 699px) {
-  :root { --content-pad: 16px; }
+  :root {
+    --content-pad: 16px;
+  }
 }
 
 /* ── Colour: light ───────────────────────────────────────────────────── */
-:root, [data-theme='light'] {
+:root,
+[data-theme='light'] {
   color-scheme: light;
 
   /* Spec */
-  --paper: #F4F7FC;        /* app background (cool, never cream) */
-  --surface: #FFFFFF;      /* panels, cards */
-  --surface-2: #EAF0F9;    /* inset areas, hovers, table stripes */
-  --ink: #0A1F44;          /* primary text & headings */
-  --ink-2: #425372;        /* secondary text (AA on paper/surface) */
-  --ink-3: #7587A6;        /* tertiary: icons, placeholders, large meta — NOT AA for small text in light */
-  --line: #DCE5F2;         /* borders/dividers */
-  --cobalt: #1558F0;       /* primary actions, links, focus */
-  --cobalt-ink: #FFFFFF;   /* text on cobalt */
-  --navy: #0C2D75;         /* deep brand navy (dark islands, deep accents) */
-  --brand: #1558F0;        /* the logo tile (same blue in both themes) */
-  --highlight: #FFE14A;    /* highlighter marks only — never a text colour */
-  --signal: #12B886;       /* live, answered, success, watched */
-  --alert: #F03E5E;        /* exams, errors, destructive */
-  --y1: #0FA3B1;           /* Year 1 (lagoon) */
-  --y2: #1F6FEB;           /* Year 2 (azure) */
-  --y3: #F08C00;           /* Year 3 (amber) */
-  --shadow-float: 0 18px 40px -18px rgba(10, 31, 68, .35), 0 2px 6px rgba(10, 31, 68, .06);
+  --paper: #f4f7fc; /* app background (cool, never cream) */
+  --surface: #ffffff; /* panels, cards */
+  --surface-2: #eaf0f9; /* inset areas, hovers, table stripes */
+  --ink: #0a1f44; /* primary text & headings */
+  --ink-2: #425372; /* secondary text (AA on paper/surface) */
+  --ink-3: #7587a6; /* tertiary: icons, placeholders, large meta — NOT AA for small text in light */
+  --line: #dce5f2; /* borders/dividers */
+  --cobalt: #1558f0; /* primary actions, links, focus */
+  --cobalt-ink: #ffffff; /* text on cobalt */
+  --navy: #0c2d75; /* deep brand navy (dark islands, deep accents) */
+  --brand: #1558f0; /* the logo tile (same blue in both themes) */
+  --highlight: #ffe14a; /* highlighter marks only — never a text colour */
+  --signal: #12b886; /* live, answered, success, watched */
+  --alert: #f03e5e; /* exams, errors, destructive */
+  --y1: #0fa3b1; /* Year 1 (lagoon) */
+  --y2: #1f6feb; /* Year 2 (azure) */
+  --y3: #f08c00; /* Year 3 (amber) */
+  --shadow-float: 0 18px 40px -18px rgba(10, 31, 68, 0.35), 0 2px 6px rgba(10, 31, 68, 0.06);
 
   /* Derived */
-  --line-strong: #C6D3E6;              /* input/chip borders, scrollbar thumb */
-  --control-border: #7F90AD;           /* text fields, selects, switches: 3.23:1 on surface, 3.01:1 on paper (WCAG 1.4.11) */
-  --highlight-ink: #0A1F44;            /* text sitting on a highlighter mark (both themes) */
-  --alert-strong: #C81E43;             /* alert as small text / danger fill (AA) */
-  --alert-ink: #FFFFFF;                /* text on an --alert-strong fill */
-  --alert-hover: #A9183A;              /* danger button hover */
-  --signal-strong: #0A7D5B;            /* success as small text (AA) */
-  --y1-strong: #0B7C87;                /* cohort colour as small text (AA) */
-  --y2-strong: #1A62D4;
-  --y3-strong: #A35E00;
-  --on-y1: #0A1F44;                    /* text on a solid cohort fill (AA) */
-  --on-y2: #FFFFFF;
-  --on-y3: #0A1F44;
+  --line-strong: #c6d3e6; /* input/chip borders, scrollbar thumb */
+  --control-border: #7f90ad; /* text fields, selects, switches: 3.23:1 on surface, 3.01:1 on paper (WCAG 1.4.11) */
+  --highlight-ink: #0a1f44; /* text sitting on a highlighter mark (both themes) */
+  --alert-strong: #c81e43; /* alert as small text / danger fill (AA) */
+  --alert-ink: #ffffff; /* text on an --alert-strong fill */
+  --alert-hover: #a9183a; /* danger button hover */
+  --signal-strong: #0a7d5b; /* success as small text (AA) */
+  --y1-strong: #0b7c87; /* cohort colour as small text (AA) */
+  --y2-strong: #1a62d4;
+  --y3-strong: #a35e00;
+  --on-y1: #0a1f44; /* text on a solid cohort fill (AA) */
+  --on-y2: #ffffff;
+  --on-y3: #0a1f44;
   /* colours a student gives their own calendar events: each AA as small text on a surface */
-  --mine-violet: #6741D9;
-  --mine-teal: #0B7285;
-  --mine-green: #2B8A3E;
-  --mine-orange: #C2410C;
-  --mine-rose: #C2255C;
+  --mine-violet: #6741d9;
+  --mine-teal: #0b7285;
+  --mine-green: #2b8a3e;
+  --mine-orange: #c2410c;
+  --mine-rose: #c2255c;
   --mine-slate: #495057;
-  --cobalt-hover: #0F47CF;
-  --cobalt-soft: #E6EEFF;              /* cobalt tint (selected rows, info) */
-  --alert-soft: #FEECEF;
-  --signal-soft: #E3F6F0;
-  --highlight-soft: #FFF7CC;
-  --thumb-bg: #FFFFFF;                 /* sliding thumb of segmented controls / pill tabs */
-  --thumb-shadow: 0 1px 2px rgba(10, 31, 68, .10), 0 0 0 1px var(--line);
-  --tile-stroke: transparent;          /* hairline around the navy logo tile (visible in dark) */
-  --art-tile: #EEF3FC;                 /* light ground under module illustrations (both themes) */
-  --art-tile-stroke: #DCE5F2;
-  --scrim: rgba(10, 31, 68, .42);
+  --cobalt-hover: #0f47cf;
+  --cobalt-soft: #e6eeff; /* cobalt tint (selected rows, info) */
+  --alert-soft: #feecef;
+  --signal-soft: #e3f6f0;
+  --highlight-soft: #fff7cc;
+  --thumb-bg: #ffffff; /* sliding thumb of segmented controls / pill tabs */
+  --thumb-shadow: 0 1px 2px rgba(10, 31, 68, 0.1), 0 0 0 1px var(--line);
+  --tile-stroke: transparent; /* hairline around the navy logo tile (visible in dark) */
+  --art-tile: #eef3fc; /* light ground under module illustrations (both themes) */
+  --art-tile-stroke: #dce5f2;
+  --scrim: rgba(10, 31, 68, 0.42);
   --focus-color: var(--cobalt);
   --surface-1: var(--surface);
   --surface-hover: var(--surface-2);
-  --shadow-sm: 0 1px 3px rgba(10, 31, 68, .08);
-  --shadow-md: 0 6px 18px rgba(10, 31, 68, .12);
-  --shadow-panel: 0 8px 24px -8px rgba(10, 31, 68, .14);
-  --show-on-light: block;              /* theme-conditional display (BrandLogo) */
+  --shadow-sm: 0 1px 3px rgba(10, 31, 68, 0.08);
+  --shadow-md: 0 6px 18px rgba(10, 31, 68, 0.12);
+  --shadow-panel: 0 8px 24px -8px rgba(10, 31, 68, 0.14);
+  --show-on-light: block; /* theme-conditional display (BrandLogo) */
   --show-on-dark: none;
 }
 
@@ -190,62 +200,62 @@
   color-scheme: dark;
 
   /* Spec */
-  --paper: #07122B;
-  --surface: #0D1B3B;
-  --surface-2: #14264F;
-  --ink: #ECF2FF;
-  --ink-2: #A6B6D8;
-  --ink-3: #7488B0;
+  --paper: #07122b;
+  --surface: #0d1b3b;
+  --surface-2: #14264f;
+  --ink: #ecf2ff;
+  --ink-2: #a6b6d8;
+  --ink-3: #7488b0;
   --line: #213563;
-  --cobalt: #6FA2FF;
-  --cobalt-ink: #07122B;
-  --navy: #0C2D75;
-  --brand: #1D5FF5;
-  --highlight: #FFE14A;
-  --signal: #38D9A9;
-  --alert: #FF6B81;
-  --y1: #3BC9DB;
-  --y2: #5E9BFF;
-  --y3: #FFA94D;
-  --shadow-float: 0 18px 40px -18px rgba(0, 0, 0, .6), 0 2px 6px rgba(0, 0, 0, .28);
+  --cobalt: #6fa2ff;
+  --cobalt-ink: #07122b;
+  --navy: #0c2d75;
+  --brand: #1d5ff5;
+  --highlight: #ffe14a;
+  --signal: #38d9a9;
+  --alert: #ff6b81;
+  --y1: #3bc9db;
+  --y2: #5e9bff;
+  --y3: #ffa94d;
+  --shadow-float: 0 18px 40px -18px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.28);
 
   /* Derived */
-  --line-strong: #2F477E;
-  --control-border: #5670A6;           /* 3.45:1 on surface, 3.77:1 on paper */
-  --highlight-ink: #0A1F44;
-  --alert-strong: #FF6B81;
-  --alert-ink: #07122B;
-  --alert-hover: #FF8A9C;
-  --signal-strong: #38D9A9;
-  --y1-strong: #3BC9DB;
-  --y2-strong: #5E9BFF;
-  --y3-strong: #FFA94D;
-  --on-y1: #07122B;
-  --on-y2: #07122B;
-  --on-y3: #07122B;
-  --mine-violet: #B197FC;
-  --mine-teal: #66D9E8;
-  --mine-green: #8CE99A;
-  --mine-orange: #FFA94D;
-  --mine-rose: #F783AC;
-  --mine-slate: #CED4DA;
-  --cobalt-hover: #96BBFF;
+  --line-strong: #2f477e;
+  --control-border: #5670a6; /* 3.45:1 on surface, 3.77:1 on paper */
+  --highlight-ink: #0a1f44;
+  --alert-strong: #ff6b81;
+  --alert-ink: #07122b;
+  --alert-hover: #ff8a9c;
+  --signal-strong: #38d9a9;
+  --y1-strong: #3bc9db;
+  --y2-strong: #5e9bff;
+  --y3-strong: #ffa94d;
+  --on-y1: #07122b;
+  --on-y2: #07122b;
+  --on-y3: #07122b;
+  --mine-violet: #b197fc;
+  --mine-teal: #66d9e8;
+  --mine-green: #8ce99a;
+  --mine-orange: #ffa94d;
+  --mine-rose: #f783ac;
+  --mine-slate: #ced4da;
+  --cobalt-hover: #96bbff;
   --cobalt-soft: #173066;
-  --alert-soft: #3A1F45;
-  --signal-soft: #133E4A;
-  --highlight-soft: #3A3A3F;
+  --alert-soft: #3a1f45;
+  --signal-soft: #133e4a;
+  --highlight-soft: #3a3a3f;
   --thumb-bg: #213563;
   --thumb-shadow: none;
-  --tile-stroke: rgba(255, 255, 255, .14);
-  --art-tile: #DDE6F7;
+  --tile-stroke: rgba(255, 255, 255, 0.14);
+  --art-tile: #dde6f7;
   --art-tile-stroke: transparent;
-  --scrim: rgba(2, 8, 20, .62);
+  --scrim: rgba(2, 8, 20, 0.62);
   --focus-color: var(--cobalt);
   --surface-1: var(--surface);
   --surface-hover: var(--surface-2);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .28);
-  --shadow-md: 0 6px 18px rgba(0, 0, 0, .38);
-  --shadow-panel: 0 8px 24px -8px rgba(0, 0, 0, .45);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.38);
+  --shadow-panel: 0 8px 24px -8px rgba(0, 0, 0, 0.45);
   --show-on-light: none;
   --show-on-dark: block;
 }

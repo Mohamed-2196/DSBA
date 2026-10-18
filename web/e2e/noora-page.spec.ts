@@ -34,7 +34,10 @@ async function standIn(page: Page): Promise<Request[]> {
       status: 200,
       headers: { 'content-type': 'text/event-stream' },
       body: sse(
-        { type: 'text', text: 'The **central limit theorem** states that sample means approach normal distribution:\n\n' },
+        {
+          type: 'text',
+          text: 'The **central limit theorem** states that sample means approach normal distribution:\n\n',
+        },
         { type: 'text', text: '$$\\bar X_n \\sim N(\\mu, \\sigma^2/n)$$\n\n' },
         { type: 'text', text: '```r\nmean(rnorm(100))\n```' },
         { type: 'done', questionsLeft: 28 },
@@ -44,7 +47,9 @@ async function standIn(page: Page): Promise<Request[]> {
   return asked;
 }
 
-test('/noora welcomes the student, starter cards fill the composer, and answers render with code and math', async ({ browser }) => {
+test('/noora welcomes the student, starter cards fill the composer, and answers render with code and math', async ({
+  browser,
+}) => {
   const ctx = await personaContext(browser, 'sara', { noora: true });
   const page = await ctx.newPage();
   await standIn(page);

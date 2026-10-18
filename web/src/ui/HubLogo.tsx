@@ -29,7 +29,16 @@ export interface HubLogoProps extends Omit<HTMLAttributes<HTMLElement>, 'childre
  * The DSBA Hub logo slot. The artwork is data/brand.ts's HUB_LOGO_SRC; while that is null there is
  * deliberately NO symbol anywhere: the name is set as text, and square slots get a neutral initials tile.
  */
-export function HubLogo({ size = 32, variant = 'tile', textInset = 0, decorative = false, optional = false, className, style, ...rest }: HubLogoProps) {
+export function HubLogo({
+  size = 32,
+  variant = 'tile',
+  textInset = 0,
+  decorative = false,
+  optional = false,
+  className,
+  style,
+  ...rest
+}: HubLogoProps) {
   const src = brandAssetUrl(HUB_LOGO_SRC);
 
   if (variant === 'lockup' && HUB_LOGO) {
@@ -44,8 +53,22 @@ export function HubLogo({ size = 32, variant = 'tile', textInset = 0, decorative
         {...(decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': NAME })}
         {...rest}
       >
-        <img className="ui-brandlogo__img ui-brandlogo__img--light" src={base + HUB_LOGO.light} alt="" width={width} height={height} decoding="async" />
-        <img className="ui-brandlogo__img ui-brandlogo__img--dark" src={base + HUB_LOGO.dark} alt="" width={width} height={height} decoding="async" />
+        <img
+          className="ui-brandlogo__img ui-brandlogo__img--light"
+          src={base + HUB_LOGO.light}
+          alt=""
+          width={width}
+          height={height}
+          decoding="async"
+        />
+        <img
+          className="ui-brandlogo__img ui-brandlogo__img--dark"
+          src={base + HUB_LOGO.dark}
+          alt=""
+          width={width}
+          height={height}
+          decoding="async"
+        />
       </span>
     );
   }
@@ -54,7 +77,13 @@ export function HubLogo({ size = 32, variant = 'tile', textInset = 0, decorative
     return (
       <span
         className={cx('ui-hublogo', 'ui-hublogo--lockup', !src && 'ui-hublogo--text', className)}
-        style={{ '--hublogo-size': `${size}px`, marginInlineStart: !src && textInset ? textInset : undefined, ...style } as CSSProperties}
+        style={
+          {
+            '--hublogo-size': `${size}px`,
+            marginInlineStart: !src && textInset ? textInset : undefined,
+            ...style,
+          } as CSSProperties
+        }
         {...(decorative ? { 'aria-hidden': true } : null)}
         {...rest}
       >
@@ -84,7 +113,13 @@ export function HubLogo({ size = 32, variant = 'tile', textInset = 0, decorative
   return (
     <span
       className={cx('ui-hublogo', 'ui-hublogo--tile', 'ui-hublogo--initials', className)}
-      style={{ width: size, height: size, lineHeight: `${size}px`, fontSize: Math.max(9, Math.round(size * 0.38)), ...style }}
+      style={{
+        width: size,
+        height: size,
+        lineHeight: `${size}px`,
+        fontSize: Math.max(9, Math.round(size * 0.38)),
+        ...style,
+      }}
       {...(decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': NAME })}
       {...rest}
     >

@@ -70,9 +70,26 @@ export function CardChecklist({ items, readOnly, onChange }: CardChecklistProps)
               </label>
               {readOnly ? null : (
                 <span className="card-detail__todo-actions">
-                  <IconButton label={`Move “${item.text}” up`} icon={ArrowUp} size="sm" disabled={i === 0} onClick={() => onChange(moveItem(items, item.id, -1))} />
-                  <IconButton label={`Move “${item.text}” down`} icon={ArrowDown} size="sm" disabled={i === items.length - 1} onClick={() => onChange(moveItem(items, item.id, 1))} />
-                  <IconButton label={`Remove “${item.text}”`} icon={Trash} size="sm" onClick={() => onChange(items.filter((x) => x.id !== item.id))} />
+                  <IconButton
+                    label={`Move “${item.text}” up`}
+                    icon={ArrowUp}
+                    size="sm"
+                    disabled={i === 0}
+                    onClick={() => onChange(moveItem(items, item.id, -1))}
+                  />
+                  <IconButton
+                    label={`Move “${item.text}” down`}
+                    icon={ArrowDown}
+                    size="sm"
+                    disabled={i === items.length - 1}
+                    onClick={() => onChange(moveItem(items, item.id, 1))}
+                  />
+                  <IconButton
+                    label={`Remove “${item.text}”`}
+                    icon={Trash}
+                    size="sm"
+                    onClick={() => onChange(items.filter((x) => x.id !== item.id))}
+                  />
                 </span>
               )}
             </li>

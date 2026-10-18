@@ -7,7 +7,21 @@ import type { AdminUser } from '../../api/types';
 import { useAuth } from '../../auth';
 import { formatPhone } from '../../auth/identifiers';
 import { useDebouncedValue, useToast } from '../../state';
-import { Avatar, Badge, Button, CohortBadge, ConfirmDialog, EmptyState, Panel, QueryError, SearchField, Select, Skeleton, formatDate, timeAgo } from '../../ui';
+import {
+  Avatar,
+  Badge,
+  Button,
+  CohortBadge,
+  ConfirmDialog,
+  EmptyState,
+  Panel,
+  QueryError,
+  SearchField,
+  Select,
+  Skeleton,
+  formatDate,
+  timeAgo,
+} from '../../ui';
 import { useRoleCatalogue, usePeople, useUpdatePerson } from './api';
 import { RolesDialog } from './RolesDialog';
 import './PeopleList.css';
@@ -59,9 +73,19 @@ function PersonRow({ p, isSelf, withRoles, mayChangeStatus, onStatus, onRoles }:
       {withRoles ? (
         <td className="people-cell people-cell--role" data-label="Roles">
           <span className="people-role">
-            {p.roles.length ? <span className="people-role__name">{p.roles.map((r) => r.name).join(', ')}</span> : <span className="people-muted">No roles</span>}
+            {p.roles.length ? (
+              <span className="people-role__name">{p.roles.map((r) => r.name).join(', ')}</span>
+            ) : (
+              <span className="people-muted">No roles</span>
+            )}
             {isSelf ? null : (
-              <Button size="sm" variant="ghost" leadingIcon={PencilSimple} onClick={onRoles} aria-label={`Change the roles of ${displayName(p)}`}>
+              <Button
+                size="sm"
+                variant="ghost"
+                leadingIcon={PencilSimple}
+                onClick={onRoles}
+                aria-label={`Change the roles of ${displayName(p)}`}
+              >
                 Change
               </Button>
             )}
@@ -70,7 +94,16 @@ function PersonRow({ p, isSelf, withRoles, mayChangeStatus, onStatus, onRoles }:
       ) : null}
       <td className="people-cell people-cell--seen" data-label="Last seen">
         {p.lastSeenAt ? (
-          <time dateTime={p.lastSeenAt} title={formatDate(p.lastSeenAt, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}>
+          <time
+            dateTime={p.lastSeenAt}
+            title={formatDate(p.lastSeenAt, {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          >
             {timeAgo(p.lastSeenAt)}
           </time>
         ) : (
@@ -80,11 +113,22 @@ function PersonRow({ p, isSelf, withRoles, mayChangeStatus, onStatus, onRoles }:
       </td>
       <td className="people-cell people-cell--actions">
         {isSelf || !mayChangeStatus ? null : suspended ? (
-          <Button size="sm" leadingIcon={UserCheck} onClick={() => onStatus('active')} aria-label={`Lift the suspension of ${displayName(p)}`}>
+          <Button
+            size="sm"
+            leadingIcon={UserCheck}
+            onClick={() => onStatus('active')}
+            aria-label={`Lift the suspension of ${displayName(p)}`}
+          >
             Lift suspension
           </Button>
         ) : (
-          <Button size="sm" variant="ghost" leadingIcon={Prohibit} onClick={() => onStatus('suspended')} aria-label={`Suspend ${displayName(p)}`}>
+          <Button
+            size="sm"
+            variant="ghost"
+            leadingIcon={Prohibit}
+            onClick={() => onStatus('suspended')}
+            aria-label={`Suspend ${displayName(p)}`}
+          >
             Suspend
           </Button>
         )}
@@ -138,7 +182,13 @@ export function PeopleList({ withRoles = false }: { withRoles?: boolean }) {
   return (
     <>
       <div className="people-tools">
-        <SearchField value={search} onValueChange={setSearch} placeholder={searchLabel} label={searchLabel} className="people-tools__search" />
+        <SearchField
+          value={search}
+          onValueChange={setSearch}
+          placeholder={searchLabel}
+          label={searchLabel}
+          className="people-tools__search"
+        />
         {withRoles ? <RoleFilter value={role} onChange={setRole} /> : null}
       </div>
       <p className="people-count" aria-live="polite">
@@ -155,13 +205,26 @@ export function PeopleList({ withRoles = false }: { withRoles?: boolean }) {
             ))}
           </div>
         ) : people.isError ? (
-          <QueryError error={people.error} title="People didn’t load" onRetry={() => void people.refetch()} retrying={people.isFetching} size="sm" panel={false} />
+          <QueryError
+            error={people.error}
+            title="People didn’t load"
+            onRetry={() => void people.refetch()}
+            retrying={people.isFetching}
+            size="sm"
+            panel={false}
+          />
         ) : list.length === 0 ? (
           <EmptyState
             size="sm"
             icon={UsersThree}
             title={q ? `No one matches “${q}”` : role ? 'No one holds this role' : 'No one here yet'}
-            body={q ? (isAdmin ? 'Check the spelling, or search by email or phone number.' : 'Check the spelling, or try part of the name.') : 'Accounts show up here once people sign in.'}
+            body={
+              q
+                ? isAdmin
+                  ? 'Check the spelling, or search by email or phone number.'
+                  : 'Check the spelling, or try part of the name.'
+                : 'Accounts show up here once people sign in.'
+            }
             action={
               q || role ? (
                 <Button
@@ -245,6 +308,18 @@ export function PeopleList({ withRoles = false }: { withRoles?: boolean }) {
 /** Only on the Access screen: reading the roles catalogue is for admins. */
 function RoleFilter({ value, onChange }: { value: string; onChange: (slug: string) => void }) {
   const catalogue = useRoleCatalogue();
-  const options = [{ value: '', label: 'Everyone' }, ...(catalogue.data?.roles ?? []).map((r) => ({ value: r.slug, label: r.name }))];
-  return <Select label="Show" hideLabel value={value} onChange={(e) => onChange(e.target.value)} options={options} className="people-tools__role" />;
+  const options = [
+    { value: '', label: 'Everyone' },
+    ...(catalogue.data?.roles ?? []).map((r) => ({ value: r.slug, label: r.name })),
+  ];
+  return (
+    <Select
+      label="Show"
+      hideLabel
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      options={options}
+      className="people-tools__role"
+    />
+  );
 }

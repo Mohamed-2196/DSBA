@@ -58,7 +58,17 @@ interface NoteHeaderProps {
   onDelete: () => void;
 }
 
-function SavedWhere({ state, opening, readOnly, notebook }: { state: SaveState; opening: boolean; readOnly: boolean; notebook: ReactNode }) {
+function SavedWhere({
+  state,
+  opening,
+  readOnly,
+  notebook,
+}: {
+  state: SaveState;
+  opening: boolean;
+  readOnly: boolean;
+  notebook: ReactNode;
+}) {
   let icon: ReactNode;
   let words: ReactNode;
   if (readOnly) {
@@ -93,7 +103,22 @@ function SavedWhere({ state, opening, readOnly, notebook }: { state: SaveState; 
   );
 }
 
-export function NoteHeader({ doc, note, state, opening, readOnly, onChange, onBack, pagesShown, onPages, onExport, exporting, full, onFull, onDelete }: NoteHeaderProps) {
+export function NoteHeader({
+  doc,
+  note,
+  state,
+  opening,
+  readOnly,
+  onChange,
+  onBack,
+  pagesShown,
+  onPages,
+  onExport,
+  exporting,
+  full,
+  onFull,
+  onDelete,
+}: NoteHeaderProps) {
   const notebooks = useNotebooks();
   const books = notebooks.data?.items ?? [];
   const book = books.find((b) => b.id === doc.notebookId);
@@ -144,7 +169,12 @@ export function NoteHeader({ doc, note, state, opening, readOnly, onChange, onBa
         ]
       : []),
     { id: 'export', label: 'Print or save as PDF', icon: Printer, onSelect: onExport },
-    ...(readOnly ? [] : [{ divider: true } as MenuItem, { id: 'delete', label: 'Delete note', icon: Trash, danger: true, onSelect: onDelete }]),
+    ...(readOnly
+      ? []
+      : [
+          { divider: true } as MenuItem,
+          { id: 'delete', label: 'Delete note', icon: Trash, danger: true, onSelect: onDelete },
+        ]),
   ];
 
   return (
@@ -166,10 +196,37 @@ export function NoteHeader({ doc, note, state, opening, readOnly, onChange, onBa
           data-hub="note-title"
         />
         <div className="nb-header__actions">
-          <IconButton icon={SquaresFour} label={pagesShown ? 'Hide pages' : 'Pages'} toggle active={pagesShown} onClick={onPages} tooltip data-hub="note-pages" />
-          <IconButton icon={Printer} label="Print or save as PDF" onClick={onExport} tooltip disabled={exporting} className="nb-header__wide" data-hub="note-export" />
-          <IconButton icon={full ? ArrowsIn : ArrowsOut} label={full ? 'Leave full screen' : 'Full screen'} onClick={onFull} tooltip data-hub="note-full" />
-          <Menu align="end" label="Note" items={moreItems} trigger={<IconButton icon={DotsThree} label="More" tooltip data-hub="note-more" />} />
+          <IconButton
+            icon={SquaresFour}
+            label={pagesShown ? 'Hide pages' : 'Pages'}
+            toggle
+            active={pagesShown}
+            onClick={onPages}
+            tooltip
+            data-hub="note-pages"
+          />
+          <IconButton
+            icon={Printer}
+            label="Print or save as PDF"
+            onClick={onExport}
+            tooltip
+            disabled={exporting}
+            className="nb-header__wide"
+            data-hub="note-export"
+          />
+          <IconButton
+            icon={full ? ArrowsIn : ArrowsOut}
+            label={full ? 'Leave full screen' : 'Full screen'}
+            onClick={onFull}
+            tooltip
+            data-hub="note-full"
+          />
+          <Menu
+            align="end"
+            label="Note"
+            items={moreItems}
+            trigger={<IconButton icon={DotsThree} label="More" tooltip data-hub="note-more" />}
+          />
         </div>
       </div>
       <div className="nb-header__where">
@@ -179,7 +236,13 @@ export function NoteHeader({ doc, note, state, opening, readOnly, onChange, onBa
             <PlayCircle aria-hidden="true" />
             <Link to={lessonHref(book.moduleId, doc.lessonId)}>About {lowerFirst(lessonLabel(place))}</Link>
             {readOnly ? null : (
-              <button type="button" className="nb-where__remove" onClick={() => onChange({ lessonId: null })} aria-label="Not about this lesson" title="Not about this lesson">
+              <button
+                type="button"
+                className="nb-where__remove"
+                onClick={() => onChange({ lessonId: null })}
+                aria-label="Not about this lesson"
+                title="Not about this lesson"
+              >
                 <X aria-hidden="true" />
               </button>
             )}

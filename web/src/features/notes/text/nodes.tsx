@@ -2,7 +2,18 @@
 // note's pictures and files (uploads served only to their owner: /notes/files/{id}). The API accepts exactly these
 // names and small scalar attributes (api/app/services/note_doc.py). Every block takes whole lines of the paper, so
 // the text after it stays on the ruled lines.
-import { DownloadSimple, File as FileIcon, FileCsv, FileDoc, FileImage, FilePdf, FilePpt, FileXls, Trash, type Icon } from '@phosphor-icons/react';
+import {
+  DownloadSimple,
+  File as FileIcon,
+  FileCsv,
+  FileDoc,
+  FileImage,
+  FilePdf,
+  FilePpt,
+  FileXls,
+  Trash,
+  type Icon,
+} from '@phosphor-icons/react';
 import { InputRule, Node, mergeAttributes, nodeInputRule, type CommandProps } from '@tiptap/core';
 import { TextSelection } from '@tiptap/pm/state';
 import { NodeViewWrapper, ReactNodeViewRenderer, type ReactNodeViewProps } from '@tiptap/react';
@@ -48,7 +59,10 @@ function insertBlock(name: string, attrs: Record<string, unknown>, at: number | 
   return ({ chain, state }: CommandProps): boolean => {
     const start = typeof at === 'number' ? at : state.selection.from;
     return chain()
-      .insertContentAt(typeof at === 'number' ? at : { from: state.selection.from, to: state.selection.to }, { type: name, attrs })
+      .insertContentAt(typeof at === 'number' ? at : { from: state.selection.from, to: state.selection.to }, {
+        type: name,
+        attrs,
+      })
       .command(({ tr }) => {
         let found = -1;
         tr.doc.nodesBetween(Math.max(0, tr.mapping.map(start, -1) - 2), tr.doc.content.size, (node, pos) => {
@@ -159,7 +173,11 @@ function MathView({ node, updateAttributes, deleteNode, editor, selected }: Reac
     );
   }
   return (
-    <NodeViewWrapper as="div" className={cx('nb-math nb-math--block', selected && 'is-selected')} style={height ? { height } : undefined}>
+    <NodeViewWrapper
+      as="div"
+      className={cx('nb-math nb-math--block', selected && 'is-selected')}
+      style={height ? { height } : undefined}
+    >
       <div ref={inner} className="nb-math__inner">
         {body}
       </div>
@@ -180,8 +198,14 @@ export const InlineMath = Node.create({
   atom: true,
   selectable: true,
   addAttributes: () => mathAttrs,
-  parseHTML: () => [{ tag: 'span[data-math]', getAttrs: (el) => ({ latex: (el as HTMLElement).getAttribute('data-math') ?? '' }) }],
-  renderHTML: ({ node, HTMLAttributes }) => ['span', mergeAttributes(HTMLAttributes, { 'data-math': node.attrs.latex }), `$${String(node.attrs.latex)}$`],
+  parseHTML: () => [
+    { tag: 'span[data-math]', getAttrs: (el) => ({ latex: (el as HTMLElement).getAttribute('data-math') ?? '' }) },
+  ],
+  renderHTML: ({ node, HTMLAttributes }) => [
+    'span',
+    mergeAttributes(HTMLAttributes, { 'data-math': node.attrs.latex }),
+    `$${String(node.attrs.latex)}$`,
+  ],
   renderText: ({ node }) => `$${String(node.attrs.latex)}$`,
   addNodeView: () => ReactNodeViewRenderer(MathView),
   addInputRules() {
@@ -213,8 +237,14 @@ export const BlockMath = Node.create({
   atom: true,
   selectable: true,
   addAttributes: () => mathAttrs,
-  parseHTML: () => [{ tag: 'div[data-math]', getAttrs: (el) => ({ latex: (el as HTMLElement).getAttribute('data-math') ?? '' }) }],
-  renderHTML: ({ node, HTMLAttributes }) => ['div', mergeAttributes(HTMLAttributes, { 'data-math': node.attrs.latex }), `$$${String(node.attrs.latex)}$$`],
+  parseHTML: () => [
+    { tag: 'div[data-math]', getAttrs: (el) => ({ latex: (el as HTMLElement).getAttribute('data-math') ?? '' }) },
+  ],
+  renderHTML: ({ node, HTMLAttributes }) => [
+    'div',
+    mergeAttributes(HTMLAttributes, { 'data-math': node.attrs.latex }),
+    `$$${String(node.attrs.latex)}$$`,
+  ],
   renderText: ({ node }) => `$$${String(node.attrs.latex)}$$`,
   addNodeView: () => ReactNodeViewRenderer(MathView),
   addInputRules() {
@@ -251,8 +281,19 @@ export const NotePicture = Node.create({
     cropW: { default: 1 },
     cropH: { default: 1 },
   }),
-  parseHTML: () => [{ tag: 'img[data-upload]', getAttrs: (el) => ({ upload: (el as HTMLElement).getAttribute('data-upload'), alt: (el as HTMLElement).getAttribute('alt') ?? '' }) }],
-  renderHTML: ({ node }) => ['img', { 'data-upload': node.attrs.upload, alt: node.attrs.alt, src: noteFileHref(String(node.attrs.upload)) }],
+  parseHTML: () => [
+    {
+      tag: 'img[data-upload]',
+      getAttrs: (el) => ({
+        upload: (el as HTMLElement).getAttribute('data-upload'),
+        alt: (el as HTMLElement).getAttribute('alt') ?? '',
+      }),
+    },
+  ],
+  renderHTML: ({ node }) => [
+    'img',
+    { 'data-upload': node.attrs.upload, alt: node.attrs.alt, src: noteFileHref(String(node.attrs.upload)) },
+  ],
   renderText: ({ node }) => [node.attrs.caption, node.attrs.alt].filter((t) => typeof t === 'string' && t).join(' '),
   addNodeView: () => ReactNodeViewRenderer(PictureView),
   addCommands() {
@@ -294,17 +335,34 @@ function FileView({ node, deleteNode, editor, selected, getPos }: ReactNodeViewP
   };
   return (
     <NodeViewWrapper className={cx('nb-file', selected && 'is-selected', move && 'is-moving')} data-hub="note-file">
-      <div className="nb-file__card" contentEditable={false} onPointerDown={onPointerDown} onClick={select} style={move ? { transform: `translate(${move.dx}px, ${move.dy}px)` } : undefined}>
+      <div
+        className="nb-file__card"
+        contentEditable={false}
+        onPointerDown={onPointerDown}
+        onClick={select}
+        style={move ? { transform: `translate(${move.dx}px, ${move.dy}px)` } : undefined}
+      >
         <span className="nb-file__icon" aria-hidden="true">
           <Glyph />
         </span>
         <span className="nb-file__text">
-          <a className="nb-file__name" href={noteFileHref(upload)} target="_blank" rel="noopener noreferrer" title={`Open ${name}`}>
+          <a
+            className="nb-file__name"
+            href={noteFileHref(upload)}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`Open ${name}`}
+          >
             {name}
           </a>
           <span className="nb-file__size">{[ext?.toUpperCase(), formatSize(size)].filter(Boolean).join(' · ')}</span>
         </span>
-        <a className="nb-file__download" href={noteFileHref(upload, true)} aria-label={`Download ${name}`} title="Download">
+        <a
+          className="nb-file__download"
+          href={noteFileHref(upload, true)}
+          aria-label={`Download ${name}`}
+          title="Download"
+        >
           <DownloadSimple aria-hidden="true" />
         </a>
         {editable && selected && !move ? (
@@ -313,7 +371,16 @@ function FileView({ node, deleteNode, editor, selected, getPos }: ReactNodeViewP
           </BlockBar>
         ) : null}
       </div>
-      {move?.line ? createPortal(<div className="nb-dropline" style={{ left: move.line.left, top: move.line.top, width: move.line.width }} aria-hidden="true" />, document.body) : null}
+      {move?.line
+        ? createPortal(
+            <div
+              className="nb-dropline"
+              style={{ left: move.line.left, top: move.line.top, width: move.line.width }}
+              aria-hidden="true"
+            />,
+            document.body,
+          )
+        : null}
     </NodeViewWrapper>
   );
 }

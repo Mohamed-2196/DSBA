@@ -20,11 +20,16 @@ test('a student hides and moves Home blocks, and it is saved to the account', as
   await expect(ali.locator('.home-blocks [data-block="coming_up"]')).toHaveCount(0);
 
   await expect
-    .poll(async () => (await api<{ preferences: { homeBlocks: string[] | null } }>(ali, 'GET', '/api/v1/me')).body.preferences.homeBlocks)
+    .poll(
+      async () =>
+        (await api<{ preferences: { homeBlocks: string[] | null } }>(ali, 'GET', '/api/v1/me')).body.preferences
+          .homeBlocks,
+    )
     .not.toContain('coming_up');
   await ali.reload();
   await expect(ali.locator('.home-blocks [data-block="coming_up"]')).toHaveCount(0);
-  const saved = (await api<{ preferences: { homeBlocks: string[] } }>(ali, 'GET', '/api/v1/me')).body.preferences.homeBlocks;
+  const saved = (await api<{ preferences: { homeBlocks: string[] } }>(ali, 'GET', '/api/v1/me')).body.preferences
+    .homeBlocks;
   expect(saved.indexOf('modules')).toBeLessThan(saved.indexOf('continue'));
   await expect(blocks.first()).toBeVisible();
 
@@ -38,7 +43,10 @@ test('a guest’s Home layout stays in the browser', async ({ guest }) => {
   await guest.goto('/');
   await expect(guest.locator('.home-blocks [data-block="todo"]')).toHaveCount(0); // the board needs an account
   await guest.locator('[data-hub="home-customize-open"]').click();
-  await guest.getByRole('dialog', { name: 'Customise Home' }).getByRole('switch', { name: 'My modules', exact: true }).uncheck();
+  await guest
+    .getByRole('dialog', { name: 'Customise Home' })
+    .getByRole('switch', { name: 'My modules', exact: true })
+    .uncheck();
   await guest.getByRole('dialog', { name: 'Customise Home' }).getByRole('button', { name: 'Done' }).click();
   await guest.reload();
   await expect(guest.locator('.home-blocks [data-block="modules"]')).toHaveCount(0);

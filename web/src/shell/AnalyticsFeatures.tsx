@@ -7,7 +7,9 @@ export function AnalyticsFeatures() {
   const on = status === 'loading' ? '' : FEATURE_KEYS.filter((f) => featureOn(f)).join(',');
   useEffect(() => {
     if (!import.meta.env.VITE_POSTHOG_KEY) return;
-    void import('../lib/analytics').then(({ setVisitFeatures }) => setVisitFeatures(on ? on.split(',') : [])).catch(() => undefined);
+    void import('../lib/analytics')
+      .then(({ setVisitFeatures }) => setVisitFeatures(on ? on.split(',') : []))
+      .catch(() => undefined);
   }, [on]);
   return null;
 }

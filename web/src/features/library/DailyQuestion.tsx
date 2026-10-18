@@ -26,12 +26,19 @@ export interface DailyQuestionProps {
  */
 export function DailyQuestion({ moduleId, moduleName, examDays, day, className }: DailyQuestionProps) {
   const { featureOn } = useAuth();
-  const on = featureOn('library') && featureOn('library.questions') && featureOn('library.daily-question') && examDays >= 0 && examDays <= DAILY_WINDOW_DAYS;
+  const on =
+    featureOn('library') &&
+    featureOn('library.questions') &&
+    featureOn('library.daily-question') &&
+    examDays >= 0 &&
+    examDays <= DAILY_WINDOW_DAYS;
   const questions = useModuleQuestions(moduleId, { enabled: on });
   const q = on && questions.data ? dailyQuestion(questions.data, day) : null;
   if (!q) return null;
   const p = q.paper;
-  const sitting = p.examYear ? [sittingLabel(p.examYear, p.examSession), p.zone ? zoneLabel(p.zone) : null].filter(Boolean).join(', ') : p.title;
+  const sitting = p.examYear
+    ? [sittingLabel(p.examYear, p.examSession), p.zone ? zoneLabel(p.zone) : null].filter(Boolean).join(', ')
+    : p.title;
   return (
     <PageSection className={className} aria-labelledby="home-daily" data-hub="daily-question">
       <SectionHeader id="home-daily" title="A past question a day" />

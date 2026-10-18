@@ -53,17 +53,22 @@ export function occurrenceDays(p: Pick<PersonalEvent, 'date' | 'repeat' | 'repea
   const last = lastRepeat(p);
   const skipped = new Set(p.skipped);
   const days: DayKey[] = [];
-  for (let day = p.date; day <= last && days.length < MAX_OCCURRENCES; day = addDaysToKey(day, step)) if (!skipped.has(day)) days.push(day);
+  for (let day = p.date; day <= last && days.length < MAX_OCCURRENCES; day = addDaysToKey(day, step))
+    if (!skipped.has(day)) days.push(day);
   return days;
 }
 
 /** Whether `p` repeats: its occurrences can be changed one at a time. */
 export const repeats = (p: Pick<PersonalEvent, 'repeat'>): boolean => p.repeat !== 'none';
 
-export const occurrenceId = (p: Pick<PersonalEvent, 'id' | 'repeat'>, day: DayKey): string => (p.repeat === 'none' ? `${PREFIX}${p.id}` : `${PREFIX}${p.id}-${day}`);
+export const occurrenceId = (p: Pick<PersonalEvent, 'id' | 'repeat'>, day: DayKey): string =>
+  p.repeat === 'none' ? `${PREFIX}${p.id}` : `${PREFIX}${p.id}-${day}`;
 
 /** The event id inside an occurrence id ('mine-<uuid>' or 'mine-<uuid>-<date>'), or null for a programme date. */
-export const seriesOf = (id: string): string | null => (id.startsWith(PREFIX) && id.length >= PREFIX.length + UUID_LENGTH ? id.slice(PREFIX.length, PREFIX.length + UUID_LENGTH) : null);
+export const seriesOf = (id: string): string | null =>
+  id.startsWith(PREFIX) && id.length >= PREFIX.length + UUID_LENGTH
+    ? id.slice(PREFIX.length, PREFIX.length + UUID_LENGTH)
+    : null;
 
 /** One occurrence, in the shape every list, grid and drawer of the calendar takes. */
 export function toOccurrence(p: PersonalEvent, day: DayKey): CalendarEvent {
@@ -90,7 +95,8 @@ export function toOccurrence(p: PersonalEvent, day: DayKey): CalendarEvent {
 }
 
 /** Every occurrence of the student's events. */
-export const occurrences = (events: readonly PersonalEvent[]): CalendarEvent[] => events.flatMap((p) => occurrenceDays(p).map((day) => toOccurrence(p, day)));
+export const occurrences = (events: readonly PersonalEvent[]): CalendarEvent[] =>
+  events.flatMap((p) => occurrenceDays(p).map((day) => toOccurrence(p, day)));
 
 /**
  * A list with one row for each repeat of the student's own: the first occurrence it holds (the next one, in a list
@@ -147,13 +153,24 @@ export function reminderLabel(remind: Reminder | null, allDay: boolean): string 
 }
 
 /** Whether the student keeps a programme date off their calendar: the date itself, its module or its type. */
-export function isHidden(e: Pick<CalendarEvent, 'id' | 'moduleId' | 'type' | 'mine'>, prefs: CalendarPrefs | null | undefined): boolean {
+export function isHidden(
+  e: Pick<CalendarEvent, 'id' | 'moduleId' | 'type' | 'mine'>,
+  prefs: CalendarPrefs | null | undefined,
+): boolean {
   if (!prefs || e.mine) return false;
-  return prefs.hiddenEvents.includes(e.id) || prefs.hiddenTypes.includes(e.type) || (!!e.moduleId && prefs.hiddenModules.includes(e.moduleId));
+  return (
+    prefs.hiddenEvents.includes(e.id) ||
+    prefs.hiddenTypes.includes(e.type) ||
+    (!!e.moduleId && prefs.hiddenModules.includes(e.moduleId))
+  );
 }
 
 /** The programme dates on the student's calendar, and their own events' occurrences, by date. */
-export function myCalendar(programme: readonly CalendarEvent[], mine: readonly PersonalEvent[], prefs: CalendarPrefs | null | undefined): CalendarEvent[] {
+export function myCalendar(
+  programme: readonly CalendarEvent[],
+  mine: readonly PersonalEvent[],
+  prefs: CalendarPrefs | null | undefined,
+): CalendarEvent[] {
   const shown = programme.filter((e) => !isHidden(e, prefs));
   if (!mine.length) return shown;
   return [...shown, ...occurrences(mine)].sort((a, b) => a.date.localeCompare(b.date));
@@ -167,7 +184,8 @@ export function myCalendar(programme: readonly CalendarEvent[], mine: readonly P
  * start time (all-day ones first), then the other programme dates. Ties keep the order they came in.
  */
 export function dayOrder(events: readonly CalendarEvent[], day: DayKey): CalendarEvent[] {
-  const rank = (e: CalendarEvent): number => (e.date < day ? 3 : e.mine ? 1 : e.type === 'exam' || e.type === 'deadline' ? 0 : 2);
+  const rank = (e: CalendarEvent): number =>
+    e.date < day ? 3 : e.mine ? 1 : e.type === 'exam' || e.type === 'deadline' ? 0 : 2;
   const at = (e: CalendarEvent): string => e.mine?.startTime ?? '';
   return events
     .map((e, i) => ({ e, i }))

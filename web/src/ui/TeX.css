@@ -1,9 +1,32 @@
 /* A formula set by KaTeX (TeX.tsx). A wide display formula scrolls inside its own box, never the page. Every formula
    is clipped to its own box, so nothing in it can sit over the text or the controls around it. */
-.ui-tex { color: inherit; }
-span.ui-tex { display: inline-block; max-width: 100%; overflow: clip; overflow-clip-margin: 0.15em; vertical-align: baseline; }
-.ui-tex--display { margin: var(--sp-12) 0; padding: 2px 0; overflow-x: auto; overflow-y: hidden; text-align: center; }
-.ui-tex--display:focus-visible { outline-offset: 2px; }
-.ui-tex.is-raw { font-family: var(--font-mono); font-size: 0.9em; }
-.ui-tex .katex { font-size: 1.08em; }
-.ui-tex .katex-error { color: var(--alert); }
+.ui-tex {
+  color: inherit;
+}
+span.ui-tex {
+  display: inline-block;
+  max-width: 100%;
+  overflow: clip;
+  overflow-clip-margin: 0.15em;
+  vertical-align: baseline;
+}
+.ui-tex--display {
+  margin: var(--sp-12) 0;
+  padding: 2px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+}
+.ui-tex--display:focus-visible {
+  outline-offset: 2px;
+}
+.ui-tex.is-raw {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.ui-tex .katex {
+  font-size: 1.08em;
+}
+.ui-tex .katex-error {
+  color: var(--alert);
+}

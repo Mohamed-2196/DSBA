@@ -33,7 +33,8 @@ export function Browse({ view, today, calendarEmpty, onAddDate, onAddMine }: Bro
   const phone = useMediaQuery(BREAKPOINTS.mobile);
   const showList = wide || view.mode === 'list';
   const showMonth = wide || view.mode === 'month';
-  const from = view.listFrom === view.todayKey ? 'From today' : `From ${formatShort(parseDay(view.listFrom))}, after this week`;
+  const from =
+    view.listFrom === view.todayKey ? 'From today' : `From ${formatShort(parseDay(view.listFrom))}, after this week`;
 
   return (
     <section className="cal-browse" aria-labelledby={BROWSE_TITLE_ID}>
@@ -60,7 +61,13 @@ export function Browse({ view, today, calendarEmpty, onAddDate, onAddMine }: Bro
         {showList ? (
           <div className="cal-list" data-hub="calendar-list">
             <p className="cal-list__from">{from}</p>
-            <UpcomingList view={view} today={today} calendarEmpty={calendarEmpty} onAddDate={onAddDate} onAddMine={onAddMine} />
+            <UpcomingList
+              view={view}
+              today={today}
+              calendarEmpty={calendarEmpty}
+              onAddDate={onAddDate}
+              onAddMine={onAddMine}
+            />
           </div>
         ) : null}
         {showMonth ? <MonthPanel view={view} today={today} compact={phone} onAdd={onAddMine} /> : null}
@@ -88,13 +95,26 @@ function Filters({ view }: { view: CalendarView }) {
       ) : null}
       <div className="cal-filters__types" role="group" aria-label="Event types (also the colour key)">
         {signedIn ? (
-          <Chip size="sm" selected={types.has('mine')} onChange={() => toggleType('mine')} className="cal-typechip cal-typechip--mine" data-hub="calendar-filter-mine">
+          <Chip
+            size="sm"
+            selected={types.has('mine')}
+            onChange={() => toggleType('mine')}
+            className="cal-typechip cal-typechip--mine"
+            data-hub="calendar-filter-mine"
+          >
             <span className="cal-dot cal-dot--mine cal-colour--violet" aria-hidden="true" />
             Yours
           </Chip>
         ) : null}
         {TYPE_ORDER.map((type) => (
-          <Chip key={type} size="sm" selected={types.has(type)} onChange={() => toggleType(type)} color={EVENT_TYPES[type].color} className={cx('cal-typechip', `cal-typechip--${type}`)}>
+          <Chip
+            key={type}
+            size="sm"
+            selected={types.has(type)}
+            onChange={() => toggleType(type)}
+            color={EVENT_TYPES[type].color}
+            className={cx('cal-typechip', `cal-typechip--${type}`)}
+          >
             {typeLabel(type)}
           </Chip>
         ))}

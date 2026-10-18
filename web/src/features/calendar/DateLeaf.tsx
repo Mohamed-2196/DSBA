@@ -17,7 +17,11 @@ export interface DateLeafProps {
  */
 export function DateLeaf({ date, tone = 'neutral', solid = false, className }: DateLeafProps) {
   return (
-    <time className={cx('cal-leaf', `cal-leaf--${tone}`, solid && 'is-solid', className)} dateTime={dayKey(date)} aria-hidden="true">
+    <time
+      className={cx('cal-leaf', `cal-leaf--${tone}`, solid && 'is-solid', className)}
+      dateTime={dayKey(date)}
+      aria-hidden="true"
+    >
       <span className="cal-leaf__wd">{weekdayOf(date).short}</span>
       <span className="cal-leaf__day">{date.getDate()}</span>
       <span className="cal-leaf__mon">{formatMonthShort(date)}</span>

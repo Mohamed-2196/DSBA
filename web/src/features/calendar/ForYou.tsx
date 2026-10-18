@@ -45,9 +45,18 @@ export function ForYou({ year, nextExam, week, today, todayKey, selectedId, onOp
           <p className="cal-card__sub">Today to {formatShort(end)}</p>
         </header>
         {days.length ? (
-          <DayList days={days} today={today} selectedId={selectedId} showCohort={false} onOpen={onOpen} className="cal-week__list" />
+          <DayList
+            days={days}
+            today={today}
+            selectedId={selectedId}
+            showCohort={false}
+            onOpen={onOpen}
+            className="cal-week__list"
+          />
         ) : (
-          <p className="cal-card__empty">{exam && week.length ? 'Nothing else this week.' : `Nothing on the calendar for ${who} this week.`}</p>
+          <p className="cal-card__empty">
+            {exam && week.length ? 'Nothing else this week.' : `Nothing on the calendar for ${who} this week.`}
+          </p>
         )}
       </section>
     </section>
@@ -86,7 +95,11 @@ function NextExamCard({ year, next, today, onOpen }: NextExamCardProps) {
   const earlier = unconfirmedBefore[0];
 
   return (
-    <section className={cx('cal-card cal-exam', exam.sample && 'is-unconfirmed')} aria-labelledby="cal-exam-title" data-hub="next-exam">
+    <section
+      className={cx('cal-card cal-exam', exam.sample && 'is-unconfirmed')}
+      aria-labelledby="cal-exam-title"
+      data-hub="next-exam"
+    >
       <header className="cal-card__head">
         <h2 id="cal-exam-title" className="cal-card__title">
           <Exam aria-hidden="true" weight="duotone" className="cal-card__icon" />
@@ -115,7 +128,8 @@ function NextExamCard({ year, next, today, onOpen }: NextExamCardProps) {
       </p>
       {exam.sample ? (
         <p className="cal-exam__note">
-          <span className="cal-unconfirmed">Not confirmed yet</span> Check with the programme office before you plan around it.
+          <span className="cal-unconfirmed">Not confirmed yet</span> Check with the programme office before you plan
+          around it.
         </p>
       ) : null}
       {earlier ? (
@@ -129,7 +143,9 @@ function NextExamCard({ year, next, today, onOpen }: NextExamCardProps) {
       ) : null}
 
       <div className="cal-exam__foot">
-        <span className="cal-exam__after">{after ? `${after} more ${after === 1 ? 'exam' : 'exams'} after it` : 'The last exam on the calendar'}</span>
+        <span className="cal-exam__after">
+          {after ? `${after} more ${after === 1 ? 'exam' : 'exams'} after it` : 'The last exam on the calendar'}
+        </span>
         <span className="cal-exam__actions">
           <Button size="sm" onClick={() => onOpen(exam)} aria-label={`Details: ${exam.title}, ${formatLong(date)}`}>
             Details

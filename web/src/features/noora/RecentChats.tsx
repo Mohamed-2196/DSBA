@@ -40,7 +40,13 @@ export function RecentChats({ chats, current, onOpen, onBack, onDeleteAll, onOpe
               const asked = chat.messages.filter((m) => m.from === 'me').length;
               return (
                 <li key={chat.id}>
-                  <button type="button" className="nc-recent__item" aria-current={here || undefined} onClick={() => onOpen(chat)} data-hub="noora-recent-chat">
+                  <button
+                    type="button"
+                    className="nc-recent__item"
+                    aria-current={here || undefined}
+                    onClick={() => onOpen(chat)}
+                    data-hub="noora-recent-chat"
+                  >
                     <span className="nc-recent__name" dir="auto">
                       {chat.title}
                     </span>
@@ -62,10 +68,23 @@ export function RecentChats({ chats, current, onOpen, onBack, onDeleteAll, onOpe
       </div>
       <div className="nc-recent__foot">
         <p>Saved in this browser only, never on the Hub’s server.</p>
-        <Button variant="ghost" size="sm" leadingIcon={ArrowsOutSimple} onClick={onOpenPage} data-hub="noora-recent-page">
+        <Button
+          variant="ghost"
+          size="sm"
+          leadingIcon={ArrowsOutSimple}
+          onClick={onOpenPage}
+          data-hub="noora-recent-page"
+        >
           Open full chat
         </Button>
-        <Button variant="ghost" size="sm" leadingIcon={Trash} onClick={onDeleteAll} disabled={!chats.length} data-hub="noora-recent-delete-all">
+        <Button
+          variant="ghost"
+          size="sm"
+          leadingIcon={Trash}
+          onClick={onDeleteAll}
+          disabled={!chats.length}
+          data-hub="noora-recent-delete-all"
+        >
           Delete all chats
         </Button>
       </div>

@@ -112,7 +112,10 @@ export function flatLessons(m: WithChapters | null | undefined): FlatLesson[] {
 }
 
 /** Where a lesson is in the module as it is now ({ c, v }), or null when the module doesn't show it. */
-export function findLesson(m: WithChapters | null | undefined, lessonId: string | null | undefined): { c: number; v: number } | null {
+export function findLesson(
+  m: WithChapters | null | undefined,
+  lessonId: string | null | undefined,
+): { c: number; v: number } | null {
   if (!m || !lessonId) return null;
   for (let c = 0; c < m.chapters.length; c++) {
     const v = m.chapters[c].videos.findIndex((video) => video.id === lessonId);
@@ -128,7 +131,11 @@ export interface Fraction {
   pct: number;
 }
 
-const fraction = (watched: number, total: number): Fraction => ({ watched, total, pct: total ? Math.round((watched / total) * 100) : 0 });
+const fraction = (watched: number, total: number): Fraction => ({
+  watched,
+  total,
+  pct: total ? Math.round((watched / total) * 100) : 0,
+});
 
 export function computeModuleProgress(state: ProgressState, m: WithChapters | null | undefined): Fraction {
   const lessons = flatLessons(m);
@@ -261,7 +268,8 @@ export function useGuestProgress(): ProgressApi & { clear: () => void } {
       mode: 'guest' as const,
       tracking: true,
       isWatched: (lessonId: string) => !!state.watched[lessonId],
-      setWatched: (moduleId: string, lessonId: string, on: boolean) => write((s) => withWatched(s, moduleId, lessonId, on, Date.now())),
+      setWatched: (moduleId: string, lessonId: string, on: boolean) =>
+        write((s) => withWatched(s, moduleId, lessonId, on, Date.now())),
       markOpened: (moduleId: string, lessonId: string) => write((s) => withOpened(s, moduleId, lessonId, Date.now())),
       resetModule: (moduleId: string) => {
         const snap = snapshotOf(state, moduleId);
@@ -351,7 +359,8 @@ function useAccountProgress(userId: string | null): Omit<ProgressApi, 'tracking'
       ready: !userId || q.data !== undefined || q.isError,
       mode: 'account' as const,
       isWatched: (lessonId: string) => !!state.watched[lessonId],
-      setWatched: (moduleId: string, lessonId: string, on: boolean) => mutate({ type: 'watched', moduleId, lessonId, on }),
+      setWatched: (moduleId: string, lessonId: string, on: boolean) =>
+        mutate({ type: 'watched', moduleId, lessonId, on }),
       markOpened: (moduleId: string, lessonId: string) => mutate({ type: 'opened', moduleId, lessonId }),
       resetModule: (moduleId: string) => {
         const snap = snapshotOf(state, moduleId);

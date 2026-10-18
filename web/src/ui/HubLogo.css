@@ -1,5 +1,7 @@
 /* The DSBA Hub logo slot (see HubLogo.jsx). No symbol is drawn here: the artwork is a file. */
-.ui-hublogo { flex: 0 0 auto; }
+.ui-hublogo {
+  flex: 0 0 auto;
+}
 
 /* The artwork: a square picture with the corners of an app tile. */
 .ui-hublogo__img {
@@ -16,7 +18,10 @@
   gap: calc(var(--hublogo-size, 32px) * 0.34);
   color: var(--ink);
 }
-.ui-hublogo--lockup .ui-hublogo__img { width: var(--hublogo-size, 32px); height: var(--hublogo-size, 32px); }
+.ui-hublogo--lockup .ui-hublogo__img {
+  width: var(--hublogo-size, 32px);
+  height: var(--hublogo-size, 32px);
+}
 .ui-hublogo__name {
   font-family: var(--font-sans);
   font-size: calc(var(--hublogo-size, 32px) * 0.6);
@@ -28,11 +33,19 @@
   color: inherit;
 }
 /* No logo yet: the name carries the header by itself, so it is set a size up. */
-.ui-hublogo--text .ui-hublogo__name { font-size: calc(var(--hublogo-size, 32px) * 0.69); letter-spacing: -0.035em; }
+.ui-hublogo--text .ui-hublogo__name {
+  font-size: calc(var(--hublogo-size, 32px) * 0.69);
+  letter-spacing: -0.035em;
+}
 
 /* ── Tile: the logo alone in a square slot ────────────────────────────── */
-.ui-hublogo--tile { display: inline-block; vertical-align: middle; }
-img.ui-hublogo--tile { display: block; }
+.ui-hublogo--tile {
+  display: inline-block;
+  vertical-align: middle;
+}
+img.ui-hublogo--tile {
+  display: block;
+}
 /* Until there is a logo: a neutral tile with the initials, in the type of the initials avatars
    (ui/Avatar.css). A rounded square, so it reads as the hub's account rather than a person.
    Centred with line-height, so it survives a placement that changes its display. */
@@ -52,4 +65,7 @@ img.ui-hublogo--tile { display: block; }
 }
 
 /* ── Lockup artwork: "DSBA Hub" as one picture (light and dark copies, see BrandLogo.css) ── */
-.ui-hublogo--art { display: inline-block; vertical-align: middle; }
+.ui-hublogo--art {
+  display: inline-block;
+  vertical-align: middle;
+}

@@ -18,7 +18,9 @@ describe('pictures', () => {
   it('loads them from the app or the API, and nothing else', () => {
     expect(pictureSrc('brand/newsletter-cover.jpg')).toBe('/brand/newsletter-cover.jpg');
     expect(pictureSrc('modules/module-ec1002.png')).toBe('/modules/module-ec1002.png');
-    expect(pictureSrc('/api/v1/media/0b5f3f8e-1d2c-4c5b-9a6e-2f1d3c4b5a69')).toBe('/api/v1/media/0b5f3f8e-1d2c-4c5b-9a6e-2f1d3c4b5a69');
+    expect(pictureSrc('/api/v1/media/0b5f3f8e-1d2c-4c5b-9a6e-2f1d3c4b5a69')).toBe(
+      '/api/v1/media/0b5f3f8e-1d2c-4c5b-9a6e-2f1d3c4b5a69',
+    );
     expect(pictureSrc('https://evil.example/pixel.png')).toBeNull();
     expect(pictureSrc('javascript:alert(1)')).toBeNull();
     expect(pictureSrc(null)).toBeNull();

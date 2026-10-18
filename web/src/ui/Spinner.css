@@ -7,7 +7,13 @@
   vertical-align: middle;
   animation: ui-spin 800ms linear infinite;
 }
-@keyframes ui-spin { to { transform: rotate(360deg); } }
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .ui-spinner { animation-duration: 2400ms; }
+  .ui-spinner {
+    animation-duration: 2400ms;
+  }
 }

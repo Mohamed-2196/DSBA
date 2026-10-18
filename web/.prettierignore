@@ -1,0 +1,11 @@
+# Generated, built or copied in: never formatted by hand.
+dist
+coverage
+playwright-report
+test-results
+public
+src/api/schema.d.ts
+package-lock.json
+# Its inline script is hashed into the Content Security Policy at build time.
+index.html
+*.md

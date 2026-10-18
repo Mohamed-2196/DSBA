@@ -17,7 +17,8 @@ const TITLE = 'Career Navigator';
 export function CareerBody({ data }: { data: CareerDoc }) {
   const { activeYear } = useYear();
   const [roleParam, setRoleParam] = useQueryParam('role', data.defaultRoleId);
-  const role = data.roles.find((r) => r.id === roleParam) ?? data.roles.find((r) => r.id === data.defaultRoleId) ?? data.roles[0];
+  const role =
+    data.roles.find((r) => r.id === roleParam) ?? data.roles.find((r) => r.id === data.defaultRoleId) ?? data.roles[0];
   return (
     <CareerContext.Provider value={data}>
       <PageHeader title={TITLE} description={data.intro} actions={data.featured ? <FeaturedCompetition /> : null} />
@@ -63,7 +64,12 @@ export default function CareerPage() {
       ) : q.isError ? (
         <>
           <PageHeader title={TITLE} />
-          <QueryError error={q.error} title="Career Navigator didn’t load" onRetry={() => void q.refetch()} retrying={q.isFetching} />
+          <QueryError
+            error={q.error}
+            title="Career Navigator didn’t load"
+            onRetry={() => void q.refetch()}
+            retrying={q.isFetching}
+          />
         </>
       ) : q.data ? (
         <CareerBody data={q.data} />
@@ -71,7 +77,12 @@ export default function CareerPage() {
         <>
           <PageHeader title={TITLE} />
           <Panel padding="none">
-            <EmptyState icon={Compass} title="Career Navigator is being set up" body="Employers, certificates and the skills behind each role will show here soon." action={<Button to="/">Back to Home</Button>} />
+            <EmptyState
+              icon={Compass}
+              title="Career Navigator is being set up"
+              body="Employers, certificates and the skills behind each role will show here soon."
+              action={<Button to="/">Back to Home</Button>}
+            />
           </Panel>
         </>
       )}

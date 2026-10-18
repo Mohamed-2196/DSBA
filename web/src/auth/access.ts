@@ -117,12 +117,20 @@ export function badgeOf(me: Pick<Me, 'roles'> | null | undefined): string | null
 }
 
 /** On for this person: their own list when signed in, the guest list (GET /features) otherwise. */
-export function featureIsOn(me: AccessMe | null | undefined, guestFeatures: readonly string[] | undefined, feature: Feature): boolean {
+export function featureIsOn(
+  me: AccessMe | null | undefined,
+  guestFeatures: readonly string[] | undefined,
+  feature: Feature,
+): boolean {
   const list: readonly string[] = me ? me.features : (guestFeatures ?? []);
   return list.includes(feature);
 }
 
 /** An admin sees every feature; this says which of them people without Admin may not see right now. */
-export function offForOthers(me: AccessMe | null | undefined, guestFeatures: readonly string[] | undefined, feature: Feature): boolean {
+export function offForOthers(
+  me: AccessMe | null | undefined,
+  guestFeatures: readonly string[] | undefined,
+  feature: Feature,
+): boolean {
   return isActiveAdmin(me) && !!guestFeatures && !guestFeatures.includes(feature);
 }

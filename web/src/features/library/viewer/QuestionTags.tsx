@@ -23,7 +23,8 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
       flag.mutate(
         { id: tag.id, on: !tag.flagged },
         {
-          onSuccess: (t) => push({ title: t.flagged ? 'Thanks: a student rep will check it' : 'Flag taken back', tone: 'success' }),
+          onSuccess: (t) =>
+            push({ title: t.flagged ? 'Thanks: a student rep will check it' : 'Flag taken back', tone: 'success' }),
           onError: (e) => push({ title: 'Couldn’t flag this tag', body: errorMessage(e), tone: 'alert' }),
         },
       );
@@ -32,7 +33,12 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
   return (
     <li className="lib-qtags__row">
       {tag.page ? (
-        <button type="button" className="lib-qtags__q" onClick={() => onPage(tag.page ?? 1)} aria-label={`Go to page ${tag.page} for question ${tag.question}`}>
+        <button
+          type="button"
+          className="lib-qtags__q"
+          onClick={() => onPage(tag.page ?? 1)}
+          aria-label={`Go to page ${tag.page} for question ${tag.question}`}
+        >
           {questionLabel(tag)}
         </button>
       ) : (
@@ -43,7 +49,11 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
       <span className="lib-qtags__acts">
         {!tag.isMine && me?.status !== 'suspended' ? (
           <IconButton
-            label={tag.flagged ? `Take back your flag on question ${tag.question}` : `Flag question ${tag.question}: wrong chapter`}
+            label={
+              tag.flagged
+                ? `Take back your flag on question ${tag.question}`
+                : `Flag question ${tag.question}: wrong chapter`
+            }
             icon={Flag}
             size="sm"
             toggle
@@ -57,7 +67,12 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
             label={`Remove the tag on question ${tag.question}`}
             icon={Trash}
             size="sm"
-            onClick={() => remove.mutate({ id: tag.id }, { onError: (e) => push({ title: 'Couldn’t remove the tag', body: errorMessage(e), tone: 'alert' }) })}
+            onClick={() =>
+              remove.mutate(
+                { id: tag.id },
+                { onError: (e) => push({ title: 'Couldn’t remove the tag', body: errorMessage(e), tone: 'alert' }) },
+              )
+            }
             disabled={remove.isPending}
           />
         ) : null}
@@ -128,7 +143,13 @@ export function TagQuestionDialog({
           <Button variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" form="tag-question-form" loading={tag.isPending} data-hub="tag-question-submit">
+          <Button
+            variant="primary"
+            type="submit"
+            form="tag-question-form"
+            loading={tag.isPending}
+            data-hub="tag-question-submit"
+          >
             Tag question
           </Button>
         </>
@@ -192,7 +213,8 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
         ) : null}
       </div>
       <p className="lib-qtags__desc">
-        Practice past questions organized by topic. Tag questions to help classmates revise for each chapter on the Lessons tab.
+        Practice past questions organized by topic. Tag questions to help classmates revise for each chapter on the
+        Lessons tab.
       </p>
 
       {tags.isPending ? (
@@ -215,12 +237,7 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
       )}
 
       {dialogOpen ? (
-        <TagQuestionDialog
-          open={dialogOpen}
-          onClose={() => setDialogOpen(false)}
-          item={item}
-          chapters={chapters}
-        />
+        <TagQuestionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} item={item} chapters={chapters} />
       ) : null}
     </section>
   );

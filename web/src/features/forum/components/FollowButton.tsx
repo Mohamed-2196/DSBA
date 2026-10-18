@@ -33,8 +33,20 @@ export function FollowButton({ thread }: { thread: ThreadDetail }) {
       label="Following this thread"
       align="start"
       items={[
-        { id: 'answers', label: 'When it’s answered', hint: 'An accepted answer', icon: every ? null : Check, onSelect: () => set('answers') },
-        { id: 'replies', label: 'Every reply', hint: 'And the accepted answer', icon: every ? Check : null, onSelect: () => set('replies') },
+        {
+          id: 'answers',
+          label: 'When it’s answered',
+          hint: 'An accepted answer',
+          icon: every ? null : Check,
+          onSelect: () => set('answers'),
+        },
+        {
+          id: 'replies',
+          label: 'Every reply',
+          hint: 'And the accepted answer',
+          icon: every ? Check : null,
+          onSelect: () => set('replies'),
+        },
         { divider: true },
         { id: 'off', label: 'Stop following', icon: BellSlash, onSelect: () => set('off') },
       ]}

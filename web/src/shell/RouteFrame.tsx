@@ -57,7 +57,10 @@ export function RouteFrame({ route }: { route: AppRoute }) {
     modules === false ? (
       <Page />
     ) : (
-      <ModulesGate fallback={<PageLoader />} error={(retry, error, retrying) => <CatalogueFailed retry={retry} error={error} retrying={retrying} />}>
+      <ModulesGate
+        fallback={<PageLoader />}
+        error={(retry, error, retrying) => <CatalogueFailed retry={retry} error={error} retrying={retrying} />}
+      >
         <Page />
       </ModulesGate>
     );

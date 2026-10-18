@@ -3,7 +3,13 @@ import { House } from '@phosphor-icons/react';
 import type { NavItem } from './nav';
 import { visibleNav } from './visibility';
 
-const item = (id: string, feature?: NavItem['feature']): NavItem => ({ id, label: id, to: `/${id}`, icon: House, feature });
+const item = (id: string, feature?: NavItem['feature']): NavItem => ({
+  id,
+  label: id,
+  to: `/${id}`,
+  icon: House,
+  feature,
+});
 
 describe('visibleNav', () => {
   it('keeps items without a feature and those whose feature is on', () => {

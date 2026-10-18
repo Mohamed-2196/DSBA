@@ -21,7 +21,8 @@ export interface ReportButtonProps {
 // What this person reported while the app is open, by account: the button then reads "Reported", so a second try
 // isn't how they learn it was sent (student test). The server keeps the real record (already_reported).
 const sent = new Set<string>();
-const sentKey = (viewer: string | null | undefined, type: ReportTargetType, id: string) => `${viewer ?? ''}|${type}|${id}`;
+const sentKey = (viewer: string | null | undefined, type: ReportTargetType, id: string) =>
+  `${viewer ?? ''}|${type}|${id}`;
 
 /** A quiet "Report" button and its dialog; "Reported" once this person has reported it. */
 export function ReportButton({ targetType, targetId, label = 'Report', className }: ReportButtonProps) {

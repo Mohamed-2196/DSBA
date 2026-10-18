@@ -21,7 +21,16 @@ const { readSeed } = await import('../../testing/seed');
 const SCRIPT = readSeed<NooraDoc>('noora').script;
 
 const summary = (id: string, unitCode: string, name: string, year: number): ModuleSummary =>
-  ({ id, unitCode, name, shortName: name, year, description: `${name}.`, chapterCount: 1, lessonCount: 3 }) as ModuleSummary;
+  ({
+    id,
+    unitCode,
+    name,
+    shortName: name,
+    year,
+    description: `${name}.`,
+    chapterCount: 1,
+    lessonCount: 3,
+  }) as ModuleSummary;
 
 const ST2133 = summary('advanced-stats-distribution', 'ST2133', 'Advanced Statistics: Distribution Theory', 2);
 const detail = {
@@ -41,9 +50,17 @@ const detail = {
 
 const knowledge = (events: CalendarEvent[] | null = [], isOn: (f: Feature) => boolean = () => true) =>
   buildKnowledge([ST2133], new Map([[ST2133.id, detail]]), events, 'Sara', isOn, SCRIPT);
-const ask = (text: string, attachments: { kind: 'image' | 'file'; name: string }[] = [], events?: CalendarEvent[] | null, now?: number) =>
-  answer({ text, attachments, year: 2 }, knowledge(events), now);
-const askWithout = (off: Feature, text: string) => answer({ text, attachments: [], year: 2 }, knowledge(null, (f) => f !== off));
+const ask = (
+  text: string,
+  attachments: { kind: 'image' | 'file'; name: string }[] = [],
+  events?: CalendarEvent[] | null,
+  now?: number,
+) => answer({ text, attachments, year: 2 }, knowledge(events), now);
+const askWithout = (off: Feature, text: string) =>
+  answer(
+    { text, attachments: [], year: 2 },
+    knowledge(null, (f) => f !== off),
+  );
 const links = (r: { refs: { to: string }[] }) => r.refs.map((x) => x.to);
 const mgfOf = (id: string) => DISTRIBUTIONS.find((d) => d.id === id)?.mgf;
 
@@ -53,7 +70,11 @@ describe('MGF questions (ST-3)', () => {
     expect(r.formula).toBe(mgfOf('poisson'));
     expect(r.steps).toBeUndefined();
     expect(r.text).toBe('The MGF of the Poisson distribution:');
-    expect(r.refs.map((x) => x.label)).toEqual(['Chapter 2 · Random variables and univariate distributions', 'Poisson distribution', 'ST2133 notes and past papers']);
+    expect(r.refs.map((x) => x.label)).toEqual([
+      'Chapter 2 · Random variables and univariate distributions',
+      'Poisson distribution',
+      'ST2133 notes and past papers',
+    ]);
     expect(r.refs[1]?.to).toBe('/modules/advanced-stats-distribution/lessons/pois');
   });
 
@@ -90,13 +111,29 @@ describe('MGF questions (ST-3)', () => {
 
 describe('exam dates', () => {
   const exam = (date: string): CalendarEvent =>
-    ({ id: `${date}-st2133`, date, endDate: null, title: 'ST2133 exam', type: 'exam', year: 2, moduleId: ST2133.id, unitCode: 'ST2133', time: null, place: null, sample: false }) as CalendarEvent;
+    ({
+      id: `${date}-st2133`,
+      date,
+      endDate: null,
+      title: 'ST2133 exam',
+      type: 'exam',
+      year: 2,
+      moduleId: ST2133.id,
+      unitCode: 'ST2133',
+      time: null,
+      place: null,
+      sample: false,
+    }) as CalendarEvent;
 
   it('counts from today in Bahrain', () => {
     // 21:30 UTC on 11 October is 00:30 on 12 October in Manama: the exam is today there
     const now = Date.UTC(2026, 9, 11, 21, 30);
-    expect(ask('when is my next exam', [], [exam('2026-10-12')], now).text).toBe('Your next exam is ST2133 Advanced Statistics: Distribution Theory today, Monday 12 October.');
-    expect(ask('when is my next exam', [], [exam('2026-10-23')], now).text).toBe('Your next exam is ST2133 Advanced Statistics: Distribution Theory on Friday 23 October, in 11 days.');
+    expect(ask('when is my next exam', [], [exam('2026-10-12')], now).text).toBe(
+      'Your next exam is ST2133 Advanced Statistics: Distribution Theory today, Monday 12 October.',
+    );
+    expect(ask('when is my next exam', [], [exam('2026-10-23')], now).text).toBe(
+      'Your next exam is ST2133 Advanced Statistics: Distribution Theory on Friday 23 October, in 11 days.',
+    );
   });
 
   it('says so when the calendar is out of reach', () => {

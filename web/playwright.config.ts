@@ -29,7 +29,9 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   timeout: 90_000,
   expect: { timeout: 10_000 },
-  reporter: process.env.CI ? [['list'], ['html', { open: 'never', outputFolder: path.join(env.stateDir, 'report') }]] : [['list']],
+  reporter: process.env.CI
+    ? [['list'], ['html', { open: 'never', outputFolder: path.join(env.stateDir, 'report') }]]
+    : [['list']],
   use: {
     ...devices['Desktop Chrome'],
     baseURL: env.baseURL,

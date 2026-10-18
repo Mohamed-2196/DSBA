@@ -24,7 +24,18 @@ export interface ConfirmDialogProps {
 }
 
 /** "Are you sure?" before an action: the question, what happens, and the action named as a verb. */
-export function ConfirmDialog({ open, title, body, confirmLabel, tone = 'primary', busy = false, error, onConfirm, onClose, children }: ConfirmDialogProps) {
+export function ConfirmDialog({
+  open,
+  title,
+  body,
+  confirmLabel,
+  tone = 'primary',
+  busy = false,
+  error,
+  onConfirm,
+  onClose,
+  children,
+}: ConfirmDialogProps) {
   const danger = tone === 'danger';
   return (
     <Modal
@@ -37,7 +48,12 @@ export function ConfirmDialog({ open, title, body, confirmLabel, tone = 'primary
           <Button variant="ghost" onClick={onClose} disabled={busy} data-autofocus={danger ? true : undefined}>
             Cancel
           </Button>
-          <Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm} loading={busy} data-autofocus={danger ? undefined : true}>
+          <Button
+            variant={danger ? 'danger' : 'primary'}
+            onClick={onConfirm}
+            loading={busy}
+            data-autofocus={danger ? undefined : true}
+          >
             {confirmLabel}
           </Button>
         </>

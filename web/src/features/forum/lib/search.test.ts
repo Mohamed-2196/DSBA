@@ -19,7 +19,9 @@ describe('highlightTerms', () => {
 
 describe('similar threads', () => {
   it('asks for any of the longest words', () => {
-    expect(similarQuery('How do I find the MGF of a Gamma distribution?')).toBe('"distribution" or "gamma" or "find" or "mgf"');
+    expect(similarQuery('How do I find the MGF of a Gamma distribution?')).toBe(
+      '"distribution" or "gamma" or "find" or "mgf"',
+    );
     expect(similarQuery('Is it to be?')).toBe('');
   });
 

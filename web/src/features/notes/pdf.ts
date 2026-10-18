@@ -37,7 +37,9 @@ export interface LoadedPdf {
 
 async function sourceOf(pdf: NotePdf): Promise<string> {
   if (pdf.libraryItemId) {
-    const link = await call(api.GET('/api/v1/library/items/{item_id}/file', { params: { path: { item_id: pdf.libraryItemId } } }));
+    const link = await call(
+      api.GET('/api/v1/library/items/{item_id}/file', { params: { path: { item_id: pdf.libraryItemId } } }),
+    );
     return link.url;
   }
   return noteFileHref(pdf.uploadId ?? '');
@@ -46,7 +48,13 @@ async function sourceOf(pdf: NotePdf): Promise<string> {
 async function open(pdf: NotePdf): Promise<LoadedPdf> {
   const [lib, url] = await Promise.all([loadPdfJs(), sourceOf(pdf)]);
   // XFA forms stay off: the page is only ever drawn (pdf.js 6 has no eval path left to turn off).
-  const doc = await lib.getDocument({ url, disableRange: true, disableStream: true, disableAutoFetch: true, enableXfa: false }).promise;
+  const doc = await lib.getDocument({
+    url,
+    disableRange: true,
+    disableStream: true,
+    disableAutoFetch: true,
+    enableXfa: false,
+  }).promise;
   const pages: PageSize[] = [];
   for (let i = 1; i <= doc.numPages; i++) {
     const vp = (await doc.getPage(i)).getViewport({ scale: 1 });
@@ -55,7 +63,11 @@ async function open(pdf: NotePdf): Promise<LoadedPdf> {
   return { doc, pages };
 }
 
-export type PdfState = { status: 'none' } | { status: 'loading' } | { status: 'error' } | { status: 'ready'; pdf: LoadedPdf };
+export type PdfState =
+  | { status: 'none' }
+  | { status: 'loading' }
+  | { status: 'error' }
+  | { status: 'ready'; pdf: LoadedPdf };
 
 /** The note's PDF, opened (null: the note isn't on a PDF). `retry` opens it again after a failure. */
 export function usePdf(pdf: NotePdf | null | undefined): { state: PdfState; retry: () => void } {

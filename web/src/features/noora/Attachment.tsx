@@ -20,5 +20,13 @@ export function FileChip({ file, children }: { file: Attachment; children?: Reac
 export function Shot({ file, onLoad }: { file: Attachment; onLoad?: () => void }) {
   const [broken, setBroken] = useState(false);
   if (broken || !file.url) return <FileChip file={file} />;
-  return <img className="nc-shot" src={file.url} alt={`Attached: ${file.name}`} onLoad={onLoad} onError={() => setBroken(true)} />;
+  return (
+    <img
+      className="nc-shot"
+      src={file.url}
+      alt={`Attached: ${file.name}`}
+      onLoad={onLoad}
+      onError={() => setBroken(true)}
+    />
+  );
 }

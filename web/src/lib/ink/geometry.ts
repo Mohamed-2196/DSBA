@@ -57,7 +57,8 @@ function hasPressure(points: readonly number[]): boolean {
 /** The stroke's outline: a closed polygon around it, thicker where the pen pressed harder. */
 export function strokeOutline(stroke: InkStroke, complete = true): number[][] {
   const pts: number[][] = [];
-  for (let i = 0; i + 2 < stroke.points.length; i += 3) pts.push([stroke.points[i], stroke.points[i + 1], stroke.points[i + 2]]);
+  for (let i = 0; i + 2 < stroke.points.length; i += 3)
+    pts.push([stroke.points[i], stroke.points[i + 1], stroke.points[i + 2]]);
   const highlighter = stroke.tool === 'highlighter';
   return getStroke(pts, {
     size: stroke.width,

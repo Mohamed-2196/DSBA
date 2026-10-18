@@ -9,7 +9,17 @@ import type { LibraryItem } from '../../../api/types';
 import { removeStored, useLocalStorage } from '../../../state';
 import { Button, IconButton, Modal, SegmentedControl, TextField } from '../../../ui';
 import { itemPath } from '../api';
-import { cleanClock, clockLabel, clockLeft, clockPause, clockResume, clockStart, durationLabel, parseDuration, type ExamClock } from '../papers';
+import {
+  cleanClock,
+  clockLabel,
+  clockLeft,
+  clockPause,
+  clockResume,
+  clockStart,
+  durationLabel,
+  parseDuration,
+  type ExamClock,
+} from '../papers';
 
 const PRESETS = [1, 2, 3] as const;
 type Preset = `${(typeof PRESETS)[number]}` | 'custom';
@@ -22,8 +32,22 @@ export function useExamClock(itemId: string) {
   const [raw, setRaw] = useLocalStorage<unknown>(key, null);
   const clock = cleanClock(raw, Date.now());
   const start = useCallback((total: number) => setRaw(clockStart(total, Date.now())), [setRaw]);
-  const pause = useCallback(() => setRaw((c: unknown) => { const v = cleanClock(c, Date.now()); return v ? clockPause(v, Date.now()) : null; }), [setRaw]);
-  const resume = useCallback(() => setRaw((c: unknown) => { const v = cleanClock(c, Date.now()); return v ? clockResume(v, Date.now()) : null; }), [setRaw]);
+  const pause = useCallback(
+    () =>
+      setRaw((c: unknown) => {
+        const v = cleanClock(c, Date.now());
+        return v ? clockPause(v, Date.now()) : null;
+      }),
+    [setRaw],
+  );
+  const resume = useCallback(
+    () =>
+      setRaw((c: unknown) => {
+        const v = cleanClock(c, Date.now());
+        return v ? clockResume(v, Date.now()) : null;
+      }),
+    [setRaw],
+  );
   const stop = useCallback(() => removeStored(key), [key]);
   return { clock, start, pause, resume, stop };
 }
@@ -40,7 +64,15 @@ export function TimeMeButton({ onClick, compact }: { onClick: () => void; compac
 }
 
 /** Pick how long: 1, 2 or 3 hours, or any hours and minutes. */
-export function TimeMeDialog({ open, onClose, onStart }: { open: boolean; onClose: () => void; onStart: (ms: number) => void }) {
+export function TimeMeDialog({
+  open,
+  onClose,
+  onStart,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onStart: (ms: number) => void;
+}) {
   const [preset, setPreset] = useState<Preset>('2');
   const [hours, setHours] = useState('1');
   const [minutes, setMinutes] = useState('30');
@@ -54,7 +86,8 @@ export function TimeMeDialog({ open, onClose, onStart }: { open: boolean; onClos
       return;
     }
     // Asked now, while the student is clicking: browsers allow the question only then.
-    if (typeof Notification !== 'undefined' && Notification.permission === 'default') void Notification.requestPermission().catch(() => undefined);
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default')
+      void Notification.requestPermission().catch(() => undefined);
     onStart(ms);
     onClose();
   };
@@ -86,12 +119,29 @@ export function TimeMeDialog({ open, onClose, onStart }: { open: boolean; onClos
             setError(null);
           }}
           fullWidth
-          options={[...PRESETS.map((h) => ({ value: `${h}` as Preset, label: `${h} h`, ariaLabel: h === 1 ? '1 hour' : `${h} hours` })), { value: 'custom', label: 'Other' }]}
+          options={[
+            ...PRESETS.map((h) => ({
+              value: `${h}` as Preset,
+              label: `${h} h`,
+              ariaLabel: h === 1 ? '1 hour' : `${h} hours`,
+            })),
+            { value: 'custom', label: 'Other' },
+          ]}
         />
         {preset === 'custom' ? (
           <div className="lib-timeme__custom">
-            <TextField label="Hours" inputMode="numeric" value={hours} onChange={(e) => setHours(e.target.value.replace(/\D/g, '').slice(0, 2))} />
-            <TextField label="Minutes" inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value.replace(/\D/g, '').slice(0, 2))} />
+            <TextField
+              label="Hours"
+              inputMode="numeric"
+              value={hours}
+              onChange={(e) => setHours(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            />
+            <TextField
+              label="Minutes"
+              inputMode="numeric"
+              value={minutes}
+              onChange={(e) => setMinutes(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            />
           </div>
         ) : null}
         {error ? (
@@ -131,7 +181,11 @@ function announce(title: string) {
     /* no sound here */
   }
   try {
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
+    if (
+      typeof Notification !== 'undefined' &&
+      Notification.permission === 'granted' &&
+      document.visibilityState !== 'visible'
+    ) {
       new Notification('Time’s up', { body: title, tag: 'hub-time-me' });
     }
   } catch {
@@ -166,7 +220,8 @@ export function ExamTimer({
     if (done || paused) return undefined;
     const tick = () => setNow(Date.now());
     const t = window.setInterval(tick, 1000);
-    const end = clock.endsAt !== null ? window.setTimeout(tick, Math.max(0, clock.endsAt - Date.now()) + 50) : undefined;
+    const end =
+      clock.endsAt !== null ? window.setTimeout(tick, Math.max(0, clock.endsAt - Date.now()) + 50) : undefined;
     document.addEventListener('visibilitychange', tick);
     return () => {
       window.clearInterval(t);
@@ -183,7 +238,9 @@ export function ExamTimer({
     };
   }, []);
   useEffect(() => {
-    document.title = done ? `Time’s up · ${item.title}` : `${clockLabel(left)}${paused ? ' paused' : ''} · ${item.title}`;
+    document.title = done
+      ? `Time’s up · ${item.title}`
+      : `${clockLabel(left)}${paused ? ' paused' : ''} · ${item.title}`;
   }, [done, left, paused, item.title]);
 
   useEffect(() => {
@@ -194,7 +251,12 @@ export function ExamTimer({
   }, [done, clock.endsAt, item.title]);
 
   return (
-    <div className={done ? 'lib-timer is-done' : 'lib-timer'} role={done ? 'alert' : 'timer'} aria-live={done ? 'assertive' : 'off'} data-hub="exam-timer">
+    <div
+      className={done ? 'lib-timer is-done' : 'lib-timer'}
+      role={done ? 'alert' : 'timer'}
+      aria-live={done ? 'assertive' : 'off'}
+      data-hub="exam-timer"
+    >
       <Timer aria-hidden="true" weight="duotone" className="lib-timer__icon" />
       {done ? (
         <p className="lib-timer__text">

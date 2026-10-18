@@ -2,7 +2,14 @@
 // students see while there is none. The upload is only kept once the module is saved; the API attaches it then.
 import { ImageSquare, Trash, UploadSimple } from '@phosphor-icons/react';
 import { useId, useRef, useState } from 'react';
-import { checkUpload, progressText, uploadErrorMessage, uploadFile, UPLOAD_RULES, type UploadProgress } from '../../../api/uploads';
+import {
+  checkUpload,
+  progressText,
+  uploadErrorMessage,
+  uploadFile,
+  UPLOAD_RULES,
+  type UploadProgress,
+} from '../../../api/uploads';
 import { Button, ModuleArt, ModuleIcon, Select, moduleArtSrc } from '../../../ui';
 import { MODULE_ICONS } from './draft';
 
@@ -50,11 +57,19 @@ export function ArtField({ art, icon, unitCode, onArt, onIcon, error }: ArtField
           <ModuleArt art={art} className="medit-art__preview" />
         ) : (
           <span className="medit-art__none" aria-hidden="true">
-            {unitCode.trim() ? <span className="u-code">{unitCode.trim().toUpperCase()}</span> : <ModuleIcon name={icon || null} weight="duotone" />}
+            {unitCode.trim() ? (
+              <span className="u-code">{unitCode.trim().toUpperCase()}</span>
+            ) : (
+              <ModuleIcon name={icon || null} weight="duotone" />
+            )}
           </span>
         )}
         <div className="medit-art__text">
-          <p className="medit-art__state">{shown ? 'Students see this picture beside the module’s name, on its page, on Home and in search.' : `No picture: students see ${unitCode.trim() ? 'the unit code' : 'the icon'} instead.`}</p>
+          <p className="medit-art__state">
+            {shown
+              ? 'Students see this picture beside the module’s name, on its page, on Home and in search.'
+              : `No picture: students see ${unitCode.trim() ? 'the unit code' : 'the icon'} instead.`}
+          </p>
           <p id={hintId} className="medit-art__hint">
             {rules.summary}
           </p>
@@ -72,7 +87,15 @@ export function ArtField({ art, icon, unitCode, onArt, onIcon, error }: ArtField
                 if (file) void send(file);
               }}
             />
-            <Button variant="secondary" size="sm" leadingIcon={shown ? ImageSquare : UploadSimple} onClick={() => input.current?.click()} loading={progress !== null} aria-describedby={hintId} data-hub="module-art-upload">
+            <Button
+              variant="secondary"
+              size="sm"
+              leadingIcon={shown ? ImageSquare : UploadSimple}
+              onClick={() => input.current?.click()}
+              loading={progress !== null}
+              aria-describedby={hintId}
+              data-hub="module-art-upload"
+            >
               {shown ? 'Upload another' : 'Upload a picture'}
             </Button>
             {shown ? (

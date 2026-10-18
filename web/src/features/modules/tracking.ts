@@ -30,10 +30,23 @@ export function useTracking(): Tracking {
   const set = useCallback(
     (next: boolean) => {
       if (account) {
-        mutate({ trackProgress: next }, { onError: (e) => push({ tone: 'alert', title: 'Your choice wasn’t saved', body: errorMessage(e, 'Try again in a moment.') }) });
+        mutate(
+          { trackProgress: next },
+          {
+            onError: (e) =>
+              push({
+                tone: 'alert',
+                title: 'Your choice wasn’t saved',
+                body: errorMessage(e, 'Try again in a moment.'),
+              }),
+          },
+        );
       } else setGuestOn(next ? true : undefined);
     },
     [account, mutate, push, setGuestOn],
   );
-  return useMemo(() => ({ on, ready: status !== 'loading', mode: account ? ('account' as const) : ('guest' as const), set }), [on, status, account, set]);
+  return useMemo(
+    () => ({ on, ready: status !== 'loading', mode: account ? ('account' as const) : ('guest' as const), set }),
+    [on, status, account, set],
+  );
 }

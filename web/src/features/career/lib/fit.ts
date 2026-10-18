@@ -46,7 +46,13 @@ const bestDepth = (list: readonly Teaching[]): number => list.reduce((m, t) => M
  *   later:   they don't yet, but a later year does.
  *   gap:     DSBA never takes it past an intro: it is yours to close.
  */
-export function evaluateSkill(data: CareerDoc, getModule: ModuleLookup, skillId: string, year: number, papers: ReadonlySet<string> | null = null): SkillFit | null {
+export function evaluateSkill(
+  data: CareerDoc,
+  getModule: ModuleLookup,
+  skillId: string,
+  year: number,
+  papers: ReadonlySet<string> | null = null,
+): SkillFit | null {
   const skill = data.skills[skillId];
   if (!skill) return null;
   const taught: Teaching[] = [];
@@ -79,12 +85,31 @@ export function evaluateSkill(data: CareerDoc, getModule: ModuleLookup, skillId:
   const from = status === 'later' && named.length ? Math.min(...named.map((t) => t.mod.year)) : null;
   const label = from ? `From Year ${from}` : (data.depthLabel[String(status === 'gap' ? total : solid)] ?? '');
 
-  return { id: skillId, skill, status, solid, ghost: total - solid, total, from, named: named.slice(0, 2), detail, label };
+  return {
+    id: skillId,
+    skill,
+    status,
+    solid,
+    ghost: total - solid,
+    total,
+    from,
+    named: named.slice(0, 2),
+    detail,
+    label,
+  };
 }
 
 /** Every skill of a role for a year, with the three headline counts. */
-export function evaluateRole(data: CareerDoc, getModule: ModuleLookup, role: CareerRole, year: number, papers: ReadonlySet<string> | null = null): RoleFitResult {
-  const rows = role.skills.map((id) => evaluateSkill(data, getModule, id, year, papers)).filter((r): r is SkillFit => r !== null);
+export function evaluateRole(
+  data: CareerDoc,
+  getModule: ModuleLookup,
+  role: CareerRole,
+  year: number,
+  papers: ReadonlySet<string> | null = null,
+): RoleFitResult {
+  const rows = role.skills
+    .map((id) => evaluateSkill(data, getModule, id, year, papers))
+    .filter((r): r is SkillFit => r !== null);
   const by = (status: SkillStatus) => rows.filter((r) => r.status === status);
   return { rows, covered: by('covered'), later: by('later'), gaps: by('gap'), total: rows.length };
 }

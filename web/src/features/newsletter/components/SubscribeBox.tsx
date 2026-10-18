@@ -31,14 +31,16 @@ export function SubscribeBox({ variant = 'panel', className }: SubscribeBoxProps
             ? { tone: 'success', title: 'Subscribed', body: 'We’ll let you know when the next issue is out.' }
             : { tone: 'info', title: 'You won’t hear about new issues', body: 'They still show up here and on Home.' },
         ),
-      onError: (e) => push({ tone: 'alert', title: 'That didn’t save', body: errorMessage(e, 'Try again in a moment.') }),
+      onError: (e) =>
+        push({ tone: 'alert', title: 'That didn’t save', body: errorMessage(e, 'Try again in a moment.') }),
     });
 
   const ready = status === 'signed-in' && !!me && !me.needsProfile;
   const on = ready && me.preferences.emailNewIssues;
 
   let title = 'Hear about new issues';
-  let body = 'Sign in and we’ll let you know when a new issue is out. No timetable: only when there’s news worth your time.';
+  let body =
+    'Sign in and we’ll let you know when a new issue is out. No timetable: only when there’s news worth your time.';
   if (on) {
     title = 'You’re on the list';
     body = 'We’ll let you know as soon as a new issue of The DSBA Newsletter is out.';
@@ -51,7 +53,12 @@ export function SubscribeBox({ variant = 'panel', className }: SubscribeBoxProps
     action = <Skeleton width={180} height={40} radius={10} />;
   } else if (!ready) {
     action = (
-      <Button variant="primary" className="nl-subscribe__submit" onClick={() => requireAuth('Sign in to hear about new issues of The DSBA Newsletter', () => set(true))} data-hub="subscribe-signin">
+      <Button
+        variant="primary"
+        className="nl-subscribe__submit"
+        onClick={() => requireAuth('Sign in to hear about new issues of The DSBA Newsletter', () => set(true))}
+        data-hub="subscribe-signin"
+      >
         Sign in to subscribe
       </Button>
     );
@@ -69,14 +76,24 @@ export function SubscribeBox({ variant = 'panel', className }: SubscribeBoxProps
     );
   } else {
     action = (
-      <Button variant="primary" className="nl-subscribe__submit" onClick={() => set(true)} loading={news.isPending} data-hub="subscribe-on">
+      <Button
+        variant="primary"
+        className="nl-subscribe__submit"
+        onClick={() => set(true)}
+        loading={news.isPending}
+        data-hub="subscribe-on"
+      >
         Tell me about new issues
       </Button>
     );
   }
 
   return (
-    <section className={cx('nl-subscribe', `nl-subscribe--${variant}`, on && 'is-subscribed', className)} data-hub="subscribe" aria-label="Hear about new issues of The DSBA Newsletter">
+    <section
+      className={cx('nl-subscribe', `nl-subscribe--${variant}`, on && 'is-subscribed', className)}
+      data-hub="subscribe"
+      aria-label="Hear about new issues of The DSBA Newsletter"
+    >
       <div className="nl-subscribe__text">
         <BellSimple className="nl-subscribe__icon" weight="duotone" aria-hidden="true" />
         <h2 className="nl-subscribe__title">{title}</h2>

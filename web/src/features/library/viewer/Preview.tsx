@@ -1,4 +1,10 @@
-import { ArrowSquareOut, DownloadSimple, FilePdf, MagnifyingGlassMinus, MagnifyingGlassPlus } from '@phosphor-icons/react';
+import {
+  ArrowSquareOut,
+  DownloadSimple,
+  FilePdf,
+  MagnifyingGlassMinus,
+  MagnifyingGlassPlus,
+} from '@phosphor-icons/react';
 import { useState } from 'react';
 import { isApiError } from '../../../api/errors';
 import { formatSize } from '../../../api/uploads';
@@ -71,7 +77,9 @@ function NoPreview({ item, problem }: { item: LibraryItem; problem?: boolean }) 
     <div className="lib-nopreview" data-hub="file-nopreview">
       <FileThumb item={item} size="grid" />
       <div className="lib-nopreview__text">
-        <h2 className="lib-nopreview__title">{problem ? 'The preview didn’t load' : `No preview for ${fmt ? `${fmt.name}s` : 'this file'}`}</h2>
+        <h2 className="lib-nopreview__title">
+          {problem ? 'The preview didn’t load' : `No preview for ${fmt ? `${fmt.name}s` : 'this file'}`}
+        </h2>
         <p>{problem ? 'You can still download the file.' : `Download it to open it in ${opensIn(fmt?.tag)}.`}</p>
         <Button variant="primary" href={downloadHref(item)} leadingIcon={DownloadSimple}>
           Download{item.sizeBytes ? ` (${[fmt?.tag, formatSize(item.sizeBytes)].filter(Boolean).join(', ')})` : ''}
@@ -133,7 +141,9 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
         <FileThumb item={item} size="grid" />
         <div className="lib-nopreview__text">
           <h2 className="lib-nopreview__title">This file was removed</h2>
-          <p>It’s no longer in the library and can’t be opened. The file itself is deleted a week after it was removed.</p>
+          <p>
+            It’s no longer in the library and can’t be opened. The file itself is deleted a week after it was removed.
+          </p>
         </div>
       </div>
     );
@@ -141,14 +151,20 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
   if (!kind) return <NoPreview item={item} />;
   if (link.isError && !src) {
     // A file that wasn't published leaves storage a week after the review (security review SEC-14).
-    const gone = item.status !== 'published' && isApiError(link.error) && (link.error.code === 'no_preview' || link.error.status === 404);
+    const gone =
+      item.status !== 'published' &&
+      isApiError(link.error) &&
+      (link.error.code === 'no_preview' || link.error.status === 404);
     if (gone) {
       return (
         <div className="lib-nopreview" data-hub="file-nopreview">
           <FileThumb item={item} size="grid" />
           <div className="lib-nopreview__text">
             <h2 className="lib-nopreview__title">This file was deleted</h2>
-            <p>Files that aren’t published are deleted a week after the review. {item.isMine ? 'Upload it again to share a fixed version.' : ''}</p>
+            <p>
+              Files that aren’t published are deleted a week after the review.{' '}
+              {item.isMine ? 'Upload it again to share a fixed version.' : ''}
+            </p>
           </div>
         </div>
       );
@@ -179,5 +195,14 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
     );
   }
 
-  return <iframe key={at} className="lib-preview__frame" src={src + at} title={`${item.title} (PDF)`} referrerPolicy="no-referrer" data-hub="file-preview" />;
+  return (
+    <iframe
+      key={at}
+      className="lib-preview__frame"
+      src={src + at}
+      title={`${item.title} (PDF)`}
+      referrerPolicy="no-referrer"
+      data-hub="file-preview"
+    />
+  );
 }

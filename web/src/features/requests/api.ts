@@ -8,7 +8,14 @@
 //   POST   /api/v1/requests/{id}/answer           status + public reply (requests.manage)
 //   POST   /api/v1/requests/{id}/found            yes or no to the file found for it (the requester or requests.manage)
 //   DELETE /api/v1/requests/{id}                  remove (requests.manage)
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData, type QueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ADMIN_STATS_KEY } from '../../api/keys';
 import { nextOffset } from '../../api/paging';
@@ -58,7 +65,15 @@ export function useRequests(filters: RequestFilters, { enabled = true }: { enabl
 }
 
 /** "You asked, we did": the requests done in the 30 days up to `until` (today by default), the latest first. */
-export function useDoneRequests({ until, limit, enabled = true }: { until?: string; limit: number; enabled?: boolean }) {
+export function useDoneRequests({
+  until,
+  limit,
+  enabled = true,
+}: {
+  until?: string;
+  limit: number;
+  enabled?: boolean;
+}) {
   return useQuery({
     queryKey: [...doneKey, until ?? null, limit] as const,
     queryFn: () => call(api.GET('/api/v1/requests/done', { params: { query: { until, limit } } })),
@@ -125,7 +140,11 @@ export function useMeToo() {
   return useMutation({
     mutationFn: ({ id, on }: { id: string; on: boolean }) => {
       const params = { params: { path: { request_id: id } } };
-      return call(on ? api.PUT('/api/v1/requests/{request_id}/me-too', params) : api.DELETE('/api/v1/requests/{request_id}/me-too', params));
+      return call(
+        on
+          ? api.PUT('/api/v1/requests/{request_id}/me-too', params)
+          : api.DELETE('/api/v1/requests/{request_id}/me-too', params),
+      );
     },
     onMutate: async ({ id, on }) => {
       await qc.cancelQueries({ queryKey: REQUESTS_KEY });

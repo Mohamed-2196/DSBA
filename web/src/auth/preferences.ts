@@ -10,7 +10,10 @@ import { ME_KEY } from './queries';
 /** The preferences after `patch`: a switch sent as null stays as it is; `homeBlocks: null` is the default layout. */
 export function applyPreferences(prefs: Me['preferences'], patch: PreferencesUpdate): Me['preferences'] {
   const next: Me['preferences'] = { ...prefs };
-  for (const [key, value] of Object.entries(patch) as [keyof PreferencesUpdate, PreferencesUpdate[keyof PreferencesUpdate]][]) {
+  for (const [key, value] of Object.entries(patch) as [
+    keyof PreferencesUpdate,
+    PreferencesUpdate[keyof PreferencesUpdate],
+  ][]) {
     if (key === 'homeBlocks') next.homeBlocks = patch.homeBlocks ?? null;
     else if (typeof value === 'boolean') next[key] = value;
   }
@@ -33,7 +36,8 @@ export function useUpdatePreferences() {
     onMutate: async (preferences) => {
       await qc.cancelQueries({ queryKey: ME_KEY });
       const before = qc.getQueryData<Me | null>(ME_KEY);
-      if (before) qc.setQueryData<Me>(ME_KEY, { ...before, preferences: applyPreferences(before.preferences, preferences) });
+      if (before)
+        qc.setQueryData<Me>(ME_KEY, { ...before, preferences: applyPreferences(before.preferences, preferences) });
       return { before };
     },
     onError: (_e, _v, ctx) => {

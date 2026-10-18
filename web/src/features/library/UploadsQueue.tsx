@@ -105,7 +105,10 @@ export function UploadsQueue() {
   const { moderator: managesLibrary } = useLibraryAccess();
   const queue = useLibraryList({ status: 'pending' }, { limit: 100, enabled: managesLibrary });
   const items = useMemo(
-    () => [...(queue.data?.items ?? [])].filter((i) => i.status === 'pending').sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    () =>
+      [...(queue.data?.items ?? [])]
+        .filter((i) => i.status === 'pending')
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     [queue.data],
   );
 
@@ -124,9 +127,23 @@ export function UploadsQueue() {
       </div>
     );
   } else if (queue.isError) {
-    body = <QueryError error={queue.error} title="The review queue didn’t load" onRetry={() => void queue.refetch()} retrying={queue.isFetching} panel={false} />;
+    body = (
+      <QueryError
+        error={queue.error}
+        title="The review queue didn’t load"
+        onRetry={() => void queue.refetch()}
+        retrying={queue.isFetching}
+        panel={false}
+      />
+    );
   } else if (!items.length) {
-    body = <EmptyState icon={CheckCircle} title="No uploads waiting" body="When a student uploads a file, it waits here until a rep publishes it." />;
+    body = (
+      <EmptyState
+        icon={CheckCircle}
+        title="No uploads waiting"
+        body="When a student uploads a file, it waits here until a rep publishes it."
+      />
+    );
   } else {
     body = (
       <ol className="lib-queue__list" role="list">
@@ -149,8 +166,8 @@ export function UploadsQueue() {
           ) : null}
         </h2>
         <p className="lib-queue__intro">
-          Publish files that are useful, in the right module, and something students may share. If you reject one, your note tells the
-          uploader why.
+          Publish files that are useful, in the right module, and something students may share. If you reject one, your
+          note tells the uploader why.
         </p>
       </header>
       <Panel padding="none" className="lib-queue__panel">

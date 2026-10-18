@@ -26,7 +26,14 @@ export function ResultDialog({ open, onClose, out, signedIn, secret, streak, nex
   const result = resultOf(play, secret);
   const won = play.status === 'won';
   return (
-    <Modal open={open} onClose={onClose} title={result.headline} description={`${info.title} #${play.number}`} size="sm" className="dy dg-result">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={result.headline}
+      description={`${info.title} #${play.number}`}
+      size="sm"
+      className="dy dg-result"
+    >
       <div className="dg-result__body">
         <div className={`dg-result__hero${won ? ' is-won' : ''}`}>
           <GameTile game={info.id} size={52} />
@@ -44,7 +51,9 @@ export function ResultDialog({ open, onClose, out, signedIn, secret, streak, nex
 
         <div className="dg-result__chips">
           {play.scored ? (
-            play.points > 0 ? <span className="dy-chip dy-chip--points dy-num">+{play.points} points</span> : null
+            play.points > 0 ? (
+              <span className="dy-chip dy-chip--points dy-num">+{play.points} points</span>
+            ) : null
           ) : signedIn ? (
             <span className="dy-chip">Practice: no points</span>
           ) : (
@@ -69,7 +78,13 @@ export function ResultDialog({ open, onClose, out, signedIn, secret, streak, nex
             </Button>
           ) : null}
           {next ? (
-            <Button variant="secondary" fullWidth to={next.variant ? `/daily/${next.info.id}?difficulty=${next.variant}` : `/daily/${next.info.id}`} trailingIcon={ArrowRight} onClick={onClose}>
+            <Button
+              variant="secondary"
+              fullWidth
+              to={next.variant ? `/daily/${next.info.id}?difficulty=${next.variant}` : `/daily/${next.info.id}`}
+              trailingIcon={ArrowRight}
+              onClick={onClose}
+            >
               Next: {next.info.title}
             </Button>
           ) : (

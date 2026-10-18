@@ -25,7 +25,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import zlib from 'node:zlib';
-import { expect, request as playwrightRequest, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import {
+  expect,
+  request as playwrightRequest,
+  type APIRequestContext,
+  type Browser,
+  type BrowserContext,
+  type Page,
+} from '@playwright/test';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const apiFolder = path.resolve(here, '..', '..', 'api');
@@ -74,7 +81,12 @@ export function newRun(): RunInfo {
   const local = `3${'369'[Math.floor(Math.random() * 3)]}${randomDigits(6)}`; // 33xx, 36xx or 39xx xxxx
   const run: RunInfo = {
     tag,
-    sara: { name: 'Sara E2E', local: `${local.slice(0, 4)} ${local.slice(4)}`, e164: `+973${local}`, email: `sara.e2e.${tag}@example.com` },
+    sara: {
+      name: 'Sara E2E',
+      local: `${local.slice(0, 4)} ${local.slice(4)}`,
+      e164: `+973${local}`,
+      email: `sara.e2e.${tag}@example.com`,
+    },
     ali: { name: 'Ali E2E', email: `ali.e2e.${tag}@example.com` },
     rep: { name: 'Fatima E2E', email: 'e2e.rep@example.com' },
     admin: { name: 'Maryam E2E', email: 'e2e.admin@example.com' },
@@ -131,7 +143,9 @@ export async function waitForCode(kind: 'email' | 'sms', to: string, since: numb
   let code: string | null = null;
   const dir = kind === 'email' ? env.mailDir : env.smsDir;
   const message = `a code by ${kind} for ${to} in ${dir} (is the API on its file backends? scripts/e2e.sh switches it)`;
-  await expect.poll(() => (code = newestCode(kind, to, since)), { message, timeout: 20_000, intervals: [250] }).not.toBeNull();
+  await expect
+    .poll(() => (code = newestCode(kind, to, since)), { message, timeout: 20_000, intervals: [250] })
+    .not.toBeNull();
   return code as unknown as string;
 }
 
@@ -143,13 +157,18 @@ export function mailedSince(to: string, subject: string, since: number): boolean
     .filter((f) => f.endsWith('.eml') && fs.statSync(path.join(env.mailDir, f)).mtimeMs >= since - 2000)
     .some((f) => {
       const head = fs.readFileSync(path.join(env.mailDir, f), 'utf8').split(/\r?\n\r?\n/)[0];
-      return new RegExp(`^To:.*${to.replace(/[.+]/g, '\\$&')}`, 'im').test(head) && head.includes(`Subject: ${subject}`);
+      return (
+        new RegExp(`^To:.*${to.replace(/[.+]/g, '\\$&')}`, 'im').test(head) && head.includes(`Subject: ${subject}`)
+      );
     });
 }
 
 /** The newest text to an E.164 number (security notices too). */
 export function newestText(e164: string): string {
-  const files = fs.readdirSync(env.smsDir).filter((f) => f.includes(e164)).sort();
+  const files = fs
+    .readdirSync(env.smsDir)
+    .filter((f) => f.includes(e164))
+    .sort();
   const last = files[files.length - 1];
   return last ? fs.readFileSync(path.join(env.smsDir, last), 'utf8') : '';
 }
@@ -159,12 +178,19 @@ export function newestText(e164: string): string {
 const run$ = promisify(execFile);
 
 /** A session token for a rep or an admin (development only: python -m app.cli dev-login). */
-export async function devLogin(email: string, opts: { name: string; year: number; role: 'rep' | 'admin' }): Promise<string> {
+export async function devLogin(
+  email: string,
+  opts: { name: string; year: number; role: 'rep' | 'admin' },
+): Promise<string> {
   const [cmd, ...args] = env.devLogin.split(/\s+/);
-  const { stdout } = await run$(cmd, [...args, email, '--name', opts.name, '--year', String(opts.year), '--role', opts.role], {
-    cwd: env.apiDir,
-    timeout: 60_000,
-  });
+  const { stdout } = await run$(
+    cmd,
+    [...args, email, '--name', opts.name, '--year', String(opts.year), '--role', opts.role],
+    {
+      cwd: env.apiDir,
+      timeout: 60_000,
+    },
+  );
   const token = stdout.trim().split('\n').pop()?.trim() ?? '';
   if (!/^[\w-]{20,}$/.test(token)) throw new Error(`dev-login printed no token: ${stdout.slice(0, 200)}`);
   return token;
@@ -174,7 +200,8 @@ export async function devLogin(email: string, opts: { name: string; year: number
  * a session under 10 minutes old (decision D2), so an aged session meets the step-up dialog, as a student does who
  * signed in yesterday. */
 export async function ageSessions(userId: string, minutes: number): Promise<void> {
-  if (!/^[0-9a-f-]{36}$/.test(userId) || !Number.isInteger(minutes)) throw new Error(`ageSessions: bad input ${userId}, ${minutes}`);
+  if (!/^[0-9a-f-]{36}$/.test(userId) || !Number.isInteger(minutes))
+    throw new Error(`ageSessions: bad input ${userId}, ${minutes}`);
   const [cmd, ...args] = env.psql.split(/\s+/);
   const sql = `UPDATE user_sessions SET created_at = created_at - interval '${minutes} minutes' WHERE user_id = '${userId}' AND revoked_at IS NULL`;
   const { stdout } = await run$(cmd, [...args, sql], { cwd: env.apiDir, timeout: 60_000 });
@@ -183,7 +210,10 @@ export async function ageSessions(userId: string, minutes: number): Promise<void
 
 /** Every page in the suite hides Mini Noora (she floats over the page and covers part of it) unless a test wants her,
  * and a guest starts on Year 2 unless the test chooses otherwise (no first-visit dialog). */
-export async function prepareContext(ctx: BrowserContext, { noora = false, year = '2' }: { noora?: boolean; year?: string | null } = {}): Promise<void> {
+export async function prepareContext(
+  ctx: BrowserContext,
+  { noora = false, year = '2' }: { noora?: boolean; year?: string | null } = {},
+): Promise<void> {
   await ctx.addInitScript(
     ([hide, y]) => {
       try {
@@ -197,10 +227,17 @@ export async function prepareContext(ctx: BrowserContext, { noora = false, year 
   );
 }
 
-export async function personaContext(browser: Browser, who: Persona, opts: Parameters<typeof prepareContext>[1] & { mobile?: boolean } = {}): Promise<BrowserContext> {
+export async function personaContext(
+  browser: Browser,
+  who: Persona,
+  opts: Parameters<typeof prepareContext>[1] & { mobile?: boolean } = {},
+): Promise<BrowserContext> {
   // The saved state carries the setup's localStorage, Mini Noora hidden included: a test that wants her drops that.
-  const state = JSON.parse(fs.readFileSync(statePath(who), 'utf8')) as Awaited<ReturnType<BrowserContext['storageState']>>;
-  if (opts.noora) for (const o of state.origins) o.localStorage = o.localStorage.filter((item) => item.name !== 'hub.noora.hidden');
+  const state = JSON.parse(fs.readFileSync(statePath(who), 'utf8')) as Awaited<
+    ReturnType<BrowserContext['storageState']>
+  >;
+  if (opts.noora)
+    for (const o of state.origins) o.localStorage = o.localStorage.filter((item) => item.name !== 'hub.noora.hidden');
   const ctx = await browser.newContext({
     baseURL: env.baseURL,
     storageState: state,
@@ -246,13 +283,23 @@ async function renewStaffSession(ctx: BrowserContext): Promise<boolean> {
   return false;
 }
 
-export async function api<T>(page: Page, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, data?: unknown): Promise<{ status: number; body: T }> {
+export async function api<T>(
+  page: Page,
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  url: string,
+  data?: unknown,
+): Promise<{ status: number; body: T }> {
   const send = async () => {
     const headers = method === 'GET' ? {} : await csrf(page.context(), page.request);
     return page.request.fetch(url, { method, headers, data: data === undefined ? undefined : data });
   };
   let r = await send();
-  if (r.status() === 403 && (await r.text()).includes('"step_up_required"') && (await renewStaffSession(page.context()))) r = await send();
+  if (
+    r.status() === 403 &&
+    (await r.text()).includes('"step_up_required"') &&
+    (await renewStaffSession(page.context()))
+  )
+    r = await send();
   const text = await r.text();
   let body: unknown = text;
   try {
@@ -269,11 +316,17 @@ export async function removeModule(admin: Page, id: string): Promise<void> {
   type Mod = { version: number; chapters: { lessons: unknown[] }[] };
   const m = await api<Mod>(admin, 'GET', `/api/v1/content/modules/${id}`);
   if (m.status !== 200) return;
-  const noLessons = await api<Mod>(admin, 'PUT', `/api/v1/content/modules/${id}`, { ...m.body, chapters: m.body.chapters.map((c) => ({ ...c, lessons: [] })) });
+  const noLessons = await api<Mod>(admin, 'PUT', `/api/v1/content/modules/${id}`, {
+    ...m.body,
+    chapters: m.body.chapters.map((c) => ({ ...c, lessons: [] })),
+  });
   expect(noLessons.status, `empty the lessons of ${id}`).toBe(200);
   const empty = await api<Mod>(admin, 'PUT', `/api/v1/content/modules/${id}`, { ...noLessons.body, chapters: [] });
   expect(empty.status, `empty the chapters of ${id}`).toBe(200);
-  expect((await api(admin, 'DELETE', `/api/v1/content/modules/${id}?version=${empty.body.version}`)).status, `remove ${id}`).toBe(204);
+  expect(
+    (await api(admin, 'DELETE', `/api/v1/content/modules/${id}?version=${empty.body.version}`)).status,
+    `remove ${id}`,
+  ).toBe(204);
 }
 
 /** The id of a role, by its slug (admins only). */
@@ -312,7 +365,12 @@ export const FEATURES = [
 ] as const;
 
 /** Sets a feature's switch (admins only). Every spec that switches something off puts it back in afterAll. */
-export async function setSwitch(admin: Page, feature: (typeof FEATURES)[number], mode: 'off' | 'roles' | 'everyone', roleIds: string[] = []): Promise<void> {
+export async function setSwitch(
+  admin: Page,
+  feature: (typeof FEATURES)[number],
+  mode: 'off' | 'roles' | 'everyone',
+  roleIds: string[] = [],
+): Promise<void> {
   const r = await api(admin, 'PUT', `/api/v1/admin/features/${feature}`, { mode, roleIds });
   if (r.status === 429) return switchAsSpare(feature, mode, roleIds);
   expect(r.status, `switch ${feature} ${mode}`).toBe(200);
@@ -327,20 +385,45 @@ async function switchAsSpare(feature: string, mode: string, roleIds: string[]): 
   for (let attempt = 0; attempt < 3; attempt++) {
     if (!spare || attempt > 0) {
       const n = (spare?.n ?? 0) + 1;
-      spare = { n, token: await devLogin(`spare${n}.e2e.admin@example.com`, { name: `Spare admin E2E ${n}`, year: 3, role: 'admin' }) };
+      spare = {
+        n,
+        token: await devLogin(`spare${n}.e2e.admin@example.com`, {
+          name: `Spare admin E2E ${n}`,
+          year: 3,
+          role: 'admin',
+        }),
+      };
       fs.writeFileSync(file, JSON.stringify(spare));
     }
     const ctx = await playwrightRequest.newContext({
       baseURL: env.baseURL,
-      storageState: { cookies: [{ name: 'dsba_session', value: spare.token, domain: env.host, path: '/', expires: -1, httpOnly: true, secure: false, sameSite: 'Lax' }], origins: [] },
+      storageState: {
+        cookies: [
+          {
+            name: 'dsba_session',
+            value: spare.token,
+            domain: env.host,
+            path: '/',
+            expires: -1,
+            httpOnly: true,
+            secure: false,
+            sameSite: 'Lax',
+          },
+        ],
+        origins: [],
+      },
     });
     try {
       await ctx.get('/api/v1/auth/csrf');
       const token = (await ctx.storageState()).cookies.find((c) => c.name === 'dsba_csrf')?.value ?? '';
-      const r = await ctx.put(`/api/v1/admin/features/${feature}`, { headers: { 'X-CSRF-Token': token }, data: { mode, roleIds } });
+      const r = await ctx.put(`/api/v1/admin/features/${feature}`, {
+        headers: { 'X-CSRF-Token': token },
+        data: { mode, roleIds },
+      });
       if (r.status() === 200) return;
       // Spent (429) or too old for a change (403 step-up): the next spare.
-      if (r.status() !== 429 && r.status() !== 403) expect(r.status(), `switch ${feature} ${mode} (spare admin): ${await r.text()}`).toBe(200);
+      if (r.status() !== 429 && r.status() !== 403)
+        expect(r.status(), `switch ${feature} ${mode} (spare admin): ${await r.text()}`).toBe(200);
     } finally {
       await ctx.dispose();
     }
@@ -463,11 +546,20 @@ function png(width = 160, height = 90): Buffer {
   ihdr.writeUInt32BE(height, 4);
   ihdr[8] = 8;
   ihdr[9] = 2;
-  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', ihdr),
+    chunk('IDAT', zlib.deflateSync(raw)),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
 }
 
 function docx(paragraphs: string[]): Buffer {
-  const body = paragraphs.map((p) => `<w:p><w:r><w:t xml:space="preserve">${p.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</w:t></w:r></w:p>`).join('');
+  const body = paragraphs
+    .map(
+      (p) => `<w:p><w:r><w:t xml:space="preserve">${p.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</w:t></w:r></w:p>`,
+    )
+    .join('');
   return zip([
     [
       '[Content_Types].xml',
@@ -513,24 +605,51 @@ export function makeFiles(tag: string): TestFiles {
     tooBig: p('ST2195 all lecture recordings.pdf'),
   };
   if (!fs.existsSync(files.pdf)) {
-    fs.writeFileSync(files.pdf, pdf([`ST2133 moment generating functions (${tag})`, 'M_X(t) = E[e^{tX}]', 'Poisson: exp(lambda(e^t - 1))', 'Normal: exp(mu t + sigma^2 t^2 / 2)']));
-    fs.writeFileSync(files.docx, docx(['EC1002 Price elasticity of demand', 'PED = % change in quantity / % change in price.', 'Use the midpoint formula and show it.']));
+    fs.writeFileSync(
+      files.pdf,
+      pdf([
+        `ST2133 moment generating functions (${tag})`,
+        'M_X(t) = E[e^{tX}]',
+        'Poisson: exp(lambda(e^t - 1))',
+        'Normal: exp(mu t + sigma^2 t^2 / 2)',
+      ]),
+    );
+    fs.writeFileSync(
+      files.docx,
+      docx([
+        'EC1002 Price elasticity of demand',
+        'PED = % change in quantity / % change in price.',
+        'Use the midpoint formula and show it.',
+      ]),
+    );
     fs.writeFileSync(
       files.ipynb,
       JSON.stringify({
         cells: [
           { cell_type: 'markdown', metadata: {}, source: ['# ST2195 pandas practice'] },
-          { cell_type: 'code', execution_count: 1, metadata: {}, outputs: [], source: ["import pandas as pd\n", "df = pd.read_csv('2005.csv')\n", 'df.head()'] },
+          {
+            cell_type: 'code',
+            execution_count: 1,
+            metadata: {},
+            outputs: [],
+            source: ['import pandas as pd\n', "df = pd.read_csv('2005.csv')\n", 'df.head()'],
+          },
         ],
         metadata: { kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' } },
         nbformat: 4,
         nbformat_minor: 5,
       }),
     );
-    fs.writeFileSync(files.csv, ['advertising,price,sales', '120,4.5,210', '340,3.9,288', '510,5.2,301', '760,4.1,402'].join('\n') + '\n');
+    fs.writeFileSync(
+      files.csv,
+      ['advertising,price,sales', '120,4.5,210', '340,3.9,288', '510,5.2,301', '760,4.1,402'].join('\n') + '\n',
+    );
     fs.writeFileSync(files.png, png());
     fs.writeFileSync(files.exe, Buffer.concat([Buffer.from('MZ'), Buffer.alloc(2048, 1)]));
-    fs.writeFileSync(files.fakePdf, '<!doctype html><html><body><h1>ST2134 2024</h1><script>document.title="x"</script></body></html>');
+    fs.writeFileSync(
+      files.fakePdf,
+      '<!doctype html><html><body><h1>ST2134 2024</h1><script>document.title="x"</script></body></html>',
+    );
     const fd = fs.openSync(files.tooBig, 'w');
     fs.writeSync(fd, '%PDF-1.4\n');
     fs.ftruncateSync(fd, 51 * 1024 * 1024); // sparse: 51 MB on paper, nothing on disk

@@ -8,7 +8,15 @@ import { StrokePaths, type InkStroke } from '../../../lib/ink';
 import { Button, Modal, cx } from '../../../ui';
 import type { Paper } from '../draft';
 import type { LoadedPdf } from '../pdf';
-import { PAPER_BASE, SHEET_HEIGHT, SHEET_WIDTH, TEXT_SIDE, TEXT_TOP, TEXT_WIDTH, type SheetSpec } from '../surface/layout';
+import {
+  PAPER_BASE,
+  SHEET_HEIGHT,
+  SHEET_WIDTH,
+  TEXT_SIDE,
+  TEXT_TOP,
+  TEXT_WIDTH,
+  type SheetSpec,
+} from '../surface/layout';
 import './print.css';
 
 /** A PDF page is drawn this many pixels wide for paper (about 190 dots an inch on A4). */
@@ -56,7 +64,13 @@ function PrintText({ source, page }: { source: HTMLElement | null; page: number 
     copy.removeAttribute('data-hub');
     el.replaceChildren(copy);
   }, [source, page]);
-  return <div ref={box} className="nb-print__text" style={{ top: TEXT_TOP - page * SHEET_HEIGHT, left: TEXT_SIDE, width: TEXT_WIDTH }} />;
+  return (
+    <div
+      ref={box}
+      className="nb-print__text"
+      style={{ top: TEXT_TOP - page * SHEET_HEIGHT, left: TEXT_SIDE, width: TEXT_WIDTH }}
+    />
+  );
 }
 
 async function drawPage(pdf: LoadedPdf, page: number): Promise<string> {
@@ -142,7 +156,9 @@ export function PrintNote({ title, sheets, paper, pdf, strokesOf, textSource, on
         footer={<Button onClick={onDone}>{failed ? 'Close' : 'Cancel'}</Button>}
       >
         <p className="nb-print__progress" role="status">
-          {failed ? 'Try again in a moment. Your note is safe.' : `Preparing the PDF’s pages: ${done} of ${pdfPages.length}.`}
+          {failed
+            ? 'Try again in a moment. Your note is safe.'
+            : `Preparing the PDF’s pages: ${done} of ${pdfPages.length}.`}
         </p>
       </Modal>
       {createPortal(
@@ -158,10 +174,17 @@ export function PrintNote({ title, sheets, paper, pdf, strokesOf, textSource, on
                   marginLeft: (SHEET_WIDTH * A4_SCALE * (1 - Math.min(1, A4_UNITS / s.height))) / 2,
                 }}
               >
-                {s.kind === 'pdf' && images[s.index] ? <img className="nb-print__pdf" src={images[s.index]} alt="" /> : null}
+                {s.kind === 'pdf' && images[s.index] ? (
+                  <img className="nb-print__pdf" src={images[s.index]} alt="" />
+                ) : null}
                 {s.kind === 'paper' ? <PaperRules paper={paper} height={s.height} /> : null}
                 {s.kind === 'paper' ? <PrintText source={text} page={s.index - PAPER_BASE} /> : null}
-                <svg className="nb-print__ink" width={SHEET_WIDTH} height={s.height} viewBox={`0 0 ${SHEET_WIDTH} ${s.height}`}>
+                <svg
+                  className="nb-print__ink"
+                  width={SHEET_WIDTH}
+                  height={s.height}
+                  viewBox={`0 0 ${SHEET_WIDTH} ${s.height}`}
+                >
                   <StrokePaths strokes={strokesOf(s.index) as readonly InkStroke[]} />
                 </svg>
               </div>

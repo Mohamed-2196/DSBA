@@ -26,7 +26,11 @@ function SortHeader({
 }) {
   const active = sort === id;
   return (
-    <th scope="col" className={className} aria-sort={active ? (id === 'title' ? 'ascending' : 'descending') : undefined}>
+    <th
+      scope="col"
+      className={className}
+      aria-sort={active ? (id === 'title' ? 'ascending' : 'descending') : undefined}
+    >
       <button type="button" className={cx('lib-table__sort', active && 'is-active')} onClick={() => onSort?.(id)}>
         {children}
         <ArrowDown aria-hidden="true" className="lib-table__sort-icon" weight="bold" />
@@ -119,7 +123,9 @@ export function FileTable({
                 <td className="lib-table__num lib-table__downloads">{f.downloadCount.toLocaleString('en-GB')}</td>
                 <td className="lib-table__actions">
                   <span className="lib-row__actions">
-                    {f.status === 'published' ? <StarButton on={f.starred} onToggle={() => onToggleStar(f)} title={f.title} /> : null}
+                    {f.status === 'published' ? (
+                      <StarButton on={f.starred} onToggle={() => onToggleStar(f)} title={f.title} />
+                    ) : null}
                     {f.source === 'link' ? (
                       <IconButton
                         label={`Open ${f.title} on ${linkPlace(f)} (opens in a new tab)`}
@@ -129,7 +135,13 @@ export function FileTable({
                         className="lib-row__original"
                       />
                     ) : (
-                      <IconButton label={`Download ${f.title}`} icon={DownloadSimple} href={downloadHref(f)} size="sm" className="lib-row__original" />
+                      <IconButton
+                        label={`Download ${f.title}`}
+                        icon={DownloadSimple}
+                        href={downloadHref(f)}
+                        size="sm"
+                        className="lib-row__original"
+                      />
                     )}
                   </span>
                 </td>

@@ -24,7 +24,8 @@ import './CommandPalette.css';
 const RECENT_KEY = 'hub.mine.search.recent';
 
 const NO_TOKENS: string[] = [];
-const recentOf = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 5) : []);
+const recentOf = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 5) : [];
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -43,7 +44,10 @@ export function CommandPalette() {
   const portals = useMemo(() => {
     if (!site) return [];
     const out: Portal[] = [];
-    for (const [id, link] of [['myclass', site.links.myclass], ['uol', site.links.uolPortal]] as const) {
+    for (const [id, link] of [
+      ['myclass', site.links.myclass],
+      ['uol', site.links.uolPortal],
+    ] as const) {
       const href = httpsHref(link.url);
       if (href) out.push({ id, label: link.label, href });
     }
@@ -107,7 +111,23 @@ export function CommandPalette() {
         portals,
         suggestions: site?.searchSuggestions,
       }),
-    [query, year, activeYear, theme, nooraHidden, expanded, recent, search.data, getModule, getModulesForYear, featureOn, startsThreads, uploads, portals, site?.searchSuggestions],
+    [
+      query,
+      year,
+      activeYear,
+      theme,
+      nooraHidden,
+      expanded,
+      recent,
+      search.data,
+      getModule,
+      getModulesForYear,
+      featureOn,
+      startsThreads,
+      uploads,
+      portals,
+      site?.searchSuggestions,
+    ],
   );
   // Until the API has answered the words typed, "nothing found" would be premature.
   const searching = results.empty && waiting;
@@ -176,7 +196,11 @@ export function CommandPalette() {
         else requestAnimationFrame(() => askNoora());
       } else {
         setYear(run.year);
-        push({ title: `Showing Year ${run.year}`, body: 'Modules, exams and threads now follow your new year.', tone: 'success' });
+        push({
+          title: `Showing Year ${run.year}`,
+          body: 'Modules, exams and threads now follow your new year.',
+          tone: 'success',
+        });
       }
       close();
       return;
@@ -244,7 +268,17 @@ export function CommandPalette() {
   let index = -1;
 
   return (
-    <Modal open={open} onClose={close} title="Search DSBA Hub" hideHeader size="lg" initialFocusRef={inputRef} className="cmdk" bodyClassName="cmdk-body" data-hub="cmdk">
+    <Modal
+      open={open}
+      onClose={close}
+      title="Search DSBA Hub"
+      hideHeader
+      size="lg"
+      initialFocusRef={inputRef}
+      className="cmdk"
+      bodyClassName="cmdk-body"
+      data-hub="cmdk"
+    >
       <div className="cmdk-field">
         <MagnifyingGlass className="cmdk-field__icon" aria-hidden="true" />
         <input
@@ -289,7 +323,14 @@ export function CommandPalette() {
         </button>
       </div>
 
-      <div ref={listRef} id={`cmdk${uid}-list`} role="listbox" aria-label="Search results" className="cmdk-list" data-hub="cmdk-results">
+      <div
+        ref={listRef}
+        id={`cmdk${uid}-list`}
+        role="listbox"
+        aria-label="Search results"
+        className="cmdk-list"
+        data-hub="cmdk-results"
+      >
         <span ref={indicatorRef} className="cmdk-indicator" aria-hidden="true" />
         {searching ? (
           <div className="cmdk-empty" aria-busy="true">
@@ -298,14 +339,26 @@ export function CommandPalette() {
         ) : failed ? (
           <div className="cmdk-empty">
             <p className="cmdk-empty__title">Search isn’t available right now</p>
-            <p className="cmdk-empty__body">{loadProblem(search.error)} You can also look in the library or the forum.</p>
+            <p className="cmdk-empty__body">
+              {loadProblem(search.error)} You can also look in the library or the forum.
+            </p>
           </div>
         ) : results.empty ? (
           <div className="cmdk-empty cmdk-empty--art">
-            <img className="cmdk-empty__art" src="/illustrations/empty-search.png" alt="" width={800} height={600} decoding="async" />
+            <img
+              className="cmdk-empty__art"
+              src="/illustrations/empty-search.png"
+              alt=""
+              width={800}
+              height={600}
+              decoding="async"
+            />
             <div>
               <p className="cmdk-empty__title">No results for “{query.trim()}”</p>
-              <p className="cmdk-empty__body">Check the spelling, or try a unit code like EC2020, a module name like regression, or a word from a thread title.</p>
+              <p className="cmdk-empty__body">
+                Check the spelling, or try a unit code like EC2020, a module name like regression, or a word from a
+                thread title.
+              </p>
             </div>
           </div>
         ) : null}
@@ -326,7 +379,9 @@ export function CommandPalette() {
                   Clear
                 </button>
               ) : g.total > 0 ? (
-                <span className="cmdk-group__count"><Count value={g.total} /></span>
+                <span className="cmdk-group__count">
+                  <Count value={g.total} />
+                </span>
               ) : null}
             </div>
             {g.items.map((item, i) => {
@@ -342,7 +397,12 @@ export function CommandPalette() {
                   aria-selected={isActive}
                   data-index={idx}
                   data-first={i === 0 ? 'true' : undefined}
-                  className={cx('cmdk-item', `cmdk-item--${item.kind}`, isActive && 'is-active', twoLine && 'is-two-line')}
+                  className={cx(
+                    'cmdk-item',
+                    `cmdk-item--${item.kind}`,
+                    isActive && 'is-active',
+                    twoLine && 'is-two-line',
+                  )}
                   onPointerMove={() => {
                     if (idx !== activeIndex) {
                       moveRef.current = 'nav';
@@ -393,7 +453,12 @@ export function CommandPalette() {
             <Kbd>↓</Kbd> to move
           </span>
           <span>
-            <Kbd>↵</Kbd> to {activeItem?.kind === 'recent' || activeItem?.kind === 'suggestion' ? 'search' : activeItem?.kind === 'more' ? 'show more' : 'open'}
+            <Kbd>↵</Kbd> to{' '}
+            {activeItem?.kind === 'recent' || activeItem?.kind === 'suggestion'
+              ? 'search'
+              : activeItem?.kind === 'more'
+                ? 'show more'
+                : 'open'}
           </span>
           <span>
             <Kbd>Esc</Kbd> to {query ? 'clear' : 'close'}

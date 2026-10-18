@@ -17,7 +17,13 @@ export function FeaturedCompetition() {
   if (!f) return null;
   const url = webUrl(f.url);
   return (
-    <aside id={`career-opp-${f.id}`} className="career-featured" aria-labelledby="career-featured-title" data-hub="career-featured" data-opp-id={f.id}>
+    <aside
+      id={`career-opp-${f.id}`}
+      className="career-featured"
+      aria-labelledby="career-featured-title"
+      data-hub="career-featured"
+      data-opp-id={f.id}
+    >
       <LogoSlot kind={f.logo.kind} id={f.logo.id} logo={logoOf(doc, f.logo.kind, f.logo.id)} mono={f.mono} size="sm" />
       <div className="career-featured__text">
         <div className="career-featured__head">
@@ -35,7 +41,8 @@ export function FeaturedCompetition() {
           {f.badge ? <Badge tone="signal">{f.badge}</Badge> : null}
         </div>
         <p className="career-featured__blurb">
-          {f.kind ? <span className="career-featured__kind">{f.kind}.</span> : null} {f.blurb} {f.note ? <strong>{f.note}</strong> : null}
+          {f.kind ? <span className="career-featured__kind">{f.kind}.</span> : null} {f.blurb}{' '}
+          {f.note ? <strong>{f.note}</strong> : null}
         </p>
       </div>
     </aside>

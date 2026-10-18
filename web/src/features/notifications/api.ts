@@ -13,7 +13,8 @@ type Pages = InfiniteData<NotificationPage, number>;
 export function useNotifications(enabled: boolean) {
   return useInfiniteQuery({
     queryKey: NOTIFICATIONS_KEY,
-    queryFn: ({ pageParam }) => call(api.GET('/api/v1/notifications', { params: { query: { limit: PAGE_SIZE, offset: pageParam } } })),
+    queryFn: ({ pageParam }) =>
+      call(api.GET('/api/v1/notifications', { params: { query: { limit: PAGE_SIZE, offset: pageParam } } })),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
     enabled,
@@ -23,12 +24,20 @@ export function useNotifications(enabled: boolean) {
 }
 
 /** Apply a change to every cached notification, and set the unread count. */
-function patchCache(qc: ReturnType<typeof useQueryClient>, change: (n: NotificationOut) => NotificationOut, unread: (count: number) => number) {
+function patchCache(
+  qc: ReturnType<typeof useQueryClient>,
+  change: (n: NotificationOut) => NotificationOut,
+  unread: (count: number) => number,
+) {
   qc.setQueryData<Pages>(NOTIFICATIONS_KEY, (data) =>
     data
       ? {
           ...data,
-          pages: data.pages.map((p) => ({ ...p, unreadCount: Math.max(0, unread(p.unreadCount)), items: p.items.map(change) })),
+          pages: data.pages.map((p) => ({
+            ...p,
+            unreadCount: Math.max(0, unread(p.unreadCount)),
+            items: p.items.map(change),
+          })),
         }
       : data,
   );
@@ -37,13 +46,18 @@ function patchCache(qc: ReturnType<typeof useQueryClient>, change: (n: Notificat
 export function useMarkRead() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => call(api.POST('/api/v1/notifications/{notification_id}/read', { params: { path: { notification_id: id } } })),
+    mutationFn: (id: string) =>
+      call(api.POST('/api/v1/notifications/{notification_id}/read', { params: { path: { notification_id: id } } })),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: NOTIFICATIONS_KEY });
       const before = qc.getQueryData<Pages>(NOTIFICATIONS_KEY);
       const wasUnread = before?.pages.some((p) => p.items.some((n) => n.id === id && !n.readAt)) ?? false;
       const now = new Date().toISOString();
-      patchCache(qc, (n) => (n.id === id && !n.readAt ? { ...n, readAt: now } : n), (c) => (wasUnread ? c - 1 : c));
+      patchCache(
+        qc,
+        (n) => (n.id === id && !n.readAt ? { ...n, readAt: now } : n),
+        (c) => (wasUnread ? c - 1 : c),
+      );
       return { before };
     },
     onError: (_e, _id, ctx) => {
@@ -61,7 +75,11 @@ export function useMarkAllRead() {
       await qc.cancelQueries({ queryKey: NOTIFICATIONS_KEY });
       const before = qc.getQueryData<Pages>(NOTIFICATIONS_KEY);
       const now = new Date().toISOString();
-      patchCache(qc, (n) => (n.readAt ? n : { ...n, readAt: now }), () => 0);
+      patchCache(
+        qc,
+        (n) => (n.readAt ? n : { ...n, readAt: now }),
+        () => 0,
+      );
       return { before };
     },
     onError: (_e, _v, ctx) => {

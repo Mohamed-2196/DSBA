@@ -1,6 +1,16 @@
 import { useMemo, useState } from 'react';
 import { CalendarBlank } from '@phosphor-icons/react';
-import { addDays, dayKey, daysBetween, formatDay, monthName, monthShort, parseDay, relativeDays, WEEKDAYS } from '../../../../lib/dates';
+import {
+  addDays,
+  dayKey,
+  daysBetween,
+  formatDay,
+  monthName,
+  monthShort,
+  parseDay,
+  relativeDays,
+  WEEKDAYS,
+} from '../../../../lib/dates';
 import type { CohortYear } from '../../../../state';
 import { useModules } from '../../../../state/modules';
 import { Button, CohortBadge, Highlight, SegmentedControl, Tooltip, cx } from '../../../../ui';
@@ -14,7 +24,8 @@ interface SessionDay {
 }
 
 /** The cohorts that have exams in a list, in order. */
-const cohortsOf = (exams: readonly CalendarEvent[]): CohortYear[] => [...new Set(exams.map((e) => e.year).filter((y): y is CohortYear => y != null))].sort();
+const cohortsOf = (exams: readonly CalendarEvent[]): CohortYear[] =>
+  [...new Set(exams.map((e) => e.year).filter((y): y is CohortYear => y != null))].sort();
 
 /** Sunday-first weeks (Bahrain's weekend is Fri–Sat) covering the session, for the mini calendar. */
 function sessionWeeks(exams: readonly CalendarEvent[]): SessionDay[][] {
@@ -48,7 +59,9 @@ export function SessionCalendar({ exams }: { exams: CalendarEvent[] }) {
     <figure className="nl-aside nl-session" aria-label="The session at a glance">
       <p className="nl-aside__title">The session at a glance</p>
       <p className="nl-session__months">
-        {first.getMonth() === last.getMonth() && first.getFullYear() === last.getFullYear() ? lastMonth : `${firstMonth} to ${lastMonth}`}
+        {first.getMonth() === last.getMonth() && first.getFullYear() === last.getFullYear()
+          ? lastMonth
+          : `${firstMonth} to ${lastMonth}`}
       </p>
       <div className="nl-session__grid" role="presentation">
         {WEEKDAYS.map((w, i) => (
@@ -58,13 +71,26 @@ export function SessionCalendar({ exams }: { exams: CalendarEvent[] }) {
         ))}
         {weeks.flat().map((c) => {
           const cell = (
-            <span key={c.iso} className={cx('nl-session__day', c.dow >= 5 && 'is-weekend', c.exam && `is-exam is-y${c.exam.year ?? 0}`, c.day === 1 && 'is-first')} aria-hidden="true">
+            <span
+              key={c.iso}
+              className={cx(
+                'nl-session__day',
+                c.dow >= 5 && 'is-weekend',
+                c.exam && `is-exam is-y${c.exam.year ?? 0}`,
+                c.day === 1 && 'is-first',
+              )}
+              aria-hidden="true"
+            >
               {c.day === 1 ? <span className="nl-session__mon">{monthShort(parseDay(c.iso).getMonth())}</span> : null}
               {c.day}
             </span>
           );
           return c.exam ? (
-            <Tooltip key={c.iso} label={`${formatDay(c.iso, { weekday: 'short', month: 'short', year: false })}: ${c.exam.unitCode ?? c.exam.title}`} describe={false}>
+            <Tooltip
+              key={c.iso}
+              label={`${formatDay(c.iso, { weekday: 'short', month: 'short', year: false })}: ${c.exam.unitCode ?? c.exam.title}`}
+              describe={false}
+            >
               {cell}
             </Tooltip>
           ) : (
@@ -115,7 +141,10 @@ export function Deadlines({ issueDate, exams }: { issueDate: string; exams: Cale
             label="Show exams for"
             value={filter}
             onChange={(v) => setFilter(String(v))}
-            options={[{ value: 'all', label: 'All years' }, ...years.map((y) => ({ value: String(y), label: `Year ${y}` }))]}
+            options={[
+              { value: 'all', label: 'All years' },
+              ...years.map((y) => ({ value: String(y), label: `Year ${y}` })),
+            ]}
           />
         ) : null}
         <span className="nl-deadlines__count u-tabular">
@@ -141,7 +170,9 @@ export function Deadlines({ issueDate, exams }: { issueDate: string; exams: Cale
               </div>
               <div className="nl-date__meta">
                 {e.year ? <CohortBadge year={e.year} size="sm" /> : null}
-                <span className="nl-date__count">{e.id === firstId ? <Highlight as="span">{count}</Highlight> : count}</span>
+                <span className="nl-date__count">
+                  {e.id === firstId ? <Highlight as="span">{count}</Highlight> : count}
+                </span>
               </div>
             </li>
           );

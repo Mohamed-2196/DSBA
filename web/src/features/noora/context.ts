@@ -20,14 +20,20 @@ const PAGES: Record<string, string> = {
   about: 'About',
 };
 
-const ONE_OF: Record<string, string> = { library: 'A library file', newsletter: 'A newsletter issue', forum: 'A forum thread', requests: 'A request', notes: 'A note' };
+const ONE_OF: Record<string, string> = {
+  library: 'A library file',
+  newsletter: 'A newsletter issue',
+  forum: 'A forum thread',
+  requests: 'A request',
+  notes: 'A note',
+};
 
 /** The page the student is on, in a few words: "Lesson in ST2133", "EC1002 Economics", "Calendar". */
 export function pageLabel(pathname: string, modules: readonly ModuleSummary[]): string {
   const [first = '', second, third] = pathname.split('/').filter(Boolean);
   if (first === 'modules' && second) {
     const module = modules.find((m) => m.id === decodeURIComponent(second));
-    const code = module ? module.unitCode ?? module.shortName : null;
+    const code = module ? (module.unitCode ?? module.shortName) : null;
     if (third === 'lessons') return code ? `Lesson in ${code}` : 'A lesson';
     return module ? [module.unitCode, module.shortName].filter(Boolean).join(' ') : 'A module';
   }

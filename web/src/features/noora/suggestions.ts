@@ -48,14 +48,22 @@ export function pageOf(pathname: string): { page: NooraPage; moduleId: string | 
 const called = (m: ModuleSummary): string => m.unitCode ?? m.name;
 
 /** The modules of the student's year (every module when no year is chosen), in catalogue order. */
-const ofYear = (ctx: PageContext): ModuleSummary[] => ctx.modules.filter((m) => ctx.year == null || m.year === ctx.year);
+const ofYear = (ctx: PageContext): ModuleSummary[] =>
+  ctx.modules.filter((m) => ctx.year == null || m.year === ctx.year);
 
 /** A question as the student sees it, or null when it can't be asked here. */
-export function chipText(chip: NooraChip, isOn: (feature: Feature) => boolean, module: ModuleSummary | undefined, module2: ModuleSummary | undefined): string | null {
+export function chipText(
+  chip: NooraChip,
+  isOn: (feature: Feature) => boolean,
+  module: ModuleSummary | undefined,
+  module2: ModuleSummary | undefined,
+): string | null {
   if (chip.needs && !isOn(chip.needs)) return null;
   if (chip.text.includes('{module}') && !module) return null;
   if (chip.text.includes('{module2}') && !module2) return null;
-  return chip.text.replaceAll('{module2}', module2 ? called(module2) : '').replaceAll('{module}', module ? called(module) : '');
+  return chip.text
+    .replaceAll('{module2}', module2 ? called(module2) : '')
+    .replaceAll('{module}', module ? called(module) : '');
 }
 
 /** Three or four questions for the page at `ctx.pathname`. */
@@ -65,7 +73,8 @@ export function pageSuggestions(ctx: PageContext): string[] {
   const chipsOf = (p: NooraPage) => ctx.pages.find((x) => x.page === p)?.chips ?? [];
   const onPage = page === 'module' ? ctx.modules.find((m) => m.id === moduleId) : first;
   let chips = unique(chipsOf(page).map((c) => chipText(c, ctx.isOn, onPage, second)));
-  if (chips.length < 3 && page !== 'other') chips = unique([...chips, ...chipsOf('other').map((c) => chipText(c, ctx.isOn, first, second))]);
+  if (chips.length < 3 && page !== 'other')
+    chips = unique([...chips, ...chipsOf('other').map((c) => chipText(c, ctx.isOn, first, second))]);
   return chips.slice(0, MAX);
 }
 

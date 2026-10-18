@@ -27,7 +27,11 @@ export function MonthPanel({ view, today, compact, onAdd }: MonthPanelProps) {
   const after = addMonths(month, 1);
 
   return (
-    <section className={cx('cal-month', compact && 'cal-month--compact')} aria-labelledby={MONTH_TITLE_ID} data-hub="calendar-month">
+    <section
+      className={cx('cal-month', compact && 'cal-month--compact')}
+      aria-labelledby={MONTH_TITLE_ID}
+      data-hub="calendar-month"
+    >
       <div className="cal-month__bar">
         <h3 id={MONTH_TITLE_ID} className="cal-month__title" aria-live="polite">
           {monthTitle(month)}
@@ -36,14 +40,36 @@ export function MonthPanel({ view, today, compact, onAdd }: MonthPanelProps) {
           Today
         </Button>
         <span className="cal-month__arrows">
-          <IconButton label={`Previous month, ${monthTitle(before)}`} icon={CaretLeft} variant="secondary" size="sm" onClick={() => goMonth(before)} />
-          <IconButton label={`Next month, ${monthTitle(after)}`} icon={CaretRight} variant="secondary" size="sm" onClick={() => goMonth(after)} />
+          <IconButton
+            label={`Previous month, ${monthTitle(before)}`}
+            icon={CaretLeft}
+            variant="secondary"
+            size="sm"
+            onClick={() => goMonth(before)}
+          />
+          <IconButton
+            label={`Next month, ${monthTitle(after)}`}
+            icon={CaretRight}
+            variant="secondary"
+            size="sm"
+            onClick={() => goMonth(after)}
+          />
         </span>
       </div>
       {compact ? (
         <CompactMonth view={view} today={today} onAdd={onAdd} key={monthKey(month)} />
       ) : (
-        <MonthGrid month={month} events={monthEvents} today={today} selectedId={eventId} showCohort={!cohortYear} labelledBy={MONTH_TITLE_ID} onOpen={open} onNavigate={goMonth} onAdd={onAdd} />
+        <MonthGrid
+          month={month}
+          events={monthEvents}
+          today={today}
+          selectedId={eventId}
+          showCohort={!cohortYear}
+          labelledBy={MONTH_TITLE_ID}
+          onOpen={open}
+          onNavigate={goMonth}
+          onAdd={onAdd}
+        />
       )}
     </section>
   );
@@ -80,12 +106,25 @@ function CompactMonth({ view, today, onAdd }: { view: CalendarView; today: Date;
           <>
             <div className="cal-month__day-head">
               <h4 className="cal-month__day-title">{formatLongDay(parseDay(day))}</h4>
-              <Button size="sm" variant="ghost" leadingIcon={CalendarPlus} onClick={() => onAdd(day)} data-hub="calendar-day-add">
+              <Button
+                size="sm"
+                variant="ghost"
+                leadingIcon={CalendarPlus}
+                onClick={() => onAdd(day)}
+                data-hub="calendar-day-add"
+              >
                 New event
               </Button>
             </div>
             {events.length ? (
-              <DayList days={[{ key: day, date: parseDay(day), events }]} today={today} selectedId={eventId} showCohort={!cohortYear} onOpen={open} className="cal-month__day-list" />
+              <DayList
+                days={[{ key: day, date: parseDay(day), events }]}
+                today={today}
+                selectedId={eventId}
+                showCohort={!cohortYear}
+                onOpen={open}
+                className="cal-month__day-list"
+              />
             ) : (
               <p className="cal-card__empty">Nothing on this day.</p>
             )}

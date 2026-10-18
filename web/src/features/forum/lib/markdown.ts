@@ -40,10 +40,13 @@ function imageLine(line: string): { alt: string; src: string } | null {
   return { alt: m[1].trim(), src: m[2] };
 }
 
-const isBlockStart = (line: string) => MATH.test(line) || FENCE.test(line) || UL.test(line) || OL.test(line) || QUOTE.test(line) || imageLine(line) !== null;
+const isBlockStart = (line: string) =>
+  MATH.test(line) || FENCE.test(line) || UL.test(line) || OL.test(line) || QUOTE.test(line) || imageLine(line) !== null;
 
 export function parseBlocks(src: string | null | undefined): Block[] {
-  const lines = String(src ?? '').replace(/\r\n?/g, '\n').split('\n');
+  const lines = String(src ?? '')
+    .replace(/\r\n?/g, '\n')
+    .split('\n');
   const blocks: Block[] = [];
   let i = 0;
   while (i < lines.length) {
@@ -114,7 +117,8 @@ export function parseBlocks(src: string | null | undefined): Block[] {
 // (formulas like R_f and β_i are common in this forum). A link's target is checked when it is rendered.
 // A formula is $…$ with no space just inside either $ and no digit right after the closing one, so prices such as
 // "$5 or $10" stay text.
-const INLINE = /(`[^`\n]+`)|(\$(?=\S)[^$\n]*?\S\$(?!\d)|\$[^\s$]\$(?!\d))|(\*\*[^*\n]+?\*\*)|(\*[^*\s][^*\n]*?\*)|(\[[^\]\n]+\]\([^\s)]+\))/g;
+const INLINE =
+  /(`[^`\n]+`)|(\$(?=\S)[^$\n]*?\S\$(?!\d)|\$[^\s$]\$(?!\d))|(\*\*[^*\n]+?\*\*)|(\*[^*\s][^*\n]*?\*)|(\[[^\]\n]+\]\([^\s)]+\))/g;
 
 export function parseInline(text: string | null | undefined): InlineToken[] {
   const out: InlineToken[] = [];

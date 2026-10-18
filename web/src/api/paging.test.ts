@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { nextOffset, remainingCount } from './paging';
 
-const page = (offset: number, count: number, total: number) => ({ offset, total, items: Array.from({ length: count }, (_, i) => i) });
+const page = (offset: number, count: number, total: number) => ({
+  offset,
+  total,
+  items: Array.from({ length: count }, (_, i) => i),
+});
 
 describe('nextOffset', () => {
   it('asks for the next page while there is more', () => {

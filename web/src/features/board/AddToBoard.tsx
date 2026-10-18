@@ -43,7 +43,10 @@ export function AddToBoard({ link, size = 'sm', className }: AddToBoardProps) {
           toast.push({
             tone: 'success',
             title: card.doneAt ? 'Added to Done on your board' : 'Added to your board',
-            action: { label: 'Open board', onClick: () => void navigate(`/board?board=${card.boardId}&card=${card.id}`) },
+            action: {
+              label: 'Open board',
+              onClick: () => void navigate(`/board?board=${card.boardId}&card=${card.id}`),
+            },
           }),
         onError: (e) => {
           if (isApiError(e) && e.code === 'already_on_board') return; // the board links reload, and this becomes "On your board"

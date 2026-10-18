@@ -8,9 +8,17 @@ import { formatDate } from '../../ui';
 type VideoKind = Video['kind'];
 
 // ── Video kinds ───────────────────────────────────────────────────────────
-export const KIND_ICON: Record<VideoKind, Icon> = { youtube: YoutubeLogo, 'youtube-playlist': Playlist, bbb: ChalkboardTeacher };
+export const KIND_ICON: Record<VideoKind, Icon> = {
+  youtube: YoutubeLogo,
+  'youtube-playlist': Playlist,
+  bbb: ChalkboardTeacher,
+};
 /** Where the player loads from (said on the poster before anything is loaded). */
-export const KIND_SOURCE: Record<VideoKind, string> = { youtube: 'YouTube', 'youtube-playlist': 'YouTube', bbb: 'vc.bibf.com' };
+export const KIND_SOURCE: Record<VideoKind, string> = {
+  youtube: 'YouTube',
+  'youtube-playlist': 'YouTube',
+  bbb: 'vc.bibf.com',
+};
 
 export function kindLabel(video: Video | null | undefined): string {
   return video ? VIDEO_KIND_LABEL[video.kind] : 'Video';
@@ -31,7 +39,10 @@ export function recordingDate(video: Video | null | undefined): Date | null {
  * '30 Sep 2025' (or '20 Oct 2025, 10:18' with `time`) in Bahrain time, whatever the viewer's time zone is.
  * Built by hand rather than with Intl so the month is always 'Sep' (en-GB says 'Sept') and never shifts.
  */
-export function recordingDateLabel(video: Video | null | undefined, { time = false }: { time?: boolean } = {}): string | null {
+export function recordingDateLabel(
+  video: Video | null | undefined,
+  { time = false }: { time?: boolean } = {},
+): string | null {
   const date = recordingDate(video);
   if (!date || Number.isNaN(date.getTime())) return null;
   const t = new Date(date.getTime() + BAHRAIN_OFFSET);

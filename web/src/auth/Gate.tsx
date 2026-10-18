@@ -42,7 +42,12 @@ const home = (
 export function SwitchedOff({ title }: { title: string }) {
   return (
     <Notice title={title}>
-      <EmptyState icon={Power} title="This part of the hub is switched off right now." body="Come back later, or carry on from Home." action={home} />
+      <EmptyState
+        icon={Power}
+        title="This part of the hub is switched off right now."
+        body="Come back later, or carry on from Home."
+        action={home}
+      />
     </Notice>
   );
 }
@@ -61,7 +66,11 @@ export function Gate({ title, description, box, anyBox, feature, admin, signedIn
           title="Sign in to see this page"
           body="It’s here once you’re signed in."
           action={
-            <Button variant="primary" leadingIcon={SignIn} onClick={() => openSignIn({ reason: `Sign in to see ${title.toLowerCase()}` })}>
+            <Button
+              variant="primary"
+              leadingIcon={SignIn}
+              onClick={() => openSignIn({ reason: `Sign in to see ${title.toLowerCase()}` })}
+            >
               Sign in
             </Button>
           }
@@ -74,13 +83,23 @@ export function Gate({ title, description, box, anyBox, feature, admin, signedIn
   if (me.status === 'suspended' && (admin ? holdsAdmin(me) : me.roles.some((r) => r.slug !== 'student'))) {
     return (
       <Notice title={title} description={description}>
-        <EmptyState icon={WarningCircle} title="Your account is suspended" body="While it is, this page isn’t available to you. Contact an admin." action={home} />
+        <EmptyState
+          icon={WarningCircle}
+          title="Your account is suspended"
+          body="While it is, this page isn’t available to you. Contact an admin."
+          action={home}
+        />
       </Notice>
     );
   }
   return (
     <Notice title={title} description={description}>
-      <EmptyState icon={ShieldCheck} title="This page isn’t on your account" body="If you think you need it, ask an admin." action={home} />
+      <EmptyState
+        icon={ShieldCheck}
+        title="This page isn’t on your account"
+        body="If you think you need it, ask an admin."
+        action={home}
+      />
     </Notice>
   );
 }

@@ -1,3 +1,13 @@
-.app-crashed { min-height: 100dvh; padding-block: var(--sp-48); background: var(--paper); }
-.app-crashed__logo { display: flex; justify-content: center; margin-bottom: var(--sp-24); }
-.app-crashed .ui-empty__title:focus { outline: none; } /* focused from script, for screen readers */
+.app-crashed {
+  min-height: 100dvh;
+  padding-block: var(--sp-48);
+  background: var(--paper);
+}
+.app-crashed__logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--sp-24);
+}
+.app-crashed .ui-empty__title:focus {
+  outline: none;
+} /* focused from script, for screen readers */

@@ -40,7 +40,13 @@ export function RolesSection() {
         blocker={(id) => removalBlocker(doc, 'role', id)}
         onAdd={() => {
           const id = freeId('new', savedIdsOf(doc, 'roles'));
-          update((d) => ({ ...d, roles: [...d.roles, { id, label: '', title: '', about: '', tools: [], skills: [], ask: '', close: {}, hidden: false }] }));
+          update((d) => ({
+            ...d,
+            roles: [
+              ...d.roles,
+              { id, label: '', title: '', about: '', tools: [], skills: [], ask: '', close: {}, hidden: false },
+            ],
+          }));
           return id;
         }}
       >
@@ -59,14 +65,61 @@ function RoleForm({ role: r, index }: { role: CareerRole; index: number }) {
   return (
     <div className="cedit-form">
       <div className="cedit-grid">
-        <TextField label="Name" hint="On the role’s chip." value={r.label} onChange={(v) => set(r.id, { label: v.target.value })} onBlur={() => nameToId(r.id, r.label)} error={err(`${at}.label`)} maxLength={60} required />
-        <TextField label="Title" hint="Above what the role is." value={r.title} onChange={(v) => set(r.id, { title: v.target.value })} error={err(`${at}.title`)} maxLength={160} required />
+        <TextField
+          label="Name"
+          hint="On the role’s chip."
+          value={r.label}
+          onChange={(v) => set(r.id, { label: v.target.value })}
+          onBlur={() => nameToId(r.id, r.label)}
+          error={err(`${at}.label`)}
+          maxLength={60}
+          required
+        />
+        <TextField
+          label="Title"
+          hint="Above what the role is."
+          value={r.title}
+          onChange={(v) => set(r.id, { title: v.target.value })}
+          error={err(`${at}.title`)}
+          maxLength={160}
+          required
+        />
         <IdField section="roles" kind="role" id={r.id} error={err(`${at}.id`)} />
       </div>
-      <TextArea label="What the job is" rows={3} value={r.about} onChange={(v) => set(r.id, { about: v.target.value })} error={err(`${at}.about`)} maxLength={600} required />
-      <WordList label="Tools" hint="Type one and press Enter." value={r.tools} onChange={(tools) => set(r.id, { tools })} error={err(`${at}.tools`)} />
-      <PickList label="Skills it needs" hint="The most important first. The electives guide reads these too." value={r.skills} options={skills} onChange={(next) => set(r.id, { skills: next })} addLabel="Add a skill" error={err(`${at}.skills`)} />
-      <TextField label="Question for seniors" hint="“Ask seniors about this role” starts a thread with it." value={r.ask} onChange={(v) => set(r.id, { ask: v.target.value })} error={err(`${at}.ask`)} maxLength={600} required />
+      <TextArea
+        label="What the job is"
+        rows={3}
+        value={r.about}
+        onChange={(v) => set(r.id, { about: v.target.value })}
+        error={err(`${at}.about`)}
+        maxLength={600}
+        required
+      />
+      <WordList
+        label="Tools"
+        hint="Type one and press Enter."
+        value={r.tools}
+        onChange={(tools) => set(r.id, { tools })}
+        error={err(`${at}.tools`)}
+      />
+      <PickList
+        label="Skills it needs"
+        hint="The most important first. The electives guide reads these too."
+        value={r.skills}
+        options={skills}
+        onChange={(next) => set(r.id, { skills: next })}
+        addLabel="Add a skill"
+        error={err(`${at}.skills`)}
+      />
+      <TextField
+        label="Question for seniors"
+        hint="“Ask seniors about this role” starts a thread with it."
+        value={r.ask}
+        onChange={(v) => set(r.id, { ask: v.target.value })}
+        error={err(`${at}.ask`)}
+        maxLength={600}
+        required
+      />
       <OwnSteps role={r} index={index} />
     </div>
   );
@@ -81,7 +134,9 @@ function OwnSteps({ role: r, index }: { role: CareerRole; index: number }) {
   return (
     <fieldset className="cedit-group">
       <legend className="cedit-group__legend">This role’s own steps</legend>
-      <p className="cedit__note">For a skill the modules don’t teach far enough, this role can point somewhere other than the skill’s usual step.</p>
+      <p className="cedit__note">
+        For a skill the modules don’t teach far enough, this role can point somewhere other than the skill’s usual step.
+      </p>
       {Object.entries(r.close).map(([skill, step]) => (
         <div key={skill} className="cedit-step">
           <StepField
@@ -109,7 +164,16 @@ function OwnSteps({ role: r, index }: { role: CareerRole; index: number }) {
       ))}
       {free.length ? (
         <div className="cedit-pick__row">
-          <Select label="Skill" hideLabel value={adding} onChange={(v) => setAdding(v.target.value)} options={[{ value: '', label: 'Choose a skill' }, ...free.map((s) => ({ value: s, label: doc.skills[s]?.name ?? s }))]} />
+          <Select
+            label="Skill"
+            hideLabel
+            value={adding}
+            onChange={(v) => setAdding(v.target.value)}
+            options={[
+              { value: '', label: 'Choose a skill' },
+              ...free.map((s) => ({ value: s, label: doc.skills[s]?.name ?? s })),
+            ]}
+          />
           <Button
             variant="secondary"
             size="sm"

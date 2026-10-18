@@ -7,8 +7,13 @@
   background: var(--surface-2);
   isolation: isolate;
 }
-.ui-seg--full { display: flex; width: 100%; }
-.ui-seg--full .ui-seg__item { flex: 1 1 0; }
+.ui-seg--full {
+  display: flex;
+  width: 100%;
+}
+.ui-seg--full .ui-seg__item {
+  flex: 1 1 0;
+}
 .ui-seg__thumb {
   position: absolute;
   top: 3px;
@@ -18,7 +23,10 @@
   border-radius: 8px;
   background: var(--thumb-bg);
   box-shadow: var(--thumb-shadow);
-  transition: transform var(--dur) var(--ease), width var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  transition:
+    transform var(--dur) var(--ease),
+    width var(--dur) var(--ease),
+    background-color var(--dur) var(--ease);
 }
 .ui-seg__item {
   display: inline-flex;
@@ -35,14 +43,33 @@
   white-space: nowrap;
   transition: color var(--dur) var(--ease);
 }
-.ui-seg--sm .ui-seg__item { height: 28px; min-width: 28px; padding: 0 10px; font-size: var(--fs-12); }
-.ui-seg__item:hover { color: var(--ink); }
-.ui-seg__item.is-checked { color: var(--ink); }
-.ui-seg__thumb.has-color { box-shadow: none; }
-.ui-seg__icon { font-size: 17px; }
-.ui-seg__item:focus-visible { outline-offset: 0; }
+.ui-seg--sm .ui-seg__item {
+  height: 28px;
+  min-width: 28px;
+  padding: 0 10px;
+  font-size: var(--fs-12);
+}
+.ui-seg__item:hover {
+  color: var(--ink);
+}
+.ui-seg__item.is-checked {
+  color: var(--ink);
+}
+.ui-seg__thumb.has-color {
+  box-shadow: none;
+}
+.ui-seg__icon {
+  font-size: 17px;
+}
+.ui-seg__item:focus-visible {
+  outline-offset: 0;
+}
 
 /* Touch screens: 44px segments (UX review UX-11). */
 @media (pointer: coarse) {
-  .ui-seg__item, .ui-seg--sm .ui-seg__item { height: 44px; min-width: 44px; }
+  .ui-seg__item,
+  .ui-seg--sm .ui-seg__item {
+    height: 44px;
+    min-width: 44px;
+  }
 }

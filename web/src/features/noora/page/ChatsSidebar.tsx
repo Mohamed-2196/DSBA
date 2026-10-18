@@ -57,7 +57,16 @@ function RenameField({ chat, onDone }: { chat: SavedChat; onDone: (title: string
   );
 }
 
-export function ChatsSidebar({ chats, current, onOpen, onNew, onRename, onDelete, onDeleteAll, onHide }: ChatsSidebarProps) {
+export function ChatsSidebar({
+  chats,
+  current,
+  onOpen,
+  onNew,
+  onRename,
+  onDelete,
+  onDeleteAll,
+  onHide,
+}: ChatsSidebarProps) {
   const [query, setQuery] = useState('');
   const debounced = useDebouncedValue(query, 150);
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -67,14 +76,37 @@ export function ChatsSidebar({ chats, current, onOpen, onNew, onRename, onDelete
   return (
     <div className="np-side__inner" data-hub="noora-sidebar">
       <div className="np-side__head">
-        {onHide ? <IconButton label="Hide chats" icon={SidebarSimple} size="sm" tooltip onClick={onHide} data-hub="noora-sidebar-hide" /> : null}
+        {onHide ? (
+          <IconButton
+            label="Hide chats"
+            icon={SidebarSimple}
+            size="sm"
+            tooltip
+            onClick={onHide}
+            data-hub="noora-sidebar-hide"
+          />
+        ) : null}
         <h2 className="np-side__title">Chats</h2>
-        <Button size="sm" variant="secondary" leadingIcon={NotePencil} onClick={onNew} className="np-side__new" data-hub="noora-page-new">
+        <Button
+          size="sm"
+          variant="secondary"
+          leadingIcon={NotePencil}
+          onClick={onNew}
+          className="np-side__new"
+          data-hub="noora-page-new"
+        >
           New chat
         </Button>
       </div>
       <div className="np-side__search">
-        <SearchField value={query} onValueChange={setQuery} onClear={() => setQuery('')} placeholder="Search chats" label="Search chats" data-hub="noora-search-chats" />
+        <SearchField
+          value={query}
+          onValueChange={setQuery}
+          onClear={() => setQuery('')}
+          placeholder="Search chats"
+          label="Search chats"
+          data-hub="noora-search-chats"
+        />
       </div>
       <nav className="np-side__list" aria-label="Your chats">
         {groups.length ? (
@@ -97,7 +129,13 @@ export function ChatsSidebar({ chats, current, onOpen, onNew, onRename, onDelete
                           }}
                         />
                       ) : (
-                        <button type="button" className="np-chat__open" aria-current={here ? 'page' : undefined} onClick={() => onOpen(chat)} data-hub="noora-chat-open">
+                        <button
+                          type="button"
+                          className="np-chat__open"
+                          aria-current={here ? 'page' : undefined}
+                          onClick={() => onOpen(chat)}
+                          data-hub="noora-chat-open"
+                        >
                           <span className="np-chat__title" dir="auto">
                             {chat.title}
                           </span>
@@ -107,10 +145,24 @@ export function ChatsSidebar({ chats, current, onOpen, onNew, onRename, onDelete
                         <Menu
                           align="end"
                           label={`Options for “${chat.title}”`}
-                          trigger={<IconButton label={`Options for “${chat.title}”`} icon={DotsThree} size="sm" className="np-chat__more" data-hub="noora-chat-more" />}
+                          trigger={
+                            <IconButton
+                              label={`Options for “${chat.title}”`}
+                              icon={DotsThree}
+                              size="sm"
+                              className="np-chat__more"
+                              data-hub="noora-chat-more"
+                            />
+                          }
                           items={[
                             { id: 'rename', label: 'Rename', icon: PencilSimple, onSelect: () => setRenaming(chat.id) },
-                            { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => onDelete(chat) },
+                            {
+                              id: 'delete',
+                              label: 'Delete',
+                              icon: Trash,
+                              danger: true,
+                              onSelect: () => onDelete(chat),
+                            },
                           ]}
                         />
                       )}
@@ -129,7 +181,14 @@ export function ChatsSidebar({ chats, current, onOpen, onNew, onRename, onDelete
       </nav>
       <div className="np-side__foot">
         <p>Saved in this browser only, never on the Hub’s server. Signing out deletes them.</p>
-        <Button variant="ghost" size="sm" leadingIcon={Trash} onClick={onDeleteAll} disabled={!chats.length} data-hub="noora-delete-all">
+        <Button
+          variant="ghost"
+          size="sm"
+          leadingIcon={Trash}
+          onClick={onDeleteAll}
+          disabled={!chats.length}
+          data-hub="noora-delete-all"
+        >
           Delete all chats
         </Button>
       </div>

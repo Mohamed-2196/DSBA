@@ -27,7 +27,10 @@ export const PdfPage = memo(function PdfPage({ pdf, page, width, height, zoom, r
   useEffect(() => {
     const el = canvas.current;
     if (!el) return undefined;
-    const io = new IntersectionObserver((entries) => setNear(entries.some((e) => e.isIntersecting)), { root, rootMargin: '150% 0px' });
+    const io = new IntersectionObserver((entries) => setNear(entries.some((e) => e.isIntersecting)), {
+      root,
+      rootMargin: '150% 0px',
+    });
     io.observe(el);
     return () => io.disconnect();
   }, [root]);
@@ -67,5 +70,12 @@ export const PdfPage = memo(function PdfPage({ pdf, page, width, height, zoom, r
     };
   }, [pdf, page, width, zoom, near]);
 
-  return <canvas ref={canvas} className={drawn ? 'nb-pdfpage is-drawn' : 'nb-pdfpage'} style={{ width, height }} aria-hidden="true" />;
+  return (
+    <canvas
+      ref={canvas}
+      className={drawn ? 'nb-pdfpage is-drawn' : 'nb-pdfpage'}
+      style={{ width, height }}
+      aria-hidden="true"
+    />
+  );
 });

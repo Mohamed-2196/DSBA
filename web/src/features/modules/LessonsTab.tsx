@@ -1,6 +1,16 @@
 // Lessons tab: the player (click-to-load poster, then the embed) with the lesson's details and controls, beside
 // the chapter list. The lesson on screen lives in the URL (/modules/<id>/lessons/<lesson id>).
-import { ArrowSquareOut, CalendarBlank, CaretLeft, CaretRight, CheckCircle, Circle, Headphones, Warning, WifiSlash } from '@phosphor-icons/react';
+import {
+  ArrowSquareOut,
+  CalendarBlank,
+  CaretLeft,
+  CaretRight,
+  CheckCircle,
+  Circle,
+  Headphones,
+  Warning,
+  WifiSlash,
+} from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { ModuleDetail, Video } from '../../api/types';
 import { videoThumbnailUrl } from '../../lib/modules';
@@ -11,7 +21,17 @@ import { LessonNotes } from '../notes/public';
 import { AddToBoard } from '../board/public';
 import { ChapterQuestions } from '../library/public';
 import { ChapterList } from './ChapterList';
-import { KIND_SOURCE, chapterLessons, chapterPosition, embedSrc, httpsOnly, kindLabel, lessonPosition, openOriginalLabel, sourceHref } from './lessons';
+import {
+  KIND_SOURCE,
+  chapterLessons,
+  chapterPosition,
+  embedSrc,
+  httpsOnly,
+  kindLabel,
+  lessonPosition,
+  openOriginalLabel,
+  sourceHref,
+} from './lessons';
 import { LessonPoster } from './Poster';
 import { flatLessons, type FlatLesson, type ProgressApi } from './progress';
 import { ProgressOffer } from './ProgressOffer';
@@ -19,7 +39,8 @@ import { useTracking } from './tracking';
 import { useThumbnail, youtubeLooksBlocked } from './thumbs';
 import './Lessons.css';
 
-const prefersReducedMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const frameVars = (year: number) => ({ '--mc': `var(--y${year})` }) as CSSProperties;
 
 /** Shown for a moment while we check YouTube is reachable (no iframe yet). */
@@ -48,12 +69,18 @@ function LessonUnreachable({ year, video, onTryAnyway }: { year: number; video: 
         <WifiSlash weight="duotone" className="mod-blocked__icon" aria-hidden="true" />
         <p className="mod-blocked__title">This video can&rsquo;t load here</p>
         <p className="mod-blocked__body">
-          YouTube isn&rsquo;t responding on this network. It may be blocked here, or the video may have moved. Open it on YouTube instead, or try
-          again.
+          YouTube isn&rsquo;t responding on this network. It may be blocked here, or the video may have moved. Open it
+          on YouTube instead, or try again.
         </p>
         <div className="mod-blocked__actions">
           {source ? (
-            <Button ref={primaryRef} variant="primary" href={source} trailingIcon={ArrowSquareOut} aria-label={`${openOriginalLabel(video)} (opens in a new tab)`}>
+            <Button
+              ref={primaryRef}
+              variant="primary"
+              href={source}
+              trailingIcon={ArrowSquareOut}
+              aria-label={`${openOriginalLabel(video)} (opens in a new tab)`}
+            >
               {openOriginalLabel(video)}
             </Button>
           ) : null}
@@ -162,7 +189,8 @@ export function LessonsTab({
       const el = playerRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      if (r.top < 64 || r.bottom > window.innerHeight) el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+      if (r.top < 64 || r.bottom > window.innerHeight)
+        el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
     });
   }, []);
 
@@ -182,14 +210,19 @@ export function LessonsTab({
     });
   };
 
-  const nextLabel = next ? (next.c !== c ? 'Next chapter' : `Next ${next.video.kind === 'youtube-playlist' ? 'playlist' : 'video'}`) : 'Next video';
+  const nextLabel = next
+    ? next.c !== c
+      ? 'Next chapter'
+      : `Next ${next.video.kind === 'youtube-playlist' ? 'playlist' : 'video'}`
+    : 'Next video';
   let upNext = 'This is the last lesson in the module.';
   if (next) {
     const nch = m.chapters[next.c];
     const ni = next.c === c ? infos[next.v] : chapterLessons(nch)[next.v];
     if (next.c !== c) upNext = `Up next: chapter ${next.c + 1}, ${nch.title}`;
     else if (ni.real) upNext = `Up next: ${next.video.kind === 'bbb' ? `class recording, ${ni.by ?? ''}` : ni.title}`;
-    else upNext = `Up next: ${(lessonPosition(next.video, next.v, nch.videos.length) ?? 'the next video').toLowerCase()}`;
+    else
+      upNext = `Up next: ${(lessonPosition(next.video, next.v, nch.videos.length) ?? 'the next video').toLowerCase()}`;
   }
   const source = sourceHref(video);
   const audio = httpsOnly(chapter.audioUrl);
@@ -199,9 +232,13 @@ export function LessonsTab({
       <div className="mod-lessons__grid">
         <div className="mod-lessons__main">
           <div className="mod-player" data-hub="lesson-player" ref={playerRef}>
-            {stage === 'poster' ? <LessonPoster key={key} module={m} c={c} v={v} isWatched={isWatched} onPlay={() => setPlaying(true)} /> : null}
+            {stage === 'poster' ? (
+              <LessonPoster key={key} module={m} c={c} v={v} isWatched={isWatched} onPlay={() => setPlaying(true)} />
+            ) : null}
             {stage === 'waiting' ? <LessonWaiting year={m.year} video={video} /> : null}
-            {stage === 'blocked' ? <LessonUnreachable year={m.year} video={video} onTryAnyway={() => setForceLoad(true)} /> : null}
+            {stage === 'blocked' ? (
+              <LessonUnreachable year={m.year} video={video} onTryAnyway={() => setForceLoad(true)} />
+            ) : null}
             {stage === 'frame' ? <LessonFrame key={key} module={m} c={c} v={v} /> : null}
           </div>
 
@@ -222,19 +259,19 @@ export function LessonsTab({
                 ) : null}
               </div>
               <div className="mod-lesson__acts">
-              {tracking ? (
-                <Button
-                  className={cx('mod-watch', watched && 'is-on')}
-                  aria-pressed={watched}
-                  leadingIcon={watched ? <CheckCircle weight="fill" size={19} /> : <Circle size={19} />}
-                  onClick={() => setWatched(m.id, key, !watched)}
-                  disabled={!progress.ready}
-                  data-hub="lesson-watched"
-                >
-                  {watched ? 'Watched' : 'Mark as watched'}
-                </Button>
-              ) : null}
-              {featureOn('board') ? <AddToBoard link={{ type: 'lesson', id: key }} /> : null}
+                {tracking ? (
+                  <Button
+                    className={cx('mod-watch', watched && 'is-on')}
+                    aria-pressed={watched}
+                    leadingIcon={watched ? <CheckCircle weight="fill" size={19} /> : <Circle size={19} />}
+                    onClick={() => setWatched(m.id, key, !watched)}
+                    disabled={!progress.ready}
+                    data-hub="lesson-watched"
+                  >
+                    {watched ? 'Watched' : 'Mark as watched'}
+                  </Button>
+                ) : null}
+                {featureOn('board') ? <AddToBoard link={{ type: 'lesson', id: key }} /> : null}
               </div>
             </div>
 
@@ -245,7 +282,13 @@ export function LessonsTab({
                 <Button leadingIcon={CaretLeft} disabled={!prev} onClick={() => go(prev)} className="mod-lesson__step">
                   Previous
                 </Button>
-                <Button variant="primary" trailingIcon={CaretRight} disabled={!next} onClick={() => go(next)} className="mod-lesson__step">
+                <Button
+                  variant="primary"
+                  trailingIcon={CaretRight}
+                  disabled={!next}
+                  onClick={() => go(next)}
+                  className="mod-lesson__step"
+                >
                   {nextLabel}
                 </Button>
               </div>
@@ -277,7 +320,9 @@ export function LessonsTab({
               </div>
             ) : null}
 
-            {featureOn('library') && featureOn('library.questions') ? <ChapterQuestions moduleId={m.id} chapterId={chapter.id} /> : null}
+            {featureOn('library') && featureOn('library.questions') ? (
+              <ChapterQuestions moduleId={m.id} chapterId={chapter.id} />
+            ) : null}
 
             <ErrorBoundary name="LessonNotes" resetKey={key}>
               <LessonNotes moduleId={m.id} lessonId={key} />
@@ -286,7 +331,16 @@ export function LessonsTab({
         </div>
 
         <div className="mod-lessons__aside">
-          <ChapterList module={m} selection={selection} state={state} tracking={tracking} onTracking={track.set} nowLabel={stage === 'frame' ? 'Playing' : 'Selected'} onReset={onReset} onPick={revealPlayer} />
+          <ChapterList
+            module={m}
+            selection={selection}
+            state={state}
+            tracking={tracking}
+            onTracking={track.set}
+            nowLabel={stage === 'frame' ? 'Playing' : 'Selected'}
+            onReset={onReset}
+            onPick={revealPlayer}
+          />
         </div>
       </div>
     </div>

@@ -33,7 +33,14 @@ export function Preview({ draft, detail }: { draft: IssueDraft; detail: IssueDet
       </div>
       <div className="nl-article nl-editor__preview-article">
         {sections.length ? (
-          sections.map((s) => <IssueSection key={s.id} issue={{ id: detail.id, slug: detail.slug, date, editors, reactions: detail.reactions }} section={s} readOnly />)
+          sections.map((s) => (
+            <IssueSection
+              key={s.id}
+              issue={{ id: detail.id, slug: detail.slug, date, editors, reactions: detail.reactions }}
+              section={s}
+              readOnly
+            />
+          ))
         ) : (
           <p className="nl-editor__preview-empty">The sections show here as you write them.</p>
         )}

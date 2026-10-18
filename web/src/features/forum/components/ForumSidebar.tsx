@@ -62,10 +62,20 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
                   <CategoryMark category={c} />
                   <span className="forum-cat__text">
                     <span className="forum-cat__label">{c.label}</span>
-                    <span className={cx('forum-cat__blurb', codes.length > 0 && 'is-codes')}>{codes.length ? codes.join(' ') : c.blurb}</span>
+                    <span className={cx('forum-cat__blurb', codes.length > 0 && 'is-codes')}>
+                      {codes.length ? codes.join(' ') : c.blurb}
+                    </span>
                   </span>
                   {/* A count only when there is something to count (UX review UX-17: a new Hub is all zeros). */}
-                  <span className="forum-cat__count">{stats ? (stats.byCategory[c.id] ? <Count value={stats.byCategory[c.id]} /> : null) : <Skeleton width={14} height="0.9em" />}</span>
+                  <span className="forum-cat__count">
+                    {stats ? (
+                      stats.byCategory[c.id] ? (
+                        <Count value={stats.byCategory[c.id]} />
+                      ) : null
+                    ) : (
+                      <Skeleton width={14} height="0.9em" />
+                    )}
+                  </span>
                 </button>
               </li>
             );
@@ -93,7 +103,10 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
                   </span>
                 </span>
                 {p.votes > 0 ? (
-                  <span className="forum-person__score" aria-label={`${p.votes} ${p.votes === 1 ? 'upvote' : 'upvotes'} on their replies`}>
+                  <span
+                    className="forum-person__score"
+                    aria-label={`${p.votes} ${p.votes === 1 ? 'upvote' : 'upvotes'} on their replies`}
+                  >
                     <ArrowFatUp weight="fill" aria-hidden="true" />
                     {p.votes}
                   </span>

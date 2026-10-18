@@ -16,13 +16,16 @@ function icsProblems(body: string): string[] {
   if (long.length) problems.push(`${long.length} lines longer than 75 octets`);
   const events = body.split('BEGIN:VEVENT').slice(1);
   if (!events.length) problems.push('no events');
-  for (const e of events) for (const key of ['UID:', 'DTSTAMP:', 'DTSTART', 'SUMMARY:', 'END:VEVENT']) if (!e.includes(key)) problems.push(`an event without ${key}`);
+  for (const e of events)
+    for (const key of ['UID:', 'DTSTAMP:', 'DTSTART', 'SUMMARY:', 'END:VEVENT'])
+      if (!e.includes(key)) problems.push(`an event without ${key}`);
   const uids = events.map((e) => /UID:(.*)/.exec(e)?.[1]);
   if (new Set(uids).size !== uids.length) problems.push('duplicate UIDs');
   return [...new Set(problems)];
 }
 
-const inDays = (n: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date(Date.now() + n * 86_400_000));
+const inDays = (n: number) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date(Date.now() + n * 86_400_000));
 
 test('a student browses the calendar and subscribes: the feed is a valid calendar', async ({ sara }) => {
   await sara.goto('/calendar');
@@ -50,12 +53,18 @@ test('a student browses the calendar and subscribes: the feed is a valid calenda
   expect(feed.headers()['content-type']).toContain('text/calendar');
   expect(icsProblems(await feed.text())).toEqual([]);
 
-  const [download] = await Promise.all([sara.waitForEvent('download'), dialog.getByRole('link', { name: /Download once/ }).click()]);
+  const [download] = await Promise.all([
+    sara.waitForEvent('download'),
+    dialog.getByRole('link', { name: /Download once/ }).click(),
+  ]);
   expect(download.suggestedFilename()).toMatch(/\.ics$/);
   expect(icsProblems(fs.readFileSync(await download.path(), 'utf8'))).toEqual([]);
 });
 
-async function addEvent(rep: Page, fields: { title: string; date: string; cohort?: string; module?: string; time: string; place: string }): Promise<string> {
+async function addEvent(
+  rep: Page,
+  fields: { title: string; date: string; cohort?: string; module?: string; time: string; place: string },
+): Promise<string> {
   await rep.goto('/calendar');
   await rep.locator('[data-hub="calendar-add"]').first().click();
   const dialog = rep.getByRole('dialog');
@@ -80,7 +89,14 @@ async function addEvent(rep: Page, fields: { title: string; date: string; cohort
 test('a rep adds, edits and deletes an event; students see each change', async ({ rep, sara, run }) => {
   const title = `ST2133 peer revision: MGFs [e2e ${run.tag}]`;
   const date = inDays(12);
-  const id = await addEvent(rep, { title, date, cohort: '2', module: 'advanced-stats-distribution', time: '4:00 PM', place: 'BIBF, Room 204' });
+  const id = await addEvent(rep, {
+    title,
+    date,
+    cohort: '2',
+    module: 'advanced-stats-distribution',
+    time: '4:00 PM',
+    place: 'BIBF, Room 204',
+  });
 
   await sara.goto(`/calendar?event=${encodeURIComponent(id)}`);
   await expect(sara.getByRole('dialog')).toContainText(title);
@@ -108,8 +124,18 @@ test('a rep adds, edits and deletes an event; students see each change', async (
 });
 
 test('ST-2: an event for a Year 2 module added with the default cohort is a Year 2 event', async ({ rep, run }) => {
-  const id = await addEvent(rep, { title: `ST2133 drop-in [e2e ${run.tag}]`, date: inDays(13), module: 'advanced-stats-distribution', time: '1:00 PM', place: 'Room 101' });
-  const events = await api<{ id: string; year: number | null }[]>(rep, 'GET', `/api/v1/calendar/events?from=${inDays(13)}&to=${inDays(13)}`);
+  const id = await addEvent(rep, {
+    title: `ST2133 drop-in [e2e ${run.tag}]`,
+    date: inDays(13),
+    module: 'advanced-stats-distribution',
+    time: '1:00 PM',
+    place: 'Room 101',
+  });
+  const events = await api<{ id: string; year: number | null }[]>(
+    rep,
+    'GET',
+    `/api/v1/calendar/events?from=${inDays(13)}&to=${inDays(13)}`,
+  );
   const ev = events.body.find((e) => e.id === id);
   await api(rep, 'DELETE', `/api/v1/calendar/events/${encodeURIComponent(id)}`);
   expect(ev?.year).toBe(2);

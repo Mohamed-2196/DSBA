@@ -26,7 +26,14 @@ function Card({ guide }: { guide: StartHere }) {
   if (!term.open || hiddenIn === term.from) return null;
   const n = done.size;
   return (
-    <Panel as="section" padding="none" radius="feature" className="start-card" aria-labelledby="start-card-title" data-hub="start-card">
+    <Panel
+      as="section"
+      padding="none"
+      radius="feature"
+      className="start-card"
+      aria-labelledby="start-card-title"
+      data-hub="start-card"
+    >
       <div className="start-card__head">
         <div className="start-card__titles">
           <h2 id="start-card-title" className="start-card__title">
@@ -34,7 +41,13 @@ function Card({ guide }: { guide: StartHere }) {
           </h2>
           <Badge tone={n === total ? 'signal' : 'neutral'} aria-live="polite">{`${n} of ${total} done`}</Badge>
         </div>
-        <IconButton icon={X} label="Hide Start here" size="sm" onClick={() => setHiddenIn(term.from)} data-hub="start-hide" />
+        <IconButton
+          icon={X}
+          label="Hide Start here"
+          size="sm"
+          onClick={() => setHiddenIn(term.from)}
+          data-hub="start-hide"
+        />
       </div>
       <p className="start-card__intro">{guide.intro}</p>
       <GuideSteps steps={guide.steps} ticks={ticks} variant="card" />

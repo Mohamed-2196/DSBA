@@ -22,7 +22,10 @@ export type ItemFormErrors = Partial<Record<keyof ItemFormValues, string>>;
 
 export const NO_MODULE = 'none';
 
-export function emptyValues({ moduleId, year }: { moduleId?: string | null; year?: CohortYear | null } = {}): ItemFormValues {
+export function emptyValues({
+  moduleId,
+  year,
+}: { moduleId?: string | null; year?: CohortYear | null } = {}): ItemFormValues {
   return {
     title: '',
     kind: 'notes',
@@ -61,7 +64,8 @@ export function checkValues(v: ItemFormValues): ItemFormErrors {
   if (!v.module) errors.module = 'Choose the module it is for, or “Not about one module”.';
   if (EXAM_KINDS.has(v.kind) && v.examYear.trim()) {
     const n = Number(v.examYear);
-    if (!Number.isInteger(n) || n < 1990 || n > THIS_YEAR + 1) errors.examYear = `Enter a year between 1990 and ${THIS_YEAR + 1}.`;
+    if (!Number.isInteger(n) || n < 1990 || n > THIS_YEAR + 1)
+      errors.examYear = `Enter a year between 1990 and ${THIS_YEAR + 1}.`;
   }
   if (v.authorName.trim().length > 120) errors.authorName = 'Keep the name under 120 characters.';
   if (v.description.trim().length > 2000) errors.description = 'Keep the description under 2,000 characters.';
@@ -109,11 +113,19 @@ function details(v: ItemFormValues, getModule: (id: string) => ModuleSummary | n
   };
 }
 
-export function toCreateBody(uploadId: string, v: ItemFormValues, getModule: (id: string) => ModuleSummary | null): LibraryItemCreate {
+export function toCreateBody(
+  uploadId: string,
+  v: ItemFormValues,
+  getModule: (id: string) => ModuleSummary | null,
+): LibraryItemCreate {
   return { uploadId, ...details(v, getModule) };
 }
 
-export function toLinkBody(url: string, v: ItemFormValues, getModule: (id: string) => ModuleSummary | null): LibraryLinkCreate {
+export function toLinkBody(
+  url: string,
+  v: ItemFormValues,
+  getModule: (id: string) => ModuleSummary | null,
+): LibraryLinkCreate {
   return { url: url.trim(), ...details(v, getModule) };
 }
 
@@ -130,7 +142,8 @@ export function linkProblem(url: string): string | null {
   }
   if (parsed.protocol !== 'https:') return 'Use an https:// link.';
   if (parsed.username || parsed.password) return 'Remove the user name and password from the link.';
-  if (['drive.google.com', 'docs.google.com'].includes(parsed.hostname.toLowerCase())) return 'The Hub keeps its own copy of files instead of sending students to Google Drive. Upload the file instead.';
+  if (['drive.google.com', 'docs.google.com'].includes(parsed.hostname.toLowerCase()))
+    return 'The Hub keeps its own copy of files instead of sending students to Google Drive. Upload the file instead.';
   return null;
 }
 

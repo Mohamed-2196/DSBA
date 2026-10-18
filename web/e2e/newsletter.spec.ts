@@ -7,7 +7,12 @@ test.describe.configure({ mode: 'serial' });
 
 const bahrainToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date());
 
-test('a rep publishes a draft; Ali is notified, reads it and reacts; a guest reads it', async ({ rep, ali, guest, run }) => {
+test('a rep publishes a draft; Ali is notified, reads it and reacts; a guest reads it', async ({
+  rep,
+  ali,
+  guest,
+  run,
+}) => {
   const slug = `e2e-${run.tag}`;
   const title = `Revision week special [e2e ${run.tag}]`;
   const created = await api<{ id: string; status: string }>(rep, 'POST', '/api/v1/newsletter/issues', {
@@ -26,7 +31,11 @@ test('a rep publishes a draft; Ali is notified, reads it and reacts; a guest rea
         label: 'Revision',
         title: 'Rooms for revision week',
         blocks: [
-          { type: 'p', lead: true, text: 'The library study rooms are open until 9 PM in revision week. Book them at the front desk.' },
+          {
+            type: 'p',
+            lead: true,
+            text: 'The library study rooms are open until 9 PM in revision week. Book them at the front desk.',
+          },
           { type: 'signoff', text: 'Fatima' },
         ],
       },
@@ -40,7 +49,9 @@ test('a rep publishes a draft; Ali is notified, reads it and reacts; a guest rea
   await guest.goto(`/newsletter/${slug}`);
   await expect(guest.getByText('We couldn’t find that issue')).toBeVisible();
   await rep.goto(`/newsletter/${slug}`);
-  await expect(rep.locator('main')).toContainText('Only people who manage the newsletter can see this issue until it’s published.');
+  await expect(rep.locator('main')).toContainText(
+    'Only people who manage the newsletter can see this issue until it’s published.',
+  );
   await rep.getByRole('button', { name: 'Publish', exact: true }).first().click();
   const confirm = rep.getByRole('dialog');
   await expect(confirm).toContainText('Publish issue 99?');
@@ -53,19 +64,31 @@ test('a rep publishes a draft; Ali is notified, reads it and reacts; a guest rea
   await ali.getByText(`New issue of The DSBA Newsletter: ${title}`).click();
   await expect(ali).toHaveURL(new RegExp(`/newsletter/${slug}$`));
   await expect(ali.locator('main')).toContainText('Rooms for revision week');
-  const useful = ali.locator('[data-hub="reactions"]').first().getByRole('button', { name: /^Useful/ });
+  const useful = ali
+    .locator('[data-hub="reactions"]')
+    .first()
+    .getByRole('button', { name: /^Useful/ });
   await expect(useful).toHaveAttribute('aria-pressed', 'false');
   await useful.click();
   await expect(useful).toHaveAttribute('aria-pressed', 'true');
   await expect(useful).toHaveAttribute('aria-label', 'Useful, 1');
   await ali.reload();
-  await expect(ali.locator('[data-hub="reactions"]').first().getByRole('button', { name: /^Useful/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    ali
+      .locator('[data-hub="reactions"]')
+      .first()
+      .getByRole('button', { name: /^Useful/ }),
+  ).toHaveAttribute('aria-pressed', 'true');
 
   // A guest reads it; reacting asks them to sign in.
   await guest.goto('/newsletter');
   await expect(guest.locator('main')).toContainText(title);
   await guest.goto(`/newsletter/${slug}`);
   await expect(guest.locator('main')).toContainText('The library study rooms are open until 9 PM');
-  await guest.locator('[data-hub="reactions"]').first().getByRole('button', { name: /^Useful/ }).click();
+  await guest
+    .locator('[data-hub="reactions"]')
+    .first()
+    .getByRole('button', { name: /^Useful/ })
+    .click();
   await expect(guest.getByRole('dialog')).toContainText('Sign in to react');
 });

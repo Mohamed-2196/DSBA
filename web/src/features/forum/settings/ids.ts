@@ -25,7 +25,13 @@ export function idFromLabel(label: string, taken: Iterable<string>, fallback = '
 
 /** The items as saved: those not saved before get an id made from their label (their draft id was a stand-in), never
  *  one of `reserved` (a category's id can't be 'all': ?cohort=all is the All tab). */
-export function withSavedIds<T extends { id: string }>(items: readonly T[], savedIds: ReadonlySet<string>, labelOf: (item: T) => string, fallback: string, reserved: readonly string[] = []): T[] {
+export function withSavedIds<T extends { id: string }>(
+  items: readonly T[],
+  savedIds: ReadonlySet<string>,
+  labelOf: (item: T) => string,
+  fallback: string,
+  reserved: readonly string[] = [],
+): T[] {
   const taken = new Set([...reserved, ...items.filter((i) => savedIds.has(i.id)).map((i) => i.id)]);
   return items.map((item) => {
     if (savedIds.has(item.id)) return item;

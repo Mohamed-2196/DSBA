@@ -33,7 +33,10 @@ export function Opportunities() {
   // The grid eases in only after the student changes a filter, never on arrival.
   const [touched, setTouched] = useState(false);
 
-  const pool = useMemo(() => (type === 'all' ? data.employers : data.employers.filter((e) => e.offers.some((o) => o.type === type))), [type, data.employers]);
+  const pool = useMemo(
+    () => (type === 'all' ? data.employers : data.employers.filter((e) => e.offers.some((o) => o.type === type))),
+    [type, data.employers],
+  );
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
     for (const e of pool) for (const t of e.tracks) c[t] = (c[t] ?? 0) + 1;
@@ -71,25 +74,50 @@ export function Opportunities() {
   const closest = active ? active.modules.map((id) => getModule(id)).filter((m): m is ModuleSummary => m !== null) : [];
 
   return (
-    <PageSection id="career-opportunities" className="career-opps" aria-labelledby="career-opps-title" data-hub="career-opps">
+    <PageSection
+      id="career-opportunities"
+      className="career-opps"
+      aria-labelledby="career-opps-title"
+      data-hub="career-opps"
+    >
       <h2 id="career-opps-title" className="visually-hidden">
         Where to apply
       </h2>
 
       <div className="career-opps__filters">
         <div className="career-opps__tracks" role="group" aria-label="Filter by track">
-          <Chip selected={track === 'all'} count={pool.length} onChange={() => pickTrack('all')} data-hub="career-track" data-track-id="all">
+          <Chip
+            selected={track === 'all'}
+            count={pool.length}
+            onChange={() => pickTrack('all')}
+            data-hub="career-track"
+            data-track-id="all"
+          >
             All
           </Chip>
           {data.tracks.map((t) => (
-            <Chip key={t.id} selected={track === t.id} count={counts[t.id] ?? 0} onChange={(next) => pickTrack(next ? t.id : 'all')} data-hub="career-track" data-track-id={t.id}>
+            <Chip
+              key={t.id}
+              selected={track === t.id}
+              count={counts[t.id] ?? 0}
+              onChange={(next) => pickTrack(next ? t.id : 'all')}
+              data-hub="career-track"
+              data-track-id={t.id}
+            >
               {t.label}
             </Chip>
           ))}
         </div>
         <div className="career-opps__types" role="group" aria-label="Filter by what is offered">
           {TYPE_FILTERS.map((t) => (
-            <Chip key={t.id} color={t.color} selected={type === t.id} onChange={(next) => pickType(next ? t.id : 'all')} data-hub="career-type" data-type-id={t.id}>
+            <Chip
+              key={t.id}
+              color={t.color}
+              selected={type === t.id}
+              onChange={(next) => pickType(next ? t.id : 'all')}
+              data-hub="career-type"
+              data-type-id={t.id}
+            >
               {data.offerTypes[t.id].plural}
             </Chip>
           ))}
@@ -111,7 +139,12 @@ export function Opportunities() {
       ) : null}
 
       {shown.length ? (
-        <ul role="list" className={cx('career-emps', touched && 'is-swapped')} key={`${track}-${type}`} aria-label={`${matches.length} ${matches.length === 1 ? 'employer' : 'employers'}`}>
+        <ul
+          role="list"
+          className={cx('career-emps', touched && 'is-swapped')}
+          key={`${track}-${type}`}
+          aria-label={`${matches.length} ${matches.length === 1 ? 'employer' : 'employers'}`}
+        >
           {shown.map((e) => (
             <EmployerCard key={e.id} employer={e} track={track} tracks={tracks} />
           ))}
@@ -121,7 +154,11 @@ export function Opportunities() {
           <EmptyState
             icon={MagnifyingGlass}
             title={data.employers.length ? 'No employer matches both filters' : 'No employers listed yet'}
-            body={data.employers.length ? 'Try another track, or look at everything.' : 'Employers show up here once the list is filled in.'}
+            body={
+              data.employers.length
+                ? 'Try another track, or look at everything.'
+                : 'Employers show up here once the list is filled in.'
+            }
             action={
               data.employers.length ? (
                 <Button variant="secondary" size="sm" onClick={reset}>
@@ -135,7 +172,13 @@ export function Opportunities() {
 
       {foldable ? (
         <div className="career-opps__more">
-          <Button variant="secondary" trailingIcon={folded ? CaretDown : CaretUp} aria-expanded={!folded} onClick={() => setAll(folded ? '1' : null, { replace: true })} data-hub="career-show-all">
+          <Button
+            variant="secondary"
+            trailingIcon={folded ? CaretDown : CaretUp}
+            aria-expanded={!folded}
+            onClick={() => setAll(folded ? '1' : null, { replace: true })}
+            data-hub="career-show-all"
+          >
             {folded ? `Show all ${matches.length} employers` : 'Show fewer'}
           </Button>
         </div>

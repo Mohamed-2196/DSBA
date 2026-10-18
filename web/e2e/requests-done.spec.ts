@@ -27,7 +27,10 @@ test('a request a rep marks done shows under "You asked, we did"', async ({ sara
   const made = await api<{ id: string }>(sara, 'POST', '/api/v1/requests', { kind: 'fix', title });
   expect(made.status).toBe(201);
   try {
-    const answered = await api(rep, 'POST', `/api/v1/requests/${made.body.id}/answer`, { status: 'done', reply: 'Fixed.' });
+    const answered = await api(rep, 'POST', `/api/v1/requests/${made.body.id}/answer`, {
+      status: 'done',
+      reply: 'Fixed.',
+    });
     expect(answered.status).toBe(200);
 
     await sara.goto('/requests');
@@ -41,7 +44,9 @@ test('a request a rep marks done shows under "You asked, we did"', async ({ sara
 
 test('a rep sees the gaps of what they look after', async ({ rep }) => {
   await rep.goto('/manage?tab=gaps');
-  await expect(rep.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Gaps/ })).toHaveAttribute('aria-current', 'page');
+  await expect(
+    rep.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Gaps/ }),
+  ).toHaveAttribute('aria-current', 'page');
   await expect(rep.locator('[data-hub="gaps-requests"]')).toBeVisible();
   await expect(rep.locator('[data-hub="gaps-sittings"]')).toBeVisible();
   await expect(rep.locator('[data-hub="gaps-unconfirmed"]')).toBeVisible();

@@ -25,7 +25,10 @@ export function useZoom(scroller: HTMLElement | null): Zoom {
   const [fitted, setFitted] = useState(true);
   const pending = useRef<{ unit: { x: number; y: number }; client: { x: number; y: number } } | null>(null);
 
-  const stackRect = useCallback(() => scroller?.querySelector('.nb-stack')?.getBoundingClientRect() ?? null, [scroller]);
+  const stackRect = useCallback(
+    () => scroller?.querySelector('.nb-stack')?.getBoundingClientRect() ?? null,
+    [scroller],
+  );
 
   const apply = useCallback(
     (next: number, anchor: ZoomAnchor | undefined, fit: boolean) => {
@@ -89,7 +92,10 @@ export function useZoom(scroller: HTMLElement | null): Zoom {
   const step = useCallback(
     (direction: 1 | -1) => {
       const z = zoomRef.current;
-      const next = direction > 0 ? (STEPS.find((s) => s > z + 0.001) ?? z) : ([...STEPS].reverse().find((s) => s < z - 0.001) ?? z);
+      const next =
+        direction > 0
+          ? (STEPS.find((s) => s > z + 0.001) ?? z)
+          : ([...STEPS].reverse().find((s) => s < z - 0.001) ?? z);
       apply(next, undefined, false);
     },
     [apply],

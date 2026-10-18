@@ -217,7 +217,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       },
     };
-  }, [me, guestFeatures.list, guestFeatures.loading, sessionQuery.isPending, refresh, signOut, openSignIn, openRequest]);
+  }, [
+    me,
+    guestFeatures.list,
+    guestFeatures.loading,
+    sessionQuery.isPending,
+    refresh,
+    signOut,
+    openSignIn,
+    openRequest,
+  ]);
 
   return (
     <AuthContext.Provider value={value}>

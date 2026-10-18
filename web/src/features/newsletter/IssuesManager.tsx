@@ -37,8 +37,22 @@ function Row({ issue }: { issue: IssueSummary }) {
         </span>
       </span>
       <span className="nl-drafts__actions">
-        <IconButton label={draft ? `Preview issue ${no}` : `Open issue ${no}`} icon={Eye} variant="secondary" size="sm" tooltip to={`/newsletter/${issue.slug}`} />
-        <IconButton label={`Edit issue ${no}`} icon={PencilSimple} variant="secondary" size="sm" tooltip to={`/newsletter/${issue.slug}/edit`} />
+        <IconButton
+          label={draft ? `Preview issue ${no}` : `Open issue ${no}`}
+          icon={Eye}
+          variant="secondary"
+          size="sm"
+          tooltip
+          to={`/newsletter/${issue.slug}`}
+        />
+        <IconButton
+          label={`Edit issue ${no}`}
+          icon={PencilSimple}
+          variant="secondary"
+          size="sm"
+          tooltip
+          to={`/newsletter/${issue.slug}/edit`}
+        />
         <DeleteIssueButton issue={issue} iconOnly size="sm" />
         {draft ? <PublishButton issue={issue} size="sm" /> : null}
       </span>
@@ -49,18 +63,35 @@ function Row({ issue }: { issue: IssueSummary }) {
 export function IssuesManager() {
   const list = useIssues({ includeDrafts: true });
   const [creating, setCreating] = useState(false);
-  if (list.isError) return <QueryError error={list.error} title="The issues didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} size="sm" />;
+  if (list.isError)
+    return (
+      <QueryError
+        error={list.error}
+        title="The issues didn’t load"
+        onRetry={() => void list.refetch()}
+        retrying={list.isFetching}
+        size="sm"
+      />
+    );
   const issues = managerOrder(list.data ?? []);
   const nextNumber = Math.max(1, ...issues.map((i) => i.number + 1));
   return (
-    <Panel padding="none" className="nl-drafts nl-manage" aria-labelledby="nl-manage-title" data-hub="newsletter-manage">
+    <Panel
+      padding="none"
+      className="nl-drafts nl-manage"
+      aria-labelledby="nl-manage-title"
+      data-hub="newsletter-manage"
+    >
       <div className="nl-drafts__head">
         <div>
           <h3 id="nl-manage-title" className="nl-drafts__title">
             Issues
             <span className="nl-drafts__count u-tabular">{issues.length}</span>
           </h3>
-          <p className="nl-drafts__desc">Drafts are only for people who manage the newsletter. Publishing one tells everyone it’s out; what you save to a published issue shows straight away.</p>
+          <p className="nl-drafts__desc">
+            Drafts are only for people who manage the newsletter. Publishing one tells everyone it’s out; what you save
+            to a published issue shows straight away.
+          </p>
         </div>
         <Button variant="primary" leadingIcon={Plus} onClick={() => setCreating(true)} data-hub="issue-new">
           New issue
@@ -77,7 +108,12 @@ export function IssuesManager() {
           ))}
         </ul>
       ) : (
-        <EmptyState size="sm" icon={Newspaper} title="No issues yet" body="Start the first one: it stays a draft until you publish it." />
+        <EmptyState
+          size="sm"
+          icon={Newspaper}
+          title="No issues yet"
+          body="Start the first one: it stays a draft until you publish it."
+        />
       )}
       <NewIssueDialog open={creating} nextNumber={nextNumber} onClose={() => setCreating(false)} />
     </Panel>

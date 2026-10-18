@@ -7,7 +7,17 @@ import type { useTracking } from '../modules/public';
 import { BLOCKS, moveBlock, showBlock, type HomeBlock } from './blocks';
 import type { HomeLayout } from './layout';
 
-export function CustomizeHome({ open, onClose, layout, tracking }: { open: boolean; onClose: () => void; layout: HomeLayout; tracking: ReturnType<typeof useTracking> }) {
+export function CustomizeHome({
+  open,
+  onClose,
+  layout,
+  tracking,
+}: {
+  open: boolean;
+  onClose: () => void;
+  layout: HomeLayout;
+  tracking: ReturnType<typeof useTracking>;
+}) {
   const { shown, hidden, custom, save } = layout;
   const [said, setSaid] = useState('');
   const listRef = useRef<HTMLOListElement>(null);
@@ -19,7 +29,11 @@ export function CustomizeHome({ open, onClose, layout, tracking }: { open: boole
     setSaid(`${BLOCKS[block].title} moved to ${at + 1} of ${next.length}.`);
     // At the top or the bottom its button turns off: keep focus on the block's other one.
     if (at === 0 || at === next.length - 1) {
-      requestAnimationFrame(() => listRef.current?.querySelector<HTMLButtonElement>(`[data-block="${block}"][data-dir="${at === 0 ? 'down' : 'up'}"]`)?.focus());
+      requestAnimationFrame(() =>
+        listRef.current
+          ?.querySelector<HTMLButtonElement>(`[data-block="${block}"][data-dir="${at === 0 ? 'down' : 'up'}"]`)
+          ?.focus(),
+      );
     }
   };
   const toggle = (block: HomeBlock, on: boolean) => {
@@ -66,8 +80,24 @@ export function CustomizeHome({ open, onClose, layout, tracking }: { open: boole
                 onChange={(next) => toggle(b, next)}
               />
               <span className="home-custom__move">
-                <IconButton label={`Move ${BLOCKS[b].title} up`} icon={ArrowUp} size="sm" disabled={!on || i === 0} onClick={() => move(b, -1)} data-block={b} data-dir="up" />
-                <IconButton label={`Move ${BLOCKS[b].title} down`} icon={ArrowDown} size="sm" disabled={!on || i === shown.length - 1} onClick={() => move(b, 1)} data-block={b} data-dir="down" />
+                <IconButton
+                  label={`Move ${BLOCKS[b].title} up`}
+                  icon={ArrowUp}
+                  size="sm"
+                  disabled={!on || i === 0}
+                  onClick={() => move(b, -1)}
+                  data-block={b}
+                  data-dir="up"
+                />
+                <IconButton
+                  label={`Move ${BLOCKS[b].title} down`}
+                  icon={ArrowDown}
+                  size="sm"
+                  disabled={!on || i === shown.length - 1}
+                  onClick={() => move(b, 1)}
+                  data-block={b}
+                  data-dir="down"
+                />
               </span>
             </li>
           );
@@ -77,7 +107,11 @@ export function CustomizeHome({ open, onClose, layout, tracking }: { open: boole
       <Switch
         className="home-custom__progress"
         label="Track my lesson progress"
-        description={tracking.mode === 'account' ? 'Mark lessons as watched and pick up where you left off, on every device.' : 'Mark lessons as watched and pick up where you left off, in this browser.'}
+        description={
+          tracking.mode === 'account'
+            ? 'Mark lessons as watched and pick up where you left off, on every device.'
+            : 'Mark lessons as watched and pick up where you left off, in this browser.'
+        }
         checked={tracking.on}
         onChange={tracking.set}
       />

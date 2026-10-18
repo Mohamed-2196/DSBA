@@ -70,7 +70,8 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
   const idRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  const pendingAlive = (p: Pending | null): p is Pending => !!p && Date.now() < p.receivedAt + p.challenge.expiresIn * 1000;
+  const pendingAlive = (p: Pending | null): p is Pending =>
+    !!p && Date.now() < p.receivedAt + p.challenge.expiresIn * 1000;
 
   // Where to start when the dialog opens.
   useEffect(() => {
@@ -149,7 +150,9 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
 
   const onVerify = async (code: string) => {
     if (!pending) return;
-    const result = await call(api.POST('/api/v1/auth/otp/verify', { body: { challengeId: pending.challenge.challengeId, code } }));
+    const result = await call(
+      api.POST('/api/v1/auth/otp/verify', { body: { challengeId: pending.challenge.challengeId, code } }),
+    );
     qc.setQueryData(ME_KEY, result.user);
     void refreshPersonalQueries(qc);
     setPending(null);
@@ -167,7 +170,11 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
     e.preventDefault();
     const displayName = name.trim().replace(/\s+/g, ' ');
     const nErr =
-      displayName.length < NAME_MIN ? 'Enter your name (at least 2 characters).' : displayName.length > NAME_MAX ? `Keep it to ${NAME_MAX} characters.` : null;
+      displayName.length < NAME_MIN
+        ? 'Enter your name (at least 2 characters).'
+        : displayName.length > NAME_MAX
+          ? `Keep it to ${NAME_MAX} characters.`
+          : null;
     const cErr = cohort === null ? 'Choose your year, or “Not a current student”.' : null;
     setNameError(nErr);
     setCohortError(cErr);
@@ -223,7 +230,15 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
   const numeric = /^\s*[+\d]/.test(identifier);
 
   return (
-    <Modal open={open} onClose={onDismiss} title={heading} description={description} size="sm" className="signin-dialog" data-hub="sign-in">
+    <Modal
+      open={open}
+      onClose={onDismiss}
+      title={heading}
+      description={description}
+      size="sm"
+      className="signin-dialog"
+      data-hub="sign-in"
+    >
       <div className="signin">
         {step === 'identifier' ? (
           <form className="signin__form" onSubmit={onStart} noValidate>
@@ -261,7 +276,8 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
               Send code
             </Button>
             <p className="signin__fine">
-              We use it to sign you in. Emails about replies and new newsletter issues are on until you turn them off in Your account.
+              We use it to sign you in. Emails about replies and new newsletter issues are on until you turn them off in
+              Your account.
             </p>
           </form>
         ) : null}

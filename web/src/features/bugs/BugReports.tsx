@@ -26,7 +26,8 @@ function BugCard({ bug }: { bug: BugReportOut }) {
       { id: bug.id, status },
       {
         onSuccess: () => push({ tone: 'success', title: done }),
-        onError: (e) => push({ tone: 'alert', title: 'The report wasn’t updated', body: errorMessage(e, 'Try again in a moment.') }),
+        onError: (e) =>
+          push({ tone: 'alert', title: 'The report wasn’t updated', body: errorMessage(e, 'Try again in a moment.') }),
       },
     );
   const busy = setStatus.isPending;
@@ -40,7 +41,11 @@ function BugCard({ bug }: { bug: BugReportOut }) {
       {bug.expected ? <p className="bug-card__expected">Expected: {bug.expected}</p> : null}
       {bug.screenshotUrl ? (
         <a className="bug-card__shot" href={bug.screenshotUrl} target="_blank" rel="noopener noreferrer">
-          <img src={bug.screenshotUrl} alt={`Screenshot sent with the report: ${bug.whatHappened.slice(0, 80)}`} loading="lazy" />
+          <img
+            src={bug.screenshotUrl}
+            alt={`Screenshot sent with the report: ${bug.whatHappened.slice(0, 80)}`}
+            loading="lazy"
+          />
         </a>
       ) : null}
       <dl className="bug-card__meta">
@@ -101,10 +106,21 @@ export function BugReports() {
           <Skeleton lines={3} />
         </Panel>
       ) : list.isError ? (
-        <QueryError error={list.error} title="Bug reports didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} size="sm" />
+        <QueryError
+          error={list.error}
+          title="Bug reports didn’t load"
+          onRetry={() => void list.refetch()}
+          retrying={list.isFetching}
+          size="sm"
+        />
       ) : items.length === 0 ? (
         <Panel padding="none">
-          <EmptyState size="sm" icon={Bug} title={status === 'open' ? 'No open bugs' : `Nothing ${STATUS_LABEL[status].toLowerCase()}`} body={EMPTY[status]} />
+          <EmptyState
+            size="sm"
+            icon={Bug}
+            title={status === 'open' ? 'No open bugs' : `Nothing ${STATUS_LABEL[status].toLowerCase()}`}
+            body={EMPTY[status]}
+          />
         </Panel>
       ) : (
         <>

@@ -24,7 +24,10 @@ describe('readRecord', () => {
   });
 
   it('reads each subject’s mark by its id, in the rules’ order', () => {
-    const rec = readRecord({ marks: { mathematics: '70', economics: 64, 'no-such-subject': '90', business: {} } }, RULES);
+    const rec = readRecord(
+      { marks: { mathematics: '70', economics: 64, 'no-such-subject': '90', business: {} } },
+      RULES,
+    );
     expect(rec.marks.slice(0, 3)).toEqual(['64', '70', '']);
   });
 });
@@ -33,7 +36,11 @@ describe('storedRecord', () => {
   it('keeps marks by subject id, and a mark of a subject the rules leave out', () => {
     const marks = blank.slice();
     marks[1] = '70';
-    expect(storedRecord({ marks, picks: { elective1: 'microeconomics' } }, RULES, { marks: { dissertation: '81', economics: '50' } })).toEqual({
+    expect(
+      storedRecord({ marks, picks: { elective1: 'microeconomics' } }, RULES, {
+        marks: { dissertation: '81', economics: '50' },
+      }),
+    ).toEqual({
       marks: { dissertation: '81', mathematics: '70' },
       picks: { elective1: 'microeconomics' },
     });

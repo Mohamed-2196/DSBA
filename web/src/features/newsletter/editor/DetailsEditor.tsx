@@ -16,9 +16,35 @@ export function DetailsEditor({ draft, errors, published, onChange }: DetailsEdi
   const names = editorNames(draft.editors).length;
   return (
     <div className="nl-ed-grid">
-      <TextInput path="title" errors={errors} label="Title" required max={LIMITS.title} value={draft.title} onValue={(title) => onChange({ title })} className="nl-ed-wide" />
-      <TextInput path="number" errors={errors} label="Issue number" required inputMode="numeric" value={draft.number} onValue={(number) => onChange({ number })} />
-      <TextInput path="date" errors={errors} label="Date" type="date" required hint="The day it comes out." value={draft.date} onValue={(date) => onChange({ date })} />
+      <TextInput
+        path="title"
+        errors={errors}
+        label="Title"
+        required
+        max={LIMITS.title}
+        value={draft.title}
+        onValue={(title) => onChange({ title })}
+        className="nl-ed-wide"
+      />
+      <TextInput
+        path="number"
+        errors={errors}
+        label="Issue number"
+        required
+        inputMode="numeric"
+        value={draft.number}
+        onValue={(number) => onChange({ number })}
+      />
+      <TextInput
+        path="date"
+        errors={errors}
+        label="Date"
+        type="date"
+        required
+        hint="The day it comes out."
+        value={draft.date}
+        onValue={(date) => onChange({ date })}
+      />
       <TextInput
         path="slug"
         errors={errors}
@@ -31,7 +57,17 @@ export function DetailsEditor({ draft, errors, published, onChange }: DetailsEdi
         onValue={(slug) => onChange({ slug: slug.toLowerCase() })}
         className="nl-ed-wide"
       />
-      <TextBox path="dek" errors={errors} label="Standfirst" rows={2} max={LIMITS.standfirst} hint="One sentence under the title." value={draft.dek} onValue={(dek) => onChange({ dek })} className="nl-ed-wide" />
+      <TextBox
+        path="dek"
+        errors={errors}
+        label="Standfirst"
+        rows={2}
+        max={LIMITS.standfirst}
+        hint="One sentence under the title."
+        value={draft.dek}
+        onValue={(dek) => onChange({ dek })}
+        className="nl-ed-wide"
+      />
       <TextBox
         path="summary"
         errors={errors}

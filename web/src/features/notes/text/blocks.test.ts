@@ -13,7 +13,8 @@ const schema = new Schema({
 });
 const p = (t: string) => schema.nodes.paragraph.create(null, t ? schema.text(t) : undefined);
 const img = (upload: string) => schema.nodes.image.create({ upload });
-const stateOf = (...blocks: ReturnType<typeof p>[]) => EditorState.create({ schema, doc: schema.nodes.doc.create(null, blocks) });
+const stateOf = (...blocks: ReturnType<typeof p>[]) =>
+  EditorState.create({ schema, doc: schema.nodes.doc.create(null, blocks) });
 const names = (s: EditorState) => {
   const out: string[] = [];
   s.doc.forEach((n) => out.push(n.type.name === 'image' ? `[${String(n.attrs.upload)}]` : n.textContent || '·'));

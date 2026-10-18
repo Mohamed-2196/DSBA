@@ -2,16 +2,61 @@
 // side-by-side. Feature agents: copy patterns from here (and the code strips under each specimen).
 import { useMemo, useState, type ReactNode } from 'react';
 import {
-  ArrowSquareOut, BookmarkSimple, Books, CaretDown, ChatsCircle, Copy, DownloadSimple, FileText, Funnel,
-  MagnifyingGlass, PencilSimple, Play, Plus, Rows, ShareNetwork, SquaresFour, Trash, User, WarningCircle,
+  ArrowSquareOut,
+  BookmarkSimple,
+  Books,
+  CaretDown,
+  ChatsCircle,
+  Copy,
+  DownloadSimple,
+  FileText,
+  Funnel,
+  MagnifyingGlass,
+  PencilSimple,
+  Play,
+  Plus,
+  Rows,
+  ShareNetwork,
+  SquaresFour,
+  Trash,
+  User,
+  WarningCircle,
 } from '@phosphor-icons/react';
 import type { ModuleSummary } from '../../api/types';
 import { cohortColor, useToast, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import {
-  Avatar, Badge, Button, Chip, CohortBadge, Divider, Drawer, EmptyState, Highlight, IconButton, Kbd, Menu, Modal,
-  ModuleIcon, Page, PageHeader, Panel, ProgressRing, HubLogo, SearchField, SectionHeader, SegmentedControl, Select,
-  Skeleton, Spinner, TabPanel, Tabs, TextArea, TextField, Tooltip, cx,
+  Avatar,
+  Badge,
+  Button,
+  Chip,
+  CohortBadge,
+  Divider,
+  Drawer,
+  EmptyState,
+  Highlight,
+  IconButton,
+  Kbd,
+  Menu,
+  Modal,
+  ModuleIcon,
+  Page,
+  PageHeader,
+  Panel,
+  ProgressRing,
+  HubLogo,
+  SearchField,
+  SectionHeader,
+  SegmentedControl,
+  Select,
+  Skeleton,
+  Spinner,
+  TabPanel,
+  Tabs,
+  TextArea,
+  TextField,
+  Tooltip,
+  cx,
 } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, useCalendarEvents, type EventType } from '../calendar/public';
 import './StyleGuidePage.css';
@@ -186,11 +231,23 @@ function scrollToSection(id: string) {
   document.getElementById(`sg-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function Section({ id, title, description, children }: { id: string; title: string; description?: string; children: ReactNode }) {
+function Section({
+  id,
+  title,
+  description,
+  children,
+}: {
+  id: string;
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
   return (
     <section id={`sg-${id}`} className="sg-section" aria-labelledby={`sg-${id}-title`}>
       <header className="sg-section__head">
-        <h2 id={`sg-${id}-title`} className="sg-section__title">{title}</h2>
+        <h2 id={`sg-${id}-title`} className="sg-section__title">
+          {title}
+        </h2>
         {description ? <p className="sg-section__desc">{description}</p> : null}
       </header>
       {children}
@@ -262,7 +319,12 @@ function MotionDemo() {
   const [on, setOn] = useState(false);
   return (
     <div className="sg-motion">
-      <svg viewBox="-4 -4 108 108" className="sg-motion__curve" role="img" aria-label="The easing curve cubic-bezier(.2,.8,.2,1)">
+      <svg
+        viewBox="-4 -4 108 108"
+        className="sg-motion__curve"
+        role="img"
+        aria-label="The easing curve cubic-bezier(.2,.8,.2,1)"
+      >
         <path className="sg-motion__axis" d="M0 100 H100 M0 100 V0" />
         <path className="sg-motion__path" d="M0 100 C20 20 20 0 100 0" />
       </svg>
@@ -301,7 +363,9 @@ function ThemeIsland({ theme }: { theme: 'light' | 'dark' }) {
         Chapter 2 notes are <Highlight>new this week</Highlight>. Your exam is on 30 Oct.
       </p>
       <div className="sg-island__row">
-        <Button variant="primary" leadingIcon={Play}>Resume lesson</Button>
+        <Button variant="primary" leadingIcon={Play}>
+          Resume lesson
+        </Button>
         <Button leadingIcon={FileText}>Open files</Button>
         <IconButton label="Save module" icon={BookmarkSimple} variant="secondary" />
       </div>
@@ -350,7 +414,8 @@ export default function StyleGuidePage() {
   const [loading, setLoading] = useState(false);
   const tabType = TYPE_ORDER.find((t) => t === tab);
 
-  const toggleChip = (id: string) => setChips((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]));
+  const toggleChip = (id: string) =>
+    setChips((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]));
   const fakeLoad = () => {
     setLoading(true);
     setTimeout(() => setLoading(false), 1600);
@@ -389,8 +454,8 @@ export default function StyleGuidePage() {
             <div>
               <h2 className="sg-rules__title">Spend boldness in one place</h2>
               <p className="sg-rules__body">
-                The highlighter is the signature. Everything else stays quiet: borders before shadows,
-                lists and tables before grids of cards, sentence case, plain verbs.
+                The highlighter is the signature. Everything else stays quiet: borders before shadows, lists and tables
+                before grids of cards, sentence case, plain verbs.
               </p>
             </div>
             <ul role="list" className="sg-rules__list">
@@ -404,7 +469,11 @@ export default function StyleGuidePage() {
           </Panel>
 
           {/* ── Brand ─────────────────────────────────────────────────── */}
-          <Section id="brand" title="Brand" description="A bar marks the active page; a plain ring is the loader. The logo is a file (data/brand.ts): the “DSBA Hub” lockup and the “DH” tile. The highlighter marks what is new or important.">
+          <Section
+            id="brand"
+            title="Brand"
+            description="A bar marks the active page; a plain ring is the loader. The logo is a file (data/brand.ts): the “DSBA Hub” lockup and the “DH” tile. The highlighter marks what is new or important."
+          >
             <div className="sg-grid sg-grid--2">
               <Specimen
                 title="HubLogo, Spinner"
@@ -419,7 +488,9 @@ export default function StyleGuidePage() {
                   <HubLogo variant="tile" size={64} />
                 </div>
                 <div className="sg-mark-row">
-                  <span className="sg-mark-loader" role="status"><Spinner /> <span className="sg-caption">Loading</span></span>
+                  <span className="sg-mark-loader" role="status">
+                    <Spinner /> <span className="sg-caption">Loading</span>
+                  </span>
                 </div>
               </Specimen>
 
@@ -433,19 +504,33 @@ export default function StyleGuidePage() {
                   Know what’s <Highlight>new</Highlight> before your exam.
                 </p>
                 <p className="sg-hl-body" key={hlKey}>
-                  Mock papers for ST2133 and ST2134 are <Highlight animate delay={150}>in the library now</Highlight>, and
-                  the October exam timetable has <Highlight animate delay={500}>real unit codes</Highlight>.
+                  Mock papers for ST2133 and ST2134 are{' '}
+                  <Highlight animate delay={150}>
+                    in the library now
+                  </Highlight>
+                  , and the October exam timetable has{' '}
+                  <Highlight animate delay={500}>
+                    real unit codes
+                  </Highlight>
+                  .
                 </p>
                 <div className="sg-inline">
                   <Replay onClick={() => setHlKey((k) => k + 1)} label="Replay swipe" />
                   <span className="sg-inline">
-                    Forum <Badge tone="highlight" size="sm">New</Badge>
+                    Forum{' '}
+                    <Badge tone="highlight" size="sm">
+                      New
+                    </Badge>
                   </span>
                 </div>
               </Specimen>
             </div>
 
-            <Specimen title="Lockup" note="HubLogo: the official DSBA wordmark with “Hub” in matching type, blue on light surfaces and white on dark." stageClassName="sg-stage--lockups">
+            <Specimen
+              title="Lockup"
+              note="HubLogo: the official DSBA wordmark with “Hub” in matching type, blue on light surfaces and white on dark."
+              stageClassName="sg-stage--lockups"
+            >
               <HubLogo variant="lockup" size={48} />
               <HubLogo variant="lockup" size={32} />
               <span className="sg-lockup sg-lockup--navy" data-theme="dark">
@@ -455,7 +540,11 @@ export default function StyleGuidePage() {
           </Section>
 
           {/* ── Colour ────────────────────────────────────────────────── */}
-          <Section id="colour" title="Colour" description="Use tokens, never hex values. Each spec swatch shows light on the left and dark on the right; derived swatches follow the current theme.">
+          <Section
+            id="colour"
+            title="Colour"
+            description="Use tokens, never hex values. Each spec swatch shows light on the left and dark on the right; derived swatches follow the current theme."
+          >
             <div className="sg-colours">
               {COLOURS.map((g) => (
                 <div key={g.group} className="sg-colour-group">
@@ -479,12 +568,17 @@ export default function StyleGuidePage() {
             <div className="sg-colour-group">
               <h3 className="sg-subhead">Calendar event types</h3>
               <p className="sg-caption">
-                From <code>EVENT_TYPES</code> in <code>features/calendar/eventMeta.ts</code>. Always pair the colour with the label.
+                From <code>EVENT_TYPES</code> in <code>features/calendar/eventMeta.ts</code>. Always pair the colour
+                with the label.
               </p>
               <ul role="list" className="sg-events">
                 {EVENT_ENTRIES.map(([type, t]) => (
                   <li key={type} className="sg-event">
-                    <span className={cx('sg-event__dot', type === 'deadline' && 'sg-event__dot--ring')} style={{ background: t.color }} aria-hidden="true" />
+                    <span
+                      className={cx('sg-event__dot', type === 'deadline' && 'sg-event__dot--ring')}
+                      style={{ background: t.color }}
+                      aria-hidden="true"
+                    />
                     <span className="sg-event__label">{t.label}</span>
                     <code className="sg-token">{t.token}</code>
                     <span className="sg-event__count u-tabular">{eventCounts[type] ?? 0}</span>
@@ -495,12 +589,18 @@ export default function StyleGuidePage() {
           </Section>
 
           {/* ── Type ──────────────────────────────────────────────────── */}
-          <Section id="type" title="Type" description="Schibsted Grotesk for the interface, Newsreader for long reading, JetBrains Mono for code. Major-third scale on a 16px base.">
+          <Section
+            id="type"
+            title="Type"
+            description="Schibsted Grotesk for the interface, Newsreader for long reading, JetBrains Mono for code. Major-third scale on a 16px base."
+          >
             <div className="sg-families">
               <div className="sg-family">
                 <p className="sg-family__glyph">Aa</p>
                 <p className="sg-family__name">Schibsted Grotesk</p>
-                <p className="sg-family__role">UI and every non-editorial heading. Headlines 700–800 at −0.02em; UI 400–600.</p>
+                <p className="sg-family__role">
+                  UI and every non-editorial heading. Headlines 700–800 at −0.02em; UI 400–600.
+                </p>
                 <p className="sg-family__weights">
                   <span style={{ fontWeight: 400 }}>Regular</span>
                   <span style={{ fontWeight: 500 }}>Medium</span>
@@ -512,7 +612,9 @@ export default function StyleGuidePage() {
               <div className="sg-family sg-family--serif">
                 <p className="sg-family__glyph">Aa</p>
                 <p className="sg-family__name">Newsreader</p>
-                <p className="sg-family__role">The newsletter, pull quotes, long reading and document pages. Body line height 1.65.</p>
+                <p className="sg-family__role">
+                  The newsletter, pull quotes, long reading and document pages. Body line height 1.65.
+                </p>
                 <blockquote className="sg-quote">
                   “Past papers are the closest thing we have to a map of the exam.”
                 </blockquote>
@@ -521,8 +623,13 @@ export default function StyleGuidePage() {
                 <p className="sg-family__glyph">Aa</p>
                 <p className="sg-family__name">JetBrains Mono</p>
                 <p className="sg-family__role">Real code, formulas and keyboard keys only. Never small labels.</p>
-                <pre className="sg-mono-sample"><code>{'mean(x)  # R\nVar(X) = E[X²] − (E[X])²'}</code></pre>
-                <p className="sg-inline"><Kbd>⌘</Kbd><Kbd>K</Kbd> <span className="sg-caption">opens search</span></p>
+                <pre className="sg-mono-sample">
+                  <code>{'mean(x)  # R\nVar(X) = E[X²] − (E[X])²'}</code>
+                </pre>
+                <p className="sg-inline">
+                  <Kbd>⌘</Kbd>
+                  <Kbd>K</Kbd> <span className="sg-caption">opens search</span>
+                </p>
               </div>
             </div>
 
@@ -534,7 +641,10 @@ export default function StyleGuidePage() {
                     <span className="sg-scale__px u-tabular">{px}px</span>
                     <span className="sg-scale__role">{role}</span>
                   </span>
-                  <span className={cx('sg-scale__sample', `sg-scale__sample--${kind}`)} style={{ fontSize: `var(${token})` }}>
+                  <span
+                    className={cx('sg-scale__sample', `sg-scale__sample--${kind}`)}
+                    style={{ fontSize: `var(${token})` }}
+                  >
                     {sample}
                   </span>
                 </li>
@@ -549,16 +659,23 @@ export default function StyleGuidePage() {
                 stageClassName="sg-stage--column"
               >
                 <div className="sg-unit">
-                  <span className="u-code sg-unit__code" style={{ color: 'var(--y2-strong)' }}>ST2133</span>
+                  <span className="u-code sg-unit__code" style={{ color: 'var(--y2-strong)' }}>
+                    ST2133
+                  </span>
                   <span className="sg-unit__name">Advanced Statistics: Distribution Theory</span>
                 </div>
                 <ul role="list" className="sg-unit-list">
-                  {modules.filter((m) => m.unitCode).slice(0, 6).map((m) => (
-                    <li key={m.id}>
-                      <span className="u-code sg-unit-list__code" style={{ color: `var(--y${m.year}-strong)` }}>{m.unitCode}</span>
-                      <span className="sg-unit-list__name">{m.shortName}</span>
-                    </li>
-                  ))}
+                  {modules
+                    .filter((m) => m.unitCode)
+                    .slice(0, 6)
+                    .map((m) => (
+                      <li key={m.id}>
+                        <span className="u-code sg-unit-list__code" style={{ color: `var(--y${m.year}-strong)` }}>
+                          {m.unitCode}
+                        </span>
+                        <span className="sg-unit-list__name">{m.shortName}</span>
+                      </li>
+                    ))}
                 </ul>
               </Specimen>
               <Specimen
@@ -568,18 +685,29 @@ export default function StyleGuidePage() {
                 stageClassName="sg-stage--column"
               >
                 <p className="u-measure">
-                  Body text at 16px with line height 1.55 keeps to the measure, about 75 characters a line. <a href="#/styleguide" onClick={(e) => e.preventDefault()}>Links are cobalt</a> with
-                  a quiet underline that firms up on hover. <strong>Bold</strong> for emphasis, <code>inline code</code> for code.
+                  Body text at 16px with line height 1.55 keeps to the measure, about 75 characters a line.{' '}
+                  <a href="#/styleguide" onClick={(e) => e.preventDefault()}>
+                    Links are cobalt
+                  </a>{' '}
+                  with a quiet underline that firms up on hover. <strong>Bold</strong> for emphasis,{' '}
+                  <code>inline code</code> for code.
                 </p>
                 <p className="u-muted">Secondary text uses ink-2 and stays AA on paper and surface.</p>
-                <p><span className="u-tabular">22</span> lessons, <span className="u-tabular">2</span> chapters: wrap only the numbers in u-tabular (it widens commas).</p>
+                <p>
+                  <span className="u-tabular">22</span> lessons, <span className="u-tabular">2</span> chapters: wrap
+                  only the numbers in u-tabular (it widens commas).
+                </p>
                 <p className="u-serif">Serif reading text sits in Newsreader with a little more line height.</p>
               </Specimen>
             </div>
           </Section>
 
           {/* ── Space, shape, elevation, motion ─────────────────────────── */}
-          <Section id="space" title="Space and shape" description="Spacing scale 4 to 96. Radii by hierarchy, not one radius everywhere. Borders first; shadows only on floating layers.">
+          <Section
+            id="space"
+            title="Space and shape"
+            description="Spacing scale 4 to 96. Radii by hierarchy, not one radius everywhere. Borders first; shadows only on floating layers."
+          >
             <div className="sg-grid sg-grid--2">
               <Specimen title="Spacing" note="--sp-4 … --sp-96" stageClassName="sg-stage--column">
                 <ul role="list" className="sg-space">
@@ -597,13 +725,19 @@ export default function StyleGuidePage() {
                   <div key={token} className="sg-radius">
                     <span className="sg-radius__box" style={{ borderRadius: `var(${token})` }} aria-hidden="true" />
                     <code className="sg-token">{token}</code>
-                    <span className="sg-caption">{value}, {use}</span>
+                    <span className="sg-caption">
+                      {value}, {use}
+                    </span>
                   </div>
                 ))}
               </Specimen>
             </div>
             <div className="sg-grid sg-grid--2">
-              <Specimen title="Elevation" note="border first, --shadow-float for floating layers" stageClassName="sg-stage--elevation">
+              <Specimen
+                title="Elevation"
+                note="border first, --shadow-float for floating layers"
+                stageClassName="sg-stage--elevation"
+              >
                 <div className="sg-elev sg-elev--border">
                   <span className="sg-elev__name">Border</span>
                   <span className="sg-caption">Panels, rows, inputs</span>
@@ -613,18 +747,34 @@ export default function StyleGuidePage() {
                   <span className="sg-caption">Menus, modals, toasts</span>
                 </div>
               </Specimen>
-              <Specimen title="Focus" note="2px cobalt ring, 2px offset, keyboard only" stageClassName="sg-stage--column">
+              <Specimen
+                title="Focus"
+                note="2px cobalt ring, 2px offset, keyboard only"
+                stageClassName="sg-stage--column"
+              >
                 <div className="sg-focus-row">
                   <Button className="sg-force-focus">Focused button</Button>
-                  <IconButton label="Focused icon button" icon={MagnifyingGlass} variant="secondary" className="sg-force-focus" />
-                  <a href="#/styleguide" className="sg-force-focus" onClick={(e) => e.preventDefault()}>Focused link</a>
+                  <IconButton
+                    label="Focused icon button"
+                    icon={MagnifyingGlass}
+                    variant="secondary"
+                    className="sg-force-focus"
+                  />
+                  <a href="#/styleguide" className="sg-force-focus" onClick={(e) => e.preventDefault()}>
+                    Focused link
+                  </a>
                 </div>
                 <p className="sg-caption">
-                  Base styles draw <code>:focus-visible</code> for you. Don’t remove outlines; inside dense lists use an inset ring.
+                  Base styles draw <code>:focus-visible</code> for you. Don’t remove outlines; inside dense lists use an
+                  inset ring.
                 </p>
               </Specimen>
             </div>
-            <Specimen title="Motion" note="150–250ms, one easing, only in answer to an action (plus Home's first load)" stageClassName="sg-stage--motion">
+            <Specimen
+              title="Motion"
+              note="150–250ms, one easing, only in answer to an action (plus Home's first load)"
+              stageClassName="sg-stage--motion"
+            >
               <MotionDemo />
               <ul role="list" className="sg-kv sg-kv--motion">
                 {MOTION_TOKENS.map(([t, v, use]) => (
@@ -650,7 +800,11 @@ export default function StyleGuidePage() {
           </Section>
 
           {/* ── Buttons ───────────────────────────────────────────────── */}
-          <Section id="actions" title="Buttons" description="Labels say exactly what happens: Post thread, Open original, Download .ics.">
+          <Section
+            id="actions"
+            title="Buttons"
+            description="Labels say exactly what happens: Post thread, Open original, Download .ics."
+          >
             <Specimen
               title="Button"
               note="variant primary | secondary | ghost | danger, size sm | md | lg, leadingIcon, trailingIcon, to, href, as, loading, fullWidth"
@@ -658,26 +812,42 @@ export default function StyleGuidePage() {
               stageClassName="sg-stage--column"
             >
               <div className="sg-inline">
-                <Button variant="primary" leadingIcon={Plus}>Post thread</Button>
+                <Button variant="primary" leadingIcon={Plus}>
+                  Post thread
+                </Button>
                 <Button leadingIcon={DownloadSimple}>Download .ics</Button>
                 <Button variant="ghost">Cancel</Button>
-                <Button variant="danger" leadingIcon={Trash}>Delete draft</Button>
+                <Button variant="danger" leadingIcon={Trash}>
+                  Delete draft
+                </Button>
               </div>
               <div className="sg-inline">
-                <Button variant="primary" size="lg">Choose Year 2</Button>
+                <Button variant="primary" size="lg">
+                  Choose Year 2
+                </Button>
                 <Button variant="primary">Save notes</Button>
-                <Button variant="primary" size="sm">Reply</Button>
+                <Button variant="primary" size="sm">
+                  Reply
+                </Button>
                 <Divider orientation="vertical" />
                 <Button size="lg">Open original</Button>
                 <Button>Open original</Button>
                 <Button size="sm">Open original</Button>
               </div>
               <div className="sg-inline">
-                <Button trailingIcon={ArrowSquareOut} href="https://myclass.bibf.com">MyClass</Button>
-                <Button to="/modules" variant="ghost" leadingIcon={SquaresFour}>All modules</Button>
-                <Button variant="primary" loading={loading} onClick={fakeLoad}>{loading ? 'Posting' : 'Post thread'}</Button>
+                <Button trailingIcon={ArrowSquareOut} href="https://myclass.bibf.com">
+                  MyClass
+                </Button>
+                <Button to="/modules" variant="ghost" leadingIcon={SquaresFour}>
+                  All modules
+                </Button>
+                <Button variant="primary" loading={loading} onClick={fakeLoad}>
+                  {loading ? 'Posting' : 'Post thread'}
+                </Button>
                 <Button disabled>Disabled</Button>
-                <Button variant="primary" disabled>Disabled</Button>
+                <Button variant="primary" disabled>
+                  Disabled
+                </Button>
               </div>
             </Specimen>
             <Specimen
@@ -697,23 +867,53 @@ export default function StyleGuidePage() {
           </Section>
 
           {/* ── Forms ─────────────────────────────────────────────────── */}
-          <Section id="forms" title="Forms" description="Labels above fields, hints under them, errors that say what to do.">
+          <Section
+            id="forms"
+            title="Forms"
+            description="Labels above fields, hints under them, errors that say what to do."
+          >
             <div className="sg-grid sg-grid--2">
-              <Specimen title="TextField" note="label, hint, error, required, leadingIcon, trailing, size md | lg" stageClassName="sg-stage--column sg-stage--form"
-                code={`<TextField label="Thread title" hint="Ask one clear question." required />\n<TextField label="Final mark" error="Enter a mark between 0 and 100." />`}>
-                <TextField label="Thread title" placeholder="How do I find the MGF of a gamma distribution?" hint="Ask one clear question. Add details below." required />
-                <TextField label="Final mark" defaultValue="104" error="Enter a mark between 0 and 100." inputMode="numeric" trailing="%" />
+              <Specimen
+                title="TextField"
+                note="label, hint, error, required, leadingIcon, trailing, size md | lg"
+                stageClassName="sg-stage--column sg-stage--form"
+                code={`<TextField label="Thread title" hint="Ask one clear question." required />\n<TextField label="Final mark" error="Enter a mark between 0 and 100." />`}
+              >
+                <TextField
+                  label="Thread title"
+                  placeholder="How do I find the MGF of a gamma distribution?"
+                  hint="Ask one clear question. Add details below."
+                  required
+                />
+                <TextField
+                  label="Final mark"
+                  defaultValue="104"
+                  error="Enter a mark between 0 and 100."
+                  inputMode="numeric"
+                  trailing="%"
+                />
                 <TextField label="Your name" leadingIcon={User} defaultValue={SAMPLE_NAME} />
               </Specimen>
-              <Specimen title="TextArea, Select" note="same label, hint and error props" stageClassName="sg-stage--column sg-stage--form"
-                code={`<Select label="Module" placeholder="Choose a module" options={mods.map((m) => ({ value: m.id, label: m.name }))} />\n<TextArea label="Details" rows={4} />`}>
+              <Specimen
+                title="TextArea, Select"
+                note="same label, hint and error props"
+                stageClassName="sg-stage--column sg-stage--form"
+                code={`<Select label="Module" placeholder="Choose a module" options={mods.map((m) => ({ value: m.id, label: m.name }))} />\n<TextArea label="Details" rows={4} />`}
+              >
                 <Select
                   label="Module"
                   placeholder="Choose a module"
                   defaultValue=""
-                  options={modules.filter((m) => m.year === 2).map((m) => ({ value: m.id, label: m.unitCode ? `${m.unitCode} ${m.name}` : m.name }))}
+                  options={modules
+                    .filter((m) => m.year === 2)
+                    .map((m) => ({ value: m.id, label: m.unitCode ? `${m.unitCode} ${m.name}` : m.name }))}
                 />
-                <TextArea label="Details" placeholder="What have you tried so far?" hint="Markdown is fine. Be kind." rows={3} />
+                <TextArea
+                  label="Details"
+                  placeholder="What have you tried so far?"
+                  hint="Markdown is fine. Be kind."
+                  rows={3}
+                />
               </Specimen>
             </div>
             <Specimen
@@ -723,24 +923,47 @@ export default function StyleGuidePage() {
               stageClassName="sg-stage--search"
             >
               <SearchField value={query} onValueChange={setQuery} placeholder="Search threads" label="Search threads" />
-              <SearchField asButton shortcut="K" placeholder="Search everything…" label="Search everything" onClick={() => push({ title: 'This opens the command palette', body: 'Use openCommandPalette() from features/search/public.ts.' })} />
+              <SearchField
+                asButton
+                shortcut="K"
+                placeholder="Search everything…"
+                label="Search everything"
+                onClick={() =>
+                  push({
+                    title: 'This opens the command palette',
+                    body: 'Use openCommandPalette() from features/search/public.ts.',
+                  })
+                }
+              />
               <SearchField size="lg" value="gamma distribution" onValueChange={() => {}} label="Search the library" />
             </Specimen>
           </Section>
 
           {/* ── Selection ─────────────────────────────────────────────── */}
-          <Section id="selection" title="Selection" description="Chips filter, tabs switch views of one thing, segmented controls switch modes.">
+          <Section
+            id="selection"
+            title="Selection"
+            description="Chips filter, tabs switch views of one thing, segmented controls switch modes."
+          >
             <Specimen
               title="Chip"
               note="selected, onChange(next), icon, count, color (leading dot), size sm | md"
               code={`<Chip selected={types.has('exam')} onChange={() => toggle('exam')} color="var(--alert)" count={24}>Exams</Chip>`}
             >
               {EVENT_ENTRIES.map(([type, t]) => (
-                <Chip key={type} selected={chips.includes(type)} onChange={() => toggleChip(type)} color={t.color} count={eventCounts[type] ?? 0}>
+                <Chip
+                  key={type}
+                  selected={chips.includes(type)}
+                  onChange={() => toggleChip(type)}
+                  color={t.color}
+                  count={eventCounts[type] ?? 0}
+                >
                   {t.label}
                 </Chip>
               ))}
-              <Chip icon={Funnel} size="sm">More filters</Chip>
+              <Chip icon={Funnel} size="sm">
+                More filters
+              </Chip>
             </Specimen>
             <div className="sg-grid sg-grid--2">
               <Specimen
@@ -763,7 +986,8 @@ export default function StyleGuidePage() {
                 />
                 <TabPanel idBase="sg-tabs" id={tab} value={tab} className="sg-tabpanel">
                   <p className="sg-caption">
-                    Showing {tabType ? `${EVENT_TYPES[tabType].label.toLowerCase()}s` : 'every event'}. Arrow keys move between tabs.
+                    Showing {tabType ? `${EVENT_TYPES[tabType].label.toLowerCase()}s` : 'every event'}. Arrow keys move
+                    between tabs.
                   </p>
                 </TabPanel>
                 <Tabs
@@ -798,7 +1022,12 @@ export default function StyleGuidePage() {
                   label="Year"
                   value={year}
                   onChange={setYear}
-                  options={COHORT_YEARS.map((y) => ({ value: y, label: `Year ${y}`, color: cohortColor(y), onColor: `var(--on-y${y})` }))}
+                  options={COHORT_YEARS.map((y) => ({
+                    value: y,
+                    label: `Year ${y}`,
+                    color: cohortColor(y),
+                    onColor: `var(--on-y${y})`,
+                  }))}
                 />
                 <SegmentedControl
                   size="sm"
@@ -816,10 +1045,17 @@ export default function StyleGuidePage() {
           </Section>
 
           {/* ── Labels and people ─────────────────────────────────────── */}
-          <Section id="labels" title="Labels and people" description="Badges carry status, cohort badges carry the year, avatars carry a person.">
+          <Section
+            id="labels"
+            title="Labels and people"
+            description="Badges carry status, cohort badges carry the year, avatars carry a person."
+          >
             <div className="sg-grid sg-grid--2">
-              <Specimen title="Badge" note="tone neutral | cobalt | signal | alert | highlight | navy | outline, size sm | md, icon; a number is a count (Count: tabular digits, '1,234')"
-                code={`<Badge tone="alert">Exam</Badge>  <Badge tone="highlight">New</Badge>  <Badge tone="cobalt">{1234}</Badge>`}>
+              <Specimen
+                title="Badge"
+                note="tone neutral | cobalt | signal | alert | highlight | navy | outline, size sm | md, icon; a number is a count (Count: tabular digits, '1,234')"
+                code={`<Badge tone="alert">Exam</Badge>  <Badge tone="highlight">New</Badge>  <Badge tone="cobalt">{1234}</Badge>`}
+              >
                 <Badge>Draft</Badge>
                 <Badge tone="cobalt">Pinned</Badge>
                 <Badge tone="signal">Answered</Badge>
@@ -827,31 +1063,62 @@ export default function StyleGuidePage() {
                 <Badge tone="highlight">New</Badge>
                 <Badge tone="navy">Staff pick</Badge>
                 <Badge tone="outline">PDF</Badge>
-                <Badge tone="signal" size="sm">Live</Badge>
+                <Badge tone="signal" size="sm">
+                  Live
+                </Badge>
                 <Badge tone="cobalt">{1234}</Badge>
               </Specimen>
-              <Specimen title="CohortBadge" note="year, variant soft | solid | dot, short, size"
-                code={`<CohortBadge year={2} />  <CohortBadge year={2} variant="solid" short />`}>
-                {COHORT_YEARS.map((y) => <CohortBadge key={`s${y}`} year={y} />)}
-                {COHORT_YEARS.map((y) => <CohortBadge key={`f${y}`} year={y} variant="solid" short />)}
-                {COHORT_YEARS.map((y) => <CohortBadge key={`d${y}`} year={y} variant="dot" />)}
+              <Specimen
+                title="CohortBadge"
+                note="year, variant soft | solid | dot, short, size"
+                code={`<CohortBadge year={2} />  <CohortBadge year={2} variant="solid" short />`}
+              >
+                {COHORT_YEARS.map((y) => (
+                  <CohortBadge key={`s${y}`} year={y} />
+                ))}
+                {COHORT_YEARS.map((y) => (
+                  <CohortBadge key={`f${y}`} year={y} variant="solid" short />
+                ))}
+                {COHORT_YEARS.map((y) => (
+                  <CohortBadge key={`d${y}`} year={y} variant="dot" />
+                ))}
                 <CohortBadge year={null} />
               </Specimen>
-              <Specimen title="Avatar" note="name, size xs | sm | md | lg | xl | px, decorative"
-                code={`<Avatar name="Zainab K." size="sm" decorative />  // name printed next to it`}>
-                {AVATAR_SIZES.map((s) => <Avatar key={s} name={SAMPLE_NAME} size={s} />)}
+              <Specimen
+                title="Avatar"
+                note="name, size xs | sm | md | lg | xl | px, decorative"
+                code={`<Avatar name="Zainab K." size="sm" decorative />  // name printed next to it`}
+              >
+                {AVATAR_SIZES.map((s) => (
+                  <Avatar key={s} name={SAMPLE_NAME} size={s} />
+                ))}
                 <Divider orientation="vertical" />
-                {SAMPLE_PEOPLE.map((name) => <Avatar key={name} name={name} />)}
+                {SAMPLE_PEOPLE.map((name) => (
+                  <Avatar key={name} name={name} />
+                ))}
               </Specimen>
-              <Specimen title="Kbd, ModuleIcon" note="keys in mono; module icons by id"
-                code={`<Kbd>⌘</Kbd><Kbd>K</Kbd>   <ModuleIcon moduleId="econometrics" size={20} />`}>
-                <span className="sg-inline"><Kbd>⌘</Kbd><Kbd>K</Kbd></span>
-                <span className="sg-inline"><Kbd>Esc</Kbd></span>
-                <span className="sg-inline"><Kbd>↑</Kbd><Kbd>↓</Kbd></span>
+              <Specimen
+                title="Kbd, ModuleIcon"
+                note="keys in mono; module icons by id"
+                code={`<Kbd>⌘</Kbd><Kbd>K</Kbd>   <ModuleIcon moduleId="econometrics" size={20} />`}
+              >
+                <span className="sg-inline">
+                  <Kbd>⌘</Kbd>
+                  <Kbd>K</Kbd>
+                </span>
+                <span className="sg-inline">
+                  <Kbd>Esc</Kbd>
+                </span>
+                <span className="sg-inline">
+                  <Kbd>↑</Kbd>
+                  <Kbd>↓</Kbd>
+                </span>
                 <Divider orientation="vertical" />
                 {modules.slice(0, 10).map((m) => (
                   <Tooltip key={m.id} label={m.name}>
-                    <span className="sg-modicon" tabIndex={0} aria-label={m.name}><ModuleIcon moduleId={m.id} size={20} /></span>
+                    <span className="sg-modicon" tabIndex={0} aria-label={m.name}>
+                      <ModuleIcon moduleId={m.id} size={20} />
+                    </span>
                   </Tooltip>
                 ))}
               </Specimen>
@@ -859,16 +1126,49 @@ export default function StyleGuidePage() {
           </Section>
 
           {/* ── Feedback and data ─────────────────────────────────────── */}
-          <Section id="feedback" title="Feedback and data" description="Toasts confirm actions, empty states invite them, skeletons hold space while loading.">
+          <Section
+            id="feedback"
+            title="Feedback and data"
+            description="Toasts confirm actions, empty states invite them, skeletons hold space while loading."
+          >
             <div className="sg-grid sg-grid--2">
-              <Specimen title="Toast" note="useToast().push({ title, body?, tone, duration?, action? })"
-                code={`const { push } = useToast();\npush({ title: 'Thread posted', body: 'Your cohort can see it now.', tone: 'success' });`}>
-                <Button onClick={() => push({ title: 'Saved to your library', body: 'Find it under Saved files.' })}>Info toast</Button>
-                <Button onClick={() => push({ title: 'Thread posted', body: 'Your cohort can see it now.', tone: 'success', action: { label: 'View thread', onClick: () => {} } })}>Success toast</Button>
-                <Button onClick={() => push({ title: 'Upload failed', body: 'The file is over 20 MB. Compress it and try again.', tone: 'alert' })}>Alert toast</Button>
+              <Specimen
+                title="Toast"
+                note="useToast().push({ title, body?, tone, duration?, action? })"
+                code={`const { push } = useToast();\npush({ title: 'Thread posted', body: 'Your cohort can see it now.', tone: 'success' });`}
+              >
+                <Button onClick={() => push({ title: 'Saved to your library', body: 'Find it under Saved files.' })}>
+                  Info toast
+                </Button>
+                <Button
+                  onClick={() =>
+                    push({
+                      title: 'Thread posted',
+                      body: 'Your cohort can see it now.',
+                      tone: 'success',
+                      action: { label: 'View thread', onClick: () => {} },
+                    })
+                  }
+                >
+                  Success toast
+                </Button>
+                <Button
+                  onClick={() =>
+                    push({
+                      title: 'Upload failed',
+                      body: 'The file is over 20 MB. Compress it and try again.',
+                      tone: 'alert',
+                    })
+                  }
+                >
+                  Alert toast
+                </Button>
               </Specimen>
-              <Specimen title="ProgressRing" note="value 0–100, size, stroke, color"
-                code={`<ProgressRing value={pct} color={cohortColor(year)} label="Lessons watched" />`}>
+              <Specimen
+                title="ProgressRing"
+                note="value 0–100, size, stroke, color"
+                code={`<ProgressRing value={pct} color={cohortColor(year)} label="Lessons watched" />`}
+              >
                 <ProgressRing value={0} />
                 <ProgressRing value={35} color={cohortColor(1)} />
                 <ProgressRing value={72} size={48} color={cohortColor(2)} />
@@ -877,17 +1177,29 @@ export default function StyleGuidePage() {
               </Specimen>
             </div>
             <div className="sg-grid sg-grid--2">
-              <Specimen title="EmptyState" note="icon (duotone), title, body, action, size md | sm" stageClassName="sg-stage--flush"
-                code={`<EmptyState icon={ChatsCircle} title="No threads for ST2133 yet" body="Ask the first question…" action={<Button …>Start a thread</Button>} />`}>
+              <Specimen
+                title="EmptyState"
+                note="icon (duotone), title, body, action, size md | sm"
+                stageClassName="sg-stage--flush"
+                code={`<EmptyState icon={ChatsCircle} title="No threads for ST2133 yet" body="Ask the first question…" action={<Button …>Start a thread</Button>} />`}
+              >
                 <EmptyState
                   icon={ChatsCircle}
                   title="No threads for ST2133 yet"
                   body="Ask the first question and your classmates will see it here."
-                  action={<Button variant="primary" leadingIcon={Plus}>Start a thread</Button>}
+                  action={
+                    <Button variant="primary" leadingIcon={Plus}>
+                      Start a thread
+                    </Button>
+                  }
                 />
               </Specimen>
-              <Specimen title="Skeleton" note="width, height, circle, radius, lines" stageClassName="sg-stage--column"
-                code={`<Skeleton lines={3} />  <Skeleton circle width={32} height={32} />`}>
+              <Specimen
+                title="Skeleton"
+                note="width, height, circle, radius, lines"
+                stageClassName="sg-stage--column"
+                code={`<Skeleton lines={3} />  <Skeleton circle width={32} height={32} />`}
+              >
                 <div className="sg-skel-row">
                   <Skeleton circle width={40} height={40} />
                   <div className="sg-skel-text">
@@ -899,24 +1211,35 @@ export default function StyleGuidePage() {
                 <Skeleton height={96} radius="var(--r-panel)" />
               </Specimen>
             </div>
-            <Specimen title="ErrorBoundary" note="wrap every component imported from another feature; default fallback shown here"
-              code={`<ErrorBoundary name="UpcomingEvents"><UpcomingEvents n={5} /></ErrorBoundary>\n<ErrorBoundary name="Overlay" fallback={null}>…</ErrorBoundary>`}>
+            <Specimen
+              title="ErrorBoundary"
+              note="wrap every component imported from another feature; default fallback shown here"
+              code={`<ErrorBoundary name="UpcomingEvents"><UpcomingEvents n={5} /></ErrorBoundary>\n<ErrorBoundary name="Overlay" fallback={null}>…</ErrorBoundary>`}
+            >
               <div className="ui-boundary" role="note">
                 <WarningCircle className="ui-boundary__icon" aria-hidden="true" weight="fill" />
                 <span>This section didn’t load.</span>
-                <button type="button" className="ui-boundary__retry">Try again</button>
+                <button type="button" className="ui-boundary__retry">
+                  Try again
+                </button>
               </div>
             </Specimen>
           </Section>
 
           {/* ── Overlays ──────────────────────────────────────────────── */}
-          <Section id="overlays" title="Overlays" description="All overlays trap focus where needed, close on Esc and return focus to what opened them.">
+          <Section
+            id="overlays"
+            title="Overlays"
+            description="All overlays trap focus where needed, close on Esc and return focus to what opened them."
+          >
             <Specimen
               title="Modal, Drawer, Menu, Tooltip"
               note="Modal: open, onClose, title, description, footer, size sm | md | lg | xl. Drawer: side right | left | bottom. Menu: trigger, items or children({ close })."
               code={`<Modal open={open} onClose={close} title="Delete this draft?" footer={<>…buttons…</>}>…</Modal>\n<Drawer side="right" open={open} onClose={close} title="Filters">…</Drawer>\n<Menu trigger={<Button trailingIcon={CaretDown}>Sort</Button>} items={[{ id, label, icon, onSelect }]} />\n<Tooltip label="Copy link"><button …/></Tooltip>`}
             >
-              <Button variant="primary" onClick={() => setModal(true)}>Open modal</Button>
+              <Button variant="primary" onClick={() => setModal(true)}>
+                Open modal
+              </Button>
               <Button onClick={() => setDrawer('right')}>Open side drawer</Button>
               <Button onClick={() => setDrawer('bottom')}>Open bottom sheet</Button>
               <Menu
@@ -925,35 +1248,62 @@ export default function StyleGuidePage() {
                 items={[
                   { heading: 'Sort threads' },
                   { id: 'hot', label: 'Hot', icon: ChatsCircle, onSelect: () => push({ title: 'Sorted by hot' }) },
-                  { id: 'new', label: 'Newest', icon: Plus, hint: 'N', onSelect: () => push({ title: 'Sorted by newest' }) },
+                  {
+                    id: 'new',
+                    label: 'Newest',
+                    icon: Plus,
+                    hint: 'N',
+                    onSelect: () => push({ title: 'Sorted by newest' }),
+                  },
                   { id: 'open', label: 'Open the library', icon: Books, to: '/library' },
                   { divider: true },
-                  { id: 'delete', label: 'Delete draft', icon: Trash, danger: true, onSelect: () => push({ title: 'Draft deleted', tone: 'alert' }) },
+                  {
+                    id: 'delete',
+                    label: 'Delete draft',
+                    icon: Trash,
+                    danger: true,
+                    onSelect: () => push({ title: 'Draft deleted', tone: 'alert' }),
+                  },
                 ]}
               />
-              <Menu
-                label="Share"
-                align="end"
-                width={300}
-                trigger={<Button leadingIcon={ShareNetwork}>Popover</Button>}
-              >
+              <Menu label="Share" align="end" width={300} trigger={<Button leadingIcon={ShareNetwork}>Popover</Button>}>
                 {({ close }) => (
                   <div className="sg-popover">
                     <p className="sg-popover__title">Share this file</p>
                     <p className="sg-caption">Anyone in DSBA Hub with the link can open it.</p>
-                    <Button size="sm" variant="primary" leadingIcon={Copy} onClick={() => { push({ title: 'Link copied', tone: 'success' }); close(); }}>Copy link</Button>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      leadingIcon={Copy}
+                      onClick={() => {
+                        push({ title: 'Link copied', tone: 'success' });
+                        close();
+                      }}
+                    >
+                      Copy link
+                    </Button>
                   </div>
                 )}
               </Menu>
               <Tooltip label="Opens in a new tab">
-                <Button variant="ghost" trailingIcon={ArrowSquareOut} href="https://my.london.ac.uk/group/student">UoL portal</Button>
+                <Button variant="ghost" trailingIcon={ArrowSquareOut} href="https://my.london.ac.uk/group/student">
+                  UoL portal
+                </Button>
               </Tooltip>
             </Specimen>
           </Section>
 
           {/* ── Page layout ───────────────────────────────────────────── */}
-          <Section id="layout" title="Page layout" description="Every page is one <Page> with a <PageHeader> and <PageSection>s 48px apart. Content is left-aligned in a 1180px column.">
-            <Specimen title="PageHeader" note="title, description, actions, meta, leading" stageClassName="sg-stage--frame">
+          <Section
+            id="layout"
+            title="Page layout"
+            description="Every page is one <Page> with a <PageHeader> and <PageSection>s 48px apart. Content is left-aligned in a 1180px column."
+          >
+            <Specimen
+              title="PageHeader"
+              note="title, description, actions, meta, leading"
+              stageClassName="sg-stage--frame"
+            >
               <div className="sg-frame">
                 <PageHeader
                   title={demo.name}
@@ -971,32 +1321,67 @@ export default function StyleGuidePage() {
                   actions={
                     <>
                       <Button leadingIcon={BookmarkSimple}>Save</Button>
-                      <Button variant="primary" leadingIcon={Play}>Resume lesson</Button>
+                      <Button variant="primary" leadingIcon={Play}>
+                        Resume lesson
+                      </Button>
                     </>
                   }
                 />
-                <SectionHeader title="Students’ notes" description="Shared by your classmates." action={<Button variant="ghost" size="sm">See all notes</Button>} />
+                <SectionHeader
+                  title="Students’ notes"
+                  description="Shared by your classmates."
+                  action={
+                    <Button variant="ghost" size="sm">
+                      See all notes
+                    </Button>
+                  }
+                />
                 <Panel padding="none" className="sg-rows">
                   {SAMPLE_NOTES.map((n, i) => (
                     <div key={i} className="sg-row">
                       <FileText className="sg-row__icon" aria-hidden="true" />
                       <span className="sg-row__name">{n.name}</span>
                       <span className="sg-caption">{n.author || 'Shared notes'}</span>
-                      <Button size="sm" variant="ghost" trailingIcon={ArrowSquareOut}>Open</Button>
+                      <Button size="sm" variant="ghost" trailingIcon={ArrowSquareOut}>
+                        Open
+                      </Button>
                     </div>
                   ))}
                 </Panel>
               </div>
             </Specimen>
             <div className="sg-grid sg-grid--2">
-              <Specimen title="Panel" note="padding none | sm | md | lg, radius panel | feature, tone surface | inset, float" stageClassName="sg-stage--panels">
-                <Panel padding="sm"><span className="sg-caption">surface, 16px radius</span></Panel>
-                <Panel padding="sm" tone="inset"><span className="sg-caption">inset</span></Panel>
-                <Panel padding="sm" radius="feature"><span className="sg-caption">feature, 24px</span></Panel>
-                <Panel padding="sm" float><span className="sg-caption">float (rare)</span></Panel>
+              <Specimen
+                title="Panel"
+                note="padding none | sm | md | lg, radius panel | feature, tone surface | inset, float"
+                stageClassName="sg-stage--panels"
+              >
+                <Panel padding="sm">
+                  <span className="sg-caption">surface, 16px radius</span>
+                </Panel>
+                <Panel padding="sm" tone="inset">
+                  <span className="sg-caption">inset</span>
+                </Panel>
+                <Panel padding="sm" radius="feature">
+                  <span className="sg-caption">feature, 24px</span>
+                </Panel>
+                <Panel padding="sm" float>
+                  <span className="sg-caption">float (rare)</span>
+                </Panel>
               </Specimen>
-              <Specimen title="SectionHeader, Divider" note="title, description, action, as h2 | h3; orientation, spacing" stageClassName="sg-stage--column">
-                <SectionHeader title="Coming up" action={<Button variant="ghost" size="sm" to="/calendar">Open calendar</Button>} />
+              <Specimen
+                title="SectionHeader, Divider"
+                note="title, description, action, as h2 | h3; orientation, spacing"
+                stageClassName="sg-stage--column"
+              >
+                <SectionHeader
+                  title="Coming up"
+                  action={
+                    <Button variant="ghost" size="sm" to="/calendar">
+                      Open calendar
+                    </Button>
+                  }
+                />
                 <Divider />
                 <SectionHeader as="h3" title="Chapter 2" description="Random variables and univariate distributions" />
               </Specimen>
@@ -1034,7 +1419,11 @@ export default function ForumPage() {
           </Section>
 
           {/* ── Light and dark ────────────────────────────────────────── */}
-          <Section id="themes" title="Light and dark" description='The same components in both themes. Any element with data-theme="light" or "dark" re-maps every colour token inside it.'>
+          <Section
+            id="themes"
+            title="Light and dark"
+            description='The same components in both themes. Any element with data-theme="light" or "dark" re-maps every colour token inside it.'
+          >
             <div className="sg-islands">
               <ThemeIsland theme="light" />
               <ThemeIsland theme="dark" />
@@ -1051,7 +1440,9 @@ export default function ForumPage() {
         size="sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setModal(false)}>Keep draft</Button>
+            <Button variant="ghost" onClick={() => setModal(false)}>
+              Keep draft
+            </Button>
             <Button
               variant="danger"
               leadingIcon={Trash}
@@ -1065,7 +1456,10 @@ export default function ForumPage() {
           </>
         }
       >
-        <p className="sg-caption">Modals trap focus, close on Esc or a click outside, lock page scroll and return focus to the button that opened them.</p>
+        <p className="sg-caption">
+          Modals trap focus, close on Esc or a click outside, lock page scroll and return focus to the button that
+          opened them.
+        </p>
       </Modal>
 
       <Drawer
@@ -1076,8 +1470,12 @@ export default function ForumPage() {
         description="Narrow the library by year and type."
         footer={
           <>
-            <Button variant="ghost" onClick={() => setDrawer(null)}>Clear</Button>
-            <Button variant="primary" onClick={() => setDrawer(null)}>Show 42 files</Button>
+            <Button variant="ghost" onClick={() => setDrawer(null)}>
+              Clear
+            </Button>
+            <Button variant="primary" onClick={() => setDrawer(null)}>
+              Show 42 files
+            </Button>
           </>
         }
       >
@@ -1085,16 +1483,25 @@ export default function ForumPage() {
           <p className="sg-subhead">Year</p>
           <div className="sg-inline">
             {COHORT_YEARS.map((y) => (
-              <Chip key={y} color={cohortColor(y)} selected={y === 2}>Year {y}</Chip>
+              <Chip key={y} color={cohortColor(y)} selected={y === 2}>
+                Year {y}
+              </Chip>
             ))}
           </div>
           <p className="sg-subhead">Type</p>
           <div className="sg-inline">
             {['Study guides', 'Notes', 'Past papers', 'Cheat sheets'].map((t, i) => (
-              <Chip key={t} selected={i === 2}>{t}</Chip>
+              <Chip key={t} selected={i === 2}>
+                {t}
+              </Chip>
             ))}
           </div>
-          <EmptyState size="sm" icon={Books} title="Drawers hold secondary tasks" body="Filters, details and settings. Keep the page behind them in place." />
+          <EmptyState
+            size="sm"
+            icon={Books}
+            title="Drawers hold secondary tasks"
+            body="Filters, details and settings. Keep the page behind them in place."
+          />
         </div>
       </Drawer>
     </Page>

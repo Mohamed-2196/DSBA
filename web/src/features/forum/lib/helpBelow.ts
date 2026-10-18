@@ -19,7 +19,16 @@ export function pickBelow(threads: readonly ThreadSummary[], below: readonly Coh
     .filter((t) => {
       if (seen.has(t.id)) return false;
       seen.add(t.id);
-      return t.year !== null && below.includes(t.year) && !t.answered && t.replyCount === 0 && !t.pinned && !t.locked && t.status === 'visible' && !t.isMine;
+      return (
+        t.year !== null &&
+        below.includes(t.year) &&
+        !t.answered &&
+        t.replyCount === 0 &&
+        !t.pinned &&
+        !t.locked &&
+        t.status === 'visible' &&
+        !t.isMine
+      );
     })
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, n);

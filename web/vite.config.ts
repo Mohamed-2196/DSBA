@@ -52,7 +52,11 @@ function serviceWorker(): Plugin {
 function appVersion(env: Record<string, string>): string {
   if (env.VITE_APP_VERSION) return env.VITE_APP_VERSION.slice(0, 40);
   try {
-    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() || 'dev';
+    return (
+      execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+        .toString()
+        .trim() || 'dev'
+    );
   } catch {
     return 'dev';
   }

@@ -38,7 +38,16 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
 
   const submit = async () => {
     if (pickedNow.length !== 4 || busy || sending || over) return;
-    if (view?.guesses.some((g) => [...g].sort().join('|') === [...pickedNow].map((w) => w.toUpperCase()).sort().join('|'))) {
+    if (
+      view?.guesses.some(
+        (g) =>
+          [...g].sort().join('|') ===
+          [...pickedNow]
+            .map((w) => w.toUpperCase())
+            .sort()
+            .join('|'),
+      )
+    ) {
       flash('You’ve tried those four already', 'alert');
       return;
     }
@@ -51,7 +60,10 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
     }
     const after = r.out.play;
     if (after.result === 'found') {
-      const latest = after.view.kind === 'groups' ? after.view.found.find((g) => g.words.every((w) => pickedNow.includes(w))) : undefined;
+      const latest =
+        after.view.kind === 'groups'
+          ? after.view.found.find((g) => g.words.every((w) => pickedNow.includes(w)))
+          : undefined;
       setPicked([]);
       if (latest) {
         setFresh(latest.label);
@@ -63,13 +75,16 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
     setWrong(true);
     later(() => setWrong(false), 450);
     if (after.status === 'lost') flash('Out of mistakes', 'alert');
-    else flash(after.result === 'one-away' ? 'One away…' : 'Not a group', after.result === 'one-away' ? 'info' : 'alert');
+    else
+      flash(after.result === 'one-away' ? 'One away…' : 'Not a group', after.result === 'one-away' ? 'info' : 'alert');
   };
 
   const rowsLeft = Math.ceil(board.length / 4);
   return (
     <div className="dgr">
-      <p className="dgr-lede">{over ? (state.status === 'won' ? 'All four groups found' : 'The groups') : 'Make four groups of four'}</p>
+      <p className="dgr-lede">
+        {over ? (state.status === 'won' ? 'All four groups found' : 'The groups') : 'Make four groups of four'}
+      </p>
 
       <div className="dgr-board-wrap">
         <div className="dgr-board" style={{ '--rows': found.length + rowsLeft } as CSSProperties}>
@@ -98,7 +113,10 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
 
       {!over ? (
         <>
-          <div className="dgr-mistakes" aria-label={`${mistakesLeft} ${mistakesLeft === 1 ? 'mistake' : 'mistakes'} left`}>
+          <div
+            className="dgr-mistakes"
+            aria-label={`${mistakesLeft} ${mistakesLeft === 1 ? 'mistake' : 'mistakes'} left`}
+          >
             <span aria-hidden="true">Mistakes left</span>
             <span className="dgr-mistakes__dots" aria-hidden="true">
               {Array.from({ length: MAX_MISTAKES }, (_, i) => (
@@ -107,7 +125,12 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
             </span>
           </div>
           <div className="dgr-actions">
-            <Button variant="secondary" leadingIcon={ArrowsClockwise} onClick={() => setOrder(shuffled(board))} disabled={busy}>
+            <Button
+              variant="secondary"
+              leadingIcon={ArrowsClockwise}
+              onClick={() => setOrder(shuffled(board))}
+              disabled={busy}
+            >
               Shuffle
             </Button>
             <Button variant="secondary" onClick={() => setPicked([])} disabled={pickedNow.length === 0 || busy}>
@@ -125,7 +148,11 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
 
 function GroupBar({ group, fresh }: { group: FoundGroup; fresh: boolean }) {
   return (
-    <div className={cx('dgr-group', `dgr-group--${group.level}`, fresh && 'is-fresh')} role="group" aria-label={`${group.label}, ${LEVEL_NAME[group.level] ?? ''} group: ${group.words.join(', ')}`}>
+    <div
+      className={cx('dgr-group', `dgr-group--${group.level}`, fresh && 'is-fresh')}
+      role="group"
+      aria-label={`${group.label}, ${LEVEL_NAME[group.level] ?? ''} group: ${group.words.join(', ')}`}
+    >
       <span className="dgr-group__label">{group.label}</span>
       <span className="dgr-group__words">{group.words.join(', ')}</span>
     </div>
@@ -138,7 +165,10 @@ export function GroupsExample() {
     <>
       <div className="dg-eg">
         <div className="dgr-eg">
-          <GroupBar group={{ label: 'Measures of centre', level: 1, words: ['MEAN', 'MEDIAN', 'MODE', 'MIDRANGE'] }} fresh={false} />
+          <GroupBar
+            group={{ label: 'Measures of centre', level: 1, words: ['MEAN', 'MEDIAN', 'MODE', 'MIDRANGE'] }}
+            fresh={false}
+          />
         </div>
         <p className="dg-eg__caption">
           Four words that share something make a group. Each group has a colour for how tricky it is:

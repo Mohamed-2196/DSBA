@@ -10,6 +10,9 @@ export const CODE_LENGTH: Record<CodeFormat, number> = { digits: 6, long: 10 };
  *  (any case, with or without the dash or spaces). */
 export function normalizeCode(raw: string, format: CodeFormat): string {
   return format === 'long'
-    ? raw.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, CODE_LENGTH.long)
+    ? raw
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .slice(0, CODE_LENGTH.long)
     : raw.replace(/\D/g, '').slice(0, CODE_LENGTH.digits);
 }

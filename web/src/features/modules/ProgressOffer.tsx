@@ -12,7 +12,9 @@ export function ProgressOffer({ onTurnOn }: { onTurnOn: () => void }) {
   return (
     <div className="mod-offer" role="region" aria-label="Lesson progress" data-hub="progress-offer">
       <ListChecks className="mod-offer__icon" weight="duotone" aria-hidden="true" />
-      <p className="mod-offer__text">Keep track of what you’ve watched? You can mark lessons as watched and pick up where you left off.</p>
+      <p className="mod-offer__text">
+        Keep track of what you’ve watched? You can mark lessons as watched and pick up where you left off.
+      </p>
       <div className="mod-offer__actions">
         <Button
           size="sm"

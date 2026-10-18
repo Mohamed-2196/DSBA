@@ -48,6 +48,9 @@ export function otpErrorMessage(e: unknown): string {
 export function isAddressProblem(e: unknown): boolean {
   return (
     e instanceof ApiError &&
-    (e.code === 'invalid_identifier' || e.code === 'identifier_unchanged' || (e.code === 'sms_unavailable' && e.status === 422) || !!e.fields.identifier)
+    (e.code === 'invalid_identifier' ||
+      e.code === 'identifier_unchanged' ||
+      (e.code === 'sms_unavailable' && e.status === 422) ||
+      !!e.fields.identifier)
   );
 }

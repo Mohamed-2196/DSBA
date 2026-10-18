@@ -66,7 +66,9 @@ export function LessonPoster({
       </span>
 
       <span className="mod-poster__body" aria-hidden="true">
-        <span className="mod-poster__chapter">{info.real ? `Chapter ${c + 1}: ${chapter.title}` : `Chapter ${c + 1}`}</span>
+        <span className="mod-poster__chapter">
+          {info.real ? `Chapter ${c + 1}: ${chapter.title}` : `Chapter ${c + 1}`}
+        </span>
         <span className="mod-poster__title">{title}</span>
         {subline ? <span className="mod-poster__pos">{subline}</span> : null}
       </span>
@@ -79,7 +81,14 @@ export function LessonPoster({
         {count > 1 ? (
           <span className="mod-poster__ticks">
             {chapter.videos.map((_, i) => (
-              <span key={i} className={cx('mod-poster__tick', i === v && 'is-current', isWatched?.(m.chapters[c].videos[i].id) && 'is-watched')} />
+              <span
+                key={i}
+                className={cx(
+                  'mod-poster__tick',
+                  i === v && 'is-current',
+                  isWatched?.(m.chapters[c].videos[i].id) && 'is-watched',
+                )}
+              />
             ))}
           </span>
         ) : (
@@ -112,7 +121,11 @@ export function MiniPoster({
   const thumbOk = useThumbnail(thumb) === 'ok';
   const art = moduleArtSrc(m.art);
   return (
-    <span className={cx('mod-mini', `mod-mini--${size}`, thumbOk && 'has-thumb', className)} style={cohortVars(m.year)} aria-hidden="true">
+    <span
+      className={cx('mod-mini', `mod-mini--${size}`, thumbOk && 'has-thumb', className)}
+      style={cohortVars(m.year)}
+      aria-hidden="true"
+    >
       {thumbOk && thumb ? (
         <img className="mod-mini__thumb" src={thumb} alt="" referrerPolicy="no-referrer" decoding="async" />
       ) : art ? (

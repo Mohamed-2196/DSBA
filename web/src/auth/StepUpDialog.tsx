@@ -69,8 +69,17 @@ export function StepUpDialog({ purpose, me, onDone }: StepUpDialogProps) {
     onDone(true);
   };
 
-  const where = (via: Via) => (via === 'email' ? (me?.email ?? 'your email address') : me?.phone ? formatPhone(me.phone) : 'your phone');
-  const switchTo: Via | null = pending ? (pending.via === 'email' ? (me?.phone ? 'phone' : null) : me?.email ? 'email' : null) : other;
+  const where = (via: Via) =>
+    via === 'email' ? (me?.email ?? 'your email address') : me?.phone ? formatPhone(me.phone) : 'your phone';
+  const switchTo: Via | null = pending
+    ? pending.via === 'email'
+      ? me?.phone
+        ? 'phone'
+        : null
+      : me?.email
+        ? 'email'
+        : null
+    : other;
 
   return (
     <Modal
@@ -103,7 +112,14 @@ export function StepUpDialog({ purpose, me, onDone }: StepUpDialogProps) {
               <WarningCircle aria-hidden="true" weight="fill" />
               {error}
             </p>
-            <Button variant="primary" size="lg" fullWidth leadingIcon={ArrowClockwise} loading={sending} onClick={() => void send(first)}>
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              leadingIcon={ArrowClockwise}
+              loading={sending}
+              onClick={() => void send(first)}
+            >
               Send the code again
             </Button>
             {other ? (

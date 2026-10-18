@@ -25,7 +25,9 @@ describe('readFilters', () => {
 
 describe('patchFilters', () => {
   it('sets several filters at once and keeps other params', () => {
-    expect(patchFilters(url('order=oldest&cohort=year-1'), { cohort: 'year-2', q: 'mgf' }).toString()).toBe('order=oldest&cohort=year-2&q=mgf');
+    expect(patchFilters(url('order=oldest&cohort=year-1'), { cohort: 'year-2', q: 'mgf' }).toString()).toBe(
+      'order=oldest&cohort=year-2&q=mgf',
+    );
   });
   it('drops empty and default values, so links stay short', () => {
     expect(patchFilters(url('sort=new&tag=r&q=x'), { sort: 'hot', tag: '', q: null }).toString()).toBe('');
@@ -34,7 +36,9 @@ describe('patchFilters', () => {
 
 describe('keepFilters', () => {
   it('clears everything but the filters asked for', () => {
-    expect(keepFilters(url('cohort=year-2&sort=top&tag=r&q=mgf'), ['cohort', 'sort']).toString()).toBe('cohort=year-2&sort=top');
+    expect(keepFilters(url('cohort=year-2&sort=top&tag=r&q=mgf'), ['cohort', 'sort']).toString()).toBe(
+      'cohort=year-2&sort=top',
+    );
     expect(keepFilters(url('cohort=year-2'), []).toString()).toBe('');
   });
 });

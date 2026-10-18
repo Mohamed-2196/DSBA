@@ -17,7 +17,10 @@ function restLine(session: ExamSession): string | null {
   if (session.kind !== 'exams' || !last) return null;
   const exams = rest.filter((e) => e.type === 'exam').length;
   const mocks = rest.length - exams;
-  const parts = [mocks ? `${numberWord(mocks)} ${mocks === 1 ? 'mock' : 'mocks'}` : null, exams ? `${numberWord(exams)} more ${exams === 1 ? 'exam' : 'exams'}` : null].filter(Boolean);
+  const parts = [
+    mocks ? `${numberWord(mocks)} ${mocks === 1 ? 'mock' : 'mocks'}` : null,
+    exams ? `${numberWord(exams)} more ${exams === 1 ? 'exam' : 'exams'}` : null,
+  ].filter(Boolean);
   return `Then ${parts.join(' and ')}, until ${formatDay(last.when, { year: false })}.`;
 }
 
@@ -46,7 +49,9 @@ function NextDate({ next, session }: { next: SessionEvent; session: ExamSession 
         </Link>
         <p className="home-next__when">
           <time dateTime={next.date}>{formatLongDay(next.when)}</time>
-          <span className="visually-hidden">, {next.days > 1 ? `in ${next.days} days` : next.days === 1 ? 'tomorrow' : 'today'}</span>
+          <span className="visually-hidden">
+            , {next.days > 1 ? `in ${next.days} days` : next.days === 1 ? 'tomorrow' : 'today'}
+          </span>
         </p>
         {rest ? <p className="home-next__rest">{rest}</p> : null}
       </div>
@@ -82,7 +87,16 @@ export function ComingUp({
       </div>
     );
   } else if (error) {
-    head = <QueryError error={error} title="Your next exam didn’t load" size="sm" panel={false} onRetry={onRetry} retrying={retrying} />;
+    head = (
+      <QueryError
+        error={error}
+        title="Your next exam didn’t load"
+        size="sm"
+        panel={false}
+        onRetry={onRetry}
+        retrying={retrying}
+      />
+    );
   } else if (session) {
     head = <NextDate next={session.next} session={session} />;
   } else head = null;

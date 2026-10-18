@@ -34,11 +34,7 @@ function DateLink({ link }: { link: DateLinkData }) {
   }
   const event = nextDated(events.data, link.title, today);
   if (!event) {
-    return (
-      <span className="start-step__note">
-        {link.label}: not on the calendar yet. Ask your rep.
-      </span>
-    );
+    return <span className="start-step__note">{link.label}: not on the calendar yet. Ask your rep.</span>;
   }
   return (
     <Link to={`/calendar?event=${encodeURIComponent(event.id)}`} className="start-link" data-hub="guide-date">
@@ -66,7 +62,11 @@ function InstallLink() {
       </Button>
     );
   }
-  return <span className="start-step__note">On iPhone, tap Share, then Add to Home Screen. On Android, open the browser menu, then Install app.</span>;
+  return (
+    <span className="start-step__note">
+      On iPhone, tap Share, then Add to Home Screen. On Android, open the browser menu, then Install app.
+    </span>
+  );
 }
 
 function OutLink({ href, label }: { href: string | null; label: string }) {
@@ -118,7 +118,13 @@ export function GuideSteps({ steps, ticks, variant }: GuideStepsProps) {
         return (
           <li key={step.id} className={cx('start-step', ticked && 'is-done')} data-step-id={step.id}>
             <label className="start-check">
-              <input type="checkbox" className="start-check__box" checked={ticked} onChange={() => toggle(step.id)} aria-describedby={variant === 'page' ? hintId : undefined} />
+              <input
+                type="checkbox"
+                className="start-check__box"
+                checked={ticked}
+                onChange={() => toggle(step.id)}
+                aria-describedby={variant === 'page' ? hintId : undefined}
+              />
               <span className="start-check__title">{step.title}</span>
             </label>
             <div className="start-step__more">

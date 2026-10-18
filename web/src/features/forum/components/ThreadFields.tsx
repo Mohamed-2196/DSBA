@@ -6,7 +6,15 @@ import { useTaxonomy } from '../lib/taxonomy';
 import type { CategoryId } from '../types';
 
 /** The categories offered, and the thread's own when it was retired since (it may stay there). */
-export function CategorySelect({ value, onChange, error }: { value: CategoryId; onChange: (id: CategoryId) => void; error?: string | null }) {
+export function CategorySelect({
+  value,
+  onChange,
+  error,
+}: {
+  value: CategoryId;
+  onChange: (id: CategoryId) => void;
+  error?: string | null;
+}) {
   const { categories, getCategory } = useTaxonomy();
   const current = getCategory(value);
   const shown = current?.retired ? [...categories, current] : categories;
@@ -25,10 +33,25 @@ export function CategorySelect({ value, onChange, error }: { value: CategoryId; 
   );
 }
 
-export function ModuleSelect({ value, onChange, error }: { value: string; onChange: (id: string) => void; error?: string | null }) {
+export function ModuleSelect({
+  value,
+  onChange,
+  error,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  error?: string | null;
+}) {
   const { getModulesForYear } = useModules();
   return (
-    <Select label="Module" value={value} onChange={(e) => onChange(e.target.value)} hint="Optional" error={error ?? undefined} data-hub="composer-module">
+    <Select
+      label="Module"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      hint="Optional"
+      error={error ?? undefined}
+      data-hub="composer-module"
+    >
       <option value="">No specific module</option>
       {YEARS.map((y) => (
         <optgroup key={y} label={`Year ${y}`}>
@@ -44,7 +67,15 @@ export function ModuleSelect({ value, onChange, error }: { value: string; onChan
 }
 
 /** The tags offered, and those the thread has that were retired since (they may stay, or go). */
-export function TagPicker({ value, onChange, error }: { value: string[]; onChange: (tags: string[]) => void; error?: string | null }) {
+export function TagPicker({
+  value,
+  onChange,
+  error,
+}: {
+  value: string[];
+  onChange: (tags: string[]) => void;
+  error?: string | null;
+}) {
   const { tags: offered, getTag, maxTags, ready } = useTaxonomy();
   const kept = value.map((id) => getTag(id)).filter((t) => t?.retired === true);
   const tags = [...offered, ...kept.filter((t) => t !== null)];

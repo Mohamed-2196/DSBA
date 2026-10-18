@@ -43,7 +43,10 @@ export function Reactions({ issueId, issueSlug, sectionId, counts, label, readOn
   const send = (id: Reaction, on: boolean) =>
     react.mutate(
       { issueId, slug: issueSlug, sectionId, reaction: id, on },
-      { onError: (e) => push({ tone: 'alert', title: 'Your reaction wasn’t saved', body: errorMessage(e, 'Try again in a moment.') }) },
+      {
+        onError: (e) =>
+          push({ tone: 'alert', title: 'Your reaction wasn’t saved', body: errorMessage(e, 'Try again in a moment.') }),
+      },
     );
 
   const toggle = (id: Reaction) => {
@@ -54,23 +57,36 @@ export function Reactions({ issueId, issueSlug, sectionId, counts, label, readOn
   };
 
   return (
-    <div className="nl-reactions" role="group" aria-label={label ? `React to ${label}` : 'Reactions'} data-hub="reactions">
+    <div
+      className="nl-reactions"
+      role="group"
+      aria-label={label ? `React to ${label}` : 'Reactions'}
+      data-hub="reactions"
+    >
       {KINDS.map(({ id, label: name, icon: Glyph }) => {
         const on = mine.includes(id);
         const count = counts?.[id] ?? 0;
         return (
-          <Tooltip key={id} label={readOnly || reacts ? name : `${name}. Reacting isn’t on your account`} describe={false}>
+          <Tooltip
+            key={id}
+            label={readOnly || reacts ? name : `${name}. Reacting isn’t on your account`}
+            describe={false}
+          >
             <button
               type="button"
               className={cx('nl-reaction', `nl-reaction--${id}`, on && 'is-on', popped === id && 'is-popping')}
               aria-pressed={on}
-              aria-label={readOnly || reacts ? `${name}, ${count}` : `${name}, ${count}. Reacting isn’t on your account`}
+              aria-label={
+                readOnly || reacts ? `${name}, ${count}` : `${name}, ${count}. Reacting isn’t on your account`
+              }
               disabled={!pressable}
               onClick={() => toggle(id)}
               onAnimationEnd={() => setPopped(null)}
             >
               <Glyph className="nl-reaction__icon" weight={on ? 'fill' : 'regular'} aria-hidden="true" />
-              <span className="nl-reaction__count"><Count value={count} /></span>
+              <span className="nl-reaction__count">
+                <Count value={count} />
+              </span>
             </button>
           </Tooltip>
         );

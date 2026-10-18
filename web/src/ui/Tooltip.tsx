@@ -1,4 +1,13 @@
-import { cloneElement, isValidElement, useEffect, useId, useRef, useState, type FocusEvent, type ReactNode } from 'react';
+import {
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FocusEvent,
+  type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { cx, useFloating } from './internal';
 import './Tooltip.css';
@@ -23,7 +32,15 @@ export interface TooltipProps {
 }
 
 /** Hover/focus tooltip (portal, so it escapes overflow containers). */
-export function Tooltip({ label, side = 'top', delay = 350, describe = true, disabled = false, children, className }: TooltipProps) {
+export function Tooltip({
+  label,
+  side = 'top',
+  delay = 350,
+  describe = true,
+  disabled = false,
+  children,
+  className,
+}: TooltipProps) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLSpanElement>(null);
   const tipRef = useRef<HTMLSpanElement>(null);

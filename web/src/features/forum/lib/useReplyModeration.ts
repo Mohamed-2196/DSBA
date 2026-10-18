@@ -12,7 +12,9 @@ export function useReplyModeration(reply: Pick<Reply, 'id'>) {
     pending: moderate.isPending,
     /** what went wrong with the last hide (its dialog shows it) */
     hideError:
-      moderate.isError && moderate.variables?.change.status === 'hidden' ? errorMessage(moderate.error, "The reply wasn't hidden. Try again.") : null,
+      moderate.isError && moderate.variables?.change.status === 'hidden'
+        ? errorMessage(moderate.error, "The reply wasn't hidden. Try again.")
+        : null,
     reset: moderate.reset,
     hide: (reason: string | null, onDone: () => void) =>
       moderate.mutate(
@@ -20,7 +22,11 @@ export function useReplyModeration(reply: Pick<Reply, 'id'>) {
         {
           onSuccess: () => {
             onDone();
-            push({ title: 'Reply hidden', body: 'Only student reps can see it now. Resolve the report in Manage if there is one.', tone: 'success' });
+            push({
+              title: 'Reply hidden',
+              body: 'Only student reps can see it now. Resolve the report in Manage if there is one.',
+              tone: 'success',
+            });
           },
         },
       ),
@@ -31,7 +37,11 @@ export function useReplyModeration(reply: Pick<Reply, 'id'>) {
           onSuccess: (r) =>
             push(
               r.status === 'deleted'
-                ? { title: 'Reply shown as deleted', body: 'Its text was deleted while it was hidden, so it keeps its place without it.', tone: 'info' }
+                ? {
+                    title: 'Reply shown as deleted',
+                    body: 'Its text was deleted while it was hidden, so it keeps its place without it.',
+                    tone: 'info',
+                  }
                 : { title: 'Reply visible again', tone: 'success' },
             ),
           onError: (e) => push({ title: "That didn't work", body: errorMessage(e), tone: 'alert' }),

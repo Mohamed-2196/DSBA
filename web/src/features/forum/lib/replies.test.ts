@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { Reply, UserPublic } from '../../../api/types';
-import { mayChange, nestReplies, postMenuActions, participants, readOnlyFor, replyTargetId, shownReplyIds, takesReplies, textDeleted } from './replies';
+import {
+  mayChange,
+  nestReplies,
+  postMenuActions,
+  participants,
+  readOnlyFor,
+  replyTargetId,
+  shownReplyIds,
+  takesReplies,
+  textDeleted,
+} from './replies';
 
 const person = (id: string, displayName = id): UserPublic => ({ id, displayName, year: 2, badge: null });
 let n = 0;
@@ -57,7 +67,12 @@ describe('participants (ST-11)', () => {
   });
 
   it('counts each person once, deleted accounts as one more, and only visible replies', () => {
-    const replies = [reply({ author: person('sara') }), reply({ author: person('ali') }), reply({ author: null }), reply({ status: 'hidden', author: person('omar') })];
+    const replies = [
+      reply({ author: person('sara') }),
+      reply({ author: person('ali') }),
+      reply({ author: null }),
+      reply({ status: 'hidden', author: person('omar') }),
+    ];
     const last = reply({ author: person('sara') });
     const p = participants([...replies, last]);
     expect(p.people.map((u) => u.id)).toEqual(['sara', 'ali']);

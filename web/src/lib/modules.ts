@@ -33,7 +33,9 @@ export function videoSourceUrl(v: Video | null | undefined): string | null {
 
 /** YouTube thumbnail (null for playlists and class recordings). External: always provide a fallback. */
 export function videoThumbnailUrl(v: Video | null | undefined): string | null {
-  return v && v.kind === 'youtube' && v.videoId && !v.videoId.includes('/') ? `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg` : null;
+  return v && v.kind === 'youtube' && v.videoId && !v.videoId.includes('/')
+    ? `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`
+    : null;
 }
 
 export const VIDEO_KIND_LABEL: Record<Video['kind'], string> = {

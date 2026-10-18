@@ -41,12 +41,25 @@ export function ActivityLog() {
     );
   }
   if (audit.isError) {
-    return <QueryError error={audit.error} title="Activity didn’t load" onRetry={() => void audit.refetch()} retrying={audit.isFetching} size="sm" />;
+    return (
+      <QueryError
+        error={audit.error}
+        title="Activity didn’t load"
+        onRetry={() => void audit.refetch()}
+        retrying={audit.isFetching}
+        size="sm"
+      />
+    );
   }
   if (!entries.length) {
     return (
       <Panel padding="none">
-        <EmptyState size="sm" icon={ClockCounterClockwise} title="Nothing yet" body="Role changes, switches, suspensions and moderation show up here." />
+        <EmptyState
+          size="sm"
+          icon={ClockCounterClockwise}
+          title="Nothing yet"
+          body="Role changes, switches, suspensions and moderation show up here."
+        />
       </Panel>
     );
   }
@@ -62,7 +75,17 @@ export function ActivityLog() {
                 <p className="activity-log__text">
                   <strong>{who}</strong> {describeAudit(e, nameOf)}
                 </p>
-                <time className="activity-log__time" dateTime={e.createdAt} title={formatDate(e.createdAt, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}>
+                <time
+                  className="activity-log__time"
+                  dateTime={e.createdAt}
+                  title={formatDate(e.createdAt, {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                >
                   {timeAgo(e.createdAt)}
                 </time>
               </li>

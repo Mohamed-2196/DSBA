@@ -1,5 +1,16 @@
 // /notes: student's notebooks and notes, last edited first, with search, notebook filtering, and creation.
-import { Book, DotsThree, FilePdf, Folder, FolderPlus, MagnifyingGlass, NotePencil, PencilSimple, Plus, Trash } from '@phosphor-icons/react';
+import {
+  Book,
+  DotsThree,
+  FilePdf,
+  Folder,
+  FolderPlus,
+  MagnifyingGlass,
+  NotePencil,
+  PencilSimple,
+  Plus,
+  Trash,
+} from '@phosphor-icons/react';
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Notebook, NoteSummary } from '../../api/types';
@@ -27,7 +38,14 @@ import {
   timeAgo,
 } from '../../ui';
 import { remainingCount } from '../../api/paging';
-import { checkUpload, fileExtension, formatSize, progressPercent, uploadErrorMessage, uploadFile } from '../../api/uploads';
+import {
+  checkUpload,
+  fileExtension,
+  formatSize,
+  progressPercent,
+  uploadErrorMessage,
+  uploadFile,
+} from '../../api/uploads';
 import { useCreateNote, useCreateNotebook, useDeleteNotebook, useNotebooks, useNotes, useRenameNotebook } from './api';
 import { EMPTY_DOC, draftIds, lessonLabel, noteLabel, plainExcerpt } from './draft';
 import { TITLE_MAX } from './limits';
@@ -89,7 +107,10 @@ function WriteOnPdf({ notebookId }: { notebookId: string | null }) {
     try {
       const out = await uploadFile('note_file', file, { onProgress: (p) => setPercent(progressPercent(p)) });
       const note = await create.mutateAsync({
-        title: file.name.replace(/\.pdf$/i, '').trim().slice(0, TITLE_MAX),
+        title: file.name
+          .replace(/\.pdf$/i, '')
+          .trim()
+          .slice(0, TITLE_MAX),
         doc: EMPTY_DOC,
         paper: 'lined',
         sheets: 0,
@@ -118,7 +139,12 @@ function WriteOnPdf({ notebookId }: { notebookId: string | null }) {
         }}
         data-hub="note-pdf-input"
       />
-      <Button leadingIcon={FilePdf} onClick={() => input.current?.click()} loading={percent !== null} data-hub="note-from-pdf">
+      <Button
+        leadingIcon={FilePdf}
+        onClick={() => input.current?.click()}
+        loading={percent !== null}
+        data-hub="note-from-pdf"
+      >
         {percent !== null ? `Uploading ${percent}%` : 'Write on a PDF'}
       </Button>
     </>
@@ -133,8 +159,18 @@ function StorageMeter({ label, used, limit }: { label: string; used: number; lim
       <p>
         {label}: {formatSize(used)} of {formatSize(limit)}
       </p>
-      <div className="notebooks-storage__meter" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
-        <div className={percent >= 90 ? 'notebooks-storage__fill is-nearly-full' : 'notebooks-storage__fill'} style={{ width: `${percent}%` }} />
+      <div
+        className="notebooks-storage__meter"
+        role="meter"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+      >
+        <div
+          className={percent >= 90 ? 'notebooks-storage__fill is-nearly-full' : 'notebooks-storage__fill'}
+          style={{ width: `${percent}%` }}
+        />
       </div>
     </div>
   );
@@ -164,12 +200,21 @@ function NotebookDialog({ open, onClose }: { open: boolean; onClose: () => void 
   return (
     <Modal open={open} onClose={onClose} title="New notebook">
       <form onSubmit={submit} className="notes-dialog-form">
-        <TextField label="Notebook title" placeholder="e.g. Exam Revision" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+        <TextField
+          label="Notebook title"
+          placeholder="e.g. Exam Revision"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          autoFocus
+        />
         <Select
           label="Module (optional)"
           value={moduleId}
           onChange={(e) => setModuleId(e.target.value)}
-          options={[{ value: '', label: 'Personal (no module)' }, ...modules.map((m) => ({ value: m.id, label: moduleLabel(m) }))]}
+          options={[
+            { value: '', label: 'Personal (no module)' },
+            ...modules.map((m) => ({ value: m.id, label: moduleLabel(m) })),
+          ]}
         />
         <div className="notes-notice__actions" style={{ justifyContent: 'flex-end', marginTop: 'var(--sp-16)' }}>
           <Button variant="ghost" onClick={onClose}>
@@ -282,7 +327,9 @@ function NotesList() {
         <aside className="notebooks-sidebar" aria-label="Notebooks">
           <div className="notebooks-sidebar__head">
             <h3 className="notebooks-sidebar__title">Notebooks</h3>
-            {readOnly ? null : <IconButton icon={Plus} label="New notebook" size="sm" onClick={() => setNewBookOpen(true)} tooltip />}
+            {readOnly ? null : (
+              <IconButton icon={Plus} label="New notebook" size="sm" onClick={() => setNewBookOpen(true)} tooltip />
+            )}
           </div>
           <ul className="notebooks-sidebar__list">
             <li>
@@ -320,7 +367,13 @@ function NotesList() {
                       label="Notebook options"
                       items={[
                         { id: 'rename', label: 'Rename', icon: PencilSimple, onSelect: () => setRenamingBook(b) },
-                        { id: 'delete', label: 'Delete notebook', icon: Trash, danger: true, onSelect: () => setDeletingBook(b) },
+                        {
+                          id: 'delete',
+                          label: 'Delete notebook',
+                          icon: Trash,
+                          danger: true,
+                          onSelect: () => setDeletingBook(b),
+                        },
                       ]}
                       trigger={<IconButton icon={DotsThree} label="Options" size="sm" />}
                     />
@@ -332,7 +385,11 @@ function NotesList() {
 
           {storage ? (
             <div className="notebooks-storage" data-hub="notes-storage">
-              <StorageMeter label="Text and handwriting" used={storage.writingBytes} limit={storage.writingLimitBytes} />
+              <StorageMeter
+                label="Text and handwriting"
+                used={storage.writingBytes}
+                limit={storage.writingLimitBytes}
+              />
               <StorageMeter label="Pictures and files" used={storage.filesBytes} limit={storage.filesLimitBytes} />
             </div>
           ) : null}
@@ -360,11 +417,21 @@ function NotesList() {
               </div>
             </Panel>
           ) : notes.isError ? (
-            <QueryError error={notes.error} title="Your notes didn’t load" onRetry={() => void notes.refetch()} retrying={notes.isFetching} />
+            <QueryError
+              error={notes.error}
+              title="Your notes didn’t load"
+              onRetry={() => void notes.refetch()}
+              retrying={notes.isFetching}
+            />
           ) : items.length === 0 ? (
             <Panel>
               {filtered ? (
-                <EmptyState icon={MagnifyingGlass} illustration="search" title="No notes match" body="Try other words, or another notebook." />
+                <EmptyState
+                  icon={MagnifyingGlass}
+                  illustration="search"
+                  title="No notes match"
+                  body="Try other words, or another notebook."
+                />
               ) : (
                 <EmptyState
                   icon={NotePencil}

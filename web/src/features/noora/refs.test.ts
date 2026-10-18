@@ -19,7 +19,11 @@ describe('messageAsText', () => {
         text: 'The MGF of the Poisson distribution:',
         formula: { say: 'M of t equals e to the lambda times e to the t minus 1', line: [] },
         refs: [
-          { code: 'ST2133', label: 'Chapter 2 · Random variables', to: '/modules/st2133?tab=lessons&chapter=1&video=0' },
+          {
+            code: 'ST2133',
+            label: 'Chapter 2 · Random variables',
+            to: '/modules/st2133?tab=lessons&chapter=1&video=0',
+          },
           { code: 'Library', label: 'Library notes', to: '/library' },
         ],
       },

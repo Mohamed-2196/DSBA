@@ -14,7 +14,9 @@ test('Ali edits his name and cohort, and his email preferences', async ({ ali, r
   await name.fill('Ali E2E Hasan');
   await ali.getByRole('group', { name: 'Your cohort' }).getByText('Year 2', { exact: true }).click();
   await ali.getByRole('button', { name: 'Save profile' }).click();
-  await expect.poll(async () => (await api<{ displayName: string; year: number }>(ali, 'GET', '/api/v1/me')).body).toMatchObject({ displayName: 'Ali E2E Hasan', year: 2 });
+  await expect
+    .poll(async () => (await api<{ displayName: string; year: number }>(ali, 'GET', '/api/v1/me')).body)
+    .toMatchObject({ displayName: 'Ali E2E Hasan', year: 2 });
   await ali.goto('/');
   await expect(ali.locator('main')).toContainText('Year 2');
 
@@ -23,22 +25,53 @@ test('Ali edits his name and cohort, and his email preferences', async ({ ali, r
   await name.fill(run.ali.name);
   await ali.getByRole('group', { name: 'Your cohort' }).getByText('Year 1', { exact: true }).click();
   await ali.getByRole('button', { name: 'Save profile' }).click();
-  await expect.poll(async () => (await api<{ displayName: string; year: number }>(ali, 'GET', '/api/v1/me')).body).toMatchObject({ displayName: run.ali.name, year: 1 });
+  await expect
+    .poll(async () => (await api<{ displayName: string; year: number }>(ali, 'GET', '/api/v1/me')).body)
+    .toMatchObject({ displayName: run.ali.name, year: 1 });
 
   const newIssues = ali.getByRole('switch', { name: /New newsletter issues/ });
   await newIssues.click();
-  await expect.poll(async () => (await api<{ preferences: { emailNewIssues: boolean } }>(ali, 'GET', '/api/v1/me')).body.preferences.emailNewIssues).toBe(false);
+  await expect
+    .poll(
+      async () =>
+        (await api<{ preferences: { emailNewIssues: boolean } }>(ali, 'GET', '/api/v1/me')).body.preferences
+          .emailNewIssues,
+    )
+    .toBe(false);
   await newIssues.click();
-  await expect.poll(async () => (await api<{ preferences: { emailNewIssues: boolean } }>(ali, 'GET', '/api/v1/me')).body.preferences.emailNewIssues).toBe(true);
+  await expect
+    .poll(
+      async () =>
+        (await api<{ preferences: { emailNewIssues: boolean } }>(ali, 'GET', '/api/v1/me')).body.preferences
+          .emailNewIssues,
+    )
+    .toBe(true);
 });
 
 test('the account page lists this device, and "Download your data" gives everything as JSON', async ({ ali, run }) => {
   await gotoAccount(ali);
   await expect(ali.locator('main')).toContainText('This device');
-  const [download] = await Promise.all([ali.waitForEvent('download'), ali.getByRole('button', { name: 'Download', exact: true }).click()]);
+  const [download] = await Promise.all([
+    ali.waitForEvent('download'),
+    ali.getByRole('button', { name: 'Download', exact: true }).click(),
+  ]);
   expect(download.suggestedFilename()).toMatch(/^dsba-hub-data-\d{4}-\d{2}-\d{2}\.json$/);
   const data = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-  expect(Object.keys(data)).toEqual(expect.arrayContaining(['user', 'sessions', 'threads', 'replies', 'libraryItems', 'stars', 'reactions', 'progress', 'notifications', 'votes', 'reports']));
+  expect(Object.keys(data)).toEqual(
+    expect.arrayContaining([
+      'user',
+      'sessions',
+      'threads',
+      'replies',
+      'libraryItems',
+      'stars',
+      'reactions',
+      'progress',
+      'notifications',
+      'votes',
+      'reports',
+    ]),
+  );
   expect(data.user.email).toBe(run.ali.email);
 });
 

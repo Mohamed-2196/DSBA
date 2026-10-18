@@ -13,7 +13,12 @@ interface Note {
 test('a student suggests a video and a content editor adds it as a lesson', async ({ admin, sara, run }) => {
   const id = `e2e-suggest-${run.tag}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-');
   const title = `Gradient descent [e2e ${run.tag}]`;
-  const made = await api(admin, 'POST', '/api/v1/content/modules', { id, name: `E2E suggestions ${run.tag}`, shortName: 'E2E', year: 3 });
+  const made = await api(admin, 'POST', '/api/v1/content/modules', {
+    id,
+    name: `E2E suggestions ${run.tag}`,
+    shortName: 'E2E',
+    year: 3,
+  });
   expect(made.status).toBe(201);
   try {
     await setSwitch(admin, 'video_suggestions', 'everyone');

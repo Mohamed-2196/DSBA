@@ -36,7 +36,15 @@ export function HomeForum({ year, n = 5 }: { year: CohortYear; n?: number }) {
 
   if (threads.isPending) return <HomeListLoading label="Loading the forum" />;
   if (threads.isError) {
-    return <QueryError error={threads.error} title="The forum didn’t load" size="sm" onRetry={() => void threads.refetch()} retrying={threads.isFetching} />;
+    return (
+      <QueryError
+        error={threads.error}
+        title="The forum didn’t load"
+        size="sm"
+        onRetry={() => void threads.refetch()}
+        retrying={threads.isFetching}
+      />
+    );
   }
   if (!rows.length) {
     return (

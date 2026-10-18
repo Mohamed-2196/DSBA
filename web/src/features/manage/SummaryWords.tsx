@@ -5,7 +5,18 @@ import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../api/errors';
 import type { SummaryEditable, SummaryWords as Words } from '../../api/types';
 import { cohortLabel, useToast, YEARS, type CohortYear } from '../../state';
-import { DocFrame, Drawer, Panel, QueryError, SegmentedControl, Skeleton, TextField, docErrors, focusDocStatus, type DocProblem } from '../../ui';
+import {
+  DocFrame,
+  Drawer,
+  Panel,
+  QueryError,
+  SegmentedControl,
+  Skeleton,
+  TextField,
+  docErrors,
+  focusDocStatus,
+  type DocProblem,
+} from '../../ui';
 import { useReloadSummaryWords, useSaveSummaryWords, useSummaryDraft, useSummaryWords } from './api';
 
 const HEADINGS: { key: keyof Words['headings']; label: string; hint: string }[] = [
@@ -17,7 +28,16 @@ const HEADINGS: { key: keyof Words['headings']; label: string; hint: string }[] 
 
 export function SummaryWords({ defaultYear }: { defaultYear: CohortYear | null }) {
   const query = useSummaryWords();
-  if (query.isError) return <QueryError error={query.error} title="The summary’s words didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} size="sm" />;
+  if (query.isError)
+    return (
+      <QueryError
+        error={query.error}
+        title="The summary’s words didn’t load"
+        onRetry={() => void query.refetch()}
+        retrying={query.isFetching}
+        size="sm"
+      />
+    );
   if (query.isPending) {
     return (
       <Panel padding="md">
@@ -55,10 +75,13 @@ function Editor({ loaded, defaultYear }: { loaded: SummaryEditable; defaultYear:
           focusDocStatus();
         },
         onError: (e) => {
-          if (isApiError(e) && e.code === 'summary_changed') return setProblem({ kind: 'changed', what: 'the summary’s words' });
+          if (isApiError(e) && e.code === 'summary_changed')
+            return setProblem({ kind: 'changed', what: 'the summary’s words' });
           const found = docErrors(isApiError(e) ? e.fields : {});
           setFields(found.fields);
-          const marked = Object.keys(found.fields).length ? ['Some fields need a look before saving. They’re marked below.'] : [];
+          const marked = Object.keys(found.fields).length
+            ? ['Some fields need a look before saving. They’re marked below.']
+            : [];
           const messages = [...found.general, ...marked];
           setProblem({ kind: 'other', messages: messages.length ? messages : [errorMessage(e)] });
         },
@@ -86,7 +109,10 @@ function Editor({ loaded, defaultYear }: { loaded: SummaryEditable; defaultYear:
         onSave={submit}
         problem={problem}
         onReload={() => void reload()}
-        section={{ title: 'Its words and when it goes out', about: 'Every year’s summary uses them, in its email and in the text reps paste.' }}
+        section={{
+          title: 'Its words and when it goes out',
+          about: 'Every year’s summary uses them, in its email and in the text reps paste.',
+        }}
       >
         <div className="dedit-grid">
           <TextField
@@ -111,7 +137,15 @@ function Editor({ loaded, defaultYear }: { loaded: SummaryEditable; defaultYear:
               required
             />
           ))}
-          <TextField label="Before the link at the end" hint="The link to the hub follows it." value={words.closing} onChange={(e) => setWords((w) => ({ ...w, closing: e.target.value }))} error={err('closing')} maxLength={80} required />
+          <TextField
+            label="Before the link at the end"
+            hint="The link to the hub follows it."
+            value={words.closing}
+            onChange={(e) => setWords((w) => ({ ...w, closing: e.target.value }))}
+            error={err('closing')}
+            maxLength={80}
+            required
+          />
           <TextField
             label="Goes out on Sunday at"
             hint="Bahrain time. The emails are queued from then on."
@@ -125,11 +159,31 @@ function Editor({ loaded, defaultYear }: { loaded: SummaryEditable; defaultYear:
         </div>
       </DocFrame>
 
-      <Drawer open={previewing} onClose={() => setPreviewing(false)} title="Preview" description="This week’s summary in your words. Nothing is saved or sent." width="min(760px, 100vw)">
+      <Drawer
+        open={previewing}
+        onClose={() => setPreviewing(false)}
+        title="Preview"
+        description="This week’s summary in your words. Nothing is saved or sent."
+        width="min(760px, 100vw)"
+      >
         {previewing ? (
           <div className="dedit-preview">
-            <SegmentedControl label="Year" options={YEARS.map((y) => ({ value: y, label: cohortLabel(y) }))} value={year} onChange={setYear} size="sm" />
-            {draft.isError ? <QueryError error={draft.error} title="The preview didn’t load" onRetry={() => void draft.refetch()} retrying={draft.isFetching} size="sm" /> : null}
+            <SegmentedControl
+              label="Year"
+              options={YEARS.map((y) => ({ value: y, label: cohortLabel(y) }))}
+              value={year}
+              onChange={setYear}
+              size="sm"
+            />
+            {draft.isError ? (
+              <QueryError
+                error={draft.error}
+                title="The preview didn’t load"
+                onRetry={() => void draft.refetch()}
+                retrying={draft.isFetching}
+                size="sm"
+              />
+            ) : null}
             {draft.data ? (
               <>
                 <p className="dedit-preview__label">Subject</p>

@@ -10,7 +10,17 @@ import {
   type RefObject,
   type TextareaHTMLAttributes,
 } from 'react';
-import { Code, ImageSquare, LinkSimple, ListBullets, ListNumbers, Quotes, TextB, TextItalic, type Icon } from '@phosphor-icons/react';
+import {
+  Code,
+  ImageSquare,
+  LinkSimple,
+  ListBullets,
+  ListNumbers,
+  Quotes,
+  TextB,
+  TextItalic,
+  type Icon,
+} from '@phosphor-icons/react';
 import { Field, IconButton, SegmentedControl, cx, modKeyLabel } from '../../../ui';
 import { bold, bulletList, code, italic, link, numberedList, quote, type EditFn } from '../lib/editing';
 import { useScrollFade } from '../lib/useScrollFade';
@@ -134,7 +144,8 @@ export function MarkdownEditor({
   };
 
   // Pasting a screenshot or dropping a photo onto the text attaches it, like the "Attach image" button.
-  const imagesIn = (list: FileList | null | undefined) => Array.from(list ?? []).filter((f) => f.type.startsWith('image/'));
+  const imagesIn = (list: FileList | null | undefined) =>
+    Array.from(list ?? []).filter((f) => f.type.startsWith('image/'));
   const onPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const files = imagesIn(e.clipboardData?.files);
     if (!onImageFiles || !files.length) return;
@@ -155,7 +166,13 @@ export function MarkdownEditor({
       {(fid, describedBy) => (
         <div className={cx('forum-editor', mode === 'preview' && 'is-preview')}>
           <div className="forum-editor__bar">
-            <div ref={toolsRef} className="forum-editor__tools" role="toolbar" aria-label="Formatting" aria-controls={fid}>
+            <div
+              ref={toolsRef}
+              className="forum-editor__tools"
+              role="toolbar"
+              aria-label="Formatting"
+              aria-controls={fid}
+            >
               {toolList.map((t) =>
                 'sep' in t ? (
                   <span key={t.sep} className="forum-editor__sep" aria-hidden="true" />
@@ -176,12 +193,27 @@ export function MarkdownEditor({
               {onAttachImage ? (
                 <>
                   <span className="forum-editor__sep" aria-hidden="true" />
-                  <IconButton size="sm" icon={ImageSquare} label="Attach image" tooltip tooltipSide="top" onClick={onAttachImage} data-hub="editor-attach-image" />
+                  <IconButton
+                    size="sm"
+                    icon={ImageSquare}
+                    label="Attach image"
+                    tooltip
+                    tooltipSide="top"
+                    onClick={onAttachImage}
+                    data-hub="editor-attach-image"
+                  />
                 </>
               ) : null}
             </div>
             {preview ? (
-              <SegmentedControl size="sm" label="Editor view" className="forum-editor__mode" options={MODES} value={mode} onChange={(v) => setMode(v === 'preview' ? 'preview' : 'write')} />
+              <SegmentedControl
+                size="sm"
+                label="Editor view"
+                className="forum-editor__mode"
+                options={MODES}
+                value={mode}
+                onChange={(v) => setMode(v === 'preview' ? 'preview' : 'write')}
+              />
             ) : null}
           </div>
           {mode === 'write' ? (
@@ -205,7 +237,11 @@ export function MarkdownEditor({
             />
           ) : (
             <div className="forum-editor__preview" id={fid} tabIndex={-1}>
-              {value.trim() ? <Prose text={value} /> : <p className="forum-editor__empty">Nothing to preview yet. Switch to Write and add some details.</p>}
+              {value.trim() ? (
+                <Prose text={value} />
+              ) : (
+                <p className="forum-editor__empty">Nothing to preview yet. Switch to Write and add some details.</p>
+              )}
             </div>
           )}
         </div>

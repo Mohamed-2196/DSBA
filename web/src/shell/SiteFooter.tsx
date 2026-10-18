@@ -54,7 +54,12 @@ export function SiteFooter() {
                 {site.contributors.map((c) => (
                   <li key={c.id}>
                     {httpsHref(c.url) ? (
-                      <a href={httpsHref(c.url) ?? undefined} target="_blank" rel="noopener noreferrer" className="shell-footer__name">
+                      <a
+                        href={httpsHref(c.url) ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shell-footer__name"
+                      >
                         {c.name}
                       </a>
                     ) : (

@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { askedBy, awaitsAnswer, examYears, kindLabel, meTooLine, meTooOfMine, needsReply, parseKind, parseSort, parseStatus, statusOf, wantsLine } from './labels';
+import {
+  askedBy,
+  awaitsAnswer,
+  examYears,
+  kindLabel,
+  meTooLine,
+  meTooOfMine,
+  needsReply,
+  parseKind,
+  parseSort,
+  parseStatus,
+  statusOf,
+  wantsLine,
+} from './labels';
 
 describe('request labels', () => {
   it('reads kinds, statuses and sorts from the URL, and ignores anything else', () => {

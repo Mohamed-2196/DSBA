@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { ModuleSummary } from '../../api/types';
-import { CHOICES, cleanPicks, isMine, modulesFor, papersFor, papersNote, pickOnly, picksSummary, togglePick } from './papers';
+import {
+  CHOICES,
+  cleanPicks,
+  isMine,
+  modulesFor,
+  papersFor,
+  papersNote,
+  pickOnly,
+  picksSummary,
+  togglePick,
+} from './papers';
 
 const mod = (id: string, year: 1 | 2 | 3): ModuleSummary => ({
   id,
@@ -35,7 +45,10 @@ describe('papersFor', () => {
   });
 
   it('keeps only the option picked, with the compulsory modules', () => {
-    expect([...(papersFor(2, 2, ['econometrics'], catalogue) ?? [])]).toEqual(['advanced-stats-inferential', 'econometrics']);
+    expect([...(papersFor(2, 2, ['econometrics'], catalogue) ?? [])]).toEqual([
+      'advanced-stats-inferential',
+      'econometrics',
+    ]);
     // Abstract Mathematics has no module: both Hub options go
     expect([...(papersFor(2, 2, ['abstract-maths'], catalogue) ?? [])]).toEqual(['advanced-stats-inferential']);
   });
@@ -63,13 +76,19 @@ describe('isMine', () => {
 });
 
 it('modulesFor lists your year, then other years', () => {
-  expect(modulesFor(2, new Set(['statistics', 'econometrics']), catalogue).map((m) => m.id)).toEqual(['econometrics', 'statistics']);
+  expect(modulesFor(2, new Set(['statistics', 'econometrics']), catalogue).map((m) => m.id)).toEqual([
+    'econometrics',
+    'statistics',
+  ]);
   expect(modulesFor(1, null, catalogue).map((m) => m.id)).toEqual(['statistics', 'mathematics']);
 });
 
 it('togglePick keeps a choice to its size', () => {
   const y3 = CHOICES[3];
-  expect(togglePick(['microeconomics', 'asset-pricing'], 'marketing-management', y3)).toEqual(['asset-pricing', 'marketing-management']);
+  expect(togglePick(['microeconomics', 'asset-pricing'], 'marketing-management', y3)).toEqual([
+    'asset-pricing',
+    'marketing-management',
+  ]);
   expect(togglePick(['econometrics'], 'information-systems', CHOICES[2])).toEqual(['information-systems']);
   expect(togglePick(['econometrics'], 'econometrics', CHOICES[2])).toEqual([]);
   expect(togglePick(['econometrics'], 'statistics')).toEqual(['econometrics', 'statistics']);
@@ -91,15 +110,24 @@ it('picksSummary', () => {
 
 it('papersNote says what Home lists and what is left to pick', () => {
   expect(papersNote(null, [], null)).toBeNull();
-  expect(papersNote(2, [], null)).toEqual({ text: 'Pick your Year 2 option to list only the modules you sit.', action: 'Pick your option' });
+  expect(papersNote(2, [], null)).toEqual({
+    text: 'Pick your Year 2 option to list only the modules you sit.',
+    action: 'Pick your option',
+  });
   expect(papersNote(3, [], null)?.action).toBe('Pick your electives');
   expect(papersNote(1, [], null)).toEqual({ text: 'Every Year 1 module.', action: 'Change' });
-  expect(papersNote(2, ['econometrics'], new Set(['a', 'b', 'c']))).toEqual({ text: 'The 3 modules you sit.', action: 'Change' });
+  expect(papersNote(2, ['econometrics'], new Set(['a', 'b', 'c']))).toEqual({
+    text: 'The 3 modules you sit.',
+    action: 'Change',
+  });
 });
 
 it('pickOnly keeps one module of a pick-one choice', () => {
   const choice = CHOICES[2];
   if (!choice) throw new Error('Year 2 has an option');
-  expect(pickOnly(['statistics', 'econometrics'], 'information-systems', choice)).toEqual(['statistics', 'information-systems']);
+  expect(pickOnly(['statistics', 'econometrics'], 'information-systems', choice)).toEqual([
+    'statistics',
+    'information-systems',
+  ]);
   expect(pickOnly(['statistics', 'econometrics'], null, choice)).toEqual(['statistics']);
 });

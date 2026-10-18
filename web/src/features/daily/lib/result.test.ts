@@ -3,16 +3,52 @@ import { HELD, resultOf } from './result';
 import { statusOf } from './status';
 import type { GameDay, Play } from '../types';
 
-const base = { day: '2026-10-18', number: 18, variant: '', scored: true, points: 90, mistakes: 0, hints: 0, seconds: 75, tooFast: false, result: null, share: 'x' };
+const base = {
+  day: '2026-10-18',
+  number: 18,
+  variant: '',
+  scored: true,
+  points: 90,
+  mistakes: 0,
+  hints: 0,
+  seconds: 75,
+  tooFast: false,
+  result: null,
+  share: 'x',
+};
 
 describe('resultOf', () => {
   it('praises a word found, by the guess that found it', () => {
-    const play = { ...base, game: 'word', status: 'won', view: { kind: 'word', length: 5, maxGuesses: 6, rows: [{ word: 'CRANE', marks: [] }, { word: 'TABLE', marks: [] }], answer: 'TABLE' } } as unknown as Play;
-    expect(resultOf(play)).toEqual({ headline: 'Brilliant', summary: 'Solved in 2 guesses', answer: null, held: false });
+    const play = {
+      ...base,
+      game: 'word',
+      status: 'won',
+      view: {
+        kind: 'word',
+        length: 5,
+        maxGuesses: 6,
+        rows: [
+          { word: 'CRANE', marks: [] },
+          { word: 'TABLE', marks: [] },
+        ],
+        answer: 'TABLE',
+      },
+    } as unknown as Play;
+    expect(resultOf(play)).toEqual({
+      headline: 'Brilliant',
+      summary: 'Solved in 2 guesses',
+      answer: null,
+      held: false,
+    });
   });
 
   it('gives the answer of a lost word, but holds it for a guest playing today', () => {
-    const play = { ...base, game: 'word', status: 'lost', view: { kind: 'word', length: 5, maxGuesses: 6, rows: [], answer: 'TABLE' } } as unknown as Play;
+    const play = {
+      ...base,
+      game: 'word',
+      status: 'lost',
+      view: { kind: 'word', length: 5, maxGuesses: 6, rows: [], answer: 'TABLE' },
+    } as unknown as Play;
     expect(resultOf(play).answer).toBe('TABLE');
     const held = resultOf({ ...play, view: { ...play.view, answer: null } } as unknown as Play, true);
     expect([held.answer, held.held, held.summary]).toEqual([null, true, 'Out of guesses']);
@@ -24,7 +60,23 @@ describe('resultOf', () => {
       { label: 'A', level: 1, words: ['A1', 'A2', 'A3', 'A4'] },
       { label: 'B', level: 2, words: ['B1', 'B2', 'B3', 'B4'] },
     ];
-    const play = { ...base, game: 'groups', status: 'lost', mistakes: 4, view: { kind: 'groups', words: [], found: groups, mistakesLeft: 0, guesses: [['A1', 'A2', 'A3', 'A4'], ['A1', 'B2', 'B3', 'B4']], oneAway: false } } as unknown as Play;
+    const play = {
+      ...base,
+      game: 'groups',
+      status: 'lost',
+      mistakes: 4,
+      view: {
+        kind: 'groups',
+        words: [],
+        found: groups,
+        mistakesLeft: 0,
+        guesses: [
+          ['A1', 'A2', 'A3', 'A4'],
+          ['A1', 'B2', 'B3', 'B4'],
+        ],
+        oneAway: false,
+      },
+    } as unknown as Play;
     expect(resultOf(play).summary).toBe('1 of 4 groups found');
   });
 
@@ -34,12 +86,24 @@ describe('resultOf', () => {
       { word: 'TABLE', start: cell, end: cell, revealed: false },
       { word: 'QUERY', start: cell, end: cell, revealed: true },
     ];
-    const play = { ...base, game: 'search', status: 'lost', view: { kind: 'search', grid: [], words: ['QUERY', 'TABLE'], found, hints: [], misses: 0 } } as unknown as Play;
+    const play = {
+      ...base,
+      game: 'search',
+      status: 'lost',
+      view: { kind: 'search', grid: [], words: ['QUERY', 'TABLE'], found, hints: [], misses: 0 },
+    } as unknown as Play;
     expect(resultOf(play).summary).toBe('1 of 2 words found');
   });
 
   it('times a solved Sudoku', () => {
-    const play = { ...base, game: 'sudoku', status: 'won', mistakes: 1, hints: 2, view: { kind: 'sudoku', difficulty: 'hard', givens: [], filled: [], hinted: [], wrong: null } } as unknown as Play;
+    const play = {
+      ...base,
+      game: 'sudoku',
+      status: 'won',
+      mistakes: 1,
+      hints: 2,
+      view: { kind: 'sudoku', difficulty: 'hard', givens: [], filled: [], hinted: [], wrong: null },
+    } as unknown as Play;
     expect(resultOf(play).summary).toBe('Hard, 1 mistake, 2 hints in 1:15');
   });
 });

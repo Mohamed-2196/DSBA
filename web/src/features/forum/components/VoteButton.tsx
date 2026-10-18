@@ -20,7 +20,15 @@ export interface VoteButtonProps {
  * request runs behind it and a failure puts it back (see api.ts useThreadVote / useReplyVote). An account without
  * the forum.post box sees the count with the button disabled; guests are asked to sign in when they click.
  */
-export function VoteButton({ count, voted, onToggle, layout = 'stack', size = 'md', disabled = false, className }: VoteButtonProps) {
+export function VoteButton({
+  count,
+  voted,
+  onToggle,
+  layout = 'stack',
+  size = 'md',
+  disabled = false,
+  className,
+}: VoteButtonProps) {
   const [pops, setPops] = useState(0);
   const { mayTry } = useAuth();
   const votes = mayTry('forum.post');
@@ -41,7 +49,12 @@ export function VoteButton({ count, voted, onToggle, layout = 'stack', size = 'm
         onToggle?.();
       }}
     >
-      <ArrowFatUp key={pops} weight={voted ? 'fill' : 'bold'} className={cx('forum-vote__icon', voted && pops > 0 && 'is-popping')} aria-hidden="true" />
+      <ArrowFatUp
+        key={pops}
+        weight={voted ? 'fill' : 'bold'}
+        className={cx('forum-vote__icon', voted && pops > 0 && 'is-popping')}
+        aria-hidden="true"
+      />
       <RollingNumber value={count} className="forum-vote__count" />
     </button>
   );

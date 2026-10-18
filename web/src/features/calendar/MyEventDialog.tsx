@@ -3,7 +3,16 @@ import { errorMessage, isApiError } from '../../api/errors';
 import { Button, cx, Modal, Select, Switch, TextArea, TextField } from '../../ui';
 import type { DayKey } from '../../lib/dates';
 import { useCreateMyEvent, useEditMyOccurrence, useUpdateMyEvent } from './api';
-import { ALL_DAY_REMINDERS, clock, COLOUR_LABELS, COLOURS, lastRepeat, occurrenceDays, REMINDERS, repeats } from './mine';
+import {
+  ALL_DAY_REMINDERS,
+  clock,
+  COLOUR_LABELS,
+  COLOURS,
+  lastRepeat,
+  occurrenceDays,
+  REMINDERS,
+  repeats,
+} from './mine';
 import { ScopeChoice } from './ScopeChoice';
 import type { ChangeScope, PersonalColour, PersonalEvent, PersonalInput, Reminder, Repeat } from './types';
 
@@ -75,10 +84,12 @@ function validate(f: FormState, repeat: Repeat): FieldErrors {
   if (!title) errors.title = 'Give the event a title.';
   else if (title.length > 160) errors.title = 'Keep the title under 160 characters.';
   if (!DATE_RE.test(f.date)) errors.date = 'Choose the day.';
-  if (f.allDay && repeat === 'none' && f.endDate && f.endDate < f.date) errors.endDate = 'The last day can’t be before the first.';
+  if (f.allDay && repeat === 'none' && f.endDate && f.endDate < f.date)
+    errors.endDate = 'The last day can’t be before the first.';
   if (!f.allDay && !TIME_RE.test(f.startTime)) errors.startTime = 'Choose when it starts, or make it all day.';
   if (!f.allDay && f.endTime && f.endTime <= f.startTime) errors.endTime = 'The end has to be after the start.';
-  if (repeat !== 'none' && f.repeatUntil && f.repeatUntil < f.date) errors.repeatUntil = 'The repeat can’t end before the first day.';
+  if (repeat !== 'none' && f.repeatUntil && f.repeatUntil < f.date)
+    errors.repeatUntil = 'The repeat can’t end before the first day.';
   if (f.place.trim().length > 120) errors.place = 'Keep the place under 120 characters.';
   if (f.notes.trim().length > 2000) errors.notes = 'Keep the notes under 2,000 characters.';
   return errors;
@@ -137,7 +148,8 @@ export function MyEventDialog({ open, event, day, onClose, onSaved }: MyEventDia
   const setAllDay = (allDay: boolean) => {
     setForm((f) => {
       // an all-day event offers reminders on the day or the day before, at 9:00
-      const remind = allDay && f.remind && !ALL_DAY_REMINDERS.some((r) => String(r.value) === f.remind) ? '0' : f.remind;
+      const remind =
+        allDay && f.remind && !ALL_DAY_REMINDERS.some((r) => String(r.value) === f.remind) ? '0' : f.remind;
       return { ...f, allDay, remind };
     });
   };
@@ -179,8 +191,15 @@ export function MyEventDialog({ open, event, day, onClose, onSaved }: MyEventDia
         const days = occurrenceDays(saved);
         return days.includes(day) ? day : (days[0] ?? saved.date);
       };
-      update.mutate({ id: event.id, patch: body }, { onSuccess: (saved) => onSaved(saved, false, shown(saved)), onError: fail });
-    } else editDay.mutate({ id: event.id, day, scope, patch: body }, { onSuccess: (saved) => onSaved(saved, false, saved.date), onError: fail });
+      update.mutate(
+        { id: event.id, patch: body },
+        { onSuccess: (saved) => onSaved(saved, false, shown(saved)), onError: fail },
+      );
+    } else
+      editDay.mutate(
+        { id: event.id, day, scope, patch: body },
+        { onSuccess: (saved) => onSaved(saved, false, saved.date), onError: fail },
+      );
   };
 
   const span = form.allDay && repeat === 'none'; // an all-day event can run over several days
@@ -197,24 +216,82 @@ export function MyEventDialog({ open, event, day, onClose, onSaved }: MyEventDia
           <Button variant="ghost" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" form={`cal-mine-${uid}`} loading={saving} data-hub="calendar-mine-save">
+          <Button
+            variant="primary"
+            type="submit"
+            form={`cal-mine-${uid}`}
+            loading={saving}
+            data-hub="calendar-mine-save"
+          >
             {event ? 'Save changes' : 'Add event'}
           </Button>
         </>
       }
     >
       <form id={`cal-mine-${uid}`} className="cal-form" onSubmit={submit} noValidate data-hub="calendar-mine-form">
-        {event && repeating ? <ScopeChoice legend="Change" value={scope} onChange={pickScope} event={event} day={day} disabled={saving} autoFocus className="cal-form__wide" /> : null}
-        <TextField label="Title" required value={form.title} onChange={(e) => set('title', e.target.value)} error={errors.title} placeholder="Study group, gym, dentist" className="cal-form__wide" data-autofocus />
+        {event && repeating ? (
+          <ScopeChoice
+            legend="Change"
+            value={scope}
+            onChange={pickScope}
+            event={event}
+            day={day}
+            disabled={saving}
+            autoFocus
+            className="cal-form__wide"
+          />
+        ) : null}
+        <TextField
+          label="Title"
+          required
+          value={form.title}
+          onChange={(e) => set('title', e.target.value)}
+          error={errors.title}
+          placeholder="Study group, gym, dentist"
+          className="cal-form__wide"
+          data-autofocus
+        />
         <Switch checked={form.allDay} onChange={setAllDay} label="All day" className="cal-form__wide" />
         <div className={cx('cal-form__wide', 'cal-form__when', !form.allDay && 'has-times')}>
-          <TextField label={span ? 'First day' : 'Day'} type="date" required value={form.date} onChange={(e) => set('date', e.target.value)} error={errors.date} className="cal-form__day" />
+          <TextField
+            label={span ? 'First day' : 'Day'}
+            type="date"
+            required
+            value={form.date}
+            onChange={(e) => set('date', e.target.value)}
+            error={errors.date}
+            className="cal-form__day"
+          />
           {span ? (
-            <TextField label="Last day" type="date" value={form.endDate} min={form.date || undefined} onChange={(e) => set('endDate', e.target.value)} error={errors.endDate} hint="Only for more than one day." />
+            <TextField
+              label="Last day"
+              type="date"
+              value={form.endDate}
+              min={form.date || undefined}
+              onChange={(e) => set('endDate', e.target.value)}
+              error={errors.endDate}
+              hint="Only for more than one day."
+            />
           ) : form.allDay ? null : (
             <>
-              <TextField label="Starts" type="time" required value={form.startTime} onChange={(e) => set('startTime', e.target.value)} error={errors.startTime} className="cal-form__time" />
-              <TextField label="Ends" type="time" value={form.endTime} min={form.startTime || undefined} onChange={(e) => set('endTime', e.target.value)} error={errors.endTime} className="cal-form__time" />
+              <TextField
+                label="Starts"
+                type="time"
+                required
+                value={form.startTime}
+                onChange={(e) => set('startTime', e.target.value)}
+                error={errors.startTime}
+                className="cal-form__time"
+              />
+              <TextField
+                label="Ends"
+                type="time"
+                value={form.endTime}
+                min={form.startTime || undefined}
+                onChange={(e) => set('endTime', e.target.value)}
+                error={errors.endTime}
+                className="cal-form__time"
+              />
             </>
           )}
         </div>
@@ -230,25 +307,59 @@ export function MyEventDialog({ open, event, day, onClose, onSaved }: MyEventDia
               error={errors.repeat}
             />
             {form.repeat !== 'none' ? (
-              <TextField label="Until" type="date" value={form.repeatUntil} min={form.date || undefined} onChange={(e) => set('repeatUntil', e.target.value)} error={errors.repeatUntil} hint="Leave it empty to repeat for a year." />
+              <TextField
+                label="Until"
+                type="date"
+                value={form.repeatUntil}
+                min={form.date || undefined}
+                onChange={(e) => set('repeatUntil', e.target.value)}
+                error={errors.repeatUntil}
+                hint="Leave it empty to repeat for a year."
+              />
             ) : null}
           </>
         )}
-        <TextField label="Place" value={form.place} onChange={(e) => set('place', e.target.value)} error={errors.place} placeholder="Room 4, block B" />
-        <Select label="Reminder" value={form.remind} onChange={(e) => set('remind', e.target.value)} options={reminders.map((r) => ({ value: r.value == null ? '' : String(r.value), label: r.label }))} error={errors.remind} />
+        <TextField
+          label="Place"
+          value={form.place}
+          onChange={(e) => set('place', e.target.value)}
+          error={errors.place}
+          placeholder="Room 4, block B"
+        />
+        <Select
+          label="Reminder"
+          value={form.remind}
+          onChange={(e) => set('remind', e.target.value)}
+          options={reminders.map((r) => ({ value: r.value == null ? '' : String(r.value), label: r.label }))}
+          error={errors.remind}
+        />
         <fieldset className="cal-form__wide cal-colours">
           <legend className="cal-colours__legend">Colour</legend>
           <div className="cal-colours__list">
             {COLOURS.map((c) => (
               <label key={c} className={cx('cal-colours__item', `cal-colour--${c}`, form.colour === c && 'is-picked')}>
-                <input type="radio" name={`cal-colour-${uid}`} value={c} checked={form.colour === c} onChange={() => set('colour', c)} className="visually-hidden" />
+                <input
+                  type="radio"
+                  name={`cal-colour-${uid}`}
+                  value={c}
+                  checked={form.colour === c}
+                  onChange={() => set('colour', c)}
+                  className="visually-hidden"
+                />
                 <span className="cal-colours__swatch" aria-hidden="true" />
                 <span className="cal-colours__name">{COLOUR_LABELS[c]}</span>
               </label>
             ))}
           </div>
         </fieldset>
-        <TextArea label="Notes" value={form.notes} onChange={(e) => set('notes', e.target.value)} error={errors.notes} rows={3} className="cal-form__wide" />
+        <TextArea
+          label="Notes"
+          value={form.notes}
+          onChange={(e) => set('notes', e.target.value)}
+          error={errors.notes}
+          rows={3}
+          className="cal-form__wide"
+        />
         {formError ? (
           <p className="cal-form__error cal-form__wide" role="alert">
             {formError}

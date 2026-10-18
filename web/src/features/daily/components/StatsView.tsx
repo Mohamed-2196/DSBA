@@ -1,5 +1,19 @@
 // Your stats: what you've played, your streak and its weekly freeze, and the badges, earned and still to earn.
-import { CalendarCheck, Crown, Flame, GridNine, Lightning, Lock, Medal, Snowflake, Sparkle, SquaresFour, Star, Trophy, type Icon } from '@phosphor-icons/react';
+import {
+  CalendarCheck,
+  Crown,
+  Flame,
+  GridNine,
+  Lightning,
+  Lock,
+  Medal,
+  Snowflake,
+  Sparkle,
+  SquaresFour,
+  Star,
+  Trophy,
+  type Icon,
+} from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
 import { Button, Panel, QueryError, Skeleton, cx } from '../../../ui';
 import { useDailyMe } from '../api';
@@ -31,7 +45,15 @@ export function StatsView() {
       </Panel>
     );
   }
-  if (mine.isError) return <QueryError error={mine.error} title="Your stats didn’t load" onRetry={() => void mine.refetch()} retrying={mine.isFetching} />;
+  if (mine.isError)
+    return (
+      <QueryError
+        error={mine.error}
+        title="Your stats didn’t load"
+        onRetry={() => void mine.refetch()}
+        retrying={mine.isFetching}
+      />
+    );
   if (mine.isPending) {
     return (
       <Panel padding="md">
@@ -54,9 +76,15 @@ export function StatsView() {
       </dl>
 
       <Panel padding="md" className={cx('dh-stats__freeze', streak.freezeReady && 'is-ready')}>
-        <Snowflake className="dh-stats__freeze-icon" weight={streak.freezeReady ? 'fill' : 'regular'} aria-hidden="true" />
+        <Snowflake
+          className="dh-stats__freeze-icon"
+          weight={streak.freezeReady ? 'fill' : 'regular'}
+          aria-hidden="true"
+        />
         <div>
-          <p className="dh-stats__freeze-title">{streak.freezeReady ? 'This week’s freeze is ready' : 'This week’s freeze is used'}</p>
+          <p className="dh-stats__freeze-title">
+            {streak.freezeReady ? 'This week’s freeze is ready' : 'This week’s freeze is used'}
+          </p>
           <p className="dh-stats__freeze-body">
             Miss a day and the week’s freeze keeps your streak going, once a week. A new one comes each Sunday.
           </p>
@@ -65,7 +93,10 @@ export function StatsView() {
 
       <section aria-labelledby="dh-badges">
         <h2 id="dh-badges" className="dh-stats__head">
-          Badges <span className="dy-num">{earned} of {badges.length}</span>
+          Badges{' '}
+          <span className="dy-num">
+            {earned} of {badges.length}
+          </span>
         </h2>
         <ul className="dh-stats__badges">
           {badges.map((b) => {

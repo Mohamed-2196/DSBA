@@ -5,7 +5,21 @@ import { useState, type DragEvent, type FormEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ModuleEditSummary } from '../../../api/types';
 import { useQueryParam, useToast, YEARS } from '../../../state';
-import { Badge, Button, IconButton, Modal, ModuleArt, ModuleIcon, Panel, QueryError, Select, Skeleton, TextField, cx, moduleArtSrc } from '../../../ui';
+import {
+  Badge,
+  Button,
+  IconButton,
+  Modal,
+  ModuleArt,
+  ModuleIcon,
+  Panel,
+  QueryError,
+  Select,
+  Skeleton,
+  TextField,
+  cx,
+  moduleArtSrc,
+} from '../../../ui';
 import { useCreateModule, useModulesForEditing, useReorderModules } from './api';
 import { ArtField } from './ArtField';
 import { iconName } from './draft';
@@ -21,7 +35,16 @@ export function ModulesEditor() {
 function ModuleList({ onOpen }: { onOpen: (id: string) => void }) {
   const list = useModulesForEditing();
   const [adding, setAdding] = useState(false);
-  if (list.isError) return <QueryError error={list.error} title="The modules didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} size="sm" />;
+  if (list.isError)
+    return (
+      <QueryError
+        error={list.error}
+        title="The modules didn’t load"
+        onRetry={() => void list.refetch()}
+        retrying={list.isFetching}
+        size="sm"
+      />
+    );
   return (
     <div className="medit">
       <div className="medit__bar">
@@ -35,7 +58,9 @@ function ModuleList({ onOpen }: { onOpen: (id: string) => void }) {
           <Skeleton lines={6} />
         </Panel>
       ) : (
-        YEARS.map((year) => <YearList key={year} year={year} modules={list.data.filter((m) => m.year === year)} onOpen={onOpen} />)
+        YEARS.map((year) => (
+          <YearList key={year} year={year} modules={list.data.filter((m) => m.year === year)} onOpen={onOpen} />
+        ))
       )}
       {/* Mounted while it is open, so it starts empty every time. */}
       {adding ? <AddModule onClose={() => setAdding(false)} onMade={onOpen} /> : null}
@@ -48,14 +73,25 @@ function RowVisual({ m }: { m: ModuleEditSummary }) {
   return <ModuleIcon name={m.icon} size={22} className="medit__icon" />;
 }
 
-function YearList({ year, modules, onOpen }: { year: number; modules: ModuleEditSummary[]; onOpen: (id: string) => void }) {
+function YearList({
+  year,
+  modules,
+  onOpen,
+}: {
+  year: number;
+  modules: ModuleEditSummary[];
+  onOpen: (id: string) => void;
+}) {
   const reorder = useReorderModules();
   const { push: toast } = useToast();
   const [dragging, setDragging] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
 
   const order = (ids: string[]) =>
-    reorder.mutate({ year: year as 1 | 2 | 3, ids }, { onError: (e) => toast({ title: 'The new order wasn’t saved', body: errorMessage(e), tone: 'alert' }) });
+    reorder.mutate(
+      { year: year as 1 | 2 | 3, ids },
+      { onError: (e) => toast({ title: 'The new order wasn’t saved', body: errorMessage(e), tone: 'alert' }) },
+    );
   const step = (index: number, by: -1 | 1) => {
     const ids = modules.map((m) => m.id);
     const [id] = ids.splice(index, 1);
@@ -85,7 +121,11 @@ function YearList({ year, modules, onOpen }: { year: number; modules: ModuleEdit
           {modules.map((m, i) => (
             <li
               key={m.id}
-              className={cx('medit__row', dragging === m.id && 'is-dragging', over === m.id && dragging !== m.id && 'is-drop-before')}
+              className={cx(
+                'medit__row',
+                dragging === m.id && 'is-dragging',
+                over === m.id && dragging !== m.id && 'is-drop-before',
+              )}
               draggable
               onDragStart={(e) => {
                 e.dataTransfer.effectAllowed = 'move';
@@ -107,7 +147,8 @@ function YearList({ year, modules, onOpen }: { year: number; modules: ModuleEdit
               <button type="button" className="medit__open" onClick={() => onOpen(m.id)}>
                 <span className="medit__name">{m.unitCode ? `${m.unitCode} ${m.name}` : m.name}</span>
                 <span className="medit__meta">
-                  {m.chapterCount} {m.chapterCount === 1 ? 'chapter' : 'chapters'} · {m.lessonCount} {m.lessonCount === 1 ? 'lesson' : 'lessons'}
+                  {m.chapterCount} {m.chapterCount === 1 ? 'chapter' : 'chapters'} · {m.lessonCount}{' '}
+                  {m.lessonCount === 1 ? 'lesson' : 'lessons'}
                 </span>
               </button>
               {m.hidden ? (
@@ -116,8 +157,20 @@ function YearList({ year, modules, onOpen }: { year: number; modules: ModuleEdit
                 </Badge>
               ) : null}
               <span className="medit__steps">
-                <IconButton icon={ArrowUp} label={`Move ${m.shortName} up`} size="sm" disabled={i === 0 || reorder.isPending} onClick={() => step(i, -1)} />
-                <IconButton icon={ArrowDown} label={`Move ${m.shortName} down`} size="sm" disabled={i === modules.length - 1 || reorder.isPending} onClick={() => step(i, 1)} />
+                <IconButton
+                  icon={ArrowUp}
+                  label={`Move ${m.shortName} up`}
+                  size="sm"
+                  disabled={i === 0 || reorder.isPending}
+                  onClick={() => step(i, -1)}
+                />
+                <IconButton
+                  icon={ArrowDown}
+                  label={`Move ${m.shortName} down`}
+                  size="sm"
+                  disabled={i === modules.length - 1 || reorder.isPending}
+                  onClick={() => step(i, 1)}
+                />
               </span>
             </li>
           ))}
@@ -154,12 +207,23 @@ function AddModule({ onClose, onMade }: { onClose: () => void; onMade: (id: stri
     const found: Record<string, string> = {};
     if (name.trim().length < 3) found.name = 'Give the module a name of at least 3 characters.';
     if (shortName.trim().length < 2) found.shortName = 'Give it a short name of at least 2 characters.';
-    if (unitCode.trim() && !/^[A-Za-z]{2}\d{4}$/.test(unitCode.trim())) found.unitCode = 'A unit code is two letters and four digits, like ST2133.';
-    if (!SLUG.test(address) || address.length < 2) found.id = 'Use lowercase letters, digits and dashes, like data-ethics.';
+    if (unitCode.trim() && !/^[A-Za-z]{2}\d{4}$/.test(unitCode.trim()))
+      found.unitCode = 'A unit code is two letters and four digits, like ST2133.';
+    if (!SLUG.test(address) || address.length < 2)
+      found.id = 'Use lowercase letters, digits and dashes, like data-ethics.';
     setProblems(found);
     if (Object.keys(found).length) return;
     create.mutate(
-      { id: address, name: name.trim(), shortName: shortName.trim(), unitCode: unitCode.trim() || null, year, description: '', art, icon: iconName(icon) },
+      {
+        id: address,
+        name: name.trim(),
+        shortName: shortName.trim(),
+        unitCode: unitCode.trim() || null,
+        year,
+        description: '',
+        art,
+        icon: iconName(icon),
+      },
       {
         onSuccess: (m) => {
           onClose();
@@ -188,10 +252,38 @@ function AddModule({ onClose, onMade }: { onClose: () => void; onMade: (id: stri
       }
     >
       <form id="medit-add" className="medit-form__grid" onSubmit={submit} noValidate>
-        <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} error={problems.name} required maxLength={120} data-autofocus />
-        <TextField label="Short name" hint="On cards and in menus, like Economics." value={shortName} onChange={(e) => setShortName(e.target.value)} error={problems.shortName} required maxLength={60} />
-        <TextField label="Unit code" hint="Like ST2133. Leave it empty if there is none." value={unitCode} onChange={(e) => setUnitCode(e.target.value.toUpperCase())} error={problems.unitCode} maxLength={6} />
-        <Select label="Year" value={year} onChange={(e) => setYear(Number(e.target.value) as 1 | 2 | 3)} options={YEARS.map((y) => ({ value: y, label: `Year ${y}` }))} />
+        <TextField
+          label="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          error={problems.name}
+          required
+          maxLength={120}
+          data-autofocus
+        />
+        <TextField
+          label="Short name"
+          hint="On cards and in menus, like Economics."
+          value={shortName}
+          onChange={(e) => setShortName(e.target.value)}
+          error={problems.shortName}
+          required
+          maxLength={60}
+        />
+        <TextField
+          label="Unit code"
+          hint="Like ST2133. Leave it empty if there is none."
+          value={unitCode}
+          onChange={(e) => setUnitCode(e.target.value.toUpperCase())}
+          error={problems.unitCode}
+          maxLength={6}
+        />
+        <Select
+          label="Year"
+          value={year}
+          onChange={(e) => setYear(Number(e.target.value) as 1 | 2 | 3)}
+          options={YEARS.map((y) => ({ value: y, label: `Year ${y}` }))}
+        />
         <div className="medit-form__wide">
           <TextField
             label="Address"

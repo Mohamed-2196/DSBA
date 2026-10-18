@@ -41,4 +41,3 @@ export function ModulesGate({ children, fallback = null, error }: ModulesGatePro
   if (state.error) return <>{error ? error(state.retry, state.error, state.retrying) : null}</>;
   return <>{fallback}</>;
 }
-

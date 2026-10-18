@@ -24,7 +24,8 @@ const IDS = [
   'elective-1',
   'elective-2',
 ];
-const byId = (marks: string[]): Record<string, string> => Object.fromEntries(IDS.flatMap((id, i) => (marks[i] ? [[id, marks[i]]] : [])));
+const byId = (marks: string[]): Record<string, string> =>
+  Object.fromEntries(IDS.flatMap((id, i) => (marks[i] ? [[id, marks[i]]] : [])));
 
 export const EXAMPLES: Record<string, Example> = {
   first: {

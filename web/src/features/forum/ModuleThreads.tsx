@@ -47,7 +47,14 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
   }
 
   if (list.isError && !list.data) {
-    return <QueryError error={list.error} title={`The threads about ${name} didn’t load`} onRetry={() => void list.refetch()} retrying={list.isFetching} />;
+    return (
+      <QueryError
+        error={list.error}
+        title={`The threads about ${name} didn’t load`}
+        onRetry={() => void list.refetch()}
+        retrying={list.isFetching}
+      />
+    );
   }
 
   if (!threads.length) {
@@ -93,9 +100,22 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
           ))}
         </ul>
       </Panel>
-      {list.hasNextPage ? <LoadMore remaining={remainingCount(list.data?.pages)} loading={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()} /> : null}
+      {list.hasNextPage ? (
+        <LoadMore
+          remaining={remainingCount(list.data?.pages)}
+          loading={list.isFetchingNextPage}
+          onClick={() => void list.fetchNextPage()}
+        />
+      ) : null}
       {list.isFetchNextPageError ? (
-        <QueryError error={list.error} title="More threads didn’t load" onRetry={() => void list.fetchNextPage()} retrying={list.isFetchingNextPage} size="sm" panel={false} />
+        <QueryError
+          error={list.error}
+          title="More threads didn’t load"
+          onRetry={() => void list.fetchNextPage()}
+          retrying={list.isFetchingNextPage}
+          size="sm"
+          panel={false}
+        />
       ) : null}
     </section>
   );

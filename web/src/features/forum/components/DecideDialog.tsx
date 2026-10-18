@@ -11,7 +11,13 @@ import './dialogs.css';
 
 const NOTE_MAX = 1000;
 
-export function DecideDialog({ decision, onClose }: { decision: { report: ReportOut; status: Decision } | null; onClose: () => void }) {
+export function DecideDialog({
+  decision,
+  onClose,
+}: {
+  decision: { report: ReportOut; status: Decision } | null;
+  onClose: () => void;
+}) {
   const resolve = useResolveReport();
   const { push } = useToast();
   const [note, setNote] = useState('');
@@ -31,7 +37,11 @@ export function DecideDialog({ decision, onClose }: { decision: { report: Report
       { reportId: decision.report.id, status, note: note.trim() || null },
       {
         onSuccess: () => {
-          push({ title: status === 'resolved' ? 'Report resolved' : 'Report dismissed', body: 'The person who reported it has been told.', tone: 'success' });
+          push({
+            title: status === 'resolved' ? 'Report resolved' : 'Report dismissed',
+            body: 'The person who reported it has been told.',
+            tone: 'success',
+          });
           setNote('');
           setError(null);
           onClose();
@@ -55,7 +65,9 @@ export function DecideDialog({ decision, onClose }: { decision: { report: Report
       size="sm"
       title={status === 'resolved' ? 'Resolve this report' : 'Dismiss this report'}
       description={
-        status === 'resolved' ? 'Resolve it once you have dealt with the post, for example by hiding it.' : 'Dismiss it when the post is fine as it is. Nothing changes on the post.'
+        status === 'resolved'
+          ? 'Resolve it once you have dealt with the post, for example by hiding it.'
+          : 'Dismiss it when the post is fine as it is. Nothing changes on the post.'
       }
       footer={
         <>

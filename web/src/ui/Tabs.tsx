@@ -29,7 +29,17 @@ export interface TabsProps<T extends string = string> extends Omit<HTMLAttribute
  *              <Tabs idBase="module" tabs={[...]} value={tab} onChange={setTab} label="Module sections" />
  *              <TabPanel idBase="module" id="overview" value={tab}>…</TabPanel>
  */
-export function Tabs<T extends string = string>({ tabs, value, onChange, label, idBase = 'tabs', variant = 'underline', size = 'md', className, ...rest }: TabsProps<T>) {
+export function Tabs<T extends string = string>({
+  tabs,
+  value,
+  onChange,
+  label,
+  idBase = 'tabs',
+  variant = 'underline',
+  size = 'md',
+  className,
+  ...rest
+}: TabsProps<T>) {
   const listRef = useRef<HTMLDivElement>(null);
   const [ink, setInk] = useState<{ x: number; w: number } | null>(null);
   const index = tabs.findIndex((t) => t.id === value);
@@ -64,7 +74,14 @@ export function Tabs<T extends string = string>({ tabs, value, onChange, label, 
   };
 
   return (
-    <div ref={listRef} role="tablist" aria-label={label} className={cx('ui-tabs', `ui-tabs--${variant}`, `ui-tabs--${size}`, className)} onKeyDown={onKeyDown} {...rest}>
+    <div
+      ref={listRef}
+      role="tablist"
+      aria-label={label}
+      className={cx('ui-tabs', `ui-tabs--${variant}`, `ui-tabs--${size}`, className)}
+      onKeyDown={onKeyDown}
+      {...rest}
+    >
       {tabs.map((t) => {
         const selected = t.id === value;
         return (
@@ -82,12 +99,28 @@ export function Tabs<T extends string = string>({ tabs, value, onChange, label, 
           >
             {renderIcon(t.icon, { className: 'ui-tab__icon' })}
             <span>{t.label}</span>
-            {t.count != null ? <span className="ui-tab__count"><Count value={t.count} /></span> : null}
+            {t.count != null ? (
+              <span className="ui-tab__count">
+                <Count value={t.count} />
+              </span>
+            ) : null}
           </button>
         );
       })}
-      {ink && variant === 'underline' ? <span className="ui-tabs__ink" aria-hidden="true" style={{ width: ink.w, transform: `translateX(${ink.x}px)` }} /> : null}
-      {ink && variant === 'pill' ? <span className="ui-tabs__pill" aria-hidden="true" style={{ width: ink.w, transform: `translateX(${ink.x}px)` }} /> : null}
+      {ink && variant === 'underline' ? (
+        <span
+          className="ui-tabs__ink"
+          aria-hidden="true"
+          style={{ width: ink.w, transform: `translateX(${ink.x}px)` }}
+        />
+      ) : null}
+      {ink && variant === 'pill' ? (
+        <span
+          className="ui-tabs__pill"
+          aria-hidden="true"
+          style={{ width: ink.w, transform: `translateX(${ink.x}px)` }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -103,11 +136,27 @@ export interface TabPanelProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /** Panel for <Tabs>. Hidden (not unmounted when keepMounted) unless `value === id`. */
-export function TabPanel({ idBase = 'tabs', id, value, keepMounted = false, className, children, ...rest }: TabPanelProps) {
+export function TabPanel({
+  idBase = 'tabs',
+  id,
+  value,
+  keepMounted = false,
+  className,
+  children,
+  ...rest
+}: TabPanelProps) {
   const selected = value === id;
   if (!selected && !keepMounted) return null;
   return (
-    <div role="tabpanel" id={`${idBase}-panel-${id}`} aria-labelledby={`${idBase}-tab-${id}`} hidden={!selected} tabIndex={0} className={cx('ui-tabpanel', className)} {...rest}>
+    <div
+      role="tabpanel"
+      id={`${idBase}-panel-${id}`}
+      aria-labelledby={`${idBase}-tab-${id}`}
+      hidden={!selected}
+      tabIndex={0}
+      className={cx('ui-tabpanel', className)}
+      {...rest}
+    >
       {children}
     </div>
   );

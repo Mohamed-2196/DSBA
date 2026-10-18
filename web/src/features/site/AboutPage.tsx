@@ -5,7 +5,18 @@ import { Link } from 'react-router-dom';
 import type { SiteDoc } from '../../api/types';
 import { showsUpload, useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
-import { Avatar, Button, Page, PageHeader, PageSection, Panel, QueryError, SectionHeader, Skeleton, countOf } from '../../ui';
+import {
+  Avatar,
+  Button,
+  Page,
+  PageHeader,
+  PageSection,
+  Panel,
+  QueryError,
+  SectionHeader,
+  Skeleton,
+  countOf,
+} from '../../ui';
 import { openBugReport } from '../bugs/public';
 import { useCalendarEvents } from '../calendar/public';
 import { Prose } from '../forum/public';
@@ -32,7 +43,8 @@ function CoverageLine() {
   const last = parts.pop() ?? '';
   return (
     <p>
-      Right now it covers {countOf(modules.length, 'module', 'modules')} across three years, with {parts.join(', ')} and {last}.
+      Right now it covers {countOf(modules.length, 'module', 'modules')} across three years, with {parts.join(', ')} and{' '}
+      {last}.
     </p>
   );
 }
@@ -57,7 +69,11 @@ export function AboutMain({ site, numbers = true }: { site: SiteDoc; numbers?: b
 
       {site.contributors.length ? (
         <PageSection aria-labelledby="about-people">
-          <SectionHeader id="about-people" title="Contributors" description="The people who built the hub and supplied its materials." />
+          <SectionHeader
+            id="about-people"
+            title="Contributors"
+            description="The people who built the hub and supplied its materials."
+          />
           <ul role="list" className="about__people">
             {site.contributors.map((c) => {
               const href = httpsHref(c.url);
@@ -84,7 +100,11 @@ export function AboutMain({ site, numbers = true }: { site: SiteDoc; numbers?: b
 
       {site.noteCredits.length ? (
         <PageSection aria-labelledby="about-notes">
-          <SectionHeader id="about-notes" title="Students who shared notes" description="Their notes are in the library and on each module’s page." />
+          <SectionHeader
+            id="about-notes"
+            title="Students who shared notes"
+            description="Their notes are in the library and on each module’s page."
+          />
           <ul role="list" className="about__notes">
             {site.noteCredits.map((p) => (
               <li key={p.id} className="about__note">
@@ -152,7 +172,12 @@ export default function AboutPage() {
     <Page>
       <PageHeader title="About DSBA Hub" description={site.data?.aboutIntro} />
       {site.isError ? (
-        <QueryError error={site.error} title="About didn’t load" onRetry={() => void site.refetch()} retrying={site.isFetching} />
+        <QueryError
+          error={site.error}
+          title="About didn’t load"
+          onRetry={() => void site.refetch()}
+          retrying={site.isFetching}
+        />
       ) : (
         <div className="about">
           {site.data ? (
@@ -167,8 +192,17 @@ export default function AboutPage() {
             {showsUpload(featureOn, mayTry) ? (
               <Panel padding="md" className="about__contribute">
                 <h2 className="about__aside-title">Got a resource to share?</h2>
-                <p className="about__aside-body">Notes, past papers or a guide: upload it to the library, and a student rep checks it before it goes up.</p>
-                <Button variant="primary" to="/library?upload=1" leadingIcon={UploadSimple} fullWidth data-hub="about-upload">
+                <p className="about__aside-body">
+                  Notes, past papers or a guide: upload it to the library, and a student rep checks it before it goes
+                  up.
+                </p>
+                <Button
+                  variant="primary"
+                  to="/library?upload=1"
+                  leadingIcon={UploadSimple}
+                  fullWidth
+                  data-hub="about-upload"
+                >
                   Upload a file
                 </Button>
               </Panel>

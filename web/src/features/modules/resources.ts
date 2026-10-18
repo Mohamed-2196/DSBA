@@ -21,12 +21,42 @@ interface ShelfInfo {
 }
 
 const SHELF_INFO: Record<ShelfKind, ShelfInfo> = {
-  'course-materials': { label: 'Books and study guide', name: 'books', icon: BookOpenText, description: 'The study guide and the essential reading.' },
-  exercises: { label: 'Exercises', name: 'exercises', icon: PencilSimpleLine, description: 'Practice questions and problem sets.' },
-  'past-paper': { label: 'Past papers', name: 'past papers', icon: Exam, description: 'Every sitting, with its examiners’ report and solutions when they’re in.' },
-  'vle-materials': { label: 'VLE material', name: 'VLE material', icon: Monitor, description: 'Slides, activities and handouts from the VLE.' },
-  'cheat-sheet': { label: 'Cheat sheet', name: 'a cheat sheet', icon: Notepad, description: 'A quick-reference sheet for revision.' },
-  notes: { label: 'Students’ notes', name: 'notes', icon: Notebook, description: 'Notes students made for their own revision and shared.' },
+  'course-materials': {
+    label: 'Books and study guide',
+    name: 'books',
+    icon: BookOpenText,
+    description: 'The study guide and the essential reading.',
+  },
+  exercises: {
+    label: 'Exercises',
+    name: 'exercises',
+    icon: PencilSimpleLine,
+    description: 'Practice questions and problem sets.',
+  },
+  'past-paper': {
+    label: 'Past papers',
+    name: 'past papers',
+    icon: Exam,
+    description: 'Every sitting, with its examiners’ report and solutions when they’re in.',
+  },
+  'vle-materials': {
+    label: 'VLE material',
+    name: 'VLE material',
+    icon: Monitor,
+    description: 'Slides, activities and handouts from the VLE.',
+  },
+  'cheat-sheet': {
+    label: 'Cheat sheet',
+    name: 'a cheat sheet',
+    icon: Notepad,
+    description: 'A quick-reference sheet for revision.',
+  },
+  notes: {
+    label: 'Students’ notes',
+    name: 'notes',
+    icon: Notebook,
+    description: 'Notes students made for their own revision and shared.',
+  },
 };
 
 /** What every module should have; the Overview tab says which of these nobody has shared yet. */
@@ -47,7 +77,13 @@ export function shelfHash(kind: ShelfKind): string {
 
 /** The module's shelves in the API's order, and `missing`: plain names of what nobody has shared yet. */
 export function buildShelves(m: Pick<ModuleDetail, 'shelves'>): { shelves: Shelf[]; missing: string[] } {
-  const shelves = m.shelves.map((s) => ({ ...SHELF_INFO[s.kind], kind: s.kind, files: s.files, beingAdded: s.beingAdded, hash: shelfHash(s.kind) }));
+  const shelves = m.shelves.map((s) => ({
+    ...SHELF_INFO[s.kind],
+    kind: s.kind,
+    files: s.files,
+    beingAdded: s.beingAdded,
+    hash: shelfHash(s.kind),
+  }));
   const have = new Set(m.shelves.map((s) => s.kind));
   return { shelves, missing: EXPECTED.filter((k) => !have.has(k)).map((k) => SHELF_INFO[k].name) };
 }

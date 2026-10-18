@@ -16,7 +16,11 @@ describe('readAnswer', () => {
   it('passes each piece on and resolves with the questions left', async () => {
     const pieces: string[] = [];
     const left = await readAnswer(
-      body('data: {"type":"text","text":"Hel', 'lo "}\n\ndata: {"type":"text","text":"there."}\n\n', ': ping\n\ndata: {"type":"done","questionsLeft":12}\n\n'),
+      body(
+        'data: {"type":"text","text":"Hel',
+        'lo "}\n\ndata: {"type":"text","text":"there."}\n\n',
+        ': ping\n\ndata: {"type":"done","questionsLeft":12}\n\n',
+      ),
       (t) => pieces.push(t),
     );
     expect(pieces).toEqual(['Hello ', 'there.']);
@@ -24,7 +28,12 @@ describe('readAnswer', () => {
   });
 
   it('stops with what was said when the answer breaks off', async () => {
-    const error = await readAnswer(body('data: {"type":"text","text":"Half"}\n\ndata: {"type":"error","code":"noora_unavailable","message":"Cut off."}\n\n'), () => undefined).catch((e: unknown) => e);
+    const error = await readAnswer(
+      body(
+        'data: {"type":"text","text":"Half"}\n\ndata: {"type":"error","code":"noora_unavailable","message":"Cut off."}\n\n',
+      ),
+      () => undefined,
+    ).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(AnswerCutOff);
     expect(error).toMatchObject({ message: 'Cut off.', said: true });
   });

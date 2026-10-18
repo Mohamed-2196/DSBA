@@ -12,7 +12,10 @@ function wrap(text: string, s: number, e: number, before: string, after: string,
   const selected = text.slice(s, e);
   // Toggle off when the selection is already wrapped.
   if (selected && text.slice(s - before.length, s) === before && text.slice(e, e + after.length) === after) {
-    return { text: text.slice(0, s - before.length) + selected + text.slice(e + after.length), sel: [s - before.length, e - before.length] };
+    return {
+      text: text.slice(0, s - before.length) + selected + text.slice(e + after.length),
+      sel: [s - before.length, e - before.length],
+    };
   }
   const inner = selected || placeholder;
   const next = text.slice(0, s) + before + inner + after + text.slice(e);
@@ -38,7 +41,9 @@ function prefixLines(t: string, s: number, e: number, prefixFor: (i: number) => 
   const lines = t.slice(start, end).split('\n');
   const out = lines.map((line, i) => prefixFor(i) + line).join('\n');
   const next = t.slice(0, start) + out + t.slice(end);
-  return s === e ? { text: next, sel: [start + out.length, start + out.length] } : { text: next, sel: [start, start + out.length] };
+  return s === e
+    ? { text: next, sel: [start + out.length, start + out.length] }
+    : { text: next, sel: [start, start + out.length] };
 }
 
 export const bulletList: EditFn = (t, s, e) => prefixLines(t, s, e, () => '- ');
@@ -78,17 +83,30 @@ export function removeImageLines(t: string, mediaUrl: string): string {
     const m = /^\s*!\[[^\]\n]*\]\(([^\s)]+)\)\s*$/.exec(line);
     return !(m && m[1] === mediaUrl);
   });
-  return kept.join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+/, '');
+  return kept
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/^\n+/, '');
 }
 
 /** A picture's markdown line. The description must not break out of the brackets. */
 export function imageMarkdown(alt: string, mediaUrl: string): string {
-  const clean = alt.replace(/[[\]()\n\r]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+  const clean = alt
+    .replace(/[[\]()\n\r]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200);
   return `![${clean || 'Image'}](${mediaUrl})`;
 }
 
 /** 'Week 3_notes-final.png' -> 'Week 3 notes final' (a starting point for the picture's description). */
 export function altFromFileName(name: string): string {
   const stem = name.replace(/\.[A-Za-z0-9]{1,5}$/, '');
-  return stem.replace(/[_\-.]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120) || 'Image';
+  return (
+    stem
+      .replace(/[_\-.]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 120) || 'Image'
+  );
 }

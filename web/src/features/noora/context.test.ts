@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { ModuleSummary } from '../../api/types';
 import { pageLabel } from './context';
 
-const ec1002 = { id: 'ec1002', unitCode: 'EC1002', shortName: 'Economics', name: 'Introduction to economics', year: 1 } as ModuleSummary;
+const ec1002 = {
+  id: 'ec1002',
+  unitCode: 'EC1002',
+  shortName: 'Economics',
+  name: 'Introduction to economics',
+  year: 1,
+} as ModuleSummary;
 
 describe('pageLabel', () => {
   it('names a module and its lessons by unit code', () => {

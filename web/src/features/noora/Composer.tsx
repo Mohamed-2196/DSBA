@@ -102,8 +102,31 @@ export function Seen({ icon: SeenIcon, label, title, removeLabel, onRemove, hub,
  * chat (or stops editing). Controlled by ChatPanel, which also takes files that are dropped on the chat.
  */
 export function Composer(props: ComposerProps) {
-  const { inputRef, draft, onDraft, files, note, pageChoice = null, noteChoice = null, paperChoice = null, busy, editing } = props;
-  const { onAttach, onRemove, onSend, onStop, onEditLast, onCancelEdit, size = 'card', placeholder = 'Ask about a module, a topic or an exam', label = 'Message Mini Noora', context = null, tools = null } = props;
+  const {
+    inputRef,
+    draft,
+    onDraft,
+    files,
+    note,
+    pageChoice = null,
+    noteChoice = null,
+    paperChoice = null,
+    busy,
+    editing,
+  } = props;
+  const {
+    onAttach,
+    onRemove,
+    onSend,
+    onStop,
+    onEditLast,
+    onCancelEdit,
+    size = 'card',
+    placeholder = 'Ask about a module, a topic or an exam',
+    label = 'Message Mini Noora',
+    context = null,
+    tools = null,
+  } = props;
   const tallest = TALLEST[size];
   const length = draft.trim().length;
   const over = length > QUESTION_MAX;
@@ -163,7 +186,12 @@ export function Composer(props: ComposerProps) {
           ) : null}
           {pageChoice && !pageChoice.shared ? (
             <li>
-              <button type="button" className="nc-see nc-see--off" onClick={() => pageChoice.onChange(true)} data-hub="noora-see-page-add">
+              <button
+                type="button"
+                className="nc-see nc-see--off"
+                onClick={() => pageChoice.onChange(true)}
+                data-hub="noora-see-page-add"
+              >
                 <Plus className="nc-see__icon" aria-hidden="true" weight="bold" />
                 <span className="nc-see__label">Share this page</span>
               </button>
@@ -268,8 +296,17 @@ export function Composer(props: ComposerProps) {
           </Tooltip>
           {tools}
           {noteChoice ? (
-            <label className={cx('nc-tool', 'nc-toggle', noteChoice.checked && 'is-on')} title={`“${noteChoice.title}”`} data-hub="noora-include-note">
-              <input type="checkbox" className="visually-hidden" checked={noteChoice.checked} onChange={(e) => noteChoice.onChange(e.target.checked)} />
+            <label
+              className={cx('nc-tool', 'nc-toggle', noteChoice.checked && 'is-on')}
+              title={`“${noteChoice.title}”`}
+              data-hub="noora-include-note"
+            >
+              <input
+                type="checkbox"
+                className="visually-hidden"
+                checked={noteChoice.checked}
+                onChange={(e) => noteChoice.onChange(e.target.checked)}
+              />
               <NotePencil aria-hidden="true" weight={noteChoice.checked ? 'fill' : 'regular'} />
               <span>Include my note</span>
             </label>
@@ -277,13 +314,34 @@ export function Composer(props: ComposerProps) {
           <span className="nc-tools__end">
             {length >= COUNT_FROM ? (
               <span id="nc-count" className={cx('nc-count', 'u-tabular', over && 'is-over')} data-hub="noora-count">
-                {over ? `${(length - QUESTION_MAX).toLocaleString('en-GB')} characters over the limit` : `${length.toLocaleString('en-GB')} / ${QUESTION_MAX.toLocaleString('en-GB')}`}
+                {over
+                  ? `${(length - QUESTION_MAX).toLocaleString('en-GB')} characters over the limit`
+                  : `${length.toLocaleString('en-GB')} / ${QUESTION_MAX.toLocaleString('en-GB')}`}
               </span>
             ) : null}
             {busy ? (
-              <IconButton type="submit" label="Stop answering" icon={<Stop weight="fill" />} variant="secondary" size="sm" className="nc-send" tooltip tooltipSide="top" data-hub="noora-stop" />
+              <IconButton
+                type="submit"
+                label="Stop answering"
+                icon={<Stop weight="fill" />}
+                variant="secondary"
+                size="sm"
+                className="nc-send"
+                tooltip
+                tooltipSide="top"
+                data-hub="noora-stop"
+              />
             ) : (
-              <IconButton type="submit" label="Send" icon={<ArrowUp weight="bold" />} variant="primary" size="sm" className="nc-send" disabled={!ready} data-hub="noora-send" />
+              <IconButton
+                type="submit"
+                label="Send"
+                icon={<ArrowUp weight="bold" />}
+                variant="primary"
+                size="sm"
+                className="nc-send"
+                disabled={!ready}
+                data-hub="noora-send"
+              />
             )}
           </span>
         </div>

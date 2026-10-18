@@ -22,7 +22,8 @@ const find: PresetLookups = {
   categoryForYear: (year) => CATEGORIES.find((c) => c.year != null && c.year === year)?.id ?? null,
   defaultCategory: 'general',
 };
-const presets = (query: string, ownYear: number | null = 2) => composerPresets(new URLSearchParams(query), find, ownYear);
+const presets = (query: string, ownYear: number | null = 2) =>
+  composerPresets(new URLSearchParams(query), find, ownYear);
 
 describe('composerPresets', () => {
   it('asks for nothing without presets, so a stored draft can come back', () => {
@@ -31,7 +32,13 @@ describe('composerPresets', () => {
   });
 
   it('posts about a module in its year', () => {
-    expect(presets('module=mathematics')).toEqual({ title: '', body: '', category: 'year-1', moduleId: 'mathematics', tags: [] });
+    expect(presets('module=mathematics')).toEqual({
+      title: '',
+      body: '',
+      category: 'year-1',
+      moduleId: 'mathematics',
+      tags: [],
+    });
   });
 
   it('finds a module by its unit code, in any case', () => {
@@ -39,8 +46,14 @@ describe('composerPresets', () => {
   });
 
   it('lets a year that disagrees with the module follow the module; a category without a year keeps it', () => {
-    expect(presets('category=year-3&module=mathematics')).toMatchObject({ category: 'year-1', moduleId: 'mathematics' });
-    expect(presets('category=study-groups&module=mathematics')).toMatchObject({ category: 'study-groups', moduleId: 'mathematics' });
+    expect(presets('category=year-3&module=mathematics')).toMatchObject({
+      category: 'year-1',
+      moduleId: 'mathematics',
+    });
+    expect(presets('category=study-groups&module=mathematics')).toMatchObject({
+      category: 'study-groups',
+      moduleId: 'mathematics',
+    });
   });
 
   it('falls back to the person’s own year, then the default category', () => {

@@ -19,7 +19,8 @@ export function usePlacementRules() {
     withModule(p: Placement, moduleId: string): Placement {
       const next = getModule(moduleId);
       const cat = getCategory(p.category);
-      if (next && cat?.year && cat.year !== next.year) return { moduleId, category: categoryForYear(next.year) ?? p.category };
+      if (next && cat?.year && cat.year !== next.year)
+        return { moduleId, category: categoryForYear(next.year) ?? p.category };
       return { ...p, moduleId };
     },
     withCategory(p: Placement, category: CategoryId): Placement {

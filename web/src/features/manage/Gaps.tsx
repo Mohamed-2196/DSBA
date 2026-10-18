@@ -6,7 +6,17 @@ import { formatDay } from '../../lib/dates';
 import { Panel, QueryError, Skeleton } from '../../ui';
 import { askedBy, requestPath } from '../requests/public';
 import { useGaps } from './api';
-import { eventMissing, eventPath, lessonLine, moduleEditor, moduleFiles, moduleName, scanLine, sittingMissing, sittingName } from './gapLabels';
+import {
+  eventMissing,
+  eventPath,
+  lessonLine,
+  moduleEditor,
+  moduleFiles,
+  moduleName,
+  scanLine,
+  sittingMissing,
+  sittingName,
+} from './gapLabels';
 
 interface Line {
   key: string;
@@ -15,7 +25,19 @@ interface Line {
   meta: string;
 }
 
-function GapList({ id, title, note, lines, done }: { id: string; title: string; note: string; lines: Line[]; done: string }) {
+function GapList({
+  id,
+  title,
+  note,
+  lines,
+  done,
+}: {
+  id: string;
+  title: string;
+  note: string;
+  lines: Line[];
+  done: string;
+}) {
   const headId = `gaps-${id}`;
   return (
     <section className="gaps-list" aria-labelledby={headId} data-hub={`gaps-${id}`}>
@@ -53,12 +75,23 @@ const day = (key: string) => formatDay(key, { weekday: 'short', month: 'short', 
 
 export function Gaps() {
   const q = useGaps();
-  if (q.isError) return <QueryError error={q.error} title="The gaps didn’t load" onRetry={() => void q.refetch()} retrying={q.isFetching} size="sm" />;
+  if (q.isError)
+    return (
+      <QueryError
+        error={q.error}
+        title="The gaps didn’t load"
+        onRetry={() => void q.refetch()}
+        retrying={q.isFetching}
+        size="sm"
+      />
+    );
   if (q.isPending) return <Skeleton lines={6} />;
   const { library, lessons, calendar, requests } = q.data;
   return (
     <div className="gaps">
-      <p className="gaps-intro">What students would find missing, the most useful first. Each line opens where you fix it.</p>
+      <p className="gaps-intro">
+        What students would find missing, the most useful first. Each line opens where you fix it.
+      </p>
       {requests ? (
         <Panel className="gaps-part" aria-label="Requests">
           <GapList
@@ -66,7 +99,12 @@ export function Gaps() {
             title="Most wanted requests"
             note="Open requests with the most “me too”."
             done="No open requests."
-            lines={requests.map((r) => ({ key: r.id, to: requestPath(r.id), title: r.title, meta: [r.moduleTitle, askedBy(r.meTooCount)].filter(Boolean).join(' · ') }))}
+            lines={requests.map((r) => ({
+              key: r.id,
+              to: requestPath(r.id),
+              title: r.title,
+              meta: [r.moduleTitle, askedBy(r.meTooCount)].filter(Boolean).join(' · '),
+            }))}
           />
         </Panel>
       ) : null}
@@ -89,14 +127,24 @@ export function Gaps() {
             title="Papers with no text"
             note="Search and Mini Noora can’t read these. A typed or clearer copy fixes it."
             done="Every paper has its text."
-            lines={library.scans.map((s) => ({ key: s.id, to: `/library/${encodeURIComponent(s.slug)}`, title: s.title, meta: [s.module ? moduleName(s.module) : null, scanLine(s)].filter(Boolean).join(' · ') }))}
+            lines={library.scans.map((s) => ({
+              key: s.id,
+              to: `/library/${encodeURIComponent(s.slug)}`,
+              title: s.title,
+              meta: [s.module ? moduleName(s.module) : null, scanLine(s)].filter(Boolean).join(' · '),
+            }))}
           />
           <GapList
             id="cheat-sheets"
             title="Modules with no cheat sheet"
             note="A student’s summary notes could fill these. Ask in the module’s group."
             done="Every module has a cheat sheet."
-            lines={library.noCheatSheet.map((m) => ({ key: m.id, to: moduleFiles(m), title: moduleName(m), meta: `Year ${m.year}` }))}
+            lines={library.noCheatSheet.map((m) => ({
+              key: m.id,
+              to: moduleFiles(m),
+              title: moduleName(m),
+              meta: `Year ${m.year}`,
+            }))}
           />
         </Panel>
       ) : null}
@@ -107,7 +155,12 @@ export function Gaps() {
             title="Modules missing lessons"
             note="Chapters with no video, and videos gone from YouTube."
             done="Every chapter has its lessons."
-            lines={lessons.map((g) => ({ key: g.module.id, to: moduleEditor(g.module), title: moduleName(g.module), meta: lessonLine(g) }))}
+            lines={lessons.map((g) => ({
+              key: g.module.id,
+              to: moduleEditor(g.module),
+              title: moduleName(g.module),
+              meta: lessonLine(g),
+            }))}
           />
         </Panel>
       ) : null}
@@ -118,18 +171,30 @@ export function Gaps() {
             title="Dates not confirmed"
             note="In the next 30 days. Students see “Not confirmed” on these."
             done="Every date in the next 30 days is confirmed."
-            lines={calendar.unconfirmed.map((e) => ({ key: e.id, to: eventPath(e), title: e.title, meta: day(e.date) }))}
+            lines={calendar.unconfirmed.map((e) => ({
+              key: e.id,
+              to: eventPath(e),
+              title: e.title,
+              meta: day(e.date),
+            }))}
           />
           <GapList
             id="exam-details"
             title="Exams without a time or place"
             note="In the next 90 days."
             done="Every exam has its time and place."
-            lines={calendar.examDetails.map((e) => ({ key: e.id, to: eventPath(e), title: e.title, meta: `${day(e.date)} · ${eventMissing(e)}` }))}
+            lines={calendar.examDetails.map((e) => ({
+              key: e.id,
+              to: eventPath(e),
+              title: e.title,
+              meta: `${day(e.date)} · ${eventMissing(e)}`,
+            }))}
           />
         </Panel>
       ) : null}
-      {!requests && !library && !lessons && !calendar ? <p className="gaps-intro">The parts of the hub you look after are switched off right now.</p> : null}
+      {!requests && !library && !lessons && !calendar ? (
+        <p className="gaps-intro">The parts of the hub you look after are switched off right now.</p>
+      ) : null}
     </div>
   );
 }

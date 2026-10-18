@@ -64,7 +64,11 @@ export function useBlockMove({ editor, getPos, enabled, selected, across }: Opti
         const dy = (clientY - start.y + scrolled) / zoom;
         // it lands where its top edge is
         const top = rect.top + (clientY - start.y);
-        drop = dropTarget(blockBoxes(editor.state, (at) => editor.view.nodeDOM(at)), top, LINE * zoom);
+        drop = dropTarget(
+          blockBoxes(editor.state, (at) => editor.view.nodeDOM(at)),
+          top,
+          LINE * zoom,
+        );
         changed = across ? across(dx) : null;
         const box = textEl?.getBoundingClientRect();
         setMove({ dx, dy, line: box ? { left: box.left, top: drop.at, width: box.width } : null });

@@ -56,10 +56,23 @@ export function ForumFilterBar({ filters, update, stats, chips, scope }: ForumFi
   return (
     <div className="forum-filters" data-hub="forum-filters">
       <div className="forum-filters__tabs-wrap" ref={tabsRef}>
-        <Tabs idBase="forum" label="Categories" className="forum-filters__tabs" tabs={tabs} value={cohort} onChange={(id) => update({ cohort: id, tag: '' })} />
+        <Tabs
+          idBase="forum"
+          label="Categories"
+          className="forum-filters__tabs"
+          tabs={tabs}
+          value={cohort}
+          onChange={(id) => update({ cohort: id, tag: '' })}
+        />
       </div>
       <div className="forum-filters__sort">
-        <SegmentedControl label="Sort threads" size="sm" options={SORTS} value={sort} onChange={(v) => update({ sort: String(v) })} />
+        <SegmentedControl
+          label="Sort threads"
+          size="sm"
+          options={SORTS}
+          value={sort}
+          onChange={(v) => update({ sort: String(v) })}
+        />
       </div>
       <SearchField
         className="forum-filters__search"
@@ -73,12 +86,25 @@ export function ForumFilterBar({ filters, update, stats, chips, scope }: ForumFi
         dir="auto"
       />
       <div className="forum-filters__chips" role="group" aria-label="Filter threads" ref={chipsRef}>
-        <Chip size="sm" icon={ChatCircle} selected={status === 'no-replies'} count={waiting} onChange={(on) => update({ status: on ? 'no-replies' : '' })} data-hub="filter-no-replies">
+        <Chip
+          size="sm"
+          icon={ChatCircle}
+          selected={status === 'no-replies'}
+          count={waiting}
+          onChange={(on) => update({ status: on ? 'no-replies' : '' })}
+          data-hub="filter-no-replies"
+        >
           No replies yet
         </Chip>
         {chips.length ? <span className="forum-filters__sep" aria-hidden="true" /> : null}
         {chips.map((t) => (
-          <Chip key={t.id} size="sm" selected={tag === t.id} count={t.count} onChange={(on) => update({ tag: on ? t.id : '' })}>
+          <Chip
+            key={t.id}
+            size="sm"
+            selected={tag === t.id}
+            count={t.count}
+            onChange={(on) => update({ tag: on ? t.id : '' })}
+          >
             {t.label}
           </Chip>
         ))}

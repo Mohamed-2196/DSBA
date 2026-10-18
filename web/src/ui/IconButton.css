@@ -13,17 +13,45 @@
   text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
 }
-.ui-iconbutton--sm { --ib: 32px; font-size: 18px; }
-.ui-iconbutton--lg { --ib: 48px; font-size: 22px; }
+.ui-iconbutton--sm {
+  --ib: 32px;
+  font-size: 18px;
+}
+.ui-iconbutton--lg {
+  --ib: 48px;
+  font-size: 22px;
+}
 
-.ui-iconbutton--ghost:hover, .ui-iconbutton--ghost.is-active { background: var(--surface-2); color: var(--ink); }
-.ui-iconbutton--secondary { background: var(--surface); border-color: var(--line-strong); color: var(--ink); }
-.ui-iconbutton--secondary:hover, .ui-iconbutton--secondary.is-active { background: var(--surface-2); }
-.ui-iconbutton--primary { background: var(--cobalt); color: var(--cobalt-ink); }
-.ui-iconbutton--primary:hover { background: var(--cobalt-hover); }
-.ui-iconbutton:disabled { opacity: .45; cursor: not-allowed; }
+.ui-iconbutton--ghost:hover,
+.ui-iconbutton--ghost.is-active {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.ui-iconbutton--secondary {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.ui-iconbutton--secondary:hover,
+.ui-iconbutton--secondary.is-active {
+  background: var(--surface-2);
+}
+.ui-iconbutton--primary {
+  background: var(--cobalt);
+  color: var(--cobalt-ink);
+}
+.ui-iconbutton--primary:hover {
+  background: var(--cobalt-hover);
+}
+.ui-iconbutton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
 .ui-iconbutton__badge {
   position: absolute;
@@ -54,5 +82,8 @@
 
 /* Touch screens: 44px targets (UX review UX-11); the glyph keeps its size. */
 @media (pointer: coarse) {
-  .ui-iconbutton--sm, .ui-iconbutton--md { --ib: 44px; }
+  .ui-iconbutton--sm,
+  .ui-iconbutton--md {
+    --ib: 44px;
+  }
 }

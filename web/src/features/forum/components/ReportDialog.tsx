@@ -59,7 +59,11 @@ export function ReportDialog({ open, onClose, targetType, targetId, already = fa
           if (e instanceof ApiError && e.code === 'already_reported') {
             close();
             onReported?.();
-            push({ title: `You've already reported this ${noun}`, body: 'A student rep will look at it soon. No need to report it again.', tone: 'info' });
+            push({
+              title: `You've already reported this ${noun}`,
+              body: 'A student rep will look at it soon. No need to report it again.',
+              tone: 'info',
+            });
             return;
           }
           if (e instanceof ApiError && e.status === 404) {
@@ -73,7 +77,10 @@ export function ReportDialog({ open, onClose, targetType, targetId, already = fa
     );
   };
 
-  const hint = reason === 'other' ? 'Say what is wrong, so the reps know what to look for.' : 'Optional. Anything that helps the reps understand.';
+  const hint =
+    reason === 'other'
+      ? 'Say what is wrong, so the reps know what to look for.'
+      : 'Optional. Anything that helps the reps understand.';
 
   return (
     <Modal
@@ -128,7 +135,15 @@ export function ReportDialog({ open, onClose, targetType, targetId, already = fa
             </label>
           ))}
         </fieldset>
-        <TextArea label="Add a note" hint={count ? `${hint} ${count}` : hint} rows={3} value={note} maxLength={NOTE_MAX} onChange={(e) => setNote(e.target.value)} dir="auto" />
+        <TextArea
+          label="Add a note"
+          hint={count ? `${hint} ${count}` : hint}
+          rows={3}
+          value={note}
+          maxLength={NOTE_MAX}
+          onChange={(e) => setNote(e.target.value)}
+          dir="auto"
+        />
         {error ? (
           <p id={`r${uid}-err`} className="forum-form-error" role="alert">
             {error}

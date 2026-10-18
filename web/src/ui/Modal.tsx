@@ -27,7 +27,20 @@ export interface ModalProps extends OverlayBaseProps {
 }
 
 /** Dialog with focus trap, Esc to close, scroll lock, focus restore, scrim click to close. */
-export function Modal({ open, onClose, title, description, footer, size = 'md', initialFocusRef, hideHeader = false, className, bodyClassName, children, ...rest }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  description,
+  footer,
+  size = 'md',
+  initialFocusRef,
+  hideHeader = false,
+  className,
+  bodyClassName,
+  children,
+  ...rest
+}: ModalProps) {
   const { mounted, state } = usePresence(open, 200);
   const panelRef = useRef<HTMLDivElement>(null);
   const uid = useId().replace(/:/g, '');
@@ -48,8 +61,14 @@ export function Modal({ open, onClose, title, description, footer, size = 'md', 
       >
         <header className={cx('ui-modal__header', hideHeader && 'visually-hidden')}>
           <div className="ui-modal__heading">
-            <h2 id={`m${uid}-t`} className="ui-modal__title">{title}</h2>
-            {description ? <p id={`m${uid}-d`} className="ui-modal__desc">{description}</p> : null}
+            <h2 id={`m${uid}-t`} className="ui-modal__title">
+              {title}
+            </h2>
+            {description ? (
+              <p id={`m${uid}-d`} className="ui-modal__desc">
+                {description}
+              </p>
+            ) : null}
           </div>
           <IconButton label="Close" icon={X} size="sm" onClick={onClose} className="ui-modal__close" />
         </header>
@@ -69,7 +88,20 @@ export interface DrawerProps extends OverlayBaseProps {
 }
 
 /** Side or bottom sheet with the same behaviour as Modal. */
-export function Drawer({ open, onClose, title, description, footer, side = 'right', width = 420, initialFocusRef, className, bodyClassName, children, ...rest }: DrawerProps) {
+export function Drawer({
+  open,
+  onClose,
+  title,
+  description,
+  footer,
+  side = 'right',
+  width = 420,
+  initialFocusRef,
+  className,
+  bodyClassName,
+  children,
+  ...rest
+}: DrawerProps) {
   const { mounted, state } = usePresence(open, 220);
   const panelRef = useRef<HTMLDivElement>(null);
   const uid = useId().replace(/:/g, '');
@@ -92,8 +124,14 @@ export function Drawer({ open, onClose, title, description, footer, side = 'righ
         {side === 'bottom' ? <span className="ui-drawer__grabber" aria-hidden="true" /> : null}
         <header className="ui-modal__header">
           <div className="ui-modal__heading">
-            <h2 id={`d${uid}-t`} className="ui-modal__title">{title}</h2>
-            {description ? <p id={`d${uid}-d`} className="ui-modal__desc">{description}</p> : null}
+            <h2 id={`d${uid}-t`} className="ui-modal__title">
+              {title}
+            </h2>
+            {description ? (
+              <p id={`d${uid}-d`} className="ui-modal__desc">
+                {description}
+              </p>
+            ) : null}
           </div>
           <IconButton label="Close" icon={X} size="sm" onClick={onClose} className="ui-modal__close" />
         </header>

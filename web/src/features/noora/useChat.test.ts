@@ -5,9 +5,15 @@ import { fallback, historyOf, lastQuestionAt, stoppedReply, type Pending } from 
 
 describe('fallback', () => {
   it('pauses her AI for the visit when the day or the month is used up', () => {
-    expect(fallback(new ApiError({ status: 429, code: 'noora_daily_limit', message: '' }))).toMatchObject({ pause: 'limit' });
-    expect(fallback(new ApiError({ status: 503, code: 'noora_budget_reached', message: '' }))).toMatchObject({ pause: 'budget' });
-    expect(fallback(new ApiError({ status: 503, code: 'noora_unavailable', message: '' }))).toMatchObject({ pause: 'off' });
+    expect(fallback(new ApiError({ status: 429, code: 'noora_daily_limit', message: '' }))).toMatchObject({
+      pause: 'limit',
+    });
+    expect(fallback(new ApiError({ status: 503, code: 'noora_budget_reached', message: '' }))).toMatchObject({
+      pause: 'budget',
+    });
+    expect(fallback(new ApiError({ status: 503, code: 'noora_unavailable', message: '' }))).toMatchObject({
+      pause: 'off',
+    });
   });
 
   it('keeps trying after a hiccup', () => {
@@ -21,7 +27,9 @@ describe('fallback', () => {
 describe('historyOf', () => {
   it('sends the newest messages with words in them', () => {
     const messages: Message[] = Array.from({ length: 10 }, (_, i) =>
-      i % 2 ? { id: i, from: 'noora', at: 0, mood: 'neutral', text: `answer ${i}`, refs: [] } : { id: i, from: 'me', at: 0, text: i === 8 ? '' : `question ${i}`, attachments: [] },
+      i % 2
+        ? { id: i, from: 'noora', at: 0, mood: 'neutral', text: `answer ${i}`, refs: [] }
+        : { id: i, from: 'me', at: 0, text: i === 8 ? '' : `question ${i}`, attachments: [] },
     );
     const history = historyOf(messages);
     expect(history).toHaveLength(8);
@@ -59,7 +67,14 @@ describe('stoppedReply', () => {
   });
 
   it('cuts a scripted answer where it had got to', () => {
-    const reply = { id: 4, from: 'noora' as const, at: 9, mood: 'happy' as const, text: 'Hello there', refs: [{ code: 'Hub', label: 'x', to: '/x' }] };
+    const reply = {
+      id: 4,
+      from: 'noora' as const,
+      at: 9,
+      mood: 'happy' as const,
+      text: 'Hello there',
+      refs: [{ code: 'Hub', label: 'x', to: '/x' }],
+    };
     expect(stoppedReply({ phase: 'typing', reply, shown: 5 }, '', [], 10)).toMatchObject({ text: 'Hello', refs: [] });
   });
 

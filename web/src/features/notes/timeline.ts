@@ -11,7 +11,9 @@ export interface SheetChange {
   after: readonly InkStroke[];
 }
 
-export type Step = { kind: 'text' } | { kind: 'ink'; changes: readonly SheetChange[]; paper?: { before: number; after: number } };
+export type Step =
+  | { kind: 'text' }
+  | { kind: 'ink'; changes: readonly SheetChange[]; paper?: { before: number; after: number } };
 
 export interface Timeline {
   past: readonly Step[];
@@ -60,4 +62,7 @@ export function textMoved(t: Timeline, how: 'new' | 'undo' | 'redo'): Timeline {
 }
 
 /** An ink step for one sheet changed by a gesture. */
-export const inkStep = (sheet: number, before: readonly InkStroke[], after: readonly InkStroke[]): Step => ({ kind: 'ink', changes: [{ sheet, before, after }] });
+export const inkStep = (sheet: number, before: readonly InkStroke[], after: readonly InkStroke[]): Step => ({
+  kind: 'ink',
+  changes: [{ sheet, before, after }],
+});

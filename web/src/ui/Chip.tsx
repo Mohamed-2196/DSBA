@@ -37,7 +37,11 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       {color ? <span className="ui-chip__dot" style={{ background: color }} aria-hidden="true" /> : null}
       {renderIcon(icon, { className: 'ui-chip__icon' })}
       <span>{children}</span>
-      {count != null ? <span className="ui-chip__count"><Count value={count} /></span> : null}
+      {count != null ? (
+        <span className="ui-chip__count">
+          <Count value={count} />
+        </span>
+      ) : null}
     </button>
   );
 });

@@ -5,12 +5,30 @@ import { AddToBoard } from '../board/public';
 import { BREAKPOINTS, useMediaQuery, useToast, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleArt, ModuleIcon, moduleArtSrc } from '../../ui';
-import { dayKey, daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseDay, weekdayOf } from '../../lib/dates';
+import {
+  dayKey,
+  daysUntil,
+  formatLong,
+  formatMonthYear,
+  formatShort,
+  formatShortYear,
+  parseDay,
+  weekdayOf,
+} from '../../lib/dates';
 import { useCopyLink } from '../../lib/useCopyLink';
 import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
 import { eventPageUrl, myEventIcsUrl } from './api';
 import { countdownLabel } from './dates';
-import { dotClass, sourceLine, splitTitle, TYPE_BADGE_TONE, typeLabel, typePlural, whenAndWhere, windowLeft } from './eventMeta';
+import {
+  dotClass,
+  sourceLine,
+  splitTitle,
+  TYPE_BADGE_TONE,
+  typeLabel,
+  typePlural,
+  whenAndWhere,
+  windowLeft,
+} from './eventMeta';
 import { reminderLabel, repeatLabel } from './mine';
 import type { CalendarEvent, EventType } from './types';
 import type { HiddenKind } from './useMyCalendar';
@@ -41,12 +59,28 @@ export interface EventDrawerProps {
  * calendar" (the API's .ics files). Opened from the list, the grid, the top of the page or a ?event=<id> link.
  * Moderators also get Edit and Delete.
  */
-export function EventDrawer({ event, papers, events, today, year, hasExams, onClose, onOpen, onEdit, onDelete, onEditMine, onDeleteMine, onHide }: EventDrawerProps) {
+export function EventDrawer({
+  event,
+  papers,
+  events,
+  today,
+  year,
+  hasExams,
+  onClose,
+  onOpen,
+  onEdit,
+  onDelete,
+  onEditMine,
+  onDeleteMine,
+  onHide,
+}: EventDrawerProps) {
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
   const copy = useCopyLink();
   const { push } = useToast();
-  const copyLink = (e: CalendarEvent) => copy(eventPageUrl(e), 'Anyone with the link sees this date on the DSBA Hub calendar.');
-  const onDownload = () => push({ tone: 'info', title: 'Downloading an .ics file', body: 'Open it to add the event to your calendar.' });
+  const copyLink = (e: CalendarEvent) =>
+    copy(eventPageUrl(e), 'Anyone with the link sees this date on the DSBA Hub calendar.');
+  const onDownload = () =>
+    push({ tone: 'info', title: 'Downloading an .ics file', body: 'Open it to add the event to your calendar.' });
   return (
     <Drawer
       open={!!event}
@@ -64,17 +98,61 @@ export function EventDrawer({ event, papers, events, today, year, hasExams, onCl
                 Edit
               </Button>
             ) : null}
-            {onDeleteMine ? <IconButton label="Delete this event" icon={Trash} variant="secondary" tooltip tooltipSide="top" onClick={() => onDeleteMine(event)} data-hub="calendar-mine-delete" /> : null}
+            {onDeleteMine ? (
+              <IconButton
+                label="Delete this event"
+                icon={Trash}
+                variant="secondary"
+                tooltip
+                tooltipSide="top"
+                onClick={() => onDeleteMine(event)}
+                data-hub="calendar-mine-delete"
+              />
+            ) : null}
             <span className="cal-drawer__spacer" />
-            <Button variant="primary" leadingIcon={CalendarPlus} href={myEventIcsUrl(event.mine.id)} download external={false} onClick={onDownload}>
+            <Button
+              variant="primary"
+              leadingIcon={CalendarPlus}
+              href={myEventIcsUrl(event.mine.id)}
+              download
+              external={false}
+              onClick={onDownload}
+            >
               Add to calendar
             </Button>
           </div>
         ) : event ? (
           <div className="cal-drawer__footer">
-            <IconButton label="Copy link to this date" icon={LinkSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => void copyLink(event)} />
-            {onEdit ? <IconButton label="Edit this date" icon={PencilSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => onEdit(event)} data-hub="calendar-edit" /> : null}
-            {onDelete ? <IconButton label="Delete this date" icon={Trash} variant="secondary" tooltip tooltipSide="top" onClick={() => onDelete(event)} data-hub="calendar-delete" /> : null}
+            <IconButton
+              label="Copy link to this date"
+              icon={LinkSimple}
+              variant="secondary"
+              tooltip
+              tooltipSide="top"
+              onClick={() => void copyLink(event)}
+            />
+            {onEdit ? (
+              <IconButton
+                label="Edit this date"
+                icon={PencilSimple}
+                variant="secondary"
+                tooltip
+                tooltipSide="top"
+                onClick={() => onEdit(event)}
+                data-hub="calendar-edit"
+              />
+            ) : null}
+            {onDelete ? (
+              <IconButton
+                label="Delete this date"
+                icon={Trash}
+                variant="secondary"
+                tooltip
+                tooltipSide="top"
+                onClick={() => onDelete(event)}
+                data-hub="calendar-delete"
+              />
+            ) : null}
             <span className="cal-drawer__spacer" />
             <AddToCalendar event={event} />
           </div>
@@ -84,7 +162,15 @@ export function EventDrawer({ event, papers, events, today, year, hasExams, onCl
       {event?.mine ? (
         <MineContent event={event} events={events} today={today} onOpen={onOpen} />
       ) : event ? (
-        <DrawerContent event={event} events={events} today={today} onOpen={onOpen} examsYear={hasExams ? year : undefined} papers={papers} onHide={onHide} />
+        <DrawerContent
+          event={event}
+          events={events}
+          today={today}
+          onOpen={onOpen}
+          examsYear={hasExams ? year : undefined}
+          papers={papers}
+          onHide={onHide}
+        />
       ) : null}
     </Drawer>
   );
@@ -136,15 +222,19 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
           <span className="cal-drawer__weekday">{weekdayOf(date).long}</span>
           <span className="cal-drawer__monthyear">{formatMonthYear(date)}</span>
         </span>
-        <span className={cx('cal-drawer__countdown', days < 0 && !left && 'is-past', event.type === 'exam' && days >= 0 && days <= 7 && 'is-soon')}>{left ?? countdownLabel(days)}</span>
+        <span
+          className={cx(
+            'cal-drawer__countdown',
+            days < 0 && !left && 'is-past',
+            event.type === 'exam' && days >= 0 && days <= 7 && 'is-soon',
+          )}
+        >
+          {left ?? countdownLabel(days)}
+        </span>
         <span className="visually-hidden">{formatLong(date)}</span>
       </div>
 
-      {end ? (
-        <p className="cal-drawer__where">
-          Until {formatLong(end)}
-        </p>
-      ) : null}
+      {end ? <p className="cal-drawer__where">Until {formatLong(end)}</p> : null}
 
       {where ? (
         <p className={cx('cal-drawer__where', event.type === 'exam' && !event.time && 'is-unset')}>
@@ -176,7 +266,9 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
       ) : null}
       {source ? <p className="cal-drawer__note">{source}</p> : null}
 
-      {featureOn('board') && BOARD_TYPES.has(event.type) ? <AddToBoard link={{ type: 'event', id: event.id }} className="cal-drawer__board" /> : null}
+      {featureOn('board') && BOARD_TYPES.has(event.type) ? (
+        <AddToBoard link={{ type: 'event', id: event.id }} className="cal-drawer__board" />
+      ) : null}
 
       {module ? (
         <section className="cal-drawer__section" aria-labelledby="cal-drawer-module">
@@ -192,7 +284,9 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
               </span>
             )}
             <span className="cal-drawer__module-text">
-              {module.unitCode || code ? <span className="u-code cal-drawer__module-code">{module.unitCode || code}</span> : null}
+              {module.unitCode || code ? (
+                <span className="u-code cal-drawer__module-code">{module.unitCode || code}</span>
+              ) : null}
               <span className="cal-drawer__module-name">{module.name}</span>
             </span>
             <Button size="sm" to={`/modules/${module.id}`}>
@@ -232,8 +326,16 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
               const current = e.id === event.id;
               return (
                 <li key={e.id} className={cx(current && 'is-current', d < today && 'is-past')}>
-                  <button type="button" className="cal-drawer__row" onClick={() => onOpen(e)} aria-current={current ? 'true' : undefined} disabled={current}>
-                    <span className="cal-drawer__row-date u-tabular">{d.getFullYear() === today.getFullYear() ? formatShort(d) : formatShortYear(d)}</span>
+                  <button
+                    type="button"
+                    className="cal-drawer__row"
+                    onClick={() => onOpen(e)}
+                    aria-current={current ? 'true' : undefined}
+                    disabled={current}
+                  >
+                    <span className="cal-drawer__row-date u-tabular">
+                      {d.getFullYear() === today.getFullYear() ? formatShort(d) : formatShortYear(d)}
+                    </span>
                     <span className={cx('cal-dot', dotClass(e))} aria-hidden="true" />
                     <span className="cal-drawer__row-title">{splitTitle(e).rest}</span>
                   </button>
@@ -251,8 +353,12 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
       ) : null}
 
       <p className="cal-drawer__note">
-        {event.time || event.place ? 'Added as an all-day event, with the time and place in its notes.' : 'Added as an all-day event.'}
-        {event.type === 'exam' || event.type === 'deadline' ? ' The .ics file includes a reminder at 9:00 the day before.' : ''}
+        {event.time || event.place
+          ? 'Added as an all-day event, with the time and place in its notes.'
+          : 'Added as an all-day event.'}
+        {event.type === 'exam' || event.type === 'deadline'
+          ? ' The .ics file includes a reminder at 9:00 the day before.'
+          : ''}
       </p>
       {examsYear !== undefined ? (
         <div className="cal-drawer__exams">
@@ -265,9 +371,16 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
           <h3 id="cal-drawer-hide" className="cal-drawer__h">
             Don’t need it?
           </h3>
-          <p className="cal-drawer__note">Hidden dates leave your list, month, Home and private link. Show them again from Customise.</p>
+          <p className="cal-drawer__note">
+            Hidden dates leave your list, month, Home and private link. Show them again from Customise.
+          </p>
           <div className="cal-drawer__hide">
-            <Button size="sm" leadingIcon={EyeSlash} onClick={() => onHide(event, 'hiddenEvents', event.id)} data-hub="calendar-hide">
+            <Button
+              size="sm"
+              leadingIcon={EyeSlash}
+              onClick={() => onHide(event, 'hiddenEvents', event.id)}
+              data-hub="calendar-hide"
+            >
               Hide this date
             </Button>
             {module ? (
@@ -294,7 +407,17 @@ function skippedLine(skipped: readonly string[], today: string): string | null {
 }
 
 /** One of the student's own events: when, where, its repeat (and the days taken off it), reminder and notes. */
-function MineContent({ event, events, today, onOpen }: { event: CalendarEvent; events: CalendarEvent[]; today: Date; onOpen: (e: CalendarEvent) => void }) {
+function MineContent({
+  event,
+  events,
+  today,
+  onOpen,
+}: {
+  event: CalendarEvent;
+  events: CalendarEvent[];
+  today: Date;
+  onOpen: (e: CalendarEvent) => void;
+}) {
   const { featureOn } = useAuth();
   const mine = event.mine;
   if (!mine) return null;
@@ -324,7 +447,9 @@ function MineContent({ event, events, today, onOpen }: { event: CalendarEvent; e
           <span className="cal-drawer__weekday">{weekdayOf(date).long}</span>
           <span className="cal-drawer__monthyear">{formatMonthYear(date)}</span>
         </span>
-        <span className={cx('cal-drawer__countdown', days < 0 && !left && 'is-past')}>{left ?? countdownLabel(days)}</span>
+        <span className={cx('cal-drawer__countdown', days < 0 && !left && 'is-past')}>
+          {left ?? countdownLabel(days)}
+        </span>
         <span className="visually-hidden">{formatLong(date)}</span>
       </div>
 
@@ -359,7 +484,9 @@ function MineContent({ event, events, today, onOpen }: { event: CalendarEvent; e
 
       {mine.notes ? <p className="cal-drawer__notes">{mine.notes}</p> : null}
 
-      {featureOn('board') ? <AddToBoard link={{ type: 'my_event', id: mine.id }} className="cal-drawer__board" /> : null}
+      {featureOn('board') ? (
+        <AddToBoard link={{ type: 'my_event', id: mine.id }} className="cal-drawer__board" />
+      ) : null}
 
       {sameDay.length ? (
         <section className="cal-drawer__section" aria-labelledby="cal-drawer-same">
@@ -382,7 +509,9 @@ function MineContent({ event, events, today, onOpen }: { event: CalendarEvent; e
 
       <p className="cal-drawer__note">
         Only you see this event.
-        {reminder ? ' Its reminder comes as a notification here, and from your calendar app if you subscribe to your private link.' : ''}
+        {reminder
+          ? ' Its reminder comes as a notification here, and from your calendar app if you subscribe to your private link.'
+          : ''}
       </p>
     </div>
   );

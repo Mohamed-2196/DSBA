@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { ApiError, NETWORK_MESSAGE, SERVER_MESSAGE, errorMessage, isApiError, isFeatureOff, isNetworkError, loadProblem, toApiError } from './errors';
+import {
+  ApiError,
+  NETWORK_MESSAGE,
+  SERVER_MESSAGE,
+  errorMessage,
+  isApiError,
+  isFeatureOff,
+  isNetworkError,
+  loadProblem,
+  toApiError,
+} from './errors';
 
 const response = (status: number) => new Response(null, { status });
 
@@ -27,9 +37,9 @@ describe('toApiError', () => {
   });
 
   it('knows a signed-out answer', () => {
-    expect(toApiError(response(401), { error: { code: 'unauthenticated', message: 'Sign in.' } }).isUnauthenticated).toBe(
-      true,
-    );
+    expect(
+      toApiError(response(401), { error: { code: 'unauthenticated', message: 'Sign in.' } }).isUnauthenticated,
+    ).toBe(true);
   });
 });
 
@@ -66,23 +76,29 @@ describe('loadProblem', () => {
   it('says what went wrong under a state that did not load (UX-10)', () => {
     expect(loadProblem(new ApiError({ status: 0, code: 'network', message: 'x' }))).toBe(NETWORK_MESSAGE);
     expect(loadProblem(toApiError(response(500), undefined))).toBe(SERVER_MESSAGE);
-    expect(loadProblem(toApiError(response(503), { error: { code: 'internal', message: 'Something went wrong on our side.' } }))).toBe(
-      SERVER_MESSAGE,
-    );
+    expect(
+      loadProblem(
+        toApiError(response(503), { error: { code: 'internal', message: 'Something went wrong on our side.' } }),
+      ),
+    ).toBe(SERVER_MESSAGE);
     expect(loadProblem(new TypeError('cannot read x'))).toBe(SERVER_MESSAGE);
   });
 
   it('keeps a refusal the person can act on', () => {
-    expect(loadProblem(toApiError(response(403), { error: { code: 'forbidden', message: 'Only admins can see this.' } }))).toBe(
-      'Only admins can see this.',
-    );
+    expect(
+      loadProblem(toApiError(response(403), { error: { code: 'forbidden', message: 'Only admins can see this.' } })),
+    ).toBe('Only admins can see this.');
     expect(loadProblem(toApiError(response(404), undefined))).toBe(SERVER_MESSAGE);
   });
 });
 
 describe('isFeatureOff', () => {
   it('recognises a switched-off feature', () => {
-    expect(isFeatureOff(new ApiError({ status: 404, code: 'feature_off', message: 'This part of the hub is switched off right now.' }))).toBe(true);
+    expect(
+      isFeatureOff(
+        new ApiError({ status: 404, code: 'feature_off', message: 'This part of the hub is switched off right now.' }),
+      ),
+    ).toBe(true);
     expect(isFeatureOff(new ApiError({ status: 404, code: 'not_found', message: 'Not here.' }))).toBe(false);
     expect(isFeatureOff(new Error('feature_off'))).toBe(false);
   });

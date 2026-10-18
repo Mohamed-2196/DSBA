@@ -62,7 +62,12 @@ export function FileThumb({
           ) : (
             <span
               className="lib-cover"
-              style={{ '--cover': year ? `var(--y${year})` : 'var(--ink-3)', '--cover-ink': year ? `var(--y${year}-strong)` : 'var(--ink)' } as CSSProperties}
+              style={
+                {
+                  '--cover': year ? `var(--y${year})` : 'var(--ink-3)',
+                  '--cover-ink': year ? `var(--y${year}-strong)` : 'var(--ink)',
+                } as CSSProperties
+              }
             >
               <span className="lib-cover__kind">{kindLabel(item.kind)}</span>
               {code ? <span className={cx('lib-cover__code', !m?.unitCode && 'is-name')}>{code}</span> : null}

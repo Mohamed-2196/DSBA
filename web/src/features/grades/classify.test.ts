@@ -2,7 +2,16 @@
 import { describe, expect, it } from 'vitest';
 import type { GradeRules } from '../../api/types';
 import { readSeed } from '../../testing/seed';
-import { bandOf as bandFor, classify as classifyBy, gradeDescription as describe1, isComplete, isEmpty, normalizeGrades as normalize, RESULT, totalMarks } from './classify';
+import {
+  bandOf as bandFor,
+  classify as classifyBy,
+  gradeDescription as describe1,
+  isComplete,
+  isEmpty,
+  normalizeGrades as normalize,
+  RESULT,
+  totalMarks,
+} from './classify';
 
 // The rules as the hub starts with them: today's programme regulations (api/app/seed/data/grades.json).
 const RULES = readSeed<GradeRules>('grades');
@@ -97,8 +106,22 @@ describe('the helpers', () => {
   });
 
   it('puts a mark in its band at the class thresholds', () => {
-    expect([70, 69.99, 60, 59.5, 50, 40, 39.9].map(bandOf)).toEqual(['first', 'upper', 'upper', 'lower', 'lower', 'third', 'fail']);
-    expect([70, 60, 50, 40, 39].map(gradeDescription)).toEqual(['First Class', 'Upper Second Class', 'Lower Second Class', 'Third Class', 'Fail']);
+    expect([70, 69.99, 60, 59.5, 50, 40, 39.9].map(bandOf)).toEqual([
+      'first',
+      'upper',
+      'upper',
+      'lower',
+      'lower',
+      'third',
+      'fail',
+    ]);
+    expect([70, 60, 50, 40, 39].map(gradeDescription)).toEqual([
+      'First Class',
+      'Upper Second Class',
+      'Lower Second Class',
+      'Third Class',
+      'Fail',
+    ]);
   });
 
   it('calls a sheet complete only when every mark is above 0', () => {
@@ -122,12 +145,23 @@ describe('rules an admin changes', () => {
   });
 
   it('counts a new subject, and what each subject counts', () => {
-    const dissertation = { id: 'dissertation', name: 'Dissertation', year: 3 as const, moduleId: null, choice: null, counts: 3 as const };
+    const dissertation = {
+      id: 'dissertation',
+      name: 'Dissertation',
+      year: 3 as const,
+      moduleId: null,
+      choice: null,
+      counts: 3 as const,
+    };
     const more: GradeRules = { ...RULES, subjects: [...RULES.subjects, dissertation] };
     const c = classifyBy([...marks(60), '80'], more);
     expect(c.marks).toHaveLength(21);
     expect(c.marks.slice(-3).map((m) => m.source)).toEqual([[13], [13], [13]]);
     // Year 1 counted once, through its average.
-    expect(classifyBy(marks(60, { 0: 80, 1: 60, 2: 70, 3: 50 }), { ...RULES, averageCounts: 1 }).marks.filter((m) => m.source.length === 4)).toHaveLength(1);
+    expect(
+      classifyBy(marks(60, { 0: 80, 1: 60, 2: 70, 3: 50 }), { ...RULES, averageCounts: 1 }).marks.filter(
+        (m) => m.source.length === 4,
+      ),
+    ).toHaveLength(1);
   });
 });

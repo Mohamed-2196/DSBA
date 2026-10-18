@@ -29,7 +29,9 @@ export function IdentifierDialog({ kind, current, onClose }: IdentifierDialogPro
   const [error, setError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-  const [pending, setPending] = useState<{ challenge: OtpChallengeOut; receivedAt: number; identifier: string } | null>(null);
+  const [pending, setPending] = useState<{ challenge: OtpChallengeOut; receivedAt: number; identifier: string } | null>(
+    null,
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const [shownKind, setShownKind] = useState<IdentifierKind>('email');
 
@@ -82,7 +84,9 @@ export function IdentifierDialog({ kind, current, onClose }: IdentifierDialogPro
 
   const onVerify = async (code: string) => {
     if (!pending) return;
-    const me = await call(api.POST('/api/v1/me/identifiers/verify', { body: { challengeId: pending.challenge.challengeId, code } }));
+    const me = await call(
+      api.POST('/api/v1/me/identifiers/verify', { body: { challengeId: pending.challenge.challengeId, code } }),
+    );
     qc.setQueryData(ME_KEY, me);
     // The server signs out the account's other devices when a way to sign in changes.
     void qc.invalidateQueries({ queryKey: SESSIONS_KEY });

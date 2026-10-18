@@ -58,7 +58,15 @@ const ICONS: Record<IconName, Icon> = {
 };
 
 /** Text with every query token marked. */
-export function Marked({ text, tokens, className = 'cmdk-mark' }: { text: string | null | undefined; tokens: readonly string[]; className?: string }) {
+export function Marked({
+  text,
+  tokens,
+  className = 'cmdk-mark',
+}: {
+  text: string | null | undefined;
+  tokens: readonly string[];
+  className?: string;
+}) {
   if (!text) return null;
   const ranges = matchRanges(text, tokens);
   if (!ranges.length) return <>{text}</>;
@@ -92,12 +100,19 @@ export function Leading({ item }: { item: Item }) {
       return moduleArtSrc(item.art) ? (
         <ModuleArt art={item.art} className="cmdk-art" />
       ) : (
-        <span className={cx('cmdk-tile', 'cmdk-tile--module', item.year && `cmdk-tile--y${item.year}`)} aria-hidden="true">
+        <span
+          className={cx('cmdk-tile', 'cmdk-tile--module', item.year && `cmdk-tile--y${item.year}`)}
+          aria-hidden="true"
+        >
           <ModuleIcon moduleId={item.moduleId} />
         </span>
       );
     case 'lesson':
-      return <span className="cmdk-tile" aria-hidden="true">{item.chapter ? <BookOpenText /> : <PlayCircle />}</span>;
+      return (
+        <span className="cmdk-tile" aria-hidden="true">
+          {item.chapter ? <BookOpenText /> : <PlayCircle />}
+        </span>
+      );
     case 'file':
       return <span className="cmdk-doc" aria-hidden="true" />;
     case 'thread':
@@ -145,9 +160,11 @@ export function Trailing({ item, tokens, active }: { item: Item; tokens: readonl
         <Marked text={item.code} tokens={tokens} className="cmdk-mark cmdk-mark--code" />
       </span>
     );
-  else if (item.kind === 'event' && item.rel) meta = <span className={cx('cmdk-meta', !item.past && item.eventType === 'exam' && 'is-exam')}>{item.rel}</span>;
+  else if (item.kind === 'event' && item.rel)
+    meta = <span className={cx('cmdk-meta', !item.past && item.eventType === 'exam' && 'is-exam')}>{item.rel}</span>;
   else if (item.kind === 'thread' && item.meta) meta = <span className="cmdk-meta u-tabular">{item.meta}</span>;
-  else if (item.kind === 'action' && item.href) meta = <ArrowSquareOut className="cmdk-ext" aria-label="Opens in a new tab" />;
+  else if (item.kind === 'action' && item.href)
+    meta = <ArrowSquareOut className="cmdk-ext" aria-label="Opens in a new tab" />;
   return (
     <span className="cmdk-trail">
       {meta}

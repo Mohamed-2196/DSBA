@@ -30,7 +30,13 @@ type On = (feature: Feature) => boolean;
 const ADMIN_ONLY: readonly SectionId[] = ['bugs', 'noora', 'grades', 'site'];
 
 const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
-  ['reports', (can, on) => (can('forum.moderate') && on('forum')) || (can('library.manage') && on('library')) || (can('requests.manage') && on('requests'))],
+  [
+    'reports',
+    (can, on) =>
+      (can('forum.moderate') && on('forum')) ||
+      (can('library.manage') && on('library')) ||
+      (can('requests.manage') && on('requests')),
+  ],
   ['uploads', (can, on) => can('library.manage') && on('library')],
   ['requests', (can, on) => can('requests.manage') && on('requests')],
   ['videos', (can, on) => can('content.edit') && on('video_suggestions')],
@@ -43,7 +49,14 @@ const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['daily', (can, on) => can('content.edit') && on('daily')],
   ['guides', (can) => can('guides.edit')],
   ['forum', (can, on) => can('forum.moderate') && on('forum')],
-  ['gaps', (can, on) => (can('library.manage') && on('library')) || can('content.edit') || (can('calendar.manage') && on('calendar')) || (can('requests.manage') && on('requests'))],
+  [
+    'gaps',
+    (can, on) =>
+      (can('library.manage') && on('library')) ||
+      can('content.edit') ||
+      (can('calendar.manage') && on('calendar')) ||
+      (can('requests.manage') && on('requests')),
+  ],
   ['numbers', (can) => can('stats.view')],
   ['people', (can) => can('people.suspend')],
   ['activity', (can) => can('audit.read')],
@@ -55,7 +68,9 @@ const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
 const everyFeature: On = () => true;
 
 export function sectionsFor(can: Can, featureOn: On = everyFeature, isAdmin = false): SectionId[] {
-  return NEEDS.filter(([id, needs]) => (isAdmin || !ADMIN_ONLY.includes(id)) && needs(can, featureOn)).map(([id]) => id);
+  return NEEDS.filter(([id, needs]) => (isAdmin || !ADMIN_ONLY.includes(id)) && needs(can, featureOn)).map(
+    ([id]) => id,
+  );
 }
 
 export interface SectionGroup {
@@ -66,11 +81,21 @@ export interface SectionGroup {
 
 const GROUPS: readonly SectionGroup[] = [
   { id: 'waiting', label: 'Waiting', sections: ['reports', 'uploads', 'requests', 'videos', 'bugs'] },
-  { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content', 'daily', 'guides', 'forum'] },
-  { id: 'look-after', label: 'Look after', sections: ['gaps', 'numbers', 'people', 'activity', 'noora', 'grades', 'site'] },
+  {
+    id: 'publish',
+    label: 'Publish',
+    sections: ['newsletter', 'calendar', 'summary', 'career', 'content', 'daily', 'guides', 'forum'],
+  },
+  {
+    id: 'look-after',
+    label: 'Look after',
+    sections: ['gaps', 'numbers', 'people', 'activity', 'noora', 'grades', 'site'],
+  },
 ];
 
 /** The person's sections in Manage's groups (Waiting, Publish, Look after), leaving out empty groups. */
 export function groupSections(sections: readonly SectionId[]): SectionGroup[] {
-  return GROUPS.map((g) => ({ ...g, sections: g.sections.filter((id) => sections.includes(id)) })).filter((g) => g.sections.length > 0);
+  return GROUPS.map((g) => ({ ...g, sections: g.sections.filter((id) => sections.includes(id)) })).filter(
+    (g) => g.sections.length > 0,
+  );
 }

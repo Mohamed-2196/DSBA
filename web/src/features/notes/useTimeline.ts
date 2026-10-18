@@ -16,7 +16,10 @@ export interface NoteHistory {
 }
 
 /** `apply` puts an ink step's sheets (and pages) back the way they were ('undo') or done again ('redo'). */
-export function useTimeline(editor: Editor | null, apply: (step: Extract<Step, { kind: 'ink' }>, how: 'undo' | 'redo') => void): NoteHistory {
+export function useTimeline(
+  editor: Editor | null,
+  apply: (step: Extract<Step, { kind: 'ink' }>, how: 'undo' | 'redo') => void,
+): NoteHistory {
   const [timeline, setTimeline] = useState<Timeline>(emptyTimeline);
   const ref = useRef(timeline);
   const own = useRef(false);

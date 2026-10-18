@@ -11,17 +11,9 @@ import {
   EyeSlash,
   Plus,
   Trash,
-} from "@phosphor-icons/react";
-import { useState, type DragEvent } from "react";
-import {
-  Badge,
-  Button,
-  ConfirmDialog,
-  IconButton,
-  Panel,
-  TextField,
-  cx,
-} from "../../../ui";
+} from '@phosphor-icons/react';
+import { useState, type DragEvent } from 'react';
+import { Badge, Button, ConfirmDialog, IconButton, Panel, TextField, cx } from '../../../ui';
 import {
   addChapter,
   addLesson,
@@ -36,12 +28,10 @@ import {
   videoKind,
   type Draft,
   type LessonPlace,
-} from "./draft";
+} from './draft';
 
-type Dragged =
-  { type: "chapter"; index: number } | { type: "lesson"; at: LessonPlace };
-type Target =
-  { type: "chapter"; index: number } | { type: "lesson"; at: LessonPlace };
+type Dragged = { type: 'chapter'; index: number } | { type: 'lesson'; at: LessonPlace };
+type Target = { type: 'chapter'; index: number } | { type: 'lesson'; at: LessonPlace };
 
 interface Props {
   draft: Draft;
@@ -51,9 +41,9 @@ interface Props {
 }
 
 const KIND_LABEL = {
-  youtube: "YouTube video",
-  "youtube-playlist": "YouTube playlist",
-  bbb: "Class recording",
+  youtube: 'YouTube video',
+  'youtube-playlist': 'YouTube playlist',
+  bbb: 'Class recording',
 } as const;
 
 export function ChaptersEditor({ draft, setDraft, errors }: Props) {
@@ -63,8 +53,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
   // Chapters start folded, so a long module stays easy to scan; new ones, and ones with a problem, open.
   const [opened, setOpened] = useState<ReadonlySet<string>>(() => new Set());
   const isOpen = (key: string, c: number) =>
-    opened.has(key) ||
-    Object.keys(errors).some((f) => f.startsWith(`chapters.${c}.`));
+    opened.has(key) || Object.keys(errors).some((f) => f.startsWith(`chapters.${c}.`));
   const toggle = (key: string) =>
     setOpened((prev) => {
       const next = new Set(prev);
@@ -74,9 +63,9 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
     });
 
   const startDrag = (e: DragEvent<HTMLElement>, what: Dragged) => {
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", what.type);
-    const row = e.currentTarget.closest<HTMLElement>("[data-drag-row]");
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', what.type);
+    const row = e.currentTarget.closest<HTMLElement>('[data-drag-row]');
     if (row) e.dataTransfer.setDragImage(row, 16, 16);
     setDragged(what);
   };
@@ -87,7 +76,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
   const allow = (e: DragEvent, target: Target, key: string) => {
     if (!dragged) return;
     // a chapter lands before a chapter; a lesson lands before a lesson, or at the end of a chapter
-    if (dragged.type === "chapter" && target.type !== "chapter") return;
+    if (dragged.type === 'chapter' && target.type !== 'chapter') return;
     e.preventDefault();
     e.stopPropagation();
     setOver(key);
@@ -98,21 +87,18 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
     const what = dragged;
     endDrag();
     if (!what) return;
-    if (what.type === "chapter" && target.type === "chapter") {
+    if (what.type === 'chapter' && target.type === 'chapter') {
       const to = target.index > what.index ? target.index - 1 : target.index;
       setDraft((d) => moveChapter(d, what.index, to));
-    } else if (what.type === "lesson") {
+    } else if (what.type === 'lesson') {
       setDraft((d) => {
-        if (target.type === "chapter")
+        if (target.type === 'chapter')
           return moveLesson(d, what.at, {
             chapter: target.index,
             lesson: d.chapters[target.index]?.lessons.length ?? 0,
           });
         const same = target.at.chapter === what.at.chapter;
-        const lesson =
-          same && target.at.lesson > what.at.lesson
-            ? target.at.lesson - 1
-            : target.at.lesson;
+        const lesson = same && target.at.lesson > what.at.lesson ? target.at.lesson - 1 : target.at.lesson;
         return moveLesson(d, what.at, { chapter: target.at.chapter, lesson });
       });
     }
@@ -130,9 +116,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
         Chapters and lessons
       </h4>
       {draft.chapters.length === 0 ? (
-        <p className="medit__empty">
-          No chapters yet. Add the first one, then its lessons.
-        </p>
+        <p className="medit__empty">No chapters yet. Add the first one, then its lessons.</p>
       ) : null}
       <ol className="medit__chapter-list">
         {draft.chapters.map((ch, c) => {
@@ -142,26 +126,20 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
               key={ch.key}
               data-drag-row
               className={cx(
-                "medit-chapter",
-                ch.hidden && "is-hidden",
-                over === ch.key && "is-drop-before",
-                dragged?.type === "chapter" &&
-                  dragged.index === c &&
-                  "is-dragging",
+                'medit-chapter',
+                ch.hidden && 'is-hidden',
+                over === ch.key && 'is-drop-before',
+                dragged?.type === 'chapter' && dragged.index === c && 'is-dragging',
               )}
-              onDragOver={(e) =>
-                allow(e, { type: "chapter", index: c }, ch.key)
-              }
-              onDrop={(e) => drop(e, { type: "chapter", index: c })}
+              onDragOver={(e) => allow(e, { type: 'chapter', index: c }, ch.key)}
+              onDrop={(e) => drop(e, { type: 'chapter', index: c })}
             >
               <Panel padding="sm" className="medit-chapter__panel">
                 <div className="medit-chapter__head">
                   <span
                     className="medit__handle"
                     draggable
-                    onDragStart={(e) =>
-                      startDrag(e, { type: "chapter", index: c })
-                    }
+                    onDragStart={(e) => startDrag(e, { type: 'chapter', index: c })}
                     onDragEnd={endDrag}
                     title="Drag to move the chapter"
                   >
@@ -171,11 +149,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                     className="medit-chapter__title"
                     label={`Chapter ${c + 1}`}
                     value={ch.title}
-                    onChange={(e) =>
-                      setDraft((d) =>
-                        updateChapter(d, c, { title: e.target.value }),
-                      )
-                    }
+                    onChange={(e) => setDraft((d) => updateChapter(d, c, { title: e.target.value }))}
                     error={errors[`chapters.${c}.title`]}
                     maxLength={160}
                     required
@@ -188,17 +162,9 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                   <span className="medit__tools">
                     <IconButton
                       icon={ch.hidden ? Eye : EyeSlash}
-                      label={
-                        ch.hidden
-                          ? `Show chapter ${c + 1} to students`
-                          : `Hide chapter ${c + 1} from students`
-                      }
+                      label={ch.hidden ? `Show chapter ${c + 1} to students` : `Hide chapter ${c + 1} from students`}
                       size="sm"
-                      onClick={() =>
-                        setDraft((d) =>
-                          updateChapter(d, c, { hidden: !ch.hidden }),
-                        )
-                      }
+                      onClick={() => setDraft((d) => updateChapter(d, c, { hidden: !ch.hidden }))}
                     />
                     <IconButton
                       icon={ArrowUp}
@@ -214,12 +180,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                       disabled={c === draft.chapters.length - 1}
                       onClick={() => setDraft((d) => moveChapter(d, c, c + 1))}
                     />
-                    <IconButton
-                      icon={Trash}
-                      label={`Remove chapter ${c + 1}`}
-                      size="sm"
-                      onClick={() => askRemove(c)}
-                    />
+                    <IconButton icon={Trash} label={`Remove chapter ${c + 1}`} size="sm" onClick={() => askRemove(c)} />
                   </span>
                 </div>
 
@@ -231,18 +192,17 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                   onClick={() => toggle(ch.key)}
                 >
                   {open
-                    ? "Fold the lessons"
-                    : `Show ${ch.lessons.length} ${ch.lessons.length === 1 ? "lesson" : "lessons"}`}
+                    ? 'Fold the lessons'
+                    : `Show ${ch.lessons.length} ${ch.lessons.length === 1 ? 'lesson' : 'lessons'}`}
                 </Button>
                 {open ? (
                   <>
                     <ol
                       className="medit__lessons"
                       onDragOver={(e) =>
-                        dragged?.type === "lesson" &&
-                        allow(e, { type: "chapter", index: c }, `${ch.key}-end`)
+                        dragged?.type === 'lesson' && allow(e, { type: 'chapter', index: c }, `${ch.key}-end`)
                       }
-                      onDrop={(e) => drop(e, { type: "chapter", index: c })}
+                      onDrop={(e) => drop(e, { type: 'chapter', index: c })}
                     >
                       {ch.lessons.map((l, v) => {
                         const at = { chapter: c, lesson: v };
@@ -252,35 +212,27 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                             key={l.key}
                             data-drag-row
                             className={cx(
-                              "medit-lesson",
-                              l.hidden && "is-hidden",
-                              over === l.key && "is-drop-before",
-                              dragged?.type === "lesson" &&
+                              'medit-lesson',
+                              l.hidden && 'is-hidden',
+                              over === l.key && 'is-drop-before',
+                              dragged?.type === 'lesson' &&
                                 dragged.at.chapter === c &&
                                 dragged.at.lesson === v &&
-                                "is-dragging",
+                                'is-dragging',
                             )}
-                            onDragOver={(e) =>
-                              dragged?.type === "lesson" &&
-                              allow(e, { type: "lesson", at }, l.key)
-                            }
-                            onDrop={(e) => drop(e, { type: "lesson", at })}
+                            onDragOver={(e) => dragged?.type === 'lesson' && allow(e, { type: 'lesson', at }, l.key)}
+                            onDrop={(e) => drop(e, { type: 'lesson', at })}
                           >
                             <span
                               className="medit__handle"
                               draggable
-                              onDragStart={(e) =>
-                                startDrag(e, { type: "lesson", at })
-                              }
+                              onDragStart={(e) => startDrag(e, { type: 'lesson', at })}
                               onDragEnd={endDrag}
                               title="Drag to move the lesson"
                             >
                               <DotsSixVertical aria-hidden="true" />
                             </span>
-                            <span
-                              className="medit-lesson__num u-tabular"
-                              aria-hidden="true"
-                            >
+                            <span className="medit-lesson__num u-tabular" aria-hidden="true">
                               {v + 1}
                             </span>
                             <div className="medit-lesson__fields">
@@ -313,7 +265,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                                 hint={
                                   kind
                                     ? KIND_LABEL[kind]
-                                    : "A YouTube video or playlist, or a class recording on vc.bibf.com."
+                                    : 'A YouTube video or playlist, or a class recording on vc.bibf.com.'
                                 }
                                 maxLength={500}
                                 required
@@ -328,53 +280,38 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                               <IconButton
                                 icon={l.hidden ? Eye : EyeSlash}
                                 label={
-                                  l.hidden
-                                    ? `Show lesson ${v + 1} to students`
-                                    : `Hide lesson ${v + 1} from students`
+                                  l.hidden ? `Show lesson ${v + 1} to students` : `Hide lesson ${v + 1} from students`
                                 }
                                 size="sm"
-                                onClick={() =>
-                                  setDraft((d) =>
-                                    updateLesson(d, at, { hidden: !l.hidden }),
-                                  )
-                                }
+                                onClick={() => setDraft((d) => updateLesson(d, at, { hidden: !l.hidden }))}
                               />
                               <IconButton
                                 icon={ArrowUp}
                                 label={`Move lesson ${v + 1} up`}
                                 size="sm"
                                 disabled={!canStepLesson(draft, at, -1)}
-                                onClick={() =>
-                                  setDraft((d) => stepLesson(d, at, -1))
-                                }
+                                onClick={() => setDraft((d) => stepLesson(d, at, -1))}
                               />
                               <IconButton
                                 icon={ArrowDown}
                                 label={`Move lesson ${v + 1} down`}
                                 size="sm"
                                 disabled={!canStepLesson(draft, at, 1)}
-                                onClick={() =>
-                                  setDraft((d) => stepLesson(d, at, 1))
-                                }
+                                onClick={() => setDraft((d) => stepLesson(d, at, 1))}
                               />
                               <IconButton
                                 icon={Trash}
                                 label={`Remove lesson ${v + 1}`}
                                 size="sm"
-                                onClick={() =>
-                                  setDraft((d) => removeLesson(d, at))
-                                }
+                                onClick={() => setDraft((d) => removeLesson(d, at))}
                               />
                             </span>
                           </li>
                         );
                       })}
-                      {dragged?.type === "lesson" ? (
+                      {dragged?.type === 'lesson' ? (
                         <li
-                          className={cx(
-                            "medit-lesson__end",
-                            over === `${ch.key}-end` && "is-drop-before",
-                          )}
+                          className={cx('medit-lesson__end', over === `${ch.key}-end` && 'is-drop-before')}
                           aria-hidden="true"
                         />
                       ) : null}
@@ -412,13 +349,12 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
         title="Hide this chapter instead?"
         body={
           hidingChapter
-            ? `“${hidingChapter.title || `Chapter ${(hiding ?? 0) + 1}`}” still has ${hidingChapter.lessons.length} ${hidingChapter.lessons.length === 1 ? "lesson" : "lessons"}. Hiding it keeps them, and students’ notes and progress, out of sight. To remove the chapter, move or remove its lessons first.`
+            ? `“${hidingChapter.title || `Chapter ${(hiding ?? 0) + 1}`}” still has ${hidingChapter.lessons.length} ${hidingChapter.lessons.length === 1 ? 'lesson' : 'lessons'}. Hiding it keeps them, and students’ notes and progress, out of sight. To remove the chapter, move or remove its lessons first.`
             : undefined
         }
         confirmLabel="Hide the chapter"
         onConfirm={() => {
-          if (hiding !== null)
-            setDraft((d) => updateChapter(d, hiding, { hidden: true }));
+          if (hiding !== null) setDraft((d) => updateChapter(d, hiding, { hidden: true }));
           setHiding(null);
         }}
         onClose={() => setHiding(null)}

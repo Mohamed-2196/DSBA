@@ -33,7 +33,10 @@ export interface MenuAction {
   heading?: undefined;
 }
 
-export type MenuItem = MenuAction | { divider: true; id?: string } | { heading: ReactNode; id?: string; divider?: undefined };
+export type MenuItem =
+  | MenuAction
+  | { divider: true; id?: string }
+  | { heading: ReactNode; id?: string; divider?: undefined };
 
 /** What the trigger element receives (it must accept a ref, onClick and onKeyDown). */
 interface TriggerProps {
@@ -68,7 +71,17 @@ function elementRef(el: ReactElement): Ref<HTMLElement> | undefined {
 }
 
 /** Dropdown menu or popover anchored to a trigger element. */
-export function Menu({ trigger, items, children, align = 'start', side = 'bottom', width, label, className, onOpenChange }: MenuProps) {
+export function Menu({
+  trigger,
+  items,
+  children,
+  align = 'start',
+  side = 'bottom',
+  width,
+  label,
+  className,
+  onOpenChange,
+}: MenuProps) {
   const [open, setOpenState] = useState(false);
   const triggerRef = useRef<HTMLElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -109,7 +122,9 @@ export function Menu({ trigger, items, children, align = 'start', side = 'bottom
     if (!open || !pos) return;
     const panel = panelRef.current;
     if (!panel || panel.contains(document.activeElement)) return;
-    const first = panel.querySelector<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"]), [data-autofocus], button, a[href], input');
+    const first = panel.querySelector<HTMLElement>(
+      '[role="menuitem"]:not([aria-disabled="true"]), [data-autofocus], button, a[href], input',
+    );
     (first || panel).focus({ preventScroll: true });
   }, [open, pos]);
 
@@ -126,7 +141,8 @@ export function Menu({ trigger, items, children, align = 'start', side = 'bottom
       }
       const els = getFocusable(panel);
       const active = document.activeElement;
-      const atEnd = !els.length || (e.shiftKey ? active === els[0] || active === panel : active === els[els.length - 1]);
+      const atEnd =
+        !els.length || (e.shiftKey ? active === els[0] || active === panel : active === els[els.length - 1]);
       if (atEnd) {
         e.preventDefault();
         close(true);
@@ -135,7 +151,11 @@ export function Menu({ trigger, items, children, align = 'start', side = 'bottom
     }
     // Arrow keys move between a menu's items, or between a popover's [data-roving] items (a list of links), so a
     // long list isn't two Tab stops per row.
-    const els = [...panel.querySelectorAll<HTMLElement>(isMenu ? '[role="menuitem"]:not([aria-disabled="true"])' : '[data-roving]')];
+    const els = [
+      ...panel.querySelectorAll<HTMLElement>(
+        isMenu ? '[role="menuitem"]:not([aria-disabled="true"])' : '[data-roving]',
+      ),
+    ];
     if (!els.length) return;
     const active = document.activeElement as HTMLElement | null;
     const i = active ? els.indexOf(active) : -1;
@@ -222,7 +242,12 @@ export function Menu({ trigger, items, children, align = 'start', side = 'bottom
     );
   };
 
-  const panelStyle: CSSProperties = { top: pos?.top ?? 0, left: pos?.left ?? 0, visibility: pos ? 'visible' : 'hidden', width };
+  const panelStyle: CSSProperties = {
+    top: pos?.top ?? 0,
+    left: pos?.left ?? 0,
+    visibility: pos ? 'visible' : 'hidden',
+    width,
+  };
   return (
     <>
       {triggerEl}

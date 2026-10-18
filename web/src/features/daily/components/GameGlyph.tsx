@@ -27,7 +27,9 @@ function Groups() {
   return (
     <>
       {rows.flatMap((row, r) =>
-        row.map((c, i) => <rect key={`${r}${i}`} className={c} x={4 + i * 10.4} y={8 + r * 11} width={9} height={9} rx={2.2} />),
+        row.map((c, i) => (
+          <rect key={`${r}${i}`} className={c} x={4 + i * 10.4} y={8 + r * 11} width={9} height={9} rx={2.2} />
+        )),
       )}
     </>
   );
@@ -35,10 +37,21 @@ function Groups() {
 
 function Search() {
   const dots = [];
-  for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) dots.push(<circle key={`${r}${c}`} className="g-ink" cx={8 + c * 8} cy={8 + r * 8} r={1.5} opacity={0.55} />);
+  for (let r = 0; r < 5; r++)
+    for (let c = 0; c < 5; c++)
+      dots.push(<circle key={`${r}${c}`} className="g-ink" cx={8 + c * 8} cy={8 + r * 8} r={1.5} opacity={0.55} />);
   return (
     <>
-      <line x1={8} y1={8} x2={32} y2={32} stroke="currentColor" strokeOpacity={0.22} strokeWidth={7.5} strokeLinecap="round" />
+      <line
+        x1={8}
+        y1={8}
+        x2={32}
+        y2={32}
+        stroke="currentColor"
+        strokeOpacity={0.22}
+        strokeWidth={7.5}
+        strokeLinecap="round"
+      />
       {dots}
       <circle className="g-ink" cx={8} cy={8} r={2.2} />
       <circle className="g-ink" cx={32} cy={32} r={2.2} />
@@ -52,7 +65,13 @@ function Quiz() {
       <rect className="g-soft" x={6} y={7} width={36} height={8} rx={4} />
       <rect className="g-hit" x={6} y={19} width={36} height={8} rx={4} />
       <rect className="g-soft" x={6} y={31} width={36} height={8} rx={4} />
-      <path d="M33.5 23l2.2 2.2 4-4.4" style={{ fill: 'none', stroke: 'var(--dy-on-hit)' }} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M33.5 23l2.2 2.2 4-4.4"
+        style={{ fill: 'none', stroke: 'var(--dy-on-hit)' }}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </>
   );
 }
@@ -67,7 +86,16 @@ function Nearest() {
   ];
   return (
     <>
-      <circle cx={21} cy={24} r={11} fill="none" stroke="currentColor" strokeOpacity={0.25} strokeWidth={1.3} strokeDasharray="2.4 2.4" />
+      <circle
+        cx={21}
+        cy={24}
+        r={11}
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity={0.25}
+        strokeWidth={1.3}
+        strokeDasharray="2.4 2.4"
+      />
       <line className="g-line" x1={21} y1={24} x2={30} y2={22} />
       {others.map(([x, y]) => (
         <circle key={`${x}${y}`} className="g-ink" cx={x} cy={y} r={2.3} opacity={x === 30 ? 1 : 0.45} />

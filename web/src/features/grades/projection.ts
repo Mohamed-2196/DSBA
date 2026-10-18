@@ -42,13 +42,27 @@ export function projectClass(input: unknown, rules: Rules): Projection {
   const weight = entered.reduce((sum, { i }) => sum + weightOf(i, rules), 0);
   const average = entered.reduce((sum, { i, m }) => sum + weightOf(i, rules) * m, 0) / weight;
   if (entered.length === rules.subjects.length) {
-    const result = classify(marks.map((m) => String(m)), rules);
+    const result = classify(
+      marks.map((m) => String(m)),
+      rules,
+    );
     return { state: 'complete', kind: result.kind, average: result.average };
   }
 
   const filled = marks.map((m) => String(m ?? average));
   const kind = classify(filled, rules).kind;
   const nextKind = NEXT_CLASS[kind];
-  const target = nextKind ? targetsForRemaining(marks.map((m) => (m === null ? '' : String(m))), rules).find((t) => t.kind === nextKind) : undefined;
-  return { state: 'partial', kind, average, entered: entered.length, next: target ? { kind: target.kind, mark: target.mark, blanks: target.blanks } : null };
+  const target = nextKind
+    ? targetsForRemaining(
+        marks.map((m) => (m === null ? '' : String(m))),
+        rules,
+      ).find((t) => t.kind === nextKind)
+    : undefined;
+  return {
+    state: 'partial',
+    kind,
+    average,
+    entered: entered.length,
+    next: target ? { kind: target.kind, mark: target.mark, blanks: target.blanks } : null,
+  };
 }

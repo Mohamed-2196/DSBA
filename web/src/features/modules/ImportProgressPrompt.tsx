@@ -42,13 +42,17 @@ export function ImportProgressPrompt() {
 
   const summary = useMemo(() => {
     const lessons = Object.values(guest.state.watched).filter((w) => getModule(w.m));
-    const modules = new Set([...lessons.map((w) => w.m), ...Object.keys(guest.state.last).filter((id) => getModule(id))]);
+    const modules = new Set([
+      ...lessons.map((w) => w.m),
+      ...Object.keys(guest.state.last).filter((id) => getModule(id)),
+    ]);
     return { lessons: lessons.length, modules: modules.size };
   }, [guest.state, getModule]);
 
   // Only once the person is fully signed in (the sign-in dialog has finished, profile included).
   const userId = status === 'signed-in' && me && !me.needsProfile ? me.id : null;
-  const open = owner && !!userId && !closed && !notNow.has(userId) && !isEmptyProgress(guest.state) && summary.modules > 0;
+  const open =
+    owner && !!userId && !closed && !notNow.has(userId) && !isEmptyProgress(guest.state) && summary.modules > 0;
   if (!userId) return null;
 
   const later = () => {
@@ -69,7 +73,11 @@ export function ImportProgressPrompt() {
         qc.setQueryData(progressKey(userId), data);
         guest.clear();
         setClosed(true);
-        push({ title: 'Lesson progress added', body: 'It’s saved to your account now, on every device.', tone: 'success' });
+        push({
+          title: 'Lesson progress added',
+          body: 'It’s saved to your account now, on every device.',
+          tone: 'success',
+        });
       })
       .catch((e: unknown) => setError(errorMessage(e, 'It couldn’t be added. Try again.')))
       .finally(() => setBusy(false));
@@ -98,8 +106,8 @@ export function ImportProgressPrompt() {
       }
     >
       <p className="mod-import__text">
-        Before you signed in, {what}. If that was you, add the progress to your account. If someone else used this computer, leave it
-        out.
+        Before you signed in, {what}. If that was you, add the progress to your account. If someone else used this
+        computer, leave it out.
         {me?.preferences.trackProgress ? null : ' Adding it turns on Track my lesson progress for your account.'}
       </p>
       {error ? (

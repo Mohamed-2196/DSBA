@@ -18,7 +18,9 @@
   user-select: none;
   -webkit-user-drag: none;
 }
-.nc-face__img[data-on] { visibility: visible; }
+.nc-face__img[data-on] {
+  visibility: visible;
+}
 
 /* Position and size are set inline. Over the page and her (she stands beside it), under dialogs and toasts. */
 .ncard {
@@ -33,21 +35,35 @@
   box-shadow: var(--shadow-float);
   outline: none;
 }
-.ncard[hidden] { display: none; }
+.ncard[hidden] {
+  display: none;
+}
 .ncard--float {
   border-radius: var(--r-panel);
   transform-origin: 100% 100%;
   animation: ncard-in var(--dur-slow) var(--ease);
 }
-.ncard--float[data-side='right'] { transform-origin: 0 100%; }
-@keyframes ncard-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+.ncard--float[data-side='right'] {
+  transform-origin: 0 100%;
+}
+@keyframes ncard-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
 
 .ncard--sheet {
   border-width: 1px 0 0;
   border-radius: var(--r-feature) var(--r-feature) 0 0;
   animation: ncard-rise var(--dur-slow) var(--ease);
 }
-@keyframes ncard-rise { from { opacity: 0; transform: translateY(24px); } }
+@keyframes ncard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
 
 /* While the chat's code arrives, and if it fails. */
 .ncard-note {
@@ -63,9 +79,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ncard--float, .ncard--sheet { animation: none; }
+  .ncard--float,
+  .ncard--sheet {
+    animation: none;
+  }
 }
 
 @media print {
-  .ncard { display: none; }
+  .ncard {
+    display: none;
+  }
 }

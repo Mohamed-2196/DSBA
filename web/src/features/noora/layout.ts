@@ -88,7 +88,10 @@ export function nearestSide(point: Point, view: View, box: Box): Side {
 /** Where she stands in a lane, `lift` px above the floor. */
 export function restPoint(side: Side, lift: number, view: View, box: Box): Point {
   const x = side === 'left' ? view.left + LANE_PAD : view.right - box.w - LANE_PAD;
-  return { x: Math.round(x), y: Math.round(clamp(view.floor - box.h - lift, view.ceiling + EDGE, view.floor - box.h - EDGE)) };
+  return {
+    x: Math.round(x),
+    y: Math.round(clamp(view.floor - box.h - lift, view.ceiling + EDGE, view.floor - box.h - EDGE)),
+  };
 }
 
 /** Where she is let go, as an anchor: the nearer lane, and how high she stands. */
@@ -110,7 +113,8 @@ export function homePoint(view: View, box: Box): Point {
   return restPoint('right', HOME_LIFT, view, box);
 }
 
-const overlaps = (a: Rect, b: Rect): boolean => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+const overlaps = (a: Rect, b: Rect): boolean =>
+  a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 
 /**
  * Keep her off the controls that matter (something fixed that reaches into her lane): if she would cover one, she
@@ -158,8 +162,14 @@ export function hintSide(point: Point, view: View, box: Box, page: Span | null, 
  * Phones: a sheet along the bottom, above the tab bar, with room for her to stand on top of it.
  * Short screens (a phone on its side): the whole window, from its top to the floor, so the conversation has room.
  */
-export function placeChat(point: Point, view: View, box: Box, { phone = false, short = false, prefer = null }: { phone?: boolean; short?: boolean; prefer?: Side | null } = {}): ChatPlace {
-  if (short) return { sheet: true, full: true, left: 0, top: 0, width: view.w, height: Math.max(0, view.floor), side: 'left' };
+export function placeChat(
+  point: Point,
+  view: View,
+  box: Box,
+  { phone = false, short = false, prefer = null }: { phone?: boolean; short?: boolean; prefer?: Side | null } = {},
+): ChatPlace {
+  if (short)
+    return { sheet: true, full: true, left: 0, top: 0, width: view.w, height: Math.max(0, view.floor), side: 'left' };
   if (phone) {
     const height = Math.round(clamp(view.floor - view.ceiling - box.h - SHEET.headroom, 260, SHEET.height));
     return { sheet: true, full: false, left: 0, top: view.floor - height, width: view.w, height, side: 'left' };

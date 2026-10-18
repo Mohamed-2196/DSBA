@@ -3,7 +3,16 @@
 // ('/api/v1/media/<id>') goes into the markdown. Limits, accepted types and messages are the shared ones.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError, isApiError } from '../../../api/errors';
-import { UPLOAD_RULES, canRetryUpload, checkUpload, fileExtension, progressPercent, uploadContentType, uploadErrorMessage, uploadFile } from '../../../api/uploads';
+import {
+  UPLOAD_RULES,
+  canRetryUpload,
+  checkUpload,
+  fileExtension,
+  progressPercent,
+  uploadContentType,
+  uploadErrorMessage,
+  uploadFile,
+} from '../../../api/uploads';
 import { isMediaPath } from '../../../ui/safeHref';
 import { altFromFileName } from './editing';
 
@@ -86,7 +95,12 @@ export function useImageUploads(onUploaded: (image: UploadedImage) => void) {
         .then(({ mediaUrl }) => {
           if (controller.signal.aborted) return;
           // Only a picture the API serves can go into a post (ui/safeHref.ts isMediaPath).
-          if (!isMediaPath(mediaUrl)) throw new ApiError({ status: 0, code: 'upload_failed', message: 'The image was uploaded but can’t be shown. Try another file.' });
+          if (!isMediaPath(mediaUrl))
+            throw new ApiError({
+              status: 0,
+              code: 'upload_failed',
+              message: 'The image was uploaded but can’t be shown. Try another file.',
+            });
           update(key, { phase: 'done', progress: 100, mediaUrl });
           onUploadedRef.current({ key, mediaUrl, alt: altFromFileName(file.name || 'image') });
         })

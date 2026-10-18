@@ -36,7 +36,9 @@ export function placeInNotes(notes: Notes, cell: number, digit: number): Notes {
 /** A cell's notes with `digit` switched on or off. */
 export function toggleNote(notes: Notes, cell: number, digit: number): Notes {
   const current = notes[cell] ?? [];
-  const digits = current.includes(digit) ? current.filter((d) => d !== digit) : [...current, digit].sort((a, b) => a - b);
+  const digits = current.includes(digit)
+    ? current.filter((d) => d !== digit)
+    : [...current, digit].sort((a, b) => a - b);
   const next = { ...notes };
   if (digits.length) next[cell] = digits;
   else delete next[cell];

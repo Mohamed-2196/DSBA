@@ -45,7 +45,10 @@ export function closeCard({ restoreFocus = true }: { restoreFocus?: boolean } = 
   if (!restoreFocus) return;
   requestAnimationFrame(() => {
     if (open) return;
-    const back = from?.isConnected && from.getClientRects().length ? from : document.querySelector<HTMLElement>('[data-hub="noora-launcher"]');
+    const back =
+      from?.isConnected && from.getClientRects().length
+        ? from
+        : document.querySelector<HTMLElement>('[data-hub="noora-launcher"]');
     (back ?? document.getElementById('main'))?.focus({ preventScroll: true });
   });
 }
@@ -70,7 +73,9 @@ export function useCardOpen(): boolean {
 }
 
 /** The keyboard shortcut that opens or closes her chat: ⌘/ on a Mac, Ctrl+/ elsewhere. */
-export function isNooraShortcut(e: Pick<KeyboardEvent, 'key' | 'metaKey' | 'ctrlKey' | 'altKey' | 'shiftKey'>): boolean {
+export function isNooraShortcut(
+  e: Pick<KeyboardEvent, 'key' | 'metaKey' | 'ctrlKey' | 'altKey' | 'shiftKey'>,
+): boolean {
   return e.key === '/' && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey;
 }
 

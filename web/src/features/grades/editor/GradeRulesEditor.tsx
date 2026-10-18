@@ -9,7 +9,23 @@ import type { GradeBand, GradeOption, GradeRules, GradeRulesEditable, GradeSubje
 import { moduleLabel } from '../../../lib/modules';
 import { useToast } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Badge, Chip, DocFrame, ListEditor, Panel, QueryError, Select, Skeleton, TextField, cx, docErrors, focusDocStatus, hasErrorUnder, newItemId, type DocProblem } from '../../../ui';
+import {
+  Badge,
+  Chip,
+  DocFrame,
+  ListEditor,
+  Panel,
+  QueryError,
+  Select,
+  Skeleton,
+  TextField,
+  cx,
+  docErrors,
+  focusDocStatus,
+  hasErrorUnder,
+  newItemId,
+  type DocProblem,
+} from '../../../ui';
 import { useGradeRulesForEditing, useReloadGradeRules, useSaveGradeRules } from '../api';
 import { bandsOf, CLASS_NAME } from '../bands';
 import { classify, subjectsOf, totalMarks, type ChoiceSlot } from '../classify';
@@ -22,9 +38,24 @@ type Section = 'subjects' | 'classes' | 'choices';
 type Err = (path: string) => string | undefined;
 
 const SECTIONS: { id: Section; label: string; about: string; parts: string[] }[] = [
-  { id: 'subjects', label: 'Subjects', about: 'The calculator’s rows, in order, and what each counts in the classification.', parts: ['subjects', 'averageCounts'] },
-  { id: 'classes', label: 'Bands and classes', about: 'Where each band starts, and what each class needs.', parts: ['bands', 'needed', 'fewer', 'averages', 'thirdRule', 'regulations'] },
-  { id: 'choices', label: 'Choices', about: 'The modules a student picks for their Year 2 option and their two electives.', parts: ['year2Options', 'electives'] },
+  {
+    id: 'subjects',
+    label: 'Subjects',
+    about: 'The calculator’s rows, in order, and what each counts in the classification.',
+    parts: ['subjects', 'averageCounts'],
+  },
+  {
+    id: 'classes',
+    label: 'Bands and classes',
+    about: 'Where each band starts, and what each class needs.',
+    parts: ['bands', 'needed', 'fewer', 'averages', 'thirdRule', 'regulations'],
+  },
+  {
+    id: 'choices',
+    label: 'Choices',
+    about: 'The modules a student picks for their Year 2 option and their two electives.',
+    parts: ['year2Options', 'electives'],
+  },
 ];
 
 const COUNTS = [
@@ -44,7 +75,12 @@ const BAND_KEYS = ['first', 'upper', 'lower', 'third'] as const;
 
 const countsOf = (v: string): GradeSubject['counts'] => (v === '1' ? 1 : v === '2' ? 2 : v === '3' ? 3 : 'average');
 
-type WholeFieldProps = Omit<ComponentProps<typeof TextField>, 'value' | 'onChange' | 'type' | 'min' | 'max'> & { value: number; min: number; max: number; onValue: (n: number) => void };
+type WholeFieldProps = Omit<ComponentProps<typeof TextField>, 'value' | 'onChange' | 'type' | 'min' | 'max'> & {
+  value: number;
+  min: number;
+  max: number;
+  onValue: (n: number) => void;
+};
 
 /** A whole number from `min` to `max`. It can be cleared and retyped: the rules take each whole number typed (kept in
  *  range), and the field shows the rules' number again when it loses focus. */
@@ -75,7 +111,16 @@ function WholeField({ value, min, max, onValue, onBlur, ...rest }: WholeFieldPro
 export function GradeRulesEditor() {
   const query = useGradeRulesForEditing();
   const [section, setSection] = useState<Section>('subjects');
-  if (query.isError) return <QueryError error={query.error} title="The calculator’s rules didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} size="sm" />;
+  if (query.isError)
+    return (
+      <QueryError
+        error={query.error}
+        title="The calculator’s rules didn’t load"
+        onRetry={() => void query.refetch()}
+        retrying={query.isFetching}
+        size="sm"
+      />
+    );
   if (query.isPending) {
     return (
       <Panel padding="md">
@@ -87,7 +132,15 @@ export function GradeRulesEditor() {
   return <Editor key={query.data.version} loaded={query.data} section={section} setSection={setSection} />;
 }
 
-function Editor({ loaded, section, setSection }: { loaded: GradeRulesEditable; section: Section; setSection: (s: Section) => void }) {
+function Editor({
+  loaded,
+  section,
+  setSection,
+}: {
+  loaded: GradeRulesEditable;
+  section: Section;
+  setSection: (s: Section) => void;
+}) {
   const saved = loaded.data;
   const [rules, setRules] = useState<GradeRules>(saved);
   const [fields, setFields] = useState<Record<string, string>>({});
@@ -96,7 +149,15 @@ function Editor({ loaded, section, setSection }: { loaded: GradeRulesEditable; s
   const reload = useReloadGradeRules();
   const { push: toast } = useToast();
   const dirty = useMemo(() => JSON.stringify(rules) !== JSON.stringify(saved), [rules, saved]);
-  const savedIds = useMemo(() => new Set([...saved.subjects.map((s) => s.id), ...saved.year2Options.map((o) => o.id), ...saved.electives.map((o) => o.id)]), [saved]);
+  const savedIds = useMemo(
+    () =>
+      new Set([
+        ...saved.subjects.map((s) => s.id),
+        ...saved.year2Options.map((o) => o.id),
+        ...saved.electives.map((o) => o.id),
+      ]),
+    [saved],
+  );
   const set = (patch: Partial<GradeRules>) => setRules((r) => ({ ...r, ...patch }));
   const err: Err = (path) => fields[path];
 
@@ -112,10 +173,19 @@ function Editor({ loaded, section, setSection }: { loaded: GradeRulesEditable; s
           focusDocStatus();
         },
         onError: (e) => {
-          if (isApiError(e) && e.code === 'grades_changed') return setProblem({ kind: 'changed', what: 'the calculator’s rules' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, ['subjects', 'year2Options', 'electives', 'bands', 'averages']);
+          if (isApiError(e) && e.code === 'grades_changed')
+            return setProblem({ kind: 'changed', what: 'the calculator’s rules' });
+          const found = docErrors(isApiError(e) ? e.fields : {}, [
+            'subjects',
+            'year2Options',
+            'electives',
+            'bands',
+            'averages',
+          ]);
           setFields(found.fields);
-          const marked = Object.keys(found.fields).length ? ['Some fields need a look before saving. They’re marked below.'] : [];
+          const marked = Object.keys(found.fields).length
+            ? ['Some fields need a look before saving. They’re marked below.']
+            : [];
           const messages = [...found.general, ...marked];
           setProblem({ kind: 'other', messages: messages.length ? messages : [errorMessage(e)] });
           const first = SECTIONS.find((s) => s.parts.some((p) => hasErrorUnder(found.fields, p)));
@@ -145,21 +215,42 @@ function Editor({ loaded, section, setSection }: { loaded: GradeRulesEditable; s
         onReload={() => void reload()}
         section={{ title: current.label, about: current.about }}
         nav={SECTIONS.map((s) => (
-          <Chip key={s.id} selected={s.id === section} onChange={() => setSection(s.id)} className={cx(s.parts.some((p) => hasErrorUnder(fields, p)) && 'dedit__nav-error')}>
+          <Chip
+            key={s.id}
+            selected={s.id === section}
+            onChange={() => setSection(s.id)}
+            className={cx(s.parts.some((p) => hasErrorUnder(fields, p)) && 'dedit__nav-error')}
+          >
             {s.label}
           </Chip>
         ))}
       >
-        {section === 'subjects' ? <SubjectsPart rules={rules} set={set} err={err} fields={fields} savedIds={savedIds} /> : null}
+        {section === 'subjects' ? (
+          <SubjectsPart rules={rules} set={set} err={err} fields={fields} savedIds={savedIds} />
+        ) : null}
         {section === 'classes' ? <ClassesPart rules={rules} set={set} err={err} /> : null}
-        {section === 'choices' ? <ChoicesPart rules={rules} set={set} fields={fields} err={err} savedIds={savedIds} /> : null}
+        {section === 'choices' ? (
+          <ChoicesPart rules={rules} set={set} fields={fields} err={err} savedIds={savedIds} />
+        ) : null}
       </DocFrame>
       <WorkedExample draft={rules} saved={saved} />
     </div>
   );
 }
 
-function SubjectsPart({ rules, set, err, fields, savedIds }: { rules: GradeRules; set: (p: Partial<GradeRules>) => void; err: Err; fields: Record<string, string>; savedIds: ReadonlySet<string> }) {
+function SubjectsPart({
+  rules,
+  set,
+  err,
+  fields,
+  savedIds,
+}: {
+  rules: GradeRules;
+  set: (p: Partial<GradeRules>) => void;
+  err: Err;
+  fields: Record<string, string>;
+  savedIds: ReadonlySet<string>;
+}) {
   const { modules, getModule } = useModules();
   const moduleOptions = useMemo(() => modules.map((m) => ({ value: m.id, label: moduleLabel(m) })), [modules]);
   const averaged = rules.subjects.some((s) => s.counts === 'average');
@@ -170,10 +261,22 @@ function SubjectsPart({ rules, set, err, fields, savedIds }: { rules: GradeRules
         items={rules.subjects}
         noun="subject"
         titleOf={(s) => (s.moduleId ? (getModule(s.moduleId)?.name ?? s.name) : s.name)}
-        metaOf={(s) => `Year ${s.year} · ${s.counts === 'average' ? 'averaged' : `${s.counts} ${s.counts === 1 ? 'mark' : 'marks'}`}${s.choice ? ' · picked by the student' : ''}`}
+        metaOf={(s) =>
+          `Year ${s.year} · ${s.counts === 'average' ? 'averaged' : `${s.counts} ${s.counts === 1 ? 'mark' : 'marks'}`}${s.choice ? ' · picked by the student' : ''}`
+        }
         savedIds={savedIds}
         onChange={(subjects) => set({ subjects })}
-        make={() => ({ id: newItemId('subject', rules.subjects.map((s) => s.id)), name: '', year: 3, moduleId: null, choice: null, counts: 2 })}
+        make={() => ({
+          id: newItemId(
+            'subject',
+            rules.subjects.map((s) => s.id),
+          ),
+          name: '',
+          year: 3,
+          moduleId: null,
+          choice: null,
+          counts: 2,
+        })}
         hasError={(i) => hasErrorUnder(fields, `subjects.${i}`)}
         min={1}
         max={24}
@@ -204,15 +307,30 @@ function SubjectsPart({ rules, set, err, fields, savedIds }: { rules: GradeRules
             )}
             <TextField
               label="Name"
-              hint={s.choice ? 'Shown until the student picks, like Elective 1.' : 'Shown when it has no module in the hub.'}
+              hint={
+                s.choice ? 'Shown until the student picks, like Elective 1.' : 'Shown when it has no module in the hub.'
+              }
               value={s.name}
               onChange={(e) => change({ name: e.target.value })}
               error={err(`subjects.${i}.name`)}
               maxLength={80}
               required
             />
-            <Select label="Year" value={String(s.year)} onChange={(e) => change({ year: Number(e.target.value) as 1 | 2 | 3 })} options={YEARS} error={err(`subjects.${i}.year`)} />
-            <Select className="dedit-grid__wide" label="It counts as" value={String(s.counts)} onChange={(e) => change({ counts: countsOf(e.target.value) })} options={COUNTS} error={err(`subjects.${i}.counts`)} />
+            <Select
+              label="Year"
+              value={String(s.year)}
+              onChange={(e) => change({ year: Number(e.target.value) as 1 | 2 | 3 })}
+              options={YEARS}
+              error={err(`subjects.${i}.year`)}
+            />
+            <Select
+              className="dedit-grid__wide"
+              label="It counts as"
+              value={String(s.counts)}
+              onChange={(e) => change({ counts: countsOf(e.target.value) })}
+              options={COUNTS}
+              error={err(`subjects.${i}.counts`)}
+            />
           </div>
         )}
       </ListEditor>
@@ -233,7 +351,8 @@ function SubjectsPart({ rules, set, err, fields, savedIds }: { rules: GradeRules
 
 function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<GradeRules>) => void; err: Err }) {
   const total = totalMarks(rules);
-  const band = (key: (typeof BAND_KEYS)[number], patch: Partial<GradeBand>) => set({ bands: { ...rules.bands, [key]: { ...rules.bands[key], ...patch } } });
+  const band = (key: (typeof BAND_KEYS)[number], patch: Partial<GradeBand>) =>
+    set({ bands: { ...rules.bands, [key]: { ...rules.bands[key], ...patch } } });
   return (
     <>
       <fieldset className="dedit-group">
@@ -251,7 +370,13 @@ function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<
                   onValue={(floor) => band(key, { floor })}
                   error={err(`bands.${key}.floor`)}
                 />
-                <TextField label="US GPA, approx." value={rules.bands[key].gpa} onChange={(e) => band(key, { gpa: e.target.value })} error={err(`bands.${key}.gpa`)} maxLength={20} />
+                <TextField
+                  label="US GPA, approx."
+                  value={rules.bands[key].gpa}
+                  onChange={(e) => band(key, { gpa: e.target.value })}
+                  error={err(`bands.${key}.gpa`)}
+                  maxLength={20}
+                />
               </div>
             );
           })}
@@ -270,7 +395,14 @@ function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<
             onValue={(needed) => set({ needed })}
             error={err('needed')}
           />
-          <WholeField label="Or this many, with a high enough average" min={1} max={60} value={rules.fewer} onValue={(fewer) => set({ fewer })} error={err('fewer')} />
+          <WholeField
+            label="Or this many, with a high enough average"
+            min={1}
+            max={60}
+            value={rules.fewer}
+            onValue={(fewer) => set({ fewer })}
+            error={err('fewer')}
+          />
           {(['first', 'upper', 'lower'] as const).map((k) => (
             <WholeField
               key={k}
@@ -293,16 +425,52 @@ function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<
         maxLength={200}
         required
       />
-      <TextField label="Where the rules are" hint="Before the link to the programme regulations, like regulations 8.7 and 8.8." value={rules.regulations} onChange={(e) => set({ regulations: e.target.value })} error={err('regulations')} maxLength={80} required />
+      <TextField
+        label="Where the rules are"
+        hint="Before the link to the programme regulations, like regulations 8.7 and 8.8."
+        value={rules.regulations}
+        onChange={(e) => set({ regulations: e.target.value })}
+        error={err('regulations')}
+        maxLength={80}
+        required
+      />
     </>
   );
 }
 
-function ChoicesPart({ rules, set, fields, err, savedIds }: { rules: GradeRules; set: (p: Partial<GradeRules>) => void; fields: Record<string, string>; err: Err; savedIds: ReadonlySet<string> }) {
+function ChoicesPart({
+  rules,
+  set,
+  fields,
+  err,
+  savedIds,
+}: {
+  rules: GradeRules;
+  set: (p: Partial<GradeRules>) => void;
+  fields: Record<string, string>;
+  err: Err;
+  savedIds: ReadonlySet<string>;
+}) {
   return (
     <>
-      <OptionsList title="The Year 2 option" list="year2Options" options={rules.year2Options} onChange={(year2Options) => set({ year2Options })} fields={fields} err={err} savedIds={savedIds} />
-      <OptionsList title="The electives" list="electives" options={rules.electives} onChange={(electives) => set({ electives })} fields={fields} err={err} savedIds={savedIds} />
+      <OptionsList
+        title="The Year 2 option"
+        list="year2Options"
+        options={rules.year2Options}
+        onChange={(year2Options) => set({ year2Options })}
+        fields={fields}
+        err={err}
+        savedIds={savedIds}
+      />
+      <OptionsList
+        title="The electives"
+        list="electives"
+        options={rules.electives}
+        onChange={(electives) => set({ electives })}
+        fields={fields}
+        err={err}
+        savedIds={savedIds}
+      />
     </>
   );
 }
@@ -336,15 +504,37 @@ function OptionsList({
         metaOf={(o) => (o.moduleId ? (getModule(o.moduleId)?.unitCode ?? '') : 'Not a module in the hub')}
         savedIds={savedIds}
         onChange={onChange}
-        make={() => ({ id: newItemId('option', options.map((o) => o.id)), moduleId: null, label: null })}
+        make={() => ({
+          id: newItemId(
+            'option',
+            options.map((o) => o.id),
+          ),
+          moduleId: null,
+          label: null,
+        })}
         hasError={(i) => hasErrorUnder(fields, `${list}.${i}`)}
         max={list === 'electives' ? 24 : 12}
       >
         {(o, i, change) => (
           <div className="dedit-grid">
-            <Select label="Module" value={o.moduleId ?? ''} placeholder="Not a module in the hub" onChange={(e) => change({ moduleId: e.target.value || null })} options={moduleOptions} error={err(`${list}.${i}.moduleId`)} />
+            <Select
+              label="Module"
+              value={o.moduleId ?? ''}
+              placeholder="Not a module in the hub"
+              onChange={(e) => change({ moduleId: e.target.value || null })}
+              options={moduleOptions}
+              error={err(`${list}.${i}.moduleId`)}
+            />
             {o.moduleId ? null : (
-              <TextField label="Name" hint="For a module the hub has no page for." value={o.label ?? ''} onChange={(e) => change({ label: e.target.value || null })} error={err(`${list}.${i}.label`)} maxLength={80} required />
+              <TextField
+                label="Name"
+                hint="For a module the hub has no page for."
+                value={o.label ?? ''}
+                onChange={(e) => change({ label: e.target.value || null })}
+                error={err(`${list}.${i}.label`)}
+                maxLength={80}
+                required
+              />
             )}
           </div>
         )}
@@ -370,9 +560,17 @@ function WorkedExample({ draft, saved }: { draft: GradeRules; saved: GradeRules 
         <h3 id="grades-example-title" className="manage-doc__title">
           Worked example
         </h3>
-        <Select label="Record" value={example} onChange={(e) => setExample(e.target.value)} options={Object.entries(EXAMPLES).map(([id, ex]) => ({ value: id, label: ex.label }))} />
+        <Select
+          label="Record"
+          value={example}
+          onChange={(e) => setExample(e.target.value)}
+          options={Object.entries(EXAMPLES).map(([id, ex]) => ({ value: id, label: ex.label }))}
+        />
       </div>
-      <p className="dedit__note">The calculator’s own classification, run on an invented record with your changes. Nothing is saved until you save.</p>
+      <p className="dedit__note">
+        The calculator’s own classification, run on an invented record with your changes. Nothing is saved until you
+        save.
+      </p>
       <div className="grades-set__table-wrap">
         <table className="grades-set__table">
           <caption className="visually-hidden">Each subject’s mark and what it counts</caption>

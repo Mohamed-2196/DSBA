@@ -24,11 +24,19 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
   const days = exam ? daysUntil(exam.date) : null;
   const hasArt = moduleArtSrc(module.art) != null;
   return (
-    <section className="forum-tside__card" aria-label="Module" style={{ '--forum-c': cohortTextColor(module.year) } as CSSProperties}>
+    <section
+      className="forum-tside__card"
+      aria-label="Module"
+      style={{ '--forum-c': cohortTextColor(module.year) } as CSSProperties}
+    >
       {hasArt ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-10)', marginBottom: 'var(--sp-6)' }}>
           <ModuleArt art={module.art} />
-          {module.unitCode ? <span className="forum-tside__code" style={{ marginBottom: 0 }}>{module.unitCode}</span> : null}
+          {module.unitCode ? (
+            <span className="forum-tside__code" style={{ marginBottom: 0 }}>
+              {module.unitCode}
+            </span>
+          ) : null}
         </div>
       ) : module.unitCode ? (
         <span className="forum-tside__code">{module.unitCode}</span>
@@ -44,7 +52,9 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
           <span className="forum-tside__exam">
             <CalendarBlank aria-hidden="true" weight="bold" />
             Exam {formatDate(exam.date, { day: 'numeric', month: 'short' })}
-            <span className="forum-tside__days">{days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`}</span>
+            <span className="forum-tside__days">
+              {days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`}
+            </span>
           </span>
         ) : null}
       </div>
@@ -54,7 +64,13 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
             Ask about {module.unitCode || 'this module'}
           </Button>
         ) : null}
-        <Button size="sm" fullWidth variant="ghost" to={`/modules/${module.id}?tab=discussion`} leadingIcon={ChatsCircle}>
+        <Button
+          size="sm"
+          fullWidth
+          variant="ghost"
+          to={`/modules/${module.id}?tab=discussion`}
+          leadingIcon={ChatsCircle}
+        >
           All {module.unitCode || 'module'} threads
         </Button>
       </div>
@@ -160,7 +176,11 @@ export function ThreadSidebar({ thread, unavailable = false }: { thread: ThreadD
             <p className="forum-tside__facts">Last reply {timeAgo(last.createdAt)}</p>
           </>
         ) : (
-          <p className="forum-tside__facts">{takesReplies(thread) && !unavailable ? 'No replies yet. If you know the answer, be the first to help.' : 'No replies.'}</p>
+          <p className="forum-tside__facts">
+            {takesReplies(thread) && !unavailable
+              ? 'No replies yet. If you know the answer, be the first to help.'
+              : 'No replies.'}
+          </p>
         )}
       </section>
 

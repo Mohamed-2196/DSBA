@@ -1,5 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { FULL, MIN_CROP, MIN_WIDTH, clampCrop, cropAttrs, dragCrop, fromShown, nextTurn, pictureAttrs, placeAt, resized, shownRatio, startWidth, toShown, type Rect, type Turn } from './picture';
+import {
+  FULL,
+  MIN_CROP,
+  MIN_WIDTH,
+  clampCrop,
+  cropAttrs,
+  dragCrop,
+  fromShown,
+  nextTurn,
+  pictureAttrs,
+  placeAt,
+  resized,
+  shownRatio,
+  startWidth,
+  toShown,
+  type Rect,
+  type Turn,
+} from './picture';
 
 const close = (a: Rect, b: Rect) => {
   for (const k of ['x', 'y', 'w', 'h'] as const) expect(a[k]).toBeCloseTo(b[k], 6);
@@ -8,7 +25,16 @@ const close = (a: Rect, b: Rect) => {
 describe('picture attributes', () => {
   it('fills in what is missing and keeps values in range', () => {
     const p = pictureAttrs({ upload: 'u1', width: 7, x: -2, ratio: 'wide', rotate: 45, cropX: 0.9, cropW: 0.5 });
-    expect(p).toEqual({ upload: 'u1', alt: '', caption: '', width: 1, x: 0, ratio: 4 / 3, rotate: 0, crop: { x: 0.5, y: 0, w: 0.5, h: 1 } });
+    expect(p).toEqual({
+      upload: 'u1',
+      alt: '',
+      caption: '',
+      width: 1,
+      x: 0,
+      ratio: 4 / 3,
+      rotate: 0,
+      crop: { x: 0.5, y: 0, w: 0.5, h: 1 },
+    });
     expect(pictureAttrs({ width: 0.01 }).width).toBe(MIN_WIDTH);
     expect(pictureAttrs({ rotate: 270 }).rotate).toBe(270);
   });

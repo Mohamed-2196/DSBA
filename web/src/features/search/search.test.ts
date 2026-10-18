@@ -18,14 +18,43 @@ const base: SearchInput = {
 
 const ids = (r: ReturnType<typeof runSearch>) => r.groups.flatMap((g) => g.items.map((i) => i.id));
 
-const thread = { type: 'thread', id: 't1', title: 'MGF help', snippet: null, url: '/forum/mgf-help', meta: null, date: null, page: null } as const;
-const file = { type: 'library', id: 'f1', title: 'MGF notes', snippet: null, url: '/library/f1', meta: null, date: null, page: null } as const;
-const results = (over: Partial<SearchResults> = {}): SearchResults => ({ query: 'mgf', threads: [], library: [], issues: [], modules: [], lessons: [], events: [], ...over });
+const thread = {
+  type: 'thread',
+  id: 't1',
+  title: 'MGF help',
+  snippet: null,
+  url: '/forum/mgf-help',
+  meta: null,
+  date: null,
+  page: null,
+} as const;
+const file = {
+  type: 'library',
+  id: 'f1',
+  title: 'MGF notes',
+  snippet: null,
+  url: '/library/f1',
+  meta: null,
+  date: null,
+  page: null,
+} as const;
+const results = (over: Partial<SearchResults> = {}): SearchResults => ({
+  query: 'mgf',
+  threads: [],
+  library: [],
+  issues: [],
+  modules: [],
+  lessons: [],
+  events: [],
+  ...over,
+});
 
 describe('runSearch', () => {
   it('offers what Site settings suggest searching for, until there are recent searches', () => {
     const suggestions = ['Regression', 'ST2133'];
-    expect(ids(runSearch({ ...base, suggestions }))).toEqual(expect.arrayContaining(['suggest:Regression', 'suggest:ST2133']));
+    expect(ids(runSearch({ ...base, suggestions }))).toEqual(
+      expect.arrayContaining(['suggest:Regression', 'suggest:ST2133']),
+    );
     expect(ids(runSearch({ ...base, suggestions, recent: ['mgf'] }))).not.toContain('suggest:Regression');
     expect(runSearch(base).groups.map((g) => g.id)).not.toContain('suggested');
   });
@@ -51,7 +80,9 @@ describe('runSearch', () => {
     expect(r).not.toContain('action:upload');
     expect(r).toContain('page:/forum');
     expect(r).toContain('page:/library');
-    const asks = ids(runSearch({ ...base, query: 'zzzz', offers: { threads: false, upload: true }, results: results() }));
+    const asks = ids(
+      runSearch({ ...base, query: 'zzzz', offers: { threads: false, upload: true }, results: results() }),
+    );
     expect(asks).toEqual(['fallback:library', 'fallback:forum']);
   });
 
@@ -72,20 +103,46 @@ describe('runSearch', () => {
       { id: 'uol', label: 'UoL student portal', href: 'https://my.london.ac.uk/' },
     ] as const;
     const found = runSearch({ ...base, query: 'myclass', portals }).groups.flatMap((g) => g.items);
-    expect(found.find((i) => i.id === 'action:myclass')).toMatchObject({ title: 'Open BIBF MyClass', href: 'https://myclass.bibf.com/' });
+    expect(found.find((i) => i.id === 'action:myclass')).toMatchObject({
+      title: 'Open BIBF MyClass',
+      href: 'https://myclass.bibf.com/',
+    });
     expect(ids(runSearch({ ...base, query: 'university of london', portals }))).toContain('action:uol');
     expect(ids(runSearch({ ...base, query: 'myclass' }))).not.toContain('action:myclass');
   });
 
   it('leaves out search hits of switched-off features', () => {
-    const r = runSearch({ ...base, query: 'mgf', isOn: (f) => f !== 'forum', results: results({ threads: [thread], library: [file] }) });
+    const r = runSearch({
+      ...base,
+      query: 'mgf',
+      isOn: (f) => f !== 'forum',
+      results: results({ threads: [thread], library: [file] }),
+    });
     expect(r.groups.find((g) => g.id === 'threads')).toBeUndefined();
     expect(r.groups.find((g) => g.id === 'files')?.items.map((i) => i.id)).toEqual(['library:f1']);
   });
 
   it('lists chapters and videos under Lessons, after modules', () => {
-    const chapter = { type: 'lesson', id: 'c1', title: 'Supply and Demand', snippet: null, url: '/modules/economics/lessons/l1', meta: 'EC1002 · Chapter', date: null, page: null } as const;
-    const video = { type: 'lesson', id: 'l9', title: 'Law of Comparative Advantage', snippet: 'The Economic Problem', url: '/modules/economics/lessons/l9', meta: 'EC1002 · Video', date: null, page: null } as const;
+    const chapter = {
+      type: 'lesson',
+      id: 'c1',
+      title: 'Supply and Demand',
+      snippet: null,
+      url: '/modules/economics/lessons/l1',
+      meta: 'EC1002 · Chapter',
+      date: null,
+      page: null,
+    } as const;
+    const video = {
+      type: 'lesson',
+      id: 'l9',
+      title: 'Law of Comparative Advantage',
+      snippet: 'The Economic Problem',
+      url: '/modules/economics/lessons/l9',
+      meta: 'EC1002 · Video',
+      date: null,
+      page: null,
+    } as const;
     const r = runSearch({ ...base, query: 'supply', results: results({ lessons: [chapter, video] }) });
     const lessons = r.groups.find((g) => g.id === 'lessons');
     expect(lessons?.label).toBe('Lessons');
@@ -96,7 +153,13 @@ describe('runSearch', () => {
   });
 
   it('shows the page a file matched on', () => {
-    const inside = { ...file, snippet: 'Derive the Cramér–Rao bound', meta: 'ST2133 · Past paper · Page 3', url: '/library/f1?page=3', page: 3 };
+    const inside = {
+      ...file,
+      snippet: 'Derive the Cramér–Rao bound',
+      meta: 'ST2133 · Past paper · Page 3',
+      url: '/library/f1?page=3',
+      page: 3,
+    };
     const r = runSearch({ ...base, query: 'cramer', results: results({ library: [inside] }) });
     const hit = r.groups.find((g) => g.id === 'files')?.items[0];
     expect(hit?.subtitle).toBe('ST2133, Past paper, Page 3: Derive the Cramér–Rao bound');

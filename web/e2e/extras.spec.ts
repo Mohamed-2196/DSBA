@@ -30,7 +30,11 @@ test('the grades calculator keeps a guest’s marks in this browser only', async
   expect(sent).toEqual([]); // nothing went to the server
   await guest.getByRole('button', { name: 'Reset' }).click();
   const confirm = guest.getByRole('dialog');
-  if (await confirm.isVisible()) await confirm.getByRole('button', { name: /Reset|Clear/ }).last().click();
+  if (await confirm.isVisible())
+    await confirm
+      .getByRole('button', { name: /Reset|Clear/ })
+      .last()
+      .click();
   await expect(marks.nth(0)).toHaveValue('');
 });
 
@@ -49,7 +53,11 @@ test('Mini Noora answers with the date of an exam and where to look', async ({ b
   await chat.getByLabel('Message Mini Noora').press('Enter');
   await expect(chat).toContainText(/The next EC1002 Economics exam is on \w+day \d+ \w+/);
   // Her links open the page and, on a laptop, her card stays open beside her.
-  await chat.getByRole('link').filter({ hasText: /EC1002/ }).first().click();
+  await chat
+    .getByRole('link')
+    .filter({ hasText: /EC1002/ })
+    .first()
+    .click();
   await expect(page).toHaveURL(/\/(calendar|modules)/);
   await expect(chat).toBeVisible();
   // Clearing the chat asks first.

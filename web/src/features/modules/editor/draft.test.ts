@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import type { ModuleEdit } from '../../../api/types';
-import { addChapter, addLesson, canStepLesson, draftProblems, isDirty, moveChapter, moveLesson, removeLesson, stepLesson, toDraft, toSave, updateLesson, videoKind } from './draft';
+import {
+  addChapter,
+  addLesson,
+  canStepLesson,
+  draftProblems,
+  isDirty,
+  moveChapter,
+  moveLesson,
+  removeLesson,
+  stepLesson,
+  toDraft,
+  toSave,
+  updateLesson,
+  videoKind,
+} from './draft';
 
 const lesson = (id: string, video: string) => ({
   id,
@@ -43,7 +57,13 @@ describe('the module draft', () => {
       ['chone', false],
       ['chtwo', true],
     ]);
-    expect(body.chapters?.[0]?.lessons?.[1]).toEqual({ url: 'https://www.youtube.com/watch?v=bbbbbbbbbbb', title: 'Video bbbbbbbbbbb', channel: null, hidden: false, id: 'lb' });
+    expect(body.chapters?.[0]?.lessons?.[1]).toEqual({
+      url: 'https://www.youtube.com/watch?v=bbbbbbbbbbb',
+      title: 'Video bbbbbbbbbbb',
+      channel: null,
+      hidden: false,
+      id: 'lb',
+    });
     expect(isDirty(toDraft(loaded), loaded)).toBe(false);
   });
 
@@ -57,8 +77,14 @@ describe('the module draft', () => {
 
   it('steps a lesson past the end of its chapter into the next one', () => {
     const d = toDraft(loaded);
-    expect(titles(stepLesson(d, { chapter: 0, lesson: 1 }, 1))).toEqual([['Video aaaaaaaaaaa'], ['Video bbbbbbbbbbb', 'Video ccccccccccc']]);
-    expect(titles(stepLesson(d, { chapter: 1, lesson: 0 }, -1))).toEqual([['Video aaaaaaaaaaa', 'Video bbbbbbbbbbb', 'Video ccccccccccc'], []]);
+    expect(titles(stepLesson(d, { chapter: 0, lesson: 1 }, 1))).toEqual([
+      ['Video aaaaaaaaaaa'],
+      ['Video bbbbbbbbbbb', 'Video ccccccccccc'],
+    ]);
+    expect(titles(stepLesson(d, { chapter: 1, lesson: 0 }, -1))).toEqual([
+      ['Video aaaaaaaaaaa', 'Video bbbbbbbbbbb', 'Video ccccccccccc'],
+      [],
+    ]);
     expect(canStepLesson(d, { chapter: 0, lesson: 0 }, -1)).toBe(false);
     expect(canStepLesson(d, { chapter: 1, lesson: 0 }, 1)).toBe(false);
   });

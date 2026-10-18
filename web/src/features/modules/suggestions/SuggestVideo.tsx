@@ -49,7 +49,11 @@ function SuggestDialog({ module: m, open, onClose }: { module: ModuleDetail; ope
       {
         onSuccess: () => {
           close();
-          push({ title: 'Video suggested', body: 'A content manager will review it. You’ll get a notification when they do.', tone: 'success' });
+          push({
+            title: 'Video suggested',
+            body: 'A content manager will review it. You’ll get a notification when they do.',
+            tone: 'success',
+          });
         },
         onError: (e) => {
           if (e instanceof ApiError && Object.keys(e.fields).length) setErrors(e.fields);
@@ -177,7 +181,9 @@ export function SuggestVideo({ module: m }: { module: ModuleDetail }) {
           <h2 id="sugg-panel-title" className="sugg-panel__title">
             Know a good video for this module?
           </h2>
-          <p className="sugg-panel__body">Suggest it for a chapter. A content manager checks every suggestion before it becomes a lesson.</p>
+          <p className="sugg-panel__body">
+            Suggest it for a chapter. A content manager checks every suggestion before it becomes a lesson.
+          </p>
         </div>
         <Button leadingIcon={Plus} onClick={start} className="sugg-panel__action">
           Suggest a video

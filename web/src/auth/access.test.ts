@@ -1,13 +1,65 @@
 import { describe, expect, it } from 'vitest';
-import { FEATURE_KEYS, badgeOf, canDo, featureIsOn, holdsAdmin, isActiveAdmin, managerBoxes, offForOthers, offerOf, offered, showsUpload, type AccessMe, type Feature } from './access';
+import {
+  FEATURE_KEYS,
+  badgeOf,
+  canDo,
+  featureIsOn,
+  holdsAdmin,
+  isActiveAdmin,
+  managerBoxes,
+  offForOthers,
+  offerOf,
+  offered,
+  showsUpload,
+  type AccessMe,
+  type Feature,
+} from './access';
 
 const role = (slug: string, badge: string | null = null) => ({ id: `id-${slug}`, slug, name: slug, badge });
-const ALL = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora', 'notes'] as const;
+const ALL = [
+  'forum',
+  'library',
+  'library.uploads',
+  'newsletter',
+  'calendar',
+  'career',
+  'grades',
+  'noora',
+  'notes',
+] as const;
 
-const student: AccessMe = { status: 'active', roles: [role('student')], boxes: ['forum.post', 'library.upload', 'newsletter.react', 'reports.create'], features: [...ALL] };
-const rep: AccessMe = { status: 'active', roles: [role('rep', 'Student rep'), role('student')], boxes: ['forum.post', 'forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view'], features: [...ALL] };
+const student: AccessMe = {
+  status: 'active',
+  roles: [role('student')],
+  boxes: ['forum.post', 'library.upload', 'newsletter.react', 'reports.create'],
+  features: [...ALL],
+};
+const rep: AccessMe = {
+  status: 'active',
+  roles: [role('rep', 'Student rep'), role('student')],
+  boxes: ['forum.post', 'forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view'],
+  features: [...ALL],
+};
 const suspendedRep: AccessMe = { ...rep, status: 'suspended', boxes: [], features: ['forum', 'library'] };
-const admin: AccessMe = { status: 'active', roles: [role('admin', 'Admin'), role('student')], boxes: ['forum.post', 'forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'career.edit', 'stats.view', 'people.suspend', 'audit.read', 'library.upload', 'newsletter.react', 'reports.create'], features: [...ALL] };
+const admin: AccessMe = {
+  status: 'active',
+  roles: [role('admin', 'Admin'), role('student')],
+  boxes: [
+    'forum.post',
+    'forum.moderate',
+    'library.manage',
+    'newsletter.manage',
+    'calendar.manage',
+    'career.edit',
+    'stats.view',
+    'people.suspend',
+    'audit.read',
+    'library.upload',
+    'newsletter.react',
+    'reports.create',
+  ],
+  features: [...ALL],
+};
 
 describe('boxes', () => {
   it('allows exactly the boxes in /me', () => {
@@ -29,7 +81,13 @@ describe('boxes', () => {
   });
 
   it('lists the manager boxes a person holds, in a fixed order', () => {
-    expect(managerBoxes(rep)).toEqual(['forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view']);
+    expect(managerBoxes(rep)).toEqual([
+      'forum.moderate',
+      'library.manage',
+      'newsletter.manage',
+      'calendar.manage',
+      'stats.view',
+    ]);
     expect(managerBoxes(student)).toEqual([]);
   });
 });
@@ -92,7 +150,10 @@ describe('student actions', () => {
 });
 
 describe('showsUpload', () => {
-  const on = (...off: string[]) => (f: string) => !off.includes(f);
+  const on =
+    (...off: string[]) =>
+    (f: string) =>
+      !off.includes(f);
   it('shows "Upload a file" while the library and its uploads are on and the person may try', () => {
     expect(showsUpload(on(), () => true)).toBe(true);
     expect(showsUpload(on('library.uploads'), () => true)).toBe(false);

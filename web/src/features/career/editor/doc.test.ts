@@ -32,8 +32,22 @@ function mockDoc(): CareerDoc {
     yearHints: { '1': 'Year 1 hint', '2': 'Year 2 hint', '3': 'Year 3 hint' },
     certNote: 'A note on certs',
     tracks: [
-      { id: 'markets', label: 'Markets & Trading', short: 'Markets', about: 'About markets', modules: ['FN1024'], hidden: false },
-      { id: 'quant', label: 'Quantitative Finance', short: 'Quant', about: 'About quant', modules: ['ST2133'], hidden: false },
+      {
+        id: 'markets',
+        label: 'Markets & Trading',
+        short: 'Markets',
+        about: 'About markets',
+        modules: ['FN1024'],
+        hidden: false,
+      },
+      {
+        id: 'quant',
+        label: 'Quantitative Finance',
+        short: 'Quant',
+        about: 'About quant',
+        modules: ['ST2133'],
+        hidden: false,
+      },
       { id: 'hidden-track', label: 'Secret Track', short: 'Secret', about: 'Shh', modules: [], hidden: true },
     ],
     employers: [
@@ -158,7 +172,13 @@ function mockDoc(): CareerDoc {
     },
     checklist: [
       { id: 'cv', title: 'A one-page CV', hint: 'No typos', link: null, hidden: false },
-      { id: 'cfa-prep', title: 'Prep for CFA', hint: 'Read guides', link: { kind: 'cert', cert: 'cfa', label: 'View CFA' }, hidden: false },
+      {
+        id: 'cfa-prep',
+        title: 'Prep for CFA',
+        hint: 'Read guides',
+        link: { kind: 'cert', cert: 'cfa', label: 'View CFA' },
+        hidden: false,
+      },
     ],
     furtherStudy: {
       title: 'Heading for an MSc?',

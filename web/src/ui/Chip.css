@@ -13,17 +13,48 @@
   font-weight: var(--fw-medium);
   line-height: 1;
   white-space: nowrap;
-  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
 }
-.ui-chip--sm { height: 28px; padding: 0 11px; font-size: var(--fs-12); }
-.ui-chip:hover { border-color: var(--ink-3); color: var(--ink); }
-.ui-chip__icon { font-size: 16px; }
-.ui-chip__dot { width: 8px; height: 8px; border-radius: var(--r-pill); }
-.ui-chip__count { color: var(--ink-2); font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
-.ui-chip.is-selected { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.ui-chip.is-selected .ui-chip__count { color: color-mix(in srgb, var(--paper) 70%, transparent); }
+.ui-chip--sm {
+  height: 28px;
+  padding: 0 11px;
+  font-size: var(--fs-12);
+}
+.ui-chip:hover {
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+.ui-chip__icon {
+  font-size: 16px;
+}
+.ui-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+}
+.ui-chip__count {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-semibold);
+}
+.ui-chip.is-selected {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.ui-chip.is-selected .ui-chip__count {
+  color: color-mix(in srgb, var(--paper) 70%, transparent);
+}
 
 /* Touch screens: 44px chips (UX review UX-11). */
 @media (pointer: coarse) {
-  .ui-chip, .ui-chip--sm { height: 44px; min-width: 44px; justify-content: center; }
+  .ui-chip,
+  .ui-chip--sm {
+    height: 44px;
+    min-width: 44px;
+    justify-content: center;
+  }
 }

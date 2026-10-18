@@ -18,10 +18,20 @@
   animation: ui-hl-swipe 700ms var(--ease) var(--hl-delay, 0ms) forwards;
 }
 @keyframes ui-hl-swipe {
-  0% { background-size: 0% 82%; color: var(--ink); }
-  100% { background-size: var(--hl-size); color: var(--highlight-ink); }
+  0% {
+    background-size: 0% 82%;
+    color: var(--ink);
+  }
+  100% {
+    background-size: var(--hl-size);
+    color: var(--highlight-ink);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ui-highlight--animate { animation: none; background-size: var(--hl-size); color: var(--highlight-ink); }
+  .ui-highlight--animate {
+    animation: none;
+    background-size: var(--hl-size);
+    color: var(--highlight-ink);
+  }
 }

@@ -129,7 +129,11 @@ export function dragCrop(r: Rect, edges: Edges, dx: number, dy: number): Rect {
 
 /** A picture resized from a corner: its new width share and place, keeping the opposite side where it was. `delta`
  *  is how far the corner moved outwards, in shares of the text's width. */
-export function resized(p: Pick<PictureAttrs, 'width' | 'x'>, delta: number, fromLeft: boolean): { width: number; x: number } {
+export function resized(
+  p: Pick<PictureAttrs, 'width' | 'x'>,
+  delta: number,
+  fromLeft: boolean,
+): { width: number; x: number } {
   const left = p.x * (1 - p.width);
   const right = left + p.width;
   const width = clamp(p.width + delta, MIN_WIDTH, 1);
@@ -149,4 +153,5 @@ export function placeAt(width: number, left: number, snap = 0.025): number {
 }
 
 /** The width share a new picture starts at: its own size, up to the whole width of the text. */
-export const startWidth = (naturalWidth: number, textWidth: number): number => round(clamp(naturalWidth / textWidth, 0.25, 1));
+export const startWidth = (naturalWidth: number, textWidth: number): number =>
+  round(clamp(naturalWidth / textWidth, 0.25, 1));

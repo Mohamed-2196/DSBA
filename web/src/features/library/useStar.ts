@@ -20,7 +20,11 @@ export function useStar(): (item: Pick<LibraryItem, 'id' | 'starred'>) => void {
         push({ title: failed, body: 'Your account is suspended. Contact a student rep.', tone: 'alert' });
         return;
       }
-      const run = () => mutate({ id: item.id, starred }, { onError: (e) => push({ title: failed, body: errorMessage(e), tone: 'alert' }) });
+      const run = () =>
+        mutate(
+          { id: item.id, starred },
+          { onError: (e) => push({ title: failed, body: errorMessage(e), tone: 'alert' }) },
+        );
       if (!requireAuth('Sign in to star files', run)) return;
       run();
     },

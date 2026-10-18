@@ -21,7 +21,11 @@ export interface ReplyTarget {
  * @param shown   ids of the replies the page shows (lib/replies.ts shownReplyIds)
  * @param reload  read the thread again
  */
-export function useReplyTarget(shown: ReadonlySet<string>, container: RefObject<HTMLElement>, reload: () => Promise<unknown>): ReplyTarget {
+export function useReplyTarget(
+  shown: ReadonlySet<string>,
+  container: RefObject<HTMLElement>,
+  reload: () => Promise<unknown>,
+): ReplyTarget {
   const { hash } = useLocation();
   const targetId = replyTargetId(hash);
   const known = !!targetId && shown.has(targetId);

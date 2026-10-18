@@ -9,7 +9,19 @@ import type { CareerDoc } from '../../api/types';
 import { useAuth } from '../../auth';
 import { PapersButton } from '../papers/public';
 import { useModules } from '../../state/modules';
-import { Badge, Button, EmptyState, ModuleArt, ModuleIcon, Page, PageHeader, Panel, QueryError, Skeleton, moduleArtSrc } from '../../ui';
+import {
+  Badge,
+  Button,
+  EmptyState,
+  ModuleArt,
+  ModuleIcon,
+  Page,
+  PageHeader,
+  Panel,
+  QueryError,
+  Skeleton,
+  moduleArtSrc,
+} from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { useGuides } from '../start/public';
 import { useCareer } from './api';
@@ -27,7 +39,15 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
   const { module: m } = e;
   const headingId = `elective-${m.id}`;
   return (
-    <Panel as="article" padding="none" radius="feature" className="elective" aria-labelledby={headingId} data-hub="elective" data-module-id={m.id}>
+    <Panel
+      as="article"
+      padding="none"
+      radius="feature"
+      className="elective"
+      aria-labelledby={headingId}
+      data-hub="elective"
+      data-module-id={m.id}
+    >
       <header className="elective__head">
         {moduleArtSrc(m.art) ? (
           <ModuleArt art={m.art} className="elective__art" />
@@ -88,13 +108,20 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
 
       <footer className="elective__foot">
         {featureOn('forum') ? (
-          <Link to={`/forum?tag=${FORUM_TAG}&module=${encodeURIComponent(m.id)}`} className="elective__link" data-hub="elective-threads">
+          <Link
+            to={`/forum?tag=${FORUM_TAG}&module=${encodeURIComponent(m.id)}`}
+            className="elective__link"
+            data-hub="elective-threads"
+          >
             <ChatsCircle weight="bold" aria-hidden="true" />
             What students say
           </Link>
         ) : null}
         {startsThreads ? (
-          <Link to={`${askLink(`Is ${m.name} a good elective?`)}&module=${encodeURIComponent(m.id)}`} className="elective__link">
+          <Link
+            to={`${askLink(`Is ${m.name} a good elective?`)}&module=${encodeURIComponent(m.id)}`}
+            className="elective__link"
+          >
             <Plus weight="bold" aria-hidden="true" />
             Ask about it
           </Link>
@@ -116,14 +143,23 @@ function ElectivesBody({ data, pick }: { data: CareerDoc; pick: number | null })
   if (!list.length) {
     return (
       <Panel padding="none">
-        <EmptyState icon={Sparkle} title="No electives listed yet" body="They will show here once Career Navigator lists them." action={<Button to="/career">Back to Career Navigator</Button>} />
+        <EmptyState
+          icon={Sparkle}
+          title="No electives listed yet"
+          body="They will show here once Career Navigator lists them."
+          action={<Button to="/career">Back to Career Navigator</Button>}
+        />
       </Panel>
     );
   }
   return (
     <>
       <div className="electives__count">
-        {pick ? <p>You take {numberWord(pick)} of these {numberWord(list.length)}.</p> : null}
+        {pick ? (
+          <p>
+            You take {numberWord(pick)} of these {numberWord(list.length)}.
+          </p>
+        ) : null}
         <PapersButton />
       </div>
       <div className="electives" data-hub="electives">
@@ -163,12 +199,22 @@ export default function ElectivesPage() {
           ))}
         </div>
       ) : q.isError ? (
-        <QueryError error={q.error} title="The electives didn’t load" onRetry={() => void q.refetch()} retrying={q.isFetching} />
+        <QueryError
+          error={q.error}
+          title="The electives didn’t load"
+          onRetry={() => void q.refetch()}
+          retrying={q.isFetching}
+        />
       ) : q.data ? (
         <ElectivesBody data={q.data} pick={guide?.pick ?? null} />
       ) : (
         <Panel padding="none">
-          <EmptyState icon={Sparkle} title="Career Navigator is being set up" body="The electives will show here once it is." action={<Button to="/">Back to Home</Button>} />
+          <EmptyState
+            icon={Sparkle}
+            title="Career Navigator is being set up"
+            body="The electives will show here once it is."
+            action={<Button to="/">Back to Home</Button>}
+          />
         </Panel>
       )}
     </Page>

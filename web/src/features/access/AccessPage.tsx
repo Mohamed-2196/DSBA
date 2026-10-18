@@ -21,8 +21,18 @@ function AccessScreen() {
   const tab = TABS.some((t) => t.id === param) ? param : 'roles';
   return (
     <Page className="access">
-      <PageHeader title="Access" description="Who can do what, and which features are on. Every change is logged under Activity." />
-      <Tabs idBase="access" tabs={TABS} value={tab} onChange={(id) => setTab(id, { replace: true })} label="Access" className="access-tabs" />
+      <PageHeader
+        title="Access"
+        description="Who can do what, and which features are on. Every change is logged under Activity."
+      />
+      <Tabs
+        idBase="access"
+        tabs={TABS}
+        value={tab}
+        onChange={(id) => setTab(id, { replace: true })}
+        label="Access"
+        className="access-tabs"
+      />
       <TabPanel idBase="access" id="roles" value={tab} className="access-panel">
         <ErrorBoundary name="Access:roles">
           <RolesTab />

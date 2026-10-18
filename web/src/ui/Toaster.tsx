@@ -57,7 +57,12 @@ function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string)
           </button>
         ) : null}
       </div>
-      <button type="button" className="ui-toast__close" aria-label="Dismiss notification" onClick={() => setLeaving(true)}>
+      <button
+        type="button"
+        className="ui-toast__close"
+        aria-label="Dismiss notification"
+        onClick={() => setLeaving(true)}
+      >
         <X aria-hidden="true" weight="bold" />
       </button>
     </div>

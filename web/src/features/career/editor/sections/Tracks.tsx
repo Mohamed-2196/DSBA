@@ -28,7 +28,10 @@ export function TracksSection() {
       onRemove={(id) => update((d) => removeItem(d, 'track', id))}
       onAdd={() => {
         const id = freeId('new', savedIdsOf(doc, 'tracks'));
-        update((d) => ({ ...d, tracks: [...d.tracks, { id, label: '', short: '', about: '', modules: [], hidden: false }] }));
+        update((d) => ({
+          ...d,
+          tracks: [...d.tracks, { id, label: '', short: '', about: '', modules: [], hidden: false }],
+        }));
         return id;
       }}
     >
@@ -46,12 +49,45 @@ function TrackForm({ track: t, index }: { track: CareerTrack; index: number }) {
   return (
     <div className="cedit-form">
       <div className="cedit-grid">
-        <TextField label="Name" value={t.label} onChange={(v) => set(t.id, { label: v.target.value })} onBlur={() => nameToId(t.id, t.label)} error={err(`${at}.label`)} maxLength={160} required />
-        <TextField label="Short name" hint="On the filter chips and the cards." value={t.short} onChange={(v) => set(t.id, { short: v.target.value })} error={err(`${at}.short`)} maxLength={60} required />
+        <TextField
+          label="Name"
+          value={t.label}
+          onChange={(v) => set(t.id, { label: v.target.value })}
+          onBlur={() => nameToId(t.id, t.label)}
+          error={err(`${at}.label`)}
+          maxLength={160}
+          required
+        />
+        <TextField
+          label="Short name"
+          hint="On the filter chips and the cards."
+          value={t.short}
+          onChange={(v) => set(t.id, { short: v.target.value })}
+          error={err(`${at}.short`)}
+          maxLength={60}
+          required
+        />
         <IdField section="tracks" kind="track" id={t.id} error={err(`${at}.id`)} />
       </div>
-      <TextArea label="What it is" rows={2} value={t.about} onChange={(v) => set(t.id, { about: v.target.value })} error={err(`${at}.about`)} maxLength={600} required />
-      <PickList label="Closest modules" hint="Shown when a student picks this track." value={t.modules} options={modules} onChange={(next) => set(t.id, { modules: next })} addLabel="Add a module" error={err(`${at}.modules`)} max={20} />
+      <TextArea
+        label="What it is"
+        rows={2}
+        value={t.about}
+        onChange={(v) => set(t.id, { about: v.target.value })}
+        error={err(`${at}.about`)}
+        maxLength={600}
+        required
+      />
+      <PickList
+        label="Closest modules"
+        hint="Shown when a student picks this track."
+        value={t.modules}
+        options={modules}
+        onChange={(next) => set(t.id, { modules: next })}
+        addLabel="Add a module"
+        error={err(`${at}.modules`)}
+        max={20}
+      />
     </div>
   );
 }

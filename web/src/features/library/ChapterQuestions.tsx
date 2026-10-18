@@ -48,8 +48,8 @@ export function ChapterQuestions({ moduleId, chapterId }: { moduleId: string; ch
       ) : (
         <p className="lib-chq__empty">
           No questions tagged with this chapter yet. Open a past paper from the{' '}
-          <Link to={`/modules/${encodeURIComponent(moduleId)}?tab=files`}>Files tab</Link> and choose “Tag this question”
-          to add one.
+          <Link to={`/modules/${encodeURIComponent(moduleId)}?tab=files`}>Files tab</Link> and choose “Tag this
+          question” to add one.
         </p>
       )}
     </section>

@@ -4,5 +4,12 @@
   background: var(--surface-2);
   animation: ui-skeleton 1.6s ease-in-out infinite;
 }
-.ui-skeleton-lines { display: grid; gap: 10px; }
-@keyframes ui-skeleton { 50% { opacity: .55; } }
+.ui-skeleton-lines {
+  display: grid;
+  gap: 10px;
+}
+@keyframes ui-skeleton {
+  50% {
+    opacity: 0.55;
+  }
+}

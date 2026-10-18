@@ -3,7 +3,7 @@
 // API's (api/app/core/links.py), so the editor can say what's wrong before saving; the API checks again either way.
 
 // The renderer's rule (ui/safeHref): an app path, or an http(s)/mailto URL; anything else is shown as plain text.
-export { safeHref,  } from '../../../ui/safeHref';
+export { safeHref } from '../../../ui/safeHref';
 
 // Whitespace, control characters and backslashes are never allowed in a link: browsers drop tabs and newlines
 // ('/\t/host' becomes '//host') and read '\' as '/'.
@@ -50,5 +50,7 @@ export function markupProblem(text: string): string | null {
   return null;
 }
 
-export const whatsappUrl = (text: string, url: string): string => `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
-export const mailUrl = (subject: string, url: string): string => `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(url)}`;
+export const whatsappUrl = (text: string, url: string): string =>
+  `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
+export const mailUrl = (subject: string, url: string): string =>
+  `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(url)}`;

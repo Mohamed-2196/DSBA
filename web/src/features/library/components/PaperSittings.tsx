@@ -22,13 +22,29 @@ type ZoneFilter = Zone | 'all';
 /** "?time=1" on a paper's address opens Time me as the paper opens. */
 const timeMeHref = (item: LibraryItem) => `${itemPath(item)}?time=1`;
 
-function PaperCardView({ card, yours, linkState, board }: { card: PaperCard; yours: boolean; linkState: LinkState; board: boolean }) {
+function PaperCardView({
+  card,
+  yours,
+  linkState,
+  board,
+}: {
+  card: PaperCard;
+  yours: boolean;
+  linkState: LinkState;
+  board: boolean;
+}) {
   const { item, zone, reports, solutions } = card;
   const isPaper = item.kind === 'past-paper';
   const name = isPaper ? (zone ? zoneLabel(zone) : 'All zones') : kindLabel(item.kind);
   return (
     <li className="pp-card" data-hub="paper-card">
-      <Link to={itemPath(item)} state={linkState} className="pp-card__cover" aria-label={`Open ${item.title}`} title={item.title}>
+      <Link
+        to={itemPath(item)}
+        state={linkState}
+        className="pp-card__cover"
+        aria-label={`Open ${item.title}`}
+        title={item.title}
+      >
         <FileThumb item={item} size="strip" />
       </Link>
       <div className="pp-card__body">
@@ -61,7 +77,12 @@ function PaperCardView({ card, yours, linkState, board }: { card: PaperCard; you
               </li>
             ))}
             <li>
-              <Link to={timeMeHref(item)} state={linkState} className="pp-card__link" aria-label={`Time me on ${item.title}`}>
+              <Link
+                to={timeMeHref(item)}
+                state={linkState}
+                className="pp-card__link"
+                aria-label={`Time me on ${item.title}`}
+              >
                 <Timer aria-hidden="true" weight="bold" />
                 Time me
               </Link>
@@ -154,7 +175,10 @@ export function PaperSittings({
                 {sittings.length} {sittings.length === 1 ? 'sitting' : 'sittings'}
               </span>
               {board ? (
-                <SittingsDone papers={sittings.flatMap((s) => sittingFiles(s).filter((f) => f.kind === 'past-paper'))} className="lib-mf__sittings" />
+                <SittingsDone
+                  papers={sittings.flatMap((s) => sittingFiles(s).filter((f) => f.kind === 'past-paper'))}
+                  className="lib-mf__sittings"
+                />
               ) : null}
             </h3>
             {zones.length > 1 ? (
@@ -166,15 +190,28 @@ export function PaperSittings({
                   setPicked(z);
                   setAll(false);
                 }}
-                options={[{ value: 'all', label: 'All zones' }, ...zones.map((z) => ({ value: z, label: zoneLabel(z) }))]}
+                options={[
+                  { value: 'all', label: 'All zones' },
+                  ...zones.map((z) => ({ value: z, label: zoneLabel(z) })),
+                ]}
               />
             ) : null}
           </div>
-          <p className="pp__intro">Newest first. Open a paper, check it against the examiners’ report, or sit it against the clock with Time me.</p>
+          <p className="pp__intro">
+            Newest first. Open a paper, check it against the examiners’ report, or sit it against the clock with Time
+            me.
+          </p>
           <Panel as="div" padding="none" className="pp__panel">
             <ul role="list" className="pp__sittings">
               {visible.map((s) => (
-                <SittingBlock key={`${s.examYear}-${s.session ?? 'any'}`} sitting={s} zone={zone} only={only} linkState={linkState} board={board} />
+                <SittingBlock
+                  key={`${s.examYear}-${s.session ?? 'any'}`}
+                  sitting={s}
+                  zone={zone}
+                  only={only}
+                  linkState={linkState}
+                  board={board}
+                />
               ))}
             </ul>
           </Panel>

@@ -3,7 +3,8 @@ import type { FeatureOut, SwitchUpdate } from '../../api/types';
 
 export type SwitchMode = FeatureOut['mode'];
 
-const and = (names: string[]): string => (names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`);
+const and = (names: string[]): string =>
+  names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 
 /** "Off", "On for everyone" or "On for Testers and Rep". Roles `roleName` doesn't know are left out. */
 export function switchSummary(f: FeatureOut, roleName: (id: string) => string | null): string {

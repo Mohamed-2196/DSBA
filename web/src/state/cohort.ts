@@ -19,9 +19,33 @@ export interface Cohort {
 }
 
 export const COHORTS: Record<CohortYear, Cohort> = {
-  1: { year: 1, label: 'Year 1', short: 'Y1', name: 'Lagoon', color: 'var(--y1)', strong: 'var(--y1-strong)', on: 'var(--on-y1)' },
-  2: { year: 2, label: 'Year 2', short: 'Y2', name: 'Azure', color: 'var(--y2)', strong: 'var(--y2-strong)', on: 'var(--on-y2)' },
-  3: { year: 3, label: 'Year 3', short: 'Y3', name: 'Amber', color: 'var(--y3)', strong: 'var(--y3-strong)', on: 'var(--on-y3)' },
+  1: {
+    year: 1,
+    label: 'Year 1',
+    short: 'Y1',
+    name: 'Lagoon',
+    color: 'var(--y1)',
+    strong: 'var(--y1-strong)',
+    on: 'var(--on-y1)',
+  },
+  2: {
+    year: 2,
+    label: 'Year 2',
+    short: 'Y2',
+    name: 'Azure',
+    color: 'var(--y2)',
+    strong: 'var(--y2-strong)',
+    on: 'var(--on-y2)',
+  },
+  3: {
+    year: 3,
+    label: 'Year 3',
+    short: 'Y3',
+    name: 'Amber',
+    color: 'var(--y3)',
+    strong: 'var(--y3-strong)',
+    on: 'var(--on-y3)',
+  },
 };
 
 /** 1|2|3 or null from anything ('2', 2, null, 'x'). */

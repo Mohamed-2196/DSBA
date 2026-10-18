@@ -32,7 +32,10 @@ export function Welcome({ name, lead, starters, onStart, paused, onSignIn }: Wel
       <p className="np-welcome__lead">{lead}</p>
       {onSignIn ? (
         <div className="np-welcome__notice">
-          <p>Sign in to get full answers from my AI. Until then I answer from my script: modules, lessons, exam dates and where things are.</p>
+          <p>
+            Sign in to get full answers from my AI. Until then I answer from my script: modules, lessons, exam dates and
+            where things are.
+          </p>
           <Button size="sm" variant="primary" leadingIcon={SignIn} onClick={onSignIn} data-hub="noora-sign-in">
             Sign in
           </Button>
@@ -47,7 +50,13 @@ export function Welcome({ name, lead, starters, onStart, paused, onSignIn }: Wel
           const StarterIcon = STARTER_ICONS[s.icon].icon;
           return (
             <li key={s.id}>
-              <button type="button" className="np-starter" onClick={() => onStart(s)} data-hub="noora-starter" data-starter={s.id}>
+              <button
+                type="button"
+                className="np-starter"
+                onClick={() => onStart(s)}
+                data-hub="noora-starter"
+                data-starter={s.id}
+              >
                 <StarterIcon className="np-starter__icon" aria-hidden="true" weight="duotone" />
                 <span className="np-starter__text">
                   <span className="np-starter__title">{s.title}</span>

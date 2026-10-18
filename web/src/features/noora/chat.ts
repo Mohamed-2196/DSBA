@@ -46,4 +46,3 @@ export function spokenFor(messages: Message[], pending: Pending | null, heardUpT
 export const highestId = (messages: readonly Message[]): number => messages.reduce((top, m) => Math.max(top, m.id), 0);
 
 export const carriesFiles = (e: DragEvent): boolean => Array.from(e.dataTransfer.types).includes('Files');
-

@@ -46,9 +46,13 @@ test('Ali asks without his name; Sara follows and hears about the answer', async
   await sara.locator('[data-hub="follow"]').click();
   await expect(sara.locator('[data-hub="following"]')).toBeVisible();
 
-  const reply = await api<{ id: string }>(rep, 'POST', `/api/v1/forum/threads/${thread.id}/replies`, { body: 'Never too basic. Start with the worked example.' });
+  const reply = await api<{ id: string }>(rep, 'POST', `/api/v1/forum/threads/${thread.id}/replies`, {
+    body: 'Never too basic. Start with the worked example.',
+  });
   expect(reply.status).toBe(201);
-  expect((await api(ali, 'POST', `/api/v1/forum/threads/${thread.id}/accept`, { replyId: reply.body.id })).status).toBe(200);
+  expect((await api(ali, 'POST', `/api/v1/forum/threads/${thread.id}/accept`, { replyId: reply.body.id })).status).toBe(
+    200,
+  );
   const told = await api<{ items: { kind: string; actor: unknown }[] }>(sara, 'GET', '/api/v1/notifications');
   expect(told.body.items.some((n) => n.kind === 'followed_answer' && n.actor === null)).toBe(true);
 });
@@ -64,7 +68,14 @@ test('Sara votes once in a poll and sees the counts', async ({ rep, sara, run })
       {
         id: 'ask',
         title: 'Ask the cohort',
-        blocks: [{ type: 'poll', id: 'saturday', question: 'Which Saturday suits a revision session?', answers: ['The 18th', 'The 25th'] }],
+        blocks: [
+          {
+            type: 'poll',
+            id: 'saturday',
+            question: 'Which Saturday suits a revision session?',
+            answers: ['The 18th', 'The 25th'],
+          },
+        ],
       },
     ],
   });
@@ -77,6 +88,8 @@ test('Sara votes once in a poll and sees the counts', async ({ rep, sara, run })
   await poll.getByRole('button', { name: 'The 25th' }).click();
   await expect(poll).toContainText('(your vote)');
   await expect(poll).toContainText('100%');
-  const again = await api(sara, 'PUT', `/api/v1/newsletter/issues/${created.body.id}/polls/saturday/vote`, { choice: 0 });
+  const again = await api(sara, 'PUT', `/api/v1/newsletter/issues/${created.body.id}/polls/saturday/vote`, {
+    choice: 0,
+  });
   expect(again.status).toBe(409);
 });

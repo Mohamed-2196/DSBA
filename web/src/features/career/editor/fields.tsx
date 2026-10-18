@@ -4,7 +4,14 @@
 import { Plus, UploadSimple, X } from '@phosphor-icons/react';
 import { useId, useRef, useState, type ReactNode } from 'react';
 import type { CareerChecklistItem, CareerLogo } from '../../../api/types';
-import { progressText, uploadErrorMessage, uploadFile, UPLOAD_RULES, checkUpload, type UploadProgress } from '../../../api/uploads';
+import {
+  progressText,
+  uploadErrorMessage,
+  uploadFile,
+  UPLOAD_RULES,
+  checkUpload,
+  type UploadProgress,
+} from '../../../api/uploads';
 import { Button, Field, IconButton, Select, TextArea, TextField } from '../../../ui';
 import type { SelectOption } from '../../../ui/Field';
 import type { CloseStep } from '../lib/links';
@@ -38,7 +45,12 @@ export function PickList({ label, hint, value, options, onChange, error, addLabe
               {value.map((id) => (
                 <li key={id} className="cedit-chip">
                   <span className="cedit-chip__text">{labelOf.get(id) ?? id}</span>
-                  <IconButton size="sm" icon={X} label={`Remove ${typeof labelOf.get(id) === 'string' ? String(labelOf.get(id)) : id}`} onClick={() => onChange(value.filter((x) => x !== id))} />
+                  <IconButton
+                    size="sm"
+                    icon={X}
+                    label={`Remove ${typeof labelOf.get(id) === 'string' ? String(labelOf.get(id)) : id}`}
+                    onClick={() => onChange(value.filter((x) => x !== id))}
+                  />
                 </li>
               ))}
             </ol>
@@ -68,7 +80,21 @@ export function PickList({ label, hint, value, options, onChange, error, addLabe
 }
 
 /** Short words in order (a role's tools): chips to remove, a field to add one. */
-export function WordList({ label, hint, value, onChange, error, max = 20 }: { label: string; hint?: ReactNode; value: readonly string[]; onChange: (next: string[]) => void; error?: string; max?: number }) {
+export function WordList({
+  label,
+  hint,
+  value,
+  onChange,
+  error,
+  max = 20,
+}: {
+  label: string;
+  hint?: ReactNode;
+  value: readonly string[];
+  onChange: (next: string[]) => void;
+  error?: string;
+  max?: number;
+}) {
   const [text, setText] = useState('');
   const add = () => {
     const word = text.trim();
@@ -84,7 +110,12 @@ export function WordList({ label, hint, value, onChange, error, max = 20 }: { la
               {value.map((w) => (
                 <li key={w} className="cedit-chip">
                   <span className="cedit-chip__text">{w}</span>
-                  <IconButton size="sm" icon={X} label={`Remove ${w}`} onClick={() => onChange(value.filter((x) => x !== w))} />
+                  <IconButton
+                    size="sm"
+                    icon={X}
+                    label={`Remove ${w}`}
+                    onClick={() => onChange(value.filter((x) => x !== w))}
+                  />
                 </li>
               ))}
             </ol>
@@ -144,7 +175,19 @@ function stepOf(kind: StepKind, prev: CloseStep | null, firstCert: string, first
 }
 
 /** What to do about a skill DSBA doesn't teach far enough: none, or one step. `path` is where its errors are. */
-export function StepField({ legend, value, onChange, path, noneLabel = 'No step' }: { legend: string; value: CloseStep | null; onChange: (next: CloseStep | null) => void; path: string; noneLabel?: string }) {
+export function StepField({
+  legend,
+  value,
+  onChange,
+  path,
+  noneLabel = 'No step',
+}: {
+  legend: string;
+  value: CloseStep | null;
+  onChange: (next: CloseStep | null) => void;
+  path: string;
+  noneLabel?: string;
+}) {
   const { doc, err } = useEditor();
   const modules = useModuleOptions();
   const certs = doc.certs.map((c) => ({ value: c.id, label: c.short || c.name }));
@@ -155,27 +198,76 @@ export function StepField({ legend, value, onChange, path, noneLabel = 'No step'
       <Select
         label="Kind"
         value={value?.kind ?? ''}
-        onChange={(e) => onChange(e.target.value ? stepOf(e.target.value as StepKind, value, certs[0]?.value ?? '', firstModule) : null)}
+        onChange={(e) =>
+          onChange(
+            e.target.value ? stepOf(e.target.value as StepKind, value, certs[0]?.value ?? '', firstModule) : null,
+          )
+        }
         options={[{ value: '', label: noneLabel }, ...STEP_KINDS]}
       />
       {value ? (
         <div className="cedit-grid">
           {value.kind === 'lesson' || value.kind === 'file' ? (
-            <Select label="Module" value={value.module} onChange={(e) => onChange({ ...value, module: e.target.value })} options={modules} error={err(`${path}.module`)} />
+            <Select
+              label="Module"
+              value={value.module}
+              onChange={(e) => onChange({ ...value, module: e.target.value })}
+              options={modules}
+              error={err(`${path}.module`)}
+            />
           ) : null}
           {value.kind === 'lesson' ? (
-            <TextField label="Chapter" hint="The start of the chapter’s title. The link opens its first lesson." value={value.chapter} onChange={(e) => onChange({ ...value, chapter: e.target.value })} error={err(`${path}.chapter`)} maxLength={160} required />
+            <TextField
+              label="Chapter"
+              hint="The start of the chapter’s title. The link opens its first lesson."
+              value={value.chapter}
+              onChange={(e) => onChange({ ...value, chapter: e.target.value })}
+              error={err(`${path}.chapter`)}
+              maxLength={160}
+              required
+            />
           ) : null}
           {value.kind === 'file' ? (
-            <TextField label="Library file" hint="The file’s address in the library (the end of its link)." value={value.file} onChange={(e) => onChange({ ...value, file: e.target.value })} error={err(`${path}.file`)} maxLength={160} required />
+            <TextField
+              label="Library file"
+              hint="The file’s address in the library (the end of its link)."
+              value={value.file}
+              onChange={(e) => onChange({ ...value, file: e.target.value })}
+              error={err(`${path}.file`)}
+              maxLength={160}
+              required
+            />
           ) : null}
           {value.kind === 'cert' ? (
-            <Select label="Certificate" value={value.cert} onChange={(e) => onChange({ ...value, cert: e.target.value })} options={certs} error={err(`${path}.cert`)} />
+            <Select
+              label="Certificate"
+              value={value.cert}
+              onChange={(e) => onChange({ ...value, cert: e.target.value })}
+              options={certs}
+              error={err(`${path}.cert`)}
+            />
           ) : null}
           {value.kind === 'forum' ? (
-            <TextField label="Page of the hub" hint="Starts with /, like /forum/new?title=How do I start with SQL" value={value.to} onChange={(e) => onChange({ ...value, to: e.target.value })} error={err(`${path}.to`)} maxLength={500} required />
+            <TextField
+              label="Page of the hub"
+              hint="Starts with /, like /forum/new?title=How do I start with SQL"
+              value={value.to}
+              onChange={(e) => onChange({ ...value, to: e.target.value })}
+              error={err(`${path}.to`)}
+              maxLength={500}
+              required
+            />
           ) : null}
-          <TextArea label="What it says" rows={2} value={value.text} onChange={(e) => onChange({ ...value, text: e.target.value })} error={err(`${path}.text`)} maxLength={600} required className="cedit-grid__wide" />
+          <TextArea
+            label="What it says"
+            rows={2}
+            value={value.text}
+            onChange={(e) => onChange({ ...value, text: e.target.value })}
+            error={err(`${path}.text`)}
+            maxLength={600}
+            required
+            className="cedit-grid__wide"
+          />
         </div>
       ) : null}
     </fieldset>
@@ -185,7 +277,15 @@ export function StepField({ legend, value, onChange, path, noneLabel = 'No step'
 type Link = NonNullable<CareerChecklistItem['link']>;
 
 /** A checklist item's link: none, a lesson, a certificate on the page or a page of the hub. */
-export function ChecklistLinkField({ value, onChange, path }: { value: Link | null; onChange: (next: Link | null) => void; path: string }) {
+export function ChecklistLinkField({
+  value,
+  onChange,
+  path,
+}: {
+  value: Link | null;
+  onChange: (next: Link | null) => void;
+  path: string;
+}) {
   const { doc, err } = useEditor();
   const modules = useModuleOptions();
   const label = value?.label ?? '';
@@ -213,17 +313,52 @@ export function ChecklistLinkField({ value, onChange, path }: { value: Link | nu
         <div className="cedit-grid">
           {value.kind === 'lesson' ? (
             <>
-              <Select label="Module" value={value.module} onChange={(e) => onChange({ ...value, module: e.target.value })} options={modules} error={err(`${path}.module`)} />
-              <TextField label="Chapter" hint="The start of the chapter’s title." value={value.chapter} onChange={(e) => onChange({ ...value, chapter: e.target.value })} error={err(`${path}.chapter`)} maxLength={160} required />
+              <Select
+                label="Module"
+                value={value.module}
+                onChange={(e) => onChange({ ...value, module: e.target.value })}
+                options={modules}
+                error={err(`${path}.module`)}
+              />
+              <TextField
+                label="Chapter"
+                hint="The start of the chapter’s title."
+                value={value.chapter}
+                onChange={(e) => onChange({ ...value, chapter: e.target.value })}
+                error={err(`${path}.chapter`)}
+                maxLength={160}
+                required
+              />
             </>
           ) : null}
           {value.kind === 'cert' ? (
-            <Select label="Certificate" value={value.cert} onChange={(e) => onChange({ ...value, cert: e.target.value })} options={doc.certs.map((c) => ({ value: c.id, label: c.short || c.name }))} error={err(`${path}.cert`)} />
+            <Select
+              label="Certificate"
+              value={value.cert}
+              onChange={(e) => onChange({ ...value, cert: e.target.value })}
+              options={doc.certs.map((c) => ({ value: c.id, label: c.short || c.name }))}
+              error={err(`${path}.cert`)}
+            />
           ) : null}
           {value.kind === 'forum' ? (
-            <TextField label="Page of the hub" hint="Starts with /" value={value.to} onChange={(e) => onChange({ ...value, to: e.target.value })} error={err(`${path}.to`)} maxLength={500} required />
+            <TextField
+              label="Page of the hub"
+              hint="Starts with /"
+              value={value.to}
+              onChange={(e) => onChange({ ...value, to: e.target.value })}
+              error={err(`${path}.to`)}
+              maxLength={500}
+              required
+            />
           ) : null}
-          <TextField label="Link text" value={value.label} onChange={(e) => onChange({ ...value, label: e.target.value })} error={err(`${path}.label`)} maxLength={60} required />
+          <TextField
+            label="Link text"
+            value={value.label}
+            onChange={(e) => onChange({ ...value, label: e.target.value })}
+            error={err(`${path}.label`)}
+            maxLength={60}
+            required
+          />
         </div>
       ) : null}
     </fieldset>
@@ -234,7 +369,21 @@ export function ChecklistLinkField({ value, onChange, path }: { value: Link | nu
  * An employer's or a certificate's logo: the organisation's own file, uploaded here, with who gave permission. Until
  * one is uploaded the page shows the bundled file if there is one, else the initials.
  */
-export function LogoField({ kind, id, mono, logo, onChange, path }: { kind: LogoKind; id: string; mono: string; logo: CareerLogo | null | undefined; onChange: (next: CareerLogo | null) => void; path: string }) {
+export function LogoField({
+  kind,
+  id,
+  mono,
+  logo,
+  onChange,
+  path,
+}: {
+  kind: LogoKind;
+  id: string;
+  mono: string;
+  logo: CareerLogo | null | undefined;
+  onChange: (next: CareerLogo | null) => void;
+  path: string;
+}) {
   const { err } = useEditor();
   const input = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<UploadProgress | null>(null);
@@ -265,9 +414,14 @@ export function LogoField({ kind, id, mono, logo, onChange, path }: { kind: Logo
       <div className="cedit-logo__row">
         <LogoSlot kind={kind} id={id} logo={logo} mono={mono} key={logo?.uploadId ?? 'bundled'} />
         <div className="cedit-logo__text">
-          <p className="cedit-logo__state">{logo ? 'Uploaded logo.' : 'No uploaded logo: the page shows the bundled file if there is one, else the initials.'}</p>
+          <p className="cedit-logo__state">
+            {logo
+              ? 'Uploaded logo.'
+              : 'No uploaded logo: the page shows the bundled file if there is one, else the initials.'}
+          </p>
           <p id={hintId} className="cedit__note">
-            Only the organisation’s own logo file, used with its permission. Never draw, trace or recolour one. {rules.summary}
+            Only the organisation’s own logo file, used with its permission. Never draw, trace or recolour one.{' '}
+            {rules.summary}
           </p>
           <div className="cedit-logo__actions">
             <input
@@ -283,7 +437,14 @@ export function LogoField({ kind, id, mono, logo, onChange, path }: { kind: Logo
                 if (file) void send(file);
               }}
             />
-            <Button variant="secondary" size="sm" leadingIcon={UploadSimple} onClick={() => input.current?.click()} loading={progress !== null} aria-describedby={hintId}>
+            <Button
+              variant="secondary"
+              size="sm"
+              leadingIcon={UploadSimple}
+              onClick={() => input.current?.click()}
+              loading={progress !== null}
+              aria-describedby={hintId}
+            >
               {logo ? 'Upload another' : 'Upload the logo'}
             </Button>
             {logo ? (

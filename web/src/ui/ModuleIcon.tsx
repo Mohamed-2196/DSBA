@@ -1,14 +1,44 @@
 import {
-  Brain, Briefcase, ChartBar, ChartLineUp, ChartScatter, Coins, Database, Function as FunctionIcon, ListChecks,
-  Megaphone, PresentationChart, Scales, Sigma, Storefront, TerminalWindow, WaveSine, BookOpenText,
-  type Icon, type IconProps,
+  Brain,
+  Briefcase,
+  ChartBar,
+  ChartLineUp,
+  ChartScatter,
+  Coins,
+  Database,
+  Function as FunctionIcon,
+  ListChecks,
+  Megaphone,
+  PresentationChart,
+  Scales,
+  Sigma,
+  Storefront,
+  TerminalWindow,
+  WaveSine,
+  BookOpenText,
+  type Icon,
+  type IconProps,
 } from '@phosphor-icons/react';
 import { useModulesOptional } from '../state/modules';
 
 // Only the icons the module catalogue uses (keeps Phosphor tree-shaken).
 const ICONS: Record<string, Icon> = {
-  Brain, Briefcase, ChartBar, ChartLineUp, ChartScatter, Coins, Database, Function: FunctionIcon, ListChecks,
-  Megaphone, PresentationChart, Scales, Sigma, Storefront, TerminalWindow, WaveSine,
+  Brain,
+  Briefcase,
+  ChartBar,
+  ChartLineUp,
+  ChartScatter,
+  Coins,
+  Database,
+  Function: FunctionIcon,
+  ListChecks,
+  Megaphone,
+  PresentationChart,
+  Scales,
+  Sigma,
+  Storefront,
+  TerminalWindow,
+  WaveSine,
 };
 
 export interface ModuleIconProps extends Omit<IconProps, 'name' | 'ref'> {

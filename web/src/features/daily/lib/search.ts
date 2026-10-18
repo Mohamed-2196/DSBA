@@ -61,7 +61,12 @@ export function snapEnd(start: Pos, to: { row: number; col: number }, size: numb
 }
 
 /** The point (x, y) in cell units of a grid drawn in `rect`, `size` cells a side: 0.5 is the middle of a cell. */
-export function pointIn(x: number, y: number, rect: { left: number; top: number; width: number; height: number }, size: number): { row: number; col: number } {
+export function pointIn(
+  x: number,
+  y: number,
+  rect: { left: number; top: number; width: number; height: number },
+  size: number,
+): { row: number; col: number } {
   return { row: ((y - rect.top) / rect.height) * size - 0.5, col: ((x - rect.left) / rect.width) * size - 0.5 };
 }
 

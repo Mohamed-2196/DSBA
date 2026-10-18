@@ -10,7 +10,10 @@ export interface GuestFeatures {
   list: readonly string[] | undefined;
 }
 
-export function readGuestFeatures(signedIn: boolean, query: { data: readonly string[] | undefined; isPending: boolean; isError: boolean }): GuestFeatures {
+export function readGuestFeatures(
+  signedIn: boolean,
+  query: { data: readonly string[] | undefined; isPending: boolean; isError: boolean },
+): GuestFeatures {
   if (signedIn || query.data) return { loading: false, list: query.data };
   if (query.isError) return { loading: false, list: FEATURE_KEYS };
   return { loading: query.isPending, list: undefined };

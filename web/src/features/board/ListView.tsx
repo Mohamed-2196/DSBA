@@ -22,7 +22,17 @@ export interface ListViewProps {
   onClearFilter: () => void;
 }
 
-export function ListView({ board, cards, filtering, labels, today, readOnly, onOpen, onToggleDone, onClearFilter }: ListViewProps) {
+export function ListView({
+  board,
+  cards,
+  filtering,
+  labels,
+  today,
+  readOnly,
+  onOpen,
+  onToggleDone,
+  onClearFilter,
+}: ListViewProps) {
   const add = useAddCard();
   const [title, setTitle] = useState('');
   const first = board.columns.find((c) => !c.done) ?? board.columns[0];
@@ -69,7 +79,12 @@ export function ListView({ board, cards, filtering, labels, today, readOnly, onO
             }
           />
         ) : (
-          <EmptyState size="sm" icon={ListBullets} title="No cards on this board yet" body={readOnly ? undefined : 'Add your first one above.'} />
+          <EmptyState
+            size="sm"
+            icon={ListBullets}
+            title="No cards on this board yet"
+            body={readOnly ? undefined : 'Add your first one above.'}
+          />
         )
       ) : (
         <ul role="list" className="board-list__rows">
@@ -104,7 +119,11 @@ export function ListView({ board, cards, filtering, labels, today, readOnly, onO
                       const l = labels[id];
                       return l ? (
                         <span key={id} className="board-list__label">
-                          <span className="board-card__label-dot" style={{ background: colorVar(l.color) }} aria-hidden="true" />
+                          <span
+                            className="board-card__label-dot"
+                            style={{ background: colorVar(l.color) }}
+                            aria-hidden="true"
+                          />
                           {l.name}
                         </span>
                       ) : null;
@@ -117,7 +136,12 @@ export function ListView({ board, cards, filtering, labels, today, readOnly, onO
                     {due && !isDone ? (
                       <span className={cx('board-list__due', overdue && 'is-overdue')}>
                         {overdue ? <WarningCircle aria-hidden="true" weight="fill" /> : <Clock aria-hidden="true" />}
-                        {dueLabel(due, today, formatDay(due, { weekday: 'short', month: 'short', year: false }), card.dueTime)}
+                        {dueLabel(
+                          due,
+                          today,
+                          formatDay(due, { weekday: 'short', month: 'short', year: false }),
+                          card.dueTime,
+                        )}
                       </span>
                     ) : null}
                   </div>

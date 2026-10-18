@@ -20,7 +20,13 @@ export function FoundPanel({ request }: { request: RequestOut }) {
   const waiting = awaitsAnswer(request);
   if (!waiting && request.status !== 'done') return null;
   const mayAnswer = waiting && (request.mine || can('requests.manage'));
-  const facts = [libraryKindLabel(file.kind), file.examYear ? String(file.examYear) : null, file.zone ? `Zone ${file.zone}` : null].filter(Boolean).join(' · ');
+  const facts = [
+    libraryKindLabel(file.kind),
+    file.examYear ? String(file.examYear) : null,
+    file.zone ? `Zone ${file.zone}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   const say = (confirm: boolean) =>
     answer.mutate(
@@ -29,7 +35,11 @@ export function FoundPanel({ request }: { request: RequestOut }) {
         onSuccess: () =>
           push(
             confirm
-              ? { title: 'Request closed', body: 'Everyone who wanted it will hear it’s in the library.', tone: 'success' }
+              ? {
+                  title: 'Request closed',
+                  body: 'Everyone who wanted it will hear it’s in the library.',
+                  tone: 'success',
+                }
               : { title: 'Still looking', body: 'Your request stays open. You’ll hear when another file is added.' },
           ),
         onError: (e) => push({ title: 'That didn’t save', body: errorMessage(e, 'Try again.'), tone: 'alert' }),
@@ -46,13 +56,30 @@ export function FoundPanel({ request }: { request: RequestOut }) {
         </Link>{' '}
         <span className="req-card__kind">{facts}</span>
       </p>
-      {waiting && !mayAnswer ? <p className="req-found__note">A file that may match was added. The person who asked will say if it’s the one.</p> : null}
+      {waiting && !mayAnswer ? (
+        <p className="req-found__note">
+          A file that may match was added. The person who asked will say if it’s the one.
+        </p>
+      ) : null}
       {mayAnswer ? (
         <div className="req-found__actions">
-          <Button variant="primary" size="sm" onClick={() => say(true)} loading={answer.isPending && answer.variables.confirm} disabled={answer.isPending} data-hub="request-found-yes">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => say(true)}
+            loading={answer.isPending && answer.variables.confirm}
+            disabled={answer.isPending}
+            data-hub="request-found-yes"
+          >
             Yes, that’s it
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => say(false)} loading={answer.isPending && !answer.variables.confirm} disabled={answer.isPending}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => say(false)}
+            loading={answer.isPending && !answer.variables.confirm}
+            disabled={answer.isPending}
+          >
             No, keep looking
           </Button>
         </div>

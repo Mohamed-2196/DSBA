@@ -45,7 +45,15 @@ interface FrameProps extends IssueSectionProps {
   aside?: ReactNode;
 }
 
-function SectionFrame({ issue, section, readOnly, title = section.title, blocks = section.blocks, body, aside }: FrameProps) {
+function SectionFrame({
+  issue,
+  section,
+  readOnly,
+  title = section.title,
+  blocks = section.blocks,
+  body,
+  aside,
+}: FrameProps) {
   const Icon = sectionIcon(section.icon);
   const headId = `${sectionDomId(section.id)}-title`;
   const label = plainText(sectionLabel(section));
@@ -57,7 +65,12 @@ function SectionFrame({ issue, section, readOnly, title = section.title, blocks 
   else if (aside) side = aside;
   const poll = { issueId: issue.id, slug: issue.slug, polls: issue.polls, readOnly };
   return (
-    <section id={sectionDomId(section.id)} className={cx('nl-section', `nl-section--${section.kind ?? 'copy'}`, wide && 'has-wide-aside')} aria-labelledby={headId} data-hub="issue-section">
+    <section
+      id={sectionDomId(section.id)}
+      className={cx('nl-section', `nl-section--${section.kind ?? 'copy'}`, wide && 'has-wide-aside')}
+      aria-labelledby={headId}
+      data-hub="issue-section"
+    >
       <header className="nl-section__head">
         <p className="nl-section__label">
           <Icon weight="duotone" aria-hidden="true" />
@@ -75,7 +88,14 @@ function SectionFrame({ issue, section, readOnly, title = section.title, blocks 
           </ErrorBoundary>
         ) : null}
         <Blocks blocks={section.after} editors={issue.editors} poll={poll} />
-        <Reactions issueId={issue.id} issueSlug={issue.slug} sectionId={section.id} counts={issue.reactions[section.id]} label={label} readOnly={readOnly} />
+        <Reactions
+          issueId={issue.id}
+          issueSlug={issue.slug}
+          sectionId={section.id}
+          counts={issue.reactions[section.id]}
+          label={label}
+          readOnly={readOnly}
+        />
       </div>
       {side ? <div className="nl-section__aside">{side}</div> : null}
     </section>
@@ -101,9 +121,14 @@ function DeadlinesSection(props: IssueSectionProps) {
 }
 
 /** A live list that may have nothing to show yet: the section then reads as its fallback (an invitation). */
-function fallbackProps(section: SectionData, empty: boolean): { title: string; blocks: readonly Block[]; fallback: LiveFallback | null } {
+function fallbackProps(
+  section: SectionData,
+  empty: boolean,
+): { title: string; blocks: readonly Block[]; fallback: LiveFallback | null } {
   const fallback = section.fallback ?? null;
-  return empty && fallback ? { title: fallback.title, blocks: [], fallback } : { title: section.title, blocks: section.blocks, fallback };
+  return empty && fallback
+    ? { title: fallback.title, blocks: [], fallback }
+    : { title: section.title, blocks: section.blocks, fallback };
 }
 
 /** From the forum: hot threads about a module first (study questions, study groups), then the rest. */
@@ -114,7 +139,14 @@ function ForumSection(props: IssueSectionProps) {
   const threads = [...list.filter((t) => t.moduleId), ...list.filter((t) => !t.moduleId)].slice(0, 4);
   const { title, blocks, fallback } = fallbackProps(props.section, !q.isPending && !threads.length);
   if (!on) return <SectionFrame {...props} />;
-  return <SectionFrame {...props} title={title} blocks={blocks} body={q.isPending ? <LiveSkeleton /> : <ForumList threads={threads} fallback={fallback} />} />;
+  return (
+    <SectionFrame
+      {...props}
+      title={title}
+      blocks={blocks}
+      body={q.isPending ? <LiveSkeleton /> : <ForumList threads={threads} fallback={fallback} />}
+    />
+  );
 }
 
 /** New in the library: the newest published files. */
@@ -124,7 +156,14 @@ function LibrarySection(props: IssueSectionProps) {
   const files = q.data ?? [];
   const { title, blocks, fallback } = fallbackProps(props.section, !q.isPending && !files.length);
   if (!on) return <SectionFrame {...props} />;
-  return <SectionFrame {...props} title={title} blocks={blocks} body={q.isPending ? <LiveSkeleton /> : <LibraryList files={files} fallback={fallback} />} />;
+  return (
+    <SectionFrame
+      {...props}
+      title={title}
+      blocks={blocks}
+      body={q.isPending ? <LiveSkeleton /> : <LibraryList files={files} fallback={fallback} />}
+    />
+  );
 }
 
 /** You asked, we did: the requests done in the 30 days up to the issue's date (as of the issue, never "today"). */
@@ -134,7 +173,14 @@ function RequestsSection(props: IssueSectionProps) {
   const requests = q.data?.items ?? [];
   const { title, blocks, fallback } = fallbackProps(props.section, !q.isPending && !requests.length);
   if (!on) return <SectionFrame {...props} />;
-  return <SectionFrame {...props} title={title} blocks={blocks} body={q.isPending ? <LiveSkeleton /> : <RequestsList requests={requests} fallback={fallback} />} />;
+  return (
+    <SectionFrame
+      {...props}
+      title={title}
+      blocks={blocks}
+      body={q.isPending ? <LiveSkeleton /> : <RequestsList requests={requests} fallback={fallback} />}
+    />
+  );
 }
 
 export function IssueSection(props: IssueSectionProps) {

@@ -5,14 +5,18 @@ import { api } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-const inDays = (n: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date(Date.now() + n * 86_400_000));
+const inDays = (n: number) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date(Date.now() + n * 86_400_000));
 
 interface Own {
   id: string;
   title: string;
 }
 
-test('a student adds their own weekly event, sees it on the calendar and Home, edits it, and deletes it', async ({ sara, ali }) => {
+test('a student adds their own weekly event, sees it on the calendar and Home, edits it, and deletes it', async ({
+  sara,
+  ali,
+}) => {
   const title = `Study group ${Date.now().toString(36)}`;
   await sara.goto('/calendar');
   await sara.locator('[data-hub="calendar-mine-add"]').click();
@@ -61,7 +65,11 @@ test('a student adds their own weekly event, sees it on the calendar and Home, e
   await edit.getByLabel('Starts').fill('17:00');
   await edit.locator('[data-hub="calendar-mine-save"]').click();
   await expect(sara.getByText('Changes saved')).toBeVisible();
-  const split = await api<(Own & { date: string; repeat: string; skipped: string[] })[]>(sara, 'GET', '/api/v1/calendar/mine/events');
+  const split = await api<(Own & { date: string; repeat: string; skipped: string[] })[]>(
+    sara,
+    'GET',
+    '/api/v1/calendar/mine/events',
+  );
   const series = split.body.find((e) => e.id === own?.id);
   const single = split.body.find((e) => e.title === title && e.id !== own?.id);
   expect(series?.skipped).toEqual([inDays(1)]);
@@ -105,9 +113,17 @@ test('a student hides a programme date, then shows it again from Customise', asy
   expect(prefs.body.hiddenEvents).not.toContain(id);
 });
 
-test('the private link holds their own events; the shared feed does not; a new link retires the old one', async ({ sara, browser }) => {
+test('the private link holds their own events; the shared feed does not; a new link retires the old one', async ({
+  sara,
+  browser,
+}) => {
   const title = `Dentist ${Date.now().toString(36)}`;
-  const made = await api<Own>(sara, 'POST', '/api/v1/calendar/mine/events', { title, date: inDays(3), startTime: '10:00', remind: 60 });
+  const made = await api<Own>(sara, 'POST', '/api/v1/calendar/mine/events', {
+    title,
+    date: inDays(3),
+    startTime: '10:00',
+    remind: 60,
+  });
   expect(made.status).toBe(201);
   await sara.goto('/calendar');
   await sara.locator('[data-hub="calendar-subscribe-open"]').click();

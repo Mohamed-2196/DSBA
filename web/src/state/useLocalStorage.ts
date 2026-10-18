@@ -15,7 +15,12 @@ export function useLocalStorage<T>(key: string, initial: T | (() => T)): [T, Set
   const initialRef = useRef(initial);
   const source = useId();
   const binding = useMemo(
-    () => bindStored<T>(key, () => (typeof initialRef.current === 'function' ? (initialRef.current as () => T)() : initialRef.current), source),
+    () =>
+      bindStored<T>(
+        key,
+        () => (typeof initialRef.current === 'function' ? (initialRef.current as () => T)() : initialRef.current),
+        source,
+      ),
     [key, source],
   );
   const [value, setValue] = useState<T>(() => binding.get());

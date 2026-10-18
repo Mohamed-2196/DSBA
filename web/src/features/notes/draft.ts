@@ -42,7 +42,9 @@ export const EMPTY_DOC: RichDoc = { type: 'doc', content: [] };
 export function docFromText(text: string): RichDoc {
   return {
     type: 'doc',
-    content: text.split('\n').map((line) => (line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' })),
+    content: text
+      .split('\n')
+      .map((line) => (line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' })),
   };
 }
 
@@ -96,7 +98,8 @@ export function readInkDraft(id: string): InkDraft {
   if (!isRecord(value)) return {};
   const out: InkDraft = {};
   for (const [sheet, entry] of Object.entries(value)) {
-    if (!/^\d+$/.test(sheet) || !isRecord(entry) || !Array.isArray(entry.strokes) || typeof entry.base !== 'number') continue;
+    if (!/^\d+$/.test(sheet) || !isRecord(entry) || !Array.isArray(entry.strokes) || typeof entry.base !== 'number')
+      continue;
     out[sheet] = { strokes: entry.strokes as Stroke[], base: entry.base };
   }
   return out;
@@ -150,7 +153,10 @@ export function openNote(server: Note, draft: Draft | null): Opening {
 
 /** The ink to open a note with: the server's sheets, with the copy here on top where it was drawn over the same
  *  version (to be sent), and the sheets saved elsewhere since (a choice to make). */
-export function openInk(server: readonly InkSheet[], draft: InkDraft): { sheets: Map<number, InkSheet>; pending: Set<number>; changed: Set<number> } {
+export function openInk(
+  server: readonly InkSheet[],
+  draft: InkDraft,
+): { sheets: Map<number, InkSheet>; pending: Set<number>; changed: Set<number> } {
   const sheets = new Map<number, InkSheet>(server.map((s) => [s.sheet, s]));
   const pending = new Set<number>();
   const changed = new Set<number>();
@@ -185,6 +191,9 @@ export function lessonLabel(place: { c: number; v: number } | null): string {
 
 /** The start of a note's text as one plain line, for lists. */
 export function plainExcerpt(text: string, max = 160): string {
-  const plain = text.replace(/\$\$?([^$]*)\$\$?/g, '$1').replace(/\s+/g, ' ').trim();
+  const plain = text
+    .replace(/\$\$?([^$]*)\$\$?/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
   return plain.length > max ? `${plain.slice(0, max - 1)}…` : plain;
 }

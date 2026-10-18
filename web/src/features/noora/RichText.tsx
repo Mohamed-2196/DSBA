@@ -52,7 +52,12 @@ function CodeBlock({ lang, text }: { lang: string; text: string }) {
     <div className="nr-code">
       <div className="nr-code__bar">
         <span className="nr-code__lang">{lang || 'Code'}</span>
-        <button type="button" className="nr-code__copy" onClick={() => void copyText(text).then(setCopied)} data-hub="noora-copy-code">
+        <button
+          type="button"
+          className="nr-code__copy"
+          onClick={() => void copyText(text).then(setCopied)}
+          data-hub="noora-copy-code"
+        >
           <CopyIcon aria-hidden="true" weight={copied ? 'bold' : 'regular'} />
           <span>{copied ? 'Copied' : 'Copy code'}</span>
         </button>
@@ -91,7 +96,13 @@ function block(b: Block, key: number, onFollow: () => void): ReactNode {
           <Inlines text={item} onFollow={onFollow} />
         </li>
       ));
-      return b.type === 'ul' ? <ul key={key}>{items}</ul> : <ol key={key} start={b.start === 1 ? undefined : b.start}>{items}</ol>;
+      return b.type === 'ul' ? (
+        <ul key={key}>{items}</ul>
+      ) : (
+        <ol key={key} start={b.start === 1 ? undefined : b.start}>
+          {items}
+        </ol>
+      );
     }
     case 'code':
       return <CodeBlock key={key} lang={b.lang} text={b.text} />;
@@ -139,7 +150,15 @@ function block(b: Block, key: number, onFollow: () => void): ReactNode {
 }
 
 /** An answer in Markdown. `caret`: a cursor after the last block while it streams in. */
-export const Rich = memo(function Rich({ text, caret = false, onFollow }: { text: string; caret?: boolean; onFollow: () => void }) {
+export const Rich = memo(function Rich({
+  text,
+  caret = false,
+  onFollow,
+}: {
+  text: string;
+  caret?: boolean;
+  onFollow: () => void;
+}) {
   const blocks = useMemo(() => parseRich(text), [text]);
   return (
     <div className="nr" dir="auto">

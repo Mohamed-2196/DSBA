@@ -22,7 +22,9 @@ export function useLeaveGuard(active: boolean): LeaveGuard {
   // Only another page asks, not an anchor on this one.
   const shouldBlock = useCallback<BlockerFunction>(
     ({ currentLocation, nextLocation }) =>
-      active && !passing.current && (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search),
+      active &&
+      !passing.current &&
+      (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search),
     [active],
   );
   const blocker = useBlocker(shouldBlock);

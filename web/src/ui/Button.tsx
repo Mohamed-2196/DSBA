@@ -1,4 +1,11 @@
-import { forwardRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ElementType, type MouseEvent, type ReactNode } from 'react';
+import {
+  forwardRef,
+  type AnchorHTMLAttributes,
+  type ButtonHTMLAttributes,
+  type ElementType,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 import { Link, type To } from 'react-router-dom';
 import { cx, renderIcon, type IconSource } from './internal';
 import { Spinner } from './Spinner';
@@ -39,13 +46,37 @@ export type ButtonProps = ButtonOwnProps & NativeAttributes;
 
 /** Button / link-button. */
 export const Button = forwardRef<HTMLElement, ButtonProps>(function Button(
-  { variant = 'secondary', size = 'md', leadingIcon, trailingIcon, as, to, href, external, fullWidth = false, loading = false, disabled, type, className, children, onClick, ...rest },
+  {
+    variant = 'secondary',
+    size = 'md',
+    leadingIcon,
+    trailingIcon,
+    as,
+    to,
+    href,
+    external,
+    fullWidth = false,
+    loading = false,
+    disabled,
+    type,
+    className,
+    children,
+    onClick,
+    ...rest
+  },
   ref,
 ) {
   const Comp: ElementType = as || (to ? Link : href ? 'a' : 'button');
   const props: Record<string, unknown> = {
     ref,
-    className: cx('ui-button', `ui-button--${variant}`, `ui-button--${size}`, fullWidth && 'ui-button--full', loading && 'is-loading', className),
+    className: cx(
+      'ui-button',
+      `ui-button--${variant}`,
+      `ui-button--${size}`,
+      fullWidth && 'ui-button--full',
+      loading && 'is-loading',
+      className,
+    ),
     onClick,
     ...rest,
   };
@@ -68,7 +99,11 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(function Button(
   if (loading) props['aria-busy'] = true;
   return (
     <Comp {...props}>
-      {loading ? <Spinner size={14} className="ui-button__spinner" /> : renderIcon(leadingIcon, { className: 'ui-button__icon' })}
+      {loading ? (
+        <Spinner size={14} className="ui-button__spinner" />
+      ) : (
+        renderIcon(leadingIcon, { className: 'ui-button__icon' })
+      )}
       {children != null && children !== false ? <span className="ui-button__label">{children}</span> : null}
       {renderIcon(trailingIcon, { className: 'ui-button__icon' })}
     </Comp>

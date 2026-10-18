@@ -25,7 +25,9 @@ export function HelpBelow() {
   if (!on || !below.data?.length) return null;
   const who = years.length > 1 ? 'Years 1 and 2' : 'Year 1';
   const firstYears = years.length > 1 ? null : categoryForYear(1);
-  const all = firstYears ? `/forum?cohort=${firstYears}&status=no-replies&sort=new` : '/forum?status=no-replies&sort=new';
+  const all = firstYears
+    ? `/forum?cohort=${firstYears}&status=no-replies&sort=new`
+    : '/forum?status=no-replies&sort=new';
   return (
     <PageSection className="home-sec home-sec--below" aria-labelledby="home-below" data-hub="help-below">
       <SectionHeader
@@ -38,7 +40,11 @@ export function HelpBelow() {
         }
       />
       <Panel as="div" padding="none" className="forum-hot">
-        <p className="forum-below__lead">{mayTry('forum.post') ? `Questions from ${who} nobody has answered yet. You’ve been there.` : `Questions from ${who} nobody has answered yet.`}</p>
+        <p className="forum-below__lead">
+          {mayTry('forum.post')
+            ? `Questions from ${who} nobody has answered yet. You’ve been there.`
+            : `Questions from ${who} nobody has answered yet.`}
+        </p>
         <ol role="list" className="forum-hot__list">
           {below.data.map((t) => (
             <li key={t.id} className="forum-hot__row forum-below__row" data-thread-id={t.id}>
@@ -49,7 +55,11 @@ export function HelpBelow() {
                   </Link>
                 </p>
                 <div className="forum-hot__meta">
-                  {t.moduleId && getModule(t.moduleId) ? <ModuleTag module={getModule(t.moduleId)} /> : <PlaceBadge thread={t} />}
+                  {t.moduleId && getModule(t.moduleId) ? (
+                    <ModuleTag module={getModule(t.moduleId)} />
+                  ) : (
+                    <PlaceBadge thread={t} />
+                  )}
                   <time dateTime={t.createdAt}>{timeAgo(t.createdAt)}</time>
                 </div>
               </div>

@@ -21,7 +21,10 @@ export interface Drop {
 export function dropTarget(blocks: readonly BlockBox[], y: number, linePx: number): Drop {
   if (!blocks.length) return { pos: 0, lines: 0, at: y };
   for (const b of blocks) {
-    if (y < b.bottom) return y < (b.top + b.bottom) / 2 ? { pos: b.pos, lines: 0, at: b.top } : { pos: b.pos + b.size, lines: 0, at: b.bottom };
+    if (y < b.bottom)
+      return y < (b.top + b.bottom) / 2
+        ? { pos: b.pos, lines: 0, at: b.top }
+        : { pos: b.pos + b.size, lines: 0, at: b.bottom };
   }
   const last = blocks[blocks.length - 1];
   const lines = linePx > 0 ? Math.min(400, Math.max(0, Math.floor((y - last.bottom) / linePx))) : 0;
@@ -29,10 +32,16 @@ export function dropTarget(blocks: readonly BlockBox[], y: number, linePx: numbe
 }
 
 /** Whether dropping a block at `drop` would leave it where it is. */
-export const staysPut = (from: number, size: number, drop: Drop): boolean => drop.lines === 0 && (drop.pos === from || drop.pos === from + size);
+export const staysPut = (from: number, size: number, drop: Drop): boolean =>
+  drop.lines === 0 && (drop.pos === from || drop.pos === from + size);
 
 /** The change that moves the block at `from` to `drop` (with `attrs` changed on the way), and selects it there. */
-export function moveBlock(state: EditorState, from: number, drop: Drop, attrs?: Record<string, unknown>): Transaction | null {
+export function moveBlock(
+  state: EditorState,
+  from: number,
+  drop: Drop,
+  attrs?: Record<string, unknown>,
+): Transaction | null {
   const node = state.doc.nodeAt(from);
   if (!node) return null;
   const moved = attrs ? node.type.create({ ...node.attrs, ...attrs }, node.content, node.marks) : node;

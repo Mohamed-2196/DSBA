@@ -53,7 +53,11 @@ export function ImportDialog({ game, themes, defaultTheme, onClose }: ImportDial
           <Button variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button loading={check.isPending} disabled={!text.trim() || commit.isPending} onClick={() => check.mutate({ ...body, dryRun: true })}>
+          <Button
+            loading={check.isPending}
+            disabled={!text.trim() || commit.isPending}
+            onClick={() => check.mutate({ ...body, dryRun: true })}
+          >
             Check
           </Button>
           <Button
@@ -65,7 +69,10 @@ export function ImportDialog({ game, themes, defaultTheme, onClose }: ImportDial
                 { ...body, dryRun: false },
                 {
                   onSuccess: (done) => {
-                    toast({ title: `Added ${formatCount(done.added)} ${done.added === 1 ? info.noun : `${info.noun}s`} to ${themeTitle}.`, tone: 'success' });
+                    toast({
+                      title: `Added ${formatCount(done.added)} ${done.added === 1 ? info.noun : `${info.noun}s`} to ${themeTitle}.`,
+                      tone: 'success',
+                    });
                     onClose();
                   },
                 },
@@ -122,7 +129,9 @@ export function ImportDialog({ game, themes, defaultTheme, onClose }: ImportDial
         {report ? (
           <section className="dcms-report" aria-labelledby="dcms-report-title" aria-live="polite">
             <h3 id="dcms-report-title" className="dcms-report__title">
-              {ready === report.rows.length ? `All ${formatCount(ready)} can be added.` : `${formatCount(ready)} can be added. ${formatCount(refused)} can’t, for the reasons below.`}
+              {ready === report.rows.length
+                ? `All ${formatCount(ready)} can be added.`
+                : `${formatCount(ready)} can be added. ${formatCount(refused)} can’t, for the reasons below.`}
             </h3>
             <ol className="dcms-report__rows">
               {[...report.rows]
@@ -130,7 +139,11 @@ export function ImportDialog({ game, themes, defaultTheme, onClose }: ImportDial
                 .slice(0, SHOWN_ROWS)
                 .map((row, i) => (
                   <li key={`${row.line}-${i}`} className={cx('dcms-report__row', row.problem ? 'is-refused' : 'is-ok')}>
-                    {row.problem ? <WarningCircle aria-hidden="true" weight="fill" className="dcms-report__icon" /> : <Check aria-hidden="true" weight="bold" className="dcms-report__icon" />}
+                    {row.problem ? (
+                      <WarningCircle aria-hidden="true" weight="fill" className="dcms-report__icon" />
+                    ) : (
+                      <Check aria-hidden="true" weight="bold" className="dcms-report__icon" />
+                    )}
                     <span className="dcms-report__text">
                       <span className="dcms-report__line">Line {row.line}</span> {row.text}
                       {row.problem ? <span className="dcms-report__problem">{row.problem}</span> : null}

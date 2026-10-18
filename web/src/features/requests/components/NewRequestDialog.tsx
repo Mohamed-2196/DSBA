@@ -213,7 +213,9 @@ export function NewRequestDialog({ open, onClose, kind: initialKind = null }: Ne
         {names ? (
           <fieldset className="req-form__wants">
             <legend>Which file?</legend>
-            <p className="req-form__wants-hint">Optional. Name it and its module, and you’ll hear when it’s in the library.</p>
+            <p className="req-form__wants-hint">
+              Optional. Name it and its module, and you’ll hear when it’s in the library.
+            </p>
             <Select
               label="Type of file"
               value={wantedKind}

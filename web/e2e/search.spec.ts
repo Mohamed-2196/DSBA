@@ -40,10 +40,17 @@ test('"/" opens search, which finds modules and dates', async ({ guest }) => {
   await expect(guest.getByRole('tab', { name: /^All/ })).toBeVisible(); // the page has loaded
   const search = await palette(guest, '/');
   await guest.keyboard.type('ST2133');
-  await expect(search.getByRole('option').filter({ hasText: 'Advanced Statistics: Distribution Theory' }).first()).toBeVisible();
+  await expect(
+    search.getByRole('option').filter({ hasText: 'Advanced Statistics: Distribution Theory' }).first(),
+  ).toBeVisible();
   await guest.keyboard.press('Control+a');
   await guest.keyboard.type('mock exam');
-  await expect(search.getByRole('option').filter({ hasText: /Mock exam/i }).first()).toBeVisible();
+  await expect(
+    search
+      .getByRole('option')
+      .filter({ hasText: /Mock exam/i })
+      .first(),
+  ).toBeVisible();
   await guest.keyboard.press('Escape');
   await guest.keyboard.press('Escape');
   await expect(search).toHaveCount(0);
@@ -54,7 +61,11 @@ test('search finds a chapter and opens its first lesson', async ({ guest }) => {
   await expect(guest.getByRole('heading', { level: 1 })).toBeVisible();
   const search = await palette(guest, '/');
   await guest.keyboard.type('supply and demand');
-  const option = search.getByRole('option').filter({ hasText: 'Supply and Demand' }).filter({ hasText: 'chapter' }).first();
+  const option = search
+    .getByRole('option')
+    .filter({ hasText: 'Supply and Demand' })
+    .filter({ hasText: 'chapter' })
+    .first();
   await expect(option).toBeVisible();
   await option.click();
   await expect(guest).toHaveURL(/\/modules\/economics\/lessons\/[^/]+$/);

@@ -19,7 +19,10 @@ export function refKind(to: string): RefKind {
 }
 
 /** One of her answers as plain text, for the clipboard: what she said, the maths as words, and where to look. */
-export function messageAsText(message: Pick<NooraMessage, 'text' | 'formula' | 'steps' | 'refs'>, linkFor: (to: string) => string): string {
+export function messageAsText(
+  message: Pick<NooraMessage, 'text' | 'formula' | 'steps' | 'refs'>,
+  linkFor: (to: string) => string,
+): string {
   const lines = [plainText(message.text)];
   if (message.formula) lines.push(message.formula.say);
   for (const step of message.steps ?? []) lines.push(step.say);

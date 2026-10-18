@@ -35,7 +35,16 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
 
   if (!me) {
     if (compact) {
-      return <IconButton label="Sign in" icon={SignIn} tooltip tooltipSide="right" onClick={() => openSignIn()} data-hub="sign-in" />;
+      return (
+        <IconButton
+          label="Sign in"
+          icon={SignIn}
+          tooltip
+          tooltipSide="right"
+          onClick={() => openSignIn()}
+          data-hub="sign-in"
+        />
+      );
     }
     return (
       <Button
@@ -53,7 +62,12 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
   }
 
   const name = me.displayName || 'Your account';
-  const line = me.status === 'suspended' ? 'Account suspended' : me.needsProfile ? 'Finish your profile' : accountLine({ badge: badgeOf(me), year: me.year });
+  const line =
+    me.status === 'suspended'
+      ? 'Account suspended'
+      : me.needsProfile
+        ? 'Finish your profile'
+        : accountLine({ badge: badgeOf(me), year: me.year });
   const identity = me.email || me.phone || '';
 
   const onSignOut = async () => {
@@ -74,7 +88,9 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
         </span>
       ),
     },
-    ...(me.needsProfile ? [{ id: 'profile', label: 'Finish your profile', icon: UserCirclePlus, onSelect: () => openSignIn() }] : []),
+    ...(me.needsProfile
+      ? [{ id: 'profile', label: 'Finish your profile', icon: UserCirclePlus, onSelect: () => openSignIn() }]
+      : []),
     { id: 'account', label: 'Your account', icon: UserCircle, to: '/account' },
     ...(manages ? [{ id: 'manage', label: 'Manage', icon: Wrench, to: '/manage' }] : []),
     ...(isAdmin ? [{ id: 'access', label: 'Access', icon: Key, to: '/admin/access' }] : []),

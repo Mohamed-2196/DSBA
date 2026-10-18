@@ -1,7 +1,37 @@
 /* Home: a past question a day. */
-.lib-daily { display: grid; gap: var(--sp-8); }
-.lib-daily__meta { margin: 0; color: var(--ink-2); font-size: var(--fs-14); }
-.lib-daily__q { margin: 0; max-width: var(--measure, 75ch); color: var(--ink); font-size: var(--fs-20); font-weight: var(--fw-bold); line-height: 1.35; overflow-wrap: anywhere; }
-.lib-daily__page { color: var(--ink-2); font-weight: var(--fw-semibold); }
-.lib-daily__chapter { margin: 0; max-width: var(--measure, 75ch); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; overflow-wrap: anywhere; }
-.lib-daily__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); margin-top: var(--sp-4); }
+.lib-daily {
+  display: grid;
+  gap: var(--sp-8);
+}
+.lib-daily__meta {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.lib-daily__q {
+  margin: 0;
+  max-width: var(--measure, 75ch);
+  color: var(--ink);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.lib-daily__page {
+  color: var(--ink-2);
+  font-weight: var(--fw-semibold);
+}
+.lib-daily__chapter {
+  margin: 0;
+  max-width: var(--measure, 75ch);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.lib-daily__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+  margin-top: var(--sp-4);
+}

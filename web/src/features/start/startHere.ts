@@ -59,7 +59,12 @@ export function toggleStep(stored: unknown, id: string): string[] {
  * The latest date (today or before) whose title contains `title`, while today is within `weeks` weeks of it; null
  * otherwise. Results day's card shows for that long.
  */
-export function latestWithin<T extends DatedEvent>(events: readonly T[], title: string, today: DayKey, weeks: number): T | null {
+export function latestWithin<T extends DatedEvent>(
+  events: readonly T[],
+  title: string,
+  today: DayKey,
+  weeks: number,
+): T | null {
   const want = title.trim().toLowerCase();
   if (!want) return null;
   const since = addDaysToKey(today, -(weeks * 7 - 1));

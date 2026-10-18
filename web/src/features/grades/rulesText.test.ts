@@ -4,7 +4,10 @@ import { readSeed } from '../../testing/seed';
 import { countsSentence, countsSummary, listed } from './rulesText';
 
 const RULES = readSeed<GradeRules>('grades');
-const code: Record<string, string> = { 'advanced-stats-inferential': 'ST2134', 'advanced-stats-distribution': 'ST2133' };
+const code: Record<string, string> = {
+  'advanced-stats-inferential': 'ST2134',
+  'advanced-stats-distribution': 'ST2133',
+};
 const nameOf = (s: { id: string; name: string }) => code[s.id] ?? s.name;
 
 describe('countsSentence', () => {
@@ -15,8 +18,14 @@ describe('countsSentence', () => {
   });
 
   it('follows the rules an admin saves', () => {
-    const rules: GradeRules = { ...RULES, averageCounts: 1, subjects: RULES.subjects.map((s) => (s.counts === 1 ? { ...s, counts: 2 } : s)) };
-    expect(countsSentence(countsSummary(rules, nameOf))).toBe('Year 1 counts as one average worth 1 classification mark, and every other module counts 2: 19 marks in all.');
+    const rules: GradeRules = {
+      ...RULES,
+      averageCounts: 1,
+      subjects: RULES.subjects.map((s) => (s.counts === 1 ? { ...s, counts: 2 } : s)),
+    };
+    expect(countsSentence(countsSummary(rules, nameOf))).toBe(
+      'Year 1 counts as one average worth 1 classification mark, and every other module counts 2: 19 marks in all.',
+    );
     const plain: GradeRules = { ...RULES, subjects: RULES.subjects.map((s) => ({ ...s, counts: 2 as const })) };
     expect(countsSentence(countsSummary(plain, nameOf))).toBe('Every module counts 2: 26 marks in all.');
   });

@@ -41,7 +41,13 @@ const SECTIONS: IssueSection[] = [
       { type: 'cta', label: 'Open the calendar', to: '/calendar' },
     ],
     after: [],
-    figure: { src: 'demo/news/cfa-research-challenge.jpg', width: 986, height: 701, alt: 'The poster', caption: 'Strive for greatness.' },
+    figure: {
+      src: 'demo/news/cfa-research-challenge.jpg',
+      width: 986,
+      height: 701,
+      alt: 'The poster',
+      caption: 'Strive for greatness.',
+    },
     aside: null,
     window: null,
     fallback: null,
@@ -85,7 +91,12 @@ const ISSUE: IssueContent = {
   dek: 'Three stories.',
   summary: 'A summary.',
   editors: ['Hawra T.', 'Zainab K.'],
-  cover: { tone: 'navy', art: 'brand/newsletter-cover.jpg', artAlt: 'Cover illustration', lines: [{ section: 'cfa', text: 'Taking participants' }] },
+  cover: {
+    tone: 'navy',
+    art: 'brand/newsletter-cover.jpg',
+    artAlt: 'Cover illustration',
+    lines: [{ section: 'cfa', text: 'Taking participants' }],
+  },
   sections: SECTIONS,
 };
 
@@ -99,7 +110,13 @@ describe('a draft of an issue', () => {
   it('saves exactly what it was made from', () => {
     const d = draftFrom(ISSUE);
     const u = toUpdate(d);
-    expect(u).toMatchObject({ title: 'Launch edition', number: 1, date: '2026-10-06', slug: 'launch-edition', editors: ['Hawra T.', 'Zainab K.'] });
+    expect(u).toMatchObject({
+      title: 'Launch edition',
+      number: 1,
+      date: '2026-10-06',
+      slug: 'launch-edition',
+      editors: ['Hawra T.', 'Zainab K.'],
+    });
     expect(u.cover).toEqual(ISSUE.cover);
     expect(u.sections).toEqual(SECTIONS);
     expect(validate(d)).toEqual({});
@@ -108,7 +125,11 @@ describe('a draft of an issue', () => {
 
   it('trims what is saved and leaves out what a section does not use', () => {
     const d = draftFrom(ISSUE);
-    const edited = updateSection({ ...d, title: '  Launch edition  ', editors: ' Hawra T. ,, Zainab K. , ' }, section(d, 0).key, (s) => ({ ...s, label: '   ', beside: 'card' }));
+    const edited = updateSection(
+      { ...d, title: '  Launch edition  ', editors: ' Hawra T. ,, Zainab K. , ' },
+      section(d, 0).key,
+      (s) => ({ ...s, label: '   ', beside: 'card' }),
+    );
     const u = toUpdate(edited);
     expect(u.title).toBe('Launch edition');
     expect(u.editors).toEqual(['Hawra T.', 'Zainab K.']);
@@ -121,7 +142,11 @@ describe('a draft of an issue', () => {
   it('keeps the picture while another choice is shown', () => {
     const d = draftFrom(ISSUE);
     const key = section(d, 0).key;
-    const back = updateSection(updateSection(d, key, (s) => ({ ...s, beside: 'stats' })), key, (s) => ({ ...s, beside: 'figure' }));
+    const back = updateSection(
+      updateSection(d, key, (s) => ({ ...s, beside: 'stats' })),
+      key,
+      (s) => ({ ...s, beside: 'figure' }),
+    );
     expect(toUpdate(back).sections?.[0]?.figure?.src).toBe('demo/news/cfa-research-challenge.jpg');
   });
 });
@@ -139,8 +164,12 @@ describe('checking a draft against the API’s limits', () => {
   it('counts characters as the API does, emoji included', () => {
     const d = draftFrom(ISSUE);
     expect(validate({ ...d, dek: '🎉'.repeat(LIMITS.standfirst) }).dek).toBeUndefined();
-    expect(validate({ ...d, dek: 'a'.repeat(LIMITS.standfirst + 1) }).dek).toBe('Keep it to 2,000 characters (it has 2,001).');
-    expect(validate({ ...d, editors: Array.from({ length: 13 }, (_, i) => `Editor ${i}`).join(', ') }).editors).toMatch(/12 editors at most/);
+    expect(validate({ ...d, dek: 'a'.repeat(LIMITS.standfirst + 1) }).dek).toBe(
+      'Keep it to 2,000 characters (it has 2,001).',
+    );
+    expect(validate({ ...d, editors: Array.from({ length: 13 }, (_, i) => `Editor ${i}`).join(', ') }).editors).toMatch(
+      /12 editors at most/,
+    );
   });
 
   it('refuses links the API refuses, in copy and on buttons', () => {
@@ -167,9 +196,15 @@ describe('checking a draft against the API’s limits', () => {
     const d = draftFrom(ISSUE);
     const stats = section(d, 1);
     const deadlines = section(d, 2);
-    let bad = updateSection(d, stats.key, (s) => ({ ...s, stats: { ...s.stats, items: s.stats.items.map((i) => ({ ...i, value: 'x'.repeat(30) })) } }));
+    let bad = updateSection(d, stats.key, (s) => ({
+      ...s,
+      stats: { ...s.stats, items: s.stats.items.map((i) => ({ ...i, value: 'x'.repeat(30) })) },
+    }));
     bad = updateSection(bad, deadlines.key, (s) => ({ ...s, window: { from: '2026-11-30', to: '2026-10-06' } }));
-    bad = { ...bad, cover: { ...bad.cover, lines: [...bad.cover.lines, { key: 'c-x', section: 'gone', text: 'A line' }] } };
+    bad = {
+      ...bad,
+      cover: { ...bad.cover, lines: [...bad.cover.lines, { key: 'c-x', section: 'gone', text: 'A line' }] },
+    };
     const errors = validate(bad);
     expect(errors[fieldPath.stat(stats.key, stats.stats.items[0]?.key ?? '', 'value')]).toMatch(/24 characters/);
     expect(errors[fieldPath.section(deadlines.key, 'window.to')]).toBe('The last day can’t be before the first.');
@@ -191,8 +226,17 @@ describe('checking a draft against the API’s limits', () => {
     expect(jsonBytes({ a: [1, 2], b: 'é', c: null })).toBe(24);
     const d = draftFrom(ISSUE);
     const long = 'word '.repeat(700).trim(); // 3,499 characters a paragraph
-    const huge = updateSection(d, section(d, 0).key, (s) => ({ ...s, blocks: Array.from({ length: 40 }, () => ({ ...blankBlock('p'), text: long })) }));
-    const many = { ...huge, sections: [...huge.sections, ...Array.from({ length: 1 }, () => ({ ...section(huge, 0), key: 'copy', id: 'copy' }))] };
+    const huge = updateSection(d, section(d, 0).key, (s) => ({
+      ...s,
+      blocks: Array.from({ length: 40 }, () => ({ ...blankBlock('p'), text: long })),
+    }));
+    const many = {
+      ...huge,
+      sections: [
+        ...huge.sections,
+        ...Array.from({ length: 1 }, () => ({ ...section(huge, 0), key: 'copy', id: 'copy' })),
+      ],
+    };
     expect(validate(many).sections).toMatch(/too long/);
   });
 });
@@ -207,8 +251,12 @@ describe('the API’s error paths', () => {
     const list = s0.blocks[1];
     if (!cta || !list || list.type !== 'list') throw new Error('blocks');
     expect(fieldOfApiPath('sections.0.blocks.2.cta.to', d)).toBe(fieldPath.block(s0.key, cta.key, 'to'));
-    expect(fieldOfApiPath('sections.0.blocks.1.list.items.1', d)).toBe(fieldPath.item(s0.key, list.key, list.items[1]?.key ?? ''));
-    expect(fieldOfApiPath('sections.1.aside.stats.items.0.value', d)).toBe(fieldPath.stat(s1.key, s1.stats.items[0]?.key ?? '', 'value'));
+    expect(fieldOfApiPath('sections.0.blocks.1.list.items.1', d)).toBe(
+      fieldPath.item(s0.key, list.key, list.items[1]?.key ?? ''),
+    );
+    expect(fieldOfApiPath('sections.1.aside.stats.items.0.value', d)).toBe(
+      fieldPath.stat(s1.key, s1.stats.items[0]?.key ?? '', 'value'),
+    );
     expect(fieldOfApiPath('sections.0.figure.src', d)).toBe(fieldPath.section(s0.key, 'figure.src'));
     expect(fieldOfApiPath('sections.2.window', d)).toBe(fieldPath.section(section(d, 2).key, 'window.to'));
     expect(fieldOfApiPath('cover.lines.0.text', d)).toBe(fieldPath.line(d.cover.lines[0]?.key ?? '', 'text'));
@@ -246,7 +294,9 @@ describe('editing', () => {
     // An existing section keeps its link name whatever its headline says, and so does a new one once it is saved.
     expect(updateSection(d, section(d, 0).key, (s) => ({ ...s, title: 'Something else' })).sections[0]?.id).toBe('cfa');
     const saved = markSaved(titled);
-    expect(updateSection(saved, key, (s) => ({ ...s, title: 'A new headline' })).sections.find((s) => s.key === key)?.id).toBe('speech-day-our-nominees');
+    expect(
+      updateSection(saved, key, (s) => ({ ...s, title: 'A new headline' })).sections.find((s) => s.key === key)?.id,
+    ).toBe('speech-day-our-nominees');
     expect(markSaved(d)).toBe(d);
   });
 
@@ -262,7 +312,12 @@ describe('editing', () => {
     const d = draftFrom(ISSUE);
     const { draft, key } = addSection(d, 'deadlines');
     const s = draft.sections.find((x) => x.key === key);
-    expect(s).toMatchObject({ kind: 'deadlines', id: 'what-s-coming-up', window: { from: '2026-10-06', to: '2026-11-30' }, estWords: 90 });
+    expect(s).toMatchObject({
+      kind: 'deadlines',
+      id: 'what-s-coming-up',
+      window: { from: '2026-10-06', to: '2026-11-30' },
+      estWords: 90,
+    });
     const story = setKind(section(d, 0), 'library', d.date);
     expect(story.fallback.title).not.toBe('');
     expect(setKind(story, null, d.date).estWords).toBeNull();

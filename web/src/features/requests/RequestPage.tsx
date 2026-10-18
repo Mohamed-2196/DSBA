@@ -35,10 +35,20 @@ export default function RequestPage() {
         {back}
         {gone ? (
           <Panel padding="none">
-            <EmptyState icon={HandWaving} title="This request doesn’t exist" body="It may have been removed by the reps." action={<Button to="/requests">See all requests</Button>} />
+            <EmptyState
+              icon={HandWaving}
+              title="This request doesn’t exist"
+              body="It may have been removed by the reps."
+              action={<Button to="/requests">See all requests</Button>}
+            />
           </Panel>
         ) : (
-          <QueryError error={req.error} title="The request didn’t load" onRetry={() => void req.refetch()} retrying={req.isFetching} />
+          <QueryError
+            error={req.error}
+            title="The request didn’t load"
+            onRetry={() => void req.refetch()}
+            retrying={req.isFetching}
+          />
         )}
       </Page>
     );
@@ -76,7 +86,8 @@ export default function RequestPage() {
             {status.label}
           </Badge>
           <span>
-            Asked by {r.author?.displayName ?? 'a deleted account'} · <time dateTime={r.createdAt}>{timeAgo(r.createdAt)}</time>
+            Asked by {r.author?.displayName ?? 'a deleted account'} ·{' '}
+            <time dateTime={r.createdAt}>{timeAgo(r.createdAt)}</time>
           </span>
         </div>
         {wants ? <p className="req-detail__wants">Wants: {wants}</p> : null}
@@ -96,7 +107,10 @@ export default function RequestPage() {
         ) : null}
         <div className="req-detail__metoo">
           <MeTooButton request={r} size="lg" />
-          <span>{others ?? (r.mine ? 'Nobody else has said me too yet.' : 'Want this too? Say so, and the reps see it matters.')}</span>
+          <span>
+            {others ??
+              (r.mine ? 'Nobody else has said me too yet.' : 'Want this too? Say so, and the reps see it matters.')}
+          </span>
         </div>
         <FoundPanel request={r} />
         {r.reply ? (
@@ -119,7 +133,11 @@ export default function RequestPage() {
       {can('requests.manage') ? (
         <Panel className="req-detail__manage" aria-label="Answer this request">
           <h2 className="req-detail__manage-h">Answer</h2>
-          <AnswerForm key={`${r.id}:${r.status}:${r.reply ?? ''}`} request={r} onRemoved={() => navigate('/requests', { replace: true })} />
+          <AnswerForm
+            key={`${r.id}:${r.status}:${r.reply ?? ''}`}
+            request={r}
+            onRemoved={() => navigate('/requests', { replace: true })}
+          />
         </Panel>
       ) : null}
     </Page>

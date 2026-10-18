@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { tagChips } from './tagChips';
 
-const ALL = ['exam-prep', 'past-papers', 'coursework', 'r', 'python', 'excel', 'exams', 'campus'].map((id) => ({ id, label: id.toUpperCase() }));
+const ALL = ['exam-prep', 'past-papers', 'coursework', 'r', 'python', 'excel', 'exams', 'campus'].map((id) => ({
+  id,
+  label: id.toUpperCase(),
+}));
 const ids = (chips: { id: string }[]) => chips.map((c) => c.id);
 
 describe('tagChips', () => {
@@ -13,7 +16,9 @@ describe('tagChips', () => {
   });
 
   it('keeps the API’s order between tags used as often', () => {
-    expect(ids(tagChips({ counts: { python: 2, r: 2, coursework: 2 }, shownTags: [], allTags: ALL, selected: '' }))).toEqual(['coursework', 'r', 'python']);
+    expect(
+      ids(tagChips({ counts: { python: 2, r: 2, coursework: 2 }, shownTags: [], allTags: ALL, selected: '' })),
+    ).toEqual(['coursework', 'r', 'python']);
   });
 
   it('always has a chip for the tag the list is filtered by, so it can be turned off', () => {

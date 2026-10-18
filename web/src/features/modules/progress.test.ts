@@ -35,7 +35,12 @@ describe('stored progress', () => {
   it('drops what isn’t progress', () => {
     expect(normalizeStored(null)).toBe(EMPTY_PROGRESS);
     const s = normalizeStored({
-      watched: { [id(0, 0)]: { m: m.id, at: T }, 'bad key': { m: m.id, at: T }, [id(0, 1)]: { m: m.id, at: -1 }, [id(1, 0)]: T },
+      watched: {
+        [id(0, 0)]: { m: m.id, at: T },
+        'bad key': { m: m.id, at: T },
+        [id(0, 1)]: { m: m.id, at: -1 },
+        [id(1, 0)]: T,
+      },
       last: { [m.id]: { l: id(0, 1), at: T }, 'Bad Module': { l: id(0, 0), at: T }, other: { c: 0, v: 0, at: T } },
     });
     expect(s).toEqual({ watched: { [id(0, 0)]: { m: m.id, at: T } }, last: { [m.id]: { l: id(0, 1), at: T } } });
@@ -45,7 +50,10 @@ describe('stored progress', () => {
     const s = state([[0, 0]], { c: 0, v: 1 });
     const at = new Date(T).toISOString();
     const out = toServer(s);
-    expect(out).toEqual({ watched: { [id(0, 0)]: { moduleId: m.id, at } }, last: { [m.id]: { lessonId: id(0, 1), at } } });
+    expect(out).toEqual({
+      watched: { [id(0, 0)]: { moduleId: m.id, at } },
+      last: { [m.id]: { lessonId: id(0, 1), at } },
+    });
     expect(fromServer(out)).toEqual(s);
     expect(toImport(s)).toEqual({ watched: { [id(0, 0)]: at }, last: { [m.id]: { lessonId: id(0, 1), at } } });
   });
@@ -67,13 +75,19 @@ describe('lessons', () => {
 
   it('follows a lesson that moved', () => {
     const s = state([[0, 1]], { c: 0, v: 1 });
-    const moved = { ...m, chapters: [{ ...m.chapters[0], videos: [m.chapters[0].videos[1], m.chapters[0].videos[0]] }, m.chapters[1]] };
+    const moved = {
+      ...m,
+      chapters: [{ ...m.chapters[0], videos: [m.chapters[0].videos[1], m.chapters[0].videos[0]] }, m.chapters[1]],
+    };
     expect(computeResumePoint(s, moved)).toEqual({ c: 0, v: 1, at: T, kind: 'next' });
     expect(computeChapterProgress(s, moved, 0)).toEqual({ watched: 1, total: 2, pct: 50 });
   });
 
   it('counts what was watched', () => {
-    const s = state([[0, 0], [0, 1]]);
+    const s = state([
+      [0, 0],
+      [0, 1],
+    ]);
     expect(computeModuleProgress(s, m)).toEqual({ watched: 2, total: 3, pct: 67 });
     expect(computeChapterProgress(s, m, 0)).toEqual({ watched: 2, total: 2, pct: 100 });
     expect(computeChapterProgress(s, m, 5)).toEqual({ watched: 0, total: 0, pct: 0 });
@@ -93,8 +107,31 @@ describe('computeResumePoint', () => {
   });
 
   it('goes back for a lesson skipped earlier, then says done', () => {
-    expect(computeResumePoint(state([[0, 1], [1, 0]], { c: 1, v: 0 }), m)).toEqual({ c: 0, v: 0, at: T, kind: 'next' });
-    expect(computeResumePoint(state([[0, 0], [0, 1], [1, 0]], { c: 1, v: 0 }), m)?.kind).toBe('done');
+    expect(
+      computeResumePoint(
+        state(
+          [
+            [0, 1],
+            [1, 0],
+          ],
+          { c: 1, v: 0 },
+        ),
+        m,
+      ),
+    ).toEqual({ c: 0, v: 0, at: T, kind: 'next' });
+    expect(
+      computeResumePoint(
+        state(
+          [
+            [0, 0],
+            [0, 1],
+            [1, 0],
+          ],
+          { c: 1, v: 0 },
+        ),
+        m,
+      )?.kind,
+    ).toBe('done');
   });
 
   it('has nothing to resume in a module without lessons', () => {

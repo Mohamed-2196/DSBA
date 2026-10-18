@@ -6,10 +6,36 @@ import { UploadSimple } from '@phosphor-icons/react';
 import { useMemo, useRef, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import { pictureSrc } from '../../../api/pictures';
-import { UPLOAD_RULES, checkUpload, progressText, uploadErrorMessage, uploadFile, type UploadProgress } from '../../../api/uploads';
+import {
+  UPLOAD_RULES,
+  checkUpload,
+  progressText,
+  uploadErrorMessage,
+  uploadFile,
+  type UploadProgress,
+} from '../../../api/uploads';
 import type { NewsletterPicture, NewsletterSettings, NewsletterSettingsEditable } from '../../../api/types';
 import { useToast } from '../../../state';
-import { Badge, Button, Chip, DocFrame, Drawer, ListEditor, Panel, QueryError, Skeleton, Switch, TextArea, TextField, cx, docErrors, focusDocStatus, hasErrorUnder, newItemId, type DocProblem } from '../../../ui';
+import {
+  Badge,
+  Button,
+  Chip,
+  DocFrame,
+  Drawer,
+  ListEditor,
+  Panel,
+  QueryError,
+  Skeleton,
+  Switch,
+  TextArea,
+  TextField,
+  cx,
+  docErrors,
+  focusDocStatus,
+  hasErrorUnder,
+  newItemId,
+  type DocProblem,
+} from '../../../ui';
 import { useNewsletterSettingsForEditing, useReloadNewsletterSettings, useSaveNewsletterSettings } from '../api';
 import { Nameplate } from '../components/Nameplate';
 import { readImageDimensions } from '../editor/pictures';
@@ -19,14 +45,34 @@ import './NewsletterSettings.css';
 type Section = 'masthead' | 'pictures';
 
 const SECTIONS: { id: Section; label: string; about: string; parts: string[] }[] = [
-  { id: 'masthead', label: 'Under its name', about: 'The line under the newsletter’s name, at the top of the newsletter’s page.', parts: ['masthead'] },
-  { id: 'pictures', label: 'Pictures to choose from', about: 'What an issue’s editor offers for its cover and beside its sections. An issue can still upload a picture of its own.', parts: ['pictures'] },
+  {
+    id: 'masthead',
+    label: 'Under its name',
+    about: 'The line under the newsletter’s name, at the top of the newsletter’s page.',
+    parts: ['masthead'],
+  },
+  {
+    id: 'pictures',
+    label: 'Pictures to choose from',
+    about:
+      'What an issue’s editor offers for its cover and beside its sections. An issue can still upload a picture of its own.',
+    parts: ['pictures'],
+  },
 ];
 
 export function NewsletterSettingsEditor() {
   const query = useNewsletterSettingsForEditing();
   const [section, setSection] = useState<Section>('masthead');
-  if (query.isError) return <QueryError error={query.error} title="The newsletter’s settings didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} size="sm" />;
+  if (query.isError)
+    return (
+      <QueryError
+        error={query.error}
+        title="The newsletter’s settings didn’t load"
+        onRetry={() => void query.refetch()}
+        retrying={query.isFetching}
+        size="sm"
+      />
+    );
   if (query.isPending) {
     return (
       <Panel padding="md">
@@ -38,7 +84,15 @@ export function NewsletterSettingsEditor() {
   return <Editor key={query.data.version} loaded={query.data} section={section} setSection={setSection} />;
 }
 
-function Editor({ loaded, section, setSection }: { loaded: NewsletterSettingsEditable; section: Section; setSection: (s: Section) => void }) {
+function Editor({
+  loaded,
+  section,
+  setSection,
+}: {
+  loaded: NewsletterSettingsEditable;
+  section: Section;
+  setSection: (s: Section) => void;
+}) {
   const saved = loaded.data;
   const [doc, setDoc] = useState<NewsletterSettings>(saved);
   const [fields, setFields] = useState<Record<string, string>>({});
@@ -63,10 +117,13 @@ function Editor({ loaded, section, setSection }: { loaded: NewsletterSettingsEdi
           focusDocStatus();
         },
         onError: (e) => {
-          if (isApiError(e) && e.code === 'newsletter_settings_changed') return setProblem({ kind: 'changed', what: 'the newsletter’s settings' });
+          if (isApiError(e) && e.code === 'newsletter_settings_changed')
+            return setProblem({ kind: 'changed', what: 'the newsletter’s settings' });
           const found = docErrors(isApiError(e) ? e.fields : {}, ['pictures']);
           setFields(found.fields);
-          const marked = Object.keys(found.fields).length ? ['Some fields need a look before saving. They’re marked below.'] : [];
+          const marked = Object.keys(found.fields).length
+            ? ['Some fields need a look before saving. They’re marked below.']
+            : [];
           const messages = [...found.general, ...marked];
           setProblem({ kind: 'other', messages: messages.length ? messages : [errorMessage(e)] });
           const first = SECTIONS.find((s) => s.parts.some((p) => hasErrorUnder(found.fields, p)));
@@ -100,13 +157,26 @@ function Editor({ loaded, section, setSection }: { loaded: NewsletterSettingsEdi
         onReload={() => void reload()}
         section={{ title: current.label, about: current.about }}
         nav={SECTIONS.map((s) => (
-          <Chip key={s.id} selected={s.id === section} onChange={() => setSection(s.id)} className={cx(s.parts.some((p) => hasErrorUnder(fields, p)) && 'dedit__nav-error')}>
+          <Chip
+            key={s.id}
+            selected={s.id === section}
+            onChange={() => setSection(s.id)}
+            className={cx(s.parts.some((p) => hasErrorUnder(fields, p)) && 'dedit__nav-error')}
+          >
             {s.label}
           </Chip>
         ))}
       >
         {section === 'masthead' ? (
-          <TextArea label="Under the newsletter’s name" value={doc.masthead} onChange={(e) => setDoc((d) => ({ ...d, masthead: e.target.value }))} error={err('masthead')} rows={3} maxLength={300} required />
+          <TextArea
+            label="Under the newsletter’s name"
+            value={doc.masthead}
+            onChange={(e) => setDoc((d) => ({ ...d, masthead: e.target.value }))}
+            error={err('masthead')}
+            rows={3}
+            maxLength={300}
+            required
+          />
         ) : (
           <>
             <ListEditor<NewsletterPicture>
@@ -116,7 +186,17 @@ function Editor({ loaded, section, setSection }: { loaded: NewsletterSettingsEdi
               metaOf={(p) => <PictureMeta picture={p} />}
               savedIds={savedIds}
               onChange={(pictures) => setDoc((d) => ({ ...d, pictures }))}
-              make={() => ({ id: newItemId('picture', doc.pictures.map((p) => p.id)), src: '', label: '', width: 1, height: 1, cover: false })}
+              make={() => ({
+                id: newItemId(
+                  'picture',
+                  doc.pictures.map((p) => p.id),
+                ),
+                src: '',
+                label: '',
+                width: 1,
+                height: 1,
+                cover: false,
+              })}
               hasError={(i) => hasErrorUnder(fields, `pictures.${i}`)}
               canAdd={false}
               max={24}
@@ -125,18 +205,42 @@ function Editor({ loaded, section, setSection }: { loaded: NewsletterSettingsEdi
                 <div className="dedit-grid">
                   <PictureThumb picture={p} />
                   <div className="nl-set__fields">
-                    <TextField label="What it shows" hint="Editors see this beside it." value={p.label} onChange={(e) => change({ label: e.target.value })} error={err(`pictures.${i}.label`) ?? err(`pictures.${i}.src`)} maxLength={80} required />
-                    <Switch label="Fits a cover" description="Portrait, 3 by 4. Offered for covers as well as beside sections." checked={p.cover ?? false} onChange={(cover) => change({ cover })} />
+                    <TextField
+                      label="What it shows"
+                      hint="Editors see this beside it."
+                      value={p.label}
+                      onChange={(e) => change({ label: e.target.value })}
+                      error={err(`pictures.${i}.label`) ?? err(`pictures.${i}.src`)}
+                      maxLength={80}
+                      required
+                    />
+                    <Switch
+                      label="Fits a cover"
+                      description="Portrait, 3 by 4. Offered for covers as well as beside sections."
+                      checked={p.cover ?? false}
+                      onChange={(cover) => change({ cover })}
+                    />
                   </div>
                 </div>
               )}
             </ListEditor>
-            {doc.pictures.length < 24 ? <AddPicture taken={doc.pictures.map((p) => p.id)} onAdd={(p) => setDoc((d) => ({ ...d, pictures: [...d.pictures, p] }))} /> : null}
+            {doc.pictures.length < 24 ? (
+              <AddPicture
+                taken={doc.pictures.map((p) => p.id)}
+                onAdd={(p) => setDoc((d) => ({ ...d, pictures: [...d.pictures, p] }))}
+              />
+            ) : null}
           </>
         )}
       </DocFrame>
 
-      <Drawer open={previewing} onClose={() => setPreviewing(false)} title="Preview" description="The newsletter’s name and its line, and the pictures an issue’s editor offers, with your changes." width="min(960px, 100vw)">
+      <Drawer
+        open={previewing}
+        onClose={() => setPreviewing(false)}
+        title="Preview"
+        description="The newsletter’s name and its line, and the pictures an issue’s editor offers, with your changes."
+        width="min(960px, 100vw)"
+      >
         {previewing ? (
           <div className="dedit-preview">
             <p className="dedit-preview__label">The top of the newsletter’s page</p>
@@ -185,7 +289,13 @@ function PictureMeta({ picture }: { picture: NewsletterPicture }) {
 
 function PictureThumb({ picture }: { picture: NewsletterPicture }) {
   const src = pictureSrc(picture.src);
-  return <span className="nl-set__thumb">{src ? <img src={src} alt="" width={picture.width} height={picture.height} loading="lazy" decoding="async" /> : null}</span>;
+  return (
+    <span className="nl-set__thumb">
+      {src ? (
+        <img src={src} alt="" width={picture.width} height={picture.height} loading="lazy" decoding="async" />
+      ) : null}
+    </span>
+  );
 }
 
 /** Uploads a picture and adds it to the list, named after its file until it's renamed. */
@@ -201,9 +311,24 @@ function AddPicture({ taken, onAdd }: { taken: string[]; onAdd: (picture: Newsle
     setError(null);
     setUploading(true);
     try {
-      const [dims, out] = await Promise.all([readImageDimensions(file), uploadFile('newsletter_image', file, { onProgress: setProgress })]);
-      const label = file.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim().slice(0, 80) || 'New picture';
-      onAdd({ id: newItemId('picture', taken), src: out.mediaUrl ?? `/api/v1/media/${out.uploadId}`, label, width: dims.width, height: dims.height, cover: dims.height / dims.width > 1.2 });
+      const [dims, out] = await Promise.all([
+        readImageDimensions(file),
+        uploadFile('newsletter_image', file, { onProgress: setProgress }),
+      ]);
+      const label =
+        file.name
+          .replace(/\.[a-z0-9]+$/i, '')
+          .replace(/[-_]+/g, ' ')
+          .trim()
+          .slice(0, 80) || 'New picture';
+      onAdd({
+        id: newItemId('picture', taken),
+        src: out.mediaUrl ?? `/api/v1/media/${out.uploadId}`,
+        label,
+        width: dims.width,
+        height: dims.height,
+        cover: dims.height / dims.width > 1.2,
+      });
     } catch (e) {
       setError(uploadErrorMessage(e, 'newsletter_image'));
     } finally {
@@ -214,8 +339,20 @@ function AddPicture({ taken, onAdd }: { taken: string[]; onAdd: (picture: Newsle
   };
   return (
     <div className="nl-set__add">
-      <input ref={fileRef} type="file" accept={UPLOAD_RULES.newsletter_image.accept} hidden onChange={(e) => void pick(e.target.files?.[0])} disabled={uploading} />
-      <Button variant="secondary" leadingIcon={UploadSimple} onClick={() => fileRef.current?.click()} loading={uploading}>
+      <input
+        ref={fileRef}
+        type="file"
+        accept={UPLOAD_RULES.newsletter_image.accept}
+        hidden
+        onChange={(e) => void pick(e.target.files?.[0])}
+        disabled={uploading}
+      />
+      <Button
+        variant="secondary"
+        leadingIcon={UploadSimple}
+        onClick={() => fileRef.current?.click()}
+        loading={uploading}
+      >
         {uploading ? (progress ? progressText(progress) : 'Uploading…') : 'Upload a picture'}
       </Button>
       <p className="dedit__note">{UPLOAD_RULES.newsletter_image.summary} It’s offered once you save.</p>

@@ -1,10 +1,26 @@
 // The Access screen's data: roles, people and their roles, the switches and the activity log. Changes to roles also
 // change the people list's role names, /me (an admin may edit a role they hold) and the activity log.
-import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData, type QueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ACCESS_FEATURES_KEY, ACCESS_ROLES_KEY, FEATURES_KEY } from '../../api/keys';
 import { nextOffset } from '../../api/paging';
-import type { AdminUser, AdminUserPage, AdminUserUpdate, FeatureOut, RoleCreate, RoleUpdate, SwitchUpdate } from '../../api/types';
+import type {
+  AdminUser,
+  AdminUserPage,
+  AdminUserUpdate,
+  FeatureOut,
+  RoleCreate,
+  RoleUpdate,
+  SwitchUpdate,
+} from '../../api/types';
 import { ME_KEY } from '../../auth';
 
 export const ADMIN_USERS_KEY = ['admin', 'users'] as const;
@@ -32,7 +48,8 @@ export function useCreateRole() {
 export function useUpdateRole() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: RoleUpdate }) => call(api.PATCH('/api/v1/admin/roles/{role_id}', { params: { path: { role_id: id } }, body })),
+    mutationFn: ({ id, body }: { id: string; body: RoleUpdate }) =>
+      call(api.PATCH('/api/v1/admin/roles/{role_id}', { params: { path: { role_id: id } }, body })),
     onSuccess: () => rolesChanged(qc),
     // A stale version: load the role again, so the admin edits what's there now.
     onError: () => void qc.invalidateQueries({ queryKey: ACCESS_ROLES_KEY }),
@@ -42,7 +59,8 @@ export function useUpdateRole() {
 export function useDeleteRole() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => call(api.DELETE('/api/v1/admin/roles/{role_id}', { params: { path: { role_id: id } } })),
+    mutationFn: (id: string) =>
+      call(api.DELETE('/api/v1/admin/roles/{role_id}', { params: { path: { role_id: id } } })),
     onSuccess: () => rolesChanged(qc),
   });
 }
@@ -53,7 +71,11 @@ export function usePeople(q: string, role: string | null, enabled: boolean) {
   return useInfiniteQuery({
     queryKey: [...ADMIN_USERS_KEY, { q, role }],
     queryFn: ({ pageParam }) =>
-      call(api.GET('/api/v1/admin/users', { params: { query: { q: q || undefined, role: role ?? undefined, limit: PAGE, offset: pageParam } } })),
+      call(
+        api.GET('/api/v1/admin/users', {
+          params: { query: { q: q || undefined, role: role ?? undefined, limit: PAGE, offset: pageParam } },
+        }),
+      ),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
     placeholderData: keepPreviousData,
@@ -64,7 +86,8 @@ export function usePeople(q: string, role: string | null, enabled: boolean) {
 export function useAudit(enabled: boolean) {
   return useInfiniteQuery({
     queryKey: AUDIT_KEY,
-    queryFn: ({ pageParam }) => call(api.GET('/api/v1/admin/audit', { params: { query: { limit: PAGE, offset: pageParam } } })),
+    queryFn: ({ pageParam }) =>
+      call(api.GET('/api/v1/admin/audit', { params: { query: { limit: PAGE, offset: pageParam } } })),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
     enabled,
@@ -74,7 +97,12 @@ export function useAudit(enabled: boolean) {
 /** Every loaded people list gets the new row, and the activity log is read again. */
 function putPerson(qc: QueryClient, person: AdminUser) {
   qc.setQueriesData<InfiniteData<AdminUserPage, number>>({ queryKey: ADMIN_USERS_KEY }, (data) =>
-    data ? { ...data, pages: data.pages.map((p) => ({ ...p, items: p.items.map((u) => (u.id === person.id ? person : u)) })) } : data,
+    data
+      ? {
+          ...data,
+          pages: data.pages.map((p) => ({ ...p, items: p.items.map((u) => (u.id === person.id ? person : u)) })),
+        }
+      : data,
   );
   void qc.invalidateQueries({ queryKey: AUDIT_KEY });
 }
@@ -114,7 +142,9 @@ export function useSetSwitch() {
     mutationFn: ({ feature, body }: { feature: FeatureOut['feature']; body: SwitchUpdate }) =>
       call(api.PUT('/api/v1/admin/features/{feature}', { params: { path: { feature } }, body })),
     onSuccess: (out) => {
-      qc.setQueryData<FeatureOut[]>(ACCESS_FEATURES_KEY, (list) => list?.map((f) => (f.feature === out.feature ? out : f)));
+      qc.setQueryData<FeatureOut[]>(ACCESS_FEATURES_KEY, (list) =>
+        list?.map((f) => (f.feature === out.feature ? out : f)),
+      );
       void qc.invalidateQueries({ queryKey: FEATURES_KEY });
       void qc.invalidateQueries({ queryKey: AUDIT_KEY });
     },

@@ -10,7 +10,14 @@ const LINK = /\[([^\]\n]{1,120})\]\(([^)\s]{1,300})\)/g;
 const OPEN_LINK = /\[[^\]\n]{0,120}(\]\(?[^)\s]{0,300})?$/;
 const MAX_REFS = 4;
 
-const CODE: Record<RefKind, string> = { lesson: 'Lesson', files: 'Files', module: 'Module', calendar: 'Calendar', library: 'Library', page: 'Hub' };
+const CODE: Record<RefKind, string> = {
+  lesson: 'Lesson',
+  files: 'Files',
+  module: 'Module',
+  calendar: 'Calendar',
+  library: 'Library',
+  page: 'Hub',
+};
 
 /** A path inside the Hub ('/modules/x?tab=lessons'), or null for anything else (another site, '//host', 'javascript:'). */
 function hubPath(target: string): string | null {

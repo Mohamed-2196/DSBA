@@ -79,5 +79,9 @@ export function useMiniNooraAway(): void {
 
 /** Whether a page has asked her to step away. */
 export function useMiniNooraIsAway(): boolean {
-  return useSyncExternalStore(subscribeAway, () => awayCount > 0, () => false);
+  return useSyncExternalStore(
+    subscribeAway,
+    () => awayCount > 0,
+    () => false,
+  );
 }

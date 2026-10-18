@@ -76,10 +76,7 @@ export function ItemFields({
           error={errors.year}
           hint="Who it is most useful for."
           disabled={disabled}
-          options={[
-            { value: '', label: 'All years' },
-            ...YEARS.map((y) => ({ value: String(y), label: `Year ${y}` })),
-          ]}
+          options={[{ value: '', label: 'All years' }, ...YEARS.map((y) => ({ value: String(y), label: `Year ${y}` }))]}
         />
       ) : null}
       {exam ? (

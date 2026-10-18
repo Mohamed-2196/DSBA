@@ -52,7 +52,8 @@ function normalizeQuery(query: LibraryQuery): LibraryQuery {
 export const libraryKeys = {
   all: LIBRARY_KEY,
   lists: LISTS_KEY,
-  list: (shape: 'page' | 'pages', query: LibraryQuery, limit: number) => [...LISTS_KEY, shape, normalizeQuery(query), limit] as const,
+  list: (shape: 'page' | 'pages', query: LibraryQuery, limit: number) =>
+    [...LISTS_KEY, shape, normalizeQuery(query), limit] as const,
   facets: ['library', 'facets'] as const,
   items: ITEMS_KEY,
   item: (idOrSlug: string) => [...ITEMS_KEY, idOrSlug] as const,
@@ -61,7 +62,9 @@ export const libraryKeys = {
 
 /** The filters part of a list key (for predicates). */
 function listQueryOf(key: QueryKey): LibraryQuery | null {
-  return key[0] === 'library' && key[1] === 'list' && typeof key[3] === 'object' && key[3] ? (key[3] as LibraryQuery) : null;
+  return key[0] === 'library' && key[1] === 'list' && typeof key[3] === 'object' && key[3]
+    ? (key[3] as LibraryQuery)
+    : null;
 }
 
 // ── Fetchers ──────────────────────────────────────────────────────────────────
@@ -95,7 +98,10 @@ function fetchPage(query: LibraryQuery, limit: number, offset: number, signal?: 
 export const PAGE_SIZE = 24;
 
 /** A filtered list, loaded a page at a time ("Show more"). Keeps the previous results while filters change. */
-export function useLibraryPages(query: LibraryQuery, { pageSize = PAGE_SIZE, enabled = true }: { pageSize?: number; enabled?: boolean } = {}) {
+export function useLibraryPages(
+  query: LibraryQuery,
+  { pageSize = PAGE_SIZE, enabled = true }: { pageSize?: number; enabled?: boolean } = {},
+) {
   return useInfiniteQuery({
     queryKey: libraryKeys.list('pages', query, pageSize),
     queryFn: ({ pageParam, signal }) => fetchPage(query, pageSize, pageParam, signal),
@@ -107,7 +113,10 @@ export function useLibraryPages(query: LibraryQuery, { pageSize = PAGE_SIZE, ena
 }
 
 /** One page of a list (small lists: a module's files, the review queue, your uploads). */
-export function useLibraryList(query: LibraryQuery, { limit = PAGE_SIZE, enabled = true }: { limit?: number; enabled?: boolean } = {}) {
+export function useLibraryList(
+  query: LibraryQuery,
+  { limit = PAGE_SIZE, enabled = true }: { limit?: number; enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: libraryKeys.list('page', query, limit),
     queryFn: ({ signal }) => fetchPage(query, limit, 0, signal),
@@ -116,7 +125,11 @@ export function useLibraryList(query: LibraryQuery, { limit = PAGE_SIZE, enabled
 }
 
 /** The newest published files, optionally for one cohort (Home's "New in the library"). */
-export function useRecentFiles({ n = 6, year = null, enabled = true }: { n?: number; year?: CohortYear | null; enabled?: boolean } = {}) {
+export function useRecentFiles({
+  n = 6,
+  year = null,
+  enabled = true,
+}: { n?: number; year?: CohortYear | null; enabled?: boolean } = {}) {
   const query: LibraryQuery = { sort: 'new', year };
   return useQuery({
     enabled,
@@ -139,7 +152,8 @@ export function useLibraryFacets() {
 export function useLibraryItem(ref: string | undefined) {
   return useQuery({
     queryKey: libraryKeys.item(ref ?? ''),
-    queryFn: ({ signal }) => call(api.GET('/api/v1/library/items/{ref}', { params: { path: { ref: ref ?? '' } }, signal })),
+    queryFn: ({ signal }) =>
+      call(api.GET('/api/v1/library/items/{ref}', { params: { path: { ref: ref ?? '' } }, signal })),
     enabled: !!ref,
   });
 }
@@ -152,7 +166,8 @@ export function useFileLink(id: string | null, { enabled = true }: { enabled?: b
   const fresh = (data: FileLink | undefined) => Math.max(15, (data?.expiresIn ?? 60) - 30) * 1000;
   return useQuery({
     queryKey: libraryKeys.file(id ?? ''),
-    queryFn: ({ signal }) => call(api.GET('/api/v1/library/items/{item_id}/file', { params: { path: { item_id: id ?? '' } }, signal })),
+    queryFn: ({ signal }) =>
+      call(api.GET('/api/v1/library/items/{item_id}/file', { params: { path: { item_id: id ?? '' } }, signal })),
     enabled: enabled && !!id,
     staleTime: (q) => fresh(q.state.data),
     refetchInterval: (q) => fresh(q.state.data),
@@ -198,7 +213,9 @@ function mapList(data: ListData | undefined, fn: (item: LibraryItem) => LibraryI
       if (next) items.push(next);
       else removed += 1;
     }
-    return removed || items.some((it, i) => it !== page.items[i]) ? { ...page, items, total: Math.max(0, page.total - removed) } : page;
+    return removed || items.some((it, i) => it !== page.items[i])
+      ? { ...page, items, total: Math.max(0, page.total - removed) }
+      : page;
   };
   return isInfinite(data) ? { ...data, pages: data.pages.map(mapPage) } : mapPage(data);
 }
@@ -214,7 +231,11 @@ function restoreSnapshot(qc: QueryClient, snapshot: Snapshot | undefined) {
 }
 
 /** Update one item wherever it is cached (lists and detail queries). */
-export function patchCachedItem(qc: QueryClient, id: string, patch: Partial<LibraryItem> | ((item: LibraryItem) => LibraryItem)) {
+export function patchCachedItem(
+  qc: QueryClient,
+  id: string,
+  patch: Partial<LibraryItem> | ((item: LibraryItem) => LibraryItem),
+) {
   const apply = (it: LibraryItem) => (typeof patch === 'function' ? patch(it) : { ...it, ...patch });
   qc.setQueriesData<ListData>({ queryKey: LISTS_KEY }, (d) => mapList(d, (it) => (it.id === id ? apply(it) : it)));
   qc.setQueriesData<LibraryItem>({ queryKey: ITEMS_KEY }, (d) => (d && d.id === id ? apply(d) : d));
@@ -226,7 +247,10 @@ function removeCachedItem(qc: QueryClient, id: string) {
 
 /** Cancel refetches that would overwrite an optimistic change (never a first load: that would leave it hanging). */
 async function cancelLibraryRefetches(qc: QueryClient) {
-  await qc.cancelQueries({ queryKey: LIBRARY_KEY, predicate: (q) => q.state.data !== undefined && q.queryKey[1] !== 'file' });
+  await qc.cancelQueries({
+    queryKey: LIBRARY_KEY,
+    predicate: (q) => q.state.data !== undefined && q.queryKey[1] !== 'file',
+  });
 }
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
@@ -259,7 +283,8 @@ export function useStarItem() {
     },
     onError: (_e, _v, ctx) => restoreSnapshot(qc, ctx?.snapshot),
     onSuccess: (res, { id }) => patchCachedItem(qc, id, { starred: res.starred }),
-    onSettled: () => qc.invalidateQueries({ queryKey: LISTS_KEY, predicate: (q) => !!listQueryOf(q.queryKey)?.starred }),
+    onSettled: () =>
+      qc.invalidateQueries({ queryKey: LISTS_KEY, predicate: (q) => !!listQueryOf(q.queryKey)?.starred }),
   });
 }
 
@@ -309,7 +334,8 @@ export function useUpdateItem() {
 export function useDeleteItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id }: { id: string }) => call(api.DELETE('/api/v1/library/items/{item_id}', { params: { path: { item_id: id } } })),
+    mutationFn: ({ id }: { id: string }) =>
+      call(api.DELETE('/api/v1/library/items/{item_id}', { params: { path: { item_id: id } } })),
     onSuccess: (_d, { id }) => {
       removeCachedItem(qc, id);
       qc.removeQueries({ queryKey: ITEMS_KEY, predicate: (q) => (q.state.data as LibraryItem | undefined)?.id === id });
@@ -327,11 +353,15 @@ export function useReviewItem() {
       call(api.POST('/api/v1/library/items/{item_id}/review', { params: { path: { item_id: id } }, body })),
     onSuccess: (item) => {
       // Leave the review queue at once; everything else is re-read.
-      qc.setQueriesData<ListData>({ queryKey: LISTS_KEY, predicate: (q) => listQueryOf(q.queryKey)?.status === 'pending' }, (d) =>
-        mapList(d, (it) => (it.id === item.id ? null : it)),
+      qc.setQueriesData<ListData>(
+        { queryKey: LISTS_KEY, predicate: (q) => listQueryOf(q.queryKey)?.status === 'pending' },
+        (d) => mapList(d, (it) => (it.id === item.id ? null : it)),
       );
       patchCachedItem(qc, item.id, () => item);
-      void qc.invalidateQueries({ queryKey: LISTS_KEY, predicate: (q) => listQueryOf(q.queryKey)?.status !== 'pending' });
+      void qc.invalidateQueries({
+        queryKey: LISTS_KEY,
+        predicate: (q) => listQueryOf(q.queryKey)?.status !== 'pending',
+      });
       refreshCounts(qc);
     },
     onError: (e) => {

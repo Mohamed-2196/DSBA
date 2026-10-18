@@ -3,9 +3,32 @@
 // her last one can be asked again, and a question can be edited and sent again. Before anything is asked, the card
 // shows her hello with questions for the page (the full page passes its own welcome). A question that is sent goes to
 // the top of the list and her answer arrives under it without moving the list.
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowClockwise, ArrowDown, ArrowRight, Books, CalendarDots, Check, Copy, FileText, PencilSimple, PlayCircle, SquaresFour, type Icon } from '@phosphor-icons/react';
+import {
+  ArrowClockwise,
+  ArrowDown,
+  ArrowRight,
+  Books,
+  CalendarDots,
+  Check,
+  Copy,
+  FileText,
+  PencilSimple,
+  PlayCircle,
+  SquaresFour,
+  type Icon,
+} from '@phosphor-icons/react';
 import { appUrl, copyText } from '../../lib/share';
 import { formatClock } from '../../lib/dates';
 import { IconButton, cx, safeInternalPath } from '../../ui';
@@ -16,7 +39,14 @@ import { Rich } from './RichText';
 import type { Message, MyMessage as MyMessageData, NooraMessage as NooraMessageData, Ref, Reply } from './types';
 import type { Pending } from './useChat';
 
-const KIND_ICON: Record<RefKind, Icon> = { lesson: PlayCircle, files: FileText, module: SquaresFour, calendar: CalendarDots, library: Books, page: ArrowRight };
+const KIND_ICON: Record<RefKind, Icon> = {
+  lesson: PlayCircle,
+  files: FileText,
+  module: SquaresFour,
+  calendar: CalendarDots,
+  library: Books,
+  page: ArrowRight,
+};
 const COPIED_FOR = 1600; // ms the copy button says it worked
 const AFTER_MAX = 3; // suggestions offered after an answer
 const NEAR_BOTTOM = 48; // px from the bottom that still counts as being at the newest message
@@ -58,7 +88,17 @@ function Refs({ refs, onFollow }: { refs: readonly Ref[]; onFollow: () => void }
 }
 
 /** Questions to ask with one press: a short list of plain text buttons. */
-function Suggestions({ title, list, onPick, className }: { title: string; list: readonly string[]; onPick: (text: string) => void; className?: string }) {
+function Suggestions({
+  title,
+  list,
+  onPick,
+  className,
+}: {
+  title: string;
+  list: readonly string[];
+  onPick: (text: string) => void;
+  className?: string;
+}) {
   if (!list.length) return null;
   return (
     <div className={cx('nc-suggest', className)} role="group" aria-label={title}>
@@ -138,7 +178,12 @@ const NooraMessage = memo(function NooraMessage({ message, shown, isNew, onRegen
   const chars = useMemo(() => (message.ai ? [] : Array.from(message.text)), [message.ai, message.text]);
   const typing = shown != null;
   return (
-    <article className={cx('nc-turn', 'nc-turn--noora', isNew && 'is-new')} aria-label="Mini Noora" data-hub="noora-message" data-from="noora">
+    <article
+      className={cx('nc-turn', 'nc-turn--noora', isNew && 'is-new')}
+      aria-label="Mini Noora"
+      data-hub="noora-message"
+      data-from="noora"
+    >
       {message.notice ? (
         <div className="nc-notice" data-hub="noora-notice">
           <p>{message.notice}</p>
@@ -151,7 +196,9 @@ const NooraMessage = memo(function NooraMessage({ message, shown, isNew, onRegen
         </div>
       ) : null}
       {message.ai ? (
-        message.text ? <Rich text={message.text} caret={typing} onFollow={onFollow} /> : null
+        message.text ? (
+          <Rich text={message.text} caret={typing} onFollow={onFollow} />
+        ) : null
       ) : message.text ? (
         <p className="nc-prose">
           {typing ? chars.slice(0, shown).join('') : message.text}
@@ -166,7 +213,16 @@ const NooraMessage = memo(function NooraMessage({ message, shown, isNew, onRegen
           <Time at={message.at} />
           {message.text ? <CopyButton message={message} /> : null}
           {onRegenerate ? (
-            <IconButton size="sm" className="nc-copy" label="Regenerate answer" icon={ArrowClockwise} tooltip tooltipSide="top" onClick={onRegenerate} data-hub="noora-regenerate" />
+            <IconButton
+              size="sm"
+              className="nc-copy"
+              label="Regenerate answer"
+              icon={ArrowClockwise}
+              tooltip
+              tooltipSide="top"
+              onClick={onRegenerate}
+              data-hub="noora-regenerate"
+            />
           ) : null}
         </div>
       )}
@@ -187,7 +243,14 @@ const MyMessage = memo(function MyMessage({ message, isNew, onLoad, onEdit }: My
   const pictures = message.attachments.filter((a) => a.kind === 'image');
   const files = message.attachments.filter((a) => a.kind !== 'image');
   return (
-    <div className={cx('nc-turn', 'nc-turn--me', isNew && 'is-new')} role="group" aria-label="You" data-hub="noora-message" data-from="me" data-mid={message.id}>
+    <div
+      className={cx('nc-turn', 'nc-turn--me', isNew && 'is-new')}
+      role="group"
+      aria-label="You"
+      data-hub="noora-message"
+      data-from="me"
+      data-mid={message.id}
+    >
       {pictures.map((file) => (
         <Shot key={file.id} file={file} onLoad={onLoad} />
       ))}
@@ -201,7 +264,16 @@ const MyMessage = memo(function MyMessage({ message, isNew, onLoad, onEdit }: My
       ) : null}
       {onEdit && message.text ? (
         <div className="nc-meta nc-meta--me">
-          <IconButton size="sm" className="nc-copy" label="Edit and resend" icon={PencilSimple} tooltip tooltipSide="top" onClick={() => onEdit(message)} data-hub="noora-edit" />
+          <IconButton
+            size="sm"
+            className="nc-copy"
+            label="Edit and resend"
+            icon={PencilSimple}
+            tooltip
+            tooltipSide="top"
+            onClick={() => onEdit(message)}
+            data-hub="noora-edit"
+          />
         </div>
       ) : null}
     </div>
@@ -209,7 +281,17 @@ const MyMessage = memo(function MyMessage({ message, isNew, onLoad, onEdit }: My
 });
 
 /** Before anything is asked: her hello, and questions about the page the student is on. */
-function Hello({ greeting, chips, paused, onSuggest }: { greeting: Reply; chips: readonly string[]; paused: string | null; onSuggest: (text: string) => void }) {
+function Hello({
+  greeting,
+  chips,
+  paused,
+  onSuggest,
+}: {
+  greeting: Reply;
+  chips: readonly string[];
+  paused: string | null;
+  onSuggest: (text: string) => void;
+}) {
   return (
     <div className="nc-hello" data-hub="noora-empty">
       <p className="nc-hello__text">{greeting.text}</p>
@@ -260,7 +342,23 @@ const ROOM_ABOVE = 12; // px left above a question that is scrolled to the top
  * again, starts at its newest message. "Jump to latest" shows while the end is out of view.
  */
 export const MessageList = memo(function MessageList(props: MessageListProps) {
-  const { greeting, messages, pending, conversation, open, calm, pageChips, paused = null, empty = null, newFrom, onSuggest, onRegenerate, onEdit, onFollow, className } = props;
+  const {
+    greeting,
+    messages,
+    pending,
+    conversation,
+    open,
+    calm,
+    pageChips,
+    paused = null,
+    empty = null,
+    newFrom,
+    onSuggest,
+    onRegenerate,
+    onEdit,
+    onFollow,
+    className,
+  } = props;
   const list = useRef<HTMLDivElement>(null);
   const room = useRef<HTMLDivElement>(null);
   const anchor = useRef<number | null>(null); // the question kept at the top while its answer arrives
@@ -315,7 +413,8 @@ export const MessageList = memo(function MessageList(props: MessageListProps) {
       makeRoom();
       const el = list.current;
       const question = el?.querySelector<HTMLElement>(`[data-mid="${lastMine}"]`);
-      if (el && question) el.scrollTo({ top: Math.max(0, question.offsetTop - ROOM_ABOVE), behavior: calm ? 'auto' : 'smooth' });
+      if (el && question)
+        el.scrollTo({ top: Math.max(0, question.offsetTop - ROOM_ABOVE), behavior: calm ? 'auto' : 'smooth' });
     }
   }, [conversation, open, lastMine, newFrom, calm, toNewest, makeRoom]);
   // While the answer arrives: keep the room right, never move the list.
@@ -345,7 +444,9 @@ export const MessageList = memo(function MessageList(props: MessageListProps) {
   return (
     <div className={cx('nc-scroll', className)}>
       <div ref={list} className="nc-messages" onScroll={checkAway} data-hub="noora-messages">
-        {messages.length === 0 && !pending ? (empty ?? <Hello greeting={greeting} chips={pageChips} paused={paused} onSuggest={onSuggest} />) : null}
+        {messages.length === 0 && !pending
+          ? (empty ?? <Hello greeting={greeting} chips={pageChips} paused={paused} onSuggest={onSuggest} />)
+          : null}
         {messages.map((m) =>
           m.from === 'me' ? (
             <MyMessage key={m.id} message={m} isNew={m.id > newFrom} onLoad={makeRoom} onEdit={editable} />
@@ -361,7 +462,14 @@ export const MessageList = memo(function MessageList(props: MessageListProps) {
           ),
         )}
         {pending && pending.phase === 'thinking' ? <Thinking label={pending.label} /> : null}
-        {resting && last?.from === 'noora' ? <Suggestions className="nc-suggest--after" title={own ? 'Try asking' : 'For this page'} list={after} onPick={onSuggest} /> : null}
+        {resting && last?.from === 'noora' ? (
+          <Suggestions
+            className="nc-suggest--after"
+            title={own ? 'Try asking' : 'For this page'}
+            list={after}
+            onPick={onSuggest}
+          />
+        ) : null}
         <div ref={room} className="nc-room" aria-hidden="true" />
       </div>
       {away && messages.length ? (

@@ -41,17 +41,29 @@ function describe(play: Play, won: boolean): Omit<Result, 'held'> {
       const n = view.rows.length;
       return won
         ? { headline: praise(n), summary: `Solved in ${plural(n, 'guess', 'guesses')}`, answer: null }
-        : { headline: 'Not this time', summary: view.answer ? 'The word was' : 'Out of guesses', answer: view.answer ?? null };
+        : {
+            headline: 'Not this time',
+            summary: view.answer ? 'The word was' : 'Out of guesses',
+            answer: view.answer ?? null,
+          };
     }
     case 'groups':
       return won
-        ? { headline: play.mistakes === 0 ? 'Perfect' : 'Solved', summary: `All four groups, ${plural(play.mistakes, 'mistake')}${time}`, answer: null }
+        ? {
+            headline: play.mistakes === 0 ? 'Perfect' : 'Solved',
+            summary: `All four groups, ${plural(play.mistakes, 'mistake')}${time}`,
+            answer: null,
+          }
         : { headline: 'Not this time', summary: `${groupsFound(view).length} of 4 groups found`, answer: null };
     case 'search': {
       const total = view.words.length;
       const found = view.found.filter((f) => !f.revealed).length;
       return won
-        ? { headline: 'Every word found', summary: `${plural(total, 'word')}, ${plural(play.hints, 'hint')}${time}`, answer: null }
+        ? {
+            headline: 'Every word found',
+            summary: `${plural(total, 'word')}, ${plural(play.hints, 'hint')}${time}`,
+            answer: null,
+          }
         : { headline: 'Not this time', summary: `${found} of ${total} words found`, answer: null };
     }
     case 'quiz': {
@@ -63,12 +75,24 @@ function describe(play: Play, won: boolean): Omit<Result, 'held'> {
     case 'nearest': {
       const guesses = view.guesses.filter((g) => !g.hint).length;
       return won
-        ? { headline: 'Found it', summary: `In ${plural(guesses, 'guess', 'guesses')}, ${plural(play.hints, 'hint')}`, answer: null }
-        : { headline: 'Not this time', summary: view.answer ? 'The secret word was' : 'Not found', answer: view.answer ?? null };
+        ? {
+            headline: 'Found it',
+            summary: `In ${plural(guesses, 'guess', 'guesses')}, ${plural(play.hints, 'hint')}`,
+            answer: null,
+          }
+        : {
+            headline: 'Not this time',
+            summary: view.answer ? 'The secret word was' : 'Not found',
+            answer: view.answer ?? null,
+          };
     }
     case 'sudoku':
       return won
-        ? { headline: 'Solved', summary: `${capital(view.difficulty)}, ${plural(play.mistakes, 'mistake')}, ${plural(play.hints, 'hint')}${time}`, answer: null }
+        ? {
+            headline: 'Solved',
+            summary: `${capital(view.difficulty)}, ${plural(play.mistakes, 'mistake')}, ${plural(play.hints, 'hint')}${time}`,
+            answer: null,
+          }
         : { headline: 'Not this time', summary: `${capital(view.difficulty)} puzzle, not solved`, answer: null };
   }
 }

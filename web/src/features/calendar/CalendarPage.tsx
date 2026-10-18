@@ -45,8 +45,16 @@ export default function CalendarPage() {
   const [customising, setCustomising] = useState(false);
   const [pickingPapers, setPickingPapers] = useState(false);
   const [editing, setEditing] = useState<{ event: CalendarEvent | null } | null>(null);
-  const [editingMine, setEditingMine] = useState<MineEditing>(() => ({ open: false, event: null, day: todayKey(), session: 0 }));
-  const events = useMemo(() => (query.data ? myCalendar(query.data, my.events, my.prefs) : []), [query.data, my.events, my.prefs]);
+  const [editingMine, setEditingMine] = useState<MineEditing>(() => ({
+    open: false,
+    event: null,
+    day: todayKey(),
+    session: 0,
+  }));
+  const events = useMemo(
+    () => (query.data ? myCalendar(query.data, my.events, my.prefs) : []),
+    [query.data, my.events, my.prefs],
+  );
 
   const whose = year ? (papers ? 'your papers' : cohortLabel(year)) : 'all three years';
   const description = my.signedIn
@@ -90,7 +98,12 @@ export default function CalendarPage() {
       {query.isPending ? (
         <CalendarSkeleton />
       ) : query.isError ? (
-        <QueryError error={query.error} title="The calendar didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} />
+        <QueryError
+          error={query.error}
+          title="The calendar didn’t load"
+          onRetry={() => void query.refetch()}
+          retrying={query.isFetching}
+        />
       ) : (
         <CalendarBody
           events={events}
@@ -138,7 +151,11 @@ function MyEventEditor({ editing, onClose }: { editing: MineEditing; onClose: ()
         onClose();
         setMonthParam(day.slice(0, 7), { replace: true });
         setEventId(occurrenceId(saved, day), { replace: true });
-        push({ tone: 'success', title: created ? 'Added to your calendar' : 'Changes saved', body: `${saved.title}, ${formatLong(parseDay(day))}. Only you see it.` });
+        push({
+          tone: 'success',
+          title: created ? 'Added to your calendar' : 'Changes saved',
+          body: `${saved.title}, ${formatLong(parseDay(day))}. Only you see it.`,
+        });
       }}
     />
   );
@@ -152,7 +169,15 @@ function toldLine(told: DateNotice | undefined): string {
 }
 
 /** The add/edit dialog, then the page moves to what was saved. */
-function EventEditor({ editing, employers, onClose }: { editing: { event: CalendarEvent | null } | null; employers: readonly { id: string; name: string }[]; onClose: () => void }) {
+function EventEditor({
+  editing,
+  employers,
+  onClose,
+}: {
+  editing: { event: CalendarEvent | null } | null;
+  employers: readonly { id: string; name: string }[];
+  onClose: () => void;
+}) {
   const { push } = useToast();
   const [, setEventId] = useQueryParam('event');
   const [, setMonthParam] = useQueryParam('month');
@@ -166,7 +191,11 @@ function EventEditor({ editing, employers, onClose }: { editing: { event: Calend
         onClose();
         setMonthParam(monthKey(monthOfEvent(saved)), { replace: true });
         setEventId(saved.id, { replace: true });
-        push({ tone: 'success', title: created ? 'Date added' : 'Changes saved', body: `${saved.title}, ${formatLong(parseDay(saved.date))}.${toldLine(told)}` });
+        push({
+          tone: 'success',
+          title: created ? 'Date added' : 'Changes saved',
+          body: `${saved.title}, ${formatLong(parseDay(saved.date))}.${toldLine(told)}`,
+        });
       }}
     />
   );
@@ -198,13 +227,19 @@ function CalendarSkeleton() {
 }
 
 /** The confirm button of a deletion: what goes, said plainly. */
-const DELETE_LABEL: Record<ChangeScope, string> = { one: 'Delete this event', following: 'Delete these events', all: 'Delete all events' };
+const DELETE_LABEL: Record<ChangeScope, string> = {
+  one: 'Delete this event',
+  following: 'Delete these events',
+  all: 'Delete all events',
+};
 
 /** The toast after a deletion of the student's own: what went. */
 function deletedLine(title: string, day: DayKey, scope: ChangeScope, repeating: boolean): string {
   if (!repeating || scope === 'all') return `${title} is off your calendar.`;
   const when = formatLongDay(parseDay(day));
-  return scope === 'one' ? `${title} on ${when} is off your calendar.` : `${title}, from ${when} on, is off your calendar.`;
+  return scope === 'one'
+    ? `${title} on ${when} is off your calendar.`
+    : `${title}, from ${when} on, is off your calendar.`;
 }
 
 interface CalendarBodyProps {
@@ -244,7 +279,12 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine,
           ? `All ${typePlural(value)} are off your calendar.`
           : `All ${e.unitCode ?? 'module'} dates are off your calendar.`;
     const again = kind === 'hiddenEvents' ? 'Customise shows it again.' : 'Customise shows them again.';
-    push({ tone: 'success', title: 'Hidden from your calendar', body: `${body} ${again}`, action: { label: 'Undo', onClick: () => setHidden(kind, value, false) } });
+    push({
+      tone: 'success',
+      title: 'Hidden from your calendar',
+      body: `${body} ${again}`,
+      action: { label: 'Undo', onClick: () => setHidden(kind, value, false) },
+    });
   };
 
   const own = deletingMine?.event.mine ?? null;
@@ -257,7 +297,11 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine,
     const done = () => {
       setDeletingMine(null);
       close();
-      push({ tone: 'success', title: 'Event deleted', body: deletedLine(own.title, occurrence.date, scope, ownRepeats) });
+      push({
+        tone: 'success',
+        title: 'Event deleted',
+        body: deletedLine(own.title, occurrence.date, scope, ownRepeats),
+      });
     };
     if (scope === 'all' || !ownRepeats) removeMine.mutate(own.id, { onSuccess: done });
     else removeDay.mutate({ id: own.id, day: occurrence.date, scope }, { onSuccess: done });
@@ -278,10 +322,25 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine,
   return (
     <>
       {my.loadError ? (
-        <QueryError error={my.loadError} title="Your own events didn’t load" size="sm" onRetry={my.retry} retrying={my.retrying} className="cal-mine-error" />
+        <QueryError
+          error={my.loadError}
+          title="Your own events didn’t load"
+          size="sm"
+          onRetry={my.retry}
+          retrying={my.retrying}
+          className="cal-mine-error"
+        />
       ) : null}
       <PageSection>
-        <ForYou year={view.year} nextExam={view.nextExam} week={view.week} today={today} todayKey={view.todayKey} selectedId={eventId} onOpen={open} />
+        <ForYou
+          year={view.year}
+          nextExam={view.nextExam}
+          week={view.week}
+          today={today}
+          todayKey={view.todayKey}
+          selectedId={eventId}
+          onOpen={open}
+        />
       </PageSection>
 
       <PageSection>
@@ -321,11 +380,13 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine,
           deletingMine && own ? (
             ownRepeats ? (
               <p>
-                <b>{own.title}</b> repeats. Choose what to delete. It comes off your calendar and your private link, and can’t be undone.
+                <b>{own.title}</b> repeats. Choose what to delete. It comes off your calendar and your private link, and
+                can’t be undone.
               </p>
             ) : (
               <p>
-                <b>{own.title}</b>, {formatLong(parseDay(deletingMine.event.date))}, comes off your calendar and your private link. This can’t be undone.
+                <b>{own.title}</b>, {formatLong(parseDay(deletingMine.event.date))}, comes off your calendar and your
+                private link. This can’t be undone.
               </p>
             )
           ) : null
@@ -338,7 +399,14 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine,
         onClose={() => setDeletingMine(null)}
       >
         {deletingMine && own && ownRepeats ? (
-          <ScopeChoice legend="Delete" value={deletingMine.scope} onChange={(scope) => setDeletingMine({ ...deletingMine, scope })} event={own} day={deletingMine.event.date} disabled={deletingBusy} />
+          <ScopeChoice
+            legend="Delete"
+            value={deletingMine.scope}
+            onChange={(scope) => setDeletingMine({ ...deletingMine, scope })}
+            event={own}
+            day={deletingMine.event.date}
+            disabled={deletingBusy}
+          />
         ) : null}
       </ConfirmDialog>
       <ConfirmDialog
@@ -347,7 +415,8 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine,
         body={
           deleting ? (
             <p>
-              <b>{deleting.title}</b>, {formatLong(parseDay(deleting.date))}, comes off everyone’s calendar and the calendar feed. This can’t be undone.
+              <b>{deleting.title}</b>, {formatLong(parseDay(deleting.date))}, comes off everyone’s calendar and the
+              calendar feed. This can’t be undone.
             </p>
           ) : null
         }

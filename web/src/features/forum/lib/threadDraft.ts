@@ -50,7 +50,12 @@ export function restoreDraft(
     offeredCategory,
     fallbackCategory,
     maxTags,
-  }: { knownModule: (id: string) => boolean; offeredCategory: (id: string) => boolean; fallbackCategory: CategoryId; maxTags: number },
+  }: {
+    knownModule: (id: string) => boolean;
+    offeredCategory: (id: string) => boolean;
+    fallbackCategory: CategoryId;
+    maxTags: number;
+  },
 ): ThreadForm | null {
   if (draftOwner(raw, viewer) !== 'mine' || !isDraft(raw)) return null;
   return {

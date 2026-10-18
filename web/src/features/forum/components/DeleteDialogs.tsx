@@ -83,7 +83,11 @@ export function DeleteReplyDialog({ reply, hasReplies, open, onClose }: DeleteRe
           {
             onSuccess: () => {
               onClose();
-              push(hidden ? { title: 'Reply text deleted', body: 'The reply stays hidden.', tone: 'success' } : { title: 'Reply deleted', tone: 'success' });
+              push(
+                hidden
+                  ? { title: 'Reply text deleted', body: 'The reply stays hidden.', tone: 'success' }
+                  : { title: 'Reply deleted', tone: 'success' },
+              );
             },
           },
         )

@@ -8,7 +8,19 @@ import { ArrowSquareOut, YoutubeLogo } from '@phosphor-icons/react';
 import { errorMessage } from '../../../api/errors';
 import type { SuggestionOut } from '../../../api/types';
 import { useToast } from '../../../state';
-import { Badge, Button, EmptyState, Panel, QueryError, SegmentedControl, Select, Skeleton, TextArea, TextField, timeAgo } from '../../../ui';
+import {
+  Badge,
+  Button,
+  EmptyState,
+  Panel,
+  QueryError,
+  SegmentedControl,
+  Select,
+  Skeleton,
+  TextArea,
+  TextField,
+  timeAgo,
+} from '../../../ui';
 import { moduleDetailQuery } from '../api';
 import { lessonHref } from '../lessons';
 import { useAcceptSuggestion, useDeclineSuggestion, useSuggestionQueue } from './api';
@@ -37,7 +49,9 @@ function Review({ s }: { s: SuggestionOut }) {
   const busy = accept.isPending || decline.isPending;
   // The suggested chapter stays a choice even while hidden from students (the public module leaves it out).
   const options = [
-    ...(s.chapterId && s.chapterTitle && !chapters.some((c) => c.id === s.chapterId) ? [{ value: s.chapterId, label: s.chapterTitle }] : []),
+    ...(s.chapterId && s.chapterTitle && !chapters.some((c) => c.id === s.chapterId)
+      ? [{ value: s.chapterId, label: s.chapterTitle }]
+      : []),
     ...chapters.map((c, i) => ({ value: c.id, label: `${i + 1}. ${c.title}` })),
     { value: NEW_CHAPTER, label: 'A new chapter…' },
   ];
@@ -45,7 +59,11 @@ function Review({ s }: { s: SuggestionOut }) {
   const onAccept = () => {
     const built = acceptBody(choice, newChapter, title, s.title);
     if ('error' in built) {
-      setErrors(built.error === 'newChapter' ? { newChapter: 'Name the new chapter.' } : { chapterId: 'Pick a chapter for the lesson.' });
+      setErrors(
+        built.error === 'newChapter'
+          ? { newChapter: 'Name the new chapter.' }
+          : { chapterId: 'Pick a chapter for the lesson.' },
+      );
       return;
     }
     setErrors({});
@@ -57,7 +75,9 @@ function Review({ s }: { s: SuggestionOut }) {
             title: 'Added as a lesson',
             body: 'The student gets a notification.',
             tone: 'success',
-            action: done.lessonId ? { label: 'Open it', onClick: () => navigate(lessonHref(done.moduleId, done.lessonId ?? '')) } : undefined,
+            action: done.lessonId
+              ? { label: 'Open it', onClick: () => navigate(lessonHref(done.moduleId, done.lessonId ?? '')) }
+              : undefined,
           }),
         onError: (e) => setErrors({ form: errorMessage(e, 'It wasn’t added. Try again.') }),
       },
@@ -73,7 +93,12 @@ function Review({ s }: { s: SuggestionOut }) {
     decline.mutate(
       { id: s.id, reply: reply.trim() },
       {
-        onSuccess: () => push({ title: 'Suggestion declined', body: 'The student gets a notification with your reason.', tone: 'success' }),
+        onSuccess: () =>
+          push({
+            title: 'Suggestion declined',
+            body: 'The student gets a notification with your reason.',
+            tone: 'success',
+          }),
         onError: (e) => setErrors({ form: errorMessage(e, 'It wasn’t declined. Try again.') }),
       },
     );
@@ -104,10 +129,30 @@ function Review({ s }: { s: SuggestionOut }) {
         />
       ) : (
         <div className="sugg-review__fields">
-          <TextField label="Lesson title" value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} dir="auto" />
-          <Select label="Chapter" value={choice} onChange={(e) => setChoice(e.target.value)} placeholder="Pick a chapter" options={options} error={errors.chapterId} />
+          <TextField
+            label="Lesson title"
+            value={title}
+            maxLength={200}
+            onChange={(e) => setTitle(e.target.value)}
+            dir="auto"
+          />
+          <Select
+            label="Chapter"
+            value={choice}
+            onChange={(e) => setChoice(e.target.value)}
+            placeholder="Pick a chapter"
+            options={options}
+            error={errors.chapterId}
+          />
           {choice === NEW_CHAPTER ? (
-            <TextField label="New chapter’s name" value={newChapter} maxLength={160} onChange={(e) => setNewChapter(e.target.value)} error={errors.newChapter} dir="auto" />
+            <TextField
+              label="New chapter’s name"
+              value={newChapter}
+              maxLength={160}
+              onChange={(e) => setNewChapter(e.target.value)}
+              error={errors.newChapter}
+              dir="auto"
+            />
           ) : null}
         </div>
       )}
@@ -119,7 +164,14 @@ function Review({ s }: { s: SuggestionOut }) {
       <div className="sugg-review__actions">
         {declining ? (
           <>
-            <Button type="submit" variant="primary" size="sm" loading={decline.isPending} disabled={busy} data-hub="suggestion-decline">
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              loading={decline.isPending}
+              disabled={busy}
+              data-hub="suggestion-decline"
+            >
               Decline
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setDeclining(false)} disabled={busy}>
@@ -128,7 +180,14 @@ function Review({ s }: { s: SuggestionOut }) {
           </>
         ) : (
           <>
-            <Button type="submit" variant="primary" size="sm" loading={accept.isPending} disabled={busy} data-hub="suggestion-accept">
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              loading={accept.isPending}
+              disabled={busy}
+              data-hub="suggestion-accept"
+            >
               Add as a lesson
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setDeclining(true)} disabled={busy}>
@@ -189,11 +248,19 @@ export function SuggestionsQueue() {
   return (
     <section className="sugg-queue" aria-label="Suggested videos" data-hub="suggestions-queue">
       <div className="sugg-queue__head">
-        <p className="sugg-queue__intro">Students’ suggestions for lessons. Watch each one first. The student gets a notification either way.</p>
+        <p className="sugg-queue__intro">
+          Students’ suggestions for lessons. Watch each one first. The student gets a notification either way.
+        </p>
         <SegmentedControl label="Show" size="sm" options={SHOWN} value={status} onChange={setStatus} />
       </div>
       {list.isError && !list.data ? (
-        <QueryError error={list.error} title="Suggestions didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} size="sm" />
+        <QueryError
+          error={list.error}
+          title="Suggestions didn’t load"
+          onRetry={() => void list.refetch()}
+          retrying={list.isFetching}
+          size="sm"
+        />
       ) : list.isPending ? (
         <Skeleton lines={4} />
       ) : items.length ? (
@@ -216,7 +283,13 @@ export function SuggestionsQueue() {
           <EmptyState
             size="sm"
             icon={YoutubeLogo}
-            title={status === 'pending' ? 'Nothing waiting' : status === 'accepted' ? 'Nothing accepted yet' : 'Nothing declined'}
+            title={
+              status === 'pending'
+                ? 'Nothing waiting'
+                : status === 'accepted'
+                  ? 'Nothing accepted yet'
+                  : 'Nothing declined'
+            }
             body="Students suggest videos from a module’s Lessons tab."
           />
         </Panel>

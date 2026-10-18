@@ -54,7 +54,11 @@ export function ProjectedClass({ calculatorLink = true, className }: ProjectedCl
   let body;
   switch (p.state) {
     case 'empty':
-      body = <p className="projected__line">No marks in the grades calculator on this browser yet. Enter yours to see where they point.</p>;
+      body = (
+        <p className="projected__line">
+          No marks in the grades calculator on this browser yet. Enter yours to see where they point.
+        </p>
+      );
       break;
     case 'fail':
       body = (
@@ -66,7 +70,8 @@ export function ProjectedClass({ calculatorLink = true, className }: ProjectedCl
             </strong>
           </p>
           <p className="projected__more">
-            {p.failing.map(nameOf).join(', ')}. Under {pass} is a fail: you resit it before the degree can be classified.
+            {p.failing.map(nameOf).join(', ')}. Under {pass} is a fail: you resit it before the degree can be
+            classified.
           </p>
         </>
       );
@@ -74,7 +79,8 @@ export function ProjectedClass({ calculatorLink = true, className }: ProjectedCl
     case 'complete':
       body = (
         <p className="projected__line">
-          <span className="projected__label">On your marks</span> <strong>{named(p.kind)}</strong>, average {p.average.toFixed(1)}
+          <span className="projected__label">On your marks</span> <strong>{named(p.kind)}</strong>, average{' '}
+          {p.average.toFixed(1)}
         </p>
       );
       break;
@@ -85,7 +91,8 @@ export function ProjectedClass({ calculatorLink = true, className }: ProjectedCl
             <span className="projected__label">On your marks so far</span> <strong>{named(p.kind)}</strong>
           </p>
           <p className="projected__more">
-            If you keep your average of {p.average.toFixed(1)} across the {rules.subjects.length - p.entered} modules still to come.
+            If you keep your average of {p.average.toFixed(1)} across the {rules.subjects.length - p.entered} modules
+            still to come.
           </p>
           <NextLine p={p} />
         </>

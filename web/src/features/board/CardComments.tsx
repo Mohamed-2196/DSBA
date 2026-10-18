@@ -54,7 +54,13 @@ export function CardComments({ card, readOnly }: { card: BoardCardDetail; readOn
               <div className="card-comments__foot">
                 <time dateTime={c.createdAt}>{when(c.createdAt)}</time>
                 {readOnly ? null : (
-                  <IconButton label="Delete this comment" icon={Trash} size="sm" disabled={remove.isPending} onClick={() => remove.mutate({ cardId: card.id, boardId: card.boardId, commentId: c.id })} />
+                  <IconButton
+                    label="Delete this comment"
+                    icon={Trash}
+                    size="sm"
+                    disabled={remove.isPending}
+                    onClick={() => remove.mutate({ cardId: card.id, boardId: card.boardId, commentId: c.id })}
+                  />
                 )}
               </div>
             </li>

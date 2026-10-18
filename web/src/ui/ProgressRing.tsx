@@ -21,7 +21,16 @@ export interface ProgressRingProps {
 }
 
 /** Circular progress. */
-export function ProgressRing({ value = 0, size = 40, stroke = 4, color = 'var(--cobalt)', showValue, label = 'Progress', className, children }: ProgressRingProps) {
+export function ProgressRing({
+  value = 0,
+  size = 40,
+  stroke = 4,
+  color = 'var(--cobalt)',
+  showValue,
+  label = 'Progress',
+  className,
+  children,
+}: ProgressRingProps) {
   const v = Math.max(0, Math.min(100, Number(value) || 0));
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;

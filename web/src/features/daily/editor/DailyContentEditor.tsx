@@ -31,7 +31,15 @@ export function DailyContentEditor() {
   const [loading, setLoading] = useState(false);
 
   if (overview.isError) {
-    return <QueryError error={overview.error} title="Daily puzzles didn’t load" onRetry={() => void overview.refetch()} retrying={overview.isFetching} size="sm" />;
+    return (
+      <QueryError
+        error={overview.error}
+        title="Daily puzzles didn’t load"
+        onRetry={() => void overview.refetch()}
+        retrying={overview.isFetching}
+        size="sm"
+      />
+    );
   }
   if (overview.isPending) {
     return (
@@ -53,7 +61,8 @@ export function DailyContentEditor() {
     <div className="dcms">
       <div className="dcms__head">
         <p className="dcms__lede">
-          The puzzles students play each day come from here. Changes reach the days to come; a day that is out keeps its puzzles, so nobody’s game changes under them.
+          The puzzles students play each day come from here. Changes reach the days to come; a day that is out keeps its
+          puzzles, so nobody’s game changes under them.
         </p>
         {empty ? null : loadFile}
       </div>
@@ -63,18 +72,32 @@ export function DailyContentEditor() {
             size="sm"
             icon={PuzzlePiece}
             title="No puzzles yet"
-            body={isAdmin ? 'Load the content file to start, or add puzzles game by game.' : 'Add puzzles game by game, or ask an admin to load the content file.'}
+            body={
+              isAdmin
+                ? 'Load the content file to start, or add puzzles game by game.'
+                : 'Add puzzles game by game, or ask an admin to load the content file.'
+            }
             action={loadFile}
           />
         </Panel>
       ) : null}
       {loading ? <ContentFileDialog themes={data.themes} onClose={() => setLoading(false)} /> : null}
       <nav className="dcms__nav" aria-label="Parts of Daily puzzles">
-        <Chip selected={part === 'themes'} onChange={() => setPart('themes', { replace: true })} icon={CalendarBlank} count={data.themes.length}>
+        <Chip
+          selected={part === 'themes'}
+          onChange={() => setPart('themes', { replace: true })}
+          icon={CalendarBlank}
+          count={data.themes.length}
+        >
           Themes and weeks
         </Chip>
         {GAMES.map((g) => (
-          <Chip key={g.id} selected={part === g.id} onChange={() => setPart(g.id, { replace: true })} count={total(g.id)}>
+          <Chip
+            key={g.id}
+            selected={part === g.id}
+            onChange={() => setPart(g.id, { replace: true })}
+            count={total(g.id)}
+          >
             {g.label}
           </Chip>
         ))}
@@ -90,7 +113,8 @@ export function DailyContentEditor() {
         <ItemsPart key={part} game={part} overview={data} />
       )}
       <p className="dcms__sizes">
-        {formatCount(data.guessWords)} words in the guess list · {formatCount(data.vocabularyWords)} words in Nearest neighbour’s vocabulary
+        {formatCount(data.guessWords)} words in the guess list · {formatCount(data.vocabularyWords)} words in Nearest
+        neighbour’s vocabulary
       </p>
     </div>
   );

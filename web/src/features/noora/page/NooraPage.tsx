@@ -5,12 +5,37 @@
 // The same conversation as the chat card: "Open full chat" there carries it over, and the card carries on with it.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpenText, DotsThree, Exam, Keyboard, NotePencil, PencilSimple, SidebarSimple, SquaresFour, Trash, TrayArrowDown } from '@phosphor-icons/react';
+import {
+  ArrowLeft,
+  BookOpenText,
+  DotsThree,
+  Exam,
+  Keyboard,
+  NotePencil,
+  PencilSimple,
+  SidebarSimple,
+  SquaresFour,
+  Trash,
+  TrayArrowDown,
+} from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
 import { useDocumentTitle, useLocalStorage, useMediaQuery, useYear } from '../../../state';
 import { useModules } from '../../../state/modules';
 import type { NooraScript } from '../../../api/types';
-import { Button, ConfirmDialog, Drawer, IconButton, Kbd, Menu, Modal, QueryError, TextField, Tooltip, cx, modKeyLabel } from '../../../ui';
+import {
+  Button,
+  ConfirmDialog,
+  Drawer,
+  IconButton,
+  Kbd,
+  Menu,
+  Modal,
+  QueryError,
+  TextField,
+  Tooltip,
+  cx,
+  modKeyLabel,
+} from '../../../ui';
 import { useNote } from '../../notes/public';
 import { carriesFiles, faceFor, highestId, spokenFor } from '../chat';
 import { Composer, Seen } from '../Composer';
@@ -58,7 +83,9 @@ const firstNameOf = (name: string | null | undefined): string | null => name?.tr
 /** Whether the browser can go back within the Hub (React Router keeps the index in history.state). */
 function canGoBack(): boolean {
   const state: unknown = window.history.state;
-  return typeof state === 'object' && state !== null && 'idx' in state && typeof state.idx === 'number' && state.idx > 0;
+  return (
+    typeof state === 'object' && state !== null && 'idx' in state && typeof state.idx === 'number' && state.idx > 0
+  );
 }
 
 export default function NooraPage() {
@@ -67,7 +94,12 @@ export default function NooraPage() {
   return (
     <div className="np np--loading" aria-busy={!script.isError || undefined}>
       {script.isError ? (
-        <QueryError error={script.error} title="Noora didn’t load" onRetry={() => void script.refetch()} retrying={script.isFetching} />
+        <QueryError
+          error={script.error}
+          title="Noora didn’t load"
+          onRetry={() => void script.refetch()}
+          retrying={script.isFetching}
+        />
       ) : (
         <div className="ncard-note" role="status">
           <Face bust="thinking" size={48} />
@@ -104,7 +136,22 @@ function NooraScreen({ script }: { script: NooraScript }) {
   };
   const { on: aiOn, status, ai } = useNooraAi(context);
   const chat = useConversation({ year, calm, ai, script });
-  const { greeting, messages, pending, busy, paused, send, stop, regenerate, chatId, chats, switchTo, remove, rename, removeAll } = chat;
+  const {
+    greeting,
+    messages,
+    pending,
+    busy,
+    paused,
+    send,
+    stop,
+    regenerate,
+    chatId,
+    chats,
+    switchTo,
+    remove,
+    rename,
+    removeAll,
+  } = chat;
   const draft = useDraft(send);
   const usingAi = ai !== null && !paused;
   const why = pauseOf(aiOn, paused, status.data);
@@ -127,7 +174,10 @@ function NooraScreen({ script }: { script: NooraScript }) {
   const [overlay, setOverlay] = useState(false); // tablets: the list over the conversation; phones: the drawer
   const docked = wide && !full;
   const sideShown = docked ? sideWanted !== false : overlay;
-  const toggleSide = useCallback(() => (docked ? setSideWanted(sideWanted === false) : setOverlay((o) => !o)), [docked, sideWanted, setSideWanted]);
+  const toggleSide = useCallback(
+    () => (docked ? setSideWanted(sideWanted === false) : setOverlay((o) => !o)),
+    [docked, sideWanted, setSideWanted],
+  );
   const [newFrom, setNewFrom] = useState(() => highestId(messages));
 
   const openChat = (next: SavedChat | null) => {
@@ -270,12 +320,25 @@ function NooraScreen({ script }: { script: NooraScript }) {
         />
       ) : null}
       {added.paper ? (
-        <Seen icon={Exam} label={added.paper.label} title="That page and the examiners’ report go to Claude with your questions." removeLabel="Take off the paper" onRemove={() => setAdded((a) => ({ ...a, paper: null }))} hub="noora-context-paper" />
+        <Seen
+          icon={Exam}
+          label={added.paper.label}
+          title="That page and the examiners’ report go to Claude with your questions."
+          removeLabel="Take off the paper"
+          onRemove={() => setAdded((a) => ({ ...a, paper: null }))}
+          hub="noora-context-paper"
+        />
       ) : null}
       {added.note ? (
         <Seen
           icon={NotePencil}
-          label={note.isError ? `${added.note.label} (didn’t load)` : note.isPending ? `${added.note.label} (loading…)` : added.note.label}
+          label={
+            note.isError
+              ? `${added.note.label} (didn’t load)`
+              : note.isPending
+                ? `${added.note.label} (loading…)`
+                : added.note.label
+          }
           title="Its words go to Claude with your questions."
           removeLabel="Take off the note"
           onRemove={() => setAdded((a) => ({ ...a, note: null }))}
@@ -301,7 +364,13 @@ function NooraScreen({ script }: { script: NooraScript }) {
 
   return (
     <div
-      className={cx('np', full && 'np--full', docked && 'np--docked', sideShown && 'is-side', dropping && 'is-dropping')}
+      className={cx(
+        'np',
+        full && 'np--full',
+        docked && 'np--docked',
+        sideShown && 'is-side',
+        dropping && 'is-dropping',
+      )}
       data-hub="noora-page"
       onDragEnter={(e) => {
         if (carriesFiles(e)) setDropping(true);
@@ -323,7 +392,15 @@ function NooraScreen({ script }: { script: NooraScript }) {
       }}
     >
       {full ? (
-        <Drawer open={overlay} onClose={() => setOverlay(false)} title="Chats" side="left" width="min(88vw, 340px)" className="np-drawer" bodyClassName="np-drawer__body">
+        <Drawer
+          open={overlay}
+          onClose={() => setOverlay(false)}
+          title="Chats"
+          side="left"
+          width="min(88vw, 340px)"
+          className="np-drawer"
+          bodyClassName="np-drawer__body"
+        >
           {sidebar}
         </Drawer>
       ) : sideShown ? (
@@ -331,7 +408,15 @@ function NooraScreen({ script }: { script: NooraScript }) {
           <aside className="np-side" aria-label="Chats">
             {sidebar}
           </aside>
-          {docked ? null : <button type="button" className="np-scrim" aria-label="Hide chats" tabIndex={-1} onClick={() => setOverlay(false)} />}
+          {docked ? null : (
+            <button
+              type="button"
+              className="np-scrim"
+              aria-label="Hide chats"
+              tabIndex={-1}
+              onClick={() => setOverlay(false)}
+            />
+          )}
         </>
       ) : null}
 
@@ -347,7 +432,14 @@ function NooraScreen({ script }: { script: NooraScript }) {
             />
           ) : null}
           {full || !sideShown ? (
-            <IconButton label="Show chats" icon={SidebarSimple} size="sm" tooltip={!full} onClick={toggleSide} data-hub="noora-sidebar-show" />
+            <IconButton
+              label="Show chats"
+              icon={SidebarSimple}
+              size="sm"
+              tooltip={!full}
+              onClick={toggleSide}
+              data-hub="noora-sidebar-show"
+            />
           ) : null}
           <Face bust={faceFor(pending, false)} size={32} live className="np-bar__face" />
           <div className="np-bar__text">
@@ -360,14 +452,35 @@ function NooraScreen({ script }: { script: NooraScript }) {
           </div>
           <div className="np-bar__end">
             {model}
-            <IconButton label="New chat" icon={NotePencil} size="sm" tooltip disabled={!messages.length && !pending} onClick={newChat} data-hub="noora-page-new-top" />
+            <IconButton
+              label="New chat"
+              icon={NotePencil}
+              size="sm"
+              tooltip
+              disabled={!messages.length && !pending}
+              onClick={newChat}
+              data-hub="noora-page-new-top"
+            />
             <Menu
               align="end"
               label="Chat options"
               trigger={<IconButton label="Chat options" icon={DotsThree} size="sm" data-hub="noora-page-more" />}
               items={[
-                { id: 'rename', label: 'Rename chat', icon: PencilSimple, disabled: !current, onSelect: () => setRenaming(true) },
-                { id: 'delete', label: 'Delete chat', icon: Trash, danger: true, disabled: !current, onSelect: () => current && setConfirming({ kind: 'one', chat: current }) },
+                {
+                  id: 'rename',
+                  label: 'Rename chat',
+                  icon: PencilSimple,
+                  disabled: !current,
+                  onSelect: () => setRenaming(true),
+                },
+                {
+                  id: 'delete',
+                  label: 'Delete chat',
+                  icon: Trash,
+                  danger: true,
+                  disabled: !current,
+                  onSelect: () => current && setConfirming({ kind: 'one', chat: current }),
+                },
                 { divider: true, id: 'd' },
                 { id: 'keys', label: 'Keyboard shortcuts', icon: Keyboard, onSelect: () => setShortcutsOpen(true) },
               ]}
@@ -420,10 +533,15 @@ function NooraScreen({ script }: { script: NooraScript }) {
             placeholder="Ask Noora anything…"
             label="Message Noora"
             context={anyAdded ? contextChips : null}
-            tools={usingAi ? <AddContext added={added} onChange={setAdded} year={year} onDone={() => focusInput()} /> : null}
+            tools={
+              usingAi ? <AddContext added={added} onChange={setAdded} year={year} onDone={() => focusInput()} /> : null
+            }
           />
           <p className="np-fine" data-hub="noora-fine">
-            {usingAi ? 'Noora uses Claude, an AI, and can be wrong: check what matters against your lessons.' : 'Noora answers from the Hub’s modules and calendar.'} Chats stay in this browser.
+            {usingAi
+              ? 'Noora uses Claude, an AI, and can be wrong: check what matters against your lessons.'
+              : 'Noora answers from the Hub’s modules and calendar.'}{' '}
+            Chats stay in this browser.
           </p>
         </div>
         <div className="nc-drop np-drop" aria-hidden="true">
@@ -449,7 +567,9 @@ function NooraScreen({ script }: { script: NooraScript }) {
       <ConfirmDialog
         open={confirming?.kind === 'one'}
         title="Delete this chat?"
-        body={confirming?.kind === 'one' ? `“${confirming.chat.title}” goes from this browser. You can’t get it back.` : ''}
+        body={
+          confirming?.kind === 'one' ? `“${confirming.chat.title}” goes from this browser. You can’t get it back.` : ''
+        }
         confirmLabel="Delete chat"
         tone="danger"
         onConfirm={() => {
@@ -498,7 +618,15 @@ function NooraScreen({ script }: { script: NooraScript }) {
   );
 }
 
-function RenameDialog({ title, onClose, onSave }: { title: string; onClose: () => void; onSave: (title: string) => void }) {
+function RenameDialog({
+  title,
+  onClose,
+  onSave,
+}: {
+  title: string;
+  onClose: () => void;
+  onSave: (title: string) => void;
+}) {
   const [value, setValue] = useState(title);
   return (
     <Modal
@@ -524,7 +652,14 @@ function RenameDialog({ title, onClose, onSave }: { title: string; onClose: () =
           onSave(value);
         }}
       >
-        <TextField label="Name" value={value} onChange={(e) => setValue(e.target.value)} maxLength={80} hint="Leave it empty to name it after its first question." data-autofocus />
+        <TextField
+          label="Name"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          maxLength={80}
+          hint="Leave it empty to name it after its first question."
+          data-autofocus
+        />
       </form>
     </Modal>
   );

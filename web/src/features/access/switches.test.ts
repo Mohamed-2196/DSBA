@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { FeatureOut } from '../../api/types';
 import { switchBody, switchSummary } from './switches';
 
-const f = (mode: FeatureOut['mode'], roleIds: string[] = []): FeatureOut => ({ feature: 'calendar', label: 'Calendar', hides: 'The calendar.', mode, roleIds });
+const f = (mode: FeatureOut['mode'], roleIds: string[] = []): FeatureOut => ({
+  feature: 'calendar',
+  label: 'Calendar',
+  hides: 'The calendar.',
+  mode,
+  roleIds,
+});
 const names: Record<string, string> = { r1: 'Testers', r2: 'Rep' };
 
 describe('switchSummary', () => {

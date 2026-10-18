@@ -20,7 +20,10 @@ export function nestReplies(replies: readonly Reply[], order: ReplyOrder, accept
   if (order === 'top') top.sort((a, b) => rank(b) - rank(a) || b.voteCount - a.voteCount || time(a) - time(b));
   else top.sort((a, b) => rank(b) - rank(a) || time(a) - time(b));
   return top
-    .map((r) => ({ ...r, children: (byParent.get(r.id) ?? []).filter((c) => c.status !== 'deleted').sort((a, b) => time(a) - time(b)) }))
+    .map((r) => ({
+      ...r,
+      children: (byParent.get(r.id) ?? []).filter((c) => c.status !== 'deleted').sort((a, b) => time(a) - time(b)),
+    }))
     .filter((r) => r.status !== 'deleted' || r.children.length > 0);
 }
 
@@ -59,7 +62,10 @@ export function participants(replies: readonly Reply[]): Participants {
     else if (!seen.has(r.author.id)) seen.set(r.author.id, r.author);
   }
   const people = [...seen.values()];
-  const last = visible.reduce<Reply | null>((latest, r) => (!latest || Date.parse(r.createdAt) >= Date.parse(latest.createdAt) ? r : latest), null);
+  const last = visible.reduce<Reply | null>(
+    (latest, r) => (!latest || Date.parse(r.createdAt) >= Date.parse(latest.createdAt) ? r : latest),
+    null,
+  );
   return { people, count: people.length + (unknown ? 1 : 0), last };
 }
 
@@ -91,6 +97,10 @@ export function mayChange(allowed: boolean, moderates: boolean, posts: boolean):
 }
 
 /** Edit and Delete in a post's menu: deleting your own post needs no box, editing it needs forum.post. */
-export function postMenuActions(canEdit: boolean, moderates: boolean, posts: boolean): { edit: boolean; remove: boolean } {
+export function postMenuActions(
+  canEdit: boolean,
+  moderates: boolean,
+  posts: boolean,
+): { edit: boolean; remove: boolean } {
   return { edit: mayChange(canEdit, moderates, posts), remove: canEdit };
 }

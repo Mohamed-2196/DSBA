@@ -35,7 +35,10 @@ export default tseslint.config(
     files: ['**/*.{ts,tsx}'],
     extends: [...tseslint.configs.recommended],
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
       '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
       'no-undef': 'off',
     },

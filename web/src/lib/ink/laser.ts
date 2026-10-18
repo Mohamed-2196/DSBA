@@ -10,10 +10,14 @@ export interface LaserPoint {
 export const LASER_FADE = 900;
 
 /** The trail without the points that have faded. */
-export const liveTrail = (trail: readonly LaserPoint[], now: number): LaserPoint[] => trail.filter((p) => now - p.t < LASER_FADE);
+export const liveTrail = (trail: readonly LaserPoint[], now: number): LaserPoint[] =>
+  trail.filter((p) => now - p.t < LASER_FADE);
 
 /** The trail as segments, each with how visible it still is (1 new, 0 gone). A gap (a new touch) breaks it. */
-export function laserSegments(trail: readonly LaserPoint[], now: number): { x1: number; y1: number; x2: number; y2: number; alpha: number }[] {
+export function laserSegments(
+  trail: readonly LaserPoint[],
+  now: number,
+): { x1: number; y1: number; x2: number; y2: number; alpha: number }[] {
   const out = [];
   for (let i = 1; i < trail.length; i++) {
     const a = trail[i - 1];

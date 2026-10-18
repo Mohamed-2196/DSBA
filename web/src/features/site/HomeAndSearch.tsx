@@ -12,13 +12,27 @@ type Err = (path: string) => string | undefined;
 
 const ARTS = (Object.keys(TOUR_ARTS) as TourStep['art'][]).map((value) => ({ value, label: TOUR_ARTS[value].label }));
 
-export function HomeTourSection({ doc, set, err, fields, savedIds }: { doc: SiteDoc; set: Set; err: Err; fields: Record<string, string>; savedIds: ReadonlySet<string> }) {
+export function HomeTourSection({
+  doc,
+  set,
+  err,
+  fields,
+  savedIds,
+}: {
+  doc: SiteDoc;
+  set: Set;
+  err: Err;
+  fields: Record<string, string>;
+  savedIds: ReadonlySet<string>;
+}) {
   return (
     <>
       <HomeBlocks blocks={doc.homeBlocks} onChange={(homeBlocks) => set({ homeBlocks })} error={err('homeBlocks')} />
       <fieldset className="dedit-group">
         <legend className="dedit-group__legend">The tour</legend>
-        <p className="dedit__note">A new student can take it from the year prompt (“Take the tour”). Each step has an illustration beside it.</p>
+        <p className="dedit__note">
+          A new student can take it from the year prompt (“Take the tour”). Each step has an illustration beside it.
+        </p>
         <ListEditor<TourStep>
           items={doc.tour}
           noun="step"
@@ -26,15 +40,36 @@ export function HomeTourSection({ doc, set, err, fields, savedIds }: { doc: Site
           metaOf={(t) => TOUR_ARTS[t.art].label}
           savedIds={savedIds}
           onChange={(tour) => set({ tour })}
-          make={() => ({ id: newItemId('step', doc.tour.map((t) => t.id)), art: 'search', title: '', body: '' })}
+          make={() => ({
+            id: newItemId(
+              'step',
+              doc.tour.map((t) => t.id),
+            ),
+            art: 'search',
+            title: '',
+            body: '',
+          })}
           hasError={(i) => hasErrorUnder(fields, `tour.${i}`)}
           min={1}
           max={5}
         >
           {(t, i, change) => (
             <div className="dedit-grid">
-              <TextField label="Title" value={t.title} onChange={(e) => change({ title: e.target.value })} error={err(`tour.${i}.title`)} maxLength={60} required />
-              <Select label="Illustration" value={t.art} onChange={(e) => change({ art: e.target.value as TourStep['art'] })} options={ARTS} error={err(`tour.${i}.art`)} />
+              <TextField
+                label="Title"
+                value={t.title}
+                onChange={(e) => change({ title: e.target.value })}
+                error={err(`tour.${i}.title`)}
+                maxLength={60}
+                required
+              />
+              <Select
+                label="Illustration"
+                value={t.art}
+                onChange={(e) => change({ art: e.target.value as TourStep['art'] })}
+                options={ARTS}
+                error={err(`tour.${i}.art`)}
+              />
               <TextArea
                 className="dedit-grid__wide"
                 label="Words"
@@ -55,7 +90,15 @@ export function HomeTourSection({ doc, set, err, fields, savedIds }: { doc: Site
 }
 
 /** The blocks shown, in order, and a select to add one of the others. */
-function HomeBlocks({ blocks, onChange, error }: { blocks: readonly HomeBlock[]; onChange: (next: HomeBlock[]) => void; error?: string }) {
+function HomeBlocks({
+  blocks,
+  onChange,
+  error,
+}: {
+  blocks: readonly HomeBlock[];
+  onChange: (next: HomeBlock[]) => void;
+  error?: string;
+}) {
   const [adding, setAdding] = useState('');
   const left = ALL_HOME_BLOCKS.filter((b) => !blocks.includes(b));
   const move = (from: number, by: -1 | 1) => {
@@ -68,7 +111,10 @@ function HomeBlocks({ blocks, onChange, error }: { blocks: readonly HomeBlock[];
   return (
     <fieldset className="dedit-group">
       <legend className="dedit-group__legend">Home for a new student</legend>
-      <p className="dedit__note">What Home shows, in this order, until a student customises theirs (Customise Home). A guest’s leaves out what needs an account. A block shows only while its feature is on, and a notice only when it has something to say.</p>
+      <p className="dedit__note">
+        What Home shows, in this order, until a student customises theirs (Customise Home). A guest’s leaves out what
+        needs an account. A block shows only while its feature is on, and a notice only when it has something to say.
+      </p>
       {error ? <p className="dedit__error">{error}</p> : null}
       <ol role="list" className="dedit-rows__items">
         {blocks.map((b, i) => (
@@ -78,9 +124,27 @@ function HomeBlocks({ blocks, onChange, error }: { blocks: readonly HomeBlock[];
               <span className="dedit__note">{HOME_BLOCKS[b].description}</span>
             </div>
             <span className="dedit-row__tools">
-              <IconButton size="sm" icon={ArrowUp} label={`Move ${HOME_BLOCKS[b].title} up`} disabled={i === 0} onClick={() => move(i, -1)} />
-              <IconButton size="sm" icon={ArrowDown} label={`Move ${HOME_BLOCKS[b].title} down`} disabled={i === blocks.length - 1} onClick={() => move(i, 1)} />
-              <IconButton size="sm" icon={Trash} label={`Take ${HOME_BLOCKS[b].title} off Home`} disabled={blocks.length <= 1} onClick={() => onChange(blocks.filter((x) => x !== b))} />
+              <IconButton
+                size="sm"
+                icon={ArrowUp}
+                label={`Move ${HOME_BLOCKS[b].title} up`}
+                disabled={i === 0}
+                onClick={() => move(i, -1)}
+              />
+              <IconButton
+                size="sm"
+                icon={ArrowDown}
+                label={`Move ${HOME_BLOCKS[b].title} down`}
+                disabled={i === blocks.length - 1}
+                onClick={() => move(i, 1)}
+              />
+              <IconButton
+                size="sm"
+                icon={Trash}
+                label={`Take ${HOME_BLOCKS[b].title} off Home`}
+                disabled={blocks.length <= 1}
+                onClick={() => onChange(blocks.filter((x) => x !== b))}
+              />
             </span>
           </li>
         ))}
@@ -102,12 +166,27 @@ function HomeBlocks({ blocks, onChange, error }: { blocks: readonly HomeBlock[];
   );
 }
 
-export function SearchSection({ doc, set, err, fields, savedIds }: { doc: SiteDoc; set: Set; err: Err; fields: Record<string, string>; savedIds: ReadonlySet<string> }) {
+export function SearchSection({
+  doc,
+  set,
+  err,
+  fields,
+  savedIds,
+}: {
+  doc: SiteDoc;
+  set: Set;
+  err: Err;
+  fields: Record<string, string>;
+  savedIds: ReadonlySet<string>;
+}) {
   return (
     <>
       <fieldset className="dedit-group">
         <legend className="dedit-group__legend">Other words for modules</legend>
-        <p className="dedit__note">What students type for a module that isn’t in its name. Search then also finds the modules with a word of their name starting with what you give, like stats finding every module named “… Statistics …”.</p>
+        <p className="dedit__note">
+          What students type for a module that isn’t in its name. Search then also finds the modules with a word of
+          their name starting with what you give, like stats finding every module named “… Statistics …”.
+        </p>
         <ListEditor<SearchNickname>
           items={doc.searchNicknames}
           noun="word"
@@ -115,13 +194,28 @@ export function SearchSection({ doc, set, err, fields, savedIds }: { doc: SiteDo
           metaOf={(n) => (n.finds ? `Finds modules named “${n.finds}…”` : 'Finds nothing yet')}
           savedIds={savedIds}
           onChange={(searchNicknames) => set({ searchNicknames })}
-          make={() => ({ id: newItemId('word', doc.searchNicknames.map((n) => n.id)), word: '', finds: '' })}
+          make={() => ({
+            id: newItemId(
+              'word',
+              doc.searchNicknames.map((n) => n.id),
+            ),
+            word: '',
+            finds: '',
+          })}
           hasError={(i) => hasErrorUnder(fields, `searchNicknames.${i}`)}
           max={40}
         >
           {(n, i, change) => (
             <div className="dedit-grid">
-              <TextField label="Students type" hint="One word, letters and digits, like stats." value={n.word} onChange={(e) => change({ word: e.target.value })} error={err(`searchNicknames.${i}.word`)} maxLength={20} required />
+              <TextField
+                label="Students type"
+                hint="One word, letters and digits, like stats."
+                value={n.word}
+                onChange={(e) => change({ word: e.target.value })}
+                error={err(`searchNicknames.${i}.word`)}
+                maxLength={20}
+                required
+              />
               <TextField
                 label="Finds modules named"
                 hint="The start of a word of their names, like statistic. Letters, digits and spaces."
@@ -137,10 +231,29 @@ export function SearchSection({ doc, set, err, fields, savedIds }: { doc: SiteDo
       </fieldset>
       <fieldset className="dedit-group">
         <legend className="dedit-group__legend">Try searching for</legend>
-        <p className="dedit__note">Search suggests these before anything is typed, until a student has searches of their own.</p>
+        <p className="dedit__note">
+          Search suggests these before anything is typed, until a student has searches of their own.
+        </p>
         {err('searchSuggestions') ? <p className="dedit__error">{err('searchSuggestions')}</p> : null}
-        <RowsEditor<string> items={doc.searchSuggestions} noun="suggestion" onChange={(searchSuggestions) => set({ searchSuggestions })} make={() => ''} min={1} max={6}>
-          {(q, i, change) => <TextField label={`Suggestion ${i + 1}`} hideLabel value={q} onChange={(e) => change(e.target.value)} error={err(`searchSuggestions.${i}`)} maxLength={60} required />}
+        <RowsEditor<string>
+          items={doc.searchSuggestions}
+          noun="suggestion"
+          onChange={(searchSuggestions) => set({ searchSuggestions })}
+          make={() => ''}
+          min={1}
+          max={6}
+        >
+          {(q, i, change) => (
+            <TextField
+              label={`Suggestion ${i + 1}`}
+              hideLabel
+              value={q}
+              onChange={(e) => change(e.target.value)}
+              error={err(`searchSuggestions.${i}`)}
+              maxLength={60}
+              required
+            />
+          )}
         </RowsEditor>
       </fieldset>
     </>

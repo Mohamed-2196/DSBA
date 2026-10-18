@@ -119,7 +119,13 @@ function PlanDialog({ moduleId, moduleName, examDate, paperEvery, boardId: initi
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" form={`board-plan-${uid}`} loading={make.isPending} data-hub="board-plan-save">
+          <Button
+            variant="primary"
+            type="submit"
+            form={`board-plan-${uid}`}
+            loading={make.isPending}
+            data-hub="board-plan-save"
+          >
             Make the plan
           </Button>
         </>

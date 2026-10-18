@@ -1,7 +1,17 @@
 // Chapter list beside the player: chapters with per-chapter progress, expanding to their videos.
 // Each video is a link to the lesson's address (/modules/<id>/lessons/<lesson id>), so lessons can be opened in a new
 // tab.
-import { ArrowCounterClockwise, CaretDown, Check, CheckCircle, DotsThree, EyeSlash, ListChecks, Play, Warning } from '@phosphor-icons/react';
+import {
+  ArrowCounterClockwise,
+  CaretDown,
+  Check,
+  CheckCircle,
+  DotsThree,
+  EyeSlash,
+  ListChecks,
+  Play,
+  Warning,
+} from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Chapter, ModuleDetail, Video } from '../../api/types';
@@ -14,7 +24,10 @@ import { useThumbnail } from './thumbs';
 
 /** '9 videos', '6 class recordings', '1 playlist', '4 class recordings and 3 videos'. */
 function chapterContents(ch: Chapter): string {
-  const counts = ch.videos.reduce<Record<string, number>>((acc, v) => ({ ...acc, [v.kind]: (acc[v.kind] ?? 0) + 1 }), {});
+  const counts = ch.videos.reduce<Record<string, number>>(
+    (acc, v) => ({ ...acc, [v.kind]: (acc[v.kind] ?? 0) + 1 }),
+    {},
+  );
   const parts: string[] = [];
   const yt = counts.youtube ?? 0;
   const bbb = counts.bbb ?? 0;
@@ -35,7 +48,11 @@ function RowThumb({ video, current, seen }: { video: Video; current: boolean; se
   const KindIcon = KIND_ICON[video.kind];
   return (
     <span className={cx('mod-vid__thumb', loaded && 'has-img')} aria-hidden="true">
-      {loaded && src ? <img src={src} alt="" decoding="async" /> : <KindIcon className="mod-vid__ticon" weight="duotone" />}
+      {loaded && src ? (
+        <img src={src} alt="" decoding="async" />
+      ) : (
+        <KindIcon className="mod-vid__ticon" weight="duotone" />
+      )}
       {current ? (
         <span className="mod-vid__playing">
           <Play weight="fill" />
@@ -142,9 +159,21 @@ export function ChapterList({
                     onSelect: onReset,
                     disabled: p.watched === 0 && !state.last[m.id],
                   },
-                  { id: 'tracking', label: 'Stop tracking my progress', icon: EyeSlash, onSelect: () => onTracking(false) },
+                  {
+                    id: 'tracking',
+                    label: 'Stop tracking my progress',
+                    icon: EyeSlash,
+                    onSelect: () => onTracking(false),
+                  },
                 ]
-              : [{ id: 'tracking', label: 'Track my lesson progress', icon: ListChecks, onSelect: () => onTracking(true) }]
+              : [
+                  {
+                    id: 'tracking',
+                    label: 'Track my lesson progress',
+                    icon: ListChecks,
+                    onSelect: () => onTracking(true),
+                  },
+                ]
           }
         />
       </div>
@@ -161,10 +190,26 @@ export function ChapterList({
           const done = cp.total > 0 && cp.watched === cp.total;
           return (
             <li key={ci} className={cx('mod-ch', isOpen && 'is-open', ci === selC && 'is-current', done && 'is-done')}>
-              <button type="button" className="mod-ch__head" aria-expanded={isOpen} aria-controls={`mod-ch-${ci}`} onClick={() => toggle(ci)}>
+              <button
+                type="button"
+                className="mod-ch__head"
+                aria-expanded={isOpen}
+                aria-controls={`mod-ch-${ci}`}
+                onClick={() => toggle(ci)}
+              >
                 <span className="mod-ch__ring" aria-hidden="true">
-                  <ProgressRing value={cp.pct} size={34} stroke={3} color={done ? 'var(--signal)' : color} showValue={false}>
-                    {done ? <Check weight="bold" className="mod-ch__check" /> : <span className="mod-ch__num u-tabular">{ci + 1}</span>}
+                  <ProgressRing
+                    value={cp.pct}
+                    size={34}
+                    stroke={3}
+                    color={done ? 'var(--signal)' : color}
+                    showValue={false}
+                  >
+                    {done ? (
+                      <Check weight="bold" className="mod-ch__check" />
+                    ) : (
+                      <span className="mod-ch__num u-tabular">{ci + 1}</span>
+                    )}
                   </ProgressRing>
                 </span>
                 <span className="mod-ch__text">
@@ -172,7 +217,9 @@ export function ChapterList({
                     <span className="visually-hidden">Chapter {ci + 1}: </span>
                     {ch.title}
                   </span>
-                  <span className="mod-ch__meta">{cp.watched ? `${cp.watched} of ${cp.total} watched` : chapterContents(ch)}</span>
+                  <span className="mod-ch__meta">
+                    {cp.watched ? `${cp.watched} of ${cp.total} watched` : chapterContents(ch)}
+                  </span>
                 </span>
                 <CaretDown className="mod-ch__caret" aria-hidden="true" weight="bold" />
               </button>
@@ -188,7 +235,12 @@ export function ChapterList({
                         <Link
                           to={lessonHref(m.id, vid.id)}
                           replace
-                          className={cx('mod-vid', current && 'is-current', seen && 'is-watched', info.unavailable && 'is-unavailable')}
+                          className={cx(
+                            'mod-vid',
+                            current && 'is-current',
+                            seen && 'is-watched',
+                            info.unavailable && 'is-unavailable',
+                          )}
                           aria-current={current ? 'true' : undefined}
                           title={info.title.length > 56 ? info.title : undefined}
                           data-hub="lesson-item"

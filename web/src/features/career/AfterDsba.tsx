@@ -41,7 +41,11 @@ function RowLink({ link }: { link: CareerChecklistItem['link'] }) {
   switch (link.kind) {
     case 'cert':
       return (
-        <button type="button" className="career-ready__link" onClick={() => jumpTo(`career-cert-${link.cert}`, { flash: true, block: 'center' })}>
+        <button
+          type="button"
+          className="career-ready__link"
+          onClick={() => jumpTo(`career-cert-${link.cert}`, { flash: true, block: 'center' })}
+        >
           {body}
         </button>
       );
@@ -66,7 +70,10 @@ function RowLink({ link }: { link: CareerChecklistItem['link'] }) {
 function Checklist() {
   const { checklist } = useCareerData();
   const [stored, setStored] = useLocalStorage<string[]>(CHECKLIST_KEY, []);
-  const done = useMemo(() => new Set(idsOf(stored).filter((id) => checklist.some((c) => c.id === id))), [stored, checklist]);
+  const done = useMemo(
+    () => new Set(idsOf(stored).filter((id) => checklist.some((c) => c.id === id))),
+    [stored, checklist],
+  );
   const n = done.size;
   const total = checklist.length;
   const toggle = (id: string) =>
@@ -76,21 +83,39 @@ function Checklist() {
     });
 
   return (
-    <Panel as="section" padding="none" className="career-ready" aria-labelledby="career-ready-title" data-hub="career-checklist">
+    <Panel
+      as="section"
+      padding="none"
+      className="career-ready"
+      aria-labelledby="career-ready-title"
+      data-hub="career-checklist"
+    >
       <div className="career-ready__head">
         <h3 id="career-ready-title" className="career-ready__title">
           Ready to apply?
         </h3>
         <Badge tone={n === total ? 'signal' : 'neutral'} aria-live="polite">{`${n} of ${total} done`}</Badge>
       </div>
-      <div className="career-ready__bar" role="progressbar" aria-label="Checklist progress" aria-valuemin={0} aria-valuemax={total} aria-valuenow={n}>
+      <div
+        className="career-ready__bar"
+        role="progressbar"
+        aria-label="Checklist progress"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={n}
+      >
         <span className="career-ready__fill" style={{ width: `${total ? (n / total) * 100 : 0}%` }} />
       </div>
       <ul role="list" className="career-ready__list">
         {checklist.map((c) => (
           <li key={c.id} className="career-ready__row" data-check-id={c.id}>
             <label className="career-check">
-              <input type="checkbox" className="career-check__box" checked={done.has(c.id)} onChange={() => toggle(c.id)} />
+              <input
+                type="checkbox"
+                className="career-check__box"
+                checked={done.has(c.id)}
+                onChange={() => toggle(c.id)}
+              />
               <span className="career-check__body">
                 <span className="career-check__title">{c.title}</span>
                 <span className="career-check__hint">{c.hint}</span>
@@ -112,7 +137,9 @@ export function AfterDsba() {
   const { featureOn } = useAuth();
   const studyTo = appPath(study?.action.to);
   if (!checklist.length && !seniors.length && !study) return null;
-  const description = seniors.length ? 'Things to have ready, and people who can tell you how it went for them.' : 'Things to have ready before you send an application.';
+  const description = seniors.length
+    ? 'Things to have ready, and people who can tell you how it went for them.'
+    : 'Things to have ready before you send an application.';
   return (
     <PageSection id="career-after" aria-labelledby="career-after-title" data-hub="career-after">
       <SectionHeader id="career-after-title" title="Before you apply" description={description} />
@@ -132,7 +159,9 @@ export function AfterDsba() {
                 {study.action.label}
               </Button>
             ) : null}
-            {featureOn('grades') ? <ProjectedClass className="career-study__projected" calculatorLink={studyTo !== '/grades'} /> : null}
+            {featureOn('grades') ? (
+              <ProjectedClass className="career-study__projected" calculatorLink={studyTo !== '/grades'} />
+            ) : null}
           </Panel>
         ) : null}
       </div>

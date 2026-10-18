@@ -18,7 +18,12 @@ export function addedAt(item: Pick<LibraryItem, 'publishedAt' | 'createdAt'>): s
  * library, so they aren't news.
  */
 export function isNew(item: Pick<LibraryItem, 'publishedAt' | 'status' | 'uploadedBy'>, now = Date.now()): boolean {
-  return item.status === 'published' && !!item.uploadedBy && !!item.publishedAt && now - new Date(item.publishedAt).getTime() < WEEK;
+  return (
+    item.status === 'published' &&
+    !!item.uploadedBy &&
+    !!item.publishedAt &&
+    now - new Date(item.publishedAt).getTime() < WEEK
+  );
 }
 
 export function downloadsLabel(n: number): string {

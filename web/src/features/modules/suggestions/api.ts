@@ -22,7 +22,8 @@ const queueKey = (status: SuggestionStatus) => [...SUGGESTIONS_KEY, 'queue', sta
 export function useMySuggestions(moduleId: string, enabled: boolean) {
   return useQuery({
     queryKey: mineKey(moduleId),
-    queryFn: ({ signal }) => call(api.GET('/api/v1/video-suggestions/mine', { params: { query: { moduleId } }, signal })),
+    queryFn: ({ signal }) =>
+      call(api.GET('/api/v1/video-suggestions/mine', { params: { query: { moduleId } }, signal })),
     enabled,
   });
 }
@@ -42,7 +43,12 @@ export function useSuggestionQueue(status: SuggestionStatus) {
   return useInfiniteQuery({
     queryKey: queueKey(status),
     queryFn: ({ pageParam, signal }) =>
-      call(api.GET('/api/v1/content/video-suggestions', { params: { query: { status, limit: PAGE_SIZE, offset: pageParam } }, signal })),
+      call(
+        api.GET('/api/v1/content/video-suggestions', {
+          params: { query: { status, limit: PAGE_SIZE, offset: pageParam } },
+          signal,
+        }),
+      ),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
   });
@@ -63,7 +69,12 @@ export function useAcceptSuggestion() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: SuggestionAccept }) =>
-      call(api.POST('/api/v1/content/video-suggestions/{suggestion_id}/accept', { params: { path: { suggestion_id: id } }, body })),
+      call(
+        api.POST('/api/v1/content/video-suggestions/{suggestion_id}/accept', {
+          params: { path: { suggestion_id: id } },
+          body,
+        }),
+      ),
     onSuccess: (s: SuggestionOut) => decided(qc, s),
   });
 }
@@ -72,7 +83,12 @@ export function useDeclineSuggestion() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, reply }: { id: string; reply: string }) =>
-      call(api.POST('/api/v1/content/video-suggestions/{suggestion_id}/decline', { params: { path: { suggestion_id: id } }, body: { reply } })),
+      call(
+        api.POST('/api/v1/content/video-suggestions/{suggestion_id}/decline', {
+          params: { path: { suggestion_id: id } },
+          body: { reply },
+        }),
+      ),
     onSuccess: (s: SuggestionOut) => decided(qc, s),
   });
 }

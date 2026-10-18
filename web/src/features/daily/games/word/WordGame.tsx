@@ -14,7 +14,8 @@ const REVEAL = FLIP_STEP * 4 + FLIP;
 const calm = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 const typingInto = (target: EventTarget | null) =>
-  target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+  target instanceof HTMLElement &&
+  (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
 export function WordGame({ out, busy, play, flash, paused }: GameProps) {
   const { play: state } = out;
@@ -116,7 +117,13 @@ export function WordGame({ out, busy, play, flash, paused }: GameProps) {
               <div
                 key={r === current ? `typing-${shake.n}` : r}
                 role="row"
-                aria-label={row ? spoken(row) : r === current ? `Typing: ${typed.split('').join(' ') || 'nothing yet'}` : `Row ${r + 1}, empty`}
+                aria-label={
+                  row
+                    ? spoken(row)
+                    : r === current
+                      ? `Typing: ${typed.split('').join(' ') || 'nothing yet'}`
+                      : `Row ${r + 1}, empty`
+                }
                 className={cx('dw-row', r === current && shake.on && 'is-shaking', cheering === r && 'is-cheering')}
               >
                 {Array.from({ length }, (_, i) => {
@@ -127,7 +134,12 @@ export function WordGame({ out, busy, play, flash, paused }: GameProps) {
                       key={i}
                       role="gridcell"
                       aria-hidden="true"
-                      className={cx('dw-tile', letter && 'is-filled', mark && `is-${mark}`, revealing === r && 'is-turning')}
+                      className={cx(
+                        'dw-tile',
+                        letter && 'is-filled',
+                        mark && `is-${mark}`,
+                        revealing === r && 'is-turning',
+                      )}
                       style={{ '--i': i } as CSSProperties}
                     >
                       {letter}
@@ -158,7 +170,15 @@ export function WordGame({ out, busy, play, flash, paused }: GameProps) {
                   onClick={() => press(key)}
                   onMouseDown={(e) => e.preventDefault()} // a click leaves the focus where it was: Enter stays a guess
                   disabled={over}
-                  aria-label={key === 'Backspace' ? 'Delete letter' : key === 'Enter' ? 'Guess' : mark ? `${key}, ${MARK_LABEL[mark]}` : key}
+                  aria-label={
+                    key === 'Backspace'
+                      ? 'Delete letter'
+                      : key === 'Enter'
+                        ? 'Guess'
+                        : mark
+                          ? `${key}, ${MARK_LABEL[mark]}`
+                          : key
+                  }
                 >
                   {key === 'Backspace' ? <Backspace size={22} aria-hidden="true" /> : key === 'Enter' ? 'Enter' : key}
                 </button>

@@ -3,13 +3,30 @@ import { errorMessage, isApiError } from '../../../api/errors';
 import { useModules } from '../../../state/modules';
 import { Button, ConfirmDialog, Modal } from '../../../ui';
 import { useDeleteItem, useUpdateItem } from '../api';
-import { checkValues, errorsFromApi, toUpdateBody, valuesFromItem, type ItemFormErrors, type ItemFormValues } from '../itemForm';
+import {
+  checkValues,
+  errorsFromApi,
+  toUpdateBody,
+  valuesFromItem,
+  type ItemFormErrors,
+  type ItemFormValues,
+} from '../itemForm';
 import type { LibraryItem } from '../types';
 import { ItemFields } from './ItemFields';
 import './UploadDialog.css';
 
 /** "Edit details" for an item: its uploader while it waits for review, moderators always. */
-export function EditItemDialog({ item, open, onClose, onSaved }: { item: LibraryItem; open: boolean; onClose: () => void; onSaved?: (item: LibraryItem) => void }) {
+export function EditItemDialog({
+  item,
+  open,
+  onClose,
+  onSaved,
+}: {
+  item: LibraryItem;
+  open: boolean;
+  onClose: () => void;
+  onSaved?: (item: LibraryItem) => void;
+}) {
   const uid = useId().replace(/:/g, '');
   const { getModule } = useModules();
   const update = useUpdateItem();
@@ -89,13 +106,25 @@ export function EditItemDialog({ item, open, onClose, onSaved }: { item: Library
 /** What deleting does, in words: it leaves the library at once; the file itself is deleted a week later (the
  *  API's grace period, security review SEC-14), and nobody can open it meanwhile. */
 function deleteBody(item: LibraryItem): string {
-  if (item.source === 'link') return 'The link leaves the library. The folder it points to isn’t touched. This can’t be undone.';
-  if (item.status === 'published') return 'It leaves the library at once and nobody can open it any more. The file itself is deleted a week later. This can’t be undone.';
+  if (item.source === 'link')
+    return 'The link leaves the library. The folder it points to isn’t touched. This can’t be undone.';
+  if (item.status === 'published')
+    return 'It leaves the library at once and nobody can open it any more. The file itself is deleted a week later. This can’t be undone.';
   return 'It leaves Your uploads and the review queue at once. The file itself is deleted a week later. This can’t be undone.';
 }
 
 /** "Delete “…”?" (the shared ConfirmDialog: it opens on Cancel). */
-export function DeleteItemDialog({ item, open, onClose, onDeleted }: { item: LibraryItem; open: boolean; onClose: () => void; onDeleted?: () => void }) {
+export function DeleteItemDialog({
+  item,
+  open,
+  onClose,
+  onDeleted,
+}: {
+  item: LibraryItem;
+  open: boolean;
+  onClose: () => void;
+  onDeleted?: () => void;
+}) {
   const remove = useDeleteItem();
   const [error, setError] = useState<string | null>(null);
   return (

@@ -49,7 +49,13 @@ function carriedPose({ dir, moving }: Carry, step: 0 | 1): Pose {
   return moving && step ? `walk-${dir}` : `side-${dir}`;
 }
 
-const MOOD_POSE: Record<ChatMood, Pose> = { wave: 'talking', thinking: 'surprised', talking: 'talking', happy: 'happy', sad: 'sad' };
+const MOOD_POSE: Record<ChatMood, Pose> = {
+  wave: 'talking',
+  thinking: 'surprised',
+  talking: 'talking',
+  happy: 'happy',
+  sad: 'sad',
+};
 
 export interface PoseInput {
   /** while she is being dragged, else null */

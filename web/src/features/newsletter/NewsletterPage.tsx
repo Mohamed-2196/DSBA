@@ -16,7 +16,8 @@ import { NewIssueDialog } from './NewIssueDialog';
 import type { IssueCard } from './types';
 import './NewsletterPage.css';
 
-const issueHref = (issue: { slug: string }, section?: string): string => `/newsletter/${issue.slug}${section ? `?section=${section}` : ''}`;
+const issueHref = (issue: { slug: string }, section?: string): string =>
+  `/newsletter/${issue.slug}${section ? `?section=${section}` : ''}`;
 
 function Masthead({ first, latest }: { first: IssueCard | undefined; latest: IssueCard | undefined }) {
   const line = useNewsletterMasthead().data?.masthead;
@@ -179,7 +180,9 @@ function Drafts({ drafts, onNew }: { drafts: IssueSummary[]; onNew: () => void }
             Drafts
             <span className="nl-drafts__count u-tabular">{drafts.length}</span>
           </h2>
-          <p className="nl-drafts__desc">Only people who manage the newsletter see these. Publishing an issue tells everyone it’s out.</p>
+          <p className="nl-drafts__desc">
+            Only people who manage the newsletter see these. Publishing an issue tells everyone it’s out.
+          </p>
         </div>
         <Button variant="primary" leadingIcon={Plus} onClick={onNew} data-hub="issue-new">
           New issue
@@ -202,8 +205,22 @@ function Drafts({ drafts, onNew }: { drafts: IssueSummary[]; onNew: () => void }
                 </span>
               </span>
               <span className="nl-drafts__actions">
-                <IconButton label={`Preview issue ${issueNo(d.number)}`} icon={Eye} variant="secondary" size="sm" tooltip to={issueHref(d)} />
-                <IconButton label={`Edit issue ${issueNo(d.number)}`} icon={PencilSimple} variant="secondary" size="sm" tooltip to={`/newsletter/${d.slug}/edit`} />
+                <IconButton
+                  label={`Preview issue ${issueNo(d.number)}`}
+                  icon={Eye}
+                  variant="secondary"
+                  size="sm"
+                  tooltip
+                  to={issueHref(d)}
+                />
+                <IconButton
+                  label={`Edit issue ${issueNo(d.number)}`}
+                  icon={PencilSimple}
+                  variant="secondary"
+                  size="sm"
+                  tooltip
+                  to={`/newsletter/${d.slug}/edit`}
+                />
                 <DeleteIssueButton issue={d} iconOnly size="sm" />
                 <PublishButton issue={d} size="sm" />
               </span>
@@ -259,7 +276,12 @@ export default function NewsletterPage() {
       {list.isPending ? (
         <NewsletterSkeleton />
       ) : list.isError ? (
-        <QueryError error={list.error} title="The newsletter didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} />
+        <QueryError
+          error={list.error}
+          title="The newsletter didn’t load"
+          onRetry={() => void list.refetch()}
+          retrying={list.isFetching}
+        />
       ) : latest ? (
         <LatestFeature issue={latest} />
       ) : (

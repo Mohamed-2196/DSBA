@@ -24,7 +24,13 @@ describe('fill', () => {
 });
 
 describe('starters', () => {
-  const st = { id: 'st2133', year: 2, unitCode: 'ST2133', shortName: 'Stats', name: 'Advanced statistics' } as ModuleSummary;
+  const st = {
+    id: 'st2133',
+    year: 2,
+    unitCode: 'ST2133',
+    shortName: 'Stats',
+    name: 'Advanced statistics',
+  } as ModuleSummary;
 
   it('starts with every kind of help, each with something to fill in', () => {
     const list = starters(CARDS, [], null);
@@ -40,6 +46,8 @@ describe('starters', () => {
     expect(starters(CARDS, [st], 2).find((s) => s.id === 'plan')?.template).toContain('[ST2133]');
     expect(starters(CARDS, [st], 2).find((s) => s.id === 'plan')?.example).toBe('A plan for ST2133 around my exams');
     expect(starters(CARDS, [st], 1).find((s) => s.id === 'plan')?.template).toContain('[my next exam]');
-    expect(starters(CARDS, [st], 2).find((s) => s.id === 'find')?.template).toBe('Where are [the past papers for ST2133]?');
+    expect(starters(CARDS, [st], 2).find((s) => s.id === 'find')?.template).toBe(
+      'Where are [the past papers for ST2133]?',
+    );
   });
 });

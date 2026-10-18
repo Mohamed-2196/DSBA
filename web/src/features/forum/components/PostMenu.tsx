@@ -8,7 +8,13 @@ const isDivider = (i: MenuItem) => 'divider' in i && i.divider === true;
  * The "More actions" menu on a post (edit, delete, moderation). Pass groups of items; empty groups disappear and
  * the rest are separated by dividers. Renders nothing when there is nothing to offer.
  */
-export function PostMenu({ groups, label = 'More actions' }: { groups: (MenuItem | false | null | undefined)[][]; label?: string }) {
+export function PostMenu({
+  groups,
+  label = 'More actions',
+}: {
+  groups: (MenuItem | false | null | undefined)[][];
+  label?: string;
+}) {
   const items: MenuItem[] = [];
   for (const group of groups) {
     const present = group.filter((i): i is MenuItem => !!i);

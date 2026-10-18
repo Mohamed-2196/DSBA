@@ -33,14 +33,25 @@ export interface ReplyComposerProps {
  * may no longer see it), or locked. Under a reply, a 404 means that reply went, not the thread.
  */
 const isClosedRefusal = (e: unknown, inline: boolean) =>
-  e instanceof ApiError && (e.code === 'post_unavailable' || e.code === 'thread_locked' || (e.status === 404 && !inline));
+  e instanceof ApiError &&
+  (e.code === 'post_unavailable' || e.code === 'thread_locked' || (e.status === 404 && !inline));
 
 /**
  * Write a reply. At the bottom of a thread (data-hub="reply-composer", textarea "reply-input"), or inline under a reply
  * when `parent` is set (replies to a nested reply attach to its parent and mention the person).
  * Guests can write; posting asks them to sign in first and then posts what they wrote.
  */
-export function ReplyComposer({ thread, parent = null, mention = null, onPosted, onCancel, textareaRef, autoFocus = false, onTextChange, closed = false }: ReplyComposerProps) {
+export function ReplyComposer({
+  thread,
+  parent = null,
+  mention = null,
+  onPosted,
+  onCancel,
+  textareaRef,
+  autoFocus = false,
+  onTextChange,
+  closed = false,
+}: ReplyComposerProps) {
   const { me, status, requireAuth } = useAuth();
   const create = useCreateReply();
   const post = useSingleFlight(create);
@@ -58,7 +69,12 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
   const inputRef = textareaRef ?? localRef;
   const inline = Boolean(parent);
   const parentName = parent ? postAuthorName(parent) : null;
-  const images = useAttachImages({ text: body, setText: setBody, textareaRef: inputRef, gate: () => requireAuth('Sign in to attach images') });
+  const images = useAttachImages({
+    text: body,
+    setText: setBody,
+    textareaRef: inputRef,
+    gate: () => requireAuth('Sign in to attach images'),
+  });
   const hasText = body.trim().length > 0 && body.trim() !== (mention ? `@${mention}` : '');
   const shut = closed || refused;
   useEffect(() => {
@@ -80,7 +96,8 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
       setError('Wait for the image to finish uploading.');
       return;
     }
-    if (!requireAuth(inline ? `Sign in to reply to ${parentName}` : 'Sign in to reply', () => sendRef.current())) return;
+    if (!requireAuth(inline ? `Sign in to reply to ${parentName}` : 'Sign in to reply', () => sendRef.current()))
+      return;
     post(
       { threadId: thread.id, body: text, parentId: parent?.id ?? null },
       {
@@ -115,12 +132,14 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
   if (me?.status === 'suspended') {
     return (
       <p className={cx('forum-compose-note', inline && 'is-inline')} role="note">
-        Your account is suspended, so you can read the forum but not reply. Contact a student rep if you think this is a mistake.
+        Your account is suspended, so you can read the forum but not reply. Contact a student rep if you think this is a
+        mistake.
       </p>
     );
   }
 
-  const author = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, badge: badgeOf(me) } : null;
+  const author =
+    me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, badge: badgeOf(me) } : null;
   const guest = status === 'guest';
 
   return (
@@ -133,7 +152,12 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
       }}
       noValidate
     >
-      <AuthorAvatar author={author} guest={!author} size={inline ? 'sm' : 'md'} className="forum-composer-reply__avatar" />
+      <AuthorAvatar
+        author={author}
+        guest={!author}
+        size={inline ? 'sm' : 'md'}
+        className="forum-composer-reply__avatar"
+      />
       <div className="forum-composer-reply__main">
         <input {...images.fileInput} />
         <MarkdownEditor
@@ -154,7 +178,11 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
           autoFocus={autoFocus}
           onAttachImage={shut ? undefined : images.pick}
           onImageFiles={shut ? undefined : images.addFiles}
-          textareaProps={inline ? { dir: 'auto', maxLength: REPLY_MAX } : { 'data-hub': 'reply-input', dir: 'auto', maxLength: REPLY_MAX }}
+          textareaProps={
+            inline
+              ? { dir: 'auto', maxLength: REPLY_MAX }
+              : { 'data-hub': 'reply-input', dir: 'auto', maxLength: REPLY_MAX }
+          }
         />
         <AttachmentList
           uploads={images.cards}
@@ -167,7 +195,9 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
         <div className="forum-composer-reply__actions">
           {guest ? (
             // The same promise as "Start a thread" (UX review UX-17): nothing typed is lost to signing in.
-            <span className="forum-composer-reply__guest">You’ll sign in when you post, and your reply goes up right after.</span>
+            <span className="forum-composer-reply__guest">
+              You’ll sign in when you post, and your reply goes up right after.
+            </span>
           ) : shut ? null : (
             <span className="forum-composer-reply__hint" aria-hidden="true">
               <Kbd>{modKeyLabel()}</Kbd>
@@ -180,7 +210,14 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
                 Cancel
               </Button>
             ) : null}
-            <Button type="submit" variant="primary" size={inline ? 'sm' : 'md'} loading={create.isPending} disabled={shut} data-hub="post-reply">
+            <Button
+              type="submit"
+              variant="primary"
+              size={inline ? 'sm' : 'md'}
+              loading={create.isPending}
+              disabled={shut}
+              data-hub="post-reply"
+            >
               Post reply
             </Button>
           </span>

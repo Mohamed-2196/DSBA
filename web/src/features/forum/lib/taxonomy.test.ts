@@ -6,7 +6,15 @@ const META: ForumMeta = {
   categories: [
     { id: 'year-1', label: 'Year 1', short: 'Y1', year: 1, blurb: 'First year', retired: true },
     { id: 'year-1-maths', label: 'Year 1 maths', short: 'Maths', year: 1, blurb: 'Calculus', retired: false },
-    { id: 'study-groups', label: 'Study groups', short: 'Study group', year: null, blurb: 'Revise together', icon: 'people', retired: false },
+    {
+      id: 'study-groups',
+      label: 'Study groups',
+      short: 'Study group',
+      year: null,
+      blurb: 'Revise together',
+      icon: 'people',
+      retired: false,
+    },
   ],
   tags: [
     { id: 'r', label: 'R', retired: false },
@@ -66,7 +74,9 @@ describe('placeOf', () => {
 
   it('shows a category for every year with its picture, or speech bubbles without one', () => {
     expect(placeOf(t.getCategory('study-groups'))).toEqual({ year: null, label: 'Study group', icon: 'people' });
-    expect(placeOf({ id: 'campus', label: 'Campus', short: 'Campus', year: null, blurb: 'Life on campus', retired: false })).toEqual({ year: null, label: 'Campus', icon: 'chat' });
+    expect(
+      placeOf({ id: 'campus', label: 'Campus', short: 'Campus', year: null, blurb: 'Life on campus', retired: false }),
+    ).toEqual({ year: null, label: 'Campus', icon: 'chat' });
   });
 
   it('shows nothing while the categories load', () => {

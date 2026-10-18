@@ -39,7 +39,8 @@ function FeatureRow({ f, roles }: { f: FeatureOut; roles: RoleChoice[] }) {
     set.mutate(
       { feature: f.feature, body: switchBody(nextMode, [...ids]) },
       {
-        onSuccess: (out) => push({ tone: 'success', title: `${out.label}: ${switchSummary(out, roleName).toLowerCase()}` }),
+        onSuccess: (out) =>
+          push({ tone: 'success', title: `${out.label}: ${switchSummary(out, roleName).toLowerCase()}` }),
         onError: (e) => {
           setProblem(errorMessage(e));
           // Show what's saved again.
@@ -88,7 +89,11 @@ function FeatureRow({ f, roles }: { f: FeatureOut; roles: RoleChoice[] }) {
               <span>{r.name}</span>
             </label>
           ))}
-          {noneYet ? <p className="access-note">Pick at least one role. Until you do, it stays {switchSummary(f, roleName).toLowerCase()}.</p> : null}
+          {noneYet ? (
+            <p className="access-note">
+              Pick at least one role. Until you do, it stays {switchSummary(f, roleName).toLowerCase()}.
+            </p>
+          ) : null}
         </fieldset>
       ) : null}
       {problem ? (
@@ -104,8 +109,24 @@ export function FeaturesTab() {
   const switches = useFeatureSwitches();
   const catalogue = useRoleCatalogue();
   if (switches.isPending || catalogue.isPending) return <Skeleton lines={8} />;
-  if (switches.isError) return <QueryError error={switches.error} title="The switches didn’t load" onRetry={() => void switches.refetch()} retrying={switches.isFetching} />;
-  if (catalogue.isError) return <QueryError error={catalogue.error} title="The roles didn’t load" onRetry={() => void catalogue.refetch()} retrying={catalogue.isFetching} />;
+  if (switches.isError)
+    return (
+      <QueryError
+        error={switches.error}
+        title="The switches didn’t load"
+        onRetry={() => void switches.refetch()}
+        retrying={switches.isFetching}
+      />
+    );
+  if (catalogue.isError)
+    return (
+      <QueryError
+        error={catalogue.error}
+        title="The roles didn’t load"
+        onRetry={() => void catalogue.refetch()}
+        retrying={catalogue.isFetching}
+      />
+    );
   const roles = catalogue.data.roles.filter((r) => !r.locked).map((r) => ({ id: r.id, name: r.name }));
   return (
     <Panel padding="none">

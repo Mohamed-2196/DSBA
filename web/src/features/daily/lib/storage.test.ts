@@ -1,5 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { clearGuestMoves, guestMoves, hasSeenRules, loadNotes, markRulesSeen, prune, saveGuestMoves, saveNotes } from './storage';
+import {
+  clearGuestMoves,
+  guestMoves,
+  hasSeenRules,
+  loadNotes,
+  markRulesSeen,
+  prune,
+  saveGuestMoves,
+  saveNotes,
+} from './storage';
 
 /** A Map-backed localStorage on a stand-in window: the tests run in Node. */
 function fakeStorage(): Storage {
@@ -62,7 +71,10 @@ describe('Sudoku notes', () => {
   it('round-trip and drop anything malformed', () => {
     saveNotes('2026-10-17', 'easy', { 3: [5, 1], 7: [2] }, '2026-10-17');
     expect(loadNotes('2026-10-17', 'easy')).toEqual({ 3: [1, 5], 7: [2] });
-    g.window?.localStorage.setItem('hub.mine.daily.notes.2026-10-17:hard', JSON.stringify({ 3: [0, 10, 4], 99: [1], x: 'no' }));
+    g.window?.localStorage.setItem(
+      'hub.mine.daily.notes.2026-10-17:hard',
+      JSON.stringify({ 3: [0, 10, 4], 99: [1], x: 'no' }),
+    );
     expect(loadNotes('2026-10-17', 'hard')).toEqual({ 3: [4] });
   });
 

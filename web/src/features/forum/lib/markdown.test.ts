@@ -5,7 +5,23 @@ const MEDIA = '/api/v1/media/7511c4f7-ffbf-4f8e-8500-93334507e674';
 
 describe('parseBlocks', () => {
   it('reads paragraphs, lists, quotes and code', () => {
-    const text = ['First line', 'same paragraph', '', '- one', '- two', '', '1. first', '2) second', '', '> quoted', '> still quoted', '', '```r', 'x <- c(1, 2)', '```'].join('\n');
+    const text = [
+      'First line',
+      'same paragraph',
+      '',
+      '- one',
+      '- two',
+      '',
+      '1. first',
+      '2) second',
+      '',
+      '> quoted',
+      '> still quoted',
+      '',
+      '```r',
+      'x <- c(1, 2)',
+      '```',
+    ].join('\n');
     expect(parseBlocks(text)).toEqual([
       { type: 'p', text: 'First line\nsame paragraph' },
       { type: 'ul', items: ['one', 'two'] },
@@ -62,7 +78,9 @@ describe('parseInline', () => {
   });
 
   it('keeps HTML as text', () => {
-    expect(parseInline('<img src=x onerror=alert(1)>')).toEqual([{ type: 'text', text: '<img src=x onerror=alert(1)>' }]);
+    expect(parseInline('<img src=x onerror=alert(1)>')).toEqual([
+      { type: 'text', text: '<img src=x onerror=alert(1)>' },
+    ]);
   });
 
   it('reads any link target: it is checked when it is rendered', () => {

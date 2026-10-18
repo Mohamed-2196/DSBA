@@ -14,7 +14,11 @@ export interface PaperChoice {
 /** The choices inside a year. A choice may have no module on the Hub ('abstract-maths'). */
 export const CHOICES: Partial<Record<CohortYear, PaperChoice>> = {
   2: { label: 'Your option', pick: 1, ids: ['econometrics', 'information-systems', 'abstract-maths'] },
-  3: { label: 'Your electives', pick: 2, ids: ['microeconomics', 'asset-pricing', 'marketing-management', 'further-maths-economists'] },
+  3: {
+    label: 'Your electives',
+    pick: 2,
+    ids: ['microeconomics', 'asset-pricing', 'marketing-management', 'further-maths-economists'],
+  },
 };
 
 /** Choices the Hub has no module page for, by id. */
@@ -48,15 +52,26 @@ export function papersFor(
 }
 
 /** A module's events count for a student when it's one of their papers; other events follow their year. */
-export function isMine(e: { moduleId: string | null; year: number | null }, year: number | null, papers: ReadonlySet<string> | null): boolean {
+export function isMine(
+  e: { moduleId: string | null; year: number | null },
+  year: number | null,
+  papers: ReadonlySet<string> | null,
+): boolean {
   if (papers && e.moduleId) return papers.has(e.moduleId);
   return year == null || e.year == null || e.year === year;
 }
 
 /** Your year's modules (after your choices), then the other years' papers you sit, in catalogue order. */
-export function modulesFor(year: CohortYear, papers: ReadonlySet<string> | null, catalogue: readonly ModuleSummary[]): ModuleSummary[] {
+export function modulesFor(
+  year: CohortYear,
+  papers: ReadonlySet<string> | null,
+  catalogue: readonly ModuleSummary[],
+): ModuleSummary[] {
   if (!papers) return catalogue.filter((m) => m.year === year);
-  return [...catalogue.filter((m) => m.year === year && papers.has(m.id)), ...catalogue.filter((m) => m.year !== year && papers.has(m.id))];
+  return [
+    ...catalogue.filter((m) => m.year === year && papers.has(m.id)),
+    ...catalogue.filter((m) => m.year !== year && papers.has(m.id)),
+  ];
 }
 
 /** The one module of a pick-one choice (the Year 2 option), or none: every other module of the choice is dropped. */
@@ -79,22 +94,34 @@ export function togglePick(picks: readonly string[], id: string, choice?: PaperC
  * What Home says under a student's modules, and what its button does: their option or electives still to pick, or
  * which modules the list shows. Null without a year of their own.
  */
-export function papersNote(home: CohortYear | null, picks: readonly string[], papers: ReadonlySet<string> | null): { text: string; action: string } | null {
+export function papersNote(
+  home: CohortYear | null,
+  picks: readonly string[],
+  papers: ReadonlySet<string> | null,
+): { text: string; action: string } | null {
   if (!home) return null;
   const choice = CHOICES[home];
   if (choice && !choice.ids.some((id) => picks.includes(id))) {
     const what = choice.pick === 1 ? 'option' : 'electives';
-    return { text: `Pick your ${cohortLabel(home)} ${what} to list only the modules you sit.`, action: `Pick your ${what}` };
+    return {
+      text: `Pick your ${cohortLabel(home)} ${what} to list only the modules you sit.`,
+      action: `Pick your ${what}`,
+    };
   }
   if (!papers) return { text: `Every ${cohortLabel(home)} module.`, action: 'Change' };
   return { text: `The ${papers.size} ${papers.size === 1 ? 'module' : 'modules'} you sit.`, action: 'Change' };
 }
 
 /** What the button says: 'Year 2, option not picked', '5 modules', 'every Year 1 module', 'not set'. */
-export function picksSummary(home: CohortYear | null, picks: readonly string[], papers: ReadonlySet<string> | null): string {
+export function picksSummary(
+  home: CohortYear | null,
+  picks: readonly string[],
+  papers: ReadonlySet<string> | null,
+): string {
   if (!home) return 'not set';
   const choice = CHOICES[home];
-  if (choice && !choice.ids.some((id) => picks.includes(id))) return `${cohortLabel(home)}, ${choice.pick === 1 ? 'option' : 'electives'} not picked`;
+  if (choice && !choice.ids.some((id) => picks.includes(id)))
+    return `${cohortLabel(home)}, ${choice.pick === 1 ? 'option' : 'electives'} not picked`;
   if (!papers) return `every ${cohortLabel(home)} module`;
   return `${papers.size} ${papers.size === 1 ? 'module' : 'modules'}`;
 }

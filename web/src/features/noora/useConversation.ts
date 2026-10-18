@@ -4,7 +4,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { NooraScript } from '../../api/types';
 import { removeStored, useLocalStorage } from '../../state';
-import { CHATS_KEY, newChatId, parseChats, readCurrent, renameChat, withChat, withoutChat, writeCurrent, type SavedChat } from './saved';
+import {
+  CHATS_KEY,
+  newChatId,
+  parseChats,
+  readCurrent,
+  renameChat,
+  withChat,
+  withoutChat,
+  writeCurrent,
+  type SavedChat,
+} from './saved';
 import { useChat, type Chat, type ChatAi } from './useChat';
 
 export interface Conversation extends Chat {
@@ -21,7 +31,17 @@ export interface Conversation extends Chat {
   removeAll: () => void;
 }
 
-export function useConversation({ year, calm, ai, script }: { year: number | null; calm: boolean; ai: ChatAi | null; script: NooraScript }): Conversation {
+export function useConversation({
+  year,
+  calm,
+  ai,
+  script,
+}: {
+  year: number | null;
+  calm: boolean;
+  ai: ChatAi | null;
+  script: NooraScript;
+}): Conversation {
   const [first] = useState(readCurrent);
   const [chatId, setChatId] = useState(() => first?.id ?? newChatId());
   const [stored, setStored] = useLocalStorage<unknown>(CHATS_KEY, []);
@@ -57,7 +77,10 @@ export function useConversation({ year, calm, ai, script }: { year: number | nul
     [chatId, clear, setStored],
   );
 
-  const rename = useCallback((id: string, title: string) => setStored((list: unknown) => renameChat(parseChats(list), id, title)), [setStored]);
+  const rename = useCallback(
+    (id: string, title: string) => setStored((list: unknown) => renameChat(parseChats(list), id, title)),
+    [setStored],
+  );
 
   const removeAll = useCallback(() => {
     clear();

@@ -31,12 +31,23 @@ describe('applicationLine', () => {
 it('sourceLine', () => {
   expect(sourceLine({ source: null, checkedOn: null })).toBeNull();
   expect(sourceLine({ source: 'UoL exam timetable', checkedOn: null })).toBe('Source: UoL exam timetable.');
-  expect(sourceLine({ source: 'UoL exam timetable', checkedOn: '2026-10-10' })).toMatch(/^Source: UoL exam timetable\. Checked .*10 October 2026\.$/);
+  expect(sourceLine({ source: 'UoL exam timetable', checkedOn: '2026-10-10' })).toMatch(
+    /^Source: UoL exam timetable\. Checked .*10 October 2026\.$/,
+  );
 });
 
 describe('typePlural', () => {
   it('names every type of date in the plural, for "hide all …"', () => {
-    expect(TYPE_ORDER.map(typePlural)).toEqual(['exams', 'mock exams', 'revision sessions', 'deadlines', 'careers dates', 'events', 'breaks', 'term dates']);
+    expect(TYPE_ORDER.map(typePlural)).toEqual([
+      'exams',
+      'mock exams',
+      'revision sessions',
+      'deadlines',
+      'careers dates',
+      'events',
+      'breaks',
+      'term dates',
+    ]);
     expect(typePlural('party')).toBe('dates');
   });
 });

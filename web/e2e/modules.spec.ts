@@ -35,7 +35,9 @@ test('on a shared computer, someone else’s guest progress can be left out when
   await expect(page.locator('[data-hub="lesson-watched"]')).toHaveAttribute('aria-pressed', 'true');
 
   // The rep signs in on the same computer.
-  const repState = JSON.parse(fs.readFileSync(statePath('rep'), 'utf8')) as { cookies: { name: string; value: string }[] };
+  const repState = JSON.parse(fs.readFileSync(statePath('rep'), 'utf8')) as {
+    cookies: { name: string; value: string }[];
+  };
   const token = repState.cookies.find((c) => c.name === 'dsba_session')?.value ?? '';
   await ctx.addCookies([{ name: 'dsba_session', value: token, domain: env.host, path: '/' }]);
   const before = await api<{ watched: Record<string, string> }>(page, 'GET', '/api/v1/me/progress');

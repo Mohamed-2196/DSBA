@@ -5,8 +5,6 @@ import { tourParts } from './tourParts';
 
 export function TourText({ text }: { text: string }) {
   return (
-    <>
-      {tourParts(text, modKeyLabel()).map((part, i) => (part.key ? <Kbd key={i}>{part.text}</Kbd> : part.text))}
-    </>
+    <>{tourParts(text, modKeyLabel()).map((part, i) => (part.key ? <Kbd key={i}>{part.text}</Kbd> : part.text))}</>
   );
 }

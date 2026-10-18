@@ -30,7 +30,8 @@ export function useUpdateMe() {
 export function useRemoveIdentifier() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (kind: IdentifierKind) => call(api.DELETE('/api/v1/me/identifiers/{kind}', { params: { path: { kind } } })),
+    mutationFn: (kind: IdentifierKind) =>
+      call(api.DELETE('/api/v1/me/identifiers/{kind}', { params: { path: { kind } } })),
     onSuccess: (me) => {
       qc.setQueryData(ME_KEY, me);
       void qc.invalidateQueries({ queryKey: SESSIONS_KEY });
@@ -49,7 +50,11 @@ export function useRevokeSessions() {
     onMutate: async (ids) => {
       await qc.cancelQueries({ queryKey: SESSIONS_KEY });
       const before = qc.getQueryData<SessionInfo[]>(SESSIONS_KEY);
-      if (before) qc.setQueryData<SessionInfo[]>(SESSIONS_KEY, before.filter((s) => !ids.includes(s.id)));
+      if (before)
+        qc.setQueryData<SessionInfo[]>(
+          SESSIONS_KEY,
+          before.filter((s) => !ids.includes(s.id)),
+        );
       return { before };
     },
     onError: (_e, _ids, ctx) => {

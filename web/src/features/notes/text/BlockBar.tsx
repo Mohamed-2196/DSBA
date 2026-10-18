@@ -44,8 +44,24 @@ interface BlockBarButtonProps {
   disabled?: boolean;
 }
 
-export function BlockBarButton({ icon: I, label, text = false, onClick, href, pressed, primary, danger, disabled }: BlockBarButtonProps) {
-  const className = cx('nb-blockbar__button', text && 'has-text', pressed && 'is-active', primary && 'is-primary', danger && 'is-danger');
+export function BlockBarButton({
+  icon: I,
+  label,
+  text = false,
+  onClick,
+  href,
+  pressed,
+  primary,
+  danger,
+  disabled,
+}: BlockBarButtonProps) {
+  const className = cx(
+    'nb-blockbar__button',
+    text && 'has-text',
+    pressed && 'is-active',
+    primary && 'is-primary',
+    danger && 'is-danger',
+  );
   if (href) {
     return (
       <a className={className} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
@@ -55,7 +71,15 @@ export function BlockBarButton({ icon: I, label, text = false, onClick, href, pr
     );
   }
   return (
-    <button type="button" className={className} aria-label={text ? undefined : label} aria-pressed={pressed} title={label} onClick={onClick} disabled={disabled}>
+    <button
+      type="button"
+      className={className}
+      aria-label={text ? undefined : label}
+      aria-pressed={pressed}
+      title={label}
+      onClick={onClick}
+      disabled={disabled}
+    >
       <I aria-hidden="true" weight={pressed ? 'fill' : 'regular'} />
       {text ? <span>{label}</span> : null}
     </button>

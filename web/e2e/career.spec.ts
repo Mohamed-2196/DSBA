@@ -3,7 +3,11 @@
 import { expect, test } from './fixtures';
 import { api } from './support';
 
-test('a career editor edits Career Navigator, previews it, and students see the update', async ({ admin, sara, run }) => {
+test('a career editor edits Career Navigator, previews it, and students see the update', async ({
+  admin,
+  sara,
+  run,
+}) => {
   const employerName = `E2E Employer ${run.tag}`;
   // Read initial document so we can restore it in finally
   const initial = await api<{ version: number; data: Record<string, unknown> }>(admin, 'GET', '/api/v1/career/edit');

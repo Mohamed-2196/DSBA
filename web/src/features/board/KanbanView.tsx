@@ -1,7 +1,16 @@
 // A board as columns of cards. Laptops and tablets see every column side by side (the row scrolls when there are
 // more than fit) and drag cards with a mouse; phones see one column at a time behind tabs. Every move is also in
 // each card's menu, and Alt with the arrow keys moves a focused card.
-import { ArrowLeft, ArrowRight, CheckCircle, Circle, DotsThree, PencilSimple, Plus, Trash } from '@phosphor-icons/react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  Circle,
+  DotsThree,
+  PencilSimple,
+  Plus,
+  Trash,
+} from '@phosphor-icons/react';
 import { useEffect, useId, useRef, useState, type DragEvent, type FormEvent, type KeyboardEvent } from 'react';
 import type { BoardCard, BoardColumn, BoardLabel, BoardSummary } from '../../api/types';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
@@ -41,7 +50,19 @@ export interface KanbanViewProps {
   onAdding: (columnId: string | null) => void;
 }
 
-export function KanbanView({ board, cards, labels, today, readOnly, actions, columnActions, phoneColumnId, onPhoneColumn, adding, onAdding }: KanbanViewProps) {
+export function KanbanView({
+  board,
+  cards,
+  labels,
+  today,
+  readOnly,
+  actions,
+  columnActions,
+  phoneColumnId,
+  onPhoneColumn,
+  adding,
+  onAdding,
+}: KanbanViewProps) {
   const isPhone = useMediaQuery(BREAKPOINTS.mobile);
   const edges = useScrollEdges<HTMLDivElement>(!isPhone);
   const columns = board.columns;
@@ -58,7 +79,12 @@ export function KanbanView({ board, cards, labels, today, readOnly, actions, col
           className="board-phone__tabs"
           value={active.id}
           onChange={onPhoneColumn}
-          tabs={columns.map((c) => ({ id: c.id, label: c.name, icon: c.done ? CheckCircle : null, count: shown[c.id] ?? 0 }))}
+          tabs={columns.map((c) => ({
+            id: c.id,
+            label: c.name,
+            icon: c.done ? CheckCircle : null,
+            count: shown[c.id] ?? 0,
+          }))}
         />
         <TabPanel idBase="board-cols" id={active.id} value={active.id} className="board-phone__panel">
           <KanbanColumn
@@ -82,7 +108,11 @@ export function KanbanView({ board, cards, labels, today, readOnly, actions, col
   }
 
   return (
-    <div ref={edges.ref} className={cx('board-columns', edges.start && 'has-more-start', edges.end && 'has-more-end')} data-hub="board-columns">
+    <div
+      ref={edges.ref}
+      className={cx('board-columns', edges.start && 'has-more-start', edges.end && 'has-more-end')}
+      data-hub="board-columns"
+    >
       {columns.map((c, i) => (
         <KanbanColumn
           key={c.id}
@@ -101,7 +131,13 @@ export function KanbanView({ board, cards, labels, today, readOnly, actions, col
       ))}
       {readOnly ? null : (
         <Tooltip label="Add column" side="left" describe={false}>
-          <button type="button" className="board-columns__add" aria-label="Add column" onClick={columnActions.onAdd} data-hub="board-add-column">
+          <button
+            type="button"
+            className="board-columns__add"
+            aria-label="Add column"
+            onClick={columnActions.onAdd}
+            data-hub="board-add-column"
+          >
             <Plus aria-hidden="true" />
           </button>
         </Tooltip>
@@ -126,7 +162,20 @@ interface KanbanColumnProps {
   single?: boolean;
 }
 
-function KanbanColumn({ board, column, index, cards, labels, today, readOnly, actions, columnActions, adding, onAdding, single = false }: KanbanColumnProps) {
+function KanbanColumn({
+  board,
+  column,
+  index,
+  cards,
+  labels,
+  today,
+  readOnly,
+  actions,
+  columnActions,
+  adding,
+  onAdding,
+  single = false,
+}: KanbanColumnProps) {
   const headingId = useId();
   const [over, setOver] = useState<string | null>(null);
   const [showOlder, setShowOlder] = useState(false);
@@ -162,8 +211,20 @@ function KanbanColumn({ board, column, index, cards, labels, today, readOnly, ac
 
   const menu: MenuItem[] = [
     { id: 'rename', label: 'Rename column', icon: PencilSimple, onSelect: () => columnActions.onRename(column) },
-    { id: 'left', label: 'Move left', icon: ArrowLeft, disabled: index === 0, onSelect: () => columnActions.onMove(column, -1) },
-    { id: 'right', label: 'Move right', icon: ArrowRight, disabled: index === total - 1, onSelect: () => columnActions.onMove(column, 1) },
+    {
+      id: 'left',
+      label: 'Move left',
+      icon: ArrowLeft,
+      disabled: index === 0,
+      onSelect: () => columnActions.onMove(column, -1),
+    },
+    {
+      id: 'right',
+      label: 'Move right',
+      icon: ArrowRight,
+      disabled: index === total - 1,
+      onSelect: () => columnActions.onMove(column, 1),
+    },
     {
       id: 'done',
       label: column.done ? 'Stop counting cards here as done' : 'Count cards here as done',
@@ -171,7 +232,14 @@ function KanbanColumn({ board, column, index, cards, labels, today, readOnly, ac
       onSelect: () => columnActions.onToggleDone(column),
     },
     { divider: true, id: 'd' },
-    { id: 'delete', label: 'Delete column', icon: Trash, danger: true, disabled: total <= 1, onSelect: () => columnActions.onDelete(column) },
+    {
+      id: 'delete',
+      label: 'Delete column',
+      icon: Trash,
+      danger: true,
+      disabled: total <= 1,
+      onSelect: () => columnActions.onDelete(column),
+    },
   ];
 
   return (
@@ -200,8 +268,20 @@ function KanbanColumn({ board, column, index, cards, labels, today, readOnly, ac
         </h2>
         {readOnly ? null : (
           <span className="board-col__tools">
-            {single ? <IconButton label={`Add a card to ${column.name}`} icon={Plus} size="sm" onClick={() => onAdding(column.id)} /> : null}
-            <Menu label={`Column ${column.name}`} align="end" items={menu} trigger={<IconButton label={`Column options for ${column.name}`} icon={DotsThree} size="sm" />} />
+            {single ? (
+              <IconButton
+                label={`Add a card to ${column.name}`}
+                icon={Plus}
+                size="sm"
+                onClick={() => onAdding(column.id)}
+              />
+            ) : null}
+            <Menu
+              label={`Column ${column.name}`}
+              align="end"
+              items={menu}
+              trigger={<IconButton label={`Column options for ${column.name}`} icon={DotsThree} size="sm" />}
+            />
           </span>
         )}
       </header>
@@ -214,17 +294,32 @@ function KanbanColumn({ board, column, index, cards, labels, today, readOnly, ac
         {visible.map((card, i) => (
           <li
             key={card.id}
-            className={cx('board-col__card', dragging != null && over === card.id && card.id !== dragging && 'is-drop-before')}
+            className={cx(
+              'board-col__card',
+              dragging != null && over === card.id && card.id !== dragging && 'is-drop-before',
+            )}
             onDragOver={(e) => allow(e, card.id)}
             onDrop={(e) => drop(e, { before: card.id })}
           >
-            <CardItem card={card} prevId={visible[i - 1]?.id ?? null} columns={board.columns} labels={labels} today={today} actions={actions} />
+            <CardItem
+              card={card}
+              prevId={visible[i - 1]?.id ?? null}
+              columns={board.columns}
+              labels={labels}
+              today={today}
+              actions={actions}
+            />
           </li>
         ))}
       </ul>
 
       {older.length ? (
-        <button type="button" className="board-col__older" aria-expanded={showOlder} onClick={() => setShowOlder((v) => !v)}>
+        <button
+          type="button"
+          className="board-col__older"
+          aria-expanded={showOlder}
+          onClick={() => setShowOlder((v) => !v)}
+        >
           {showOlder ? 'Hide cards done over 2 weeks ago' : `Show ${older.length} done over 2 weeks ago`}
         </button>
       ) : null}

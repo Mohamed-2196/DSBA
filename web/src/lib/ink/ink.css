@@ -1,5 +1,18 @@
 /* The ink engine's drawing: strokes are filled outlines; the highlighter is see-through and darkens what it covers
    (sheets are always light paper, in both themes, like the PDFs they sit next to). */
-.ink-sheet { position: absolute; inset: 0 auto auto 0; overflow: visible; pointer-events: none; }
-.ink-highlighter { opacity: 0.38; mix-blend-mode: multiply; }
-.ink-selection { fill: rgba(21, 88, 240, 0.06); stroke: #1558f0; stroke-width: 1.5px; stroke-dasharray: 6 4; }
+.ink-sheet {
+  position: absolute;
+  inset: 0 auto auto 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.ink-highlighter {
+  opacity: 0.38;
+  mix-blend-mode: multiply;
+}
+.ink-selection {
+  fill: rgba(21, 88, 240, 0.06);
+  stroke: #1558f0;
+  stroke-width: 1.5px;
+  stroke-dasharray: 6 4;
+}

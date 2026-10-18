@@ -79,17 +79,27 @@ function ReportList({ status }: { status: ReportStatus }) {
 
   if (reports.isPending) return <ReportsSkeleton />;
   if (reports.isError && !reports.data) {
-    const forbidden = reports.error instanceof ApiError && (reports.error.status === 403 || reports.error.status === 401);
+    const forbidden =
+      reports.error instanceof ApiError && (reports.error.status === 403 || reports.error.status === 401);
     return forbidden ? (
       <NotForYou />
     ) : (
-      <QueryError error={reports.error} title="The reports didn’t load" onRetry={() => void reports.refetch()} retrying={reports.isFetching} />
+      <QueryError
+        error={reports.error}
+        title="The reports didn’t load"
+        onRetry={() => void reports.refetch()}
+        retrying={reports.isFetching}
+      />
     );
   }
   if (!items.length) {
     return (
       <Panel padding="none">
-        <EmptyState icon={status === 'open' ? CheckCircle : Flag} title={EMPTY[status].title} body={EMPTY[status].body} />
+        <EmptyState
+          icon={status === 'open' ? CheckCircle : Flag}
+          title={EMPTY[status].title}
+          body={EMPTY[status].body}
+        />
       </Panel>
     );
   }
@@ -103,10 +113,22 @@ function ReportList({ status }: { status: ReportStatus }) {
         </ul>
       </Panel>
       {reports.hasNextPage ? (
-        <LoadMore noun="reports" remaining={remainingCount(reports.data?.pages)} loading={reports.isFetchingNextPage} onClick={() => void reports.fetchNextPage()} />
+        <LoadMore
+          noun="reports"
+          remaining={remainingCount(reports.data?.pages)}
+          loading={reports.isFetchingNextPage}
+          onClick={() => void reports.fetchNextPage()}
+        />
       ) : null}
       {reports.isFetchNextPageError ? (
-        <QueryError error={reports.error} title="More reports didn’t load" onRetry={() => void reports.fetchNextPage()} retrying={reports.isFetchingNextPage} size="sm" panel={false} />
+        <QueryError
+          error={reports.error}
+          title="More reports didn’t load"
+          onRetry={() => void reports.fetchNextPage()}
+          retrying={reports.isFetchingNextPage}
+          size="sm"
+          panel={false}
+        />
       ) : null}
       <DecideDialog decision={decision} onClose={() => setDecision(null)} />
     </>
@@ -129,7 +151,11 @@ export function ReportsQueue() {
         idBase="reports"
         label="Reports by status"
         className="forum-reports__tabs"
-        tabs={STATUSES.map((s) => ({ id: s.id, label: s.label, count: s.id === 'open' && openCount ? openCount : undefined }))}
+        tabs={STATUSES.map((s) => ({
+          id: s.id,
+          label: s.label,
+          count: s.id === 'open' && openCount ? openCount : undefined,
+        }))}
         value={status}
         onChange={(id: string) => setStatus(STATUSES.find((s) => s.id === id)?.id ?? 'open')}
       />

@@ -4,7 +4,16 @@ import { cohortColor } from '../../state';
 import { useModules } from '../../state/modules';
 import { cx } from '../../ui';
 import { bandMeta } from './bands';
-import { bandOf, gradeDescription, pooledIndexes, totalMarks, type ChoiceSlot, type Picks, type Rules, type Subject } from './classify';
+import {
+  bandOf,
+  gradeDescription,
+  pooledIndexes,
+  totalMarks,
+  type ChoiceSlot,
+  type Picks,
+  type Rules,
+  type Subject,
+} from './classify';
 import { listed } from './rulesText';
 import { choiceOptions, subjectDisplay, yearsOf } from './subjects';
 
@@ -14,13 +23,24 @@ const times = (n: number) => (n === 1 ? 'once' : n === 2 ? 'twice' : `${n} times
 /** What a year's modules count, in a line under its title. Tags show on its rows when they count differently. */
 function yearRule(subjects: Subject[], rules: Rules, codeOf: (s: Subject) => string): { text: string; tags: boolean } {
   const counted = subjects.flatMap((s) => (s.counts === 'average' ? [] : [{ s, counts: s.counts }]));
-  if (counted.length === 0) return { text: `Averaged together. The average counts as ${rules.averageCounts} of your ${totalMarks(rules)} classification marks.`, tags: false };
+  if (counted.length === 0)
+    return {
+      text: `Averaged together. The average counts as ${rules.averageCounts} of your ${totalMarks(rules)} classification marks.`,
+      tags: false,
+    };
   const sum = counted.reduce((n, c) => n + c.counts, 0);
   const averaged = counted.length < subjects.length ? ' The others count through their average.' : '';
   const kinds = [...new Set(counted.map((c) => c.counts))];
-  if (kinds.length === 1) return { text: `Each ${averaged ? 'other ' : ''}module counts ${marksWord(kinds[0] ?? 0)}: ${sum} marks.${averaged}`, tags: false };
+  if (kinds.length === 1)
+    return {
+      text: `Each ${averaged ? 'other ' : ''}module counts ${marksWord(kinds[0] ?? 0)}: ${sum} marks.${averaged}`,
+      tags: false,
+    };
   // The count most of them have is "the others"; the rest are named.
-  const usual = kinds.sort((a, b) => counted.filter((c) => c.counts === b).length - counted.filter((c) => c.counts === a).length || b - a)[0] ?? 2;
+  const usual =
+    kinds.sort(
+      (a, b) => counted.filter((c) => c.counts === b).length - counted.filter((c) => c.counts === a).length || b - a,
+    )[0] ?? 2;
   const named = kinds
     .filter((k) => k !== usual)
     .map((k) => {
@@ -103,7 +123,10 @@ export function MarksSheet({ marks, picks, groupAverage, aims, onMark, onPick, r
   const footYear = rules.subjects[pooled[0] ?? -1]?.year ?? null;
   const pooledLabel = pooledYears.size === 1 && footYear ? `Year ${footYear}` : 'Averaged modules’';
   const pooledEntered = pooled.filter((i) => (marks[i] ?? '') !== '').length;
-  const pooledSingleFail = pooled.some((i) => (marks[i] ?? '') !== '' && Number(marks[i]) < pass) && groupAverage != null && groupAverage >= pass;
+  const pooledSingleFail =
+    pooled.some((i) => (marks[i] ?? '') !== '' && Number(marks[i]) < pass) &&
+    groupAverage != null &&
+    groupAverage >= pass;
 
   return (
     <section className="grades-sheet" data-hub="grades-inputs" aria-labelledby="grades-sheet-title">
@@ -113,109 +136,124 @@ export function MarksSheet({ marks, picks, groupAverage, aims, onMark, onPick, r
       {yearsOf(rules).map(({ year, subjects }) => {
         const rule = yearRule(subjects, rules, codeOf);
         return (
-        <div key={year} className="grades-year" role="group" aria-labelledby={`grades-y${year}`}>
-          <header className="grades-year__head">
-            <h3 id={`grades-y${year}`} className="grades-year__title">
-              <span className="grades-year__dot" style={{ background: cohortColor(year) }} aria-hidden="true" />
-              Year {year}
-            </h3>
-            <p className="grades-year__rule">{rule.text}</p>
-          </header>
-          <ol role="list" className="grades-year__rows">
-            {subjects.map((s) => {
-              const i = s.index;
-              const d = subjectDisplay(s, picks, getModule, rules);
-              const raw = marks[i] ?? '';
-              const has = raw !== '';
-              const band = has ? bandOf(Number(raw), rules) : null;
-              const meta = band ? bandMeta(band, rules) : null;
-              const id = `grades-mark-${i}`;
-              const aim = aims.get(i);
-              const choice = s.choice;
-              return (
-                <li key={i} className={cx('grades-row', has && 'has-mark', aim != null && 'has-aim')}>
-                  <div className="grades-row__label">
-                    <span className="grades-row__code-line">
-                      {d.code ? <span className="grades-row__code u-code">{d.code}</span> : null}
-                      {rule.tags && s.counts !== 'average' ? <span className="grades-row__weight">{marksWord(s.counts)}</span> : null}
-                    </span>
-                    {choice ? (
-                      <span className={cx('grades-choice', d.placeholder && 'is-placeholder')}>
-                        <select
-                          className="grades-choice__select"
-                          value={picks[choice] ?? ''}
-                          onChange={(e) => onPick(choice, e.target.value || undefined)}
-                          aria-label={choice === 'year2Option' ? 'Your Year 2 option module' : `Your ${d.placeholder ? d.name.toLowerCase() : 'elective'} module`}
-                        >
-                          <option value="">{choice === 'year2Option' ? 'Choose your Year 2 option' : `Choose ${d.placeholder ? d.name.toLowerCase() : 'an elective'}`}</option>
-                          {choiceOptions(choice, picks, getModule, rules).map((o) => (
-                            <option key={o.value} value={o.value}>
-                              {o.label}
-                            </option>
-                          ))}
-                        </select>
-                        <CaretDown className="grades-choice__caret" aria-hidden="true" weight="bold" />
+          <div key={year} className="grades-year" role="group" aria-labelledby={`grades-y${year}`}>
+            <header className="grades-year__head">
+              <h3 id={`grades-y${year}`} className="grades-year__title">
+                <span className="grades-year__dot" style={{ background: cohortColor(year) }} aria-hidden="true" />
+                Year {year}
+              </h3>
+              <p className="grades-year__rule">{rule.text}</p>
+            </header>
+            <ol role="list" className="grades-year__rows">
+              {subjects.map((s) => {
+                const i = s.index;
+                const d = subjectDisplay(s, picks, getModule, rules);
+                const raw = marks[i] ?? '';
+                const has = raw !== '';
+                const band = has ? bandOf(Number(raw), rules) : null;
+                const meta = band ? bandMeta(band, rules) : null;
+                const id = `grades-mark-${i}`;
+                const aim = aims.get(i);
+                const choice = s.choice;
+                return (
+                  <li key={i} className={cx('grades-row', has && 'has-mark', aim != null && 'has-aim')}>
+                    <div className="grades-row__label">
+                      <span className="grades-row__code-line">
+                        {d.code ? <span className="grades-row__code u-code">{d.code}</span> : null}
+                        {rule.tags && s.counts !== 'average' ? (
+                          <span className="grades-row__weight">{marksWord(s.counts)}</span>
+                        ) : null}
                       </span>
-                    ) : (
-                      <label htmlFor={id} className="grades-row__name">
-                        {d.name}
-                      </label>
-                    )}
-                  </div>
-                  <input
-                    ref={(el) => {
-                      inputs.current[i] = el;
-                    }}
-                    id={id}
-                    className={cx('grades-row__input', rejected === i && 'is-rejected')}
-                    type="text"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder="–"
-                    value={raw}
-                    aria-label={choice ? `${d.name} mark` : undefined}
-                    aria-describedby={`${id}-band`}
-                    onChange={(e) => change(i, e.target.value)}
-                    onKeyDown={(e) => onKeyDown(e, i)}
-                  />
-                  <span id={`${id}-band`} className="grades-row__band" aria-live="off">
-                    {rejected === i ? (
-                      <span className="grades-row__error">0 to 100</span>
-                    ) : meta ? (
-                      <>
-                        <span className={cx('grades-swatch', `grades-cell--${meta.id}`)} aria-hidden="true" />
-                        <span aria-hidden="true">{meta.short}</span>
-                        <span className="visually-hidden">{gradeDescription(Number(raw), rules)}</span>
-                      </>
-                    ) : null}
-                  </span>
-                  {aim != null ? (
-                    <span className="grades-row__aim">
-                      Aim for <strong>{aim}</strong>
+                      {choice ? (
+                        <span className={cx('grades-choice', d.placeholder && 'is-placeholder')}>
+                          <select
+                            className="grades-choice__select"
+                            value={picks[choice] ?? ''}
+                            onChange={(e) => onPick(choice, e.target.value || undefined)}
+                            aria-label={
+                              choice === 'year2Option'
+                                ? 'Your Year 2 option module'
+                                : `Your ${d.placeholder ? d.name.toLowerCase() : 'elective'} module`
+                            }
+                          >
+                            <option value="">
+                              {choice === 'year2Option'
+                                ? 'Choose your Year 2 option'
+                                : `Choose ${d.placeholder ? d.name.toLowerCase() : 'an elective'}`}
+                            </option>
+                            {choiceOptions(choice, picks, getModule, rules).map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                          <CaretDown className="grades-choice__caret" aria-hidden="true" weight="bold" />
+                        </span>
+                      ) : (
+                        <label htmlFor={id} className="grades-row__name">
+                          {d.name}
+                        </label>
+                      )}
+                    </div>
+                    <input
+                      ref={(el) => {
+                        inputs.current[i] = el;
+                      }}
+                      id={id}
+                      className={cx('grades-row__input', rejected === i && 'is-rejected')}
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      spellCheck={false}
+                      placeholder="–"
+                      value={raw}
+                      aria-label={choice ? `${d.name} mark` : undefined}
+                      aria-describedby={`${id}-band`}
+                      onChange={(e) => change(i, e.target.value)}
+                      onKeyDown={(e) => onKeyDown(e, i)}
+                    />
+                    <span id={`${id}-band`} className="grades-row__band" aria-live="off">
+                      {rejected === i ? (
+                        <span className="grades-row__error">0 to 100</span>
+                      ) : meta ? (
+                        <>
+                          <span className={cx('grades-swatch', `grades-cell--${meta.id}`)} aria-hidden="true" />
+                          <span aria-hidden="true">{meta.short}</span>
+                          <span className="visually-hidden">{gradeDescription(Number(raw), rules)}</span>
+                        </>
+                      ) : null}
                     </span>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ol>
-          {year === footYear ? (
-            <p className="grades-year__foot">
-              {groupAverage != null && pooledEntered === pooled.length ? (
-                <>
-                  {pooledLabel} average <strong className="u-tabular">{groupAverage.toFixed(2)}</strong>
-                  <span className={cx('grades-swatch', `grades-cell--${bandOf(groupAverage, rules)}`)} aria-hidden="true" />
-                  <span>
-                    {bandMeta(bandOf(groupAverage, rules), rules).short}, counted {times(rules.averageCounts)}
-                  </span>
-                </>
-              ) : (
-                <>{`Enter all ${pooled.length} marks to see your ${pooledLabel} average.`}</>
-              )}
-            </p>
-          ) : null}
-          {year === footYear && pooledSingleFail ? <p className="grades-year__note">{`This calculator only checks ${pooledLabel} through its average, which is ${pass} or more.`}</p> : null}
-        </div>
+                    {aim != null ? (
+                      <span className="grades-row__aim">
+                        Aim for <strong>{aim}</strong>
+                      </span>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ol>
+            {year === footYear ? (
+              <p className="grades-year__foot">
+                {groupAverage != null && pooledEntered === pooled.length ? (
+                  <>
+                    {pooledLabel} average <strong className="u-tabular">{groupAverage.toFixed(2)}</strong>
+                    <span
+                      className={cx('grades-swatch', `grades-cell--${bandOf(groupAverage, rules)}`)}
+                      aria-hidden="true"
+                    />
+                    <span>
+                      {bandMeta(bandOf(groupAverage, rules), rules).short}, counted {times(rules.averageCounts)}
+                    </span>
+                  </>
+                ) : (
+                  <>{`Enter all ${pooled.length} marks to see your ${pooledLabel} average.`}</>
+                )}
+              </p>
+            ) : null}
+            {year === footYear && pooledSingleFail ? (
+              <p className="grades-year__note">{`This calculator only checks ${pooledLabel} through its average, which is ${pass} or more.`}</p>
+            ) : null}
+          </div>
         );
       })}
     </section>

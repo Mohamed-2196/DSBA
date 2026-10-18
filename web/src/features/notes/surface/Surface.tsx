@@ -11,7 +11,16 @@
 //   - The line being drawn, the lasso and the laser are drawn straight into an overlay (no React work while the pen
 //     moves); finished strokes go to the sheet's SVG (lib/ink).
 import { Copy, PaintBucket, Trash } from '@phosphor-icons/react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react';
 import type { Stroke } from '../../../api/types';
 import {
   InkSheet,
@@ -33,7 +42,18 @@ import { cx } from '../../../ui';
 import type { Paper } from '../draft';
 import type { LoadedPdf } from '../pdf';
 import { inkStep, type SheetChange, type Step } from '../timeline';
-import { LINE, SHEET_WIDTH, TEXT_SIDE, TEXT_TOP, TEXT_WIDTH, clampZoom, layoutSheets, sheetAt, type Placed, type SheetSpec } from './layout';
+import {
+  LINE,
+  SHEET_WIDTH,
+  TEXT_SIDE,
+  TEXT_TOP,
+  TEXT_WIDTH,
+  clampZoom,
+  layoutSheets,
+  sheetAt,
+  type Placed,
+  type SheetSpec,
+} from './layout';
 import { PdfPage } from './PdfPage';
 import type { PenSettings, Tool } from './tools';
 
@@ -77,7 +97,11 @@ export interface SurfaceProps {
 
 type Gesture =
   | { kind: 'draw'; pointerId: number; sheet: Placed; stroke: InkStroke }
-  | { kind: 'erase'; pointerId: number; touched: Map<number, { before: readonly InkStroke[]; now: readonly InkStroke[] }> }
+  | {
+      kind: 'erase';
+      pointerId: number;
+      touched: Map<number, { before: readonly InkStroke[]; now: readonly InkStroke[] }>;
+    }
   | { kind: 'lasso'; pointerId: number; sheet: Placed; poly: Point[] }
   | { kind: 'drag'; pointerId: number; sheet: number; ids: ReadonlySet<string>; from: Point }
   | { kind: 'laser'; pointerId: number };
@@ -136,9 +160,35 @@ export function Surface({
   const [selection, setSelection] = useState<Selection | null>(null);
   const [drag, setDrag] = useState<{ dx: number; dy: number } | null>(null);
 
-  const live = useRef({ zoom, layout, tool, pens, readOnly, fingerDraws, onInk, strokesOf, onTool, onStylus, onZoom, selection });
+  const live = useRef({
+    zoom,
+    layout,
+    tool,
+    pens,
+    readOnly,
+    fingerDraws,
+    onInk,
+    strokesOf,
+    onTool,
+    onStylus,
+    onZoom,
+    selection,
+  });
   useEffect(() => {
-    live.current = { zoom, layout, tool, pens, readOnly, fingerDraws, onInk, strokesOf, onTool, onStylus, onZoom, selection };
+    live.current = {
+      zoom,
+      layout,
+      tool,
+      pens,
+      readOnly,
+      fingerDraws,
+      onInk,
+      strokesOf,
+      onTool,
+      onStylus,
+      onZoom,
+      selection,
+    };
   });
 
   // The lasso's selection lasts while the lasso is the tool and the sheet still has those strokes.
@@ -148,7 +198,11 @@ export function Surface({
   useEffect(() => {
     setSelection((sel) => {
       if (!sel) return sel;
-      const ids = new Set(strokesOf(sel.sheet).filter((s) => sel.ids.has(s.id)).map((s) => s.id));
+      const ids = new Set(
+        strokesOf(sel.sheet)
+          .filter((s) => sel.ids.has(s.id))
+          .map((s) => s.id),
+      );
       return ids.size ? (ids.size === sel.ids.size ? sel : { sheet: sel.sheet, ids }) : null;
     });
   }, [revision, strokesOf]);
@@ -262,7 +316,12 @@ export function Surface({
       const settings = active === 'pen' ? p.pen : p.highlighter;
       const points: number[] = [];
       addPoint(points, at.x, at.y, pressureOf(ev));
-      const g: Gesture = { kind: 'draw', pointerId: ev.pointerId, sheet: at.sheet, stroke: { id: strokeId(), tool: active, color: settings.color, width: settings.width, points } };
+      const g: Gesture = {
+        kind: 'draw',
+        pointerId: ev.pointerId,
+        sheet: at.sheet,
+        stroke: { id: strokeId(), tool: active, color: settings.color, width: settings.width, points },
+      };
       gesture.current = g;
       showLive(g);
     } else if (active === 'eraser') {
@@ -276,7 +335,13 @@ export function Surface({
       if (sel && sel.sheet === at.sheet.index) {
         const box = unionBounds(live.current.strokesOf(sel.sheet).filter((s) => sel.ids.has(s.id)));
         if (box && at.x >= box.x - 8 && at.x <= box.x + box.w + 8 && at.y >= box.y - 8 && at.y <= box.y + box.h + 8) {
-          gesture.current = { kind: 'drag', pointerId: ev.pointerId, sheet: sel.sheet, ids: sel.ids, from: [at.x, at.y] };
+          gesture.current = {
+            kind: 'drag',
+            pointerId: ev.pointerId,
+            sheet: sel.sheet,
+            ids: sel.ids,
+            from: [at.x, at.y],
+          };
           dragOffset.current = { dx: 0, dy: 0 };
           setDrag({ dx: 0, dy: 0 });
           return;
@@ -348,7 +413,11 @@ export function Surface({
         commit(inkStep(g.sheet.index, before, [...before, { ...g.stroke, points: g.stroke.points.slice() }]));
       }
     } else if (g.kind === 'erase') {
-      const changes: SheetChange[] = [...g.touched].map(([sheet, entry]) => ({ sheet, before: entry.before, after: entry.now }));
+      const changes: SheetChange[] = [...g.touched].map(([sheet, entry]) => ({
+        sheet,
+        before: entry.before,
+        after: entry.now,
+      }));
       if (changes.length) commit({ kind: 'ink', changes });
       setPreview(null);
     } else if (g.kind === 'lasso') {
@@ -361,7 +430,13 @@ export function Surface({
       setDrag(null);
       if (d && (Math.abs(d.dx) > 0.5 || Math.abs(d.dy) > 0.5)) {
         const before = of(g.sheet);
-        commit(inkStep(g.sheet, before, before.map((s) => (g.ids.has(s.id) ? moved(s, d.dx, d.dy) : s))));
+        commit(
+          inkStep(
+            g.sheet,
+            before,
+            before.map((s) => (g.ids.has(s.id) ? moved(s, d.dx, d.dy) : s)),
+          ),
+        );
       }
     }
     clearOverlay();
@@ -413,7 +488,9 @@ export function Surface({
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
-      live.current.onZoom(clampZoom(live.current.zoom * Math.exp(-e.deltaY * 0.01)), { client: { x: e.clientX, y: e.clientY } });
+      live.current.onZoom(clampZoom(live.current.zoom * Math.exp(-e.deltaY * 0.01)), {
+        client: { x: e.clientX, y: e.clientY },
+      });
     };
     scroller.addEventListener('touchstart', onStart, { passive: true });
     scroller.addEventListener('touchmove', onMove, { passive: false });
@@ -435,13 +512,21 @@ export function Surface({
   const removeSelection = useCallback(() => {
     if (!selection) return;
     const before = strokesOf(selection.sheet);
-    onInk(inkStep(selection.sheet, before, before.filter((s) => !selection.ids.has(s.id))));
+    onInk(
+      inkStep(
+        selection.sheet,
+        before,
+        before.filter((s) => !selection.ids.has(s.id)),
+      ),
+    );
     setSelection(null);
   }, [selection, strokesOf, onInk]);
   const recolour = () => {
     if (!selection) return;
     const before = strokesOf(selection.sheet);
-    const after = before.map((s) => (selection.ids.has(s.id) ? { ...s, color: s.tool === 'highlighter' ? pens.highlighter.color : pens.pen.color } : s));
+    const after = before.map((s) =>
+      selection.ids.has(s.id) ? { ...s, color: s.tool === 'highlighter' ? pens.highlighter.color : pens.pen.color } : s,
+    );
     onInk(inkStep(selection.sheet, before, after));
   };
   const duplicate = () => {
@@ -510,20 +595,33 @@ export function Surface({
       <div className="nb-canvas" style={{ width, height: layout.height * zoom }}>
         <div
           ref={stack}
-          className={cx('nb-stack', inking && 'is-inking', inking && fingerDraws && !readOnly && 'is-finger-ink', `is-tool-${tool}`)}
+          className={cx(
+            'nb-stack',
+            inking && 'is-inking',
+            inking && fingerDraws && !readOnly && 'is-finger-ink',
+            `is-tool-${tool}`,
+          )}
           style={{ width: SHEET_WIDTH, height: layout.height, transform: `scale(${zoom})`, ['--z' as string]: zoom }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={() => cancel()}
           onPointerLeave={(e) => {
-            if (!gesture.current && e.nativeEvent.pointerType === 'mouse') trail.current = liveTrail(trail.current, performance.now());
+            if (!gesture.current && e.nativeEvent.pointerType === 'mouse')
+              trail.current = liveTrail(trail.current, performance.now());
           }}
           data-hub="note-surface"
         >
           {pdfSheets.map((s) => (
-            <div key={s.index} className="nb-sheet nb-sheet--pdf" style={{ top: s.top, height: s.height }} data-sheet={s.index}>
-              {pdf && s.page ? <PdfPage pdf={pdf} page={s.page} width={SHEET_WIDTH} height={s.height} zoom={zoom} root={scroller} /> : null}
+            <div
+              key={s.index}
+              className="nb-sheet nb-sheet--pdf"
+              style={{ top: s.top, height: s.height }}
+              data-sheet={s.index}
+            >
+              {pdf && s.page ? (
+                <PdfPage pdf={pdf} page={s.page} width={SHEET_WIDTH} height={s.height} zoom={zoom} root={scroller} />
+              ) : null}
               <div className="nb-sheet__ink">{sheetInk(s)}</div>
             </div>
           ))}
@@ -535,21 +633,41 @@ export function Surface({
               data-sheet={paperSheets[0].index}
             >
               {paperSheets.slice(1).map((s, i) => (
-                <span key={s.index} className="nb-paper__break" style={{ top: s.top - layout.paperTop }} aria-hidden="true">
+                <span
+                  key={s.index}
+                  className="nb-paper__break"
+                  style={{ top: s.top - layout.paperTop }}
+                  aria-hidden="true"
+                >
                   <span>{i + 2}</span>
                 </span>
               ))}
-              <div ref={textBox} className="nb-paper__text" style={{ top: TEXT_TOP, left: TEXT_SIDE, width: TEXT_WIDTH }}>
+              <div
+                ref={textBox}
+                className="nb-paper__text"
+                style={{ top: TEXT_TOP, left: TEXT_SIDE, width: TEXT_WIDTH }}
+              >
                 {text}
               </div>
               {paperSheets.map((s) => (
-                <div key={s.index} className="nb-sheet__ink" style={{ top: s.top - layout.paperTop, height: s.height }} data-sheet={s.index}>
+                <div
+                  key={s.index}
+                  className="nb-sheet__ink"
+                  style={{ top: s.top - layout.paperTop, height: s.height }}
+                  data-sheet={s.index}
+                >
                   {sheetInk(s)}
                 </div>
               ))}
             </div>
           ) : null}
-          <svg className="nb-overlay" width={SHEET_WIDTH} height={layout.height} viewBox={`0 0 ${SHEET_WIDTH} ${layout.height}`} aria-hidden="true">
+          <svg
+            className="nb-overlay"
+            width={SHEET_WIDTH}
+            height={layout.height}
+            viewBox={`0 0 ${SHEET_WIDTH} ${layout.height}`}
+            aria-hidden="true"
+          >
             <g ref={liveGroup}>
               <path ref={livePath} />
             </g>
@@ -559,7 +677,13 @@ export function Surface({
           </svg>
         </div>
         {bar ? (
-          <div className="nb-selbar" role="toolbar" aria-label="Selected writing" style={{ left: bar.left, top: bar.top }} onPointerDown={(e) => e.stopPropagation()}>
+          <div
+            className="nb-selbar"
+            role="toolbar"
+            aria-label="Selected writing"
+            style={{ left: bar.left, top: bar.top }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
             <button type="button" onClick={duplicate}>
               <Copy aria-hidden="true" /> Duplicate
             </button>

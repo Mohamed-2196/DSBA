@@ -53,7 +53,11 @@ const sampleDoc = (over: Partial<NoteDoc> = {}): NoteDoc => ({
 describe('openNote', () => {
   it('opens the server note when there is no copy here, or the copy says the same', () => {
     expect(openNote(sampleNote(), null)).toEqual({ doc: sampleDoc(), base: 3, theirs: null });
-    expect(openNote(sampleNote(), { doc: sampleDoc(), base: 1, at: 0 })).toEqual({ doc: sampleDoc(), base: 3, theirs: null });
+    expect(openNote(sampleNote(), { doc: sampleDoc(), base: 1, at: 0 })).toEqual({
+      doc: sampleDoc(),
+      base: 3,
+      theirs: null,
+    });
   });
 
   it('opens the copy written over the server version, to be sent', () => {
@@ -156,7 +160,12 @@ describe('the copy on this device', () => {
         return store.size;
       },
     };
-    vi.stubGlobal('window', { localStorage, dispatchEvent: () => true, addEventListener: () => undefined, removeEventListener: () => undefined });
+    vi.stubGlobal('window', {
+      localStorage,
+      dispatchEvent: () => true,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    });
   });
   afterEach(() => vi.unstubAllGlobals());
 

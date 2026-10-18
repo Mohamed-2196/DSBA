@@ -13,25 +13,86 @@
   border-radius: var(--r-panel);
   background: color-mix(in srgb, var(--signal-soft) 60%, var(--surface));
 }
-.career-featured__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-12); }
-.career-featured__title { font-size: var(--fs-16); font-weight: var(--fw-bold); letter-spacing: -0.01em; line-height: 1.3; }
-.career-featured__link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; }
-.career-featured__link:hover { color: var(--cobalt); }
-.career-featured__go { font-size: 13px; color: var(--ink-2); transition: transform var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
-.career-featured__link:hover .career-featured__go { color: var(--cobalt); transform: translate(1px, -1px); }
-.career-featured__blurb { margin-top: 3px; max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
-.career-featured__kind { color: var(--ink); font-weight: var(--fw-semibold); }
-.career-featured__blurb strong { color: var(--ink); font-weight: var(--fw-semibold); }
-.career-featured.career-flash { outline-offset: 2px; }
+.career-featured__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4) var(--sp-12);
+}
+.career-featured__title {
+  font-size: var(--fs-16);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.career-featured__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.career-featured__link:hover {
+  color: var(--cobalt);
+}
+.career-featured__go {
+  font-size: 13px;
+  color: var(--ink-2);
+  transition:
+    transform var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+.career-featured__link:hover .career-featured__go {
+  color: var(--cobalt);
+  transform: translate(1px, -1px);
+}
+.career-featured__blurb {
+  margin-top: 3px;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
+.career-featured__kind {
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+}
+.career-featured__blurb strong {
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+}
+.career-featured.career-flash {
+  outline-offset: 2px;
+}
 
 /* ── Filters ─────────────────────────────────────────────────────────────────────────────────── */
-.career-opps__filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-12) var(--sp-24); margin-bottom: var(--sp-16); }
-.career-opps__tracks, .career-opps__types { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
-.career-opps__filters .ui-chip { height: 34px; padding: 0 14px; }
+.career-opps__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-12) var(--sp-24);
+  margin-bottom: var(--sp-16);
+}
+.career-opps__tracks,
+.career-opps__types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
+.career-opps__filters .ui-chip {
+  height: 34px;
+  padding: 0 14px;
+}
 @media (pointer: coarse) {
-  .career-opps__filters .ui-chip { height: 44px; }
+  .career-opps__filters .ui-chip {
+    height: 44px;
+  }
   /* a taller target, the text where it was: padding pulled back by a negative margin */
-  .career-featured__link { padding-block: 12px; margin-block: -12px; }
+  .career-featured__link {
+    padding-block: 12px;
+    margin-block: -12px;
+  }
 }
 
 /* What a track means, and the modules nearest to it. Appears once a track is picked. */
@@ -45,13 +106,34 @@
   font-size: var(--fs-14);
   line-height: 1.45;
 }
-.career-opps__about-mods { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-16); }
-.career-opps__about-label { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.career-opps__about-mods {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4) var(--sp-16);
+}
+.career-opps__about-label {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+}
 
 /* ── The wall ────────────────────────────────────────────────────────────────────────────────── */
-.career-emps { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--sp-16); list-style: none; }
-.career-emps.is-swapped { animation: career-fade var(--dur) var(--ease); }
-@keyframes career-fade { from { opacity: 0; transform: translateY(4px); } }
+.career-emps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--sp-16);
+  list-style: none;
+}
+.career-emps.is-swapped {
+  animation: career-fade var(--dur) var(--ease);
+}
+@keyframes career-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
 
 /* Panel padding is set here (not by Panel's "none") so it survives any stylesheet order. */
 .career-emps > .career-emp {
@@ -61,23 +143,77 @@
   padding: 20px 20px var(--sp-16);
   transition: border-color var(--dur-fast) var(--ease);
 }
-.career-emps > .career-emp:hover { border-color: var(--line-strong); }
+.career-emps > .career-emp:hover {
+  border-color: var(--line-strong);
+}
 
-.career-emp__top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-12); }
+.career-emp__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-12);
+}
 /* On a narrow card the tile gives way before the badge does, so nothing spills over the edge. */
-.career-emp__top > .career-logo { flex: 0 1 var(--logo-w); width: auto; min-width: 88px; }
-.career-emp__types { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: var(--sp-4); list-style: none; }
+.career-emp__top > .career-logo {
+  flex: 0 1 var(--logo-w);
+  width: auto;
+  min-width: 88px;
+}
+.career-emp__types {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-4);
+  list-style: none;
+}
 
-.career-emp__name { font-size: 1.0625rem; font-weight: var(--fw-bold); letter-spacing: -0.012em; line-height: 1.25; }
-.career-emp__sector { display: flex; align-items: center; gap: 6px; margin-top: 3px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.3; }
-.career-emp__sector-icon { flex: none; font-size: 15px; color: var(--ink-3); }
+.career-emp__name {
+  font-size: 1.0625rem;
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.012em;
+  line-height: 1.25;
+}
+.career-emp__sector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.3;
+}
+.career-emp__sector-icon {
+  flex: none;
+  font-size: 15px;
+  color: var(--ink-3);
+}
 
-.career-emp__programme { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); line-height: 1.35; text-wrap: balance; }
-.career-emp__why { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
-.career-emp__programme + .career-emp__why { margin-top: var(--sp-4); }
+.career-emp__programme {
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.career-emp__why {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
+.career-emp__programme + .career-emp__why {
+  margin-top: var(--sp-4);
+}
 
 /* Tracks and the button sit on the card's floor, so they line up across a row whatever the text above does. */
-.career-emp__tracks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: var(--sp-4); list-style: none; }
+.career-emp__tracks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: var(--sp-4);
+  list-style: none;
+}
 .career-track {
   display: inline-flex;
   align-items: center;
@@ -91,21 +227,58 @@
   line-height: 1;
   white-space: nowrap;
 }
-.career-track.is-active { background: var(--cobalt-soft); color: var(--cobalt); }
+.career-track.is-active {
+  background: var(--cobalt-soft);
+  color: var(--cobalt);
+}
 
-.career-emp__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); padding-top: var(--sp-12); border-top: 1px solid var(--line); }
-.career-emp__cta.ui-button--secondary { border-color: transparent; background: var(--cobalt-soft); color: var(--cobalt); }
-.career-emp__cta.ui-button--secondary:hover { background: var(--cobalt); color: var(--cobalt-ink); }
-.career-emp__host { min-width: 0; overflow: hidden; color: var(--ink-2); font-size: var(--fs-12); text-overflow: ellipsis; white-space: nowrap; }
+.career-emp__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-12);
+  padding-top: var(--sp-12);
+  border-top: 1px solid var(--line);
+}
+.career-emp__cta.ui-button--secondary {
+  border-color: transparent;
+  background: var(--cobalt-soft);
+  color: var(--cobalt);
+}
+.career-emp__cta.ui-button--secondary:hover {
+  background: var(--cobalt);
+  color: var(--cobalt-ink);
+}
+.career-emp__host {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ── Under the wall ──────────────────────────────────────────────────────────────────────────── */
-.career-opps__more { display: flex; justify-content: center; margin-top: var(--sp-24); }
-.career-opps__empty .ui-empty { padding-block: var(--sp-48); }
-.career-opps__note { margin-top: var(--sp-16); }
-.career-opps__more + .career-opps__note { margin-top: var(--sp-24); }
+.career-opps__more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--sp-24);
+}
+.career-opps__empty .ui-empty {
+  padding-block: var(--sp-48);
+}
+.career-opps__note {
+  margin-top: var(--sp-16);
+}
+.career-opps__more + .career-opps__note {
+  margin-top: var(--sp-24);
+}
 
 @media (max-width: 699px) {
-  .career-featured { grid-template-columns: minmax(0, 1fr); gap: var(--sp-12); }
+  .career-featured {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-12);
+  }
   /* On a phone the tracks are one row you swipe, so the first employer is not pushed off the screen. */
   .career-opps__tracks {
     flex: none;
@@ -118,13 +291,41 @@
     scroll-snap-type: x proximity;
     scroll-padding-inline: var(--content-pad);
   }
-  .career-opps__tracks::-webkit-scrollbar { display: none; }
-  .career-opps__tracks .ui-chip { flex: none; scroll-snap-align: start; }
-  .career-emps > .career-emp { padding: var(--sp-16); }
+  .career-opps__tracks::-webkit-scrollbar {
+    display: none;
+  }
+  .career-opps__tracks .ui-chip {
+    flex: none;
+    scroll-snap-align: start;
+  }
+  .career-emps > .career-emp {
+    padding: var(--sp-16);
+  }
 }
 
 /* Application dates from the calendar */
-.career-emp__dates { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-8); margin-top: var(--sp-8); font-size: var(--fs-14); line-height: 1.4; }
-.career-emp__dates a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cobalt-ink); font-weight: var(--fw-semibold); }
-@media (hover: hover) and (pointer: fine) { .career-emp__dates a { min-height: 0; } }
-.career-emp__dates-title { color: var(--ink-2); overflow-wrap: anywhere; }
+.career-emp__dates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--sp-8);
+  margin-top: var(--sp-8);
+  font-size: var(--fs-14);
+  line-height: 1.4;
+}
+.career-emp__dates a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--cobalt-ink);
+  font-weight: var(--fw-semibold);
+}
+@media (hover: hover) and (pointer: fine) {
+  .career-emp__dates a {
+    min-height: 0;
+  }
+}
+.career-emp__dates-title {
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}

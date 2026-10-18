@@ -21,4 +21,5 @@ export function useGuideTicks(key: string, steps: readonly GuideStep[]): GuideTi
 }
 
 export const useStartTicks = (steps: readonly GuideStep[]): GuideTicks => useGuideTicks('hub.start.checklist', steps);
-export const useResultsTicks = (steps: readonly GuideStep[]): GuideTicks => useGuideTicks('hub.results.checklist', steps);
+export const useResultsTicks = (steps: readonly GuideStep[]): GuideTicks =>
+  useGuideTicks('hub.results.checklist', steps);

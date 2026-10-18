@@ -11,9 +11,21 @@
   line-height: 1;
   user-select: none;
 }
-.ui-avatar--y1 { --c: var(--y1); }
-.ui-avatar--y2 { --c: var(--y2); }
-.ui-avatar--y3 { --c: var(--y3); }
-.ui-avatar--cobalt { --c: var(--cobalt); }
-.ui-avatar--signal { --c: var(--signal); }
-.ui-avatar--alert { --c: var(--alert); }
+.ui-avatar--y1 {
+  --c: var(--y1);
+}
+.ui-avatar--y2 {
+  --c: var(--y2);
+}
+.ui-avatar--y3 {
+  --c: var(--y3);
+}
+.ui-avatar--cobalt {
+  --c: var(--cobalt);
+}
+.ui-avatar--signal {
+  --c: var(--signal);
+}
+.ui-avatar--alert {
+  --c: var(--alert);
+}

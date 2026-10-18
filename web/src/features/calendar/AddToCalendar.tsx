@@ -10,7 +10,8 @@ import type { CalendarEvent } from './types';
 // The API names the file (Content-Disposition), so the note doesn't.
 function useDownloadNote() {
   const { push } = useToast();
-  return (what: string) => push({ tone: 'info', title: 'Downloading an .ics file', body: `Open it to add ${what} to your calendar.` });
+  return (what: string) =>
+    push({ tone: 'info', title: 'Downloading an .ics file', body: `Open it to add ${what} to your calendar.` });
 }
 
 export interface AddToCalendarProps {
@@ -24,7 +25,14 @@ export interface AddToCalendarProps {
 }
 
 /** One date as an .ics file: all day, with a reminder the day before an exam or a deadline. */
-export function AddToCalendar({ event, iconOnly = false, variant = 'primary', size = 'md', tooltipSide = 'bottom', className }: AddToCalendarProps) {
+export function AddToCalendar({
+  event,
+  iconOnly = false,
+  variant = 'primary',
+  size = 'md',
+  tooltipSide = 'bottom',
+  className,
+}: AddToCalendarProps) {
   const note = useDownloadNote();
   const href = eventIcsUrl(event.id);
   const onClick = () => note('the date');
@@ -45,17 +53,41 @@ export function AddToCalendar({ event, iconOnly = false, variant = 'primary', si
     );
   }
   return (
-    <Button variant={variant} size={size} leadingIcon={CalendarPlus} href={href} download external={false} onClick={onClick} className={className}>
+    <Button
+      variant={variant}
+      size={size}
+      leadingIcon={CalendarPlus}
+      href={href}
+      download
+      external={false}
+      onClick={onClick}
+      className={className}
+    >
       Add to calendar
     </Button>
   );
 }
 
 /** Every exam of a cohort (null: every cohort), or of a student's papers in it, as one .ics file. */
-export function AddExamsToCalendar({ year, papers, size = 'md' }: { year: CohortYear | null; papers?: ReadonlySet<string> | null; size?: ButtonSize }) {
+export function AddExamsToCalendar({
+  year,
+  papers,
+  size = 'md',
+}: {
+  year: CohortYear | null;
+  papers?: ReadonlySet<string> | null;
+  size?: ButtonSize;
+}) {
   const note = useDownloadNote();
   return (
-    <Button size={size} leadingIcon={DownloadSimple} href={examsIcsUrl(year, papers)} download external={false} onClick={() => note('every exam')}>
+    <Button
+      size={size}
+      leadingIcon={DownloadSimple}
+      href={examsIcsUrl(year, papers)}
+      download
+      external={false}
+      onClick={() => note('every exam')}
+    >
       {year && papers ? 'All your exams' : year ? `All ${cohortLabel(year)} exams` : 'All exams'}
     </Button>
   );

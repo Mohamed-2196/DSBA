@@ -36,8 +36,24 @@ export function BrandLogo({ name, height = 24, decorative = false, className }: 
   const a11y = decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': logo.alt };
   return (
     <span className={cx('ui-brandlogo', className)} style={{ width, height }} {...a11y}>
-      <img className={cx('ui-brandlogo__img', logo.dark && 'ui-brandlogo__img--light')} src={base + logo.light} alt="" width={width} height={height} decoding="async" />
-      {logo.dark ? <img className="ui-brandlogo__img ui-brandlogo__img--dark" src={base + logo.dark} alt="" width={width} height={height} decoding="async" /> : null}
+      <img
+        className={cx('ui-brandlogo__img', logo.dark && 'ui-brandlogo__img--light')}
+        src={base + logo.light}
+        alt=""
+        width={width}
+        height={height}
+        decoding="async"
+      />
+      {logo.dark ? (
+        <img
+          className="ui-brandlogo__img ui-brandlogo__img--dark"
+          src={base + logo.dark}
+          alt=""
+          width={width}
+          height={height}
+          decoding="async"
+        />
+      ) : null}
     </span>
   );
 }

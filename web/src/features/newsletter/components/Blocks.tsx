@@ -90,7 +90,15 @@ function Block({ block, editors, poll }: { block: BlockData; editors: readonly s
 }
 
 /** A section's copy: paragraphs, bulleted lists, the editors' sign-off, buttons and polls (`poll`: the issue). */
-export function Blocks({ blocks = [], editors = [], poll }: { blocks?: readonly BlockData[]; editors?: readonly string[]; poll?: PollIssue }) {
+export function Blocks({
+  blocks = [],
+  editors = [],
+  poll,
+}: {
+  blocks?: readonly BlockData[];
+  editors?: readonly string[];
+  poll?: PollIssue;
+}) {
   return (
     <>
       {blocks.map((b, i) => (

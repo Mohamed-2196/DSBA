@@ -22,7 +22,10 @@ export function useReportBug() {
 export function useBugReports(status: BugStatus) {
   return useInfiniteQuery({
     queryKey: bugKeys.list(status),
-    queryFn: ({ pageParam, signal }) => call(api.GET('/api/v1/admin/bug-reports', { params: { query: { status, limit: PAGE, offset: pageParam } }, signal })),
+    queryFn: ({ pageParam, signal }) =>
+      call(
+        api.GET('/api/v1/admin/bug-reports', { params: { query: { status, limit: PAGE, offset: pageParam } }, signal }),
+      ),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
   });
@@ -32,7 +35,9 @@ export function useSetBugStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: BugStatus }): Promise<BugReportOut> =>
-      call(api.PATCH('/api/v1/admin/bug-reports/{report_id}', { params: { path: { report_id: id } }, body: { status } })),
+      call(
+        api.PATCH('/api/v1/admin/bug-reports/{report_id}', { params: { path: { report_id: id } }, body: { status } }),
+      ),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: bugKeys.all });
       void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });

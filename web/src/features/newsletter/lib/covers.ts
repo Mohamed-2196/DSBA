@@ -20,12 +20,21 @@ export const MEASURE = COVER_W - 2 * MARGIN;
 // where the ink of digit d starts and ends inside its 0.6em, measured from the font.
 const FIGURE_ADVANCE = 0.6;
 const FIGURE_INK: readonly (readonly [number, number])[] = [
-  [0.039, 0.561], [0.082, 0.541], [0.042, 0.555], [0.068, 0.523], [0.001, 0.591],
-  [0.062, 0.531], [0.062, 0.555], [0.068, 0.556], [0.048, 0.551], [0.044, 0.539],
+  [0.039, 0.561],
+  [0.082, 0.541],
+  [0.042, 0.555],
+  [0.068, 0.523],
+  [0.001, 0.591],
+  [0.062, 0.531],
+  [0.062, 0.555],
+  [0.068, 0.556],
+  [0.048, 0.551],
+  [0.044, 0.539],
 ];
 export const FIGURE_HEIGHT = 0.725;
 const round1 = (n: number): number => Math.round(n * 10) / 10;
-const inkOf = (ch: string | undefined): readonly [number, number] => FIGURE_INK[Number(ch)] ?? (FIGURE_INK[0] as readonly [number, number]);
+const inkOf = (ch: string | undefined): readonly [number, number] =>
+  FIGURE_INK[Number(ch)] ?? (FIGURE_INK[0] as readonly [number, number]);
 
 /**
  * Font size and x of an issue numeral whose ink runs from the left margin to the right one ("01" and "00"
@@ -84,9 +93,12 @@ export function coverOf(issue: {
   const { cover } = issue;
   const byId = new Map((issue.sections ?? []).map((s) => [s.id, s]));
   const known = (id: string) => !issue.sections || byId.has(id);
-  const label = (s: Pick<IssueSection, 'label' | 'title'> | undefined, id: string) => (s ? plainText(sectionLabel(s)) : labelFromId(id));
+  const label = (s: Pick<IssueSection, 'label' | 'title'> | undefined, id: string) =>
+    s ? plainText(sectionLabel(s)) : labelFromId(id);
   const rows = cover.lines.length
-    ? cover.lines.filter((l) => known(l.section)).map((l) => ({ id: l.section, label: label(byId.get(l.section), l.section), text: plainText(l.text) }))
+    ? cover.lines
+        .filter((l) => known(l.section))
+        .map((l) => ({ id: l.section, label: label(byId.get(l.section), l.section), text: plainText(l.text) }))
     : (issue.sections ?? []).slice(0, 5).map((s) => ({ id: s.id, label: label(s, s.id), text: '' }));
   return {
     tone: cover.tone,

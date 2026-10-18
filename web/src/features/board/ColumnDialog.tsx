@@ -45,7 +45,13 @@ export function ColumnDialog({ boardId, column, onClose }: ColumnDialogProps) {
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" form={`column-form-${uid}`} loading={add.isPending || update.isPending} data-hub="board-column-save">
+          <Button
+            variant="primary"
+            type="submit"
+            form={`column-form-${uid}`}
+            loading={add.isPending || update.isPending}
+            data-hub="board-column-save"
+          >
             {editing ? 'Save' : 'Add column'}
           </Button>
         </>
@@ -65,7 +71,12 @@ export function ColumnDialog({ boardId, column, onClose }: ColumnDialogProps) {
           }}
           data-autofocus
         />
-        <Switch checked={done} onChange={setDone} label="Cards here count as done" description="They leave Today and stop sending reminders." />
+        <Switch
+          checked={done}
+          onChange={setDone}
+          label="Cards here count as done"
+          description="They leave Today and stop sending reminders."
+        />
       </form>
     </Modal>
   );
@@ -88,11 +99,17 @@ export function DeleteColumnDialog({ boardId, column, others, cardCount, onClose
     <ConfirmDialog
       open
       title={`Delete the ${column.name} column?`}
-      body={cardCount ? `Its ${cardCount === 1 ? 'card moves' : `${cardCount} cards move`} to the column you choose.` : 'It has no cards.'}
+      body={
+        cardCount
+          ? `Its ${cardCount === 1 ? 'card moves' : `${cardCount} cards move`} to the column you choose.`
+          : 'It has no cards.'
+      }
       confirmLabel="Delete column"
       tone="danger"
       busy={remove.isPending}
-      onConfirm={() => remove.mutate({ boardId, columnId: column.id, moveTo: cardCount ? moveTo : undefined }, { onSuccess: onClose })}
+      onConfirm={() =>
+        remove.mutate({ boardId, columnId: column.id, moveTo: cardCount ? moveTo : undefined }, { onSuccess: onClose })
+      }
       onClose={onClose}
     >
       {cardCount ? (

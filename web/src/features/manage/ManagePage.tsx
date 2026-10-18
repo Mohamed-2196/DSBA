@@ -1,10 +1,46 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { BookOpenText, Bug, Calculator, CalendarCheck, CalendarDots, ChartBar, ChatCircleDots, ChatsCircle, ClockCounterClockwise, Compass, Flag, GearSix, HandWaving, ListChecks, ListMagnifyingGlass, Newspaper, Power, PuzzlePiece, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
+import {
+  BookOpenText,
+  Bug,
+  Calculator,
+  CalendarCheck,
+  CalendarDots,
+  ChartBar,
+  ChatCircleDots,
+  ChatsCircle,
+  ClockCounterClockwise,
+  Compass,
+  Flag,
+  GearSix,
+  HandWaving,
+  ListChecks,
+  ListMagnifyingGlass,
+  Newspaper,
+  Power,
+  PuzzlePiece,
+  Tray,
+  UsersThree,
+  YoutubeLogo,
+  type Icon,
+} from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, useQueryParam } from '../../state';
-import { Button, EmptyState, ErrorBoundary, Count, Page, PageHeader, Panel, QueryError, Select, Skeleton, cx, formatCount } from '../../ui';
+import {
+  Button,
+  EmptyState,
+  ErrorBoundary,
+  Count,
+  Page,
+  PageHeader,
+  Panel,
+  QueryError,
+  Select,
+  Skeleton,
+  cx,
+  formatCount,
+} from '../../ui';
 import { ActivityLog, PeopleList } from '../access/public';
 import { CareerEditor } from '../career/public';
 import { DailyContentEditor } from '../daily/public';
@@ -73,7 +109,16 @@ function Numbers() {
 
 function HubNumbers() {
   const stats = useAdminStats(true);
-  if (stats.isError) return <QueryError error={stats.error} title="The numbers didn’t load" onRetry={() => void stats.refetch()} retrying={stats.isFetching} size="sm" />;
+  if (stats.isError)
+    return (
+      <QueryError
+        error={stats.error}
+        title="The numbers didn’t load"
+        onRetry={() => void stats.refetch()}
+        retrying={stats.isFetching}
+        size="sm"
+      />
+    );
   // A count is null while its feature is switched off, so it isn't shown.
   const shown = stats.data ? NUMBERS.filter(([key]) => stats.data[key] !== null) : NUMBERS;
   return (
@@ -83,7 +128,9 @@ function HubNumbers() {
         return (
           <div key={key} className="manage-number">
             <dt>{label}</dt>
-            <dd>{value === undefined || value === null ? <Skeleton width="2.5ch" height="1em" /> : formatCount(value)}</dd>
+            <dd>
+              {value === undefined || value === null ? <Skeleton width="2.5ch" height="1em" /> : formatCount(value)}
+            </dd>
           </div>
         );
       })}
@@ -91,7 +138,19 @@ function HubNumbers() {
   );
 }
 
-function LinkOut({ icon, title, body, to, label }: { icon: Icon; title: string; body: string; to: string; label: string }) {
+function LinkOut({
+  icon,
+  title,
+  body,
+  to,
+  label,
+}: {
+  icon: Icon;
+  title: string;
+  body: string;
+  to: string;
+  label: string;
+}) {
   return (
     <Panel padding="none">
       <EmptyState size="sm" icon={icon} title={title} body={body} action={<Button to={to}>{label}</Button>} />
@@ -126,7 +185,15 @@ const BODIES: Record<SectionId, () => ReactNode> = {
       <NewsletterSettingsEditor />
     </div>
   ),
-  calendar: () => <LinkOut icon={CalendarDots} title="The calendar" body="Add, edit and delete events from the calendar itself." to="/calendar" label="Open the calendar" />,
+  calendar: () => (
+    <LinkOut
+      icon={CalendarDots}
+      title="The calendar"
+      body="Add, edit and delete events from the calendar itself."
+      to="/calendar"
+      label="Open the calendar"
+    />
+  ),
   summary: () => <SummaryForMe />,
   career: () => <CareerEditor />,
   content: () => <ModulesEditor />,
@@ -144,15 +211,36 @@ const BODIES: Record<SectionId, () => ReactNode> = {
 };
 
 /** The tabs that hold a draft. */
-const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['newsletter', 'summary', 'career', 'guides', 'forum', 'noora', 'grades', 'site']);
+const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set([
+  'newsletter',
+  'summary',
+  'career',
+  'guides',
+  'forum',
+  'noora',
+  'grades',
+  'site',
+]);
 
-const HEADER = <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />;
+const HEADER = (
+  <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />
+);
 
 /**
  * Manage's sections, grouped (Waiting, Publish, Look after), each waiting one with its count. A list on the left
  * from 1024px; a "Show" picker above the section below that, so every section is in reach at any width.
  */
-function ManageNav({ sections, current, counts, onPick }: { sections: SectionId[]; current: SectionId; counts: Partial<Record<SectionId, number | null>>; onPick: (id: SectionId) => void }) {
+function ManageNav({
+  sections,
+  current,
+  counts,
+  onPick,
+}: {
+  sections: SectionId[];
+  current: SectionId;
+  counts: Partial<Record<SectionId, number | null>>;
+  onPick: (id: SectionId) => void;
+}) {
   const groups = groupSections(sections);
   const headId = useId();
   const named = (id: SectionId) => {
@@ -162,7 +250,12 @@ function ManageNav({ sections, current, counts, onPick }: { sections: SectionId[
   return (
     <>
       <div className="manage-pick">
-        <Select label="Show" value={current} onChange={(e) => onPick(e.target.value as SectionId)} data-hub="manage-pick">
+        <Select
+          label="Show"
+          value={current}
+          onChange={(e) => onPick(e.target.value as SectionId)}
+          data-hub="manage-pick"
+        >
           {groups.map((g) => (
             <optgroup key={g.id} label={g.label}>
               {g.sections.map((id) => (
@@ -186,8 +279,18 @@ function ManageNav({ sections, current, counts, onPick }: { sections: SectionId[
                 const n = counts[id];
                 return (
                   <li key={id}>
-                    <button type="button" className={cx('manage-nav__item', id === current && 'is-active')} aria-current={id === current ? 'page' : undefined} onClick={() => onPick(id)} data-section={id}>
-                      <Icon aria-hidden="true" weight={id === current ? 'duotone' : 'regular'} className="manage-nav__icon" />
+                    <button
+                      type="button"
+                      className={cx('manage-nav__item', id === current && 'is-active')}
+                      aria-current={id === current ? 'page' : undefined}
+                      onClick={() => onPick(id)}
+                      data-section={id}
+                    >
+                      <Icon
+                        aria-hidden="true"
+                        weight={id === current ? 'duotone' : 'regular'}
+                        className="manage-nav__icon"
+                      />
                       <span className="manage-nav__label">{SECTIONS[id].label}</span>
                       {n ? <Count value={n} /> : null}
                     </button>
@@ -222,7 +325,11 @@ function ManageScreen() {
       <Page className="manage">
         {HEADER}
         <Panel padding="none">
-          <EmptyState icon={Power} title="Your tools are switched off right now." body="The parts of the hub you manage are off. They’re back here when they’re switched on." />
+          <EmptyState
+            icon={Power}
+            title="Your tools are switched off right now."
+            body="The parts of the hub you manage are off. They’re back here when they’re switched on."
+          />
         </Panel>
       </Page>
     );

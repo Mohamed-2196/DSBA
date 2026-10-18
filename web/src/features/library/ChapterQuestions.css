@@ -1,19 +1,102 @@
 /* Lessons tab: a chapter's past exam questions. */
-.lib-chq { display: grid; gap: var(--sp-12); max-width: var(--measure, 75ch); }
-.lib-chq__h { margin: 0; color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-bold); }
-.lib-chq__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-12); margin: 0; padding: 0; list-style: none; }
-.lib-chq__card { display: flex; align-items: center; gap: var(--sp-12); min-height: 48px; padding: var(--sp-8) var(--sp-12); border: 1px solid var(--line); border-radius: var(--radius-md, 8px); background: var(--surface); color: var(--ink); text-decoration: none; transition: border-color var(--t-fast), background var(--t-fast); }
-.lib-chq__card:hover { border-color: var(--ink-3); background: var(--surface-2); }
-.lib-chq__thumb { flex: 0 0 36px; height: 50px; border-radius: 4px; overflow: hidden; background: var(--surface-2); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
-.lib-chq__cover { width: 100%; height: 100%; object-fit: cover; }
-.lib-chq__fallback { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: var(--ink-3); }
-.lib-chq__icon { font-size: 20px; }
-.lib-chq__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow: hidden; }
-.lib-chq__q { font-size: var(--fs-14); font-weight: var(--fw-bold); color: var(--ink); white-space: nowrap; }
-.lib-chq__paper { font-size: var(--fs-12); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lib-chq__empty { margin: 0; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
-.lib-chq__empty a { color: var(--cobalt); font-weight: var(--fw-semibold); }
+.lib-chq {
+  display: grid;
+  gap: var(--sp-12);
+  max-width: var(--measure, 75ch);
+}
+.lib-chq__h {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-bold);
+}
+.lib-chq__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lib-chq__card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  min-height: 48px;
+  padding: var(--sp-8) var(--sp-12);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    border-color var(--t-fast),
+    background var(--t-fast);
+}
+.lib-chq__card:hover {
+  border-color: var(--ink-3);
+  background: var(--surface-2);
+}
+.lib-chq__thumb {
+  flex: 0 0 36px;
+  height: 50px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+}
+.lib-chq__cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lib-chq__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--ink-3);
+}
+.lib-chq__icon {
+  font-size: 20px;
+}
+.lib-chq__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+.lib-chq__q {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.lib-chq__paper {
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lib-chq__empty {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+.lib-chq__empty a {
+  color: var(--cobalt);
+  font-weight: var(--fw-semibold);
+}
 
 @media (pointer: coarse) {
-  .lib-chq__card { min-height: 52px; }
+  .lib-chq__card {
+    min-height: 52px;
+  }
 }

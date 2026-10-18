@@ -31,7 +31,12 @@ export default function GradesPage() {
     <Page className="grades-page">
       <PageHeader title={TITLE} description={DESCRIPTION} />
       {rules.isError ? (
-        <QueryError error={rules.error} title="The calculator’s rules didn’t load" onRetry={() => void rules.refetch()} retrying={rules.isFetching} />
+        <QueryError
+          error={rules.error}
+          title="The calculator’s rules didn’t load"
+          onRetry={() => void rules.refetch()}
+          retrying={rules.isFetching}
+        />
       ) : (
         <div aria-busy="true">
           <span className="visually-hidden">Loading the grades calculator</span>
@@ -54,7 +59,13 @@ function Calculator({ rules }: { rules: Rules }) {
   const { picks: paperPicks } = usePapers();
   const picks = useMemo(() => withPaperPicks(record.picks, paperPicks, rules), [record.picks, paperPicks, rules]);
   const result = useMemo(() => classify(marks, rules), [marks, rules]);
-  const plan = useMemo(() => (blankIndexes(marks, rules).length === 0 && !result.failed && result.kind !== 'first' ? improvementPlan(marks, rules) : null), [marks, result, rules]);
+  const plan = useMemo(
+    () =>
+      blankIndexes(marks, rules).length === 0 && !result.failed && result.kind !== 'first'
+        ? improvementPlan(marks, rules)
+        : null,
+    [marks, result, rules],
+  );
   const aims = useMemo(() => new Map((plan?.changes ?? []).map((c) => [c.index, c.to])), [plan]);
 
   const storedRef = useRef(stored);
@@ -64,7 +75,8 @@ function Calculator({ rules }: { rules: Rules }) {
 
   /** Changes the record as stored now (another tab may have written since this one last read it). */
   const change = useCallback(
-    (edit: (rec: GradesRecord) => GradesRecord) => setStored((prev: unknown) => storedRecord(edit(readRecord(prev, rules)), rules, prev)),
+    (edit: (rec: GradesRecord) => GradesRecord) =>
+      setStored((prev: unknown) => storedRecord(edit(readRecord(prev, rules)), rules, prev)),
     [setStored, rules],
   );
   const setMark = useCallback(
@@ -117,7 +129,12 @@ function Calculator({ rules }: { rules: Rules }) {
   const reset = () => {
     const prev = storedRef.current;
     setStored(storedRecord({ ...emptyRecord(rules), picks: record.picks }, rules));
-    push({ tone: 'info', title: 'Marks cleared', duration: 8000, action: { label: 'Undo', onClick: () => setStored(prev) } });
+    push({
+      tone: 'info',
+      title: 'Marks cleared',
+      duration: 8000,
+      action: { label: 'Undo', onClick: () => setStored(prev) },
+    });
   };
 
   const actions = (
@@ -158,11 +175,23 @@ function Calculator({ rules }: { rules: Rules }) {
       </PageSection>
 
       <PageSection aria-label="Module marks" className="grades-sec--sheet">
-        <MarksSheet marks={marks} picks={picks} groupAverage={result.groupAverage} aims={aims} onMark={setMark} onPick={setPick} rules={rules} />
+        <MarksSheet
+          marks={marks}
+          picks={picks}
+          groupAverage={result.groupAverage}
+          aims={aims}
+          onMark={setMark}
+          onPick={setPick}
+          rules={rules}
+        />
       </PageSection>
 
       <PageSection aria-labelledby="grades-how">
-        <SectionHeader id="grades-how" title="How the classification works" description="The rules this calculator applies, step by step." />
+        <SectionHeader
+          id="grades-how"
+          title="How the classification works"
+          description="The rules this calculator applies, step by step."
+        />
         <RulesExplained rules={rules} />
       </PageSection>
 
@@ -213,17 +242,20 @@ export function RulesExplained({ rules }: { rules: Rules }) {
         <ol className="grades-steps">
           {summary.pooled ? (
             <li>
-              <strong>{summary.pooled.label}</strong> is averaged. The average counts as <strong>{summary.pooled.counts}</strong> classification {marks(summary.pooled.counts)}.
+              <strong>{summary.pooled.label}</strong> is averaged. The average counts as{' '}
+              <strong>{summary.pooled.counts}</strong> classification {marks(summary.pooled.counts)}.
             </li>
           ) : null}
           {summary.special.map((s) => (
             <li key={s.counts}>
-              <strong>{listed(s.names)}</strong> {s.names.length === 1 ? 'counts' : 'each count'} as <strong>{s.counts}</strong> {marks(s.counts)}.
+              <strong>{listed(s.names)}</strong> {s.names.length === 1 ? 'counts' : 'each count'} as{' '}
+              <strong>{s.counts}</strong> {marks(s.counts)}.
             </li>
           ))}
           {summary.rest != null ? (
             <li>
-              Every <strong>{summary.special.length || summary.pooled ? 'other module' : 'module'}</strong> counts as <strong>{summary.rest}</strong> {marks(summary.rest)}. That makes {summary.total} classification marks.
+              Every <strong>{summary.special.length || summary.pooled ? 'other module' : 'module'}</strong> counts as{' '}
+              <strong>{summary.rest}</strong> {marks(summary.rest)}. That makes {summary.total} classification marks.
             </li>
           ) : null}
           <li>
@@ -243,7 +275,8 @@ export function RulesExplained({ rules }: { rules: Rules }) {
               <tr key={kind}>
                 <th scope="row">{CLASS_NAME[kind]}</th>
                 <td>
-                  {rules.needed} {band} marks, or {rules.fewer} {band} marks and an average classification mark of at least {rules.averages[kind]}
+                  {rules.needed} {band} marks, or {rules.fewer} {band} marks and an average classification mark of at
+                  least {rules.averages[kind]}
                 </td>
               </tr>
             ))}
@@ -254,7 +287,8 @@ export function RulesExplained({ rules }: { rules: Rules }) {
           </tbody>
         </table>
         <p className="grades-how__note">
-          A mark in a higher band also counts for the classes below it. For Third Class Honours this calculator checks for {rules.needed} classification marks of {pass} or more.
+          A mark in a higher band also counts for the classes below it. For Third Class Honours this calculator checks
+          for {rules.needed} classification marks of {pass} or more.
         </p>
       </div>
       <div className="grades-how__col">
@@ -272,7 +306,11 @@ export function RulesExplained({ rules }: { rules: Rules }) {
               <tr key={b.id}>
                 <th scope="row">
                   <span className={cx('grades-swatch', `grades-cell--${b.id}`)} aria-hidden="true" />
-                  {b.id === 'first' ? `${b.label} (1st)` : b.id === 'upper' || b.id === 'lower' ? `${b.label} (${b.short})` : b.label}
+                  {b.id === 'first'
+                    ? `${b.label} (1st)`
+                    : b.id === 'upper' || b.id === 'lower'
+                      ? `${b.label} (${b.short})`
+                      : b.label}
                 </th>
                 <td>{b.span}</td>
                 <td>{b.gpa}</td>
@@ -292,7 +330,9 @@ function StickyResult({ marks, result, rules }: { marks: string[]; result: Class
   useEffect(() => {
     const hero = document.querySelector('[data-hub="grades-result"]');
     if (!hero || typeof IntersectionObserver === 'undefined') return undefined;
-    const io = new IntersectionObserver(([entry]) => setVisible(entry ? !entry.isIntersecting : false), { threshold: 0 });
+    const io = new IntersectionObserver(([entry]) => setVisible(entry ? !entry.isIntersecting : false), {
+      threshold: 0,
+    });
     io.observe(hero);
     return () => io.disconnect();
   }, []);
@@ -304,12 +344,16 @@ function StickyResult({ marks, result, rules }: { marks: string[]; result: Class
     <button
       type="button"
       className="grades-sticky"
-      onClick={() => document.querySelector('[data-hub="grades-result"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+      onClick={() =>
+        document.querySelector('[data-hub="grades-result"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
     >
       <span className="grades-sticky__big">{kind ? CLASS_SHORT[kind] : `${count - blanks}/${count}`}</span>
       <span className="grades-sticky__text">
         {kind ? CLASS_NAME[kind] : `${blanks} marks to go`}
-        {kind && kind !== 'resit' ? <span className="grades-sticky__avg">Average {result.average.toFixed(2)}</span> : null}
+        {kind && kind !== 'resit' ? (
+          <span className="grades-sticky__avg">Average {result.average.toFixed(2)}</span>
+        ) : null}
       </span>
       <span className="visually-hidden">Show the result</span>
     </button>

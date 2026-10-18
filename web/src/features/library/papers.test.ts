@@ -10,7 +10,14 @@ import {
   clockStart,
   durationLabel,
   parseDuration,
-  paperContext, questionHref, questionLabel, sittingCards, sittingFiles, yourZoneFirst, zonesIn } from './papers';
+  paperContext,
+  questionHref,
+  questionLabel,
+  sittingCards,
+  sittingFiles,
+  yourZoneFirst,
+  zonesIn,
+} from './papers';
 
 function file(id: string, kind: LibraryItem['kind'], zone: LibraryItem['zone']): LibraryItem {
   return {
@@ -62,7 +69,15 @@ const MAY_2024: Sitting = {
 function tag(patch: Partial<PaperQuestion>): PaperQuestion {
   return {
     id: 'q1',
-    paper: { id: 'za', slug: 'ec1002-za-may-2024', title: 'EC1002 ZA', examYear: 2024, examSession: 'may', zone: 'A', coverUrl: null },
+    paper: {
+      id: 'za',
+      slug: 'ec1002-za-may-2024',
+      title: 'EC1002 ZA',
+      examYear: 2024,
+      examSession: 'may',
+      zone: 'A',
+      coverUrl: null,
+    },
     chapterId: 'c1',
     chapterTitle: 'Elasticity',
     question: 3,
@@ -89,7 +104,11 @@ describe('paperContext', () => {
     const rtcReport = file('rtc-report', 'examiners-report', 'RTC');
     const sitting: Sitting = {
       ...MAY_2024,
-      zones: [...MAY_2024.zones.slice(0, 2), { zone: 'RTC', papers: [rtc], reports: [rtcReport], solutions: [] }, MAY_2024.zones[2]],
+      zones: [
+        ...MAY_2024.zones.slice(0, 2),
+        { zone: 'RTC', papers: [rtc], reports: [rtcReport], solutions: [] },
+        MAY_2024.zones[2],
+      ],
     };
     const ctx = paperContext([sitting], 'rtc');
     expect(ctx?.reports.map((f) => f.id)).toEqual(['rtc-report', 'report']);
@@ -149,7 +168,11 @@ describe('sittingCards', () => {
   });
 
   it('shows a sitting’s report on its own when no paper is in yet', () => {
-    const sitting: Sitting = { examYear: 2023, session: 'october', zones: [{ zone: null, papers: [], reports: [report], solutions: [] }] };
+    const sitting: Sitting = {
+      examYear: 2023,
+      session: 'october',
+      zones: [{ zone: null, papers: [], reports: [report], solutions: [] }],
+    };
     expect(sittingCards(sitting, 'A').map((c) => c.item.id)).toEqual(['report']);
   });
 
@@ -172,7 +195,11 @@ describe('the Time me clock', () => {
 
   it('reads a stored clock back only when it makes sense', () => {
     const now = 50_000_000;
-    expect(cleanClock({ total: 3600_000, endsAt: now + 10, pausedLeft: null }, now)).toEqual({ total: 3600_000, endsAt: now + 10, pausedLeft: null });
+    expect(cleanClock({ total: 3600_000, endsAt: now + 10, pausedLeft: null }, now)).toEqual({
+      total: 3600_000,
+      endsAt: now + 10,
+      pausedLeft: null,
+    });
     expect(cleanClock({ total: 3600_000, endsAt: null, pausedLeft: 5000 }, now)?.pausedLeft).toBe(5000);
     expect(cleanClock({ total: 3600_000, endsAt: now - 7 * 3600_000, pausedLeft: null }, now)).toBeNull();
     expect(cleanClock({ total: 5, endsAt: now, pausedLeft: null }, now)).toBeNull();

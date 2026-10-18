@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import type { IssueSection } from '../../../api/types';
-import { INLINE_RE, countWords, issueNo, listNames, plainText, publishedNote, readMinutes, sectionLabel, sectionText, slugify } from './text';
+import {
+  INLINE_RE,
+  countWords,
+  issueNo,
+  listNames,
+  plainText,
+  publishedNote,
+  readMinutes,
+  sectionLabel,
+  sectionText,
+  slugify,
+} from './text';
 
 const story: IssueSection = {
   id: 'cfa',
@@ -13,12 +24,20 @@ const story: IssueSection = {
   ],
   after: [{ type: 'signoff', text: 'The editors' }],
   figure: { src: 'demo/news/cfa.jpg', width: 10, height: 10, alt: '', caption: 'A poster.' },
-  aside: { type: 'stats', title: 'In numbers', items: [{ value: '16', label: 'modules' }], foot: 'So far.', wide: false },
+  aside: {
+    type: 'stats',
+    title: 'In numbers',
+    items: [{ value: '16', label: 'modules' }],
+    foot: 'So far.',
+    wide: false,
+  },
 };
 
 describe('the inline markup', () => {
   it('reads as plain text', () => {
-    expect(plainText('**Bold**, *italic*, ==marked== and [a link](https://x.example).')).toBe('Bold, italic, marked and a link.');
+    expect(plainText('**Bold**, *italic*, ==marked== and [a link](https://x.example).')).toBe(
+      'Bold, italic, marked and a link.',
+    );
   });
 
   it('splits into runs and tokens for the renderer', () => {
@@ -28,7 +47,9 @@ describe('the inline markup', () => {
 
 describe('read time', () => {
   it('counts the words of a section’s copy, not its links or buttons', () => {
-    expect(sectionText(story)).toBe('CFA Research Challenge BIBF is taking participants A poster. The challenge opens in October. Form a team Pick a listed company The editors In numbers 16 modules So far.');
+    expect(sectionText(story)).toBe(
+      'CFA Research Challenge BIBF is taking participants A poster. The challenge opens in October. Form a team Pick a listed company The editors In numbers 16 modules So far.',
+    );
     expect(countWords('Don’t panic: it’s 2.5 pages.')).toBe(5);
   });
 
@@ -62,10 +83,16 @@ describe('names and addresses', () => {
 
 describe('publishedNote', () => {
   it('says the cohort was told when the issue was emailed', () => {
-    expect(publishedNote('07', true)).toEqual({ title: 'Issue 07 is out', body: 'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.' });
+    expect(publishedNote('07', true)).toEqual({
+      title: 'Issue 07 is out',
+      body: 'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.',
+    });
   });
 
   it('says the cohort email waits a day when it wasn’t sent', () => {
-    expect(publishedNote('08', false)).toEqual({ title: 'Issue 08 is out', body: 'Published. The cohort email goes out once a day; the next one can be sent tomorrow.' });
+    expect(publishedNote('08', false)).toEqual({
+      title: 'Issue 08 is out',
+      body: 'Published. The cohort email goes out once a day; the next one can be sent tomorrow.',
+    });
   });
 });

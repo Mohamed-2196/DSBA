@@ -34,4 +34,5 @@ export const HUB_LOGO: HubLogoArt | null = {
 export const HUB_LOGO_SRC: string | null = HUB_LOGO ? HUB_LOGO.icon : null;
 
 /** A path under public/ as a URL the app can load (the app is served from a sub-path), or null. */
-export const brandAssetUrl = (path: string | null | undefined): string | null => (path ? import.meta.env.BASE_URL + path : null);
+export const brandAssetUrl = (path: string | null | undefined): string | null =>
+  path ? import.meta.env.BASE_URL + path : null;

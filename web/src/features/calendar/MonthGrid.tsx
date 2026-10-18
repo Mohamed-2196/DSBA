@@ -31,7 +31,8 @@ export interface MonthGridProps {
 }
 
 /** Opens the day of the grid cell `el` is in: a click on its number. */
-const openDay = (el: Element | null) => el?.closest('[role="gridcell"]')?.querySelector<HTMLButtonElement>('.cal-day__num')?.click();
+const openDay = (el: Element | null) =>
+  el?.closest('[role="gridcell"]')?.querySelector<HTMLButtonElement>('.cal-day__num')?.click();
 
 /**
  * Month grid (ARIA grid, Sunday first, Fri/Sat weekend). One tab stop: arrow keys move by day/week,
@@ -42,7 +43,20 @@ const openDay = (el: Element | null) => el?.closest('[role="gridcell"]')?.queryS
  * lists the picked day's dates under the grid.
  * data-hub="calendar-grid" on the grid, "calendar-event" on each event.
  */
-export function MonthGrid({ month, events, today, selectedId, showCohort, labelledBy, compact = false, selectedDay = null, onSelectDay, onOpen, onNavigate, onAdd }: MonthGridProps) {
+export function MonthGrid({
+  month,
+  events,
+  today,
+  selectedId,
+  showCohort,
+  labelledBy,
+  compact = false,
+  selectedDay = null,
+  onSelectDay,
+  onOpen,
+  onNavigate,
+  onAdd,
+}: MonthGridProps) {
   const { y, m } = month;
   const { getModule } = useModules();
   const weeks = useMemo(() => monthMatrix({ y, m }), [y, m]);
@@ -57,7 +71,10 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
   const [focusKey, setFocusKey] = useState<string | null>(null);
 
   const inMonth = (d: Date) => d.getMonth() === m && d.getFullYear() === y;
-  const visibleKeys = weeks.flat().filter(inMonth).map((d) => dayKey(d));
+  const visibleKeys = weeks
+    .flat()
+    .filter(inMonth)
+    .map((d) => dayKey(d));
   const firstEventKey = visibleKeys.find((k) => byDay.has(k));
   const activeKey =
     focusKey && visibleKeys.includes(focusKey)
@@ -104,7 +121,14 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
   };
 
   return (
-    <div ref={gridRef} role="grid" aria-labelledby={labelledBy} className={cx('cal-grid', compact && 'cal-grid--compact')} data-hub="calendar-grid" style={{ '--rows': weeks.length } as CSSProperties}>
+    <div
+      ref={gridRef}
+      role="grid"
+      aria-labelledby={labelledBy}
+      className={cx('cal-grid', compact && 'cal-grid--compact')}
+      data-hub="calendar-grid"
+      style={{ '--rows': weeks.length } as CSSProperties}
+    >
       <div role="row" className="cal-grid__row cal-grid__row--head">
         {WEEKDAYS.map((w, i) => (
           <div key={w.short} role="columnheader" className={cx('cal-grid__wd', (i === 5 || i === 6) && 'is-weekend')}>
@@ -132,7 +156,15 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                 aria-label={label}
                 aria-current={isToday ? 'date' : undefined}
                 aria-selected={compact ? picked : undefined}
-                className={cx('cal-day', outside && 'is-outside', isToday && 'is-today', isWeekend(date) && 'is-weekend', past && 'is-past', list.length > 0 && 'has-events', picked && 'is-selected')}
+                className={cx(
+                  'cal-day',
+                  outside && 'is-outside',
+                  isToday && 'is-today',
+                  isWeekend(date) && 'is-weekend',
+                  past && 'is-past',
+                  list.length > 0 && 'has-events',
+                  picked && 'is-selected',
+                )}
                 onKeyDown={(e) => onKeyDown(e, date)}
                 onClick={compact && onSelectDay ? () => onSelectDay(key) : undefined}
                 onFocus={(e) => {
@@ -145,7 +177,14 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                       {date.getDate()}
                     </span>
                   ) : (
-                    <DayMenu day={key} events={list} showCohort={showCohort} onOpen={onOpen} onAdd={onAdd} className="cal-day__num">
+                    <DayMenu
+                      day={key}
+                      events={list}
+                      showCohort={showCohort}
+                      onOpen={onOpen}
+                      onAdd={onAdd}
+                      className="cal-day__num"
+                    >
                       {date.getDate()}
                     </DayMenu>
                   )}
@@ -173,7 +212,12 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                           key={ev.id}
                           type="button"
                           tabIndex={-1}
-                          className={cx('cal-chip', chipClass(ev), ev.id === selectedId && 'is-selected', past && 'is-past')}
+                          className={cx(
+                            'cal-chip',
+                            chipClass(ev),
+                            ev.id === selectedId && 'is-selected',
+                            past && 'is-past',
+                          )}
                           onClick={() => onOpen(ev)}
                           data-hub="calendar-event"
                           data-event-id={ev.id}
@@ -188,12 +232,21 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                               </span>
                             ) : null}
                           </span>
-                          {code ? <span className="cal-chip__line">{line}</span> : time ? <span className="cal-chip__line">{time}</span> : null}
+                          {code ? (
+                            <span className="cal-chip__line">{line}</span>
+                          ) : time ? (
+                            <span className="cal-chip__line">{time}</span>
+                          ) : null}
                         </button>
                       );
                     })}
                     {more > 0 ? (
-                      <button type="button" tabIndex={-1} className="cal-day__more" onClick={(e) => openDay(e.currentTarget)}>
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="cal-day__more"
+                        onClick={(e) => openDay(e.currentTarget)}
+                      >
                         {more} more
                       </button>
                     ) : null}

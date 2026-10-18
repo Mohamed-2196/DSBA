@@ -2,11 +2,18 @@ import { describe, expect, it } from 'vitest';
 import type { ModuleSummary } from '../../api/types';
 import { replyFromAnswer, visibleText } from './answer';
 
-const st2133 = { id: 'st2133', unitCode: 'ST2133', name: 'Distribution theory', shortName: 'Distribution theory', year: 2 } as ModuleSummary;
+const st2133 = {
+  id: 'st2133',
+  unitCode: 'ST2133',
+  name: 'Distribution theory',
+  shortName: 'Distribution theory',
+  year: 2,
+} as ModuleSummary;
 
 describe('replyFromAnswer', () => {
   it('turns Hub links into cards and keeps the Markdown', () => {
-    const answer = 'The MGF is in [chapter 1](/modules/st2133?tab=lessons&chapter=1&video=0). Dates are on [the calendar](/calendar).';
+    const answer =
+      'The MGF is in [chapter 1](/modules/st2133?tab=lessons&chapter=1&video=0). Dates are on [the calendar](/calendar).';
     const reply = replyFromAnswer(answer, [st2133]);
     expect(reply.text).toBe(answer);
     expect(reply.refs).toEqual([
@@ -17,7 +24,10 @@ describe('replyFromAnswer', () => {
   });
 
   it('never makes a card for another site, and lists a place once', () => {
-    const reply = replyFromAnswer('See [this](https://example.com), [that](//evil.example.com), [forum](/forum) and [forum again](/forum).', []);
+    const reply = replyFromAnswer(
+      'See [this](https://example.com), [that](//evil.example.com), [forum](/forum) and [forum again](/forum).',
+      [],
+    );
     expect(reply.refs).toEqual([{ code: 'Hub', label: 'forum', to: '/forum' }]);
   });
 

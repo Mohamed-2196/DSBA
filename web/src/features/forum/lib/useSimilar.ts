@@ -18,6 +18,9 @@ export function useSimilar(title: string): SimilarState {
   const settled = useDebouncedValue(title, 350);
   const searching = settled.trim().length >= 6;
   const query = useSimilarThreads(searching ? settled : '');
-  const threads = useMemo(() => (searching ? rankSimilar(query.data ?? [], settled) : []), [searching, query.data, settled]);
+  const threads = useMemo(
+    () => (searching ? rankSimilar(query.data ?? [], settled) : []),
+    [searching, query.data, settled],
+  );
   return { threads, searching, loading: query.isFetching };
 }

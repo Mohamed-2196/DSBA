@@ -20,11 +20,31 @@ export interface PanelProps extends HTMLAttributes<HTMLElement> {
  * sidebar block) — not to box every item. Lists of rows usually want no panel per row.
  */
 export const Panel = forwardRef<HTMLElement, PanelProps>(function Panel(
-  { as: Comp = 'section', padding = 'md', radius = 'panel', tone = 'surface', float = false, className, children, ...rest },
+  {
+    as: Comp = 'section',
+    padding = 'md',
+    radius = 'panel',
+    tone = 'surface',
+    float = false,
+    className,
+    children,
+    ...rest
+  },
   ref,
 ) {
   return (
-    <Comp ref={ref} className={cx('ui-panel', `ui-panel--pad-${padding}`, `ui-panel--${radius}`, `ui-panel--${tone}`, float && 'ui-panel--float', className)} {...rest}>
+    <Comp
+      ref={ref}
+      className={cx(
+        'ui-panel',
+        `ui-panel--pad-${padding}`,
+        `ui-panel--${radius}`,
+        `ui-panel--${tone}`,
+        float && 'ui-panel--float',
+        className,
+      )}
+      {...rest}
+    >
       {children}
     </Comp>
   );

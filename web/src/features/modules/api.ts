@@ -16,7 +16,8 @@ export const moduleKeys = {
 export function moduleDetailQuery(id: string) {
   return queryOptions({
     queryKey: moduleKeys.detail(id),
-    queryFn: ({ signal }): Promise<ModuleDetail> => call(api.GET('/api/v1/modules/{module_id}', { params: { path: { module_id: id } }, signal })),
+    queryFn: ({ signal }): Promise<ModuleDetail> =>
+      call(api.GET('/api/v1/modules/{module_id}', { params: { path: { module_id: id } }, signal })),
     // Lessons change when a content manager saves the module (the editor refreshes this entry): rarely.
     staleTime: 10 * 60_000,
   });
@@ -34,7 +35,12 @@ export function fetchProgress(signal?: AbortSignal): Promise<Progress> {
 }
 
 export function putWatched(lessonId: string, watched: boolean): Promise<Progress> {
-  return call(api.PUT('/api/v1/me/progress/lessons/{lesson_id}', { params: { path: { lesson_id: lessonId } }, body: { watched } }));
+  return call(
+    api.PUT('/api/v1/me/progress/lessons/{lesson_id}', {
+      params: { path: { lesson_id: lessonId } },
+      body: { watched },
+    }),
+  );
 }
 
 export function putResume(lessonId: string): Promise<Progress> {

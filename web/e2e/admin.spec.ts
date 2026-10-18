@@ -18,7 +18,11 @@ async function findAli(admin: Page, email: string) {
 test.afterAll(async ({ browser }) => {
   const ctx = await personaContext(browser, 'admin');
   const page = await ctx.newPage();
-  const found = await api<{ items: { id: string; status: string }[] }>(page, 'GET', `/api/v1/admin/users?q=${encodeURIComponent(readRun().ali.email)}`);
+  const found = await api<{ items: { id: string; status: string }[] }>(
+    page,
+    'GET',
+    `/api/v1/admin/users?q=${encodeURIComponent(readRun().ali.email)}`,
+  );
   const ali = found.body.items[0];
   if (ali) {
     await api(page, 'PUT', `/api/v1/admin/users/${ali.id}/roles`, { roleIds: [await roleIdBySlug(page, 'student')] });
@@ -40,8 +44,12 @@ test('the admin makes Ali a newsletter manager and back; he is told', async ({ a
   expect(me.body.roles.map((r) => r.slug)).toContain('newsletter-manager');
   expect(me.body.boxes).toContain('newsletter.manage');
   await ali.goto('/manage');
-  await expect(ali.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Newsletter/ })).toBeVisible();
-  await expect(ali.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Reports/ })).toHaveCount(0);
+  await expect(
+    ali.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Newsletter/ }),
+  ).toBeVisible();
+  await expect(
+    ali.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Reports/ }),
+  ).toHaveCount(0);
 
   row = await findAli(admin, run.ali.email);
   await row.getByRole('button', { name: /^Change the roles of/ }).click();
@@ -74,15 +82,23 @@ test('a suspended student can read but not post; lifting it lets him post again'
   await expect(admin.getByText(`${run.ali.name} is suspended`, { exact: true })).toBeVisible();
 
   await ali.goto('/forum/new');
-  await expect(ali.locator('[data-hub="cant-post"]')).toContainText('Your account is suspended, so you can’t post in the forum for now.');
+  await expect(ali.locator('[data-hub="cant-post"]')).toContainText(
+    'Your account is suspended, so you can’t post in the forum for now.',
+  );
   await expect(ali.locator('[data-hub="post-button"]')).toHaveCount(0);
   await ali.goto(`/forum/${thread.body.slug}`);
-  await expect(ali.locator('[data-hub="cant-post"]')).toContainText('Your account is suspended, so you can’t post in the forum for now.');
+  await expect(ali.locator('[data-hub="cant-post"]')).toContainText(
+    'Your account is suspended, so you can’t post in the forum for now.',
+  );
   await expect(ali.locator('[data-hub="reply-input"]')).toHaveCount(0);
   const writes: ['PUT' | 'POST', string, unknown][] = [
     ['PUT', `/api/v1/forum/threads/${thread.body.id}/vote`, undefined],
     ['POST', `/api/v1/forum/threads/${thread.body.id}/replies`, { body: 'Trying to reply while suspended.' }],
-    ['POST', '/api/v1/uploads', { purpose: 'library', fileName: 'notes.pdf', contentType: 'application/pdf', sizeBytes: 1000 }],
+    [
+      'POST',
+      '/api/v1/uploads',
+      { purpose: 'library', fileName: 'notes.pdf', contentType: 'application/pdf', sizeBytes: 1000 },
+    ],
     ['POST', '/api/v1/reports', { targetType: 'thread', targetId: thread.body.id, reason: 'spam', note: null }],
   ];
   for (const [method, url, data] of writes) {

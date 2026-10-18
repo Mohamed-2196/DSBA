@@ -10,12 +10,25 @@ import { FORUM_ICONS } from './forumIcons';
 import { RollingNumber } from './RollingNumber';
 
 /** Module as a typographic object: the unit code in its cohort colour, then the short name. */
-export function ModuleTag({ module, showName = true, className }: { module: ModuleSummary | null | undefined; showName?: boolean; className?: string }) {
+export function ModuleTag({
+  module,
+  showName = true,
+  className,
+}: {
+  module: ModuleSummary | null | undefined;
+  showName?: boolean;
+  className?: string;
+}) {
   if (!module) return null;
   return (
-    <span className={cx('forum-module', className)} style={{ '--forum-c': cohortTextColor(module.year) } as CSSProperties}>
+    <span
+      className={cx('forum-module', className)}
+      style={{ '--forum-c': cohortTextColor(module.year) } as CSSProperties}
+    >
       {module.unitCode ? <span className="forum-module__code">{module.unitCode}</span> : null}
-      {showName || !module.unitCode ? <span className={cx('forum-module__name', !module.unitCode && 'is-solo')}>{module.shortName}</span> : null}
+      {showName || !module.unitCode ? (
+        <span className={cx('forum-module__name', !module.unitCode && 'is-solo')}>{module.shortName}</span>
+      ) : null}
     </span>
   );
 }
@@ -37,7 +50,15 @@ export function PlaceBadge({ thread, size = 'sm' }: { thread: Pick<ThreadSummary
 }
 
 /** 'Student rep' (moderators) or 'Admin' as a small neutral pill. It goes where a year badge would go, and replaces it. */
-export function AuthorFlair({ author, size = 'sm', className }: { author: UserPublic | null | undefined; size?: 'sm' | 'md'; className?: string }) {
+export function AuthorFlair({
+  author,
+  size = 'sm',
+  className,
+}: {
+  author: UserPublic | null | undefined;
+  size?: 'sm' | 'md';
+  className?: string;
+}) {
   const flair = roleFlair(author);
   if (!flair) return null;
   return (
@@ -61,7 +82,15 @@ export function TagBadges({ tags = [], max = 3 }: { tags?: string[]; max?: numbe
 }
 
 /** Reply count; turns green with a check when the thread has an accepted answer. */
-export function ReplyCount({ count, answered = false, className }: { count: number; answered?: boolean; className?: string }) {
+export function ReplyCount({
+  count,
+  answered = false,
+  className,
+}: {
+  count: number;
+  answered?: boolean;
+  className?: string;
+}) {
   const Icon = answered ? CheckCircle : ChatCircle;
   return (
     <span className={cx('forum-count', answered && 'is-answered', !count && 'is-zero', className)}>

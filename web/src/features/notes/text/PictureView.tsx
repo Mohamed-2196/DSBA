@@ -1,9 +1,28 @@
 // A picture in a note, and everything that edits it: tap it to select it, then drag it to another place (up or down
 // the text, across it, or lower down the page), pull a corner to resize it (its shape stays), crop it, turn it, give
 // it a caption and a description, open it full size, or delete it. Its controls keep their size at any zoom.
-import { ArrowClockwise, ArrowSquareOut, Check, Crop, ImageBroken, TextAlignCenter, TextAlignLeft, TextAlignRight, TextT, Trash, X } from '@phosphor-icons/react';
+import {
+  ArrowClockwise,
+  ArrowSquareOut,
+  Check,
+  Crop,
+  ImageBroken,
+  TextAlignCenter,
+  TextAlignLeft,
+  TextAlignRight,
+  TextT,
+  Trash,
+  X,
+} from '@phosphor-icons/react';
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react';
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { Button, Modal, TextArea, TextField, cx } from '../../../ui';
 import { noteFileHref } from '../api';
@@ -45,10 +64,19 @@ const CROP_HANDLES: { id: string; edges: Edges }[] = [
   { id: 'w', edges: { left: true } },
 ];
 
-const rectStyle = (r: Rect): CSSProperties => ({ left: `${r.x * 100}%`, top: `${r.y * 100}%`, width: `${r.w * 100}%`, height: `${r.h * 100}%` });
+const rectStyle = (r: Rect): CSSProperties => ({
+  left: `${r.x * 100}%`,
+  top: `${r.y * 100}%`,
+  width: `${r.w * 100}%`,
+  height: `${r.h * 100}%`,
+});
 
 /** Follows one pointer from a press on `e.currentTarget` until it lets go: `onMove` gets how far it went (pixels). */
-function follow(e: ReactPointerEvent<HTMLElement>, onMove: (dx: number, dy: number) => void, onEnd: (done: boolean) => void): void {
+function follow(
+  e: ReactPointerEvent<HTMLElement>,
+  onMove: (dx: number, dy: number) => void,
+  onEnd: (done: boolean) => void,
+): void {
   e.preventDefault();
   e.stopPropagation();
   const el = e.currentTarget;
@@ -70,7 +98,19 @@ function follow(e: ReactPointerEvent<HTMLElement>, onMove: (dx: number, dy: numb
 }
 
 /** The picture as shown: cropped, then turned, `width` × `height` units. */
-function Shown({ p, crop, width, height, onBroken }: { p: PictureAttrs; crop: Rect; width: number; height: number; onBroken: () => void }) {
+function Shown({
+  p,
+  crop,
+  width,
+  height,
+  onBroken,
+}: {
+  p: PictureAttrs;
+  crop: Rect;
+  width: number;
+  height: number;
+  onBroken: () => void;
+}) {
   const t = turned(p.rotate);
   const keptW = t ? height : width;
   const keptH = t ? width : height;
@@ -78,7 +118,10 @@ function Shown({ p, crop, width, height, onBroken }: { p: PictureAttrs; crop: Re
   const ih = keptH / crop.h;
   return (
     <div className="nb-picture__frame" style={{ width, height }}>
-      <div className="nb-picture__turn" style={{ width: keptW, height: keptH, transform: `translate(-50%, -50%) rotate(${p.rotate}deg)` }}>
+      <div
+        className="nb-picture__turn"
+        style={{ width: keptW, height: keptH, transform: `translate(-50%, -50%) rotate(${p.rotate}deg)` }}
+      >
         <img
           src={noteFileHref(p.upload)}
           alt={p.alt}
@@ -93,7 +136,17 @@ function Shown({ p, crop, width, height, onBroken }: { p: PictureAttrs; crop: Re
   );
 }
 
-function DetailsDialog({ open, p, onSave, onClose }: { open: boolean; p: PictureAttrs; onSave: (v: { caption: string; alt: string }) => void; onClose: () => void }) {
+function DetailsDialog({
+  open,
+  p,
+  onSave,
+  onClose,
+}: {
+  open: boolean;
+  p: PictureAttrs;
+  onSave: (v: { caption: string; alt: string }) => void;
+  onClose: () => void;
+}) {
   const [caption, setCaption] = useState(p.caption);
   const [alt, setAlt] = useState(p.alt);
   useEffect(() => {
@@ -113,14 +166,25 @@ function DetailsDialog({ open, p, onSave, onClose }: { open: boolean; p: Picture
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => onSave({ caption: caption.trim(), alt: alt.trim() })} data-hub="picture-details-save">
+          <Button
+            variant="primary"
+            onClick={() => onSave({ caption: caption.trim(), alt: alt.trim() })}
+            data-hub="picture-details-save"
+          >
             Save
           </Button>
         </>
       }
     >
       <div className="nb-details">
-        <TextField label="Caption" hint="Shown under the picture." value={caption} maxLength={CAPTION_MAX} onChange={(e) => setCaption(e.target.value)} data-autofocus />
+        <TextField
+          label="Caption"
+          hint="Shown under the picture."
+          value={caption}
+          maxLength={CAPTION_MAX}
+          onChange={(e) => setCaption(e.target.value)}
+          data-autofocus
+        />
         <TextArea
           label="Description"
           hint="What the picture shows, for screen readers and for searching your notes."
@@ -158,15 +222,25 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
   const left = x * (TEXT_WIDTH - width);
   const lines = Math.max(1, Math.ceil((height + 2 * PAD) / LINE));
 
-  const across = useCallback((dxUnits: number) => {
-    const startLeft = p.x * (TEXT_WIDTH - p.width * TEXT_WIDTH);
-    return { x: placeAt(p.width, (startLeft + dxUnits) / TEXT_WIDTH) };
-  }, [p.x, p.width]);
-  const { move, onPointerDown: onMoveDown } = useBlockMove({ editor, getPos, enabled: editable && !cropping && !broken, selected, across });
+  const across = useCallback(
+    (dxUnits: number) => {
+      const startLeft = p.x * (TEXT_WIDTH - p.width * TEXT_WIDTH);
+      return { x: placeAt(p.width, (startLeft + dxUnits) / TEXT_WIDTH) };
+    },
+    [p.x, p.width],
+  );
+  const { move, onPointerDown: onMoveDown } = useBlockMove({
+    editor,
+    getPos,
+    enabled: editable && !cropping && !broken,
+    selected,
+    across,
+  });
   // A tap (a finger, a pen) selects the picture; so does the keyboard, through the text.
   const select = () => {
     const pos = getPos();
-    if (editable && !selected && pos !== undefined) editor.chain().setNodeSelection(pos).focus(undefined, { scrollIntoView: false }).run();
+    if (editable && !selected && pos !== undefined)
+      editor.chain().setNodeSelection(pos).focus(undefined, { scrollIntoView: false }).run();
   };
 
   const keepCrop = useCallback(() => {
@@ -248,7 +322,11 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
   };
 
   return (
-    <NodeViewWrapper as="figure" className={cx('nb-picture', selected && 'is-selected', cropping && 'is-cropping', move && 'is-moving')} data-hub="note-picture">
+    <NodeViewWrapper
+      as="figure"
+      className={cx('nb-picture', selected && 'is-selected', cropping && 'is-cropping', move && 'is-moving')}
+      data-hub="note-picture"
+    >
       <div className="nb-picture__space" style={{ height: lines * LINE }}>
         <div className="nb-picture__box" style={boxStyle} contentEditable={false}>
           {broken ? (
@@ -256,8 +334,20 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
               <ImageBroken aria-hidden="true" /> This picture isn’t available any more.
             </div>
           ) : (
-            <div ref={frame} className="nb-picture__hold" onPointerDown={onMoveDown} onClick={select} style={{ height }}>
-              <Shown p={p} crop={cropping ? FULL : p.crop} width={width} height={height} onBroken={() => setBroken(true)} />
+            <div
+              ref={frame}
+              className="nb-picture__hold"
+              onPointerDown={onMoveDown}
+              onClick={select}
+              style={{ height }}
+            >
+              <Shown
+                p={p}
+                crop={cropping ? FULL : p.crop}
+                width={width}
+                height={height}
+                onBroken={() => setBroken(true)}
+              />
               {cropping && crop ? (
                 <div className="nb-crop">
                   <div className="nb-crop__clip" aria-hidden="true">
@@ -265,7 +355,12 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
                   </div>
                   <div className="nb-crop__rect" style={rectStyle(crop)} onPointerDown={onCrop({})}>
                     {CROP_HANDLES.map((h) => (
-                      <span key={h.id} className={cx('nb-crop__handle', `is-${h.id}`)} onPointerDown={onCrop(h.edges)} aria-hidden="true" />
+                      <span
+                        key={h.id}
+                        className={cx('nb-crop__handle', `is-${h.id}`)}
+                        onPointerDown={onCrop(h.edges)}
+                        aria-hidden="true"
+                      />
                     ))}
                   </div>
                 </div>
@@ -273,7 +368,14 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
             </div>
           )}
           {editable && selected && !cropping && !broken && !move
-            ? CORNERS.map((c) => <span key={c} className={cx('nb-picture__corner', `is-${c}`)} onPointerDown={onCorner(c)} aria-hidden="true" />)
+            ? CORNERS.map((c) => (
+                <span
+                  key={c}
+                  className={cx('nb-picture__corner', `is-${c}`)}
+                  onPointerDown={onCorner(c)}
+                  aria-hidden="true"
+                />
+              ))
             : null}
           {editable && selected && !move ? (
             cropping ? (
@@ -284,12 +386,37 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
               </BlockBar>
             ) : (
               <BlockBar label="Picture">
-                <BlockBarButton icon={Crop} label="Crop" onClick={() => setCrop(toShown(p.crop, p.rotate))} disabled={broken} />
-                <BlockBarButton icon={ArrowClockwise} label="Turn" onClick={() => updateAttributes({ rotate: nextTurn(p.rotate) })} disabled={broken} />
+                <BlockBarButton
+                  icon={Crop}
+                  label="Crop"
+                  onClick={() => setCrop(toShown(p.crop, p.rotate))}
+                  disabled={broken}
+                />
+                <BlockBarButton
+                  icon={ArrowClockwise}
+                  label="Turn"
+                  onClick={() => updateAttributes({ rotate: nextTurn(p.rotate) })}
+                  disabled={broken}
+                />
                 <span className="nb-blockbar__sep" aria-hidden="true" />
-                <BlockBarButton icon={TextAlignLeft} label="To the left" pressed={p.x === 0} onClick={() => updateAttributes({ x: 0 })} />
-                <BlockBarButton icon={TextAlignCenter} label="In the middle" pressed={p.x === 0.5} onClick={() => updateAttributes({ x: 0.5 })} />
-                <BlockBarButton icon={TextAlignRight} label="To the right" pressed={p.x === 1} onClick={() => updateAttributes({ x: 1 })} />
+                <BlockBarButton
+                  icon={TextAlignLeft}
+                  label="To the left"
+                  pressed={p.x === 0}
+                  onClick={() => updateAttributes({ x: 0 })}
+                />
+                <BlockBarButton
+                  icon={TextAlignCenter}
+                  label="In the middle"
+                  pressed={p.x === 0.5}
+                  onClick={() => updateAttributes({ x: 0.5 })}
+                />
+                <BlockBarButton
+                  icon={TextAlignRight}
+                  label="To the right"
+                  pressed={p.x === 1}
+                  onClick={() => updateAttributes({ x: 1 })}
+                />
                 <span className="nb-blockbar__sep" aria-hidden="true" />
                 <BlockBarButton icon={TextT} label="Caption and description" onClick={() => setDetails(true)} />
                 <BlockBarButton icon={ArrowSquareOut} label="Open full size" href={noteFileHref(p.upload)} />
@@ -304,7 +431,16 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
           {p.caption}
         </figcaption>
       ) : null}
-      {move?.line ? createPortal(<div className="nb-dropline" style={{ left: move.line.left, top: move.line.top, width: move.line.width }} aria-hidden="true" />, document.body) : null}
+      {move?.line
+        ? createPortal(
+            <div
+              className="nb-dropline"
+              style={{ left: move.line.left, top: move.line.top, width: move.line.width }}
+              aria-hidden="true"
+            />,
+            document.body,
+          )
+        : null}
       <DetailsDialog
         open={details}
         p={p}

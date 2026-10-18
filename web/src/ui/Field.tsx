@@ -35,7 +35,16 @@ export interface FieldProps extends FieldBaseProps {
 }
 
 /** Label + hint + error wrapper. `children(id, describedBy)` renders the control. */
-export function Field({ label, hint, error, required, id: idProp, className, children, hideLabel = false }: FieldProps) {
+export function Field({
+  label,
+  hint,
+  error,
+  required,
+  id: idProp,
+  className,
+  children,
+  hideLabel = false,
+}: FieldProps) {
   const auto = useId();
   const id = idProp || `f${auto.replace(/:/g, '')}`;
   const hintId = hint ? `${id}-hint` : undefined;
@@ -46,7 +55,12 @@ export function Field({ label, hint, error, required, id: idProp, className, chi
       {label ? (
         <label htmlFor={id} className={cx('ui-field__label', hideLabel && 'visually-hidden')}>
           {label}
-          {required ? <span className="ui-field__req" aria-hidden="true"> *</span> : null}
+          {required ? (
+            <span className="ui-field__req" aria-hidden="true">
+              {' '}
+              *
+            </span>
+          ) : null}
         </label>
       ) : null}
       {children(id, describedBy)}
@@ -56,13 +70,17 @@ export function Field({ label, hint, error, required, id: idProp, className, chi
           {error}
         </p>
       ) : hint ? (
-        <p id={hintId} className="ui-field__hint">{hint}</p>
+        <p id={hintId} className="ui-field__hint">
+          {hint}
+        </p>
       ) : null}
     </div>
   );
 }
 
-export interface TextFieldProps extends FieldBaseProps, Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | keyof FieldBaseProps> {
+export interface TextFieldProps
+  extends FieldBaseProps,
+    Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | keyof FieldBaseProps> {
   /** Phosphor icon inside the field */
   leadingIcon?: IconSource | null;
   /** node inside the field on the right (unit, button) */
@@ -76,11 +94,27 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   ref,
 ) {
   return (
-    <Field label={label} hint={hint} error={error} required={required} id={id} className={className} hideLabel={hideLabel}>
+    <Field
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      id={id}
+      className={className}
+      hideLabel={hideLabel}
+    >
       {(fid, describedBy) => (
         <div className={cx('ui-control', `ui-control--${size}`, !!leadingIcon && 'has-leading')}>
           {renderIcon(leadingIcon, { className: 'ui-control__icon' })}
-          <input ref={ref} id={fid} className="ui-control__input" aria-invalid={error ? true : undefined} aria-describedby={describedBy} required={required} {...input} />
+          <input
+            ref={ref}
+            id={fid}
+            className="ui-control__input"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
+            required={required}
+            {...input}
+          />
           {trailing ? <span className="ui-control__trailing">{trailing}</span> : null}
         </div>
       )}
@@ -88,7 +122,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   );
 });
 
-export interface TextAreaProps extends FieldBaseProps, Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, keyof FieldBaseProps> {}
+export interface TextAreaProps
+  extends FieldBaseProps,
+    Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, keyof FieldBaseProps> {}
 
 /** Multi-line text with label/hint/error. `rows` default 4. */
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
@@ -96,10 +132,27 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
   ref,
 ) {
   return (
-    <Field label={label} hint={hint} error={error} required={required} id={id} className={className} hideLabel={hideLabel}>
+    <Field
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      id={id}
+      className={className}
+      hideLabel={hideLabel}
+    >
       {(fid, describedBy) => (
         <div className="ui-control ui-control--area">
-          <textarea ref={ref} id={fid} rows={rows} className="ui-control__input" aria-invalid={error ? true : undefined} aria-describedby={describedBy} required={required} {...input} />
+          <textarea
+            ref={ref}
+            id={fid}
+            rows={rows}
+            className="ui-control__input"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
+            required={required}
+            {...input}
+          />
         </div>
       )}
     </Field>
@@ -112,7 +165,9 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export interface SelectProps extends FieldBaseProps, Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size' | keyof FieldBaseProps> {
+export interface SelectProps
+  extends FieldBaseProps,
+    Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size' | keyof FieldBaseProps> {
   /** the choices (or pass <option> children) */
   options?: SelectOption[];
   /** a first, empty option ('' value) */
@@ -126,10 +181,26 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   ref,
 ) {
   return (
-    <Field label={label} hint={hint} error={error} required={required} id={id} className={className} hideLabel={hideLabel}>
+    <Field
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      id={id}
+      className={className}
+      hideLabel={hideLabel}
+    >
       {(fid, describedBy) => (
         <div className={cx('ui-control', 'ui-control--select', `ui-control--${size}`)}>
-          <select ref={ref} id={fid} className="ui-control__input" aria-invalid={error ? true : undefined} aria-describedby={describedBy} required={required} {...select}>
+          <select
+            ref={ref}
+            id={fid}
+            className="ui-control__input"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
+            required={required}
+            {...select}
+          >
             {placeholder ? <option value="">{placeholder}</option> : null}
             {options
               ? options.map((o) => (
@@ -146,7 +217,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   );
 });
 
-export interface SearchFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'value' | 'onChange' | 'onClick'> {
+export interface SearchFieldProps
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'value' | 'onChange' | 'onClick'> {
   value?: string;
   onChange?: ChangeEventHandler<HTMLInputElement>;
   onValueChange?: (value: string) => void;
@@ -166,7 +238,20 @@ export interface SearchFieldProps extends Omit<InputHTMLAttributes<HTMLInputElem
  * Controlled: value + onChange(event) (and/or onValueChange(string)).
  */
 export const SearchField = forwardRef<HTMLElement, SearchFieldProps>(function SearchField(
-  { value, onChange, onValueChange, onClear, placeholder = 'Search', label = 'Search', shortcut, size = 'md', asButton = false, className, onClick, ...input },
+  {
+    value,
+    onChange,
+    onValueChange,
+    onClear,
+    placeholder = 'Search',
+    label = 'Search',
+    shortcut,
+    size = 'md',
+    asButton = false,
+    className,
+    onClick,
+    ...input
+  },
   ref,
 ) {
   const kbd =
@@ -191,7 +276,11 @@ export const SearchField = forwardRef<HTMLElement, SearchFieldProps>(function Se
       >
         <MagnifyingGlass className="ui-search__icon" aria-hidden="true" />
         <span className="ui-search__placeholder">{placeholder}</span>
-        {kbd ? <span className="ui-search__kbd" aria-hidden="true">{kbd}</span> : null}
+        {kbd ? (
+          <span className="ui-search__kbd" aria-hidden="true">
+            {kbd}
+          </span>
+        ) : null}
       </button>
     );
   }
@@ -225,7 +314,9 @@ export const SearchField = forwardRef<HTMLElement, SearchFieldProps>(function Se
           <X aria-hidden="true" weight="bold" />
         </button>
       ) : kbd ? (
-        <span className="ui-search__kbd" aria-hidden="true">{kbd}</span>
+        <span className="ui-search__kbd" aria-hidden="true">
+          {kbd}
+        </span>
       ) : null}
     </div>
   );

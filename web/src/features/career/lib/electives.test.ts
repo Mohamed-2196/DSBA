@@ -16,7 +16,17 @@ const mod = (id: string, year: 1 | 2 | 3): ModuleSummary => ({
   libraryCount: null,
 });
 
-const role = (id: string, skills: string[]): CareerRole => ({ id, label: id, title: id, about: '', tools: [], skills, ask: '', close: {}, hidden: false });
+const role = (id: string, skills: string[]): CareerRole => ({
+  id,
+  label: id,
+  title: id,
+  about: '',
+  tools: [],
+  skills,
+  ask: '',
+  close: {},
+  hidden: false,
+});
 
 // Only the fields electives() reads; the rest of the document doesn't matter here.
 const doc = {
@@ -42,7 +52,14 @@ const doc = {
   roles: [role('risk', ['valuation', 'regression']), role('econ', ['economics']), role('analyst', ['regression'])],
 } as unknown as CareerDoc;
 
-const catalogue = [mod('economics', 1), mod('stats', 2), mod('econometrics', 2), mod('micro', 3), mod('asset-pricing', 3), mod('marketing', 3)];
+const catalogue = [
+  mod('economics', 1),
+  mod('stats', 2),
+  mod('econometrics', 2),
+  mod('micro', 3),
+  mod('asset-pricing', 3),
+  mod('marketing', 3),
+];
 
 describe('electives', () => {
   const list = electives(doc, catalogue);

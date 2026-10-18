@@ -40,7 +40,11 @@ async function preparePicture(file: File): Promise<Measured> {
     canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, file.type, 0.88));
     if (!blob || blob.size >= file.size) return { file, width, height };
-    return { file: new File([blob], file.name, { type: file.type, lastModified: file.lastModified }), width: canvas.width, height: canvas.height };
+    return {
+      file: new File([blob], file.name, { type: file.type, lastModified: file.lastModified }),
+      width: canvas.width,
+      height: canvas.height,
+    };
   } finally {
     bitmap.close();
   }
@@ -54,7 +58,8 @@ export function useNoteUploads(editor: Editor | null) {
     editorRef.current = editor;
   }, [editor]);
 
-  const update = (id: string, patch: Partial<PendingUpload>) => setPending((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  const update = (id: string, patch: Partial<PendingUpload>) =>
+    setPending((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const drop = (id: string) => setPending((list) => list.filter((p) => p.id !== id));
 
   const add = useCallback(
@@ -71,21 +76,43 @@ export function useNoteUploads(editor: Editor | null) {
         try {
           const picture = PICTURE.test(original.type) ? await preparePicture(original).catch(() => null) : null;
           const file = picture?.file ?? original;
-          const out = await uploadFile('note_file', file, { signal: abort.signal, onProgress: (p) => update(id, { percent: progressPercent(p) }) });
+          const out = await uploadFile('note_file', file, {
+            signal: abort.signal,
+            onProgress: (p) => update(id, { percent: progressPercent(p) }),
+          });
           const ed = editorRef.current;
           if (!ed || ed.isDestroyed) continue;
           const place = at !== null && at <= ed.state.doc.content.size ? at : null;
           if (picture) {
-            const alt = original.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim();
+            const alt = original.name
+              .replace(/\.[a-z0-9]+$/i, '')
+              .replace(/[-_]+/g, ' ')
+              .trim();
             ed.chain()
               .focus()
-              .insertNotePicture({ upload: out.uploadId, alt: alt === 'image' ? '' : alt, ratio: picture.width / Math.max(1, picture.height), width: startWidth(picture.width, TEXT_WIDTH) }, place)
+              .insertNotePicture(
+                {
+                  upload: out.uploadId,
+                  alt: alt === 'image' ? '' : alt,
+                  ratio: picture.width / Math.max(1, picture.height),
+                  width: startWidth(picture.width, TEXT_WIDTH),
+                },
+                place,
+              )
               .run();
           } else {
-            ed.chain().focus().insertNoteFile({ upload: out.uploadId, name: original.name, size: file.size }, place).run();
+            ed.chain()
+              .focus()
+              .insertNoteFile({ upload: out.uploadId, name: original.name, size: file.size }, place)
+              .run();
           }
         } catch (e) {
-          if (!abort.signal.aborted) push({ title: `${original.name || 'That file'} wasn’t added`, body: uploadErrorMessage(e, 'note_file'), tone: 'alert' });
+          if (!abort.signal.aborted)
+            push({
+              title: `${original.name || 'That file'} wasn’t added`,
+              body: uploadErrorMessage(e, 'note_file'),
+              tone: 'alert',
+            });
         } finally {
           drop(id);
         }

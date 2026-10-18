@@ -48,7 +48,12 @@ export function FileCard({
           <span className="lib-card__metatext">{cardMeta(item, sort)}</span>
         </span>
         {item.status === 'published' ? (
-          <StarButton on={item.starred} onToggle={() => onToggleStar(item)} title={item.title} className="lib-card__star" />
+          <StarButton
+            on={item.starred}
+            onToggle={() => onToggleStar(item)}
+            title={item.title}
+            className="lib-card__star"
+          />
         ) : null}
       </div>
     </article>

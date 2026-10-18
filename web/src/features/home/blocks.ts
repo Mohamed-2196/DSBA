@@ -21,15 +21,46 @@ export interface BlockInfo {
 }
 
 export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
-  start_here: { title: 'Start here', description: 'Year 1’s checklist in the first weeks.', features: [], span: 'wide' },
-  results_day: { title: 'Results day', description: 'What to do in the two weeks after results.', features: ['calendar'], span: 'wide' },
-  coming_up: { title: 'Up next', description: 'Your next exam and the dates ahead.', features: ['calendar'], span: 'card' },
-  todo: { title: 'To-do', description: 'What’s to do and in progress on your study board.', features: ['board'], account: true, span: 'card' },
+  start_here: {
+    title: 'Start here',
+    description: 'Year 1’s checklist in the first weeks.',
+    features: [],
+    span: 'wide',
+  },
+  results_day: {
+    title: 'Results day',
+    description: 'What to do in the two weeks after results.',
+    features: ['calendar'],
+    span: 'wide',
+  },
+  coming_up: {
+    title: 'Up next',
+    description: 'Your next exam and the dates ahead.',
+    features: ['calendar'],
+    span: 'card',
+  },
+  todo: {
+    title: 'To-do',
+    description: 'What’s to do and in progress on your study board.',
+    features: ['board'],
+    account: true,
+    span: 'card',
+  },
   continue: { title: 'Continue', description: 'The lessons to pick up.', features: [], tracking: true, span: 'card' },
   modules: { title: 'My modules', description: 'Your modules, with their next exams.', features: [], span: 'card' },
-  files: { title: 'New files', description: 'Files added to your modules in the library.', features: ['library'], span: 'card' },
+  files: {
+    title: 'New files',
+    description: 'Files added to your modules in the library.',
+    features: ['library'],
+    span: 'card',
+  },
   forum: { title: 'Forum', description: 'Active threads in your modules.', features: ['forum'], span: 'card' },
-  noora: { title: 'Ask Noora', description: 'Ask Noora anything, from a formula to a past paper.', features: ['noora'], span: 'wide' },
+  noora: {
+    title: 'Ask Noora',
+    description: 'Ask Noora anything, from a formula to a past paper.',
+    features: ['noora'],
+    span: 'wide',
+  },
   daily_question: {
     title: 'Daily question',
     description: 'A past exam question before your next exam.',
@@ -43,8 +74,18 @@ export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
     account: true,
     span: 'wide',
   },
-  newsletter: { title: 'The DSBA Newsletter', description: 'The latest issue.', features: ['newsletter'], span: 'card' },
-  daily: { title: 'Today’s Daily', description: 'Six daily data science, finance, and logic puzzles.', features: ['daily'], span: 'card' },
+  newsletter: {
+    title: 'The DSBA Newsletter',
+    description: 'The latest issue.',
+    features: ['newsletter'],
+    span: 'card',
+  },
+  daily: {
+    title: 'Today’s Daily',
+    description: 'Six daily data science, finance, and logic puzzles.',
+    features: ['daily'],
+    span: 'card',
+  },
 };
 
 export const ALL_BLOCKS = Object.keys(BLOCKS) as HomeBlock[];
@@ -55,14 +96,18 @@ export function guestDefault(student: readonly HomeBlock[]): HomeBlock[] {
 }
 
 /** The blocks this person can have: every feature a block needs is on, and an account or lesson progress if it needs one. */
-export function offeredBlocks(featureOn: (f: Feature) => boolean, { signedIn, tracking }: { signedIn: boolean; tracking: boolean }): HomeBlock[] {
+export function offeredBlocks(
+  featureOn: (f: Feature) => boolean,
+  { signedIn, tracking }: { signedIn: boolean; tracking: boolean },
+): HomeBlock[] {
   return ALL_BLOCKS.filter((b) => {
     const info = BLOCKS[b];
     return info.features.every(featureOn) && (!info.account || signedIn) && (!info.tracking || tracking);
   });
 }
 
-const isBlock = (x: unknown): x is HomeBlock => typeof x === 'string' && Object.prototype.hasOwnProperty.call(BLOCKS, x);
+const isBlock = (x: unknown): x is HomeBlock =>
+  typeof x === 'string' && Object.prototype.hasOwnProperty.call(BLOCKS, x);
 
 /** A layout read from storage: known blocks once each, in order; null when there is none (or it isn't a list). */
 export function normalizeBlocks(raw: unknown): HomeBlock[] | null {
@@ -78,7 +123,11 @@ export interface Layout {
 }
 
 /** The layout of the `available` blocks: the saved one, or `defaults` when nothing is saved. */
-export function layoutOf(saved: readonly HomeBlock[] | null, defaults: readonly HomeBlock[], available: ReadonlySet<HomeBlock>): Layout {
+export function layoutOf(
+  saved: readonly HomeBlock[] | null,
+  defaults: readonly HomeBlock[],
+  available: ReadonlySet<HomeBlock>,
+): Layout {
   const order = saved ?? defaults;
   const shown = order.filter((b) => available.has(b));
   const hidden = ALL_BLOCKS.filter((b) => available.has(b) && !shown.includes(b));
@@ -105,7 +154,12 @@ export function showBlock(shown: readonly HomeBlock[], block: HomeBlock, on: boo
  * The list to save after a change to the visible blocks: the blocks not available now (a feature switched off, a
  * guest's view) keep their place, so switching a feature back on brings them back where they were.
  */
-export function withUnavailable(next: readonly HomeBlock[], saved: readonly HomeBlock[] | null, defaults: readonly HomeBlock[], available: ReadonlySet<HomeBlock>): HomeBlock[] {
+export function withUnavailable(
+  next: readonly HomeBlock[],
+  saved: readonly HomeBlock[] | null,
+  defaults: readonly HomeBlock[],
+  available: ReadonlySet<HomeBlock>,
+): HomeBlock[] {
   const before = saved ?? defaults;
   const out = [...next];
   before.forEach((b, i) => {

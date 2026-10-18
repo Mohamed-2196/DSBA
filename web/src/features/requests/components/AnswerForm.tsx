@@ -54,7 +54,13 @@ export function AnswerForm({ request, onRemoved }: { request: RequestOut; onRemo
         }}
         noValidate
       >
-        <SegmentedControl label="Status" size="sm" options={STATUSES.map((s) => ({ value: s.value, label: s.label }))} value={status} onChange={setStatus} />
+        <SegmentedControl
+          label="Status"
+          size="sm"
+          options={STATUSES.map((s) => ({ value: s.value, label: s.label }))}
+          value={status}
+          onChange={setStatus}
+        />
         <TextArea
           label={needsReply(status) ? 'Why it’s declined' : 'Reply'}
           hint="Everyone can read it."
@@ -66,7 +72,14 @@ export function AnswerForm({ request, onRemoved }: { request: RequestOut; onRemo
           dir="auto"
         />
         <div className="req-answer__actions">
-          <Button type="submit" variant="primary" size="sm" loading={answer.isPending} disabled={!changed} data-hub="request-answer">
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            loading={answer.isPending}
+            disabled={!changed}
+            data-hub="request-answer"
+          >
             Save answer
           </Button>
           <Button variant="ghost" size="sm" leadingIcon={Trash} onClick={() => setRemoving(true)}>

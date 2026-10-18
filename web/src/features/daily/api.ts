@@ -15,7 +15,8 @@ export const dailyKeys = {
   calendar: (month: string) => [...DAILY_KEY, 'calendar', month] as const,
   leaderboard: (period: BoardPeriod, year: number | null) => [...DAILY_KEY, 'leaderboard', period, year] as const,
   me: () => [...DAILY_KEY, 'me'] as const,
-  play: (day: string, game: GameId, variant: string, guest: boolean) => [...DAILY_KEY, 'play', day, game, variant, guest] as const,
+  play: (day: string, game: GameId, variant: string, guest: boolean) =>
+    [...DAILY_KEY, 'play', day, game, variant, guest] as const,
 };
 
 /** Today's set: the theme, each game and how far you got, your points and streak. */
@@ -39,7 +40,8 @@ export function useDailyCalendar(month: string) {
 export function useDailyLeaderboard(period: BoardPeriod, year: number | null) {
   return useQuery({
     queryKey: dailyKeys.leaderboard(period, year),
-    queryFn: () => call(api.GET('/api/v1/daily/leaderboard', { params: { query: { period, year: year ?? undefined } } })),
+    queryFn: () =>
+      call(api.GET('/api/v1/daily/leaderboard', { params: { query: { period, year: year ?? undefined } } })),
     staleTime: 30_000,
   });
 }
@@ -67,12 +69,18 @@ export function useShowOnBoard() {
 }
 
 function replayGuest(day: string, game: GameId, variant: string, history: Move[]): Promise<PlayOut> {
-  return call(api.POST('/api/v1/daily/{day}/{game}/moves', { params: { path: { day, game } }, body: { variant, history } }));
+  return call(
+    api.POST('/api/v1/daily/{day}/{game}/moves', { params: { path: { day, game } }, body: { variant, history } }),
+  );
 }
 
 async function fetchPlay(day: string, game: GameId, variant: string, guest: boolean): Promise<PlayOut> {
   if (!guest) {
-    return call(api.GET('/api/v1/daily/{day}/{game}', { params: { path: { day, game }, query: { variant: variant || undefined } } }));
+    return call(
+      api.GET('/api/v1/daily/{day}/{game}', {
+        params: { path: { day, game }, query: { variant: variant || undefined } },
+      }),
+    );
   }
   const history = guestMoves(day, game, variant);
   try {
@@ -116,7 +124,10 @@ export function useDailyMove(day: string, game: GameId, variant: string) {
     mutationFn: async (move: Move): Promise<PlayOut> => {
       const history = guest ? guestMoves(day, game, variant) : [];
       const out = await call(
-        api.POST('/api/v1/daily/{day}/{game}/moves', { params: { path: { day, game } }, body: { variant, move, history } }),
+        api.POST('/api/v1/daily/{day}/{game}/moves', {
+          params: { path: { day, game } },
+          body: { variant, move, history },
+        }),
       );
       if (guest) saveGuestMoves(day, game, variant, [...history, move], todayKey());
       return out;
@@ -128,7 +139,8 @@ export function useDailyMove(day: string, game: GameId, variant: string) {
     },
     onError: (e) => {
       // Finished elsewhere (another tab): show the play as it is now.
-      if (isApiError(e) && e.code === 'game_over') void qc.invalidateQueries({ queryKey: dailyKeys.play(day, game, variant, guest) });
+      if (isApiError(e) && e.code === 'game_over')
+        void qc.invalidateQueries({ queryKey: dailyKeys.play(day, game, variant, guest) });
     },
   });
 }

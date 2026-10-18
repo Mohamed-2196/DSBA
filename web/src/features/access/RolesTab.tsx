@@ -11,7 +11,8 @@ import { groupBoxes } from './grid';
 import { RoleEditor } from './RoleEditor';
 
 const people = (n: number) => (n === 1 ? '1 person' : `${formatCount(n)} people`);
-const holders = (n: number) => (n === 0 ? 'Nobody holds it.' : n === 1 ? '1 person holds it.' : `${formatCount(n)} people hold it.`);
+const holders = (n: number) =>
+  n === 0 ? 'Nobody holds it.' : n === 1 ? '1 person holds it.' : `${formatCount(n)} people hold it.`;
 const holds = (r: RoleOut, key: BoxOut['key']) => r.locked || r.boxes.includes(key);
 
 function RoleHeader({ role, onEdit, onDelete }: { role: RoleOut; onEdit: () => void; onDelete: () => void }) {
@@ -50,13 +51,22 @@ export function RolesTab() {
 
   if (catalogue.isPending) return <Skeleton lines={6} />;
   if (catalogue.isError) {
-    return <QueryError error={catalogue.error} title="Roles didn’t load" onRetry={() => void catalogue.refetch()} retrying={catalogue.isFetching} />;
+    return (
+      <QueryError
+        error={catalogue.error}
+        title="Roles didn’t load"
+        onRetry={() => void catalogue.refetch()}
+        retrying={catalogue.isFetching}
+      />
+    );
   }
   const { roles, boxes } = catalogue.data;
   const groups = groupBoxes(boxes);
   // The role being edited, as the catalogue has it now: a reload after a stale save hands the editor the new version.
   const editingRole = editing === 'new' ? null : (roles.find((r) => r.id === editing) ?? null);
-  const header = (r: RoleOut) => <RoleHeader role={r} onEdit={() => setEditing(r.id)} onDelete={() => setDeleting(r)} />;
+  const header = (r: RoleOut) => (
+    <RoleHeader role={r} onEdit={() => setEditing(r.id)} onDelete={() => setDeleting(r)} />
+  );
 
   const closeDelete = () => {
     setProblem(null);
@@ -119,7 +129,9 @@ export function RolesTab() {
                     <th scope="row">{b.label}</th>
                     {roles.map((r) => (
                       <td key={r.id}>
-                        {holds(r, b.key) ? <Check aria-hidden="true" weight="bold" className="access-grid__yes" /> : null}
+                        {holds(r, b.key) ? (
+                          <Check aria-hidden="true" weight="bold" className="access-grid__yes" />
+                        ) : null}
                         <span className="visually-hidden">{holds(r, b.key) ? 'Yes' : 'No'}</span>
                       </td>
                     ))}

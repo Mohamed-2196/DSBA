@@ -65,7 +65,13 @@ const ids = (cards: BoardCard[]) => cards.map((c) => `${c.columnId}:${c.id}`);
 
 describe('placeCard', () => {
   it('moves a card after another in its column', () => {
-    expect(ids(placeCard(board, cols, 'a', 'todo', 'c', 'now'))).toEqual(['todo:b', 'todo:c', 'todo:a', 'doing:d', 'done:e']);
+    expect(ids(placeCard(board, cols, 'a', 'todo', 'c', 'now'))).toEqual([
+      'todo:b',
+      'todo:c',
+      'todo:a',
+      'doing:d',
+      'done:e',
+    ]);
   });
   it('puts a card at the top of another column and marks when it was done', () => {
     const moved = placeCard(board, cols, 'b', 'done', null, '2026-10-13T09:00:00Z');
@@ -80,7 +86,14 @@ describe('placeCard', () => {
 
 describe('positions from the screen', () => {
   it('appends a new card to the end of its column', () => {
-    expect(ids(appendCard(board, cols, card('f', 'doing')))).toEqual(['todo:a', 'todo:b', 'todo:c', 'doing:d', 'doing:f', 'done:e']);
+    expect(ids(appendCard(board, cols, card('f', 'doing')))).toEqual([
+      'todo:a',
+      'todo:b',
+      'todo:c',
+      'doing:d',
+      'doing:f',
+      'done:e',
+    ]);
   });
   it('finds the card to go after for a drop before a card', () => {
     expect(afterIdBefore(board, 'c', 'todo', 'b')).toBe('a');
@@ -116,7 +129,15 @@ describe('positions from the screen', () => {
 });
 
 describe('due dates', () => {
-  const event = { type: 'event' as const, id: 'x', title: 'Exam', url: '/calendar?event=x', date: '2026-10-12', kind: null, moduleId: null };
+  const event = {
+    type: 'event' as const,
+    id: 'x',
+    title: 'Exam',
+    url: '/calendar?event=x',
+    date: '2026-10-12',
+    kind: null,
+    moduleId: null,
+  };
   it('uses the card’s own date, else its plan’s, else its event’s', () => {
     expect(dueOf(card('a', 'todo', { link: event, planDate: '2026-10-08' }))).toBe('2026-10-08');
     expect(dueOf(card('a', 'todo', { planDate: '2026-10-08', dueDate: '2026-10-09' }))).toBe('2026-10-09');
@@ -187,7 +208,11 @@ describe('filters and agenda', () => {
 
 describe('splitDone', () => {
   it('folds cards done more than 14 days ago', () => {
-    const done = [card('new', 'done', { doneAt: '2026-10-10T08:00:00Z' }), card('edge', 'done', { doneAt: '2026-09-29T08:00:00Z' }), card('old', 'done', { doneAt: '2026-09-01T08:00:00Z' })];
+    const done = [
+      card('new', 'done', { doneAt: '2026-10-10T08:00:00Z' }),
+      card('edge', 'done', { doneAt: '2026-09-29T08:00:00Z' }),
+      card('old', 'done', { doneAt: '2026-09-01T08:00:00Z' }),
+    ];
     const { recent, older } = splitDone(done, '2026-10-13');
     expect(recent.map((c) => c.id)).toEqual(['new', 'edge']);
     expect(older.map((c) => c.id)).toEqual(['old']);
@@ -205,7 +230,15 @@ describe('revision plans', () => {
 });
 
 describe('past papers', () => {
-  const paper = { type: 'library_item' as const, id: 'p1', title: 'EC1002 2023 Zone A', url: '/library/p1', date: null, kind: 'past-paper' as const, moduleId: 'm' };
+  const paper = {
+    type: 'library_item' as const,
+    id: 'p1',
+    title: 'EC1002 2023 Zone A',
+    url: '/library/p1',
+    date: null,
+    kind: 'past-paper' as const,
+    moduleId: 'm',
+  };
   it('knows a past paper card', () => {
     expect(isPastPaper(card('a', 'todo', { link: paper }))).toBe(true);
     expect(isPastPaper(card('a', 'todo', { link: { ...paper, kind: 'notes' } }))).toBe(false);
@@ -285,7 +318,11 @@ describe('what a card says', () => {
   });
   it('applies a change the way the API will', () => {
     const c = card('a', 'todo', { dueDate: '2026-10-20', dueTime: '09:00:00', description: 'x' });
-    expect(patchCard(c, { title: 'New title' })).toMatchObject({ title: 'New title', dueDate: '2026-10-20', description: 'x' });
+    expect(patchCard(c, { title: 'New title' })).toMatchObject({
+      title: 'New title',
+      dueDate: '2026-10-20',
+      description: 'x',
+    });
     expect(patchCard(c, { dueDate: null })).toMatchObject({ dueDate: null, dueTime: null });
     expect(patchCard(c, { description: null }).description).toBeNull();
     expect(patchCard(c, { labelIds: ['l1'], priority: 'high' })).toMatchObject({ labelIds: ['l1'], priority: 'high' });

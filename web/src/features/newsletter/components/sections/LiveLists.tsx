@@ -1,5 +1,14 @@
 import { Link } from 'react-router-dom';
-import { ArrowFatUp, Books, ChatCircle, ChatsCircle, CheckCircle, FileText, HandWaving, Plus } from '@phosphor-icons/react';
+import {
+  ArrowFatUp,
+  Books,
+  ChatCircle,
+  ChatsCircle,
+  CheckCircle,
+  FileText,
+  HandWaving,
+  Plus,
+} from '@phosphor-icons/react';
 import type { LibraryItem, LiveFallback, RequestOut, ThreadSummary } from '../../../../api/types';
 import { useStartsThreads } from '../../../forum/public';
 import { libraryItemPath } from '../../../library/public';
@@ -94,9 +103,18 @@ export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fal
   );
 }
 
-const FORMAT_LABEL: Record<string, string> = { pdf: 'PDF', docx: 'Word', doc: 'Word', xlsx: 'Excel', pptx: 'Slides', ipynb: 'Notebook', r: 'R script' };
+const FORMAT_LABEL: Record<string, string> = {
+  pdf: 'PDF',
+  docx: 'Word',
+  doc: 'Word',
+  xlsx: 'Excel',
+  pptx: 'Slides',
+  ipynb: 'Notebook',
+  r: 'R script',
+};
 
-const isRecent = (iso: string | null, now = Date.now()): boolean => !!iso && now - new Date(iso).getTime() < NEW_DAYS * 86400000;
+const isRecent = (iso: string | null, now = Date.now()): boolean =>
+  !!iso && now - new Date(iso).getTime() < NEW_DAYS * 86400000;
 
 /** New in the library: the newest files, or an invitation to the library when there are none. */
 export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallback?: LiveFallback | null }) {

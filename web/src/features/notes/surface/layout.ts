@@ -38,7 +38,12 @@ export interface SheetSpec {
 
 /** The note's sheets: a PDF's pages (from their sizes in points) and then `paper` paper sheets. */
 export function sheetsOf(pdfPages: readonly { width: number; height: number }[], paper: number): SheetSpec[] {
-  const out: SheetSpec[] = pdfPages.map((p, i) => ({ index: i, kind: 'pdf', height: Math.round((SHEET_WIDTH * p.height) / p.width), page: i + 1 }));
+  const out: SheetSpec[] = pdfPages.map((p, i) => ({
+    index: i,
+    kind: 'pdf',
+    height: Math.round((SHEET_WIDTH * p.height) / p.width),
+    page: i + 1,
+  }));
   for (let k = 0; k < paper; k++) out.push({ index: PAPER_BASE + k, kind: 'paper', height: SHEET_HEIGHT });
   return out;
 }
@@ -82,10 +87,13 @@ export function sheetAt(layout: Layout, y: number): Placed | null {
 }
 
 /** The zoom that fits a sheet's width in `available` pixels (with a margin), within the zoom range. */
-export const fitZoom = (available: number, margin = 24): number => clampZoom(Math.min(1.5, (available - margin * 2) / SHEET_WIDTH));
+export const fitZoom = (available: number, margin = 24): number =>
+  clampZoom(Math.min(1.5, (available - margin * 2) / SHEET_WIDTH));
 
 /** Sheets of paper the typed text needs: it starts TEXT_TOP down the first one and keeps a line free at the end. */
-export const paperFor = (textHeight: number): number => Math.max(1, Math.ceil((TEXT_TOP + textHeight + LINE) / SHEET_HEIGHT));
+export const paperFor = (textHeight: number): number =>
+  Math.max(1, Math.ceil((TEXT_TOP + textHeight + LINE) / SHEET_HEIGHT));
 
 /** How many sheets of paper the typed text runs onto, for a text `textHeight` units tall. */
-export const textSheets = (textHeight: number): number => (textHeight > 0 ? Math.ceil((TEXT_TOP + textHeight) / SHEET_HEIGHT) : 0);
+export const textSheets = (textHeight: number): number =>
+  textHeight > 0 ? Math.ceil((TEXT_TOP + textHeight) / SHEET_HEIGHT) : 0;

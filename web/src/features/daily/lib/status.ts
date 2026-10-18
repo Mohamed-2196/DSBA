@@ -14,7 +14,11 @@ export function statusOf(game: GameDay): { label: string; action: string; tone: 
     case 'won':
       return { label: game.scored ? `Solved · ${game.points} points` : 'Solved', action: 'See result', tone: 'won' };
     case 'lost':
-      return { label: game.scored && game.points ? `Done · ${game.points} points` : 'Done', action: 'See result', tone: 'lost' };
+      return {
+        label: game.scored && game.points ? `Done · ${game.points} points` : 'Done',
+        action: 'See result',
+        tone: 'lost',
+      };
     case 'playing':
       return { label: 'In progress', action: 'Continue', tone: 'playing' };
     default:

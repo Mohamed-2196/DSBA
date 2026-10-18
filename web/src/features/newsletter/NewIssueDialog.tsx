@@ -12,7 +12,15 @@ const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const FIELDS = new Set(['title', 'number', 'date', 'slug']);
 
 /** Moderators: start a new issue (a draft) and go straight to its editor. */
-export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; nextNumber: number; onClose: () => void }) {
+export function NewIssueDialog({
+  open,
+  nextNumber,
+  onClose,
+}: {
+  open: boolean;
+  nextNumber: number;
+  onClose: () => void;
+}) {
   const uid = useId().replace(/:/g, '');
   const navigate = useNavigate();
   const { me } = useAuth();
@@ -46,7 +54,8 @@ export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; n
     else if (title.trim().length > LIMITS.title) found.title = `Keep the title to ${LIMITS.title} characters.`;
     if (!/^\d+$/.test(number.trim()) || n > LIMITS.number) found.number = 'Use a whole number, like 2.';
     if (!isDayKey(date)) found.date = 'Choose the date it comes out.';
-    if (!SLUG_RE.test(address) || address.length > LIMITS.slug) found.slug = 'Use lowercase letters, numbers and hyphens, like launch-edition.';
+    if (!SLUG_RE.test(address) || address.length > LIMITS.slug)
+      found.slug = 'Use lowercase letters, numbers and hyphens, like launch-edition.';
     setErrors(found);
     setFormError(null);
     if (Object.keys(found).length) return;
@@ -68,7 +77,8 @@ export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; n
           navigate(`/newsletter/${issue.slug}/edit`);
         },
         onError: (err) => {
-          if (isApiError(err) && err.code === 'slug_taken') setErrors({ slug: 'Another issue already uses this address. Choose another.' });
+          if (isApiError(err) && err.code === 'slug_taken')
+            setErrors({ slug: 'Another issue already uses this address. Choose another.' });
           else if (isApiError(err) && Object.keys(err.fields).some((k) => FIELDS.has(k))) setErrors(err.fields);
           else setFormError(errorMessage(err, 'The issue wasn’t created. Try again.'));
         },
@@ -88,16 +98,46 @@ export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; n
           <Button variant="ghost" onClick={onClose} disabled={create.isPending}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" form={`nl-new-${uid}`} loading={create.isPending} data-hub="issue-create">
+          <Button
+            variant="primary"
+            type="submit"
+            form={`nl-new-${uid}`}
+            loading={create.isPending}
+            data-hub="issue-create"
+          >
             Create draft
           </Button>
         </>
       }
     >
       <form id={`nl-new-${uid}`} className="nl-form" onSubmit={submit} noValidate>
-        <TextField label="Title" required value={title} onChange={(e) => setTitle(e.target.value)} error={errors.title} placeholder="The October session" className="nl-form__wide" data-autofocus />
-        <TextField label="Issue number" required inputMode="numeric" value={number} onChange={(e) => setNumber(e.target.value)} error={errors.number} />
-        <TextField label="Date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} error={errors.date} hint="The day it comes out." />
+        <TextField
+          label="Title"
+          required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          error={errors.title}
+          placeholder="The October session"
+          className="nl-form__wide"
+          data-autofocus
+        />
+        <TextField
+          label="Issue number"
+          required
+          inputMode="numeric"
+          value={number}
+          onChange={(e) => setNumber(e.target.value)}
+          error={errors.number}
+        />
+        <TextField
+          label="Date"
+          type="date"
+          required
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          error={errors.date}
+          hint="The day it comes out."
+        />
         <TextField
           label="Address"
           required

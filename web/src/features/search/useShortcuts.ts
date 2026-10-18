@@ -3,8 +3,10 @@
 import { useEffect } from 'react';
 import { OPEN_PALETTE_EVENT, type OpenPaletteDetail } from './bus';
 
-const isEditable = (el: EventTarget | null): boolean => el instanceof Element && !!el.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]');
-const otherDialogOpen = (): boolean => [...document.querySelectorAll('[aria-modal="true"]')].some((d) => !d.closest('[data-hub="cmdk"]'));
+const isEditable = (el: EventTarget | null): boolean =>
+  el instanceof Element && !!el.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]');
+const otherDialogOpen = (): boolean =>
+  [...document.querySelectorAll('[aria-modal="true"]')].some((d) => !d.closest('[data-hub="cmdk"]'));
 
 export function usePaletteShortcuts(show: (query: string) => void, toggle: () => void): void {
   useEffect(() => {
@@ -18,7 +20,15 @@ export function usePaletteShortcuts(show: (query: string) => void, toggle: () =>
         if (!otherDialogOpen()) toggle();
         return;
       }
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.defaultPrevented && !isEditable(e.target) && !otherDialogOpen()) {
+      if (
+        e.key === '/' &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !e.defaultPrevented &&
+        !isEditable(e.target) &&
+        !otherDialogOpen()
+      ) {
         e.preventDefault();
         show('');
       }

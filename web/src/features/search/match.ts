@@ -10,11 +10,13 @@ export function tokenize(query: string): string[] {
     .filter(Boolean);
 }
 
-const isWordStart = (s: string, i: number): boolean => i === 0 || /[^a-z0-9]/i.test(s[i - 1] ?? '') || (/[0-9]/.test(s[i] ?? '') && /[a-z]/i.test(s[i - 1] ?? ''));
+const isWordStart = (s: string, i: number): boolean =>
+  i === 0 || /[^a-z0-9]/i.test(s[i - 1] ?? '') || (/[0-9]/.test(s[i] ?? '') && /[a-z]/i.test(s[i - 1] ?? ''));
 
 const isDigit = (c: string): boolean => c >= '0' && c <= '9';
 /** A lone digit only matches a whole number ('3' matches 'Year 3', not '37 lessons'). */
-const digitOk = (s: string, i: number, token: string): boolean => token.length !== 1 || !isDigit(token) || !isDigit(s[i + 1] ?? '');
+const digitOk = (s: string, i: number, token: string): boolean =>
+  token.length !== 1 || !isDigit(token) || !isDigit(s[i + 1] ?? '');
 
 type MatchKind = 'start' | 'word' | 'inside';
 
@@ -64,7 +66,9 @@ export function scoreEntry(entry: Scorable, tokens: readonly string[], rawQuery:
     if (!best) return 0;
     score += best;
   }
-  const phrase = String(rawQuery || '').toLowerCase().trim();
+  const phrase = String(rawQuery || '')
+    .toLowerCase()
+    .trim();
   if (tokens.length > 1 && title.toLowerCase().includes(phrase)) score += 40;
   if (title.toLowerCase() === phrase) score += 60;
   return score;

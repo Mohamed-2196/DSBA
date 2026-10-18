@@ -45,12 +45,22 @@ export function TopBar() {
         />
         <div className="shell-topbar__actions">
           <YearSwitcher compact menuSide="bottom" className="shell-topbar__year" hookId="year-switcher-mobile" />
-          <IconButton className="shell-topbar__search-icon" label="Search" icon={MagnifyingGlass} onClick={() => openCommandPalette()} />
+          <IconButton
+            className="shell-topbar__search-icon"
+            label="Search"
+            icon={MagnifyingGlass}
+            onClick={() => openCommandPalette()}
+          />
           <ErrorBoundary name="NotificationsMenu" fallback={null}>
             <NotificationsMenu />
           </ErrorBoundary>
           {onLibrary || !uploadShown ? null : (
-            <Button className="shell-topbar__contribute" leadingIcon={UploadSimple} onClick={() => startUpload()} data-hub="contribute">
+            <Button
+              className="shell-topbar__contribute"
+              leadingIcon={UploadSimple}
+              onClick={() => startUpload()}
+              data-hub="contribute"
+            >
               Upload a file
             </Button>
           )}

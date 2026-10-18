@@ -12,7 +12,21 @@
 //              every page, only carries the mascot
 // She remembers two things in localStorage: hub.noora.pos (her lane and height) and hub.noora.seen (the first-visit
 // hint has done its job). Hiding her is visibility.ts.
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FocusEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BREAKPOINTS, useLocalStorage, useMediaQuery, useToast } from '../../state';
@@ -20,9 +34,34 @@ import { ModulesGate } from '../../state/ModulesProvider';
 import { Button, ErrorBoundary, QueryError, cx } from '../../ui';
 import { restsAway } from './away';
 import { Face } from './Face';
-import { avoid, clampPoint, fromAnchor, hintSide, homePoint, nearestSide, perchOnSheet, placeChat, toAnchor, type Anchor, type Point, type Rect, type Side, type Span } from './layout';
+import {
+  avoid,
+  clampPoint,
+  fromAnchor,
+  hintSide,
+  homePoint,
+  nearestSide,
+  perchOnSheet,
+  placeChat,
+  toAnchor,
+  type Anchor,
+  type Point,
+  type Rect,
+  type Side,
+  type Span,
+} from './layout';
 import { Mascot, type MascotState } from './Mascot';
-import { askNoora, CHAT_ID, closeCard, isNooraShortcut, NOORA_PATH, onGoToPage, openCard, toggleCard, useCardOpen } from './open';
+import {
+  askNoora,
+  CHAT_ID,
+  closeCard,
+  isNooraShortcut,
+  NOORA_PATH,
+  onGoToPage,
+  openCard,
+  toggleCard,
+  useCardOpen,
+} from './open';
 import { choosePose, heading, lean, motionFor, type ChatMood, type Heading } from './poses';
 import { ScriptGate } from './ScriptGate';
 import { HEIGHT, figure, preloadSprites } from './sprites';
@@ -44,7 +83,12 @@ const HINT_STAYS = 12_000; // ms it stays before it has done its job
 const HINT_BUBBLE = { w: 260, h: 96 }; // the most room the hint takes (Mascot.css .noora__hint)
 const LOOK_AGAIN = [350, 1500]; // ms after a new page before she checks what she might cover (it may still be loading)
 const SETTLED = 220; // ms after the page stops scrolling before she checks again
-const NUDGE: Partial<Record<string, [number, number]>> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+const NUDGE: Partial<Record<string, [number, number]>> = {
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+};
 
 /** The controls she steps aside for: buttons, form submits, and anything marked data-noora-avoid. */
 const KEY_CONTROLS = '.ui-button, button[type="submit"], [data-noora-avoid]';
@@ -79,7 +123,8 @@ function pageSpan(): Span | null {
 
 const sameRects = (a: readonly Rect[], b: readonly Rect[]): boolean =>
   a.length === b.length && a.every((r, i) => r.x === b[i].x && r.y === b[i].y && r.w === b[i].w && r.h === b[i].h);
-const sameSpan = (a: Span | null, b: Span | null): boolean => a === b || (a !== null && b !== null && a.left === b.left && a.right === b.right);
+const sameSpan = (a: Span | null, b: Span | null): boolean =>
+  a === b || (a !== null && b !== null && a.left === b.left && a.right === b.right);
 
 interface Carried {
   point: Point;
@@ -130,7 +175,10 @@ export function MiniNoora() {
         box.focus();
         return;
       }
-      const from = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+      const from =
+        document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+          ? document.activeElement
+          : null;
       if (isMiniNooraHidden()) askNoora(from);
       else toggleCard(from);
     };
@@ -183,7 +231,10 @@ function Noora({ away }: { away: boolean }) {
   const free = carry ? carry.point : rest;
   // The chat goes beside her and follows her. While it is open it stays on the side it is on for as long as it fits.
   const chatSide = useRef<Side | null>(null);
-  const place = useMemo(() => placeChat(free, view, size, { phone, short, prefer: chatSide.current }), [free, view, size, phone, short]);
+  const place = useMemo(
+    () => placeChat(free, view, size, { phone, short, prefer: chatSide.current }),
+    [free, view, size, phone, short],
+  );
   useEffect(() => {
     chatSide.current = open ? place.side : null;
   }, [open, place]);
@@ -293,7 +344,12 @@ function Noora({ away }: { away: boolean }) {
     closeCard({ restoreFocus: false });
     hideMiniNoora();
     document.getElementById('main')?.focus({ preventScroll: true });
-    push({ title: 'Mini Noora is hidden', body: 'Bring her back from search: type “Noora”.', action: { label: 'Undo', onClick: showMiniNoora }, duration: 8000 });
+    push({
+      title: 'Mini Noora is hidden',
+      body: 'Bring her back from search: type “Noora”.',
+      action: { label: 'Undo', onClick: showMiniNoora },
+      duration: 8000,
+    });
   }, [push]);
   const close = useCallback(() => closeCard(), []);
   // On a phone the sheet would hide the page a link leads to, so it closes. Elsewhere the card stays beside her.
@@ -322,7 +378,10 @@ function Noora({ away }: { away: boolean }) {
     const due = setTimeout(() => setHintDue(true), HINT_DELAY);
     return () => clearTimeout(due);
   }, [seen, onboarding, shown]);
-  const hint = hintDue && shown && !seen && !onboarding && !open && !carried ? hintSide(point, view, size, page, HINT_BUBBLE) : null;
+  const hint =
+    hintDue && shown && !seen && !onboarding && !open && !carried
+      ? hintSide(point, view, size, page, HINT_BUBBLE)
+      : null;
   const hinting = hint !== null;
   useEffect(() => {
     if (!hinting) return undefined;
@@ -336,7 +395,8 @@ function Noora({ away }: { away: boolean }) {
   };
   // Closed from its button: done for good. Focus goes to her, not to the top of the page, when it was on the bubble.
   const closeHint = () => {
-    const hadFocus = document.activeElement instanceof Element && document.activeElement.closest('.noora__hint') !== null;
+    const hadFocus =
+      document.activeElement instanceof Element && document.activeElement.closest('.noora__hint') !== null;
     setSeen(true);
     if (hadFocus) button.current?.focus();
   };
@@ -407,7 +467,14 @@ function Noora({ away }: { away: boolean }) {
               fallback={<Loading />}
               error={(retry, error, retrying) => (
                 <div className="ncard-note">
-                  <QueryError error={error} title="Mini Noora didn’t load" onRetry={retry} retrying={retrying} size="sm" panel={false} />
+                  <QueryError
+                    error={error}
+                    title="Mini Noora didn’t load"
+                    onRetry={retry}
+                    retrying={retrying}
+                    size="sm"
+                    panel={false}
+                  />
                 </div>
               )}
             >
@@ -415,13 +482,30 @@ function Noora({ away }: { away: boolean }) {
                 fallback={<Loading />}
                 error={(retry, error, retrying) => (
                   <div className="ncard-note">
-                    <QueryError error={error} title="Mini Noora didn’t load" onRetry={retry} retrying={retrying} size="sm" panel={false} />
+                    <QueryError
+                      error={error}
+                      title="Mini Noora didn’t load"
+                      onRetry={retry}
+                      retrying={retrying}
+                      size="sm"
+                      panel={false}
+                    />
                   </div>
                 )}
               >
                 {(script) => (
                   <Suspense fallback={<Loading />}>
-                    <ChatPanel script={script} open={open} sheet={place.sheet} calm={calm} panelRef={card} onClose={close} onFollow={follow} onHide={hide} onMood={setMood} />
+                    <ChatPanel
+                      script={script}
+                      open={open}
+                      sheet={place.sheet}
+                      calm={calm}
+                      panelRef={card}
+                      onClose={close}
+                      onFollow={follow}
+                      onHide={hide}
+                      onMood={setMood}
+                    />
                   </Suspense>
                 )}
               </ScriptGate>
