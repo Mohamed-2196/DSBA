@@ -1,35 +1,81 @@
 // /notes/:noteId (and /notes/new): the notebook editor. A note is typed text, handwriting, pictures and files on
 // ruled paper, optionally written over a PDF. The header says where it is kept and whether it is saved there; the
 // toolbar holds the tools; the pages scroll and zoom under them, the app's rail and bar can make way (full screen).
+// Pictures dropped or pasted onto the pages land free where they are dropped (or in the middle of the view); the
+// toolbar's Picture puts one in the text, at the cursor.
 import { NotePencil, X } from '@phosphor-icons/react';
 import { EditorContent } from '@tiptap/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { UPLOAD_RULES } from '../../api/uploads';
 import { Gate, useAuth } from '../../auth';
-import { useDocumentTitle, useLocalStorage, useMediaQuery } from '../../state';
+import { useDocumentTitle, useLocalStorage, useMediaQuery, useToast } from '../../state';
 import { Button, ConfirmDialog, EmptyState, QueryError, Skeleton, cx } from '../../ui';
 import { deleteNote, useCreateNote, useDeleteNote } from './api';
 import { EMPTY_DOC, noteLabel, type NoteDoc } from './draft';
 import { NoteHeader } from './NoteHeader';
 import { PagesDrawer, type PageAction } from './PagesDrawer';
 import { usePdf } from './pdf';
+import { inlinePictureCount, keepPictures, picturesOfDoc, withFreePictures } from './pictures/document';
+import {
+  MAX_PICTURES,
+  freeFromInline,
+  pictureWords,
+  placedPicture,
+  settle,
+  type FreePicture,
+} from './pictures/geometry';
+import { PictureSpaceContext, type PictureSpace } from './pictures/space';
+import { useFreePictures } from './pictures/useFreePictures';
 import { PrintNote } from './print/PrintNote';
 import { combinedState } from './saveState';
-import { LINE, PAPER_BASE, paperFor, sheetsOf, textSheets } from './surface/layout';
+import {
+  LINE,
+  PAPER_BASE,
+  SHEET_WIDTH,
+  TEXT_WIDTH,
+  layoutSheets,
+  paperFor,
+  sheetAt,
+  sheetsOf,
+  textSheets,
+} from './surface/layout';
 import { Surface } from './surface/Surface';
 import { DEFAULT_PENS, PENS_KEY, TOOL_KEYS, asPens, type PenSettings, type Tool } from './surface/tools';
 import { useZoom } from './surface/useZoom';
-import { useNoteText } from './text/useNoteText';
+import { blockBoxes, dropTarget } from './text/blocks';
+import { startWidth } from './text/picture';
+import { useNoteText, type TextDrop } from './text/useNoteText';
 import type { SheetChange, Step } from './timeline';
 import { Toolbar } from './Toolbar';
 import { useInkSync, type InkSync } from './useInkSync';
 import { useNoteEditor, type NoteEditor } from './useNoteEditor';
-import { useNoteUploads } from './useNoteUploads';
+import { isPicture, useNoteUploads, type Uploaded } from './useNoteUploads';
 import { useTimeline } from './useTimeline';
 import './Notes.css';
 
 const STYLUS_KEY = 'hub.mine.notes.stylus';
+/** Whether resizing a free picture keeps its shape (each student's own choice, kept on this device). */
+const KEEP_SHAPE_KEY = 'hub.mine.notes.keep-shape';
+/** How far apart pictures dropped together land (units). */
+const FAN = 24;
+
+/** A spot on a sheet, in its units, where free pictures land. */
+interface Spot {
+  sheet: number;
+  height: number;
+  x: number;
+  y: number;
+}
+
+/** Where added files go: pictures free at `free` (in the text when null), other files in the text at `at` (null: at
+ *  the cursor). */
+interface Where {
+  free: Spot | null;
+  at: number | null;
+}
+
+const hasFiles = (e: DragEvent) => e.dataTransfer.types.includes('Files');
 
 const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
@@ -197,6 +243,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
   const navigate = useNavigate();
   const remove = useDeleteNote();
   const touch = useMediaQuery('(any-pointer: coarse)');
+  const { push } = useToast();
 
   const [confirming, setConfirming] = useState(false);
   const [full, setFull] = useState(false);
@@ -224,45 +271,74 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
 
   // ── the text, pictures and files ──
   const timelineRef = useRef<{ undo: () => void; redo: () => void }>({ undo: () => undefined, redo: () => undefined });
-  const uploadsRef = useRef<(files: File[], at: number | null) => void>(() => undefined);
+  const filesRef = useRef<(files: File[], drop: TextDrop | null) => void>(() => undefined);
+  // what Mini Noora reads of the note: its text, then its free pictures' captions and descriptions
+  const typed = useRef('');
+  const pictureText = pictureWords(picturesOfDoc(doc.doc)).join('\n');
+  const { change, latest, setPlainText } = editor;
+  const publishText = useCallback(
+    () => setPlainText([typed.current, pictureText].filter(Boolean).join('\n')),
+    [setPlainText, pictureText],
+  );
+  useEffect(() => publishText(), [publishText]);
   const textEditor = useNoteText({
     doc: doc.doc,
     readOnly,
     onChange: (richDoc, plain) => {
-      editor.change({ doc: richDoc });
-      editor.setPlainText(plain);
+      change((d) => ({ doc: keepPictures(richDoc, d.doc) }));
+      typed.current = plain;
+      publishText();
     },
-    onReady: (plain) => editor.setPlainText(plain),
-    onFiles: (files, at) => uploadsRef.current(files, at),
+    onReady: (plain) => {
+      typed.current = plain;
+      publishText();
+    },
+    onFiles: (files, drop) => filesRef.current(files, drop),
     onUndo: () => timelineRef.current.undo(),
     onRedo: () => timelineRef.current.redo(),
   });
-  const uploads = useNoteUploads(textEditor);
-  useEffect(() => {
-    uploadsRef.current = (files, at) => void uploads.add(files, at);
-  }, [uploads]);
-
-  // ── undo and redo, text and ink together ──
-  const applyInk = useCallback(
-    (step: Extract<Step, { kind: 'ink' }>, how: 'undo' | 'redo') => {
-      for (const c of step.changes) ink.setSheet(c.sheet, how === 'undo' ? c.before : c.after);
-      if (step.paper) editor.change({ sheets: how === 'undo' ? step.paper.before : step.paper.after });
-    },
-    [ink, editor],
+  const uploads = useNoteUploads();
+  const [keepShape, setKeepShape] = useLocalStorage<boolean>(KEEP_SHAPE_KEY, true);
+  const writePictures = useCallback(
+    (next: readonly FreePicture[]) => change((d) => ({ doc: withFreePictures(d.doc, next) })),
+    [change],
   );
-  const history = useTimeline(textEditor, applyInk);
+
+  // ── undo and redo: the text, the ink, the pages and the pictures together ──
+  const applyStep = useCallback(
+    (step: Step, how: 'undo' | 'redo') => {
+      if (step.kind === 'page') {
+        for (const c of step.ink) ink.setSheet(c.sheet, how === 'undo' ? c.before : c.after);
+        if (step.paper) change({ sheets: how === 'undo' ? step.paper.before : step.paper.after });
+      }
+      if (step.pictures) writePictures(how === 'undo' ? step.pictures.before : step.pictures.after);
+    },
+    [ink, change, writePictures],
+  );
+  const history = useTimeline(textEditor, applyStep);
   useEffect(() => {
     timelineRef.current = { undo: history.undo, redo: history.redo };
   }, [history.undo, history.redo]);
   const onInk = useCallback(
     (step: Step) => {
-      if (step.kind !== 'ink') return;
+      if (step.kind !== 'page') return;
       history.record(step);
-      for (const c of step.changes) ink.setSheet(c.sheet, c.after);
-      if (step.paper) editor.change({ sheets: step.paper.after });
+      for (const c of step.ink) ink.setSheet(c.sheet, c.after);
+      if (step.paper) change({ sheets: step.paper.after });
+      if (step.pictures) writePictures(step.pictures.after);
     },
-    [history, ink, editor],
+    [history, ink, change, writePictures],
   );
+  const latestDoc = useCallback(() => latest()?.doc ?? null, [latest]);
+  const free = useFreePictures({
+    doc: doc.doc,
+    latest: latestDoc,
+    write: writePictures,
+    record: history.record,
+    joinText: history.withPictures,
+    text: textEditor,
+    readOnly,
+  });
 
   // ── keys: tools by letter, undo and redo outside the text, Escape leaves full screen ──
   useEffect(() => {
@@ -317,7 +393,8 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
   useEffect(() => {
     leftEmpty.current = () => {
       const d = editor.doc ?? doc;
-      if (!fresh || d.title.trim() || textHeight > LINE + 1 || (textEditor && !textEditor.isEmpty)) return false;
+      if (!fresh || d.title.trim() || textHeight > LINE + 1) return false;
+      if ((textEditor && !textEditor.isEmpty) || picturesOfDoc(d.doc).length) return false;
       const paper = Array.from({ length: d.sheets }, (_, k) => PAPER_BASE + k);
       return paper.every((n) => ink.strokesOf(n).length === 0);
     };
@@ -350,6 +427,177 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
     const pages = pdf.state.status === 'ready' ? pdf.state.pdf.pages : [];
     return sheetsOf(pages, doc.sheets);
   }, [pdf.state, doc.sheets]);
+  const layout = useMemo(() => layoutSheets(sheets), [sheets]);
+  const paperless = doc.sheets === 0;
+
+  // ── pictures and files added: dropped or pasted pictures land free, the others go in the text ──
+  /** The spot on the pages under a point on screen (the nearest sheet, the nearest point on it). */
+  const spotAt = useCallback(
+    (clientX: number, clientY: number): Spot | null => {
+      const stack = scrollerRef.current?.querySelector<HTMLElement>('.nb-stack');
+      if (!stack) return null;
+      const r = stack.getBoundingClientRect();
+      const uy = (clientY - r.top) / zoom.zoom;
+      const s = sheetAt(layout, uy);
+      if (!s) return null;
+      const x = Math.min(SHEET_WIDTH, Math.max(0, (clientX - r.left) / zoom.zoom));
+      return { sheet: s.index, height: s.height, x, y: Math.min(s.height, Math.max(0, uy - s.top)) };
+    },
+    [layout, zoom.zoom],
+  );
+  /** The middle of what is on screen, where pasted pictures land. */
+  const middleSpot = useCallback((): Spot | null => {
+    const box = scrollerRef.current?.getBoundingClientRect();
+    return box ? spotAt(box.left + box.width / 2, box.top + box.height / 2) : null;
+  }, [spotAt]);
+  /** The place in the text nearest a point on screen (null while the text isn't on screen). */
+  const textPosAt = useCallback(
+    (clientX: number, clientY: number): number | null => {
+      const el = scrollerRef.current?.querySelector<HTMLElement>('.nb-text');
+      if (!textEditor || !el) return null;
+      const r = el.getBoundingClientRect();
+      const left = Math.min(r.right - 2, Math.max(r.left + 2, clientX));
+      const top = Math.min(r.bottom - 2, Math.max(r.top + 2, clientY));
+      return textEditor.view.posAtCoords({ left, top })?.pos ?? null;
+    },
+    [textEditor],
+  );
+
+  const place = useCallback(
+    (done: Uploaded, where: Where, k: number) => {
+      const ed = textEditor;
+      if (!ed) return;
+      const picture = done.picture;
+      if (picture && (where.free || paperless)) {
+        const spot = where.free ?? middleSpot();
+        if (!spot) return;
+        const at = { x: spot.x + k * FAN, y: spot.y + k * FAN };
+        free.add([placedPicture({ upload: done.upload, ...picture }, spot.sheet, at, spot.height)]);
+        return;
+      }
+      const at = where.at !== null && where.at <= ed.state.doc.content.size ? where.at : null;
+      if (picture) {
+        const ratio = Math.min(20, Math.max(0.05, picture.width / Math.max(1, picture.height)));
+        const width = startWidth(picture.width, TEXT_WIDTH);
+        ed.chain().focus().insertNotePicture({ upload: done.upload, alt: picture.alt, ratio, width }, at).run();
+      } else {
+        ed.chain().focus().insertNoteFile({ upload: done.upload, name: done.name, size: done.size }, at).run();
+      }
+    },
+    [textEditor, paperless, middleSpot, free],
+  );
+
+  const addFiles = useCallback(
+    (files: readonly File[], where: Where) => {
+      if (readOnly || !textEditor) return;
+      const onPages = picturesOfDoc(latestDoc() ?? doc.doc).length;
+      let room = MAX_PICTURES - inlinePictureCount(textEditor.state.doc) - onPages - uploads.pending.length;
+      const going: File[] = [];
+      let tooMany = false;
+      let noPaper = false;
+      for (const f of files) {
+        if (isPicture(f)) {
+          if (room > 0) {
+            going.push(f);
+            room -= 1;
+          } else tooMany = true;
+        } else if (paperless) noPaper = true;
+        else going.push(f);
+      }
+      if (tooMany)
+        push({
+          title: `A note holds up to ${MAX_PICTURES} pictures`,
+          body: 'Put the others in another note.',
+          tone: 'alert',
+        });
+      if (noPaper)
+        push({ title: 'Add a page first', body: 'Files go in the typed text, on a page of paper.', tone: 'alert' });
+      let k = 0;
+      void uploads.add(going, (done) => place(done, where, done.picture ? k++ : 0));
+    },
+    [readOnly, textEditor, latestDoc, doc.doc, uploads, paperless, push, place],
+  );
+  useEffect(() => {
+    filesRef.current = (files, drop) =>
+      addFiles(files, drop ? { free: spotAt(drop.x, drop.y), at: drop.at } : { free: middleSpot(), at: null });
+  }, [addFiles, spotAt, middleSpot]);
+
+  // Pasted while the text isn't being typed in (a picture picked, the pen in hand, a note on a PDF): at the middle of
+  // what is on screen. (The text and the title take their own pastes.)
+  useEffect(() => {
+    if (readOnly) return undefined;
+    const onPaste = (e: ClipboardEvent) => {
+      if (e.defaultPrevented || isTyping(e.target)) return;
+      const files = [...(e.clipboardData?.files ?? [])];
+      if (!files.length) return;
+      e.preventDefault();
+      addFiles(files, { free: middleSpot(), at: null });
+    };
+    document.addEventListener('paste', onPaste);
+    return () => document.removeEventListener('paste', onPaste);
+  }, [readOnly, addFiles, middleSpot]);
+
+  // Files dragged over the notebook never open in the tab; dropped on the pages, they are added there (the text takes
+  // the ones dropped on it: useNoteText).
+  const onDragOver = (e: DragEvent<HTMLDivElement>) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = readOnly ? 'none' : 'copy';
+  };
+  const onDrop = (e: DragEvent<HTMLDivElement>) => {
+    if (!hasFiles(e)) return;
+    const taken = e.nativeEvent.defaultPrevented;
+    e.preventDefault();
+    const files = [...e.dataTransfer.files];
+    if (taken || !files.length || !(e.target instanceof Node) || !scrollerRef.current?.contains(e.target)) return;
+    addFiles(files, { free: spotAt(e.clientX, e.clientY), at: textPosAt(e.clientX, e.clientY) });
+  };
+
+  // ── pictures between the text and the page ──
+  const inlineOff = paperless ? 'Add a page first: pictures in line go in the typed text, on paper.' : null;
+  const space = useMemo<PictureSpace>(
+    () => ({
+      makeFree: (pos, attrs, shown) => {
+        const stack = scrollerRef.current?.querySelector<HTMLElement>('.nb-stack');
+        if (!stack) return;
+        const r = stack.getBoundingClientRect();
+        const z = zoom.zoom;
+        const box = {
+          x: (shown.left - r.left) / z,
+          y: (shown.top - r.top) / z,
+          w: shown.width / z,
+          h: shown.height / z,
+        };
+        const s = sheetAt(layout, box.y + box.h / 2);
+        if (!s) return;
+        const picture = settle(freeFromInline(attrs, s.index, { ...box, y: box.y - s.top }), s.height);
+        free.makeFree(pos, picture);
+        requestAnimationFrame(() =>
+          scrollerRef.current
+            ?.querySelector<HTMLElement>(`[data-picture="${picture.id}"]`)
+            ?.focus({ preventScroll: true }),
+        );
+      },
+    }),
+    [layout, zoom.zoom, free],
+  );
+  const onInline = useCallback(
+    (p: FreePicture, top: number) => {
+      const ed = textEditor;
+      if (!ed || paperless) return;
+      const drop = dropTarget(
+        blockBoxes(ed.state, (at) => ed.view.nodeDOM(at)),
+        top,
+        LINE * zoom.zoom,
+      );
+      free.makeInline(p.id, drop);
+      ed.commands.focus(undefined, { scrollIntoView: false });
+    },
+    [textEditor, paperless, zoom.zoom, free],
+  );
+  const onPictureLeave = useCallback(() => {
+    if (!paperless) textEditor?.commands.focus(undefined, { scrollIntoView: false });
+  }, [textEditor, paperless]);
   // the pages the typed text is on (none while there is none)
   const typedPages = textEditor && !textEditor.isEmpty ? textSheets(textHeight) : 0;
 
@@ -364,7 +612,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         return;
       }
       if (action.kind === 'add') {
-        onInk({ kind: 'ink', changes: [], paper: { before: doc.sheets, after: doc.sheets + 1 } });
+        onInk({ kind: 'page', ink: [], paper: { before: doc.sheets, after: doc.sheets + 1 } });
         requestAnimationFrame(() => scrollTo(PAPER_BASE + doc.sheets));
         return;
       }
@@ -376,25 +624,47 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         const before = strokesAt(k);
         if (before !== after) changes.push({ sheet: PAPER_BASE + k, before, after });
       };
+      // the free pictures go with their pages: `to` gives each picture's new sheet (null: it goes with its page)
+      const pictures = (to: (sheet: number) => number | null) => {
+        const before = free.list;
+        const after = before.flatMap((p) => {
+          const sheet = to(p.sheet);
+          if (sheet === null) return [];
+          return sheet === p.sheet ? [p] : [{ ...p, sheet }];
+        });
+        const same = after.length === before.length && after.every((p, i) => p === before[i]);
+        return same ? undefined : { before, after };
+      };
       if (action.kind === 'clear') {
         change(at, []);
-        onInk({ kind: 'ink', changes });
+        onInk({ kind: 'page', ink: changes });
       } else if (action.kind === 'delete') {
         // the pages after it move up one, and the last one goes
         for (let k = at; k < count - 1; k++) change(k, strokesAt(k + 1));
         change(count - 1, []);
-        onInk({ kind: 'ink', changes, paper: { before: count, after: Math.max(1, count - 1) } });
+        const gone = PAPER_BASE + at;
+        onInk({
+          kind: 'page',
+          ink: changes,
+          paper: { before: count, after: Math.max(1, count - 1) },
+          pictures: pictures((sheet) => (sheet === gone ? null : sheet > gone ? sheet - 1 : sheet)),
+        });
       } else if (action.kind === 'move') {
         const other = at + action.by;
         if (other < 0 || other >= count) return;
         const mine = strokesAt(at);
         change(at, strokesAt(other));
         change(other, mine);
-        onInk({ kind: 'ink', changes });
+        const [a, b] = [PAPER_BASE + at, PAPER_BASE + other];
+        onInk({
+          kind: 'page',
+          ink: changes,
+          pictures: pictures((sheet) => (sheet === a ? b : sheet === b ? a : sheet)),
+        });
         requestAnimationFrame(() => scrollTo(PAPER_BASE + other));
       }
     },
-    [doc, ink, onInk],
+    [doc, ink, onInk, free.list],
   );
 
   // ── print: the pages laid out for paper, then the browser's print (Save as PDF) ──
@@ -404,7 +674,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
   const pdfLoading = onPdf && pdf.state.status === 'loading';
 
   return (
-    <div className={cx('nb', full && 'nb--full')} data-hub="notebook-workspace">
+    <div className={cx('nb', full && 'nb--full')} data-hub="notebook-workspace" onDragOver={onDragOver} onDrop={onDrop}>
       <input
         type="file"
         ref={fileInputRef}
@@ -413,7 +683,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         onChange={(e) => {
           const files = [...(e.target.files ?? [])];
           e.target.value = '';
-          if (files.length) void uploads.add(files, null);
+          if (files.length) addFiles(files, { free: null, at: null });
         }}
         data-hub="note-file-input"
       />
@@ -475,6 +745,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
             paper={doc.paper}
             strokesOf={ink.strokesOf}
             revision={ink.revision}
+            pictures={free.list}
             typedPages={typedPages}
             readOnly={readOnly || inkReadOnly}
             scrollerRef={scrollerRef}
@@ -501,7 +772,13 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
             revision={ink.revision}
             onInk={onInk}
             pdf={pdf.state.status === 'ready' ? pdf.state.pdf : null}
-            text={textEditor ? <EditorContent editor={textEditor} /> : null}
+            text={
+              textEditor ? (
+                <PictureSpaceContext.Provider value={space}>
+                  <EditorContent editor={textEditor} />
+                </PictureSpaceContext.Provider>
+              ) : null
+            }
             onPaperPress={onPaperPress}
             footer={
               readOnly ? null : (
@@ -513,6 +790,19 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
             readOnly={inkReadOnly}
             scroller={scroller}
             onTextHeight={onTextHeight}
+            pictures={
+              textEditor
+                ? {
+                    free,
+                    active: tool === 'type' && !readOnly,
+                    keepShape,
+                    onKeepShape: setKeepShape,
+                    inlineOff,
+                    onInline,
+                    onLeave: onPictureLeave,
+                  }
+                : null
+            }
           />
         </div>
         <UploadTray uploads={uploads.pending} />
@@ -525,6 +815,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
           paper={doc.paper}
           pdf={pdf.state.status === 'ready' ? pdf.state.pdf : null}
           strokesOf={ink.strokesOf}
+          pictures={free.list}
           textSource={scrollerRef}
           onDone={onPrinted}
         />

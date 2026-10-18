@@ -41,7 +41,10 @@ export interface NoteEditor {
   loadError: unknown;
   /** the note doesn't exist (deleted elsewhere, or never was) */
   missing: boolean;
-  change: (patch: Partial<NoteDoc>) => void;
+  /** a change: the parts given, or the parts worked out from the note as it is at that moment */
+  change: (patch: Partial<NoteDoc> | ((current: NoteDoc) => Partial<NoteDoc>)) => void;
+  /** the note as it is now, with every change made since the last render */
+  latest: () => NoteDoc | null;
   /** send now (a retry, or before leaving) */
   flush: () => void;
   keepMine: () => void;
@@ -206,10 +209,10 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
   );
 
   const change = useCallback(
-    (patch: Partial<NoteDoc>) => {
+    (patch: Partial<NoteDoc> | ((current: NoteDoc) => Partial<NoteDoc>)) => {
       const current = docRef.current;
       if (!current || readOnly) return;
-      const next = { ...current, ...patch };
+      const next = { ...current, ...(typeof patch === 'function' ? patch(current) : patch) };
       if (sameDoc(next, current)) return;
       show(next);
       writeDraft(noteId, next, baseRef.current ?? 1);
@@ -242,6 +245,8 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
     setSavedAt(Date.parse(theirs.updatedAt));
   }, [theirs, qc, noteId]);
 
+  const latest = useCallback(() => docRef.current, []);
+
   const discard = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     dropDraft(noteId);
@@ -260,6 +265,7 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
     loadError: doc || missing ? null : query.error,
     missing,
     change,
+    latest,
     flush: () => void flush(),
     keepMine,
     loadTheirs,

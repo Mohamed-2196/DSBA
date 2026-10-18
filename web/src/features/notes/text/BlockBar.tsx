@@ -1,9 +1,10 @@
 // The toolbar over a selected picture or file. It sits inside the page, which is scaled for the zoom, and scales
 // itself back so its buttons keep their size (44 px on a touch screen) at any zoom. Pressing it never takes the text's
-// selection away, and it can be reached with Tab from the text.
-import type { Icon } from '@phosphor-icons/react';
+// selection away, and it can be reached with Tab from the text. Its buttons, the In line / Free switch and the menu
+// of less used choices are shared with the toolbar of a free picture (pictures/PictureBar.tsx).
+import { DotsThree, type Icon } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
-import { cx } from '../../../ui';
+import { Menu, cx, type MenuItem } from '../../../ui';
 
 export function BlockBar({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -83,5 +84,61 @@ export function BlockBarButton({
       <I aria-hidden="true" weight={pressed ? 'fill' : 'regular'} />
       {text ? <span>{label}</span> : null}
     </button>
+  );
+}
+
+/** Whether a picture is in line with the text or free on the page: one control that shows which, and switches it. */
+export function PlacementSwitch({
+  free,
+  onInline,
+  onFree,
+  inlineOff,
+}: {
+  free: boolean;
+  onInline?: () => void;
+  onFree?: () => void;
+  /** why it can't go in line (the note has no paper to type on) */
+  inlineOff?: string;
+}) {
+  return (
+    <div className="nb-placement" role="radiogroup" aria-label="Placement" data-hub="picture-placement">
+      <button
+        type="button"
+        role="radio"
+        aria-checked={!free}
+        className={cx('nb-placement__item', !free && 'is-active')}
+        title={inlineOff ?? 'In line: it moves with the text'}
+        disabled={free && !!inlineOff}
+        onClick={free ? onInline : undefined}
+      >
+        In line
+      </button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={free}
+        className={cx('nb-placement__item', free && 'is-active')}
+        title="Free: put it anywhere on the page, over or beside the writing"
+        onClick={free ? undefined : onFree}
+      >
+        Free
+      </button>
+    </div>
+  );
+}
+
+/** The bar's less used choices, behind one button. */
+export function BarMenu({ label, items }: { label: string; items: MenuItem[] }) {
+  return (
+    <Menu
+      align="end"
+      label={label}
+      items={items}
+      trigger={
+        <button type="button" className="nb-blockbar__button" aria-label={label} title={label}>
+          <DotsThree aria-hidden="true" weight="bold" />
+        </button>
+      }
+    />
   );
 }
