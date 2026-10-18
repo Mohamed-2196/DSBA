@@ -38646,7 +38646,7 @@
         },
         "type": "object",
         "title": "MeUpdate",
-        "description": "Fields that are not sent stay as they are; `year: null` clears the cohort."
+        "description": "Fields that are not sent stay as they are; `year: null` clears the cohort. The first display name (the\nprofile step after signing up) comes with the answer about emails, `preferences.notificationEmails`, unless the\naccount has one."
       },
       "ModuleCreate": {
         "properties": {
@@ -42499,35 +42499,40 @@
       },
       "Preferences": {
         "properties": {
+          "notificationEmails": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notificationemails"
+          },
           "emailReplies": {
             "type": "boolean",
-            "title": "Emailreplies",
-            "default": true
+            "title": "Emailreplies"
           },
           "emailAnswerAccepted": {
             "type": "boolean",
-            "title": "Emailansweraccepted",
-            "default": true
+            "title": "Emailansweraccepted"
           },
           "emailUploadReviews": {
             "type": "boolean",
-            "title": "Emailuploadreviews",
-            "default": true
+            "title": "Emailuploadreviews"
           },
           "emailNewIssues": {
             "type": "boolean",
-            "title": "Emailnewissues",
-            "default": true
+            "title": "Emailnewissues"
           },
           "emailDateChanges": {
             "type": "boolean",
-            "title": "Emaildatechanges",
-            "default": true
+            "title": "Emaildatechanges"
           },
           "emailWeeklySummary": {
             "type": "boolean",
-            "title": "Emailweeklysummary",
-            "default": false
+            "title": "Emailweeklysummary"
           },
           "trackProgress": {
             "type": "boolean",
@@ -42565,11 +42570,31 @@
           }
         },
         "type": "object",
+        "required": [
+          "notificationEmails",
+          "emailReplies",
+          "emailAnswerAccepted",
+          "emailUploadReviews",
+          "emailNewIssues",
+          "emailDateChanges",
+          "emailWeeklySummary"
+        ],
         "title": "Preferences",
-        "description": "Which notifications also come by email (to the account's email address; account security notices always do),\nwhether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Unset means the default\nhere."
+        "description": "Which notifications also come by email (to the account's email address; account security notices always do),\nwhether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Nothing is emailed until the\nperson answers the question about emails when they sign up (`notificationEmails`); then each notification email\nthey never switched follows that answer, and the Sunday summary is off until they turn it on."
       },
       "PreferencesUpdate": {
         "properties": {
+          "notificationEmails": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notificationemails"
+          },
           "emailReplies": {
             "anyOf": [
               {
@@ -42680,7 +42705,7 @@
         },
         "type": "object",
         "title": "PreferencesUpdate",
-        "description": "Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default\nlayout."
+        "description": "Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default\nlayout. The answer about emails is asked when the profile is first saved (MeUpdate); a later one changes every\nnotification email not switched on its own. Turning an email on before there is an answer answers \"no\" for the\nothers."
       },
       "PresignedUpload": {
         "properties": {

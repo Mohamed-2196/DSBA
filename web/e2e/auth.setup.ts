@@ -2,10 +2,19 @@
 // persona for the specs. Sara: phone, wrong code, resend, a retired and a reused code, profile; grades and lesson
 // progress across signing out and back in; adding an email. Ali: email, on a phone-sized screen. Rep and admin:
 // dev-login. About 5 codes per run (the API allows 30 per IP per hour).
-import { test as setup, expect, type Page } from '@playwright/test';
+import { test as setup, expect, type Locator, type Page } from '@playwright/test';
 import { api, devLogin, env, gotoAccount, newRun, prepareContext, readRun, statePath, waitForCode } from './support';
 
 setup.describe.configure({ mode: 'serial' });
+
+/** The profile step's question about notification emails, which has no answer chosen in advance: yes (the specs
+ * expect a student's emails on). */
+async function answerEmails(dialog: Locator): Promise<void> {
+  const question = dialog.getByRole('group', { name: 'Email me about replies and date changes' });
+  await expect(question.getByRole('radio', { checked: true })).toHaveCount(0);
+  await question.getByText('Yes, email me', { exact: true }).click();
+  await expect(question.getByLabel('Yes, email me')).toBeChecked();
+}
 
 /** The sign-in dialog's request for a code, with the challenge the API answered. Within 30 s of the last code
  * to the same address the API says how long to wait ("Wait 21 seconds before asking for another code."), as a
@@ -88,17 +97,22 @@ setup('Sara signs up with her phone number: wrong code, resend, profile', async 
   await dialog.getByLabel('Display name').fill('S');
   await dialog.getByRole('button', { name: 'Save and continue' }).click();
   await expect(dialog).toContainText('Enter your name (at least 2 characters).');
+  await expect(dialog).toContainText('Choose yes or no.'); // the question about emails needs an answer too
   await dialog.getByLabel('Display name').fill(run.sara.name);
+  await answerEmails(dialog);
   await dialog.getByRole('button', { name: 'Save and continue' }).click();
   await expect(page.getByText('Welcome to DSBA Hub, Sara')).toBeVisible();
   await expect(page.getByRole('heading', { name: /Sara/ })).toBeVisible();
 
-  const me = await api<{ phone: string; year: number; displayName: string; roles: { slug: string }[] }>(
-    page,
-    'GET',
-    '/api/v1/me',
-  );
+  const me = await api<{
+    phone: string;
+    year: number;
+    displayName: string;
+    roles: { slug: string }[];
+    preferences: { notificationEmails: boolean | null };
+  }>(page, 'GET', '/api/v1/me');
   expect(me.body).toMatchObject({ phone: run.sara.e164, year: 2, displayName: run.sara.name });
+  expect(me.body.preferences.notificationEmails).toBe(true);
   expect(me.body.roles.map((r) => r.slug)).toEqual(['student']);
   await ctx.storageState({ path: statePath('sara') });
   await ctx.close();
@@ -223,6 +237,7 @@ setup('Ali signs up with his email on a phone-sized screen', async ({ browser })
   await expect(dialog).toContainText('Set up your profile');
   await expect(dialog.getByRole('group', { name: 'Your cohort' }).getByLabel('Year 1')).toBeChecked();
   await dialog.getByLabel('Display name').fill(run.ali.name);
+  await answerEmails(dialog);
   await dialog.getByRole('button', { name: 'Save and continue' }).click();
   await expect(page.getByText('Welcome to DSBA Hub, Ali')).toBeVisible();
   const me = await api<{ email: string; year: number }>(page, 'GET', '/api/v1/me');

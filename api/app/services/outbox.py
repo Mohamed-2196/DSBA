@@ -6,6 +6,9 @@
   row unlocks and is sent again later (at least once).
 - A failed send is retried with exponential backoff (30 s, 1 min, 2 min, ... up to 6 h, with some jitter), and
   given up after MAX_ATTEMPTS. Logs name the kind and the masked address, never the address or the body.
+- Nobody gets a notification email or a Sunday summary before answering the question about emails when they sign
+  up (wants()). Then each notification email follows its switch, and a switch never set follows the answer; the
+  Sunday summary is off until they turn it on.
 - When its turn comes, a notification email or a Sunday summary is cancelled if the person no longer wants it: the
   account is gone, its email address changed, or the switch for that kind was turned off. It is cancelled too when
   the feature it is about is switched off for the person.
@@ -23,14 +26,13 @@ from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
 from types import FrameType
 
-from sqlalchemy import ColumnElement, delete, not_, select
+from sqlalchemy import ColumnElement, and_, delete, not_, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.access import Feature
 from app.core.time import utcnow
 from app.models import EmailOutbox, OutboxStatus, User
-from app.schemas.auth import Preferences
 from app.services import access, mailer
 from app.services.identifiers import destination_hint
 from app.services.mailer import DeliveryError
@@ -54,6 +56,10 @@ EMAIL_SWITCHES: dict[str, str] = {
     "date_changed": "email_date_changes",
     WEEKLY_SUMMARY: "email_weekly_summary",
 }
+SUMMARY_SWITCH = EMAIL_SWITCHES[WEEKLY_SUMMARY]
+# The person's answer to "Email me about replies, …" when they signed up (a Preferences field): true, false, or
+# not stored yet.
+ANSWER = "notification_emails"
 # The feature each emailed kind is about: no email goes out about a feature that is off for its reader.
 EMAIL_FEATURES: dict[str, Feature] = {
     "thread_reply": Feature.forum,
@@ -78,18 +84,34 @@ REMINDERS_EVERY = timedelta(minutes=1)  # how often it sends the reminders due f
 SUBJECT_MAX = 200
 
 
+def answer_of(user: User) -> bool | None:
+    """The person's answer to the question about emails at sign-up, or None before they answer it."""
+    answer = (user.preferences if isinstance(user.preferences, dict) else {}).get(ANSWER)
+    return answer if isinstance(answer, bool) else None
+
+
 def wants(user: User, switch: str) -> bool:
-    """Whether the email switch `switch` (a Preferences field) is on for this person. Unset means on."""
-    stored = user.preferences if isinstance(user.preferences, dict) else {}
-    value = stored.get(switch, Preferences.model_fields[switch].default)
-    return value is not False
+    """Whether the email switch `switch` (a Preferences field) is on for this person. None is before they answer the
+    question about emails; then a switch they set says so, a notification email they never switched follows their
+    answer, and the Sunday summary is off until they turn it on."""
+    answer = answer_of(user)
+    if answer is None:
+        return False
+    value = (user.preferences if isinstance(user.preferences, dict) else {}).get(switch)
+    if isinstance(value, bool):
+        return value
+    return answer and switch != SUMMARY_SWITCH
 
 
 def wanted_by(switch: str) -> ColumnElement[bool]:
     """A condition on User: the email switch `switch` is on (as wants(), in SQL)."""
-    if Preferences.model_fields[switch].default is False:
-        return User.preferences.contains({switch: True})
-    return not_(User.preferences.contains({switch: False}))
+    prefs = User.preferences
+    answered = or_(prefs.contains({ANSWER: True}), prefs.contains({ANSWER: False}))
+    turned_on = prefs.contains({switch: True})
+    if switch == SUMMARY_SWITCH:
+        return and_(answered, turned_on)
+    switched = or_(turned_on, prefs.contains({switch: False}))
+    return and_(answered, or_(turned_on, and_(not_(switched), prefs.contains({ANSWER: True}))))
 
 
 def queue(

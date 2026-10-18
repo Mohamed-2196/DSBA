@@ -8154,7 +8154,9 @@ export interface components {
         };
         /**
          * MeUpdate
-         * @description Fields that are not sent stay as they are; `year: null` clears the cohort.
+         * @description Fields that are not sent stay as they are; `year: null` clears the cohort. The first display name (the
+         *     profile step after signing up) comes with the answer about emails, `preferences.notificationEmails`, unless the
+         *     account has one.
          */
         MeUpdate: {
             /** Displayname */
@@ -9522,39 +9524,24 @@ export interface components {
         /**
          * Preferences
          * @description Which notifications also come by email (to the account's email address; account security notices always do),
-         *     whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Unset means the default
-         *     here.
+         *     whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Nothing is emailed until the
+         *     person answers the question about emails when they sign up (`notificationEmails`); then each notification email
+         *     they never switched follows that answer, and the Sunday summary is off until they turn it on.
          */
         Preferences: {
-            /**
-             * Emailreplies
-             * @default true
-             */
+            /** Notificationemails */
+            notificationEmails: boolean | null;
+            /** Emailreplies */
             emailReplies: boolean;
-            /**
-             * Emailansweraccepted
-             * @default true
-             */
+            /** Emailansweraccepted */
             emailAnswerAccepted: boolean;
-            /**
-             * Emailuploadreviews
-             * @default true
-             */
+            /** Emailuploadreviews */
             emailUploadReviews: boolean;
-            /**
-             * Emailnewissues
-             * @default true
-             */
+            /** Emailnewissues */
             emailNewIssues: boolean;
-            /**
-             * Emaildatechanges
-             * @default true
-             */
+            /** Emaildatechanges */
             emailDateChanges: boolean;
-            /**
-             * Emailweeklysummary
-             * @default false
-             */
+            /** Emailweeklysummary */
             emailWeeklySummary: boolean;
             /**
              * Trackprogress
@@ -9567,9 +9554,13 @@ export interface components {
         /**
          * PreferencesUpdate
          * @description Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default
-         *     layout.
+         *     layout. The answer about emails is asked when the profile is first saved (MeUpdate); a later one changes every
+         *     notification email not switched on its own. Turning an email on before there is an answer answers "no" for the
+         *     others.
          */
         PreferencesUpdate: {
+            /** Notificationemails */
+            notificationEmails?: boolean | null;
             /** Emailreplies */
             emailReplies?: boolean | null;
             /** Emailansweraccepted */
