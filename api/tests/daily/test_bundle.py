@@ -1,6 +1,6 @@
 """Daily's content file: what an export writes, an import brings back on a new install with the rotation, an import
-adds only what the database lacks, and an admin's upload in Manage does the same as the command line, checked first,
-counted, audited with counts only, and refused to anyone else."""
+adds only what the database lacks (and the shipped guess list to a short one), and an admin's upload in Manage does the
+same as the command line, checked first, counted, audited with counts only, and refused to anyone else."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from sqlalchemy import Engine, delete, event, func, select
 from sqlalchemy.orm import Session
 
 from app.models import AuditEntry, DailyGuessWord, DailyItem, DailyNearestWord, DailyTheme, User
-from app.seed.loader import daily_guess_words
+from app.seed.loader import add_guess_words, daily_guess_words
 from app.services.daily import bundle, content
 from tests.daily.conftest import API, GUESSES, VOCABULARY
 
@@ -30,6 +30,12 @@ def load(db: Session, data: dict[str, Any]) -> bundle.ImportResult:
     return bundle.load(db, bundle.read(json.dumps(data)))
 
 
+def with_shipped_list(db: Session) -> None:
+    """The guess list as the seed leaves an install: the shipped list as well as the test words."""
+    add_guess_words(db, daily_guess_words())
+    db.commit()
+
+
 def emptied(db: Session) -> dict[str, Any]:
     """The test content as a file, and a database left with its guess list only (a new install's)."""
     data = bundle.export(db)
@@ -44,6 +50,7 @@ def imports(db: Session) -> list[AuditEntry]:
 
 
 def test_an_export_brings_a_new_install_back_with_its_rotation(db: Session) -> None:
+    with_shipped_list(db)
     db.execute(delete(DailyItem).where(DailyItem.game == "quiz", DailyItem.theme_id == "beta"))
     retired = db.scalars(select(DailyItem).where(DailyItem.game == "search").limit(1)).one()
     retired.retired = True
@@ -69,9 +76,10 @@ def test_an_export_brings_a_new_install_back_with_its_rotation(db: Session) -> N
 
 
 def test_an_import_adds_only_what_is_missing_and_says_what_it_refused(db: Session) -> None:
+    with_shipped_list(db)
     data = {
         "themes": [{"id": "alpha", "title": "Renamed", "blurb": "", "inRotation": True}],
-        "guesses": ["QUACK"],
+        "guesses": ["BLORP"],
         "vocabulary": [
             {"word": "mean", "tags": ["x", "y", "z"]},
             {"word": "outlier", "tags": ["stats", "spread", "data"]},
@@ -79,7 +87,7 @@ def test_an_import_adds_only_what_is_missing_and_says_what_it_refused(db: Sessio
         ],
         "items": [
             {"game": "word", "theme": "alpha", "word": "MEANS"},
-            {"game": "word", "theme": "alpha", "word": "quack"},
+            {"game": "word", "theme": "alpha", "word": "blorp"},
             {
                 "game": "quiz",
                 "theme": "nowhere",
@@ -102,7 +110,23 @@ def test_an_import_adds_only_what_is_missing_and_says_what_it_refused(db: Sessio
     outlier = db.scalars(select(DailyItem).where(DailyItem.key == "outlier")).one()
     assert outlier.ranking is not None
     assert outlier.ranking[0] == "outlier"
-    assert count(db, DailyGuessWord) == len(GUESSES) + 1
+    assert count(db, DailyGuessWord) == len(set(GUESSES) | set(daily_guess_words())) + 1
+
+
+def test_an_import_fills_a_short_guess_list_with_the_shipped_one(db: Session) -> None:
+    """A guess list a content file filled holds its answers only; a full one keeps the words editors took off."""
+    shipped = set(daily_guess_words())
+    result = load(db, {"guesses": ["BLORP", *GUESSES[:2]]})
+    db.commit()
+    assert result.guesses == {"added": 1 + len(shipped - set(GUESSES)), "kept": 2}
+    assert count(db, DailyGuessWord) == len(shipped | set(GUESSES)) + 1
+
+    taken_off = sorted(shipped - set(GUESSES))[:3]
+    db.execute(delete(DailyGuessWord).where(DailyGuessWord.word.in_(taken_off)))
+    db.commit()
+    again = load(db, {"guesses": ["BLORP"]})
+    assert again.guesses == {"added": 0, "kept": 1}
+    assert not db.scalars(select(DailyGuessWord.word).where(DailyGuessWord.word.in_(taken_off))).all()
 
 
 def test_only_admins_upload_a_content_file(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
@@ -118,6 +142,7 @@ def test_only_admins_upload_a_content_file(client_for: ClientFor, make_user: Mak
 def test_an_upload_is_checked_then_loaded_once_and_audited_with_counts(
     client_for: ClientFor, make_user: MakeUser, db: Session
 ) -> None:
+    with_shipped_list(db)
     data = emptied(db)
     admin = client_for(make_user(roles=("student", "admin")))
     text = json.dumps(data)
@@ -200,5 +225,6 @@ def test_a_content_file_takes_the_same_few_statements_however_many_items_it_has(
         assert sum(c["added"] for c in result.items.values()) == 3 * len(data["guesses"]), result.problems
         return len(seen)
 
+    with_shipped_list(db)
     few = statements(file("gamma", 5))
     assert statements(file("delta", 60)) == few

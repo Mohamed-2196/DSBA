@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import bahrain_today
 from app.models import AuditEntry, DailyItem, DailyTheme, User
+from app.seed.loader import add_guess_words, daily_guess_words
 from app.services.daily import content
 from app.services.daily.games import GAMES
 from tests.daily.conftest import API, GUESSES, VOCABULARY
@@ -85,6 +86,13 @@ def test_the_overview_shows_each_theme_with_what_it_has_and_the_weeks_to_come(c:
     assert {weeks[0]["theme"], weeks[1]["theme"]} == {"alpha", "beta"}  # they take turns
     assert (body["guessWords"], body["vocabularyWords"]) == (len(GUESSES), len(VOCABULARY))
     assert body["tags"] == sorted({t for tags, _ in VOCABULARY.values() for t in tags})
+
+
+def test_the_overview_says_when_the_guess_list_lacks_the_shipped_one(c: TestClient, db: Session) -> None:
+    assert overview(c)["guessListShort"] is True  # the test words only
+    add_guess_words(db, daily_guess_words())
+    db.commit()
+    assert overview(c)["guessListShort"] is False
 
 
 # ── each game's rules ────────────────────────────────────────────────────────────────────────

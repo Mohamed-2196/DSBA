@@ -6000,6 +6000,8 @@ export interface components {
             weeks: components["schemas"]["WeekOut"][];
             /** Guesswords */
             guessWords: number;
+            /** Guesslistshort */
+            guessListShort: boolean;
             /** Vocabularywords */
             vocabularyWords: number;
             /** Tags */

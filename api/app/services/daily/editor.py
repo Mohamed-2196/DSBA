@@ -84,6 +84,7 @@ from app.schemas.daily_content import (
     WeekSave,
     WordData,
 )
+from app.seed.loader import SHORT_GUESS_LIST, guess_list_size
 from app.services.content import record
 from app.services.daily import content, rules
 from app.services.daily.content import Entry, NoThemeError, NotReadyError, Schedule
@@ -674,6 +675,7 @@ def overview(db: Session) -> DailyContentOverview:
     }
     themes = sorted(db.scalars(select(DailyTheme)), key=lambda t: (not t.in_rotation, t.position, t.id))
     tags = sorted({tag for row in db.scalars(select(DailyNearestWord.tags)) for tag in row})
+    guesses = guess_list_size(db)
     return DailyContentOverview(
         today=today,
         first_day=content.FIRST_DAY,
@@ -692,7 +694,8 @@ def overview(db: Session) -> DailyContentOverview:
             for t in themes
         ],
         weeks=_weeks(plan, today),
-        guess_words=db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0,
+        guess_words=guesses,
+        guess_list_short=guesses < SHORT_GUESS_LIST,
         vocabulary_words=db.scalar(select(func.count()).select_from(DailyNearestWord)) or 0,
         tags=tags,
     )

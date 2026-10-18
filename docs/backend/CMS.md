@@ -71,7 +71,9 @@ with the themes and the guess list only, and Daily shows no puzzles. Load the co
 
 Both take the same path: the file is checked with the editor's rules, what the database lacks is added, and what is
 there stays as it is, so loading the same file again changes nothing. Themes join the rotation (on an environment
-with none yet) once every game has what it needs. The activity log keeps one entry per load that changed something,
+with none yet) once every game has what it needs. A guess list under 5,000 words lacks the shipped one (the file came
+before the seed, and brought its answers only): a load, like the seed, adds the shipped list to it, and Manage warns
+until it has it. A full list keeps the words editors took off. The activity log keeps one entry per load that changed something,
 with counts only. After that, everything is edited in Manage → Daily puzzles: changes reach the days to come, and a
 day that is out keeps its puzzles.
 

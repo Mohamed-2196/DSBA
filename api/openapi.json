@@ -32147,6 +32147,10 @@
             "type": "integer",
             "title": "Guesswords"
           },
+          "guessListShort": {
+            "type": "boolean",
+            "title": "Guesslistshort"
+          },
           "vocabularyWords": {
             "type": "integer",
             "title": "Vocabularywords"
@@ -32166,6 +32170,7 @@
           "themes",
           "weeks",
           "guessWords",
+          "guessListShort",
           "vocabularyWords",
           "tags"
         ],

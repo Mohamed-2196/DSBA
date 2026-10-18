@@ -68,6 +68,14 @@ export function DailyContentEditor() {
         </p>
         {empty ? null : loadFile}
       </div>
+      {data.guessListShort ? (
+        <p className="dcms__banner" role="status">
+          {`Only ${formatCount(data.guessWords)} words in the guess list, so The Word refuses everyday guesses. `}
+          {isAdmin
+            ? 'Load a content file, even one loaded before, to add the hub’s full list.'
+            : 'Ask an admin to load a content file: it adds the hub’s full list.'}
+        </p>
+      ) : null}
       {empty ? (
         <Panel padding="none">
           <EmptyState
