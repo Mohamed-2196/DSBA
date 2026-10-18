@@ -98,12 +98,8 @@ def busy() -> ApiError:
 
 
 def limits(db: Session) -> NooraLimits:
-    row = db.get(NooraLimits, 1)
-    if row is None:  # the migration makes it; a test database emptied by hand may not have it
-        row = NooraLimits(id=1)
-        db.add(row)
-        db.flush()
-    return row
+    """The one row of limits (the migrations make it)."""
+    return db.get_one(NooraLimits, 1)
 
 
 def _month_start(today: dt.date) -> dt.date:

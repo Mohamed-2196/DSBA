@@ -73,7 +73,7 @@ api/                          Python backend
   app/seed/                   the seed loader and the starting content (data/*.json; data/daily: the Daily themes
                               and the word game's guess list)
   app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, weekly-summary,
-                              import-drive, exam-meta, text-worker, extract-texts, make-covers, texts-role,
+                              import-drive, exam-meta, text-worker, extract-texts, texts-role,
                               daily-content, dev-login, enable-features (`python -m app.cli --help` says what each does)
   tests/conftest.py           shared harness (each run makes its own database)
   tests/core|accounts|community|content|notes|board|noora|daily/   each area's tests
@@ -303,7 +303,7 @@ Docker". Either way:
   Sunday summaries at the time set in Manage → Sunday summary, and turns board cards' and personal events'
   reminders into notifications. Sign-in codes don't need it; reminders do.
 - **The text worker:** `python -m app.cli text-worker` reads the words and makes the cover of each published PDF and
-  Word file, for search inside papers. `extract-texts` and `make-covers` do the files already there.
+  Word file, for search inside papers. `extract-texts` does the files already there.
 - **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-4-5-20251001`) power
   rich AI answers when the `noora.ai` feature switch is turned on; without the key or when off, Noora answers in
   script mode.

@@ -79,15 +79,11 @@ export function errorsFromApi(fields: Record<string, string>): ItemFormErrors {
     title: 'title',
     kind: 'kind',
     moduleId: 'module',
-    module_id: 'module',
     year: 'year',
     examYear: 'examYear',
-    exam_year: 'examYear',
     zone: 'zone',
     examSession: 'session',
-    exam_session: 'session',
     authorName: 'authorName',
-    author_name: 'authorName',
     description: 'description',
   };
   const out: ItemFormErrors = {};

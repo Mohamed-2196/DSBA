@@ -2,7 +2,8 @@
 // (the module page's "Ask about this module", "Ask it as a thread" after a search). This turns such a link into the
 // form the composer opens with. A plain function: NewThreadPage gives it the catalogue lookups.
 import type { ModuleSummary } from '../../../api/types';
-import type { CategoryId, ForumCategory } from '../types';
+import type { ForumCategoryOut } from '../../../api/types';
+import type { CategoryId } from '../types';
 import type { ThreadForm } from './threadDraft';
 import { TITLE_MAX } from './threadForm';
 
@@ -10,7 +11,7 @@ export interface PresetLookups {
   getModule: (id: string) => Pick<ModuleSummary, 'id' | 'year'> | null;
   getModuleByUnitCode: (code: string) => Pick<ModuleSummary, 'id' | 'year'> | null;
   /** a category that is offered (not retired), or null */
-  getCategory: (id: string) => Pick<ForumCategory, 'id' | 'year'> | null;
+  getCategory: (id: string) => Pick<ForumCategoryOut, 'id' | 'year'> | null;
   categoryForYear: (year: number | null | undefined) => CategoryId | null;
   /** where a thread goes when no year fits it */
   defaultCategory: CategoryId;

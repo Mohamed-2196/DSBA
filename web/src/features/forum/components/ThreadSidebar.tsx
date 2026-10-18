@@ -12,7 +12,7 @@ import { useRelatedThreads } from '../api';
 import { authorName } from '../lib/authors';
 import { participants, takesReplies } from '../lib/replies';
 import { useTaxonomy } from '../lib/taxonomy';
-import type { ForumCategory } from '../types';
+import type { ForumCategoryOut } from '../../../api/types';
 import { AuthorAvatar } from './AuthorAvatar';
 import { FORUM_ICONS } from './forumIcons';
 import { ReplyCount } from './ThreadBits';
@@ -78,7 +78,7 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
   );
 }
 
-function CategoryCard({ category }: { category: ForumCategory }) {
+function CategoryCard({ category }: { category: ForumCategoryOut }) {
   const Icon = FORUM_ICONS[category.icon ?? 'chat'].icon;
   return (
     <section className="forum-tside__card" aria-label="Category">

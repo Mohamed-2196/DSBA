@@ -215,3 +215,38 @@ def test_the_suggested_videos_switch_keeps_its_mode_and_roles_under_its_name(scr
     with engine.connect() as c:
         assert _switch(c, "video_suggestions") == set_by_admin
         assert _switch(c, "modules.video-suggestions") is None
+
+
+def test_boards_made_from_the_revision_template_become_study_boards_and_keep_their_columns(
+    scratch: tuple[Config, Engine],
+) -> None:
+    """0039 offers five templates: a board made from "revision" keeps its columns and is marked as made from
+    Study, and "revision" is refused from then on; going back allows it again."""
+    cfg, engine = scratch
+    command.upgrade(cfg, "0034")
+    ids = {"owner": uuid.uuid4(), "board": uuid.uuid4()}
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO users (id, email) VALUES (:owner, 'board.owner@example.com')"), ids)
+        c.execute(
+            text(
+                "INSERT INTO boards (id, user_id, name, color, template, position) "
+                "VALUES (:board, :owner, 'Exams', 'teal', 'revision', 1)"
+            ),
+            ids,
+        )
+        c.execute(
+            text(
+                "INSERT INTO board_columns (id, board_id, name, done, position) "
+                "VALUES (gen_random_uuid(), :board, 'To revise', false, 1)"
+            ),
+            ids,
+        )
+    command.upgrade(cfg, "0039")
+    with engine.connect() as c:
+        assert c.scalar(text("SELECT template FROM boards WHERE id = :board"), ids) == "study"
+        assert c.scalar(text("SELECT name FROM board_columns WHERE board_id = :board"), ids) == "To revise"
+    with pytest.raises(IntegrityError, match="ck_boards_template"), engine.begin() as c:
+        c.execute(text("UPDATE boards SET template = 'revision' WHERE id = :board"), ids)
+    command.downgrade(cfg, "0034")
+    with engine.begin() as c:
+        c.execute(text("UPDATE boards SET template = 'revision' WHERE id = :board"), ids)

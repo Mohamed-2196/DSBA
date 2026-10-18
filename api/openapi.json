@@ -28165,7 +28165,6 @@
             "type": "string",
             "enum": [
               "study",
-              "revision",
               "assignment",
               "weekly",
               "personal",
@@ -28593,7 +28592,6 @@
             "type": "string",
             "enum": [
               "study",
-              "revision",
               "assignment",
               "weekly",
               "personal",

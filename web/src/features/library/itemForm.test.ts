@@ -118,7 +118,10 @@ describe('errorsFromApi', () => {
       module: 'Pick a module from the list.',
       title: 'Too long.',
     });
-    expect(errorsFromApi({ exam_year: 'Too early.' })).toEqual({ examYear: 'Too early.' });
+    expect(errorsFromApi({ examYear: 'Too early.', examSession: 'Pick May or October.' })).toEqual({
+      examYear: 'Too early.',
+      session: 'Pick May or October.',
+    });
   });
 });
 

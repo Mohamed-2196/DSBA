@@ -4709,7 +4709,7 @@ export interface components {
              * @default blank
              * @enum {string}
              */
-            template: "study" | "revision" | "assignment" | "weekly" | "personal" | "blank";
+            template: "study" | "assignment" | "weekly" | "personal" | "blank";
         };
         /**
          * BoardDetail
@@ -4885,7 +4885,7 @@ export interface components {
              * Template
              * @enum {string}
              */
-            template: "study" | "revision" | "assignment" | "weekly" | "personal" | "blank";
+            template: "study" | "assignment" | "weekly" | "personal" | "blank";
             /** Archived */
             archived: boolean;
             /** Columns */
