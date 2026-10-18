@@ -7,10 +7,10 @@ import {
   draftIds,
   dropDraft,
   lessonLabel,
+  labelParts,
   noteLabel,
   openInk,
   openNote,
-  plainExcerpt,
   readDraft,
   readInkDraft,
   sameDoc,
@@ -146,14 +146,21 @@ describe('labels', () => {
     expect(noteLabel({ title: '', text: 'a'.repeat(100) })).toHaveLength(80);
   });
 
+  it('names an untitled note by its first line, formulas set apart and never cut', () => {
+    expect(labelParts({ title: '', text: '$$\nE[X] = \\mu\n$$\nthe mean' })).toEqual([
+      { kind: 'math', tex: 'E[X] = \\mu', display: true },
+    ]);
+    expect(labelParts({ title: '', excerpt: `${'a'.repeat(70)} $\\frac{1}{2}$ b` })).toEqual([
+      { kind: 'text', text: `${'a'.repeat(70)}…` },
+    ]);
+    // a title is the student's own words: dollar signs in it are text
+    expect(labelParts({ title: 'Costs $x$', text: '$y$' })).toEqual([{ kind: 'text', text: 'Costs $x$' }]);
+    expect(noteLabel({ title: '', text: 'So $x^2$ grows' })).toBe('So x^2 grows');
+  });
+
   it('formats lesson labels', () => {
     expect(lessonLabel({ c: 1, v: 0 })).toBe('Chapter 2, video 1');
     expect(lessonLabel(null)).toBe('A lesson');
-  });
-
-  it('shows the body as one plain line', () => {
-    expect(plainExcerpt('Formula $E[X]$\n\nSecond line')).toBe('Formula E[X] Second line');
-    expect(plainExcerpt('x'.repeat(200), 10)).toBe('xxxxxxxxx…');
   });
 });
 

@@ -7,7 +7,8 @@ import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { Button, QueryError, Skeleton, TextArea, timeAgo } from '../../ui';
 import { useCreateNote, useLessonNotes } from './api';
-import { docFromText, noteLabel } from './draft';
+import { docFromText, labelParts } from './draft';
+import { MathLine } from './MathLine';
 import { BODY_MAX } from './limits';
 import { useStartNote } from './useStartNote';
 import './LessonNotes.css';
@@ -68,7 +69,7 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
           {items.map((n) => (
             <li key={n.id}>
               <Link to={`/notes/${n.id}`} dir="auto">
-                {noteLabel(n)}
+                <MathLine parts={labelParts(n)} />
               </Link>
               <span className="notes-lesson__when">{timeAgo(n.updatedAt)}</span>
             </li>

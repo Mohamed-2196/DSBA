@@ -57,10 +57,12 @@ import {
   useNotes,
   useRenameNotebook,
 } from './api';
-import { EMPTY_DOC, draftIds, lessonLabel, noteLabel, plainExcerpt } from './draft';
+import { EMPTY_DOC, draftIds, labelParts, lessonLabel } from './draft';
 import { TITLE_MAX } from './limits';
 import { useLessonPlace } from './lessonPlace';
+import { MathLine } from './MathLine';
 import { firstOwnNotebook } from './notebooks';
+import { lineParts } from './text/mathText';
 import { useStartNote } from './useStartNote';
 import './NotesPage.css';
 
@@ -68,17 +70,17 @@ function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
   const { getModule } = useModules();
   const module = getModule(note.moduleId);
   const place = useLessonPlace(note.moduleId, note.lessonId);
-  const excerpt = plainExcerpt(note.excerpt);
+  const excerpt = lineParts(note.excerpt, 160);
 
   return (
     <li className="notes-row">
       <Link to={`/notes/${note.id}`} className="notes-row__link" data-hub="note-row">
         <span className="notes-row__title" dir="auto">
-          {noteLabel(note)}
+          <MathLine parts={labelParts(note)} />
         </span>
-        {excerpt && note.title.trim() ? (
+        {excerpt.length && note.title.trim() ? (
           <span className="notes-row__excerpt" dir="auto">
-            {excerpt}
+            <MathLine parts={excerpt} />
           </span>
         ) : null}
         <span className="notes-row__meta">

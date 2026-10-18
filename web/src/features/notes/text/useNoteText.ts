@@ -14,6 +14,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { useEffect, useRef } from 'react';
 import type { RichDoc } from '../draft';
 import { textOf } from '../pictures/document';
+import { joinFormulaLines } from './mathText';
 import { BlockMath, InlineMath, NoteFile, NotePicture } from './nodes';
 
 /** Where files were dropped: on screen, and the place in the text there. */
@@ -132,6 +133,8 @@ export function useNoteText({
           spellcheck: 'true',
           dir: 'auto',
         },
+        // a formula pasted over several lines ($$ … $$) is set as one
+        transformPastedText: (text) => joinFormulaLines(text),
         handlePaste: (_view, event) => {
           const files = [...(event.clipboardData?.files ?? [])];
           if (!files.length) return false;
