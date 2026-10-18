@@ -137,6 +137,10 @@
     gap: var(--sp-16);
     margin-bottom: var(--sp-16);
   }
+  /* The four tabs fit a 360 px screen without scrolling. */
+  .ui-tabs.dh-tabs {
+    gap: var(--sp-16);
+  }
   .dh-title {
     font-size: var(--fs-31);
   }
