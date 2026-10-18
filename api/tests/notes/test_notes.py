@@ -7,13 +7,17 @@ from __future__ import annotations
 import json
 import tracemalloc
 from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from datetime import timedelta
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
+from app import cli
+from app.core.time import utcnow
 from app.models import LibraryItem, Module, Note, Notebook, NoteInk, Upload, UploadStatus, User, UserStatus
 from app.schemas.notes import INK_BODY_MAX, MAX_POINTS, MAX_STROKES, PAPER_SHEETS_FROM, SHEET_MAX_BYTES
 from app.services import note_doc
@@ -500,7 +504,17 @@ def picture_doc(upload_id: str, file_id: str | None = None, attrs: dict[str, Any
     return {"type": "doc", "content": content}
 
 
-def test_pictures_and_files_belong_to_the_note_that_shows_them(
+def statuses(db: Session, *ids: str) -> list[UploadStatus]:
+    db.expire_all()
+    return [db.get(Upload, i).status for i in ids]  # type: ignore[union-attr]
+
+
+def listed(db: Session, note: dict[str, Any]) -> set[str]:
+    db.expire_all()
+    return {str(u) for u in db.get(Note, note["id"]).uploads}  # type: ignore[union-attr]
+
+
+def test_pictures_and_files_are_kept_while_a_note_shows_them(
     client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session
 ) -> None:
     c = client_for(make_user())
@@ -508,10 +522,9 @@ def test_pictures_and_files_belong_to_the_note_that_shows_them(
     data = upload(c, storage, purpose="note_file", name="data.csv", content_type="text/csv", body=b"a,b\n1,2\n")
     note = new_note(c, doc=picture_doc(picture, data))
     assert note["text"] == "Whiteboard\ndata.csv"
-    rows = {str(u.id): u for u in db.scalars(select(Upload).where(Upload.note_id == note["id"]))}
-    assert set(rows) == {picture, data}
-    assert {u.status for u in rows.values()} == {UploadStatus.attached}
-    assert rows[picture].storage_key.startswith("notes/")
+    assert listed(db, note) == {picture, data}
+    assert statuses(db, picture, data) == [UploadStatus.attached] * 2
+    assert db.get(Upload, picture).storage_key.startswith("notes/")  # type: ignore[union-attr]
 
     shown = c.get(f"{API}/notes/files/{picture}", follow_redirects=False)
     assert shown.status_code == 302
@@ -519,22 +532,69 @@ def test_pictures_and_files_belong_to_the_note_that_shows_them(
     saved = c.get(f"{API}/notes/files/{data}", params={"download": True}, follow_redirects=False)
     assert "attachment" in saved.headers["location"]
 
-    later = save(c, note, doc=picture_doc(picture))  # the file was taken out: the sweep deletes it
+    later = save(c, note, doc=picture_doc(picture))  # the file was taken out: released, for the sweep
     assert later.status_code == 200, later.text
-    db.expire_all()
-    gone = db.get(Upload, data)
-    assert gone is not None
-    assert (gone.note_id, gone.status) == (None, UploadStatus.uploaded)
-    back = save(c, later.json(), doc=picture_doc(picture, data))  # undone before the sweep: attached again
+    assert listed(db, note) == {picture}
+    assert statuses(db, data) == [UploadStatus.released]
+    assert c.get(f"{API}/notes/files/{data}", follow_redirects=False).status_code == 302  # still there to undo
+    back = save(c, later.json(), doc=picture_doc(picture, data))  # undone before the sweep: in use again
     assert back.status_code == 200
-    db.expire_all()
-    assert db.get(Upload, data).note_id is not None  # type: ignore[union-attr]
+    assert statuses(db, data) == [UploadStatus.attached]
 
     assert c.delete(f"{API}/notes/{note['id']}").status_code == 204
+    assert statuses(db, picture, data) == [UploadStatus.released] * 2
+
+
+def test_a_picture_in_two_notes_stays_until_neither_shows_it(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A picture copied into a second note keeps its upload: deleting the first note, or the picture in it, leaves it
+    for the second. Once no note shows it, it stops counting against the room and the sweep deletes it."""
+    c = client_for(make_user())
+    picture = upload(c, storage, purpose="note_file", name="board.png", content_type="image/png", body=PNG)
+    first = new_note(c, doc=picture_doc(picture))
+    second = new_note(c, doc=picture_doc(picture), title="Copied")
+    room = c.get(f"{API}/notebooks").json()["storage"]["filesBytes"]
+    assert room == len(PNG)
+
+    assert save(c, first, doc=doc("No picture any more")).status_code == 200
+    assert statuses(db, picture) == [UploadStatus.attached]
+    assert c.delete(f"{API}/notes/{first['id']}").status_code == 204
+    assert statuses(db, picture) == [UploadStatus.attached]
+    assert c.get(f"{API}/notes/files/{picture}", follow_redirects=False).status_code == 302
+    exported = c.get(f"{API}/me/export").json()
+    files = [n["files"] for b in exported["notebooks"] for n in b["notes"]]
+    assert files == [["board.png"]]
+
+    assert c.delete(f"{API}/notes/{second['id']}").status_code == 204
+    assert statuses(db, picture) == [UploadStatus.released]
+    assert c.get(f"{API}/notebooks").json()["storage"]["filesBytes"] == 0  # the room is free at once
+    db.execute(update(Upload).where(Upload.id == picture).values(created_at=utcnow() - timedelta(days=2)))
+    db.commit()
+
+    @contextmanager
+    def same_session() -> Iterator[Session]:
+        yield db
+
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: same_session)
+    assert cli.sweep().uploads == 1
     db.expire_all()
-    assert {u.status for u in db.scalars(select(Upload).where(Upload.id.in_([picture, data])))} == {
-        UploadStatus.uploaded
-    }
+    assert db.get(Upload, picture) is None
+
+
+def test_a_deleted_notebook_releases_the_files_no_other_note_shows(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session
+) -> None:
+    c = client_for(make_user())
+    shared = upload(c, storage, purpose="note_file", name="shared.png", content_type="image/png", body=PNG)
+    own = upload(c, storage, purpose="note_file", name="own.png", content_type="image/png", body=PNG)
+    book = c.post(f"{API}/notebooks", json={"title": "Scratch"}).json()
+    other = c.post(f"{API}/notebooks", json={"title": "Kept"}).json()
+    new_note(c, doc=picture_doc(shared, attrs={"caption": "in the notebook"}), notebookId=book["id"])
+    new_note(c, doc=picture_doc(own), notebookId=book["id"])
+    new_note(c, doc=picture_doc(shared), notebookId=other["id"])
+    assert c.delete(f"{API}/notebooks/{book['id']}").status_code == 204
+    assert statuses(db, shared, own) == [UploadStatus.attached, UploadStatus.released]
 
 
 def test_a_picture_keeps_its_place_crop_and_caption(client_for: ClientFor, make_user: MakeUser, storage: Any) -> None:
@@ -585,7 +645,7 @@ def test_free_pictures_keep_their_places_on_the_pages(
     note = new_note(c, doc=body, sheets=2)
     assert note["doc"]["attrs"] == body["attrs"]
     assert note["text"] == "The density\nBeside the definition\nNormal curve"
-    assert db.get(Upload, upload_id).note_id is not None  # type: ignore[union-attr]
+    assert (listed(db, note), statuses(db, upload_id)) == ({upload_id}, [UploadStatus.attached])
     assert [n["id"] for n in c.get(f"{API}/notes", params={"q": "normal curve"}).json()["items"]] == [note["id"]]
 
     to_page_two = {"pictures": [free_picture(upload_id, sheet=PAPER_SHEETS_FROM + 1, y=800, angle=0)]}
@@ -600,10 +660,9 @@ def test_free_pictures_keep_their_places_on_the_pages(
     r = save(c, note, sheets=1)  # the page it is on can't go while it is there
     assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["doc"])
 
-    gone = save(c, note, doc=doc("The density"), sheets=1)  # deleted with its page: its file is let go of
+    gone = save(c, note, doc=doc("The density"), sheets=1)  # deleted with its page: its file is released
     assert gone.status_code == 200, gone.text
-    db.expire_all()
-    assert db.get(Upload, upload_id).note_id is None  # type: ignore[union-attr]
+    assert statuses(db, upload_id) == [UploadStatus.released]
 
 
 def test_free_pictures_on_a_pdf_of_your_own(client_for: ClientFor, make_user: MakeUser, storage: Any) -> None:
@@ -638,7 +697,7 @@ def test_someone_elses_upload_in_a_note_is_left_alone(
     theirs = upload(other, storage, purpose="note_file", name="x.png", content_type="image/png", body=PNG)
     c = client_for(make_user())
     note = new_note(c, doc=picture_doc(theirs))
-    assert db.get(Upload, theirs).note_id is None  # type: ignore[union-attr]
+    assert (listed(db, note), statuses(db, theirs)) == (set(), [UploadStatus.uploaded])
     assert c.get(f"{API}/notes/files/{theirs}", follow_redirects=False).status_code == 404
     assert note["text"] == "Whiteboard"
 
@@ -722,11 +781,12 @@ def test_a_pdf_of_your_own(client_for: ClientFor, make_user: MakeUser, storage: 
         "available": True,
     }
     assert (note["onPdf"], note["sheets"]) == (True, 0)
-    assert save(c, note, doc=doc("No pictures")).status_code == 200  # the PDF stays attached
-    db.expire_all()
-    assert str(db.get(Upload, pdf).note_id) == note["id"]  # type: ignore[union-attr]
-    r = c.post(f"{API}/notes", json={"pdfUploadId": pdf})
-    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["pdfUploadId"])
+    assert save(c, note, doc=doc("No pictures")).status_code == 200  # the PDF stays in use
+    assert (listed(db, note), statuses(db, pdf)) == ({pdf}, [UploadStatus.attached])
+    again = c.post(f"{API}/notes", json={"title": "Slides again", "sheets": 0, "pdfUploadId": pdf})
+    assert again.status_code == 201, again.text  # a second note on the same PDF keeps it when the first goes
+    assert c.delete(f"{API}/notes/{note['id']}").status_code == 204
+    assert statuses(db, pdf) == [UploadStatus.attached]
 
 
 # ── accounts and switches ────────────────────────────────────────────────────────────────────

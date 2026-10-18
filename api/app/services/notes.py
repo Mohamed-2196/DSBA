@@ -4,8 +4,10 @@
 - A note saves its typed text with the version it was loaded at, and each sheet's ink with that sheet's version. A
   save over something saved since (another tab, another device) answers 409 note_changed or ink_changed, and the
   writer chooses: load the newer one, or save theirs over it.
-- Pictures and files are uploads (purpose note_file) that the note's text refers to: a save attaches them to the
-  note and lets go of the ones it no longer shows (the sweep deletes those).
+- Pictures and files are the student's uploads (purpose note_file) that a note's document refers to, and its PDF; the
+  note lists them (`Note.uploads`). A file is in use while any of the student's notes lists it, so a picture copied
+  into a second note stays when the first goes; one no note lists any more is released (it stops counting against
+  the student's room, and the sweep deletes it).
 - Limits: MAX_NOTEBOOKS and MAX_NOTES per student; WRITING_LIMIT across their typed text and ink (in the database)
   and FILES_LIMIT across their files (in file storage); SHEET_MAX_BYTES of ink on one sheet; CREATES_PER_HOUR new
   notes; SAVES_PER_MINUTE saves of one note (text and ink together: the web app saves about once a second) and
@@ -20,6 +22,7 @@ from collections.abc import Iterable
 from datetime import timedelta
 
 from sqlalchemy import ColumnElement, cast, func, or_, select, update
+from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 from sqlalchemy.types import Text as TextType
@@ -76,7 +79,9 @@ SAVE_WINDOW = timedelta(minutes=1)
 SEARCH_MAX = 100
 MAX_SHEET_INDEX = PAPER_SHEETS_FROM + MAX_SHEETS
 OWN_NOTEBOOK = "My notebook"
-LIVE_UPLOADS = (UploadStatus.uploaded, UploadStatus.attached)
+# A note file that is still there: uploaded and not placed yet, in a note, or released and not swept yet (a save that
+# shows it again, after an undo, takes it back).
+KEPT_UPLOADS = (UploadStatus.uploaded, UploadStatus.attached, UploadStatus.released)
 
 
 def _like(text: str) -> str:
@@ -106,10 +111,13 @@ def writing_used(db: Session, user: User) -> int:
 
 
 def files_used(db: Session, user: User) -> int:
-    """Bytes of the student's note files: pictures, files and PDFs."""
+    """Bytes of the student's note files: pictures, files and PDFs in their notes, or on their way to one. Released
+    files (no note shows them any more) don't count."""
     file_bytes = db.scalar(
         select(func.coalesce(func.sum(Upload.size_bytes), 0)).where(
-            Upload.user_id == user.id, Upload.purpose == UploadPurpose.note_file
+            Upload.user_id == user.id,
+            Upload.purpose == UploadPurpose.note_file,
+            Upload.status != UploadStatus.released,
         )
     )
     return int(file_bytes or 0)
@@ -277,21 +285,40 @@ def rename_notebook(db: Session, user: User, notebook_id: uuid.UUID, title: str)
     return nb
 
 
-def _let_go_of_files(db: Session, notes: ColumnElement[bool]) -> None:
-    """The files of the notes matching `notes` are no longer used: the sweep deletes them."""
+def _release(db: Session, user: User, upload_ids: Iterable[uuid.UUID]) -> None:
+    """Of these files of the student's, the ones none of their notes lists any more are released: they stop counting
+    against the student's room, and the sweep deletes them. Run after the notes' lists are written (flushed)."""
+    ids = set(upload_ids)
+    if not ids:
+        return
+    listed = (
+        select(Note.id)
+        .where(
+            Note.user_id == user.id,
+            or_(Note.uploads.contains(array([Upload.id])), Note.pdf_upload_id == Upload.id),
+        )
+        .exists()
+    )
     db.execute(
         update(Upload)
-        .where(Upload.purpose == UploadPurpose.note_file, Upload.note_id.in_(select(Note.id).where(notes)))
-        .values(status=UploadStatus.uploaded, note_id=None)
+        .where(
+            Upload.id.in_(ids),
+            Upload.user_id == user.id,
+            Upload.purpose == UploadPurpose.note_file,
+            Upload.status == UploadStatus.attached,
+            ~listed,
+        )
+        .values(status=UploadStatus.released)
     )
 
 
 def delete_notebook(db: Session, user: User, notebook_id: uuid.UUID) -> None:
-    """Deletes the notebook and every note in it."""
+    """Deletes the notebook and every note in it; their files that no other note shows are released."""
     nb = _own_notebook(db, user, notebook_id)
-    _let_go_of_files(db, Note.notebook_id == nb.id)
+    shown = {u for (uploads,) in db.execute(select(Note.uploads).where(Note.notebook_id == nb.id)) for u in uploads}
     db.delete(nb)
     db.flush()
+    _release(db, user, shown)
 
 
 # ── notes: reading ───────────────────────────────────────────────────────────────────────────
@@ -310,7 +337,7 @@ def _pdf_of(db: Session, note: Note) -> NotePdf | None:
         )
     if note.pdf_upload_id is not None:
         up = db.get(Upload, note.pdf_upload_id)
-        ok = up is not None and up.status in LIVE_UPLOADS
+        ok = up is not None and up.status in KEPT_UPLOADS
         return NotePdf(
             library_item_id=None,
             slug=None,
@@ -429,29 +456,32 @@ def _check_lesson(db: Session, nb: Notebook, fields: NoteFields, note: Note | No
 
 
 def _attach(db: Session, user: User, note: Note, uploads: Iterable[uuid.UUID]) -> None:
-    """The note's files are the ones its text shows, and its PDF: those become attached to it, the ones it no longer
-    shows are let go of (the sweep deletes them). Ids that aren't the student's free or own files are left alone:
-    the web app shows them as missing."""
-    keep = set(uploads)
+    """The note lists the files its document shows, and its PDF, and those are in use; the ones it no longer shows
+    are released unless another of the student's notes shows them. Ids that aren't the student's note files are
+    left out: the web app shows them as missing."""
+    wanted = set(uploads)
     if note.pdf_upload_id is not None:
-        keep.add(note.pdf_upload_id)
-    if keep:
-        db.execute(
-            update(Upload)
-            .where(
-                Upload.id.in_(keep),
-                Upload.user_id == user.id,
-                Upload.purpose == UploadPurpose.note_file,
-                Upload.status.in_(LIVE_UPLOADS),
-                or_(Upload.note_id.is_(None), Upload.note_id == note.id),
+        wanted.add(note.pdf_upload_id)
+    before = set(note.uploads or [])
+    owned = (
+        set(
+            db.scalars(
+                select(Upload.id).where(
+                    Upload.id.in_(wanted),
+                    Upload.user_id == user.id,
+                    Upload.purpose == UploadPurpose.note_file,
+                    Upload.status.in_(KEPT_UPLOADS),
+                )
             )
-            .values(status=UploadStatus.attached, note_id=note.id)
         )
-    db.execute(
-        update(Upload)
-        .where(Upload.note_id == note.id, Upload.id.not_in(keep) if keep else Upload.id.is_not(None))
-        .values(status=UploadStatus.uploaded, note_id=None)
+        if wanted
+        else set()
     )
+    note.uploads = sorted(owned)
+    if owned:
+        db.execute(update(Upload).where(Upload.id.in_(owned)).values(status=UploadStatus.attached))
+    db.flush()
+    _release(db, user, before - owned)
 
 
 def _creating(db: Session, user: User) -> None:
@@ -475,12 +505,10 @@ def _pdf_upload(db: Session, user: User, upload_id: uuid.UUID) -> Upload:
         up is None
         or up.user_id != user.id
         or up.purpose != UploadPurpose.note_file
-        or up.status not in LIVE_UPLOADS
+        or up.status not in KEPT_UPLOADS
         or up.content_type != "application/pdf"
     ):
         raise invalid("pdfUploadId", "This PDF didn't upload. Choose it again.")
-    if up.note_id is not None:
-        raise invalid("pdfUploadId", "This PDF is in another note already. Upload it again for a new note.")
     return up
 
 
@@ -654,10 +682,12 @@ def get_ink(db: Session, user: User, note_id: uuid.UUID, sheet: int) -> InkSheet
 
 
 def delete_note(db: Session, user: User, note_id: uuid.UUID) -> None:
+    """Deletes the note; its files that no other note shows are released."""
     note = _own(db, user, note_id)
-    _let_go_of_files(db, Note.id == note.id)
+    shown = set(note.uploads or [])
     db.delete(note)
     db.flush()
+    _release(db, user, shown)
 
 
 # ── files ────────────────────────────────────────────────────────────────────────────────────
@@ -667,7 +697,7 @@ def file_url(db: Session, user: User, upload_id: uuid.UUID, *, download: bool, s
     """A short-lived link to one of the student's note files: shown in the browser (pictures and PDFs) unless
     `download`, which saves it under its name. Anyone else's file, and one not uploaded yet, answers 404."""
     up = db.get(Upload, upload_id)
-    if up is None or up.user_id != user.id or up.purpose != UploadPurpose.note_file or up.status not in LIVE_UPLOADS:
+    if up is None or up.user_id != user.id or up.purpose != UploadPurpose.note_file or up.status not in KEPT_UPLOADS:
         raise not_found("This file doesn't exist.")
     st = storage or get_storage()
     return st.presigned_get(
