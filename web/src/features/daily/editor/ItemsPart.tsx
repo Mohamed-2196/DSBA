@@ -284,6 +284,11 @@ function ItemRow({ item, themeTitle, busy, onOpen, onRetire, onRemove }: ItemRow
               Retired
             </Badge>
           ) : null}
+          {item.inToday ? (
+            <Badge tone="signal" size="sm">
+              In today’s puzzle
+            </Badge>
+          ) : null}
         </span>
         <ItemDetails item={item} />
         <span className="dcms-item__meta">

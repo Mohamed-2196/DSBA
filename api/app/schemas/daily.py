@@ -83,11 +83,16 @@ Move = Annotated[
 
 class MoveIn(ApiModel):
     """One move. Signed in, the play is kept on the server and `history` is ignored. A guest's play lives in their
-    browser: it sends the moves made so far as `history`, and nothing is saved."""
+    browser: it sends the moves made so far as `history`, and nothing is saved.
+
+    `revision` is the version of the day's puzzle the browser shows (Play.revision), and a guest's history was played
+    on. When an editor fixed today's puzzle since, a move answers 409 puzzle_fixed; a guest's history that finished
+    on the earlier version still shows as it finished, and one that didn't starts again on the fixed puzzle."""
 
     variant: str = Field(default="", max_length=12)
     move: Move | None = None  # none: only show the play (a guest reopening theirs)
     history: list[Move] = Field(default_factory=list, max_length=400)
+    revision: int = Field(default=0, ge=0, le=1000)
 
 
 # --- what a play shows --------------------------------------------------------------------------------------------
@@ -209,10 +214,11 @@ class Play(ApiModel):
     points: int  # what it earned (scored), or would have earned
     mistakes: int
     hints: int
-    seconds: int | None  # first move to last, once it's over
-    too_fast: bool  # finished faster than a person can: no points
+    seconds: int | None  # from opening today's puzzle (Sudoku: the first move) to the last move, once it's over
     result: str | None  # what the last move did: 'hit', 'miss', 'one-away', 'found', 'correct', 'wrong', ...
     share: str | None  # a result grid without spoilers, once it's over
+    revision: int  # the version of the day's puzzle it's on: an editor's fix to today's puzzle makes a new one
+    restarted: bool  # a fix to today's puzzle started this play again; true until its next move
     view: GameView
 
 

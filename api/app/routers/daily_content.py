@@ -1,6 +1,6 @@
 """Manage → Daily puzzles (holders of content.edit): the themes and their schedule, each game's items, the word
-game's guess list, Nearest neighbour's vocabulary, bulk imports and a preview of any day's set. Every change is
-audited; days that are out keep their puzzles."""
+game's guess list, Nearest neighbour's vocabulary, bulk imports, a preview of any day's set, and today's puzzles with
+the fixes to them. Every change is audited; days that are out keep their puzzles, except for a fix to today's."""
 
 from __future__ import annotations
 
@@ -34,12 +34,15 @@ from app.schemas.daily_content import (
     ThemeCreate,
     ThemeOrder,
     ThemeSave,
+    TodayFixIn,
+    TodayFixOut,
+    TodayPuzzles,
     VocabularyIn,
     VocabularyOut,
     VocabularySave,
     WeekSave,
 )
-from app.services.daily import bundle
+from app.services.daily import bundle, today
 from app.services.daily import editor as svc
 
 router = router_for("daily-content", needs_feature(Feature.daily))
@@ -165,6 +168,18 @@ def delete_item(item_id: uuid.UUID, request: Request, user: Editor, db: DB, vers
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.post("/content/daily/items/{item_id}/fix-today", response_model=TodayFixOut)
+def fix_today(item_id: uuid.UUID, body: TodayFixIn, request: Request, user: Editor, db: DB) -> TodayFixOut:
+    """Corrects an item today's puzzle uses, for today and the days to come: today's puzzle is made again with it.
+    Finished plays keep their results; the others start again on the fixed puzzle. `dryRun` shows today before and
+    after, and changes nothing. Errors: not_found (404), invalid_input (422: the game's rules, a group's level, a fix
+    today's puzzle can't take), puzzle_changed (409: the item or today's puzzle changed since it was loaded, a new day,
+    or today's puzzle doesn't use the item), theme_not_ready (409), rate_limited (429: the most fixes a day)."""
+    out = today.fix_today(db, user, item_id, body, client_ip(request))
+    db.commit()
+    return out
+
+
 @router.post("/content/daily/import", response_model=ImportReport)
 def import_items(body: ImportIn, request: Request, user: Editor, db: DB) -> ImportReport:
     """Pasted items in bulk: a word list, or quiz questions and groups as CSV or spreadsheet rows with a header.
@@ -249,7 +264,16 @@ def delete_vocabulary(word: Word, request: Request, user: Editor, db: DB, versio
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-# ── preview ──────────────────────────────────────────────────────────────────────────────────
+# ── today and the preview ────────────────────────────────────────────────────────────────────
+
+
+@router.get("/content/daily/today", response_model=TodayPuzzles)
+def todays_puzzles(db: DB, _: Editor) -> TodayPuzzles:
+    """Today's puzzles with the items each uses and how many signed-in players are partway through or finished:
+    where a fix starts. Errors: not_out_yet (404: no theme runs yet)."""
+    out = today.today_puzzles(db)
+    db.commit()  # Daily's own seed, the first time it's needed
+    return out
 
 
 @router.get("/content/daily/preview", response_model=DayPreview)

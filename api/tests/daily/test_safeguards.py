@@ -1,6 +1,6 @@
-"""The round 12 security review's findings for Daily, all fixed and tested here as regressions: the play's flow
-(SEC-41's answers and clock, SEC-45), the content half of SEC-41 (no answer bank in the repository, the quiz's options
-in each day's order) and SEC-46 (kept puzzles survive a new secret key)."""
+"""What keeps Daily fair and its answers safe: a guest's play of today's set shows no answer it didn't find, the
+clock starts at the first look, every win counts however fast, the repository holds no answer bank and the quiz's
+options move from day to day, crafted guest histories are refused, and kept puzzles survive a new secret key."""
 
 from __future__ import annotations
 
@@ -21,8 +21,6 @@ from app.core.time import bahrain_today
 from app.models import DailyPlay, User
 from app.services.daily import content
 from app.services.daily.games import GAMES
-from app.services.daily.games.nearest import NearestGame
-from app.services.daily.games.word import WordGame
 from tests.daily.conftest import API
 
 APP = Path(__file__).resolve().parents[2] / "app"
@@ -49,10 +47,10 @@ def answer_of(db: Session, day: dt.date) -> str:
     return word
 
 
-# ── SEC-41: the play's flow ───────────────────────────────────────────────────────────────────────
+# ── the play ──────────────────────────────────────────────────────────────────────────────────────
 
 
-def test_sec41_a_guest_play_of_todays_set_shows_no_answer(client_for: ClientFor, db: Session) -> None:
+def test_a_guest_play_of_todays_set_shows_no_answer(client_for: ClientFor, db: Session) -> None:
     guest = client_for()
     # Today: a guest's give-up shows nothing the player didn't find.
     assert move(guest, "word", {"kind": "give-up"}).json()["play"]["view"]["answer"] is None
@@ -73,13 +71,13 @@ def test_sec41_a_guest_play_of_todays_set_shows_no_answer(client_for: ClientFor,
     assert past["answer"] == answer_of(db, bahrain_today() - dt.timedelta(days=1))
 
 
-def test_sec41_signed_in_the_answer_shows_once_the_play_is_over(client_for: ClientFor, make_user: MakeUser) -> None:
+def test_signed_in_the_answer_shows_once_the_play_is_over(client_for: ClientFor, make_user: MakeUser) -> None:
     c = client_for(make_user())
     view = move(c, "word", {"kind": "give-up"}).json()["play"]["view"]
     assert isinstance(view["answer"], str)
 
 
-def test_sec41_the_clock_starts_when_todays_puzzle_is_first_opened(
+def test_the_clock_starts_when_todays_puzzle_is_first_opened(
     client_for: ClientFor, make_user: MakeUser, db: Session
 ) -> None:
     user = make_user()
@@ -100,32 +98,25 @@ def test_sec41_the_clock_starts_when_todays_puzzle_is_first_opened(
     assert len(db.scalars(select(DailyPlay)).all()) == 1
 
 
-def test_sec41_a_one_move_win_straight_away_is_too_fast(
-    client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_every_win_counts_however_fast(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     player = make_user(name="Quick Fingers")
     c = client_for(player)
     assert c.put(f"{API}/daily/me", json={"showOnBoard": True}).status_code == 200
     answer = answer_of(db, bahrain_today())
     c.get(f"{API}/daily/{today()}/word")
     play = move(c, "word", {"kind": "guess", "word": answer}).json()["play"]
-    assert (play["status"], play["scored"], play["tooFast"], play["points"]) == ("won", True, True, 0)
-    assert client_for().get(f"{API}/daily/leaderboard").json()["rows"] == []
-    # Nearest Neighbour's first-guess win is held to the same.
+    assert (play["status"], play["scored"], play["points"]) == ("won", True, 100)
     target = GAMES["nearest"].puzzle(db, bahrain_today(), "").target
     play = move(c, "nearest", {"kind": "guess", "word": target}).json()["play"]
-    assert (play["status"], play["tooFast"], play["points"]) == ("won", True, 0)
-    # At a person's pace, the same win scores.
-    monkeypatch.setattr(WordGame, "min_seconds", 0)
-    monkeypatch.setattr(NearestGame, "min_seconds", 0)
-    other = client_for(make_user())
-    assert move(other, "word", {"kind": "guess", "word": answer}).json()["play"]["points"] == 100
+    assert (play["status"], play["points"]) == ("won", 100)
+    board = client_for().get(f"{API}/daily/leaderboard").json()["rows"]
+    assert [(r["user"]["displayName"], r["points"]) for r in board] == [("Quick Fingers", 200)]
 
 
-# ── SEC-41: the content ───────────────────────────────────────────────────────────────────────────
+# ── the content ───────────────────────────────────────────────────────────────────────────────────
 
 
-def test_sec41_the_repository_holds_no_answers_and_the_quiz_shuffles_its_options(db: Session) -> None:
+def test_the_repository_holds_no_answers_and_the_quiz_shuffles_its_options(db: Session) -> None:
     # The puzzles live in the database (Manage, or a content file kept out of the repository); the repository's Daily
     # data is the themes and a public word list, and no answer bank is left anywhere in the app.
     assert sorted(p.name for p in DAILY_SEED.iterdir()) == ["guesses.txt", "themes.json"]
@@ -138,7 +129,7 @@ def test_sec41_the_repository_holds_no_answers_and_the_quiz_shuffles_its_options
     assert len(places) > 1
 
 
-# ── SEC-45 ────────────────────────────────────────────────────────────────────────────────────────
+# ── crafted requests ──────────────────────────────────────────────────────────────────────────────
 
 
 @pytest.fixture
@@ -150,7 +141,7 @@ def raw_client(app: FastAPI) -> Iterator[TestClient]:
         yield c
 
 
-def test_sec45_crafted_guest_histories_and_months_are_refused(raw_client: TestClient, db: Session) -> None:
+def test_crafted_guest_histories_and_months_are_refused(raw_client: TestClient, db: Session) -> None:
     # A sixth answer to a five-question quiz: the play was over after the fifth.
     sixth = [{"kind": "answer", "choice": 0}] * 6
     r = raw_client.post(f"{API}/daily/{today()}/quiz/moves", json={"history": sixth})
@@ -172,15 +163,14 @@ def test_sec45_crafted_guest_histories_and_months_are_refused(raw_client: TestCl
         assert (r.status_code, r.json()["error"]["fields"]) == (422, {"month": "There are no puzzles in that year."})
 
 
-# ── SEC-46 ────────────────────────────────────────────────────────────────────────────────────────
+# ── a new secret key ──────────────────────────────────────────────────────────────────────────────
 
 
-def test_sec46_rotating_the_secret_key_leaves_kept_puzzles_and_finished_plays_as_they_are(
+def test_rotating_the_secret_key_leaves_kept_puzzles_and_finished_plays_as_they_are(
     client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # Each day's puzzles are kept the first time they're made, and Daily seeds its choices with a key of its own
     # (daily_seed), so a new DSBA_SECRET_KEY changes nothing that's out.
-    monkeypatch.setattr(WordGame, "min_seconds", 0)  # the clock isn't what this is about
     c = client_for(make_user())
     answer = answer_of(db, bahrain_today())
     sudoku = GAMES["sudoku"].puzzle(db, bahrain_today(), "easy")

@@ -3868,6 +3868,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/content/daily/items/{item_id}/fix-today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fix Today
+         * @description Corrects an item today's puzzle uses, for today and the days to come: today's puzzle is made again with it.
+         *     Finished plays keep their results; the others start again on the fixed puzzle. `dryRun` shows today before and
+         *     after, and changes nothing. Errors: not_found (404), invalid_input (422: the game's rules, a group's level, a fix
+         *     today's puzzle can't take), puzzle_changed (409: the item or today's puzzle changed since it was loaded, a new day,
+         *     or today's puzzle doesn't use the item), theme_not_ready (409), rate_limited (429: the most fixes a day).
+         */
+        post: operations["fix_today_api_v1_content_daily_items__item_id__fix_today_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/content/daily/import": {
         parameters: {
             query?: never;
@@ -4002,6 +4026,27 @@ export interface paths {
          * @description Deletes a word that isn't a secret word. Errors: not_found (404), puzzle_changed (409), content_in_use (409).
          */
         delete: operations["delete_vocabulary_api_v1_content_daily_vocabulary__word__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Todays Puzzles
+         * @description Today's puzzles with the items each uses and how many signed-in players are partway through or finished:
+         *     where a fix starts. Errors: not_out_yet (404: no theme runs yet).
+         */
+        get: operations["todays_puzzles_api_v1_content_daily_today_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -6074,7 +6119,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
             /** Message */
             message: string;
             /** Fields */
@@ -7264,7 +7309,8 @@ export interface components {
         /**
          * GroupData
          * @description Groups: what the group's words share (shown once it's found), how hard it is (1 plainest to 4 trickiest), and
-         *     its words: four or more, a day shows four of them. No word may be in two groups of the same theme.
+         *     its words: four to eight. A day shows four of them, picked from the day's seed, and never a word that another of
+         *     that day's groups has too.
          */
         GroupData: {
             /**
@@ -7762,6 +7808,8 @@ export interface components {
             uses: number;
             /** Lastused */
             lastUsed: string | null;
+            /** Intoday */
+            inToday: boolean;
             /** Closest */
             closest: string[] | null;
             /**
@@ -8396,6 +8444,10 @@ export interface components {
          * MoveIn
          * @description One move. Signed in, the play is kept on the server and `history` is ignored. A guest's play lives in their
          *     browser: it sends the moves made so far as `history`, and nothing is saved.
+         *
+         *     `revision` is the version of the day's puzzle the browser shows (Play.revision), and a guest's history was played
+         *     on. When an editor fixed today's puzzle since, a move answers 409 puzzle_fixed; a guest's history that finished
+         *     on the earlier version still shows as it finished, and one that didn't starts again on the fixed puzzle.
          */
         MoveIn: {
             /**
@@ -8407,6 +8459,11 @@ export interface components {
             move?: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["FindMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"]) | null;
             /** History */
             history?: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["FindMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"])[];
+            /**
+             * Revision
+             * @default 0
+             */
+            revision: number;
         };
         /**
          * MySenior
@@ -9458,12 +9515,14 @@ export interface components {
             hints: number;
             /** Seconds */
             seconds: number | null;
-            /** Toofast */
-            tooFast: boolean;
             /** Result */
             result: string | null;
             /** Share */
             share: string | null;
+            /** Revision */
+            revision: number;
+            /** Restarted */
+            restarted: boolean;
             /** View */
             view: components["schemas"]["WordView"] | components["schemas"]["GroupsView"] | components["schemas"]["SearchView"] | components["schemas"]["QuizView"] | components["schemas"]["NearestView"] | components["schemas"]["SudokuView"];
         };
@@ -11230,6 +11289,91 @@ export interface components {
             tags?: string[] | null;
         };
         /**
+         * TodayFixIn
+         * @description A correction to an item today's puzzle uses: its fields as corrected, for today and the days to come. `day` and
+         *     `revision` are today's puzzle as it was loaded and `version` the item's (409 puzzle_changed when one of them changed
+         *     since). `dryRun` shows what today becomes and changes nothing.
+         */
+        TodayFixIn: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Revision */
+            revision: number;
+            /** Version */
+            version: number;
+            /** Data */
+            data: components["schemas"]["WordData"] | components["schemas"]["GroupData"] | components["schemas"]["SearchData"] | components["schemas"]["QuizData"] | components["schemas"]["NearestData"];
+            /**
+             * Dryrun
+             * @default false
+             */
+            dryRun: boolean;
+        };
+        /** TodayFixOut */
+        TodayFixOut: {
+            /** Applied */
+            applied: boolean;
+            /**
+             * Game
+             * @enum {string}
+             */
+            game: "word" | "groups" | "search" | "quiz" | "nearest";
+            /** Revision */
+            revision: number;
+            /** Before */
+            before: components["schemas"]["PreviewWord"] | components["schemas"]["PreviewGroups"] | components["schemas"]["PreviewSearch"] | components["schemas"]["PreviewQuiz"] | components["schemas"]["PreviewNearest"];
+            /** After */
+            after: components["schemas"]["PreviewWord"] | components["schemas"]["PreviewGroups"] | components["schemas"]["PreviewSearch"] | components["schemas"]["PreviewQuiz"] | components["schemas"]["PreviewNearest"];
+            /** Changes */
+            changes: string[];
+            /** Playing */
+            playing: number;
+            /** Finished */
+            finished: number;
+            item: components["schemas"]["ItemOut"];
+        };
+        /**
+         * TodayGame
+         * @description A game's puzzle today and the items it uses: where a fix starts.
+         */
+        TodayGame: {
+            /**
+             * Game
+             * @enum {string}
+             */
+            game: "word" | "groups" | "search" | "quiz" | "nearest";
+            /** Out */
+            out: boolean;
+            /** Revision */
+            revision: number;
+            /** Fixesleft */
+            fixesLeft: number;
+            /** Puzzle */
+            puzzle: (components["schemas"]["PreviewWord"] | components["schemas"]["PreviewGroups"] | components["schemas"]["PreviewSearch"] | components["schemas"]["PreviewQuiz"] | components["schemas"]["PreviewNearest"]) | null;
+            /** Problem */
+            problem: string | null;
+            /** Items */
+            items: components["schemas"]["ItemOut"][];
+            /** Playing */
+            playing: number;
+            /** Finished */
+            finished: number;
+        };
+        /** TodayPuzzles */
+        TodayPuzzles: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            theme: components["schemas"]["Theme"];
+            /** Games */
+            games: components["schemas"]["TodayGame"][];
+        };
+        /**
          * TourStep
          * @description A step of the tour a new student may take ("Take the tour" in the year prompt). Text between `backticks` shows
          *     as a key to press, and {mod} as the platform's key: ⌘ on a Mac, Ctrl elsewhere.
@@ -11855,6 +11999,10 @@ export type ThreadModeration = components['schemas']['ThreadModeration'];
 export type ThreadPage = components['schemas']['ThreadPage'];
 export type ThreadSummary = components['schemas']['ThreadSummary'];
 export type ThreadUpdate = components['schemas']['ThreadUpdate'];
+export type TodayFixIn = components['schemas']['TodayFixIn'];
+export type TodayFixOut = components['schemas']['TodayFixOut'];
+export type TodayGame = components['schemas']['TodayGame'];
+export type TodayPuzzles = components['schemas']['TodayPuzzles'];
 export type TourStep = components['schemas']['TourStep'];
 export type UploadCreate = components['schemas']['UploadCreate'];
 export type UploadOut = components['schemas']['UploadOut'];
@@ -31318,6 +31466,95 @@ export interface operations {
             };
         };
     };
+    fix_today_api_v1_content_daily_items__item_id__fix_today_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TodayFixIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TodayFixOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     import_items_api_v1_content_daily_import_post: {
         parameters: {
             query?: never;
@@ -32029,6 +32266,89 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    todays_puzzles_api_v1_content_daily_today_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TodayPuzzles"];
+                };
             };
             /** @description Bad Request */
             400: {

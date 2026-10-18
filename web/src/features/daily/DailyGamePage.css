@@ -281,6 +281,7 @@
 .dg-rules__list li::marker {
   color: var(--ink-3);
   font-weight: var(--fw-bold);
+  font-variant-numeric: normal; /* the browser's tabular figures widen the full stop in this typeface */
 }
 .dg-rules__example {
   display: grid;

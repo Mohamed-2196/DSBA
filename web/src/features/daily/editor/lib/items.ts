@@ -33,8 +33,9 @@ export const GAMES: readonly GameInfo[] = [
     label: 'Groups',
     noun: 'group',
     about:
-      'Four groups a day, one at each level from 1 (plainest) to 4 (trickiest), four words each. A word belongs to one group of a theme.',
-    importHint: 'Rows with a header: label, level, words. Copy them from a spreadsheet or write them as CSV.',
+      'Four groups a day, one at each level from 1 (plainest) to 4 (trickiest). A group has 4 to 8 words, and a day shows four of them, never a word that another of its groups has.',
+    importHint:
+      'Rows with a header: label, level, words (4 to 8 a group). Copy them from a spreadsheet or write them as CSV.',
     importExample: 'label,level,words\nMeasures of centre,1,MEAN MEDIAN MODE MIDRANGE',
   },
   {

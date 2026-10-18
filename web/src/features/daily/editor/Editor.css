@@ -511,6 +511,12 @@
   margin: 0;
   font-size: var(--fs-14);
 }
+/* The browser sets list numbers in tabular figures, which in this typeface widen the full stop after them. */
+.dcms-preview__groups > li::marker,
+.dcms-preview__questions > li::marker {
+  color: var(--ink-2);
+  font-variant-numeric: normal;
+}
 .dcms-preview__grid {
   margin: 0;
   justify-self: start;
@@ -645,5 +651,149 @@
   padding-inline-start: var(--sp-20);
   display: grid;
   gap: var(--sp-2);
+  font-size: var(--fs-14);
+}
+
+/* today's puzzles: each game's card, with the items it uses and their fixes */
+.dcms-today__day {
+  margin: 0;
+}
+.dcms-today {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+  gap: var(--sp-12);
+}
+.dcms-today__game {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-8);
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  min-width: 0;
+}
+.dcms-today__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+}
+.dcms-today__name {
+  margin: 0;
+  font-size: var(--fs-15);
+}
+.dcms-today__plays {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.dcms-today__rows,
+.dcms-today__words-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  min-width: 0;
+}
+.dcms-today__words-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
+  column-gap: var(--sp-16);
+}
+.dcms-today__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8) var(--sp-12);
+  padding: var(--sp-6) 0;
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+.dcms-today__rows > .dcms-today__row:first-child,
+.dcms-today__game > .dcms-today__row {
+  border-top: 0;
+}
+.dcms-today__row.is-word {
+  justify-content: space-between;
+}
+.dcms-today__main {
+  display: grid;
+  gap: var(--sp-2);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.dcms-today__title {
+  margin: 0;
+  overflow-wrap: anywhere;
+  max-width: 75ch;
+}
+.dcms-today__row.is-made .dcms-today__title {
+  color: var(--ink-2);
+}
+.dcms-today__detail {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  overflow-wrap: anywhere;
+  max-width: 75ch;
+}
+.dcms-today__words {
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+}
+.dcms-today__word {
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.dcms-today__fix {
+  flex: none;
+}
+.dcms-today__grid summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--cobalt);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+
+/* a fix to today's puzzle, checked before it's applied */
+.dcms-fix {
+  display: grid;
+  gap: var(--sp-20);
+  min-width: 0;
+}
+.dcms-fix__part {
+  display: grid;
+  gap: var(--sp-8);
+  min-width: 0;
+}
+.dcms-fix__title {
+  margin: 0;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-semibold);
+}
+.dcms-fix__list {
+  margin: 0;
+  padding-inline-start: var(--sp-20);
+  display: grid;
+  gap: var(--sp-4);
+  max-width: 75ch;
+  overflow-wrap: anywhere;
+}
+.dcms-fix__puzzle {
+  display: grid;
+  gap: var(--sp-8);
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  min-width: 0;
+}
+.dcms-preview__explain {
+  margin: var(--sp-4) 0 0;
+  color: var(--ink-2);
   font-size: var(--fs-14);
 }

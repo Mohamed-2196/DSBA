@@ -6,28 +6,20 @@ import datetime as dt
 from collections.abc import Callable
 from typing import Any
 
-import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import Engine, event
 from sqlalchemy.orm import Session
 
-from app.core.time import bahrain_today
-from app.models import User
+from app.core.time import bahrain_today, utcnow
+from app.models import DailyPlay, DailyProfile, User
+from app.services import access
 from app.services.daily import content
 from app.services.daily.games import GAMES
-from app.services.daily.games.groups import SQUARES, GroupsGame
-from app.services.daily.games.nearest import NearestGame
-from app.services.daily.games.quiz import QuizGame
-from app.services.daily.games.search import SearchGame
+from app.services.daily.games.groups import SQUARES
 from tests.daily.conftest import API
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
-
-
-@pytest.fixture(autouse=True)
-def no_speed_check(monkeypatch: pytest.MonkeyPatch) -> None:
-    for game in (GroupsGame, SearchGame, QuizGame, NearestGame):
-        monkeypatch.setattr(game, "min_seconds", 0)
 
 
 def today() -> dt.date:
@@ -181,3 +173,46 @@ def test_the_calendar_lists_days_out_and_what_you_finished(
     assert c.get(f"{API}/daily/calendar", params={"month": "2026-13"}).status_code == 422
     assert c.get(f"{API}/daily/calendar", params={"month": "2020-01"}).status_code == 422
     assert c.get(f"{API}/daily/calendar", params={"month": "2026-09"}).json()["days"] == []  # before the first day
+
+
+def test_the_leaderboard_reads_its_players_badges_in_one_go(
+    client_for: ClientFor, make_user: MakeUser, engine: Engine, db: Session
+) -> None:
+    def players(names: range) -> None:
+        for n in names:
+            user = make_user(name=f"Player {n}")
+            db.add(DailyProfile(user_id=user.id, show_on_board=True))
+            db.add(
+                DailyPlay(
+                    user_id=user.id,
+                    day=today(),
+                    game="word",
+                    status="won",
+                    scored=True,
+                    points=50 + n,
+                    finished_at=utcnow(),
+                )
+            )
+        db.commit()
+
+    def statements() -> int:
+        reader.get(f"{API}/daily/leaderboard")
+        access.forget(db)  # nobody's roles loaded before the request
+        seen: list[str] = []
+
+        def count(*_: Any) -> None:
+            seen.append("")
+
+        event.listen(engine, "before_cursor_execute", count)
+        try:
+            assert reader.get(f"{API}/daily/leaderboard").status_code == 200
+        finally:
+            event.remove(engine, "before_cursor_execute", count)
+        return len(seen)
+
+    reader = client_for()
+    players(range(2))
+    few = statements()
+    players(range(2, 9))
+    assert len(reader.get(f"{API}/daily/leaderboard").json()["rows"]) == 9
+    assert statements() == few
