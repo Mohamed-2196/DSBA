@@ -1896,7 +1896,7 @@ export interface paths {
         };
         /**
          * Newsletter Settings
-         * @description The line under the newsletter's name, and the pictures its editor offers.
+         * @description The line under the newsletter's name.
          */
         get: operations["newsletter_settings_api_v1_newsletter_settings_get"];
         /**
@@ -1908,6 +1908,27 @@ export interface paths {
          *     that doesn't fit, a picture that isn't one of the newsletter's, a picture offered twice).
          */
         put: operations["save_newsletter_settings_api_v1_newsletter_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/newsletter/pictures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Newsletter Pictures
+         * @description The pictures the issue editor offers for covers and beside sections. For the people who manage the newsletter:
+         *     an offered picture may be for an issue nobody has read yet.
+         */
+        get: operations["newsletter_pictures_api_v1_newsletter_pictures_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -3235,11 +3256,14 @@ export interface paths {
         get: operations["noora_settings_api_v1_mini_noora_settings_get"];
         /**
          * Save Noora Settings
-         * @description Save her prompt and script, if nobody saved them since `version`. Audited with what changed, before and after.
+         * @description Save her prompt and script, if nobody saved them since `version`. Admins only, with a session started or
+         *     stepped up in the last ten minutes: every student's answers follow her instructions. Audited with what changed,
+         *     before and after (the prompt's words for admins only).
          *
-         *     Errors: noora_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
-         *     fit, <hub_data> or <student_note> in her instructions or facts, a placeholder other than {module} and {module2},
-         *     a page listed twice or without the questions for every other page, an id used twice).
+         *     Errors: step_up_required (403), noora_changed (409: someone saved them since: load them again), invalid_input
+         *     (422: a field that doesn't fit, <hub_data> or <student_note> in her instructions or facts, a placeholder other
+         *     than {module} and {module2}, a page listed twice or without the questions for every other page, an id used twice,
+         *     starter cards other than four or eight).
          */
         put: operations["save_noora_settings_api_v1_mini_noora_settings_put"];
         post?: never;
@@ -8432,6 +8456,14 @@ export interface components {
             answer: string | null;
         };
         /**
+         * NewsletterMasthead
+         * @description GET /newsletter/settings: what readers see of the settings.
+         */
+        NewsletterMasthead: {
+            /** Masthead */
+            masthead: string;
+        };
+        /**
          * NewsletterPicture
          * @description A picture the issue editor offers to choose: a picture of the web app or an uploaded newsletter picture. Width
          *     and height (pixels) reserve its space while it loads.
@@ -11652,6 +11684,7 @@ export type MySenior = components['schemas']['MySenior'];
 export type NearestData = components['schemas']['NearestData'];
 export type NearestGuess = components['schemas']['NearestGuess'];
 export type NearestView = components['schemas']['NearestView'];
+export type NewsletterMasthead = components['schemas']['NewsletterMasthead'];
 export type NewsletterPicture = components['schemas']['NewsletterPicture'];
 export type NewsletterSettings = components['schemas']['NewsletterSettings'];
 export type NewsletterSettingsEditable = components['schemas']['NewsletterSettingsEditable'];
@@ -20855,7 +20888,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NewsletterSettings"];
+                    "application/json": components["schemas"]["NewsletterMasthead"];
                 };
             };
             /** @description Bad Request */
@@ -20943,6 +20976,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NewsletterSettingsEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    newsletter_pictures_api_v1_newsletter_pictures_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsletterPicture"][];
                 };
             };
             /** @description Bad Request */

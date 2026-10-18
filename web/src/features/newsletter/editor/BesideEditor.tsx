@@ -8,7 +8,7 @@ import { UPLOAD_RULES, checkUpload, progressText, uploadErrorMessage, uploadFile
 import { LIMITS, blankStat, controlId, fieldPath, moveByKey, removeByKey, updateByKey, type Beside, type FieldErrors, type SectionDraft } from '../lib/draft';
 import { pictureSrc } from '../../../api/pictures';
 import { ItemTools, MARKUP_HINT, TextBox, TextInput } from './fields';
-import { useNewsletterSettings } from '../api';
+import { useOfferedPictures } from '../api';
 import { pictureChoices, readImageDimensions, type AppPicture } from './pictures';
 
 const BESIDE: { value: Beside; label: string }[] = [
@@ -139,7 +139,7 @@ export interface BesideEditorProps {
 
 export function BesideEditor({ section: s, errors, onChange }: BesideEditorProps) {
   const path = (field: string) => fieldPath.section(s.key, field);
-  const offered = useNewsletterSettings().data?.pictures ?? [];
+  const offered = useOfferedPictures().data ?? [];
   const setFigure = (patch: Partial<SectionDraft['figure']>) => onChange((x) => ({ ...x, figure: { ...x.figure, ...patch } }));
   const setCard = (patch: Partial<SectionDraft['card']>) => onChange((x) => ({ ...x, card: { ...x.card, ...patch } }));
   const setStats = (patch: Partial<SectionDraft['stats']>) => onChange((x) => ({ ...x, stats: { ...x.stats, ...patch } }));

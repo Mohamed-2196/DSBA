@@ -1,6 +1,7 @@
-"""The newsletter's settings: the line under its name and the pictures its editor offers. Public to read; holders of
-newsletter.manage save them from the version they loaded, audited. An uploaded picture is kept while it is offered
-(the sweep leaves it), and released once it isn't, unless an issue shows it."""
+"""The newsletter's settings: the line under its name (public) and the pictures its editor offers (for the people
+who manage the newsletter). Holders of newsletter.manage save them from the version they loaded, audited. An
+uploaded picture is kept while it is offered (the sweep leaves it), and released once it isn't, unless an issue shows
+it."""
 
 from __future__ import annotations
 
@@ -22,7 +23,11 @@ from tests.content.test_newsletter_pictures import ISSUES, _upload, issue, pictu
 from tests.core.helpers import upload
 
 Clients = Callable[..., TestClient]
-SETTINGS, EDIT = f"{API}/newsletter/settings", f"{API}/newsletter/settings/edit"
+SETTINGS, EDIT, PICTURES = (
+    f"{API}/newsletter/settings",
+    f"{API}/newsletter/settings/edit",
+    f"{API}/newsletter/pictures",
+)
 SEED = Path(__file__).resolve().parents[2] / "app" / "seed" / "data" / "newsletter_settings.json"
 
 
@@ -41,8 +46,13 @@ def fields(r: Any) -> dict[str, str]:
     return out
 
 
-def test_the_settings_are_public_and_start_from_the_seed(client_for: Clients, moderator: User) -> None:
-    assert client_for().get(SETTINGS).json() == seed()
+def test_the_masthead_is_public_and_the_pictures_are_for_managers(
+    client_for: Clients, moderator: User, student: User
+) -> None:
+    assert client_for().get(SETTINGS).json() == {"masthead": seed()["masthead"]}
+    for who in (None, student):
+        assert client_for(who).get(PICTURES).status_code == (401 if who is None else 403)
+    assert client_for(moderator).get(PICTURES).json() == seed()["pictures"]
     loaded = client_for(moderator).get(EDIT).json()
     assert (loaded["version"], loaded["data"]) == (0, seed())
 
@@ -79,6 +89,7 @@ def test_an_uploaded_picture_is_kept_while_it_is_offered(
     r = rep.put(SETTINGS, json={"version": 0, "data": data})
     assert r.status_code == 200, r.text
     assert _upload(db, media).status == UploadStatus.attached  # the sweep leaves it
+    assert rep.get(PICTURES).json()[-1]["src"] == media  # the issue editor offers it
 
     # An issue that used it and lets it go doesn't release it while the settings offer it.
     issue_id = rep.post(ISSUES, json=issue(art=media)).json()["id"]

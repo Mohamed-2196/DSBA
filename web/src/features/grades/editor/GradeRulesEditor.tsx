@@ -3,7 +3,7 @@
 // (grades_changed when someone else saved first); every save goes to the activity log, before and after. The worked
 // example under the form runs the calculator's own classification on an example record with the draft, beside the
 // saved rules, so a change shows what it does before it's saved. Students' marks never reach the server.
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ComponentProps } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { GradeBand, GradeOption, GradeRules, GradeRulesEditable, GradeSubject } from '../../../api/types';
 import { moduleLabel } from '../../../lib/modules';
@@ -43,7 +43,34 @@ const YEARS = [1, 2, 3].map((y) => ({ value: String(y), label: `Year ${y}` }));
 const BAND_KEYS = ['first', 'upper', 'lower', 'third'] as const;
 
 const countsOf = (v: string): GradeSubject['counts'] => (v === '1' ? 1 : v === '2' ? 2 : v === '3' ? 3 : 'average');
-const whole = (v: string): number => Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
+
+type WholeFieldProps = Omit<ComponentProps<typeof TextField>, 'value' | 'onChange' | 'type' | 'min' | 'max'> & { value: number; min: number; max: number; onValue: (n: number) => void };
+
+/** A whole number from `min` to `max`. It can be cleared and retyped: the rules take each whole number typed (kept in
+ *  range), and the field shows the rules' number again when it loses focus. */
+function WholeField({ value, min, max, onValue, onBlur, ...rest }: WholeFieldProps) {
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <TextField
+      {...rest}
+      type="number"
+      inputMode="numeric"
+      min={min}
+      max={max}
+      value={draft ?? String(value)}
+      onChange={(e) => {
+        const text = e.target.value;
+        setDraft(text);
+        const n = Number(text);
+        if (text.trim() !== '' && Number.isInteger(n)) onValue(Math.max(min, Math.min(max, n)));
+      }}
+      onBlur={(e) => {
+        setDraft(null);
+        onBlur?.(e);
+      }}
+    />
+  );
+}
 
 export function GradeRulesEditor() {
   const query = useGradeRulesForEditing();
@@ -78,7 +105,8 @@ function Editor({ loaded, section, setSection }: { loaded: GradeRulesEditable; s
     save.mutate(
       { version: loaded.version, data: rules },
       {
-        onSuccess: () => {
+        onSuccess: (out) => {
+          setRules(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
           setFields({});
           toast({ title: 'Saved. The calculator uses the new rules now.', tone: 'success' });
           focusDocStatus();
@@ -189,15 +217,13 @@ function SubjectsPart({ rules, set, err, fields, savedIds }: { rules: GradeRules
         )}
       </ListEditor>
       {averaged ? (
-        <TextField
+        <WholeField
           label="The averaged subjects’ average counts as"
           hint="Classification marks, like 2 for Year 1."
-          type="number"
-          inputMode="numeric"
           min={1}
           max={6}
-          value={String(rules.averageCounts)}
-          onChange={(e) => set({ averageCounts: Math.max(1, Math.min(6, Math.round(Number(e.target.value) || 1))) })}
+          value={rules.averageCounts}
+          onValue={(averageCounts) => set({ averageCounts })}
           error={err('averageCounts')}
         />
       ) : null}
@@ -217,14 +243,12 @@ function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<
             const meta = bandsOf(rules).find((b) => b.id === key);
             return (
               <div key={key} className="grades-set__band">
-                <TextField
+                <WholeField
                   label={`${meta?.label ?? key} from`}
-                  type="number"
-                  inputMode="numeric"
                   min={1}
                   max={100}
-                  value={String(rules.bands[key].floor)}
-                  onChange={(e) => band(key, { floor: Math.max(1, whole(e.target.value)) })}
+                  value={rules.bands[key].floor}
+                  onValue={(floor) => band(key, { floor })}
                   error={err(`bands.${key}.floor`)}
                 />
                 <TextField label="US GPA, approx." value={rules.bands[key].gpa} onChange={(e) => band(key, { gpa: e.target.value })} error={err(`bands.${key}.gpa`)} maxLength={20} />
@@ -237,37 +261,24 @@ function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<
       <fieldset className="dedit-group">
         <legend className="dedit-group__legend">What a class needs</legend>
         <div className="dedit-grid">
-          <TextField
+          <WholeField
             label="Marks in its band or better"
             hint={`Of the ${total} classification marks.`}
-            type="number"
-            inputMode="numeric"
             min={1}
-            max={total}
-            value={String(rules.needed)}
-            onChange={(e) => set({ needed: Math.max(1, whole(e.target.value)) })}
+            max={60}
+            value={rules.needed}
+            onValue={(needed) => set({ needed })}
             error={err('needed')}
           />
-          <TextField
-            label="Or this many, with a high enough average"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={rules.needed}
-            value={String(rules.fewer)}
-            onChange={(e) => set({ fewer: Math.max(1, whole(e.target.value)) })}
-            error={err('fewer')}
-          />
+          <WholeField label="Or this many, with a high enough average" min={1} max={60} value={rules.fewer} onValue={(fewer) => set({ fewer })} error={err('fewer')} />
           {(['first', 'upper', 'lower'] as const).map((k) => (
-            <TextField
+            <WholeField
               key={k}
               label={`Average for ${CLASS_NAME[k]}`}
-              type="number"
-              inputMode="numeric"
               min={1}
               max={100}
-              value={String(rules.averages[k])}
-              onChange={(e) => set({ averages: { ...rules.averages, [k]: Math.max(1, whole(e.target.value)) } })}
+              value={rules.averages[k]}
+              onValue={(n) => set({ averages: { ...rules.averages, [k]: n } })}
               error={err(`averages.${k}`)}
             />
           ))}

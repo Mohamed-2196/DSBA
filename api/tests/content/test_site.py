@@ -12,11 +12,14 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.core.access import Box
-from app.models import AuditEntry, Module, User
+from app.core.errors import ApiError
+from app.models import AuditEntry, ContentDoc, Module, User
+from app.schemas.guides import GuidesDoc
+from app.services import documents, site
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -88,6 +91,44 @@ def test_a_stale_site_save_is_refused(
     r = client_for(admin).put(SITE, json={"version": 0, "data": second})
     assert (r.status_code, r.json()["error"]["code"]) == (409, "site_changed")
     assert client_for().get(SITE).json()["tagline"] == "Made by students."
+
+
+def test_a_save_checks_the_version_in_the_database_not_the_one_read_before(db: Session, admin: User) -> None:
+    """The row is read again when a save locks it: a version someone saved after this session read the document is
+    the one checked, so their save is never overwritten."""
+    start = GuidesDoc.model_validate(seed("guides"))
+
+    def intro(words: str) -> GuidesDoc:
+        return start.model_copy(update={"electives": start.electives.model_copy(update={"intro": words})})
+
+    assert documents.save(db, admin, site.GUIDES, intro("Pick two."), 0, None).version == 1
+    held = db.get(ContentDoc, "guides")  # the session still has the row it read, at version 1
+    db.execute(text("UPDATE content_docs SET version = version + 1 WHERE key = 'guides'"))  # someone else's save
+    mine = intro("Pick three.")
+    with pytest.raises(ApiError) as refused:
+        documents.save(db, admin, site.GUIDES, mine, 1, None)
+    assert (refused.value.status, refused.value.code) == (409, "guides_changed")
+    assert held is not None
+    assert held.version == 2
+
+
+def test_of_two_first_saves_the_second_is_refused(db: Session, admin: User, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Two first saves at once: the second finds the document saved when it makes the row, and is refused (409)
+    rather than failing on the row the first one made."""
+    start = GuidesDoc.model_validate(seed("guides"))
+    mine = start.model_copy(update={"electives": start.electives.model_copy(update={"intro": "Pick two."})})
+    real = documents.locked_row
+
+    def read_before_theirs(session: Session, kind: Any, version: int) -> ContentDoc | None:
+        monkeypatch.setattr(documents, "locked_row", real)  # only the first read comes before their save
+        found = real(session, kind, version)
+        session.execute(text("INSERT INTO content_docs (key, data, version) VALUES ('guides', '{}', 1)"))  # theirs
+        return found
+
+    monkeypatch.setattr(documents, "locked_row", read_before_theirs)
+    with pytest.raises(ApiError) as refused:
+        documents.save(db, admin, site.GUIDES, mine, 0, None)
+    assert (refused.value.status, refused.value.code) == (409, "guides_changed")
 
 
 @pytest.mark.parametrize(

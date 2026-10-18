@@ -356,6 +356,12 @@ class NewsletterSettings(ApiModel):
         return self
 
 
+class NewsletterMasthead(ApiModel):
+    """GET /newsletter/settings: what readers see of the settings."""
+
+    masthead: str
+
+
 class NewsletterSettingsEditable(ApiModel):
     data: NewsletterSettings
     version: int  # 0 until the first save

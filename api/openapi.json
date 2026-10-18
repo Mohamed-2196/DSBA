@@ -11403,7 +11403,7 @@
           "newsletter"
         ],
         "summary": "Newsletter Settings",
-        "description": "The line under the newsletter's name, and the pictures its editor offers.",
+        "description": "The line under the newsletter's name.",
         "operationId": "newsletter_settings_api_v1_newsletter_settings_get",
         "responses": {
           "200": {
@@ -11411,7 +11411,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NewsletterSettings"
+                  "$ref": "#/components/schemas/NewsletterMasthead"
                 }
               }
             }
@@ -11512,6 +11512,102 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NewsletterSettingsEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/newsletter/pictures": {
+      "get": {
+        "tags": [
+          "newsletter"
+        ],
+        "summary": "Newsletter Pictures",
+        "description": "The pictures the issue editor offers for covers and beside sections. For the people who manage the newsletter:\nan offered picture may be for an issue nobody has read yet.",
+        "operationId": "newsletter_pictures_api_v1_newsletter_pictures_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NewsletterPicture"
+                  },
+                  "type": "array",
+                  "title": "Response Newsletter Pictures Api V1 Newsletter Pictures Get"
                 }
               }
             }
@@ -20748,7 +20844,7 @@
           "noora"
         ],
         "summary": "Save Noora Settings",
-        "description": "Save her prompt and script, if nobody saved them since `version`. Audited with what changed, before and after.\n\nErrors: noora_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't\nfit, <hub_data> or <student_note> in her instructions or facts, a placeholder other than {module} and {module2},\na page listed twice or without the questions for every other page, an id used twice).",
+        "description": "Save her prompt and script, if nobody saved them since `version`. Admins only, with a session started or\nstepped up in the last ten minutes: every student's answers follow her instructions. Audited with what changed,\nbefore and after (the prompt's words for admins only).\n\nErrors: step_up_required (403), noora_changed (409: someone saved them since: load them again), invalid_input\n(422: a field that doesn't fit, <hub_data> or <student_note> in her instructions or facts, a placeholder other\nthan {module} and {module2}, a page listed twice or without the questions for every other page, an id used twice,\nstarter cards other than four or eight).",
         "operationId": "save_noora_settings_api_v1_mini_noora_settings_put",
         "requestBody": {
           "content": {
@@ -39479,6 +39575,20 @@
           "answer"
         ],
         "title": "NearestView"
+      },
+      "NewsletterMasthead": {
+        "properties": {
+          "masthead": {
+            "type": "string",
+            "title": "Masthead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "masthead"
+        ],
+        "title": "NewsletterMasthead",
+        "description": "GET /newsletter/settings: what readers see of the settings."
       },
       "NewsletterPicture": {
         "properties": {

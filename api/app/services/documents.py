@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.core.errors import conflict, invalid
@@ -41,6 +42,8 @@ class Kind(Generic[T]):
     action: str  # the audit action of a save: 'site.update'
     changed: ErrorCode  # the 409 when someone saved it since the editor loaded it
     changed_message: str
+    # Parts whose words only admins read in the activity log; others see that they changed (Mini Noora's prompt).
+    admin_parts: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -63,7 +66,9 @@ def starting(kind: Kind[T]) -> T:
 
 
 def _row(db: Session, key: str, *, lock: bool = False) -> ContentDoc | None:
-    return db.get(ContentDoc, key, with_for_update=lock)
+    """The saved row. Locked, it is read again even when this session has it already, so a save checks the version
+    someone else may have saved since."""
+    return db.get(ContentDoc, key, with_for_update=lock, populate_existing=lock)
 
 
 def current(db: Session, kind: Kind[T]) -> T:
@@ -123,7 +128,41 @@ def audit_change(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any
     return out
 
 
+def audit_view(data: dict[str, Any], *, admin: bool) -> dict[str, Any]:
+    """An activity log entry's data as a viewer reads it: a document save's `adminParts` keep their before and after
+    for admins only (everyone who reads the log still sees that they changed)."""
+    hidden = data.get("adminParts")
+    if admin or not isinstance(hidden, list):
+        return data
+    out = dict(data)
+    for side in ("before", "after"):
+        if isinstance(data.get(side), dict):
+            out[side] = {k: v for k, v in data[side].items() if k not in hidden}
+    return out
+
+
 # ── saving ───────────────────────────────────────────────────────────────────────────────────
+
+
+def locked_row(db: Session, kind: Kind[Any], version: int) -> ContentDoc | None:
+    """The saved row, locked until the save commits, if it is still at `version` (409 `kind.changed` otherwise); None
+    before the first save."""
+    row = _row(db, kind.key, lock=True)
+    if (row.version if row else 0) != version:
+        raise conflict(kind.changed, kind.changed_message)
+    return row
+
+
+def first_row(db: Session, kind: Kind[Any]) -> ContentDoc:
+    """The row a first save fills, made and locked. Of two first saves at once, the second waits for the first, then
+    finds the document saved and is refused (409 `kind.changed`)."""
+    db.execute(
+        insert(ContentDoc).values(key=kind.key, data={}, version=0).on_conflict_do_nothing(index_elements=["key"])
+    )
+    row = locked_row(db, kind, 0)
+    if row is None:  # never: the insert above made it, or someone else did
+        raise conflict(kind.changed, kind.changed_message)
+    return row
 
 
 def save(db: Session, user: User, kind: Kind[T], doc: T, version: int, ip: str | None) -> Editable[T]:
@@ -132,19 +171,19 @@ def save(db: Session, user: User, kind: Kind[T], doc: T, version: int, ip: str |
     data = stored(doc)
     if json_size(data) > MAX_BYTES:
         raise invalid("data", f"{kind.title} is too large to save. Shorten some of its text.")
-    row = _row(db, kind.key, lock=True)
-    if (row.version if row else 0) != version:
-        raise conflict(kind.changed, kind.changed_message)
+    row = locked_row(db, kind, version)
     before: dict[str, Any] = row.data if row is not None else stored(starting(kind))
     if before == data:
         return editable(db, kind)
     if row is None:
-        row = ContentDoc(key=kind.key, version=0)
-        db.add(row)
+        row = first_row(db, kind)
     row.data = data
     row.version += 1
     row.updated_at = utcnow()
     row.updated_by = user.id
     db.flush()
-    record(db, user, kind.action, "content_doc", kind.key, kind.title, ip, **audit_change(before, data))
+    change = audit_change(before, data)
+    if kind.admin_parts:
+        change["adminParts"] = list(kind.admin_parts)
+    record(db, user, kind.action, "content_doc", kind.key, kind.title, ip, **change)
     return editable(db, kind)

@@ -15,9 +15,9 @@ from typing import Any
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from app.core.errors import conflict, invalid
+from app.core.errors import invalid
 from app.core.time import utcnow
-from app.models import ContentDoc, ForumCategory, ForumTag, ForumThread, User
+from app.models import ForumCategory, ForumTag, ForumThread, User
 from app.schemas.forum import ForumSettings, ForumSettingsEditable, ForumSettingsSave
 from app.services import documents
 from app.services.content import record
@@ -102,18 +102,15 @@ def _write_lists(db: Session, new: ForumSettings) -> None:
 
 
 def save(db: Session, user: User, body: ForumSettingsSave, ip: str | None) -> ForumSettingsEditable:
-    row = db.get(ContentDoc, FORUM.key, with_for_update=True)
-    if (row.version if row else 0) != body.version:
-        raise conflict(FORUM.changed, FORUM.changed_message)
+    row = documents.locked_row(db, FORUM, body.version)
     before: dict[str, Any] = documents.stored(settings(db))
     after = documents.stored(body.data)
     if before == after:
         return editable(db)
     _keep_used(db, body.data)
-    _write_lists(db, body.data)
     if row is None:
-        row = ContentDoc(key=FORUM.key, version=0)
-        db.add(row)
+        row = documents.first_row(db, FORUM)  # before the lists, so two first saves never write them both
+    _write_lists(db, body.data)
     row.data = documents.stored(body.data.doc())
     row.version += 1
     row.updated_at = utcnow()

@@ -7,7 +7,7 @@ import { LIMITS, blankCoverLine, controlId, fieldPath, moveByKey, previewOf, rem
 import { plainText, sectionLabel } from '../lib/text';
 import { ItemTools, TextBox, TextInput } from './fields';
 import { PicturePicker } from './BesideEditor';
-import { useNewsletterSettings } from '../api';
+import { useOfferedPictures } from '../api';
 import { pictureChoices } from './pictures';
 
 type Cover = IssueDraft['cover'];
@@ -26,7 +26,7 @@ export interface CoverEditorProps {
 
 export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorProps) {
   const { cover } = draft;
-  const offered = useNewsletterSettings().data?.pictures ?? [];
+  const offered = useOfferedPictures().data ?? [];
   const lines = cover.lines;
   const preview = previewOf(draft);
   const stories = draft.sections.map((s) => ({ value: s.id, label: plainText(sectionLabel({ label: s.label, title: s.title || 'Untitled section' })) }));

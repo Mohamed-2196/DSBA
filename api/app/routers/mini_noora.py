@@ -10,7 +10,7 @@ from fastapi import Request
 from app.core.access import Feature
 from app.core.security import DB, client_ip, needs_feature, requires_admin
 from app.models import User
-from app.routers._base import router_for
+from app.routers._base import SteppedUpAdmin, router_for
 from app.schemas.mini_noora import NooraEditable, NooraPromptAssembled, NooraPromptPreview, NooraSave, NooraScript
 from app.services.noora import settings
 
@@ -34,12 +34,15 @@ def noora_settings(db: DB, _: Admin) -> NooraEditable:
 
 
 @router.put("/mini-noora/settings", response_model=NooraEditable)
-def save_noora_settings(body: NooraSave, request: Request, user: Admin, db: DB) -> NooraEditable:
-    """Save her prompt and script, if nobody saved them since `version`. Audited with what changed, before and after.
+def save_noora_settings(body: NooraSave, request: Request, user: SteppedUpAdmin, db: DB) -> NooraEditable:
+    """Save her prompt and script, if nobody saved them since `version`. Admins only, with a session started or
+    stepped up in the last ten minutes: every student's answers follow her instructions. Audited with what changed,
+    before and after (the prompt's words for admins only).
 
-    Errors: noora_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
-    fit, <hub_data> or <student_note> in her instructions or facts, a placeholder other than {module} and {module2},
-    a page listed twice or without the questions for every other page, an id used twice)."""
+    Errors: step_up_required (403), noora_changed (409: someone saved them since: load them again), invalid_input
+    (422: a field that doesn't fit, <hub_data> or <student_note> in her instructions or facts, a placeholder other
+    than {module} and {module2}, a page listed twice or without the questions for every other page, an id used twice,
+    starter cards other than four or eight)."""
     out = settings.save(db, user, body.data, body.version, client_ip(request))
     db.commit()
     return out

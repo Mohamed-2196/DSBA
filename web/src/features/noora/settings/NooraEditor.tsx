@@ -95,7 +95,8 @@ function Editor({ loaded, section, setSection }: { loaded: NooraEditable; sectio
     save.mutate(
       { version: loaded.version, data: doc },
       {
-        onSuccess: () => {
+        onSuccess: (out) => {
+          setDoc(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
           setFields({});
           toast({ title: 'Saved. Mini Noora uses the changes from now on.', tone: 'success' });
           focusDocStatus();

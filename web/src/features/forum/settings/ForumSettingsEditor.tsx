@@ -78,13 +78,14 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
   const submit = () => {
     setProblem(null);
     // A new category or tag gets its lasting id from its label now; the draft's was a stand-in.
-    const categories = withSavedIds(doc.categories, savedCategories, (c) => c.label, 'category');
+    const categories = withSavedIds(doc.categories, savedCategories, (c) => c.label, 'category', ['all']);
     const tags = withSavedIds(doc.tags, savedTags, (t) => t.label, 'tag');
     const defaultCategory = categories[doc.categories.findIndex((c) => c.id === doc.defaultCategory)]?.id ?? doc.defaultCategory;
     save.mutate(
       { version: loaded.version, data: { ...doc, categories, tags, defaultCategory } },
       {
-        onSuccess: () => {
+        onSuccess: (out) => {
+          setDoc(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
           setFields({});
           toast({ title: 'Saved. The forum shows the changes now.', tone: 'success' });
           focusDocStatus();
@@ -105,6 +106,9 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
 
   const current = SECTIONS.find((s) => s.id === section) ?? SECTIONS[0];
   const everyYear = doc.categories.filter((c) => c.year == null && !c.retired);
+  // The default stays listed after it is given a year or retired, so the select shows it, said to be wrong at once.
+  const defaultOk = everyYear.some((c) => c.id === doc.defaultCategory);
+  const defaultNow = defaultOk ? null : doc.categories.find((c) => c.id === doc.defaultCategory);
   return (
     <>
       <DocFrame
@@ -137,8 +141,8 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
               hint="A thread without a module, from someone without a year. Only a category for every year can take them."
               value={doc.defaultCategory}
               onChange={(e) => set({ defaultCategory: e.target.value })}
-              options={everyYear.map((c) => ({ value: c.id, label: c.label || 'New category' }))}
-              error={err('defaultCategory')}
+              options={[...everyYear, ...(defaultNow ? [defaultNow] : [])].map((c) => ({ value: c.id, label: c.label || 'New category' }))}
+              error={err('defaultCategory') ?? (defaultOk ? undefined : 'Choose a category for every year that isn’t retired.')}
             />
             <ListEditor<ForumCategory>
               items={doc.categories}
@@ -156,7 +160,7 @@ function Editor({ loaded, section, setSection }: { loaded: ForumSettingsEditable
               {(c, i, change) => (
                 <div className="dedit-grid">
                   <TextField label="Name" hint="On the forum’s tabs and in its sidebar." value={c.label} onChange={(e) => change({ label: e.target.value })} error={err(`categories.${i}.label`)} maxLength={40} required />
-                  <TextField label="Short name" hint="On a thread’s row, like Study group." value={c.short} onChange={(e) => change({ short: e.target.value })} error={err(`categories.${i}.short`)} maxLength={20} required />
+                  <TextField label="Short name" hint="On a thread’s row, like Year 1 or Study group." value={c.short} onChange={(e) => change({ short: e.target.value })} error={err(`categories.${i}.short`)} maxLength={20} required />
                   <Select
                     label="For"
                     hint="A year’s category shows its number; its threads are that year’s."

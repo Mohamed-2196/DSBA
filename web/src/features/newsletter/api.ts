@@ -240,14 +240,24 @@ export function useNewIssueEmails() {
 // ── the newsletter's settings ───────────────────────────────────────────────────────────────────
 
 // Outside the newsletter's own keys, so refreshing the issues never refetches the editor's copy.
-const SETTINGS_KEY = ['newsletter-settings'] as const;
+const MASTHEAD_KEY = ['newsletter-settings'] as const;
 const EDIT_SETTINGS_KEY = ['newsletter-settings', 'edit'] as const;
+const PICTURES_KEY = ['newsletter-settings', 'pictures'] as const;
 
-/** The line under the newsletter's name and the pictures its editor offers. They change rarely. */
-export function useNewsletterSettings() {
+/** The line under the newsletter's name. It changes rarely. */
+export function useNewsletterMasthead() {
   return useQuery({
-    queryKey: SETTINGS_KEY,
+    queryKey: MASTHEAD_KEY,
     queryFn: ({ signal }) => call(api.GET('/api/v1/newsletter/settings', { signal })),
+    staleTime: 10 * 60_000,
+  });
+}
+
+/** The pictures the issue editor offers (for the people who manage the newsletter). They change rarely. */
+export function useOfferedPictures() {
+  return useQuery({
+    queryKey: PICTURES_KEY,
+    queryFn: ({ signal }) => call(api.GET('/api/v1/newsletter/pictures', { signal })),
     staleTime: 10 * 60_000,
   });
 }
@@ -268,7 +278,8 @@ export function useSaveNewsletterSettings() {
     mutationFn: (body: NewsletterSettingsSave) => call(api.PUT('/api/v1/newsletter/settings', { body })),
     onSuccess: (saved: NewsletterSettingsEditable) => {
       qc.setQueryData(EDIT_SETTINGS_KEY, saved);
-      qc.setQueryData(SETTINGS_KEY, saved.data);
+      qc.setQueryData(MASTHEAD_KEY, { masthead: saved.data.masthead });
+      qc.setQueryData(PICTURES_KEY, saved.data.pictures);
     },
   });
 }

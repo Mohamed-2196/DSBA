@@ -65,8 +65,8 @@ class Feature(enum.StrEnum):
     calendar = "calendar"
     career = "career"
     career_seniors = "career.seniors"  # seniors who answer, listed in Career Navigator
-    grades = "grades"  # the web app's grades calculator: nothing in the API
-    noora = "noora"  # Mini Noora, in the web app: nothing in the API
+    grades = "grades"  # the grades calculator and its rules (students' marks stay in their browser)
+    noora = "noora"  # Mini Noora: her script, and her words in Manage
     noora_ai = "noora.ai"  # her answers from Claude (Mini Noora stays scripted without it)
     notes = "notes"  # each student's private notes
     board = "board"  # each student's private boards
@@ -103,7 +103,8 @@ BOXES: dict[Box, BoxInfo] = {
     ),
     Box.forum_moderate: BoxInfo(
         "Forum",
-        "Hide, lock and remove threads and replies, and handle forum reports",
+        "Hide, lock and remove threads and replies, handle forum reports, and edit the forum's categories, tags, "
+        "guidelines and tips",
         "Only people who moderate the forum can do this.",
     ),
     Box.library_manage: BoxInfo(
@@ -113,7 +114,8 @@ BOXES: dict[Box, BoxInfo] = {
     ),
     Box.newsletter_manage: BoxInfo(
         "Newsletter",
-        "Write, edit, publish and delete issues",
+        "Write, edit, publish and delete issues, and set the line under the newsletter's name and the pictures it "
+        "offers",
         "Only people who manage the newsletter can do this.",
     ),
     Box.calendar_manage: BoxInfo(
@@ -139,7 +141,7 @@ BOXES: dict[Box, BoxInfo] = {
     ),
     Box.summary_share: BoxInfo(
         "Sunday summary",
-        "See a year's Sunday summary, to paste into its group",
+        "See a year's Sunday summary, to paste into its group, and edit its words and the time it goes out",
         "Only people who share the Sunday summary can do this.",
     ),
     Box.stats_view: BoxInfo("Hub", "See the hub's numbers", "Only people who can see the hub's numbers can do this."),

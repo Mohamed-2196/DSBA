@@ -3,9 +3,9 @@ and the pictures the issue editor offers, one document edited whole (services/do
 
 An offered picture is a picture of the web app or an uploaded newsletter picture (POST /uploads, purpose
 newsletter_image). An uploaded one is kept while the settings offer it: it is attached (with no issue of its own), so
-the daily sweep leaves it; one they stop offering goes back to 'uploaded' unless an issue shows it, and the sweep
-removes it a day later (newsletter_images.release keeps the offered ones too). Services leave the commit to the
-handler."""
+the daily sweep leaves it; one they stop offering goes back to 'uploaded' unless an issue shows it, and the next
+sweep removes it once it was uploaded more than a day before (newsletter_images.release keeps the offered ones too).
+Services leave the commit to the handler."""
 
 from __future__ import annotations
 

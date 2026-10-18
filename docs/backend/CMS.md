@@ -42,7 +42,11 @@ anyone's marks; the marks never reach the server.
 
 Mini Noora's prompt is never shown to students (GET /mini-noora/settings is for admins); her script is public (GET
 /mini-noora/script). Her instructions and facts can't hold `<hub_data>` or `<student_note>`, which mark what she reads
-as data.
+as data. Saving her words asks an admin for a code when they signed in more than ten minutes ago, like the other
+admin powers, and the activity log shows the prompt's words to admins only.
+
+The newsletter's masthead line is public; the pictures its editor offers are listed only to the people who manage the
+newsletter (GET /newsletter/pictures), since one may be for an issue nobody has read yet.
 
 A forum category or tag keeps its id for good (threads are filed under it; a new one gets an id from its name when it
 is first saved). One that threads use can't be removed, only retired: it stops being offered, and its threads keep it

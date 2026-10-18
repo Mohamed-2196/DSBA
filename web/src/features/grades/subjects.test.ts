@@ -13,3 +13,7 @@ it('fills the calculator’s choices from your papers, never over its own', () =
   });
   expect(withPaperPicks({}, [], RULES)).toEqual({});
 });
+
+it('fills an option the Hub has no module for from your papers too', () => {
+  expect(withPaperPicks({}, ['abstract-maths'], RULES)).toEqual({ year2Option: 'abstract-maths' });
+});

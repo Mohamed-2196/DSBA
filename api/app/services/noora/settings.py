@@ -26,6 +26,7 @@ NOORA: Kind[NooraDoc] = Kind(
     action="noora.update",
     changed="noora_changed",
     changed_message="Someone saved Mini Noora after you opened her settings. Load them again, then make your changes.",
+    admin_parts=("prompt",),
 )
 PREVIEW_YEAR = 2  # the example student of the preview
 CHARS_PER_TOKEN = 3  # as ask.py estimates a prompt's tokens

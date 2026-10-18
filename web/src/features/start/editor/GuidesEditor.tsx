@@ -63,7 +63,8 @@ function Editor({ loaded, section, setSection }: { loaded: GuidesEditable; secti
     save.mutate(
       { version: loaded.version, data: doc },
       {
-        onSuccess: () => {
+        onSuccess: (out) => {
+          setDoc(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
           setFields({});
           toast({ title: 'Saved. Students see the changes now.', tone: 'success' });
           focusDocStatus();

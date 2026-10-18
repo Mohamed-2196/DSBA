@@ -6,7 +6,7 @@ import { useAuth } from '../../auth';
 import { formatDay, formatMonthYear, parseDay } from '../../lib/dates';
 import { useDocumentTitle } from '../../state';
 import { Badge, Button, IconButton, Page, Panel, QueryError, Skeleton } from '../../ui';
-import { toCard, useIssueDetails, useIssues, useNewsletterSettings } from './api';
+import { toCard, useIssueDetails, useIssues, useNewsletterMasthead } from './api';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
 import { IssueCover } from './components/IssueCover';
 import { Nameplate } from './components/Nameplate';
@@ -19,7 +19,7 @@ import './NewsletterPage.css';
 const issueHref = (issue: { slug: string }, section?: string): string => `/newsletter/${issue.slug}${section ? `?section=${section}` : ''}`;
 
 function Masthead({ first, latest }: { first: IssueCard | undefined; latest: IssueCard | undefined }) {
-  const line = useNewsletterSettings().data?.masthead;
+  const line = useNewsletterMasthead().data?.masthead;
   return (
     <header className="nl-masthead" data-hub="nl-masthead">
       <h1 className="nl-masthead__title">

@@ -48,7 +48,8 @@ function Editor({ loaded, defaultYear }: { loaded: SummaryEditable; defaultYear:
     save.mutate(
       { version: loaded.version, data: words },
       {
-        onSuccess: () => {
+        onSuccess: (out) => {
+          setWords(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
           setFields({});
           toast({ title: 'Saved. The next summaries use these words.', tone: 'success' });
           focusDocStatus();

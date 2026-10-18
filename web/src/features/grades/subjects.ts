@@ -53,9 +53,11 @@ export function yearsOf(rules: Rules): { year: 1 | 2 | 3; subjects: Subject[] }[
  */
 export function withPaperPicks(picks: Picks, papers: readonly string[], rules: Rules): Picks {
   const out: Picks = { ...picks };
-  const option = rules.year2Options.find((o) => o.moduleId && papers.includes(o.moduleId));
+  // A paper is a module id, or a choice's own id when the Hub has no module for it ('abstract-maths').
+  const picked = (o: GradeOption) => papers.includes(o.moduleId ?? o.id);
+  const option = rules.year2Options.find(picked);
   if (!out.year2Option && option) out.year2Option = option.id;
-  const electives = rules.electives.filter((o) => o.moduleId && papers.includes(o.moduleId)).map((o) => o.id);
+  const electives = rules.electives.filter(picked).map((o) => o.id);
   if (!out.elective1 && !out.elective2) {
     if (electives[0]) out.elective1 = electives[0];
     if (electives[1]) out.elective2 = electives[1];

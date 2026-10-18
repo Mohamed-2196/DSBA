@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.access import Box
 from app.models import AuditEntry, Module, User
 from app.services.noora import prompt
 from tests.noora.conftest import FakeClient
@@ -100,6 +101,30 @@ def test_her_ai_reads_the_saved_words_then_the_fixed_rules(
     assert (entry.target_type, entry.target_id, entry.data["title"]) == ("content_doc", "noora", "Mini Noora")
     assert entry.data["parts"] == ["prompt", "script"]
     assert entry.data["after"]["script"] == {"thanks": "You\u2019re welcome. Good luck!"}
+
+
+def test_only_admins_read_her_prompt_in_the_activity_log(
+    client_for: ClientFor, make_user: MakeUser, make_role: Callable[..., Any], admin: User
+) -> None:
+    """Someone whose role reads the log, without being an admin, sees that her prompt changed but not its words."""
+    data = seed()
+    data["prompt"]["instructions"] += " Keep every answer under a hundred words."
+    data["script"]["thanks"] = "Any time!"
+    assert client_for(admin).put(SETTINGS, json={"version": 0, "data": data}).status_code == 200
+    make_role("auditors", Box.audit_read)
+    auditor = make_user(name="Aisha Auditor", roles=("student", "auditors"))
+
+    def entry(who: User) -> dict[str, Any]:
+        items = client_for(who).get(f"{API}/admin/audit").json()["items"]
+        found: dict[str, Any] = next(i for i in items if i["action"] == "noora.update")
+        return found
+
+    theirs, admins = entry(auditor)["data"], entry(admin)["data"]
+    assert theirs["parts"] == admins["parts"] == ["prompt", "script"]
+    assert "prompt" not in theirs["before"]
+    assert "prompt" not in theirs["after"]
+    assert theirs["after"]["script"] == {"thanks": "Any time!"}
+    assert admins["after"]["prompt"]["instructions"].endswith("under a hundred words.")
 
 
 def test_a_stale_save_is_refused(client_for: ClientFor, make_user: MakeUser, admin: User) -> None:
