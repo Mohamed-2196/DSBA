@@ -71,7 +71,7 @@ import {
   nudge,
   placeCard,
   planPace,
-  storageText,
+  limitsNear,
   TODAY_DAYS,
   withExistingLabels,
   type CardFilter,
@@ -484,7 +484,7 @@ function BoardApp() {
   ];
 
   const tabValue = view === 'today' ? 'today' : current && !current.archived ? current.id : null;
-  const usage = boardsQuery.data.usage;
+  const near = limitsNear(boardsQuery.data.usage);
 
   const panel =
     view === 'today' ? (
@@ -743,15 +743,12 @@ function BoardApp() {
         </>
       )}
 
-      {boards.length ? (
+      {/* A limit shows only once it is nearly reached. */}
+      {near.length ? (
         <p className="board-page__usage">
-          <span>
-            {usage.boards} of {usage.maxBoards} boards
-          </span>
-          <span>
-            {usage.cards.toLocaleString('en-GB')} of {usage.maxCards.toLocaleString('en-GB')} cards
-          </span>
-          <span>{storageText(usage.storageBytes, usage.maxStorageBytes)} of files</span>
+          {near.map((line) => (
+            <span key={line}>{line}</span>
+          ))}
         </p>
       ) : null}
 

@@ -15,6 +15,7 @@ import {
   isPastPaper,
   isUnsaved,
   lastIn,
+  limitsNear,
   matches,
   moveItem,
   neighbourColumn,
@@ -288,6 +289,20 @@ describe('past papers', () => {
     expect(scoresById(list)).toEqual({ p1: 80, p2: 71.5 });
     expect(list.map((s) => s.itemId)).toEqual(['p1', 'p2']);
     expect(scoresById(withScore(list, 'p2', null, at))).toEqual({ p1: 80 });
+  });
+  it('names only the limits past 80%', () => {
+    const mb = 1024 * 1024;
+    const usage = {
+      boards: 17,
+      maxBoards: 20,
+      cards: 120,
+      maxCards: 1000,
+      storageBytes: 190 * mb,
+      maxStorageBytes: 200 * mb,
+    };
+    expect(limitsNear(usage)).toEqual(['17 of 20 boards', '190 MB of 200 MB of files']);
+    expect(limitsNear({ ...usage, boards: 1, storageBytes: 0 })).toEqual([]);
+    expect(limitsNear({ ...usage, boards: 1, cards: 800, storageBytes: 0 })).toEqual(['800 of 1,000 cards']);
   });
   it('formats storage text', () => {
     expect(storageText(3.5 * 1024 * 1024, 200 * 1024 * 1024)).toBe('3.5 MB of 200 MB');

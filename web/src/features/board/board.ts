@@ -7,6 +7,7 @@ import type {
   BoardColumn,
   BoardPlan,
   BoardSummary,
+  BoardUsage,
   ChecklistItem,
 } from '../../api/types';
 import { formatSize } from '../../api/uploads';
@@ -456,4 +457,20 @@ export function parseScore(raw: string): number | null | undefined {
 /** "3.4 MB of 200 MB". */
 export function storageText(used: number, max: number): string {
   return `${formatSize(used)} of ${formatSize(max)}`;
+}
+
+/** How full a limit gets before the boards say so. */
+const NEAR_LIMIT = 0.8;
+
+/** The limits worth a line under the boards: those past 80% ("17 of 20 boards"); none most of the time. */
+export function limitsNear(usage: BoardUsage): string[] {
+  const near = (used: number, max: number) => used >= max * NEAR_LIMIT;
+  const n = (v: number) => v.toLocaleString('en-GB');
+  return [
+    near(usage.boards, usage.maxBoards) ? `${n(usage.boards)} of ${n(usage.maxBoards)} boards` : null,
+    near(usage.cards, usage.maxCards) ? `${n(usage.cards)} of ${n(usage.maxCards)} cards` : null,
+    near(usage.storageBytes, usage.maxStorageBytes)
+      ? `${storageText(usage.storageBytes, usage.maxStorageBytes)} of files`
+      : null,
+  ].filter((line): line is string => line !== null);
 }
