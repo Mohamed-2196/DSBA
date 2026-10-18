@@ -4,11 +4,14 @@
 //
 // The note lists the sheets that have ink; each one is read on its own (GET /notes/{id}/ink/{sheet}) when the note
 // opens. Until all of them are in (`ready`), nothing can be drawn: a stroke on a sheet not read yet would replace it.
+// A sheet is sent once the server has its page (a page the text just added waits for the note's save), and a page
+// added, deleted or moved on the server (`run`, then `renumber`) takes its ink, its version and its copy along.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
 import type { InkInfo, InkSheet, Note, Stroke } from '../../api/types';
 import { fetchInk, fetchNote, saveInk } from './api';
 import { openInk, readInkDraft, writeInkDraft, type InkDraft } from './draft';
+import { PAPER_BASE } from './surface/layout';
 import { RETRY_EVERY, type SaveState } from './useNoteEditor';
 
 const SAVE_AFTER = 900;
@@ -33,6 +36,10 @@ export interface InkSync {
   /** sheets written on elsewhere since they were drawn on here */
   conflicts: readonly number[];
   setSheet: (sheet: number, strokes: readonly Stroke[]) => void;
+  /** runs `task` once no sheet is being sent, with the saves held until it ends */
+  run: <T>(task: () => Promise<T>) => Promise<T>;
+  /** the pages moved on the server: each sheet's ink, version and copy go where `pages` says (null: gone) */
+  renumber: (pages: ReadonlyMap<number, number | null>) => void;
   flush: () => void;
   keepMine: () => void;
   loadTheirs: () => void;
@@ -56,7 +63,14 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
   const reading = useRef(false);
   const mounted = useRef(true);
   const busy = useRef(false);
+  const held = useRef(false);
+  const idleWaiters = useRef<(() => void)[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // the note as the server last answered: which pages it has
+  const known = useRef(note);
+  useEffect(() => {
+    if (note) known.current = note;
+  });
   const [load, setLoad] = useState<InkLoad>('loading');
   const [attempt, setAttempt] = useState(0);
   const [revision, setRevision] = useState(0);
@@ -88,10 +102,16 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
   const flush = useCallback(async (): Promise<void> => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
-    if (readOnly || busy.current || !opened.current) return;
-    const waiting = [...dirty.current].filter((n) => !conflict.current.has(n));
+    if (readOnly || busy.current || held.current || !opened.current) return;
+    const server = known.current;
+    // a sheet the server has: a page of the PDF it is written over, or one of its pages of paper
+    const has = (n: number) => (n < PAPER_BASE ? !!server?.pdf : n < PAPER_BASE + (server?.sheets ?? 0));
+    const waiting = [...dirty.current].filter((n) => !conflict.current.has(n) && has(n));
     if (!waiting.length) {
-      if (!conflict.current.size && stateRef.current !== 'error') setState('saved');
+      if (dirty.current.size > conflict.current.size) {
+        // pages the note's save is about to add: their ink goes after it
+        timer.current = setTimeout(() => void flush(), SAVE_AFTER);
+      } else if (!conflict.current.size && stateRef.current !== 'error') setState('saved');
       return;
     }
     busy.current = true;
@@ -132,8 +152,48 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
       }
     } finally {
       busy.current = false;
+      const waiting = idleWaiters.current;
+      idleWaiters.current = [];
+      for (const go of waiting) go();
     }
   }, [noteId, readOnly, keepCopy]);
+
+  const run = useCallback(
+    async <T>(task: () => Promise<T>): Promise<T> => {
+      held.current = true;
+      try {
+        if (busy.current) await new Promise<void>((go) => idleWaiters.current.push(go));
+        return await task();
+      } finally {
+        held.current = false;
+        if (dirty.current.size) void flush();
+      }
+    },
+    [flush],
+  );
+
+  const renumber = useCallback(
+    (pages: ReadonlyMap<number, number | null>) => {
+      const where = (n: number): number | null => (pages.has(n) ? (pages.get(n) ?? null) : n);
+      const moveMap = <T>(m: Map<number, T>) => {
+        const next = new Map<number, T>();
+        for (const [n, v] of m) {
+          const to = where(n);
+          if (to !== null) next.set(to, v);
+        }
+        return next;
+      };
+      const moveSet = (set: Set<number>) => new Set([...set].map(where).filter((n): n is number => n !== null));
+      strokes.current = moveMap(strokes.current);
+      versions.current = moveMap(versions.current);
+      dirty.current = moveSet(dirty.current);
+      conflict.current = moveSet(conflict.current);
+      setConflicts([...conflict.current].sort((a, b) => a - b));
+      keepCopy();
+      bump();
+    },
+    [keepCopy],
+  );
 
   // The note arrives: its sheets are read, then shown with the copy on this device on top.
   useEffect(() => {
@@ -246,6 +306,8 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
     savedAt,
     conflicts,
     setSheet,
+    run,
+    renumber,
     flush: () => void flush(),
     keepMine: () => void settle(true),
     loadTheirs: () => void settle(false),

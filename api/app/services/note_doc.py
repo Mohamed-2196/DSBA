@@ -204,6 +204,29 @@ def _free_pictures(attrs: object, sheets: int) -> list[dict[str, Any]]:
     return checked
 
 
+def repaged(doc: dict[str, Any], pages: dict[int, int | None]) -> dict[str, Any]:
+    """The document with its free pictures moved with their pages: `pages` maps a sheet to its new one (None: the page
+    is gone, and its pictures with it). Other sheets stay."""
+    attrs = doc.get("attrs")
+    if not isinstance(attrs, dict):
+        return doc
+    pictures = attrs.get("pictures")
+    if not isinstance(pictures, list) or not pictures:
+        return doc
+    moved: list[Any] = []
+    for p in pictures:
+        sheet = p.get("sheet") if isinstance(p, dict) else None
+        if not isinstance(sheet, int) or sheet not in pages:
+            moved.append(p)
+        elif (to := pages[sheet]) is not None:
+            moved.append(p | {"sheet": to})
+    # as the web app keeps it: no pictures, no `pictures`; no attributes, no `attrs`
+    rest = {k: v for k, v in attrs.items() if k != "pictures"}
+    kept = rest | {"pictures": moved} if moved else rest
+    out = {k: v for k, v in doc.items() if k != "attrs"}
+    return out | {"attrs": kept} if kept else out
+
+
 def check(doc: dict[str, Any], *, sheets: int) -> Checked:
     """The document's plain text and its uploads, or 422 invalid_input (field `doc`) when it holds anything else, is
     longer than DOC_MAX_BYTES as JSON, or has a free picture off the note's sheets (its PDF's pages, then `sheets` of

@@ -155,6 +155,23 @@ class NoteUpdate(NoteFields):
     version: int = Field(ge=1)
 
 
+class PageChange(ApiModel):
+    """A change to a note's pages of paper, made at once with the version it was loaded at: `insert` a blank page at
+    `page` (0 up to the number of pages: that many adds one at the end), `delete` page `page`, or `move` page `page`
+    to place `to`. The handwriting and the free pictures go with their pages."""
+
+    action: Literal["insert", "delete", "move"]
+    page: int = Field(ge=0, lt=MAX_SHEETS)
+    to: int | None = Field(default=None, ge=0, lt=MAX_SHEETS)
+    version: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def _where_to(self) -> PageChange:
+        if (self.action == "move") != (self.to is not None):
+            raise ValueError("A page moves to a place (`to`), and only a move has one.")
+        return self
+
+
 class AnnotateRequest(ApiModel):
     library_item_id: UUID
 

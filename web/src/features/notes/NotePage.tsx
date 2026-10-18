@@ -7,13 +7,15 @@ import { NotePencil, X } from '@phosphor-icons/react';
 import { EditorContent } from '@tiptap/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { errorMessage } from '../../api/errors';
 import { UPLOAD_RULES } from '../../api/uploads';
 import { Gate, useAuth } from '../../auth';
 import { useDocumentTitle, useLocalStorage, useMediaQuery, useToast } from '../../state';
 import { Button, ConfirmDialog, EmptyState, QueryError, Skeleton, cx } from '../../ui';
-import { deleteNote, useCreateNote, useDeleteNote } from './api';
+import { changePages, deleteNote, useCreateNote, useDeleteNote } from './api';
 import { EMPTY_DOC, noteLabel, type NoteDoc } from './draft';
 import { NoteHeader } from './NoteHeader';
+import { pageMapping, repaged, undoOf, type PageMove } from './pages';
 import { PagesDrawer, type PageAction } from './PagesDrawer';
 import { usePdf } from './pdf';
 import { inlinePictureCount, keepPictures, picturesOfDoc, withFreePictures } from './pictures/document';
@@ -46,7 +48,7 @@ import { useZoom } from './surface/useZoom';
 import { blockBoxes, dropTarget } from './text/blocks';
 import { startWidth } from './text/picture';
 import { useNoteText, type TextDrop } from './text/useNoteText';
-import type { SheetChange, Step } from './timeline';
+import type { Step } from './timeline';
 import { Toolbar } from './Toolbar';
 import { useInkSync, type InkSync } from './useInkSync';
 import { useNoteEditor, type NoteEditor } from './useNoteEditor';
@@ -304,16 +306,63 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
     [change],
   );
 
+  // ── pages of paper added, deleted or moved: on the server at once (their ink and pictures go along), then here ──
+  const [pagesBusy, setPagesBusy] = useState(false);
+  const pagesBusyRef = useRef(false);
+  const { run: runNote, base, adopt } = editor;
+  const changePagesNow = useCallback(
+    async (move: PageMove): Promise<boolean> => {
+      if (readOnly || pagesBusyRef.current) return false;
+      if (editor.state === 'conflict' || ink.conflicts.length) {
+        push({ title: 'Choose which version to keep first', tone: 'alert' });
+        return false;
+      }
+      pagesBusyRef.current = true;
+      setPagesBusy(true);
+      try {
+        await runNote(() =>
+          ink.run(async () => {
+            const before = latest()?.sheets ?? doc.sheets;
+            const note = await changePages(noteId, { ...move, version: base() });
+            const map = pageMapping(move, before);
+            ink.renumber(map);
+            adopt(note, (d) => ({
+              sheets: note.sheets,
+              doc: withFreePictures(d.doc, repaged(picturesOfDoc(d.doc), map)),
+            }));
+          }),
+        );
+        return true;
+      } catch (e) {
+        push({ title: 'The pages didn’t change', body: errorMessage(e), tone: 'alert' });
+        return false;
+      } finally {
+        pagesBusyRef.current = false;
+        setPagesBusy(false);
+      }
+    },
+    [readOnly, editor.state, ink, push, runNote, latest, doc.sheets, noteId, base, adopt],
+  );
+
   // ── undo and redo: the text, the ink, the pages and the pictures together ──
   const applyStep = useCallback(
-    (step: Step, how: 'undo' | 'redo') => {
+    (step: Step, how: 'undo' | 'redo'): void | Promise<boolean> => {
+      if (step.kind === 'pages') {
+        return changePagesNow(how === 'undo' ? undoOf(step.change) : step.change).then((ok) => {
+          if (ok && how === 'undo' && step.restore) {
+            ink.setSheet(PAPER_BASE + step.change.page, step.restore.strokes);
+            writePictures(step.restore.pictures);
+          }
+          return ok;
+        });
+      }
       if (step.kind === 'page') {
         for (const c of step.ink) ink.setSheet(c.sheet, how === 'undo' ? c.before : c.after);
         if (step.paper) change({ sheets: how === 'undo' ? step.paper.before : step.paper.after });
       }
       if (step.pictures) writePictures(how === 'undo' ? step.pictures.before : step.pictures.after);
     },
-    [ink, change, writePictures],
+    [changePagesNow, ink, change, writePictures],
   );
   const history = useTimeline(textEditor, applyStep);
   useEffect(() => {
@@ -611,60 +660,29 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         scrollTo(action.sheet);
         return;
       }
+      const count = latest()?.sheets ?? doc.sheets;
+      const pages = (move: PageMove, restore?: Extract<Step, { kind: 'pages' }>['restore'], show?: number) =>
+        void changePagesNow(move).then((ok) => {
+          if (!ok) return;
+          history.record({ kind: 'pages', change: move, restore });
+          if (show !== undefined) requestAnimationFrame(() => scrollTo(PAPER_BASE + show));
+        });
       if (action.kind === 'add') {
-        onInk({ kind: 'page', ink: [], paper: { before: doc.sheets, after: doc.sheets + 1 } });
-        requestAnimationFrame(() => scrollTo(PAPER_BASE + doc.sheets));
+        pages({ action: 'insert', page: count }, undefined, count);
         return;
       }
       const at = action.sheet - PAPER_BASE;
-      const count = doc.sheets;
-      const strokesAt = (k: number) => ink.strokesOf(PAPER_BASE + k);
-      const changes: SheetChange[] = [];
-      const change = (k: number, after: ReturnType<typeof strokesAt>) => {
-        const before = strokesAt(k);
-        if (before !== after) changes.push({ sheet: PAPER_BASE + k, before, after });
-      };
-      // the free pictures go with their pages: `to` gives each picture's new sheet (null: it goes with its page)
-      const pictures = (to: (sheet: number) => number | null) => {
-        const before = free.list;
-        const after = before.flatMap((p) => {
-          const sheet = to(p.sheet);
-          if (sheet === null) return [];
-          return sheet === p.sheet ? [p] : [{ ...p, sheet }];
-        });
-        const same = after.length === before.length && after.every((p, i) => p === before[i]);
-        return same ? undefined : { before, after };
-      };
       if (action.kind === 'clear') {
-        change(at, []);
-        onInk({ kind: 'page', ink: changes });
+        const before = ink.strokesOf(action.sheet);
+        if (before.length) onInk({ kind: 'page', ink: [{ sheet: action.sheet, before, after: [] }] });
       } else if (action.kind === 'delete') {
-        // the pages after it move up one, and the last one goes
-        for (let k = at; k < count - 1; k++) change(k, strokesAt(k + 1));
-        change(count - 1, []);
-        const gone = PAPER_BASE + at;
-        onInk({
-          kind: 'page',
-          ink: changes,
-          paper: { before: count, after: Math.max(1, count - 1) },
-          pictures: pictures((sheet) => (sheet === gone ? null : sheet > gone ? sheet - 1 : sheet)),
-        });
+        pages({ action: 'delete', page: at }, { strokes: ink.strokesOf(action.sheet), pictures: free.list });
       } else if (action.kind === 'move') {
-        const other = at + action.by;
-        if (other < 0 || other >= count) return;
-        const mine = strokesAt(at);
-        change(at, strokesAt(other));
-        change(other, mine);
-        const [a, b] = [PAPER_BASE + at, PAPER_BASE + other];
-        onInk({
-          kind: 'page',
-          ink: changes,
-          pictures: pictures((sheet) => (sheet === a ? b : sheet === b ? a : sheet)),
-        });
-        requestAnimationFrame(() => scrollTo(PAPER_BASE + other));
+        const to = at + action.by;
+        if (to >= 0 && to < count) pages({ action: 'move', page: at, to }, undefined, to);
       }
     },
-    [doc, ink, onInk, free.list],
+    [latest, doc.sheets, changePagesNow, history, ink, onInk, free.list],
   );
 
   // ── print: the pages laid out for paper, then the browser's print (Save as PDF) ──
@@ -747,7 +765,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
             revision={ink.revision}
             pictures={free.list}
             typedPages={typedPages}
-            readOnly={readOnly || inkReadOnly}
+            readOnly={readOnly || inkReadOnly || pagesBusy}
             scrollerRef={scrollerRef}
             onAction={onPage}
             onClose={() => setPagesShown(false)}
@@ -787,14 +805,14 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
                 </Button>
               )
             }
-            readOnly={inkReadOnly}
+            readOnly={inkReadOnly || pagesBusy}
             scroller={scroller}
             onTextHeight={onTextHeight}
             pictures={
               textEditor
                 ? {
                     free,
-                    active: tool === 'type' && !readOnly,
+                    active: tool === 'type' && !readOnly && !pagesBusy,
                     keepShape,
                     onKeepShape: setKeepShape,
                     inlineOff,

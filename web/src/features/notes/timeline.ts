@@ -3,9 +3,12 @@
 //   - A 'text' step stands for one step of the text editor's own history (ProseMirror keeps the text itself), and the
 //     free pictures that changed with it (a picture put in line, or made free, is one step).
 //   - A 'page' step holds what changed on the pages outside the text: the strokes of each sheet it changed, before and
-//     after (a line drawn, a rub of the eraser, a selection moved or deleted, a page moved or deleted), the number of
-//     paper sheets, and the free pictures (moved, resized, turned, cropped, added, deleted, or taken along by a page).
+//     after (a line drawn, a rub of the eraser, a selection moved or deleted, a page cleared), the number of paper
+//     sheets, and the free pictures (moved, resized, turned, cropped, added, deleted).
+//   - A 'pages' step is a page of paper added, deleted or moved: a change the server makes at once (pages.ts), taken
+//     back by the opposite change, and for a page deleted, by putting its handwriting and pictures back.
 import type { InkStroke } from '../../lib/ink';
+import type { PageMove } from './pages';
 import type { FreePicture } from './pictures/geometry';
 
 export interface SheetChange {
@@ -26,6 +29,12 @@ export type Step =
       ink: readonly SheetChange[];
       paper?: { before: number; after: number };
       pictures?: PictureChange;
+    }
+  | {
+      kind: 'pages';
+      change: PageMove;
+      /** a deleted page's handwriting, and the free pictures before it went */
+      restore?: { strokes: readonly InkStroke[]; pictures: readonly FreePicture[] };
     };
 
 export interface Timeline {
@@ -74,6 +83,12 @@ export function textMoved(t: Timeline, how: 'new' | 'undo' | 'redo'): { timeline
   const rest = at < 0 ? from : [...from.slice(0, at), ...from.slice(at + 1)];
   const timeline = how === 'undo' ? { past: rest, future: [...to, moved] } : { past: [...to, moved], future: rest };
   return { timeline, moved: at < 0 ? null : moved };
+}
+
+/** Taking `step` back (`undo`) or doing it again (`redo`) didn't work: it goes back where it was. */
+export function restored(t: Timeline, step: Step, how: 'undo' | 'redo'): Timeline {
+  if (how === 'undo') return { past: [...t.past, step], future: t.future.filter((s) => s !== step) };
+  return { past: t.past.filter((s) => s !== step), future: [...t.future, step] };
 }
 
 /** The last step done was the text editor's, and the free pictures changed with it: one step to undo. */

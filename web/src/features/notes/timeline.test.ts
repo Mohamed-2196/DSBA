@@ -10,6 +10,7 @@ import {
   forward,
   inkStep,
   picturesStep,
+  restored,
   textMoved,
   withPictures,
   type Step,
@@ -87,6 +88,19 @@ describe('the note’s timeline', () => {
     // nothing to join when the last step isn't the text's
     t = did(t, inkStep(0, [], [stroke('a')]));
     expect(withPictures(t, change)).toBe(t);
+  });
+
+  it('puts back a step that couldn’t be taken back or done again', () => {
+    const step: Step = { kind: 'pages', change: { action: 'insert', page: 1 } };
+    let t = did(typed(), step);
+    const undone = back(t)!;
+    t = restored(undone.timeline, undone.step, 'undo');
+    expect(t.past.at(-1)).toBe(step);
+    expect(t.future).toEqual([]);
+    const redone = forward(undone.timeline)!;
+    t = restored(redone.timeline, redone.step, 'redo');
+    expect(t.future.at(-1)).toBe(step);
+    expect(kinds(t.past)).toEqual(['text']);
   });
 
   it('keeps at most TIMELINE_LIMIT steps', () => {

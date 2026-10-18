@@ -8,6 +8,8 @@
 //   POST   /api/v1/notes/annotate            your note written over a library PDF (made, or the one you have)
 //   GET    /api/v1/notes/{id}                one note: its text, the PDF it is written over, the sheets with ink
 //   PUT    /api/v1/notes/{id}                save its text and settings, with the version loaded (409 note_changed)
+//   POST   /api/v1/notes/{id}/pages          add, delete or move a page of paper in one go (its ink and pictures go
+//                                            along), with the version loaded
 //   GET    /api/v1/notes/{id}/ink/{sheet}    one sheet's ink
 //   PUT    /api/v1/notes/{id}/ink/{sheet}    save one sheet's ink, with its version (409 ink_changed)
 //   DELETE /api/v1/notes/{id}
@@ -22,7 +24,16 @@ import {
 } from '@tanstack/react-query';
 import { API_ORIGIN, api, call } from '../../api/client';
 import { nextOffset } from '../../api/paging';
-import type { InkSave, InkSheet, Note, NoteCreate, NoteUpdate, Notebook, NotebookCreate } from '../../api/types';
+import type {
+  InkSave,
+  InkSheet,
+  Note,
+  NoteCreate,
+  NoteUpdate,
+  Notebook,
+  NotebookCreate,
+  PageChange,
+} from '../../api/types';
 
 export const NOTES_KEY = ['notes'] as const;
 const PAGE = 30;
@@ -91,6 +102,8 @@ export const fetchNote = (id: string): Promise<Note> =>
 export const createNote = (body: NoteCreate): Promise<Note> => call(api.POST('/api/v1/notes', { body }));
 export const saveNote = (id: string, body: NoteUpdate): Promise<Note> =>
   call(api.PUT('/api/v1/notes/{note_id}', { params: { path: { note_id: id } }, body }));
+export const changePages = (id: string, body: PageChange): Promise<Note> =>
+  call(api.POST('/api/v1/notes/{note_id}/pages', { params: { path: { note_id: id } }, body }));
 export const fetchInk = (id: string, sheet: number): Promise<InkSheet> =>
   call(api.GET('/api/v1/notes/{note_id}/ink/{sheet}', { params: { path: { note_id: id, sheet } } }));
 export const saveInk = (id: string, sheet: number, body: InkSave): Promise<InkSheet> =>

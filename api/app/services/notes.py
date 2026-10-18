@@ -21,7 +21,7 @@ import uuid
 from collections.abc import Iterable
 from datetime import timedelta
 
-from sqlalchemy import ColumnElement, cast, func, or_, select, update
+from sqlalchemy import ColumnElement, case, cast, delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
@@ -59,6 +59,7 @@ from app.schemas.notes import (
     NotePdf,
     NoteSummary,
     NoteUpdate,
+    PageChange,
     StorageUse,
 )
 from app.schemas.notes import Note as NoteOut
@@ -630,8 +631,85 @@ def update_note(db: Session, user: User, note_id: uuid.UUID, body: NoteUpdate) -
         check_writing(db, user, _json_bytes(body.doc) - _json_bytes(note.doc))
         note.text = checked.text
         _attach(db, user, note, checked.uploads)
+    if sheets < note.sheets:  # the pages taken off take their handwriting
+        db.execute(delete(NoteInk).where(NoteInk.note_id == note.id, NoteInk.sheet >= PAPER_SHEETS_FROM + sheets))
     for k, v in fields.items():
         setattr(note, k, v)
+    note.version += 1
+    db.flush()
+    return note
+
+
+def _has_sheet(note: Note, sheet: int) -> bool:
+    """Whether the sheet is one of the note's: a page of its PDF (when it has one), or one of its pages of paper."""
+    if sheet < PAPER_SHEETS_FROM:
+        return _on_pdf(note)
+    return sheet < PAPER_SHEETS_FROM + note.sheets
+
+
+def page_mapping(change: PageChange, pages: int) -> dict[int, int | None]:
+    """Where each page of paper goes (as sheets: PAPER_SHEETS_FROM + its place) for a change to a note with `pages`
+    pages; pages not listed stay. None: the page is deleted. 422 for a page or a place the note doesn't have."""
+    first, at = PAPER_SHEETS_FROM, change.page
+    moves: dict[int, int | None] = {}
+    if change.action == "insert":
+        if at > pages or pages >= MAX_SHEETS:
+            raise invalid("page", "A page can't be added there.")
+        moves.update({first + k: first + k + 1 for k in range(at, pages)})
+        return moves
+    if at >= pages:
+        raise invalid("page", "This page isn't in the note any more.")
+    if change.action == "delete":
+        if pages <= 1:
+            raise invalid("page", "A note keeps at least one page.")
+        moves[first + at] = None
+        moves.update({first + k: first + k - 1 for k in range(at + 1, pages)})
+        return moves
+    to = change.to if change.to is not None else at
+    if to >= pages:
+        raise invalid("to", "A page can't go there.")
+    step = 1 if to < at else -1  # the pages between make room: down when it goes up, up when it goes down
+    between = range(to, at) if to < at else range(at + 1, to + 1)
+    moves.update({first + k: first + k + step for k in between})
+    moves[first + at] = first + to
+    return moves
+
+
+def _renumber_ink(db: Session, note: Note, pages: dict[int, int | None]) -> None:
+    """The note's ink rows follow their pages: a page deleted takes its row, the others are renumbered. The primary
+    key is checked row by row, so the rows that move step out of the way first (to negative sheets)."""
+    gone = [sheet for sheet, to in pages.items() if to is None]
+    if gone:
+        db.execute(delete(NoteInk).where(NoteInk.note_id == note.id, NoteInk.sheet.in_(gone)))
+    moving = {sheet: to for sheet, to in pages.items() if to is not None and to != sheet}
+    if not moving:
+        return
+    mine = NoteInk.note_id == note.id
+    db.execute(update(NoteInk).where(mine, NoteInk.sheet.in_(moving)).values(sheet=-NoteInk.sheet - 1))
+    db.execute(
+        update(NoteInk)
+        .where(mine, NoteInk.sheet < 0)
+        .values(sheet=case({-sheet - 1: to for sheet, to in moving.items()}, value=NoteInk.sheet))
+    )
+
+
+def change_pages(db: Session, user: User, note_id: uuid.UUID, body: PageChange) -> Note:
+    """Adds, deletes or moves a page of paper at once: its handwriting and its free pictures go with it, and so do
+    the pages after it. The note must still be at `body.version` (409 note_changed otherwise), as for a save; a page
+    of typed text is the web app's to keep."""
+    note = _own(db, user, note_id, lock=True)
+    if note.version != body.version:
+        raise conflict("note_changed", "This note was changed in another tab or on another device.")
+    pages = page_mapping(body, note.sheets)
+    _count_save(db, user, note)
+    _renumber_ink(db, note, pages)
+    doc = note_doc.repaged(note.doc, pages)
+    sheets = note.sheets + {"insert": 1, "delete": -1, "move": 0}[body.action]
+    if doc != note.doc:
+        checked = note_doc.check(doc, sheets=sheets)
+        note.doc, note.text = doc, checked.text
+        _attach(db, user, note, checked.uploads)
+    note.sheets = sheets
     note.version += 1
     db.flush()
     return note
@@ -643,6 +721,8 @@ def save_ink(db: Session, user: User, note_id: uuid.UUID, sheet: int, body: InkS
     if not 0 <= sheet < MAX_SHEET_INDEX:
         raise not_found("This sheet doesn't exist.")
     note = _own(db, user, note_id, lock=True)
+    if not _has_sheet(note, sheet):
+        raise not_found("This page isn't in the note any more.")
     row = db.get(NoteInk, (note.id, sheet))
     if (row.version if row is not None else 0) != body.version:
         raise conflict("ink_changed", "This page was written on in another tab or on another device.")
