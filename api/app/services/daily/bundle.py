@@ -33,7 +33,7 @@ from app.models import DailyGuessWord, DailyItem, DailyNearestWord, DailyTheme, 
 from app.schemas.daily_content import BundleCounts, BundleGameCounts, BundleIn, BundleReport, ContentGame
 from app.seed.loader import daily_guess_words
 from app.services import audit
-from app.services.daily import editor
+from app.services.daily import editor, rules
 
 MAX_CHARACTERS = 5_000_000  # a file the command reads; an upload is capped lower by its schema (BundleIn)
 NOT_A_FILE = "This isn't a Daily content file. Export one with python -m app.cli daily-content export."
@@ -108,12 +108,13 @@ def export(db: Session) -> dict[str, Any]:
 def _themes(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> None:
     last = db.scalar(select(func.max(DailyTheme.position)))
     position = (last if last is not None else -1) + 1
+    known = set(db.scalars(select(DailyTheme.id)))
     for t in raw:
         theme_id = str(t.get("id", "")).strip().lower()
         if not editor.THEME_ID.fullmatch(theme_id):
             out.problems.append(f"theme “{theme_id}”: not a theme id")
             continue
-        if db.get(DailyTheme, theme_id) is not None:
+        if theme_id in known:
             out.themes["kept"] += 1
             continue
         try:
@@ -122,13 +123,14 @@ def _themes(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> No
             out.problems.append(f"theme “{theme_id}”: {e.message}")
             continue
         db.add(DailyTheme(id=theme_id, title=title, blurb=blurb, position=position, in_rotation=False))
+        known.add(theme_id)
         position += 1
         out.themes["added"] += 1
     db.flush()
 
 
 def _guesses(db: Session, words: Sequence[str], out: ImportResult) -> None:
-    good = sorted({w.strip().upper() for w in words if editor.ANSWER.fullmatch(w.strip().upper())})
+    good = sorted({w.strip().upper() for w in words if rules.ANSWER.fullmatch(w.strip().upper())})
     if not good:
         return
     before = db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0
@@ -139,32 +141,42 @@ def _guesses(db: Session, words: Sequence[str], out: ImportResult) -> None:
 
 
 def _vocabulary(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> None:
-    """Every new word first, then their close words (which may name words further down the file)."""
-    added: list[tuple[DailyNearestWord, list[str]]] = []
+    """Every new word first, then their close words (which may name words further down the file). A word that can't
+    be added takes with it the words that name it as close."""
+    known = set(db.scalars(select(DailyNearestWord.word)))
+    fresh: dict[str, tuple[list[str], list[str]]] = {}  # word -> its tags and close words, as the file has them
     for w in raw:
         word = str(w.get("word", "")).strip().lower()
-        if not editor.VOCABULARY_WORD.fullmatch(word):
+        if not rules.VOCABULARY_WORD.fullmatch(word):
             out.problems.append(f"vocabulary “{word}”: not a word, a to z")
             continue
-        if db.get(DailyNearestWord, word) is not None:
+        if word in known or word in fresh:
             out.vocabulary["kept"] += 1
             continue
-        row = DailyNearestWord(word=word, tags=_strings(w.get("tags")), near=[])
-        db.add(row)
-        added.append((row, _strings(w.get("near"))))
-    db.flush()
-    for row, near in added:
+        fresh[word] = (_strings(w.get("tags")), _strings(w.get("near")))
+    names = known | set(fresh)
+    rows: dict[str, DailyNearestWord] = {}
+    for word, (tags, near) in fresh.items():
         try:
-            row.tags, row.near = editor.check_tags_near(db, row.word, row.tags, near)
+            clean_tags, clean_near = editor.check_tags_near(db, word, tags, near, names)
         except ApiError as e:
-            out.problems.append(f"vocabulary “{row.word}”: {e.message}")
-            db.delete(row)
+            out.problems.append(f"vocabulary “{word}”: {e.message}")
             continue
-        out.vocabulary["added"] += 1
+        rows[word] = DailyNearestWord(word=word, tags=clean_tags, near=clean_near)
+    while gone := {w: n for w, r in rows.items() for n in r.near if n not in known and n not in rows}:
+        for word, missing in gone.items():
+            out.problems.append(f"vocabulary “{word}”: “{missing}” isn't in the vocabulary. Add it, or leave it out.")
+            del rows[word]
+    db.add_all(rows.values())
     db.flush()
+    out.vocabulary["added"] += len(rows)
 
 
 def _items(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> None:
+    """Each item checked with the editor's rules against what the database and the file hold so far, read once, and
+    the new ones added together."""
+    look = rules.Batch(db)
+    new: list[DailyItem] = []
     for n, fields in enumerate(raw, 1):
         theme = str(fields.get("theme", ""))
         retired = bool(fields.get("retired", False))
@@ -174,17 +186,21 @@ def _items(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> Non
         except ValidationError:
             out.problems.append(f"item {n}: it doesn't fit its game's fields")
             continue
-        if editor.existing(db, data.game, theme, editor.key_of(data)) is not None:
+        if look.holder(data.game, theme, rules.key_of(data)) is not None:
             out.item(data.game, "kept")
             continue
         try:
-            checked = editor.check_item(db, theme, data)
+            checked = rules.check_item(look, theme, data)
         except ApiError as e:
             out.problems.append(f"item {n} ({data.game}, {theme}): {e.message}")
             continue
-        db.add(DailyItem(game=data.game, theme_id=theme, data=checked.data, key=checked.key, retired=retired))
-        db.flush()
+        item = DailyItem(game=data.game, theme_id=theme, data=checked.data, key=checked.key, retired=retired)
+        new.append(item)
+        look.add(item)
         out.item(data.game, "added")
+    editor.rank_secret_words(db, [i for i in new if i.game == "nearest"])  # ranked before they're added
+    db.add_all(new)
+    db.flush()
 
 
 def _rotation(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> None:

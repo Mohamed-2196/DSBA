@@ -20,7 +20,7 @@ import datetime as dt
 import io
 import re
 import uuid
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from typing import Any, NamedTuple, cast
 
 from pydantic import TypeAdapter, ValidationError
@@ -43,7 +43,6 @@ from app.models import (
     Module,
     User,
 )
-from app.models.daily_content import UNIQUE_IN_THEME
 from app.schemas.common import Page
 from app.schemas.daily_content import (
     ContentGame,
@@ -86,7 +85,7 @@ from app.schemas.daily_content import (
     WordData,
 )
 from app.services.content import record
-from app.services.daily import content
+from app.services.daily import content, rules
 from app.services.daily.content import Entry, NoThemeError, NotReadyError, Schedule
 from app.services.daily.games import GAMES
 from app.services.daily.games import groups as groups_game
@@ -100,15 +99,9 @@ ITEM_DATA: TypeAdapter[ItemData] = TypeAdapter(ItemData)
 MAKERS: dict[str, Maker[Any, Any]] = {g.id: g for g in GAMES.values() if isinstance(g, Maker)}
 
 CHANGED = "Someone saved this after you opened it. Load it again, then make your change."
-ANSWER = re.compile(r"[A-Z]{5}")
-GROUP_WORD = re.compile(r"[A-Z]{2,12}")
-SEARCH_WORD = re.compile(rf"[A-Z]{{{search_game.MIN_LETTERS},{search_game.MAX_LETTERS}}}")
-VOCABULARY_WORD = re.compile(r"[a-z]{2,24}")
 TAG = re.compile(r"[a-z][a-z-]{1,23}")
 THEME_ID = re.compile(r"[a-z][a-z0-9-]{1,31}")
 SPLIT = re.compile(r"[\s,;|]+")
-GROUP_WORDS = (4, 8)
-OPTIONS = (2, 6)
 TAGS = (3, 8)
 NEAR_MOST = 6
 IMPORT_ROWS = 500
@@ -123,163 +116,16 @@ def _title(game: str) -> str:
     return GAMES[cast(Any, game)].title
 
 
-# ── checking an item ─────────────────────────────────────────────────────────────────────────
-
-
-class Checked(NamedTuple):
-    data: dict[str, Any]  # as stored: the game's fields, camelCase
-    key: str  # what must be unique
-
-
-def _text(raw: str) -> str:
-    return " ".join(raw.split())
-
-
-def unknown_theme() -> ApiError:
-    return invalid("theme", "Pick one of the themes.")
+# ── an item's rules (rules.py) ───────────────────────────────────────────────────────────────
 
 
 def _theme(db: Session, theme_id: str) -> DailyTheme:
-    theme = db.get(DailyTheme, theme_id)
-    if theme is None:
-        raise unknown_theme()
-    return theme
+    return rules.known_theme(rules.Lookups(db), theme_id)
 
 
-def key_of(data: ItemData) -> str:
-    """What must be unique about an item: its word, its group's name or its question, as stored."""
-    if isinstance(data, GroupData):
-        return _text(data.label).casefold()
-    if isinstance(data, QuizData):
-        return _text(data.question).casefold()
-    if isinstance(data, NearestData):
-        return data.word.strip().lower()
-    return data.word.strip().upper()
-
-
-def existing(db: Session, game: str, theme: str, key: str, item_id: uuid.UUID | None = None) -> DailyItem | None:
-    """The item that already has this key: in the game (an answer word, a question, a secret word), or in the
-    theme (a group's name, a word search word)."""
-    q = select(DailyItem).where(DailyItem.game == game, DailyItem.key == key)
-    if game in UNIQUE_IN_THEME:
-        q = q.where(DailyItem.theme_id == theme)
-    if item_id is not None:
-        q = q.where(DailyItem.id != item_id)
-    return db.scalars(q.limit(1)).first()
-
-
-def _check_word(db: Session, data: WordData) -> Checked:
-    word = data.word.strip().upper()
-    if not ANSWER.fullmatch(word):
-        raise invalid("data.word", "Answer words are five letters, A to Z.")
-    if not word_game.in_guess_list(db, word):
-        raise invalid("data.word", f"“{word}” isn't in the guess list. Add it there first, so it can be guessed.")
-    return Checked({"word": word}, word)
-
-
-def _check_group(data: GroupData) -> Checked:
-    """A group's words may be in another group of its theme too: a day that has both groups shows neither of them
-    those words (games/groups.py), and a theme that can't make a day that way is caught by the readiness check."""
-    label = _text(data.label)
-    if not 2 <= len(label) <= 60:
-        raise invalid("data.label", "Say what the words share in 2 to 60 characters.")
-    words = [w.strip().upper() for w in data.words if w.strip()]
-    bad = next((w for w in words if not GROUP_WORD.fullmatch(w)), None)
-    if bad is not None:
-        raise invalid("data.words", f"Group words are 2 to 12 letters, A to Z, with no spaces: “{bad}” isn't.")
-    if len(set(words)) != len(words):
-        raise invalid("data.words", "Each word can be in the group once.")
-    least, most = GROUP_WORDS
-    if not least <= len(words) <= most:
-        raise invalid("data.words", f"Give {least} to {most} words. A day shows four of them.")
-    return Checked({"label": label, "level": data.level, "words": words}, label.casefold())
-
-
-def _check_search(data: SearchData) -> Checked:
-    word = data.word.strip().upper()
-    if not SEARCH_WORD.fullmatch(word):
-        least, most = search_game.MIN_LETTERS, search_game.MAX_LETTERS
-        raise invalid("data.word", f"Word search words are {least} to {most} letters, A to Z, with no spaces.")
-    return Checked({"word": word}, word)
-
-
-def _check_quiz(db: Session, data: QuizData) -> Checked:
-    question = _text(data.question)
-    if not 10 <= len(question) <= 200:
-        raise invalid("data.question", "Write the question in 10 to 200 characters.")
-    options = [_text(o) for o in data.options]
-    if not all(options):
-        raise invalid("data.options", "Fill in every option, or remove the empty ones.")
-    least, most = OPTIONS
-    if not least <= len(options) <= most:
-        raise invalid("data.options", f"Give {least} to {most} options.")
-    if any(len(o) > 80 for o in options):
-        raise invalid("data.options", "Keep each option to 80 characters.")
-    if len({o.casefold() for o in options}) != len(options):
-        raise invalid("data.options", "Make every option different, so only one of them is right.")
-    if not 0 <= data.answer < len(options):
-        raise invalid("data.answer", "Pick the right answer.")
-    explanation = _text(data.explanation)
-    if not 1 <= len(explanation) <= 300:
-        raise invalid("data.explanation", "Explain the answer in 300 characters or fewer.")
-    module_id = (data.module_id or "").strip() or None
-    if module_id is not None and db.get(Module, module_id) is None:
-        raise invalid("data.moduleId", "Pick one of the modules.")
-    fields = {
-        "question": question,
-        "options": options,
-        "answer": data.answer,
-        "explanation": explanation,
-        "moduleId": module_id,
-    }
-    return Checked(fields, question.casefold())
-
-
-def _check_nearest(db: Session, data: NearestData) -> Checked:
-    word = data.word.strip().lower()
-    if not VOCABULARY_WORD.fullmatch(word):
-        raise invalid("data.word", "Secret words are 2 to 24 letters, a to z.")
-    if db.get(DailyNearestWord, word) is None:
-        raise invalid("data.word", f"“{word}” isn't in the vocabulary. Add it there first, with its tags.")
-    return Checked({"word": word}, word)
-
-
-_DUPLICATE: dict[str, Callable[[str, str], str]] = {
-    "word": lambda key, where: f"“{key}” is already an answer word in {where}.",
-    "groups": lambda key, where: f"{where} already has a group called “{key}”.",
-    "search": lambda key, where: f"“{key}” is already in {where}'s word search.",
-    "quiz": lambda key, where: f"This question is already in the quiz, in {where}.",
-    "nearest": lambda key, where: f"“{key}” is already a secret word in {where}.",
-}
-_KEY_FIELD = {"groups": "data.label", "quiz": "data.question"}
-
-
-def _check_unique(db: Session, game: str, theme: str, checked: Checked, item_id: uuid.UUID | None) -> None:
-    other = existing(db, game, theme, checked.key, item_id)
-    if other is None:
-        return
-    shown = checked.data.get("label") or checked.data.get("word") or checked.key
-    message = _DUPLICATE[game](str(shown), _theme(db, other.theme_id).title)
-    if other.retired:
-        message += " It's retired: bring it back instead."
-    raise invalid(_KEY_FIELD.get(game, "data.word"), message)
-
-
-def check_item(db: Session, theme: str, data: ItemData, item_id: uuid.UUID | None = None) -> Checked:
-    """The item's fields as stored, or 422 with what to fix on the field."""
-    _theme(db, theme)
-    if isinstance(data, WordData):
-        checked = _check_word(db, data)
-    elif isinstance(data, GroupData):
-        checked = _check_group(data)
-    elif isinstance(data, SearchData):
-        checked = _check_search(data)
-    elif isinstance(data, QuizData):
-        checked = _check_quiz(db, data)
-    else:
-        checked = _check_nearest(db, data)
-    _check_unique(db, data.game, theme, checked, item_id)
-    return checked
+def check_item(db: Session, theme: str, data: ItemData, item_id: uuid.UUID | None = None) -> rules.Checked:
+    """The item's fields as stored, or 422 with what to fix on the field (rules.py)."""
+    return rules.check_item(rules.Lookups(db), theme, data, item_id)
 
 
 # ── whether a theme can run ──────────────────────────────────────────────────────────────────
@@ -496,7 +342,7 @@ def create_item(db: Session, user: User, body: ItemCreate, ip: str | None) -> It
     lock_themes(db, body.theme)
     checked = check_item(db, body.theme, body.data)
     item = DailyItem(game=body.data.game, theme_id=body.theme, data=checked.data, key=checked.key)
-    _add(db, [item], _KEY_FIELD.get(item.game, "data.word"))
+    _add(db, [item], rules.KEY_FIELD.get(item.game, "data.word"))
     if item.game == "nearest":
         rank_secret_words(db, [item])
     record(
@@ -638,7 +484,11 @@ def vocabulary(db: Session, q: str, limit: int, offset: int) -> Page[VocabularyO
     return Page(items=_vocabulary_out(db, rows), total=total, limit=limit, offset=offset)
 
 
-def check_tags_near(db: Session, word: str, tags: Sequence[str], near: Sequence[str]) -> tuple[list[str], list[str]]:
+def check_tags_near(
+    db: Session, word: str, tags: Sequence[str], near: Sequence[str], known: set[str] | None = None
+) -> tuple[list[str], list[str]]:
+    """A word's tags and close words as stored, or 422 with what to fix. `known`: the vocabulary's words, when the
+    caller has read them already (a content file)."""
     clean_tags = list(dict.fromkeys(t.strip().lower() for t in tags if t.strip()))
     bad = next((t for t in clean_tags if not TAG.fullmatch(t)), None)
     if bad is not None:
@@ -651,7 +501,8 @@ def check_tags_near(db: Session, word: str, tags: Sequence[str], near: Sequence[
         raise invalid("near", "A word can't be listed as close to itself.")
     if len(clean_near) > NEAR_MOST:
         raise invalid("near", f"List {NEAR_MOST} close words at most.")
-    known = set(db.scalars(select(DailyNearestWord.word).where(DailyNearestWord.word.in_(clean_near))))
+    if known is None:
+        known = set(db.scalars(select(DailyNearestWord.word).where(DailyNearestWord.word.in_(clean_near))))
     missing = [n for n in clean_near if n not in known]
     if missing:
         raise invalid("near", f"“{missing[0]}” isn't in the vocabulary. Add it first, or leave it out.")
@@ -660,7 +511,7 @@ def check_tags_near(db: Session, word: str, tags: Sequence[str], near: Sequence[
 
 def add_vocabulary(db: Session, user: User, body: VocabularyIn, ip: str | None) -> VocabularyOut:
     word = body.word.strip().lower()
-    if not VOCABULARY_WORD.fullmatch(word):
+    if not rules.VOCABULARY_WORD.fullmatch(word):
         raise invalid("word", "Words are 2 to 24 letters, a to z.")
     if db.get(DailyNearestWord, word) is not None:
         raise invalid("word", f"“{word}” is in the vocabulary already.")
@@ -735,7 +586,7 @@ def _split_guesses(text: str) -> tuple[list[str], list[str]]:
     for raw in SPLIT.split(text):
         word = raw.strip().upper()
         if word:
-            (good if ANSWER.fullmatch(word) else bad).append(word)
+            (good if rules.ANSWER.fullmatch(word) else bad).append(word)
     return list(dict.fromkeys(good)), list(dict.fromkeys(bad))
 
 
@@ -854,7 +705,7 @@ def _theme_snapshot(theme: DailyTheme) -> dict[str, Any]:
 
 
 def theme_text(title: str, blurb: str) -> tuple[str, str]:
-    title, blurb = _text(title), _text(blurb)
+    title, blurb = rules.tidy(title), rules.tidy(blurb)
     if not 2 <= len(title) <= 60:
         raise invalid("title", "Name the theme in 2 to 60 characters.")
     if len(blurb) > 200:
@@ -1025,7 +876,7 @@ Parsed = tuple[int, str, ItemData | None, str | None]  # line, the row as read, 
 
 
 def _short(text: str) -> str:
-    text = _text(text)
+    text = rules.tidy(text)
     return text if len(text) <= 120 else f"{text[:119]}…"
 
 
@@ -1176,15 +1027,16 @@ def import_items(db: Session, user: User, body: ImportIn, ip: str | None) -> Imp
     trial = db.begin_nested() if body.dry_run else None
     if body.game == "word" and body.add_guesses:  # audited like a paste into the guess list (a dry run undoes both)
         answers = [d.word.strip().upper() for _, _, d, _ in parsed if isinstance(d, WordData)]
-        _insert_guesses(db, user, [w for w in dict.fromkeys(answers) if ANSWER.fullmatch(w)], ip)
+        _insert_guesses(db, user, [w for w in dict.fromkeys(answers) if rules.ANSWER.fullmatch(w)], ip)
     rows: list[ImportRow] = []
     keys: set[str] = set()
     good: list[DailyItem] = []
+    look = rules.Batch(db)  # what the rows' checks read, read once
     for line, shown, data, problem in parsed:
         read: ItemData | None = data
         if data is not None and problem is None:
             try:
-                checked = check_item(db, theme.id, data)
+                checked = rules.check_item(look, theme.id, data)
             except ApiError as e:
                 problem = e.message
             else:
