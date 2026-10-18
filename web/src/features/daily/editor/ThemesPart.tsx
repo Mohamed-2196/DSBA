@@ -6,7 +6,7 @@ import { useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { DailyContentOverview, ThemeOut, WeekOut } from '../../../api/types';
 import { formatDay } from '../../../lib/dates';
-import { useToast } from '../../../state';
+import { useToast, useUnsavedChanges } from '../../../state';
 import {
   Badge,
   Button,
@@ -185,6 +185,8 @@ function ThemeDialog({ theme, onClose }: { theme: ThemeOut | null; onClose: () =
   const [id, setId] = useState('');
   const [idTouched, setIdTouched] = useState(false);
   const [inRotation, setInRotation] = useState(theme?.inRotation ?? false);
+  const [opened] = useState(() => JSON.stringify({ title, blurb, inRotation }));
+  useUnsavedChanges(idTouched || JSON.stringify({ title, blurb, inRotation }) !== opened, 'the theme');
   const pending = create.isPending || save.isPending;
   const error = create.error ?? save.error;
   const fields = isApiError(error) ? error.fields : {};

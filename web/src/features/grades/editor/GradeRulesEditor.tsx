@@ -21,7 +21,6 @@ import {
   TextField,
   cx,
   docErrors,
-  focusDocStatus,
   hasErrorUnder,
   newItemId,
   type DocProblem,
@@ -110,7 +109,8 @@ function WholeField({ value, min, max, onValue, onBlur, ...rest }: WholeFieldPro
 
 export function GradeRulesEditor() {
   const query = useGradeRulesForEditing();
-  const [section, setSection] = useState<Section>('subjects');
+  // Once loaded, the editor keeps its own copy: a refetch in the background never replaces the draft.
+  if (query.data) return <Editor first={query.data} />;
   if (query.isError)
     return (
       <QueryError
@@ -121,28 +121,19 @@ export function GradeRulesEditor() {
         size="sm"
       />
     );
-  if (query.isPending) {
-    return (
-      <Panel padding="md">
-        <Skeleton lines={8} />
-      </Panel>
-    );
-  }
-  // A new version (saved here, or loaded again) starts a new draft.
-  return <Editor key={query.data.version} loaded={query.data} section={section} setSection={setSection} />;
+  return (
+    <Panel padding="md">
+      <Skeleton lines={8} />
+    </Panel>
+  );
 }
 
-function Editor({
-  loaded,
-  section,
-  setSection,
-}: {
-  loaded: GradeRulesEditable;
-  section: Section;
-  setSection: (s: Section) => void;
-}) {
+function Editor({ first }: { first: GradeRulesEditable }) {
+  // The version the draft is edited from: the one first loaded, then each one a save returns or "Load it again" loads.
+  const [loaded, setLoaded] = useState(first);
   const saved = loaded.data;
   const [rules, setRules] = useState<GradeRules>(saved);
+  const [section, setSection] = useState<Section>('subjects');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<DocProblem | null>(null);
   const save = useSaveGradeRules();
@@ -160,6 +151,13 @@ function Editor({
   );
   const set = (patch: Partial<GradeRules>) => setRules((r) => ({ ...r, ...patch }));
   const err: Err = (path) => fields[path];
+  // A new version (as the API keeps it, so even a save that changed nothing leaves nothing unsaved) starts a new draft.
+  const start = (next: GradeRulesEditable) => {
+    setLoaded(next);
+    setRules(next.data);
+    setFields({});
+    setProblem(null);
+  };
 
   const submit = () => {
     setProblem(null);
@@ -167,10 +165,8 @@ function Editor({
       { version: loaded.version, data: rules },
       {
         onSuccess: (out) => {
-          setRules(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
-          setFields({});
+          start(out);
           toast({ title: 'Saved. The calculator uses the new rules now.', tone: 'success' });
-          focusDocStatus();
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'grades_changed')
@@ -212,7 +208,7 @@ function Editor({
         }}
         onSave={submit}
         problem={problem}
-        onReload={() => void reload()}
+        onReload={() => reload().then(start)}
         section={{ title: current.label, about: current.about }}
         nav={SECTIONS.map((s) => (
           <Chip

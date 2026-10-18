@@ -5,7 +5,7 @@ import { Check, Plus, WarningCircle, X } from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ItemOut, QuizData, ThemeOut } from '../../../api/types';
-import { useToast } from '../../../state';
+import { useToast, useUnsavedChanges } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { Button, IconButton, Modal, Select, TextArea, TextField } from '../../../ui';
 import { useAddGuesses, useCreateItem, useGuessList, useSaveItem, useVocabulary } from './api';
@@ -48,6 +48,8 @@ export function ItemDialog({ game, item, themes, defaultTheme, onClose }: ItemDi
   const info = gameInfo(game);
   const [theme, setTheme] = useState(item?.theme ?? (defaultTheme || themes[0]?.id || ''));
   const [data, setData] = useState<ItemData>(item?.data ?? blankData(game));
+  const [opened] = useState(() => JSON.stringify({ theme, data }));
+  useUnsavedChanges(JSON.stringify({ theme, data }) !== opened, `the ${info.noun}`);
   const create = useCreateItem();
   const save = useSaveItem();
   const { push: toast } = useToast();

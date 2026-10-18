@@ -2,10 +2,10 @@
 // A save someone else made first (career_changed) offers to load theirs. Hidden items stay here and leave the page.
 // Every save goes to the activity log with what changed, before and after.
 import { ArrowSquareOut, Eye } from '@phosphor-icons/react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { CareerDoc, CareerEditable } from '../../../api/types';
-import { useToast } from '../../../state';
+import { useToast, useUnsavedChanges } from '../../../state';
 import { Button, Chip, Drawer, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../../ui';
 import { CareerBody } from '../CareerPage';
 import { useCareerForEditing, useReloadCareer, useSaveCareer } from './api';
@@ -86,26 +86,15 @@ function countOf(doc: CareerDoc, section: EditorSection): number | null {
   }
 }
 
+/** The document as the editor has it: one with content. */
+type Loaded = CareerEditable & { data: CareerDoc };
+const hasContent = (e: CareerEditable): e is Loaded => e.data !== null;
+
 export function CareerEditor() {
   const query = useCareerForEditing();
-  if (query.isError)
-    return (
-      <QueryError
-        error={query.error}
-        title="Career Navigator didn’t load"
-        onRetry={() => void query.refetch()}
-        retrying={query.isFetching}
-        size="sm"
-      />
-    );
-  if (query.isPending) {
-    return (
-      <Panel padding="md">
-        <Skeleton lines={8} />
-      </Panel>
-    );
-  }
-  if (!query.data.data) {
+  // Once loaded, the editor keeps its own copy: a refetch in the background never replaces the draft.
+  if (query.data) {
+    if (hasContent(query.data)) return <Editor first={query.data} />;
     return (
       <Panel padding="none">
         <EmptyState
@@ -116,31 +105,54 @@ export function CareerEditor() {
       </Panel>
     );
   }
-  // A new version (saved here, or loaded again) starts a new draft.
-  return <Editor key={query.data.version} loaded={query.data} doc={query.data.data} />;
+  if (query.isError)
+    return (
+      <QueryError
+        error={query.error}
+        title="Career Navigator didn’t load"
+        onRetry={() => void query.refetch()}
+        retrying={query.isFetching}
+        size="sm"
+      />
+    );
+  return (
+    <Panel padding="md">
+      <Skeleton lines={8} />
+    </Panel>
+  );
 }
 
 type Problem = { kind: 'changed' } | { kind: 'other'; messages: string[] };
 
-function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc }) {
+function Editor({ first }: { first: Loaded }) {
+  // The version the draft is edited from: the one first loaded, then each one a save returns or "Load it again" loads.
+  const [loaded, setLoaded] = useState(first);
+  const saved = loaded.data;
   const [doc, setDoc] = useState<CareerDoc>(saved);
   const [section, setSection] = useState<EditorSection>('employers');
   const [open, setOpen] = useState<string | null>(null);
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<Problem | null>(null);
+  const [reloadFailed, setReloadFailed] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const save = useSaveCareer();
   const reload = useReloadCareer();
   const { push: toast } = useToast();
   const dirty = useMemo(() => JSON.stringify(doc) !== JSON.stringify(saved), [doc, saved]);
+  useUnsavedChanges(dirty, 'Career Navigator');
 
-  // Leaving the page with unsaved changes asks first.
-  useEffect(() => {
-    if (!dirty) return undefined;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty]);
+  // A new version starts a new draft.
+  const start = (next: CareerEditable) => {
+    if (!hasContent(next)) return;
+    setLoaded(next);
+    setDoc(next.data);
+    setFields({});
+    setProblem(null);
+  };
+  const loadAgain = () => {
+    setReloadFailed(false);
+    reload().then(start, () => setReloadFailed(true));
+  };
 
   const state: EditorState = useMemo(
     () => ({
@@ -159,8 +171,8 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
     save.mutate(
       { version: loaded.version, data: doc },
       {
-        onSuccess: () => {
-          setFields({});
+        onSuccess: (out) => {
+          start(out);
           toast({ title: 'Saved. Students see the changes now.', tone: 'success' });
         },
         onError: (e) => {
@@ -206,8 +218,8 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
             </p>
           </div>
           <div className="cedit__actions">
-            <Button variant="ghost" to="/career" trailingIcon={ArrowSquareOut}>
-              Open the page
+            <Button variant="ghost" to="/career" target="_blank" rel="noopener" trailingIcon={ArrowSquareOut}>
+              Open the page<span className="visually-hidden"> (opens in a new tab)</span>
             </Button>
             <Button variant="secondary" leadingIcon={Eye} onClick={() => setPreviewing(true)}>
               Preview
@@ -237,7 +249,8 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
                   Someone else saved Career Navigator while you were editing. Load their version, then make your changes
                   again.
                 </p>
-                <Button size="sm" onClick={() => void reload()}>
+                {reloadFailed ? <p>Their version didn’t load. Check your connection, then try again.</p> : null}
+                <Button size="sm" onClick={loadAgain}>
                   Load it again
                 </Button>
               </>

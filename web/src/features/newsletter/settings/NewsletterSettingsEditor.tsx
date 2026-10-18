@@ -31,7 +31,6 @@ import {
   TextField,
   cx,
   docErrors,
-  focusDocStatus,
   hasErrorUnder,
   newItemId,
   type DocProblem,
@@ -62,7 +61,8 @@ const SECTIONS: { id: Section; label: string; about: string; parts: string[] }[]
 
 export function NewsletterSettingsEditor() {
   const query = useNewsletterSettingsForEditing();
-  const [section, setSection] = useState<Section>('masthead');
+  // Once loaded, the editor keeps its own copy: a refetch in the background never replaces the draft.
+  if (query.data) return <Editor first={query.data} />;
   if (query.isError)
     return (
       <QueryError
@@ -73,28 +73,19 @@ export function NewsletterSettingsEditor() {
         size="sm"
       />
     );
-  if (query.isPending) {
-    return (
-      <Panel padding="md">
-        <Skeleton lines={6} />
-      </Panel>
-    );
-  }
-  // A new version (saved here, or loaded again) starts a new draft.
-  return <Editor key={query.data.version} loaded={query.data} section={section} setSection={setSection} />;
+  return (
+    <Panel padding="md">
+      <Skeleton lines={6} />
+    </Panel>
+  );
 }
 
-function Editor({
-  loaded,
-  section,
-  setSection,
-}: {
-  loaded: NewsletterSettingsEditable;
-  section: Section;
-  setSection: (s: Section) => void;
-}) {
+function Editor({ first }: { first: NewsletterSettingsEditable }) {
+  // The version the draft is edited from: the one first loaded, then each one a save returns or "Load it again" loads.
+  const [loaded, setLoaded] = useState(first);
   const saved = loaded.data;
   const [doc, setDoc] = useState<NewsletterSettings>(saved);
+  const [section, setSection] = useState<Section>('masthead');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<DocProblem | null>(null);
   const [previewing, setPreviewing] = useState(false);
@@ -104,6 +95,13 @@ function Editor({
   const dirty = useMemo(() => JSON.stringify(doc) !== JSON.stringify(saved), [doc, saved]);
   const savedIds = useMemo(() => new Set(saved.pictures.map((p) => p.id)), [saved]);
   const err = (path: string) => fields[path];
+  // A new version (as the API keeps it, so even a save that changed nothing leaves nothing unsaved) starts a new draft.
+  const start = (next: NewsletterSettingsEditable) => {
+    setLoaded(next);
+    setDoc(next.data);
+    setFields({});
+    setProblem(null);
+  };
 
   const submit = () => {
     setProblem(null);
@@ -111,10 +109,8 @@ function Editor({
       { version: loaded.version, data: doc },
       {
         onSuccess: (out) => {
-          setDoc(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
-          setFields({});
+          start(out);
           toast({ title: 'Saved. Editors see the changes now.', tone: 'success' });
-          focusDocStatus();
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'newsletter_settings_changed')
@@ -154,7 +150,7 @@ function Editor({
         }}
         onSave={submit}
         problem={problem}
-        onReload={() => void reload()}
+        onReload={() => reload().then(start)}
         section={{ title: current.label, about: current.about }}
         nav={SECTIONS.map((s) => (
           <Chip

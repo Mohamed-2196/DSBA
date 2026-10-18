@@ -259,11 +259,13 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   with `hub.mine.`, so signing out removes it from localStorage and sessionStorage (`auth/queries.ts`,
   `clearPersonalStorage`): lab and library computers are shared.
 - **Routing** is a data router at `/`: `createBrowserRouter` in `App.tsx`, the page table in `routes.tsx` (each page
-  lazy), React Router 7 (`react-router-dom`; v6 had open-redirect advisories). The newsletter's issue editor blocks
-  navigation away from unsaved edits with `useLeaveGuard` (`useBlocker`) and reloads with `beforeunload`; Manage's
-  other editors only warn on a reload so far (`docs/reviews/code-quality.md`, CQ-60). React Router allows one blocker
-  at a time. Pages are read by slug (`/forum/:threadId`, `/library/:fileId`, `/newsletter/:slug` take the slug the API
-  gives). Links from user content go through `ui/safeHref.ts`.
+  lazy), React Router 7 (`react-router-dom`; v6 had open-redirect advisories). `useLeaveGuard` (`src/state`, on
+  `useBlocker`) asks before a navigation leaves unsaved edits behind, and `beforeunload` covers a reload. React Router
+  allows one blocker at a time: the newsletter's issue editor has its own, and Manage has one for all its editors,
+  which report their unsaved changes to it (`useUnsavedChanges`, `state/unsaved.ts`). Switching Manage's tabs keeps
+  every draft; another page, or a module's form closing, asks first. Pages are read by slug (`/forum/:threadId`,
+  `/library/:fileId`, `/newsletter/:slug` take the slug the API gives). Links from user content go through
+  `ui/safeHref.ts`.
 - **Analytics** (PostHog) load only in a build with `VITE_POSTHOG_KEY` (`src/lib/analytics.ts`): page views only,
   anonymous. Never call `identify()` or send anything a student typed.
 - **Keep the design.** Reuse `src/ui` and the CSS tokens; new UI (sign-in, upload, moderation queues) must

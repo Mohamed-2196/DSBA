@@ -5,7 +5,14 @@
 //   PUT/DELETE …/{id}/sections/{section}/reactions/{reaction}    signed in (optimistic)
 // The email about new issues is an account preference: PATCH /api/v1/me { preferences: { emailNewIssues } }.
 //   GET  /api/v1/newsletter/settings[/edit], PUT …/settings    the masthead's line and the pictures the editor offers
-import { useMutation, useQueries, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import type {
   IssueCreate,
@@ -296,14 +303,16 @@ export function useOfferedPictures() {
   });
 }
 
+const editSettingsQuery = queryOptions({
+  queryKey: EDIT_SETTINGS_KEY,
+  queryFn: ({ signal }) => call(api.GET('/api/v1/newsletter/settings/edit', { signal })),
+  // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+});
+
 export function useNewsletterSettingsForEditing() {
-  return useQuery({
-    queryKey: EDIT_SETTINGS_KEY,
-    queryFn: ({ signal }) => call(api.GET('/api/v1/newsletter/settings/edit', { signal })),
-    // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  });
+  return useQuery(editSettingsQuery);
 }
 
 export function useSaveNewsletterSettings() {
@@ -318,7 +327,8 @@ export function useSaveNewsletterSettings() {
   });
 }
 
+/** Loads the settings again, as someone else saved them: the editor starts over from the copy it returns. */
 export function useReloadNewsletterSettings() {
   const qc = useQueryClient();
-  return () => qc.refetchQueries({ queryKey: EDIT_SETTINGS_KEY, exact: true });
+  return () => qc.fetchQuery({ ...editSettingsQuery, staleTime: 0 });
 }

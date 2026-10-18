@@ -36,4 +36,4 @@ export { cx, modKeyLabel, timeAgo, formatDate, formatCount, countOf } from './ut
 export { safeInternalPath } from './safeHref';
 export { DocFrame, ListEditor, RowsEditor, type DocProblem } from './docEditor/kit';
 export { docErrors, hasErrorUnder, type DocErrors } from './docEditor/errors';
-export { focusDocStatus, newItemId, useWarnBeforeLeaving } from './docEditor/doc';
+export { newItemId } from './docEditor/doc';

@@ -8,6 +8,8 @@ export { useQueryParam } from './useQueryParam';
 export { useDebouncedValue } from './useDebouncedValue';
 export { useDocumentTitle } from './useDocumentTitle';
 export { useSingleFlight } from './useSingleFlight';
+export { useLeaveGuard, type LeaveGuard } from './useLeaveGuard';
+export { UnsavedProvider, useUnsavedChanges, useUnsavedRegistry } from './unsaved';
 export { YEARS, COHORTS, normalizeYear, cohortColor, cohortTextColor, cohortLabel, type CohortYear } from './cohort';
 export { useMediaQuery, BREAKPOINTS } from './useMediaQuery';
 export type { Theme, ToastInput } from './contexts';

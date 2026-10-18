@@ -22,8 +22,8 @@ function AppFrame() {
   );
 }
 
-// A data router, so a page can hold a navigation until it is answered: the newsletter editor asks before its unsaved
-// changes are left behind by a link, the ⌘K palette or Back (useBlocker; UX review UX-3).
+// A data router, so a page can hold a navigation until it is answered: Manage and the newsletter's issue editor ask
+// before unsaved changes are left behind by a link, the ⌘K palette or Back (state/useLeaveGuard.ts).
 const router = createBrowserRouter(
   [{ id: 'app', element: <AppFrame />, errorElement: <AppCrashed />, children: pageRoutes }],
   {
