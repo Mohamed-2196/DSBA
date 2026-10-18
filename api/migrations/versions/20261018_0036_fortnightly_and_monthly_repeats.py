@@ -1,7 +1,7 @@
 """a student's own events repeat every two weeks or every month too
 
 Revision ID: 0036
-Revises: 0034
+Revises: 0035
 Create Date: 2026-10-18 12:00:00
 
 personal_events.repeat takes "fortnightly" and "monthly" (the column widens to fit them). A monthly repeat falls on
@@ -19,7 +19,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0036"
-down_revision: str | None = "0034"
+down_revision: str | None = "0035"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
