@@ -7201,6 +7201,12 @@ export interface components {
             year?: (1 | 2 | 3) | null;
             /** Description */
             description?: string | null;
+            /** Examyear */
+            examYear?: number | null;
+            /** Zone */
+            zone?: ("A" | "B" | "RTC") | null;
+            /** Examsession */
+            examSession?: ("may" | "october") | null;
             /** Authorname */
             authorName?: string | null;
         };

@@ -7,6 +7,7 @@ import {
   Exam,
   FolderSimple,
   Lightning,
+  LinkSimple,
   MagnifyingGlass,
   Notebook,
   NotePencil,
@@ -30,6 +31,7 @@ import { FileCard, type LinkState } from './components/FileCard';
 import { FileTable } from './components/FileTable';
 import { FileThumb } from './components/FileThumb';
 import { useCoverStyle } from './components/coverStyle';
+import { AddLinkDialog } from './components/AddLinkDialog';
 import { UploadDialog } from './components/UploadDialog';
 import { YourUploads } from './components/YourUploads';
 import { addedAt, isNew, moduleTag } from './display';
@@ -153,9 +155,12 @@ export default function LibraryPage() {
   useDocumentTitle('Library');
   const location = useLocation();
   const { year: globalYear } = useYear();
-  const { status, requireAuth, openSignIn, featureOn, mayTry } = useAuth();
+  const { status, requireAuth, openSignIn, featureOn, mayTry, can } = useAuth();
   // Upload shows while the library takes uploads and the person may try (guests sign in first).
   const uploadShown = showsUpload(featureOn, mayTry);
+  // Library managers also add links to resources kept on other sites.
+  const linksShown = can('library.manage');
+  const [linking, setLinking] = useState({ open: false, key: 0 });
   const { getModule, getModulesForYear } = useModules();
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
   const [params, update] = useLibraryParams();
@@ -419,10 +424,19 @@ export default function LibraryPage() {
         title="Library"
         description="Past papers, study guides and students’ notes for every module. Read them here, download them, or share your own."
         actions={
-          uploadShown ? (
-            <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload} data-hub="upload-button">
-              Upload a file
-            </Button>
+          uploadShown || linksShown ? (
+            <>
+              {linksShown ? (
+                <Button leadingIcon={LinkSimple} onClick={() => setLinking((l) => ({ open: true, key: l.key + 1 }))} data-hub="link-button">
+                  Add a link
+                </Button>
+              ) : null}
+              {uploadShown ? (
+                <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload} data-hub="upload-button">
+                  Upload a file
+                </Button>
+              ) : null}
+            </>
           ) : undefined
         }
         meta={
@@ -567,13 +581,14 @@ export default function LibraryPage() {
 
       {uploadShown ? (
         <UploadDialog
-          key={upload.key}
+          key={`upload-${upload.key}`}
           open={upload.open}
           onClose={() => setUpload((u) => ({ ...u, open: false }))}
           defaultModuleId={module?.id ?? null}
           defaultYear={year}
         />
       ) : null}
+      {linksShown ? <AddLinkDialog key={`link-${linking.key}`} open={linking.open} onClose={() => setLinking((l) => ({ ...l, open: false }))} moduleId={module?.id ?? null} year={year} /> : null}
     </Page>
   );
 }

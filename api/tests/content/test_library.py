@@ -335,6 +335,17 @@ def test_moderators_add_https_links(
     assert link(rep, moduleId="econometrics").json()["slug"] == "ec2020-past-exams-2"
 
 
+def test_a_link_to_a_past_paper_has_its_sitting(
+    client_for: Clients, moderator: User, modules: dict[str, Module]
+) -> None:
+    rep = client_for(moderator)
+    r = link(rep, kind="past-paper", moduleId="econometrics", examYear=2023, zone="B", examSession="may")
+    assert r.status_code == 201, r.text
+    item = r.json()
+    assert (item["examYear"], item["zone"], item["examSession"]) == (2023, "B", "may")
+    assert "examYear" in link(rep, kind="past-paper", examYear=1900).json()["error"]["fields"]
+
+
 # ── listing, search and facets ───────────────────────────────────────────────────────────────
 
 

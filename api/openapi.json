@@ -33893,6 +33893,50 @@
             ],
             "title": "Description"
           },
+          "examYear": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2100.0,
+                "minimum": 1990.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examyear"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "RTC"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          },
+          "examSession": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "may",
+                  "october"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examsession"
+          },
           "authorName": {
             "anyOf": [
               {

@@ -115,6 +115,9 @@ class LibraryLinkCreate(ApiModel):
     module_id: str | None = None
     year: Year | None = None
     description: Description | None = None
+    exam_year: int | None = Field(default=None, ge=EXAM_YEAR_MIN, le=EXAM_YEAR_MAX)  # a past paper's sitting
+    zone: Zone | None = None
+    exam_session: ExamSession | None = None
     author_name: AuthorName | None = None
 
 

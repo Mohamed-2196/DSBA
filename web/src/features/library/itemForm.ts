@@ -1,5 +1,5 @@
 // The details form shared by "Upload a file" and "Edit details": values, checks, and request bodies.
-import type { LibraryItemCreate, LibraryItemUpdate, ModuleSummary } from '../../api/types';
+import type { LibraryItemCreate, LibraryItemUpdate, LibraryLinkCreate, ModuleSummary } from '../../api/types';
 import { EXAM_KINDS, type LibraryKind } from './kinds';
 import type { CohortYear, LibraryItem } from './types';
 
@@ -111,6 +111,27 @@ function details(v: ItemFormValues, getModule: (id: string) => ModuleSummary | n
 
 export function toCreateBody(uploadId: string, v: ItemFormValues, getModule: (id: string) => ModuleSummary | null): LibraryItemCreate {
   return { uploadId, ...details(v, getModule) };
+}
+
+export function toLinkBody(url: string, v: ItemFormValues, getModule: (id: string) => ModuleSummary | null): LibraryLinkCreate {
+  return { url: url.trim(), ...details(v, getModule) };
+}
+
+/** What a link to another site may be, as the API checks it: https://, and never Google Drive or Docs (the library
+ *  keeps its own copy of those files). Null when it's fine. */
+export function linkProblem(url: string): string | null {
+  const v = url.trim();
+  if (!v) return 'Paste the link.';
+  let parsed: URL;
+  try {
+    parsed = new URL(v);
+  } catch {
+    return 'Use an https:// link.';
+  }
+  if (parsed.protocol !== 'https:') return 'Use an https:// link.';
+  if (parsed.username || parsed.password) return 'Remove the user name and password from the link.';
+  if (['drive.google.com', 'docs.google.com'].includes(parsed.hostname.toLowerCase())) return 'The Hub keeps its own copy of files instead of sending students to Google Drive. Upload the file instead.';
+  return null;
 }
 
 /** Every field is sent: an empty one is cleared. */
