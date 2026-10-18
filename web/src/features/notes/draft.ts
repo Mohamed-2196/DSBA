@@ -57,7 +57,18 @@ export const docOf = (note: Note): NoteDoc => ({
   notebookId: note.notebookId,
 });
 
-const sameJson = (a: unknown, b: unknown): boolean => a === b || JSON.stringify(a) === JSON.stringify(b);
+const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+
+/** JSON with every object's keys in order: the database keeps a document's keys in an order of its own, so two
+ *  documents that say the same thing are the same text this way. */
+export function stableJson(value: unknown): string {
+  return JSON.stringify(value, (_key, v: unknown) =>
+    isRecord(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v,
+  );
+}
+
+/** Whether two values say the same, whatever the order of their keys. */
+export const sameJson = (a: unknown, b: unknown): boolean => a === b || stableJson(a) === stableJson(b);
 
 export const sameDoc = (a: NoteDoc | null | undefined, b: NoteDoc | null | undefined): boolean =>
   !!a &&
@@ -69,7 +80,6 @@ export const sameDoc = (a: NoteDoc | null | undefined, b: NoteDoc | null | undef
   a.notebookId === b.notebookId &&
   sameJson(a.doc, b.doc);
 
-const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const PAPERS: readonly Paper[] = ['blank', 'lined', 'grid', 'dotted'];
 
 /** A stored draft, or null when there is none or it isn't one (storage edited by hand, an older shape). */

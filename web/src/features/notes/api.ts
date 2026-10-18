@@ -114,8 +114,10 @@ export function useNote(id: string | null) {
     queryKey: noteKeys.one(id ?? ''),
     queryFn: () => fetchNote(id ?? ''),
     enabled: id !== null,
-    // The editor decides when to read the note again (a save answers with it): never behind its back.
+    // The editor decides when to read the note again (a save answers with it): never behind its back. Once it is
+    // closed it isn't kept: opening it again reads it again (it may have been saved elsewhere since).
     staleTime: Infinity,
+    gcTime: 0,
   });
 }
 
@@ -147,14 +149,17 @@ export function useAnnotate() {
 export const deleteNote = (id: string): Promise<unknown> =>
   call(api.DELETE('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
 
+/** A note that is gone: out of the cache and the lists. */
+export function discardNote(qc: QueryClient, id: string): void {
+  qc.removeQueries({ queryKey: noteKeys.one(id) });
+  notesChanged(qc);
+}
+
 export function useDeleteNote() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deleteNote,
-    onSuccess: (_, id) => {
-      qc.removeQueries({ queryKey: noteKeys.one(id) });
-      notesChanged(qc);
-    },
+    onSuccess: (_, id) => discardNote(qc, id),
   });
 }
 

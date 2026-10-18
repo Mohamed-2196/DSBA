@@ -5,6 +5,7 @@
 // toolbar's Picture puts one in the text, at the cursor.
 import { NotePencil, X } from '@phosphor-icons/react';
 import { EditorContent } from '@tiptap/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
@@ -12,7 +13,7 @@ import { UPLOAD_RULES } from '../../api/uploads';
 import { Gate, useAuth } from '../../auth';
 import { useDocumentTitle, useLocalStorage, useMediaQuery, useToast } from '../../state';
 import { Button, ConfirmDialog, EmptyState, QueryError, Skeleton, cx } from '../../ui';
-import { changePages, deleteNote, useCreateNote, useDeleteNote } from './api';
+import { changePages, deleteNote, discardNote, useCreateNote, useDeleteNote } from './api';
 import { EMPTY_DOC, noteLabel, type NoteDoc } from './draft';
 import { NoteHeader } from './NoteHeader';
 import { pageMapping, repaged, undoOf, type PageMove } from './pages';
@@ -88,12 +89,15 @@ function Notices({
   readOnly,
   pdfFailed,
   onPdfRetry,
+  onLoaded,
 }: {
   editor: NoteEditor;
   ink: InkSync;
   readOnly: boolean;
   pdfFailed: boolean;
   onPdfRetry: () => void;
+  /** the other version was loaded: what was done before it can't be undone */
+  onLoaded: () => void;
 }) {
   const out = [];
   if (readOnly) {
@@ -111,7 +115,13 @@ function Notices({
           <Button size="sm" variant="primary" onClick={editor.keepMine}>
             Keep mine
           </Button>
-          <Button size="sm" onClick={editor.loadTheirs}>
+          <Button
+            size="sm"
+            onClick={() => {
+              editor.loadTheirs();
+              onLoaded();
+            }}
+          >
             Load the other one
           </Button>
         </div>
@@ -127,7 +137,13 @@ function Notices({
           <Button size="sm" variant="primary" onClick={ink.keepMine}>
             Keep mine
           </Button>
-          <Button size="sm" onClick={ink.loadTheirs}>
+          <Button
+            size="sm"
+            onClick={() => {
+              ink.loadTheirs();
+              onLoaded();
+            }}
+          >
             Load the other one
           </Button>
         </div>
@@ -243,6 +259,7 @@ interface NoteDeskProps {
 /** The editor, made once the note's document is in hand: the text starts with it, so nothing empty is ever saved. */
 function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskProps) {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const remove = useDeleteNote();
   const touch = useMediaQuery('(any-pointer: coarse)');
   const { push } = useToast();
@@ -458,10 +475,12 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
       leaving.current = setTimeout(() => {
         if (!leftEmpty.current()) return;
         discard();
-        void deleteNote(noteId).catch(() => undefined);
+        void deleteNote(noteId)
+          .then(() => discardNote(qc, noteId))
+          .catch(() => undefined);
       }, 0);
     };
-  }, [noteId, discard]);
+  }, [noteId, discard, qc]);
 
   // ── pictures and files from the toolbar ──
   const choose = useCallback((kind: 'picture' | 'file') => {
@@ -753,6 +772,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         readOnly={readOnly}
         pdfFailed={onPdf && pdf.state.status === 'error'}
         onPdfRetry={pdf.retry}
+        onLoaded={history.clear}
       />
 
       <div className="nb-body">
@@ -847,10 +867,15 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         tone="danger"
         busy={remove.isPending}
         error={remove.error ? remove.error.message : null}
-        onConfirm={() => {
-          editor.discard();
-          remove.mutate(noteId, { onSuccess: () => navigate('/notes', { replace: true }) });
-        }}
+        onConfirm={() =>
+          remove.mutate(noteId, {
+            // the copy on this device goes once the server has deleted the note, not before
+            onSuccess: () => {
+              editor.discard();
+              navigate('/notes', { replace: true });
+            },
+          })
+        }
         onClose={() => setConfirming(false)}
       />
     </div>

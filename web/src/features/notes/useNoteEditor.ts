@@ -130,8 +130,18 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
       } catch (e) {
         if (isApiError(e) && e.code === 'note_changed') {
           try {
-            setTheirs(await fetchNote(noteId));
-            setState('conflict');
+            const theirs = await fetchNote(noteId);
+            if (sameDoc(docOf(theirs), sent)) {
+              // the server has what was sent (a save whose answer was lost): it is this tab's own
+              baseRef.current = theirs.version;
+              savedRef.current = sent;
+              noteSaved(qc, theirs);
+              setState('unsaved');
+              timer.current = setTimeout(() => void flush(), SAVE_AFTER);
+            } else {
+              setTheirs(theirs);
+              setState('conflict');
+            }
           } catch {
             setState('offline');
           }
@@ -194,6 +204,7 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
       setState('unsaved');
       void flush();
     } else {
+      dropDraft(noteId); // a copy here that says what the server says is no longer waiting
       setSavedAt(Date.parse(query.data.updatedAt));
     }
   }, [query.data, flush, noteId]);

@@ -14,6 +14,8 @@ import {
   readDraft,
   readInkDraft,
   sameDoc,
+  sameJson,
+  stableJson,
   writeDraft,
   writeInkDraft,
   type InkDraft,
@@ -48,6 +50,35 @@ const sampleDoc = (over: Partial<NoteDoc> = {}): NoteDoc => ({
   lessonId: null,
   notebookId: 'book-1',
   ...over,
+});
+
+/** The document as the database gives it back: every object's keys in an order of its own (here, reversed). */
+const reordered = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(reordered);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .reverse()
+      .map(([k, v]) => [k, reordered(v)]),
+  );
+};
+
+describe('comparing notes', () => {
+  it('ignores the order of keys, at every depth', () => {
+    const doc = docFromText('E[X] is the mean');
+    expect(JSON.stringify(reordered(doc))).not.toBe(JSON.stringify(doc));
+    expect(stableJson(reordered(doc))).toBe(stableJson(doc));
+    expect(sameJson(reordered(doc), doc)).toBe(true);
+    expect(sameJson({ a: 1, b: [1, { c: 2, d: 3 }] }, { b: [1, { d: 3, c: 2 }], a: 1 })).toBe(true);
+    expect(sameJson({ a: [1, 2] }, { a: [2, 1] })).toBe(false); // the order of a list is what it says
+  });
+
+  it('takes the server’s note, keys in its own order, as the same as the copy here', () => {
+    const server = sampleNote({ doc: reordered(docFromText('E[X] is the mean')) as Note['doc'] });
+    expect(sameDoc(docOf(server), sampleDoc())).toBe(true);
+    // a copy here written over an older version that says what the server says: no choice to make
+    expect(openNote(server, { doc: sampleDoc(), base: 1, at: 0 }).theirs).toBeNull();
+  });
 });
 
 describe('openNote', () => {

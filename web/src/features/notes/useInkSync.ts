@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
 import type { InkInfo, InkSheet, Note, Stroke } from '../../api/types';
 import { fetchInk, fetchNote, saveInk } from './api';
-import { openInk, readInkDraft, writeInkDraft, type InkDraft } from './draft';
+import { openInk, readInkDraft, sameJson, writeInkDraft, type InkDraft } from './draft';
 import { PAPER_BASE } from './surface/layout';
 import { RETRY_EVERY, type SaveState } from './useNoteEditor';
 
@@ -123,12 +123,14 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
         try {
           saved = await saveInk(noteId, n, { strokes: [...sent], version: versions.current.get(n) ?? 0 });
         } catch (e) {
-          if (isApiError(e) && e.code === 'ink_changed') {
+          if (!isApiError(e) || e.code !== 'ink_changed') throw e;
+          const theirs = await fetchInk(noteId, n);
+          if (!sameJson(theirs.strokes, sent)) {
             conflict.current.add(n);
             setConflicts([...conflict.current].sort((a, b) => a - b));
             continue;
           }
-          throw e;
+          saved = theirs; // the server has what was sent (a save whose answer was lost): it is this tab's own
         }
         versions.current.set(n, saved.version);
         if (strokes.current.get(n) === sent) dirty.current.delete(n);
@@ -212,6 +214,7 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
         }
         for (const n of pending) dirty.current.add(n);
         for (const n of changed) conflict.current.add(n);
+        keepCopy(); // copies here that say what the server says are no longer waiting
         if (changed.size) {
           setConflicts([...changed].sort((a, b) => a - b));
           setState('conflict');
@@ -224,7 +227,7 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
         reading.current = false;
         if (mounted.current) setLoad('failed');
       });
-  }, [note, noteId, flush, attempt]);
+  }, [note, noteId, flush, keepCopy, attempt]);
 
   useEffect(() => {
     const retry = () => {

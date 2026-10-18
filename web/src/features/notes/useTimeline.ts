@@ -27,6 +27,8 @@ export interface NoteHistory {
   record: (step: Step) => void;
   /** the text editor's last step changed the free pictures too (a picture put in line or made free) */
   withPictures: (pictures: PictureChange) => void;
+  /** nothing to undo or redo any more (another version was loaded: undo would write the old one over it) */
+  clear: () => void;
   undo: () => void;
   redo: () => void;
 }
@@ -112,12 +114,14 @@ export function useTimeline(
   );
   const undo = useCallback(() => move('undo'), [move]);
   const redo = useCallback(() => move('redo'), [move]);
+  const clear = useCallback(() => set(emptyTimeline()), [set]);
 
   return {
     canUndo: timeline.past.length > 0,
     canRedo: timeline.future.length > 0,
     record,
     withPictures: joinPictures,
+    clear,
     undo,
     redo,
   };
