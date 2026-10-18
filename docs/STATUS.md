@@ -78,11 +78,18 @@ Railway dev site (done by the lead); a "fix today's puzzle" button; Correlations
 asks about notification emails; practice scores saved to the account; To-do shows dated cards only; Site settings and
 the grade rules need no fresh code.
 
-Merged so far: `round13/quality` (CQ-47 to CQ-82; ARCHITECTURE, DEPLOYMENT and README current) and `round13/squash`
-(baseline 0033 plus 0034; zones and sittings named once; two races). Also running: `round13/repeats` (repeats, the
-sign-up email question) and `round13/fixweb` (Manage's leave guard and field errors, Home, boards, Mini Noora's chat
-switch, the first download's size, practice scores on the account). The local `dsba` database moves to 0034 when the
-tester's e2e run ends (`scripts/e2e.sh --restore` restarts the API on the main checkout, which migrates).
+Merged so far (checks green: 1,584 API and 906 web tests):
+- `round13/quality`: CQ-47 to CQ-82; ARCHITECTURE, DEPLOYMENT and README current.
+- `round13/squash`: baseline 0033 plus 0034; zones and sittings named once; two races. Its follow-ups (CQ-50, 51,
+  52, 54, 58, 63, 74) are still running on the same branch.
+- `round13/repeats`: fortnightly and monthly repeats (0036), feeds in Bahrain time, sign-up's email question.
+- `round13/dailyfix` (first part): fix today's puzzle (0035), groups of four to eight, every win scores, CQ-49, 54,
+  64, 80. It keeps going with the reviews' Daily findings.
+
+Also running: `round13/fixweb` (Manage's leave guard and field errors, Home, boards, Mini Noora's chat switch, the
+first download's size, practice scores on the account) and `round13/pictures`. Migrations taken: 0037 notebook, 0038
+practice scores, 0039 board templates; the lead chains them in merge order. The local `dsba` database moves on when
+the tester's e2e run ends (`scripts/e2e.sh --restore` restarts the API on the main checkout, which migrates).
 
 Next in the round: builders fix what the three reviews find, Daily first.
 
