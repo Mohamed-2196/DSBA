@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import unicodedata
 import uuid
 from dataclasses import dataclass
@@ -297,14 +298,20 @@ CONFUSABLES = str.maketrans(
 )
 CONFUSABLE_PAIRS = (("rn", "m"), ("cl", "d"))  # two letters that read as one
 LOOKALIKE_SCRIPTS = ("LATIN", "CYRILLIC", "GREEK")
+# What may sit between the letters of a staff word without hiding it: "A d m i n", "Ad-min", "D.S.B.A", "Mod'erator"
+WORD_BREAKS = re.compile(r"[\s.'\-]+")
+STAFF_WORDS_SPELT_OUT = tuple(word.replace(" ", "") for word in STAFF_WORDS)
+
+
+def _pairs_read_as_one(text: str) -> str:
+    for pair, single in CONFUSABLE_PAIRS:
+        text = text.replace(pair, single)
+    return text
 
 
 def skeleton(text: str) -> str:
     """`text` reduced to what it looks like: casefolded, look-alike letters mapped to Latin ones."""
-    out = text.casefold().translate(CONFUSABLES)
-    for pair, single in CONFUSABLE_PAIRS:
-        out = out.replace(pair, single)
-    return out
+    return _pairs_read_as_one(text.casefold().translate(CONFUSABLES))
 
 
 def _mixes_scripts(name: str) -> bool:
@@ -371,9 +378,15 @@ def looks(text: str) -> str:
 
 
 def reads_as_staff(text: str) -> bool:
-    """Whether `text` reads as one of STAFF_WORDS once look-alike letters are mapped (names, and roles' badges)."""
+    """Whether `text` reads as one of STAFF_WORDS once look-alike letters are mapped (names, and roles' badges):
+    anywhere in it ("Head admin", "Badminton"), or spelt out from the start of a word across spaces, dots,
+    apostrophes and hyphens ("A d m i n", "Ad-min", "D.S.B.A Team", "Student R e p"). Words that only end and begin
+    one ("Ahmad Mina", "Habib Fakhro") don't count."""
     seen = looks(text)
-    return any(word in seen for word in STAFF_WORDS)
+    if any(word in seen for word in STAFF_WORDS):
+        return True
+    words = [word for word in WORD_BREAKS.split(seen) if word]
+    return any(_pairs_read_as_one("".join(words[i:])).startswith(STAFF_WORDS_SPELT_OUT) for i in range(len(words)))
 
 
 # ── signing in ──────────────────────────────────────────────────────────────────────────────
@@ -785,6 +798,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == uid).order_by(EmailOutbox.created_at))
     ]
+    from app.services import bugs
     from app.services.board.export import board_export
 
     boards, board_labels, board_plans = board_export(db, uid)
@@ -891,6 +905,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         notifications=notifications,
         votes=votes,
         reports=reports,
+        bug_reports=bugs.export(db, uid),
         requests=requests,
         me_toos=me_toos,
         question_tags=question_tags,
@@ -942,15 +957,24 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
 
 # ── deletion ────────────────────────────────────────────────────────────────────────────────
 
+# Uploads that go with the account even when attached: forum pictures (their posts stay), the files on board cards
+# and in notebooks, and bug report screenshots
+GONE_WITH_THE_ACCOUNT = (
+    UploadPurpose.forum_image,
+    UploadPurpose.board,
+    UploadPurpose.note_file,
+    UploadPurpose.bug_screenshot,
+)
+
 
 def delete_account(db: Session, user: User, storage: Storage) -> None:
-    """Deletes the account. Files that never reached the library, forum pictures, notebook files, and files on
-    board cards go (objects first: if the bucket fails, nothing is deleted and the person can try again); pending
-    and rejected library items go; published items stay without an uploader; posts stay as 'deleted user' (the
-    foreign keys set NULL); everything personal (boards, sessions, notifications, queued emails, progress,
-    notebooks and notes, stars, votes, me-toos, reactions, follows, poll votes, the senior listing, their own
-    calendar) cascades; the sign-in codes stay, anonymised, until the sweep (the rate limits count them). The
-    last active admin can't leave (409 last_admin). The caller commits."""
+    """Deletes the account. Files that never reached the library, forum pictures, notebook files, files on board
+    cards and bug report screenshots go (objects first: if the bucket fails, nothing is deleted and the person can
+    try again); pending and rejected library items go; published items stay without an uploader; posts stay as
+    'deleted user' (the foreign keys set NULL); everything personal (boards, sessions, notifications, queued emails,
+    progress, notebooks and notes, stars, votes, me-toos, reactions, follows, poll votes, the senior listing, their
+    own calendar, the bug reports they sent) cascades; the sign-in codes stay, anonymised, until the sweep (the rate
+    limits count them). The last active admin can't leave (409 last_admin). The caller commits."""
     if access.is_admin(user):
         access.ensure_admins_remain(db, user)
     uid = user.id
@@ -969,7 +993,7 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
                     (Upload.user_id == uid)
                     & or_(
                         Upload.status != UploadStatus.attached,
-                        Upload.purpose.in_([UploadPurpose.forum_image, UploadPurpose.board, UploadPurpose.note_file]),
+                        Upload.purpose.in_(GONE_WITH_THE_ACCOUNT),
                     ),
                     Upload.storage_key.in_(item_keys) if item_keys else false(),
                 )
@@ -1011,6 +1035,9 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
         .where(PaperQuestion.id.in_(select(PaperQuestionFlag.question_id).where(PaperQuestionFlag.user_id == uid)))
         .values(flag_count=func.greatest(PaperQuestion.flag_count - 1, 0))
     )
+    from app.services import bugs
+
+    bugs.unquote(db, uid)
     # The sign-in rows stay, without the addresses, for the rate limits (student test: deleting the account and
     # signing up again must refill nothing).
     otp.anonymise(db, user)

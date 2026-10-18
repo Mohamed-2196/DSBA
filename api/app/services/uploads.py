@@ -253,8 +253,25 @@ def check_rate(db: Session, user: User) -> None:
     )
 
 
+def _check_room(db: Session, user: User, purpose: UploadPurpose, size_bytes: int) -> None:
+    """The purpose's own limits, before the file travels: at most a few of a student's files waiting for review
+    (library; create_item checks again), and the bytes their boards and notebooks hold (board, note_file). Raises
+    too_many_pending, storage_full or notes_full (409)."""
+    from app.services import library, notes  # both import this module
+    from app.services.board import files as board_files
+
+    if purpose == UploadPurpose.library:
+        library.check_pending_room(db, user)
+    elif purpose == UploadPurpose.board:
+        board_files.check_storage(db, user, size_bytes)
+    elif purpose == UploadPurpose.note_file:
+        notes.check_upload(db, user, size_bytes)
+
+
 def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage | None = None) -> PresignedUpload:
-    """The upload row (pending) and its presigned POST. The caller commits."""
+    """The upload row (pending) and its presigned POST. The rate limit and the purpose's room (_check_room()) are
+    counted under the person's upload lock, so parallel requests are counted one after the other and can't all fit
+    in the same room. The caller commits."""
     purpose = UploadPurpose(body.purpose)
     name = clean_file_name(body.file_name)
     ft = file_type_for(name, purpose)
@@ -264,7 +281,8 @@ def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage 
     if body.size_bytes > limit:
         msg = f"This file is too big: the limit is {limit // (1024 * 1024)} MB."
         raise ApiError(422, "too_large", msg, fields={"sizeBytes": msg})
-    check_rate(db, user)
+    check_rate(db, user)  # takes the lock, held until the transaction ends
+    _check_room(db, user, purpose, body.size_bytes)
 
     upload_id = uuid.uuid4()
     up = Upload(
@@ -397,17 +415,37 @@ def media_redirect_url(
     screenshot. 404 for anything else (library files never go out this way) and for a picture the viewer may not see
     (can_view_image); feature_off while the picture's feature is off for the viewer."""
     up = db.get(Upload, upload_id)
-    servable = (UploadStatus.uploaded, UploadStatus.attached)
-    if up is None or up.purpose not in IMAGE_PURPOSES or up.status not in servable:
+    if up is None or up.purpose not in IMAGE_PURPOSES or up.status not in _SERVABLE:
         raise not_found("This image doesn't exist.")
     require_features(db, viewer, up.purpose)
-    ft = file_type_for(up.file_name, up.purpose)
-    if ft is None or ft.content_type not in IMAGE_CONTENT_TYPES or up.content_type != ft.content_type:
-        raise not_found("This image doesn't exist.")
-    if not can_view_image(db, up, viewer):
+    ft = _image_type(up)
+    if ft is None or not can_view_image(db, up, viewer):
         raise not_found("This image doesn't exist.")
     st = storage or get_storage()
     return st.presigned_get(up.storage_key, file_name=up.file_name, content_type=ft.content_type, inline=True)
+
+
+_SERVABLE = (UploadStatus.uploaded, UploadStatus.attached)
+
+
+def _image_type(up: Upload) -> FileType | None:
+    """The picture's allowlisted type, or None when the upload isn't a picture as the allowlist sees it."""
+    ft = file_type_for(up.file_name, up.purpose)
+    if ft is None or ft.content_type not in IMAGE_CONTENT_TYPES or up.content_type != ft.content_type:
+        return None
+    return ft
+
+
+def shows_image(db: Session, up: Upload | None, viewer: User | None) -> bool:
+    """Whether /media would show the viewer this picture (its feature aside): it is still there, a picture, and theirs
+    to see. Lists use it so that they never point at a picture that isn't."""
+    return (
+        up is not None
+        and up.purpose in IMAGE_PURPOSES
+        and up.status in _SERVABLE
+        and _image_type(up) is not None
+        and can_view_image(db, up, viewer)
+    )
 
 
 def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:

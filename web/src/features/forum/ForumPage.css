@@ -168,7 +168,7 @@
     row-gap: var(--sp-12);
   }
   .forum-filters__sort { padding-left: 0; box-shadow: none; }
-  .forum-filters__chips { margin: -3px calc(-1 * var(--content-pad)) -3px 5px; padding-right: var(--content-pad); }
+  .forum-filters__chips { margin: -3px calc(-1 * var(--page-pad-right)) -3px 5px; padding-right: var(--page-pad-right); }
   .forum-side { grid-template-columns: minmax(0, 1fr); }
 }
 

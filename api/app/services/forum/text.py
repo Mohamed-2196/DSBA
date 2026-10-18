@@ -193,8 +193,9 @@ def allowed_image_src(src: str) -> bool:
     return MEDIA_PATH.fullmatch(src) is not None
 
 
-def first_image(src: str) -> dict[str, str] | None:
-    """The first picture in a post that the web app would show: {src, alt}, or None."""
+def pictures(src: str) -> list[dict[str, str]]:
+    """The pictures in a post that the web app would show, in order: {src, alt} each."""
+    out: list[dict[str, str]] = []
     for b in parse_blocks(src):
         if b.kind == "code":
             continue
@@ -203,10 +204,10 @@ def first_image(src: str) -> dict[str, str] | None:
             if b.kind == "image"
             else [(m.group(1), m.group(2)) for t in b.texts for m in _IMAGE.finditer(_CODE_SPAN.sub("", t))]
         )
-        for alt, image_src in found:
-            if allowed_image_src(image_src):
-                return {"src": image_src, "alt": alt.strip()[:300]}
-    return None
+        out.extend(
+            {"src": image_src, "alt": alt.strip()[:300]} for alt, image_src in found if allowed_image_src(image_src)
+        )
+    return out
 
 
 def media_ids(text: str) -> list[uuid.UUID]:

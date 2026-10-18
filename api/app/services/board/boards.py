@@ -10,12 +10,22 @@ from __future__ import annotations
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, Text, cast, func, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import conflict, invalid, not_found
 from app.core.time import utcnow
-from app.models import Board, BoardCard, BoardColumn, BoardLabel, Upload, UploadPurpose, UploadStatus, User
+from app.models import (
+    Board,
+    BoardCard,
+    BoardColumn,
+    BoardComment,
+    BoardLabel,
+    Upload,
+    UploadPurpose,
+    UploadStatus,
+    User,
+)
 from app.schemas.board import (
     AfterId,
     BoardCreate,
@@ -36,6 +46,7 @@ from app.services.board.common import (
     MAX_BOARDS,
     MAX_COLUMNS,
     MAX_LABELS,
+    MAX_TEXT_BYTES,
     cards_in,
     columns_of,
     end_position,
@@ -123,6 +134,42 @@ def storage_used(db: Session, user_id: uuid.UUID) -> int:
         (Upload.status != UploadStatus.attached) | Upload.card_id.is_not(None),
     )
     return int(db.scalar(q) or 0)
+
+
+def text_used(db: Session, user_id: uuid.UUID) -> int:
+    """The bytes of text on the student's cards, as stored: titles, descriptions, checklists and comments."""
+    on_cards = select(
+        func.coalesce(
+            func.sum(
+                func.octet_length(BoardCard.title)
+                + func.coalesce(func.octet_length(BoardCard.description), 0)
+                + func.octet_length(cast(BoardCard.checklist, Text))
+            ),
+            0,
+        )
+    ).where(BoardCard.user_id == user_id)
+    in_comments = (
+        select(func.coalesce(func.sum(func.octet_length(BoardComment.body)), 0))
+        .join(BoardCard, BoardCard.id == BoardComment.card_id)
+        .where(BoardCard.user_id == user_id)
+    )
+    return int(db.scalar(on_cards) or 0) + int(db.scalar(in_comments) or 0)
+
+
+def check_text(db: Session, user: User, more: int) -> None:
+    """409 board_full when `more` bytes of text would take the student's cards past MAX_TEXT_BYTES; called before the
+    change is made. Holds the student's board text lock until the transaction ends, so parallel saves count one after
+    the other. A change that adds nothing (`more` <= 0) always passes."""
+    if more <= 0:
+        return
+    ratelimit.lock(db, f"board-text:{user.id}")
+    if text_used(db, user.id) + more > MAX_TEXT_BYTES:
+        mb = MAX_TEXT_BYTES // (1024 * 1024)
+        raise conflict(
+            "board_full",
+            f"Your boards hold as much text as they can ({mb} MB). "
+            "Delete cards or comments you no longer need, then try again.",
+        )
 
 
 def active_boards(db: Session, user_id: uuid.UUID) -> list[Board]:

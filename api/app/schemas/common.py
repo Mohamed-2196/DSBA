@@ -92,7 +92,7 @@ ErrorCode = Literal[
     "poll_closed",  # 409: the poll takes no more votes
     "poll_has_votes",  # 409: a poll's answers can't change once it has votes
     "unsupported_type",  # 422: a file type the library or the forum doesn't take
-    "too_large",  # 422
+    "too_large",  # 422 (an upload), 413 (a request body refused unread: core/limits.py)
     "not_uploaded",  # 409: the file never reached the bucket
     "mismatch",  # 422: the file isn't what its name says
     "no_preview",  # 404/409: this file has no preview
@@ -129,7 +129,7 @@ ErrorCode = Literal[
     "too_many_notebooks",  # 409: the most notebooks one student may keep
     "notes_full",  # 409: the student's notebooks hold as much text, ink and files as they may
     # boards
-    "board_full",  # 409: the student's boards hold as many cards as they may
+    "board_full",  # 409: the student's boards hold as many cards, or as much text, as they may
     "boards_full",  # 409: the student has as many boards as they may
     "storage_full",  # 409: the files on the student's cards take as much room as they may
     "limit_reached",  # 409: a board's columns, a card's files or comments, or the labels are at their limit
@@ -145,7 +145,9 @@ ErrorCode = Literal[
     "unknown_word",  # 422: a guess the game doesn't know as a word
     "already_tried",  # 409: the same guess (word, group or line) again
     "game_over",  # 409: the play is finished: no more moves
-    "not_out_yet",  # 404: a day whose puzzles aren't out yet, or before the first one
+    "not_out_yet",  # 404: a day whose puzzles aren't out yet, before the first one, or a game its theme can't make
+    "puzzle_changed",  # 409: another editor saved this puzzle content since it was loaded: load it again
+    "theme_not_ready",  # 409: the change would leave a theme that runs without enough puzzles for a game
 ]
 
 

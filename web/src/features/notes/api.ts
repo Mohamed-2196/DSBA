@@ -6,8 +6,9 @@
 //   GET    /api/v1/notes                     your notes, last edited first: ?q, ?notebook_id, ?module_id, ?lesson_id
 //   POST   /api/v1/notes                     a new note (in a notebook, a module's notebook, or your own)
 //   POST   /api/v1/notes/annotate            your note written over a library PDF (made, or the one you have)
-//   GET    /api/v1/notes/{id}                one note: its text, ink per sheet, and the PDF it is written over
+//   GET    /api/v1/notes/{id}                one note: its text, the PDF it is written over, the sheets with ink
 //   PUT    /api/v1/notes/{id}                save its text and settings, with the version loaded (409 note_changed)
+//   GET    /api/v1/notes/{id}/ink/{sheet}    one sheet's ink
 //   PUT    /api/v1/notes/{id}/ink/{sheet}    save one sheet's ink, with its version (409 ink_changed)
 //   DELETE /api/v1/notes/{id}
 //   GET    /api/v1/notes/files/{uploadId}    one of your note's pictures or files (a redirect; ?download=true)
@@ -77,6 +78,8 @@ export function useLessonNotes(moduleId: string, lessonId: string, { enabled = t
 export const fetchNote = (id: string): Promise<Note> => call(api.GET('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
 export const createNote = (body: NoteCreate): Promise<Note> => call(api.POST('/api/v1/notes', { body }));
 export const saveNote = (id: string, body: NoteUpdate): Promise<Note> => call(api.PUT('/api/v1/notes/{note_id}', { params: { path: { note_id: id } }, body }));
+export const fetchInk = (id: string, sheet: number): Promise<InkSheet> =>
+  call(api.GET('/api/v1/notes/{note_id}/ink/{sheet}', { params: { path: { note_id: id, sheet } } }));
 export const saveInk = (id: string, sheet: number, body: InkSave): Promise<InkSheet> =>
   call(api.PUT('/api/v1/notes/{note_id}/ink/{sheet}', { params: { path: { note_id: id, sheet } }, body }));
 
@@ -115,10 +118,12 @@ export function useAnnotate() {
   });
 }
 
+export const deleteNote = (id: string): Promise<unknown> => call(api.DELETE('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
+
 export function useDeleteNote() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => call(api.DELETE('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } })),
+    mutationFn: deleteNote,
     onSuccess: (_, id) => {
       qc.removeQueries({ queryKey: noteKeys.one(id) });
       notesChanged(qc);

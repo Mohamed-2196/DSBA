@@ -9,6 +9,7 @@ import { addDaysToKey, isDayKey, todayKey, type DayKey } from '../../lib/dates';
 import { useToast } from '../../state';
 import { Button, Modal, Select, TextField, type ButtonSize } from '../../ui';
 import { useBoards, useMakePlan } from './api';
+import './BoardDialog.css';
 
 const PAPER_EVERY = [2, 3, 4, 5, 7] as const;
 

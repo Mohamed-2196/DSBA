@@ -1,7 +1,8 @@
 // The full page's starter cards, from her script (GET /mini-noora/script, edited in Manage → Mini Noora): one per kind
-// of help, so a student sees at a glance that Noora answers anything they study, not only questions about the Hub. A
-// card fills the text box with a question to finish: the part in [square brackets] is selected, so typing replaces
-// it. {module} in a card is a module of the student's year. Pure: no React.
+// of help, so a student sees at a glance that Noora answers anything they study, as well as where things are in the
+// Hub. Four or eight (the API checks), so they fill rows of four or of two. A card fills the text box with a question
+// to finish: the part in [square brackets] is selected, so typing replaces it. {module} in a card is a module of the
+// student's year. Pure: no React.
 import type { ModuleSummary, NooraStarter } from '../../../api/types';
 
 export type Starter = NooraStarter;

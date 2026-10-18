@@ -1,17 +1,28 @@
 // A note's handwriting, sheet by sheet: what is on screen, the copy on this device, and saving each changed sheet
 // with the version it was drawn over. It behaves like the text (useNoteEditor): saved a moment after the pen
 // lifts, kept on this device while offline, and a choice when a sheet was written on elsewhere since.
+//
+// The note lists the sheets that have ink; each one is read on its own (GET /notes/{id}/ink/{sheet}) when the note
+// opens. Until all of them are in (`ready`), nothing can be drawn: a stroke on a sheet not read yet would replace it.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
-import type { InkSheet, Note, Stroke } from '../../api/types';
-import { fetchNote, saveInk } from './api';
+import type { InkInfo, InkSheet, Note, Stroke } from '../../api/types';
+import { fetchInk, fetchNote, saveInk } from './api';
 import { openInk, readInkDraft, writeInkDraft, type InkDraft } from './draft';
 import { RETRY_EVERY, type SaveState } from './useNoteEditor';
 
 const SAVE_AFTER = 900;
 const NONE: readonly Stroke[] = [];
+/** Sheets read at once when the note opens. */
+const READ_AT_ONCE = 4;
+
+export type InkLoad = 'loading' | 'ready' | 'failed';
 
 export interface InkSync {
+  /** whether every sheet's ink has been read (nothing can be drawn before) */
+  load: InkLoad;
+  /** read the sheets again after a failure */
+  retryLoad: () => void;
   /** the strokes on a sheet */
   strokesOf: (sheet: number) => readonly Stroke[];
   /** bumps whenever a sheet's strokes change */
@@ -27,14 +38,27 @@ export interface InkSync {
   loadTheirs: () => void;
 }
 
+/** The sheets' ink, a few at a time. */
+async function readSheets(noteId: string, sheets: readonly InkInfo[]): Promise<InkSheet[]> {
+  const out: InkSheet[] = [];
+  for (let i = 0; i < sheets.length; i += READ_AT_ONCE) {
+    out.push(...(await Promise.all(sheets.slice(i, i + READ_AT_ONCE).map((s) => fetchInk(noteId, s.sheet)))));
+  }
+  return out;
+}
+
 export function useInkSync(noteId: string, note: Note | undefined, { readOnly }: { readOnly: boolean }): InkSync {
   const strokes = useRef(new Map<number, readonly Stroke[]>());
   const versions = useRef(new Map<number, number>());
   const dirty = useRef(new Set<number>());
   const conflict = useRef(new Set<number>());
   const opened = useRef(false);
+  const reading = useRef(false);
+  const mounted = useRef(true);
   const busy = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [load, setLoad] = useState<InkLoad>('loading');
+  const [attempt, setAttempt] = useState(0);
   const [revision, setRevision] = useState(0);
   const [state, setStateRaw] = useState<SaveState>('saved');
   const stateRef = useRef(state);
@@ -46,6 +70,13 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [conflicts, setConflicts] = useState<number[]>([]);
   const bump = () => setRevision((r) => r + 1);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const keepCopy = useCallback(() => {
     const draft: InkDraft = {};
@@ -103,24 +134,36 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
     }
   }, [noteId, readOnly, keepCopy]);
 
-  // The note arrives: its sheets, with the copy on this device on top.
+  // The note arrives: its sheets are read, then shown with the copy on this device on top.
   useEffect(() => {
-    if (opened.current || !note) return;
-    opened.current = true;
-    const { sheets, pending, changed } = openInk(note.ink, readInkDraft(noteId));
-    for (const [n, s] of sheets) {
-      strokes.current.set(n, s.strokes);
-      versions.current.set(n, s.version);
-    }
-    for (const n of pending) dirty.current.add(n);
-    for (const n of changed) conflict.current.add(n);
-    if (changed.size) {
-      setConflicts([...changed].sort((a, b) => a - b));
-      setState('conflict');
-    }
-    bump();
-    if (pending.size) void flush();
-  }, [note, noteId, flush]);
+    if (opened.current || reading.current || !note) return;
+    reading.current = true;
+    setLoad('loading');
+    readSheets(noteId, note.ink)
+      .then((sheetsRead) => {
+        reading.current = false;
+        if (!mounted.current) return;
+        opened.current = true;
+        const { sheets, pending, changed } = openInk(sheetsRead, readInkDraft(noteId));
+        for (const [n, s] of sheets) {
+          strokes.current.set(n, s.strokes);
+          versions.current.set(n, s.version);
+        }
+        for (const n of pending) dirty.current.add(n);
+        for (const n of changed) conflict.current.add(n);
+        if (changed.size) {
+          setConflicts([...changed].sort((a, b) => a - b));
+          setState('conflict');
+        }
+        setLoad('ready');
+        bump();
+        if (pending.size) void flush();
+      })
+      .catch(() => {
+        reading.current = false;
+        if (mounted.current) setLoad('failed');
+      });
+  }, [note, noteId, flush, attempt]);
 
   useEffect(() => {
     const retry = () => {
@@ -144,7 +187,7 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
 
   const setSheet = useCallback(
     (sheet: number, next: readonly Stroke[]) => {
-      if (readOnly) return;
+      if (readOnly || !opened.current) return;
       strokes.current.set(sheet, next);
       dirty.current.add(sheet);
       keepCopy();
@@ -159,19 +202,24 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
 
   const settle = useCallback(
     async (mine: boolean) => {
-      let fresh: Note;
+      const sheets = [...conflict.current];
+      let server: InkSheet[];
       try {
-        fresh = await fetchNote(noteId);
+        const fresh = await fetchNote(noteId);
+        const listed = new Map(fresh.ink.map((s) => [s.sheet, s]));
+        server = await readSheets(
+          noteId,
+          sheets.map((n) => listed.get(n) ?? { sheet: n, version: 0 }),
+        );
       } catch {
         setState('offline');
         return;
       }
-      const server = new Map(fresh.ink.map((s) => [s.sheet, s]));
-      for (const n of conflict.current) {
-        versions.current.set(n, server.get(n)?.version ?? 0);
+      for (const s of server) {
+        versions.current.set(s.sheet, s.version);
         if (!mine) {
-          strokes.current.set(n, server.get(n)?.strokes ?? NONE);
-          dirty.current.delete(n);
+          strokes.current.set(s.sheet, s.strokes);
+          dirty.current.delete(s.sheet);
         }
       }
       conflict.current.clear();
@@ -187,6 +235,8 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
   const strokesOf = useCallback((sheet: number) => strokes.current.get(sheet) ?? NONE, []);
 
   return {
+    load,
+    retryLoad: () => setAttempt((a) => a + 1),
     strokesOf,
     revision,
     state,

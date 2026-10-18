@@ -1,4 +1,4 @@
-// "Customize Home": show or hide each block and move it up or down, with buttons (no dragging needed). Every change
+// "Customise Home": show or hide each block and move it up or down, with buttons (no dragging needed). Every change
 // shows on Home at once and is saved (to the account, or this browser for a guest).
 import { ArrowDown, ArrowUp } from '@phosphor-icons/react';
 import { useRef, useState } from 'react';
@@ -32,7 +32,7 @@ export function CustomizeHome({ open, onClose, layout, tracking }: { open: boole
     <Modal
       open={open}
       onClose={onClose}
-      title="Customize Home"
+      title="Customise Home"
       description="Choose what Home shows and in what order. Some blocks appear only when they have something for you."
       size="md"
       footer={

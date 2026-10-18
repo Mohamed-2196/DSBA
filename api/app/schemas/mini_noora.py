@@ -48,7 +48,7 @@ StarterText = Annotated[str, StringConstraints(strip_whitespace=True, min_length
 # The pages her questions are offered on; 'other' is every page without questions of its own.
 NooraPage = Literal["home", "modules", "module", "library", "calendar", "forum", "notes", "grades", "other"]
 # The pictures of the starter cards.
-StarterIcon = Literal["lightbulb", "teacher", "checklist", "notepad", "exam", "briefcase", "pencil"]
+StarterIcon = Literal["lightbulb", "teacher", "checklist", "notepad", "exam", "briefcase", "pencil", "magnifier"]
 
 
 def _unique(ids: Iterable[str], what: str) -> None:
@@ -117,7 +117,7 @@ class NooraScript(ApiModel):
     file_unknown: Line  # sent a file she can't open, whose name says nothing
     welcome: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=400)]  # her full page
     page_chips: list[NooraPageChips] = Field(min_length=1, max_length=9)
-    starters: list[NooraStarter] = Field(min_length=1, max_length=9)
+    starters: list[NooraStarter] = Field(min_length=4, max_length=8)  # four or eight: whole rows of four or of two
 
     @model_validator(mode="after")
     def _consistent(self) -> NooraScript:
@@ -127,6 +127,8 @@ class NooraScript(ApiModel):
         if "other" not in pages:
             raise PydanticCustomError("other_page", "Keep the questions for every other page.")
         _unique((s.id for s in self.starters), "starter cards")
+        if len(self.starters) % 4:
+            raise PydanticCustomError("starters", "Keep four or eight starter cards, so they fill whole rows.")
         return self
 
 

@@ -1,7 +1,7 @@
 """forum categories and tags as tables; new parts of the site settings
 
 Revision ID: 0033
-Revises: 0028
+Revises: 0030
 Create Date: 2026-10-18 09:00:00
 
 The forum's categories and tags become tables that moderators edit in Manage → Forum, filled here with the ones the
@@ -23,7 +23,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0033"
-down_revision: str | None = "0028"
+down_revision: str | None = "0030"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

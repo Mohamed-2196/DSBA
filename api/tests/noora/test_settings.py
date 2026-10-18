@@ -158,6 +158,7 @@ def test_the_preview_shows_her_prompt_from_a_draft_without_saving_it(
         (lambda d: d["script"]["starters"][3].update(template="Plan [{module2}]"), "data.script.starters.3.template"),
         (lambda d: d["script"]["starters"][0].update(icon="rocket"), "data.script.starters.0.icon"),
         (lambda d: d["script"].update(starters=[]), "data.script.starters"),
+        (lambda d: d["script"].update(starters=d["script"]["starters"][:5]), "data.script"),  # a card alone in a row
         (lambda d: d["script"].update(greeting=" "), "data.script.greeting"),
     ],
 )

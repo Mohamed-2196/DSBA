@@ -10,6 +10,10 @@ export type PersonalPatch = PersonalEventUpdate;
 export type PersonalColour = PersonalEventOut['colour'];
 export type Repeat = PersonalEventOut['repeat'];
 export type Reminder = NonNullable<PersonalEventOut['remind']>;
+/** What a change or a deletion made from one day of a repeat covers: that day, it and the later ones, or all of it. */
+export type ChangeScope = 'one' | 'following' | 'all';
+/** The scopes the API's occurrence routes take ('all' is the event itself). */
+export type DayScope = Exclude<ChangeScope, 'all'>;
 export type CalendarPrefs = CalendarPrefsOut;
 
 /**
@@ -40,6 +44,8 @@ export interface EventFilters {
 
 export interface EventTypeMeta {
   label: string;
+  /** its dates together, inside a sentence ('mock exams') */
+  plural: string;
   /** The CSS token the type is drawn with. */
   token: string;
   color: string;

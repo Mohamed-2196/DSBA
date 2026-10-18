@@ -165,10 +165,14 @@ def can_edit(item: LibraryItem, user: User | None) -> bool:
 
 
 def find(db: Session, ref: str | uuid.UUID) -> LibraryItem | None:
-    """By id (the routes that act on an item), or by slug (reading one: every link uses the slug)."""
-    if isinstance(ref, uuid.UUID):
-        return db.get(LibraryItem, ref)
-    return db.scalar(select(LibraryItem).where(LibraryItem.slug == ref))
+    """By id, or by slug (every link uses the slug; reading one takes either, so an address with the id opens it
+    too)."""
+    if isinstance(ref, str):
+        try:
+            ref = uuid.UUID(ref)
+        except ValueError:
+            return db.scalar(select(LibraryItem).where(LibraryItem.slug == ref))
+    return db.get(LibraryItem, ref)
 
 
 def duplicate() -> ColumnElement[bool]:
@@ -301,13 +305,18 @@ class ListFilters:
     zone: str | None = None
 
 
+YOUR_FILES = (ItemStatus.pending, ItemStatus.published, ItemStatus.rejected)
+
+
 def _visible_statuses(user: User | None, f: ListFilters) -> list[ItemStatus]:
-    """`mine`: the person's own items in any state but removed (or the one asked for). Otherwise published only,
-    unless a library manager asks for a status (the review queue); `status` from anyone else is ignored."""
+    """`mine`: the person's own items in any state but removed, or the one asked for; removed ones only for the
+    library's managers, as can_see() has it (for anyone else, asking for them lists nothing). Otherwise published
+    only, unless a library manager asks for a status (the review queue); `status` from anyone else is ignored."""
     if f.mine:
-        if f.status is not None:
-            return [ItemStatus(f.status)]
-        return [ItemStatus.pending, ItemStatus.published, ItemStatus.rejected]
+        if f.status is None:
+            return list(YOUR_FILES)
+        asked = ItemStatus(f.status)
+        return [asked] if asked in YOUR_FILES or manages(user) else []
     if f.status is not None and manages(user):
         return [ItemStatus(f.status)]
     return [ItemStatus.published]

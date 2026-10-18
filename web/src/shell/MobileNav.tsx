@@ -4,6 +4,7 @@ import { ArrowUpRight, Bug, DotsThreeOutline, Info, UploadSimple } from '@phosph
 import { useAuth } from '../auth';
 import { BrandLogo, Divider, Drawer, cx } from '../ui';
 import { openBugReport } from '../features/bugs/public';
+import { NooraFace } from '../features/noora/public';
 import { MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
 import { usePortalLinks } from './portals';
 import { visibleNav } from './visibility';
@@ -12,7 +13,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { useStartUpload, useUploadShown } from './upload';
 import './MobileNav.css';
 
-/** Bottom tab bar (< 700px): Home, Modules, Library, Forum, More (drawer with the rest). */
+/** Bottom tab bar (< 700px): Home, Modules, Noora, Library, Forum, More (drawer with the rest). */
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -34,7 +35,8 @@ export function MobileNav() {
               <>
                 <span className="shell-tabbar__mark" aria-hidden="true" />
                 <span className="shell-tabbar__icon">
-                  {createElement(item.icon, { weight: isActive ? 'duotone' : 'regular', 'aria-hidden': true })}
+                  {/* Noora's tab shows her face: on a phone this is where Mini Noora waits. */}
+                  {item.id === 'noora' ? <NooraFace size={26} className="shell-tabbar__face" /> : createElement(item.icon, { weight: isActive ? 'duotone' : 'regular', 'aria-hidden': true })}
                   {item.isNew ? <span className="shell-tabbar__newdot" aria-hidden="true" /> : null}
                 </span>
                 <span className="shell-tabbar__label">{item.label}</span>

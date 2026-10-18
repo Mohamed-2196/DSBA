@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CalendarPlus, Copy, DownloadSimple, Key } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
-import { cohortLabel, normalizeYear, YEARS, type CohortYear } from '../../state';
-import { Button, Modal, SegmentedControl, TextField } from '../../ui';
+import { cohortLabel, normalizeYear, useToast, YEARS, type CohortYear } from '../../state';
+import { Button, ConfirmDialog, Modal, SegmentedControl, TextField } from '../../ui';
 import { useCopyLink } from '../../lib/useCopyLink';
 import { feedUrl, privateFeedUrl, usePrivateFeed } from './api';
 import type { MyCalendar } from './useMyCalendar';
@@ -28,17 +28,33 @@ type Choice = 'mine' | 'all' | `${CohortYear}`;
  */
 export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDialogProps) {
   const copyLink = useCopyLink();
+  const { push } = useToast();
   const feed = usePrivateFeed();
   const mineFirst = !!my?.signedIn;
   const initial: Choice = mineFirst ? 'mine' : year ? `${year}` : 'all';
   const [choice, setChoice] = useState<Choice>(initial);
+  /** a new link, or none: both stop the link in use, so the student confirms first */
+  const [confirming, setConfirming] = useState<'new' | 'off' | null>(null);
   useEffect(() => {
     if (open) {
       setChoice(initial);
+      setConfirming(null);
       feed.reset();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- a fresh choice each time it opens
   }, [open]);
+
+  const replaceLink = (action: 'new' | 'off') =>
+    feed.mutate(action, {
+      onSuccess: () => {
+        setConfirming(null);
+        push(
+          action === 'new'
+            ? { tone: 'success', title: 'New link made', body: 'The old one stopped working. Paste the new one into your calendar app.' }
+            : { tone: 'success', title: 'Your link is off', body: 'Calendar apps that used it stop getting your dates. You can make a new link at any time.' },
+        );
+      },
+    });
 
   const path = my?.prefs?.feedPath ?? null;
   const isMine = choice === 'mine';
@@ -116,18 +132,18 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
         )}
         {isMine && path ? (
           <div className="cal-subscribe__manage">
-            <Button size="sm" variant="ghost" loading={feed.isPending && feed.variables === 'new'} onClick={() => feed.mutate('new')}>
+            <Button size="sm" variant="ghost" onClick={() => setConfirming('new')} data-hub="calendar-feed-rotate">
               Make a new link
             </Button>
-            <Button size="sm" variant="ghost" loading={feed.isPending && feed.variables === 'off'} onClick={() => feed.mutate('off')} data-hub="calendar-feed-off">
+            <Button size="sm" variant="ghost" onClick={() => setConfirming('off')} data-hub="calendar-feed-off">
               Turn the link off
             </Button>
-            <p className="cal-subscribe__note">A new link stops the old one working, wherever you pasted it.</p>
+            <p className="cal-subscribe__note">Shared it by mistake? A new link stops the old one working, wherever you pasted it.</p>
           </div>
         ) : null}
-        {feed.isError ? (
+        {feed.isError && !confirming ? (
           <p className="cal-form__error" role="alert">
-            {errorMessage(feed.error, 'That didn’t work. Try again.')}
+            {errorMessage(feed.error, 'Your link didn’t change. Try again.')}
           </p>
         ) : null}
         <ul role="list" className="cal-subscribe__how">
@@ -143,6 +159,28 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
         </ul>
         <p className="cal-subscribe__note">Each date’s notes say whether it’s confirmed, with its time and place once they’re published.</p>
       </div>
+      <ConfirmDialog
+        open={!!confirming}
+        title={confirming === 'off' ? 'Turn your link off?' : 'Make a new link?'}
+        body={
+          <p>
+            {confirming === 'off'
+              ? 'Calendar apps that use your link stop getting your dates. You can make a new link at any time.'
+              : 'Your current link stops working. Calendar apps that use it stop updating until you paste the new one.'}
+          </p>
+        }
+        confirmLabel={confirming === 'off' ? 'Turn it off' : 'Make a new link'}
+        tone="danger"
+        busy={feed.isPending}
+        error={feed.isError ? errorMessage(feed.error, 'Your link didn’t change. Try again.') : null}
+        onConfirm={() => {
+          if (confirming) replaceLink(confirming);
+        }}
+        onClose={() => {
+          setConfirming(null);
+          feed.reset();
+        }}
+      />
     </Modal>
   );
 }

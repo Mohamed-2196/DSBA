@@ -46,6 +46,8 @@ class PersonalEvent(Base):
     colour: Mapped[str] = mapped_column(String(16), default="violet", server_default="violet")
     repeat: Mapped[str] = mapped_column(String(8), default="none", server_default="none")
     repeat_until: Mapped[dt.date | None] = mapped_column(Date)
+    # Days taken off a repeat ("delete only this one"), each one of its occurrence days.
+    skipped: Mapped[list[dt.date]] = mapped_column(ARRAY(Date), default=list, server_default="{}")
     remind: Mapped[int | None] = mapped_column(SmallInteger)  # minutes before the start
     # The start of the last occurrence a reminder went out for: one reminder per occurrence.
     reminded_for: Mapped[datetime | None] = mapped_column()

@@ -53,15 +53,33 @@ test('a student adds their own weekly event, sees it on the calendar and Home, e
   expect(theirs.body.some((e) => e.title === title)).toBe(false);
   expect((await api(ali, 'PATCH', `/api/v1/calendar/mine/events/${own?.id}`, { title: 'Mine now' })).status).toBe(404);
 
-  // edit, then delete it
+  // change only its first day: that day becomes an event of its own, and the repeat skips it
   await sara.goto(`/calendar?event=mine-${own?.id}`);
   await sara.locator('[data-hub="calendar-mine-edit"]').click();
   const edit = sara.getByRole('dialog', { name: 'Edit your event' });
+  await expect(edit.getByRole('radio', { name: /This event/ })).toBeChecked();
+  await edit.getByLabel('Starts').fill('17:00');
+  await edit.locator('[data-hub="calendar-mine-save"]').click();
+  await expect(sara.getByText('Changes saved')).toBeVisible();
+  const split = await api<(Own & { date: string; repeat: string; skipped: string[] })[]>(sara, 'GET', '/api/v1/calendar/mine/events');
+  const series = split.body.find((e) => e.id === own?.id);
+  const single = split.body.find((e) => e.title === title && e.id !== own?.id);
+  expect(series?.skipped).toEqual([inDays(1)]);
+  expect(single?.repeat).toBe('none');
+  expect(single?.date).toBe(inDays(1));
+  expect((await api(sara, 'DELETE', `/api/v1/calendar/mine/events/${single?.id}`)).status).toBe(204);
+
+  // then all of it: a new title for every repeat, and the whole repeat deleted
+  await sara.goto(`/calendar?event=mine-${own?.id}`);
+  await sara.locator('[data-hub="calendar-mine-edit"]').click();
+  await edit.getByRole('radio', { name: /All events/ }).check();
   await edit.getByLabel('Title').fill(`${title} (moved)`);
   await edit.locator('[data-hub="calendar-mine-save"]').click();
   await expect(sara.getByText('Changes saved')).toBeVisible();
   await sara.locator('[data-hub="calendar-mine-delete"]').click();
-  await sara.getByRole('button', { name: 'Delete event' }).click();
+  const confirm = sara.getByRole('dialog', { name: 'Delete a repeating event?' });
+  await confirm.getByRole('radio', { name: /All events/ }).check();
+  await confirm.getByRole('button', { name: 'Delete all events' }).click();
   await expect(sara.getByText('Event deleted')).toBeVisible();
   const after = await api<Own[]>(sara, 'GET', '/api/v1/calendar/mine/events');
   expect(after.body.some((e) => e.id === own?.id)).toBe(false);
@@ -93,7 +111,7 @@ test('the private link holds their own events; the shared feed does not; a new l
   expect(made.status).toBe(201);
   await sara.goto('/calendar');
   await sara.locator('[data-hub="calendar-subscribe-open"]').click();
-  const dialog = sara.getByRole('dialog');
+  const dialog = sara.getByRole('dialog', { name: 'Subscribe to the calendar' });
   await dialog.locator('[data-hub="calendar-feed-new"]').click();
   const link = await dialog.getByLabel('Your private calendar link').inputValue();
   expect(link).toMatch(/\/api\/v1\/feeds\/calendar\/[A-Za-z0-9_-]{43}\.ics$/);
@@ -108,10 +126,13 @@ test('the private link holds their own events; the shared feed does not; a new l
   const shared = await app.request.get(link.replace(/feeds\/calendar\/.*$/, 'calendar/feed.ics'));
   expect(await shared.text()).not.toContain(title);
 
-  await dialog.getByRole('button', { name: 'Make a new link' }).click();
+  // both ask first: the link in use stops working
+  await dialog.locator('[data-hub="calendar-feed-rotate"]').click();
+  await sara.getByRole('dialog', { name: 'Make a new link?' }).getByRole('button', { name: 'Make a new link' }).click();
   await expect(dialog.getByLabel('Your private calendar link')).not.toHaveValue(link);
   expect((await app.request.get(link)).status()).toBe(404);
   await dialog.locator('[data-hub="calendar-feed-off"]').click();
+  await sara.getByRole('dialog', { name: 'Turn your link off?' }).getByRole('button', { name: 'Turn it off' }).click();
   await expect(dialog.locator('[data-hub="calendar-feed-new"]')).toBeVisible();
   await app.close();
   expect((await api(sara, 'DELETE', `/api/v1/calendar/mine/events/${made.body.id}`)).status).toBe(204);

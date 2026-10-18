@@ -16,11 +16,17 @@ NOTEBOOK_TITLE_MAX = 120
 DOC_MAX_BYTES = 400_000  # a note's typed text as JSON: a long lecture's worth, with formulas and lists
 EXCERPT_LENGTH = 240
 MAX_SHEETS = 300  # paper sheets in one note (a PDF's pages come on top)
-# A sheet is SHEET_WIDTH units wide; paper sheets are SHEET_HEIGHT tall (A4), a PDF page keeps its own shape.
+# A sheet is SHEET_WIDTH units wide; paper sheets are SHEET_HEIGHT tall (35 ruled lines of 32 units: A4's shape, to a
+# whole line), a PDF page keeps its own shape.
 SHEET_WIDTH = 800
-SHEET_HEIGHT = 1131
-MAX_STROKES = 4000  # on one sheet
-MAX_POINTS = 6000  # in one stroke (x, y and pressure each)
+SHEET_HEIGHT = 1120
+# One sheet's ink, as JSON: a dense handwritten page is 50 to 100 KB. Every read of a sheet stays small.
+SHEET_MAX_BYTES = 512_000
+# A request to save one sheet is refused unread above this (core/limits.py): the numbers it sends may be longer than
+# the rounded ones kept.
+INK_BODY_MAX = 2 * SHEET_MAX_BYTES
+MAX_STROKES = 2000  # on one sheet
+MAX_POINTS = 4000  # in one stroke (x, y and pressure each)
 
 Paper = Literal["blank", "lined", "grid", "dotted"]
 Tool = Literal["pen", "highlighter"]
@@ -53,10 +59,13 @@ class Notebook(ApiModel):
 
 
 class StorageUse(ApiModel):
-    """What the student's notebooks hold (typed text, ink, pictures and files) against what they may hold."""
+    """What the student's notebooks hold against what they may hold: the typed text and handwriting (kept in the
+    database), and the pictures, files and PDFs (kept in file storage)."""
 
-    used_bytes: int
-    limit_bytes: int
+    writing_bytes: int
+    writing_limit_bytes: int
+    files_bytes: int
+    files_limit_bytes: int
 
 
 class NotebookList(ApiModel):
@@ -97,6 +106,13 @@ class InkSave(ApiModel):
 class InkSheet(ApiModel):
     sheet: int
     strokes: list[Stroke]
+    version: int
+
+
+class InkInfo(ApiModel):
+    """A sheet that has ink, without the ink: read it with GET /notes/{id}/ink/{sheet}."""
+
+    sheet: int
     version: int
 
 
@@ -141,10 +157,12 @@ class AnnotateRequest(ApiModel):
 
 
 class NotePdf(ApiModel):
-    """The PDF a note is written over: a library file (`libraryItemId`, read with /library/items/{id}/file) or the
-    student's own (`uploadId`, read with /notes/files/{id}). `available` is false once the file is gone."""
+    """The PDF a note is written over: a library file (`libraryItemId`, read with /library/items/{id}/file, its page
+    at /library/{slug}) or the student's own (`uploadId`, read with /notes/files/{id}). `available` is false once the
+    file is gone."""
 
     library_item_id: UUID | None
+    slug: str | None
     upload_id: UUID | None
     title: str
     available: bool
@@ -169,7 +187,7 @@ class Note(NoteSummary):
     paper: Paper
     sheets: int
     pdf: NotePdf | None
-    ink: list[InkSheet]
+    ink: list[InkInfo]  # the sheets that have ink, and their versions: each one is read on its own
 
 
 class NotePage(Page[NoteSummary]):

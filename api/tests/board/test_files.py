@@ -3,18 +3,27 @@ comments to self."""
 
 from __future__ import annotations
 
+import threading
+import time
+import uuid
 from collections.abc import Callable, Iterator
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import timedelta
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from sqlalchemy import Engine, create_engine, delete
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app import cli
+from app.core.errors import ApiError
 from app.core.time import utcnow
-from app.models import Upload, UploadStatus, User
-from app.services import accounts
+from app.models import Upload, UploadPurpose, UploadStatus, User
+from app.schemas.uploads import UploadCreate
+from app.services import accounts, uploads
 from app.services.board import common, files
 from tests.board.conftest import API, add, detail, first_board
 from tests.core.helpers import PDF, PNG, upload
@@ -49,7 +58,12 @@ def test_files_and_pictures_on_a_card(client_for: ClientFor, make_user: MakeUser
 
     shown = c.get(f"{API}/board-files/{photo}", follow_redirects=False)
     assert shown.status_code == 302
-    assert "inline" in shown.headers["location"] or "response-content-disposition=inline" in shown.headers["location"]
+    assert "response-content-disposition=inline" in shown.headers["location"]
+    pdf_link = c.get(f"{API}/board-files/{pdf}", follow_redirects=False).headers["location"]
+    assert "response-content-disposition=inline" in pdf_link
+    saved = c.get(f"{API}/board-files/{pdf}?download=true", follow_redirects=False)
+    assert saved.status_code == 302
+    assert "response-content-disposition=attachment" in saved.headers["location"]
     other = client_for(make_user(name="Omar Classmate"))
     assert other.get(f"{API}/board-files/{photo}", follow_redirects=False).status_code == 404
     assert other.post(f"{API}/board-cards/{card['id']}/attachments", json={"uploadId": pdf}).status_code == 404
@@ -178,3 +192,72 @@ def test_comments_to_self(client_for: ClientFor, make_user: MakeUser, monkeypatc
 
 def test_limits_are_shared_constants() -> None:
     assert common.MAX_STORAGE_BYTES == 200 * 1024 * 1024
+
+
+@pytest.fixture
+def own_connections(engine: Engine) -> Iterator[sessionmaker[Session]]:
+    """Sessions on connections of their own: what they commit is real, so each test cleans up after itself."""
+    separate = create_engine(engine.url.render_as_string(hide_password=False), poolclass=NullPool)
+    yield sessionmaker(bind=separate, expire_on_commit=False, autoflush=False)
+    separate.dispose()
+
+
+def test_two_uploads_at_once_cannot_both_fit_in_the_room_left(
+    own_connections: sessionmaker[Session], storage: Any
+) -> None:
+    """The room left on a student's boards is counted under their upload lock: the second of two parallel requests
+    waits for the first, then counts its file. 160 MB used, two 30 MB files, room for one."""
+    mb = 1024 * 1024
+    with own_connections() as s:
+        user = User(email=f"race-{uuid.uuid4().hex[:8]}@example.com", display_name="Race Student", year=2)
+        s.add(user)
+        s.flush()
+        s.add_all(
+            Upload(
+                user_id=user.id,
+                purpose=UploadPurpose.board,
+                storage_key=f"board/{uuid.uuid4()}/old.pdf",
+                file_name="old.pdf",
+                content_type="application/pdf",
+                size_bytes=80 * mb,
+                status=UploadStatus.uploaded,
+                created_at=utcnow() - timedelta(hours=2),  # outside the hourly limit's window
+            )
+            for _ in range(2)
+        )
+        s.commit()
+    body = UploadCreate.model_validate(
+        {"purpose": "board", "fileName": "notes.pdf", "contentType": "application/pdf", "sizeBytes": 30 * mb}
+    )
+    first_in, second_asking = threading.Event(), threading.Event()
+
+    def first() -> str:
+        with own_connections() as s:
+            uploads.create_upload(s, s.get_one(User, user.id), body, storage)
+            first_in.set()
+            assert second_asking.wait(10)
+            time.sleep(0.3)  # the second request is waiting for the lock now
+            s.commit()
+        return "ok"
+
+    def second() -> str:
+        assert first_in.wait(10)
+        with own_connections() as s:
+            person = s.get_one(User, user.id)
+            second_asking.set()
+            try:
+                uploads.create_upload(s, person, body, storage)
+            except ApiError as e:
+                return e.code
+            s.commit()
+        return "ok"
+
+    try:
+        with ThreadPoolExecutor(2) as pool:
+            done = [pool.submit(first), pool.submit(second)]
+            assert [f.result(timeout=30) for f in done] == ["ok", "storage_full"]
+    finally:
+        with own_connections() as s:
+            s.execute(delete(Upload).where(Upload.user_id == user.id))
+            s.execute(delete(User).where(User.id == user.id))
+            s.commit()

@@ -110,7 +110,8 @@ def annotate(body: AnnotateRequest, user: ActiveUser, db: DB, response: Response
 
 @router.get("/notes/{note_id}", response_model=Note)
 def get_note(note_id: UUID, user: CurrentUser, db: DB) -> Note:
-    """The note with its typed text, its ink and the PDF it is written over."""
+    """The note with its typed text, the PDF it is written over, and the sheets that have ink (each one is read with
+    GET /notes/{id}/ink/{sheet})."""
     return notes.to_out(db, notes.get_note(db, user, note_id))
 
 
@@ -130,10 +131,17 @@ def save_ink(
 ) -> InkSheet:
     """Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).
     Send the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:
-    notes_full (409), rate_limited (429)."""
+    invalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger than
+    that, refused unread), notes_full (409), rate_limited (429)."""
     out = notes.save_ink(db, user, note_id, sheet, body)
     db.commit()
     return out
+
+
+@router.get("/notes/{note_id}/ink/{sheet}", response_model=InkSheet)
+def get_ink(note_id: UUID, user: CurrentUser, db: DB, sheet: int = Path(ge=0, lt=notes.MAX_SHEET_INDEX)) -> InkSheet:
+    """One sheet's ink (the note lists the sheets that have some): an empty sheet at version 0 when it has none."""
+    return notes.get_ink(db, user, note_id, sheet)
 
 
 @router.delete("/notes/{note_id}", status_code=status.HTTP_204_NO_CONTENT)

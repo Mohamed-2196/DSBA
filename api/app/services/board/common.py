@@ -35,6 +35,7 @@ MAX_LABELS = 40
 MAX_ATTACHMENTS = 10  # per card
 MAX_COMMENTS = 100  # per card
 MAX_STORAGE_BYTES = 200 * 1024 * 1024  # the files on one student's cards
+MAX_TEXT_BYTES = 10 * 1024 * 1024  # the text on one student's cards: titles, descriptions, checklists, comments
 
 BOARD_GONE = "This board isn't there any more. Reload the page."
 COLUMN_GONE = "This column isn't on the board any more. Reload the board."

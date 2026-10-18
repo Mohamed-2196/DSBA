@@ -30,6 +30,11 @@ describe('sectionsFor', () => {
     expect(sectionsFor(holds('content.edit'), onlyOn('video_suggestions'))).toEqual(['videos', 'content', 'gaps']);
   });
 
+  it('gives content editors the Daily puzzles while Daily is on', () => {
+    expect(sectionsFor(holds('content.edit'), onlyOn('daily'))).toEqual(['content', 'daily', 'gaps']);
+    expect(groupSections(['content', 'daily'])).toEqual([{ id: 'publish', label: 'Publish', sections: ['content', 'daily'] }]);
+  });
+
   it('gives the Sunday summary to its box while it is on', () => {
     expect(sectionsFor(holds('summary.share'), onlyOn('summary'))).toEqual(['summary']);
     expect(sectionsFor(holds('summary.share'), onlyOn())).toEqual([]);

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
@@ -11,8 +12,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
-from app.models import PostStatus, User
-from tests.community.helpers import API, ids, new_reply, new_thread, set_thread
+from app.models import PostStatus, Upload, User
+from tests.community.helpers import API, ids, make_upload, new_reply, new_thread, set_thread
 
 Client = Callable[..., TestClient]
 
@@ -67,8 +68,10 @@ def test_pagination(client_for: Client, ranked: dict[str, str]) -> None:
     assert client_for().get(f"{API}/forum/threads", params={"limit": 101}).status_code == 422
 
 
-def test_summary_fields(client_for: Client, student: User, classmate: User, modules: dict[str, Any]) -> None:
-    image_id = "0b0f6c8e-8a4b-4d35-9d0e-1f2a3b4c5d6e"
+def test_summary_fields(
+    client_for: Client, student: User, classmate: User, modules: dict[str, Any], db: Session
+) -> None:
+    image_id = make_upload(db, student).id
     body = (
         "**Bold** and *italic*, a [link](https://example.com) and `code`.\n\n"
         f"![my notes](/api/v1/media/{image_id})\n\n"
@@ -86,6 +89,27 @@ def test_summary_fields(client_for: Client, student: User, classmate: User, modu
     assert "body" not in row
     mine = listing(client_for(student))["items"][0]
     assert (mine["voted"], mine["isMine"]) == (True, True)
+
+
+def test_a_list_never_points_at_a_picture_that_wont_load(
+    client_for: Client, student: User, classmate: User, moderator: User, db: Session
+) -> None:
+    """A thread's thumbnail is its first picture the reader can open: one whose upload is gone (deleted with its
+    author's account) is passed over, the next one is used, and with none left there is no thumbnail."""
+    gone_id = uuid.uuid4()
+    kept = make_upload(db, student)
+    body = f"![gone](/api/v1/media/{gone_id})\n\n![kept](/api/v1/media/{kept.id})"
+    t = new_thread(client_for(student), title="Two pictures", body=body)
+    assert t["image"] == {"src": f"/api/v1/media/{kept.id}", "alt": "kept"}
+    [row] = listing(client_for(classmate))["items"]
+    assert row["image"] == {"src": f"/api/v1/media/{kept.id}", "alt": "kept"}
+    assert client_for(classmate).get(f"{API}/forum/threads/{t['slug']}").json()["image"]["src"].endswith(str(kept.id))
+
+    db.delete(db.get(Upload, kept.id))
+    db.commit()
+    for reader in (client_for(), client_for(classmate), client_for(moderator)):
+        [row] = listing(reader)["items"]
+        assert row["image"] is None
 
 
 def test_filters(client_for: Client, student: User, classmate: User, modules: dict[str, Any]) -> None:

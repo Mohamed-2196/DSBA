@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError
@@ -141,7 +142,10 @@ def test_documents_saved_before_their_new_parts_get_them_as_they_start(scratch: 
     seed = API_ROOT / "app" / "seed" / "data"
     site, career = (json.loads((seed / f"{name}.json").read_text(encoding="utf-8")) for name in ("site", "career"))
     cfg, engine = scratch
-    command.upgrade(cfg, "0028")
+    script = ScriptDirectory.from_config(cfg).get_revision("0033")
+    assert script is not None and isinstance(script.down_revision, str)
+    before = script.down_revision  # the revision before the one that adds the parts
+    command.upgrade(cfg, before)
     saved_site = {
         k: v for k, v in site.items() if k not in ("homeBlocks", "tour", "searchNicknames", "searchSuggestions")
     }
@@ -159,7 +163,7 @@ def test_documents_saved_before_their_new_parts_get_them_as_they_start(scratch: 
         assert docs["career"] == career
         assert c.scalar(text("SELECT count(*) FROM forum_categories WHERE NOT retired")) == 5
         assert c.scalar(text("SELECT count(*) FROM forum_tags")) == 12
-    command.downgrade(cfg, "0028")
+    command.downgrade(cfg, before)
     with engine.connect() as c:
         docs = dict(c.execute(text("SELECT key, data FROM content_docs")).tuples().all())
         assert (docs["site"], docs["career"]) == (saved_site, saved_career)

@@ -1,13 +1,13 @@
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleSummary } from '../../api/types';
 import { useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { ModuleArt, ModuleIcon, cx, moduleArtSrc } from '../../ui';
+import { Button, ModuleArt, ModuleIcon, cx, moduleArtSrc } from '../../ui';
 import { useCalendarEvents } from '../calendar/public';
 import { useModuleProgress } from '../modules/public';
-import { modulesFor, usePapers } from '../papers/public';
+import { PapersDialog, modulesFor, papersNote, usePapers } from '../papers/public';
 import { dayKey, daysBetween, formatDayMonth, formatLongDay, inDays, parseDay } from '../../lib/dates';
 
 interface NextExam {
@@ -47,6 +47,7 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
         <span className="home-mods__text">
           <span className="home-mods__name">
             {hasArt && m.unitCode ? <span className="home-mods__tag u-code">{m.unitCode}</span> : null}
+            {hasArt && m.unitCode ? ' ' : null}
             {m.shortName}
           </span>
           <span className="home-mods__meta">{metaFor(m, progress.watched)}</span>
@@ -63,9 +64,26 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
   );
 }
 
+/** Under the list: which modules it shows, and a button to pick the option or electives, or to change them. */
+function ModulesNote() {
+  const { home, picks, papers } = usePapers();
+  const [open, setOpen] = useState(false);
+  const note = papersNote(home, picks, papers);
+  if (!note) return null;
+  return (
+    <div className="home-mods__note">
+      <p>{note.text}</p>
+      <Button size="sm" variant="ghost" onClick={() => setOpen(true)} aria-haspopup="dialog" data-hub="papers-open">
+        {note.action}
+      </Button>
+      <PapersDialog open={open} onClose={() => setOpen(false)} />
+    </div>
+  );
+}
+
 /** "My modules": the year's modules (your papers, once picked) as a quick list (illustration or unit code, name,
- *  progress while tracked, next exam). */
-export function YourModules({ year, today }: { year: CohortYear; today: Date }) {
+ *  progress while tracked, next exam), and, once the student has a year, what it lists and how to change it. */
+export function YourModules({ year, today, mine }: { year: CohortYear; today: Date; mine: boolean }) {
   const { modules: catalogue } = useModules();
   const { papers } = usePapers();
   const exams = useCalendarEvents({ from: dayKey(today), type: 'exam' }, { enabled: useAuth().featureOn('calendar') });
@@ -80,10 +98,13 @@ export function YourModules({ year, today }: { year: CohortYear; today: Date }) 
     .map((m, i) => ({ m, i, exam: nextExam(m.id) }))
     .sort((a, b) => (a.exam ? a.exam.days : 1e6) - (b.exam ? b.exam.days : 1e6) || a.i - b.i);
   return (
-    <ul role="list" className={cx('home-mods', `home-mods--y${year}`)} data-hub="home-modules">
-      {modules.map(({ m, exam }) => (
-        <ModuleRow key={m.id} m={m} exam={exam} />
-      ))}
-    </ul>
+    <div className={cx('home-mods', `home-mods--y${year}`)}>
+      <ul role="list" className="home-mods__list" data-hub="home-modules">
+        {modules.map(({ m, exam }) => (
+          <ModuleRow key={m.id} m={m} exam={exam} />
+        ))}
+      </ul>
+      {mine ? <ModulesNote /> : null}
+    </div>
   );
 }

@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
+import os
+import secrets
 import subprocess
 import sys
 import uuid
@@ -14,12 +17,18 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from pydantic import SecretStr
+from sqlalchemy import Engine, create_engine, delete, select, update
+from sqlalchemy import text as sql_text
+from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.cli import main as cli
+from app.config import get_settings
 from app.core.time import utcnow
-from app.models import ItemSource, ItemStatus, LibraryItem, LibraryText, Module, TextStatus
+from app.db import sessions_for
+from app.models import ItemSource, ItemStatus, LibraryItem, LibraryText, Module, Note, TextStatus, User, UserSession
 from app.services import paper_text, text_extract
 from app.services.paper_text import ReadError, read_pages
 from app.services.text_extract import MAX_CHARS
@@ -180,7 +189,7 @@ def test_the_backfill_command(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    monkeypatch.setattr("app.cli.get_sessionmaker", lambda: _sessions(db))
+    monkeypatch.setattr("app.cli.texts_worker", lambda: (_sessions(db), storage))
     assert cli(["extract-texts", "--limit", "1"]) == 0
     assert "4 file(s) to read" in capsys.readouterr().out
     assert cli(["extract-texts"]) == 0
@@ -275,3 +284,151 @@ def test_the_sweep_drops_the_text_with_the_file(read: dict[str, LibraryItem], db
     assert sweep_files(db, storage, now=utcnow() + timedelta(days=30)) >= 1
     db.commit()
     assert db.get(LibraryText, read["paper"].id, populate_existing=True) is None
+
+
+# ── what a reader and the worker can reach ───────────────────────────────────────────────────
+
+# Run in a worker process of its own, with made-up settings: a reader started as read_file() starts one (same user,
+# same environment) tries to read the worker's environment back from /proc, before the worker has read a file and
+# after.
+PEEK_FROM_A_READER = """
+import json, subprocess, sys
+from app.services import paper_text
+
+PEEK = (
+    "import os\\n"
+    "try:\\n"
+    "    print(open(f'/proc/{os.getppid()}/environ', 'rb').read().decode(errors='replace'))\\n"
+    "except OSError as e:\\n"
+    "    print(type(e).__name__)\\n"
+)
+
+
+def peek():
+    done = subprocess.run(
+        [sys.executable, "-c", PEEK], capture_output=True, timeout=30, check=True, cwd=paper_text._API_ROOT,
+        env=paper_text._child_env(), preexec_fn=paper_text._limit_memory,
+    )
+    return done.stdout.decode().strip()
+
+
+before = peek()
+try:
+    paper_text.read_pages("pdf", b"%PDF-1.4 not really")
+except paper_text.ReadError:
+    pass
+print(json.dumps({"before": before, "after": peek()}))
+"""
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="/proc is Linux's; production and CI run Linux")
+def test_a_reader_cannot_read_the_workers_settings_back_from_proc() -> None:
+    """The reader's own environment holds no setting, and it runs as the worker's user: before the worker starts one,
+    it makes itself non-dumpable, so code running in the reader can't read the worker's /proc files either (it could
+    before, which shows the check is real)."""
+    secret = "made-up-secret-key-for-the-reader-test"
+    env = {
+        "PATH": os.environ.get("PATH", ""),
+        "PYTHONPATH": paper_text._API_ROOT,
+        "DSBA_SECRET_KEY": secret,
+        "DSBA_DATABASE_URL": "postgresql+psycopg://dsba:made-up-password@db:5432/dsba",
+    }
+    done = subprocess.run(  # noqa: S603 - this interpreter, a fixed script
+        [sys.executable, "-c", PEEK_FROM_A_READER],
+        cwd=paper_text._API_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    seen = json.loads(done.stdout.strip().splitlines()[-1])
+    assert f"DSBA_SECRET_KEY={secret}" in seen["before"]
+    assert seen["after"] == "PermissionError"
+
+
+@pytest.fixture
+def owner(engine: Engine) -> Iterator[sessionmaker[Session]]:
+    """The database owner's sessions on connections of their own: what they commit is real."""
+    separate = create_engine(engine.url.render_as_string(hide_password=False), poolclass=NullPool)
+    yield sessions_for(separate)
+    separate.dispose()
+
+
+@pytest.mark.usefixtures("reader_here")
+def test_the_workers_database_role_reaches_only_what_the_worker_needs(
+    owner: sessionmaker[Session],
+    engine: Engine,
+    storage: Any,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`texts-role` (after every migration in production) gives the worker's role the two tables it reads and
+    writes, and nothing else: the worker reads a file as that role, and anything else is refused."""
+    role, password = f"dsba_texts_{uuid.uuid4().hex[:8]}", secrets.token_urlsafe(32)
+    monkeypatch.setattr(paper_text, "WORKER_ROLE", role)
+    monkeypatch.setattr("app.cli.get_sessionmaker", lambda: owner)
+    settings = get_settings()
+    monkeypatch.setattr(settings, "texts_db_password", None)
+    assert cli(["texts-role"]) == 1
+    assert "DSBA_TEXTS_DB_PASSWORD is not set" in capsys.readouterr().err
+    monkeypatch.setattr(settings, "texts_db_password", SecretStr("too short: and @ in a URL"))
+    assert cli(["texts-role"]) == 1
+    assert "Use 24 or more letters, digits, - and _" in capsys.readouterr().err
+
+    key, item_id = f"library/{uuid.uuid4()}/paper.pdf", uuid.uuid4()
+    storage.put_bytes(key, make_pdf(PAPER), "application/pdf")
+    as_worker = create_engine(
+        engine.url.set(username=role, password=password).render_as_string(hide_password=False), poolclass=NullPool
+    )
+    try:
+        with owner() as s:
+            s.add(
+                LibraryItem(
+                    id=item_id,
+                    slug=f"f-{item_id.hex[:8]}",
+                    source=ItemSource.file,
+                    kind="past-paper",
+                    title="A paper the worker reads",
+                    storage_key=key,
+                    file_name="paper.pdf",
+                    content_type="application/pdf",
+                    size_bytes=1,
+                    status=ItemStatus.published,
+                    published_at=utcnow(),
+                )
+            )
+            s.commit()
+        monkeypatch.setattr(settings, "texts_db_password", SecretStr(password))
+        assert cli(["texts-role"]) == 0
+        assert cli(["texts-role"]) == 0  # again, as after the next migration
+        assert f"database role {role} is set up" in capsys.readouterr().out
+
+        worker = sessions_for(as_worker)
+        paper_text.drain(worker, storage)
+        with worker() as w:
+            row = w.get(LibraryText, item_id)
+            assert row is not None
+            assert (row.status, row.cover_key) == (TextStatus.done, paper_text.cover_key(item_id))
+            assert w.scalar(select(LibraryItem.content_hash).where(LibraryItem.id == item_id)) is not None
+            assert paper_text.without_cover(w) == []
+            paper_text.forget(w, (TextStatus.failed,))
+            w.commit()
+            for elsewhere in (
+                select(User.email),
+                select(UserSession.token_hash),
+                select(Note.text),
+                update(LibraryItem).where(LibraryItem.id == item_id).values(title="Changed"),
+                delete(LibraryItem).where(LibraryItem.id == item_id),
+            ):
+                with pytest.raises(ProgrammingError, match="permission denied"):
+                    w.execute(elsewhere)
+                w.rollback()
+    finally:
+        as_worker.dispose()
+        with owner() as s:
+            s.execute(delete(LibraryText).where(LibraryText.item_id == item_id))
+            s.execute(delete(LibraryItem).where(LibraryItem.id == item_id))
+            s.execute(sql_text(f'DROP OWNED BY "{role}"'))
+            s.execute(sql_text(f'DROP ROLE IF EXISTS "{role}"'))
+            s.commit()

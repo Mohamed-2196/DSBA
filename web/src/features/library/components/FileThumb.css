@@ -112,3 +112,18 @@
 }
 
 .lib-thumb__new { position: absolute; top: -7px; left: -7px; z-index: 1; }
+/* The format of a real cover's file, where a styled cover prints it: a small dark tag in the bottom corner. */
+.lib-thumb__fmt {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, #0b1220 86%, transparent);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}

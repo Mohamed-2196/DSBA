@@ -89,6 +89,11 @@
   --content-max-wide: 1440px;
   --content-max-narrow: 760px;
   --content-pad: 40px;
+  /* The page's side padding: --content-pad, or more on a side where something floating at the page's edge needs the
+     room kept clear (Mini Noora's lane sets --page-reserve-left or --page-reserve-right: features/noora/Mascot.css).
+     Pages, the top bar and the footer pad with these, and strips that bleed to the page's edge pull back by them. */
+  --page-pad-left: max(var(--content-pad), var(--page-reserve-left, 0px));
+  --page-pad-right: max(var(--content-pad), var(--page-reserve-right, 0px));
 
   /* Layers */
   --z-sticky: 20;

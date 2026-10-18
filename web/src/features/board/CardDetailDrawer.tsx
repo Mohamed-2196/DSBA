@@ -1,655 +1,314 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  CalendarDots,
-  ChatCircleDots,
-  CheckSquare,
-  Clock,
-  DownloadSimple,
-  FileText,
-  Paperclip,
-  Plus,
-  Tag,
-  Trash,
-} from '@phosphor-icons/react';
-import { useRef, useState, type FormEvent } from 'react';
-import type { BoardCardDetail, BoardColumn, BoardLabel, BoardSummary, ChecklistItem } from '../../api/types';
-import { uploadFile, formatSize, UPLOAD_RULES, type UploadProgress } from '../../api/uploads';
-import { BREAKPOINTS, useMediaQuery, useToast } from '../../state';
-import { Badge, Button, ConfirmDialog, Drawer, IconButton, Select, Skeleton, TextArea, TextField, cx, safeInternalPath } from '../../ui';
-import {
-  useAttachFile,
-  useCardDetail,
-  useDeleteCard,
-  useDeleteComment,
-  useDetachFile,
-  useMoveCard,
-  useUpdateCard,
-  useAddComment,
-} from './api';
-import {
-  checklistProgress,
-  colorVar,
-  moveItem,
-  newItemId,
-  PRIORITIES,
-  REMINDERS,
-  type Priority,
-  type RemindBefore,
-} from './board';
+// A card opened in a drawer (a sheet from the bottom on phones), with everything about it. Each change saves as it is
+// made; the title and the description save when you leave them, and when the drawer closes.
+import { CalendarDots, Clock, Tag, Trash } from '@phosphor-icons/react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import type { BoardCard, BoardCardDetail, BoardCardUpdate, BoardLabel, BoardSummary } from '../../api/types';
+import { formatDay } from '../../lib/dates';
+import { BREAKPOINTS, useMediaQuery } from '../../state';
+import { Button, Chip, Drawer, QueryError, Select, Skeleton, TextArea, TextField, safeInternalPath } from '../../ui';
+import { MarkdownEditor } from '../forum/public';
+import { useCardDetail, useUpdateCard } from './api';
+import { colorVar, columnLabel, PRIORITIES, REMINDERS, type Priority, type RemindBefore } from './board';
+import { CardChecklist } from './CardChecklist';
+import { CardComments } from './CardComments';
+import { CardFiles } from './CardFiles';
 import './CardDetailDrawer.css';
 
 export interface CardDetailDrawerProps {
-  cardId: string | null;
-  boardId: string;
-  columns: readonly BoardColumn[];
+  cardId: string;
   boards: readonly BoardSummary[];
   labels: readonly BoardLabel[];
+  /** the account is suspended */
   readOnly: boolean;
   onClose: () => void;
+  onMoveColumn: (card: BoardCard, columnId: string) => void;
+  onMoveBoard: (card: BoardCard, boardId: string) => void;
+  onDelete: (card: BoardCard) => void;
+  onManageLabels: () => void;
 }
 
-export function CardDetailDrawer({
-  cardId,
-  boardId,
-  columns,
-  boards,
-  labels,
-  readOnly,
-  onClose,
-}: CardDetailDrawerProps) {
+export function CardDetailDrawer({ cardId, boards, labels, readOnly, onClose, onMoveColumn, onMoveBoard, onDelete, onManageLabels }: CardDetailDrawerProps) {
   const isPhone = useMediaQuery(BREAKPOINTS.mobile);
-  const detailQuery = useCardDetail(cardId, { enabled: !!cardId });
-  const card = detailQuery.data;
-
-  if (!cardId) return null;
+  const detail = useCardDetail(cardId);
+  const card = detail.data;
+  const board = card ? boards.find((b) => b.id === card.boardId) : undefined;
+  const column = card && board ? board.columns.find((c) => c.id === card.columnId) : undefined;
 
   return (
     <Drawer
-      open={!!cardId}
+      open
       onClose={onClose}
       side={isPhone ? 'bottom' : 'right'}
-      width={isPhone ? '100vw' : 560}
-      title={card ? card.title : 'Loading card…'}
+      width={600}
+      title={card ? <span className="visually-hidden">{card.title}</span> : 'Card'}
+      description={board && column ? `${board.name}${board.archived ? ' (archived)' : ''} · ${column.name}` : undefined}
       className="card-detail-drawer"
+      data-hub="board-card-drawer"
     >
-      {detailQuery.isPending || !card ? (
-        <div className="card-detail-skeleton" aria-busy="true">
-          <Skeleton height={28} width="80%" />
-          <Skeleton height={100} />
-          <Skeleton height={140} />
+      {detail.isError ? (
+        <QueryError error={detail.error} title="This card didn’t open" onRetry={() => void detail.refetch()} retrying={detail.isFetching} />
+      ) : !card || !board ? (
+        <div className="card-detail__loading" aria-busy="true">
+          <span className="visually-hidden">Loading the card</span>
+          <Skeleton height={44} />
+          <Skeleton height={88} />
+          <Skeleton height={160} />
         </div>
       ) : (
-        <CardDetailForm
+        <CardForm
           key={card.id}
           card={card}
-          boardId={boardId}
-          columns={columns}
+          board={board}
           boards={boards}
           labels={labels}
-          readOnly={readOnly}
-          onClose={onClose}
+          readOnly={readOnly || board.archived}
+          onMoveColumn={onMoveColumn}
+          onMoveBoard={onMoveBoard}
+          onDelete={onDelete}
+          onManageLabels={onManageLabels}
         />
       )}
     </Drawer>
   );
 }
 
-interface FormProps {
+interface CardFormProps {
   card: BoardCardDetail;
-  boardId: string;
-  columns: readonly BoardColumn[];
+  board: BoardSummary;
   boards: readonly BoardSummary[];
   labels: readonly BoardLabel[];
   readOnly: boolean;
-  onClose: () => void;
+  onMoveColumn: (card: BoardCard, columnId: string) => void;
+  onMoveBoard: (card: BoardCard, boardId: string) => void;
+  onDelete: (card: BoardCard) => void;
+  onManageLabels: () => void;
 }
 
-function CardDetailForm({ card, boardId, columns, boards, labels, readOnly, onClose }: FormProps) {
-  const toast = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+function CardForm({ card, board, boards, labels, readOnly, onMoveColumn, onMoveBoard, onDelete, onManageLabels }: CardFormProps) {
+  const labelsId = useId();
+  const dueId = useId();
   const update = useUpdateCard();
-  const move = useMoveCard();
-  const removeCard = useDeleteCard();
-  const attach = useAttachFile();
-  const detach = useDetachFile();
-  const addComment = useAddComment();
-  const deleteComment = useDeleteComment();
+  const save = (patch: BoardCardUpdate) => {
+    if (!readOnly) update.mutate({ id: card.id, boardId: card.boardId, patch });
+  };
 
-  // Local state for immediate edits
+  // The title and the description are drafts until they're left, or the drawer closes.
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description ?? '');
-  const [dueDate, setDueDate] = useState(card.dueDate ?? '');
-  const [dueTime, setDueTime] = useState(card.dueTime ? card.dueTime.slice(0, 5) : '');
-  const [remindBefore, setRemindBefore] = useState<RemindBefore | 'none'>(
-    card.remindBefore != null ? card.remindBefore : 'none',
-  );
-  const [priority, setPriority] = useState<Priority>(card.priority);
-  const [activeLabelIds, setActiveLabelIds] = useState<string[]>(card.labelIds ?? []);
-  const [checklist, setChecklist] = useState<ChecklistItem[]>(card.checklist ?? []);
-  const [newTodoText, setNewTodoText] = useState('');
-  const [commentText, setCommentText] = useState('');
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
-
-  // Column / Board placement
-  const handleColumnChange = (newColId: string) => {
-    move.mutate({ id: card.id, columnId: newColId, afterId: null });
+  const [titleError, setTitleError] = useState<string | undefined>();
+  const saved = useRef({ title: card.title, description: card.description ?? '' });
+  const drafts = useRef({ title, description });
+  drafts.current = { title, description };
+  const flushTitle = () => {
+    const t = drafts.current.title.trim();
+    if (!t || t === saved.current.title) return;
+    saved.current.title = t;
+    save({ title: t });
   };
-
-  const handleBoardChange = (newBoardId: string) => {
-    const targetBoard = boards.find((b) => b.id === newBoardId);
-    if (!targetBoard || !targetBoard.columns[0]) return;
-    move.mutate({ id: card.id, columnId: targetBoard.columns[0].id, afterId: null });
+  const flushDescription = () => {
+    const d = drafts.current.description.trim();
+    if (d === saved.current.description.trim()) return;
+    saved.current.description = d;
+    save({ description: d || null });
   };
-
-  // Debounced/instant patch helper
-  const savePatch = (patch: Parameters<typeof update.mutate>[0]['patch']) => {
-    if (readOnly) return;
-    update.mutate({ id: card.id, patch });
+  const flush = useRef<() => void>(() => undefined);
+  flush.current = () => {
+    flushTitle();
+    flushDescription();
   };
+  useEffect(() => () => flush.current(), []);
 
-  const handleTitleBlur = () => {
-    const t = title.trim();
-    if (t && t !== card.title) savePatch({ title: t });
-    else setTitle(card.title);
-  };
-
-  const handleDescriptionBlur = () => {
-    const d = description.trim() || null;
-    if (d !== card.description) savePatch({ description: d });
-  };
-
-  const handleDueDateChange = (newDate: string) => {
-    setDueDate(newDate);
-    savePatch({ dueDate: newDate || null });
-  };
-
-  const handleDueTimeChange = (newTime: string) => {
-    setDueTime(newTime);
-    savePatch({ dueTime: newTime ? `${newTime}:00` : null });
-  };
-
-  const handleReminderChange = (val: string) => {
-    const parsed = val === 'none' ? null : (Number(val) as RemindBefore);
-    setRemindBefore(val === 'none' ? 'none' : parsed!);
-    savePatch({ remindBefore: parsed });
-  };
-
-  const handlePriorityChange = (val: Priority) => {
-    setPriority(val);
-    savePatch({ priority: val });
-  };
-
-  const toggleLabel = (labelId: string) => {
-    const next = activeLabelIds.includes(labelId)
-      ? activeLabelIds.filter((id) => id !== labelId)
-      : [...activeLabelIds, labelId];
-    setActiveLabelIds(next);
-    savePatch({ labelIds: next });
-  };
-
-  // Checklist actions
-  const toggleChecklistItem = (itemId: string) => {
-    const next = checklist.map((item) => (item.id === itemId ? { ...item, done: !item.done } : item));
-    setChecklist(next);
-    savePatch({ checklist: next });
-  };
-
-  const removeChecklistItem = (itemId: string) => {
-    const next = checklist.filter((item) => item.id !== itemId);
-    setChecklist(next);
-    savePatch({ checklist: next });
-  };
-
-  const moveChecklistItem = (itemId: string, by: -1 | 1) => {
-    const next = moveItem(checklist, itemId, by);
-    setChecklist(next);
-    savePatch({ checklist: next });
-  };
-
-  const addChecklistItem = (e: FormEvent) => {
-    e.preventDefault();
-    const t = newTodoText.trim();
-    if (!t) return;
-    const next = [...checklist, { id: newItemId(), text: t, done: false }];
-    setChecklist(next);
-    setNewTodoText('');
-    savePatch({ checklist: next });
-  };
-
-  // File uploads
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || !files[0] || readOnly) return;
-    const file = files[0];
-    try {
-      setUploadProgress({ loaded: 0, total: file.size });
-      const out = await uploadFile('board', file, {
-        onProgress: (p) => setUploadProgress(p),
-      });
-      attach.mutate({ cardId: card.id, uploadId: out.uploadId });
-    } catch (err) {
-      toast.push({ tone: 'alert', title: 'File upload failed', body: (err as Error).message });
-    } finally {
-      setUploadProgress(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const handleSetCover = (uploadId: string | null) => {
-    savePatch({ coverId: uploadId });
-  };
-
-  // Comments
-  const handleAddComment = (e: FormEvent) => {
-    e.preventDefault();
-    const text = commentText.trim();
-    if (!text || readOnly) return;
-    addComment.mutate(
-      { cardId: card.id, body: text },
-      {
-        onSuccess: () => setCommentText(''),
-      },
-    );
-  };
-
-  const check = checklistProgress(checklist);
+  const active = boards.filter((b) => !b.archived);
+  const dueFrom = card.dueDate ? null : card.planDate ? 'plan' : card.link?.date ? 'event' : null;
+  const otherDue = dueFrom === 'plan' ? card.planDate : dueFrom === 'event' ? (card.link?.date ?? null) : null;
 
   return (
     <div className="card-detail">
-      {/* Title */}
-      <div className="card-detail__section">
-        <TextField
-          label="Title"
-          required
+      <div className="card-detail__title">
+        <TextArea
+          label="Card title"
+          hideLabel
+          rows={1}
           value={title}
-          disabled={readOnly}
-          onChange={(e) => setTitle(e.target.value)}
-          onBlur={handleTitleBlur}
           maxLength={200}
+          required
+          disabled={readOnly}
+          error={titleError}
+          onChange={(e) => {
+            // one line: a pasted line break becomes a space
+            const next = e.target.value.replace(/\s*\n\s*/g, ' ');
+            setTitle(next);
+            setTitleError(next.trim() ? undefined : 'Give the card a title.');
+          }}
+          onBlur={() => {
+            if (!title.trim()) {
+              setTitle(saved.current.title);
+              setTitleError(undefined);
+            } else flushTitle();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              flushTitle();
+            }
+          }}
+          data-hub="board-card-title"
         />
       </div>
 
-      {/* Board & Column */}
-      <div className="card-detail__row">
-        <div className="card-detail__field">
+      <div className="card-detail__grid">
+        <Select
+          label="Column"
+          value={card.columnId}
+          disabled={readOnly}
+          onChange={(e) => onMoveColumn(card, e.target.value)}
+          options={board.columns.map((c) => ({ value: c.id, label: columnLabel(c) }))}
+        />
+        <Select
+          label="Priority"
+          value={card.priority}
+          disabled={readOnly}
+          onChange={(e) => save({ priority: e.target.value as Priority })}
+          options={PRIORITIES.map((p) => ({ value: p.id, label: p.label }))}
+        />
+        {active.length > 1 && !board.archived ? (
           <Select
             label="Board"
-            disabled={readOnly || boards.length <= 1}
-            value={boardId}
-            onChange={(e) => handleBoardChange(e.target.value)}
-            options={boards.filter((b) => !b.archived).map((b) => ({
-              value: b.id,
-              label: `${b.emoji ? `${b.emoji} ` : ''}${b.name}`,
-            }))}
-          />
-        </div>
-        <div className="card-detail__field">
-          <Select
-            label="Column"
+            className="card-detail__wide"
+            value={card.boardId}
             disabled={readOnly}
-            value={card.columnId}
-            onChange={(e) => handleColumnChange(e.target.value)}
-            options={columns.map((c) => ({
-              value: c.id,
-              label: `${c.name}${c.done ? ' (Done)' : ''}`,
-            }))}
+            hint="Moving it to another board puts it in that board’s first column."
+            onChange={(e) => onMoveBoard(card, e.target.value)}
+            options={active.map((b) => ({ value: b.id, label: b.name }))}
           />
-        </div>
+        ) : null}
       </div>
 
-      {/* Priority & Labels */}
-      <div className="card-detail__row">
-        <div className="card-detail__field">
-          <Select
-            label="Priority"
-            disabled={readOnly}
-            value={priority}
-            onChange={(e) => handlePriorityChange(e.target.value as Priority)}
-            options={PRIORITIES.map((p) => ({ value: p.id, label: p.label }))}
-          />
+      <section className="card-detail__section" aria-labelledby={labelsId}>
+        <div className="card-detail__section-head">
+          <h3 className="card-detail__h" id={labelsId}>
+            <Tag aria-hidden="true" />
+            Labels
+          </h3>
+          {readOnly ? null : (
+            <Button size="sm" variant="ghost" onClick={onManageLabels}>
+              {labels.length ? 'Edit labels' : 'Make labels'}
+            </Button>
+          )}
         </div>
-      </div>
-
-      {/* Labels Tags */}
-      {labels.length > 0 ? (
-        <div className="card-detail__section">
-          <span className="card-detail__subheading">
-            <Tag aria-hidden="true" /> Labels
-          </span>
-          <div className="card-detail__label-chips">
+        {labels.length ? (
+          <div className="card-detail__chips" role="group" aria-labelledby={labelsId}>
             {labels.map((l) => {
-              const active = activeLabelIds.includes(l.id);
+              const on = card.labelIds.includes(l.id);
               return (
-                <button
-                  type="button"
+                <Chip
                   key={l.id}
+                  size="sm"
+                  selected={on}
+                  color={colorVar(l.color)}
                   disabled={readOnly}
-                  className={cx('card-detail__label-chip', active && 'is-active')}
-                  style={{
-                    borderColor: colorVar(l.color),
-                    color: active ? '#fff' : colorVar(l.color),
-                    backgroundColor: active ? colorVar(l.color) : 'transparent',
-                  }}
-                  onClick={() => toggleLabel(l.id)}
+                  onChange={() => save({ labelIds: on ? card.labelIds.filter((id) => id !== l.id) : [...card.labelIds, l.id] })}
                 >
-                  <span className="card-detail__chip-dot" style={{ backgroundColor: colorVar(l.color) }} aria-hidden="true" />
                   {l.name}
-                </button>
+                </Chip>
               );
             })}
           </div>
-        </div>
-      ) : null}
+        ) : (
+          <p className="card-detail__none">Labels sort cards across your boards, like Urgent or Reading.</p>
+        )}
+      </section>
 
-      {/* Dates, times & reminders */}
-      <div className="card-detail__section">
-        <span className="card-detail__subheading">
-          <Clock aria-hidden="true" /> Due date & reminder
-        </span>
-        <div className="card-detail__row">
+      <section className="card-detail__section" aria-labelledby={dueId}>
+        <h3 className="card-detail__h" id={dueId}>
+          <Clock aria-hidden="true" />
+          Due
+        </h3>
+        <div className="card-detail__grid card-detail__grid--due">
           <TextField
             label="Date"
             type="date"
-            value={dueDate}
+            min="2000-01-01"
+            max="2100-12-31"
+            value={card.dueDate ?? ''}
             disabled={readOnly}
-            onChange={(e) => handleDueDateChange(e.target.value)}
+            onChange={(e) => save({ dueDate: e.target.value || null })}
           />
           <TextField
-            label="Time"
+            label="Time (Bahrain)"
             type="time"
-            value={dueTime}
-            disabled={readOnly}
-            onChange={(e) => handleDueTimeChange(e.target.value)}
-            hint="Bahrain time"
+            value={card.dueTime ? card.dueTime.slice(0, 5) : ''}
+            disabled={readOnly || !card.dueDate}
+            onChange={(e) => save({ dueTime: e.target.value ? `${e.target.value}:00` : null })}
           />
           <Select
             label="Reminder"
-            disabled={readOnly}
-            value={String(remindBefore)}
-            onChange={(e) => handleReminderChange(e.target.value)}
-            options={[
-              { value: 'none', label: 'No reminder' },
-              ...REMINDERS.map((r) => ({ value: String(r.id), label: r.label })),
-            ]}
+            value={card.dueDate && card.remindBefore != null ? String(card.remindBefore) : 'none'}
+            disabled={readOnly || !card.dueDate}
+            onChange={(e) => save({ remindBefore: e.target.value === 'none' ? null : (Number(e.target.value) as RemindBefore) })}
+            options={[{ value: 'none', label: card.dueDate ? 'No reminder' : 'Set a date first' }, ...REMINDERS.map((r) => ({ value: String(r.id), label: r.label }))]}
           />
         </div>
-      </div>
-
-      {/* Description */}
-      <div className="card-detail__section">
-        <TextArea
-          label="Description"
-          rows={4}
-          value={description}
-          disabled={readOnly}
-          onChange={(e) => setDescription(e.target.value)}
-          onBlur={handleDescriptionBlur}
-          placeholder="Notes, links, details (supports Markdown)…"
-        />
-      </div>
-
-      {/* Checklist */}
-      <div className="card-detail__section">
-        <div className="card-detail__section-header">
-          <span className="card-detail__subheading">
-            <CheckSquare aria-hidden="true" /> Checklist {checklist.length ? `(${check.done}/${check.total})` : ''}
-          </span>
-        </div>
-
-        {checklist.length ? (
-          <ul role="list" className="card-detail__checklist">
-            {checklist.map((item, idx) => (
-              <li key={item.id} className={cx('card-detail__checklist-item', item.done && 'is-done')}>
-                <input
-                  type="checkbox"
-                  id={`chk-${item.id}`}
-                  checked={item.done}
-                  disabled={readOnly}
-                  onChange={() => toggleChecklistItem(item.id)}
-                  className="card-detail__checkbox"
-                />
-                <label htmlFor={`chk-${item.id}`} className="card-detail__item-text">
-                  {item.text}
-                </label>
-                {readOnly ? null : (
-                  <div className="card-detail__item-actions">
-                    <IconButton
-                      label="Move up"
-                      icon={ArrowUp}
-                      size="sm"
-                      disabled={idx === 0}
-                      onClick={() => moveChecklistItem(item.id, -1)}
-                    />
-                    <IconButton
-                      label="Move down"
-                      icon={ArrowDown}
-                      size="sm"
-                      disabled={idx === checklist.length - 1}
-                      onClick={() => moveChecklistItem(item.id, 1)}
-                    />
-                    <IconButton
-                      label="Remove"
-                      icon={Trash}
-                      size="sm"
-                      onClick={() => removeChecklistItem(item.id)}
-                    />
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
+        {otherDue ? (
+          <p className="card-detail__note">
+            {dueFrom === 'plan' ? 'Your revision plan puts it on' : 'It’s due with its calendar date,'}{' '}
+            {formatDay(otherDue, { weekday: 'short', month: 'short', year: false })}. A date here comes first.
+          </p>
+        ) : card.dueDate && card.remindBefore != null ? (
+          <p className="card-detail__note">The reminder comes as a notification{card.dueTime ? '' : ', at 09:00 when there’s no time'}.</p>
         ) : null}
+      </section>
 
+      <MarkdownEditor
+        label="Description"
+        value={description}
+        onChange={setDescription}
+        rows={5}
+        tools="basic"
+        placeholder={readOnly ? '' : 'Notes, steps, links'}
+        textareaProps={{ maxLength: 10000, disabled: readOnly, onBlur: flushDescription }}
+        className="card-detail__description"
+      />
+
+      <CardChecklist items={card.checklist} readOnly={readOnly} onChange={(checklist) => save({ checklist })} />
+
+      <CardFiles card={card} readOnly={readOnly} />
+
+      {card.link ? <LinkedItem card={card} /> : null}
+
+      <CardComments card={card} readOnly={readOnly} />
+
+      <footer className="card-detail__foot">
+        <span className="card-detail__added">Added {formatDay(new Date(card.createdAt), { month: 'short' })}</span>
         {readOnly ? null : (
-          <form className="card-detail__add-todo" onSubmit={addChecklistItem}>
-            <TextField
-              label="Add to-do item"
-              hideLabel
-              value={newTodoText}
-              onChange={(e) => setNewTodoText(e.target.value)}
-              placeholder="Add an item…"
-            />
-            <Button size="sm" type="submit" disabled={!newTodoText.trim()}>
-              Add
-            </Button>
-          </form>
-        )}
-      </div>
-
-      {/* Attachments */}
-      <div className="card-detail__section">
-        <div className="card-detail__section-header">
-          <span className="card-detail__subheading">
-            <Paperclip aria-hidden="true" /> Attachments ({card.attachments?.length ?? 0})
-          </span>
-          {readOnly ? null : (
-            <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="visually-hidden"
-                accept={UPLOAD_RULES.board.accept}
-                onChange={handleFileSelect}
-              />
-              <Button
-                size="sm"
-                variant="ghost"
-                leadingIcon={Plus}
-                loading={!!uploadProgress}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Upload file
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {uploadProgress ? (
-          <div className="card-detail__progress">
-            <span>Uploading… {formatSize(uploadProgress.loaded)} of {formatSize(uploadProgress.total)}</span>
-          </div>
-        ) : null}
-
-        {card.attachments?.length ? (
-          <ul role="list" className="card-detail__attachments">
-            {card.attachments.map((att) => {
-              const isCover = card.coverUrl === att.url;
-              return (
-                <li key={att.id} className="card-detail__attachment-item">
-                  {att.image ? (
-                    <div className="card-detail__att-thumb">
-                      <img src={att.url} alt="" loading="lazy" />
-                    </div>
-                  ) : (
-                    <div className="card-detail__att-icon">
-                      <FileText aria-hidden="true" />
-                    </div>
-                  )}
-                  <div className="card-detail__att-info">
-                    <a
-                      href={att.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="card-detail__att-name"
-                    >
-                      {att.fileName}
-                    </a>
-                    <span className="card-detail__att-meta">
-                      {formatSize(att.sizeBytes)}
-                      {isCover ? <Badge tone="signal" size="sm">Cover</Badge> : null}
-                    </span>
-                  </div>
-                  <div className="card-detail__att-actions">
-                    {att.image && !readOnly ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleSetCover(isCover ? null : att.id)}
-                      >
-                        {isCover ? 'Remove cover' : 'Set as cover'}
-                      </Button>
-                    ) : null}
-                    <a
-                      href={att.url}
-                      download={att.fileName}
-                      className="card-detail__download-btn"
-                      title="Download file"
-                    >
-                      <DownloadSimple aria-hidden="true" />
-                    </a>
-                    {readOnly ? null : (
-                      <IconButton
-                        label="Delete attachment"
-                        icon={Trash}
-                        size="sm"
-                        onClick={() => detach.mutate({ cardId: card.id, uploadId: att.id })}
-                      />
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </div>
-
-      {/* Linked Hub Item */}
-      {card.link ? (
-        <div className="card-detail__section">
-          <span className="card-detail__subheading">
-            <CalendarDots aria-hidden="true" /> Linked hub item
-          </span>
-          <div className="card-detail__link-box">
-            <strong>{card.link.title ?? 'Linked item'}</strong>
-            {card.link.url ? (
-              <a href={safeInternalPath(card.link.url) ?? undefined} className="card-detail__open-link">
-                View in hub →
-              </a>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-
-      {/* Comments to self */}
-      <div className="card-detail__section">
-        <div className="card-detail__section-header">
-          <span className="card-detail__subheading">
-            <ChatCircleDots aria-hidden="true" /> Comments to self ({card.comments?.length ?? 0})
-          </span>
-        </div>
-
-        {card.comments?.length ? (
-          <ul role="list" className="card-detail__comments">
-            {card.comments.map((comm) => (
-              <li key={comm.id} className="card-detail__comment-item">
-                <div className="card-detail__comment-bubble">
-                  <p className="card-detail__comment-text">{comm.body}</p>
-                  <span className="card-detail__comment-date">
-                    {new Date(comm.createdAt).toLocaleString()}
-                  </span>
-                </div>
-                {readOnly ? null : (
-                  <IconButton
-                    label="Delete comment"
-                    icon={Trash}
-                    size="sm"
-                    className="card-detail__delete-comment"
-                    onClick={() => deleteComment.mutate({ cardId: card.id, commentId: comm.id })}
-                  />
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        {readOnly ? null : (
-          <form className="card-detail__comment-form" onSubmit={handleAddComment}>
-            <TextArea
-              label="Write a comment to self"
-              hideLabel
-              rows={2}
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Write a note to yourself…"
-            />
-            <Button size="sm" type="submit" disabled={!commentText.trim()} loading={addComment.isPending}>
-              Add comment
-            </Button>
-          </form>
-        )}
-      </div>
-
-      {/* Delete Card */}
-      {readOnly ? null : (
-        <div className="card-detail__danger-zone">
-          <Button
-            variant="danger"
-            leadingIcon={Trash}
-            onClick={() => setConfirmDelete(true)}
-          >
+          <Button variant="ghost" leadingIcon={Trash} className="card-detail__delete" onClick={() => onDelete(card)} data-hub="board-card-delete">
             Delete card
           </Button>
-        </div>
-      )}
-
-      <ConfirmDialog
-        open={confirmDelete}
-        title={`Delete “${card.title}”?`}
-        body="This card, its checklist, attachments and comments will be permanently removed."
-        confirmLabel="Delete card"
-        tone="danger"
-        onConfirm={() => {
-          removeCard.mutate(card.id, {
-            onSuccess: () => {
-              onClose();
-            },
-          });
-          setConfirmDelete(false);
-        }}
-        onClose={() => setConfirmDelete(false)}
-      />
+        )}
+      </footer>
     </div>
+  );
+}
+
+function LinkedItem({ card }: { card: BoardCardDetail }) {
+  const headingId = useId();
+  const link = card.link;
+  if (!link) return null;
+  const to = link.url ? safeInternalPath(link.url) : null;
+  return (
+    <section className="card-detail__section" aria-labelledby={headingId}>
+      <h3 className="card-detail__h" id={headingId}>
+        <CalendarDots aria-hidden="true" />
+        From the hub
+      </h3>
+      {link.title && to ? (
+        <Link to={to} className="card-detail__link">
+          {link.title}
+        </Link>
+      ) : (
+        <p className="card-detail__none">What this card linked to is no longer in the hub.</p>
+      )}
+    </section>
   );
 }

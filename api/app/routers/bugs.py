@@ -21,10 +21,12 @@ Admin = Annotated[User, requires_admin()]
 @router.post("/bug-reports", response_model=BugReportCreated, status_code=status.HTTP_201_CREATED)
 def report_bug(body: BugReportCreate, request: Request, user: OptionalUser, db: DB) -> BugReportCreated:
     """Report a bug, signed in or not. A signed-in reporter may attach a screenshot: an upload of theirs with
-    purpose bug_screenshot. Every admin is told in the hub.
+    purpose bug_screenshot. Every admin is told in the hub, in one notification that counts the reports while it is
+    unread.
 
     Errors: invalid_input (422: `pageUrl` isn't a page of the hub; `screenshotUploadId` isn't your unused
-    screenshot, or you're signed out), rate_limited (429: 10 an hour, 5 an hour for guests from one network)."""
+    screenshot, or you're signed out), rate_limited (429: 10 an hour; for guests, 5 an hour from one network and 30
+    an hour from every network together)."""
     report = svc.create(db, user, body, client_ip(request))
     db.commit()
     return BugReportCreated(id=report.id)

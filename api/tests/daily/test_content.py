@@ -1,93 +1,123 @@
-"""The content in app/services/daily/data: shapes, rules, and a year of daily puzzles that all build."""
+"""Each day's puzzles: made once from the day's theme and kept, the same for everyone, and never changed by editing
+the content afterwards; the editor's preview of a day to come is what that day gets; groups take one group a level;
+the quiz shuffles its options each day and names a question's module."""
 
 from __future__ import annotations
 
 import datetime as dt
-import json
-import re
-from collections import Counter
+from collections.abc import Callable
+from typing import Any
 
+from fastapi.testclient import TestClient
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.time import bahrain_today
+from app.models import DailyItem, DailySet, DailySetItem, User
 from app.services.daily import content
 from app.services.daily.games import GAMES
-from app.services.daily.games.groups import SIZE
-from app.services.daily.games.groups import bank as groups_bank
-from app.services.daily.games.nearest import RANKS_FILE, compute_ranks
-from app.services.daily.games.quiz import bank as quiz_bank
-from app.services.daily.games.search import SIZE as GRID
-from app.services.daily.games.search import bank as search_bank
-from app.services.daily.games.word import answers, guesses
+from tests.daily.conftest import API
 
-THEMES = {t.id for t in content.themes()}
-LETTERS = re.compile(r"^[A-Z]+$")
+ClientFor = Callable[..., TestClient]
+MakeUser = Callable[..., User]
+CONTENT_GAMES = ("word", "groups", "search", "quiz", "nearest")
 
 
-def test_every_theme_has_content_for_every_game() -> None:
-    assert set(answers()) == THEMES
-    assert set(groups_bank()) == THEMES
-    assert set(search_bank()) == THEMES
-    assert set(quiz_bank()) == THEMES
-    assert set(json.loads((content.DATA / "nearest.json").read_text())["targets"]) == THEMES
+def puzzle(db: Session, game: str, day: dt.date, variant: str = "") -> Any:
+    return GAMES[game].puzzle(db, day, variant)  # type: ignore[index]
 
 
-def test_word_answers_are_five_letters_unique_and_guessable() -> None:
-    every = [w for words in answers().values() for w in words]
-    assert all(len(w) == 5 and LETTERS.match(w) for w in every)
-    assert not [w for w, n in Counter(every).items() if n > 1]
-    assert all(len(words) >= 30 for words in answers().values())
-    assert len(guesses()) > 10000
+def plan(db: Session, game: str, day: dt.date, today: dt.date) -> content.Planned:
+    return content.plan_day(db, GAMES[game], day, today)  # type: ignore[index, arg-type]
 
 
-def test_groups_hold_four_or_more_words_and_no_word_twice_in_a_theme() -> None:
-    ids = Counter(g["id"] for g in content.load("groups.json"))
-    assert max(ids.values()) == 1
-    for theme, groups in groups_bank().items():
-        assert len(groups) >= 12, theme
-        assert {g.level for g in groups} == {1, 2, 3, 4}
-        words = Counter(w for g in groups for w in g.words)
-        assert not [w for w, n in words.items() if n > 1], theme
-        assert all(len(g.words) >= SIZE and all(LETTERS.match(w) and len(w) <= 12 for w in g.words) for g in groups)
+def test_a_day_is_made_once_kept_and_the_same_for_everyone(db: Session) -> None:
+    today = bahrain_today()
+    made = {(game.id, v): game.puzzle(db, today, v) for game in GAMES.values() for v in game.variants}
+    db.commit()
+    again = {(game.id, v): game.puzzle(db, today, v) for game in GAMES.values() for v in game.variants}
+    assert again == made
+    assert db.scalar(select(func.count()).select_from(DailySet).where(DailySet.day == today)) == 8  # 5 games, 3 Sudokus
+    took = db.scalar(select(func.count()).select_from(DailySetItem).where(DailySetItem.day == today))
+    assert took == 1 + 4 + 8 + 4 + 1  # an answer, four groups, eight words, four questions, a secret word
+    theme = content.theme_of(db, today).id
+    answers = {i.data["word"] for i in db.scalars(select(DailyItem).where(DailyItem.game == "word"))}
+    assert puzzle(db, "word", today).answer in answers
+    assert db.scalar(select(DailySet.theme_id).where(DailySet.day == today, DailySet.game == "word")) == theme
 
 
-def test_search_words_fit_the_grid() -> None:
-    for theme, words in search_bank().items():
-        assert len(words) >= 16, theme
-        assert all(LETTERS.match(w) and 4 <= len(w) <= GRID for w in words)
+def test_editing_the_content_leaves_a_day_that_is_out_as_it_went_out(
+    db: Session, client_for: ClientFor, make_user: MakeUser
+) -> None:
+    today = bahrain_today()
+    c = client_for(make_user())
+    before = {game: puzzle(db, game, today) for game in CONTENT_GAMES}
+    guess = c.post(f"{API}/daily/{today}/word/moves", json={"move": {"kind": "guess", "word": "CRANE"}}).json()
+    # Every item is retired and reworded.
+    for item in db.scalars(select(DailyItem)):
+        item.retired = True
+        item.data = {**item.data, "label": "Changed", "question": "Changed?", "options": ["X", "Y"]}
+    db.commit()
+    assert {game: puzzle(db, game, today) for game in CONTENT_GAMES} == before
+    replayed = c.get(f"{API}/daily/{today}/word").json()["play"]
+    assert replayed["view"]["rows"] == guess["play"]["view"]["rows"]
+    assert plan(db, "groups", today, today).fixed
+    # A day still to come has nothing left to make it from.
+    tomorrow = today + dt.timedelta(days=1)
+    assert plan(db, "word", tomorrow, today).puzzle is None
 
 
-def test_quiz_questions_have_one_right_answer_among_their_options() -> None:
-    raw = content.load("quiz.json")
-    assert len({q["id"] for q in raw}) == len(raw)
-    for theme, questions in quiz_bank().items():
-        assert len(questions) >= 16, theme
-        for q in questions:
-            assert len(set(q.options)) == len(q.options) == 4, q.prompt
-            assert 0 <= q.answer < 4
-            assert q.explain
+def test_the_preview_of_a_day_to_come_is_what_that_day_gets(db: Session) -> None:
+    today = bahrain_today()
+    day = today + dt.timedelta(days=12)
+    previews = {g: plan(db, g, day, today) for g in CONTENT_GAMES}
+    assert not any(p.fixed for p in previews.values())
+    for n in range(13):  # the days come, one after the other
+        for g in CONTENT_GAMES:
+            puzzle(db, g, today + dt.timedelta(days=n))
+    assert {g: puzzle(db, g, day) for g in CONTENT_GAMES} == {g: p.puzzle for g, p in previews.items()}
+    assert plan(db, "quiz", day, today).fixed
 
 
-def test_nearest_vocabulary_is_consistent_and_its_ranks_are_up_to_date() -> None:
-    data = content.load("nearest.json")
-    tags = set(data["tags"])
-    for word, entry in data["words"].items():
-        assert re.match(r"^[a-z]+$", word)
-        assert set(entry["tags"]) <= tags, word
-        assert 3 <= len(entry["tags"]) <= 8, word
-        assert set(entry.get("near", [])) <= set(data["words"]), word
-    targets = [t for ts in data["targets"].values() for t in ts]
-    assert set(targets) <= set(data["words"])
-    assert len(set(targets)) == len(targets)
-    assert content.load(RANKS_FILE) == compute_ranks(data), "run: python -m app.cli daily-neighbours"
+def test_groups_take_one_group_a_level_with_sixteen_different_words(db: Session) -> None:
+    for n in range(14):
+        p = puzzle(db, "groups", content.FIRST_DAY + dt.timedelta(days=n))
+        assert [g.level for g in p.groups] == [1, 2, 3, 4]
+        assert len(set(p.order)) == 16
+        assert all(len(g.words) == 4 for g in p.groups)
 
 
-def test_a_year_of_daily_puzzles_builds(db: Session) -> None:
-    for n in range(0, 370, 5):
-        day = content.FIRST_DAY + dt.timedelta(days=n)
-        for game in GAMES.values():
-            for variant in game.variants:
-                if game.id == "sudoku" and n % 30:
-                    continue  # Sudoku is slower to make; its engine has its own tests
-                puzzle = game.puzzle(db, day, variant)
-                assert puzzle == game.puzzle(db, day, variant)
-                game.view(puzzle, game.start(puzzle), over=True)
+def test_the_quiz_shuffles_its_options_each_day_and_names_a_questions_module(db: Session) -> None:
+    for item in db.scalars(select(DailyItem).where(DailyItem.game == "quiz")):
+        item.data = {**item.data, "moduleId": "test-module-2"}
+    db.commit()
+    places = set()
+    for n in range(10):
+        questions = puzzle(db, "quiz", content.FIRST_DAY + dt.timedelta(days=n))
+        assert len(questions) == 5
+        *themed, about = questions
+        assert about.source == "Modules"
+        for q in themed:
+            assert q.source == "TS2001 Test 2"
+            assert q.options[q.answer].startswith("Right")
+            places.add(q.answer)
+    assert len(places) > 1  # the right option isn't always in the same place
+
+
+def test_two_weeks_of_puzzles_build_and_answers_run_through_before_repeating(db: Session) -> None:
+    days = [content.FIRST_DAY + dt.timedelta(days=n) for n in range(14)]
+    for day in days:
+        for g in CONTENT_GAMES:
+            game = GAMES[g]  # type: ignore[index]
+            made = game.puzzle(db, day, "")
+            game.view(made, game.start(made), over=True)
+    for theme in ("alpha", "beta"):
+        answers = [puzzle(db, "word", d).answer for d in days if content.theme_of(db, d).id == theme]
+        assert len(set(answers)) == len(answers) == 7
+
+
+def test_everyone_gets_the_same_puzzle(client_for: ClientFor, make_user: MakeUser) -> None:
+    today = bahrain_today()
+    browsers = (client_for(make_user()), client_for(make_user()), client_for())
+    grids = [c.get(f"{API}/daily/{today}/search").json()["play"]["view"]["grid"] for c in browsers]
+    assert grids[0] == grids[1] == grids[2]

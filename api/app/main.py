@@ -12,9 +12,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.core.errors import ControlCharactersMiddleware, install_error_handlers
 from app.core.headers import SecurityHeadersMiddleware
+from app.core.limits import BodyLimitMiddleware
+from app.core.logs import keep_secrets_out_of_access_log
 from app.core.security import CSRFMiddleware, ForwardedSchemeMiddleware
 from app.routers import api_router
 from app.routers.health import VERSION
+from app.schemas.notes import INK_BODY_MAX
 from app.services.storage import get_storage
 
 log = logging.getLogger("dsba")
@@ -34,6 +37,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 def create_app() -> FastAPI:
     s = get_settings()  # in production: refuses to start with unsafe settings (app.config.ConfigError)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    keep_secrets_out_of_access_log()  # the private calendar feed's secret is in its path
     # The interactive docs and the schema are for development: the web app's types come from api/openapi.json in
     # the repository, never from the running API.
     docs = not s.is_production
@@ -48,6 +52,7 @@ def create_app() -> FastAPI:
     install_error_handlers(app)
     # Each middleware wraps the ones added before it: the scheme is set first, and the security headers reach every
     # answer, CORS preflights, CSRF refusals and bad addresses included.
+    app.add_middleware(BodyLimitMiddleware, limits=[("PUT", r"/api/v1/notes/[^/]+/ink/\d+", INK_BODY_MAX)])
     app.add_middleware(ControlCharactersMiddleware)
     app.add_middleware(CSRFMiddleware)
     # Only needed when the web app is served from another origin than the API (normally both sit behind one).

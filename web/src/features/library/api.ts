@@ -135,12 +135,12 @@ export function useLibraryFacets() {
   });
 }
 
-/** One item, by its slug. */
-export function useLibraryItem(slug: string | undefined) {
+/** One item, by its slug or its id. */
+export function useLibraryItem(ref: string | undefined) {
   return useQuery({
-    queryKey: libraryKeys.item(slug ?? ''),
-    queryFn: ({ signal }) => call(api.GET('/api/v1/library/items/{slug}', { params: { path: { slug: slug ?? '' } }, signal })),
-    enabled: !!slug,
+    queryKey: libraryKeys.item(ref ?? ''),
+    queryFn: ({ signal }) => call(api.GET('/api/v1/library/items/{ref}', { params: { path: { ref: ref ?? '' } }, signal })),
+    enabled: !!ref,
   });
 }
 

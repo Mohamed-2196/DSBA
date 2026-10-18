@@ -1,5 +1,6 @@
-// /library/:fileId (an id or a slug): the file with a real preview (PDFs and images), its details, Download or
-// Open, Star, Copy link and Report. Its uploader sees its review status; moderators can review it here.
+// /library/:fileId (a slug, or an id, which gives way to the slug's address): the file with a real preview (PDFs and
+// images), its details, Download or Open, Star, Copy link and Report. Its uploader sees its review status; moderators
+// can review it here.
 import {
   ArrowSquareOut,
   CaretLeft,
@@ -14,7 +15,7 @@ import {
 } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { isApiError } from '../../api/errors';
 import { appUrl } from '../../lib/share';
 import { useCopyLink } from '../../lib/useCopyLink';
@@ -64,6 +65,7 @@ function ViewerSkeleton() {
 export default function FileViewerPage() {
   const { fileId } = useParams();
   const [params] = useSearchParams();
+  const { search, state } = useLocation();
   const item = useLibraryItem(fileId);
   const notFound = item.isError && isApiError(item.error) && (item.error.status === 404 || item.error.status === 422);
   useDocumentTitle(item.data ? item.data.title : notFound ? 'File not found' : null);
@@ -91,6 +93,8 @@ export default function FileViewerPage() {
       </Page>
     );
   }
+  // Opened by its id: the address becomes the one every link uses, its slug's.
+  if (fileId !== item.data.slug) return <Navigate to={{ pathname: `/library/${item.data.slug}`, search }} state={state} replace />;
   return <FileView key={item.data.id} item={item.data} page={pageParam(params.get('page'))} />;
 }
 

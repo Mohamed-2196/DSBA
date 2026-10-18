@@ -75,6 +75,21 @@ export function togglePick(picks: readonly string[], id: string, choice?: PaperC
   return next.filter((p) => !drop.has(p));
 }
 
+/**
+ * What Home says under a student's modules, and what its button does: their option or electives still to pick, or
+ * which modules the list shows. Null without a year of their own.
+ */
+export function papersNote(home: CohortYear | null, picks: readonly string[], papers: ReadonlySet<string> | null): { text: string; action: string } | null {
+  if (!home) return null;
+  const choice = CHOICES[home];
+  if (choice && !choice.ids.some((id) => picks.includes(id))) {
+    const what = choice.pick === 1 ? 'option' : 'electives';
+    return { text: `Pick your ${cohortLabel(home)} ${what} to list only the modules you sit.`, action: `Pick your ${what}` };
+  }
+  if (!papers) return { text: `Every ${cohortLabel(home)} module.`, action: 'Change' };
+  return { text: `The ${papers.size} ${papers.size === 1 ? 'module' : 'modules'} you sit.`, action: 'Change' };
+}
+
 /** What the button says: 'Year 2, option not picked', '5 modules', 'every Year 1 module', 'not set'. */
 export function picksSummary(home: CohortYear | null, picks: readonly string[], papers: ReadonlySet<string> | null): string {
   if (!home) return 'not set';

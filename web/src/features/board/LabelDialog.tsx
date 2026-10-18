@@ -1,10 +1,17 @@
+// The student's labels, the same on every board: make one, rename or recolour it, or delete it (it leaves every
+// card).
 import { PencilSimple, Plus, Trash } from '@phosphor-icons/react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { BoardLabel } from '../../api/types';
-import { Button, ConfirmDialog, IconButton, Modal, TextField, cx } from '../../ui';
+import { errorMessage, isApiError } from '../../api/errors';
+import { Button, ConfirmDialog, IconButton, Modal, TextField } from '../../ui';
 import { useCreateLabel, useDeleteLabel, useUpdateLabel } from './api';
-import { COLORS, colorVar, type BoardColor } from './board';
+import { colorVar, type BoardColor } from './board';
+import { ColorPicker } from './ColorPicker';
 import './LabelDialog.css';
+
+/** What went wrong with a label's name, said next to the field. */
+const nameError = (e: unknown): string => (isApiError(e) && e.fields.name ? e.fields.name : errorMessage(e));
 
 export interface LabelDialogProps {
   labels: readonly BoardLabel[];
@@ -13,53 +20,28 @@ export interface LabelDialogProps {
 
 export function LabelDialog({ labels, onClose }: LabelDialogProps) {
   const create = useCreateLabel();
-  const update = useUpdateLabel();
   const remove = useDeleteLabel();
-
-  const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState<BoardColor>('cobalt');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editColor, setEditColor] = useState<BoardColor>('cobalt');
-  const [deletingLabel, setDeletingLabel] = useState<BoardLabel | null>(null);
+  const [name, setName] = useState('');
+  const [color, setColor] = useState<BoardColor>('cobalt');
   const [error, setError] = useState<string | undefined>();
+  const [editing, setEditing] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<BoardLabel | null>(null);
 
-  const startEdit = (l: BoardLabel) => {
-    setEditingId(l.id);
-    setEditName(l.name);
-    setEditColor(l.color);
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditName('');
-  };
-
-  const saveEdit = (id: string) => {
-    const t = editName.trim();
-    if (!t) return;
-    update.mutate(
-      { id, patch: { name: t, color: editColor } },
-      {
-        onSuccess: () => cancelEdit(),
-      },
-    );
-  };
-
-  const handleCreate = (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
-    const t = newName.trim();
-    if (!t) {
+    const n = name.trim();
+    if (!n) {
       setError('Give the label a name.');
       return;
     }
-    setError(undefined);
     create.mutate(
-      { name: t, color: newColor },
+      { name: n, color },
       {
         onSuccess: () => {
-          setNewName('');
+          setName('');
+          setError(undefined);
         },
+        onError: (err) => setError(nameError(err)),
       },
     );
   };
@@ -69,115 +51,119 @@ export function LabelDialog({ labels, onClose }: LabelDialogProps) {
       open
       onClose={onClose}
       title="Labels"
-      description="Create and color labels to categorise tasks across your boards."
+      description="Labels sort cards on every board. Filter a board by them."
       size="sm"
       footer={
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="primary" onClick={onClose}>
           Done
         </Button>
       }
     >
       <div className="label-dialog">
-        {/* Existing labels */}
-        {labels.length > 0 ? (
+        {labels.length ? (
           <ul role="list" className="label-dialog__list">
-            {labels.map((l) => {
-              if (editingId === l.id) {
-                return (
-                  <li key={l.id} className="label-dialog__item is-editing">
-                    <TextField
-                      label="Label name"
-                      hideLabel
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                    />
-                    <div className="label-dialog__color-dots">
-                      {COLORS.map((c) => (
-                        <button
-                          type="button"
-                          key={c.id}
-                          className={cx('label-dialog__color-dot', editColor === c.id && 'is-selected')}
-                          style={{ backgroundColor: colorVar(c.id) }}
-                          onClick={() => setEditColor(c.id)}
-                        />
-                      ))}
-                    </div>
-                    <div className="label-dialog__edit-actions">
-                      <Button size="sm" variant="ghost" onClick={cancelEdit}>
-                        Cancel
-                      </Button>
-                      <Button size="sm" variant="primary" onClick={() => saveEdit(l.id)}>
-                        Save
-                      </Button>
-                    </div>
-                  </li>
-                );
-              }
-              return (
+            {labels.map((l) =>
+              editing === l.id ? (
+                <li key={l.id} className="label-dialog__item is-editing">
+                  <LabelEdit label={l} onDone={() => setEditing(null)} />
+                </li>
+              ) : (
                 <li key={l.id} className="label-dialog__item">
-                  <span className="label-dialog__pill" style={{ color: colorVar(l.color) }}>
-                    <span className="label-dialog__dot" style={{ backgroundColor: colorVar(l.color) }} aria-hidden="true" />
+                  <span className="label-dialog__name">
+                    <span className="label-dialog__dot" style={{ background: colorVar(l.color) }} aria-hidden="true" />
                     {l.name}
                   </span>
-                  <div className="label-dialog__actions">
-                    <IconButton label="Edit label" icon={PencilSimple} size="sm" onClick={() => startEdit(l)} />
-                    <IconButton label="Delete label" icon={Trash} size="sm" onClick={() => setDeletingLabel(l)} />
-                  </div>
+                  <IconButton label={`Edit ${l.name}`} icon={PencilSimple} size="sm" onClick={() => setEditing(l.id)} />
+                  <IconButton label={`Delete ${l.name}`} icon={Trash} size="sm" onClick={() => setDeleting(l)} />
                 </li>
-              );
-            })}
+              ),
+            )}
           </ul>
         ) : (
-          <p className="label-dialog__empty">No labels yet. Create one below.</p>
+          <p className="label-dialog__empty">No labels yet. Try Urgent, Reading or a module’s code.</p>
         )}
 
-        {/* Add new label form */}
-        <form className="label-dialog__create-form" onSubmit={handleCreate}>
-          <span className="label-dialog__create-title">New label</span>
+        <form className="label-dialog__new" onSubmit={submit} noValidate>
           <TextField
-            label="Label name"
-            required
-            value={newName}
-            maxLength={32}
+            label="New label"
+            value={name}
+            maxLength={30}
             error={error}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="e.g. Urgent, Reading, Project"
+            placeholder="Urgent"
+            onChange={(e) => {
+              setName(e.target.value);
+              if (error) setError(undefined);
+            }}
+            data-autofocus
           />
-          <div className="label-dialog__color-row">
-            {COLORS.map((c) => (
-              <button
-                type="button"
-                key={c.id}
-                className={cx('label-dialog__color-dot', newColor === c.id && 'is-selected')}
-                style={{ backgroundColor: colorVar(c.id) }}
-                onClick={() => setNewColor(c.id)}
-              />
-            ))}
-          </div>
-          <Button
-            size="sm"
-            type="submit"
-            leadingIcon={Plus}
-            disabled={!newName.trim()}
-            loading={create.isPending}
-          >
+          <ColorPicker legend="Its colour" value={color} onChange={setColor} />
+          <Button type="submit" leadingIcon={Plus} loading={create.isPending} disabled={!name.trim()}>
             Add label
           </Button>
         </form>
       </div>
 
       <ConfirmDialog
-        open={!!deletingLabel}
-        title={deletingLabel ? `Delete label “${deletingLabel.name}”?` : ''}
-        body="This will remove the label from all cards across your boards."
+        open={!!deleting}
+        title={deleting ? `Delete the ${deleting.name} label?` : ''}
+        body="It comes off every card on every board. The cards stay."
         confirmLabel="Delete label"
         tone="danger"
         onConfirm={() => {
-          if (deletingLabel) remove.mutate(deletingLabel.id);
-          setDeletingLabel(null);
+          if (deleting) remove.mutate(deleting.id);
+          setDeleting(null);
         }}
-        onClose={() => setDeletingLabel(null)}
+        onClose={() => setDeleting(null)}
       />
     </Modal>
+  );
+}
+
+function LabelEdit({ label, onDone }: { label: BoardLabel; onDone: () => void }) {
+  const update = useUpdateLabel();
+  const [name, setName] = useState(label.name);
+  const [color, setColor] = useState<BoardColor>(label.color);
+  const [error, setError] = useState<string | undefined>();
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => inputRef.current?.focus(), []);
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const n = name.trim();
+    if (!n) {
+      setError('Give the label a name.');
+      return;
+    }
+    update.mutate({ id: label.id, patch: { name: n, color } }, { onSuccess: onDone, onError: (err) => setError(nameError(err)) });
+  };
+  return (
+    <form className="label-dialog__edit" onSubmit={submit} noValidate>
+      <TextField
+        ref={inputRef}
+        label={`Rename ${label.name}`}
+        hideLabel
+        value={name}
+        maxLength={30}
+        error={error}
+        onChange={(e) => {
+          setName(e.target.value);
+          if (error) setError(undefined);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.stopPropagation();
+            onDone();
+          }
+        }}
+      />
+      <ColorPicker legend={`Colour of ${label.name}`} hideLegend value={color} onChange={setColor} />
+      <div className="label-dialog__edit-actions">
+        <Button size="sm" variant="ghost" onClick={onDone}>
+          Cancel
+        </Button>
+        <Button size="sm" variant="primary" type="submit" loading={update.isPending}>
+          Save
+        </Button>
+      </div>
+    </form>
   );
 }

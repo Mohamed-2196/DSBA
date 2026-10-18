@@ -8,6 +8,7 @@ from pydantic import Field, StringConstraints, WithJsonSchema
 
 from app.schemas.access import BoxKey, FeatureKey, RoleSummary
 from app.schemas.board import BoardLinkType, ChecklistItem, Priority
+from app.schemas.bugs import ExportBugReport
 from app.schemas.calendar import EventType, PersonalEventOut
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
 from app.schemas.forum import FollowLevel
@@ -462,6 +463,7 @@ class AccountExport(ApiModel):
     notifications: list[ExportNotification]
     votes: list[ExportVote]  # forum upvotes
     reports: list[ExportReport]  # reports this person filed
+    bug_reports: list[ExportBugReport]  # bug reports this person sent
     requests: list[ExportRequest]  # requests this person made
     me_toos: list[UUID]  # requests this person said "me too" to
     question_tags: list[ExportQuestionTag]  # past papers' questions this person tagged with a chapter

@@ -1,6 +1,7 @@
 // The full page before anything is asked: Noora greets the student by name and shows, with one card per kind of
 // help, that she answers anything they study. A card fills the box with a question to finish (starters.ts).
 import { SignIn } from '@phosphor-icons/react';
+import { useMediaQuery } from '../../../state';
 import { Button } from '../../../ui';
 import { Face } from '../Face';
 import { STARTER_ICONS } from './starterIcons';
@@ -19,10 +20,14 @@ export interface WelcomeProps {
   onSignIn: (() => void) | null;
 }
 
+/** A short screen or a phone (NooraPage.css tightens the welcome there too). */
+const SHORT = '(max-height: 880px), (max-width: 699px) and (max-height: 960px)';
+
 export function Welcome({ name, lead, starters, onStart, paused, onSignIn }: WelcomeProps) {
+  const short = useMediaQuery(SHORT);
   return (
     <div className="np-welcome" data-hub="noora-welcome">
-      <Face bust="wave" size={64} className="np-welcome__face" />
+      <Face bust="wave" size={short ? 48 : 64} className="np-welcome__face" />
       <h2 className="np-welcome__title">{name ? `What can I help with, ${name}?` : 'What can I help with?'}</h2>
       <p className="np-welcome__lead">{lead}</p>
       {onSignIn ? (
@@ -44,8 +49,10 @@ export function Welcome({ name, lead, starters, onStart, paused, onSignIn }: Wel
             <li key={s.id}>
               <button type="button" className="np-starter" onClick={() => onStart(s)} data-hub="noora-starter" data-starter={s.id}>
                 <StarterIcon className="np-starter__icon" aria-hidden="true" weight="duotone" />
-                <span className="np-starter__title">{s.title}</span>
-                <span className="np-starter__example">{s.example}</span>
+                <span className="np-starter__text">
+                  <span className="np-starter__title">{s.title}</span>
+                  <span className="np-starter__example">{s.example}</span>
+                </span>
               </button>
             </li>
           );

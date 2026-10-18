@@ -26,7 +26,7 @@ const SECTIONS: { id: Section; label: string; about: string; parts: string[] }[]
   { id: 'facts', label: 'Programme facts', about: 'What her AI may tell students about the programme as fact. Anything else about dates, rules or fees she says she doesn’t know.', parts: ['prompt.facts', 'prompt'] },
   { id: 'script', label: 'Her script', about: 'What she says when she answers without her AI: for guests, and when her AI is off or paused.', parts: ['script.greeting', 'script.greetingChips', 'script.who', 'script.thanks', 'script.refusal', 'script.notFound', 'script.tryInstead', 'script.noPhotos', 'script.photoAsk', 'script.fileGuess', 'script.fileUnknown', 'script.welcome'] },
   { id: 'pages', label: 'Questions on each page', about: 'The questions she offers when her chat opens, three or four for the page the student is on.', parts: ['script.pageChips'] },
-  { id: 'cards', label: 'Starter cards', about: 'The cards on her full page, one for each kind of help. A card fills the question box.', parts: ['script.starters'] },
+  { id: 'cards', label: 'Starter cards', about: 'The cards on her full page, one for each kind of help: four or eight, so they fill whole rows. A card fills the question box.', parts: ['script.starters'] },
 ];
 
 const PAGES: { page: NooraPage; label: string }[] = [
@@ -186,8 +186,8 @@ function Editor({ loaded, section, setSection }: { loaded: NooraEditable; sectio
             onChange={(cards) => setScript({ starters: cards })}
             make={() => ({ id: newItemId('card', doc.script.starters.map((s) => s.id)), icon: 'lightbulb', title: '', example: '', template: '' })}
             hasError={(i) => hasErrorUnder(fields, `script.starters.${i}`)}
-            min={1}
-            max={9}
+            min={4}
+            max={8}
           >
             {(s, i, change) => (
               <div className="dedit-grid">

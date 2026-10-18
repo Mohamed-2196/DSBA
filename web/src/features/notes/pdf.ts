@@ -45,7 +45,8 @@ async function sourceOf(pdf: NotePdf): Promise<string> {
 
 async function open(pdf: NotePdf): Promise<LoadedPdf> {
   const [lib, url] = await Promise.all([loadPdfJs(), sourceOf(pdf)]);
-  const doc = await lib.getDocument({ url, disableRange: true, disableStream: true, disableAutoFetch: true }).promise;
+  // XFA forms stay off: the page is only ever drawn (pdf.js 6 has no eval path left to turn off).
+  const doc = await lib.getDocument({ url, disableRange: true, disableStream: true, disableAutoFetch: true, enableXfa: false }).promise;
   const pages: PageSize[] = [];
   for (let i = 1; i <= doc.numPages; i++) {
     const vp = (await doc.getPage(i)).getViewport({ scale: 1 });
@@ -73,14 +74,14 @@ export function usePdf(pdf: NotePdf | null | undefined): { state: PdfState; retr
       .then((p) => {
         loaded = p;
         if (live) setState({ status: 'ready', pdf: p });
-        else void p.doc.destroy();
+        else void p.doc.loadingTask.destroy();
       })
       .catch(() => {
         if (live) setState({ status: 'error' });
       });
     return () => {
       live = false;
-      if (loaded) void loaded.doc.destroy();
+      if (loaded) void loaded.doc.loadingTask.destroy();
     };
     // `pdf` is read through `key`: a new object for the same file opens nothing again.
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -13,6 +13,7 @@ lessons that finish their cards.
 from __future__ import annotations
 
 import datetime as dt
+import json
 import uuid
 from collections.abc import Iterable, Sequence
 from datetime import timedelta
@@ -56,6 +57,7 @@ from app.services.board.boards import (
     active_boards,
     boards_query,
     card_count,
+    check_text,
     label_out,
     main_board,
     storage_used,
@@ -308,8 +310,8 @@ def _target(db: Session, user: User, body: BoardCardCreate) -> tuple[Board, Boar
 
 def create_card(db: Session, user: User, body: BoardCardCreate) -> BoardCard:
     """A card at the end of its column (a watched lesson goes to the top of the board's first done column). 409
-    board_full at MAX_CARDS, 409 already_on_board for a second card for the same thing on a board, 429 after
-    CREATE_LIMIT new cards in an hour."""
+    board_full at MAX_CARDS or past the student's text total, 409 already_on_board for a second card for the same
+    thing on a board, 429 after CREATE_LIMIT new cards in an hour."""
     ratelimit.enforce(
         db,
         f"board:{user.id}",
@@ -341,6 +343,7 @@ def create_card(db: Session, user: User, body: BoardCardCreate) -> BoardCard:
             link_id = ident
     if not title:
         raise invalid("title", "Give the card a title.")
+    check_text(db, user, text_bytes(title, body.description, []))
     now = utcnow()
     others = cards_in(db, column.id)
     card = BoardCard(
@@ -378,10 +381,29 @@ def _check_cover(db: Session, card: BoardCard, cover_id: uuid.UUID) -> None:
         raise invalid("coverId", "Choose one of the card's pictures.")
 
 
+def text_bytes(title: str, description: str | None, checklist: Sequence[object]) -> int:
+    """The bytes of text a card with these holds, as text_used() counts them (a checklist as JSON text)."""
+    items = json.dumps(list(checklist), ensure_ascii=False)
+    return len(title.encode()) + len((description or "").encode()) + len(items.encode())
+
+
+def _text_after(card: BoardCard, body: BoardCardUpdate) -> int:
+    """The bytes of text the card would hold with `body` applied (as apply_patch() applies it below)."""
+    sent = body.model_fields_set
+    title = body.title if "title" in sent and body.title else card.title
+    description = (body.description or None) if "description" in sent else card.description
+    checklist: Sequence[object] = card.checklist or []
+    if "checklist" in sent and body.checklist is not None:
+        checklist = [i.model_dump(mode="json", by_alias=True, exclude_none=True) for i in body.checklist]
+    return text_bytes(title, description, checklist)
+
+
 def update_card(db: Session, user: User, card: BoardCard, body: BoardCardUpdate) -> None:
     """Fields that are not sent stay; null clears. A due time needs a due date; clearing the date clears the
-    time."""
+    time. 409 board_full when the change adds text past the student's total (a change that takes text away is
+    always saved)."""
     sent = body.model_fields_set
+    check_text(db, user, _text_after(card, body) - text_bytes(card.title, card.description, card.checklist or []))
     if "cover_id" in sent and body.cover_id is not None:
         _check_cover(db, card, body.cover_id)
     if "checklist" in sent and body.checklist is not None:

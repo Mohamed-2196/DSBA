@@ -1,5 +1,5 @@
 """Loads the reference content in app/seed/data/*.json: modules, calendar dates, newsletter issues, the Career
-Navigator document and the Drive folders the import copies into the library.
+Navigator document, the Drive folders the import copies into the library, and Daily's themes and guess list.
 
 Idempotent: running it again adds what is missing and never overwrites what moderators changed through the API.
 Something a moderator deleted stays deleted: calendar events and newsletter issues are looked up in the audit log
@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import insert, select
 from sqlalchemy.orm import Session
 
 from app.models import (
@@ -27,6 +27,8 @@ from app.models import (
     CalendarEvent,
     Chapter,
     ContentDoc,
+    DailyGuessWord,
+    DailyTheme,
     DriveFolder,
     Lesson,
     Module,
@@ -254,6 +256,30 @@ def load_drive_folders(db: Session) -> int:
     return n
 
 
+# ── Daily ────────────────────────────────────────────────────────────────────────────────────
+
+DAILY = DATA / "daily"
+
+
+def daily_guess_words() -> list[str]:
+    """The word game's starting guess list: a dictionary's five-letter words, public like any word list."""
+    return [w.upper() for w in (DAILY / "guesses.txt").read_text(encoding="utf-8").split()]
+
+
+def load_daily(db: Session) -> int:
+    """Once, into an empty Daily: the themes, out of the rotation until they have puzzles, and the guess list. The
+    puzzles (answers, groups, questions, vocabulary) stay out of the public repository: they come from a content
+    file (`python -m app.cli daily-content import FILE`) or from Manage."""
+    if db.scalar(select(DailyTheme.id).limit(1)) is not None or db.scalar(select(DailyGuessWord.word).limit(1)):
+        return 0
+    themes = json.loads((DAILY / "themes.json").read_text(encoding="utf-8"))
+    for position, t in enumerate(themes):
+        db.add(DailyTheme(id=t["id"], title=t["title"], blurb=t["blurb"], position=position, in_rotation=False))
+    db.execute(insert(DailyGuessWord), [{"word": w} for w in daily_guess_words()])
+    db.flush()
+    return len(themes)
+
+
 # Order matters: Drive folders and calendar events refer to modules.
 SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
@@ -261,6 +287,7 @@ SECTIONS: dict[str, Callable[[Session], int]] = {
     "newsletter": load_newsletter,
     "career": load_career,
     "drive-folders": load_drive_folders,
+    "daily": load_daily,
 }
 
 

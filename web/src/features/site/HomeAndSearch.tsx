@@ -68,7 +68,7 @@ function HomeBlocks({ blocks, onChange, error }: { blocks: readonly HomeBlock[];
   return (
     <fieldset className="dedit-group">
       <legend className="dedit-group__legend">Home for a new student</legend>
-      <p className="dedit__note">What Home shows, in this order, until a student customizes theirs. A guest’s leaves out what needs an account. A block shows only while its feature is on, and a notice only when it has something to say.</p>
+      <p className="dedit__note">What Home shows, in this order, until a student customises theirs (Customise Home). A guest’s leaves out what needs an account. A block shows only while its feature is on, and a notice only when it has something to say.</p>
       {error ? <p className="dedit__error">{error}</p> : null}
       <ol role="list" className="dedit-rows__items">
         {blocks.map((b, i) => (

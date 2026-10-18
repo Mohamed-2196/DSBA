@@ -13,9 +13,9 @@
   align-items: center;
   gap: var(--sp-16);
   height: 100%;
-  max-width: calc(var(--content-max) + 2 * var(--content-pad));
+  max-width: calc(var(--content-max) + var(--page-pad-left) + var(--page-pad-right));
   margin-inline: auto;
-  padding: 0 var(--content-pad);
+  padding: 0 var(--page-pad-right) 0 var(--page-pad-left);
 }
 .shell-topbar__brand { display: none; }
 .shell-topbar__search { flex: 0 1 440px; }

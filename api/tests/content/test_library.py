@@ -177,6 +177,29 @@ def test_a_rejected_upload_tells_the_uploader_why(
     assert me.post(item_url(item, "/review"), json={"decision": "publish"}).status_code == 403
 
 
+def test_your_files_never_list_a_removed_one_unless_you_manage_the_library(
+    client_for: Clients, student: User, moderator: User, share_file: Share
+) -> None:
+    """A removed file answers 404 to its uploader, so asking "your files" for removed ones lists nothing; the
+    library's managers, who may open removed files, still find their own."""
+    me, rep = client_for(student), client_for(moderator)
+    item = share_file(me, title="Old notes")
+    assert me.delete(item_url(item)).status_code == 204
+    assert me.get(read_url(item)).status_code == 404
+    asks: list[dict[str, str | bool]] = [{"mine": True, "status": "removed"}, {"mine": True}]
+    for params in asks:
+        page = me.get(f"{API}/library/items", params=params).json()
+        assert (page["items"], page["total"]) == ([], 0), params
+    for status in ("pending", "published", "rejected"):
+        assert me.get(f"{API}/library/items", params={"mine": True, "status": status}).status_code == 200
+
+    own = share_file(rep, title="Old slides")
+    assert rep.delete(item_url(own)).status_code == 204
+    page = rep.get(f"{API}/library/items", params={"mine": True, "status": "removed"}).json()
+    assert [(i["id"], i["status"]) for i in page["items"]] == [(own["id"], "removed")]
+    assert rep.get(f"{API}/library/items", params={"mine": True}).json()["total"] == 0
+
+
 def test_moderators_publish_their_own_uploads_at_once(
     client_for: Clients, moderator: User, share_file: Share, db: Session
 ) -> None:
@@ -405,12 +428,13 @@ def test_filters_sorts_search_and_facets(
     assert (mods["advanced-stats-distribution"], mods["economics"], mods["statistics"]) == (2, 1, 0)
 
 
-def test_items_are_read_by_slug(client_for: Clients, moderator: User, share_file: Share) -> None:
+def test_items_are_read_by_slug_or_by_id(client_for: Clients, moderator: User, share_file: Share) -> None:
     item = share_file(client_for(moderator), title="Week 1 slides")
     guest = client_for()
     assert guest.get(f"{API}/library/items/week-1-slides").json()["id"] == item["id"]
-    assert guest.get(item_url(item)).status_code == 404  # an id is for the routes that act on the item
+    assert guest.get(item_url(item)).json()["slug"] == "week-1-slides"
     assert guest.get(f"{API}/library/items/no-such-slug").status_code == 404
+    assert guest.get(f"{API}/library/items/{uuid.uuid4()}").status_code == 404
 
 
 def test_a_title_used_twice_gets_its_own_address(client_for: Clients, moderator: User, share_file: Share) -> None:

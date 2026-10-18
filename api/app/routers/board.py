@@ -268,10 +268,10 @@ def delete_comment(card_id: uuid.UUID, comment_id: uuid.UUID, user: ActiveUser, 
 
 
 @router.get("/board-files/{upload_id}", response_class=RedirectResponse, status_code=status.HTTP_302_FOUND)
-def open_file(upload_id: uuid.UUID, user: CurrentUser, db: DB) -> RedirectResponse:
-    """302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs,
-    downloaded otherwise. 404 for anyone else."""
-    url = files.file_link(db, user, upload_id)
+def open_file(upload_id: uuid.UUID, user: CurrentUser, db: DB, download: bool = False) -> RedirectResponse:
+    """302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs
+    (other files download), or, with `download`, saved under its name. 404 for anyone else."""
+    url = files.file_link(db, user, upload_id, download=download)
     return RedirectResponse(url, status_code=status.HTTP_302_FOUND, headers={"Cache-Control": FILE_CACHE})
 
 

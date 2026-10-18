@@ -270,6 +270,13 @@
         "title": "Write or proofread",
         "example": "Clearer wording for coursework",
         "template": "Proofread this and suggest clearer wording, keeping my meaning: [paste your text]"
+      },
+      {
+        "id": "find",
+        "icon": "magnifier",
+        "title": "Find it in the Hub",
+        "example": "Past papers, lessons and exam dates",
+        "template": "Where are [the past papers for {module}]?"
       }
     ]
   }
