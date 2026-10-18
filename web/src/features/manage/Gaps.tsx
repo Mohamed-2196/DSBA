@@ -3,6 +3,7 @@
 import { CheckCircle } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { formatDay } from '../../lib/dates';
+import { sittingLabel } from '../../lib/exams';
 import { Panel, QueryError, Skeleton } from '../../ui';
 import { askedBy, requestPath } from '../requests/public';
 import { useGaps } from './api';
@@ -15,7 +16,6 @@ import {
   moduleName,
   scanLine,
   sittingMissing,
-  sittingName,
 } from './gapLabels';
 
 interface Line {
@@ -118,7 +118,7 @@ export function Gaps() {
             lines={library.sittings.map((s) => ({
               key: `${s.module.id}-${s.examYear}-${s.session ?? ''}`,
               to: moduleFiles(s.module),
-              title: `${moduleName(s.module)}: ${sittingName(s)}`,
+              title: `${moduleName(s.module)}: ${sittingLabel(s.examYear, s.session)}`,
               meta: sittingMissing(s),
             }))}
           />

@@ -13,13 +13,6 @@ export const moduleEditor = (m: GapModule): string => `/manage?tab=content&modul
 
 export const eventPath = (e: EventGap): string => `/calendar?event=${encodeURIComponent(e.id)}`;
 
-/** 'May 2023', 'October 2022', or the year alone. */
-export function sittingName(s: Pick<SittingGap, 'examYear' | 'session'>): string {
-  if (s.session === 'may') return `May ${s.examYear}`;
-  if (s.session === 'october') return `October ${s.examYear}`;
-  return String(s.examYear);
-}
-
 export function sittingMissing(s: SittingGap): string {
   return s.missing === 'report' ? 'Has the paper, no examiners’ report' : 'Has the examiners’ report, no paper';
 }

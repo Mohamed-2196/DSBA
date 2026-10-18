@@ -28,6 +28,7 @@ import {
   startName,
   storageText,
   TEMPLATES,
+  type Paper,
 } from './board';
 import { cleanScores } from './scores';
 
@@ -245,7 +246,7 @@ describe('past papers', () => {
     expect(isPastPaper(card('a', 'todo'))).toBe(false);
   });
   it('counts sittings: a year and session (both zones in one), or a paper without a year on its own', () => {
-    const papers = [
+    const papers: Paper[] = [
       { id: 'a', examYear: 2023, examSession: 'may' },
       { id: 'a2', examYear: 2023, examSession: 'may' },
       { id: 'b', examYear: 2023, examSession: 'october' },

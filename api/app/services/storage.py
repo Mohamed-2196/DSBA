@@ -1,4 +1,5 @@
-"""Object storage over the S3 API (AWS S3 or MinIO; Cloudflare R2 lacks presigned POST, see DEPLOYMENT.md).
+"""Object storage over the S3 API (AWS S3, MinIO or a Railway bucket; Cloudflare R2 lacks presigned POST, see
+DEPLOYMENT.md).
 
 Browsers upload and download straight from the bucket with presigned URLs; the API never streams file bodies.
 The bucket stays private: every read goes through a short-lived presigned GET, which is shown in the browser
@@ -69,7 +70,7 @@ def s3_client(
 ) -> S3Client:
     cfg = Config(
         signature_version="s3v4",
-        s3={"addressing_style": "path" if settings.s3_force_path_style else "auto"},
+        s3={"addressing_style": "path" if settings.s3_force_path_style else "virtual"},
         retries={"max_attempts": 3, "mode": "standard"},
     )
     client: S3Client = boto3.client(

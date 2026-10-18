@@ -11,6 +11,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.config import Settings
 from app.services.storage import INCOMING_PREFIX, INCOMING_RULE_ID, Storage, safe_file_name
 from tests.core.conftest import SetOption
 
@@ -31,6 +32,25 @@ from tests.core.conftest import SetOption
 )
 def test_safe_file_names(name: str, safe: str) -> None:
     assert safe_file_name(name) == safe
+
+
+@pytest.mark.parametrize(
+    ("force_path_style", "host", "path"),
+    [(False, "files.t3.example.test", "/k.pdf"), (True, "t3.example.test", "/files/k.pdf")],
+)
+def test_presigned_urls_use_the_buckets_own_host_unless_path_style_is_forced(
+    force_path_style: bool, host: str, path: str
+) -> None:
+    settings = Settings(
+        _env_file=None,
+        s3_endpoint_url="https://t3.example.test",
+        s3_bucket="files",
+        s3_region="auto",
+        s3_force_path_style=force_path_style,
+    )
+    client = Storage(settings).public_client
+    url = urlparse(client.generate_presigned_url("get_object", Params={"Bucket": "files", "Key": "k.pdf"}))
+    assert (url.hostname, url.path) == (host, path)
 
 
 def test_long_names_are_cut_cleanly() -> None:

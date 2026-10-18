@@ -11,6 +11,7 @@ import type {
 } from '../../api/types';
 import { formatSize } from '../../api/uploads';
 import { addDaysToKey, daysBetween, type DayKey } from '../../lib/dates';
+import { sittingKey, type ExamSession } from '../../lib/exams';
 
 export type BoardColor = BoardSummary['color'];
 export type BoardTemplate = BoardSummary['template'];
@@ -408,10 +409,10 @@ export function planPace(plan: Pick<BoardPlan, 'left' | 'daysLeft'>): string {
 export interface Paper {
   id: string;
   examYear?: number | null;
-  examSession?: string | null;
+  examSession?: ExamSession | null;
 }
 
-const sittingOf = (p: Paper): string => (p.examYear ? `${p.examYear}-${p.examSession ?? ''}` : `item-${p.id}`);
+const sittingOf = (p: Paper): string => sittingKey(p) ?? `item-${p.id}`;
 
 /** How many of the papers' sittings have a paper done, out of how many sittings. */
 export function sittingsDone(papers: readonly Paper[], done: ReadonlySet<string>): { done: number; total: number } {

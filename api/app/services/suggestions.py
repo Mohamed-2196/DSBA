@@ -209,7 +209,7 @@ def _tell(db: Session, s: VideoSuggestion, actor: User, title: str, body: str | 
     if s.author_id is None:
         return
     author = db.get(User, s.author_id)
-    if author is None or not access.feature_on(db, author, Feature.video_suggestions):
+    if author is None or not access.feature_on(db, author, Feature.modules_video_suggestions):
         return
     notify(
         db,

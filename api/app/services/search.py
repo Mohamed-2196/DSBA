@@ -37,7 +37,7 @@ from app.schemas.misc import SearchHit, SearchResults, SearchType
 from app.services import access, paper_text, site
 from app.services import library as lib
 from app.services.calendar import TYPE_LABELS, cohort_label
-from app.services.exam_names import zone_label
+from app.services.exam_names import sitting_label, zone_label
 from app.services.forum.text import to_plain_text  # a post reads the same in search as in the forum (CQ-6)
 from app.services.newsletter import issue_text
 
@@ -131,8 +131,7 @@ def _library_meta(item: LibraryItem, module: str | None) -> list[str]:
     """What tells two files apart, first: 'May 2021 examiners\u2019 report', 'zone A', then the module
     ('ST2133'); for other files their kind and module."""
     if item.exam_year is not None:
-        when = f"{(item.exam_session or '').capitalize()} {item.exam_year}".strip()
-        meta = [f"{when} {lib.kind_label(item.kind).lower()}"]
+        meta = [f"{sitting_label(item.exam_year, item.exam_session)} {lib.kind_label(item.kind).lower()}"]
         if item.zone:
             meta.append(zone_label(item.zone))
         return [*meta, module or ""]

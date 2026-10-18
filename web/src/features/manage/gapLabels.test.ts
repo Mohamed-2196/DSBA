@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EventGap, GapModule, LessonGap } from '../../api/types';
-import { eventMissing, lessonLine, moduleEditor, moduleFiles, moduleName, sittingName } from './gapLabels';
+import { eventMissing, lessonLine, moduleEditor, moduleFiles, moduleName } from './gapLabels';
 
 const st2133: GapModule = {
   id: 'advanced-stats-distribution',
@@ -33,12 +33,6 @@ describe('gaps', () => {
     expect(moduleName({ ...st2133, unitCode: null })).toBe('Advanced statistics');
     expect(moduleFiles(st2133)).toBe('/modules/advanced-stats-distribution?tab=files');
     expect(moduleEditor(st2133)).toBe('/manage?tab=content&module=advanced-stats-distribution');
-  });
-
-  it('names sittings', () => {
-    expect(sittingName({ examYear: 2023, session: 'may' })).toBe('May 2023');
-    expect(sittingName({ examYear: 2022, session: 'october' })).toBe('October 2022');
-    expect(sittingName({ examYear: 2021, session: null })).toBe('2021');
   });
 
   it('says what a module lacks in lessons', () => {

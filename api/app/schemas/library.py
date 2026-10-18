@@ -29,6 +29,7 @@ EXAMINERS_REPORT: LibraryKind = "examiners-report"
 EXAM_SOLUTIONS: LibraryKind = "exam-solutions"
 EXAM_KINDS: tuple[LibraryKind, ...] = (PAST_PAPER, EXAMINERS_REPORT, EXAM_SOLUTIONS)  # the files of a sitting
 ExamSession = Literal["may", "october"]  # the May sitting or the October resits
+EXAM_SESSIONS: tuple[ExamSession, ...] = get_args(ExamSession)
 # The versions the University of London sets of a paper: zone A, zone B, and for some modules the RTC paper, the one
 # set for Recognised Teaching Centres.
 Zone = Literal["A", "B", "RTC"]

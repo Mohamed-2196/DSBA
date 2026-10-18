@@ -1,5 +1,6 @@
 // The details form shared by "Upload a file" and "Edit details": values, checks, and request bodies.
 import type { LibraryItemCreate, LibraryItemUpdate, LibraryLinkCreate, ModuleSummary } from '../../api/types';
+import type { ExamSession, Zone } from '../../lib/exams';
 import { EXAM_KINDS, type LibraryKind } from './kinds';
 import type { CohortYear, LibraryItem } from './types';
 
@@ -12,8 +13,8 @@ export interface ItemFormValues {
   year: '' | '1' | '2' | '3';
   examYear: string;
   /** '' = not said: the May sitting or the October resits. */
-  session: '' | 'may' | 'october';
-  zone: '' | 'A' | 'B' | 'RTC';
+  session: '' | ExamSession;
+  zone: '' | Zone;
   authorName: string;
   description: string;
 }
@@ -47,7 +48,7 @@ export function valuesFromItem(item: LibraryItem): ItemFormValues {
     year: item.year ? (String(item.year) as ItemFormValues['year']) : '',
     examYear: item.examYear ? String(item.examYear) : '',
     session: item.examSession ?? '',
-    zone: item.zone === 'A' || item.zone === 'B' || item.zone === 'RTC' ? item.zone : '',
+    zone: item.zone ?? '',
     authorName: item.authorName ?? '',
     description: item.description ?? '',
   };

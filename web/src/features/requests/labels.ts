@@ -1,5 +1,6 @@
 // What requests are called on screen: their kinds, their statuses, and the filters in the URL.
 import type { RequestOut } from '../../api/types';
+import { zoneLabel } from '../../lib/exams';
 import { libraryKindLabel } from '../library/public';
 import type { RequestKind, RequestSort, RequestStatus } from './types';
 
@@ -101,7 +102,7 @@ export function needsReply(status: RequestStatus): boolean {
 /** What a paper request names: "Past paper · 2019 · Zone B"; null when it names no file. */
 export function wantsLine(r: Pick<RequestOut, 'wantedKind' | 'examYear' | 'zone'>): string | null {
   if (!r.wantedKind) return null;
-  return [libraryKindLabel(r.wantedKind), r.examYear ? String(r.examYear) : null, r.zone ? `Zone ${r.zone}` : null]
+  return [libraryKindLabel(r.wantedKind), r.examYear ? String(r.examYear) : null, r.zone ? zoneLabel(r.zone) : null]
     .filter(Boolean)
     .join(' · ');
 }
