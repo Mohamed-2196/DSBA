@@ -73,7 +73,7 @@ describe('gameInfo', () => {
 describe('lines', () => {
   it('says what a theme has, and how often an item ran', () => {
     expect(countsLine({ word: 1, groups: 20, search: 0, quiz: 26, nearest: 2 })).toBe(
-      '1 answer word · 20 groups · 0 search words · 26 questions · 2 secret words',
+      '1 answer word · 20 groups · 0 Data Mine words · 26 questions · 2 secret words',
     );
     expect(usesLine(0, null, (d) => d)).toBe('Not run yet');
     expect(usesLine(3, '2026-10-12', (d) => `on ${d}`)).toBe('Ran on 3 days, last on 2026-10-12');

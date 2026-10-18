@@ -7,14 +7,14 @@ import { CalendarBlank, CalendarCheck, Eye, FileArrowUp, PuzzlePiece } from '@ph
 import { useState } from 'react';
 import { useAuth } from '../../../auth';
 import { useQueryParam } from '../../../state';
-import { Button, Chip, EmptyState, QueryError, Select, Skeleton, Panel, formatCount } from '../../../ui';
+import { Button, Chip, EmptyState, QueryError, Select, Skeleton, Panel, countOf, formatCount } from '../../../ui';
 import { useDailyContent } from './api';
 import { ContentFileDialog } from './ContentFileDialog';
 import { ItemsPart } from './ItemsPart';
 import { PreviewPart } from './PreviewPart';
 import { ThemesPart } from './ThemesPart';
 import { TodayPart } from './TodayPart';
-import { GAMES, type ContentGame } from './lib/items';
+import { GAMES, type ContentGame, type GameInfo } from './lib/items';
 import './Editor.css';
 
 type Part = 'today' | 'themes' | ContentGame | 'preview';
@@ -52,6 +52,8 @@ export function DailyContentEditor() {
   }
   const data = overview.data;
   const total = (game: ContentGame) => data.themes.reduce((n, t) => n + t.counts[game], 0);
+  /** a game by the hub's name, and what it holds: 'Correlations · 101 groups' */
+  const holds = (g: GameInfo) => `${g.label} · ${countOf(total(g.id), g.noun)}`;
   const empty = GAMES.every((g) => total(g.id) === 0);
   const loadFile = isAdmin ? (
     <Button leadingIcon={FileArrowUp} variant={empty ? 'primary' : 'secondary'} onClick={() => setLoading(true)}>
@@ -105,13 +107,8 @@ export function DailyContentEditor() {
           Themes and weeks
         </Chip>
         {GAMES.map((g) => (
-          <Chip
-            key={g.id}
-            selected={part === g.id}
-            onChange={() => setPart(g.id, { replace: true })}
-            count={total(g.id)}
-          >
-            {g.label}
+          <Chip key={g.id} selected={part === g.id} onChange={() => setPart(g.id, { replace: true })}>
+            {holds(g)}
           </Chip>
         ))}
         <Chip selected={part === 'preview'} onChange={() => setPart('preview', { replace: true })} icon={Eye}>
@@ -129,7 +126,7 @@ export function DailyContentEditor() {
         options={[
           { value: 'today', label: 'Today' },
           { value: 'themes', label: `Themes and weeks (${data.themes.length})` },
-          ...GAMES.map((g) => ({ value: g.id, label: `${g.label} (${formatCount(total(g.id))})` })),
+          ...GAMES.map((g) => ({ value: g.id, label: holds(g) })),
           { value: 'preview', label: 'Preview a day' },
         ]}
       />
@@ -144,7 +141,7 @@ export function DailyContentEditor() {
       )}
       <p className="dcms__sizes">
         {formatCount(data.guessWords)} words in the guess list · {formatCount(data.vocabularyWords)} words in Nearest
-        neighbour’s vocabulary
+        Neighbour’s vocabulary
       </p>
     </div>
   );

@@ -137,24 +137,26 @@ def _listed(parts: Sequence[str]) -> str:
 
 
 def problem_of(game: str, pool: Sequence[Entry]) -> str:
-    """What a theme's items lack for a game."""
+    """What a theme's items lack for a game, which it names as the hub does."""
     if game == "groups":
+        name = groups_game.GroupsGame.title
         missing = [str(n) for n in range(1, groups_game.GROUPS + 1) if not any(e.data["level"] == n for e in pool)]
         if missing:
-            return f"Groups needs a group at level {_listed(missing)}."
-        return "Groups needs four groups, one a level, that each keep four words the other three don't have."
+            return f"{name} needs a group at level {_listed(missing)}."
+        return f"{name} needs four groups, one a level, that each keep four words the other three don't have."
     if game == "search":
+        name = search_game.SearchGame.title
         if len(pool) >= search_game.WORDS:
             return (
-                f"Word search needs {search_game.WORDS} words that fit together: none inside another, "
+                f"{name} needs {search_game.WORDS} words that fit together: none inside another, "
                 f"{search_game.MAX_HIDDEN} letters at most."
             )
-        return f"Word search needs at least {search_game.WORDS} words."
+        return f"{name} needs at least {search_game.WORDS} words."
     if game == "quiz":
-        return f"The quiz needs at least {quiz_game.FROM_THEME} questions."
+        return f"{quiz_game.QuizGame.title} needs at least {quiz_game.FROM_THEME} questions."
     if game == "nearest":
-        return "Nearest neighbour needs at least one secret word."
-    return "The word needs at least one answer word."
+        return f"{nearest_game.NearestGame.title} needs at least one secret word."
+    return f"{word_game.WordGame.title} needs at least one answer word."
 
 
 def theme_problems(db: Session, theme: str, day: dt.date) -> list[str]:

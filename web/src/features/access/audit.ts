@@ -154,9 +154,9 @@ const ACTIONS: Record<string, Describe> = {
   'daily.guesses.add': (d) =>
     `added ${formatCount(count(d.count))} ${count(d.count) === 1 ? 'word' : 'words'} to the Daily guess list`,
   'daily.guesses.remove': (d) => `took${quoted(d.title)} off the Daily guess list`,
-  'daily.vocabulary.create': (d) => `added${quoted(d.title)} to Nearest neighbour’s vocabulary`,
-  'daily.vocabulary.update': (d) => `edited${quoted(d.title)} in Nearest neighbour’s vocabulary`,
-  'daily.vocabulary.delete': (d) => `deleted${quoted(d.title)} from Nearest neighbour’s vocabulary`,
+  'daily.vocabulary.create': (d) => `added${quoted(d.title)} to Nearest Neighbour’s vocabulary`,
+  'daily.vocabulary.update': (d) => `edited${quoted(d.title)} in Nearest Neighbour’s vocabulary`,
+  'daily.vocabulary.delete': (d) => `deleted${quoted(d.title)} from Nearest Neighbour’s vocabulary`,
 };
 
 /** What happened, as the end of a sentence that starts with who did it. */
