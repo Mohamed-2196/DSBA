@@ -20,6 +20,7 @@ from app.services.accounts import tracks_progress
 from app.services.board.boards import main_board
 from app.services.board.cards import check_room, plan_out
 from app.services.board.common import cards_in, columns_of, end_position, get_board, resolve_links
+from app.services.exam_names import newest_sitting_first
 from app.services.modules import MODULE_UNKNOWN, visible_chapters, visible_lessons
 
 PLAN_LIMIT = 20
@@ -94,7 +95,11 @@ def make_plan(db: Session, user: User, body: BoardPlanCreate) -> BoardPlanMade:
                 LibraryItem.kind == PAST_PAPER,
                 LibraryItem.status == ItemStatus.published,
             )
-            .order_by(LibraryItem.exam_year.desc().nulls_last(), LibraryItem.zone, LibraryItem.title)
+            .order_by(
+                *newest_sitting_first(LibraryItem.exam_year, LibraryItem.exam_session),
+                LibraryItem.zone,
+                LibraryItem.title,
+            )
         )
         fresh = [str(i) for i in db.scalars(q) if str(i) not in items_on]
         papers = list(reversed(fresh[: days // body.paper_every]))

@@ -88,21 +88,24 @@ def library_on(set_feature: Callable[..., None]) -> None:
 def test_the_page_and_the_sittings_report_go_to_noora(
     client_for: ClientFor, make_user: MakeUser, claude: FakeClient, db: Session, module: Module
 ) -> None:
-    pp = _file(db, module, text=["Cover page", "Question 2 (b) Find the MGF of X.", "Question 3 ...", "Page 4"])
-    _file(db, module, kind="examiners-report", zone="B", text=["Zone B only"])
+    pages = ["Cover page", "Question 2 (b) Find the MGF of X.", "Question 3 ...", "Page 4"]
+    pp = _file(db, module, session="may", text=pages)
+    _file(db, module, kind="examiners-report", zone="B", session="may", text=["Zone B only"])
     report = _file(
         db,
         module,
         kind="examiners-report",
         zone="A",
+        session="may",
         text=["General remarks", "Question 1 fine.\fQuestion 2 Many forgot"],
     )
-    _file(db, module, kind="examiners-report", zone="A", exam_year=2022, text=["Another year"])
+    _file(db, module, kind="examiners-report", zone="A", exam_year=2022, session="may", text=["Another year"])
 
     r = ask_about(client_for(make_user()), pp)
     assert r.status_code == 200, r.text
     block = paper_block(claude)
     assert "question 2(b)" in block
+    assert 'sitting="May 2023, zone A"' in block
     assert "page 2" in block
     assert f"/library/{pp.slug}" in block
     assert "--- page 2 ---\nQuestion 2 (b) Find the MGF of X." in block

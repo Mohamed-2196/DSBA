@@ -20,7 +20,7 @@ from app.models import ItemSource, ItemStatus, LibraryItem, LibraryText, TextSta
 from app.schemas.library import EXAMINERS_REPORT, PAST_PAPER
 from app.schemas.noora import NooraPaper
 from app.services import access
-from app.services.exam_names import zone_label
+from app.services.exam_names import sitting_label, zone_label
 from app.services.noora.prompt import data
 from app.services.paper_text import PAGE_BREAK
 
@@ -119,9 +119,7 @@ def report_part(body: str, question: str) -> str:
 
 
 def _sitting(item: LibraryItem) -> str:
-    parts = [str(item.exam_year) if item.exam_year else "year unknown"]
-    if item.exam_session:
-        parts.append(f"{item.exam_session} session")
+    parts = [sitting_label(item.exam_year, item.exam_session) if item.exam_year else "year unknown"]
     if item.zone:
         parts.append(zone_label(item.zone))
     return ", ".join(parts)

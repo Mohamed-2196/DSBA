@@ -24,7 +24,7 @@ from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import SLUG, Base, check_in, created_ts, in_range, str_enum, uuid_pk, year_range
-from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, ZONES, ExamSession, LibraryKind
+from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, ZONES, ExamSession, LibraryKind, Zone
 
 
 class ItemSource(enum.StrEnum):
@@ -70,8 +70,8 @@ class LibraryItem(Base):
     content_type: Mapped[str | None] = mapped_column(String(127))
     size_bytes: Mapped[int | None] = mapped_column(BigInteger)
     exam_year: Mapped[int | None] = mapped_column(SmallInteger)  # past papers and examiners' reports
-    zone: Mapped[str | None] = mapped_column(String(8))  # schemas/library.py Zone
-    exam_session: Mapped[str | None] = mapped_column(String(8))  # 'may' | 'october' (schemas/library.py ExamSession)
+    zone: Mapped[Zone | None] = mapped_column(String(8))
+    exam_session: Mapped[ExamSession | None] = mapped_column(String(8))  # the May sitting or the October resits
     author_name: Mapped[str | None] = mapped_column(String(120))  # credited author, as typed by the uploader
     # Where a file the server imported came from: 'drive/<module>/<Drive file id>' (python -m app.cli import-drive).
     # A rerun of the import skips it whatever became of the item since: edited, moved, removed, its file swept (the

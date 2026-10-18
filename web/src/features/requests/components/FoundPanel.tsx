@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { errorMessage } from '../../../api/errors';
 import type { RequestOut } from '../../../api/types';
 import { useAuth } from '../../../auth';
+import { zoneLabel } from '../../../lib/exams';
 import { useToast } from '../../../state';
 import { Button, Panel } from '../../../ui';
 import { libraryItemPath, libraryKindLabel } from '../../library/public';
@@ -23,7 +24,7 @@ export function FoundPanel({ request }: { request: RequestOut }) {
   const facts = [
     libraryKindLabel(file.kind),
     file.examYear ? String(file.examYear) : null,
-    file.zone ? `Zone ${file.zone}` : null,
+    file.zone ? zoneLabel(file.zone) : null,
   ]
     .filter(Boolean)
     .join(' · ');

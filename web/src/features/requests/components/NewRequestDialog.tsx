@@ -8,6 +8,7 @@ import { ApiError, errorMessage } from '../../../api/errors';
 import type { RequestCreate } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { formatShort, parseDay } from '../../../lib/dates';
+import { isZone, ZONES, zoneLabel, type Zone } from '../../../lib/exams';
 import { moduleLabel } from '../../../lib/modules';
 import { dayKeyFromToday, useCalendarEvents } from '../../calendar/public';
 import { LIBRARY_EXAM_KINDS, LIBRARY_KINDS } from '../../library/public';
@@ -53,7 +54,6 @@ function Similar({ title }: { title: string }) {
 }
 
 type WantedKind = NonNullable<RequestCreate['wantedKind']>;
-type Zone = NonNullable<RequestCreate['zone']>;
 
 /** The unconfirmed dates of the next six months, soonest first. */
 function useUnconfirmedDates(enabled: boolean) {
@@ -238,12 +238,9 @@ export function NewRequestDialog({ open, onClose, kind: initialKind = null }: Ne
                 <Select
                   label="Zone"
                   value={zone}
-                  onChange={(e) => setZone(e.target.value === 'A' || e.target.value === 'B' ? e.target.value : '')}
+                  onChange={(e) => setZone(isZone(e.target.value) ? e.target.value : '')}
                   placeholder="Any zone"
-                  options={[
-                    { value: 'A', label: 'Zone A' },
-                    { value: 'B', label: 'Zone B' },
-                  ]}
+                  options={ZONES.map((z) => ({ value: z, label: zoneLabel(z) }))}
                   error={errors.zone}
                 />
               </div>
