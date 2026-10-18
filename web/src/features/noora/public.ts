@@ -14,9 +14,11 @@
 //   <NooraFace size className />        her face in a round frame (the phone tab bar's Noora tab, where she waits
 //                                       on a phone)
 //   <NooraEditor />                     Manage → Mini Noora (admins): her instructions, programme facts and script
+import { lazy } from 'react';
 export { MiniNoora } from './MiniNoora';
 export { Face as NooraFace } from './Face';
 export { askNoora, openNoora } from './open';
 export { hideMiniNoora, showMiniNoora, useMiniNooraHidden } from './visibility';
 export { askAboutPaper, PAGE_MAX as PAPER_PAGE_MAX, questionNumber, useNooraAiReady, type PaperAsk } from './paper';
-export { NooraEditor } from './settings/NooraEditor';
+// Manage's editor loads with Manage (inside its Suspense), so no other page carries it.
+export const NooraEditor = lazy(() => import('./settings/NooraEditor').then((m) => ({ default: m.NooraEditor })));

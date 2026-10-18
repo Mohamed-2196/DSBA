@@ -4,7 +4,7 @@ import { useAuth } from '../auth';
 import { ModulesGate } from '../state/ModulesProvider';
 import { ErrorBoundary, Toaster } from '../ui';
 import { AnalyticsFeatures } from './AnalyticsFeatures';
-import { CommandPalette } from '../features/search/public';
+import { PaletteHost } from '../features/search/public';
 import { Onboarding } from '../features/onboarding/public';
 import { MiniNoora } from '../features/noora/public';
 import { BugReportDialog } from '../features/bugs/public';
@@ -41,7 +41,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
           catalogue they use is there. */}
       <ModulesGate>
         <ErrorBoundary name="CommandPalette" fallback={null}>
-          <CommandPalette />
+          <PaletteHost />
         </ErrorBoundary>
         {/* Onboarding asks for a year when none is chosen: wait until we know whether a signed-in cohort sets it. */}
         {status !== 'loading' ? (

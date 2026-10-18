@@ -24,7 +24,7 @@ import {
   YoutubeLogo,
   type Icon,
 } from '@phosphor-icons/react';
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { Suspense, useId, useMemo, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, UnsavedProvider, useLeaveGuard, useQueryParam, useUnsavedRegistry } from '../../state';
 import {
@@ -226,6 +226,12 @@ const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set([
 
 const andList = new Intl.ListFormat('en-GB', { type: 'conjunction' });
 
+const LOADING = (
+  <Panel padding="md">
+    <Skeleton lines={8} />
+  </Panel>
+);
+
 const HEADER = (
   <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />
 );
@@ -362,7 +368,10 @@ function ManageScreen() {
             return (
               <section key={id} className="manage-panel" aria-label={SECTIONS[id].label} hidden={!active}>
                 <h2 className="manage-panel__title">{SECTIONS[id].label}</h2>
-                <ErrorBoundary name={`Manage:${id}`}>{BODIES[id]()}</ErrorBoundary>
+                <ErrorBoundary name={`Manage:${id}`}>
+                  {/* The editors load on first use (each feature's public.ts exports them lazily). */}
+                  <Suspense fallback={LOADING}>{BODIES[id]()}</Suspense>
+                </ErrorBoundary>
               </section>
             );
           })}

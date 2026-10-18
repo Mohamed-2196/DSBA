@@ -2,7 +2,7 @@
 // what removing or renaming an item does to the parts that point at it, what the public page shows, and where an
 // error the API returns belongs.
 import type { CareerDoc } from '../../../api/types';
-import type { DocShape } from '../../../ui';
+import type { DocShape } from '../../../ui/docEditor';
 
 /** The kinds of item other parts of the document refer to by id. */
 export type RefKind = 'track' | 'role' | 'skill' | 'cert' | 'employer';

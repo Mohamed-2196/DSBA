@@ -266,6 +266,12 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   every draft; another page, or a module's form closing, asks first. Pages are read by slug (`/forum/:threadId`,
   `/library/:fileId`, `/newsletter/:slug` take the slug the API gives). Links from user content go through
   `ui/safeHref.ts`.
+- **The first download** is the entry script and `vendor` (React, the router, TanStack Query, the API client; a chunk of
+  its own in `vite.config.ts`, so a deploy leaves it cached). Every page is lazy (`routes.tsx`); Manage's editors are
+  exported lazily from their features' `public.ts` and load inside Manage's `Suspense`; the ⌘K palette loads when it is
+  first opened (`search/PaletteHost.tsx`); the notebook's text editor is the `editor` chunk. Only those editors import
+  `ui/docEditor`, never through the `ui` barrel. Vite's 500 kB warning stays on as the alarm: no chunk should set it
+  off.
 - **Analytics** (PostHog) load only in a build with `VITE_POSTHOG_KEY` (`src/lib/analytics.ts`): page views only,
   anonymous. Never call `identify()` or send anything a student typed.
 - **Keep the design.** Reuse `src/ui` and the CSS tokens; new UI (sign-in, upload, moderation queues) must

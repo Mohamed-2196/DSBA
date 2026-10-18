@@ -9,23 +9,8 @@ import type { GradeBand, GradeOption, GradeRules, GradeRulesEditable, GradeSubje
 import { moduleLabel } from '../../../lib/modules';
 import { useToast } from '../../../state';
 import { useModules } from '../../../state/modules';
-import {
-  Badge,
-  Chip,
-  DocFrame,
-  ListEditor,
-  Panel,
-  QueryError,
-  Select,
-  Skeleton,
-  TextField,
-  WholeNumberField,
-  cx,
-  docErrors,
-  hasErrorUnder,
-  newItemId,
-  type DocProblem,
-} from '../../../ui';
+import { Badge, Chip, Panel, QueryError, Select, Skeleton, TextField, WholeNumberField, cx } from '../../../ui';
+import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../../ui/docEditor';
 import { useGradeRulesForEditing, useReloadGradeRules, useSaveGradeRules } from '../api';
 import { bandsOf, CLASS_NAME } from '../bands';
 import { classify, subjectsOf, totalMarks, type ChoiceSlot } from '../classify';

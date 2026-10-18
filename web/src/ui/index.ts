@@ -34,6 +34,3 @@ export { moduleArtSrc } from './moduleArtSrc';
 export { ErrorBoundary } from './ErrorBoundary';
 export { cx, modKeyLabel, timeAgo, formatDate, formatCount, countOf } from './utils';
 export { safeInternalPath } from './safeHref';
-export { DocFrame, ListEditor, RowsEditor, type DocProblem } from './docEditor/kit';
-export { docErrors, hasErrorUnder, type DocErrors, type DocShape } from './docEditor/errors';
-export { newItemId } from './docEditor/doc';

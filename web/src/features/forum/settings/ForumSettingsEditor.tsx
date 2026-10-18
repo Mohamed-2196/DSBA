@@ -6,25 +6,8 @@ import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ForumSettings, ForumSettingsEditable } from '../../../api/types';
 import { useToast } from '../../../state';
-import {
-  Badge,
-  Chip,
-  DocFrame,
-  Drawer,
-  ListEditor,
-  Panel,
-  QueryError,
-  Select,
-  Skeleton,
-  Switch,
-  TextArea,
-  TextField,
-  cx,
-  docErrors,
-  hasErrorUnder,
-  newItemId,
-  type DocProblem,
-} from '../../../ui';
+import { Badge, Chip, Drawer, Panel, QueryError, Select, Skeleton, Switch, TextArea, TextField, cx } from '../../../ui';
+import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../../ui/docEditor';
 import { FORUM_ICONS } from '../components/forumIcons';
 import { CategoryMark } from '../components/ForumSidebar';
 import type { ForumCategory, ForumGuideline, ForumIcon, ForumTag, ForumTip } from '../types';

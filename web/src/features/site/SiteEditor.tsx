@@ -10,10 +10,8 @@ import { useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Chip,
-  DocFrame,
   Drawer,
   IconButton,
-  ListEditor,
   Panel,
   QueryError,
   Select,
@@ -22,11 +20,8 @@ import {
   TextField,
   WholeNumberField,
   cx,
-  docErrors,
-  hasErrorUnder,
-  newItemId,
-  type DocProblem,
 } from '../../ui';
+import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../ui/docEditor';
 import { MarkdownEditor } from '../forum/public';
 import { useReloadSite, useSaveSite, useSiteForEditing } from './api';
 import { HOME_BLOCKS } from '../home/public';

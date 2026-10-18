@@ -17,24 +17,26 @@ import { FEATURE_KEYS } from '../../../auth';
 import { useToast } from '../../../state';
 import {
   Chip,
-  DocFrame,
   Drawer,
-  ListEditor,
   PageHeader,
   Panel,
   QueryError,
-  RowsEditor,
   Select,
   Skeleton,
   TextArea,
   TextField,
   WholeNumberField,
   cx,
+} from '../../../ui';
+import {
+  DocFrame,
+  ListEditor,
+  RowsEditor,
   docErrors,
   hasErrorUnder,
   newItemId,
   type DocProblem,
-} from '../../../ui';
+} from '../../../ui/docEditor';
 import { useSite, type SiteLinkKey } from '../../site/public';
 import { useGuidesForEditing, useReloadGuides, useSaveGuides } from '../api';
 import { ResultsDayBody } from '../ResultsDayPage';

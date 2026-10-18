@@ -16,25 +16,8 @@ import {
 } from '../../../api/uploads';
 import type { NewsletterPicture, NewsletterSettings, NewsletterSettingsEditable } from '../../../api/types';
 import { useToast } from '../../../state';
-import {
-  Badge,
-  Button,
-  Chip,
-  DocFrame,
-  Drawer,
-  ListEditor,
-  Panel,
-  QueryError,
-  Skeleton,
-  Switch,
-  TextArea,
-  TextField,
-  cx,
-  docErrors,
-  hasErrorUnder,
-  newItemId,
-  type DocProblem,
-} from '../../../ui';
+import { Badge, Button, Chip, Drawer, Panel, QueryError, Skeleton, Switch, TextArea, TextField, cx } from '../../../ui';
+import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../../ui/docEditor';
 import { useNewsletterSettingsForEditing, useReloadNewsletterSettings, useSaveNewsletterSettings } from '../api';
 import { Nameplate } from '../components/Nameplate';
 import { readImageDimensions } from '../editor/pictures';
