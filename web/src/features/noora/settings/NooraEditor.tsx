@@ -9,8 +9,7 @@ import type { NooraChip, NooraDoc, NooraEditable, NooraFact, NooraPageChips, Noo
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Button, Chip, Drawer, Panel, QueryError, Select, Skeleton, TextArea, TextField, cx } from '../../../ui';
-import { DocFrame, ListEditor, RowsEditor, docErrors, focusDocStatus, hasErrorUnder, newItemId, type DocProblem } from '../../site/public';
+import { Button, Chip, DocFrame, Drawer, ListEditor, Panel, QueryError, RowsEditor, Select, Skeleton, TextArea, TextField, cx, docErrors, focusDocStatus, hasErrorUnder, newItemId, type DocProblem } from '../../../ui';
 import { STARTER_ICONS } from '../page/starterIcons';
 import { starters } from '../page/starters';
 import { Welcome } from '../page/Welcome';

@@ -3,12 +3,9 @@
 import { useState } from 'react';
 import type { SearchNickname, SiteDoc, TourStep } from '../../api/types';
 import { ArrowDown, ArrowUp, Trash } from '@phosphor-icons/react';
-import { IconButton, Select, TextArea, TextField } from '../../ui';
+import { IconButton, ListEditor, RowsEditor, Select, TextArea, TextField, hasErrorUnder, newItemId } from '../../ui';
 import { ALL_HOME_BLOCKS, HOME_BLOCKS, type HomeBlock } from '../home/public';
 import { TOUR_ARTS } from '../onboarding/public';
-import { hasErrorUnder } from './editor/errors';
-import { newItemId } from './editor/doc';
-import { ListEditor, RowsEditor } from './editor/kit';
 
 type Set = (patch: Partial<SiteDoc>) => void;
 type Err = (path: string) => string | undefined;

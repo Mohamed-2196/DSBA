@@ -2,7 +2,7 @@
 
 Every piece of content a student reads, where an admin or rep changes it, which box that takes, and what it starts
 from. "Manage → X" is a tab of `/manage`; a box is a power on the Access screen (`docs/backend/ARCHITECTURE.md`,
-D11). Admin holds every box. Last checked 2026-10-17 (round 12).
+D11). Admin holds every box. Last checked 2026-10-18 (round 12).
 
 ## Edited in the hub
 
@@ -28,9 +28,12 @@ D11). Admin holds every box. Last checked 2026-10-17 (round 12).
 | Requests' answers | Manage → Requests | `requests.manage` | students |
 | Bug reports' status | Manage → Bugs | admins | students |
 
-Every save of the documents edited whole (Career Navigator, the guides, Site settings, the forum's settings) and of a
-module is checked against the version the editor loaded (a save someone else made first is refused with a "Load it
-again" banner), and goes to the activity log with what changed, before and after.
+Every save of the documents edited whole (Career Navigator, the guides, Site settings, the forum's settings, Mini
+Noora, the Sunday summary's words, the newsletter's settings, the grades calculator's rules) and of a module is checked
+against the version the editor loaded (a save someone else made first is refused with a "Load it again" banner), and
+goes to the activity log with what changed, before and after. Each shows what a change does before it's saved (a
+preview, or the grades calculator's worked example), and none links to Google Drive or Docs. Pictures are uploaded (`module_art`, `newsletter_image`, `career_logo`) and shown only once something
+students see uses them.
 
 The grades calculator keeps a student's marks in their browser by subject id, so a change to the subjects never moves
 anyone's marks; the marks never reach the server.
@@ -41,8 +44,7 @@ as data.
 
 A forum category or tag keeps its id for good (threads are filed under it; a new one gets an id from its name when it
 is first saved). One that threads use can't be removed, only retired: it stops being offered, and its threads keep it
-and still show its name. The default category ("threads that fit no year go to") must be a category for every year. Pictures are uploaded (`module_art`,
-`newsletter_image`, `career_logo`) and shown only once something students see uses them.
+and still show its name. The default category ("threads that fit no year go to") must be a category for every year.
 
 The Daily puzzles' content (themes, quiz questions, groups, word lists) is `api/app/services/daily/data/`; its editor
 belongs to the Daily round.

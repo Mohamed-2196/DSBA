@@ -9,10 +9,11 @@ import { pictureSrc } from '../../../api/pictures';
 import { UPLOAD_RULES, checkUpload, progressText, uploadErrorMessage, uploadFile, type UploadProgress } from '../../../api/uploads';
 import type { NewsletterPicture, NewsletterSettings, NewsletterSettingsEditable } from '../../../api/types';
 import { useToast } from '../../../state';
-import { Badge, Button, Chip, Panel, QueryError, Skeleton, Switch, TextArea, TextField, cx } from '../../../ui';
-import { DocFrame, ListEditor, docErrors, focusDocStatus, hasErrorUnder, newItemId, type DocProblem } from '../../site/public';
+import { Badge, Button, Chip, DocFrame, Drawer, ListEditor, Panel, QueryError, Skeleton, Switch, TextArea, TextField, cx, docErrors, focusDocStatus, hasErrorUnder, newItemId, type DocProblem } from '../../../ui';
 import { useNewsletterSettingsForEditing, useReloadNewsletterSettings, useSaveNewsletterSettings } from '../api';
+import { Nameplate } from '../components/Nameplate';
 import { readImageDimensions } from '../editor/pictures';
+import '../NewsletterPage.css';
 import './NewsletterSettings.css';
 
 type Section = 'masthead' | 'pictures';
@@ -42,6 +43,7 @@ function Editor({ loaded, section, setSection }: { loaded: NewsletterSettingsEdi
   const [doc, setDoc] = useState<NewsletterSettings>(saved);
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<DocProblem | null>(null);
+  const [previewing, setPreviewing] = useState(false);
   const save = useSaveNewsletterSettings();
   const reload = useReloadNewsletterSettings();
   const { push: toast } = useToast();
@@ -86,6 +88,7 @@ function Editor({ loaded, section, setSection }: { loaded: NewsletterSettingsEdi
         dirty={dirty}
         saving={save.isPending}
         pageTo="/newsletter"
+        onPreview={() => setPreviewing(true)}
         onUndo={() => {
           setDoc(saved);
           setFields({});
@@ -131,6 +134,37 @@ function Editor({ loaded, section, setSection }: { loaded: NewsletterSettingsEdi
           </>
         )}
       </DocFrame>
+
+      <Drawer open={previewing} onClose={() => setPreviewing(false)} title="Preview" description="The newsletter’s name and its line, and the pictures an issue’s editor offers, with your changes." width="min(960px, 100vw)">
+        {previewing ? (
+          <div className="dedit-preview">
+            <p className="dedit-preview__label">The top of the newsletter’s page</p>
+            <header className="nl-masthead nl-set__masthead">
+              <p className="nl-masthead__title">
+                <Nameplate />
+              </p>
+              <div className="nl-masthead__rules" aria-hidden="true" />
+              <p className="nl-masthead__tagline">{doc.masthead}</p>
+            </header>
+            <p className="dedit-preview__label">Pictures to choose from</p>
+            <ul role="list" className="nl-set__gallery">
+              {doc.pictures.map((p) => (
+                <li key={p.id}>
+                  <PictureThumb picture={p} />
+                  <span className="nl-set__caption">
+                    {p.label}
+                    {p.cover ? (
+                      <Badge tone="neutral" size="sm">
+                        Cover
+                      </Badge>
+                    ) : null}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </Drawer>
     </section>
   );
 }

@@ -8,16 +8,13 @@ import type { NoteCredit, SiteContributor, SiteDoc, SiteEditable, SiteLink } fro
 import { moduleLabel } from '../../lib/modules';
 import { useToast } from '../../state';
 import { useModules } from '../../state/modules';
-import { Chip, Drawer, IconButton, Panel, QueryError, Select, Skeleton, TextArea, TextField, cx } from '../../ui';
+import { Chip, DocFrame, Drawer, IconButton, ListEditor, Panel, QueryError, Select, Skeleton, TextArea, TextField, cx, docErrors, focusDocStatus, hasErrorUnder, newItemId, type DocProblem } from '../../ui';
 import { MarkdownEditor } from '../forum/public';
 import { useReloadSite, useSaveSite, useSiteForEditing } from './api';
 import { HOME_BLOCKS } from '../home/public';
 import { TourStepCard } from '../onboarding/public';
 import { AboutMain } from './AboutPage';
 import { HomeTourSection, SearchSection } from './HomeAndSearch';
-import { docErrors, hasErrorUnder } from './editor/errors';
-import { focusDocStatus, newItemId } from './editor/doc';
-import { DocFrame, ListEditor, type DocProblem } from './editor/kit';
 import { contributorLine, copyrightYears, type SiteLinkKey } from './lib/site';
 import './Site.css';
 

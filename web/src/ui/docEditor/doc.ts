@@ -1,5 +1,5 @@
-// What the document editors share besides their components: leaving with unsaved changes, ids for new items, and
-// the focus after a save.
+// What the document editors share besides their components (docEditor/kit.tsx): leaving with unsaved changes, ids
+// for new items, and the focus after a save.
 import { useEffect } from 'react';
 
 /** Leaving the page with unsaved changes asks first. */

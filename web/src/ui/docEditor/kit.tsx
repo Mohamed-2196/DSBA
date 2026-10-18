@@ -1,9 +1,15 @@
-// What the documents edited whole in Manage share (Site settings, the guides): the frame with its save bar, the
-// banner for a save someone else made first, and ordered lists of items that open into forms. Each document's own
-// fields are its editor's.
+// What the documents edited whole in Manage share (Site settings, the guides, the forum's settings, Mini Noora, the
+// grades calculator's rules and the others): the frame with its save bar, the banner for a save someone else made
+// first, and ordered lists of items that open into forms. Each document's own fields are its editor's.
 import { ArrowDown, ArrowSquareOut, ArrowUp, CaretDown, Eye, Plus, Trash } from '@phosphor-icons/react';
 import { useState, type ReactNode } from 'react';
-import { Badge, Button, ConfirmDialog, IconButton, Panel, cx, timeAgo } from '../../../ui';
+import { Badge } from '../Badge';
+import { Button } from '../Button';
+import { ConfirmDialog } from '../ConfirmDialog';
+import { IconButton } from '../IconButton';
+import { cx } from '../internal';
+import { Panel } from '../Panel';
+import { timeAgo } from '../utils';
 import { useWarnBeforeLeaving } from './doc';
 import './kit.css';
 

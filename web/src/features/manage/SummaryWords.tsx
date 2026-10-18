@@ -5,8 +5,7 @@ import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../api/errors';
 import type { SummaryEditable, SummaryWords as Words } from '../../api/types';
 import { cohortLabel, useToast, YEARS, type CohortYear } from '../../state';
-import { Drawer, Panel, QueryError, SegmentedControl, Skeleton, TextField } from '../../ui';
-import { DocFrame, docErrors, focusDocStatus, type DocProblem } from '../site/public';
+import { DocFrame, Drawer, Panel, QueryError, SegmentedControl, Skeleton, TextField, docErrors, focusDocStatus, type DocProblem } from '../../ui';
 import { useReloadSummaryWords, useSaveSummaryWords, useSummaryDraft, useSummaryWords } from './api';
 
 const HEADINGS: { key: keyof Words['headings']; label: string; hint: string }[] = [
