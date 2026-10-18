@@ -28,6 +28,7 @@ import {
   Skeleton,
   TextArea,
   TextField,
+  WholeNumberField,
   cx,
   docErrors,
   hasErrorUnder,
@@ -138,11 +139,10 @@ function Editor({ first }: { first: GuidesEditable }) {
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'guides_changed') return setProblem({ kind: 'changed', what: 'the guides' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, [
-            'startHere.steps',
-            'resultsDay.steps',
-            'startHere.places',
-          ]);
+          const found = docErrors(isApiError(e) ? e.fields : {}, {
+            wholes: ['startHere', 'resultsDay', 'electives', 'startHere.steps', 'resultsDay.steps', 'startHere.places'],
+            unions: ['*.steps.*.links.*'],
+          });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']
@@ -292,25 +292,21 @@ function StartHereFields({ guide, saved, onChange, err, fields }: PartProps<Star
             options={MONTHS.map((m, i) => ({ value: i + 1, label: m }))}
             error={err('startHere.termStart.month')}
           />
-          <TextField
+          <WholeNumberField
             label="On day"
-            type="number"
-            inputMode="numeric"
             min={1}
             max={31}
             value={guide.termStart.day}
-            onChange={(e) => set({ termStart: { ...guide.termStart, day: Number(e.target.value) } })}
+            onValue={(day) => set({ termStart: { ...guide.termStart, day } })}
             error={err('startHere.termStart.day')}
             required
           />
-          <TextField
+          <WholeNumberField
             label="For how many weeks"
-            type="number"
-            inputMode="numeric"
             min={1}
             max={20}
             value={guide.weeks}
-            onChange={(e) => set({ weeks: Number(e.target.value) })}
+            onValue={(weeks) => set({ weeks })}
             error={err('startHere.weeks')}
             required
           />
@@ -394,14 +390,12 @@ function ResultsDayFields({ guide, saved, onChange, err, fields }: PartProps<Res
             maxLength={60}
             required
           />
-          <TextField
+          <WholeNumberField
             label="For how many weeks after"
-            type="number"
-            inputMode="numeric"
             min={1}
             max={12}
             value={guide.weeks}
-            onChange={(e) => set({ weeks: Number(e.target.value) })}
+            onValue={(weeks) => set({ weeks })}
             error={err('resultsDay.weeks')}
             required
           />
@@ -449,14 +443,12 @@ function ElectivesFields({
         maxLength={60}
         required
       />
-      <TextField
+      <WholeNumberField
         label="How many a student takes"
-        type="number"
-        inputMode="numeric"
         min={1}
         max={6}
         value={guide.pick}
-        onChange={(e) => set({ pick: Number(e.target.value) })}
+        onValue={(pick) => set({ pick })}
         error={err('electives.pick')}
         required
       />

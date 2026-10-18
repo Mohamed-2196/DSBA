@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useId,
+  useState,
   type ChangeEventHandler,
   type InputHTMLAttributes,
   type MouseEventHandler,
@@ -121,6 +122,40 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     </Field>
   );
 });
+
+export interface WholeNumberFieldProps
+  extends Omit<TextFieldProps, 'value' | 'defaultValue' | 'onChange' | 'type' | 'min' | 'max' | 'inputMode'> {
+  value: number;
+  min: number;
+  max: number;
+  onValue: (n: number) => void;
+}
+
+/** A whole number from `min` to `max`. It can be cleared and typed again: each whole number typed counts (kept in
+ *  range), and the field shows the number that counts again when it loses focus, never a 0 it was never given. */
+export function WholeNumberField({ value, min, max, onValue, onBlur, ...rest }: WholeNumberFieldProps) {
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <TextField
+      {...rest}
+      type="number"
+      inputMode="numeric"
+      min={min}
+      max={max}
+      value={draft ?? String(value)}
+      onChange={(e) => {
+        const text = e.target.value;
+        setDraft(text);
+        const n = Number(text);
+        if (text.trim() !== '' && Number.isInteger(n)) onValue(Math.max(min, Math.min(max, n)));
+      }}
+      onBlur={(e) => {
+        setDraft(null);
+        onBlur?.(e);
+      }}
+    />
+  );
+}
 
 export interface TextAreaProps
   extends FieldBaseProps,

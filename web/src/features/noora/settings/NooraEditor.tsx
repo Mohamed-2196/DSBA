@@ -202,14 +202,9 @@ function Editor({ first }: { first: NooraEditable }) {
         onError: (e) => {
           if (isApiError(e) && e.code === 'noora_changed')
             return setProblem({ kind: 'changed', what: 'Mini Noora’s settings' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, [
-            'prompt.facts',
-            'script.pageChips',
-            'script.starters',
-            'script.greetingChips',
-            'script.tryInstead',
-            'script',
-          ]);
+          const found = docErrors(isApiError(e) ? e.fields : {}, {
+            wholes: ['prompt', 'prompt.facts', 'script', 'script.pageChips', 'script.starters'],
+          });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']

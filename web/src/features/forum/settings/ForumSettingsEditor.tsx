@@ -140,7 +140,9 @@ function Editor({ first }: { first: ForumSettingsEditable }) {
         onError: (e) => {
           if (isApiError(e) && e.code === 'forum_changed')
             return setProblem({ kind: 'changed', what: 'the forum’s settings' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, ['categories', 'tags', 'guidelines', 'tips']);
+          const found = docErrors(isApiError(e) ? e.fields : {}, {
+            wholes: ['categories', 'tags', 'guidelines', 'tips'],
+          });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']

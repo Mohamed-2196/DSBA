@@ -81,7 +81,7 @@ function Editor({ first, defaultYear }: { first: SummaryEditable; defaultYear: C
         onError: (e) => {
           if (isApiError(e) && e.code === 'summary_changed')
             return setProblem({ kind: 'changed', what: 'the summary’s words' });
-          const found = docErrors(isApiError(e) ? e.fields : {});
+          const found = docErrors(isApiError(e) ? e.fields : {}, { wholes: ['headings'] });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']

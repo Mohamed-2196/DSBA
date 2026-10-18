@@ -2,7 +2,7 @@
 // grades calculator's rules and the others): the frame with its save bar, the banner for a save someone else made
 // first, and ordered lists of items that open into forms. Each document's own fields are its editor's.
 import { ArrowDown, ArrowSquareOut, ArrowUp, CaretDown, Eye, Plus, Trash } from '@phosphor-icons/react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { useUnsavedChanges } from '../../state/unsaved';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
@@ -55,6 +55,8 @@ export function DocFrame({
   children,
 }: DocFrameProps) {
   useUnsavedChanges(dirty, title);
+  // Manage keeps each visited editor mounted (hidden), so every id here is the frame's own.
+  const headingId = useId();
   const status = useRef<HTMLParagraphElement>(null);
   const wasSaving = useRef(saving);
   useEffect(() => {
@@ -136,9 +138,9 @@ export function DocFrame({
         </nav>
       ) : null}
 
-      <Panel as="section" padding="md" className="dedit__panel" aria-labelledby="dedit-section-title">
+      <Panel as="section" padding="md" className="dedit__panel" aria-labelledby={headingId}>
         <div className="dedit__section-head">
-          <h4 id="dedit-section-title" className="dedit__section">
+          <h4 id={headingId} className="dedit__section">
             {section.title}
           </h4>
           <p className="dedit__note">{section.about}</p>
@@ -201,6 +203,7 @@ export function ListEditor<T extends { id: string }>({
 }: ListEditorProps<T>) {
   const [open, setOpen] = useState<string | null>(null);
   const [removing, setRemoving] = useState<{ id: string; title: string } | null>(null);
+  const listId = useId();
   const move = (from: number, by: -1 | 1) => {
     const next = items.slice();
     const [item] = next.splice(from, 1);
@@ -216,7 +219,7 @@ export function ListEditor<T extends { id: string }>({
           {items.map((item, i) => {
             const isOpen = open === item.id;
             const title = titleOf(item) || `New ${noun}`;
-            const formId = `dedit-item-${item.id}`;
+            const formId = `${listId}-${item.id}`;
             const kept = keepReason?.(item) ?? null;
             return (
               <li

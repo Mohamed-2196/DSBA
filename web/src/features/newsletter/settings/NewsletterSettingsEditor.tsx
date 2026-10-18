@@ -115,7 +115,7 @@ function Editor({ first }: { first: NewsletterSettingsEditable }) {
         onError: (e) => {
           if (isApiError(e) && e.code === 'newsletter_settings_changed')
             return setProblem({ kind: 'changed', what: 'the newsletter’s settings' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, ['pictures']);
+          const found = docErrors(isApiError(e) ? e.fields : {}, { wholes: ['pictures'] });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']

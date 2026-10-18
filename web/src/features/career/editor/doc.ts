@@ -2,6 +2,7 @@
 // what removing or renaming an item does to the parts that point at it, what the public page shows, and where an
 // error the API returns belongs.
 import type { CareerDoc } from '../../../api/types';
+import type { DocShape } from '../../../ui';
 
 /** The kinds of item other parts of the document refer to by id. */
 export type RefKind = 'track' | 'role' | 'skill' | 'cert' | 'employer';
@@ -209,7 +210,28 @@ export function publicDoc(doc: CareerDoc): CareerDoc {
   };
 }
 
-/** The parts of the document each section edits, as the API names them in errors ('data.employers.3.why'). */
+/** The document's shape for docErrors: the lists and parts whose own messages are about all of them, and the two
+ *  places that hold a step or a link of one of several kinds. */
+export const CAREER_SHAPE: DocShape = {
+  wholes: [
+    'tracks',
+    'offerTypes',
+    'ctaLabel',
+    'employers',
+    'featured',
+    'effortLabel',
+    'certs',
+    'roles',
+    'depthLabel',
+    'skills',
+    'checklist',
+    'furtherStudy',
+    'yearHints',
+  ],
+  unions: ['skills.*.close', 'roles.*.close.*', 'checklist.*.link'],
+};
+
+/** The parts of the document each section edits, as errors name them ('employers.3.why'). */
 const PART_SECTION: Record<string, EditorSection> = {
   employers: 'employers',
   tracks: 'tracks',
@@ -229,21 +251,14 @@ export interface ErrorPlace {
   item: string | null;
 }
 
-/** Where the first of the API's field errors belongs, to open it: null for an error about the whole document. */
+/** Where the first field error (by its path under the document) belongs, to open it; null when there is none. */
 export function errorPlace(fields: Record<string, string>): ErrorPlace | null {
   for (const key of Object.keys(fields)) {
-    const [root, part, item] = key.split('.');
-    if (root !== 'data' || !part) continue;
+    const [part, item] = key.split('.');
+    if (!part) continue;
     return { section: PART_SECTION[part] ?? 'text', item: item ?? null };
   }
   return null;
-}
-
-/** The messages that belong to no one field: shown above the editor. */
-export function generalErrors(fields: Record<string, string>): string[] {
-  return Object.entries(fields)
-    .filter(([key]) => key === 'data' || key === 'logo' || key === 'version' || key === 'request')
-    .map(([, message]) => message);
 }
 
 /** The ids each list had when it was loaded: the others are new, and their ids can still change. */

@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { CareerDoc } from '../../../api/types';
+import { docErrors } from '../../../ui/docEditor/errors';
 import {
+  CAREER_SHAPE,
   errorPlace,
   freeId,
-  generalErrors,
   idFrom,
   moveItem,
   publicDoc,
@@ -261,28 +262,41 @@ describe('career editor doc logic', () => {
   });
 
   it('maps error paths to section and item index', () => {
-    expect(errorPlace({ 'data.employers.0.why': 'Too short' })).toEqual({
+    expect(errorPlace({ 'employers.0.why': 'Too short' })).toEqual({
       section: 'employers',
       item: '0',
     });
-    expect(errorPlace({ 'data.roles.1.label': 'Required' })).toEqual({
+    expect(errorPlace({ 'roles.1.label': 'Required' })).toEqual({
       section: 'roles',
       item: '1',
     });
-    expect(errorPlace({ 'data.skills.python.name': 'Required' })).toEqual({
+    expect(errorPlace({ 'skills.python.name': 'Required' })).toEqual({
       section: 'skills',
       item: 'python',
     });
-    expect(errorPlace({ other: 'error' })).toBeNull();
+    expect(errorPlace({ intro: 'Required' })).toEqual({ section: 'text', item: null });
+    expect(errorPlace({})).toBeNull();
   });
 
-  it('identifies general error messages', () => {
-    const general = generalErrors({
-      data: 'Document invalid',
-      version: 'Conflict',
-      'data.employers.0.name': 'Field error',
+  it('gives a step’s and a checklist link’s errors to their fields, and a list’s to the banner', () => {
+    const found = docErrors(
+      {
+        'data.skills.sql.close.lesson.chapter': 'Give the chapter.',
+        'data.roles.0.close.sql.forum.to': 'Use a page of the hub.',
+        'data.checklist.2.link.cert.cert': 'Choose a certificate.',
+        'data.intro': 'String should have at least 1 character',
+        'data.roles': 'List should have at most 50 items',
+        data: 'There is no role “x” in the document.',
+      },
+      CAREER_SHAPE,
+    );
+    expect(found.fields).toEqual({
+      'skills.sql.close.chapter': 'Give the chapter.',
+      'roles.0.close.sql.to': 'Use a page of the hub.',
+      'checklist.2.link.cert': 'Choose a certificate.',
+      intro: 'String should have at least 1 character',
     });
-    expect(general).toEqual(['Document invalid', 'Conflict']);
+    expect(found.general).toEqual(['List should have at most 50 items', 'There is no role “x” in the document.']);
   });
 
   it('lists saved ids for each section', () => {

@@ -6,10 +6,10 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { CareerDoc, CareerEditable } from '../../../api/types';
 import { useToast, useUnsavedChanges } from '../../../state';
-import { Button, Chip, Drawer, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../../ui';
+import { Button, Chip, Drawer, EmptyState, Panel, QueryError, Skeleton, docErrors, timeAgo } from '../../../ui';
 import { CareerBody } from '../CareerPage';
 import { useCareerForEditing, useReloadCareer, useSaveCareer } from './api';
-import { SECTIONS, errorPlace, generalErrors, publicDoc, type EditorSection } from './doc';
+import { CAREER_SHAPE, SECTIONS, errorPlace, publicDoc, savedIdsOf, type EditorSection } from './doc';
 import { EditorContext, openKey, type EditorState } from './state';
 import { EmployersSection } from './sections/Employers';
 import {
@@ -159,7 +159,7 @@ function Editor({ first }: { first: Loaded }) {
       doc,
       saved,
       update: (change) => setDoc((d) => change(d)),
-      err: (path) => fields[`data.${path}`],
+      err: (path) => fields[path],
       open,
       setOpen,
     }),
@@ -177,28 +177,21 @@ function Editor({ first }: { first: Loaded }) {
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'career_changed') return setProblem({ kind: 'changed' });
-          const found = isApiError(e) ? e.fields : {};
-          setFields(found);
-          const general = generalErrors(found);
-          setProblem({
-            kind: 'other',
-            messages: general.length
-              ? general
-              : [
-                  Object.keys(found).length
-                    ? 'Some fields need a look before saving. They’re marked below.'
-                    : errorMessage(e),
-                ],
-          });
-          const place = errorPlace(found);
+          const found = docErrors(isApiError(e) ? e.fields : {}, CAREER_SHAPE);
+          setFields(found.fields);
+          const marked = Object.keys(found.fields).length
+            ? ['Some fields need a look before saving. They’re marked below.']
+            : [];
+          const messages = [...found.general, ...marked];
+          setProblem({ kind: 'other', messages: messages.length ? messages : [errorMessage(e)] });
+          const place = errorPlace(found.fields);
           if (place) {
             setSection(place.section);
-            const list = place.section === 'skills' ? null : (doc as unknown as Record<string, unknown>)[place.section];
-            const item =
-              Array.isArray(list) && place.item !== null
-                ? (list[Number(place.item)] as { id?: string } | undefined)
-                : undefined;
-            const id = place.section === 'skills' ? place.item : (item?.id ?? null);
+            // A list's item is named by its index, a skill by its id.
+            const id =
+              place.section === 'skills' || place.item === null
+                ? place.item
+                : (savedIdsOf(doc, place.section)[Number(place.item)] ?? null);
             if (id) setOpen(openKey(place.section, id));
           }
         },

@@ -20,6 +20,7 @@ import {
   Skeleton,
   TextArea,
   TextField,
+  WholeNumberField,
   cx,
   docErrors,
   hasErrorUnder,
@@ -156,12 +157,9 @@ function Editor({ first }: { first: SiteEditable }) {
         onError: (e) => {
           if (isApiError(e) && e.code === 'site_changed')
             return setProblem({ kind: 'changed', what: 'the site settings' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, [
-            'contributors',
-            'noteCredits',
-            'tour',
-            'searchNicknames',
-          ]);
+          const found = docErrors(isApiError(e) ? e.fields : {}, {
+            wholes: ['links', 'contributors', 'noteCredits', 'tour', 'searchNicknames'],
+          });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']
@@ -330,15 +328,13 @@ function Editor({ first }: { first: SiteEditable }) {
               maxLength={80}
               required
             />
-            <TextField
+            <WholeNumberField
               label="Launch year"
               hint={`The footer reads © ${copyrightYears(doc.launchYear)}.`}
-              type="number"
-              inputMode="numeric"
               min={2000}
               max={2100}
               value={doc.launchYear}
-              onChange={(e) => set({ launchYear: Number(e.target.value) })}
+              onValue={(launchYear) => set({ launchYear })}
               error={err('launchYear')}
               required
             />
