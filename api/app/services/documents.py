@@ -153,14 +153,18 @@ def locked_row(db: Session, kind: Kind[Any], version: int) -> ContentDoc | None:
     return row
 
 
+def new_row(db: Session, key: str) -> ContentDoc | None:
+    """The row a first save of the document fills, made and locked; None when someone else's save made it first.
+    Of two first saves at once, the second waits for the first, then finds the document saved."""
+    db.execute(insert(ContentDoc).values(key=key, data={}, version=0).on_conflict_do_nothing(index_elements=["key"]))
+    row = _row(db, key, lock=True)
+    return row if row is not None and row.version == 0 else None
+
+
 def first_row(db: Session, kind: Kind[Any]) -> ContentDoc:
-    """The row a first save fills, made and locked. Of two first saves at once, the second waits for the first, then
-    finds the document saved and is refused (409 `kind.changed`)."""
-    db.execute(
-        insert(ContentDoc).values(key=kind.key, data={}, version=0).on_conflict_do_nothing(index_elements=["key"])
-    )
-    row = locked_row(db, kind, 0)
-    if row is None:  # never: the insert above made it, or someone else did
+    """new_row() for a document of `kind`: 409 `kind.changed` when someone saved it first."""
+    row = new_row(db, kind.key)
+    if row is None:
         raise conflict(kind.changed, kind.changed_message)
     return row
 
