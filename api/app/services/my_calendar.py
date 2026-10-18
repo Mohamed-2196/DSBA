@@ -15,7 +15,7 @@ import hmac
 import logging
 import secrets
 import uuid
-from collections.abc import Callable, Collection, Iterator, Sequence
+from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
 from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
 
@@ -35,7 +35,7 @@ from app.schemas.calendar import (
     PersonalEventCreate,
     PersonalEventUpdate,
 )
-from app.services import access, ratelimit
+from app.services import access, grades, ratelimit
 from app.services import calendar as programme
 from app.services.content import apply_patch
 from app.services.notify import notify
@@ -67,13 +67,6 @@ EDITABLE = (
 CLEARABLE = ("end_date", "start_time", "end_time", "place", "notes", "repeat_until", "remind")
 # What a change to one day of a repeat can set: that day becomes an event of its own, which doesn't repeat.
 ONE_DAY = tuple(f for f in EDITABLE if f not in ("repeat", "repeat_until"))
-
-# The choices inside a year that a student's papers pick from (web/src/features/papers/papers.ts CHOICES, which the
-# web app's "Your papers" shows): without a pick from a year's choice, every module of the year counts.
-CHOICES: dict[int, frozenset[str]] = {
-    2: frozenset({"econometrics", "information-systems", "abstract-maths"}),
-    3: frozenset({"microeconomics", "asset-pricing", "marketing-management", "further-maths-economists"}),
-}
 
 
 # ── occurrences ──────────────────────────────────────────────────────────────────────────────
@@ -372,13 +365,14 @@ def stop_feed(db: Session, user: User) -> CalendarPrefs:
 # ── the private feed ─────────────────────────────────────────────────────────────────────────
 
 
-def papers_of(user: User, catalogue: Sequence[Module]) -> set[str] | None:
+def papers_of(user: User, catalogue: Sequence[Module], choices: Mapping[int, frozenset[str]]) -> set[str] | None:
     """The module ids `user` sits in their year, or None when that is every module of it (their papers: the
-    web app's papersFor)."""
+    web app's papersFor). `choices`: what each year's choice picks from (grades.choice_ids); a module of the choice
+    they didn't pick isn't theirs."""
     year, picks = user.year, set(user.papers or [])
     if year is None or not picks:
         return None
-    choice = CHOICES.get(year, frozenset())
+    choice = choices.get(year, frozenset())
     chose = bool(choice & picks)
     others = [m for m in catalogue if m.year != year and m.id in picks]
     if not chose and not others:
@@ -480,7 +474,7 @@ def private_feed(db: Session, token: str) -> str:
     events. 404 not_found for an address that doesn't work."""
     user, prefs = _owner_of_feed(db, token)
     catalogue = db.scalars(select(Module)).all()
-    papers = papers_of(user, catalogue)
+    papers = papers_of(user, catalogue, grades.choice_ids(db))
     modules = {m.id: m for m in catalogue}
     dates = [e for e in db.scalars(programme.events_query()) if counts_for(e, user.year, papers, prefs)]
     now, base = utcnow(), get_settings().web_base_url

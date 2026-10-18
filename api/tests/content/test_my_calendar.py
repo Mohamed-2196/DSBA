@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import BAHRAIN, bahrain_today
 from app.models import CalendarEvent, CalendarPrefs, Module, Notification, PersonalEvent, User, UserStatus
+from app.services import grades
 from app.services import my_calendar as svc
 from tests.content.conftest import API
 
@@ -419,6 +420,48 @@ def test_hiding_a_module_or_a_type_and_following_papers(
     user.papers = ["econometrics"]  # an option picked: the other options' dates leave; a core module's stay
     db.commit()
     assert "Statistics mock" in client.get(path).text
+
+
+def test_a_choice_not_picked_leaves_the_feed_as_the_grade_rules_have_it(
+    client_for: Clients,
+    make_user: MakeUser,
+    programme: dict[str, CalendarEvent],
+    client: TestClient,
+    db: Session,
+) -> None:
+    """The Year 2 option comes from the grades calculator's rules: the option a student didn't pick leaves their
+    feed, and a module an admin takes out of the option is one every Year 2 student sits again."""
+    day = bahrain_today() + dt.timedelta(days=9)
+    db.add_all(
+        [
+            CalendarEvent(
+                id="econ-mock", date=day, title="Econometrics mock", type="mock", year=2, module_id="econometrics"
+            ),
+            CalendarEvent(
+                id="is-mock",
+                date=day,
+                title="Information systems mock",
+                type="mock",
+                year=2,
+                module_id="information-systems",
+            ),
+        ]
+    )
+    user = make_user(year=2)
+    user.papers = ["econometrics"]
+    db.commit()
+    path = feed_of(client_for(user))
+    ics = client.get(path).text
+    assert "Econometrics mock" in ics
+    assert "Statistics mock" in ics  # a module every Year 2 student sits
+    assert "Information systems mock" not in ics
+
+    current = grades.rules(db)
+    others = [o for o in current.year2_options if o.id != "information-systems"]
+    admin = make_user(name="Head Admin", roles=("student", "admin"))
+    grades.save(db, admin, current.model_copy(update={"year2_options": others}), 0, None)
+    db.commit()
+    assert "Information systems mock" in client.get(path).text
 
 
 def test_a_new_address_retires_the_old_one(client_for: Clients, make_user: MakeUser, client: TestClient) -> None:

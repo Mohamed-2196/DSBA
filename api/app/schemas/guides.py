@@ -132,11 +132,11 @@ class ResultsDay(ApiModel):
 
 
 class Electives(ApiModel):
-    """/career/electives: the Year 3 electives side by side, built from the modules and Career Navigator."""
+    """/career/electives: the Year 3 electives side by side, built from the modules and Career Navigator; how many a
+    student takes is the grades calculator's (GET /modules/choices)."""
 
     title: Label
     intro: Sentence
-    pick: int = Field(ge=1, le=6)  # how many of the electives a student takes
     disclaimer: Sentence
 
 

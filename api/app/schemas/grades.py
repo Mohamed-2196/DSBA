@@ -23,6 +23,11 @@ ItemId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
 Mark = Annotated[int, Field(ge=1, le=100)]
 ChoiceSlot = Literal["year2Option", "elective1", "elective2"]
+# The subjects' choice slots that make each choice a student picks papers from.
+CHOICE_SLOTS: dict[Literal["option", "electives"], tuple[ChoiceSlot, ...]] = {
+    "option": ("year2Option",),
+    "electives": ("elective1", "elective2"),
+}
 
 
 class GradeSubject(ApiModel):
@@ -40,6 +45,20 @@ class GradeOption(ApiModel):
     id: ItemId
     module_id: ItemId | None = None
     label: Name | None = None  # for an option with no module in the hub ('Abstract Mathematics')
+
+    def paper_id(self) -> str:
+        """What a student's papers hold when they pick it: its module, or its own id without one."""
+        return self.module_id or self.id
+
+
+class PaperChoice(ApiModel):
+    """A choice a student makes inside a year: `pick` of the options, the Year 2 option or the electives. Their papers
+    hold what they picked (GradeOption.paper_id); without a pick, every module of the year counts."""
+
+    kind: Literal["option", "electives"]
+    year: Year  # the year of the subjects that make the choice
+    pick: int  # how many: the subjects that make it
+    options: list[GradeOption]
 
 
 class GradeBand(ApiModel):
@@ -114,6 +133,11 @@ class GradeRules(ApiModel):
             raise PydanticCustomError("choice", "Add the modules a student may pick for their Year 2 option.")
         if ("elective1" in slots or "elective2" in slots) and len(self.electives) < 2:
             raise PydanticCustomError("choice", "Add at least two electives a student may pick.")
+        years = [{s.year for s in self.subjects if s.choice in group} for group in CHOICE_SLOTS.values()]
+        if any(len(y) > 1 for y in years):
+            raise PydanticCustomError("choice", "Put both electives in the same year.")
+        if years[0] and years[0] == years[1]:
+            raise PydanticCustomError("choice", "Put the Year 2 option and the electives in different years.")
         for o in [*self.year2_options, *self.electives]:
             if not o.module_id and not o.label:
                 raise PydanticCustomError("option", "Give an option without a module a name.")
@@ -129,6 +153,17 @@ class GradeRules(ApiModel):
 
     def options(self) -> list[GradeOption]:
         return [*self.year2_options, *self.electives]
+
+    def choices(self) -> list[PaperChoice]:
+        """The choices the subjects make, each in its subjects' year: the Year 2 option (one of `year2_options`) and
+        the electives (as many as there are elective subjects)."""
+        out: list[PaperChoice] = []
+        for kind, slots in CHOICE_SLOTS.items():
+            subjects = [s for s in self.subjects if s.choice in slots]
+            options = self.year2_options if kind == "option" else self.electives
+            if subjects and options:
+                out.append(PaperChoice(kind=kind, year=subjects[0].year, pick=len(subjects), options=options))
+        return out
 
 
 class GradeRulesEditable(ApiModel):

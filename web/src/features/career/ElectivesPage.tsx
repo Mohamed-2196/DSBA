@@ -7,7 +7,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { CareerDoc } from '../../api/types';
 import { useAuth } from '../../auth';
-import { PapersButton } from '../papers/public';
+import { PapersButton, usePapers } from '../papers/public';
 import { useModules } from '../../state/modules';
 import {
   Badge,
@@ -174,6 +174,7 @@ function ElectivesBody({ data, pick }: { data: CareerDoc; pick: number | null })
 export default function ElectivesPage() {
   const q = useCareer();
   const guide = useGuides().data?.electives;
+  const pick = Object.values(usePapers().choices).find((c) => c?.kind === 'electives')?.pick ?? null;
   return (
     <Page width="wide" className="electives-page">
       <PageHeader
@@ -206,7 +207,7 @@ export default function ElectivesPage() {
           retrying={q.isFetching}
         />
       ) : q.data ? (
-        <ElectivesBody data={q.data} pick={guide?.pick ?? null} />
+        <ElectivesBody data={q.data} pick={pick} />
       ) : (
         <Panel padding="none">
           <EmptyState

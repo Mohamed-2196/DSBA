@@ -37,6 +37,21 @@ def test_the_catalogue_in_programme_order(client_for: Clients, modules: dict[str
     assert guest.get(f"{API}/modules", params={"year": 4}).status_code == 422
 
 
+def test_the_choices_inside_a_year_are_the_grade_rules_and_need_no_calculator(
+    client_for: Clients, modules: dict[str, Module], set_feature: Callable[..., None]
+) -> None:
+    """Your papers' Year 2 option and electives, and how many to pick, as the grades calculator's rules have them;
+    served while the calculator is switched off too."""
+    set_feature("grades", "off")
+    r = client_for().get(f"{API}/modules/choices")
+    assert r.status_code == 200, r.text
+    assert [(c["kind"], c["year"], c["pick"], [o["id"] for o in c["options"]]) for c in r.json()] == [
+        ("option", 2, 1, ["econometrics", "information-systems", "abstract-maths"]),
+        ("electives", 3, 2, ["microeconomics", "asset-pricing", "marketing-management", "further-maths-economists"]),
+    ]
+    assert r.json()[0]["options"][2] == {"id": "abstract-maths", "moduleId": None, "label": "Abstract Mathematics"}
+
+
 def test_a_module_with_its_lessons_and_published_files(
     client_for: Clients, modules: dict[str, Module], db: Session
 ) -> None:

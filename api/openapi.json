@@ -3966,6 +3966,102 @@
         }
       }
     },
+    "/api/v1/modules/choices": {
+      "get": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Paper Choices",
+        "description": "The choices a student makes inside a year, from the grades calculator's rules: the Year 2 option and the\nelectives, each with how many to pick and its options. A student's papers hold what they picked.",
+        "operationId": "paper_choices_api_v1_modules_choices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaperChoice"
+                  },
+                  "type": "array",
+                  "title": "Response Paper Choices Api V1 Modules Choices Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/modules/{module_id}": {
       "get": {
         "tags": [
@@ -32146,12 +32242,6 @@
             "minLength": 1,
             "title": "Intro"
           },
-          "pick": {
-            "type": "integer",
-            "maximum": 6.0,
-            "minimum": 1.0,
-            "title": "Pick"
-          },
           "disclaimer": {
             "type": "string",
             "maxLength": 300,
@@ -32163,11 +32253,10 @@
         "required": [
           "title",
           "intro",
-          "pick",
           "disclaimer"
         ],
         "title": "Electives",
-        "description": "/career/electives: the Year 3 electives side by side, built from the modules and Career Navigator."
+        "description": "/career/electives: the Year 3 electives side by side, built from the modules and Career Navigator; how many a\nstudent takes is the grades calculator's (GET /modules/choices)."
       },
       "ErrorDetail": {
         "properties": {
@@ -41460,6 +41549,47 @@
           "offset"
         ],
         "title": "Page[VocabularyOut]"
+      },
+      "PaperChoice": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "option",
+              "electives"
+            ],
+            "title": "Kind"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "pick": {
+            "type": "integer",
+            "title": "Pick"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/GradeOption"
+            },
+            "type": "array",
+            "title": "Options"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "year",
+          "pick",
+          "options"
+        ],
+        "title": "PaperChoice",
+        "description": "A choice a student makes inside a year: `pick` of the options, the Year 2 option or the electives. Their papers\nhold what they picked (GradeOption.paper_id); without a pick, every module of the year counts."
       },
       "PaperQuestion": {
         "properties": {

@@ -72,9 +72,9 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
 
 /** Under the list: which modules it shows, and a button to pick the option or electives, or to change them. */
 function ModulesNote() {
-  const { home, picks, papers } = usePapers();
+  const { home, picks, papers, choices } = usePapers();
   const [open, setOpen] = useState(false);
-  const note = papersNote(home, picks, papers);
+  const note = papersNote(home, picks, papers, choices);
   if (!note) return null;
   return (
     <div className="home-mods__note">
