@@ -6,8 +6,10 @@ are bounded per student and hub-wide (SEC-26)."""
 from __future__ import annotations
 
 import datetime as dt
+import re
 import uuid
 from collections.abc import Callable, Iterator
+from pathlib import Path
 from typing import Any
 
 import anyio
@@ -189,6 +191,23 @@ def test_the_page_is_passed_on_only_as_one_of_the_apps_routes(
     assert prompt.page("/forum?q=a b") == "/forum"  # a query string that isn't plain is dropped
     for bad in ("/admin/secret", "https://evil.example/", "//evil.example", "/modules/a/b/c", "/notes/x\ny"):
         assert prompt.page(bad) is None, bad
+
+
+ROUTES = Path(__file__).resolve().parents[3] / "web" / "src" / "routes.tsx"
+
+
+def test_her_pages_are_the_apps_pages() -> None:
+    """Every page of the app (web/src/routes.tsx) is one she is told a student is on, and every page she may send a
+    student to is one of the app's."""
+    paths = re.findall(r"path: '([^']+)'", ROUTES.read_text(encoding="utf-8"))
+    assert {"/start-here", "/results-day", "/career/electives", "/daily/:day/:game"} <= set(paths)
+    for path in paths:
+        if path != "*":
+            sample = re.sub(r":\w+", "x-1", path)
+            assert prompt.page(sample) == sample, path
+    for link, _, _ in prompt.PAGES:
+        sample = re.sub(r"<[^>]+>", "x-1", link).partition("?")[0]
+        assert prompt.page(sample) == sample, link
 
 
 def test_what_people_type_reaches_her_as_data(module: Module) -> None:
