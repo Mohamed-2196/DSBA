@@ -91,6 +91,7 @@ def test_the_overview_shows_each_theme_with_what_it_has_and_the_weeks_to_come(c:
 
 
 UNIQUE = ["ONE", "TWO", "SIX", "TEN"]
+NINE = ["ACE", "KING", "QUEEN", "JACK", "JOKER"]  # with UNIQUE, nine words: one too many
 
 
 @pytest.mark.parametrize(
@@ -106,7 +107,7 @@ UNIQUE = ["ONE", "TWO", "SIX", "TEN"]
             "data.words",
             "spaces",
         ),
-        ({"game": "groups", "label": "Odd", "level": 2, "words": [*UNIQUE[:3], "red"]}, "data.words", "in “Colours”"),
+        ({"game": "groups", "label": "Odd", "level": 2, "words": [*UNIQUE, *NINE]}, "data.words", "4 to 8 words"),
         ({"game": "groups", "label": "colours", "level": 2, "words": UNIQUE}, "data.label", "group called"),
         ({"game": "groups", "label": "Odd", "level": 5, "words": UNIQUE}, "data.groups.level", ""),
         ({"game": "search", "word": "ABC"}, "data.word", "4 to 10 letters"),
@@ -304,11 +305,19 @@ def test_quiz_questions_and_groups_are_imported_from_a_spreadsheets_rows(c: Test
     assert "no module “XX9999”" in problems[2]
     added = items(c, "quiz", q="2 + 2")[0]["data"]
     assert (added["options"], added["answer"], added["moduleId"]) == (["4", "5", "22"], 0, "test-module-2")
-    sheet = "Label\tLevel\tWords\nVehicles\t1\tCAR BUS TRAM TAXI\nAgain\t2\tRED BLUE ONE TWO\nLevel\tfive\tA B C D\n"
+    sheet = (
+        "Label\tLevel\tWords\n"
+        "Vehicles\t1\tCAR BUS TRAM TAXI VAN LORRY COACH FERRY\n"
+        "Primary colours\t2\tRED BLUE YELLOW CYAN\n"
+        "Too many\t3\tALPHA BRAVO CHARLIE DELTA ECHO FOXTROT KILO HOTEL INDIA\n"
+        "Level\tfive\tA B C D\n"
+    )
     report = c.post(f"{DAILY}/import", json={"game": "groups", "theme": "alpha", "text": sheet}).json()
-    assert report["added"] == 1
-    assert "“BLUE” is already in “Colours”" in report["rows"][1]["problem"]
-    assert "level" in report["rows"][2]["problem"]
+    problems = [row["problem"] for row in report["rows"]]
+    assert report["added"] == 2  # eight words, and words another group of the theme has (RED, BLUE)
+    assert problems[:2] == [None, None]
+    assert "4 to 8 words" in problems[2]
+    assert "level" in problems[3]
     no_header = c.post(f"{DAILY}/import", json={"game": "quiz", "theme": "alpha", "text": "a,b,c\n1,2,3"})
     assert "header row" in no_header.json()["error"]["fields"]["text"]
 

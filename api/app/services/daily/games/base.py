@@ -1,12 +1,14 @@
 """What a daily game is. A game makes the day's puzzle (the same for everyone), replays moves onto a state, says how
 the play stands, scores it, and shows it to the player without giving the answer away until it's over. Adding a game
 is one module in this package, listed in `games/__init__.py`, plus its view and moves in schemas/daily.py and its
-screen in the web app. A game whose puzzles come from the content editors' items is a ContentGame."""
+screen in the web app. A game whose puzzles come from the content editors' items is a ContentGame; an editor can fix
+today's puzzle of such a game, which makes a new version of it (`Edition.revision`)."""
 
 from __future__ import annotations
 
 import datetime as dt
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any, ClassVar, Generic, Literal, TypeVar
 
 from sqlalchemy.orm import Session
@@ -22,6 +24,14 @@ S = TypeVar("S")  # a play's state, rebuilt from its moves
 Status = Literal["playing", "won", "lost"]
 
 
+@dataclass(frozen=True)
+class Edition(Generic[P]):
+    """The day's puzzle as it stands, and its version: the fixes it has had today (0: as it was made)."""
+
+    puzzle: P
+    revision: int
+
+
 class Game(ABC, Generic[P, S]):
     id: ClassVar[GameId]
     title: ClassVar[str]
@@ -32,9 +42,6 @@ class Game(ABC, Generic[P, S]):
     max_points: ClassVar[int]
     moves: ClassVar[frozenset[str]]  # the move kinds the game takes
     max_moves: ClassVar[int]
-    # A win faster than this earns no points: no person plays that fast. The clock starts when a signed-in player
-    # first opens today's puzzle (Sudoku: at the first move), and stops at the last move.
-    min_seconds: ClassVar[int] = 0
 
     def info(self) -> GameInfo:
         return GameInfo(
@@ -48,8 +55,16 @@ class Game(ABC, Generic[P, S]):
         )
 
     @abstractmethod
+    def edition(self, db: Session, day: dt.date, variant: str) -> Edition[P]:
+        """The day's puzzle as it stands, and its version: the same for everyone, every time it's asked for."""
+
     def puzzle(self, db: Session, day: dt.date, variant: str) -> P:
-        """The day's puzzle: the same for everyone, every time it's asked for."""
+        """The day's puzzle as it stands."""
+        return self.edition(db, day, variant).puzzle
+
+    def earlier(self, db: Session, day: dt.date, variant: str, revision: int) -> P | None:
+        """The day's puzzle as it was at `revision`, before a fix replaced it (None: it never had that version)."""
+        return None
 
     @abstractmethod
     def start(self, puzzle: P) -> S: ...
@@ -63,7 +78,7 @@ class Game(ABC, Generic[P, S]):
     def status(self, puzzle: P, state: S) -> Status: ...
 
     @abstractmethod
-    def points(self, puzzle: P, state: S, variant: str, seconds: int) -> int:
+    def points(self, puzzle: P, state: S, variant: str) -> int:
         """Points for a finished play (0 when lost)."""
 
     @abstractmethod
@@ -81,10 +96,16 @@ class Game(ABC, Generic[P, S]):
 
 class ContentGame(Game[P, S]):
     """A game whose puzzles are made from the items of the day's theme (app/services/daily/content.py): the day's
-    puzzle is made once, stored as `dump()` gives it, and read back with `load()` ever after."""
+    puzzle is made once, stored as `dump()` gives it, and read back with `load()` ever after. A fix to today's puzzle
+    makes it again with `rebuild()`."""
 
-    def puzzle(self, db: Session, day: dt.date, variant: str) -> P:
-        return self.load(db, content.day_puzzle(db, self, day))
+    def edition(self, db: Session, day: dt.date, variant: str) -> Edition[P]:
+        kept = content.day_puzzle(db, self, day)
+        return Edition(self.load(db, kept.puzzle), kept.revision)
+
+    def earlier(self, db: Session, day: dt.date, variant: str, revision: int) -> P | None:
+        found = content.earlier_puzzle(db, day, self.id, variant, revision)
+        return None if found is None else self.load(db, found)
 
     @abstractmethod
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
@@ -100,6 +121,12 @@ class ContentGame(Game[P, S]):
 
     @abstractmethod
     def load(self, db: Session, data: dict[str, Any]) -> P: ...
+
+    def rebuild(self, db: Session, day: dt.date, puzzle: P, before: list[Entry], after: list[Entry], seed: bytes) -> P:
+        """Today's puzzle made again for a fix, from the items it took: `before` as they were and `after` as they are
+        with the fix. It changes only what the fix needs. Raises content.CantFixError when today's puzzle can't take
+        the fix. Here: made the way the day was, from the items as they are now."""
+        return self.build(db, day, after, seed)
 
 
 def bad_move(message: str = "That move doesn't fit this game.") -> ApiError:

@@ -24512,6 +24512,120 @@
         }
       }
     },
+    "/api/v1/content/daily/items/{item_id}/fix-today": {
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Fix Today",
+        "description": "Corrects an item today's puzzle uses, for today and the days to come: today's puzzle is made again with it.\nFinished plays keep their results; the others start again on the fixed puzzle. `dryRun` shows today before and\nafter, and changes nothing. Errors: not_found (404), invalid_input (422: the game's rules, a group's level, a fix\ntoday's puzzle can't take), puzzle_changed (409: the item or today's puzzle changed since it was loaded, a new day,\nor today's puzzle doesn't use the item), theme_not_ready (409), rate_limited (429: the most fixes a day).",
+        "operationId": "fix_today_api_v1_content_daily_items__item_id__fix_today_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TodayFixIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodayFixOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/content/daily/import": {
       "post": {
         "tags": [
@@ -25461,6 +25575,98 @@
               }
             },
             "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/today": {
+      "get": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Todays Puzzles",
+        "description": "Today's puzzles with the items each uses and how many signed-in players are partway through or finished:\nwhere a fix starts. Errors: not_out_yet (404: no theme runs yet).",
+        "operationId": "todays_puzzles_api_v1_content_daily_today_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodayPuzzles"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -32260,6 +32466,7 @@
               "unknown_word",
               "already_tried",
               "game_over",
+              "puzzle_fixed",
               "not_out_yet",
               "puzzle_changed",
               "theme_not_ready"
@@ -35611,7 +35818,7 @@
           "words"
         ],
         "title": "GroupData",
-        "description": "Groups: what the group's words share (shown once it's found), how hard it is (1 plainest to 4 trickiest), and\nits words: four or more, a day shows four of them. No word may be in two groups of the same theme."
+        "description": "Groups: what the group's words share (shown once it's found), how hard it is (1 plainest to 4 trickiest), and\nits words: four to eight. A day shows four of them, picked from the day's seed, and never a word that another of\nthat day's groups has too."
       },
       "GroupMove": {
         "properties": {
@@ -37096,6 +37303,10 @@
             ],
             "title": "Lastused"
           },
+          "inToday": {
+            "type": "boolean",
+            "title": "Intoday"
+          },
           "closest": {
             "anyOf": [
               {
@@ -37126,6 +37337,7 @@
           "version",
           "uses",
           "lastUsed",
+          "inToday",
           "closest",
           "updatedAt"
         ],
@@ -39451,11 +39663,18 @@
             "type": "array",
             "maxItems": 400,
             "title": "History"
+          },
+          "revision": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Revision",
+            "default": 0
           }
         },
         "type": "object",
         "title": "MoveIn",
-        "description": "One move. Signed in, the play is kept on the server and `history` is ignored. A guest's play lives in their\nbrowser: it sends the moves made so far as `history`, and nothing is saved."
+        "description": "One move. Signed in, the play is kept on the server and `history` is ignored. A guest's play lives in their\nbrowser: it sends the moves made so far as `history`, and nothing is saved.\n\n`revision` is the version of the day's puzzle the browser shows (Play.revision), and a guest's history was played\non. When an editor fixed today's puzzle since, a move answers 409 puzzle_fixed; a guest's history that finished\non the earlier version still shows as it finished, and one that didn't starts again on the fixed puzzle."
       },
       "MySenior": {
         "properties": {
@@ -42257,10 +42476,6 @@
             ],
             "title": "Seconds"
           },
-          "tooFast": {
-            "type": "boolean",
-            "title": "Toofast"
-          },
           "result": {
             "anyOf": [
               {
@@ -42282,6 +42497,14 @@
               }
             ],
             "title": "Share"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "restarted": {
+            "type": "boolean",
+            "title": "Restarted"
           },
           "view": {
             "oneOf": [
@@ -42330,9 +42553,10 @@
           "mistakes",
           "hints",
           "seconds",
-          "tooFast",
           "result",
           "share",
+          "revision",
+          "restarted",
           "view"
         ],
         "title": "Play",
@@ -47466,6 +47690,314 @@
         },
         "type": "object",
         "title": "ThreadUpdate"
+      },
+      "TodayFixIn": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "revision": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WordData"
+              },
+              {
+                "$ref": "#/components/schemas/GroupData"
+              },
+              {
+                "$ref": "#/components/schemas/SearchData"
+              },
+              {
+                "$ref": "#/components/schemas/QuizData"
+              },
+              {
+                "$ref": "#/components/schemas/NearestData"
+              }
+            ],
+            "title": "Data",
+            "discriminator": {
+              "propertyName": "game",
+              "mapping": {
+                "groups": "#/components/schemas/GroupData",
+                "nearest": "#/components/schemas/NearestData",
+                "quiz": "#/components/schemas/QuizData",
+                "search": "#/components/schemas/SearchData",
+                "word": "#/components/schemas/WordData"
+              }
+            }
+          },
+          "dryRun": {
+            "type": "boolean",
+            "title": "Dryrun",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "revision",
+          "version",
+          "data"
+        ],
+        "title": "TodayFixIn",
+        "description": "A correction to an item today's puzzle uses: its fields as corrected, for today and the days to come. `day` and\n`revision` are today's puzzle as it was loaded and `version` the item's (409 puzzle_changed when one of them changed\nsince). `dryRun` shows what today becomes and changes nothing."
+      },
+      "TodayFixOut": {
+        "properties": {
+          "applied": {
+            "type": "boolean",
+            "title": "Applied"
+          },
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest"
+            ],
+            "title": "Game"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "before": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PreviewWord"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewGroups"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewSearch"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewQuiz"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewNearest"
+              }
+            ],
+            "title": "Before",
+            "discriminator": {
+              "propertyName": "game",
+              "mapping": {
+                "groups": "#/components/schemas/PreviewGroups",
+                "nearest": "#/components/schemas/PreviewNearest",
+                "quiz": "#/components/schemas/PreviewQuiz",
+                "search": "#/components/schemas/PreviewSearch",
+                "word": "#/components/schemas/PreviewWord"
+              }
+            }
+          },
+          "after": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PreviewWord"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewGroups"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewSearch"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewQuiz"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewNearest"
+              }
+            ],
+            "title": "After",
+            "discriminator": {
+              "propertyName": "game",
+              "mapping": {
+                "groups": "#/components/schemas/PreviewGroups",
+                "nearest": "#/components/schemas/PreviewNearest",
+                "quiz": "#/components/schemas/PreviewQuiz",
+                "search": "#/components/schemas/PreviewSearch",
+                "word": "#/components/schemas/PreviewWord"
+              }
+            }
+          },
+          "changes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Changes"
+          },
+          "playing": {
+            "type": "integer",
+            "title": "Playing"
+          },
+          "finished": {
+            "type": "integer",
+            "title": "Finished"
+          },
+          "item": {
+            "$ref": "#/components/schemas/ItemOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applied",
+          "game",
+          "revision",
+          "before",
+          "after",
+          "changes",
+          "playing",
+          "finished",
+          "item"
+        ],
+        "title": "TodayFixOut"
+      },
+      "TodayGame": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest"
+            ],
+            "title": "Game"
+          },
+          "out": {
+            "type": "boolean",
+            "title": "Out"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "fixesLeft": {
+            "type": "integer",
+            "title": "Fixesleft"
+          },
+          "puzzle": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PreviewWord"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewGroups"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewSearch"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewQuiz"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewNearest"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "game",
+                  "mapping": {
+                    "groups": "#/components/schemas/PreviewGroups",
+                    "nearest": "#/components/schemas/PreviewNearest",
+                    "quiz": "#/components/schemas/PreviewQuiz",
+                    "search": "#/components/schemas/PreviewSearch",
+                    "word": "#/components/schemas/PreviewWord"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Puzzle"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "playing": {
+            "type": "integer",
+            "title": "Playing"
+          },
+          "finished": {
+            "type": "integer",
+            "title": "Finished"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "out",
+          "revision",
+          "fixesLeft",
+          "puzzle",
+          "problem",
+          "items",
+          "playing",
+          "finished"
+        ],
+        "title": "TodayGame",
+        "description": "A game's puzzle today and the items it uses: where a fix starts."
+      },
+      "TodayPuzzles": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme"
+          },
+          "games": {
+            "items": {
+              "$ref": "#/components/schemas/TodayGame"
+            },
+            "type": "array",
+            "title": "Games"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "theme",
+          "games"
+        ],
+        "title": "TodayPuzzles"
       },
       "TourStep": {
         "properties": {

@@ -2,13 +2,15 @@
 word game's guess list and Nearest neighbour's vocabulary, bulk imports, and a preview of any day's set.
 
 - Items are checked against their game's rules, with the message on the field: an answer word is five letters and in
-  the guess list; a group has four to eight different words and shares none with another group of its theme; a quiz
-  question has two to six different options and one right answer; a secret word is in the vocabulary.
+  the guess list; a group has four to eight different words (another group of its theme may have some of them: a day
+  with both shows neither group those words); a quiz question has two to six different options and one right answer;
+  a secret word is in the vocabulary.
 - Saves name the version they were loaded at (409 puzzle_changed when someone saved since), and every change is
   audited with what changed, before and after.
 - A theme runs while it's in the rotation or named for this week or one to come. A change that would leave a theme
   that runs without enough items for one of its games is refused (409 theme_not_ready), so every day can be made.
-- Changes reach the days still to come: a day that is out keeps its puzzles (content.py).
+- Changes reach the days still to come: a day that is out keeps its puzzles (content.py). A fix to today's puzzle
+  (today.py) is the one way to change a day that is out.
 Services leave the commit to the handler."""
 
 from __future__ import annotations
@@ -175,7 +177,9 @@ def _check_word(db: Session, data: WordData) -> Checked:
     return Checked({"word": word}, word)
 
 
-def _check_group(db: Session, theme: str, data: GroupData, item_id: uuid.UUID | None) -> Checked:
+def _check_group(data: GroupData) -> Checked:
+    """A group's words may be in another group of its theme too: a day that has both groups shows neither of them
+    those words (games/groups.py), and a theme that can't make a day that way is caught by the readiness check."""
     label = _text(data.label)
     if not 2 <= len(label) <= 60:
         raise invalid("data.label", "Say what the words share in 2 to 60 characters.")
@@ -187,20 +191,7 @@ def _check_group(db: Session, theme: str, data: GroupData, item_id: uuid.UUID | 
         raise invalid("data.words", "Each word can be in the group once.")
     least, most = GROUP_WORDS
     if not least <= len(words) <= most:
-        raise invalid("data.words", f"A group has {least} to {most} words. A day shows four of them.")
-    others = select(DailyItem).where(
-        DailyItem.game == "groups", DailyItem.theme_id == theme, DailyItem.retired.is_(False)
-    )
-    if item_id is not None:
-        others = others.where(DailyItem.id != item_id)
-    for other in db.scalars(others):
-        shared = sorted(set(words) & set(other.data["words"]))
-        if shared:
-            raise invalid(
-                "data.words",
-                f"“{shared[0]}” is already in “{other.data['label']}”. A word can be in one group of a theme, so "
-                "no board has it twice.",
-            )
+        raise invalid("data.words", f"Give {least} to {most} words. A day shows four of them.")
     return Checked({"label": label, "level": data.level, "words": words}, label.casefold())
 
 
@@ -280,7 +271,7 @@ def check_item(db: Session, theme: str, data: ItemData, item_id: uuid.UUID | Non
     if isinstance(data, WordData):
         checked = _check_word(db, data)
     elif isinstance(data, GroupData):
-        checked = _check_group(db, theme, data, item_id)
+        checked = _check_group(data)
     elif isinstance(data, SearchData):
         checked = _check_search(data)
     elif isinstance(data, QuizData):
@@ -298,13 +289,13 @@ def _listed(parts: Sequence[str]) -> str:
     return parts[0] if len(parts) == 1 else f"{', '.join(parts[:-1])} and {parts[-1]}"
 
 
-def _problem(game: str, pool: Sequence[Entry]) -> str:
+def problem_of(game: str, pool: Sequence[Entry]) -> str:
     """What a theme's items lack for a game."""
     if game == "groups":
         missing = [str(n) for n in range(1, groups_game.GROUPS + 1) if not any(e.data["level"] == n for e in pool)]
         if missing:
             return f"Groups needs a group at level {_listed(missing)}."
-        return "Groups needs four groups, one a level, that share no words."
+        return "Groups needs four groups, one a level, that each keep four words the other three don't have."
     if game == "search":
         if len(pool) >= search_game.WORDS:
             return (
@@ -332,7 +323,7 @@ def _problems(pools: dict[str, list[Entry]], day: dt.date) -> list[str]:
         try:
             maker.choose(pool, {}, day, READINESS)
         except NotReadyError:
-            out.append(_problem(game_id, pool))
+            out.append(problem_of(game_id, pool))
     return out
 
 
@@ -371,7 +362,7 @@ def _ensure_ready(db: Session, themes: Iterable[str]) -> None:
             )
 
 
-def _lock_themes(db: Session, *ids: str) -> None:
+def lock_themes(db: Session, *ids: str) -> None:
     """Item writes take their themes' rows in turn, so two editors can't each take a theme's last item."""
     for theme_id in sorted(set(ids)):
         db.get(DailyTheme, theme_id, with_for_update=True)
@@ -384,12 +375,12 @@ def _snapshot(item: DailyItem) -> dict[str, Any]:
     return {"theme": item.theme_id, "data": dict(item.data), "retired": item.retired}
 
 
-def _change(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
+def what_changed(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
     changed = [k for k in after if before.get(k) != after[k]]
     return {"before": {k: before.get(k) for k in changed}, "after": {k: after[k] for k in changed}}
 
 
-def _label(item: DailyItem) -> str:
+def label_of(item: DailyItem) -> str:
     """How the activity log names an item: 'Quick quiz: Which measure of centre…'."""
     text = item.data.get("label") or item.data.get("question") or item.data.get("word") or ""
     return f"{_title(item.game)}: {text}"
@@ -406,7 +397,15 @@ def _uses(db: Session, ids: Sequence[uuid.UUID]) -> dict[uuid.UUID, tuple[int, d
     return {item_id: (n, last) for item_id, n, last in db.execute(q)}
 
 
-def _out(item: DailyItem, use: tuple[int, dt.date] | None) -> ItemOut:
+def _in_today(db: Session, ids: Sequence[uuid.UUID]) -> set[uuid.UUID]:
+    """Those of `ids` that today's puzzles, out already, took."""
+    if not ids:
+        return set()
+    q = select(DailySetItem.item_id).where(DailySetItem.day == bahrain_today(), DailySetItem.item_id.in_(ids))
+    return set(db.scalars(q))
+
+
+def _out(item: DailyItem, use: tuple[int, dt.date] | None, in_today: bool) -> ItemOut:
     closest = list(item.ranking[1 : CLOSEST + 1]) if item.ranking else None
     return ItemOut(
         id=item.id,
@@ -417,13 +416,20 @@ def _out(item: DailyItem, use: tuple[int, dt.date] | None) -> ItemOut:
         version=item.version,
         uses=use[0] if use else 0,
         last_used=use[1] if use else None,
+        in_today=in_today,
         closest=closest,
         updated_at=item.updated_at,
     )
 
 
+def items_out(db: Session, items: Sequence[DailyItem]) -> list[ItemOut]:
+    ids = [i.id for i in items]
+    used, today = _uses(db, ids), _in_today(db, ids)
+    return [_out(i, used.get(i.id), i.id in today) for i in items]
+
+
 def item_out(db: Session, item: DailyItem) -> ItemOut:
-    return _out(item, _uses(db, [item.id]).get(item.id))
+    return items_out(db, [item])[0]
 
 
 def _escape(q: str) -> str:
@@ -461,18 +467,17 @@ def list_items(
             .offset(offset)
         )
     )
-    used = _uses(db, [r.id for r in rows])
-    return Page(items=[_out(r, used.get(r.id)) for r in rows], total=total, limit=limit, offset=offset)
+    return Page(items=items_out(db, rows), total=total, limit=limit, offset=offset)
 
 
-def _item(db: Session, item_id: uuid.UUID) -> DailyItem:
+def locked_item(db: Session, item_id: uuid.UUID) -> DailyItem:
     item = db.get(DailyItem, item_id, with_for_update=True)
     if item is None:
         raise not_found("This item doesn't exist any more.")
     return item
 
 
-def _version(item: DailyItem | DailyTheme | DailyNearestWord, version: int) -> None:
+def check_version(item: DailyItem | DailyTheme | DailyNearestWord, version: int) -> None:
     if item.version != version:
         raise conflict("puzzle_changed", CHANGED)
 
@@ -488,51 +493,64 @@ def _add(db: Session, rows: Sequence[DailyItem], field: str) -> None:
 
 
 def create_item(db: Session, user: User, body: ItemCreate, ip: str | None) -> ItemOut:
-    _lock_themes(db, body.theme)
+    lock_themes(db, body.theme)
     checked = check_item(db, body.theme, body.data)
     item = DailyItem(game=body.data.game, theme_id=body.theme, data=checked.data, key=checked.key)
     _add(db, [item], _KEY_FIELD.get(item.game, "data.word"))
     if item.game == "nearest":
         rank_secret_words(db, [item])
     record(
-        db, user, "daily.item.create", "daily_item", item.id, _label(item), ip, game=item.game, after=_snapshot(item)
+        db, user, "daily.item.create", "daily_item", item.id, label_of(item), ip, game=item.game, after=_snapshot(item)
     )
-    return _out(item, None)
+    return _out(item, None, in_today=False)
 
 
-def save_item(db: Session, user: User, item_id: uuid.UUID, body: ItemSave, ip: str | None) -> ItemOut:
-    """Saves the whole item, if nobody saved it since `body.version` (409 puzzle_changed)."""
-    item = _item(db, item_id)
-    _version(item, body.version)
-    if body.data.game != item.game:
-        raise invalid("data.game", "An item stays in its game.")
-    _lock_themes(db, item.theme_id, body.theme)
-    checked = check_item(db, body.theme, body.data, item.id)
+class Saved(NamedTuple):
+    before: dict[str, Any]  # the item's theme, fields and whether it's retired, before the save
+    after: dict[str, Any]
+
+
+def edit_item(db: Session, item: DailyItem, theme: str, data: ItemData) -> Saved | None:
+    """Saves the item's fields as `data` has them, in `theme`, checked with its game's rules and undone (409
+    theme_not_ready) when it would leave a theme that runs short. None when nothing changes. The caller has locked
+    the item (locked_item) and checked its version and game."""
+    lock_themes(db, item.theme_id, theme)
+    checked = check_item(db, theme, data, item.id)
     before = _snapshot(item)
-    after = {**before, "theme": body.theme, "data": checked.data}
+    after = {**before, "theme": theme, "data": checked.data}
     if after == before:
-        return item_out(db, item)
+        return None
     with db.begin_nested():  # undone if it leaves a theme short
-        item.theme_id, item.data, item.key = body.theme, checked.data, checked.key
+        item.theme_id, item.data, item.key = theme, checked.data, checked.key
         item.version += 1
         item.updated_at = utcnow()
         if item.game == "nearest":
             rank_secret_words(db, [item])
         if not item.retired:
             _ensure_ready(db, {before["theme"], item.theme_id})
-    record(
-        db, user, "daily.item.update", "daily_item", item.id, _label(item), ip, game=item.game, **_change(before, after)
-    )
+    return Saved(before, after)
+
+
+def save_item(db: Session, user: User, item_id: uuid.UUID, body: ItemSave, ip: str | None) -> ItemOut:
+    """Saves the whole item, if nobody saved it since `body.version` (409 puzzle_changed)."""
+    item = locked_item(db, item_id)
+    check_version(item, body.version)
+    if body.data.game != item.game:
+        raise invalid("data.game", "An item stays in its game.")
+    saved = edit_item(db, item, body.theme, body.data)
+    if saved is not None:
+        changes = what_changed(saved.before, saved.after)
+        record(db, user, "daily.item.update", "daily_item", item.id, label_of(item), ip, game=item.game, **changes)
     return item_out(db, item)
 
 
 def set_retired(db: Session, user: User, item_id: uuid.UUID, retired: bool, version: int, ip: str | None) -> ItemOut:
     """Retires an item (it never runs again; the days it ran keep it) or brings it back, checked again."""
-    item = _item(db, item_id)
-    _version(item, version)
+    item = locked_item(db, item_id)
+    check_version(item, version)
     if item.retired == retired:
         return item_out(db, item)
-    _lock_themes(db, item.theme_id)
+    lock_themes(db, item.theme_id)
     if not retired:
         check_item(db, item.theme_id, ITEM_DATA.validate_python({"game": item.game, **item.data}), item.id)
     with db.begin_nested():  # undone if it leaves a theme short
@@ -542,27 +560,27 @@ def set_retired(db: Session, user: User, item_id: uuid.UUID, retired: bool, vers
         if retired:
             _ensure_ready(db, {item.theme_id})
     action = "daily.item.retire" if retired else "daily.item.restore"
-    record(db, user, action, "daily_item", item.id, _label(item), ip, game=item.game)
+    record(db, user, action, "daily_item", item.id, label_of(item), ip, game=item.game)
     return item_out(db, item)
 
 
 def delete_item(db: Session, user: User, item_id: uuid.UUID, version: int, ip: str | None) -> None:
     """Deletes an item that never ran. One that ran is kept by its days: retire it instead (409 content_in_use)."""
-    item = _item(db, item_id)
-    _version(item, version)
+    item = locked_item(db, item_id)
+    check_version(item, version)
     ran = db.scalar(select(func.count()).where(DailySetItem.item_id == item.id)) or 0
     if ran:
         days = "day" if ran == 1 else "days"
         raise conflict(
             "content_in_use", f"It ran on {ran} {days}, which keep it. Retire it instead, so it doesn't run again."
         )
-    _lock_themes(db, item.theme_id)
+    lock_themes(db, item.theme_id)
     before = _snapshot(item)
     with db.begin_nested():  # undone if it leaves a theme short
         db.delete(item)
         if not before["retired"]:
             _ensure_ready(db, {before["theme"]})
-    record(db, user, "daily.item.delete", "daily_item", item_id, _label(item), ip, game=item.game, before=before)
+    record(db, user, "daily.item.delete", "daily_item", item_id, label_of(item), ip, game=item.game, before=before)
 
 
 # ── Nearest neighbour's vocabulary and rankings ──────────────────────────────────────────────
@@ -663,7 +681,7 @@ def save_vocabulary(db: Session, user: User, word: str, body: VocabularySave, ip
     row = db.get(DailyNearestWord, word, with_for_update=True)
     if row is None:
         raise not_found("This word isn't in the vocabulary any more.")
-    _version(row, body.version)
+    check_version(row, body.version)
     tags, near = check_tags_near(db, word, body.tags, body.near)
     before = {"tags": list(row.tags), "near": list(row.near)}
     after = {"tags": tags, "near": near}
@@ -673,7 +691,7 @@ def save_vocabulary(db: Session, user: User, word: str, body: VocabularySave, ip
     row.version += 1
     row.updated_at = utcnow()
     rank_secret_words(db)
-    record(db, user, "daily.vocabulary.update", "daily_word", word, word, ip, **_change(before, after))
+    record(db, user, "daily.vocabulary.update", "daily_word", word, word, ip, **what_changed(before, after))
     return _vocabulary_out(db, [row])[0]
 
 
@@ -682,7 +700,7 @@ def delete_vocabulary(db: Session, user: User, word: str, version: int, ip: str 
     row = db.get(DailyNearestWord, word, with_for_update=True)
     if row is None:
         raise not_found("This word isn't in the vocabulary any more.")
-    _version(row, version)
+    check_version(row, version)
     secret = db.scalars(select(DailyItem).where(DailyItem.game == "nearest", DailyItem.key == word).limit(1)).first()
     if secret is not None:
         where = _theme(db, secret.theme_id).title
@@ -875,7 +893,7 @@ def save_theme(db: Session, user: User, theme_id: str, body: ThemeSave, ip: str 
     """A theme's title and line, and whether it's in the rotation. Joining needs what every game needs (409
     theme_not_ready); the rotation keeps at least one theme. Weeks that started keep their themes."""
     theme = _locked_theme(db, theme_id)
-    _version(theme, body.version)
+    check_version(theme, body.version)
     title, blurb = theme_text(body.title, body.blurb)
     before = _theme_snapshot(theme)
     today = bahrain_today()
@@ -896,7 +914,7 @@ def save_theme(db: Session, user: User, theme_id: str, body: ThemeSave, ip: str 
     theme.version += 1
     theme.updated_at = utcnow()
     db.flush()
-    record(db, user, "daily.theme.update", "daily_theme", theme.id, title, ip, **_change(before, after))
+    record(db, user, "daily.theme.update", "daily_theme", theme.id, title, ip, **what_changed(before, after))
     return overview(db)
 
 
@@ -922,7 +940,7 @@ def order_themes(db: Session, user: User, body: ThemeOrder, ip: str | None) -> D
 def delete_theme(db: Session, user: User, theme_id: str, version: int, ip: str | None) -> DailyContentOverview:
     """Deletes a theme that never ran and has no items (409 content_in_use otherwise)."""
     theme = _locked_theme(db, theme_id)
-    _version(theme, version)
+    check_version(theme, version)
     if theme.in_rotation:
         raise conflict("content_in_use", f"{theme.title} is in the rotation. Take it out first.")
     items = db.scalar(select(func.count()).where(DailyItem.theme_id == theme_id)) or 0
@@ -1151,7 +1169,7 @@ def import_items(db: Session, user: User, body: ImportIn, ip: str | None) -> Imp
         raise invalid("text", "Paste at least one item.")
     if len(parsed) > IMPORT_ROWS:
         raise invalid("text", f"Import up to {IMPORT_ROWS} items at a time.")
-    _lock_themes(db, theme.id)
+    lock_themes(db, theme.id)
     trial = db.begin_nested() if body.dry_run else None
     if body.game == "word" and body.add_guesses:
         answers = [d.word.strip().upper() for _, _, d, _ in parsed if isinstance(d, WordData)]
@@ -1160,7 +1178,6 @@ def import_items(db: Session, user: User, body: ImportIn, ip: str | None) -> Imp
             db.execute(pg_insert(DailyGuessWord).values([{"word": w} for w in fresh]).on_conflict_do_nothing())
     rows: list[ImportRow] = []
     keys: set[str] = set()
-    claimed: set[str] = set()
     good: list[DailyItem] = []
     for line, shown, data, problem in parsed:
         read: ItemData | None = data
@@ -1171,14 +1188,10 @@ def import_items(db: Session, user: User, body: ImportIn, ip: str | None) -> Imp
                 problem = e.message
             else:
                 read = ITEM_DATA.validate_python({"game": data.game, **checked.data})
-                grouped: set[str] = set(checked.data.get("words", []))
                 if checked.key in keys:
                     problem = "It's in the list twice."
-                elif grouped & claimed:
-                    problem = f"“{min(grouped & claimed)}” is in another group of this list."
                 else:
                     keys.add(checked.key)
-                    claimed |= grouped
                     good.append(DailyItem(game=data.game, theme_id=theme.id, data=checked.data, key=checked.key))
         rows.append(ImportRow(line=line, text=shown, data=read, problem=problem))
     if trial is not None:
@@ -1198,7 +1211,7 @@ def import_items(db: Session, user: User, body: ImportIn, ip: str | None) -> Imp
             ip,
             game=body.game,
             count=len(good),
-            items=[_label(i) for i in good[:50]],
+            items=[label_of(i) for i in good[:50]],
         )
     return ImportReport(rows=rows, added=len(good))
 
@@ -1206,7 +1219,7 @@ def import_items(db: Session, user: User, body: ImportIn, ip: str | None) -> Imp
 # ── preview ──────────────────────────────────────────────────────────────────────────────────
 
 
-def _preview(puzzle: Any) -> PreviewPuzzle:
+def preview_of(puzzle: Any) -> PreviewPuzzle:
     if isinstance(puzzle, word_game.Puzzle):
         return PreviewWord(game="word", answer=puzzle.answer)
     if isinstance(puzzle, groups_game.Puzzle):
@@ -1244,10 +1257,12 @@ def preview(db: Session, day: dt.date) -> DayPreview:
             theme = planned.theme
             game = cast(ContentGame, game_id)
             if planned.puzzle is None:
-                problem = _problem(game_id, content.entries(db, game_id, planned.theme.id))
+                problem = problem_of(game_id, content.entries(db, game_id, planned.theme.id))
                 games.append(PreviewGame(game=game, fixed=False, puzzle=None, problem=problem))
             else:
-                games.append(PreviewGame(game=game, fixed=planned.fixed, puzzle=_preview(planned.puzzle), problem=None))
+                games.append(
+                    PreviewGame(game=game, fixed=planned.fixed, puzzle=preview_of(planned.puzzle), problem=None)
+                )
     except NoThemeError:
         raise invalid("day", "No theme runs that week. Put a theme in the rotation first.") from None
     if theme is None:  # pragma: no cover - MAKERS is never empty

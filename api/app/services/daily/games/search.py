@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import conflict
 from app.schemas.daily import Cell, FindMove, HintMove, Move, SearchFound, SearchView
 from app.services.daily import content
-from app.services.daily.content import Entry, NotReadyError, Uses
+from app.services.daily.content import CantFixError, Entry, NotReadyError, Uses
 from app.services.daily.games.base import ContentGame, Status, bad_move
 
 SIZE = 10
@@ -112,7 +112,6 @@ class SearchGame(ContentGame[Puzzle, SearchState]):
     max_points = 100
     moves = frozenset({"find", "hint", "give-up"})
     max_moves = 200
-    min_seconds = 15
 
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
         return content.spread(pool, used, day, WORDS, self.id, seed, _fits)
@@ -130,6 +129,28 @@ class SearchGame(ContentGame[Puzzle, SearchState]):
         letters = string.ascii_uppercase
         rows = tuple("".join(ch or r.choice(letters) for ch in row) for row in grid)
         return Puzzle(rows, tuple(sorted(placed, key=lambda p: p.word)))
+
+    def rebuild(
+        self, db: Session, day: dt.date, puzzle: Puzzle, before: list[Entry], after: list[Entry], seed: bytes
+    ) -> Puzzle:
+        """The grid stays while the words do; a word fixed lays the grid out again."""
+        words = sorted(str(e.data["word"]) for e in after)
+        if words == sorted(p.word for p in puzzle.placed):
+            return puzzle
+        for e in after:
+            word = str(e.data["word"])
+            inside = next((w for w in words if w != word and word in w), None)
+            if inside is not None:
+                raise CantFixError(
+                    "data.word",
+                    f"“{word}” is inside “{inside}”, another of today's words: a find of one would read as both.",
+                )
+        letters = sum(map(len, words))
+        if letters > MAX_HIDDEN:
+            raise CantFixError(
+                "data.word", f"Today's eight words would come to {letters} letters, and the grid takes {MAX_HIDDEN}."
+            )
+        return self.build(db, day, sorted(after, key=lambda e: str(e.data["word"])), seed)
 
     def dump(self, puzzle: Puzzle) -> dict[str, Any]:
         placed = [{"word": p.word, "start": list(p.start), "end": list(p.end)} for p in puzzle.placed]
@@ -172,7 +193,7 @@ class SearchGame(ContentGame[Puzzle, SearchState]):
             return "won"
         return "lost" if state.gave_up else "playing"
 
-    def points(self, puzzle: Puzzle, state: SearchState, variant: str, seconds: int) -> int:
+    def points(self, puzzle: Puzzle, state: SearchState, variant: str) -> int:
         if self.status(puzzle, state) != "won":
             return 0
         cost = len(state.hints) * HINT_COST + max(0, state.misses - MISS_FREE) * MISS_COST

@@ -8,6 +8,10 @@
   from the seed alone), and stored with the items it took (daily_sets): plays are checked against the stored puzzle,
   so neither editing the content nor changing a key ever changes a day that is out. Only today and past days are
   stored; the editor's preview makes days to come without storing them.
+- An editor's fix to today's puzzle (today.py) is the one change a stored puzzle takes: it is made again from the
+  same items as they are now, and the puzzle it replaces is kept (daily_set_revisions) for the plays finished on it.
+  A play request holds the day's puzzle (FOR SHARE) until it ends, so a fix waits for the moves in flight and every
+  request sees one version of the puzzle.
 - Each item runs as far as it can from its other days: items that never ran first, then those that ran longest ago.
   Ties go by an order drawn from the date with Daily's own random seed (daily_seed, made once per install), so the
   same content gives the same day for everyone, and which item falls on which day can't be worked out ahead."""
@@ -31,7 +35,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
-from app.models import DailyItem, DailySeed, DailySet, DailySetItem, DailyTheme, DailyThemeWeek
+from app.models import DailyItem, DailySeed, DailySet, DailySetItem, DailySetRevision, DailyTheme, DailyThemeWeek
 from app.schemas.daily import Theme
 
 if TYPE_CHECKING:
@@ -180,6 +184,16 @@ class NotReadyError(Exception):
     """The theme's items can't make this game's puzzle (too few of them, or none at a level)."""
 
 
+class CantFixError(Exception):
+    """A fix today's puzzle can't take (a group left without four words of its own, a word search word inside another
+    one): `field` and `message` say what to change."""
+
+    def __init__(self, field: str, message: str) -> None:
+        super().__init__(message)
+        self.field = field
+        self.message = message
+
+
 @dataclass(frozen=True)
 class Entry:
     """An item as the games use it: its id, theme and fields (and Nearest neighbour's ranking of the vocabulary)."""
@@ -193,6 +207,10 @@ class Entry:
 Uses = dict[uuid.UUID, list[dt.date]]  # item -> the days it ran on
 
 
+def _entry(item: DailyItem) -> Entry:
+    return Entry(item.id, item.theme_id, dict(item.data), tuple(item.ranking) if item.ranking is not None else None)
+
+
 def entries(db: Session, game: str, theme: str) -> list[Entry]:
     """The theme's items for a game that can run (not retired), oldest first."""
     q = (
@@ -200,10 +218,18 @@ def entries(db: Session, game: str, theme: str) -> list[Entry]:
         .where(DailyItem.game == game, DailyItem.theme_id == theme, DailyItem.retired.is_(False))
         .order_by(DailyItem.created_at, DailyItem.id)
     )
-    return [
-        Entry(i.id, i.theme_id, dict(i.data), tuple(i.ranking) if i.ranking is not None else None)
-        for i in db.scalars(q)
-    ]
+    return [_entry(i) for i in db.scalars(q)]
+
+
+def taken(db: Session, day: dt.date, game: str) -> list[Entry]:
+    """The items a stored day's puzzle took, as they are now (retired or not), oldest first."""
+    q = (
+        select(DailyItem)
+        .join(DailySetItem, DailySetItem.item_id == DailyItem.id)
+        .where(DailySetItem.day == day, DailySetItem.game == game, DailySetItem.variant == "")
+        .order_by(DailyItem.created_at, DailyItem.id)
+    )
+    return [_entry(i) for i in db.scalars(q)]
 
 
 def uses(db: Session, game: str) -> Uses:
@@ -211,6 +237,17 @@ def uses(db: Session, game: str) -> Uses:
     for item_id, day in db.execute(select(DailySetItem.item_id, DailySetItem.day).where(DailySetItem.game == game)):
         out.setdefault(item_id, []).append(day)
     return out
+
+
+def ranked(pool: Sequence[Entry], used: Uses, day: dt.date, key: str, seed: bytes) -> list[Entry]:
+    """The pool in the order `day` takes from it: each item as far as it can be from the days it ran on (items that
+    never ran first), ties in the day's own order."""
+
+    def distance(entry: Entry) -> float:
+        days = used.get(entry.id)
+        return min(abs((day - d).days) for d in days) if days else math.inf
+
+    return sorted(pool, key=lambda e: (-distance(e), _order(seed, key, day, e.id)))
 
 
 def spread(
@@ -222,16 +259,10 @@ def spread(
     seed: bytes,
     fits: Callable[[list[Entry], Entry], bool] | None = None,
 ) -> list[Entry]:
-    """`n` items for `day`, each as far as it can be from the days it ran on (items that never ran first); ties in
-    the day's own order. `fits(chosen, item)` can refuse an item that clashes with those already chosen. Raises
-    NotReadyError when the pool can't give `n`."""
-
-    def distance(entry: Entry) -> float:
-        days = used.get(entry.id)
-        return min(abs((day - d).days) for d in days) if days else math.inf
-
+    """`n` items for `day`, in the order ranked() gives. `fits(chosen, item)` can refuse an item that clashes with
+    those already chosen. Raises NotReadyError when the pool can't give `n`."""
     chosen: list[Entry] = []
-    for entry in sorted(pool, key=lambda e: (-distance(e), _order(seed, key, day, e.id))):
+    for entry in ranked(pool, used, day, key, seed):
         if fits is None or fits(chosen, entry):
             chosen.append(entry)
             if len(chosen) == n:
@@ -254,10 +285,22 @@ def not_ready() -> ApiError:
     return ApiError(404, "not_out_yet", "This puzzle isn't ready today. Try another game.")
 
 
-def _stored(db: Session, day: dt.date, game: str, variant: str) -> dict[str, Any] | None:
-    q = select(DailySet.puzzle).where(DailySet.day == day, DailySet.game == game, DailySet.variant == variant)
-    found: dict[str, Any] | None = db.scalar(q)
-    return found
+@dataclass(frozen=True)
+class Kept:
+    """A day's puzzle as stored, and its version: the fixes it has had (0: as it was made)."""
+
+    puzzle: dict[str, Any]
+    revision: int
+
+
+def _stored(db: Session, day: dt.date, game: str, variant: str, *, hold: bool) -> Kept | None:
+    """The day's puzzle as stored. `hold`: keep it (FOR SHARE) until the transaction ends, so a fix to it waits for
+    this request and this request sees one version of it throughout."""
+    q = select(DailySet.puzzle, DailySet.revision).where(
+        DailySet.day == day, DailySet.game == game, DailySet.variant == variant
+    )
+    row = db.execute(q.with_for_update(read=True) if hold else q).first()
+    return Kept(row.puzzle, row.revision) if row is not None else None
 
 
 def _store(
@@ -268,7 +311,9 @@ def _store(
     theme: str | None,
     puzzle: dict[str, Any],
     chosen: Sequence[Entry],
-) -> dict[str, Any]:
+    *,
+    hold: bool,
+) -> Kept:
     """Keeps a day's puzzle with the items it took, unless another request kept one first: then that one is the
     day's. The week's theme is kept with it."""
     added = db.execute(
@@ -278,7 +323,7 @@ def _store(
         .returning(DailySet.day)
     ).first()
     if added is None:
-        kept = _stored(db, day, game, variant)
+        kept = _stored(db, day, game, variant, hold=hold)
         if kept is None:  # pragma: no cover - the row that stopped the insert is there
             raise not_ready()
         return kept
@@ -288,13 +333,14 @@ def _store(
     if theme is not None:
         week = pg_insert(DailyThemeWeek).values(week_start=week_start(day), theme_id=theme)
         db.execute(week.on_conflict_do_nothing())
-    return puzzle
+    return Kept(puzzle, 0)
 
 
-def day_puzzle(db: Session, game: ContentGame[Any, Any], day: dt.date) -> dict[str, Any]:
-    """The game's puzzle for `day` as stored: made and stored the first time it's asked for. The caller commits.
-    Raises not_out_yet (404) when the day's theme can't make it."""
-    found = _stored(db, day, game.id, "")
+def day_puzzle(db: Session, game: ContentGame[Any, Any], day: dt.date) -> Kept:
+    """The game's puzzle for `day` as stored, and its version: made and stored the first time it's asked for, and
+    held until the transaction ends (a fix to it waits). The caller commits. Raises not_out_yet (404) when the day's
+    theme can't make it."""
+    found = _stored(db, day, game.id, "", hold=True)
     if found is not None:
         return found
     seed = daily_seed(db)
@@ -305,17 +351,30 @@ def day_puzzle(db: Session, game: ContentGame[Any, Any], day: dt.date) -> dict[s
         raise not_set_up() from None
     except NotReadyError:
         raise not_ready() from None
-    return _store(db, day, game.id, "", theme.id, game.dump(puzzle), chosen)
+    return _store(db, day, game.id, "", theme.id, game.dump(puzzle), chosen, hold=True)
 
 
 def seeded_puzzle(
     db: Session, game: str, variant: str, day: dt.date, make_one: Callable[[bytes], dict[str, Any]]
-) -> dict[str, Any]:
-    """A puzzle made from Daily's seed alone (Sudoku), as stored: made and stored the first time it's asked for."""
-    found = _stored(db, day, game, variant)
+) -> Kept:
+    """A puzzle made from Daily's seed alone (Sudoku), as stored: made and stored the first time it's asked for. Its
+    content never changes, so nothing fixes it."""
+    found = _stored(db, day, game, variant, hold=False)
     if found is not None:
         return found
-    return _store(db, day, game, variant, None, make_one(daily_seed(db)), ())
+    return _store(db, day, game, variant, None, make_one(daily_seed(db)), (), hold=False)
+
+
+def earlier_puzzle(db: Session, day: dt.date, game: str, variant: str, revision: int) -> dict[str, Any] | None:
+    """The day's puzzle as it was at `revision`, before a fix replaced it; None when it never had that version."""
+    q = select(DailySetRevision.puzzle).where(
+        DailySetRevision.day == day,
+        DailySetRevision.game == game,
+        DailySetRevision.variant == variant,
+        DailySetRevision.revision == revision,
+    )
+    found: dict[str, Any] | None = db.scalar(q)
+    return found
 
 
 @dataclass(frozen=True)

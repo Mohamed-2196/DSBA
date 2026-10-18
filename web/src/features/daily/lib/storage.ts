@@ -1,4 +1,4 @@
-// What the Daily keeps on this device: a guest's moves (the server keeps nothing for guests), the games whose
+// What the Daily keeps on this device: a guest's play (the server keeps nothing for guests), the games whose
 // rules a person has seen, and Sudoku's pencil marks (personal: 'hub.mine.' keys go on sign-out). Storage can be
 // missing or refused (a private window): every read falls back to nothing and every write is best effort.
 import type { GameId, Move } from '../types';
@@ -52,23 +52,40 @@ export function prune(prefix: string, today: string, keep: number = KEEP_DAYS): 
   }
 }
 
-// ── A guest's moves ─────────────────────────────────────────────────────────────────────────────
+// ── A guest's play ──────────────────────────────────────────────────────────────────────────────
+
+/** A guest's play of a day's game (and difficulty). */
+export interface GuestPlay {
+  /** the version of the day's puzzle the moves were made on: an editor's fix to today's puzzle makes a new one */
+  revision: number;
+  /** oldest first */
+  moves: Move[];
+  /** a fix started this play again: the game says so until the next move */
+  restarted: boolean;
+}
+
+export const NO_GUEST_PLAY: GuestPlay = { revision: 0, moves: [], restarted: false };
 
 const guestKey = (day: string, game: GameId, variant: string) => `${GUEST}${day}:${game}:${variant || 'default'}`;
 
-/** A guest's moves on a day's game (and difficulty), oldest first. */
-export function guestMoves(day: string, game: GameId, variant = ''): Move[] {
+/** A guest's play on a day's game (and difficulty); none when there is none, or what's kept is malformed. */
+export function guestPlay(day: string, game: GameId, variant = ''): GuestPlay {
   const stored = read(guestKey(day, game, variant));
-  return Array.isArray(stored) ? (stored as Move[]) : [];
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return NO_GUEST_PLAY;
+  const { revision, moves, restarted } = stored as Record<string, unknown>;
+  if (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 0 || !Array.isArray(moves)) {
+    return NO_GUEST_PLAY;
+  }
+  return { revision, moves: moves as Move[], restarted: restarted === true };
 }
 
-export function saveGuestMoves(day: string, game: GameId, variant: string, moves: Move[], today: string): void {
-  write(guestKey(day, game, variant), moves);
+export function saveGuestPlay(day: string, game: GameId, variant: string, play: GuestPlay, today: string): void {
+  write(guestKey(day, game, variant), play);
   prune(GUEST, today);
 }
 
-/** Forgets a guest's moves: the server couldn't replay them (they were made on another puzzle). */
-export function clearGuestMoves(day: string, game: GameId, variant = ''): void {
+/** Forgets a guest's play: the server couldn't replay its moves. */
+export function clearGuestPlay(day: string, game: GameId, variant = ''): void {
   remove(guestKey(day, game, variant));
 }
 

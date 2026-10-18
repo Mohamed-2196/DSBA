@@ -6,7 +6,6 @@ import datetime as dt
 from collections.abc import Callable
 from typing import Any
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -14,20 +13,11 @@ from app.core.time import bahrain_today
 from app.models import User
 from app.services.daily import content
 from app.services.daily.games import GAMES
-from app.services.daily.games.groups import SQUARES, GroupsGame
-from app.services.daily.games.nearest import NearestGame
-from app.services.daily.games.quiz import QuizGame
-from app.services.daily.games.search import SearchGame
+from app.services.daily.games.groups import SQUARES
 from tests.daily.conftest import API
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
-
-
-@pytest.fixture(autouse=True)
-def no_speed_check(monkeypatch: pytest.MonkeyPatch) -> None:
-    for game in (GroupsGame, SearchGame, QuizGame, NearestGame):
-        monkeypatch.setattr(game, "min_seconds", 0)
 
 
 def today() -> dt.date:

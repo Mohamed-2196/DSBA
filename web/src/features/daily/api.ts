@@ -1,11 +1,13 @@
 // The Daily's queries and moves. Signed in, the server keeps each play; a guest's moves live on this device
 // (lib/storage.ts) and go with every request, so the server can replay and check them without keeping anything.
+// Every move says which version of the day's puzzle it was made on: when an editor fixed today's puzzle since, the
+// server answers 409 puzzle_fixed and the play loads again, started over on the fixed puzzle.
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { todayKey } from '../../lib/dates';
-import { clearGuestMoves, guestMoves, saveGuestMoves } from './lib/storage';
+import { NO_GUEST_PLAY, clearGuestPlay, guestPlay, saveGuestPlay, type GuestPlay } from './lib/storage';
 import type { BoardPeriod, GameId, Move, PlayOut } from './types';
 
 export const DAILY_KEY = ['daily'] as const;
@@ -68,10 +70,26 @@ export function useShowOnBoard() {
   });
 }
 
-function replayGuest(day: string, game: GameId, variant: string, history: Move[]): Promise<PlayOut> {
+function replayGuest(day: string, game: GameId, variant: string, kept: GuestPlay): Promise<PlayOut> {
   return call(
-    api.POST('/api/v1/daily/{day}/{game}/moves', { params: { path: { day, game } }, body: { variant, history } }),
+    api.POST('/api/v1/daily/{day}/{game}/moves', {
+      params: { path: { day, game } },
+      body: { variant, history: kept.moves, revision: kept.revision },
+    }),
   );
+}
+
+/**
+ * A guest's play as the server replayed it. Moves made on a version of today's puzzle that a fix replaced come back
+ * finished as they were, or started again on the fixed puzzle: then this device forgets them, and remembers to say
+ * why until the next move.
+ */
+function settleGuest(day: string, game: GameId, variant: string, kept: GuestPlay, out: PlayOut): PlayOut {
+  if (out.play.restarted) {
+    saveGuestPlay(day, game, variant, { revision: out.play.revision, moves: [], restarted: true }, todayKey());
+    return out;
+  }
+  return kept.restarted && out.play.status === 'new' ? { ...out, play: { ...out.play, restarted: true } } : out;
 }
 
 async function fetchPlay(day: string, game: GameId, variant: string, guest: boolean): Promise<PlayOut> {
@@ -82,14 +100,14 @@ async function fetchPlay(day: string, game: GameId, variant: string, guest: bool
       }),
     );
   }
-  const history = guestMoves(day, game, variant);
+  const kept = guestPlay(day, game, variant);
   try {
-    return await replayGuest(day, game, variant, history);
+    return settleGuest(day, game, variant, kept, await replayGuest(day, game, variant, kept));
   } catch (e) {
-    // Moves the server can't replay (made on another puzzle): start again rather than stay stuck.
-    if (history.length && isApiError(e) && (e.status === 422 || e.status === 409)) {
-      clearGuestMoves(day, game, variant);
-      return replayGuest(day, game, variant, []);
+    // Moves the server can't replay: start again rather than stay stuck.
+    if (kept.moves.length && isApiError(e) && (e.status === 422 || e.status === 409)) {
+      clearGuestPlay(day, game, variant);
+      return replayGuest(day, game, variant, NO_GUEST_PLAY);
     }
     throw e;
   }
@@ -120,27 +138,35 @@ export function useDailyMove(day: string, game: GameId, variant: string) {
   const qc = useQueryClient();
   const { me } = useAuth();
   const guest = !me;
+  const key = dailyKeys.play(day, game, variant, guest);
   return useMutation({
     mutationFn: async (move: Move): Promise<PlayOut> => {
-      const history = guest ? guestMoves(day, game, variant) : [];
+      const kept = guest ? guestPlay(day, game, variant) : NO_GUEST_PLAY;
+      // The version of the puzzle on the screen, which a guest's moves were made on too.
+      const revision = qc.getQueryData<PlayOut>(key)?.play.revision ?? kept.revision;
       const out = await call(
         api.POST('/api/v1/daily/{day}/{game}/moves', {
           params: { path: { day, game } },
-          body: { variant, move, history },
+          body: { variant, move, history: kept.moves, revision },
         }),
       );
-      if (guest) saveGuestMoves(day, game, variant, [...history, move], todayKey());
+      if (guest) {
+        const moves = [...kept.moves, move];
+        saveGuestPlay(day, game, variant, { revision: out.play.revision, moves, restarted: false }, todayKey());
+      }
       return out;
     },
     onSuccess: (out) => {
-      qc.setQueryData(dailyKeys.play(day, game, variant, guest), out);
+      qc.setQueryData(key, out);
       void qc.invalidateQueries({ queryKey: dailyKeys.today() });
       if (out.play.status === 'won' || out.play.status === 'lost') afterFinish(qc);
     },
     onError: (e) => {
-      // Finished elsewhere (another tab): show the play as it is now.
-      if (isApiError(e) && e.code === 'game_over')
-        void qc.invalidateQueries({ queryKey: dailyKeys.play(day, game, variant, guest) });
+      // Finished elsewhere (another tab), or today's puzzle was fixed since it loaded: show the play as it is now.
+      if (isApiError(e) && (e.code === 'game_over' || e.code === 'puzzle_fixed')) {
+        void qc.invalidateQueries({ queryKey: key });
+        if (e.code === 'puzzle_fixed') void qc.invalidateQueries({ queryKey: dailyKeys.today() });
+      }
     },
   });
 }

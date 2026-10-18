@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import type { Move } from '../types';
 import {
-  clearGuestMoves,
-  guestMoves,
+  clearGuestPlay,
+  guestPlay,
   hasSeenRules,
   loadNotes,
   markRulesSeen,
   prune,
-  saveGuestMoves,
+  saveGuestPlay,
   saveNotes,
 } from './storage';
 
@@ -34,26 +35,41 @@ afterEach(() => {
   delete g.window;
 });
 
-describe('a guest’s moves', () => {
-  it('are kept per day, game and difficulty', () => {
-    saveGuestMoves('2026-10-17', 'sudoku', 'easy', [{ kind: 'hint' }], '2026-10-17');
-    expect(guestMoves('2026-10-17', 'sudoku', 'easy')).toEqual([{ kind: 'hint' }]);
-    expect(guestMoves('2026-10-17', 'sudoku', 'hard')).toEqual([]);
-    clearGuestMoves('2026-10-17', 'sudoku', 'easy');
-    expect(guestMoves('2026-10-17', 'sudoku', 'easy')).toEqual([]);
+const play = (revision: number, ...moves: Move[]) => ({ revision, moves, restarted: false });
+const none = { revision: 0, moves: [], restarted: false };
+
+describe('a guest’s play', () => {
+  it('is kept per day, game and difficulty, with the version of the puzzle it was played on', () => {
+    saveGuestPlay('2026-10-17', 'sudoku', 'easy', play(1, { kind: 'hint' }), '2026-10-17');
+    expect(guestPlay('2026-10-17', 'sudoku', 'easy')).toEqual(play(1, { kind: 'hint' }));
+    expect(guestPlay('2026-10-17', 'sudoku', 'hard')).toEqual(none);
+    clearGuestPlay('2026-10-17', 'sudoku', 'easy');
+    expect(guestPlay('2026-10-17', 'sudoku', 'easy')).toEqual(none);
   });
 
-  it('are cleared after a fortnight', () => {
-    saveGuestMoves('2026-09-01', 'word', '', [{ kind: 'give-up' }], '2026-09-01');
-    saveGuestMoves('2026-10-17', 'word', '', [{ kind: 'give-up' }], '2026-10-17');
-    expect(guestMoves('2026-09-01', 'word')).toEqual([]);
-    expect(guestMoves('2026-10-17', 'word')).toHaveLength(1);
+  it('remembers a play a fix started again', () => {
+    saveGuestPlay('2026-10-17', 'word', '', { revision: 2, moves: [], restarted: true }, '2026-10-17');
+    expect(guestPlay('2026-10-17', 'word').restarted).toBe(true);
   });
 
-  it('read as none when storage is missing', () => {
+  it('is cleared after a fortnight', () => {
+    saveGuestPlay('2026-09-01', 'word', '', play(0, { kind: 'give-up' }), '2026-09-01');
+    saveGuestPlay('2026-10-17', 'word', '', play(0, { kind: 'give-up' }), '2026-10-17');
+    expect(guestPlay('2026-09-01', 'word')).toEqual(none);
+    expect(guestPlay('2026-10-17', 'word').moves).toHaveLength(1);
+  });
+
+  it('reads as none when what is kept is malformed', () => {
+    for (const value of ['[{"kind":"hint"}]', '{"revision":-1,"moves":[]}', '{"revision":1}', 'nonsense']) {
+      g.window?.localStorage.setItem('hub.daily.guest.2026-10-17:word:default', value);
+      expect(guestPlay('2026-10-17', 'word')).toEqual(none);
+    }
+  });
+
+  it('reads as none when storage is missing', () => {
     delete g.window;
-    expect(guestMoves('2026-10-17', 'word')).toEqual([]);
-    expect(() => saveGuestMoves('2026-10-17', 'word', '', [], '2026-10-17')).not.toThrow();
+    expect(guestPlay('2026-10-17', 'word')).toEqual(none);
+    expect(() => saveGuestPlay('2026-10-17', 'word', '', none, '2026-10-17')).not.toThrow();
   });
 });
 
