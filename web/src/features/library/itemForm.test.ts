@@ -5,6 +5,7 @@ import {
   checkValues,
   emptyValues,
   errorsFromApi,
+  isCohortField,
   linkProblem,
   toCreateBody,
   toUpdateBody,
@@ -32,6 +33,15 @@ const values = (patch: Partial<ItemFormValues> = {}): ItemFormValues => ({
   ...patch,
 });
 const UPLOAD = '9f0a3b2c-1d4e-4f5a-8b6c-7d8e9f0a1b2c';
+
+describe('the Year field', () => {
+  it('holds a cohort as text, and only a cohort', () => {
+    expect(emptyValues({ year: 2 }).year).toBe('2');
+    expect(emptyValues().year).toBe('');
+    expect(['', '1', '2', '3'].every(isCohortField)).toBe(true);
+    expect(isCohortField('4')).toBe(false);
+  });
+});
 
 describe('checkValues', () => {
   it('accepts a complete form', () => {

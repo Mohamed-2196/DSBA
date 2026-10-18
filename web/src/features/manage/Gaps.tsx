@@ -4,19 +4,11 @@ import { CheckCircle } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { formatDay } from '../../lib/dates';
 import { sittingLabel } from '../../lib/exams';
+import { moduleLabel } from '../../lib/modules';
 import { Panel, QueryError, Skeleton } from '../../ui';
 import { askedBy, requestPath } from '../requests/public';
 import { useGaps } from './api';
-import {
-  eventMissing,
-  eventPath,
-  lessonLine,
-  moduleEditor,
-  moduleFiles,
-  moduleName,
-  scanLine,
-  sittingMissing,
-} from './gapLabels';
+import { eventMissing, eventPath, lessonLine, moduleEditor, moduleFiles, scanLine, sittingMissing } from './gapLabels';
 
 interface Line {
   key: string;
@@ -118,7 +110,7 @@ export function Gaps() {
             lines={library.sittings.map((s) => ({
               key: `${s.module.id}-${s.examYear}-${s.session ?? ''}`,
               to: moduleFiles(s.module),
-              title: `${moduleName(s.module)}: ${sittingLabel(s.examYear, s.session)}`,
+              title: `${moduleLabel(s.module)}: ${sittingLabel(s.examYear, s.session)}`,
               meta: sittingMissing(s),
             }))}
           />
@@ -131,7 +123,7 @@ export function Gaps() {
               key: s.id,
               to: `/library/${encodeURIComponent(s.slug)}`,
               title: s.title,
-              meta: [s.module ? moduleName(s.module) : null, scanLine(s)].filter(Boolean).join(' · '),
+              meta: [s.module ? moduleLabel(s.module) : null, scanLine(s)].filter(Boolean).join(' · '),
             }))}
           />
           <GapList
@@ -142,7 +134,7 @@ export function Gaps() {
             lines={library.noCheatSheet.map((m) => ({
               key: m.id,
               to: moduleFiles(m),
-              title: moduleName(m),
+              title: moduleLabel(m),
               meta: `Year ${m.year}`,
             }))}
           />
@@ -158,7 +150,7 @@ export function Gaps() {
             lines={lessons.map((g) => ({
               key: g.module.id,
               to: moduleEditor(g.module),
-              title: moduleName(g.module),
+              title: moduleLabel(g.module),
               meta: lessonLine(g),
             }))}
           />
