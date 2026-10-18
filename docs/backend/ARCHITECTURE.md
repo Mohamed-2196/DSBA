@@ -43,53 +43,113 @@ DSBA Hub was a front-end prototype: every page ran on demo data in the browser. 
 
 ```
 api/                          Python backend
-  app/main.py                 app factory, middleware
-  app/config.py, db.py        settings (DSBA_*), engine and session
-  app/models/                 SQLAlchemy models: the schema
+  app/main.py                 app factory and middleware (body caps, control characters, CSRF, CORS, headers)
+  app/config.py, db.py        settings (DSBA_*; every one is in DEPLOYMENT.md, section 12), engine and session
+  app/models/                 SQLAlchemy models, the schema: user access activity outbox content forum library
+                              requests seniors newsletter notes board my_calendar noora daily daily_content bugs
   migrations/                 Alembic, one file per change (the drift test compares them with the models)
   app/schemas/                Pydantic models: the API contract
   app/core/                   errors, security (sessions, CSRF, client IP), access (boxes, features), headers,
-                              pagination, text (slugs), links (link rules), time (UTC, Bahrain's today)
-  app/routers/                thin HTTP layer, one file per area:
-                              auth me progress notifications admin access features health
-                              forum reports seniors requests suggestions summary
-                              library uploads modules content newsletter calendar
-                              notes board noora
+                              pagination, text (slugs), links (link rules), time (UTC, Bahrain's today),
+                              limits (a body cap a route sets itself), logs (the feed secret kept out of logs)
+  app/routers/                thin HTTP layer, one file per area (mounted in routers/__init__.py):
+                              health auth me progress notifications admin access features
+                              forum reports requests seniors suggestions summary bugs
+                              modules library uploads newsletter calendar feeds content site grades
+                              notes board noora mini_noora daily daily_content
   app/services/               the logic:
                               accounts identifiers otp sessions mailer sms outbox notify notifications summary
-                              ratelimit audit access roles reports
-                              forum/ (threads, replies, votes, follows, search, views, visibility, notices, ...)
+                              ratelimit audit access roles reports bugs
+                              forum/ (threads, replies, votes, follows, search, views, visibility, notices,
+                              taxonomy, settings, ...)
                               requests seniors suggestions gaps polls
-                              library uploads storage search content modules module_editor newsletter calendar
+                              library uploads storage search content modules module_editor
+                              newsletter newsletter_settings newsletter_images calendar my_calendar career
                               past_questions exam_names paper_text text_extract drive drive_import
-                              notes board noora/ (ask, prompt, paper)
-  app/seed/                   seed loader and the content data
+                              documents (the documents edited whole in Manage) site grades
+                              notes note_doc board/ (boards, cards, plans, files, reminders, export, common)
+                              noora/ (ask, prompt, paper, settings)
+                              daily/ (plays, content, editor, bundle, streaks, badges, sudoku_engine, games/)
+  app/seed/                   the seed loader and the starting content (data/*.json; data/daily: the Daily themes
+                              and the word game's guess list)
   app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, weekly-summary,
-                              import-drive, exam-meta, text-worker, extract-texts, dev-login
+                              import-drive, exam-meta, text-worker, extract-texts, make-covers, texts-role,
+                              daily-content, dev-login, enable-features (`python -m app.cli --help` says what each does)
   tests/conftest.py           shared harness (each run makes its own database)
-  tests/core|accounts|community|content|notes|board|noora/   each area's tests
+  tests/core|accounts|community|content|notes|board|noora|daily/   each area's tests
   Dockerfile, requirements.txt   the API image; requirements.txt is uv.lock exported with hashes
 web/                          React + TypeScript
-  src/api/                    client.ts (openapi-fetch + CSRF), errors, keys, paging, uploads, queryClient,
-                              schema.d.ts (generated)
-  src/main.tsx, src/lib/      entry point; dates, share, analytics (PostHog, only when built with a key)
+  src/api/                    client.ts (openapi-fetch + CSRF), errors, keys, paging, uploads, pictures,
+                              queryClient, schema.d.ts (generated) and types.ts (its names)
+  src/main.tsx, src/lib/      entry point; dates, share and useCopyLink, exams (zones and sittings), modules, pwa,
+                              version, analytics (PostHog, only when built with a key), ink/ (the notebook's pen
+                              strokes)
   src/auth/                   AuthProvider, useAuth, sign-in, access (boxes and features), preferences
-  src/ui, src/shell, src/state, src/styles   design system, app shell, shared state
-  src/features/               about access account board calendar career forum grades home library manage
-                              modules newsletter noora notes notifications onboarding papers requests search
-                              start; each meets the others only through its public.ts
-  e2e/, playwright.config.ts  the end-to-end suite (Playwright, against the Docker stack)
+  src/ui/                     the design system; ui/docEditor/ is the kit every document edited whole in Manage
+                              uses (below)
+  src/shell, src/state, src/styles, src/sw   app shell, shared state, tokens, the service worker
+  src/features/               about access account board bugs calendar career daily forum grades home library
+                              manage modules newsletter noora notes notifications onboarding papers requests
+                              search site start; each meets the others only through its public.ts
+  e2e/, playwright.config.ts  the end-to-end suite (Playwright, against the Docker stack: scripts/e2e.sh)
   Dockerfile, deploy/         the production image: the built app in Caddy (Caddyfile, CSP hashes)
 compose.yaml, .env.example    local stack
+compose.e2e.yaml              what scripts/e2e.sh changes for the end-to-end suite
 compose.prod.yaml             production
-scripts/check.sh, .github/    every check in one command, and CI running it
-docs/backend/                 this brief, DEPLOYMENT.md (production)
+scripts/                      check.sh (every check CI runs), e2e.sh, seed-real.sh, check-deploy.sh, install-hooks.sh
+.github/workflows/            ci.yml (check.sh on every push), railway.yml (checks each dev deploy)
+private/                      git-ignored: content kept out of the public repository (the Daily content file, below)
+docs/backend/                 this brief, CMS.md (what students see and where it is edited), DEPLOYMENT.md
 docs/reviews/                 reviewers' reports
 ```
 
 Builders work on their own branch in their own git worktree and commit there; the lead merges. A builder that
 needs a change in an area another builder holds says so in its report (file, what, why). Don't change
 `package.json`, `pyproject.toml` or lockfiles without saying why in the report.
+
+### Where each area lives
+
+| Area | Routers | Services | Tables | Web |
+|---|---|---|---|---|
+| Accounts, sign-in, sessions | `auth`, `me`, `progress`, `notifications` | `accounts`, `identifiers`, `otp`, `sessions`, `notifications`, `notify`, `outbox`, `mailer`, `sms` | `users`, `otp_challenges`, `user_sessions`, `notifications`, `lesson_views`, `lesson_resume`, `email_outbox` | `src/auth`, `account`, `notifications`, `onboarding` |
+| Access, people, reports, the activity log | `access`, `admin`, `features`, `reports` | `access`, `roles`, `audit`, `reports` | `roles`, `role_boxes`, `user_roles`, `feature_switches`, `feature_switch_roles`, `reports`, `audit_log` | `access`, `manage` |
+| Forum, with its categories, tags, guidelines and tips | `forum` | `forum/` (`taxonomy` and `settings` for Manage → Forum) | `forum_*` | `forum` (`forum/settings` is Manage → Forum) |
+| Library, past papers, the Drive import, the text worker | `library`, `uploads` | `library`, `uploads`, `storage`, `past_questions`, `exam_names`, `drive`, `drive_import`, `paper_text`, `text_extract` | `library_items`, `library_texts`, `library_stars`, `paper_questions`, `paper_question_flags`, `drive_folders`, `uploads` | `library`, `papers` |
+| Requests, "You asked, we did", the reps' gaps | `requests` | `requests`, `gaps` | `requests`, `request_me_toos` | `requests` |
+| Modules and lessons, their editor and pictures, suggested videos | `modules`, `suggestions` | `modules`, `module_editor`, `suggestions` | `modules` (with `art`), `chapters`, `lessons`, `video_suggestions` | `modules` (`modules/editor`) |
+| Newsletter, its settings and pictures, polls | `newsletter` | `newsletter`, `newsletter_settings`, `newsletter_images`, `polls` | `newsletter_*`, `content_docs` | `newsletter` (`newsletter/settings`) |
+| Programme calendar, each student's own calendar and private feed | `calendar`, `feeds` | `calendar`, `my_calendar` | `calendar_events`, `personal_events`, `calendar_prefs` | `calendar` (`mine.ts`, `MyEventDialog`) |
+| Career Navigator and its editor, seniors who answer | `content`, `seniors` | `career`, `content`, `documents`, `seniors` | `content_docs` (`career`), `uploads` (logos), `senior_profiles` | `career` (`career/editor`) |
+| Site settings and the guides | `site` | `site`, `documents` | `content_docs` | `site`, `start` (`start/editor`) |
+| Grades calculator's rules | `grades` | `grades`, `documents` | `content_docs` | `grades` (`grades/editor`) |
+| Sunday summary, its words and time | `summary` | `summary`, `outbox` | `weekly_summaries`, `content_docs` | `manage` (`SummaryWords`) |
+| Notebook (typed text, ink, pictures, PDFs) | `notes` | `notes`, `note_doc` | `notebooks`, `notes`, `note_ink`, `uploads` | `notes`, `src/lib/ink` |
+| Boards (columns, labels, cards, checklists, files, comments, reminders, plans) | `board` | `board/` | `boards`, `board_*` | `board` |
+| Mini Noora, her settings and script | `noora`, `mini_noora` | `noora/` (`settings` for Manage → Mini Noora) | `noora_limits`, `noora_usage`, `content_docs` | `noora` (`noora/page`, `noora/settings`) |
+| Daily puzzles and their content | `daily`, `daily_content` | `daily/` (`editor`, `bundle` for Manage → Daily puzzles) | `daily_plays`, `daily_profiles`, `daily_themes`, `daily_theme_weeks`, `daily_items`, `daily_sets`, `daily_set_items`, `daily_seed`, `daily_guess_words`, `daily_nearest_words` | `daily` (`daily/editor`) |
+| Bug reports | `bugs` | `bugs` | `bug_reports`, `uploads` (screenshots) | `bugs` |
+| Search | `content` (`/search`) | `search` | the `search_vector` columns | `search` |
+
+**Documents edited whole.** Site settings, the guides, the grades calculator's rules, Mini Noora's words, the
+newsletter's settings, the Sunday summary's words and the forum's settings are each one JSON document in
+`content_docs`, read and saved through `services/documents.py` (a `documents.Kind` each): the saved document, or its
+starting content (`app/seed/data/<name>.json`) until the first save; a save that names the version it was edited from
+(409 with the document's own code, such as `site_changed`, when someone saved first); and an audit entry with what
+changed, before and after. The forum's categories and tags are tables of their own, saved with its document. Career
+Navigator is a document of the same kind with a service of its own (`services/career.py`: it attaches logos when it
+saves). The seven editors in Manage are built on `src/ui/docEditor` (`DocFrame` with its save bar and the "Load it
+again" banner, `ListEditor`, `RowsEditor`, `docErrors` for the API's field errors); Career Navigator's editor
+(`career/editor`) and the modules editor have their own. What each document holds, who edits it and where it starts
+from is `docs/backend/CMS.md`, kept current, so this brief doesn't repeat it.
+
+**Site settings** (`features/site`): `useSite()` reads GET /site once for the footer, About, the sidebar's links to
+MyClass and the University, search's other words, the grades calculator's note and the guides' saved links; About
+(`/about`) is a page of this feature, and `SiteEditor` is Manage → Site settings.
+
+**Private content.** `private/` at the top of the repository is git-ignored. `private/daily-content.json` holds every
+Daily puzzle with its answer; it never goes into the repository or a chat. A new environment gets it from Manage →
+Daily puzzles → Load a content file (admins), or `python -m app.cli daily-content import FILE`; `daily-content export
+FILE` writes one back (CMS.md, "Daily puzzles").
 
 ## The contract
 
@@ -192,13 +252,18 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   behind sign-in.
 - **Remove prototype-only code** as you take over a feature: seed or demo data, simulated classmates, mock
   file contents, the film hooks (`hub.forum.hidden`, frozen clocks), and localStorage stores for anything the
-  server now keeps. localStorage stays only for guest conveniences: theme, a guest's chosen cohort, and a
-  guest's lesson progress, which is imported on sign-in.
-- **Routing** is a data router at `/`: `createBrowserRouter` in `App.tsx`, the page table in `routes.tsx`, React
-  Router 7 (`react-router-dom`; v6 had open-redirect advisories). `useLeaveGuard` blocks navigation away from unsaved
-  edits with `useBlocker`, and reloads with `beforeunload`.
-  Keep every existing URL working: `/forum/:slug`, `/library/:idOrSlug`, `/newsletter/:slug`, `/modules/:id`.
-  Links from user content go through `ui/safeHref.ts`.
+  server keeps.
+- **Browser storage** holds device settings (the theme, Mini Noora's place, a guest's cohort and lesson progress,
+  imported on sign-in) and a person's own unsent or private things: drafts, recent searches, the grades calculator's
+  marks, practice scores on past papers, Mini Noora's chats, Daily's pencil marks. Every key of the second kind starts
+  with `hub.mine.`, so signing out removes it from localStorage and sessionStorage (`auth/queries.ts`,
+  `clearPersonalStorage`): lab and library computers are shared.
+- **Routing** is a data router at `/`: `createBrowserRouter` in `App.tsx`, the page table in `routes.tsx` (each page
+  lazy), React Router 7 (`react-router-dom`; v6 had open-redirect advisories). The newsletter's issue editor blocks
+  navigation away from unsaved edits with `useLeaveGuard` (`useBlocker`) and reloads with `beforeunload`; Manage's
+  other editors only warn on a reload so far (`docs/reviews/code-quality.md`, CQ-60). React Router allows one blocker
+  at a time. Pages are read by slug (`/forum/:threadId`, `/library/:fileId`, `/newsletter/:slug` take the slug the API
+  gives). Links from user content go through `ui/safeHref.ts`.
 - **Analytics** (PostHog) load only in a build with `VITE_POSTHOG_KEY` (`src/lib/analytics.ts`): page views only,
   anonymous. Never call `identify()` or send anything a student typed.
 - **Keep the design.** Reuse `src/ui` and the CSS tokens; new UI (sign-in, upload, moderation queues) must
@@ -232,19 +297,56 @@ Docker". Either way:
   (in Docker: `docker compose exec api python -m app.cli dev-login …`). It prints a token; set it as the
   `dsba_session` cookie for the app's host (Playwright:
   `context.add_cookies([{name:'dsba_session', value: token, domain:'127.0.0.1', path:'/'}])`).
-- **Seed the dev DB:** `python -m app.cli seed` (the API also seeds when it starts).
-- **Notification emails** go out when the mail worker runs (`python -m app.cli mail-worker`; Docker starts one).
-  Sign-in codes don't need it.
-- **Texts worker:** `python -m app.cli text-worker` extracts text from published PDFs and Word files for search
-  inside papers. `python -m app.cli extract-texts` processes existing library files.
+- **Seed the dev DB:** `python -m app.cli seed` (the Docker stack's `api` service runs the migrations and the seed
+  when it starts). `python -m app.cli enable-features` switches every feature on (development only, audited).
+- **The mail worker** (`python -m app.cli mail-worker`; Docker starts one) sends notification emails, queues the
+  Sunday summaries at the time set in Manage → Sunday summary, and turns board cards' and personal events'
+  reminders into notifications. Sign-in codes don't need it; reminders do.
+- **The text worker:** `python -m app.cli text-worker` reads the words and makes the cover of each published PDF and
+  Word file, for search inside papers. `extract-texts` and `make-covers` do the files already there.
 - **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-4-5-20251001`) power
   rich AI answers when the `noora.ai` feature switch is turned on; without the key or when off, Noora answers in
   script mode.
 - **Drive import pacing:** `python -m app.cli import-drive` imports linked Google Drive folders into S3/MinIO,
   pacing downloads (2 s apart) and handling Google automated-query rate-limit blocks.
-- **Bug reports coming:** student bug reporting with optional screenshots (F-14) is being added in round 11
-  (`bug_reports` table, Manage → Bugs).
+- **Daily puzzles:** a fresh database has the themes and the guess list only. Load the private content file
+  (`private/daily-content.json`, "Private content" above) to get puzzles.
 - Keep test runs targeted and run long ones in the background; stop the dev servers you started when you finish.
+
+## Access: boxes, admin powers and switches
+
+The Access screen (`/admin/access`, admins) edits roles and switches; the rules are decision D11 and D12 below, and
+the lists are `app/core/access.py` (`BOXES`, `FEATURES`), which the screen shows as they are written there.
+
+| Box | What it allows | Held from the start by |
+|---|---|---|
+| `forum.post` | start threads, reply, vote, accept answers, edit your own posts | Student |
+| `library.upload` | upload files for review | Student |
+| `newsletter.react` | react to issues and vote in their polls | Student |
+| `reports.create` | report a post or a file | Student |
+| `forum.moderate` | hide, lock and remove threads and replies, forum reports; Manage → Forum (categories, tags, guidelines, tips) | Rep |
+| `library.manage` | review uploads, add links, edit and remove items, library reports | Rep |
+| `newsletter.manage` | write, edit, publish and delete issues; the newsletter's line and pictures | Rep, Newsletter manager |
+| `calendar.manage` | add, edit and delete programme dates | Rep, Content manager |
+| `career.edit` | Manage → Career Navigator | Content manager |
+| `content.edit` | modules, chapters and lessons; suggested videos; Manage → Daily puzzles | Content manager |
+| `guides.edit` | Manage → Guides: Start here, Results day, Choosing your electives | Rep, Content manager |
+| `requests.manage` | answer and remove requests, and their reports | Rep |
+| `summary.share` | a year's Sunday summary to paste into its group; its words and the time it goes out | Rep |
+| `stats.view` | the hub's numbers | Rep |
+| `people.suspend` | the people list; suspend and restore accounts | Admin only |
+| `audit.read` | the activity log | Admin only |
+
+Admin holds every box. These powers belong to Admin and are no box: roles and what each may do, giving roles, the
+switches, account recovery, who reported something, suspending an admin, Site settings, the grades calculator's
+rules, Mini Noora's words and her limits (Manage → Numbers), bug reports (Manage → Bugs) and loading a Daily content
+file. Roles, people's roles, the switches, account recovery, Mini Noora's words and her limits also need a recent
+confirmation: a session more than ten minutes old is asked for a step-up code (`SteppedUpAdmin` in
+`routers/_base.py`, `sessions.require_step_up()`).
+
+Every feature is a switch: off, on for some roles, or on for everyone. The baseline migration turns on the forum,
+the library and its uploads, the newsletter, the calendar, Career Navigator, the grades calculator and Mini Noora;
+every feature added since arrives off (`python -m app.cli enable-features` turns them all on in development).
 
 ## Security baseline (builders apply it from the start; the security reviewer checks it)
 
@@ -283,6 +385,13 @@ Docker". Either way:
   inline script by hash): `docs/backend/DEPLOYMENT.md`, section 6.
 - Production fails closed: the API refuses to start while any setting is unsafe (`Settings.production_problems`:
   secret key, cookies, origins, proxies, storage, email, SMS) and lists every problem at once.
+- The text worker opens files anyone could have uploaded, so it holds the least: in production it connects as its
+  own database role, `dsba_texts`, which may only read `library_items` (and note a file's hash) and keep the words in
+  `library_texts` (`paper_text.WORKER_GRANTS`; the `migrate` service runs `python -m app.cli texts-role` after every
+  migration, with `DSBA_TEXTS_DB_PASSWORD`), and its own bucket key, which may only read `library/*` and write
+  `covers/*`. It gets no secret key, mail, texts or AI key (`Settings.texts_problems` checks only the database and the
+  bucket). Each file is read in a child process with a time and memory limit, an environment without settings, and a
+  non-dumpable parent. DEPLOYMENT.md, sections 2 and 3, has the role, the key's policy and the settings.
 - No personal data in public responses: `UserPublic` is `{id, displayName, year, badge}`, never an email or a
   phone number.
 - Errors don't leak internals, and logs carry no codes, tokens or full phone numbers.
