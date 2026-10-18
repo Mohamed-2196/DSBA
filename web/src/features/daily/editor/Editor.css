@@ -19,6 +19,17 @@
   flex-wrap: wrap;
   gap: var(--sp-8);
 }
+.ui-field.dcms__nav-select {
+  display: none;
+}
+@media (max-width: 699px) {
+  .dcms__nav {
+    display: none;
+  }
+  .ui-field.dcms__nav-select {
+    display: grid;
+  }
+}
 .dcms__sizes {
   margin: 0;
   color: var(--ink-2);

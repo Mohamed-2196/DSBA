@@ -7,7 +7,7 @@ import { CalendarBlank, CalendarCheck, Eye, FileArrowUp, PuzzlePiece } from '@ph
 import { useState } from 'react';
 import { useAuth } from '../../../auth';
 import { useQueryParam } from '../../../state';
-import { Button, Chip, EmptyState, QueryError, Skeleton, Panel, formatCount } from '../../../ui';
+import { Button, Chip, EmptyState, QueryError, Select, Skeleton, Panel, formatCount } from '../../../ui';
 import { useDailyContent } from './api';
 import { ContentFileDialog } from './ContentFileDialog';
 import { ItemsPart } from './ItemsPart';
@@ -110,6 +110,21 @@ export function DailyContentEditor() {
           Preview a day
         </Chip>
       </nav>
+      {/* On a phone the parts are a menu: nine chips would take four rows above every part. */}
+      <Select
+        label="Part"
+        className="dcms__nav-select"
+        value={part}
+        onChange={(e) => {
+          if (isPart(e.target.value)) setPart(e.target.value, { replace: true });
+        }}
+        options={[
+          { value: 'today', label: 'Today' },
+          { value: 'themes', label: `Themes and weeks (${data.themes.length})` },
+          ...GAMES.map((g) => ({ value: g.id, label: `${g.label} (${formatCount(total(g.id))})` })),
+          { value: 'preview', label: 'Preview a day' },
+        ]}
+      />
       {part === 'today' ? (
         <TodayPart overview={data} />
       ) : part === 'themes' ? (
