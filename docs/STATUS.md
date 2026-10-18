@@ -38,28 +38,25 @@ deployed.
 - **Last checks (2026-10-17, c25b735).** 1,253 API tests and 749 Vitest tests green after fixing a stale test and
   a dev-login bug Antigravity introduced; the API suite now takes about 11 minutes (round 12 speeds it up).
 
-## In flight: round 12 (review and finish round 11)
+## Round 12 (review and finish round 11): merged 2026-10-18
 
-Each builder reviews its area against Mohamed's requests (`docs/feedback/2026-10-14-mohamed.md` and what he asked
-Antigravity), fixes what's wrong, and reports findings marked FIXED or OPEN. Branches `round12/<name>` in
-`../dsba-<name>`; the lead merges and re-chains migrations (0027 onwards).
+Every builder reviewed its area against Mohamed's requests, fixed what was wrong and reported FIXED/OPEN.
 
-| Branch | State (2026-10-18: the five stopped builders resumed; the lead merges as each reports) |
+| Branch | What landed |
 | --- | --- |
-| `round12/speed` | **merged**: one app per test run, xdist, CI fail-fast, deploys report their commit |
-| `round12/rev-sec` | **merged**: SEC-36 to SEC-48 with proof tests; SEC-43 accepted (dev site stays open, made-up accounts only) |
-| `round12/cms` | **merged** (0028): module pictures as data, guides and site settings in Manage, About without Drive |
-| `round12/daily` | stopped mid-redesign of the hub page; SEC-41 flow and SEC-45 fixes committed (`../dsba-daily`) |
-| `round12/daily-cms` | stopped near the end: content in the database, Manage editor, tests passing (`../dsba-dailycms`, 0027) |
-| `round12/notebook` | stopped before the iPad pen/touch QA; SEC-36 and SEC-48 committed; the body-limit middleware must count real bytes (`../dsba-notebook`) |
-| `round12/polish` | stopped after merging feature/backend and renumbering its migration (`../dsba-polish`) |
-| `round12/secfix` | resumed: SEC-40/44/47/33/11/19 (`../dsba-secfix`, 0031) |
-| `round12/cms2` | started 2026-10-18: forum categories and guidelines, Noora's instructions and scripted answers, Home defaults, search and copy in Manage (`../dsba-cms2`, 0033) |
+| `round12/speed` | one FastAPI app per test run, pytest-xdist, `check.sh --fail-fast`; deploys report their commit and the Railway check waits for it |
+| `round12/rev-sec` | security review of round 11: SEC-36 to SEC-48 (all fixed except SEC-43, accepted) |
+| `round12/cms` | module pictures as data, Manage → Guides and Site settings, About without Drive, the newsletter section (0028) |
+| `round12/secfix` | SEC-11, 19, 33, 40, 44, 47; the text worker has its own database role and S3 key in production (0031) |
+| `round12/notebook` | notes no longer open empty and overwrite themselves; one scaled page layout; pictures move, resize, crop and turn; A4 export with ink; SEC-36, SEC-48 |
+| `round12/daily-cms` | Daily content in the database, editable in Manage, loaded from `private/daily-content.json` (git-ignored) via Manage or `daily-content import`; days stored when first made (0029) |
+| `round12/polish` | Noora keeps clear of content (phones: the tab bar, Mohamed's choice); the /noora welcome fits; real video thumbnails; clean file titles; board templates; one day of a repeat; SEC-37/38/39 (0030) |
+| `round12/daily` | Daily hub redesign; every game fits phones; today's puzzles count; drag in Data Mine; SEC-41 flow and SEC-45 |
+| `round12/cms2` | Manage for forum categories and guidelines, Noora's instructions and script, Home defaults, search, career, summary and newsletter copy, library links, grade rules (0033) |
 
-Next: merge each branch as it reports (migrations chain after 0028: daily-cms 0029, polish 0030, secfix 0031,
-notebook 0032, cms2 0033), then the full e2e run and a code-quality review of rounds 11 and 12. Mohamed's calls: guests keep
-playing today's Daily (leaderboard says it's for fun); the Railway dev site needs a storage bucket set up before the
-library and uploads work there.
+Migrations chain 0026 → 0028 → 0031 → 0029 → 0030 → 0033. Mohamed's calls this round: the Railway dev site stays
+open with made-up accounts only (SEC-43); guests keep playing today's Daily (the leaderboard says it's for fun); Noora
+sits in the tab bar on phones; the Daily games keep their names.
 
 ## Operating notes
 
@@ -102,6 +99,10 @@ library and uploads work there.
 - **Roadmap questions:** each feature in `docs/ROADMAP.md` lists what he needs to decide. R-1 (roles) comes first.
 - **Ideas to approve:** 24 proposals in `docs/ideas.md` (IDEA-1 to IDEA-24), merged 2026-10-13.
 - **Product calls:**
+  - Noora's programme facts start with one: add more in Manage → Mini Noora (her starter cards come in fours).
+  - The notebook: free-floating pictures (a data-model change)? Is 25 MB of text and handwriting per student enough?
+  - Calendar repeats: fortnightly or monthly needs a migration. Boards: no hourly cap on card saves yet.
+  - Daily: a win within 4 seconds of opening scores nothing. Right limit?
   - Bug reports (defaults chosen 2026-10-18): deleted with the reporter's account rather than kept anonymised;
     screenshots kept 90 days after a report closes. Names that spell a staff word across spaces or dots ("A. D.
     Minhas") are refused.
