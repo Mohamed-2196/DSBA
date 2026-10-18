@@ -1,8 +1,8 @@
 import { useModules } from '../../../state/modules';
 import { Select, TextArea, TextField } from '../../../ui';
-import { RTC_NOTE } from '../../../lib/exams';
+import { isExamSession, isZone, RTC_NOTE, SESSIONS, sessionLabel, ZONES, zoneLabel } from '../../../lib/exams';
 import { EXAM_KINDS, KINDS, isLibraryKind } from '../kinds';
-import { NO_MODULE, type ItemFormErrors, type ItemFormValues } from '../itemForm';
+import { isCohortField, NO_MODULE, type ItemFormErrors, type ItemFormValues } from '../itemForm';
 
 const YEARS = [1, 2, 3] as const;
 
@@ -72,7 +72,9 @@ export function ItemFields({
         <Select
           label="Year"
           value={values.year}
-          onChange={(e) => onChange({ year: e.target.value as ItemFormValues['year'] })}
+          onChange={(e) => {
+            if (isCohortField(e.target.value)) onChange({ year: e.target.value });
+          }}
           error={errors.year}
           hint="Who it is most useful for."
           disabled={disabled}
@@ -93,28 +95,19 @@ export function ItemFields({
           <Select
             label="Session"
             value={values.session}
-            onChange={(e) => onChange({ session: e.target.value as ItemFormValues['session'] })}
+            onChange={(e) => onChange({ session: isExamSession(e.target.value) ? e.target.value : '' })}
             error={errors.session}
             disabled={disabled}
-            options={[
-              { value: '', label: 'Not sure' },
-              { value: 'may', label: 'May' },
-              { value: 'october', label: 'October (resits)' },
-            ]}
+            options={[{ value: '', label: 'Not sure' }, ...SESSIONS.map((s) => ({ value: s, label: sessionLabel(s) }))]}
           />
           <Select
             label="Zone"
             value={values.zone}
-            onChange={(e) => onChange({ zone: e.target.value as ItemFormValues['zone'] })}
+            onChange={(e) => onChange({ zone: isZone(e.target.value) ? e.target.value : '' })}
             error={errors.zone}
             hint={values.zone === 'RTC' ? RTC_NOTE : undefined}
             disabled={disabled}
-            options={[
-              { value: '', label: 'No zone' },
-              { value: 'A', label: 'Zone A' },
-              { value: 'B', label: 'Zone B' },
-              { value: 'RTC', label: 'RTC' },
-            ]}
+            options={[{ value: '', label: 'No zone' }, ...ZONES.map((z) => ({ value: z, label: zoneLabel(z) }))]}
           />
         </div>
       ) : null}

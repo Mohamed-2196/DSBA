@@ -12,6 +12,7 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from app.core.access import Feature
 from app.core.errors import conflict, forbidden, invalid, not_found
+from app.core.text import clashes_on
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, PostStatus, ThreadVote, User
 from app.schemas.forum import ThreadCreate, ThreadModeration, ThreadUpdate
@@ -22,6 +23,7 @@ from app.services.forum.rules import (
     audit,
     change,
     hide_reason,
+    hold_lists,
     limit_threads,
     module_or_422,
     thread_slug,
@@ -58,6 +60,7 @@ def create_thread(db: Session, user: User, data: ThreadCreate, ip: str | None) -
     category, module = place(taxonomy, valid_category(taxonomy, data.category), module, module_wins=True)
     tags = valid_tags(taxonomy, data.tags)
     limit_threads(db, user)
+    hold_lists(db, category, tags)
     now = utcnow()
     t = ForumThread(
         title=title,
@@ -82,8 +85,10 @@ def create_thread(db: Session, user: User, data: ThreadCreate, ip: str | None) -
             with db.begin_nested():
                 db.add(t)
             break
-        except IntegrityError:  # the slug was taken in the meantime
-            continue
+        except IntegrityError as e:
+            if not clashes_on(e, ForumThread.slug):
+                raise
+            continue  # the slug was taken in the meantime
     else:
         raise conflict("retry", "Something went wrong. Try again.")
     db.add(ThreadVote(user_id=user.id, thread_id=t.id))
@@ -122,6 +127,7 @@ def update_thread(db: Session, user: User, t: ForumThread, data: ThreadUpdate, i
         category, module = place(taxonomy, asked or t.category, module, module_wins="module_id" in given)
         module_id = module.id if module else None
         if category != t.category:
+            hold_lists(db, category)
             t.category = category
             changed.append("category")
         if module_id != t.module_id:
@@ -130,6 +136,7 @@ def update_thread(db: Session, user: User, t: ForumThread, data: ThreadUpdate, i
     if "tags" in given and data.tags is not None:
         tags = valid_tags(taxonomy, data.tags, current=list(t.tags or []))
         if tags != list(t.tags or []):
+            hold_lists(db, None, [tag for tag in tags if tag not in (t.tags or [])])
             t.tags = tags
             changed.append("tags")
     if not changed:

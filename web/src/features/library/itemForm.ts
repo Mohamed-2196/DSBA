@@ -1,5 +1,6 @@
 // The details form shared by "Upload a file" and "Edit details": values, checks, and request bodies.
 import type { LibraryItemCreate, LibraryItemUpdate, LibraryLinkCreate, ModuleSummary } from '../../api/types';
+import type { ExamSession, Zone } from '../../lib/exams';
 import { EXAM_KINDS, type LibraryKind } from './kinds';
 import type { CohortYear, LibraryItem } from './types';
 
@@ -12,13 +13,21 @@ export interface ItemFormValues {
   year: '' | '1' | '2' | '3';
   examYear: string;
   /** '' = not said: the May sitting or the October resits. */
-  session: '' | 'may' | 'october';
-  zone: '' | 'A' | 'B' | 'RTC';
+  session: '' | ExamSession;
+  zone: '' | Zone;
   authorName: string;
   description: string;
 }
 
 export type ItemFormErrors = Partial<Record<keyof ItemFormValues, string>>;
+
+/** A cohort as the form's Year field holds it. */
+const cohortField = (year: CohortYear | null | undefined): ItemFormValues['year'] => (year ? `${year}` : '');
+
+/** Whether a value is one the Year field holds. */
+export function isCohortField(raw: string): raw is ItemFormValues['year'] {
+  return raw === '' || raw === '1' || raw === '2' || raw === '3';
+}
 
 export const NO_MODULE = 'none';
 
@@ -30,7 +39,7 @@ export function emptyValues({
     title: '',
     kind: 'notes',
     module: moduleId ?? '',
-    year: year ? (String(year) as ItemFormValues['year']) : '',
+    year: cohortField(year),
     examYear: '',
     session: '',
     zone: '',
@@ -44,10 +53,10 @@ export function valuesFromItem(item: LibraryItem): ItemFormValues {
     title: item.title,
     kind: item.kind,
     module: item.moduleId ?? NO_MODULE,
-    year: item.year ? (String(item.year) as ItemFormValues['year']) : '',
+    year: cohortField(item.year),
     examYear: item.examYear ? String(item.examYear) : '',
     session: item.examSession ?? '',
-    zone: item.zone === 'A' || item.zone === 'B' || item.zone === 'RTC' ? item.zone : '',
+    zone: item.zone ?? '',
     authorName: item.authorName ?? '',
     description: item.description ?? '',
   };
@@ -78,15 +87,11 @@ export function errorsFromApi(fields: Record<string, string>): ItemFormErrors {
     title: 'title',
     kind: 'kind',
     moduleId: 'module',
-    module_id: 'module',
     year: 'year',
     examYear: 'examYear',
-    exam_year: 'examYear',
     zone: 'zone',
     examSession: 'session',
-    exam_session: 'session',
     authorName: 'authorName',
-    author_name: 'authorName',
     description: 'description',
   };
   const out: ItemFormErrors = {};

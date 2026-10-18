@@ -8,9 +8,11 @@ import {
   clock,
   COLOUR_LABELS,
   COLOURS,
+  formMonthDay,
   lastRepeat,
   occurrenceDays,
   REMINDERS,
+  repeatHint,
   repeats,
 } from './mine';
 import { ScopeChoice } from './ScopeChoice';
@@ -73,10 +75,12 @@ const REPEATS: { value: Repeat; label: string }[] = [
   { value: 'none', label: 'Doesn’t repeat' },
   { value: 'daily', label: 'Every day' },
   { value: 'weekly', label: 'Every week' },
+  { value: 'fortnightly', label: 'Every two weeks' },
+  { value: 'monthly', label: 'Every month' },
 ];
 const REMINDER_VALUES: readonly Reminder[] = [0, 10, 30, 60, 1440];
 const toReminder = (v: string): Reminder | null => REMINDER_VALUES.find((r) => String(r) === v) ?? null;
-const isRepeat = (v: string): v is Repeat => v === 'none' || v === 'daily' || v === 'weekly';
+const isRepeat = (v: string): v is Repeat => REPEATS.some((r) => r.value === v);
 
 function validate(f: FormState, repeat: Repeat): FieldErrors {
   const errors: FieldErrors = {};
@@ -203,6 +207,11 @@ export function MyEventDialog({ open, event, day, onClose, onSaved }: MyEventDia
   };
 
   const span = form.allDay && repeat === 'none'; // an all-day event can run over several days
+  // what the repeat means, said under it: its weekday, or its day of the month and where it goes in shorter months
+  const from = event && scope === 'following' ? day : (event?.date ?? day);
+  const hint = DATE_RE.test(form.date)
+    ? repeatHint(form.repeat, form.date, formMonthDay(event, from, form.date))
+    : undefined;
   return (
     <Modal
       open={open}
@@ -305,6 +314,8 @@ export function MyEventDialog({ open, event, day, onClose, onSaved }: MyEventDia
               }}
               options={REPEATS}
               error={errors.repeat}
+              hint={hint}
+              data-hub="calendar-mine-repeat"
             />
             {form.repeat !== 'none' ? (
               <TextField

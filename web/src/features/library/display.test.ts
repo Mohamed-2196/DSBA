@@ -12,7 +12,6 @@ import {
   sizeLabel,
   statusInfo,
 } from './display';
-import { examLabel } from '../../lib/exams';
 
 const DAY = 24 * 3600 * 1000;
 const NOW = Date.parse('2026-10-12T12:00:00Z');
@@ -105,14 +104,6 @@ describe('labels', () => {
     expect(cardMeta(it, 'popular')).toBe('3 downloads');
     expect(cardMeta(it, 'title')).toBe('Students’ notes, PDF, 412 KB');
     expect(cardMeta(it, 'new')).toMatch(/^Added /);
-  });
-
-  it('names an exam sitting', () => {
-    expect(examLabel({ examYear: 2024, examSession: 'may', zone: 'A' })).toBe('May 2024, Zone A');
-    expect(examLabel({ examYear: 2023, examSession: 'october', zone: null })).toBe('October 2023');
-    expect(examLabel({ examYear: 2025, examSession: 'may', zone: 'RTC' })).toBe('May 2025, RTC');
-    expect(examLabel({ examYear: 2023, examSession: null, zone: null })).toBe('2023');
-    expect(examLabel({ examYear: null, examSession: null, zone: null })).toBeNull();
   });
 
   it('labels what isn’t public yet: "Not published" for students, never "rejected"', () => {

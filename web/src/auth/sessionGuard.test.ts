@@ -37,7 +37,7 @@ function setup(over: Partial<SessionGuardHooks> = {}) {
   return { hooks, run, sent };
 }
 
-describe('session guard: 401 (UX-1)', () => {
+describe('session guard: 401', () => {
   it('signs the same person in again and sends the action again, body and fresh token included', async () => {
     const { hooks, run, sent } = setup();
     const result = await run('POST', '/api/v1/forum/threads/t1/replies', refusal(401, 'unauthenticated'), {

@@ -45,6 +45,20 @@ export function removeStored(key: string): void {
   announce(key, 'external');
 }
 
+/**
+ * Store `value` under `key` (undefined removes it) from outside React, and make every mounted useLocalStorage(key)
+ * follow at once, as removeStored() does.
+ */
+export function writeStored(key: string, value: unknown): void {
+  try {
+    if (value === undefined) window.localStorage.removeItem(key);
+    else window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* storage unavailable or full: nothing is kept */
+  }
+  announce(key, 'external');
+}
+
 /** One holder of a stored value. */
 export interface StoredBinding<T> {
   /** the value as this holder last read or wrote it */

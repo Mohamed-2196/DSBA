@@ -77,15 +77,17 @@ MAX_HOME_BLOCKS = len(get_args(HomeBlock))
 
 class Preferences(ApiModel):
     """Which notifications also come by email (to the account's email address; account security notices always do),
-    whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Unset means the default
-    here."""
+    whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Nothing is emailed until the
+    person answers the question about emails when they sign up (`notificationEmails`); then each notification email
+    they never switched follows that answer, and the Sunday summary is off until they turn it on."""
 
-    email_replies: bool = True  # someone replied to your thread or to your reply
-    email_answer_accepted: bool = True  # your reply was accepted as the answer
-    email_upload_reviews: bool = True  # a student rep published or rejected your upload
-    email_new_issues: bool = True  # a new issue of The DSBA Newsletter is out
-    email_date_changes: bool = True  # an exam, mock or deadline of your year moved, or was confirmed
-    email_weekly_summary: bool = False  # the Sunday summary: opt in
+    notification_emails: bool | None  # their answer to "Email me about replies, …" at sign-up; None: not yet
+    email_replies: bool  # someone replied to your thread or to your reply
+    email_answer_accepted: bool  # your reply was accepted as the answer
+    email_upload_reviews: bool  # a student rep published or rejected your upload
+    email_new_issues: bool  # a new issue of The DSBA Newsletter is out
+    email_date_changes: bool  # an exam, mock or deadline of your year moved, or was confirmed
+    email_weekly_summary: bool  # the Sunday summary: opt in
     track_progress: bool = False  # keep the lessons watched and the lesson to resume: opt in
     # Home's blocks that show, in order; a block left out is hidden. null: the default layout.
     home_blocks: list[HomeBlock] | None = None
@@ -93,8 +95,11 @@ class Preferences(ApiModel):
 
 class PreferencesUpdate(ApiModel):
     """Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default
-    layout."""
+    layout. The answer about emails is asked when the profile is first saved (MeUpdate); a later one changes every
+    notification email not switched on its own. Turning an email on before there is an answer answers "no" for the
+    others."""
 
+    notification_emails: bool | None = None
     email_replies: bool | None = None
     email_answer_accepted: bool | None = None
     email_upload_reviews: bool | None = None
@@ -136,7 +141,9 @@ class SessionState(ApiModel):
 
 
 class MeUpdate(ApiModel):
-    """Fields that are not sent stay as they are; `year: null` clears the cohort."""
+    """Fields that are not sent stay as they are; `year: null` clears the cohort. The first display name (the
+    profile step after signing up) comes with the answer about emails, `preferences.notificationEmails`, unless the
+    account has one."""
 
     display_name: DisplayName | None = None
     year: Year | None = None

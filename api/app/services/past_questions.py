@@ -21,6 +21,7 @@ from app.models import Chapter, ItemStatus, LibraryItem, PaperQuestion, PaperQue
 from app.schemas.library import PAST_PAPER, PaperQuestionCreate, PaperRef
 from app.schemas.library import PaperQuestion as PaperQuestionOut
 from app.services.content import record
+from app.services.exam_names import newest_sitting_first
 from app.services.library import cover_path, covered, manages
 from app.services.modules import require_module
 from app.services.ratelimit import enforce
@@ -124,8 +125,7 @@ def for_module(
     else:
         q = q.order_by(
             Chapter.position,
-            LibraryItem.exam_year.desc().nulls_last(),
-            LibraryItem.exam_session.desc().nulls_last(),  # the October resits before May: newer
+            *newest_sitting_first(LibraryItem.exam_year, LibraryItem.exam_session),
             LibraryItem.zone.nulls_last(),
             PaperQuestion.question,
         )

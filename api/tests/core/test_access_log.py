@@ -1,5 +1,4 @@
-"""The round 12 security review's test for the private calendar feed's address (SEC-37, fixed): the feed's secret
-never reaches the access log."""
+"""The private calendar feed's address holds a secret, and the secret never reaches the API's access log."""
 
 from __future__ import annotations
 
@@ -46,7 +45,7 @@ def uvicorn_loggers() -> Iterator[None]:
         logger.handlers, logger.level, logger.propagate = handlers, level, propagate
 
 
-def test_sec37_the_private_feeds_secret_never_reaches_the_apis_access_log(
+def test_the_private_feeds_secret_never_reaches_the_apis_access_log(
     app: FastAPI,
     client_for: ClientFor,
     make_user: MakeUser,

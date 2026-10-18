@@ -6,7 +6,6 @@ import datetime as dt
 from collections.abc import Callable
 from typing import Any
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -15,8 +14,6 @@ from app.core.time import bahrain_today
 from app.models import DailyPlay, User
 from app.services.daily.content import FIRST_DAY
 from app.services.daily.games import GAMES
-from app.services.daily.games.sudoku import SudokuGame
-from app.services.daily.games.word import WordGame
 from tests.daily.conftest import API
 
 ClientFor = Callable[..., TestClient]
@@ -87,25 +84,19 @@ def test_digits_are_checked_and_mistakes_and_hints_counted(
     assert again["scored"] is True
 
 
-def test_a_solved_sudoku_scores_once_and_too_fast_scores_nothing(
-    client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_a_solved_sudoku_scores_once(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     c = client_for(make_user())
     out = solve_all(c, sudoku(db, today()))
     play = out["play"]
-    assert (play["status"], play["scored"], play["tooFast"], play["points"]) == ("won", True, True, 0)
+    assert (play["status"], play["scored"], play["points"]) == ("won", True, 60)
     assert "Sudoku, easy: solved" in play["share"]
     assert move(c, "sudoku", {"kind": "hint"}, variant="easy").json()["error"]["code"] == "game_over"
     # Another difficulty the same day is practice.
-    monkeypatch.setattr(SudokuGame, "min_seconds", 0)
     play = solve_all(c, sudoku(db, today(), "hard"), variant="hard")["play"]
     assert (play["scored"], play["points"]) == (False, 150)
 
 
-def test_a_scored_sudoku_earns_its_points(
-    client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(SudokuGame, "min_seconds", 0)
+def test_a_scored_sudoku_earns_its_points(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     c = client_for(make_user())
     puzzle = sudoku(db, today())
     hinted = move(c, "sudoku", {"kind": "hint"}, variant="easy").json()["play"]["view"]["hinted"]
@@ -118,9 +109,8 @@ def test_a_scored_sudoku_earns_its_points(
 
 
 def test_past_days_are_practice_and_future_days_are_not_out(
-    client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
+    client_for: ClientFor, make_user: MakeUser, db: Session
 ) -> None:
-    monkeypatch.setattr(SudokuGame, "min_seconds", 0)
     c = client_for(make_user())
     yesterday = (bahrain_today() - dt.timedelta(days=1)).isoformat()
     play = solve_all(c, sudoku(db, yesterday), yesterday)["play"]
@@ -171,9 +161,8 @@ def word_of(db: Session, day: str | None = None) -> str:
 
 
 def test_the_word_marks_guesses_and_shows_the_answer_only_at_the_end(
-    client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
+    client_for: ClientFor, make_user: MakeUser, db: Session
 ) -> None:
-    monkeypatch.setattr(WordGame, "min_seconds", 0)
     c = client_for(make_user())
     answer = word_of(db)
     first = c.get(f"{API}/daily/{today()}/word").json()["play"]

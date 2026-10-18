@@ -1,5 +1,5 @@
-// Boards (R-4): off, a student is told so. With them on, a student starts a board from a template, adds a card,
-// moves it with the card's menu, adds an exam from the calendar and opens it on the board. The switch ends as it was.
+// Boards: off, a student is told so. With them on, a student starts a board from a template, adds a card, moves it
+// with the card's menu, adds an exam from the calendar and opens it on the board. The switch ends as it was.
 import { expect, test } from './fixtures';
 import { api, setSwitch, switchBack, switchOn } from './support';
 

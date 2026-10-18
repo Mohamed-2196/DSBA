@@ -6,7 +6,8 @@ import { ME_KEY, useAuth } from '../../auth';
 import { normalizeYear, useLocalStorage, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { isZone, type Zone } from '../../lib/exams';
-import { cleanPicks, papersFor } from './papers';
+import { usePaperChoices } from './api';
+import { choicesFrom, cleanPicks, papersFor, type Choices } from './papers';
 
 const GUEST_KEY = 'hub.papers';
 
@@ -27,6 +28,8 @@ export interface PapersValue {
   year: CohortYear | null;
   /** the module ids sat in the browsed year; null: all its modules */
   papers: Set<string> | null;
+  /** the choices inside each year (the Year 2 option, the electives) */
+  choices: Choices;
   save: (next: Stored) => Promise<void>;
   saving: boolean;
 }
@@ -35,6 +38,8 @@ export function usePapers(): PapersValue {
   const { me } = useAuth();
   const { year } = useYear();
   const { modules } = useModules();
+  const served = usePaperChoices().data;
+  const choices = useMemo(() => choicesFrom(served), [served]);
   const qc = useQueryClient();
   const [stored, setStored] = useLocalStorage<unknown>(GUEST_KEY, null);
   const update = useMutation({
@@ -46,7 +51,7 @@ export function usePapers(): PapersValue {
   const picks = useMemo(() => (me ? me.papers : cleanPicks(guest.papers)), [me, guest.papers]);
   const zone = me ? (me.zone ?? null) : cleanZone(guest.zone);
   const home = me ? normalizeYear(me.year) : year;
-  const papers = useMemo(() => papersFor(year, home, picks, modules), [year, home, picks, modules]);
+  const papers = useMemo(() => papersFor(year, home, picks, modules, choices), [year, home, picks, modules, choices]);
 
   const { mutateAsync } = update;
   const save = useCallback(
@@ -57,5 +62,5 @@ export function usePapers(): PapersValue {
     [me, mutateAsync, setStored],
   );
 
-  return { picks, zone, home, year, papers, save, saving: update.isPending };
+  return { picks, zone, home, year, papers, choices, save, saving: update.isPending };
 }

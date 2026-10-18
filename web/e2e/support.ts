@@ -25,6 +25,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import zlib from 'node:zlib';
+import type { components } from '../src/api/schema';
 import {
   expect,
   request as playwrightRequest,
@@ -345,34 +346,8 @@ export async function roleIdBySlug(admin: Page, slug: string): Promise<string> {
   return role.id;
 }
 
-/** Every feature with a switch. */
-export const FEATURES = [
-  'forum',
-  'forum.anonymous',
-  'forum.follow',
-  'forum.help-below',
-  'library',
-  'library.uploads',
-  'library.questions',
-  'library.daily-question',
-  'newsletter',
-  'newsletter.polls',
-  'calendar',
-  'career',
-  'career.seniors',
-  'grades',
-  'noora',
-  'noora.ai',
-  'notes',
-  'board',
-  'requests',
-  'requests.autoclose',
-  'requests.done',
-  'summary',
-  'video_suggestions',
-  'daily',
-] as const;
-export type Feature = (typeof FEATURES)[number];
+/** A feature with a switch, as the API names them (GET /api/v1/admin/features lists them all). */
+export type Feature = components['schemas']['FeaturesOut']['features'][number];
 type SwitchMode = 'off' | 'roles' | 'everyone';
 
 /** Sets a feature's switch (admins only). A spec that changes a switch writes it down first (switchOn) and puts it

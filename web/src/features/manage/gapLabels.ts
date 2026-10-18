@@ -2,9 +2,6 @@
 import type { EventGap, GapModule, LessonGap, ScanGap, SittingGap } from '../../api/types';
 import { countOf } from '../../ui';
 
-/** 'ST2133 Advanced statistics', or the name alone when the module has no code. */
-export const moduleName = (m: GapModule): string => (m.unitCode ? `${m.unitCode} ${m.name}` : m.name);
-
 /** Where a module's papers and files are added. */
 export const moduleFiles = (m: GapModule): string => `/modules/${encodeURIComponent(m.id)}?tab=files`;
 
@@ -12,13 +9,6 @@ export const moduleFiles = (m: GapModule): string => `/modules/${encodeURICompon
 export const moduleEditor = (m: GapModule): string => `/manage?tab=content&module=${encodeURIComponent(m.id)}`;
 
 export const eventPath = (e: EventGap): string => `/calendar?event=${encodeURIComponent(e.id)}`;
-
-/** 'May 2023', 'October 2022', or the year alone. */
-export function sittingName(s: Pick<SittingGap, 'examYear' | 'session'>): string {
-  if (s.session === 'may') return `May ${s.examYear}`;
-  if (s.session === 'october') return `October ${s.examYear}`;
-  return String(s.examYear);
-}
 
 export function sittingMissing(s: SittingGap): string {
   return s.missing === 'report' ? 'Has the paper, no examiners’ report' : 'Has the examiners’ report, no paper';

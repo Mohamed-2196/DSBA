@@ -62,7 +62,6 @@ BOARD_WINDOW = timedelta(hours=1)
 # Each template's columns: (name, cards there count as done).
 TEMPLATES: dict[BoardTemplate, tuple[tuple[str, bool], ...]] = {
     "study": (("To do", False), ("In progress", False), ("Done", True)),
-    "revision": (("To revise", False), ("Revising", False), ("Revised", True)),
     "assignment": (("Research", False), ("Draft", False), ("Review", False), ("Submitted", True)),
     "weekly": (
         ("Monday", False),

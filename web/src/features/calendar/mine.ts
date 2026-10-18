@@ -1,10 +1,29 @@
 // A student's own calendar: their events laid out as occurrences, and the programme dates they keep off it.
 // Pure functions. The API counts occurrences the same way (api/app/services/my_calendar.py): a repeat runs every
-// day or week from its date until its repeat end, or for a year without one, less the days taken off it (skipped).
-import { addDaysToKey, daysBetween, formatDay, parseDay, weekdayOf, type DayKey } from '../../lib/dates';
-import type { CalendarEvent, CalendarPrefs, PersonalColour, PersonalEvent, Reminder } from './types';
+// day, week, two weeks or month from its date until its repeat end, or for a year without one, less the days taken
+// off it (skipped). A monthly repeat keeps its day of the month, and falls on a month's last day when the month has
+// no such day (the 31st's on 30 April, 28 or 29 February).
+import {
+  addDaysToKey,
+  addMonthsToKey,
+  dayOrdinal,
+  daysBetween,
+  formatDay,
+  parseDay,
+  weekdayOf,
+  type DayKey,
+} from '../../lib/dates';
+import type { CalendarEvent, CalendarPrefs, PersonalColour, PersonalEvent, Reminder, Repeat } from './types';
 
 export const REPEAT_DAYS = 365;
+/** The days between the occurrences of a repeat; a monthly one counts months. */
+const STEP_DAYS: Record<Exclude<Repeat, 'none' | 'monthly'>, number> = { daily: 1, weekly: 7, fortnightly: 14 };
+const EVERY: Record<Exclude<Repeat, 'none'>, string> = {
+  daily: 'Every day',
+  weekly: 'Every week',
+  fortnightly: 'Every two weeks',
+  monthly: 'Every month',
+};
 /** At most this many occurrences of one event (a daily repeat over two years). */
 const MAX_OCCURRENCES = 800;
 const PREFIX = 'mine-';
@@ -46,15 +65,30 @@ export function lastRepeat(p: Pick<PersonalEvent, 'date' | 'repeat' | 'repeatUnt
   return p.repeatUntil ?? addDaysToKey(p.date, REPEAT_DAYS);
 }
 
+/** The day of the month a monthly repeat falls on (in a month without it: that month's last day). */
+export const monthDayOf = (p: Pick<PersonalEvent, 'date' | 'monthDay'>): number =>
+  p.monthDay ?? Number(p.date.slice(8, 10));
+
+/** The day of a repeat's occurrence number `n` (0: its first day), days taken off it included. */
+function nthDay(p: Pick<PersonalEvent, 'date' | 'repeat' | 'monthDay'>, n: number): DayKey {
+  if (p.repeat === 'none') return p.date;
+  if (p.repeat === 'monthly') return addMonthsToKey(p.date, n, monthDayOf(p));
+  return addDaysToKey(p.date, STEP_DAYS[p.repeat] * n);
+}
+
 /** The days occurrences of `p` start on, oldest first: its days less the ones taken off it. */
-export function occurrenceDays(p: Pick<PersonalEvent, 'date' | 'repeat' | 'repeatUntil' | 'skipped'>): DayKey[] {
+export function occurrenceDays(
+  p: Pick<PersonalEvent, 'date' | 'repeat' | 'repeatUntil' | 'monthDay' | 'skipped'>,
+): DayKey[] {
   if (p.repeat === 'none') return [p.date];
-  const step = p.repeat === 'weekly' ? 7 : 1;
   const last = lastRepeat(p);
   const skipped = new Set(p.skipped);
   const days: DayKey[] = [];
-  for (let day = p.date; day <= last && days.length < MAX_OCCURRENCES; day = addDaysToKey(day, step))
+  for (let n = 0; days.length < MAX_OCCURRENCES; n++) {
+    const day = nthDay(p, n);
+    if (day > last) break;
     if (!skipped.has(day)) days.push(day);
+  }
   return days;
 }
 
@@ -126,17 +160,50 @@ export function findEvent(events: readonly CalendarEvent[], id: string | null, t
   return all.find((e) => (e.endDate ?? e.date) >= today) ?? all[all.length - 1] ?? null;
 }
 
-/** 'Every week until 31 December 2026', 'Every day for a year', or null. */
+/** 'Every two weeks until 31 December 2026', 'Every month for a year', or null. */
 export function repeatLabel(p: Pick<PersonalEvent, 'repeat' | 'repeatUntil'>): string | null {
   if (p.repeat === 'none') return null;
-  const every = p.repeat === 'weekly' ? 'Every week' : 'Every day';
+  const every = EVERY[p.repeat];
   return p.repeatUntil ? `${every} until ${formatDay(parseDay(p.repeatUntil))}` : `${every} for a year`;
 }
 
-/** 'Tuesdays', or 'Every day': how often a repeat comes, for a short line. */
+/** 'Tuesdays', 'Every other Tuesday', 'Every month' or 'Every day': how often a repeat comes, for a short line. */
 export function repeatShort(p: Pick<PersonalEvent, 'repeat' | 'date'>): string | null {
   if (p.repeat === 'none') return null;
-  return p.repeat === 'weekly' ? `${weekdayOf(parseDay(p.date)).long}s` : 'Every day';
+  const weekday = weekdayOf(parseDay(p.date)).long;
+  if (p.repeat === 'weekly') return `${weekday}s`;
+  return p.repeat === 'fortnightly' ? `Every other ${weekday}` : EVERY[p.repeat];
+}
+
+/**
+ * The day a monthly repeat on day `day` of the month falls on, in words, with where it goes in a month without that
+ * day: 'On the 18th of every month.', 'On the 31st of every month, or the last day of shorter months.'
+ */
+export function monthlyRule(day: number): string {
+  const on = `On the ${dayOrdinal(day)} of every month`;
+  if (day <= 28) return `${on}.`;
+  return `${on}, or the last day of ${day === 31 ? 'shorter months' : 'February'}.`;
+}
+
+/**
+ * The day of the month a monthly repeat saved from the form falls on. While the form keeps the first day it opened
+ * with (`from`: the event's own, or the day a change from one day on starts), the event's day of the month stays (a
+ * repeat on the 31st opened on 28 February); a new first day brings its own.
+ */
+export function formMonthDay(
+  event: Pick<PersonalEvent, 'date' | 'repeat' | 'monthDay'> | null,
+  from: DayKey,
+  date: DayKey,
+): number {
+  return event?.repeat === 'monthly' && date === from ? monthDayOf(event) : Number(date.slice(8, 10));
+}
+
+/** What a repeat from `date` means, under the choice in the form: 'Every Sunday.', 'On the 18th of every month.' */
+export function repeatHint(repeat: Repeat, date: DayKey, monthDay: number): string | undefined {
+  const weekday = weekdayOf(parseDay(date)).long;
+  if (repeat === 'weekly') return `Every ${weekday}.`;
+  if (repeat === 'fortnightly') return `Every other ${weekday}.`;
+  return repeat === 'monthly' ? monthlyRule(monthDay) : undefined;
 }
 
 /** The reminders an all-day event offers: it "starts" at 9:00. */

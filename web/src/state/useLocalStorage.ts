@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { bindStored, type StoredUpdate } from './storedValue';
 
-export { removeStored } from './storedValue';
+export { removeStored, writeStored } from './storedValue';
 
 export type SetStored<T> = (next: StoredUpdate<T>) => void;
 

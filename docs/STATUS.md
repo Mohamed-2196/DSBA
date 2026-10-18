@@ -1,7 +1,7 @@
 # Status
 
 This is the handoff between sessions: where the work stands, what's next and what Mohamed still has to decide.
-Update it whenever you finish or start something. Last updated 2026-10-17, when round 12 started.
+Update it whenever you finish or start something. Last updated 2026-10-18, when round 13 started.
 
 ## Where things stand
 
@@ -35,8 +35,8 @@ deployed.
   Antigravity also added module art uploads (0026), picture editing in notes, real library covers by default, the
   MyClass and UoL logos on the sidebar links (Mohamed's request), the seven missing module icons, the Railway dev
   deploy and an `enable-features` command. Mohamed is not happy with the result, the Daily games most of all.
-- **Last checks (2026-10-17, c25b735).** 1,253 API tests and 749 Vitest tests green after fixing a stale test and
-  a dev-login bug Antigravity introduced; the API suite now takes about 11 minutes (round 12 speeds it up).
+- **Last checks (2026-10-18, 25234ed).** 1,520 API tests (39 seconds) and 882 Vitest tests green; CI and the
+  Railway dev deploy green. `web/` is formatted with Prettier, and the check fails on unformatted files.
 
 ## Round 12 (review and finish round 11): merged 2026-10-18
 
@@ -58,6 +58,41 @@ Migrations chain 0026 → 0028 → 0031 → 0029 → 0030 → 0033. Mohamed's ca
 open with made-up accounts only (SEC-43); guests keep playing today's Daily (the leaderboard says it's for fun); Noora
 sits in the tab bar on phones; the Daily games keep their names.
 
+## Round 13 (verify, review, polish): started 2026-10-18
+
+The full e2e suite hasn't run since round 10, so this round tests everything rounds 11 and 12 built, reviews the
+code and the look of every screen, then fixes what the reviews find.
+
+| Branch | Agent | What |
+| --- | --- | --- |
+| `round13/e2e` | student-tester | the full e2e suite (stale specs updated, specs for rounds 11-12 added), and every feature by hand as each kind of student, Daily first |
+| `round13/quality` | code-quality-reviewer | rounds 11-12 (CQ-47 on), CQ-30 to CQ-46 re-checked, ARCHITECTURE and DEPLOYMENT brought up to date |
+| `round13/uiux` | ui-ux-reviewer | every screen at every size and in dark mode (UX-44 on), UX-28 to UX-43 re-checked |
+| `round13/squash` | api-builder | the migrations squashed into a baseline with id 0033 (existing databases need nothing), then 0034: zone and sitting CHECKs, the `/requests/done` index, `modules.video-suggestions`; two races from round 12 |
+| `round13/dailyfix` | api-builder | Daily: "fix today's puzzle" in Manage, Correlations groups of four to eight words (four a day), then the reviews' Daily findings |
+| `round13/pictures` | web-builder | the notebook: pictures in line or free anywhere on the page (moved, resized, cropped, turned, layered, under the ink, in the export), then the reviews' notebook findings |
+
+Mohamed's calls (2026-10-18), D14 and D15 in ARCHITECTURE: storage, the library and the Daily puzzles on the
+Railway dev site (done by the lead); a "fix today's puzzle" button; Correlations groups of four to eight words; no
+4-second rule in Daily; notebook pictures that float anywhere on the page; fortnightly and monthly repeats; sign-up
+asks about notification emails; practice scores saved to the account; To-do shows dated cards only; Site settings and
+the grade rules need no fresh code.
+
+Merged so far (checks green: 1,584 API and 906 web tests):
+- `round13/quality`: CQ-47 to CQ-82; ARCHITECTURE, DEPLOYMENT and README current.
+- `round13/squash`: baseline 0033 plus 0034; zones and sittings named once; two races. Its follow-ups (CQ-50, 51,
+  52, 54, 58, 63, 74) are still running on the same branch.
+- `round13/repeats`: fortnightly and monthly repeats (0036), feeds in Bahrain time, sign-up's email question.
+- `round13/dailyfix` (first part): fix today's puzzle (0035), groups of four to eight, every win scores, CQ-49, 54,
+  64, 80. It keeps going with the reviews' Daily findings.
+
+Also running: `round13/fixweb` (Manage's leave guard and field errors, Home, boards, Mini Noora's chat switch, the
+first download's size, practice scores on the account) and `round13/pictures`. Migrations taken: 0037 notebook, 0038
+practice scores, 0039 board templates; the lead chains them in merge order. The local `dsba` database moves on when
+the tester's e2e run ends (`scripts/e2e.sh --restore` restarts the API on the main checkout, which migrates).
+
+Next in the round: builders fix what the three reviews find, Daily first.
+
 ## Operating notes
 
 - **New features arrive switched off.** Turn them on in Manage → Access.
@@ -72,6 +107,20 @@ sits in the tab bar on phones; the Daily games keep their names.
   sara.student@example.com (Year 2); codes in Mailpit, or `python -m app.cli dev-login <email>` for a session token.
   `python -m app.cli enable-features` switches everything on (development only).
 - **Local data:** the database holds leftovers from e2e runs (titles with `[e2e …]`); harmless.
+- **Daily content** is loaded on each new environment from `private/daily-content.json` (git-ignored): Manage →
+  Daily puzzles → Load a content file, or `daily-content import` (`docs/backend/CMS.md`). Done locally.
+- **Railway dev storage:** a Railway bucket, `dsba-files` (EU West), in the dev environment only. The api service's
+  `DSBA_S3_*` are variable references (`${{dsba-files.ENDPOINT}}` and so on) with `DSBA_S3_FORCE_PATH_STYLE=false`,
+  and web's `DSBA_BUCKET_ORIGIN` is the bucket's own host. Never print the bucket's credentials. Nobody changes
+  Railway's settings without asking Mohamed.
+- **Railway dev content (2026-10-18):** the library copied from the local hub (694 items, their search text and
+  1,386 files and covers; same ids, Drive folders matched by address) and the Daily puzzles loaded from
+  `private/daily-content.json`. A shell on the dev API: `railway ssh -i ~/.ssh/railway_dsba -s api -e dev` (the key
+  "dsba-hub mac" on Mohamed's Railway account); for piped input use plain `ssh` with the host and user that
+  `railway ssh config -s api -e dev --dry-run` prints.
+- **Local MinIO** allows uploads from any localhost port (each builder's Vite has its own).
+- **Formatting:** `cd web && npm run format` (Prettier); `.git-blame-ignore-revs` keeps the formatting commit out
+  of `git blame`.
 - **Module icons:** all 16 are in (the last seven generated by Antigravity, reviewed 2026-10-17: same flat style,
   compressed to 10-21 KB).
 - **Python 3.12** is pinned in `api/.python-version`, matching the image and CI.
@@ -82,14 +131,9 @@ sits in the tab bar on phones; the Daily games keep their names.
 
 ## Next
 
-1. Merge round 11, then a review round on it.
-2. Squash the migrations into one baseline between rounds (CQ-35), with the zone CHECKs (CQ-32), the
-   `/requests/done` index (CQ-45) and the `modules.video-suggestions` switch name (CQ-36).
-3. Prettier with a check in `scripts/check.sh`, formatted once in a commit of its own (CQ-43), while no builder is
-   running.
-4. Still open from the reviews: review numbers in comments and tests (CQ-20); SEC-11, SEC-14 and SEC-19; the
-   standards review's S-1 typed linting, S-3 re-encoding uploaded pictures, S-4 `noUncheckedIndexedAccess`, and
-   S-5 to S-7.
+1. Round 13: merge the reviews and the squash, then builders fix what the reviews found.
+2. Still open from earlier reviews: review numbers in comments and tests (CQ-20); SEC-14; the standards review's
+   S-1 typed linting, S-3 re-encoding uploaded pictures, S-4 `noUncheckedIndexedAccess`, and S-5 to S-7.
 
 ## Waiting on Mohamed
 
@@ -100,15 +144,11 @@ sits in the tab bar on phones; the Daily games keep their names.
 - **Ideas to approve:** 24 proposals in `docs/ideas.md` (IDEA-1 to IDEA-24), merged 2026-10-13.
 - **Product calls:**
   - Noora's programme facts start with one: add more in Manage → Mini Noora (her starter cards come in fours).
-  - The notebook: free-floating pictures (a data-model change)? Is 25 MB of text and handwriting per student enough?
+  - The notebook: is 25 MB of text and handwriting per student enough?
   - Calendar repeats: fortnightly or monthly needs a migration. Boards: no hourly cap on card saves yet.
-  - Daily: a win within 4 seconds of opening scores nothing. Right limit?
   - Bug reports (defaults chosen 2026-10-18): deleted with the reporter's account rather than kept anonymised;
     screenshots kept 90 days after a report closes. Names that spell a staff word across spaces or dots ("A. D.
     Minhas") are refused.
-  - Daily puzzles: edits apply from tomorrow, so today's puzzle can't be corrected. Add an admin "fix today's
-    puzzle" button? And should a connections group hold exactly four words, or 4 to 8 with a day showing four?
-  - Should notification emails stay on by default?
   - Should there be a site-wide daily upload budget (SEC-14)?
   - Should a rep confirm seniors, beyond the 30-day rule?
   - A "shared computer" sign-in with a shorter session, and sessions that end after some days without use (S-2)?

@@ -1,9 +1,873 @@
 # Code quality review
 
-Three passes live in this file, newest first. **Round 10 re-review** (at `6c90aa9`) covers rounds 5 to 9, re-checks
-every earlier finding and adds CQ-30 onwards. **Round 3 re-review** (at `8c4164d`) added CQ-19 to CQ-29. **Round 1**
-(at `525962c`) holds the original findings CQ-1 to CQ-18 as they were written. Line numbers refer to each pass's
-commit.
+Four passes live in this file, newest first. **Round 13 re-review** (at `25234ed`) covers rounds 11 and 12, re-checks
+the open findings and CQ-30 to CQ-46, and adds CQ-47 onwards. **Round 10 re-review** (at `6c90aa9`) covered rounds 5
+to 9 and added CQ-30 to CQ-46. **Round 3 re-review** (at `8c4164d`) added CQ-19 to CQ-29. **Round 1** (at `525962c`)
+holds the original findings CQ-1 to CQ-18 as they were written. Line numbers refer to each pass's commit.
+
+# Round 13 re-review (rounds 11 and 12)
+
+Reviewer: code quality. Scope: everything rounds 11 and 12 changed, `33ea157..25234ed` less `c887f02` (Prettier
+only): 837 files, +116,910/−18,405 lines, of which about 55,000 added lines are `openapi.json`, `schema.d.ts` and the
+word game's guess list. Reviewed on `round13/quality`.
+
+Round 11 was finished by another AI tool and round 12 repaired it, so this pass looked hardest for that tool's habits:
+compatibility code for data nobody has, helpers written again, logic in the wrong layer, unchecked casts, effects
+that should be state, tests that can't fail, dead code, and comments that cite reviews. Eight read-only helpers each
+took one area: Daily (API and web); the notebook, boards, the calendar and bug reports (API); Manage's documents and
+the library (API); the notebook (web); boards, the calendar, Home and the shell (web); Manage's editors (web); Mini
+Noora, the library and the e2e suite (web). Every major finding was checked again by reading the code, and "Probe"
+marks the ones reproduced with a scratch test, a statement counter or a build. No application code was changed.
+
+## Checks run
+
+| check | result |
+|---|---|
+| `PATH=/opt/homebrew/opt/libpq/bin:$PATH scripts/check.sh api` | **all passed**: lock and requirements in sync, ruff and ruff format clean (343 files), mypy strict clean (313 files), **1,520 API tests passed, 1 skipped** (a Linux-only `/proc` test) in 73 s on four workers |
+| `scripts/check.sh web` | **all passed**: both `tsc` configs, ESLint, Prettier, knip, **882 Vitest tests in 118 files**, `schema.d.ts` matches `openapi.json`, build. The build warns that two chunks are over 500 kB (CQ-61) |
+| slowest API tests (`--durations=30`, four busy workers) | the drift test's OpenAPI comparison 40 s (6 s alone) and the migration round trip 24 s; two own-app error tests 14-17 s; `board/test_cards.py::test_many_moves_into_one_gap_number_the_column_again` 15 s; the Sudoku solve 9-10 s (CQ-75) |
+| bundle (`vite build --sourcemap`, bytes attributed by source map) | entry `index` **811 kB, 239 kB gzip** (round 3: 611/182); `NotePage` **562 kB, 177 kB gzip**; `pdf` 438 kB and `katex` 262 kB already load lazily; `ManagePage` 181 kB |
+| `npx knip` in `web/` | nothing reported. Checked by hand: features reach each other only through `public.ts` (one test, `auth/secReviewR10.test.ts`, reads `features/noora/saved` directly) |
+| `type: ignore` in `api/app` | 5: the three old library edges, and two new in Daily that hide loose annotations (CQ-72). In the tests: 21, nine of them on `db.get(...)` (`db.get_one` removes those) |
+| `any` in `web/src` | none. `as unknown as` outside tests: 3, one new (`career/editor/CareerEditor.tsx:184`) |
+| review and idea numbers | `IDEA-`: 41 → 0 in app code. Review IDs: 197 → 189 in `api/app`, `api/migrations` and `web/src`, 131 → 109 in the tests; rounds 11 and 12 added some, and 8 test files and 22 test names carry them (CQ-74) |
+| N+1 | a statement counter over the new list endpoints: one N+1, the Daily leaderboard (CQ-54). Boards, notes, the calendar feed, Daily's day and the editor's lists stay flat; the account export is 40-45 statements |
+
+## Earlier findings: status
+
+| ID | Status | What is there now |
+|---|---|---|
+| CQ-1 to CQ-16, CQ-19, CQ-21, CQ-23 to CQ-25, CQ-28, CQ-29 | as in round 10 | fixed, or folded into later IDs |
+| CQ-17 | **open** | Before Prettier: `library/LibraryPage.tsx` 594 lines (568 in round 10), `account/AccountPage.tsx` 507, `newsletter/editor/Editor.tsx` 642, `library/components/UploadDialog.tsx` 438. Rounds 11 and 12 added larger ones (CQ-69) |
+| CQ-18 | **open** | Type-aware lint is still off (`web/eslint.config.js:36`, `tseslint.configs.recommended`); S-1 |
+| CQ-20 | see CQ-41 | |
+| CQ-22 | **open** | `web/src/api/uploads.ts:76-120` still states 50 MB and 8 MB beside `DSBA_MAX_UPLOAD_MB` and `DSBA_MAX_IMAGE_MB`. DEPLOYMENT.md, section 12, now says to change both |
+| CQ-26 | **open** | The `module` fixture is declared four times (`accounts/conftest.py:180`, `board/conftest.py:27`, `notes/conftest.py:22`, `noora/conftest.py:111`) and the personas three times; the e2e `api<T>()` cast is unchanged and now has 94 callers (CQ-68) |
+| CQ-27 | **open** | `career/lib/fit.ts` and `home/session.ts` still have no tests |
+| CQ-30 | **fixed** | `hub.mine.noora.chat` (sessionStorage) and `hub.mine.noora.chats` (`noora/saved.ts:12-13`); `clearPersonalStorage` clears both storage areas (`auth/queries.ts:57-65`), with a test |
+| CQ-31 | **fixed in the API only** | `Zone` in every request schema (`schemas/requests.py:34,53,80`). The web app's request dialog still offers only zones A and B, so a student still can't ask for an RTC paper (CQ-63); no API test of an RTC request either |
+| CQ-32 | **mostly fixed** | API: `Zone` everywhere, CHECKs on the three columns, one `zone_label` and `sitting_key` (`services/exam_names.py:113,125`), `PAST_PAPER` and `EXAMINERS_REPORT` beside `LibraryKind`. Web: `src/lib/exams.ts`. The copies left are in CQ-63 |
+| CQ-33 | **fixed** | `requests/api.ts:32-39` invalidates the done list with the others |
+| CQ-34 | **fixed** | Each block names its features in `home/blocks.ts`; `offeredBlocks()` computes the offer and is tested |
+| CQ-35 | **open, in progress** | 29 migrations now, ids out of order (… 0026 → 0028 → 0031 → 0029 → 0030 → 0033); `round13/squash` squashes them this round. CQ-52 lists the data upgrades the squash should drop, and CQ-54 the partial-index check |
+| CQ-36 | **partly fixed** | `FEATURE_KEYS` is checked against `Feature` at compile time (`auth/access.test.ts:165-172`). Open: the `video_suggestions` switch (`core/access.py:77`); "Help the year below" (`core/access.py:165`, `forum/HelpBelow.tsx:35`) against "Help the years below" (`home/blocks.ts:71`); `HomeBlock` in `schemas/auth.py:60`; and a fifth copy of the list in the e2e suite, already missing `daily` (CQ-68) |
+| CQ-37 | **fixed** | `module_editor.add_lesson()` (`:114`) is the one way to add a lesson; `suggestions.py:248` uses it; `Video` is a `NamedTuple` |
+| CQ-38 | **mostly fixed** | The papers rules are in `accounts.update_profile`; no service imports inside functions; `close_for_date` reads the audience once (`requests.py:564`). Open: `routers/calendar.py:85` still sorts and silently cuts `modules` to 20; `employer_id` is still checked only against the slug pattern (`services/calendar.py:162`); the slug pattern is now written four times (`schemas/auth.py:33`, `schemas/calendar.py:19,97`, `routers/calendar.py:39`) |
+| CQ-39 | **mostly fixed** | The request export has `found_item_id` and `found_at` (`accounts.py:744-745`) and uses keyword arguments. Round 11 added one more dict: `ExportCalendarSettings.model_validate({...})` (`accounts.py:885`) |
+| CQ-40 | **partly fixed** | The MiniNoora effects are gone (`MiniNoora.tsx:223,431`) and `ChatPanel.tsx:177-178` sets `newFrom` during render. `noora/useChat.ts:184-214` still copies six values into refs with effects, and the pattern spread (CQ-67, CQ-77) |
+| CQ-41 | **partly fixed** | `IDEA-` references: 41 → 0 in app code. Review IDs: 197 → 189 in app code and 131 → 109 in the tests; rounds 11 and 12 added new ones (CQ-74) |
+| CQ-42 | **partly fixed** | Tested now: `noora/open.ts`, `grades/record.ts`. Still untested: `noora/useDrag.ts`, `home/layout.ts`, `papers/usePapers.ts`, `modules/tracking.ts`, `career/lib/fit.ts`, `home/session.ts`; no API test of an RTC request |
+| CQ-43 | **fixed** | Prettier 3.6.2 with a check in `scripts/check.sh` (`c887f02`, skipped by `git blame` through `.git-blame-ignore-revs`); the nine dead classes are gone. New dead CSS is in CQ-78 |
+| CQ-44 | **fixed** | The 501 handler, its error code and the seed's `except` are gone |
+| CQ-45 | **open** | Still no index for the done list; it belongs in the squash |
+| CQ-46 | **fixed in this pass** | ARCHITECTURE.md (the layout, where each area lives, access and the boxes, the documents edited whole, private content, the text worker, browser storage, routing), DEPLOYMENT.md (every setting, the mail worker's schedule, the sweep, Mini Noora, the summary, bug reports, the Railway dev environment) and README.md now match the code. STATUS.md's header still says "when round 12 started"; it is the lead's file |
+
+## New findings (CQ-47 onwards)
+
+| ID | Severity | Side | Title |
+|---|---|---|---|
+| CQ-47 | major | API | A picture copied into a second note is deleted with the first; deleted files keep using the room |
+| CQ-48 | major | API, web | Ink on pages a note doesn't have; deleting a page is one save per later page |
+| CQ-49 | major | API | Daily: Data Mine can fail on a day the editor calls ready |
+| CQ-50 | major | API, web | The Year 2 option and the electives are written in four places, and Manage edits one |
+| CQ-51 | major | API | Deleting a module leaves the documents that name it unsaveable |
+| CQ-52 | major | both | Compatibility code for data that only earlier rounds made |
+| CQ-53 | major | both | The documents edited whole are built three ways |
+| CQ-54 | major | API | Queries and indexes: the leaderboard's N+1, the content file, the reminder index |
+| CQ-55 | major | API | Room checks re-serialise every note on each save; quotas are checked eight ways |
+| CQ-56 | major | API | Daily's editor is one 1,255-line module, and its items are untyped dicts |
+| CQ-57 | major | API | Upload purposes live in eight parallel tables; claiming an upload is written four ways |
+| CQ-58 | major | API | Mini Noora's list of pages is a stale copy of the app's |
+| CQ-59 | major | web | The notebook can lose or overwrite writing in five ways; its autosave loops are untested |
+| CQ-60 | major | web | Manage throws unsaved edits away on any in-app navigation |
+| CQ-61 | major | web | The first download is 811 kB, with Manage's editors and the palette in it; `NotePage` is 562 kB |
+| CQ-62 | major | web | Manage's field errors never reach their fields; a reused id picks up students' marks |
+| CQ-63 | major | web | Students still can't ask for an RTC paper in the app; zones still written by hand |
+| CQ-64 | major | both | Daily: a guest's progress never reaches the hub, and the hub can stop at midnight |
+| CQ-65 | major | web | Home: hidden dates come back, "Ask Noora anything" loses the question, To-do counts the wrong days |
+| CQ-66 | major | web | Boards: one failure shows two alerts, and a ticked card can stay stuck |
+| CQ-67 | major | web | Mini Noora: switching chats loses the last question, and the card and the page drift apart |
+| CQ-68 | major | web | The end-to-end suite: two specs can't pass, and Daily has none |
+| CQ-69 | minor | web | Components that hold their logic (`BoardPage.tsx` 939 lines, ten more over 500) |
+| CQ-70 | major | web | The same shape written again inside a feature (Daily's six games and editor, the calendar, boards) |
+| CQ-71 | major | web | Notebook pages: a link that drops its filter, a dialog with the wrong name, failures that say nothing |
+| CQ-72 | minor | both | Types: ignores that hide loose annotations, strings where a type exists, needless casts |
+| CQ-73 | minor | web | Shared homes bypassed: helpers written again across features |
+| CQ-74 | minor | both | Review numbers and history in code and tests |
+| CQ-75 | minor | both | Tests that can't fail, restate the code, or are slow |
+| CQ-76 | minor | API | Small API helpers and rules written again |
+| CQ-77 | minor | web | Effects that should be a key, derived state or an event |
+| CQ-78 | minor | both | Dead code and dead CSS |
+| CQ-79 | minor | both | Copy in code |
+| CQ-80 | minor | API | Personal data, the audit log and step-up |
+| CQ-81 | minor | API | Seeds, and a rule applied in some places only |
+| CQ-82 | minor | both | Docs inside the code that no longer match it |
+
+### CQ-47. A picture copied into a second note is deleted with the first; deleted files keep using the room (major, M)
+
+- **Where:** `api/app/services/notes.py:432-454` (`_attach`), `:280-286` (`_let_go_of_files`), `:108-115`
+  (`files_used`); `api/app/cli.py:269-273` (the sweep).
+- **What:**
+  - An upload belongs to one note (`uploads.note_id`). `_attach` takes a file only when it is free or already the
+    note's (`or_(Upload.note_id.is_(None), Upload.note_id == note.id)`), but the editor copies a picture between notes
+    with its upload id (`web/src/features/notes/text/nodes.tsx:286`). Deleting note A, or the picture in A, frees the
+    file, and the next sweep deletes it while note B still shows it. Probe: after the delete and a sweep,
+    `GET /notes/files/{id}` answers 404 and B still points at the file.
+  - `files_used` adds up every `note_file` upload, freed ones included. Deleting notes frees no room until the sweep,
+    and then only for files over a day old, so a student at 25 MB keeps getting 409 `notes_full`. Boards don't have
+    this problem: a freed board file stays `attached` with `card_id` NULL and stops counting
+    (`board/boards.py:128-136`).
+  - The sweep's rule for unused files knows board files off their card, but not note files whose note row is gone.
+- **Why it matters:** a picture disappears from a note the student never touched, and the room the app shows is
+  wrong exactly when they are trying to make some.
+- **Fix:** keep each note's upload ids (`notes.uploads uuid[]`, filled from `note_doc.check().uploads`, GIN-indexed)
+  and free a file only when none of the student's notes lists it. Give freed note files a state of their own, left out
+  of `files_used`, with a sweep rule like the board's. Test both with one picture in two notes.
+
+### CQ-48. Ink is accepted on pages a note doesn't have, and deleting a page is one save per later page (major, M)
+
+- **Where:** `api/app/services/notes.py:608-638` (`save_ink`), `:572-605` (`update_note`);
+  `web/src/features/notes/NotePage.tsx:382-386`.
+- **What:** `save_ink` checks only `0 <= sheet < MAX_SHEET_INDEX`. Probe: a one-page note without a PDF took ink on
+  sheets 0, 5 and 1299; those rows are exported and count against the student's room. `update_note` never removes ink
+  past the new page count. The web app deletes a page by sending every later page again, one PUT each: 300 for a long
+  note, against `SAVES_PER_MINUTE = 240`.
+- **Why it matters:** a tab closed half way through a page delete leaves pages shifted or doubled, and rows the
+  notebook can no longer show still use the student's room.
+- **Fix:** refuse sheets at or past `PAPER_SHEETS_FROM + note.sheets`, and PDF pages on a note without a PDF; delete
+  ink past the new count in `update_note`; add one "delete page" and one "move page" call that renumber the rows in a
+  single UPDATE.
+
+### CQ-49. Daily: Data Mine can fail on a day the editor calls ready (major, M)
+
+- **Where:** `api/app/services/daily/games/search.py:88-92` (`_fits` and its 60-letter cap),
+  `services/daily/content.py:216-239` (`spread`: greedy, never backtracks), `services/daily/editor.py:117,322-336`
+  (the readiness check tries one fixed order: "any order does").
+- **What:** the greedy choice can fill seven words to 57-59 letters and then find no word short enough, where another
+  seven would leave room. Probe with the real content file: the stats theme fails on 4 days of 365; a made-up
+  nine-word theme passes the editor's check and fails on 26 days of 60.
+- **Why it matters:** that day's Data Mine answers 404 `not_out_yet` for everyone, all day, while Manage says the
+  theme is ready (`editor.py:9-10` promises "every day can be made").
+- **Fix:** in `SearchGame.choose`, take a word only if the shortest words left can still fill the remaining places (or
+  try a few seeded orders before giving up); make the readiness check independent of order; test a tight theme.
+
+### CQ-50. The Year 2 option and the electives are written in four places, and Manage edits one (major, M)
+
+- **Where:** `api/app/services/my_calendar.py:71-76` (`CHOICES`, for the private feed);
+  `web/src/features/papers/papers.ts:15-26` (`CHOICES`, `NOT_ON_HUB`, for "Your papers" and the calendar);
+  `api/app/seed/data/grades.json` (`year2Options`, `electives`: the grade rules, edited in Manage); `guides.json`
+  (`electives.pick`).
+- **What:** which modules are the option and the electives, and how many a student picks, is copied by hand. An admin
+  who adds an elective in Manage → Grades calculator changes the calculator only: "Your papers", the calendar and the
+  private feed keep the old list, with no error. The one API test (`tests/content/test_my_calendar.py:419-421`)
+  checks only the half that would pass with no filtering at all.
+- **Fix:** make the grade rules the one source (they are already edited in Manage): serve the option and the
+  electives with GET /grades/rules, have `papers.ts` and `my_calendar.papers_of` read them, and drop both `CHOICES`.
+  Test that a choice the student didn't pick leaves the feed.
+
+### CQ-51. Deleting a module leaves the documents that name it unsaveable (major, S)
+
+- **Where:** `api/app/services/module_editor.py:446-462` (`uses_of`); `services/grades.py:39-41`, `site.py:43-45`,
+  `career.py:146-148`.
+- **What:** `uses_of` counts a module's lessons, files, threads, notebooks, cards, requests and dates, but not the
+  grade rules, Site settings' contributors or Career Navigator, which name modules by id. Probe: DELETE
+  `/content/modules/asset-pricing` answers 204; an admin who then changes only the First band's floor gets 422
+  "There is no module “asset-pricing”".
+- **Why it matters:** public documents keep dangling ids, and the error blames a part the editor never touched.
+- **Fix:** count each document's `module_refs()` in `uses_of` ("named in the grades calculator's rules"), with a test.
+
+### CQ-52. Compatibility code for data that only earlier rounds made (major, M)
+
+Nothing is released (CLAUDE.md), yet these exist only to upgrade older data:
+- **Migrations:**
+  - 0033's `SITE_ADDITIONS` and `CAREER_ADDITIONS` (`20261018_0033_cms2.py:52-118,159-160`) are frozen copies of parts
+    of `site.json` and `career.json`, written into documents saved before. `tests/core/test_migrations.py:137-187`
+    asserts they equal the seed, so editing the tour or search's words in `site.json` now fails a migration test.
+  - 0028's `SEEDED_ART` (`20261017_0028_cms.py:28-45,69-71`) repeats `modules.json`'s pictures and matches nothing on
+    a fresh database (the seed runs after the migrations); its docstring narrates ("until now").
+  - 0024 rewrites existing rows (`:73-105`), and 0021 turns old Markdown notes into editor documents
+    (`20261014_0021_notebook.py:65-90`).
+- **Backfills:** `paper_text.without_cover` and `make_cover` (`paper_text.py:328-360`); the text worker's idle loop
+  (`:413-431`), whose `attempted_covers` lives in the process, so every restart renders every PDF without a cover again;
+  `make-covers` (`cli.py:377-391`) and `text_extract`'s `--no-text`. None is tested beyond one `== []`.
+- **Old titles:** `drive_import.tidy_imported_titles` (`:953-971`) re-implements the title rule round 12 removed, to
+  find titles it made; untested.
+- **A test-only fallback in production code:** `services/noora/ask.py:100-107` creates the `noora_limits` row for "a
+  test database emptied by hand". The migration makes the row, no test empties it, and the branch writes from a GET.
+- **In the web app:** `calendar/EventFormDialog.tsx:115,118` maps the field names `end_date` and `module_id`, which the
+  API never sends (its field errors are camelCase, `core/errors.py:84-91`); `board/board.ts:35-36` hides the API's
+  "revision" board template instead of the API dropping it (`services/board/boards.py:65`, `schemas/board.py:17`);
+  `forum/types.ts:47-52` keeps generated types under their old names (`ForumCategory = ForumCategoryOut`).
+- **Why it matters:** each copy has to be kept equal to the real thing (one test already forces it), and they hide the
+  real gap: `documents.current()` (`documents.py:74-76`) validates stored JSON with no rule for a new field, so a
+  required field added to `SiteDoc` turns GET /site, search and Mini Noora into 500s wherever the document was saved.
+- **Fix:** drop all of the above in the squash (CQ-35) and rebuild local data instead; keep `extract-texts` (the
+  worker's own job) and let the worker make each cover as it reads the file. Write the rule in
+  `docs/backend/CMS.md`: a new document field gets a default.
+
+### CQ-53. The documents edited whole are built three ways (major, L)
+
+`services/documents.py` is the shared helper: the seed until the first save, the version checked under a lock with
+`populate_existing`, the first row by ON CONFLICT, a size cap, no-op saves skipped, every save audited. Site
+settings, the guides, Mini Noora, the grade rules, the newsletter's settings and the summary's words use it.
+- **Career Navigator** (`services/career.py`) copies it: its own `stored()` (`:47-50`), `editable()` (`:106-117`) and
+  `save()` (`:139-165`). Its `_row()` (`:93-94`) has no `populate_existing`, which `tests/content/test_site.py:96`
+  proves is needed; two first saves at once end in an IntegrityError and a 500 (`:156-158`); its first audit entry's
+  "before" is `{}`; and the seed loader writes it (`seed/loader.py:168-175`), so a fresh database has no Career
+  Navigator at all (`data: CareerDoc | None`, `schemas/career.py:333,340`). The reason given (`documents.py:7-8`: it
+  attaches logos) is what `newsletter_settings.save` already does after `documents.save` (`:73-82`).
+- **The forum's settings** (`services/forum/settings.py:104-120`) reuse half of the helper and write the version bump,
+  stamp, flush and audit again, without the size cap.
+- **Around them:**
+  - eight `*Editable` and eight `*Save` schemas with the same fields, and eight `*_changed` error codes for one
+    condition (`schemas/common.py:113-120`, against its own "one code per condition");
+  - `_unique` six times with three messages; the slug-id type nine times;
+  - three URL patterns (`/site` with `/site/edit`, `/summary/settings`, `/forum/meta` with `/forum/settings`);
+  - site and guides converted to schemas in the router (`routers/site.py:34,45,57,68`), the others in their services.
+- **The web side:** seven editors use the kit (`DocFrame`, `ListEditor`, `RowsEditor`, `docErrors`), yet each repeats
+  the loader (`isError`, `isPending`, `key={version}`; `site/SiteEditor.tsx:94-117`), the draft with its JSON compare
+  and a 30-line submit (`SiteEditor.tsx:150-183`, `start/editor/GuidesEditor.tsx:133-159`,
+  `noora/settings/NooraEditor.tsx:196-229`, `forum/settings/ForumSettingsEditor.tsx:129-160`,
+  `newsletter/settings/NewsletterSettingsEditor.tsx:108-134`, `grades/editor/GradeRulesEditor.tsx:164-196`,
+  `manage/SummaryWords.tsx:66-90`); every `api.ts` repeats `useXForEditing`, `useSaveX` and `useReloadX`. Career
+  Navigator's editor has its own frame (`career/editor/CareerEditor.tsx:199-284`), its own copy of the kit's CSS
+  (`Editor.css`), of `ListEditor` (`ItemList.tsx`, 186 lines) and of `docErrors` (`career/editor/doc.ts:212-247`);
+  the modules editor has its own banner, save bar and checks (`modules/editor/ModuleForm.tsx:206-219,262-278`).
+- **Fix:**
+  - API: one `documents.Kind` per document with `check` and `after_save` hooks (logos, pictures, the forum's tables),
+    generic `Editable[D]` and `Save[D]` (subclasses keep the OpenAPI names), and one `document_changed` code. Career
+    and the forum become kinds; Career reads its seed until the first save, like the others. One test parametrised
+    over every kind (seed, version 0, a stale save's 409, a no-op save, the audit) replaces about 25 copies, and would
+    have caught Career's differences.
+  - Web: a `useDocEditor({ loaded, save, what, lists, sections })` hook that returns the draft, `dirty`, the errors,
+    `submit`, `undo` and the frame's props; a `DocLoader`; a `docQueries()` factory for the three hooks. Split
+    `DocFrame` into a status line, a banner and a save bar, so the modules editor can use them, and move Career onto
+    the kit (`ListEditor` with a controlled `open`).
+
+### CQ-54. Queries and indexes (major, S each)
+
+- **The Daily leaderboard is an N+1** (`services/daily/plays.py:434-436` → `_board_row` → `accounts.public_user` →
+  `access.access_of`). Probe: 15 statements for 5 rows, 75 for 35; a full board of 50 is about 105 per GET, on a
+  public page with no rate limit. Call `access.prefetch(db, users.values())` after line 434, as every other list does.
+- **The Daily content file costs about six statements per item** (`services/daily/bundle.py:167-187`; the paste import
+  at `editor.py:1165-1183` likewise). Probe: the real file (702 items) took 4,202 statements and 23 s, which on Railway
+  runs inside a web request. Load the keys, the guess list and the vocabulary once, `add_all`, and flush once.
+- **Documents read again and again:** PUT /forum/settings reads `content_docs` three times and each list three times,
+  with 17 single-row gets (`services/forum/settings.py:91,96`); search validates the whole `SiteDoc` on every keystroke
+  (`search.py:215`). Cache the validated document per session in `documents.current`.
+- **The reminder query can't use its index:** `models/my_calendar.py:25` indexes `date WHERE remind IS NOT NULL`, but
+  `services/my_calendar.py:526-536` asks for `date <= soon AND (date >= recent OR repeat …)`. Probe on 200,000 past
+  events: a sequential scan of 45 ms, every minute, on a table that only grows. Store each event's last day and
+  index it.
+- **The drift test can't see partial-index predicates:** `models/daily_content.py:78-92` builds them from tuples and
+  migration 0029 writes the strings by hand; a changed predicate passes `compare_metadata`. Compare
+  `pg_get_indexdef` for partial indexes in `tests/core/test_drift.py`.
+
+### CQ-55. Room checks: every save re-serialises every note, and quotas are checked eight ways (major, M)
+
+- **Where:** `services/notes.py:95-105` (`writing_used`: `sum(octet_length(doc::text))` over all the student's notes, on
+  every text and ink save, about once a second while they write); `board/boards.py:139-156` (the same shape);
+  `board/cards.py:285-289`, `boards.py:266,339`, `files.py:98`, `notes.py:172`.
+- **What:** probe on 2,000 notes (37 MB as text): one check took 135-185 ms, where summing a stored size took 4.6 ms.
+  The check also measures jsonb's spaced text while the limit and the amount added use compact JSON (about 4% apart).
+  The locks differ: notes take `notes:{uid}`, board text `board-text:{uid}`, `check_room` relies on its caller's lock
+  (a card and a plan made at once can both pass `MAX_CARDS`), and labels, columns, attachments and notebooks count
+  with no lock. There are eight different "full" error codes.
+- **Fix:** a `doc_bytes` column, like `note_ink.size_bytes`, so the check adds two integer columns; one quota helper
+  that takes the student's lock and raises one code with the area's message.
+
+### CQ-56. Daily's editor is one 1,255-line module, and its items are untyped dicts (major, L)
+
+- **Where:** `services/daily/editor.py`; `services/daily/content.py:189` (`Entry.data: dict[str, Any]`).
+- **What:** `games/__init__.py:1` says a new game is "a module here and one line in GAMES", but the editor branches per
+  game in `key_of` (`:147-155`), `_DUPLICATE` and `_KEY_FIELD` (`:256-263`), `check_item` and five `_check_*`
+  (`:277-291`), `_problem` (`:301-319`), the paste parser (`:1011-1025,1137-1142`), `_preview` (`:1209-1228`, an
+  isinstance chain that ends in a cast) and three `== "nearest"` tests. Item data is read by 34 string keys
+  (`games/groups.py:77-93`, `quiz.py:50-55`, `search.py:90-91`, `editor.py:197,270,304,394,1174`), and the camelCase
+  keys are written by hand (`editor.py:237-243`).
+- **Why it matters:** renaming a schema field splits writers from readers without mypy noticing, and every new game
+  means edits all over the editor.
+- **Fix:** `ContentGame` gains `check()`, `key()`, `problem(pool)`, `preview(puzzle)` and `paste_row()`; item data is
+  parsed once into the schema's models; `editor.py` becomes a package (`rules`, `items`, `themes`, `words`, `paste`,
+  `preview`; the bundle imports `rules`).
+
+### CQ-57. Upload purposes live in eight parallel tables, and claiming an upload is written four ways (major, M)
+
+- **Where:** `services/uploads.py:100-109` (`ALLOWLISTS`), `:113` (`IMAGE_PURPOSES`), `:117-126` (`FINAL_PREFIXES`),
+  `:128-137` (`PURPOSE_BOXES`), `:176-179` (`limit_bytes`), `:217-239`, `:256-268`, `:340-349` (`PURPOSE_FEATURES`),
+  plus `cli.py:269-272` and `accounts.py:962-967`. Claiming and freeing: `career._logos` (`career.py:123-136`),
+  `module_editor._check_art` and `sync_art` (`:206-235`), `newsletter_settings.save` (`:63-82`), `newsletter_images`
+  (`:40-94`), each with its own locking and its own error field (`art`, `logo`, a path); `NOT_A_PICTURE` twice.
+- **Why it matters:** rounds 11 and 12 added five purposes, and each touched all of these; a purpose missing from
+  `FINAL_PREFIXES` is a 500 when the upload completes, and no test would catch it.
+- **Fix:** one `PurposeRules` per purpose and a test that every `UploadPurpose` has one; `uploads.claim(...)` and
+  `uploads.release_unused(...)` for the four callers.
+
+### CQ-58. Mini Noora's list of pages is a stale copy of the app's (major, S)
+
+- **Where:** `services/noora/prompt.py:57-75` (`PAGES`) and `:79-84` (`ROUTE_PATH`, which cites `web/src/routes.tsx`).
+- **What:** `/start-here`, `/results-day`, `/career/electives` and every `/daily` page are missing: `prompt.page()`
+  returns None for them, and `FIXED_RULES` tells her to link only to the pages listed.
+- **Why it matters:** Noora can't send a student to Start here or Results day, and isn't told when they are on one.
+- **Fix:** add them with their features, and a test that reads the paths in `routes.tsx` and checks each against
+  `ROUTE_PATH`.
+
+### CQ-59. The notebook can lose or overwrite writing in five ways, and its autosave loops are untested (major, M)
+
+- **Where and what:**
+  1. Deleting a note drops the copy on the device before the server answers: `features/notes/NotePage.tsx:541-544`
+     (`editor.discard(); remove.mutate(…)`). Offline the delete fails at once (`networkMode: 'always'`), and anything
+     typed afterwards is neither saved nor kept (`useNoteEditor.ts:210-211,245-250`, `text/useNoteText.ts:152-156`).
+  2. A student's own save can come back as a conflict. On a 409 the client never compares the server's copy with what
+     it sent (`useNoteEditor.ts:115-118`, `useInkSync.ts:106-110`), and the check on opening compares with
+     `JSON.stringify` (`draft.ts:60`) while jsonb reorders keys, so a kept copy that says what the server says is still
+     offered as "changed on another device". Copies that match are never removed, so the list keeps saying "Not saved
+     yet". `draft.test.ts:54-61` builds both sides the same way and can't catch it.
+  3. A note reopened within five minutes is the cached copy (`api.ts:99-107`, `staleTime: Infinity`), and "Keep mine",
+     the main button, then saves it over the newer one.
+  4. Undo after "Load the other one" writes a page from before the load over the other device's
+     (`useInkSync.ts:220-226`, `useTimeline.ts:68-81`).
+  5. A new note deleted for being empty stays in the cache and can show as a ghost "Untitled note"
+     (`NotePage.tsx:325-338`: a bare `deleteNote` that skips `useDeleteNote`'s cache updates).
+  - Also: the text resets, with the caret at the end and an invisible undo step, whenever the `doc` prop is a new object
+    (`useNoteText.ts:151-156`); unsent copies are sent only when their note is opened, and sign-out deletes them;
+    storage-full errors are swallowed (`state/storedValue.ts:70-74`) while the page says the writing is kept on this
+    device; two tabs share one key per note.
+- **Tests:** the two autosave loops (`useNoteEditor.ts:87-187`, `useInkSync.ts:88-187`) repeat the busy flag, the
+  debounce, the retries and the error handling, and neither is tested; the e2e step "nothing is saved over it" also
+  passes after a needless save (`e2e/notes.spec.ts:33-38`).
+- **Why it matters:** these are the moments a student believes their writing is safe.
+- **Fix:** first the small ones: discard in `onSuccess`; compare with a key-order-independent stringify, and on
+  `note_changed` or `ink_changed` adopt the server's version when it equals what was sent; drop matching copies on
+  open; `gcTime: 0` for the open note; prune the undo steps of sheets loaded from elsewhere; a `discardNote(qc, id)`
+  in `api.ts`. Then (L) one pure `createAutosave({ send, keepCopy, … })` with injected timers for both hooks, tested
+  for a change during a save, a 409 with equal and with different copies, offline and back, a 429 with `retryAfter`, and
+  discard.
+
+### CQ-60. Manage throws unsaved edits away on any in-app navigation (major, M)
+
+- **Where:** `web/src/ui/docEditor/doc.ts:6-13` (`useWarnBeforeLeaving`, which `DocFrame` uses at `kit.tsx:55`),
+  `features/career/editor/CareerEditor.tsx:137-143`, `features/modules/editor/ModuleForm.tsx:78-84`: three copies of a
+  `beforeunload` listener. The guard with `useBlocker`, `features/newsletter/editor/useLeaveGuard.ts`, serves only the
+  issue editor. `features/manage/ManagePage.tsx:214-223` (`KEEP_DRAFTS`).
+- **What:** reloading and closing the tab ask; the sidebar, ⌘K, a notification, Back and the kit's own "Open the page"
+  (a same-tab `Link` with an "opens elsewhere" icon, `kit.tsx:68-72`) leave /manage, unmount every editor and drop every
+  draft without a word. Switching Manage tabs drops a module's draft (`'content'` isn't in `KEEP_DRAFTS`), and
+  ModuleForm's "All modules" and Back discard silently. A refetch that brings a newer version remounts the editor on
+  `key={version}` and replaces the draft with no banner (`auth/queries.ts:12-14` refetches everything after signing in
+  again).
+- **Why it matters:** one click can lose an hour of work on the guides or the grade rules. ARCHITECTURE ("Routing")
+  says `useLeaveGuard` covers unsaved edits; only one editor has it.
+- **Fix:** move `useLeaveGuard` to `src/state`. React Router 7 allows one blocker at a time and Manage keeps several
+  editors mounted, so ManagePage owns the blocker, fed by a small registry that `DocFrame`, the career editor and
+  `ModuleForm` report their dirty state to; it blocks only a change of pathname, so tabs keep their drafts. Add
+  `'content'` to `KEEP_DRAFTS`, open "Open the page" in a new tab, delete the three `beforeunload` copies, and keep the
+  loaded version in state, replaced only on a save or a reload.
+
+### CQ-61. The first download is 811 kB, with Manage's editors and the palette in it; the notebook's chunk is 562 kB (major, M)
+
+- **Where:** the production build: entry `index` 811 kB minified, 239 kB gzip (611/182 in round 3), and 176 kB of
+  CSS; `NotePage` 562 kB, 177 kB gzip. Vite's warning prints on every build and is ignored.
+- **What, from the source maps:**
+  - Phosphor icons are 269 kB of the entry: 91 icons, each with all six weights (the app uses four). The command
+    palette alone imports 53 (`features/search/CommandPalette.tsx`, and 43 in `PaletteRow.tsx`).
+  - Admin-only code every visitor downloads: `noora/settings/NooraEditor.tsx` (12 kB),
+    `forum/settings/ForumSettingsEditor.tsx` (10 kB), `ui/docEditor/kit.tsx` (5 kB), `site/HomeAndSearch.tsx`
+    (5 kB), with the CSS of the forum's pages, the new-thread page and Noora's page. The cause: `noora/public.ts:23`
+    and `forum/public.ts:25` re-export the editors; the shell imports those `public.ts` files (`shell/AppShell.tsx:9`,
+    `search/CommandPalette.tsx:12,14`); and a module that imports CSS or runs code at the top (`NooraEditor.tsx:115`,
+    `ForumSettingsEditor.tsx:70`, `HomeAndSearch.tsx:13`) can't be left out. `ui/index.ts:37-39` re-exports the kit.
+    The other editors' CSS is merged into chunks that Home, the calendar, Account and the notebook preload.
+  - `NotePage`: ProseMirror, Tiptap and linkifyjs about 416 kB, the notes code 83 kB, its icons 55 kB. `LessonNotes`
+    imports `Notes.css`, so every lesson page loads the notebook's stylesheet (27 kB).
+- **Probe** (a scratch copy of `web/`):
+  - `NooraEditor`, `ForumSettingsEditor` and the palette exported with `lazy()`: entry 677 kB (202 kB gzip), CSS
+    146 kB. All nine editors exported lazily: entry 704 kB, CSS 150 kB, and no editor CSS left in students' chunks.
+  - Then `manualChunks` for `vendor` (react, react-dom, scheduler, react-router, TanStack Query, openapi-fetch) and
+    `editor` (Tiptap, ProseMirror, linkifyjs, orderedmap, rope-sequence, w3c-keyname, fast-equals): entry 397 kB
+    (112 kB gzip), vendor 283 kB (91 kB gzip, cached across deploys), `NotePage` 145 kB (45 kB gzip), editor 417 kB.
+    No chunk is over 500 kB, and the warning is gone.
+- **Why it matters:** every student's first page waits on this, often over mobile data, and a deploy that changes one
+  line makes everyone download all of it again.
+- **Fix:** each `public.ts` exports its editor with `lazy()` (as `library/public.ts` does with `LazyModuleFiles`) and
+  ManagePage puts each tab in `Suspense`; the editors import the kit from `ui/docEditor`, not the `ui` barrel; the
+  palette mounts on first use (⌘K or a click); the two `manualChunks` in `vite.config.ts`; `Notes.css` split so
+  lessons load only `LessonNotes`' part. Keep the 500 kB warning as the alarm. Later: the ink layer, pictures, the
+  pages drawer and the print view loaded lazily (about 34 kB of `NotePage`), and only the four icon weights the app
+  uses.
+
+### CQ-62. Manage's editors: field errors never reach their fields, and a reused id picks up students' marks (major, S)
+
+- **Where:** `web/src/ui/docEditor/errors.ts:19`
+  (`const whole = path === '' || !path.includes('.') || lists.includes(path);`); `career/editor/CareerEditor.tsx:150`;
+  `ui/docEditor/doc.ts:16-22` (`newItemId` counts from `used.size + 1`).
+- **What:**
+  - Every one-segment field (`data.tagline` → `tagline`) goes to the banner, so 19 field-error lookups never match:
+    `SiteEditor.tsx:223,233,314,325,334,347,356`, `HomeAndSearch.tsx:30,237`, `SummaryWords.tsx:124,145,156`,
+    `NewsletterSettingsEditor.tsx:175`, `GradeRulesEditor.tsx:345,396,404,424,433`, `ForumSettingsEditor.tsx:209`.
+    Clear "Copyright holder" and save: the banner says "String should have at least 1 character", no field is marked,
+    and the editor doesn't go to the section. `errors.test.ts:22-34` pins the bug.
+  - Career's step and checklist links are discriminated unions (`api/app/schemas/career.py:153,200`), so Pydantic's
+    path carries the tag (`…close.lesson.chapter`) while the field looks up `…close.chapter`. Career doesn't use
+    `docErrors`.
+  - `newItemId` hands a removed id out again (`subject-14`). The grades calculator keeps a removed subject's marks
+    (`grades/record.ts:55-65`) and the guides keep ticks by step id, so a new subject shows an old one's marks and a new
+    step shows as done, against CMS.md's "a change to the subjects never moves anyone's marks".
+  - Visited editors stay mounted and hidden, so `id="dedit-section-title"` (`kit.tsx:111-113`) repeats, and
+    `focusDocStatus` (`doc.ts:26-28`) can focus a hidden panel's status.
+  - `Number(e.target.value)` turns a cleared number field into 0 (`SiteEditor.tsx:346`,
+    `GuidesEditor.tsx:307,318,409,464`).
+- **Fix:** `whole = path === '' || lists.includes(path)`, each editor listing its whole parts; union tags stripped once
+  in the API's `field_name()`, and Career moved onto `docErrors`; ids that never repeat (a random suffix) for anything
+  students keep marks or ticks against; `useId()` for the heading and a ref for the status; one number field in
+  `src/ui` (the grades editor's `WholeField`).
+
+### CQ-63. Students still can't ask for an RTC paper in the app, and zones are still written by hand (major, S)
+
+- **Where:** `features/requests/components/NewRequestDialog.tsx:238-247` offers only zones A and B and narrows by hand;
+  `requests/labels.ts:104` writes `` `Zone ${r.zone}` `` ("Zone RTC"); `library/itemForm.ts:15-16,33,47,50` and
+  `library/components/ItemFields.tsx:96-117` list sessions and zones by hand and cast;
+  `library/ChapterQuestions.tsx:10-14` and `DailyQuestion.tsx:39-41` rebuild `examLabel`;
+  `manage/gapLabels.ts:6,17-21` copy `moduleLabel` and `sittingLabel`.
+- **Why it matters:** CQ-31's API fix reaches no student: the request it was for still can't be made, and the next
+  zone or sitting is again a hunt across the app.
+- **Fix:** type the fields `'' | Zone` and `'' | ExamSession`, build the options from `ZONES.map(zoneLabel)`, narrow
+  with `isZone`, use `examLabel(p) ?? p.title` and `zoneLabel`; an e2e step that asks for an RTC paper.
+
+### CQ-64. Daily: a guest's progress never reaches the hub, and the hub can stop at midnight (major, M)
+
+- **Where:** `api/app/services/daily/plays.py:292-322` (`today_of`: every game is "new" without an account);
+  `web/src/features/daily/DailyPage.tsx:34,109,138`, `components/GameCard.tsx`, `DailyCard.tsx:28`,
+  `DailyGamePage.tsx:58,166`, `components/Countdown.tsx:11-21`, `api.ts:66,114-115,137`, `editor/api.ts:43-46,76-78`,
+  `lib/storage.ts:6`.
+- **What:**
+  - A guest who finished The Word sees "Play" and "Six new puzzles"; "Next" can offer a finished game; a Hard Sudoku
+    reopens as Easy. Guests keep playing by Mohamed's choice, so this is what most first-time visitors see.
+  - At zero the countdown stops its interval and refetches `today` once; if the answer still has the same `nextAt` (a
+    clock a few seconds fast), it never starts again and yesterday's set stays until a remount, and the calendar, the
+    week's leaderboard and `me` aren't refreshed. The hub and the card test `isError` before data, so a failed
+    background refetch replaces what was loaded with an error.
+  - Every move refetches `today` (`api.ts:137`), dozens of times in a Sudoku, guests included; the editor invalidates
+    the overview it has just set; three keys are written inline.
+  - Guest moves sit under `hub.daily.guest.` for 14 days: on a lab computer the next guest carries on with the last
+    one's plays, and signing out doesn't clear them.
+- **Fix:** keep each guest play's last status with its moves and lay it over `today` with `select` when signed out;
+  keep refetching while `nextAt` is past, invalidating the whole Daily key; render data whenever it is there;
+  invalidate `today` only when a play's status changes; `dailyKeys.leaderboards()` and `dailyKeys.calendars()`; guest
+  moves under `hub.mine.`.
+
+### CQ-65. Home: hidden dates come back, "Ask Noora anything" loses the question, and To-do counts the wrong days (major, S)
+
+- `features/home/YourModules.tsx:95` reads `useCalendarEvents`, not `useMyCalendarEvents` (which "Up next" uses,
+  `HomePage.tsx:90`), so My modules still shows exams the student hid, though the drawer promises "Hidden dates leave
+  your list, month, Home and private link" (`calendar/EventDrawer.tsx:375`).
+- `home/AskNoora.tsx:14` sends the question as `/noora?q=…`, but nothing in `features/noora` reads `?q=`.
+  `openNoora(prompt)` (`noora/public.ts:5`, `open.ts:101-103`) exists for this and nothing calls it, so the page
+  opens on its welcome with an empty box.
+- `board/BoardTodo.tsx:44` counts 14 days and its "N more" opens a 7-day view (`board/TodayView.tsx:13`);
+  `home/blocks.ts:44` and `board/public.ts:8-9` still describe the block as it was before round 11.
+- **Fix:** `useMyCalendarEvents({ from, type: 'exam' }, { enabled })`; Home calls `openNoora(q)`; `TODAY_DAYS` in both
+  places, and the two descriptions updated; e2e steps for the first two.
+
+### CQ-66. Boards: one failure shows two alerts, and a ticked card can stay stuck (major, S)
+
+- `features/board/api.ts:367-370` now shows "The card wasn’t added" on every failure, and `AddToBoard.tsx:51-54` adds
+  its own; its silence for `already_on_board` only covers its own toast, so a card already on the board (added in
+  another tab) shows as a failure, twice. Before round 11 the hook left link adds to the button.
+- `board/TodayView.tsx:36,82,93-99` keys the ticks on the identity of `agenda.data`. After a failed move the refetch
+  returns equal data, TanStack keeps the same object, and the row stays struck through and disabled until the page
+  remounts. Key on `agenda.dataUpdatedAt`.
+- `board/board.ts:197-226` (`afterIdBefore`, `lastIn`, `nudge`) can name a card still being added (`new-N`) as
+  `afterId`; the API answers 422 and the student sees "The card wasn’t moved". Skip unsaved cards.
+- A deleted label stays in the filter (`BoardPage.tsx:155,236`, `board.ts:362`): its chip goes, and the board shows
+  "Showing 0 of N cards".
+- Revision plans join the card writes' scope but not `mutationKey: CARD_WRITE` (`api.ts:565-584`), so their reload
+  races pending card writes; `touched` and `unsavedCount` (`:46,305`) are module-level state shared by every client.
+- `refetchOnMount: 'always'` on every board query (`api.ts:55,65,74,83`) needs its reason written down for the board
+  and the agenda, and can go from `useBoardLinks`, which every paper row mounts.
+
+### CQ-67. Mini Noora: switching chats loses the last question, and the card and the page drift apart (major, M)
+
+- `features/noora/useConversation.ts:53-68`: while she answers, saving waits; `switchTo` stops her, loads the next
+  chat and changes the id in one batch, so the question just asked and the stopped answer are never stored, though
+  `:25` says "The one left is saved first". "New chat" stays enabled while she answers (`page/NooraPage.tsx:460`,
+  `ChatPanel.tsx:282`).
+- Two ways to keep her off a page: `daily/DailyGamePage.tsx:30` calls `useMiniNooraAway()`, so `MiniNoora.tsx:189`
+  renders nothing there. That makes the Daily routes in `noora/away.ts:7` and their tests dead and its comment wrong,
+  and ⌘/ on a game opens the card on the next page.
+- The card and the page each have their own drop handlers, context builder and `NOTE_MAX`, chat switching, "edit
+  last", suggestions, live region and delete-all dialog (`ChatPanel.tsx:40,90-103,200-206,242-259,374-382` against
+  `NooraPage.tsx:62,126-136,183-190,375-392,588-602`), and they already differ: the card's delete-all keeps the draft,
+  even an edit of a deleted chat.
+- Effects that copy state into refs remain in `useChat.ts:184-214` (six), `useNooraAi.ts:30-33`,
+  `MiniNoora.tsx:285-289` and `useDrag.ts:64-67`; `NooraPage.tsx:216` keeps its exhaustive-deps disable, and
+  `:261-282` is a keydown effect with no dependency list that subscribes again on every keystroke and streamed chunk.
+- On /noora every keystroke re-renders every message, KaTeX included: `NooraPage.tsx:499` passes `pageChips={[]}`,
+  `:514` a new no-op, and `:239-250` depends on an object made on each render.
+- Opening a saved chat moves it to the top (`useConversation.ts:53-57`, `saved.ts:86-96`), so "newest first" is "last
+  opened first", and the trim follows that order. The chats list's group ids contain spaces
+  (`page/ChatsSidebar.tsx:114-115`), which breaks `aria-labelledby`.
+- **Fix:** save the chat being left inside `switchTo`, with a test; one away mechanism (`restsAway`); a `useChatHost`
+  hook and an `askContextOf()` that owns `NOTE_MAX`; a reducer for useChat's messages, pending and paused, and one
+  `useLatest` in `src/state` for the rest; stable props on the page; chats ordered by their last message.
+
+### CQ-68. The end-to-end suite: two specs can't pass, and Daily has none (major, M)
+
+- `web/e2e/home.spec.ts:15` looks for the switch "Coming up"; the block has been "Up next" since round 11
+  (`home/blocks.ts:37`), and a switch's name is its label.
+- `e2e/noora-page.spec.ts:76,83` uses `[data-hub="noora-sidebar-chat"]`, which no component has (the sidebar's hooks
+  are `noora-chat-item` and `noora-chat-open`); at 1366 px `:79`'s "New chat" matches two buttons; `:73` selects a CSS
+  class; the requests `standIn()` captures are never read.
+- No spec plays a Daily game, loads the content file or edits Daily content. `support.ts:340-364` (`FEATURES`, "every
+  feature with a switch") lacks `daily`, so the teardown never switches it back on; it is the fifth copy of the
+  feature list (CQ-36).
+- `api<T>()` (`support.ts:286-311`) still casts to whatever the caller names (CQ-26); the new specs read bodies without
+  checking the status first (`calendar-mine.spec.ts:52-58,68-77,92`, `career.spec.ts:13,55`).
+- `career.spec.ts:52` also matches earlier runs' activity entries, so it can't fail, and its restore PUT isn't checked;
+  `board.spec.ts:28-29` branches on what an earlier spec left; `support.ts:434-445` still clicks "Try again" to get past
+  a bug fixed in `f115586`, which would now hide its return.
+- **Why it matters:** the suite was last recorded green in round 10 (85 passed); two specs that can't pass mean it
+  hasn't been green since rounds 11 and 12 merged, and the feature Mohamed is least happy with has no end-to-end test.
+- **Fix:** correct the two specs; one Daily spec (a guest finishes The Word, Sara plays and the hub and Home follow, she
+  joins the leaderboard, a content manager adds an item); the teardown takes the switch list from GET /admin/features;
+  `api()` typed over `paths` from `src/api/schema.d.ts`, or `T` defaulting to `unknown` with the status checked first.
+
+### CQ-69. Components that hold their logic (minor, L; continues CQ-17)
+
+- **Sizes after Prettier:** `board/BoardPage.tsx` 939 lines, one 760-line component with 17 `useState`, 8 mutations,
+  routing, moves, focus, the filter, tabs and nine dialogs (the "after-id one step on" sum is written three times,
+  `:333-341`, `:416-421` and `board.ts:218-226`, and the score prompt three times, `:284,374,786`);
+  `start/editor/GuidesEditor.tsx` 752; `notes/surface/Surface.tsx` 702; `noora/page/NooraPage.tsx` 666;
+  `career/editor/sections/Others.tsx` 651; `noora/settings/NooraEditor.tsx` 648; `grades/editor/GradeRulesEditor.tsx`
+  628; `site/SiteEditor.tsx` 611; `notes/NotePage.tsx` 603; `noora/MiniNoora.tsx` 564;
+  `forum/settings/ForumSettingsEditor.tsx` 531; and in Daily `DailyGamePage.tsx` 377, `editor/ItemDialog.tsx` 367,
+  `editor/ThemesPart.tsx` 358, `games/sudoku/SudokuGame.tsx` 343.
+- **Logic in them that wants a pure, tested module:** the board's one-step moves (`stepAfter(list, id, by)`); the
+  notebook's page steps (`NotePage.tsx:371-395`), Surface's bar placement and `lineAt`, PictureView's geometry;
+  Noora's opening plan and shortcuts (`NooraPage.tsx:69-79,200-217,261-282`) and AddContext's labels; Word's
+  `spoken`, Sudoku's `cellLabel` and box table, Data Mine's arrow step, the quiz's answer re-index
+  (`ItemDialog.tsx:283-287`).
+- **Fix:** split each when it is next touched: `useBoardRoute()`, `useCardMoves()`, `BoardToolbar`, `BoardFilter`,
+  `BoardTabs`; `useInkGestures` and `usePinchZoom`; `page/opening.ts` and `page/shortcuts.ts`; one file per section of
+  Career's `Others.tsx`. The Manage editors lose about 70 lines each with CQ-53's hook.
+
+### CQ-70. The same shape written again inside a feature (major, M)
+
+- **Daily's six games** each rebuild their scaffolding: `isOver` recomputed in every game and five more places; a
+  timers-and-`later` block five times (`WordGame.tsx:33-35`, `GroupsGame.tsx:27-29`, `NearestGame.tsx:26-27`,
+  `SearchGame.tsx:35-37`, `SudokuGame.tsx:49-50`, the last never used); a window keydown listener three ways whose
+  filters already disagree (`WordGame.tsx:89-106`, `QuizGame.tsx:56-77` without `isComposing`,
+  `SudokuGame.tsx:132-163`); `typingInto` three times and `calm` twice; three shake animations. Each game narrows its
+  view and makes up defaults for a kind it can't be (`WordGame.tsx:22-25` `?? 5`, `NearestGame.tsx:17` `?? 500`,
+  `SearchGame.tsx:23` `|| 10`, `SudokuGame.tsx:35-38` 81 zeros), and `GroupsGame.tsx:20` copies the server's mistake
+  limit.
+- **Daily's editor** repeats the check-then-load dialog (`ImportDialog.tsx:27-42`, `ContentFileDialog.tsx:34-55`,
+  `GuessList.tsx:113-118`), the delete confirm (`ThemesPart.tsx:106-130`, `ItemsPart.tsx:232-256`,
+  `Vocabulary.tsx:133-157`) and the field-error split three times; `GAMES` and `countsLine` are defined twice;
+  `.dy-chip` (`daily.css:113-146`) rebuilds `Badge`; `Vocabulary.tsx:263` (`WordChips`) is career's `WordList`.
+- **The calendar and boards:** the drawer's date block and "Also on this day" list are written twice
+  (`calendar/EventDrawer.tsx:217-237` and `442-456`, `299-316` and `491-508`); `formatDay(x, { weekday: 'short', month:
+  'short', year: false })` seven times in boards; `toast.push({ tone: 'alert', … errorMessage(e) })` 17 times in
+  `board/api.ts`.
+- **Fix:** `games/useGame.ts` with `useLater()` and `useGameKeys(handler, { enabled })`; `GameProps` generic over the
+  view's kind, narrowed once in the registry and throwing on a mismatch; a `useDryRun` hook; `Badge`; one `GAMES`; one
+  word-list field in `src/ui`; `formatShort(day)`; a `useAlert()`.
+
+### CQ-71. Notebook pages: a link that drops its filter, a dialog that shows the wrong name, failures that say nothing (major, S)
+
+- `features/notes/LessonNotes.tsx:47` links "See all N" to `/notes?module=…`, but `NotesPage.tsx:267-277` reads only
+  `q` and `notebook`, so the page lists every note.
+- The rename dialog is always mounted, so `useState(notebook?.title ?? '')` runs with no notebook and the field opens
+  empty or with the last title typed (`NotesPage.tsx:234,476`); `DetailsDialog` resets its fields in an effect
+  (`text/PictureView.tsx:152-157`).
+- Creating, renaming and deleting a notebook show no error (`NotesPage.tsx:188-197,241,477-494`); a new note is created
+  in an effect whose `onError` goes back to /notes without a word (`NotePage.tsx:557-575`); the page's QueryError has
+  no retry (`:170`); "Try again" is offered for a 422 or a 404 (`:96-99`); `NotePage.tsx:540` and
+  `LessonNotes.tsx:90` show `error.message` instead of `errorMessage()`.
+- Every autosave refetches /notebooks while ink saves invalidate nothing, so the storage meter goes stale; "Show 20
+  more" loads 30 (`NotesPage.tsx:466`); the default notebook is found by its title (`:350`).
+- **Fix:** NotesPage reads `module` and `lesson` and the link sends both; `key={renamingBook?.id}`; a `useStartNote()`
+  click handler; errors through `errorMessage()` and `ConfirmDialog`'s `error`; ink saves invalidate the storage use.
+
+### CQ-72. Types: ignores that hide loose annotations, strings where a type exists, casts the types don't need (minor, S)
+
+- **API:**
+  - `services/daily/badges.py:42` types `*where: object`; `ColumnElement[bool]` removes the ignore. `plays.py:54-57`
+    (`cast_status` and its ignore) goes once the columns are `Mapped[PlayStatus]` and `Mapped[GameId]` over
+    `String(8)`, the pattern at `models/library.py:60`; typing `DailyItem.game` the same way removes the casts at
+    `editor.py:121,413,1245` and `bundle.py:250`. `_counted() -> Any` (`plays.py:359`), `where: list[Any]`
+    (`editor.py:438,607`).
+  - `Play.result` is `str | None` (`schemas/daily.py:214`), so "found", "one-away", "correct" and "wrong" are checked
+    nowhere, on either side.
+  - The note and bug report enums are written twice (`models/notes.py:18` and `schemas/notes.py:31`,
+    `models/bugs.py:16` and `schemas/bugs.py:13`); `ExportInk.strokes` is `list[dict[str, Any]]` beside a `Stroke` model
+    (`schemas/auth.py:315`); `core/limits.py:18-19` builds the error body with `code: str` beside `errors.py:75`'s
+    typed one.
+  - Tests: 21 ignores; nine on `db.get(...)` go with `db.get_one`, `test_games.py:38` with `GameId`, and
+    `test_exam_names.py`'s three are CQ-29's.
+- **Web:**
+  - `career/editor/CareerEditor.tsx:184,187` (`(doc as unknown as Record<string, unknown>)[place.section]`):
+    `savedIdsOf(doc, place.section)` (`doc.ts:250`) does it typed.
+  - 14 `e.target.value as X` on `Select` (`ManagePage.tsx:256`, `GuidesEditor.tsx:604,611,646,745`,
+    `ForumSettingsEditor.tsx:267,276,392`, `CardDetailDrawer.tsx:197,277`, …): give `Select` a typed `onValue`, like
+    `SegmentedControl<V>`.
+  - `BoardPage.tsx:140` (entries as tuples need no cast), `library/papers.ts:205-217` (`num` isn't a type guard, so
+    eight `as number`), `notes/draft.ts:103` (stored strokes cast unchecked), `calendar/api.ts:290` (a path cast where
+    `board/api.ts:39`'s `isApiPath` guard exists).
+  - With `noUncheckedIndexedAccess` off (S-4), fallbacks such as `BoardDialog.tsx:28-31` and `board.ts:109,122` never
+    run.
+
+### CQ-73. Shared homes bypassed: helpers written again across features (minor, M as one sweep)
+
+- **Counts:** `countOf` (`ui/utils.ts:31`) is rewritten or inlined about 25 times in rounds 11 and 12
+  (`daily/lib/result.ts:20`, `daily/editor/lib/items.ts:143`, `ContentFileDialog.tsx:16`, `PaperSittings.tsx:175`,
+  `noora/useNooraAi.ts:76`, `papers/papers.ts:112,126`, `requests/labels.ts:87`, …).
+- **Dates:** `daily/lib/days.ts:15-36` and `ArchiveView.tsx:13` rebuild the calendar's month helpers
+  (`calendar/dates.ts:42-64`), and a `?day=` outside the range leaves the archive on an error Retry can't fix;
+  `DATE_RE` (`EventFormDialog.tsx:87`, `MyEventDialog.tsx:70`) instead of `isDayKey`; `home/ComingUp.tsx:53` instead
+  of `inDays`; `GuidesEditor.tsx:69`'s `MONTHS`; `Others.tsx:513`'s `toLocaleDateString`.
+- **Modules:** `moduleTag()` (`library/display.ts:47`) written again in `home/NewFiles.tsx:22`, `HomeForum.tsx:29`,
+  `calendar/EventDrawer.tsx:321,388` and `CustomiseDialog.tsx:100`; "unitCode ?? shortName" seven times;
+  `noora/page/AddContext.tsx:26` rewrites `moduleLabel`.
+- **State:** five hand-made window-event stores (`bugs/open.ts`, `noora/open.ts`, `noora/paper.ts`,
+  `noora/visibility.ts`, `notes/current.ts`); `board/useScrollEdges.ts` is `forum/lib/useScrollFade.ts`; `isObject`
+  seven times; `typingInto` and the reduced-motion check in the games, the library, the notebook, search and the
+  forum; `ExamTimer.tsx:233-244` sets `document.title` itself instead of `useDocumentTitle`.
+- **UI:** an array move six times (`kit.tsx:176,304`, `HomeAndSearch.tsx:104`, `career/editor/doc.ts:50`,
+  `modules/editor/draft.ts:125`, `ModulesEditor.tsx:95`); an id from a label three ways (`forum/settings/ids.ts:7`,
+  `career/editor/doc.ts:25-45`, `ModulesEditor.tsx:184`, which turns "Économie" into "e-conomie"); the upload button
+  three times (`ArtField.tsx:35`, `career/editor/fields.tsx:394`, `NewsletterSettingsEditor.tsx:302`); a link to another
+  site six times; the "copied" state twice (`Messages.tsx:50,130-136`, `RichText.tsx:40-49`); the file-icon map twice
+  (`notes/text/nodes.tsx:306-320`, `board/CardFiles.tsx:36-45`); `shell/SiteFooter.tsx:37-46` rebuilds
+  `usePortalLinks`; `ui/moduleArtSrc.ts:6-8` only renames `pictureSrc`, and `bugs/BugReports.tsx:42-48` uses the raw
+  media URL instead.
+- **Queries:** `library/viewer/QuestionTags.tsx:220-237` has no `QueryError` and says "No questions tagged yet" when
+  loading failed; `forum/api.ts:307` writes career's `['career', 'seniors']` key by hand (older, seen in passing).
+- **Fix:** one sweep: each helper to its home (`countOf`, `lib/dates`, `lib/modules`, a small signal store in
+  `src/state`, `isObject` in `src/lib`), the copies deleted.
+
+### CQ-74. Review numbers and history in code and tests (minor, S; continues CQ-41)
+
+- **Test files named for review rounds:** `api/tests/{accounts,board,community}/test_sec_review_r10.py`,
+  `api/tests/{board,content,core,daily}/test_sec_review_r12.py` and `web/src/auth/secReviewR10.test.ts`; 15 API tests
+  named `test_secNN_…` and 7 web tests titled "SEC-NN: …". Several duplicate their area's tests
+  (`daily/test_sec_review_r12.py:76-79,134-138` and `test_plays.py:194-204`, `test_content.py:90-104`;
+  `content/test_sec_review_r12.py` and `test_module_art.py:141,147`), and `board/test_sec_review_r10.py` is a
+  lesson-progress test filed under boards.
+- **New citations in code:** `services/library.py:761` and `cli.py:277` (SEC-14), `services/summary.py:11,15`
+  (SEC-17), `auth/queries.ts:54` (CQ-1), `newsletter/lib/links.ts`, `noora/Messages.tsx:341` (UX-29),
+  `noora/brain.ts:386` (ST-3), `routers/notes.py:1` and `schemas/common.py:125` (R-5), `notes/public.ts:1,6`,
+  `e2e/notes.spec.ts:1` and `e2e/board.spec.ts:1` (R-4 to R-6).
+- **History:** `daily/test_sec_review_r12.py:1-3` ("round 12", "(Mohamed, 2026-10-17)"); migrations 0028 ("until now")
+  and 0029 ("was in JSON files…"), and 0020, 0021 and 0023 whose docstrings say "Revises: 0018"; `notes/draft.ts:75`
+  ("an older shape"); `test_notes.py:356` ("came down with it").
+- `routers/admin.py`'s docstrings still put "security review SEC-9" into `openapi.json` and `/api/v1/docs` (CQ-20).
+- **Fix:** move each review test into its area's file under a name that says the behaviour, delete the duplicates,
+  and take the numbers out (the e2e skill lets a `test.fail()` title keep its finding ID). The squash removes the
+  migrations' history.
+
+### CQ-75. Tests that can't fail, restate the code, or are slow (minor, M)
+
+- **Can't fail:** `api/tests/daily/test_games.py:66-69` (`"label" not in str(view["words"])` on upper-case words) and
+  `:63`; `test_editor.py:111` (expects `""` in a message); `e2e/career.spec.ts:52` (CQ-68).
+- **Restate constants:** `tests/board/test_files.py:193-194`, `board/test_sec_review_r12.py:40`,
+  `tests/notes/test_notes.py:316,356`; `features/board/board.test.ts:278-283,295-304`; `home/blocks.test.ts:93-106`
+  (the seed, under `describe('offeredBlocks')`); `daily/lib/result.test.ts:55`; `notes/surface/layout.test.ts:20,22`;
+  `ui/moduleArtSrc.test.ts`.
+- **Test something else:** `test_notes.py:488` accepts 404 or 422; `tests/board/test_boards.py:213-221` deletes the user
+  row, so it tests the cascade, not `delete_account`; `test_cards.py:351` checks a board row inside an export test;
+  `test_my_calendar.py:419-421` (CQ-50).
+- **Slow:** `test_cards.py:64` makes 122 HTTP calls (12-15 s) to reach `position_after`'s renumbering: unit-test it
+  with neighbours 2**-52 apart and keep one HTTP move. The Sudoku solve (`tests/daily/test_plays.py:90-131`, 9-10 s)
+  replays the whole play on each move, and its `tooFast` check needs about 45 moves inside 40 s: store a test day's
+  Sudoku with two blanks. `test_sec39` makes 20 real uploads where inserted rows would do.
+- **The wall clock:** nothing freezes `bahrain_today()`, so a run across 21:00 UTC changes the day mid-test, and
+  `plays.py` reads the clock up to four times in one request (`:65,127,183,194`). Read it once per request, and freeze
+  it in an autouse fixture.
+- **Copies:** `fields()` seven times, Daily's `today`, `move` and `puzzle` in four files, the seed files read by path
+  four times; `test_newsletter_settings.py:22` imports a private helper from another test; web fixtures cast partial
+  objects (six `as unknown as Play` in `daily/lib/result.test.ts`, `home/fileRows.test.ts:6-17`) where a typed builder
+  compiles without casts.
+- **Pure modules without tests:** `modules/resources.ts`, `grades/bands.ts`, `grades/examples.ts`, `grades/subjects.ts`,
+  `noora/chat.ts`, Daily's `shareResult` and `gameLink`, and CQ-27's and CQ-42's.
+
+### CQ-76. Small API helpers and rules written again (minor, S)
+
+- **Helpers:** LIKE escaping three times (`services/notes.py:82`, `routers/admin.py:75`, `daily/editor.py:429-430`,
+  where `icontains(..., autoescape=True)` at `editor.py:612,708` would do); JSON size two ways (`core/links.py:85`
+  against `notes.py:88` and `note_doc.py:90`); `_mb` three times (`notes.py:127`, `board/files.py:35`,
+  `drive_import.py:348`); `FILE_CACHE` twice (`routers/notes.py:34`, `routers/board.py:47`); the `text/calendar`
+  response four times (`routers/calendar.py:73,100,154`, `feeds.py:22`); the owner-only file link twice
+  (`notes.py:662-671`, `board/files.py:130-149`); `Admin = Annotated[User, requires_admin()]` in five routers beside
+  `routers/_base.py`'s `SteppedUpAdmin`; the "already on this board" query twice (`board/cards.py:331-336,435-440`);
+  plurals in five Daily games and `drive_import.py:352`.
+- **Rules:** the Mini Noora preview rebuilds her prompt (`noora/settings.py:63-77` against `ask.py:255-277`, with
+  `CHARS_PER_TOKEN` twice); `routers/daily.py:79-80` checks an active account that `plays._may_play` checks; the
+  content file normalises theme ids, words and guesses with messages that differ from the editor's
+  (`bundle.py:112-113,131,145-146`); `Difficulty` repeats `SudokuDifficulty`.
+- **Daily's game interface:** `variant` and `seconds` in `points()` are unused by all six games; `gave_up` with "any
+  other move gives up" six times; `max(FLOOR, max - cost)` four times; `_replay` (`plays.py:87-98`) never checks history
+  moves against `game.moves`; `base.py:67` says "0 when lost", though groups and the quiz score lost plays.
+- **Work per row:** `board/cards.py:472-481` (a query and a flush per card), `plans.py:155-156` (cards deleted one by
+  one), `newsletter_images.py:90-91` (a LIKE over every issue for each picture).
+
+### CQ-77. Effects that should be a key, derived state or an event (minor, S; continues CQ-40)
+
+- `calendar/SubscribeDialog.tsx:38-45` and `EventFormDialog.tsx:152-160` reset their state in an effect on `open`,
+  each behind an exhaustive-deps disable, though `CalendarPage.tsx:28-34,145` already resets `MyEventDialog` with a
+  `key`; `papers/PapersDialog.tsx:59-65` the same; `KanbanView.tsx:364` and `LabelDialog.tsx:128` focus in an effect
+  where `autoFocus` does it.
+- `daily/DailyGamePage.tsx:124-127` opens the rules with `setState` in an effect when data arrives; derive
+  `shown = rulesOpen || (fresh && !seen)`.
+- The notebook: `PictureView.tsx:270-272` and `Surface.tsx:195-197` clear the crop and the lasso in effects on prop
+  changes; `text/nodes.tsx:107` clears a formula's `fresh` flag in a second transaction, which adds an undo step and
+  saves `"fresh": null` in every formula; keep the flag in the editor's storage.
+- The library: `FileViewerPage.tsx:186-197` opens "Time me" from `?time=1` in an effect (an initial state does it);
+  `viewer/ExamTimer.tsx:27-53` keeps a hook in a component module behind a react-refresh disable;
+  `ModuleFiles.tsx:119-128` polls the DOM every 150 ms for the link's target.
+- `bugs/BugReportDialog.tsx:53-61,89` revokes the screenshot's object URL on replace, remove and send, not when the
+  dialog is cancelled.
+
+### CQ-78. Dead code and dead CSS (minor, S)
+
+- **Web:** `daily/lib/groups.ts:38` (`tryLevels`, used only by its test); `SudokuGame.tsx:49-50,70`;
+  `NearestGame.tsx:97` (`best === 1 ||`); `daily/types.ts:47-74` (12 re-exported API types nobody imports);
+  `daily/public.ts:5` (`useDailyToday`, which no other feature imports); `LeaderboardView.tsx:141` and
+  `ItemsPart.tsx:290` (fallbacks for values that are never null); `notes/limits.ts`'s `BODY_MAX` (the limit of a
+  Markdown body the API dropped in `77e69b0`); `notes/current.ts:6-7` (an `id` that is never null); `savedAt`,
+  `Draft.at`, the pages drawer's `revision` and `noteKeys.all`, never read; `HomeAndSearch.tsx:102` (`adding` is always
+  ''); `NewsletterSettingsEditor.tsx:189-199` (`make` is never called); `library/api.ts:297,311` fill the cache by id
+  while the viewer reads by slug; `useWarnBeforeLeaving` exported from `ui/index.ts:39` for no feature.
+- **CSS:** `.g-l2` to `.g-l4` (`daily/daily.css:74-82`), `.manage-list` (`manage/ManagePage.css:67-71`),
+  `.mod-res__note` (`modules/ModulePage.css:279`), `.shell-brand__name` (`shell/Sidebar.css:53-59,246`,
+  `TopBar.css:53-55`), `.sg-grid--3` and `.sg-lockup--lg` (the style guide), `.onb-mini__tile--lesson`,
+  `.cmdk-tile--lesson`; `Button.tsx:103`'s `ui-button__spinner` has no rule.
+- **API:** `sudoku_engine.solve` (`:72-95`), used only by tests; checks the path parameter already makes
+  (`notes.py:611-612,643-644`, `my_calendar.py:408`); `board/boards.py:226` places a board that `create_board`
+  already placed; `main.py:55` writes the ink route's pattern away from the route (`routers/notes.py:128`).
+- **Keys:** `library/components/coverStyle.ts:6` stores `dsba:library-cover-style`; every other key is `hub.*`.
+
+### CQ-79. Copy in code (minor, S)
+
+- **One feature, two names:** the nav (`shell/nav.ts:46`), the sign-in reasons (`AddToBoard.tsx:66`,
+  `PlanDialog.tsx:42`), `home/blocks.ts:44` and Home's line for guests (`HomePage.tsx:296-297`) say "study board"; the
+  page, its tabs and Home's button say "Boards".
+- **Daily:** the editor names three games differently from what players see: "Groups", "Word search" and "Quiz"
+  against "Correlations", "Data Mine" and "The Daily Query" (`daily/editor/lib/items.ts:22-67`).
+  `ResultDialog.tsx:77` offers "Sign in to keep your points" after a guest's play, but guest plays are never kept
+  ("Sign in to play for points", as `LeaderboardView.tsx:55` says). Counts are written into the copy where the data has
+  them ("six" at `DailyPage.tsx:109,151`, "five-letter" at `WordGame.tsx:50`, "four groups" at `lib/result.ts:54,57`).
+- **Manage:** `GuidesEditor.tsx:83-86,651` builds feature names from their keys ("While Noora ai is on", "While Requests
+  autoclose is on"), where the Access screen has the API's labels; the Access screen's `content.edit` says "Add, edit,
+  reorder, hide and remove modules, chapters and lessons" (`api/app/core/access.py:128-132`), though it also opens
+  suggested videos and Manage → Daily puzzles; Career's blocker dialog is titled "Not yet", with "OK".
+- **Elsewhere:** "Help the year below" and "Help the years below" (CQ-36); "Practice past questions organized by topic"
+  (`library/viewer/QuestionTags.tsx:216`); "Tag a question" and "Tag this question" (`:211,233`); "e.g. Exam
+  Revision", and "It cannot be undone" beside "This can't be undone", in the notebook; `MarksSheet` says "Averaged
+  modules’" where `rulesText` says "4 modules".
+- **For the UI review:** Sudoku's grid puts its gridcells in presentation boxes with no rows (`SudokuGame.tsx:190-207`),
+  and Word's rows hide every cell (`WordGame.tsx:112-136`).
+
+### CQ-80. Personal data, the audit log and step-up (minor, S)
+
+- `services/bugs.py:181` keeps `ip` for signed-in reporters too, though the model keeps it for guests' limits
+  (`models/bugs.py:25`) and the export leaves it out: `ip=ip if reporter is None else None`.
+- `bugs.py:284` writes the report's page into the audit entry, which outlives the account and the report, though
+  migration 0031 treats the page as personal data: leave it out.
+- Guess words a paste import adds aren't audited (`daily/editor.py:1156-1160`, against `add_guesses` at `:734-744`),
+  and `test_editor.py:286-289` pins that.
+- PUT /mini-noora/settings needs a step-up, but PUT /site and PUT /grades/rules don't (`routers/site.py:21`,
+  `grades.py:18`), though Site settings set every student's links to MyClass and the portal. For the security review.
+
+### CQ-81. Seeds, and a rule applied in some places only (minor, S)
+
+- `seed/data/daily/themes.json` repeats the content file's five themes. The seed adds them first and the import keeps
+  what exists, so theme edits in the file never reach a new install; and `seed/loader.py:273` skips the guess list
+  whenever any theme exists, so loading the file before `seed` leaves the word game with only its answers. Keep the
+  themes in one place, and guard themes and guesses separately. The guess list (12,560 words) is the only public part
+  and stays in the repository unless the content file takes it.
+- Manage → Forum starts from two places: categories and tags from migration 0033 (`:30-50,143-150`), the default
+  category, guidelines and tips from `forum.json`. Load both from `forum.json` into empty tables, as modules are.
+- "No Google Drive links": Career's `HttpsUrl` and `HubLink` fields and Site settings' About text accept
+  `drive.google.com` and `docs.google.com` links, though CMS.md says they are refused, and `services/library.py:601-606`
+  checks it again with a second message instead of `is_google_file` and `DRIVE_RULE`.
+
+### CQ-82. Docs inside the code that no longer match it (minor, S)
+
+- `services/documents.py:1` names two of the seven documents it serves; `models/content.py:180,185` describe
+  `ContentDoc` as Career Navigator's.
+- `routers/modules.py:55,82-84` still lists "a link that isn't https://" (module resources are gone) and leaves out
+  the picture errors; this text is in `openapi.json`.
+- `cli.py:13-15` says the mail worker queues the summaries "from 08:00"; the time is set in Manage, and the worker also
+  sends the reminders of board cards and of students' own events.
+- `noora/away.ts`'s comment and `useConversation.ts:25` are untrue (CQ-67); `board/public.ts:8-9` and
+  `home/blocks.ts:44` describe To-do as it was (CQ-65); `daily/lib/storage.ts:70` and `daily/api.ts:89` blame "another
+  puzzle" for moves a day can't replay, but a day keeps its puzzle.
+- `daily/editor.py`'s `PREVIEW_DAYS = 400` bounds a week whose message says "a year".
+
+## Summary
+
+Rounds 11 and 12 added about 61,000 lines beyond the generated contract and the word list: the Daily puzzles, the
+notebook, boards, a personal calendar, bug reports and nine Manage editors. The checks hold: 1,520
+API tests and 882 Vitest tests pass, mypy is strict and clean, knip finds nothing, there is no `any`, features meet only
+through `public.ts`, routers stay thin, every error code is typed and every document save is audited. Round 12's
+`services/documents.py` and `ui/docEditor` are the right shape. The findings sit where those checks can't see:
+- **Work that can be lost:** a picture deleted from a note the student never touched (CQ-47), pages shifted by a
+  half-done delete (CQ-48), five paths in the notebook's sync (CQ-59), every Manage draft on one stray click (CQ-60),
+  a question to Mini Noora on a chat switch (CQ-67).
+- **Screens that disagree with their data:** a Daily game that answers 404 on a day Manage calls ready (CQ-49), a
+  guest's finished games shown as new (CQ-64), hidden dates on Home (CQ-65), a stuck tick and doubled alerts on boards
+  (CQ-66), field errors that never reach their field (CQ-62).
+- **Round 11's habits:** compatibility code for data nobody has (CQ-52); one thing built three ways (CQ-53, CQ-57,
+  CQ-70); lists copied by hand that have already drifted (CQ-50, CQ-58, CQ-63); tests named after reviews (CQ-74); and
+  an end-to-end suite that can't pass (CQ-68).
+
+This pass found **no blocker, 24 major and 12 minor findings**. Of the earlier ones, CQ-30, CQ-33, CQ-34, CQ-37, CQ-43
+and CQ-44 are fixed, CQ-31's fix stopped at the API, and the squash (CQ-35) is under way on `round13/squash`.
+
+### Top five changes worth making, in order
+
+1. **Stop losing students' and admins' work** (CQ-47, CQ-48, CQ-59, CQ-60).
+   - Note files kept per note, and freed only when no note uses them.
+   - Ink checked against the note's pages; deleting or moving a page is one call to the server.
+   - The notebook's five small sync fixes.
+   - One leave guard owned by Manage; the three `beforeunload` copies deleted.
+2. **Fix the screens that show the wrong thing** (CQ-49, CQ-62 to CQ-67). Data Mine's word choice and readiness; the
+   kit's field errors and ids; the RTC request; the guest's Daily hub and the countdown; Home's hidden dates and Ask
+   Noora; the board's alerts and ticks; saving a chat when switching. Most are an hour each.
+3. **Make the end-to-end suite green, and give Daily a spec** (CQ-68), so the next merges are checked in a browser and
+   not only by unit tests.
+4. **Drop the compatibility code in the squash** (CQ-52 with CQ-35, CQ-45 and CQ-54's partial-index check): no frozen
+   copies of the seeds, no backfills or upgrades of round 11's data, and one written rule for a document's new fields.
+5. **One source for each list that drifted** (CQ-50, CQ-58, CQ-53): the option and the electives from the grade rules;
+   Mini Noora's pages checked against `routes.tsx`; one `documents.Kind` and one `useDocEditor` for every document,
+   Career Navigator's included.
+
+### Fix list for round 13
+
+**API, now:**
+1. CQ-47 and CQ-48 (the notebook's files and ink), with tests for one picture in two notes and ink past the last page.
+2. CQ-49 (Data Mine's choice and readiness), with a test of a tight theme.
+3. CQ-51 and CQ-58 (a module deletion counts the documents; Mini Noora's pages): small.
+4. CQ-54: the leaderboard's prefetch (one line), then the content file's batching.
+5. CQ-50 (the option and the electives from the grade rules), with its web half.
+6. CQ-52 in the squash, with CQ-45's index and the drift check for partial indexes.
+
+**Web, now:**
+1. CQ-60 (Manage's leave guard) and CQ-62 (field errors, ids that never repeat).
+2. CQ-59's small fixes: discard after the delete succeeds, a compare that ignores key order, `gcTime: 0`, pruning the
+   undo steps after a load, `discardNote`.
+3. CQ-63, CQ-65, CQ-66 and CQ-71: the RTC request, Home, boards and the notebook pages, an hour or less each.
+4. CQ-67's chat switch and one away mechanism; CQ-64's guest status and countdown.
+5. CQ-68: the two broken specs, the teardown's switch list from the API, and a Daily spec.
+6. CQ-61: lazy editors and palette, the two `manualChunks`, `Notes.css` split (measured above; an afternoon).
+
+**Can wait**, each when its files are next touched: CQ-53's shared `Kind` and `useDocEditor` (L), CQ-55's stored sizes
+and one quota helper, CQ-56's editor package, CQ-57's purpose rules, CQ-59's shared autosave controller (L), the splits
+in CQ-69 and CQ-70, and the minors CQ-72 to CQ-82 (CQ-74's renames are mechanical and can go with the squash). Still
+open from earlier rounds: CQ-17, CQ-18, CQ-22, CQ-26, CQ-27, CQ-36, and the leftovers of CQ-32 and CQ-38 to CQ-42.
+
+---
 
 # Round 10 re-review (rounds 5 to 9)
 

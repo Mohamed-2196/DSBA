@@ -7,9 +7,7 @@ the first page of each as a small WebP picture in the bucket (covers/<item id>.w
   the worker finds them all, so none of those requests waits for a file to be read. The same reading makes the
   file's cover and notes the SHA-256 of its bytes (library_items.content_hash), so a second copy of a file is
   shown once.
-  `python -m app.cli extract-texts` does the same until nothing is left (the backfill), and can read failed or
-  empty files again. `python -m app.cli make-covers` makes the covers (and hashes) of files read before covers
-  existed.
+  `python -m app.cli extract-texts` does the same until nothing is left, and can read failed or empty files again.
 - Guards: only files up to MAX_FILE_BYTES are read; the reading itself runs in a child process
   (app/services/text_extract.py) that is killed after TIME_LIMIT seconds and limited to MEMORY_LIMIT bytes, with
   its pages and characters capped. The reader can't see the worker's settings: its environment holds PATH and
@@ -121,21 +119,17 @@ def keep_secrets_from_readers() -> None:
 
 @dataclass(frozen=True)
 class Reading:
-    pages: list[str] | None  # None when the text wasn't asked for
+    pages: list[str]
     cover: bytes | None  # WebP; None when it wasn't asked for or the file gives none
     cover_error: str | None = None
 
 
-def read_file(
-    fmt: str, data: bytes, *, text: bool = True, cover: bool = True, time_limit: float = TIME_LIMIT
-) -> Reading:
+def read_file(fmt: str, data: bytes, *, cover: bool = True, time_limit: float = TIME_LIMIT) -> Reading:
     """The pages of a file and its cover, read in a child process with a time and memory limit and no secrets.
-    Raises ReadError when the reader fails, or when the text was asked for and can't be read."""
+    Raises ReadError when the reader fails or the text can't be read."""
     cmd = [sys.executable, "-m", "app.services.text_extract", fmt]
     if cover:
         cmd.append("--cover")
-    if not text:
-        cmd.append("--no-text")
     keep_secrets_from_readers()
     try:
         done = subprocess.run(  # noqa: S603 - fixed argv: this interpreter, our module, a format from FORMATS
@@ -158,10 +152,10 @@ def read_file(
         raise ReadError("the reader's answer was unreadable") from e
     if not isinstance(out, dict):
         raise ReadError("the reader's answer was unreadable")
-    if text and "error" in out:
+    if "error" in out:
         raise ReadError(str(out["error"])[:200])
-    pages = out.get("pages") if text else None
-    if text and (not isinstance(pages, list) or not all(isinstance(p, str) for p in pages)):
+    pages = out.get("pages")
+    if not isinstance(pages, list) or not all(isinstance(p, str) for p in pages):
         raise ReadError("the reader's answer was unreadable")
     picture: bytes | None = None
     raw = out.get("cover")
@@ -176,7 +170,7 @@ def read_file(
 
 def read_pages(fmt: str, data: bytes, *, time_limit: float = TIME_LIMIT) -> list[str]:
     """The pages of a file only (no cover). Raises ReadError."""
-    return read_file(fmt, data, cover=False, time_limit=time_limit).pages or []
+    return read_file(fmt, data, cover=False, time_limit=time_limit).pages
 
 
 def _store_cover(storage: Storage, item_id: uuid.UUID, reading: Reading) -> str | None:
@@ -202,7 +196,7 @@ def _note_hash(db: Session, item_id: uuid.UUID, data: bytes) -> None:
 
 WORKER_ROLE = "dsba_texts"
 WORKER_PASSWORD = re.compile(r"[A-Za-z0-9_-]{24,200}")  # it goes in the worker's database URL as it is
-# What the worker does with the database: reads published files' rows (claim(), without_cover(), waiting()), notes
+# What the worker does with the database: reads published files' rows (claim(), waiting()), notes
 # their hash (_note_hash(), which the model stamps with updated_at; claim()'s FOR UPDATE needs an UPDATE privilege
 # too) and keeps their words.
 WORKER_GRANTS = (
@@ -294,7 +288,7 @@ def read_item(db: Session, item: Claimed, storage: Storage, *, time_limit: float
         data = _fetch(item, storage)
         _note_hash(db, item.id, data)
         reading = read_file(fmt or "", data, time_limit=time_limit)
-        found = reading.pages or []
+        found = reading.pages
         cover = _store_cover(storage, item.id, reading)
     except ReadError as e:
         status, error = TextStatus.failed, str(e)[:200]
@@ -323,41 +317,6 @@ def _fetch(item: Claimed, storage: Storage) -> bytes:
     if len(data) > MAX_FILE_BYTES:
         raise ReadError(f"bigger than {MAX_FILE_BYTES // (1024 * 1024)} MB")
     return data
-
-
-def without_cover(db: Session, limit: int | None = None, *, pdf_only: bool = False) -> list[Claimed]:
-    """Published files read before covers existed: text read (with or without words), no cover yet."""
-    query = (
-        select(LibraryItem.id, LibraryItem.file_name, LibraryItem.storage_key)
-        .join(LibraryText, LibraryText.item_id == LibraryItem.id)
-        .where(
-            _readable(),
-            LibraryText.status.in_((TextStatus.done, TextStatus.empty)),
-            LibraryText.cover_key.is_(None),
-        )
-        .order_by(LibraryItem.published_at.asc().nulls_last(), LibraryItem.id)
-    )
-    if pdf_only:
-        query = query.where(LibraryItem.file_name.ilike("%.pdf"))
-    if limit is not None:
-        query = query.limit(limit)
-    return [Claimed(i, name, key) for i, name, key in db.execute(query).all()]
-
-
-def make_cover(db: Session, item: Claimed, storage: Storage, *, time_limit: float = TIME_LIMIT) -> bool:
-    """Makes one file's cover (and notes its hash). -> whether it has one now. The caller commits."""
-    try:
-        data = _fetch(item, storage)
-        _note_hash(db, item.id, data)
-        reading = read_file(text_format(item.file_name) or "", data, text=False, time_limit=time_limit)
-        key = _store_cover(storage, item.id, reading)
-    except ReadError as e:
-        log.warning("no cover for library item %s: %s", item.id, e)
-        return False
-    if key is None:
-        return False
-    db.execute(update(LibraryText).where(LibraryText.item_id == item.id).values(cover_key=key))
-    return True
 
 
 def drain(
@@ -410,26 +369,9 @@ def run_worker(
         signal.signal(signal.SIGTERM, _stop)
         signal.signal(signal.SIGINT, _stop)
     log.info("text worker started")
-    attempted_covers: set[uuid.UUID] = set()
     while not stop.is_set():
         try:
             counts = drain(sessions, storage, stop=stop)
-            if not any(counts.values()) and not stop.is_set():
-                with sessions() as db:
-                    missing = [c for c in without_cover(db, limit=25, pdf_only=True) if c.id not in attempted_covers]
-                if missing:
-                    made = 0
-                    for item in missing:
-                        if stop.is_set():
-                            break
-                        attempted_covers.add(item.id)
-                        with sessions() as db:
-                            if make_cover(db, item, storage):
-                                made += 1
-                            db.commit()
-                    if made:
-                        log.info("text worker backfilled %d cover(s)", made)
-                        continue
         except SQLAlchemyError:
             log.exception("text worker: database error; trying again in %.0f s", poll_seconds)
             counts = {}

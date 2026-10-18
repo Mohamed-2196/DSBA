@@ -44,7 +44,7 @@ class Page(ApiModel, Generic[T]):
     offset: int
 
 
-# Every error code the API answers with (code quality review CQ-10): the web app branches on them, and a typo in
+# Every error code the API answers with: the web app branches on them, and a typo in
 # either one is a type error. One code per condition. Messages are for people; codes are for code.
 ErrorCode = Literal[
     # any endpoint
@@ -100,13 +100,13 @@ ErrorCode = Literal[
     "too_many_pending",  # 409: ten files already wait for review
     "not_a_paper",  # 409: only a module's published past papers take question tags
     "already_tagged",  # 409: this question already has this chapter
-    # access: roles and feature switches (R-1, R-10)
+    # access: roles and feature switches
     "feature_off",  # 404: the feature is switched off for this person (admins see every feature)
     "last_admin",  # 409: the hub needs at least one active admin
     "role_locked",  # 409: the Admin role can't change, and a built-in role can't be deleted
     "role_changed",  # 409: another admin changed the role since it was loaded: load it again
     "role_in_use",  # 409: a feature switch is on for this role: change the switch before deleting the role
-    # modules and lessons (R-9)
+    # modules and lessons
     "module_changed",  # 409: another editor saved the module since it was loaded: load it again
     "content_in_use",  # 409: notes, cards, files or threads refer to it: hide it instead
     # documents edited whole in Manage: Career Navigator, Site settings, the guides, the forum, Mini Noora, summary
@@ -122,7 +122,7 @@ ErrorCode = Literal[
     "already_a_lesson",  # 409: the module already has this video as a lesson
     "already_suggested",  # 409: this video already waits for review for the module
     "suggestion_closed",  # 409: the suggestion was already accepted or declined
-    # the notebook (R-5)
+    # the notebook
     "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
     "ink_changed",  # 409: the sheet's ink was saved elsewhere since this version: load it, or save over it
     "too_many_notes",  # 409: the most notes one student may keep
@@ -136,7 +136,7 @@ ErrorCode = Literal[
     "already_on_board",  # 409: this event, lesson, module or file already has a card on that board
     # your own calendar
     "calendar_full",  # 409: the most events of their own a student may keep
-    # Mini Noora's AI answers (R-6)
+    # Mini Noora's AI answers
     "noora_unavailable",  # 503: no AI right now (not set up, or Claude failed): she answers from her script
     "noora_budget_reached",  # 503: the hub's monthly AI budget is spent: she answers from her script
     "noora_busy",  # 503: too many answers are streaming hub-wide right now: she answers from her script
@@ -145,6 +145,7 @@ ErrorCode = Literal[
     "unknown_word",  # 422: a guess the game doesn't know as a word
     "already_tried",  # 409: the same guess (word, group or line) again
     "game_over",  # 409: the play is finished: no more moves
+    "puzzle_fixed",  # 409: an editor fixed today's puzzle since the play was loaded: load it again (it starts over)
     "not_out_yet",  # 404: a day whose puzzles aren't out yet, before the first one, or a game its theme can't make
     "puzzle_changed",  # 409: another editor saved this puzzle content since it was loaded: load it again
     "theme_not_ready",  # 409: the change would leave a theme that runs without enough puzzles for a game

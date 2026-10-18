@@ -11,6 +11,7 @@ import type {
 } from '../../api/types';
 import { formatSize } from '../../api/uploads';
 import { addDaysToKey, daysBetween, type DayKey } from '../../lib/dates';
+import { sittingKey, type ExamSession } from '../../lib/exams';
 
 export type BoardColor = BoardSummary['color'];
 export type BoardTemplate = BoardSummary['template'];
@@ -32,8 +33,7 @@ export interface TemplateInfo {
   color: BoardColor;
 }
 
-/** The templates a student starts a board from. The API's "revision" template is left out: it is three renamed
- *  Study columns, and its name promises the revision plan that "Plan my revision" on a module makes. */
+/** The templates a student starts a board from: every template the API makes a board from. */
 export const TEMPLATES: readonly TemplateInfo[] = [
   {
     id: 'study',
@@ -408,10 +408,10 @@ export function planPace(plan: Pick<BoardPlan, 'left' | 'daysLeft'>): string {
 export interface Paper {
   id: string;
   examYear?: number | null;
-  examSession?: string | null;
+  examSession?: ExamSession | null;
 }
 
-const sittingOf = (p: Paper): string => (p.examYear ? `${p.examYear}-${p.examSession ?? ''}` : `item-${p.id}`);
+const sittingOf = (p: Paper): string => sittingKey(p) ?? `item-${p.id}`;
 
 /** How many of the papers' sittings have a paper done, out of how many sittings. */
 export function sittingsDone(papers: readonly Paper[], done: ReadonlySet<string>): { done: number; total: number } {

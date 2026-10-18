@@ -2,8 +2,9 @@
 
 - public_doc(): what the page shows. Hidden tracks, employers, certificates, roles and checklist items are left out,
   and so is every reference to them, so the page never links to something it doesn't show.
-- save(): the whole document, if nobody saved it since the version the editor loaded (409 career_changed). Each save
-  is audited with the parts it changed, before and after; for lists, only the items that changed.
+- save(): the whole document, if nobody saved it since the version the editor loaded (409 career_changed, also for
+  the second of two first saves at once). Each save is audited with the parts it changed, before and after; for
+  lists, only the items that changed.
 - Logos are uploads (purpose career_logo). A logo the document uses is attached; one it stops using goes back to
   uploaded, and the daily sweep deletes it.
 Services leave the commit to the handler."""
@@ -31,7 +32,7 @@ from app.schemas.career import (
     CloseCert,
     CloseStep,
 )
-from app.services import access
+from app.services import access, documents
 from app.services.accounts import public_user
 from app.services.content import record
 from app.services.documents import audit_change
@@ -91,7 +92,15 @@ def public_doc(doc: CareerDoc) -> CareerDoc:
 
 
 def _row(db: Session, *, lock: bool = False) -> ContentDoc | None:
-    return db.get(ContentDoc, CAREER_KEY, with_for_update=lock)
+    """The saved row. Locked, it is read again even when this session has it already, so a save checks the version
+    someone else may have saved since."""
+    return db.get(ContentDoc, CAREER_KEY, with_for_update=lock, populate_existing=lock)
+
+
+def module_refs(db: Session) -> list[str]:
+    """The modules the saved document names; none before it is loaded."""
+    row = _row(db)
+    return CareerDoc.model_validate(row.data).module_refs() if row is not None else []
 
 
 def content(db: Session) -> CareerContent:
@@ -152,10 +161,11 @@ def save(db: Session, user: User, body: CareerSave, ip: str | None) -> CareerEdi
     before: dict[str, Any] = row.data if row else {}
     if row is not None and before == data:
         return editable(db)
-    _logos(db, body.data)
     if row is None:
-        row = ContentDoc(key=CAREER_KEY, version=0)
-        db.add(row)
+        row = documents.new_row(db, CAREER_KEY)
+        if row is None:  # the other of two first saves at once got there first
+            raise conflict("career_changed", CHANGED)
+    _logos(db, body.data)
     row.data = data
     row.version += 1
     row.updated_at = utcnow()

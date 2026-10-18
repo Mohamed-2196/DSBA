@@ -64,7 +64,7 @@ const askWithout = (off: Feature, text: string) =>
 const links = (r: { refs: { to: string }[] }) => r.refs.map((x) => x.to);
 const mgfOf = (id: string) => DISTRIBUTIONS.find((d) => d.id === id)?.mgf;
 
-describe('MGF questions (ST-3)', () => {
+describe('MGF questions', () => {
   it('gives the MGF of the distribution asked about, with its lesson', () => {
     const r = ask('how do I find the mgf of a poisson');
     expect(r.formula).toBe(mgfOf('poisson'));

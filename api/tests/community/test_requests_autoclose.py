@@ -173,6 +173,20 @@ def test_matching_is_conservative(
     assert told(db, student) == []
 
 
+def test_a_request_for_the_rtc_paper_finds_the_rtc_paper_only(
+    client_for: Client, db: Session, student: User, moderator: User, modules: dict[str, Module]
+) -> None:
+    """RTC, the paper set for Recognised Teaching Centres, is a zone of its own: a request may name it, and zone A's
+    paper of the same sitting isn't it."""
+    made = ask(client_for(student), title="ST2133 2019 RTC paper", zone="RTC")
+    assert made["zone"] == "RTC"
+    publish(client_for(moderator), pending_file(db, zone="A"))
+    assert client_for(student).get(f"{API}/requests/{made['id']}").json()["found"] is None
+    rtc = pending_file(db, zone="RTC")
+    publish(client_for(moderator), rtc)
+    assert client_for(student).get(f"{API}/requests/{made['id']}").json()["found"]["id"] == str(rtc.id)
+
+
 def test_a_file_already_in_the_library_is_found_when_asking(
     client_for: Client, db: Session, student: User, moderator: User, modules: dict[str, Module]
 ) -> None:

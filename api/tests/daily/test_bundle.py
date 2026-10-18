@@ -9,7 +9,7 @@ from collections.abc import Callable
 from typing import Any
 
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, func, select
+from sqlalchemy import Engine, delete, event, func, select
 from sqlalchemy.orm import Session
 
 from app.models import AuditEntry, DailyGuessWord, DailyItem, DailyNearestWord, DailyTheme, User
@@ -165,3 +165,40 @@ def test_an_upload_that_isnt_a_content_file_is_refused_on_the_field(client_for: 
         assert says in r.json()["error"]["fields"]["content"]
     big = admin.post(UPLOAD, json={"content": " " * 1_000_001})
     assert (big.status_code, list(big.json()["error"]["fields"])) == (422, ["content"])
+
+
+def test_a_content_file_takes_the_same_few_statements_however_many_items_it_has(db: Session, engine: Engine) -> None:
+    letters = "BCDFGHJKLMNPQRSTVWXZ"
+
+    def file(theme: str, n: int) -> dict[str, Any]:
+        words = [f"{theme[:2].upper()}{letters[i // 20]}{letters[i % 20]}A" for i in range(n)]
+        groups = [
+            {"game": "groups", "theme": theme, "label": f"Group {i}", "level": i % 4 + 1, "words": words[:4]}
+            for i in range(n)
+        ]
+        return {
+            "themes": [{"id": theme, "title": f"{theme.capitalize()} week", "blurb": "", "inRotation": False}],
+            "guesses": words,
+            "items": [
+                *({"game": "word", "theme": theme, "word": w} for w in words),
+                *({"game": "search", "theme": theme, "word": f"{w}S"} for w in words),
+                *groups,
+            ],
+        }
+
+    def statements(data: dict[str, Any]) -> int:
+        seen: list[str] = []
+
+        def count(*_: Any) -> None:
+            seen.append("")
+
+        event.listen(engine, "before_cursor_execute", count)
+        try:
+            result = load(db, data)
+        finally:
+            event.remove(engine, "before_cursor_execute", count)
+        assert sum(c["added"] for c in result.items.values()) == 3 * len(data["guesses"]), result.problems
+        return len(seen)
+
+    few = statements(file("gamma", 5))
+    assert statements(file("delta", 60)) == few

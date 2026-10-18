@@ -4,13 +4,14 @@
 import { useMemo } from 'react';
 import type { ForumMeta } from '../../../api/types';
 import { useForumMeta } from '../api';
-import type { CategoryId, ForumCategory, ForumGuideline, ForumIcon, ForumTag, ForumTip } from '../types';
+import type { ForumCategoryOut, ForumGuideline, ForumTagOut, ForumTip } from '../../../api/types';
+import type { CategoryId, ForumIcon } from '../types';
 
 export interface Taxonomy {
   /** the categories offered, in order (retired ones left out) */
-  categories: readonly ForumCategory[];
+  categories: readonly ForumCategoryOut[];
   /** the tags offered, in order (retired ones left out) */
-  tags: readonly ForumTag[];
+  tags: readonly ForumTagOut[];
   maxTags: number;
   /** where a thread goes when no year fits it */
   defaultCategory: CategoryId | null;
@@ -19,9 +20,9 @@ export interface Taxonomy {
   /** true once /forum/meta has loaded */
   ready: boolean;
   /** any category, retired ones too (a thread keeps its category) */
-  getCategory: (id: string | null | undefined) => ForumCategory | null;
+  getCategory: (id: string | null | undefined) => ForumCategoryOut | null;
   /** any tag, retired ones too */
-  getTag: (id: string | null | undefined) => ForumTag | null;
+  getTag: (id: string | null | undefined) => ForumTagOut | null;
   /** the first category offered for a cohort, or null */
   categoryForYear: (year: number | null | undefined) => CategoryId | null;
 }
@@ -38,7 +39,7 @@ const MAX_TAGS = 3;
 export type Place = { year: number; label: string } | { year: null; label: string; icon: ForumIcon };
 
 /** The place of a thread in `category`, or null while the categories haven't loaded. */
-export function placeOf(category: ForumCategory | null): Place | null {
+export function placeOf(category: ForumCategoryOut | null): Place | null {
   if (!category) return null;
   return category.year == null
     ? { year: null, label: category.short, icon: category.icon ?? 'chat' }

@@ -1,12 +1,15 @@
 // A day's puzzles with their answers: as they went out for a day that is out, or as the content would make them for
 // a day to come (nothing is stored, so adding or retiring items before then can still change it).
 import { Check, WarningCircle } from '@phosphor-icons/react';
-import { useState } from 'react';
+import { Fragment, useState, type ReactNode } from 'react';
 import type { DailyContentOverview, PreviewGame } from '../../../api/types';
 import { addDaysToKey, formatDay, isDayKey } from '../../../lib/dates';
-import { Badge, Button, Panel, QueryError, Skeleton, TextField, cx } from '../../../ui';
+import { Badge, Button, Highlight, Panel, QueryError, Skeleton, TextField, cx } from '../../../ui';
 import { useDailyPreview } from './api';
 import { gameInfo } from './lib/items';
+
+/** A day's puzzle with its answers, as the editor shows it. */
+export type PreviewPuzzle = NonNullable<PreviewGame['puzzle']>;
 
 export function PreviewPart({ overview }: { overview: DailyContentOverview }) {
   const [day, setDay] = useState(() => addDaysToKey(overview.today, 1));
@@ -92,64 +95,123 @@ export function PreviewPart({ overview }: { overview: DailyContentOverview }) {
 }
 
 function PreviewBody({ game }: { game: PreviewGame }) {
-  const p = game.puzzle;
-  if (!p) {
+  if (!game.puzzle) {
     return (
       <p className="dcms-check">
         <WarningCircle aria-hidden="true" weight="fill" /> No puzzle that day. {game.problem}
       </p>
     );
   }
-  switch (p.game) {
-    case 'word':
-      return <p className="dcms-preview__answer">{p.answer}</p>;
-    case 'groups':
+  return <PuzzleView puzzle={game.puzzle} />;
+}
+
+/** Marks what a fix changed, against the puzzle as it was (`on`). */
+function Changed({ on, children }: { on: boolean; children: ReactNode }) {
+  return on ? <Highlight>{children}</Highlight> : <>{children}</>;
+}
+
+/**
+ * A day's puzzle with its answers. Given `before` (today's puzzle as it is), it marks what a fix changes: a new answer
+ * or secret word, a group's new words or name, a new word in the word search, a question that reads differently.
+ */
+export function PuzzleView({ puzzle, before }: { puzzle: PreviewPuzzle; before?: PreviewPuzzle }) {
+  switch (puzzle.game) {
+    case 'word': {
+      const was = before?.game === 'word' ? before.answer : puzzle.answer;
+      return (
+        <p className="dcms-preview__answer">
+          <Changed on={was !== puzzle.answer}>{puzzle.answer}</Changed>
+        </p>
+      );
+    }
+    case 'groups': {
+      const was = before?.game === 'groups' ? before.groups : null;
       return (
         <ol className="dcms-preview__groups">
-          {p.groups.map((g) => (
-            <li key={g.label}>
-              <Badge tone="outline" size="sm">{`Level ${g.level}`}</Badge> <strong>{g.label}</strong>:{' '}
-              {g.words.join(', ')}
-            </li>
-          ))}
+          {puzzle.groups.map((g, i) => {
+            const old = was?.[i];
+            return (
+              <li key={`${g.level}-${g.label}`}>
+                <Badge tone="outline" size="sm">{`Level ${g.level}`}</Badge>{' '}
+                <strong>
+                  <Changed on={Boolean(old && old.label !== g.label)}>{g.label}</Changed>
+                </strong>
+                :{' '}
+                {g.words.map((w, j) => (
+                  <Fragment key={w}>
+                    {j ? ', ' : null}
+                    <Changed on={Boolean(old && !old.words.includes(w))}>{w}</Changed>
+                  </Fragment>
+                ))}
+              </li>
+            );
+          })}
         </ol>
       );
-    case 'search':
+    }
+    case 'search': {
+      const was = before?.game === 'search' ? before.words : null;
       return (
         <div className="dcms-preview__search">
-          <p className="dcms-preview__words">{p.words.join(', ')}</p>
+          <p className="dcms-preview__words">
+            {puzzle.words.map((w, i) => (
+              <Fragment key={w}>
+                {i ? ', ' : null}
+                <Changed on={Boolean(was && !was.includes(w))}>{w}</Changed>
+              </Fragment>
+            ))}
+          </p>
           <pre className="dcms-preview__grid" aria-label="The grid">
-            {p.grid.map((row) => row.split('').join(' ')).join('\n')}
+            {puzzle.grid.map((row) => row.split('').join(' ')).join('\n')}
           </pre>
         </div>
       );
-    case 'quiz':
+    }
+    case 'quiz': {
+      const was = before?.game === 'quiz' ? before.questions : null;
       return (
         <ol className="dcms-preview__questions">
-          {p.questions.map((q) => (
-            <li key={q.prompt}>
-              <p className="dcms-preview__prompt">
-                {q.prompt}
-                {q.source ? <span className="dcms-preview__source"> · {q.source}</span> : null}
-              </p>
-              <ul className="dcms-preview__options">
-                {q.options.map((o, i) => (
-                  <li key={`${i}-${o}`} className={cx(i === q.answer && 'is-right')}>
-                    {i === q.answer ? <Check aria-label="Right answer" weight="bold" /> : null}
-                    {o}
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
+          {puzzle.questions.map((q, n) => {
+            const old = was?.[n];
+            const fixed = Boolean(old && JSON.stringify(old) !== JSON.stringify(q));
+            return (
+              <li key={`${n}-${q.prompt}`}>
+                <p className="dcms-preview__prompt">
+                  {fixed ? (
+                    <>
+                      <Badge tone="highlight" size="sm">
+                        Fixed
+                      </Badge>{' '}
+                    </>
+                  ) : null}
+                  {q.prompt}
+                  {q.source ? <span className="dcms-preview__source"> · {q.source}</span> : null}
+                </p>
+                <ul className="dcms-preview__options">
+                  {q.options.map((o, i) => (
+                    <li key={`${i}-${o}`} className={cx(i === q.answer && 'is-right')}>
+                      {i === q.answer ? <Check aria-label="Right answer" weight="bold" /> : null}
+                      {o}
+                    </li>
+                  ))}
+                </ul>
+                {fixed && old?.explain !== q.explain ? <p className="dcms-preview__explain">{q.explain}</p> : null}
+              </li>
+            );
+          })}
         </ol>
       );
-    case 'nearest':
+    }
+    case 'nearest': {
+      const was = before?.game === 'nearest' ? before.target : puzzle.target;
       return (
         <>
-          <p className="dcms-preview__secret">{p.target}</p>
-          <p className="dcms-preview__words">Closest: {p.closest.join(', ')}</p>
+          <p className="dcms-preview__secret">
+            <Changed on={was !== puzzle.target}>{puzzle.target}</Changed>
+          </p>
+          <p className="dcms-preview__words">Closest: {puzzle.closest.join(', ')}</p>
         </>
       );
+    }
   }
 }

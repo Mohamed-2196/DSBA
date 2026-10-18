@@ -100,7 +100,7 @@ def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats
         if access.can(user, Box.requests_manage) and access.feature_on(db, user, Feature.requests)
         else None,
         pending_suggestions=suggestions.pending_count(db)
-        if access.can(user, Box.content_edit) and access.feature_on(db, user, Feature.video_suggestions)
+        if access.can(user, Box.content_edit) and access.feature_on(db, user, Feature.modules_video_suggestions)
         else None,
         open_bug_reports=bugs.open_count(db) if access.is_admin(user) else None,
     )
@@ -166,7 +166,7 @@ def update_user(
     sess: CurrentSession,
     db: DB,
 ) -> AdminUser:
-    """Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email
+    """Suspend or restore an account, or recover one: replace or remove its email
     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
     Recovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding

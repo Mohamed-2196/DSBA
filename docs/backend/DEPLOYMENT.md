@@ -50,8 +50,8 @@ What production refuses (`app/config.py`, `Settings.production_problems`):
 | `DSBA_S3_*` | bucket and keys set, not the development keys; the endpoint set explicitly (empty for AWS S3); what browsers use (`DSBA_S3_PUBLIC_ENDPOINT_URL`, else `DSBA_S3_ENDPOINT_URL`) is `https://`; `DSBA_S3_CREATE_BUCKET` false (the default in production) |
 | `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain |
 | `DSBA_SMS_BACKEND` | `twilio` with its three settings, or `DSBA_SMS_ALLOWED_REGIONS` empty (no texts at all) |
-| `DSBA_ANTHROPIC_API_KEY` | optional; Anthropic API key for Mini Noora AI answers (runs in script mode if unset) |
-| `DSBA_NOORA_MODEL` | optional; Claude model for Noora (defaults to `claude-haiku-4-5-20251001`) |
+
+Every other setting, the optional ones included, is in section 12.
 
 Also in production: the API docs (`/api/v1/docs`) and `/api/v1/openapi.json` are off (the web app's types come
 from `api/openapi.json` in the repository), and `python -m app.cli dev-login` refuses to run. The API image sets
@@ -109,9 +109,9 @@ On AWS, attach it to an IAM user of its own. On MinIO, the same JSON is a policy
 `mc admin policy attach <alias> dsba-texts --user <key>`.
 
 **`DSBA_BUCKET_ORIGIN`** is the origin presigned URLs point at; the Content-Security-Policy allows uploads to it,
-and images, PDF previews and media from it. With `DSBA_S3_FORCE_PATH_STYLE=false` on AWS that is
-`https://<bucket>.s3.<region>.amazonaws.com`; with path-style URLs (MinIO) it is the endpoint's origin, e.g.
-`https://files.example.com`.
+and images, PDF previews and media from it. With `DSBA_S3_FORCE_PATH_STYLE=false` the URLs use the bucket's own
+host: on AWS `https://<bucket>.s3.<region>.amazonaws.com`, on a Railway bucket `https://<bucket>.t3.storageapi.dev`;
+with path-style URLs (MinIO) it is the endpoint's origin, e.g. `https://files.example.com`.
 
 ## 4. Start
 
@@ -159,6 +159,10 @@ mail`). Several workers may run (`docker compose -f compose.prod.yaml up -d --sc
 by one. Sent, failed and cancelled emails are deleted after 30 days. An email is cancelled when its time comes if
 the person turned that switch off, changed their address or deleted the account.
 
+The same worker keeps the hub's clock: on Sunday, from the time set in Manage → Sunday summary (Bahrain time), it
+queues the week's summaries, and within a minute of their time it turns the reminders on board cards and on students'
+own calendar events into notifications. Without a running `mail` service, none of these happen.
+
 **Text of papers.** Search finds words inside published PDF and Word files. The `texts` service
 (`python -m app.cli text-worker`) reads each newly published file once, in a child process limited to 60 seconds
 and 1 GB, and skips files over 60 MB; scans have no text and stay findable by title only. The child process can't
@@ -166,8 +170,7 @@ see the worker's settings: its environment holds none, and the worker makes itse
 one, so the child (the same user) can't read them from `/proc/<worker>/environ` or the worker's memory either. And
 the worker holds only its own database role and bucket key (section 2). After deploying it the first time, or after
 a big import, read the files already there: `docker compose -f compose.prod.yaml run --rm texts python -m app.cli
-extract-texts` (`--retry` reads failed and empty files again; `make-covers` makes the covers of files read before
-covers existed).
+extract-texts`, which reads their words and makes their covers (`--retry` reads failed and empty files again).
 
 ## 5. Client addresses and the proxy
 
@@ -275,12 +278,13 @@ restored is a hope, not a backup.
 
 The `sweep` service runs `python -m app.cli sweep` when it starts and every 24 hours after. It deletes:
 
-- uploads never attached to anything (a library item or a forum post) a day after they were made: the object, then
-  the row;
+- uploads never attached to anything (a library item, a forum post, a note, a card, a newsletter picture, a module's
+  picture, a Career Navigator logo, a bug report) a day after they were made, and board files taken off their card or
+  whose card is gone: the object, then the row;
 - sign-in codes older than two days (the longest rate-limit window is a day);
 - sessions that expired or were revoked more than 30 days ago;
 - the files of library items rejected or removed more than a week ago (the item stays, without its file);
-- the addresses kept on guests' bug reports after a day, and the screenshots of bug reports closed (fixed or won't
+- the addresses kept on bug reports after a day, and the screenshots of bug reports closed (fixed or won't
   fix) more than 90 days ago (the report stays, without its screenshot).
 
 ## 9. Analytics (optional)
@@ -393,20 +397,89 @@ in the `.env` of your checkout. Without the script, the import alone is
 
 ## 11. Mini Noora, the Sunday summary and bug reports
 
-**Mini Noora AI:**
-Mini Noora can answer questions about modules, past papers, exams and formulas with Claude.
-- To enable AI answers in production, provide `DSBA_ANTHROPIC_API_KEY` in `.env` (compose passes it to the API).
-- Turn on the `noora.ai` feature switch in Manage → Access (off by default).
-- Model selection defaults to `claude-haiku-4-5-20251001` (`DSBA_NOORA_MODEL`).
-- If `DSBA_ANTHROPIC_API_KEY` is not set or `noora.ai` is switched off, Noora operates in script mode: she points students directly to modules, lessons, exams and files in the Hub without making external AI calls.
+**Mini Noora's AI answers** come from Claude. Put `DSBA_ANTHROPIC_API_KEY` in `.env` (compose passes it to the API's
+services, never to the text worker), then turn on `noora.ai` in Access; it arrives off. The model is `DSBA_NOORA_MODEL`
+(`claude-haiku-4-5-20251001` by default). Admins set her daily limit per student and the monthly budget in Manage →
+Numbers; also set a monthly spending limit on the Anthropic workspace as a backstop. Without the key, or with
+`noora.ai` off, she answers from her script, which admins edit in Manage → Mini Noora, and calls nobody.
 
-**Sunday summary:**
-The weekly Sunday summary email gives students an overview of the coming week's events, deadlines and activity.
-- Queued with `python -m app.cli weekly-summary` (e.g. from a cron job or scheduled task).
-- Sent by the `mail` worker (`python -m app.cli mail-worker`) to students who keep the Sunday summary switch on in their account settings.
+**The Sunday summary** is an email of the week ahead for each year, for students who keep its switch on. Turn on
+`summary` in Access. The `mail` service queues it on Sunday from the time set in Manage → Sunday summary and sends it;
+nothing else needs scheduling. `python -m app.cli weekly-summary` queues this week's at once (for whoever hasn't had
+it), and `--preview YEAR` prints a year's text and sends nothing.
 
-**Bug reports:**
-Students and guests can report issues with steps, expectations, and optional screenshots via "Report a bug" in the account menu or palette.
-- Bug reports are stored in the database (`bug_reports` table) and triaged by staff in Manage → Bugs.
-- No third-party bug tracker integration is needed.
+**Bug reports.** Anyone, guests included, can send one ("Report a bug" in the account menu, the More drawer, the
+command palette and About), and a signed-in reporter can add a screenshot. They are kept in `bug_reports` and admins
+triage them in Manage → Bugs. A report goes when its reporter deletes their account; the sweep forgets a report's
+address after a day and its screenshot 90 days after it is closed (section 8).
+
+## 12. Every setting
+
+The API and its workers read their settings from the environment, with the prefix `DSBA_` (`app/config.py`), and
+from a `.env` in the directory they run in (`api/` without Docker). In production, `compose.prod.yaml` passes each
+service only the variables it names, so a setting it doesn't list keeps its default there even when `.env` sets it:
+add it to the service's `environment` first. The defaults suit development; section 2 lists what production refuses.
+
+| Setting | Default | What it is |
+|---|---|---|
+| `DSBA_ENV` | `development` | `development`, `test` or `production` (the API image sets `production`) |
+| `DSBA_SECRET_KEY` | development value | keys the sign-in codes' and identifiers' hashes, the CSRF tokens and the private calendar feeds' addresses (a new key gives every feed a new address) |
+| `DSBA_DATABASE_URL` | the local `dsba` database | PostgreSQL, `postgresql+psycopg://…` |
+| `DSBA_WEB_ORIGINS` | `http://127.0.0.1:5173,http://localhost:5173` | the app's origins, comma-separated (CORS, CSRF) |
+| `DSBA_WEB_BASE_URL` | `http://127.0.0.1:5173` | the app's address in emails and texts |
+| `DSBA_SESSION_COOKIE`, `DSBA_CSRF_COOKIE` | `dsba_session`, `dsba_csrf` (`__Host-` ones in production) | cookie names; the web app's `VITE_CSRF_COOKIE` must match the second |
+| `DSBA_SESSION_DAYS` | `30` | how long a session lasts at most |
+| `DSBA_COOKIE_SECURE`, `DSBA_COOKIE_DOMAIN` | false (true in production), none | cookies only over HTTPS; a cookie domain (empty in production) |
+| `DSBA_TRUSTED_PROXIES` | none | addresses or CIDRs whose `X-Forwarded-For` is read (section 5) |
+| `DSBA_OTP_TTL_SECONDS`, `DSBA_OTP_MAX_ATTEMPTS`, `DSBA_OTP_RESEND_SECONDS` | `600`, `5`, `30` | sign-in codes: lifetime, tries per code, wait before another |
+| `DSBA_OTP_MAX_PER_IDENTIFIER_PER_HOUR`, `…_PER_DAY`, `DSBA_OTP_MAX_PER_IP_PER_HOUR` | `5`, `10`, `30` | codes per address and per network |
+| `DSBA_DEFAULT_PHONE_REGION` | `BH` | how a phone number without a country code is read |
+| `DSBA_EMAIL_BACKEND` | `console` | `smtp`, `file` (into `DSBA_EMAIL_FILE_DIR`, default `var/mail`) or `console` |
+| `DSBA_EMAIL_FROM` | `DSBA Hub <no-reply@dsba-hub.local>` | the sender |
+| `DSBA_SMTP_HOST`, `_PORT`, `_USERNAME`, `_PASSWORD`, `_STARTTLS` | `127.0.0.1`, `1025`, none, none, false | the mail relay |
+| `DSBA_SMS_BACKEND` | `console` | `twilio`, `file` (into `DSBA_SMS_FILE_DIR`, default `var/sms`) or `console` |
+| `DSBA_TWILIO_ACCOUNT_SID`, `_AUTH_TOKEN`, `_FROM` | none | Twilio; `_FROM` is a number or a Messaging Service SID |
+| `DSBA_SMS_ALLOWED_REGIONS` | `BH` | countries whose mobile numbers get codes by text; empty: no texts |
+| `DSBA_SMS_MAX_PER_HOUR`, `DSBA_SMS_MAX_PER_DAY` | `50`, `300` | texts the whole site may send |
+| `DSBA_ALLOW_RAISED_LIMITS` | false | lets production run limits above their defaults (the e2e suite raises them) |
+| `DSBA_S3_ENDPOINT_URL` | `http://127.0.0.1:9000` | the store; empty for AWS S3 |
+| `DSBA_S3_PUBLIC_ENDPOINT_URL` | none | the endpoint browsers use, when it differs (Docker) |
+| `DSBA_S3_REGION`, `DSBA_S3_BUCKET`, `DSBA_S3_FORCE_PATH_STYLE` | `us-east-1`, `dsba-hub`, true | the bucket's region and name; path-style URLs (MinIO) or not (AWS) |
+| `DSBA_S3_ACCESS_KEY_ID`, `DSBA_S3_SECRET_ACCESS_KEY` | the development emulator's | the API's key (section 3) |
+| `DSBA_S3_CREATE_BUCKET` | true (false in production) | prepare the bucket at start-up (development) |
+| `DSBA_UPLOAD_URL_TTL_SECONDS`, `DSBA_DOWNLOAD_URL_TTL_SECONDS` | `300`, `300` | how long presigned links last |
+| `DSBA_MAX_UPLOAD_MB`, `DSBA_MAX_IMAGE_MB` | `50`, `8` | the largest file and picture; the web app states the same limits in `web/src/api/uploads.ts`, so change both |
+| `DSBA_TEXTS_DB_PASSWORD` | none | the password of the text worker's database role (section 2); letters, digits, `-` and `_` |
+| `DSBA_BACKUP_BUCKET`, `DSBA_BACKUP_PREFIX` | none, `backups/db/` | where dumps go (section 7) |
+| `DSBA_BACKUP_S3_ENDPOINT_URL`, `DSBA_BACKUP_S3_REGION` | the main store's | the backup bucket's store, when it is another one |
+| `DSBA_BACKUP_ACCESS_KEY_ID`, `DSBA_BACKUP_SECRET_ACCESS_KEY` | none | the backup key, set together or not at all |
+| `DSBA_BACKUP_SSE`, `DSBA_BACKUP_KMS_KEY_ID`, `DSBA_BACKUP_KEEP` | `AES256`, none, `14` | encryption at rest, and how many dumps to keep (0: all) |
+| `DSBA_ADMIN_IDENTIFIERS` | none | emails or phone numbers that get Admin when they first sign in |
+| `DSBA_GOOGLE_API_KEY`, `DSBA_GOOGLE_SERVICE_ACCOUNT_FILE` | none | the Drive import only (section 10) |
+| `DSBA_ANTHROPIC_API_KEY`, `DSBA_NOORA_MODEL` | none, `claude-haiku-4-5-20251001` | Mini Noora's AI answers (section 11) |
+| `DSBA_NOORA_INPUT_USD_PER_MTOK`, `DSBA_NOORA_OUTPUT_USD_PER_MTOK` | `1.0`, `5.0` | the model's prices, for the estimated cost the monthly budget is checked against |
+| `DSBA_NOORA_MAX_ANSWER_TOKENS`, `DSBA_NOORA_ANSWERS_AT_ONCE` | `1500`, `8` | the longest answer, and answers streaming at once hub-wide |
+| `DSBA_COMMIT_SHA` (or Railway's `RAILWAY_GIT_COMMIT_SHA`) | none | the commit `/api/v1/health` reports |
+
+`compose.prod.yaml` itself reads these from `.env`, besides the ones it passes on: `DSBA_DOMAIN`, `POSTGRES_PASSWORD`,
+`DSBA_PROXY_IP` and `DSBA_DOCKER_SUBNET` (section 5), `DSBA_BUCKET_ORIGIN` and `DSBA_CSP_CONNECT_EXTRA` /
+`DSBA_CSP_SCRIPT_EXTRA` for Caddy (sections 3 and 9; `DSBA_API_UPSTREAM` is set by compose), and the text worker's
+key, `DSBA_TEXTS_S3_ACCESS_KEY_ID` and `DSBA_TEXTS_S3_SECRET_ACCESS_KEY`, which it hands to that worker as its
+`DSBA_S3_*` key.
+
+The web app reads these when it is built (`web/Dockerfile` build arguments): `VITE_CSRF_COOKIE` (`__Host-dsba_csrf`
+in the image), `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST` (section 9), `VITE_APP_VERSION` (the version in the footer,
+in `index.html` and in bug reports; Railway's `RAILWAY_GIT_COMMIT_SHA` when unset), `VITE_API_ORIGIN` (the API's
+origin when it isn't the app's own; unset in every setup here) and `VITE_BASE` (the path the app is served under,
+`/` by default). In development, `VITE_DEV_API_TARGET` and `VITE_DEV_HOST` point the dev server's proxy and its
+address elsewhere.
+
+Tests and the e2e suite read their own: `DSBA_TEST_ADMIN_URL` (the server where each test run makes its database)
+and the `E2E_*` variables that `scripts/e2e.sh` sets (`web/e2e/support.ts`).
+
+**The Railway dev environment.** Every push to `feature/backend` deploys the API and the web app to Railway's dev
+environment, each from its Dockerfile, with the settings kept in Railway; production is not deployed there.
+`.github/workflows/railway.yml` then waits until both run the pushed commit and checks the API's health and the web
+app's bundle (`scripts/check-deploy.sh`). The dev site runs outside production mode, with made-up accounts only
+(Mohamed's call, security review SEC-43).
 

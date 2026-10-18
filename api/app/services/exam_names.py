@@ -15,13 +15,21 @@ The names the programme's folders use:
 - the RTC papers: 'MN3141 RTC Exam paper - May 2025.pdf', 'MN3141 RTC Commentary - May 2026 DRAFT.docx'.
 RTC stands for Recognised Teaching Centre: for some modules the University of London sets a paper for its Recognised
 Teaching Centres beside zone A's and zone B's. That paper is a zone of its own, 'RTC'.
-Mocks, preliminary and sample papers belong to no sitting: their names give nothing."""
+Mocks, preliminary and sample papers belong to no sitting: their names give nothing.
+
+This is also where the API names zones and sittings, once: zone_label(), sitting_key(), sitting_label(), and the
+newest-first order of sittings (sitting_order(), and newest_sitting_first() in SQL). The web app's twin is
+web/src/lib/exams.ts."""
 
 from __future__ import annotations
 
 import re
 import unicodedata
-from typing import NamedTuple, Protocol
+from typing import Any, NamedTuple, Protocol
+
+from sqlalchemy import case
+from sqlalchemy.orm import QueryableAttribute
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.schemas.library import ExamSession, Zone
 
@@ -110,7 +118,16 @@ def tidy_title(file_name: str) -> str:
     return text[0].upper() + text[1:]
 
 
-def zone_label(zone: str) -> str:
+# ── zones and sittings ───────────────────────────────────────────────────────────────────────
+
+SittingKey = tuple[int, ExamSession | None]  # exam year, session
+_MONTHS: dict[ExamSession, str] = {"may": "May", "october": "October"}
+# Newest first: in a year the October resits come after the May sitting; a sitting whose session isn't known is last.
+_NEWEST: dict[ExamSession, int] = {"october": 0, "may": 1}
+_SESSION_UNKNOWN = len(_NEWEST)
+
+
+def zone_label(zone: Zone) -> str:
     """'zone A', or 'RTC' for the Recognised Teaching Centre paper."""
     return "RTC" if zone == "RTC" else f"zone {zone}"
 
@@ -119,15 +136,33 @@ class _Sat(Protocol):
     @property
     def exam_year(self) -> int | None: ...
     @property
-    def exam_session(self) -> str | None: ...
+    def exam_session(self) -> ExamSession | None: ...
 
 
-def sitting_key(item: _Sat) -> tuple[int, str | None] | None:
+def sitting_key(item: _Sat) -> SittingKey | None:
     """The sitting a paper, report or solutions belong to: (exam year, session), or None without an exam year. Every
     zone of a sitting shares it: the library splits a sitting by zone after grouping by this key."""
     if item.exam_year is None:
         return None
     return (item.exam_year, item.exam_session)
+
+
+def sitting_label(exam_year: int, session: ExamSession | None) -> str:
+    """'May 2024' or 'October 2023'; the year alone when the session isn't known."""
+    return f"{_MONTHS[session]} {exam_year}" if session else str(exam_year)
+
+
+def sitting_order(key: SittingKey) -> tuple[int, int]:
+    """Sorts sittings (sitting_key) newest first."""
+    year, session = key
+    return (-year, _NEWEST[session] if session else _SESSION_UNKNOWN)
+
+
+def newest_sitting_first(
+    exam_year: QueryableAttribute[int | None], session: QueryableAttribute[ExamSession | None]
+) -> tuple[ColumnElement[Any], ColumnElement[Any]]:
+    """sitting_order in SQL, for an ORDER BY: the newest sitting first, files without an exam year last."""
+    return exam_year.desc().nulls_last(), case(_NEWEST, value=session, else_=_SESSION_UNKNOWN)
 
 
 def exam_meta_from_name(name: str) -> ExamMeta:

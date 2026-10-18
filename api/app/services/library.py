@@ -41,6 +41,7 @@ from app.schemas.library import (
     EXAM_SOLUTIONS,
     EXAMINERS_REPORT,
     ZONES,
+    ExamSession,
     FileLink,
     LibraryFacets,
     LibraryItemCreate,
@@ -50,6 +51,7 @@ from app.schemas.library import (
     PaperSittings,
     Sitting,
     SittingZone,
+    Zone,
 )
 from app.schemas.library import LibraryItem as LibraryItemOut
 from app.schemas.modules import ModuleShelf, ShelfKind
@@ -57,7 +59,7 @@ from app.schemas.notifications import NotificationKind
 from app.services import access, paper_text, ratelimit
 from app.services.accounts import public_user
 from app.services.content import apply_patch, record
-from app.services.exam_names import sitting_key
+from app.services.exam_names import SittingKey, sitting_key, sitting_order
 from app.services.modules import require_module
 from app.services.notify import notify
 from app.services.paper_text import COVER_TYPE, Match
@@ -66,7 +68,7 @@ from app.services.uploads import extension, serve_type
 
 log = logging.getLogger("dsba.library")
 
-MAX_PENDING = 10  # files one student may have waiting for review (security review SEC-14)
+MAX_PENDING = 10  # files one student may have waiting for review
 FILE_GRACE = timedelta(days=7)  # a rejected or removed file stays in the bucket this long, then the sweep deletes it
 # When the reference material counts as published (the seeded links, and the files the Drive import brings in from
 # their folders): before anything students share, so "newest first" lists their uploads above it whenever the seed
@@ -302,7 +304,7 @@ class ListFilters:
     mine: bool = False
     status: str | None = None
     exam_year: int | None = None
-    zone: str | None = None
+    zone: Zone | None = None
 
 
 YOUR_FILES = (ItemStatus.pending, ItemStatus.published, ItemStatus.rejected)
@@ -449,7 +451,6 @@ def module_shelves(db: Session, module_id: str) -> list[ModuleShelf]:
 
 # ── past papers by sitting ───────────────────────────────────────────────────────────────────
 
-_SESSION_ORDER = {"october": 0, "may": 1, None: 2}  # newest first within a year: the resits come after May
 _ZONE_ORDER: dict[str | None, int] = {**{z: n for n, z in enumerate(ZONES)}, None: len(ZONES)}
 
 
@@ -469,7 +470,7 @@ def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
         .order_by(func.lower(LibraryItem.title), LibraryItem.id)
     ).all()
     out = {i.id: o for i, o in zip(items, to_out(db, items, user), strict=True)}
-    groups: dict[tuple[int, str | None], dict[str | None, SittingZone]] = {}
+    groups: dict[SittingKey, dict[Zone | None, SittingZone]] = {}
     other = []
     for i in items:
         key = sitting_key(i)
@@ -485,7 +486,7 @@ def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
             bucket.solutions.append(out[i.id])
         else:
             bucket.papers.append(out[i.id])
-    ordered = sorted(groups.items(), key=lambda g: (-g[0][0], _SESSION_ORDER.get(g[0][1], 2)))
+    ordered = sorted(groups.items(), key=lambda g: sitting_order(g[0]))
     return PaperSittings(
         sittings=[
             Sitting(
@@ -525,7 +526,7 @@ def pending_count(db: Session, user: User) -> int:
 
 
 def check_pending_room(db: Session, user: User, *, lock: bool = False) -> None:
-    """At most MAX_PENDING of a student's files wait for review at once (security review SEC-14); library managers'
+    """At most MAX_PENDING of a student's files wait for review at once; library managers'
     files are published at once. With `lock`, parallel requests by the same person count one after the other."""
     if manages(user):
         return
@@ -644,8 +645,8 @@ def create_imported(
     content_hash: str | None = None,
     drive_folder_id: uuid.UUID | None = None,
     exam_year: int | None = None,
-    zone: str | None = None,
-    exam_session: str | None = None,
+    zone: Zone | None = None,
+    exam_session: ExamSession | None = None,
     author_name: str | None = None,
 ) -> LibraryItem:
     """A file the server put in the bucket itself, after checking it (the Drive import): published at once, without
@@ -758,7 +759,7 @@ def review(
 
 def sweep_files(db: Session, storage: Storage | None = None, now: datetime | None = None) -> int:
     """For the daily sweep: deletes from the bucket the files of items rejected or removed more than FILE_GRACE ago
-    (security review SEC-14), with their covers, upload rows and text; the item rows stay, without a file. -> how many
+    with their covers, upload rows and text; the item rows stay, without a file. -> how many
     files. The caller commits. Safe to run again: a file already gone is skipped."""
     cutoff = (now or utcnow()) - FILE_GRACE
     decided = func.coalesce(LibraryItem.updated_at, LibraryItem.reviewed_at, LibraryItem.created_at)

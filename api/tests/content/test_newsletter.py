@@ -434,7 +434,7 @@ def test_publishing_tells_every_account_once(
     the email goes to those with an address who keep "New newsletter issues" on."""
     keen = make_user(name="Keen")
     quiet = make_user(name="Quiet")
-    quiet.preferences = {"email_new_issues": False}
+    quiet.preferences = {**quiet.preferences, "email_new_issues": False}
     phone_only = make_user(email=None, phone="+97333123456", name="Phone Only")
     db.commit()
 

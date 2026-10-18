@@ -97,6 +97,29 @@ export function addDaysToKey(key: DayKey, n: number): DayKey {
   return dayKey(addDays(parseDay(key), n));
 }
 
+/** How many days a month has (`month` 1 to 12): 28 to 31. */
+export function daysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/**
+ * The day key `n` months after `key` (before, for a negative n) on day `day` of that month (by default `key`'s day),
+ * or on the month's last day when it has no such day: one month after '2027-01-31' is '2027-02-28'.
+ */
+export function addMonthsToKey(key: DayKey, n: number, day = Number(key.slice(8, 10))): DayKey {
+  const [y = 1970, m = 1] = key.split('-').map(Number);
+  const index = y * 12 + m - 1 + n;
+  const year = Math.floor(index / 12);
+  const month = index - year * 12 + 1;
+  return `${year}-${pad(month)}-${pad(Math.min(day, daysInMonth(year, month)))}`;
+}
+
+/** A day of the month in words: '1st', '2nd', '3rd', '11th', '22nd', '31st'. */
+export function dayOrdinal(day: number): string {
+  const teen = day % 100 >= 11 && day % 100 <= 13;
+  return `${day}${teen ? 'th' : (['th', 'st', 'nd', 'rd'][day % 10] ?? 'th')}`;
+}
+
 /** 'today', 'tomorrow', 'in 17 days', inside a sentence (for days that are today or later). */
 export function inDays(days: number): string {
   if (days <= 0) return 'today';

@@ -1,4 +1,4 @@
-// Notes (R-5): switched on for the run, a student writes a note that saves as she types, finds it by searching, adds
+// Notes: switched on for the run, a student writes a note that saves as she types, finds it by searching, adds
 // a quick note on a lesson, and deletes both. A guest is asked to sign in. Notes end switched off, as they start.
 import { expect, test } from './fixtures';
 import { api, switchBack, switchOn } from './support';

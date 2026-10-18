@@ -4,20 +4,23 @@ from the version they loaded, audited with what changed, with hidden parts kept 
 from __future__ import annotations
 
 import copy
+import json
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import Engine, create_engine, delete, select, text
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.core.links import HTTPS_RULE, LINK_RULE
 from app.models import AuditEntry, ContentDoc, Module, UploadStatus, User
 from app.models import Upload as UploadRow
 from app.schemas.career import CareerDoc
 from app.seed.loader import load_career, read
+from app.services import career
 from tests.content.conftest import API, PNG, Upload
 
 Clients = Callable[..., TestClient]
@@ -128,6 +131,49 @@ def test_a_save_from_an_older_version_is_refused(
     assert r.status_code == 409
     assert r.json()["error"]["code"] == "career_changed"
     assert client_for().get(CAREER).json()["data"]["checkedOn"] == "9 October 2026"  # nothing was overwritten
+
+
+@pytest.fixture
+def elsewhere(engine: Engine) -> Iterator[sessionmaker[Session]]:
+    """Sessions on connections of their own, for another editor's save; the document they commit goes afterwards."""
+    separate = create_engine(engine.url.render_as_string(hide_password=False), poolclass=NullPool)
+    yield sessionmaker(bind=separate, expire_on_commit=False)
+    with separate.begin() as c:
+        c.execute(delete(ContentDoc).where(ContentDoc.key == "career"))
+    separate.dispose()
+
+
+def test_of_two_first_saves_at_once_the_second_is_told_someone_saved_first(
+    client_for: Clients,
+    admin: User,
+    modules: dict[str, Module],
+    db: Session,
+    elsewhere: sessionmaker[Session],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Both editors open Career Navigator before anyone saved it. The other's first save commits while this one is
+    under way: this one gets the editor's 409, not a clash on the row the other made, and overwrites nothing."""
+    theirs = doc(checkedOn="9 October 2026")
+    real = career._row
+
+    def read_before_theirs(session: Session, *, lock: bool = False) -> ContentDoc | None:
+        monkeypatch.setattr(career, "_row", real)  # only this first read comes before their save
+        found = real(session, lock=lock)
+        with elsewhere() as s:
+            s.execute(
+                text("INSERT INTO content_docs (key, data, version) VALUES ('career', CAST(:data AS jsonb), 1)"),
+                {"data": json.dumps(normalised(theirs))},
+            )
+            s.commit()
+        return found
+
+    monkeypatch.setattr(career, "_row", read_before_theirs)
+    r = client_for(admin).put(CAREER, json=save(doc(checkedOn="10 October 2026"), 0))
+
+    assert r.status_code == 409, r.text
+    assert r.json()["error"]["code"] == "career_changed"
+    db.rollback()  # the request's work ends here, and with it its hold on the row
+    assert client_for().get(CAREER).json()["data"]["checkedOn"] == "9 October 2026"  # theirs, not overwritten
 
 
 def test_lists_are_audited_by_item(client_for: Clients, admin: User, modules: dict[str, Module], db: Session) -> None:

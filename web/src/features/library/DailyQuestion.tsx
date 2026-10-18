@@ -6,7 +6,7 @@ import { inDays, type DayKey } from '../../lib/dates';
 import { Button, PageSection, Panel, SectionHeader } from '../../ui';
 import { AddToBoard } from '../board/public';
 import { DAILY_WINDOW_DAYS, dailyQuestion } from './daily';
-import { sittingLabel, zoneLabel } from '../../lib/exams';
+import { paperLabel } from '../../lib/exams';
 import { questionHref, useModuleQuestions } from './papers';
 import './DailyQuestion.css';
 
@@ -36,9 +36,7 @@ export function DailyQuestion({ moduleId, moduleName, examDays, day, className }
   const q = on && questions.data ? dailyQuestion(questions.data, day) : null;
   if (!q) return null;
   const p = q.paper;
-  const sitting = p.examYear
-    ? [sittingLabel(p.examYear, p.examSession), p.zone ? zoneLabel(p.zone) : null].filter(Boolean).join(', ')
-    : p.title;
+  const sitting = paperLabel(p);
   return (
     <PageSection className={className} aria-labelledby="home-daily" data-hub="daily-question">
       <SectionHeader id="home-daily" title="A past question a day" />

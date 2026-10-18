@@ -21,7 +21,7 @@ test('a student suggests a video and a content editor adds it as a lesson', asyn
   });
   expect(made.status).toBe(201);
   try {
-    await switchOn(browser, 'suggestions', ['video_suggestions']);
+    await switchOn(browser, 'suggestions', ['modules.video-suggestions']);
 
     await sara.goto(`/modules/${id}?tab=lessons`);
     const panel = sara.locator('[data-hub="suggest-video"]');
