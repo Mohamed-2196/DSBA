@@ -8,7 +8,7 @@ import { ApiError, errorMessage } from '../../../api/errors';
 import type { RequestCreate } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { formatShort, parseDay } from '../../../lib/dates';
-import { isZone, ZONES, zoneLabel, type Zone } from '../../../lib/exams';
+import { isZone, RTC_NOTE, ZONES, zoneLabel, type Zone } from '../../../lib/exams';
 import { moduleLabel } from '../../../lib/modules';
 import { dayKeyFromToday, useCalendarEvents } from '../../calendar/public';
 import { LIBRARY_EXAM_KINDS, LIBRARY_KINDS } from '../../library/public';
@@ -241,6 +241,7 @@ export function NewRequestDialog({ open, onClose, kind: initialKind = null }: Ne
                   onChange={(e) => setZone(isZone(e.target.value) ? e.target.value : '')}
                   placeholder="Any zone"
                   options={ZONES.map((z) => ({ value: z, label: zoneLabel(z) }))}
+                  hint={zone === 'RTC' ? RTC_NOTE : undefined}
                   error={errors.zone}
                 />
               </div>
