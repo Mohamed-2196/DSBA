@@ -7,6 +7,8 @@
 //   askNoora(from?)                     bring her back if she is hidden and open her chat card (the command palette)
 //   useMiniNooraHidden()                whether she is hidden on this device (kept up to date)
 //   hideMiniNoora() / showMiniNoora()   hide her, or bring her back
+//   restsAway(pathname)                 whether a page keeps the screen to itself (her own page, the daily games):
+//                                       she waits out of sight there, and the first visit's year prompt waits too
 //   askAboutPaper(paper, from)          open her chat to ask about a past paper's question: { itemId,
 //                                       title, page, question }; she reads that page and the sitting's report
 //   useNooraAiReady()                   whether her AI answers can take such a question now
@@ -19,6 +21,7 @@ export { MiniNoora } from './MiniNoora';
 export { Face as NooraFace } from './Face';
 export { askNoora, openNoora } from './open';
 export { hideMiniNoora, showMiniNoora, useMiniNooraHidden } from './visibility';
+export { restsAway } from './away';
 export { askAboutPaper, PAGE_MAX as PAPER_PAGE_MAX, questionNumber, useNooraAiReady, type PaperAsk } from './paper';
 // Manage's editor loads with Manage (inside its Suspense), so no other page carries it.
 export const NooraEditor = lazy(() => import('./settings/NooraEditor').then((m) => ({ default: m.NooraEditor })));
