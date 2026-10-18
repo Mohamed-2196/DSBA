@@ -55,7 +55,7 @@ import { useInkSync, type InkSync } from './useInkSync';
 import { useNoteEditor, type NoteEditor } from './useNoteEditor';
 import { isPicture, useNoteUploads, type Uploaded } from './useNoteUploads';
 import { useTimeline } from './useTimeline';
-import './Notes.css';
+import './Notebook.css';
 
 const STYLUS_KEY = 'hub.mine.notes.stylus';
 /** Whether resizing a free picture keeps its shape (each student's own choice, kept on this device). */

@@ -62,7 +62,7 @@ import { TITLE_MAX } from './limits';
 import { useLessonPlace } from './lessonPlace';
 import { firstOwnNotebook } from './notebooks';
 import { useStartNote } from './useStartNote';
-import './Notes.css';
+import './NotesPage.css';
 
 function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
   const { getModule } = useModules();

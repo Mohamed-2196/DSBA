@@ -10,7 +10,7 @@ import { useCreateNote, useLessonNotes } from './api';
 import { docFromText, noteLabel } from './draft';
 import { BODY_MAX } from './limits';
 import { useStartNote } from './useStartNote';
-import './Notes.css';
+import './LessonNotes.css';
 
 export interface LessonNotesProps {
   moduleId: string;
