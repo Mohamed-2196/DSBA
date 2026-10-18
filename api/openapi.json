@@ -2870,7 +2870,7 @@
           "admin"
         ],
         "summary": "Update User",
-        "description": "Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\nRecovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding\nAdmin (security review AD-1).\n\nErrors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,\nand so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,\nor suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422).",
+        "description": "Suspend or restore an account, or recover one: replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\nRecovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding\nAdmin (security review AD-1).\n\nErrors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,\nand so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,\nor suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422).",
         "operationId": "update_user_api_v1_admin_users__user_id__patch",
         "parameters": [
           {
@@ -3962,6 +3962,102 @@
               }
             },
             "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/modules/choices": {
+      "get": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Paper Choices",
+        "description": "The choices a student makes inside a year, from the grades calculator's rules: the Year 2 option and the\nelectives, each with how many to pick and its options. A student's papers hold what they picked.",
+        "operationId": "paper_choices_api_v1_modules_choices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaperChoice"
+                  },
+                  "type": "array",
+                  "title": "Response Paper Choices Api V1 Modules Choices Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -24626,6 +24722,120 @@
         }
       }
     },
+    "/api/v1/content/daily/items/{item_id}/fix-today": {
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Fix Today",
+        "description": "Corrects an item today's puzzle uses, for today and the days to come: today's puzzle is made again with it.\nFinished plays keep their results; the others start again on the fixed puzzle. `dryRun` shows today before and\nafter, and changes nothing. Errors: not_found (404), invalid_input (422: the game's rules, a group's level, a fix\ntoday's puzzle can't take), puzzle_changed (409: the item or today's puzzle changed since it was loaded, a new day,\nor today's puzzle doesn't use the item), theme_not_ready (409), rate_limited (429: the most fixes a day).",
+        "operationId": "fix_today_api_v1_content_daily_items__item_id__fix_today_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TodayFixIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodayFixOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/content/daily/import": {
       "post": {
         "tags": [
@@ -25575,6 +25785,98 @@
               }
             },
             "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/today": {
+      "get": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Todays Puzzles",
+        "description": "Today's puzzles with the items each uses and how many signed-in players are partway through or finished:\nwhere a fix starts. Errors: not_out_yet (404: no theme runs yet).",
+        "operationId": "todays_puzzles_api_v1_content_daily_today_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodayPuzzles"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -28279,7 +28581,6 @@
             "type": "string",
             "enum": [
               "study",
-              "revision",
               "assignment",
               "weekly",
               "personal",
@@ -28707,7 +29008,6 @@
             "type": "string",
             "enum": [
               "study",
-              "revision",
               "assignment",
               "weekly",
               "personal",
@@ -32262,12 +32562,6 @@
             "minLength": 1,
             "title": "Intro"
           },
-          "pick": {
-            "type": "integer",
-            "maximum": 6.0,
-            "minimum": 1.0,
-            "title": "Pick"
-          },
           "disclaimer": {
             "type": "string",
             "maxLength": 300,
@@ -32279,11 +32573,10 @@
         "required": [
           "title",
           "intro",
-          "pick",
           "disclaimer"
         ],
         "title": "Electives",
-        "description": "/career/electives: the Year 3 electives side by side, built from the modules and Career Navigator."
+        "description": "/career/electives: the Year 3 electives side by side, built from the modules and Career Navigator; how many a\nstudent takes is the grades calculator's (GET /modules/choices)."
       },
       "ErrorDetail": {
         "properties": {
@@ -32374,6 +32667,7 @@
               "unknown_word",
               "already_tried",
               "game_over",
+              "puzzle_fixed",
               "not_out_yet",
               "puzzle_changed",
               "theme_not_ready"
@@ -35725,7 +36019,7 @@
           "words"
         ],
         "title": "GroupData",
-        "description": "Groups: what the group's words share (shown once it's found), how hard it is (1 plainest to 4 trickiest), and\nits words: four or more, a day shows four of them. No word may be in two groups of the same theme."
+        "description": "Groups: what the group's words share (shown once it's found), how hard it is (1 plainest to 4 trickiest), and\nits words: four to eight. A day shows four of them, picked from the day's seed, and never a word that another of\nthat day's groups has too."
       },
       "GroupMove": {
         "properties": {
@@ -37210,6 +37504,10 @@
             ],
             "title": "Lastused"
           },
+          "inToday": {
+            "type": "boolean",
+            "title": "Intoday"
+          },
           "closest": {
             "anyOf": [
               {
@@ -37240,6 +37538,7 @@
           "version",
           "uses",
           "lastUsed",
+          "inToday",
           "closest",
           "updatedAt"
         ],
@@ -38760,7 +39059,7 @@
         },
         "type": "object",
         "title": "MeUpdate",
-        "description": "Fields that are not sent stay as they are; `year: null` clears the cohort."
+        "description": "Fields that are not sent stay as they are; `year: null` clears the cohort. The first display name (the\nprofile step after signing up) comes with the answer about emails, `preferences.notificationEmails`, unless the\naccount has one."
       },
       "ModuleCreate": {
         "properties": {
@@ -39565,11 +39864,18 @@
             "type": "array",
             "maxItems": 400,
             "title": "History"
+          },
+          "revision": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Revision",
+            "default": 0
           }
         },
         "type": "object",
         "title": "MoveIn",
-        "description": "One move. Signed in, the play is kept on the server and `history` is ignored. A guest's play lives in their\nbrowser: it sends the moves made so far as `history`, and nothing is saved."
+        "description": "One move. Signed in, the play is kept on the server and `history` is ignored. A guest's play lives in their\nbrowser: it sends the moves made so far as `history`, and nothing is saved.\n\n`revision` is the version of the day's puzzle the browser shows (Play.revision), and a guest's history was played\non. When an editor fixed today's puzzle since, a move answers 409 puzzle_fixed; a guest's history that finished\non the earlier version still shows as it finished, and one that didn't starts again on the fixed puzzle."
       },
       "MySenior": {
         "properties": {
@@ -41622,6 +41928,47 @@
         ],
         "title": "Page[VocabularyOut]"
       },
+      "PaperChoice": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "option",
+              "electives"
+            ],
+            "title": "Kind"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "pick": {
+            "type": "integer",
+            "title": "Pick"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/GradeOption"
+            },
+            "type": "array",
+            "title": "Options"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "year",
+          "pick",
+          "options"
+        ],
+        "title": "PaperChoice",
+        "description": "A choice a student makes inside a year: `pick` of the options, the Year 2 option or the electives. Their papers\nhold what they picked (GradeOption.paper_id); without a pick, every module of the year counts."
+      },
       "PaperQuestion": {
         "properties": {
           "id": {
@@ -41958,7 +42305,9 @@
             "enum": [
               "none",
               "daily",
-              "weekly"
+              "weekly",
+              "fortnightly",
+              "monthly"
             ],
             "title": "Repeat",
             "default": "none"
@@ -42092,7 +42441,9 @@
             "enum": [
               "none",
               "daily",
-              "weekly"
+              "weekly",
+              "fortnightly",
+              "monthly"
             ],
             "title": "Repeat"
           },
@@ -42107,6 +42458,17 @@
               }
             ],
             "title": "Repeatuntil"
+          },
+          "monthDay": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthday"
           },
           "skipped": {
             "items": {
@@ -42158,13 +42520,14 @@
           "colour",
           "repeat",
           "repeatUntil",
+          "monthDay",
           "skipped",
           "remind",
           "createdAt",
           "updatedAt"
         ],
         "title": "PersonalEventOut",
-        "description": "An event a student added for themselves: private to them. Without `startTime` it is all day (through\n`endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in\nBahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year), except on the\n`skipped` days."
+        "description": "An event a student added for themselves: private to them. Without `startTime` it is all day (through\n`endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in\nBahrain. A repeat runs every day, week, two weeks or month from `date` until `repeatUntil` (none: for a year),\nexcept on the `skipped` days. A monthly repeat falls on the same day of each month, and on a month's last day\nwhen the month has no such day (the 31st: 30 April, 28 or 29 February). That day is `date`'s, or `monthDay`\nwhen `date` is itself such a last day (a repeat changed from 28 February on keeps the 31st)."
       },
       "PersonalEventUpdate": {
         "properties": {
@@ -42279,7 +42642,9 @@
                 "enum": [
                   "none",
                   "daily",
-                  "weekly"
+                  "weekly",
+                  "fortnightly",
+                  "monthly"
                 ]
               },
               {
@@ -42416,10 +42781,6 @@
             ],
             "title": "Seconds"
           },
-          "tooFast": {
-            "type": "boolean",
-            "title": "Toofast"
-          },
           "result": {
             "anyOf": [
               {
@@ -42441,6 +42802,14 @@
               }
             ],
             "title": "Share"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "restarted": {
+            "type": "boolean",
+            "title": "Restarted"
           },
           "view": {
             "oneOf": [
@@ -42489,9 +42858,10 @@
           "mistakes",
           "hints",
           "seconds",
-          "tooFast",
           "result",
           "share",
+          "revision",
+          "restarted",
           "view"
         ],
         "title": "Play",
@@ -42640,35 +43010,40 @@
       },
       "Preferences": {
         "properties": {
+          "notificationEmails": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notificationemails"
+          },
           "emailReplies": {
             "type": "boolean",
-            "title": "Emailreplies",
-            "default": true
+            "title": "Emailreplies"
           },
           "emailAnswerAccepted": {
             "type": "boolean",
-            "title": "Emailansweraccepted",
-            "default": true
+            "title": "Emailansweraccepted"
           },
           "emailUploadReviews": {
             "type": "boolean",
-            "title": "Emailuploadreviews",
-            "default": true
+            "title": "Emailuploadreviews"
           },
           "emailNewIssues": {
             "type": "boolean",
-            "title": "Emailnewissues",
-            "default": true
+            "title": "Emailnewissues"
           },
           "emailDateChanges": {
             "type": "boolean",
-            "title": "Emaildatechanges",
-            "default": true
+            "title": "Emaildatechanges"
           },
           "emailWeeklySummary": {
             "type": "boolean",
-            "title": "Emailweeklysummary",
-            "default": false
+            "title": "Emailweeklysummary"
           },
           "trackProgress": {
             "type": "boolean",
@@ -42706,11 +43081,31 @@
           }
         },
         "type": "object",
+        "required": [
+          "notificationEmails",
+          "emailReplies",
+          "emailAnswerAccepted",
+          "emailUploadReviews",
+          "emailNewIssues",
+          "emailDateChanges",
+          "emailWeeklySummary"
+        ],
         "title": "Preferences",
-        "description": "Which notifications also come by email (to the account's email address; account security notices always do),\nwhether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Unset means the default\nhere."
+        "description": "Which notifications also come by email (to the account's email address; account security notices always do),\nwhether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Nothing is emailed until the\nperson answers the question about emails when they sign up (`notificationEmails`); then each notification email\nthey never switched follows that answer, and the Sunday summary is off until they turn it on."
       },
       "PreferencesUpdate": {
         "properties": {
+          "notificationEmails": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notificationemails"
+          },
           "emailReplies": {
             "anyOf": [
               {
@@ -42821,7 +43216,7 @@
         },
         "type": "object",
         "title": "PreferencesUpdate",
-        "description": "Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default\nlayout."
+        "description": "Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default\nlayout. The answer about emails is asked when the profile is first saved (MeUpdate); a later one changes every\nnotification email not switched on its own. Turning an email on before there is an answer answers \"no\" for the\nothers."
       },
       "PresignedUpload": {
         "properties": {
@@ -47625,6 +48020,314 @@
         },
         "type": "object",
         "title": "ThreadUpdate"
+      },
+      "TodayFixIn": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "revision": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WordData"
+              },
+              {
+                "$ref": "#/components/schemas/GroupData"
+              },
+              {
+                "$ref": "#/components/schemas/SearchData"
+              },
+              {
+                "$ref": "#/components/schemas/QuizData"
+              },
+              {
+                "$ref": "#/components/schemas/NearestData"
+              }
+            ],
+            "title": "Data",
+            "discriminator": {
+              "propertyName": "game",
+              "mapping": {
+                "groups": "#/components/schemas/GroupData",
+                "nearest": "#/components/schemas/NearestData",
+                "quiz": "#/components/schemas/QuizData",
+                "search": "#/components/schemas/SearchData",
+                "word": "#/components/schemas/WordData"
+              }
+            }
+          },
+          "dryRun": {
+            "type": "boolean",
+            "title": "Dryrun",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "revision",
+          "version",
+          "data"
+        ],
+        "title": "TodayFixIn",
+        "description": "A correction to an item today's puzzle uses: its fields as corrected, for today and the days to come. `day` and\n`revision` are today's puzzle as it was loaded and `version` the item's (409 puzzle_changed when one of them changed\nsince). `dryRun` shows what today becomes and changes nothing."
+      },
+      "TodayFixOut": {
+        "properties": {
+          "applied": {
+            "type": "boolean",
+            "title": "Applied"
+          },
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest"
+            ],
+            "title": "Game"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "before": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PreviewWord"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewGroups"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewSearch"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewQuiz"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewNearest"
+              }
+            ],
+            "title": "Before",
+            "discriminator": {
+              "propertyName": "game",
+              "mapping": {
+                "groups": "#/components/schemas/PreviewGroups",
+                "nearest": "#/components/schemas/PreviewNearest",
+                "quiz": "#/components/schemas/PreviewQuiz",
+                "search": "#/components/schemas/PreviewSearch",
+                "word": "#/components/schemas/PreviewWord"
+              }
+            }
+          },
+          "after": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PreviewWord"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewGroups"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewSearch"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewQuiz"
+              },
+              {
+                "$ref": "#/components/schemas/PreviewNearest"
+              }
+            ],
+            "title": "After",
+            "discriminator": {
+              "propertyName": "game",
+              "mapping": {
+                "groups": "#/components/schemas/PreviewGroups",
+                "nearest": "#/components/schemas/PreviewNearest",
+                "quiz": "#/components/schemas/PreviewQuiz",
+                "search": "#/components/schemas/PreviewSearch",
+                "word": "#/components/schemas/PreviewWord"
+              }
+            }
+          },
+          "changes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Changes"
+          },
+          "playing": {
+            "type": "integer",
+            "title": "Playing"
+          },
+          "finished": {
+            "type": "integer",
+            "title": "Finished"
+          },
+          "item": {
+            "$ref": "#/components/schemas/ItemOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applied",
+          "game",
+          "revision",
+          "before",
+          "after",
+          "changes",
+          "playing",
+          "finished",
+          "item"
+        ],
+        "title": "TodayFixOut"
+      },
+      "TodayGame": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest"
+            ],
+            "title": "Game"
+          },
+          "out": {
+            "type": "boolean",
+            "title": "Out"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "fixesLeft": {
+            "type": "integer",
+            "title": "Fixesleft"
+          },
+          "puzzle": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PreviewWord"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewGroups"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewSearch"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewQuiz"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewNearest"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "game",
+                  "mapping": {
+                    "groups": "#/components/schemas/PreviewGroups",
+                    "nearest": "#/components/schemas/PreviewNearest",
+                    "quiz": "#/components/schemas/PreviewQuiz",
+                    "search": "#/components/schemas/PreviewSearch",
+                    "word": "#/components/schemas/PreviewWord"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Puzzle"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "playing": {
+            "type": "integer",
+            "title": "Playing"
+          },
+          "finished": {
+            "type": "integer",
+            "title": "Finished"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "out",
+          "revision",
+          "fixesLeft",
+          "puzzle",
+          "problem",
+          "items",
+          "playing",
+          "finished"
+        ],
+        "title": "TodayGame",
+        "description": "A game's puzzle today and the items it uses: where a fix starts."
+      },
+      "TodayPuzzles": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme"
+          },
+          "games": {
+            "items": {
+              "$ref": "#/components/schemas/TodayGame"
+            },
+            "type": "array",
+            "title": "Games"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "theme",
+          "games"
+        ],
+        "title": "TodayPuzzles"
       },
       "TourStep": {
         "properties": {

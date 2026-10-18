@@ -14,7 +14,7 @@ from app.schemas.common import ApiModel
 from app.schemas.library import LibraryKind
 
 BoardLinkType = Literal["event", "my_event", "lesson", "module", "library_item"]
-BoardTemplate = Literal["study", "revision", "assignment", "weekly", "personal", "blank"]
+BoardTemplate = Literal["study", "assignment", "weekly", "personal", "blank"]
 BoardColor = Literal["cobalt", "teal", "green", "amber", "coral", "slate"]
 Priority = Literal["none", "low", "medium", "high"]
 # Minutes before the card is due that its reminder comes: at the time, 15 minutes, an hour, a day, two days.

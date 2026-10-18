@@ -358,7 +358,7 @@ def test_one_sheet_holds_at_most_sheet_max_bytes(client_for: ClientFor, make_use
     huge = body(18, 18_000)  # about 3 MB
     r = c.put(f"{API}/notes/{note['id']}/ink/{sheet}", content=huge, headers=JSON_BODY)
     assert (r.status_code, r.json()["error"]["code"]) == (413, "too_large")
-    assert MAX_STROKES * MAX_POINTS <= 8_000_000  # the schema's own ceiling came down with it
+    assert MAX_STROKES * MAX_POINTS <= 8_000_000  # the most ink a sheet may hold fits the schema's ceiling
     fits = body(3, 12_000)
     assert c.put(f"{API}/notes/{note['id']}/ink/{sheet}", content=fits, headers=JSON_BODY).status_code == 200
 

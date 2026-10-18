@@ -14,13 +14,14 @@ from sqlalchemy.orm import Session
 from app.core.errors import conflict
 from app.schemas.daily import Cell, FindMove, HintMove, Move, SearchFound, SearchView
 from app.services.daily import content
-from app.services.daily.content import Entry, NotReadyError, Uses
+from app.services.daily.content import CantFixError, Entry, NotReadyError, Uses
 from app.services.daily.games.base import ContentGame, Status, bad_move
 
 SIZE = 10
 WORDS = 8
 MIN_LETTERS, MAX_LETTERS = 4, SIZE  # a word's length
 MAX_HIDDEN = 60  # letters in the day's eight words together, so they fit the grid with room to spare
+CHOICES = 20_000  # the most words choose() weighs for a day before it calls the theme not ready
 HINT_COST = 10
 MISS_FREE = 3  # misses that cost nothing
 MISS_COST = 2
@@ -92,6 +93,15 @@ def _fits(chosen: list[Entry], entry: Entry) -> bool:
     return all(word not in o and o not in word for o in others) and len(word) + sum(map(len, others)) <= MAX_HIDDEN
 
 
+def _can_finish(chosen: list[Entry], rest: list[Entry]) -> bool:
+    """Whether the words left could still fill the day's places: enough of them fit with those chosen, and the
+    shortest of them leave room in the grid."""
+    need = WORDS - len(chosen)
+    lengths = sorted(len(e.data["word"]) for e in rest if _fits(chosen, e))
+    letters = sum(len(e.data["word"]) for e in chosen)
+    return len(lengths) >= need and letters + sum(lengths[:need]) <= MAX_HIDDEN
+
+
 def _cell(at: tuple[int, int]) -> Cell:
     return Cell(row=at[0], col=at[1])
 
@@ -112,10 +122,34 @@ class SearchGame(ContentGame[Puzzle, SearchState]):
     max_points = 100
     moves = frozenset({"find", "hint", "give-up"})
     max_moves = 200
-    min_seconds = 15
 
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
-        return content.spread(pool, used, day, WORDS, self.id, seed, _fits)
+        """Eight words that fit together, in the order content.ranked() gives: a word is taken only when the words
+        after it can still fill the places left, and a choice that leads nowhere is undone. So a day finds eight
+        whenever the theme has eight that fit, whatever the order, and the readiness check can ask any order."""
+        ranked = content.ranked(pool, used, day, self.id, seed)
+        weighed = 0
+
+        def pick(chosen: list[Entry], start: int) -> list[Entry] | None:
+            nonlocal weighed
+            if len(chosen) == WORDS:
+                return chosen
+            for at in range(start, len(ranked)):
+                entry = ranked[at]
+                weighed += 1
+                if weighed > CHOICES:
+                    raise NotReadyError("search: too many ways to weigh")
+                taken = [*chosen, entry]
+                if _fits(chosen, entry) and _can_finish(taken, ranked[at + 1 :]):
+                    found = pick(taken, at + 1)
+                    if found is not None:
+                        return found
+            return None
+
+        found = pick([], 0)
+        if found is None:
+            raise NotReadyError(f"search: the theme's words can't give {WORDS} that fit together")
+        return found
 
     def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> Puzzle:
         r = content.rng(seed, self.id, day, "grid")
@@ -130,6 +164,28 @@ class SearchGame(ContentGame[Puzzle, SearchState]):
         letters = string.ascii_uppercase
         rows = tuple("".join(ch or r.choice(letters) for ch in row) for row in grid)
         return Puzzle(rows, tuple(sorted(placed, key=lambda p: p.word)))
+
+    def rebuild(
+        self, db: Session, day: dt.date, puzzle: Puzzle, before: list[Entry], after: list[Entry], seed: bytes
+    ) -> Puzzle:
+        """The grid stays while the words do; a word fixed lays the grid out again."""
+        words = sorted(str(e.data["word"]) for e in after)
+        if words == sorted(p.word for p in puzzle.placed):
+            return puzzle
+        for e in after:
+            word = str(e.data["word"])
+            inside = next((w for w in words if w != word and word in w), None)
+            if inside is not None:
+                raise CantFixError(
+                    "data.word",
+                    f"“{word}” is inside “{inside}”, another of today's words: a find of one would read as both.",
+                )
+        letters = sum(map(len, words))
+        if letters > MAX_HIDDEN:
+            raise CantFixError(
+                "data.word", f"Today's eight words would come to {letters} letters, and the grid takes {MAX_HIDDEN}."
+            )
+        return self.build(db, day, sorted(after, key=lambda e: str(e.data["word"])), seed)
 
     def dump(self, puzzle: Puzzle) -> dict[str, Any]:
         placed = [{"word": p.word, "start": list(p.start), "end": list(p.end)} for p in puzzle.placed]
@@ -172,7 +228,7 @@ class SearchGame(ContentGame[Puzzle, SearchState]):
             return "won"
         return "lost" if state.gave_up else "playing"
 
-    def points(self, puzzle: Puzzle, state: SearchState, variant: str, seconds: int) -> int:
+    def points(self, puzzle: Puzzle, state: SearchState, variant: str) -> int:
         if self.status(puzzle, state) != "won":
             return 0
         cost = len(state.hints) * HINT_COST + max(0, state.misses - MISS_FREE) * MISS_COST

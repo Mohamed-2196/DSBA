@@ -34,8 +34,8 @@ from app.services import access
 from app.services.accounts import public_user
 from app.services.content import record
 from app.services.forum.text import clean_body, clean_title, has_text
-from app.services.module_editor import VIDEO_RULE, Video, add_lesson, get_module, link_of, parse_video
-from app.services.modules import MODULE_UNKNOWN, new_id
+from app.services.module_editor import VIDEO_RULE, Video, add_lesson, get_module, parse_video
+from app.services.modules import MODULE_UNKNOWN, link_of, new_id
 from app.services.notify import notify
 from app.services.ratelimit import enforce
 

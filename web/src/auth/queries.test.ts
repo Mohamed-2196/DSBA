@@ -1,5 +1,6 @@
-// Code quality review CQ-1: signing out must reset what mounted hooks hold, not only what storage holds.
+// Signing out must reset what mounted hooks hold, not only what storage holds, in both storage areas.
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { CHATS_KEY, CURRENT_KEY } from '../features/noora/saved';
 import { bindStored, removeStored } from '../state/storedValue';
 import { clearPersonalStorage } from './queries';
 
@@ -25,13 +26,15 @@ class MemoryStorage {
   }
 }
 
-type FakeWindow = EventTarget & { localStorage: MemoryStorage };
+type FakeWindow = EventTarget & { localStorage: MemoryStorage; sessionStorage: MemoryStorage };
 const g = globalThis as unknown as { window?: FakeWindow };
 let storage: MemoryStorage;
+let session: MemoryStorage;
 
 beforeEach(() => {
   storage = new MemoryStorage();
-  g.window = Object.assign(new EventTarget(), { localStorage: storage });
+  session = new MemoryStorage();
+  g.window = Object.assign(new EventTarget(), { localStorage: storage, sessionStorage: session });
 });
 
 afterEach(() => {
@@ -76,6 +79,21 @@ describe('clearPersonalStorage', () => {
     expect(storage.getItem('theme')).toBe('dark');
     expect(storage.getItem('selectedYear')).toBe('"2"');
     expect(storage.getItem('hub.progress')).toBe('{}');
+  });
+
+  it('removes Noora’s chats from both storage areas', () => {
+    storage.setItem('theme', '"dark"');
+    storage.setItem(
+      CHATS_KEY,
+      JSON.stringify([{ id: 'chat-1', at: 1, title: 'Is my resit fee refundable?', messages: [] }]),
+    );
+    session.setItem(CURRENT_KEY, JSON.stringify({ id: 'chat-1', messages: [] }));
+    session.setItem('hub.other', '1');
+    clearPersonalStorage();
+    expect(storage.getItem(CHATS_KEY)).toBeNull();
+    expect(session.getItem(CURRENT_KEY)).toBeNull();
+    expect(storage.getItem('theme')).toBe('"dark"'); // device settings stay
+    expect(session.getItem('hub.other')).toBe('1');
   });
 
   it('does nothing when storage is unavailable', () => {

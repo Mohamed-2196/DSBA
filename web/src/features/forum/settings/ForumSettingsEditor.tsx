@@ -28,7 +28,8 @@ import {
 } from '../../../ui';
 import { FORUM_ICONS } from '../components/forumIcons';
 import { CategoryMark } from '../components/ForumSidebar';
-import type { ForumCategory, ForumGuideline, ForumIcon, ForumTag, ForumTip } from '../types';
+import type { ForumCategoryOut, ForumGuideline, ForumTagOut, ForumTip } from '../../../api/types';
+import type { ForumIcon } from '../types';
 import { useForumSettings, useReloadForumSettings, useSaveForumSettings } from './api';
 import { withSavedIds } from './ids';
 import '../components/forum.css';
@@ -210,7 +211,7 @@ function Editor({
                 (defaultOk ? undefined : 'Choose a category for every year that isn’t retired.')
               }
             />
-            <ListEditor<ForumCategory>
+            <ListEditor<ForumCategoryOut>
               items={doc.categories}
               noun="category"
               titleOf={(c) => c.label}
@@ -307,7 +308,7 @@ function Editor({
         ) : null}
 
         {section === 'tags' ? (
-          <ListEditor<ForumTag>
+          <ListEditor<ForumTagOut>
             items={doc.tags}
             noun="tag"
             titleOf={(t) => t.label}
@@ -445,7 +446,7 @@ function Editor({
   );
 }
 
-function CategoryMeta({ category, threads: n }: { category: ForumCategory; threads: number }) {
+function CategoryMeta({ category, threads: n }: { category: ForumCategoryOut; threads: number }) {
   return (
     <span className="forum-set__meta">
       {category.retired ? (

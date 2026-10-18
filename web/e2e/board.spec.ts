@@ -1,4 +1,4 @@
-// Boards (R-4): they arrive switched off. With them on, a student starts a board from a template, adds a card, moves
+// Boards: they arrive switched off. With them on, a student starts a board from a template, adds a card, moves
 // it with the card's menu, adds an exam from the calendar and opens it on the board. The switch goes back off
 // afterwards.
 import { expect, test } from './fixtures';

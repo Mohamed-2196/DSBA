@@ -114,6 +114,8 @@ def test_they_follow_the_grades_switch(client_for: Clients, student: User, set_f
         (lambda d: d["year2Options"][2].update(label=None), "data"),
         (lambda d: d.update(subjects=[]), "data.subjects"),
         (lambda d: d["subjects"][0].update(moduleId="basket-weaving"), "data"),  # no such module
+        (lambda d: d["subjects"][12].update(year=2), "data"),  # the electives in two years
+        (lambda d: d["subjects"][8].update(year=3), "data"),  # the option in the electives' year
     ],
 )
 def test_the_rules_are_checked(

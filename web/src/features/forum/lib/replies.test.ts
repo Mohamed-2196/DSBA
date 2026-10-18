@@ -59,7 +59,7 @@ describe('nestReplies', () => {
   });
 });
 
-describe('participants (ST-11)', () => {
+describe('participants', () => {
   it('counts the people who replied, not the thread author who did not', () => {
     const p = participants([reply({ author: person('fatima', 'Fatima Ahmed') })]);
     expect(p.count).toBe(1);
@@ -83,7 +83,7 @@ describe('participants (ST-11)', () => {
 });
 
 describe('hidden posts', () => {
-  it('knows a hidden post whose text was deleted (SEC-15): reps see it and cannot edit it', () => {
+  it('knows a hidden post whose text was deleted: reps see it and cannot edit it', () => {
     expect(textDeleted({ status: 'hidden', canEdit: false }, true)).toBe(true);
     expect(textDeleted({ status: 'hidden', canEdit: true }, true)).toBe(false);
     expect(textDeleted({ status: 'hidden', canEdit: false }, false)).toBe(false);
@@ -105,7 +105,7 @@ describe('hidden posts', () => {
   });
 });
 
-describe('links to a reply (ST-4)', () => {
+describe('links to a reply', () => {
   it('reads the reply id from #reply-<id>, and nothing else', () => {
     expect(replyTargetId('#reply-7511c4f7-ffbf-4f8e-8500-93334507e674')).toBe('7511c4f7-ffbf-4f8e-8500-93334507e674');
     expect(replyTargetId('')).toBeNull();

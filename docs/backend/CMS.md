@@ -23,7 +23,7 @@ D11). Admin holds every box. Last checked 2026-10-18 (round 12).
 | Site settings: the links to MyClass, the UoL portal, the programme regulations and exam entry and results (label, address, a line on what each is for); About's words; contributors; students who shared notes (each module linking to its notes in the library); the footer's lines, copyright holder and launch year; the note under the grades calculator's class; Home's blocks for a student who hasn't arranged their own (a guest's leave out what needs an account); the tour's steps (title, words with keys in backticks and `{mod}`, illustration); search's other words for modules ("stats" finds modules named "statistic…") and its suggested searches | Manage → Site settings | admins | `api/app/seed/data/site.json`, until the first save |
 | Mini Noora's instructions and the programme facts her AI reads first (with a preview of the whole prompt); her script: what she says without her AI (greeting, who she is, thanks, refusal, "nothing found", photos and files), the questions she offers after hello and when nothing matches, the questions on each page (with `{module}` and `{module2}`, and whether each needs the calendar or the library), the line on her full page and its starter cards (four or eight, so they fill whole rows) | Manage → Mini Noora | admins | `api/app/seed/data/noora.json`, until the first save |
 | The grades calculator's rules: its subjects in order (a module, or a choice the student makes), what each counts (1, 2 or 3 classification marks, or the average of those averaged) and what that average counts; where each band starts and its US GPA; what each class needs (the marks in its band or better, the smaller number with an average, and each class's average); Third Class Honours in the regulations' words; which regulations hold the rules; the modules a student picks for the Year 2 option and the electives | Manage → Grades calculator (a worked example recalculates as the draft changes, beside what the saved rules give) | admins | `api/app/seed/data/grades.json`, until the first save |
-| Daily puzzles: themes, their order in the rotation and the theme of any week to come; each game's items (answer words, groups, word search words, quiz questions with their module, Nearest neighbour's secret words), retired or brought back; the word game's guess list; Nearest neighbour's vocabulary (tags, close words); bulk imports of word lists and spreadsheet rows; a preview of any day | Manage → Daily puzzles | `content.edit` | the themes and the public guess list in `api/app/seed/data/daily`; the puzzles from the private content file (below) |
+| Daily puzzles: today's puzzles and a fix to a mistake in them (below); themes, their order in the rotation and the theme of any week to come; each game's items (answer words, groups of four to eight words, word search words, quiz questions with their module, Nearest neighbour's secret words), retired or brought back; the word game's guess list; Nearest neighbour's vocabulary (tags, close words); bulk imports of word lists and spreadsheet rows; a preview of any day | Manage → Daily puzzles | `content.edit` | the themes and the public guess list in `api/app/seed/data/daily`; the puzzles from the private content file (below) |
 | Daily puzzles' content file, loaded on a new install | Manage → Daily puzzles → Load a content file, or `python -m app.cli daily-content import FILE` | admins | the file kept out of the repository |
 | Mini Noora's daily limit per student and monthly budget | Manage → Numbers | admins | defaults in the code |
 | Roles and what each may do; feature switches | Access | admins | the baseline migration |
@@ -36,6 +36,9 @@ against the version the editor loaded (a save someone else made first is refused
 goes to the activity log with what changed, before and after. Each shows what a change does before it's saved (a
 preview, or the grades calculator's worked example), and none links to Google Drive or Docs. Pictures are uploaded
 (`module_art`, `newsletter_image`, `career_logo`) and shown only once something students see uses them.
+
+A field added to one of these documents gets a default in its schema (`api/app/schemas`): a saved document without
+the field reads with the default, so no migration copies new parts into saved documents and reading one never fails.
 
 The grades calculator keeps a student's marks in their browser by subject id, so a change to the subjects never moves
 anyone's marks; the marks never reach the server.
@@ -71,6 +74,28 @@ there stays as it is, so loading the same file again changes nothing. Themes joi
 with none yet) once every game has what it needs. The activity log keeps one entry per load that changed something,
 with counts only. After that, everything is edited in Manage → Daily puzzles: changes reach the days to come, and a
 day that is out keeps its puzzles.
+
+### Daily puzzles: fixing a mistake in today's
+
+A day's puzzles are stored the first time anyone opens them, and edits reach the days to come. A mistake in today's
+puzzle (a typo in a question, a wrong word in a group, a wrong answer) is fixed in Manage → Daily puzzles → Today:
+
+- **Today** lists each game's puzzle as students have it, with the items it uses (a group's four words on today's
+  board and the rest of its list) and how many signed-in students finished it or are partway through. A puzzle
+  nobody has opened yet is made from the items as they are when someone does, so an edit reaches it.
+- **Fix** opens the item with "Fix today's puzzle too" on (an item in today's puzzle shows "In today's puzzle" in its
+  game's list too). Preview today shows what changes in plain words, who it reaches and today's puzzle with the
+  change highlighted; nothing changes until Apply to today. A fix keeps the item's theme and a group's level, and
+  changes only what it needs: a word fixed in a group changes that word on the board.
+- **What players see.** Finished games keep their results and points, on the puzzle they finished. Games not
+  finished start again on the fixed puzzle, and a player who had made moves sees "We fixed a mistake in today's
+  puzzle, so your game started again." until their next move. Guests' games follow the same rule.
+- The fix goes to the activity log with the item before and after and what changed today. A game takes five fixes a
+  day; after that, edits reach the days to come only.
+
+Correlations groups hold four to eight words. Each day shows four words of each of its four groups, picked from the
+day's seed, so a group's words change from day to day; a word may be in two groups of a theme, and a day with both
+groups shows neither of them that word.
 
 ## Still in the code
 

@@ -1,4 +1,4 @@
-"""A student's private notebook (R-5): notebooks, notes, their ink and files. Reading needs an account; writing an
+"""A student's private notebook: notebooks, notes, their ink and files. Reading needs an account; writing an
 active one (a suspended account reads its notes). Nobody else, admins included, reads someone's notebook: another
 person's notebook, note or file answers 404."""
 

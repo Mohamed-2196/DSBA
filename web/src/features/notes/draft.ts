@@ -82,7 +82,7 @@ export const sameDoc = (a: NoteDoc | null | undefined, b: NoteDoc | null | undef
 
 const PAPERS: readonly Paper[] = ['blank', 'lined', 'grid', 'dotted'];
 
-/** A stored draft, or null when there is none or it isn't one (storage edited by hand, an older shape). */
+/** A stored draft, or null when there is none or what is stored isn't a draft (storage edited by hand). */
 export function asDraft(value: unknown): Draft | null {
   if (!isRecord(value)) return null;
   const { doc, base, at } = value;

@@ -411,7 +411,6 @@ def test_the_workers_database_role_reaches_only_what_the_worker_needs(
             assert row is not None
             assert (row.status, row.cover_key) == (TextStatus.done, paper_text.cover_key(item_id))
             assert w.scalar(select(LibraryItem.content_hash).where(LibraryItem.id == item_id)) is not None
-            assert paper_text.without_cover(w) == []
             paper_text.forget(w, (TextStatus.failed,))
             w.commit()
             for elsewhere in (

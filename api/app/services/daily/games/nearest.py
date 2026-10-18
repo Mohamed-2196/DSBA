@@ -113,7 +113,6 @@ class NearestGame(ContentGame[Puzzle, NearestState]):
     max_points = 100
     moves = frozenset({"guess", "hint", "give-up"})
     max_moves = 300
-    min_seconds = 4  # from opening the puzzle: a first-guess win any faster was looked up
 
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
         return content.spread(pool, used, day, 1, self.id, seed, lambda _, e: bool(e.ranking))
@@ -163,7 +162,7 @@ class NearestGame(ContentGame[Puzzle, NearestState]):
             return "won"
         return "lost" if state.gave_up else "playing"
 
-    def points(self, puzzle: Puzzle, state: NearestState, variant: str, seconds: int) -> int:
+    def points(self, puzzle: Puzzle, state: NearestState, variant: str) -> int:
         if self.status(puzzle, state) != "won":
             return 0
         guesses = sum(not g.hint for g in state.guesses)

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import type { GradeRulesEditable, GradeRulesSave } from '../../api/types';
+import { PAPER_CHOICES_KEY } from '../papers/public';
 
 export const GRADE_RULES_KEY = ['grades', 'rules'] as const;
 
@@ -35,6 +36,7 @@ export function useSaveGradeRules() {
     onSuccess: (saved: GradeRulesEditable) => {
       qc.setQueryData(EDIT_RULES_KEY, saved);
       qc.setQueryData(GRADE_RULES_KEY, saved.data);
+      void qc.invalidateQueries({ queryKey: PAPER_CHOICES_KEY }); // the option and electives come from the rules
     },
   });
 }

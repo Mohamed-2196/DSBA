@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EventGap, GapModule, LessonGap } from '../../api/types';
-import { eventMissing, lessonLine, moduleEditor, moduleFiles, moduleName } from './gapLabels';
+import { eventMissing, lessonLine, moduleEditor, moduleFiles } from './gapLabels';
 
 const st2133: GapModule = {
   id: 'advanced-stats-distribution',
@@ -29,8 +29,6 @@ const exam = (g: Partial<EventGap>): EventGap => ({
 
 describe('gaps', () => {
   it('names modules and links to where they are fixed', () => {
-    expect(moduleName(st2133)).toBe('ST2133 Advanced statistics');
-    expect(moduleName({ ...st2133, unitCode: null })).toBe('Advanced statistics');
     expect(moduleFiles(st2133)).toBe('/modules/advanced-stats-distribution?tab=files');
     expect(moduleEditor(st2133)).toBe('/manage?tab=content&module=advanced-stats-distribution');
   });

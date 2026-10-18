@@ -126,6 +126,7 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
         "needsProfile": False,
         "createdAt": r.json()["createdAt"],
         "preferences": {
+            "notificationEmails": True,
             "emailReplies": True,
             "emailAnswerAccepted": True,
             "emailUploadReviews": True,
@@ -160,14 +161,71 @@ def test_your_papers(client_for: ClientFor, make_user: MakeUser) -> None:
     assert c.patch(f"{API}/me", json={"papers": [f"m{i}" for i in range(21)]}).status_code == 422
 
 
-def test_the_profile_step(client_for: ClientFor, make_user: MakeUser) -> None:
-    c = client_for(make_user(name=None, year=None))
-    assert c.get(f"{API}/me").json()["needsProfile"] is True
-    r = c.patch(f"{API}/me", json={"displayName": "  Sara   Ahmed ", "year": 1})
+def test_the_profile_step(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+    user = make_user(name=None, year=None, emails=None)
+    c = client_for(user)
+    me = c.get(f"{API}/me").json()
+    assert (me["needsProfile"], me["preferences"]["notificationEmails"]) == (True, None)
+    # the question about emails is answered with the name: yes or no, never left out
+    r = c.patch(f"{API}/me", json={"displayName": "Sara Ahmed", "year": 1})
+    assert (r.status_code, r.json()["error"]["code"]) == (422, "invalid_input")
+    assert list(r.json()["error"]["fields"]) == ["preferences.notificationEmails"]
+    r = c.patch(f"{API}/me", json={"displayName": "Sara Ahmed", "preferences": {"notificationEmails": None}})
+    assert r.status_code == 422
+    assert _fresh(db, User, user.id).display_name is None  # nothing was saved
+    r = c.patch(
+        f"{API}/me", json={"displayName": "  Sara   Ahmed ", "year": 1, "preferences": {"notificationEmails": False}}
+    )
     assert r.status_code == 200, r.text
     assert r.json()["displayName"] == "Sara Ahmed"
     assert r.json()["year"] == 1
     assert r.json()["needsProfile"] is False
+    assert r.json()["preferences"]["notificationEmails"] is False
+    # once there is a profile, a new name needs nothing more
+    assert c.patch(f"{API}/me", json={"displayName": "Sara A."}).status_code == 200
+
+
+def test_the_answer_about_emails_starts_every_notification_email(client_for: ClientFor, make_user: MakeUser) -> None:
+    notifications = ["emailReplies", "emailAnswerAccepted", "emailUploadReviews", "emailNewIssues", "emailDateChanges"]
+    c = client_for(make_user(name=None, emails=None))
+    before = c.get(f"{API}/me").json()["preferences"]
+    assert [before[s] for s in [*notifications, "emailWeeklySummary"]] == [False] * 6  # nothing before an answer
+    yes = c.patch(f"{API}/me", json={"displayName": "Omar", "preferences": {"notificationEmails": True}}).json()
+    assert [yes["preferences"][s] for s in notifications] == [True] * 5
+    assert yes["preferences"]["emailWeeklySummary"] is False  # the Sunday summary is asked for on its own
+    no = client_for(make_user(name=None, emails=None))
+    r = no.patch(f"{API}/me", json={"displayName": "Huda", "preferences": {"notificationEmails": False}})
+    assert [r.json()["preferences"][s] for s in notifications] == [False] * 5
+    # each one changes on its own; the answer changed later moves the ones never switched
+    r = no.patch(f"{API}/me", json={"preferences": {"emailDateChanges": True}})
+    assert [r.json()["preferences"][s] for s in notifications] == [False, False, False, False, True]
+    r = no.patch(f"{API}/me", json={"preferences": {"notificationEmails": True, "emailNewIssues": False}})
+    assert [r.json()["preferences"][s] for s in notifications] == [True, True, True, False, True]
+    r = no.patch(f"{API}/me", json={"preferences": {"notificationEmails": None}})  # null: unchanged
+    assert r.json()["preferences"]["notificationEmails"] is True
+
+
+def test_an_email_turned_on_before_an_answer_answers_no_for_the_others(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    """An account with a profile and no answer (made with dev-login): its switches show off, and work."""
+    user = make_user(emails=None)
+    c = client_for(user)
+    r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": False}})  # turned off: still no answer
+    assert r.json()["preferences"]["notificationEmails"] is None
+    r = c.patch(f"{API}/me", json={"preferences": {"emailNewIssues": True}})
+    prefs = r.json()["preferences"]
+    assert [prefs[s] for s in ("notificationEmails", "emailNewIssues", "emailReplies", "emailDateChanges")] == [
+        False,
+        True,
+        False,
+        False,
+    ]
+    assert _fresh(db, User, user.id).preferences == {
+        "notification_emails": False,
+        "email_replies": False,
+        "email_new_issues": True,
+    }
 
 
 @pytest.mark.parametrize(
@@ -337,9 +395,10 @@ def test_year(client_for: ClientFor, make_user: MakeUser) -> None:
 
 
 def _switches(**changed: bool) -> dict[str, object]:
-    """The preferences as the API shows them: each switch at its default (the Sunday summary and lesson progress
-    off, the others on; Home's default layout) except those given."""
+    """The preferences as the API shows them to someone who answered yes about emails at sign-up: the Sunday summary
+    and lesson progress off, the other emails on, Home's default layout; except those given."""
     defaults: dict[str, object] = {
+        "notificationEmails": True,
         "emailReplies": True,
         "emailAnswerAccepted": True,
         "emailUploadReviews": True,
@@ -353,7 +412,8 @@ def _switches(**changed: bool) -> dict[str, object]:
 
 
 def test_preferences_one_switch_per_kind_of_email(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
-    """Decision D1: one switch per kind of email; only what is off is stored (unset means on)."""
+    """Decision D1: one switch per kind of email. A switch set is stored; one never set follows the answer about
+    emails at sign-up."""
     user = make_user()
     c = client_for(user)
     r = c.patch(f"{API}/me", json={"preferences": {"emailNewIssues": False}})
@@ -362,7 +422,11 @@ def test_preferences_one_switch_per_kind_of_email(client_for: ClientFor, make_us
     r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": False, "emailNewIssues": None}})
     assert r.json()["preferences"] == _switches(emailReplies=False, emailNewIssues=False)  # null: unchanged
     assert c.get(f"{API}/me").json()["preferences"] == _switches(emailReplies=False, emailNewIssues=False)
-    assert _fresh(db, User, user.id).preferences == {"email_replies": False, "email_new_issues": False}
+    assert _fresh(db, User, user.id).preferences == {
+        "notification_emails": True,
+        "email_replies": False,
+        "email_new_issues": False,
+    }
     r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": True, "emailNewIssues": True}})
     assert r.json()["preferences"] == _switches()
     r = c.patch(f"{API}/me", json={"preferences": {"emailWeeklySummary": True}})  # opt-in: stored when on
@@ -378,7 +442,11 @@ def test_lesson_progress_is_opt_in(client_for: ClientFor, make_user: MakeUser, d
     assert r.json()["preferences"] == _switches(trackProgress=True)
     r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": False}})
     assert r.json()["preferences"] == _switches(trackProgress=True, emailReplies=False)  # the others stay
-    assert _fresh(db, User, user.id).preferences == {"track_progress": True, "email_replies": False}
+    assert _fresh(db, User, user.id).preferences == {
+        "notification_emails": True,
+        "track_progress": True,
+        "email_replies": False,
+    }
 
 
 def test_home_blocks(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:

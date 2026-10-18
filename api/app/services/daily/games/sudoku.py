@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas.daily import HintMove, Move, PlaceMove, SudokuDifficulty, SudokuView
 from app.services.daily import content
-from app.services.daily.games.base import Game, Status, bad_move
+from app.services.daily.games.base import Edition, Game, Status, bad_move
 from app.services.daily.sudoku_engine import PEERS, generate
 
 BASE: dict[str, int] = {"easy": 60, "medium": 100, "hard": 150}
@@ -69,12 +69,11 @@ class SudokuGame(Game[Puzzle, SudokuState]):
     max_points = BASE["hard"]
     moves = frozenset({"place", "hint", "give-up"})
     max_moves = 400
-    min_seconds = 40
 
-    def puzzle(self, db: Session, day: dt.date, variant: str) -> Puzzle:
+    def edition(self, db: Session, day: dt.date, variant: str) -> Edition[Puzzle]:
         difficulty = cast(SudokuDifficulty, variant)
-        data = content.seeded_puzzle(db, self.id, variant, day, lambda seed: _make(seed, day, difficulty))
-        return Puzzle(difficulty, tuple(data["givens"]), tuple(data["solution"]))
+        kept = content.seeded_puzzle(db, self.id, variant, day, lambda seed: _make(seed, day, difficulty))
+        return Edition(Puzzle(difficulty, tuple(kept.puzzle["givens"]), tuple(kept.puzzle["solution"])), kept.revision)
 
     def start(self, puzzle: Puzzle) -> SudokuState:
         return SudokuState()
@@ -107,7 +106,7 @@ class SudokuGame(Game[Puzzle, SudokuState]):
             return "won"
         return "playing"
 
-    def points(self, puzzle: Puzzle, state: SudokuState, variant: str, seconds: int) -> int:
+    def points(self, puzzle: Puzzle, state: SudokuState, variant: str) -> int:
         if self.status(puzzle, state) != "won":
             return 0
         cost = state.mistakes * MISTAKE_COST + len(state.hinted) * HINT_COST

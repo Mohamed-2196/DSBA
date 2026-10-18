@@ -13,7 +13,8 @@ import './DailyCard.css';
 export function DailyCard() {
   const today = useDailyToday();
 
-  if (today.isPending) {
+  // What has loaded stays on screen when a later refresh fails.
+  if (today.data === undefined && !today.isError) {
     return (
       <Panel padding="none" className="dy home-daily" aria-busy="true">
         <span className="visually-hidden">Loading the daily puzzles</span>
@@ -25,7 +26,7 @@ export function DailyCard() {
       </Panel>
     );
   }
-  if (today.isError) {
+  if (today.data === undefined) {
     return (
       <QueryError
         error={today.error}
