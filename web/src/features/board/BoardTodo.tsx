@@ -1,11 +1,12 @@
-// Home's "My to-do": overdue and upcoming cards across the student's active boards.
+// Home's "To-do": the cards overdue or due in the next TODAY_DAYS days across the student's active boards, as the
+// boards' Today view lists them. Cards without a date stay on the boards.
 import { Kanban } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import type { AgendaCard } from '../../api/types';
 import { Badge, Button, EmptyState, Panel, QueryError, Skeleton, safeInternalPath } from '../../ui';
 import { formatDay, todayKey } from '../../lib/dates';
 import { useAgenda } from './api';
-import { colorVar, dueLabel, isOverdue } from './board';
+import { TODAY_DAYS, colorVar, dueLabel, isOverdue } from './board';
 import './BoardTodo.css';
 
 function TodoRow({ card, today }: { card: AgendaCard; today: string }) {
@@ -39,9 +40,9 @@ function TodoRow({ card, today }: { card: AgendaCard; today: string }) {
   );
 }
 
-/** The first `n` cards due soon or overdue across active boards, or an invitation to add cards. */
+/** The first `n` cards overdue or due soon across active boards, and "N more" for the rest in Today. */
 export function BoardTodo({ n = 5 }: { n?: number }) {
-  const agenda = useAgenda({ days: 14 });
+  const agenda = useAgenda({ days: TODAY_DAYS });
   const today = todayKey();
 
   if (agenda.isPending) {
@@ -74,8 +75,8 @@ export function BoardTodo({ n = 5 }: { n?: number }) {
         <EmptyState
           size="sm"
           icon={Kanban}
-          title="Nothing to do right now"
-          body="Add tasks, lessons and deadlines to your boards to plan your study."
+          title={`Nothing due in the next ${TODAY_DAYS} days`}
+          body="Cards with a due date show here, from all your boards."
           action={
             <Button size="sm" to="/board">
               Open my boards

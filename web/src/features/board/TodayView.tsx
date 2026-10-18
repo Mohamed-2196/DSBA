@@ -6,11 +6,8 @@ import type { AgendaCard, BoardSummary } from '../../api/types';
 import { formatDay, todayKey } from '../../lib/dates';
 import { EmptyState, QueryError, Skeleton, cx } from '../../ui';
 import { useAgenda } from './api';
-import { agendaSections, colorVar, doneColumn, dueLabel, timeText, type AgendaSection } from './board';
+import { TODAY_DAYS, agendaSections, colorVar, doneColumn, dueLabel, timeText, type AgendaSection } from './board';
 import { PriorityBadge } from './CardItem';
-
-/** How far ahead Today looks. */
-export const TODAY_DAYS = 7;
 
 /** When a card is due, as its section doesn't already say: how late, the time, or the day and time. */
 function whenText(section: AgendaSection['id'], card: AgendaCard, today: string): string | null {
@@ -61,7 +58,7 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
     return (
       <EmptyState
         illustration="nothing-due"
-        title="Nothing due in the next 7 days"
+        title={`Nothing due in the next ${TODAY_DAYS} days`}
         body="Cards with a due date show here from all your boards, overdue ones first."
       />
     );

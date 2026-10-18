@@ -70,6 +70,7 @@ import {
   placeCard,
   planPace,
   storageText,
+  TODAY_DAYS,
   type CardFilter,
 } from './board';
 import { BoardDialog } from './BoardDialog';
@@ -81,7 +82,7 @@ import { LabelDialog } from './LabelDialog';
 import { ListView } from './ListView';
 import { ScoreDialog } from './ScoreDialog';
 import { usePaperScores } from './scores';
-import { TODAY_DAYS, TodayView } from './TodayView';
+import { TodayView } from './TodayView';
 import type { Adding, CardActions, FocusRequest } from './types';
 import { useScrollEdges } from './useScrollEdges';
 import './BoardPage.css';

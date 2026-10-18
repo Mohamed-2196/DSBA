@@ -370,6 +370,10 @@ export function matches(card: BoardCard, f: CardFilter, today: DayKey): boolean 
   return due >= today && due <= addDaysToKey(today, 7);
 }
 
+/** How far ahead the agenda looks, in days: the boards' Today and Home's To-do. Cards without a date stay on the
+ *  boards. */
+export const TODAY_DAYS = 7;
+
 export interface AgendaSection {
   id: 'overdue' | 'today' | 'tomorrow' | 'week';
   title: string;

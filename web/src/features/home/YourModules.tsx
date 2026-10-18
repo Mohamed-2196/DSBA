@@ -5,7 +5,7 @@ import { useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, ModuleArt, ModuleIcon, cx, moduleArtSrc } from '../../ui';
-import { useCalendarEvents } from '../calendar/public';
+import { useMyCalendarEvents } from '../calendar/public';
 import { useModuleProgress } from '../modules/public';
 import { PapersDialog, modulesFor, papersNote, usePapers } from '../papers/public';
 import { dayKey, daysBetween, formatDayMonth, formatLongDay, inDays, parseDay } from '../../lib/dates';
@@ -92,7 +92,11 @@ function ModulesNote() {
 export function YourModules({ year, today, mine }: { year: CohortYear; today: Date; mine: boolean }) {
   const { modules: catalogue } = useModules();
   const { papers } = usePapers();
-  const exams = useCalendarEvents({ from: dayKey(today), type: 'exam' }, { enabled: useAuth().featureOn('calendar') });
+  // Less the dates the student hid from their calendar, as Up next.
+  const exams = useMyCalendarEvents(
+    { from: dayKey(today), type: 'exam' },
+    { enabled: useAuth().featureOn('calendar') },
+  );
   const nextExam = (moduleId: string): NextExam | null => {
     const e = (exams.data ?? []).find((ev) => ev.moduleId === moduleId && !ev.sample);
     if (!e) return null;

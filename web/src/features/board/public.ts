@@ -5,8 +5,9 @@
 //   <PlanRevision moduleId moduleName examDate />
 //                                        "Plan my revision": the module's unwatched lessons and past papers, spread to
 //                                        the exam on the board. Gate it with featureOn('board').
-//   <BoardTodo n />                      Home's "My to-do": the In progress and To do cards, due dates, "N more on your
-//                                        board". Signed in, with featureOn('board').
+//   <BoardTodo n />                      Home's "To-do": the first n cards overdue or due in the next 7 days on the
+//                                        active boards (cards without a date stay there), and "N more on your boards",
+//                                        which opens Today. Signed in, with featureOn('board').
 //   <SittingsDone papers />              "4 of 12 sittings done" from the board (nothing until one is done)
 //   <PaperDone itemId />                 a "Done" badge, with the private score, for a paper done on the board
 export { AddToBoard } from './AddToBoard';

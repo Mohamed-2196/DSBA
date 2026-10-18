@@ -41,7 +41,7 @@ export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
   },
   todo: {
     title: 'To-do',
-    description: 'What’s to do and in progress on your study board.',
+    description: 'Cards overdue or due in the next 7 days, from all your boards.',
     features: ['board'],
     account: true,
     span: 'card',
