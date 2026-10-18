@@ -15,6 +15,6 @@
 .nl-set__title { margin: 0; font-size: var(--fs-16); font-weight: var(--fw-semibold); }
 .nl-set__masthead { margin-bottom: 0; }
 .nl-set__gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: var(--sp-16); margin: 0; }
-.nl-set__gallery li { display: grid; gap: var(--sp-8); min-width: 0; }
+.nl-set__gallery li { display: grid; align-content: start; gap: var(--sp-8); min-width: 0; }
 .nl-set__gallery .nl-set__thumb { max-width: none; }
 .nl-set__caption { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); font-size: var(--fs-14); }
