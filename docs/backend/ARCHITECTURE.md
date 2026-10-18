@@ -414,7 +414,8 @@ questions they raised:
 
 - **D1 Email notifications are real.** Notifications that matter go out by email to people who have an email
   address and keep the matching switch on: replies to your thread or reply, your answer accepted, your upload
-  published or rejected, account security notices (already sent), and new newsletter issues. Delivery uses an
+  published or rejected, account security notices (already sent), new newsletter issues and date changes. Sign-up
+  asks once whether to email them; that answer sets every switch, and until it is given nothing is emailed. Delivery uses an
   outbox table drained by a worker, so a slow mail server never slows a request and failures retry. The
   switches on Your account map one-to-one to these kinds, and the in-app notification is never silenced by an
   email switch.
