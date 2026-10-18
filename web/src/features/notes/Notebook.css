@@ -1119,13 +1119,16 @@ html:has(.nb--full) .noora {
   color: var(--page-ink-3);
   font-size: 28px;
 }
+/* under the picture, on the page's colour like the picture itself: readable over the writing it covers */
 .nb-free__caption {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
   margin: 0;
-  padding-top: 4px;
+  padding: 2px 6px 4px;
+  border-radius: 0 0 3px 3px;
+  background: var(--page);
   color: var(--page-ink-2);
   font: 14px/20px var(--font-sans);
   text-align: center;
