@@ -41,6 +41,7 @@ from app.schemas.library import (
     EXAM_SOLUTIONS,
     EXAMINERS_REPORT,
     ZONES,
+    ExamSession,
     FileLink,
     LibraryFacets,
     LibraryItemCreate,
@@ -50,6 +51,7 @@ from app.schemas.library import (
     PaperSittings,
     Sitting,
     SittingZone,
+    Zone,
 )
 from app.schemas.library import LibraryItem as LibraryItemOut
 from app.schemas.modules import ModuleShelf, ShelfKind
@@ -57,7 +59,7 @@ from app.schemas.notifications import NotificationKind
 from app.services import access, paper_text, ratelimit
 from app.services.accounts import public_user
 from app.services.content import apply_patch, record
-from app.services.exam_names import sitting_key
+from app.services.exam_names import SittingKey, sitting_key, sitting_order
 from app.services.modules import require_module
 from app.services.notify import notify
 from app.services.paper_text import COVER_TYPE, Match
@@ -302,7 +304,7 @@ class ListFilters:
     mine: bool = False
     status: str | None = None
     exam_year: int | None = None
-    zone: str | None = None
+    zone: Zone | None = None
 
 
 YOUR_FILES = (ItemStatus.pending, ItemStatus.published, ItemStatus.rejected)
@@ -449,7 +451,6 @@ def module_shelves(db: Session, module_id: str) -> list[ModuleShelf]:
 
 # ── past papers by sitting ───────────────────────────────────────────────────────────────────
 
-_SESSION_ORDER = {"october": 0, "may": 1, None: 2}  # newest first within a year: the resits come after May
 _ZONE_ORDER: dict[str | None, int] = {**{z: n for n, z in enumerate(ZONES)}, None: len(ZONES)}
 
 
@@ -469,7 +470,7 @@ def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
         .order_by(func.lower(LibraryItem.title), LibraryItem.id)
     ).all()
     out = {i.id: o for i, o in zip(items, to_out(db, items, user), strict=True)}
-    groups: dict[tuple[int, str | None], dict[str | None, SittingZone]] = {}
+    groups: dict[SittingKey, dict[Zone | None, SittingZone]] = {}
     other = []
     for i in items:
         key = sitting_key(i)
@@ -485,7 +486,7 @@ def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
             bucket.solutions.append(out[i.id])
         else:
             bucket.papers.append(out[i.id])
-    ordered = sorted(groups.items(), key=lambda g: (-g[0][0], _SESSION_ORDER.get(g[0][1], 2)))
+    ordered = sorted(groups.items(), key=lambda g: sitting_order(g[0]))
     return PaperSittings(
         sittings=[
             Sitting(
@@ -644,8 +645,8 @@ def create_imported(
     content_hash: str | None = None,
     drive_folder_id: uuid.UUID | None = None,
     exam_year: int | None = None,
-    zone: str | None = None,
-    exam_session: str | None = None,
+    zone: Zone | None = None,
+    exam_session: ExamSession | None = None,
     author_name: str | None = None,
 ) -> LibraryItem:
     """A file the server put in the bucket itself, after checking it (the Drive import): published at once, without

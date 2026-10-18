@@ -15,9 +15,10 @@ drift tests (`api/tests/core/test_drift.py`) check that the two agree and that e
      (`app/models/base.py`).
    - Add an index for every new query pattern and every foreign key that `ON DELETE SET NULL` has to scan.
    - Name indexes `ix_<table>_<what>`.
-2. **Generate the migration.** Revision ids are short numbers, and the file name gets the date: next is `0005`.
+2. **Generate the migration.** Revision ids are short numbers, one more than the newest file in `api/migrations/versions/`
+   (`0035` after `0034`), and the file name gets the date.
    ```sh
-   cd api && uv run --no-sync alembic revision --autogenerate --rev-id 0005 -m "what changed, in a few words"
+   cd api && uv run --no-sync alembic revision --autogenerate --rev-id 0035 -m "what changed, in a few words"
    ```
 3. **Read what it wrote, then fix it.** Autogenerate misses or mangles things:
    - renamed columns or tables (it drops and adds instead);
@@ -26,7 +27,7 @@ drift tests (`api/tests/core/test_drift.py`) check that the two agree and that e
    - computed columns like `search_vector`;
    - data that must move.
 
-   Put a docstring at the top of the migration saying why, as 0004 does. A `NOT NULL` column on a table with rows
+   Put a docstring at the top of the migration saying why, as 0034 does. A `NOT NULL` column on a table with rows
    needs a server default or a backfill first.
 4. **Write `downgrade()` too.** It must restore the previous schema; the drift test runs it.
 5. **Apply it to your dev database.** Run `uv run --no-sync alembic upgrade head`, or restart the API container,

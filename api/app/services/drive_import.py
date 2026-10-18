@@ -50,13 +50,16 @@ from app.core.text import clashes_on, clip
 from app.models import DriveFolder, LibraryItem, Module, UploadPurpose
 from app.schemas.library import (
     EXAM_KINDS,
+    EXAM_SESSIONS,
     EXAM_SOLUTIONS,
     EXAM_YEAR_MAX,
     EXAM_YEAR_MIN,
     EXAMINERS_REPORT,
     PAST_PAPER,
     ZONES,
+    ExamSession,
     LibraryKind,
+    Zone,
 )
 from app.services import audit, exam_names, library
 from app.services.drive import (
@@ -177,8 +180,8 @@ class Planned:
     limit: int  # bytes
     kind: LibraryKind
     exam_year: int | None = None
-    zone: str | None = None
-    exam_session: str | None = None
+    zone: Zone | None = None
+    exam_session: ExamSession | None = None
 
     @property
     def where(self) -> str:
@@ -561,8 +564,8 @@ def _plan_file(plan: LinkPlan, found: _Found, done: set[str], seen: set[str], up
 class ExamKind:
     kind: LibraryKind
     exam_year: int | None = None
-    zone: str | None = None
-    exam_session: str | None = None
+    zone: Zone | None = None
+    exam_session: ExamSession | None = None
 
 
 def exam_kind(name: str, folder_kind: LibraryKind) -> ExamKind:
@@ -589,7 +592,7 @@ def exam_kind(name: str, folder_kind: LibraryKind) -> ExamKind:
         kind=kind,
         exam_year=exam_year,
         zone=meta.zone if meta.zone in ZONES else None,
-        exam_session=meta.session if exam_year is not None and meta.session in ("may", "october") else None,
+        exam_session=meta.session if exam_year is not None and meta.session in EXAM_SESSIONS else None,
     )
 
 
@@ -805,7 +808,7 @@ def _details(planned: Planned) -> str:
     if planned.kind != planned.source.kind or planned.exam_year or planned.zone:
         exam = library.kind_label(planned.kind)
         if planned.exam_year:
-            exam += f" {planned.exam_session.capitalize() + ' ' if planned.exam_session else ''}{planned.exam_year}"
+            exam += f" {exam_names.sitting_label(planned.exam_year, planned.exam_session)}"
         if planned.zone:
             exam += f", {exam_names.zone_label(planned.zone)}"
         parts.append(exam)
@@ -941,7 +944,7 @@ def backfill_exam_meta(db: Session, *, dry_run: bool = False) -> ExamBackfill:
             continue
         what = library.kind_label(after[0])
         if after[1] is not None:
-            what += f", {(after[2] or '').capitalize()} {after[1]}".replace(",  ", ", ")
+            what += f", {exam_names.sitting_label(after[1], after[2])}"
         if after[3]:
             what += f", {exam_names.zone_label(after[3])}"
         out.changed.append(f"{item.module_id or 'no module'} · {item.title}: {what}")

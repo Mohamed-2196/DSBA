@@ -16,7 +16,7 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from app.core.errors import invalid
 from app.core.text import slugify, unique_slug
-from app.models import ForumReply, ForumThread, Module, PostStatus, User
+from app.models import ForumCategory, ForumReply, ForumTag, ForumThread, Module, PostStatus, User
 from app.services.audit import record
 from app.services.forum.taxonomy import MAX_TAGS, Taxonomy
 from app.services.forum.text import clean_body, clean_title, has_text, media_ids
@@ -33,6 +33,8 @@ RESERVED_SLUGS = frozenset({"new", "hot"})
 SHORT_SLUG_PREFIX = "t-"
 SHORT_SLUG_LENGTH = 6
 SHORT_SLUG_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789"
+UNKNOWN_CATEGORY = "Choose a category from the list."
+UNKNOWN_TAGS = "Pick tags from the list."
 
 
 # ── what people write ───────────────────────────────────────────────────────────────────────────────
@@ -62,7 +64,7 @@ def valid_category(t: Taxonomy, category: str | None, current: str | None = None
         return None
     found = t.category(category)
     if found is None or (found.retired and category != current):
-        raise invalid("category", "Choose a category from the list.")
+        raise invalid("category", UNKNOWN_CATEGORY)
     return category
 
 
@@ -74,8 +76,23 @@ def valid_tags(t: Taxonomy, tags: Sequence[str], current: Sequence[str] = ()) ->
     for tag_id in unique:
         found = t.tag(tag_id)
         if found is None or (found.retired and tag_id not in current):
-            raise invalid("tags", "Pick tags from the list.")
+            raise invalid("tags", UNKNOWN_TAGS)
     return unique
+
+
+def hold_lists(db: Session, category: str | None, tags: Sequence[str] = ()) -> None:
+    """Holds the category and tags a thread is written with (FOR KEY SHARE) until the write commits: a moderator's
+    save that removes one of them waits for it, then finds it in use and keeps it (forum/settings.py). One that a save
+    removed since the lists were read is refused like any unknown one (422)."""
+    if category is not None:
+        held = select(ForumCategory.id).where(ForumCategory.id == category).with_for_update(read=True, key_share=True)
+        if db.scalar(held) is None:
+            raise invalid("category", UNKNOWN_CATEGORY)
+    wanted = set(tags)
+    if wanted:
+        held_tags = select(ForumTag.id).where(ForumTag.id.in_(wanted)).with_for_update(read=True, key_share=True)
+        if set(db.scalars(held_tags)) != wanted:
+            raise invalid("tags", UNKNOWN_TAGS)
 
 
 def hide_reason(value: str | None) -> str | None:

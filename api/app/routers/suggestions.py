@@ -23,7 +23,7 @@ from app.schemas.suggestions import (
 )
 from app.services import suggestions as svc
 
-router = router_for("suggestions", needs_feature(Feature.video_suggestions))
+router = router_for("suggestions", needs_feature(Feature.modules_video_suggestions))
 Editor = Annotated[User, requires(Box.content_edit)]
 
 

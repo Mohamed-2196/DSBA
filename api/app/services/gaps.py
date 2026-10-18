@@ -47,6 +47,7 @@ from app.schemas.gaps import (
 )
 from app.schemas.library import EXAM_KINDS, EXAMINERS_REPORT, PAST_PAPER
 from app.services import access
+from app.services.exam_names import newest_sitting_first
 
 GAP_BOXES = (Box.library_manage, Box.content_edit, Box.calendar_manage, Box.requests_manage)
 LIST_MAX = 50
@@ -80,7 +81,7 @@ def _sittings(db: Session, modules: dict[str, GapModule]) -> list[SittingGap]:
         )
         .group_by(LibraryItem.module_id, LibraryItem.exam_year, LibraryItem.exam_session)
         .having(papers.is_distinct_from(reports))
-        .order_by(LibraryItem.exam_year.desc(), LibraryItem.exam_session, LibraryItem.module_id)
+        .order_by(*newest_sitting_first(LibraryItem.exam_year, LibraryItem.exam_session), LibraryItem.module_id)
         .limit(LIST_MAX)
     ).all()
     return [

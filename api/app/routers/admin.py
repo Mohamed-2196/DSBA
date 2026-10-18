@@ -100,7 +100,7 @@ def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats
         if access.can(user, Box.requests_manage) and access.feature_on(db, user, Feature.requests)
         else None,
         pending_suggestions=suggestions.pending_count(db)
-        if access.can(user, Box.content_edit) and access.feature_on(db, user, Feature.video_suggestions)
+        if access.can(user, Box.content_edit) and access.feature_on(db, user, Feature.modules_video_suggestions)
         else None,
         open_bug_reports=bugs.open_count(db) if access.is_admin(user) else None,
     )

@@ -39,7 +39,7 @@ const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ],
   ['uploads', (can, on) => can('library.manage') && on('library')],
   ['requests', (can, on) => can('requests.manage') && on('requests')],
-  ['videos', (can, on) => can('content.edit') && on('video_suggestions')],
+  ['videos', (can, on) => can('content.edit') && on('modules.video-suggestions')],
   ['bugs', () => true],
   ['newsletter', (can, on) => can('newsletter.manage') && on('newsletter')],
   ['calendar', (can, on) => can('calendar.manage') && on('calendar')],

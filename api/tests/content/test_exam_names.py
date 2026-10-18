@@ -5,19 +5,28 @@ from __future__ import annotations
 
 import pytest
 
-from app.services.exam_names import ExamMeta, exam_meta_from_name, tidy_title
+from app.schemas.library import ZONES, ExamSession, Zone
+from app.services.exam_names import (
+    ExamMeta,
+    SittingKey,
+    exam_meta_from_name,
+    sitting_label,
+    sitting_order,
+    tidy_title,
+    zone_label,
+)
 
 
-def paper(year: int, session: str, zone: str | None = None) -> ExamMeta:
-    return ExamMeta(year, zone, False, session, False, True)  # type: ignore[arg-type]
+def paper(year: int, session: ExamSession, zone: Zone | None = None) -> ExamMeta:
+    return ExamMeta(year, zone, False, session, False, True)
 
 
-def report(year: int, session: str, zone: str | None = None) -> ExamMeta:
-    return ExamMeta(year, zone, True, session, False, True)  # type: ignore[arg-type]
+def report(year: int, session: ExamSession, zone: Zone | None = None) -> ExamMeta:
+    return ExamMeta(year, zone, True, session, False, True)
 
 
-def solutions(year: int, session: str, zone: str | None = None) -> ExamMeta:
-    return ExamMeta(year, zone, False, session, True, True)  # type: ignore[arg-type]
+def solutions(year: int, session: ExamSession, zone: Zone | None = None) -> ExamMeta:
+    return ExamMeta(year, zone, False, session, True, True)
 
 
 NOTHING = ExamMeta(None, None, False)
@@ -144,3 +153,21 @@ TITLES: list[tuple[str, str]] = [
 def test_a_files_title_reads_as_a_title(name: str, title: str) -> None:
     assert tidy_title(name) == title
     assert tidy_title(f"{title}.pdf") == title or title == ".pdf"  # a tidy title stays as it is
+
+
+def test_zones_and_sittings_read_as_people_say_them() -> None:
+    assert [zone_label(z) for z in ZONES] == ["zone A", "zone B", "RTC"]
+    assert sitting_label(2024, "may") == "May 2024"
+    assert sitting_label(2023, "october") == "October 2023"
+    assert sitting_label(2022, None) == "2022"
+
+
+def test_sittings_go_newest_first_a_years_resits_before_its_may_sitting() -> None:
+    sittings: list[SittingKey] = [(2023, "may"), (2024, None), (2023, "october"), (2024, "may"), (2023, None)]
+    assert sorted(sittings, key=sitting_order) == [
+        (2024, "may"),
+        (2024, None),
+        (2023, "october"),
+        (2023, "may"),
+        (2023, None),
+    ]

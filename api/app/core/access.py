@@ -74,7 +74,7 @@ class Feature(enum.StrEnum):
     requests_autoclose = "requests.autoclose"  # paper and date requests that close themselves
     requests_done = "requests.done"  # the requests done lately, on the requests page and in the newsletter
     summary = "summary"  # the Sunday summary email, and its text for a year's group
-    video_suggestions = "video_suggestions"  # students suggest videos for chapters; content managers review them
+    modules_video_suggestions = "modules.video-suggestions"  # videos students suggest for chapters
     daily = "daily"  # the daily puzzles, their scores and leaderboard
 
 
@@ -204,7 +204,7 @@ FEATURES: dict[Feature, FeatureInfo] = {
         "The requests done in the last 30 days, on the requests page and in the newsletter's section of them.",
     ),
     Feature.summary: FeatureInfo("Sunday summary", "The Sunday summary email, and its text for reps to share."),
-    Feature.video_suggestions: FeatureInfo(
+    Feature.modules_video_suggestions: FeatureInfo(
         "Suggested videos", "Suggesting videos for lessons, and the queue of suggestions in Manage."
     ),
     Feature.daily: FeatureInfo("Daily", "The daily puzzles, their points, streaks and leaderboard, and Home's card."),

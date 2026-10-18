@@ -25,6 +25,7 @@ from app.models import (
     TextStatus,
     User,
 )
+from app.schemas.library import ExamSession
 from tests.community.helpers import API
 
 Client = Callable[..., TestClient]
@@ -42,7 +43,9 @@ def admin(make_user: Callable[..., Any]) -> User:
     return user
 
 
-def file(db: Session, kind: str, *, module: str = ST2133, year: int | None = 2023, session: str = "may") -> LibraryItem:
+def file(
+    db: Session, kind: str, *, module: str = ST2133, year: int | None = 2023, session: ExamSession = "may"
+) -> LibraryItem:
     item = LibraryItem(
         slug=f"{module}-{kind}-{year}-{session}",
         source=ItemSource.file,
@@ -95,6 +98,22 @@ def test_sittings_missing_a_report_or_a_paper_scans_and_cheat_sheets(
     assert [(s["slug"], s["text"]) for s in library["scans"]] == [(scan.slug, "empty")]
     assert ST2133 not in [m["id"] for m in library["noCheatSheet"]]
     assert "mathematics" in [m["id"] for m in library["noCheatSheet"]]
+
+
+def test_sittings_go_newest_first_a_years_resits_before_its_may_sitting(
+    db: Session, client_for: Client, admin: User, modules: dict[str, Module]
+) -> None:
+    file(db, "past-paper", year=2022, session="october")
+    file(db, "past-paper", year=2023, session="may")
+    file(db, "past-paper", year=2023, session="october")
+
+    library = gaps(client_for(admin))["library"]
+
+    assert [(s["examYear"], s["session"]) for s in library["sittings"]] == [
+        (2023, "october"),
+        (2023, "may"),
+        (2022, "october"),
+    ]
 
 
 def test_modules_without_lessons_and_hidden_ones_left_out(

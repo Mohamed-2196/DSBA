@@ -1,4 +1,4 @@
-"""The baseline migration, checked on a throwaway database: what it seeds and what the database refuses."""
+"""The migrations, checked on a throwaway database: what the baseline seeds and what the database refuses."""
 
 from __future__ import annotations
 
@@ -9,8 +9,7 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
-from alembic.script import ScriptDirectory
-from sqlalchemy import Engine, create_engine, text
+from sqlalchemy import Connection, Engine, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError
 
@@ -40,7 +39,8 @@ def scratch() -> Iterator[tuple[Config, Engine]]:
         admin.dispose()
 
 
-def test_the_baseline_seeds_the_roles_and_every_switch(scratch: tuple[Config, Engine]) -> None:
+def test_the_baseline_seeds_what_the_api_needs(scratch: tuple[Config, Engine]) -> None:
+    """The roles and their boxes, every switch, Mini Noora's limits, and the forum's categories and tags."""
     cfg, engine = scratch
     command.upgrade(cfg, "head")
     with engine.connect() as c:
@@ -83,16 +83,43 @@ def test_the_baseline_seeds_the_roles_and_every_switch(scratch: tuple[Config, En
             "summary": "off",
             "requests.autoclose": "off",
             "forum.help-below": "off",
-            "video_suggestions": "off",
+            "modules.video-suggestions": "off",
             "library.daily-question": "off",
             "requests.done": "off",
             "daily": "off",
         }
+        limits = c.execute(text("SELECT id, daily_questions, monthly_budget_cents FROM noora_limits")).tuples()
+        assert limits.all() == [(1, 30, 2500)]
+        categories = c.execute(
+            text("SELECT id, short, year, icon FROM forum_categories WHERE NOT retired ORDER BY position")
+        ).tuples()
+        assert categories.all() == [
+            ("year-1", "Year 1", 1, None),
+            ("year-2", "Year 2", 2, None),
+            ("year-3", "Year 3", 3, None),
+            ("study-groups", "Study group", None, "people"),
+            ("general", "General", None, "chat"),
+        ]
+        tags = c.execute(text("SELECT id FROM forum_tags WHERE NOT retired ORDER BY position")).scalars()
+        assert tags.all() == [
+            "exam-prep",
+            "past-papers",
+            "coursework",
+            "formula-sheet",
+            "r",
+            "python",
+            "excel",
+            "exams",
+            "calculators",
+            "module-choice",
+            "campus",
+            "lost-and-found",
+        ]
 
 
 def test_the_database_refuses_what_the_contract_does_not_list(scratch: tuple[Config, Engine]) -> None:
-    """Kinds, types, reasons, cohorts and switch modes are checked by the database itself (code quality review
-    CQ-15), and a report is open unless it says otherwise."""
+    """Kinds, types, reasons, cohorts and switch modes are checked by the database itself, and a report is open
+    unless it says otherwise."""
     cfg, engine = scratch
     command.upgrade(cfg, "head")
     ids = {"thread": uuid.uuid4(), "user": uuid.uuid4()}
@@ -115,6 +142,11 @@ def test_the_database_refuses_what_the_contract_does_not_list(scratch: tuple[Con
         assert c.execute(text("SELECT status FROM reports")).scalar_one() == "open"
     library = "INSERT INTO library_items (id, slug, source, kind, title, status, year) VALUES (gen_random_uuid(), "
     report = "INSERT INTO reports (id, reporter_id, target_type, target_id, reason, status) VALUES (gen_random_uuid(), "
+    paper = (
+        "INSERT INTO library_items (id, slug, source, kind, title, status, exam_year, exam_session, zone) "
+        "VALUES (gen_random_uuid(), 'a-paper', 'file', 'past-paper', 'A paper', 'published', "
+    )
+    request = "INSERT INTO requests (id, kind, title, exam_year, zone) VALUES (gen_random_uuid(), 'paper', 'A paper', "
     refused = {
         "ck_library_items_kind": f"{library}'novel', 'file', 'novel', 'A novel', 'pending', NULL)",
         "ck_library_items_year_range": f"{library}'year-4', 'file', 'notes', 'Notes', 'pending', 4)",
@@ -128,60 +160,58 @@ def test_the_database_refuses_what_the_contract_does_not_list(scratch: tuple[Con
         "ck_forum_replies_author_year_range": "INSERT INTO forum_replies (id, thread_id, body, status, author_year) "
         "VALUES (gen_random_uuid(), :thread, 'Text', 'visible', 9)",
         "ck_feature_switches_mode": "UPDATE feature_switches SET mode = 'maybe' WHERE feature = 'forum'",
+        # a sitting: an exam year from 1990 to 2100, the May or October session, zone A, B or RTC
+        "ck_library_items_exam_year_range": f"{paper}1989, 'may', 'A')",
+        "ck_library_items_exam_session": f"{paper}2024, 'june', 'A')",
+        "ck_library_items_zone": f"{paper}2024, 'may', 'C')",
+        "ck_requests_exam_year_range": f"{request}2101, 'B')",
+        "ck_requests_zone": f"{request}2024, 'ZA')",
+        "ck_users_zone": "UPDATE users SET zone = 'C' WHERE id = :user",
     }
     for constraint, statement in refused.items():
         with pytest.raises(IntegrityError, match=constraint), engine.begin() as c:
             c.execute(text(statement), ids)
 
 
-def test_documents_saved_before_their_new_parts_get_them_as_they_start(scratch: tuple[Config, Engine]) -> None:
-    """Site settings and Career Navigator saved before the parts added since then get those parts from the seed; the
-    forum gets the categories and tags it had, as tables. Going back, a thread in a category or with a tag made since
-    returns to the first ones."""
-    import json
+def _switch(c: Connection, feature: str) -> tuple[str, uuid.UUID | None, list[str]] | None:
+    """A switch's mode, who last set it, and the roles it is on for; None when there is no such switch."""
+    row = c.execute(text("SELECT mode, updated_by FROM feature_switches WHERE feature = :f"), {"f": feature}).first()
+    if row is None:
+        return None
+    roles = c.execute(
+        text(
+            "SELECT r.slug FROM feature_switch_roles s JOIN roles r ON r.id = s.role_id WHERE s.feature = :f "
+            "ORDER BY r.slug"
+        ),
+        {"f": feature},
+    ).scalars()
+    return row.mode, row.updated_by, list(roles)
 
-    seed = API_ROOT / "app" / "seed" / "data"
-    site, career = (json.loads((seed / f"{name}.json").read_text(encoding="utf-8")) for name in ("site", "career"))
+
+def test_the_suggested_videos_switch_keeps_its_mode_and_roles_under_its_name(scratch: tuple[Config, Engine]) -> None:
+    """0034 names the switch like the others, modules.video-suggestions, and keeps what an admin set; going back
+    gives it its earlier name with the same setting."""
     cfg, engine = scratch
-    script = ScriptDirectory.from_config(cfg).get_revision("0033")
-    assert script is not None
-    assert isinstance(script.down_revision, str)
-    before = script.down_revision  # the revision before the one that adds the parts
-    command.upgrade(cfg, before)
-    saved_site = {
-        k: v for k, v in site.items() if k not in ("homeBlocks", "tour", "searchNicknames", "searchSuggestions")
-    }
-    saved_career = {k: v for k, v in career.items() if k not in ("intro", "employersNote")}
+    command.upgrade(cfg, "0033")
+    admin = uuid.uuid4()
     with engine.begin() as c:
-        for key, data in (("site", saved_site), ("career", saved_career)):
-            c.execute(
-                text("INSERT INTO content_docs (key, data, version) VALUES (:key, CAST(:data AS jsonb), 3)"),
-                {"key": key, "data": json.dumps(data)},
-            )
-    command.upgrade(cfg, "head")
-    with engine.connect() as c:
-        docs = dict(c.execute(text("SELECT key, data FROM content_docs")).tuples().all())
-        assert docs["site"] == site
-        assert docs["career"] == career
-        assert c.scalar(text("SELECT count(*) FROM forum_categories WHERE NOT retired")) == 5
-        assert c.scalar(text("SELECT count(*) FROM forum_tags")) == 12
-    with engine.begin() as c:  # a moderator's own category and tag, and a thread with both
+        c.execute(text("INSERT INTO users (id, email) VALUES (:id, 'admin@example.com')"), {"id": admin})
+        c.execute(
+            text("UPDATE feature_switches SET mode = 'roles', updated_by = :id WHERE feature = 'video_suggestions'"),
+            {"id": admin},
+        )
         c.execute(
             text(
-                "INSERT INTO forum_categories (id, label, short, year, blurb) "
-                "VALUES ('projects', 'Projects', 'Projects', NULL, 'Group work')"
+                "INSERT INTO feature_switch_roles (feature, role_id) "
+                "SELECT 'video_suggestions', id FROM roles WHERE slug IN ('content-manager', 'rep')"
             )
         )
-        c.execute(text("INSERT INTO forum_tags (id, label) VALUES ('kaggle', 'Kaggle')"))
-        c.execute(
-            text(
-                "INSERT INTO forum_threads (id, slug, title, body, category, status, tags) "
-                "VALUES (gen_random_uuid(), 'team', 'Team?', 'Text', 'projects', 'visible', '{kaggle,python}')"
-            )
-        )
-    command.downgrade(cfg, before)
+    set_by_admin = ("roles", admin, ["content-manager", "rep"])
+    command.upgrade(cfg, "0034")
     with engine.connect() as c:
-        docs = dict(c.execute(text("SELECT key, data FROM content_docs")).tuples().all())
-        assert (docs["site"], docs["career"]) == (saved_site, saved_career)
-        thread = c.execute(text("SELECT category, tags FROM forum_threads WHERE slug = 'team'")).one()
-        assert tuple(thread) == ("general", ["python"])  # back among the first ones
+        assert _switch(c, "modules.video-suggestions") == set_by_admin
+        assert _switch(c, "video_suggestions") is None
+    command.downgrade(cfg, "0033")
+    with engine.connect() as c:
+        assert _switch(c, "video_suggestions") == set_by_admin
+        assert _switch(c, "modules.video-suggestions") is None
