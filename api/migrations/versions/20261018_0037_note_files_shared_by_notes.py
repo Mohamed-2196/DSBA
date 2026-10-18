@@ -1,7 +1,7 @@
 """a note lists the files it shows, and a note file no note shows any more is released
 
 Revision ID: 0037
-Revises: 0034
+Revises: 0039
 Create Date: 2026-10-18 12:40:00
 
 - A file belonged to one note (`uploads.note_id`), but a picture copied into a second note keeps its upload: deleting
@@ -21,7 +21,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0037"
-down_revision: str | None = "0034"
+down_revision: str | None = "0039"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
