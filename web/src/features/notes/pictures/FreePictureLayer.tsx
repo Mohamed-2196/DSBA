@@ -278,10 +278,11 @@ export function FreePictureLayer({
     select(null);
     setCropping(null);
   }, [active, select]);
-  // A zoom drops a gesture under way: its points were taken at the old zoom.
+  // A zoom drops a gesture under way: its points were taken at the old zoom; so does leaving the note.
   useLayoutEffect(() => {
     cancelGesture.current?.();
   }, [zoom]);
+  useEffect(() => () => cancelGesture.current?.(), []);
   // Letting go of a picture ends its cropping.
   useEffect(() => {
     if (!selected) setCropping(null);
