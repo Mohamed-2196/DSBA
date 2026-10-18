@@ -21227,7 +21227,7 @@
           "daily"
         ],
         "summary": "Calendar",
-        "description": "The month's days with puzzles out, and how many games you finished on each.",
+        "description": "The month's days with puzzles out, and the games you finished on each. Errors: invalid_input on `month` (422)\nfor a month that isn't one, or in a year without puzzles.",
         "operationId": "calendar_api_v1_daily_calendar_get",
         "parameters": [
           {
@@ -21649,7 +21649,7 @@
           "daily"
         ],
         "summary": "Get Play",
-        "description": "A game on a day, and your play of it so far. The day's puzzle is made and kept the first time anyone asks\nfor it. Errors: not_out_yet (404), invalid_input on `variant` (422).",
+        "description": "A game on a day, and your play of it so far. The day's puzzle is made and kept the first time anyone asks\nfor it; signed in, the first look at today's starts its clock. Errors: not_out_yet (404), invalid_input on\n`variant` (422).",
         "operationId": "get_play_api_v1_daily__day___game__get",
         "parameters": [
           {
@@ -27632,12 +27632,22 @@
             "title": "Day"
           },
           "theme": {
-            "type": "string",
-            "title": "Theme"
+            "$ref": "#/components/schemas/Theme"
           },
-          "done": {
-            "type": "integer",
-            "title": "Done"
+          "finished": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "word",
+                "groups",
+                "search",
+                "quiz",
+                "nearest",
+                "sudoku"
+              ]
+            },
+            "type": "array",
+            "title": "Finished"
           },
           "points": {
             "type": "integer",
@@ -27648,7 +27658,7 @@
         "required": [
           "day",
           "theme",
-          "done",
+          "finished",
           "points"
         ],
         "title": "CalendarDay"
@@ -30414,6 +30424,10 @@
             "format": "date",
             "title": "Day"
           },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
           "firstDay": {
             "type": "string",
             "format": "date",
@@ -30456,6 +30470,7 @@
         "type": "object",
         "required": [
           "day",
+          "number",
           "firstDay",
           "theme",
           "games",
@@ -33209,6 +33224,10 @@
             ],
             "title": "Status"
           },
+          "variant": {
+            "type": "string",
+            "title": "Variant"
+          },
           "points": {
             "type": "integer",
             "title": "Points"
@@ -33222,6 +33241,7 @@
         "required": [
           "info",
           "status",
+          "variant",
           "points",
           "scored"
         ],
@@ -39420,6 +39440,10 @@
             "format": "date",
             "title": "Day"
           },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
           "game": {
             "type": "string",
             "enum": [
@@ -39537,6 +39561,7 @@
         "type": "object",
         "required": [
           "day",
+          "number",
           "game",
           "variant",
           "status",
@@ -42005,6 +42030,11 @@
           },
           "end": {
             "$ref": "#/components/schemas/Cell"
+          },
+          "revealed": {
+            "type": "boolean",
+            "title": "Revealed",
+            "default": false
           }
         },
         "type": "object",

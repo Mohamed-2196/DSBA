@@ -12,8 +12,10 @@ from sqlalchemy.orm import Session
 
 from app.core.time import bahrain_today
 from app.models import User
+from app.services.daily import content
 from app.services.daily.games import GAMES
-from app.services.daily.games.groups import GroupsGame
+from app.services.daily.games.groups import SQUARES, GroupsGame
+from app.services.daily.games.nearest import NearestGame
 from app.services.daily.games.quiz import QuizGame
 from app.services.daily.games.search import SearchGame
 from tests.daily.conftest import API
@@ -24,7 +26,7 @@ MakeUser = Callable[..., User]
 
 @pytest.fixture(autouse=True)
 def no_speed_check(monkeypatch: pytest.MonkeyPatch) -> None:
-    for game in (GroupsGame, SearchGame, QuizGame):
+    for game in (GroupsGame, SearchGame, QuizGame, NearestGame):
         monkeypatch.setattr(game, "min_seconds", 0)
 
 
@@ -55,7 +57,10 @@ def test_groups_found_one_away_and_won(client_for: ClientFor, make_user: MakeUse
         play = move(c, "groups", {"kind": "group", "words": [w.lower() for w in g.words]}).json()["play"]
     assert (play["status"], play["points"], len(play["view"]["found"])) == ("won", 80, 4)
     assert play["view"]["found"][0]["label"] == a.label
-    assert "Groups: 4/4, 1 mistake" in play["share"]
+    assert "Correlations 4/4, 1 mistake" in play["share"]
+    # Each try's colours, one square per word: the levels' colours in the web app, purple for the trickiest.
+    assert play["share"].splitlines()[-1] == SQUARES[p.groups[-1].level] * 4
+    assert set(SQUARES.values()) == {"🟨", "🟩", "🟦", "🟪"}
 
 
 def test_groups_hide_the_answers_until_the_end(client_for: ClientFor, db: Session) -> None:
@@ -81,6 +86,17 @@ def test_word_search_reads_lines_both_ways(client_for: ClientFor, make_user: Mak
     for placed in p.placed[1:]:
         play = move(c, "search", {"kind": "find", "start": cell(placed.start), "end": cell(placed.end)}).json()["play"]
     assert (play["status"], play["points"]) == ("won", 90)
+    assert not any(f["revealed"] for f in play["view"]["found"])
+
+
+def test_word_search_given_up_reveals_the_words_left(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+    c = client_for(make_user())
+    p = puzzle(db, "search")
+    first = p.placed[0]
+    move(c, "search", {"kind": "find", "start": cell(first.start), "end": cell(first.end)})
+    view = move(c, "search", {"kind": "give-up"}).json()["play"]["view"]
+    assert [(f["word"], f["revealed"]) for f in view["found"]][:2] == [(first.word, False), (p.placed[1].word, True)]
+    assert len(view["found"]) == len(p.placed)
 
 
 def test_the_quiz_explains_each_answer_and_scores_right_ones(
@@ -108,6 +124,9 @@ def test_nearest_ranks_guesses_and_hints_get_closer(client_for: ClientFor, make_
     assert play["view"]["answer"] is None
     r = move(c, "nearest", {"kind": "guess", "word": "zzzzqq"})
     assert r.json()["error"]["code"] == "unknown_word"
+    # A word it doesn't know, with known words it may have meant.
+    r = move(c, "nearest", {"kind": "guess", "word": "varience"})
+    assert (r.status_code, r.json()["error"]["message"]) == (422, "We don't know “varience”. Try variance.")
     hint = move(c, "nearest", {"kind": "hint"}).json()["play"]["view"]["guesses"][-1]
     assert hint["hint"] is True
     assert hint["rank"] < len(p.by_rank)
@@ -157,6 +176,8 @@ def test_the_calendar_lists_days_out_and_what_you_finished(
     month = today().strftime("%Y-%m")
     cal = c.get(f"{API}/daily/calendar", params={"month": month}).json()
     assert cal["days"][-1]["day"] == today().isoformat()
-    assert (cal["days"][-1]["done"], cal["total"]) == (1, len(GAMES))
+    assert (cal["days"][-1]["finished"], cal["total"]) == (["word"], len(GAMES))
+    assert cal["days"][-1]["theme"] == content.theme_of(db, today()).model_dump(by_alias=True)
     assert c.get(f"{API}/daily/calendar", params={"month": "2026-13"}).status_code == 422
-    assert c.get(f"{API}/daily/calendar", params={"month": "2020-01"}).json()["days"] == []
+    assert c.get(f"{API}/daily/calendar", params={"month": "2020-01"}).status_code == 422
+    assert c.get(f"{API}/daily/calendar", params={"month": "2026-09"}).json()["days"] == []  # before the first day

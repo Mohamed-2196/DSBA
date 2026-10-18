@@ -27,7 +27,7 @@ import { choosePose, heading, lean, motionFor, type ChatMood, type Heading } fro
 import { HEIGHT, figure, preloadSprites } from './sprites';
 import { useDrag } from './useDrag';
 import { useViewport } from './useViewport';
-import { hideMiniNoora, isMiniNooraHidden, showMiniNoora, useMiniNooraHidden } from './visibility';
+import { hideMiniNoora, isMiniNooraHidden, showMiniNoora, useMiniNooraHidden, useMiniNooraIsAway } from './visibility';
 import './ChatCard.css';
 
 const loadChat = () => import('./ChatPanel');
@@ -103,11 +103,15 @@ function useOnboardingOpen(): boolean {
 }
 
 /**
- * Mounted once by the shell while the `noora` feature is on. Nothing at all while she is hidden or on the full page.
- * Her keyboard shortcut works either way: it brings her back, or goes to the full page's text box.
+ * Mounted once by the shell while the `noora` feature is on. Nothing at all while she is hidden, on the full page,
+ * while a page has asked her to step away (useMiniNooraAway), or on a phone while the year prompt takes the bottom of
+ * the screen. Her keyboard shortcut works either way: it brings her back, or goes to the full page's text box.
  */
 export function MiniNoora() {
   const hidden = useMiniNooraHidden();
+  const away = useMiniNooraIsAway();
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const onboarding = useOnboardingOpen();
   const { pathname } = useLocation();
   const onPage = pathname === NOORA_PATH;
   const navigate = useNavigate();
@@ -133,7 +137,7 @@ export function MiniNoora() {
     return () => window.removeEventListener('keydown', onKey);
   }, [onPage]);
 
-  return hidden || onPage ? null : <Noora away={restsAway(pathname)} />;
+  return hidden || away || onPage || (phone && onboarding) ? null : <Noora away={restsAway(pathname)} />;
 }
 
 function Noora({ away }: { away: boolean }) {

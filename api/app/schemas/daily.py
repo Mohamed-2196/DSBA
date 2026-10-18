@@ -125,6 +125,7 @@ class SearchFound(ApiModel):
     word: str
     start: Cell
     end: Cell
+    revealed: bool = False  # shown at the end of a lost play: the player didn't find it
 
 
 class SearchView(ApiModel):
@@ -198,10 +199,13 @@ class Play(ApiModel):
     """One person's play of one game on one day, as it stands."""
 
     day: dt.date
+    number: int  # the day's set number: 1 on the first day
     game: GameId
     variant: str
     status: PlayStatus
-    scored: bool  # counts for points, streaks and the leaderboard: today's first attempt, signed in
+    # Counts for points, streaks and the leaderboard: signed in, on the puzzle's own day, and the first play of that
+    # game that day. A play not started yet says whether it would.
+    scored: bool
     points: int  # what it earned (scored), or would have earned
     mistakes: int
     hints: int
@@ -229,6 +233,7 @@ class GameDay(ApiModel):
 
     info: GameInfo
     status: PlayStatus  # Sudoku: the furthest of its difficulties
+    variant: str  # the play to open: the scored one, else the furthest ("" when none, and for one-variant games)
     points: int
     scored: bool
 
@@ -243,6 +248,7 @@ class Streak(ApiModel):
 
 class DailyToday(ApiModel):
     day: dt.date
+    number: int  # the day's set number: 1 on the first day
     first_day: dt.date
     theme: Theme
     games: list[GameDay]
@@ -254,8 +260,8 @@ class DailyToday(ApiModel):
 
 class CalendarDay(ApiModel):
     day: dt.date
-    theme: str
-    done: int  # games finished (any play, practice included)
+    theme: Theme
+    finished: list[GameId]  # the games you finished that day (any play, practice included), in the hub's order
     points: int  # scored points
 
 

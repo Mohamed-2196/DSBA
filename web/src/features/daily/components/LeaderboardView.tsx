@@ -1,195 +1,138 @@
+// The leaderboard: the players who chose to show their name, by points this week (from Sunday) or of all time, for
+// every year or one. Showing your name is your choice, and off until you turn it on.
 import { useState } from 'react';
-import { Trophy, ShieldCheck } from '@phosphor-icons/react';
-import { Avatar, CohortBadge, SegmentedControl, Switch } from '../../../ui';
-import { useDailyLeaderboard, useDailyMe, useUpdateDailyMe } from '../api';
+import { Trophy } from '@phosphor-icons/react';
+import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
-import type { BoardPeriod } from '../types';
+import { useToast } from '../../../state';
+import { Avatar, Button, CohortBadge, EmptyState, Panel, QueryError, SegmentedControl, Skeleton, Switch, cx } from '../../../ui';
+import { useDailyLeaderboard, useDailyMe, useShowOnBoard } from '../api';
+import type { BoardPeriod, BoardRow } from '../types';
+
+type YearChoice = 'all' | '1' | '2' | '3';
 
 export function LeaderboardView() {
-  const { me } = useAuth();
+  const { me, openSignIn } = useAuth();
   const [period, setPeriod] = useState<BoardPeriod>('week');
-  const [yearFilter, setYearFilter] = useState<number | null>(null);
+  const [year, setYear] = useState<YearChoice>('all');
+  const board = useDailyLeaderboard(period, year === 'all' ? null : Number(year));
+  const mine = useDailyMe();
+  const show = useShowOnBoard();
+  const toast = useToast();
+  const shown = mine.data?.showOnBoard ?? false;
 
-  const { data: board, isLoading } = useDailyLeaderboard(period, yearFilter);
-  const { data: myData } = useDailyMe();
-  const updateMeMutation = useUpdateDailyMe();
-
-  const isOptedIn = myData?.showOnBoard ?? false;
-
-  const handleToggleOptIn = (checked: boolean) => {
-    updateMeMutation.mutate(checked);
-  };
+  const toggle = (on: boolean) =>
+    show.mutate(on, { onError: (e) => toast.push({ tone: 'alert', title: errorMessage(e, 'Your choice wasn’t saved. Try again.') }) });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-20)' }}>
-      {/* Privacy Opt-In Banner for signed-in users */}
-      {me && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 'var(--sp-12)',
-            padding: 'var(--sp-16)',
-            borderRadius: 'var(--r-panel)',
-            backgroundColor: 'var(--surface-2)',
-            border: '1px solid var(--line)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-12)' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--surface)',
-                color: 'var(--navy)',
-              }}
-            >
-              <ShieldCheck size={20} />
-            </div>
-            <div>
-              <h4 style={{ margin: 0, fontSize: 'var(--fs-14)', fontWeight: 'var(--fw-semibold)', color: 'var(--ink)' }}>
-                Leaderboard Privacy (Opt-in)
-              </h4>
-              <p style={{ margin: 0, fontSize: 'var(--fs-13)', color: 'var(--ink-2)' }}>
-                Show your name and cohort on the public board. Default is private.
-              </p>
-            </div>
-          </div>
-
+    <div className="dh-board">
+      {me ? (
+        <Panel padding="md" className="dh-board__choice">
           <Switch
-            id="daily-optin-switch"
-            label={isOptedIn ? 'Visible on board' : 'Hidden (Private)'}
-            checked={isOptedIn}
-            onChange={handleToggleOptIn}
-            disabled={updateMeMutation.isPending}
+            className="dh-board__switch"
+            checked={shown}
+            onChange={toggle}
+            disabled={show.isPending || mine.isPending}
+            label="Show my name on the leaderboard"
+            description="Your name and year show beside your points. Turn it off at any time."
           />
-        </div>
+        </Panel>
+      ) : (
+        <Panel padding="md" className="dh-board__choice">
+          <p className="dh-board__guest">Sign in to play for points and to join the leaderboard.</p>
+          <Button variant="primary" onClick={() => openSignIn()}>
+            Sign in
+          </Button>
+        </Panel>
       )}
 
-      {/* Filter controls: Period + Year */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-12)' }}>
+      <div className="dh-board__filters">
         <SegmentedControl
-          label="Leaderboard timeframe"
+          label="Period"
+          size="sm"
           value={period}
-          onChange={(v) => setPeriod(v as BoardPeriod)}
+          onChange={setPeriod}
           options={[
-            { value: 'week', label: 'This Week' },
-            { value: 'all', label: 'All Time' },
+            { value: 'week', label: 'This week' },
+            { value: 'all', label: 'All time' },
           ]}
         />
-
-        <div style={{ display: 'flex', gap: '6px' }}>
-          {[
-            { label: 'All Years', val: null },
-            { label: 'Year 1', val: 1 },
-            { label: 'Year 2', val: 2 },
-            { label: 'Year 3', val: 3 },
-          ].map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              className={`chip ${yearFilter === item.val ? 'active' : ''}`}
-              style={{
-                padding: '4px 12px',
-                borderRadius: 'var(--r-pill)',
-                border: '1px solid var(--line)',
-                backgroundColor: yearFilter === item.val ? 'var(--navy)' : 'var(--surface)',
-                color: yearFilter === item.val ? 'var(--cobalt-ink)' : 'var(--ink)',
-                fontSize: 'var(--fs-12)',
-                fontWeight: 'var(--fw-medium)',
-                cursor: 'pointer',
-              }}
-              onClick={() => setYearFilter(item.val)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          label="Year"
+          size="sm"
+          value={year}
+          onChange={setYear}
+          options={[
+            { value: 'all', label: 'All years' },
+            { value: '1', label: 'Year 1' },
+            { value: '2', label: 'Year 2' },
+            { value: '3', label: 'Year 3' },
+          ]}
+        />
       </div>
 
-      {/* Leaderboard Table */}
-      <div
-        style={{
-          borderRadius: 'var(--r-panel)',
-          backgroundColor: 'var(--surface)',
-          border: '1px solid var(--line)',
-          overflow: 'hidden',
-        }}
-      >
-        {isLoading ? (
-          <div style={{ padding: 'var(--sp-32)', textAlign: 'center', color: 'var(--ink-2)' }}>
-            Loading leaderboard...
-          </div>
-        ) : !board || board.rows.length === 0 ? (
-          <div style={{ padding: 'var(--sp-32)', textAlign: 'center', color: 'var(--ink-2)' }}>
-            <Trophy size={40} style={{ opacity: 0.4, marginBottom: '8px' }} />
-            <p style={{ margin: 0, fontWeight: 'var(--fw-medium)' }}>No players on the board yet.</p>
-            <p style={{ margin: '4px 0 0', fontSize: 'var(--fs-13)' }}>
-              Complete today&apos;s puzzles and opt-in to see your name here!
-            </p>
-          </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--line)', backgroundColor: 'var(--surface-2)', fontSize: 'var(--fs-12)', color: 'var(--ink-2)', textTransform: 'uppercase' }}>
-                <th style={{ padding: '12px 16px', width: '60px' }}>Rank</th>
-                <th style={{ padding: '12px 16px' }}>Player</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right' }}>Played</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right' }}>Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {board.rows.map((row) => (
-                <tr
-                  key={row.rank + row.user.id}
-                  style={{
-                    borderBottom: '1px solid var(--line)',
-                    backgroundColor: row.you ? 'var(--highlight-soft)' : undefined,
-                  }}
-                >
-                  <td style={{ padding: '12px 16px', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-14)' }}>
-                    {row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : `#${row.rank}`}
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Avatar name={row.user.displayName || 'Player'} />
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontWeight: row.you ? 'var(--fw-bold)' : 'var(--fw-medium)', color: 'var(--ink)', fontSize: 'var(--fs-14)' }}>
-                            {row.user.displayName || 'Student'}
-                          </span>
-                          {row.you && (
-                            <span style={{ fontSize: 'var(--fs-11)', padding: '1px 6px', borderRadius: 'var(--r-pill)', backgroundColor: 'var(--navy)', color: 'var(--cobalt-ink)' }}>
-                              You
-                            </span>
-                          )}
-                        </div>
-                        {row.user.year && (
-                          <div style={{ marginTop: '2px' }}>
-                            <CohortBadge year={row.user.year} />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: 'var(--fs-14)', color: 'var(--ink-2)' }}>
-                    {row.played}
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-15)', color: 'var(--ink)' }}>
-                    {row.points}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {board.isError ? (
+        <QueryError error={board.error} title="The leaderboard didn’t load" onRetry={() => void board.refetch()} retrying={board.isFetching} />
+      ) : board.isPending ? (
+        <Panel padding="md">
+          <Skeleton lines={5} />
+        </Panel>
+      ) : board.data.rows.length === 0 ? (
+        <Panel padding="none">
+          <EmptyState
+            icon={Trophy}
+            title={period === 'week' ? 'No one on the board this week yet' : 'No one on the board yet'}
+            body={me && !shown ? 'Finish a puzzle and show your name to be the first.' : 'Finish today’s puzzles to be the first.'}
+          />
+        </Panel>
+      ) : (
+        <Panel padding="none">
+          <ol className="dh-board__list">
+            {board.data.rows.map((row) => (
+              <Row key={row.user.id} row={row} />
+            ))}
+          </ol>
+          {board.data.you && !board.data.rows.some((r) => r.you) ? (
+            <ol className="dh-board__list dh-board__list--you" aria-label="Your place">
+              <Row row={board.data.you} />
+            </ol>
+          ) : null}
+        </Panel>
+      )}
+
+      <p className="dh-board__trust">Just for fun, on trust: points come from each player’s first try of the day, and nothing stops a look-up.</p>
+
+      {me && board.data && !board.data.you && board.data.yourPoints !== null && board.data.yourPoints !== undefined ? (
+        <p className="dh-board__yours">
+          Your points {period === 'week' ? 'this week' : 'so far'}: <strong className="dy-num">{board.data.yourPoints}</strong>
+          {!shown ? '. Show your name to appear on the board.' : null}
+        </p>
+      ) : null}
     </div>
+  );
+}
+
+function Row({ row }: { row: BoardRow }) {
+  const name = row.user.displayName ?? 'Student';
+  return (
+    <li className={cx('dh-board__row', row.you && 'is-you', row.rank <= 3 && `is-top is-top-${row.rank}`)}>
+      <span className="dh-board__rank dy-num" aria-label={`Rank ${row.rank}`}>
+        {row.rank}
+      </span>
+      <Avatar name={name} size="md" />
+      <span className="dh-board__who">
+        <span className="dh-board__name">
+          {name}
+          {row.you ? <span className="dh-board__you">You</span> : null}
+        </span>
+        {row.user.year ? <CohortBadge year={row.user.year} /> : null}
+      </span>
+      <span className="dh-board__played dy-num">
+        {row.played} <span className="dh-board__unit">played</span>
+      </span>
+      <span className="dh-board__points dy-num">
+        {row.points} <span className="dh-board__unit">pts</span>
+      </span>
+    </li>
   );
 }

@@ -1,93 +1,99 @@
+// Each game's screen. A game is a component that draws its play and sends moves through `play`; the page around
+// it (DailyGamePage) owns the bar, the rules, the result and the messages. Names, taglines, rules and scoring come
+// from the API (GameInfo), so the hub, the game and the share text always agree.
 import type { ComponentType } from 'react';
-import {
-  ChatText,
-  GridFour,
-  MagnifyingGlass,
-  Question,
-  Target,
-  SquaresFour,
-  type Icon,
-} from '@phosphor-icons/react';
-import type { GameId, PlayOut } from '../types';
-import { SudokuGameView } from './sudoku/SudokuGameView';
-import { WordGameView } from './word/WordGameView';
-import { GroupsGameView } from './groups/GroupsGameView';
-import { SearchGameView } from './search/SearchGameView';
-import { QuizGameView } from './quiz/QuizGameView';
-import { NearestGameView } from './nearest/NearestGameView';
+import type { ApiErrorCode } from '../../../api/errors';
+import type { FlashTone } from '../components/Flash';
+import type { GameId, Move, PlayOut } from '../types';
+import { GroupsExample, GroupsGame } from './groups/GroupsGame';
+import { NearestExample, NearestGame } from './nearest/NearestGame';
+import { QuizExample, QuizGame } from './quiz/QuizGame';
+import { SearchExample, SearchGame } from './search/SearchGame';
+import { SudokuExample, SudokuGame } from './sudoku/SudokuGame';
+import { WordExample, WordGame } from './word/WordGame';
+
+export type MoveResult =
+  | { ok: true; out: PlayOut }
+  | { ok: false; code: ApiErrorCode | null; message: string };
+
+export interface GameProps {
+  out: PlayOut;
+  /** a move is on its way to the server */
+  busy: boolean;
+  /** sends a move; resolves with the play after it, or with why it didn't count (nothing changed then) */
+  play: (move: Move) => Promise<MoveResult>;
+  /** a short message over the board */
+  flash: (text: string, tone?: FlashTone) => void;
+  /** a dialog is open: keyboard shortcuts wait */
+  paused: boolean;
+  /** opens the result card now (for games that don't open it themselves) */
+  showResult: () => void;
+  /** Sudoku: switch difficulty */
+  onVariant: (variant: string) => void;
+}
 
 export interface GamePlugin {
-  id: GameId;
-  title: string;
-  shortTitle: string;
-  tagline: string;
-  icon: Icon;
-  accentColor: string;
-  Component: ComponentType<{
-    playOut: PlayOut;
-    day: string;
-    variant: string;
-    onVariantChange?: (v: string) => void;
-  }>;
+  Component: ComponentType<GameProps>;
+  /** the worked example in the rules */
+  Example: ComponentType;
+  /** keyboard shortcuts, for the rules on a computer */
+  keys: readonly (readonly [string, string])[];
+  /** ms after the finishing move before the result opens itself (its animation first); null: the game asks */
+  resultDelay: number | null;
 }
 
-export const GAME_REGISTRY: Record<GameId, GamePlugin> = {
+export const GAMES: Record<GameId, GamePlugin> = {
   word: {
-    id: 'word',
-    title: 'The Word',
-    shortTitle: 'Wordle',
-    tagline: 'Find the 5-letter DSBA/finance word in six tries.',
-    icon: ChatText,
-    accentColor: '#12B886',
-    Component: WordGameView,
+    Component: WordGame,
+    Example: WordExample,
+    keys: [
+      ['A–Z', 'Type a letter'],
+      ['Enter', 'Guess'],
+      ['Backspace', 'Delete a letter'],
+    ],
+    resultDelay: 2200,
   },
   groups: {
-    id: 'groups',
-    title: 'Correlations',
-    shortTitle: 'Groups',
-    tagline: 'Sort sixteen words into four thematic groups of four.',
-    icon: SquaresFour,
-    accentColor: '#5865F2',
-    Component: GroupsGameView,
+    Component: GroupsGame,
+    Example: GroupsExample,
+    keys: [],
+    resultDelay: 1400,
   },
   search: {
-    id: 'search',
-    title: 'Data Mine',
-    shortTitle: 'Search',
-    tagline: 'Find eight themed words hidden across the letter grid.',
-    icon: MagnifyingGlass,
-    accentColor: '#F08C00',
-    Component: SearchGameView,
+    Component: SearchGame,
+    Example: SearchExample,
+    keys: [
+      ['Arrow keys', 'Move between letters'],
+      ['Enter', 'Pick a first or last letter'],
+      ['Esc', 'Start the line again'],
+    ],
+    resultDelay: 1100,
   },
   quiz: {
-    id: 'quiz',
-    title: 'The Daily Query',
-    shortTitle: 'Quiz',
-    tagline: 'Five quick questions on DSBA, stats, and programme modules.',
-    icon: Question,
-    accentColor: '#3B82F6',
-    Component: QuizGameView,
+    Component: QuizGame,
+    Example: QuizExample,
+    keys: [
+      ['1–4', 'Pick an answer'],
+      ['Enter', 'Next question'],
+    ],
+    resultDelay: null,
   },
   nearest: {
-    id: 'nearest',
-    title: 'Nearest Neighbor',
-    shortTitle: 'Nearest',
-    tagline: 'Discover the secret word by semantic closeness.',
-    icon: Target,
-    accentColor: '#EC4899',
-    Component: NearestGameView,
+    Component: NearestGame,
+    Example: NearestExample,
+    keys: [['Enter', 'Guess']],
+    resultDelay: 1300,
   },
   sudoku: {
-    id: 'sudoku',
-    title: 'Sudoku',
-    shortTitle: 'Sudoku',
-    tagline: 'Daily 9x9 logic puzzle with Easy, Medium, and Hard tiers.',
-    icon: GridFour,
-    accentColor: '#0FA3B1',
-    Component: SudokuGameView,
+    Component: SudokuGame,
+    Example: SudokuExample,
+    keys: [
+      ['1–9', 'Place a digit (or a note)'],
+      ['Arrow keys', 'Move between cells'],
+      ['N', 'Notes on or off'],
+      ['Backspace', 'Clear the cell’s notes'],
+      ['Ctrl+Z', 'Undo a note'],
+    ],
+    resultDelay: 1200,
   },
 };
-
-export function getGamePlugin(id: string): GamePlugin | undefined {
-  return GAME_REGISTRY[id as GameId];
-}

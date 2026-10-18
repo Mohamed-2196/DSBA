@@ -1,0 +1,126 @@
+/* The Daily Query: the five steps, one question card, and the way on. */
+
+.dq {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);
+  width: min(100%, 640px);
+  margin: 0 auto;
+  padding: var(--sp-8) var(--sp-12) var(--sp-12);
+  overflow-y: auto;
+}
+
+.dq-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.dq-step { position: relative; height: 6px; border-radius: var(--r-pill); background: var(--line); }
+.dq-step.is-current { background: var(--ink-3); }
+.dq-step.is-right { background: var(--dy-hit); }
+.dq-step.is-wrong { background: var(--alert); }
+.dq-step.is-current.is-right, .dq-step.is-current.is-wrong { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink-3); }
+/* A bigger target than the bar it sits on. */
+.dq-step__hit { position: absolute; inset: -12px 0; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.dq-step__hit:disabled { cursor: default; }
+
+.dq-card { display: grid; gap: var(--sp-16); }
+@media (prefers-reduced-motion: no-preference) {
+  .dq-card { animation: dq-in 260ms var(--ease) both; }
+}
+@keyframes dq-in {
+  from { opacity: 0; transform: translateX(14px); }
+}
+
+.dq-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-8); margin: 0; color: var(--ink-2); font-size: var(--fs-13); font-weight: var(--fw-semibold); }
+.dq-source { padding: 2px 10px; border-radius: var(--r-pill); background: var(--cobalt-soft); color: var(--cobalt); font-size: var(--fs-12); }
+.dq-prompt {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(var(--fs-20), 4.6vw, var(--fs-25));
+  font-weight: var(--fw-heavy);
+  letter-spacing: var(--tracking-head);
+  line-height: 1.25;
+  text-wrap: pretty;
+}
+
+.dq-options { display: grid; gap: var(--sp-8); }
+.dq-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--sp-8) var(--sp-14);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 2px 0 var(--line);
+  font: inherit;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), transform 90ms var(--ease);
+}
+.dq-option:hover:not(:disabled) { border-color: var(--cobalt); background: color-mix(in srgb, var(--cobalt-soft) 50%, var(--surface)); }
+.dq-option:active:not(:disabled) { transform: translateY(1px); box-shadow: none; }
+.dq-option:disabled { cursor: default; }
+.dq-option__key {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+}
+.dq-option__text { flex: 1 1 auto; min-width: 0; }
+.dq-option.is-right { border-color: var(--dy-hit); background: color-mix(in srgb, var(--dy-hit) 14%, var(--surface)); }
+.dq-option.is-right .dq-option__key { background: var(--dy-hit); color: var(--dy-on-hit); }
+.dq-option.is-wrong { border-color: var(--alert); background: var(--alert-soft); }
+.dq-option.is-wrong .dq-option__key { background: var(--alert-strong); color: var(--alert-ink); }
+.dq-option.is-other { opacity: .62; box-shadow: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .dq-option.is-chosen.is-right { animation: dq-yes 420ms var(--ease); }
+  .dq-option.is-chosen.is-wrong { animation: dq-no 420ms var(--ease); }
+}
+@keyframes dq-yes {
+  40% { transform: scale(1.025); }
+}
+@keyframes dq-no {
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.dq-explain { padding: var(--sp-12) var(--sp-16); border-radius: var(--r-control); background: var(--surface-2); border-left: 4px solid var(--ink-3); }
+.dq-explain.is-right { border-left-color: var(--dy-hit); }
+.dq-explain.is-wrong { border-left-color: var(--alert); }
+.dq-explain__head { margin: 0 0 2px; font-weight: var(--fw-heavy); color: var(--ink); }
+.dq-explain__body { margin: 0; color: var(--ink-2); font-size: var(--fs-15); line-height: 1.5; max-width: 62ch; }
+
+.dq-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-8); min-height: 48px; }
+/* On a phone the way on sits at the bottom, under the thumb. */
+@media (max-width: 699px) {
+  .dq-nav { margin-top: auto; }
+}
+
+@media (max-height: 640px) {
+  .dq { gap: var(--sp-8); }
+  .dq-card { gap: var(--sp-10); }
+  .dq-option { min-height: 48px; padding-block: 6px; }
+}
+/* Wide and short (a phone on its side): the answers two by two. */
+@media (max-height: 500px) and (min-width: 600px) {
+  .dq { width: min(100%, 820px); }
+  .dq-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dq-prompt { font-size: var(--fs-18); }
+  .dq-option { min-height: 44px; font-size: var(--fs-14); }
+}
+
+/* The rules' example. */
+.dq-eg .dq-option { cursor: default; min-height: 44px; font-size: var(--fs-14); }

@@ -8,6 +8,7 @@ strongly related words. Each secret word's ranking of the vocabulary is worked o
 from __future__ import annotations
 
 import datetime as dt
+import difflib
 import math
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -80,13 +81,29 @@ def _normal(word: str) -> str:
     return word.strip().lower()
 
 
+def suggestions(word: str, known: dict[str, int], n: int = 2) -> list[str]:
+    """Known words a guess the game doesn't know may have meant: longer forms of it ("invest": investment), then
+    near spellings."""
+    longer = sorted((w for w in known if len(word) >= 4 and w.startswith(word)), key=lambda w: (len(w), w))
+    close = difflib.get_close_matches(word, known, n=n, cutoff=0.8)
+    return list(dict.fromkeys(longer + close))[:n]
+
+
+def _unknown(word: str, known: dict[str, int]) -> str:
+    tries = suggestions(word, known)
+    if not tries or not word.isalpha():
+        return "We don't know that word. Try another."
+    return f"We don't know “{word}”. Try {' or '.join(tries)}."
+
+
 class NearestGame(ContentGame[Puzzle, NearestState]):
     id = "nearest"
-    title = "Nearest neighbour"
-    tagline = "Guess the secret word. Each guess shows how close you are."
+    title = "Nearest Neighbour"
+    tagline = "Find the secret word. Each guess shows how close it is."
     how_to = (
-        "Type any word. You'll see its rank: 1 is the secret word, 2 the closest word to it, and so on.",
-        "Closeness is about meaning: words used together in the week's theme sit close. Spelling doesn't matter.",
+        "Type a word and see its rank: 1 is the secret word, 2 the closest word to it, and so on.",
+        "Closeness is about meaning, not spelling: words used together sit close. The game knows hundreds of words "
+        "from data, business, study and everyday life.",
         "Stuck? A hint shows a word closer than your best so far.",
     )
     scoring = (
@@ -96,6 +113,7 @@ class NearestGame(ContentGame[Puzzle, NearestState]):
     max_points = 100
     moves = frozenset({"guess", "hint", "give-up"})
     max_moves = 300
+    min_seconds = 4  # from opening the puzzle: a first-guess win any faster was looked up
 
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
         return content.spread(pool, used, day, 1, self.id, seed, lambda _, e: bool(e.ranking))
@@ -121,7 +139,7 @@ class NearestGame(ContentGame[Puzzle, NearestState]):
             if word not in puzzle.rank_of and word.endswith("s") and word[:-1] in puzzle.rank_of:
                 word = word[:-1]
             if word not in puzzle.rank_of:
-                raise unknown_word("We don't know that word. Try another.")
+                raise unknown_word(_unknown(word, puzzle.rank_of))
             if any(g.word == word for g in state.guesses):
                 raise conflict("already_tried", "You've tried that word already.")
             rank = puzzle.rank_of[word]
@@ -170,6 +188,6 @@ class NearestGame(ContentGame[Puzzle, NearestState]):
         warm = sum(CLOSE < g.rank <= WARM for g in guesses)
         cold = len(guesses) - close - warm
         hints = len(state.guesses) - len(guesses)
-        head = f"Nearest neighbour: {'found' if status == 'won' else 'not found'} in {len(guesses)} guesses"
+        head = f"{self.title}: {'found' if status == 'won' else 'not found'} in {len(guesses)} guesses"
         head += f", {hints} hint{'s' if hints != 1 else ''}"
         return f"{head}\n🟩 {close}  🟨 {warm}  ⬜ {cold}"

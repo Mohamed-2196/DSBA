@@ -1,189 +1,134 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+// The Daily's queries and moves. Signed in, the server keeps each play; a guest's moves live on this device
+// (lib/storage.ts) and go with every request, so the server can replay and check them without keeping anything.
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
+import { isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
-import type {
-  BoardPeriod,
-  DailyCalendar,
-  DailyMe,
-  DailyToday,
-  GameId,
-  Leaderboard,
-  Move,
-  MoveIn,
-  PlayOut,
-} from './types';
+import { todayKey } from '../../lib/dates';
+import { clearGuestMoves, guestMoves, saveGuestMoves } from './lib/storage';
+import type { BoardPeriod, GameId, Move, PlayOut } from './types';
 
 export const DAILY_KEY = ['daily'] as const;
 
 export const dailyKeys = {
-  all: DAILY_KEY,
   today: () => [...DAILY_KEY, 'today'] as const,
   calendar: (month: string) => [...DAILY_KEY, 'calendar', month] as const,
-  leaderboard: (period: BoardPeriod, year?: number | null) => [...DAILY_KEY, 'leaderboard', period, year ?? null] as const,
+  leaderboard: (period: BoardPeriod, year: number | null) => [...DAILY_KEY, 'leaderboard', period, year] as const,
   me: () => [...DAILY_KEY, 'me'] as const,
-  play: (day: string, game: GameId, variant?: string, isGuest?: boolean) => [...DAILY_KEY, 'play', day, game, variant ?? '', Boolean(isGuest)] as const,
+  play: (day: string, game: GameId, variant: string, guest: boolean) => [...DAILY_KEY, 'play', day, game, variant, guest] as const,
 };
 
-const STALE_TODAY = 60_000;
-const STALE_BOARD = 30_000;
-
-// ── Guest history storage ──────────────────────────────────────────────────────────
-
-const GUEST_PREFIX = 'dsba:daily:guest:';
-
-function guestKey(day: string, game: GameId, variant = ''): string {
-  return `${GUEST_PREFIX}${day}:${game}:${variant || 'default'}`;
-}
-
-export function getGuestHistory(day: string, game: GameId, variant = ''): Move[] {
-  try {
-    const raw = localStorage.getItem(guestKey(day, game, variant));
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Move[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function saveGuestHistory(day: string, game: GameId, variant: string, history: Move[]): void {
-  try {
-    localStorage.setItem(guestKey(day, game, variant), JSON.stringify(history));
-  } catch {
-    /* ignore storage quota / disabled */
-  }
-}
-
-// ── API fetches ────────────────────────────────────────────────────────────────────
-
-export async function fetchToday(): Promise<DailyToday> {
-  return call(api.GET('/api/v1/daily'));
-}
-
+/** Today's set: the theme, each game and how far you got, your points and streak. */
 export function useDailyToday() {
   return useQuery({
     queryKey: dailyKeys.today(),
-    queryFn: fetchToday,
-    staleTime: STALE_TODAY,
+    queryFn: () => call(api.GET('/api/v1/daily')),
+    staleTime: 30_000,
   });
 }
 
-export async function fetchCalendar(month: string): Promise<DailyCalendar> {
-  return call(api.GET('/api/v1/daily/calendar', { params: { query: { month } } }));
-}
-
+/** A month's days with puzzles out ('YYYY-MM'), and the games you finished on each. */
 export function useDailyCalendar(month: string) {
   return useQuery({
     queryKey: dailyKeys.calendar(month),
-    queryFn: () => fetchCalendar(month),
-    staleTime: 5 * 60_000,
-    enabled: Boolean(month),
+    queryFn: () => call(api.GET('/api/v1/daily/calendar', { params: { query: { month } } })),
+    staleTime: 60_000,
   });
 }
 
-export async function fetchLeaderboard(period: BoardPeriod = 'week', year?: number | null): Promise<Leaderboard> {
-  return call(
-    api.GET('/api/v1/daily/leaderboard', {
-      params: { query: { period, year: year ?? undefined } },
-    }),
-  );
-}
-
-export function useDailyLeaderboard(period: BoardPeriod = 'week', year?: number | null) {
+export function useDailyLeaderboard(period: BoardPeriod, year: number | null) {
   return useQuery({
     queryKey: dailyKeys.leaderboard(period, year),
-    queryFn: () => fetchLeaderboard(period, year),
-    staleTime: STALE_BOARD,
+    queryFn: () => call(api.GET('/api/v1/daily/leaderboard', { params: { query: { period, year: year ?? undefined } } })),
+    staleTime: 30_000,
   });
 }
 
-export async function fetchDailyMe(): Promise<DailyMe> {
-  return call(api.GET('/api/v1/daily/me'));
-}
-
+/** Your totals, streak, badges and leaderboard choice (signed in). */
 export function useDailyMe() {
   const { me } = useAuth();
   return useQuery({
     queryKey: dailyKeys.me(),
-    queryFn: fetchDailyMe,
-    staleTime: STALE_TODAY,
+    queryFn: () => call(api.GET('/api/v1/daily/me')),
+    staleTime: 30_000,
     enabled: Boolean(me),
   });
 }
 
-export function useUpdateDailyMe() {
+export function useShowOnBoard() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (showOnBoard: boolean) =>
-      call(api.PUT('/api/v1/daily/me', { body: { showOnBoard } })),
+    mutationFn: (showOnBoard: boolean) => call(api.PUT('/api/v1/daily/me', { body: { showOnBoard } })),
     onSuccess: (updated) => {
       qc.setQueryData(dailyKeys.me(), updated);
-      qc.invalidateQueries({ queryKey: [...DAILY_KEY, 'leaderboard'] });
+      void qc.invalidateQueries({ queryKey: [...DAILY_KEY, 'leaderboard'] });
     },
   });
 }
 
-export async function fetchPlay(day: string, game: GameId, variant = '', isGuest = false): Promise<PlayOut> {
-  if (isGuest) {
-    const history = getGuestHistory(day, game, variant);
-    // Guest play: send history to reconstruct view
-    return call(
-      api.POST('/api/v1/daily/{day}/{game}/moves', {
-        params: { path: { day, game } },
-        body: { variant, history },
-      }),
-    );
-  }
-  return call(
-    api.GET('/api/v1/daily/{day}/{game}', {
-      params: { path: { day, game }, query: { variant: variant || undefined } },
-    }),
-  );
+function replayGuest(day: string, game: GameId, variant: string, history: Move[]): Promise<PlayOut> {
+  return call(api.POST('/api/v1/daily/{day}/{game}/moves', { params: { path: { day, game } }, body: { variant, history } }));
 }
 
-export function useDailyPlay(day: string, game: GameId, variant = '') {
-  const { me } = useAuth();
-  const isGuest = !me;
+async function fetchPlay(day: string, game: GameId, variant: string, guest: boolean): Promise<PlayOut> {
+  if (!guest) {
+    return call(api.GET('/api/v1/daily/{day}/{game}', { params: { path: { day, game }, query: { variant: variant || undefined } } }));
+  }
+  const history = guestMoves(day, game, variant);
+  try {
+    return await replayGuest(day, game, variant, history);
+  } catch (e) {
+    // Moves the server can't replay (made on another puzzle): start again rather than stay stuck.
+    if (history.length && isApiError(e) && (e.status === 422 || e.status === 409)) {
+      clearGuestMoves(day, game, variant);
+      return replayGuest(day, game, variant, []);
+    }
+    throw e;
+  }
+}
+
+/** A day's game (and Sudoku difficulty) as it stands for you. */
+export function useDailyPlay(day: string, game: GameId, variant: string) {
+  const { me, status } = useAuth();
+  const guest = !me;
   return useQuery({
-    queryKey: dailyKeys.play(day, game, variant, isGuest),
-    queryFn: () => fetchPlay(day, game, variant, isGuest),
-    enabled: Boolean(day && game),
-    staleTime: 5_000,
+    queryKey: dailyKeys.play(day, game, variant, guest),
+    queryFn: () => fetchPlay(day, game, variant, guest),
+    enabled: status !== 'loading',
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 
-export function useDailyMove(day: string, game: GameId, variant = '') {
+/** What a finished play changes besides itself. */
+function afterFinish(qc: QueryClient) {
+  void qc.invalidateQueries({ queryKey: dailyKeys.me() });
+  void qc.invalidateQueries({ queryKey: [...DAILY_KEY, 'leaderboard'] });
+  void qc.invalidateQueries({ queryKey: [...DAILY_KEY, 'calendar'] });
+}
+
+/** One move, checked by the server. Resolves with the play as it stands after it; rejects with the ApiError. */
+export function useDailyMove(day: string, game: GameId, variant: string) {
   const qc = useQueryClient();
   const { me } = useAuth();
-  const isGuest = !me;
-
+  const guest = !me;
   return useMutation({
-    mutationFn: async (move: Move) => {
-      const history = isGuest ? getGuestHistory(day, game, variant) : [];
-      const body: MoveIn = {
-        variant,
-        move,
-        history,
-      };
-      const result = await call(
-        api.POST('/api/v1/daily/{day}/{game}/moves', {
-          params: { path: { day, game } },
-          body,
-        }),
+    mutationFn: async (move: Move): Promise<PlayOut> => {
+      const history = guest ? guestMoves(day, game, variant) : [];
+      const out = await call(
+        api.POST('/api/v1/daily/{day}/{game}/moves', { params: { path: { day, game } }, body: { variant, move, history } }),
       );
-      if (isGuest) {
-        saveGuestHistory(day, game, variant, [...history, move]);
-      }
-      return result;
+      if (guest) saveGuestMoves(day, game, variant, [...history, move], todayKey());
+      return out;
     },
-    onSuccess: (playOut) => {
-      qc.setQueryData(dailyKeys.play(day, game, variant), playOut);
-      qc.invalidateQueries({ queryKey: dailyKeys.today() });
-      if (playOut.play.status === 'won' || playOut.play.status === 'lost') {
-        qc.invalidateQueries({ queryKey: dailyKeys.me() });
-        qc.invalidateQueries({ queryKey: [...DAILY_KEY, 'leaderboard'] });
-        qc.invalidateQueries({ queryKey: [...DAILY_KEY, 'calendar'] });
-      }
+    onSuccess: (out) => {
+      qc.setQueryData(dailyKeys.play(day, game, variant, guest), out);
+      void qc.invalidateQueries({ queryKey: dailyKeys.today() });
+      if (out.play.status === 'won' || out.play.status === 'lost') afterFinish(qc);
+    },
+    onError: (e) => {
+      // Finished elsewhere (another tab): show the play as it is now.
+      if (isApiError(e) && e.code === 'game_over') void qc.invalidateQueries({ queryKey: dailyKeys.play(day, game, variant, guest) });
     },
   });
 }

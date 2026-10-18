@@ -150,11 +150,11 @@ def theme_of(db: Session, day: dt.date) -> Theme:
         raise not_set_up() from None
 
 
-def theme_ids(db: Session, days: Sequence[dt.date]) -> list[str]:
-    """Each day's theme (one read of the schedule for them all)."""
+def themes_of(db: Session, days: Sequence[dt.date]) -> list[Theme]:
+    """Each day's theme, as the hub shows it (one read of the schedule for them all)."""
     plan = schedule(db)
     try:
-        return [plan.theme_id(d) for d in days]
+        return [plan.theme(d).public() for d in days]
     except NoThemeError:
         raise not_set_up() from None
 

@@ -3346,7 +3346,8 @@ export interface paths {
         };
         /**
          * Calendar
-         * @description The month's days with puzzles out, and how many games you finished on each.
+         * @description The month's days with puzzles out, and the games you finished on each. Errors: invalid_input on `month` (422)
+         *     for a month that isn't one, or in a year without puzzles.
          */
         get: operations["calendar_api_v1_daily_calendar_get"];
         put?: never;
@@ -3411,7 +3412,8 @@ export interface paths {
         /**
          * Get Play
          * @description A game on a day, and your play of it so far. The day's puzzle is made and kept the first time anyone asks
-         *     for it. Errors: not_out_yet (404), invalid_input on `variant` (422).
+         *     for it; signed in, the first look at today's starts its clock. Errors: not_out_yet (404), invalid_input on
+         *     `variant` (422).
          */
         get: operations["get_play_api_v1_daily__day___game__get"];
         put?: never;
@@ -4821,10 +4823,9 @@ export interface components {
              * Format: date
              */
             day: string;
-            /** Theme */
-            theme: string;
-            /** Done */
-            done: number;
+            theme: components["schemas"]["Theme"];
+            /** Finished */
+            finished: ("word" | "groups" | "search" | "quiz" | "nearest" | "sudoku")[];
             /** Points */
             points: number;
         };
@@ -5698,6 +5699,8 @@ export interface components {
              * Format: date
              */
             day: string;
+            /** Number */
+            number: number;
             /**
              * Firstday
              * Format: date
@@ -6726,6 +6729,8 @@ export interface components {
              * @enum {string}
              */
             status: "new" | "playing" | "won" | "lost";
+            /** Variant */
+            variant: string;
             /** Points */
             points: number;
             /** Scored */
@@ -8746,6 +8751,8 @@ export interface components {
              * Format: date
              */
             day: string;
+            /** Number */
+            number: number;
             /**
              * Game
              * @enum {string}
@@ -9633,6 +9640,11 @@ export interface components {
             word: string;
             start: components["schemas"]["Cell"];
             end: components["schemas"]["Cell"];
+            /**
+             * Revealed
+             * @default false
+             */
+            revealed: boolean;
         };
         /** SearchHit */
         SearchHit: {

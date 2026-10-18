@@ -46,13 +46,15 @@ def _hint_cell(puzzle: Puzzle, state: SudokuState) -> int:
     """The empty cell with the fewest digits left to it: the most useful one to reveal."""
     grid = [puzzle.givens[i] or state.filled.get(i, 0) for i in range(81)]
     empty = [i for i in range(81) if grid[i] == 0]
+    if not empty:
+        raise bad_move("There's no empty cell left.")
     return min(empty, key=lambda i: (9 - len({grid[p] for p in PEERS[i]} - {0}), i))
 
 
 class SudokuGame(Game[Puzzle, SudokuState]):
     id = "sudoku"
     title = "Sudoku"
-    tagline = "Fill the grid so each row, column and box holds 1 to 9."
+    tagline = "Fill the grid so every row, column and box holds 1 to 9."
     how_to = (
         "Every row, column and 3 by 3 box holds each digit from 1 to 9 once.",
         "Pick a cell, then a digit. Pencil marks keep your options; they don't count as moves.",
@@ -130,7 +132,7 @@ class SudokuGame(Game[Puzzle, SudokuState]):
         )
 
     def share(self, puzzle: Puzzle, state: SudokuState, status: Status) -> str:
-        head = f"Sudoku, {puzzle.difficulty}: {'solved' if status == 'won' else 'not solved'}"
+        head = f"{self.title}, {puzzle.difficulty}: {'solved' if status == 'won' else 'not solved'}"
         mistakes = f"{state.mistakes} mistake{'s' if state.mistakes != 1 else ''}"
         hints = f"{len(state.hinted)} hint{'s' if len(state.hinted) != 1 else ''}"
         return f"{head}\n{mistakes}, {hints}"

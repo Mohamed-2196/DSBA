@@ -68,18 +68,19 @@ class WordState:
 
 class WordGame(ContentGame[Puzzle, WordState]):
     id = "word"
-    title = "The word"
-    tagline = "Find the week's five-letter word in six tries."
+    title = "The Word"
+    tagline = "Guess the week's five-letter word in six tries."
     how_to = (
-        "Type a five-letter word and press Enter.",
-        "Green: the letter is in the word, in that place. Yellow: it's in the word somewhere else. Grey: it isn't in "
+        "Type a five-letter word and press Enter. Your guesses can be any English word.",
+        "Green: the letter is in the word, in that spot. Yellow: it's in the word, in another spot. Grey: it isn't in "
         "the word.",
-        "The word fits the week's theme. Your guesses can be any English word.",
+        "The word fits the week's theme.",
     )
     scoring = "100 points in one guess, down to 35 in six."
     max_points = POINTS[0]
     moves = frozenset({"guess", "give-up"})
     max_moves = MAX_GUESSES + 1
+    min_seconds = 4  # from opening the puzzle: a first-guess win any faster was looked up
 
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
         return content.spread(pool, used, day, 1, self.id, seed)
@@ -131,4 +132,4 @@ class WordGame(ContentGame[Puzzle, WordState]):
     def share(self, puzzle: Puzzle, state: WordState, status: Status) -> str:
         tries = str(len(state.rows)) if status == "won" else "X"
         grid = "\n".join("".join(SQUARES[m] for m in row.marks) for row in state.rows)
-        return f"The word {tries}/{MAX_GUESSES}\n{grid}".rstrip()
+        return f"{self.title} {tries}/{MAX_GUESSES}\n{grid}".rstrip()

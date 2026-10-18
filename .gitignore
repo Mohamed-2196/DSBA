@@ -32,5 +32,7 @@ api/var/
 .venv
 .claude/settings.local.json
 
+# The Playwright MCP browser's screenshots and logs (agents' scratch, never part of the repo)
+.playwright-mcp/
 # Content kept out of the public repository (Daily answers): see docs/backend/CMS.md
 /private/

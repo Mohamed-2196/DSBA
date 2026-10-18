@@ -113,10 +113,11 @@ def module_question(modules: list[Module], r: random.Random) -> Question | None:
 
 class QuizGame(ContentGame[tuple[Question, ...], QuizState]):
     id = "quiz"
-    title = "Quick quiz"
-    tagline = "Five quick questions on the week's theme and the programme."
+    title = "The Daily Query"
+    tagline = "Five quick questions on the week's theme and your modules."
     how_to = (
-        "Pick an answer for each question. You'll see if you're right straight away, with a short explanation.",
+        "Pick an answer for each question. You'll see straight away if you're right, with a short explanation.",
+        f"Get {TO_WIN} or more right to solve it.",
         "One question a day is about the programme's own modules.",
     )
     scoring = f"{POINTS_EACH} points for each right answer."
@@ -149,6 +150,8 @@ class QuizGame(ContentGame[tuple[Question, ...], QuizState]):
         if not isinstance(move, AnswerMove):
             state.gave_up = True
             return "gave-up"
+        if len(state.answered) >= len(puzzle):
+            raise bad_move("There are no more questions.")
         q = puzzle[len(state.answered)]
         if move.choice >= len(q.options):
             raise bad_move("Pick one of the answers.")
@@ -181,4 +184,4 @@ class QuizGame(ContentGame[tuple[Question, ...], QuizState]):
 
     def share(self, puzzle: tuple[Question, ...], state: QuizState, status: Status) -> str:
         marks = "".join("🟩" if a.correct else "🟥" for a in state.answered)
-        return f"Quick quiz: {self._right(state)}/{len(puzzle)}\n{marks}"
+        return f"{self.title} {self._right(state)}/{len(puzzle)}\n{marks}"

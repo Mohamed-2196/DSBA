@@ -20,7 +20,7 @@ SIZE = 4
 TRIES = 4
 MISTAKE_COST = 20
 POINTS_PER_GROUP_LOST = 10  # a lost play still earns this for each group found
-SQUARES = {1: "🟨", 2: "🟩", 3: "🟦", 4: "🟧"}  # the levels' colours in the web app
+SQUARES = {1: "🟨", 2: "🟩", 3: "🟦", 4: "🟪"}  # the levels' colours in the web app
 
 
 @dataclass(frozen=True)
@@ -56,7 +56,7 @@ def _group(data: dict[str, Any]) -> Group:
 
 class GroupsGame(ContentGame[Puzzle, GroupsState]):
     id = "groups"
-    title = "Groups"
+    title = "Correlations"
     tagline = "Sort sixteen words into four groups of four."
     how_to = (
         "Pick four words that share something, then press Submit.",
@@ -158,5 +158,5 @@ class GroupsGame(ContentGame[Puzzle, GroupsState]):
 
     def share(self, puzzle: Puzzle, state: GroupsState, status: Status) -> str:
         rows = "\n".join("".join(SQUARES[level] for level in levels) for levels in state.levels)
-        head = f"Groups: {len(state.found)}/{GROUPS}, {state.mistakes} mistake{'s' if state.mistakes != 1 else ''}"
+        head = f"{self.title} {len(state.found)}/{GROUPS}, {state.mistakes} mistake{'s' if state.mistakes != 1 else ''}"
         return f"{head}\n{rows}".rstrip()

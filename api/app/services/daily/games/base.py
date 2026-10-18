@@ -32,7 +32,8 @@ class Game(ABC, Generic[P, S]):
     max_points: ClassVar[int]
     moves: ClassVar[frozenset[str]]  # the move kinds the game takes
     max_moves: ClassVar[int]
-    # A finished play faster than this, from its first move to its last, earns no points: no person plays that fast.
+    # A win faster than this earns no points: no person plays that fast. The clock starts when a signed-in player
+    # first opens today's puzzle (Sudoku: at the first move), and stops at the last move.
     min_seconds: ClassVar[int] = 0
 
     def info(self) -> GameInfo:

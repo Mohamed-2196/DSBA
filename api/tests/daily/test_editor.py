@@ -148,7 +148,7 @@ def test_an_item_is_added_and_edited_with_versions_and_the_audit(c: TestClient, 
     update = db.scalars(select(AuditEntry).where(AuditEntry.action == "daily.item.update")).one()
     assert update.data["before"]["theme"] == "alpha"
     assert update.data["after"]["theme"] == "beta"
-    assert update.data["title"].startswith("Quick quiz: What does a p-value")
+    assert update.data["title"].startswith("The Daily Query: What does a p-value")
 
 
 def test_the_list_finds_items_by_theme_status_and_any_of_their_words(c: TestClient) -> None:
