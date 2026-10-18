@@ -1,6 +1,7 @@
 // Manage → Daily puzzles' data (holders of content.edit): the overview (themes, weeks, sizes), each game's items, the
-// guess list, Nearest neighbour's vocabulary and the preview of a day, with the writes. Theme and week writes answer
-// with the whole overview; item writes refresh the lists and the counts.
+// guess list, Nearest neighbour's vocabulary, the preview of a day and today's puzzles, with the writes. Theme and
+// week writes answer with the whole overview; item writes and fixes to today's puzzle refresh the lists, the counts
+// and the hub.
 import {
   keepPreviousData,
   useInfiniteQuery,
@@ -21,6 +22,7 @@ import type {
   ThemeCreate,
   ThemeOrder,
   ThemeSave,
+  TodayFixIn,
   VocabularyIn,
   VocabularySave,
   WeekSave,
@@ -36,6 +38,7 @@ export const dailyContentKeys = {
   guesses: (q: string) => [...DAILY_CONTENT_KEY, 'guesses', q] as const,
   vocabulary: (q: string) => [...DAILY_CONTENT_KEY, 'vocabulary', q] as const,
   preview: (day: string) => [...DAILY_CONTENT_KEY, 'preview', day] as const,
+  today: () => [...DAILY_CONTENT_KEY, 'today'] as const,
 };
 const PAGE = 50;
 
@@ -234,5 +237,26 @@ export function useDailyPreview(day: string) {
     queryKey: dailyContentKeys.preview(day),
     queryFn: ({ signal }) => call(api.GET('/api/v1/content/daily/preview', { params: { query: { day } }, signal })),
     enabled: /^\d{4}-\d{2}-\d{2}$/.test(day),
+  });
+}
+
+/** Today's puzzles, the items each uses, and who is partway through or finished: where a fix starts. */
+export function useTodayPuzzles(enabled = true) {
+  return useQuery({
+    queryKey: dailyContentKeys.today(),
+    queryFn: ({ signal }) => call(api.GET('/api/v1/content/daily/today', { signal })),
+    enabled,
+  });
+}
+
+/** A fix to an item today's puzzle uses: a dry run shows today before and after and changes nothing. */
+export function useFixToday() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: TodayFixIn & { id: string }) =>
+      call(api.POST('/api/v1/content/daily/items/{item_id}/fix-today', { params: { path: { item_id: id } }, body })),
+    onSuccess: (out) => {
+      if (out.applied) changed(qc);
+    },
   });
 }

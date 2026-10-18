@@ -1,14 +1,26 @@
 // Adding or editing one item, with its game's own fields. The API checks the game's rules and answers on the field;
 // a save someone else made first asks to open the item again. An answer word is checked against the guess list as it
 // is typed, and a secret word against the vocabulary.
+//
+// An item today's puzzle uses (and someone has opened) can fix today's puzzle too: the dialog then shows today's
+// puzzle with the fix, what changes and who it reaches, before the fix is applied.
 import { Check, Plus, WarningCircle, X } from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
-import type { ItemOut, QuizData, ThemeOut } from '../../../api/types';
+import type { ItemOut, QuizData, ThemeOut, TodayFixOut } from '../../../api/types';
 import { useToast } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Button, IconButton, Modal, Select, TextArea, TextField } from '../../../ui';
-import { useAddGuesses, useCreateItem, useGuessList, useSaveItem, useVocabulary } from './api';
+import { Button, IconButton, Modal, Select, Switch, TextArea, TextField } from '../../../ui';
+import {
+  useAddGuesses,
+  useCreateItem,
+  useFixToday,
+  useGuessList,
+  useSaveItem,
+  useTodayPuzzles,
+  useVocabulary,
+} from './api';
+import { FixCheck } from './FixCheck';
 import {
   LEVELS,
   blankData,
@@ -41,24 +53,44 @@ interface ItemDialogProps {
   item: ItemOut | null;
   themes: ThemeOut[];
   defaultTheme: string;
+  /** opened to fix today's puzzle: the fix starts switched on */
+  fixToday?: boolean;
   onClose: () => void;
 }
 
-export function ItemDialog({ game, item, themes, defaultTheme, onClose }: ItemDialogProps) {
+export function ItemDialog({ game, item, themes, defaultTheme, fixToday = false, onClose }: ItemDialogProps) {
   const info = gameInfo(game);
   const [theme, setTheme] = useState(item?.theme ?? (defaultTheme || themes[0]?.id || ''));
   const [data, setData] = useState<ItemData>(item?.data ?? blankData(game));
   const create = useCreateItem();
   const save = useSaveItem();
+  const fixer = useFixToday();
   const { push: toast } = useToast();
-  const pending = create.isPending || save.isPending;
-  const error = item ? save.error : create.error;
+  // Today's puzzle, out already, uses the item: it can be fixed today as well as from tomorrow.
+  const inToday = Boolean(item?.inToday);
+  const [fix, setFix] = useState(inToday && fixToday);
+  const today = useTodayPuzzles(inToday);
+  const todayGame = today.data?.games.find((g) => g.game === game);
+  const fixing = inToday && fix;
+  const [check, setCheck] = useState<TodayFixOut | null>(null);
+  const pending = create.isPending || save.isPending || fixer.isPending;
+  const error = fixing ? fixer.error : item ? save.error : create.error;
   const fields = isApiError(error) ? error.fields : {};
   const changed = isApiError(error) && error.code === 'puzzle_changed';
   const general = error && !changed && !Object.keys(fields).length ? errorMessage(error) : null;
   const err = (name: string) => fieldError(fields, name);
 
+  const fixBody = () =>
+    item && today.data && todayGame
+      ? { id: item.id, day: today.data.day, revision: todayGame.revision, version: item.version, data }
+      : null;
+
   const submit = () => {
+    if (fixing) {
+      const body = fixBody();
+      if (body) fixer.mutate({ ...body, dryRun: true }, { onSuccess: setCheck });
+      return;
+    }
     const done = () => {
       toast({
         title: item ? 'Saved. The days to come use it.' : `“${titleOf(data).trim()}” is added.`,
@@ -70,24 +102,95 @@ export function ItemDialog({ game, item, themes, defaultTheme, onClose }: ItemDi
     else create.mutate({ theme, data }, { onSuccess: done });
   };
 
+  const apply = () => {
+    const body = fixBody();
+    if (!body) return;
+    fixer.mutate(
+      { ...body, dryRun: false },
+      {
+        onSuccess: (out) => {
+          toast(
+            out.changes.length
+              ? {
+                  title: `Today’s ${info.label.toLowerCase()} is fixed.`,
+                  body: out.playing ? 'Students partway through start again.' : undefined,
+                  tone: 'success',
+                }
+              : { title: 'Saved. Today’s puzzle stays as it is; the days to come use it.', tone: 'success' },
+          );
+          onClose();
+        },
+        // A field to change goes back to the form, where it shows.
+        onError: (e) => {
+          if (isApiError(e) && Object.keys(e.fields).length) setCheck(null);
+        },
+      },
+    );
+  };
+
+  if (check) {
+    const applies = check.changes.length > 0;
+    return (
+      <Modal
+        open
+        onClose={pending ? () => undefined : onClose}
+        size="lg"
+        title="Check today’s puzzle"
+        description={applies ? 'Nothing changes until you apply it.' : undefined}
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                fixer.reset();
+                setCheck(null);
+              }}
+              disabled={pending}
+            >
+              Back
+            </Button>
+            <Button variant="primary" loading={pending} disabled={changed} onClick={apply}>
+              {applies ? 'Apply to today' : 'Save'}
+            </Button>
+          </>
+        }
+      >
+        {error ? (
+          <p className="dcms__banner" role="alert">
+            {errorMessage(error)}
+          </p>
+        ) : null}
+        <FixCheck check={check} />
+      </Modal>
+    );
+  }
+
   return (
     <Modal
       open
       onClose={pending ? () => undefined : onClose}
       size={game === 'quiz' ? 'lg' : 'md'}
-      title={item ? `Edit the ${info.noun}` : `Add ${/^[aeiou]/i.test(info.noun) ? 'an' : 'a'} ${info.noun}`}
+      title={
+        fixing
+          ? `Fix today’s ${info.noun}`
+          : item
+            ? `Edit the ${info.noun}`
+            : `Add ${/^[aeiou]/i.test(info.noun) ? 'an' : 'a'} ${info.noun}`
+      }
       description={
-        item && item.uses > 0
-          ? `It ran on ${item.uses} ${item.uses === 1 ? 'day' : 'days'}, which keep it as it was. Your changes reach the days to come.`
-          : undefined
+        fixing
+          ? 'Your fix reaches today’s puzzle and the days to come. You’ll see today’s puzzle with it before it’s applied.'
+          : item && item.uses > 0
+            ? `It ran on ${item.uses} ${item.uses === 1 ? 'day' : 'days'}, which keep it as it was. Your changes reach the days to come.`
+            : undefined
       }
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={pending}>
             Cancel
           </Button>
-          <Button variant="primary" loading={pending} disabled={changed} onClick={submit}>
-            {item ? 'Save' : 'Add'}
+          <Button variant="primary" loading={pending} disabled={changed || (fixing && !todayGame)} onClick={submit}>
+            {fixing ? 'Preview today' : item ? 'Save' : 'Add'}
           </Button>
         </>
       }
@@ -101,9 +204,25 @@ export function ItemDialog({ game, item, themes, defaultTheme, onClose }: ItemDi
       >
         {changed ? (
           <p className="dcms__banner" role="alert">
-            Someone saved this after you opened it. Close it and open it again to see their version, then make your
-            change.
+            {fixing
+              ? errorMessage(error)
+              : 'Someone saved this after you opened it. Close it and open it again to see their version, then make your change.'}
           </p>
+        ) : null}
+        {inToday ? (
+          <Switch
+            checked={fix}
+            onChange={(on) => {
+              setFix(on);
+              fixer.reset();
+            }}
+            label="Fix today’s puzzle too"
+            description={
+              fix
+                ? 'Today’s puzzle uses this. Finished games keep their results; games partway through start again.'
+                : 'Today’s puzzle uses this, and stays as it is. Your change reaches the days to come.'
+            }
+          />
         ) : null}
         <Select
           label="Theme"
@@ -111,6 +230,8 @@ export function ItemDialog({ game, item, themes, defaultTheme, onClose }: ItemDi
           onChange={(e) => setTheme(e.target.value)}
           options={themes.map((t) => ({ value: t.id, label: t.title }))}
           error={err('theme')}
+          disabled={fixing}
+          hint={fixing ? 'A fix keeps the item in its theme.' : undefined}
         />
         {data.game === 'word' ? (
           <AnswerField word={data.word} error={err('data.word')} onChange={(word) => setData({ game: 'word', word })} />
@@ -134,7 +255,7 @@ export function ItemDialog({ game, item, themes, defaultTheme, onClose }: ItemDi
             onChange={(word) => setData({ game: 'nearest', word })}
           />
         ) : data.game === 'groups' ? (
-          <GroupFields data={data} err={err} onChange={setData} />
+          <GroupFields data={data} err={err} onChange={setData} fixing={fixing} />
         ) : (
           <QuizFields data={data} err={err} onChange={setData} />
         )}
@@ -232,10 +353,13 @@ function GroupFields({
   data,
   err,
   onChange,
+  fixing,
 }: {
   data: Extract<ItemData, { game: 'groups' }>;
   err: Err;
   onChange: (data: ItemData) => void;
+  /** fixing today's puzzle, whose board has one group a level */
+  fixing: boolean;
 }) {
   const [text, setText] = useState(data.words.join('\n'));
   const n = data.words.length;
@@ -256,7 +380,12 @@ function GroupFields({
         onChange={(e) => onChange({ ...data, level: Number(e.target.value) })}
         options={LEVELS.map((l) => ({ value: l.level, label: l.label }))}
         error={err('data.level')}
-        hint="Each day has one group at each level."
+        disabled={fixing}
+        hint={
+          fixing
+            ? 'Today’s board has one group a level, so a fix keeps the level.'
+            : 'Each day has one group at each level.'
+        }
       />
       <TextArea
         label="Words"
@@ -268,7 +397,7 @@ function GroupFields({
           onChange({ ...data, words: parseWords(e.target.value) });
         }}
         error={err('data.words')}
-        hint={`${n} ${n === 1 ? 'word' : 'words'}. Give 4 to 8, one per line or separated by commas: a day shows four of them. A word can be in one group of a theme only.`}
+        hint={`${n} ${n === 1 ? 'word' : 'words'}. Give 4 to 8, one per line or separated by commas. A day shows four of them, different ones on different days, and never a word that another of its groups has.`}
       />
     </>
   );
