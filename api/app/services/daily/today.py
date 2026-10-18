@@ -177,12 +177,12 @@ def fix_today(db: Session, user: User, item_id: uuid.UUID, body: TodayFixIn, ip:
         saved = editor.edit_item(db, item, item.theme_id, body.data)
         fixed = game.rebuild(db, today, stored, before, content.taken(db, today, item.game), content.daily_seed(db))
         puzzle = game.dump(fixed)
-        changes = describe(editor.preview_of(stored), editor.preview_of(fixed)) if puzzle != day_set.puzzle else []
+        shown = (editor.preview_of(stored), editor.preview_of(fixed))
+        changes = describe(*shown) if puzzle != day_set.puzzle else []
         if changes and day_set.revision >= MAX_FIXES:
-            title = editor.MAKERS[item.game].title
             raise rate_limited(
                 int((next_set_at(today) - utcnow()).total_seconds()),
-                f"{title} has been fixed {MAX_FIXES} times today, the most a day takes, because each fix starts "
+                f"{game.title} has been fixed {MAX_FIXES} times today, the most a day takes, because each fix starts "
                 "players' games again. Save the item instead: your change reaches the days to come.",
             )
     except CantFixError as e:
@@ -191,7 +191,6 @@ def fix_today(db: Session, user: User, item_id: uuid.UUID, body: TodayFixIn, ip:
     except Exception:
         attempt.rollback()
         raise
-    shown = (editor.preview_of(stored), editor.preview_of(fixed))
 
     def result(applied: bool, item_now: ItemOut) -> TodayFixOut:
         return TodayFixOut(
