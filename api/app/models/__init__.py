@@ -3,7 +3,16 @@
 from app.models.access import AccessRole, FeatureSwitch, FeatureSwitchRole, RoleBox, RoleGrant
 from app.models.activity import AuditEntry, LessonResume, LessonView, Notification, Report, ReportStatus
 from app.models.base import Base
-from app.models.board import Board, BoardCard, BoardCardLabel, BoardColumn, BoardComment, BoardLabel, BoardPlan
+from app.models.board import (
+    Board,
+    BoardCard,
+    BoardCardLabel,
+    BoardColumn,
+    BoardComment,
+    BoardLabel,
+    BoardPlan,
+    PaperScore,
+)
 from app.models.bugs import BugReport, BugStatus
 from app.models.content import (
     CalendarEvent,
@@ -119,6 +128,7 @@ __all__ = [
     "OutboxStatus",
     "PaperQuestion",
     "PaperQuestionFlag",
+    "PaperScore",
     "PersonalEvent",
     "PollVote",
     "PostStatus",

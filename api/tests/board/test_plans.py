@@ -13,36 +13,16 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.time import bahrain_today, utcnow
-from app.models import BoardCard, BoardColumn, BoardPlan, ItemSource, ItemStatus, LibraryItem, Module, User
+from app.core.time import bahrain_today
+from app.models import BoardCard, BoardColumn, BoardPlan, Module, User
 from app.services.board import cards as cards_svc
 from app.services.board import common
 from app.services.board import plans as svc
-from tests.board.conftest import API, column, first_board, make_board, move
+from tests.board.conftest import API, column, first_board, make_board, move, paper
 from tests.lessons import lesson_id
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
-
-
-def paper(db: Session, module: Module, exam_year: int, zone: str = "A", kind: str = "past-paper") -> LibraryItem:
-    slug = f"paper-{uuid.uuid4().hex[:8]}"
-    item = LibraryItem(
-        slug=slug,
-        source=ItemSource.link,
-        kind=kind,
-        title=f"{module.unit_code} {exam_year} Zone {zone}",
-        module_id=module.id,
-        year=module.year,
-        url=f"https://drive.example.com/{slug}",
-        exam_year=exam_year,
-        zone=zone,
-        status=ItemStatus.published,
-        published_at=utcnow(),
-    )
-    db.add(item)
-    db.commit()
-    return item
 
 
 def plan(c: TestClient, module: Module, days: int, **body: Any) -> dict[str, Any]:

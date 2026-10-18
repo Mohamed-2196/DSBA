@@ -49,8 +49,10 @@ import {
   useDeleteCard,
   useDeletePlan,
   useMoveCard,
+  usePaperScores,
   usePlaceBoard,
   usePlaceColumn,
+  useSaveScore,
   useUpdateBoard,
   useUpdateColumn,
 } from './api';
@@ -82,7 +84,7 @@ import { KanbanView, type ColumnActions, type DropPlace } from './KanbanView';
 import { LabelDialog } from './LabelDialog';
 import { ListView } from './ListView';
 import { ScoreDialog } from './ScoreDialog';
-import { usePaperScores } from './scores';
+import type { Scores } from './scores';
 import { TodayView } from './TodayView';
 import type { Adding, CardActions, FocusRequest } from './types';
 import { useScrollEdges } from './useScrollEdges';
@@ -93,6 +95,8 @@ const DESCRIPTION = 'Plan study, coursework and everyday tasks. Only you see you
 const pickTablist = (el: HTMLDivElement) => el.querySelector<HTMLElement>('[role="tablist"]');
 
 type View = 'board' | 'list' | 'today';
+
+const NO_SCORES: Scores = {};
 
 export default function BoardPage() {
   const { status, openSignIn } = useAuth();
@@ -151,7 +155,8 @@ function BoardApp() {
   const placeColumn = usePlaceColumn();
   const updateColumn = useUpdateColumn();
   const removePlan = useDeletePlan();
-  const [scores, setScore] = usePaperScores();
+  const scores = usePaperScores().data ?? NO_SCORES;
+  const saveScore = useSaveScore();
   const tabEdges = useScrollEdges<HTMLDivElement>(true, pickTablist);
 
   const [filter, setFilter] = useState<CardFilter>(NO_FILTER);
@@ -816,7 +821,7 @@ function BoardApp() {
           card={scoring}
           score={scoring.link ? (scores[scoring.link.id] ?? null) : null}
           onSave={(score) => {
-            if (scoring.link) setScore(scoring.link.id, score);
+            if (scoring.link) saveScore.mutate({ itemId: scoring.link.id, score });
           }}
           onClose={() => setScoring(null)}
         />

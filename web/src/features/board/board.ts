@@ -445,7 +445,7 @@ export function sittingsDone(papers: readonly Paper[], done: ReadonlySet<string>
   return { done: finished.size, total: all.size };
 }
 
-/** A practice score as typed: a whole or half percentage from 0 to 100, or null when left empty. */
+/** A practice score as typed: a percentage from 0 to 100 with one decimal at most, or null when left empty. */
 export function parseScore(raw: string): number | null | undefined {
   const t = raw.trim().replace(/%$/, '').trim();
   if (!t) return null;

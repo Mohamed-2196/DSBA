@@ -17,15 +17,18 @@ import type {
   ColumnUpdate,
   LabelCreate,
   LabelUpdate,
+  PaperScore,
 } from '../../api/types';
 import { useToast } from '../../state';
 import { appendCard, patchCard, placeAfter, placeCard } from './board';
+import { scoresById, withScore } from './scores';
 
 export const BOARDS_KEY = ['boards'] as const;
 const BOARD_PREFIX = ['board'] as const;
 export const BOARD_KEY = (id: string | null | undefined) => [...BOARD_PREFIX, id] as const;
 export const AGENDA_KEY = ['board-agenda'] as const;
 export const LINKS_KEY = ['board-links'] as const;
+const SCORES_KEY = ['paper-scores'] as const;
 const CARD_PREFIX = ['board-card'] as const;
 export const CARD_DETAIL_KEY = (id: string | null | undefined) => [...CARD_PREFIX, id] as const;
 /** Card writes go one after another, in the order they were made. */
@@ -587,5 +590,44 @@ export function useDeletePlan() {
       call(api.DELETE('/api/v1/board-plans/{module_id}', { params: { path: { module_id: moduleId } } })),
     onError: (e) => toast.push({ tone: 'alert', title: 'The plan wasn’t removed', body: errorMessage(e) }),
     onSettled: () => cardWriteSettled(qc, PLAN_CHANGES),
+  });
+}
+
+// ── practice scores ─────────────────────────────────────────────────────────────────────────
+
+/** The student's practice scores on past papers, by library item id (only they see them). */
+export function usePaperScores({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: SCORES_KEY,
+    queryFn: () => call(api.GET('/api/v1/paper-scores')),
+    enabled,
+    select: scoresById,
+  });
+}
+
+/** Saves a practice score (null removes it). The board shows it at once, and goes back if the API refuses. */
+export function useSaveScore() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ itemId, score }: { itemId: string; score: number | null }) => {
+      const path = { item_id: itemId };
+      return score === null
+        ? call(api.DELETE('/api/v1/paper-scores/{item_id}', { params: { path } }))
+        : call(api.PUT('/api/v1/paper-scores/{item_id}', { params: { path }, body: { score } }));
+    },
+    onMutate: async ({ itemId, score }) => {
+      await qc.cancelQueries({ queryKey: SCORES_KEY });
+      const before = qc.getQueryData<PaperScore[]>(SCORES_KEY);
+      qc.setQueryData<PaperScore[]>(SCORES_KEY, (list) =>
+        withScore(list ?? [], itemId, score, new Date().toISOString()),
+      );
+      return before;
+    },
+    onError: (e, _vars, before) => {
+      qc.setQueryData(SCORES_KEY, before);
+      toast.push({ tone: 'alert', title: 'Your score wasn’t saved', body: errorMessage(e) });
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: SCORES_KEY }),
   });
 }

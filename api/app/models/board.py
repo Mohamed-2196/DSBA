@@ -1,5 +1,5 @@
-"""Each student's private boards: columns of cards, labels, comments to self, revision plans that add study cards.
-Files on cards are uploads (`Upload.card_id`)."""
+"""Each student's private boards: columns of cards, labels, comments to self, revision plans that add study cards, and
+practice scores on past papers. Files on cards are uploads (`Upload.card_id`)."""
 
 from __future__ import annotations
 
@@ -174,6 +174,22 @@ class BoardCardLabel(Base):
 
     card_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("board_cards.id", ondelete="CASCADE"), primary_key=True)
     label_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("board_labels.id", ondelete="CASCADE"), primary_key=True)
+
+
+class PaperScore(Base):
+    """A student's practice score on a past paper, out of 100 (one decimal at most). Private to them; it stays when the
+    paper's card goes, and goes with the account or the paper."""
+
+    __tablename__ = "paper_scores"
+    __table_args__ = (
+        Index("ix_paper_scores_item", "item_id"),  # removing a library item (CASCADE)
+        CheckConstraint("score BETWEEN 0 AND 100", name="score_range"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("library_items.id", ondelete="CASCADE"), primary_key=True)
+    score: Mapped[float] = mapped_column(Double)
+    updated_at: Mapped[datetime] = created_ts()
 
 
 class BoardComment(Base):

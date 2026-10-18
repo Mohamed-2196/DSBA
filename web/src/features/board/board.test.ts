@@ -33,7 +33,7 @@ import {
   withExistingLabels,
   type Paper,
 } from './board';
-import { cleanScores } from './scores';
+import { scoresById, withScore } from './scores';
 
 const card = (id: string, columnId: string, extra: Partial<BoardCard> = {}): BoardCard => ({
   id,
@@ -280,10 +280,14 @@ describe('past papers', () => {
     expect(parseScore('-3')).toBeUndefined();
     expect(parseScore('abc')).toBeUndefined();
   });
-  it('keeps only sane stored scores', () => {
-    expect(cleanScores({ a: 50, b: 'x', c: 140, d: 0 })).toEqual({ a: 50, d: 0 });
-    expect(cleanScores([1, 2])).toEqual({});
-    expect(cleanScores(null)).toEqual({});
+  it('sets, replaces and removes a paper’s score, the newest first', () => {
+    const at = '2026-10-18T10:00:00Z';
+    let list = withScore([], 'p1', 64, at);
+    list = withScore(list, 'p2', 71.5, at);
+    list = withScore(list, 'p1', 80, at);
+    expect(scoresById(list)).toEqual({ p1: 80, p2: 71.5 });
+    expect(list.map((s) => s.itemId)).toEqual(['p1', 'p2']);
+    expect(scoresById(withScore(list, 'p2', null, at))).toEqual({ p1: 80 });
   });
   it('formats storage text', () => {
     expect(storageText(3.5 * 1024 * 1024, 200 * 1024 * 1024)).toBe('3.5 MB of 200 MB');

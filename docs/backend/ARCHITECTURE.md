@@ -255,9 +255,10 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   server keeps.
 - **Browser storage** holds device settings (the theme, Mini Noora's place, a guest's cohort and lesson progress,
   imported on sign-in) and a person's own unsent or private things: drafts, recent searches, the grades calculator's
-  marks, practice scores on past papers, Mini Noora's chats, Daily's pencil marks. Every key of the second kind starts
-  with `hub.mine.`, so signing out removes it from localStorage and sessionStorage (`auth/queries.ts`,
-  `clearPersonalStorage`): lab and library computers are shared.
+  marks, Mini Noora's chats, Daily's pencil marks. Every key of the second kind starts with `hub.mine.`, so signing out
+  removes it from localStorage and sessionStorage (`auth/queries.ts`, `clearPersonalStorage`): lab and library
+  computers are shared. Practice scores on past papers are kept in the account (`/paper-scores`), private to the
+  student.
 - **Routing** is a data router at `/`: `createBrowserRouter` in `App.tsx`, the page table in `routes.tsx` (each page
   lazy), React Router 7 (`react-router-dom`; v6 had open-redirect advisories). `useLeaveGuard` (`src/state`, on
   `useBlocker`) asks before a navigation leaves unsaved edits behind, and `beforeunload` covers a reload. React Router

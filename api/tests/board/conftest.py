@@ -11,7 +11,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models import CalendarEvent, Module
+from app.core.time import utcnow
+from app.models import CalendarEvent, ItemSource, ItemStatus, LibraryItem, Module
 from tests.lessons import chapters
 
 API = "/api/v1"
@@ -67,6 +68,27 @@ def event(db: Session) -> CalendarEvent:
 
 
 # ── helpers ─────────────────────────────────────────────────────────────────────────────────
+
+
+def paper(db: Session, module: Module, exam_year: int, zone: str = "A", kind: str = "past-paper") -> LibraryItem:
+    """A published library file of the module's: a past paper unless `kind` says otherwise."""
+    slug = f"paper-{uuid.uuid4().hex[:8]}"
+    item = LibraryItem(
+        slug=slug,
+        source=ItemSource.link,
+        kind=kind,
+        title=f"{module.unit_code} {exam_year} Zone {zone}",
+        module_id=module.id,
+        year=module.year,
+        url=f"https://files.example.com/{slug}",
+        exam_year=exam_year,
+        zone=zone,
+        status=ItemStatus.published,
+        published_at=utcnow(),
+    )
+    db.add(item)
+    db.commit()
+    return item
 
 
 def make_board(c: TestClient, name: str = "Study", template: str = "study", **body: Any) -> dict[str, Any]:
