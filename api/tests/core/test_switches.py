@@ -84,9 +84,9 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("noora.ai", "POST", "/noora/ask"),
     ("noora.ai", "GET", "/admin/noora"),
     ("summary", "GET", "/summary/preview?year=2"),
-    ("video_suggestions", "POST", "/video-suggestions"),
-    ("video_suggestions", "GET", "/video-suggestions/mine"),
-    ("video_suggestions", "GET", "/content/video-suggestions"),
+    ("modules.video-suggestions", "POST", "/video-suggestions"),
+    ("modules.video-suggestions", "GET", "/video-suggestions/mine"),
+    ("modules.video-suggestions", "GET", "/content/video-suggestions"),
     ("daily", "GET", "/daily"),
     ("daily", "GET", "/daily/2026-10-01/word"),
     ("daily", "POST", "/daily/2026-10-01/word/moves"),
@@ -107,7 +107,7 @@ OFF_AT_FIRST = (
     "library.questions",
     "requests.autoclose",
     "forum.help-below",
-    "video_suggestions",
+    "modules.video-suggestions",
     "library.daily-question",
     "requests.done",
     "daily",
@@ -170,8 +170,8 @@ AREAS: dict[str, Feature] = {
     "/admin/noora": Feature.noora_ai,
     "/mini-noora": Feature.noora,
     "/grades": Feature.grades,
-    "/video-suggestions": Feature.video_suggestions,
-    "/content/video-suggestions": Feature.video_suggestions,
+    "/video-suggestions": Feature.modules_video_suggestions,
+    "/content/video-suggestions": Feature.modules_video_suggestions,
 }
 
 

@@ -399,7 +399,7 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
         </TabPanel>
         <TabPanel idBase="module" id="lessons" value={tab}>
           {lessonsPanel}
-          {detail && featureOn('video_suggestions') ? (
+          {detail && featureOn('modules.video-suggestions') ? (
             <ErrorBoundary name="SuggestVideo" resetKey={m.id}>
               <SuggestVideo module={detail} />
             </ErrorBoundary>

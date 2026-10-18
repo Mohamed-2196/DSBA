@@ -11,8 +11,8 @@ from sqlalchemy import Computed, ForeignKey, Index, Integer, SmallInteger, Strin
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk
-from app.schemas.library import ZONES, LibraryKind
+from app.models.base import Base, check_in, created_ts, in_range, str_enum, uuid_pk
+from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, ZONES, LibraryKind, Zone
 from app.schemas.requests import RequestKind
 
 
@@ -40,9 +40,12 @@ class StudentRequest(Base):
         Index("ix_requests_event", "event_id"),  # a confirmed date closes its requests; event deletion (SET NULL)
         Index("ix_requests_found_item", "found_item_id"),
         Index("ix_requests_queue", "me_too_count", "created_at", postgresql_where=text("removed_at IS NULL")),
+        # "You asked, we did": the requests done lately, newest answer first (services/requests.py done)
+        Index("ix_requests_done", "answered_at", postgresql_where=text("status = 'done' AND removed_at IS NULL")),
         Index("ix_requests_search", "search_vector", postgresql_using="gin"),
         check_in("kind", get_args(RequestKind)),
         check_in("wanted_kind", get_args(LibraryKind)),
+        in_range("exam_year", EXAM_YEAR_MIN, EXAM_YEAR_MAX),
         check_in("zone", ZONES),
     )
 
@@ -55,7 +58,7 @@ class StudentRequest(Base):
     # What a paper request wants, so a published file can match it.
     wanted_kind: Mapped[str | None] = mapped_column(String(32))  # app/schemas/library.py LibraryKind
     exam_year: Mapped[int | None] = mapped_column(SmallInteger)
-    zone: Mapped[str | None] = mapped_column(String(8))  # schemas/library.py Zone
+    zone: Mapped[Zone | None] = mapped_column(String(8))
     # The unconfirmed date a date request asks about.
     event_id: Mapped[str | None] = mapped_column(ForeignKey("calendar_events.id", ondelete="SET NULL"))
     # A published file that may be what was asked for, until the requester or a rep says yes or no.

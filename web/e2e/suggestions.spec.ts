@@ -21,7 +21,7 @@ test('a student suggests a video and a content editor adds it as a lesson', asyn
   });
   expect(made.status).toBe(201);
   try {
-    await setSwitch(admin, 'video_suggestions', 'everyone');
+    await setSwitch(admin, 'modules.video-suggestions', 'everyone');
 
     await sara.goto(`/modules/${id}?tab=lessons`);
     const panel = sara.locator('[data-hub="suggest-video"]');
@@ -57,6 +57,6 @@ test('a student suggests a video and a content editor adds it as a lesson', asyn
 test.afterAll(async ({ browser }) => {
   // Switched back off for the rest of the run: suggestions arrive off.
   const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'video_suggestions', 'off');
+  await setSwitch(await ctx.newPage(), 'modules.video-suggestions', 'off');
   await ctx.close();
 });

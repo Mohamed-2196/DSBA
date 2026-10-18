@@ -1,6 +1,6 @@
 import { useModules } from '../../../state/modules';
 import { Select, TextArea, TextField } from '../../../ui';
-import { RTC_NOTE } from '../../../lib/exams';
+import { RTC_NOTE, SESSIONS, sessionLabel, ZONES, zoneLabel } from '../../../lib/exams';
 import { EXAM_KINDS, KINDS, isLibraryKind } from '../kinds';
 import { NO_MODULE, type ItemFormErrors, type ItemFormValues } from '../itemForm';
 
@@ -96,11 +96,7 @@ export function ItemFields({
             onChange={(e) => onChange({ session: e.target.value as ItemFormValues['session'] })}
             error={errors.session}
             disabled={disabled}
-            options={[
-              { value: '', label: 'Not sure' },
-              { value: 'may', label: 'May' },
-              { value: 'october', label: 'October (resits)' },
-            ]}
+            options={[{ value: '', label: 'Not sure' }, ...SESSIONS.map((s) => ({ value: s, label: sessionLabel(s) }))]}
           />
           <Select
             label="Zone"
@@ -109,12 +105,7 @@ export function ItemFields({
             error={errors.zone}
             hint={values.zone === 'RTC' ? RTC_NOTE : undefined}
             disabled={disabled}
-            options={[
-              { value: '', label: 'No zone' },
-              { value: 'A', label: 'Zone A' },
-              { value: 'B', label: 'Zone B' },
-              { value: 'RTC', label: 'RTC' },
-            ]}
+            options={[{ value: '', label: 'No zone' }, ...ZONES.map((z) => ({ value: z, label: zoneLabel(z) }))]}
           />
         </div>
       ) : null}

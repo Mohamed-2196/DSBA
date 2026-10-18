@@ -48,7 +48,7 @@ export const FEATURE_KEYS = [
   'requests.autoclose',
   'requests.done',
   'summary',
-  'video_suggestions',
+  'modules.video-suggestions',
   'daily',
 ] as const satisfies readonly Feature[];
 

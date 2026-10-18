@@ -63,6 +63,15 @@ def _threads(n: int) -> str:
     return f"{n} thread{'' if n == 1 else 's'}"
 
 
+def _hold_removed(db: Session, new: ForumSettings) -> None:
+    """Locks the categories and tags the save removes (FOR UPDATE) before they are counted: a thread being written
+    with one of them holds it (forum/rules.py hold_lists), so the save waits for that thread and then counts it; a
+    thread written after this waits for the save, and finds them gone."""
+    removed = select(ForumCategory.id).where(ForumCategory.id.not_in([c.id for c in new.categories]))
+    db.execute(removed.with_for_update())
+    db.execute(select(ForumTag.id).where(ForumTag.id.not_in([t.id for t in new.tags])).with_for_update())
+
+
 def _keep_used(db: Session, new: ForumSettings) -> None:
     """422 when the settings drop a category or a tag that threads still use."""
     kept = {c.id for c in new.categories}
@@ -107,6 +116,7 @@ def save(db: Session, user: User, body: ForumSettingsSave, ip: str | None) -> Fo
     after = documents.stored(body.data)
     if before == after:
         return editable(db)
+    _hold_removed(db, body.data)
     _keep_used(db, body.data)
     if row is None:
         row = documents.first_row(db, FORUM)  # before the lists, so two first saves never write them both

@@ -56,7 +56,12 @@ def check_in(column: str, values: Iterable[str]) -> CheckConstraint:
 
 def year_range(column: str = "year") -> CheckConstraint:
     """A cohort: 1, 2 or 3, or none (ck_<table>_<column>_range)."""
-    return CheckConstraint(f"{column} IS NULL OR {column} BETWEEN 1 AND 3", name=f"{column}_range")
+    return in_range(column, 1, 3)
+
+
+def in_range(column: str, low: int, high: int) -> CheckConstraint:
+    """A CHECK that `column` is empty or from `low` to `high` (ck_<table>_<column>_range)."""
+    return CheckConstraint(f"{column} IS NULL OR {column} BETWEEN {low} AND {high}", name=f"{column}_range")
 
 
 SLUG = String(120)
