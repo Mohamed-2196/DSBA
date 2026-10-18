@@ -1103,6 +1103,11 @@ button.cal-day__num:focus-visible {
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
+/* a monthly repeat's day of the month, under how often it comes */
+.cal-drawer__rule {
+  display: block;
+  color: var(--ink-2);
+}
 
 /* ── A student's own events ───────────────────────────────────────────────────────────────── */
 .cal-row.cal-tone--mine {

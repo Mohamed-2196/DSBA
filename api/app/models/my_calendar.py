@@ -29,6 +29,7 @@ class PersonalEvent(Base):
         CheckConstraint("repeat_until IS NULL OR repeat_until >= date", name="repeat_until_after_start"),
         check_in("colour", get_args(PersonalColour)),
         check_in("repeat", get_args(Repeat)),
+        CheckConstraint("month_day IS NULL OR (repeat = 'monthly' AND month_day BETWEEN 29 AND 31)", name="month_day"),
         CheckConstraint(
             f"remind IS NULL OR remind IN ({', '.join(str(m) for m in get_args(Reminder))})", name="remind"
         ),
@@ -44,8 +45,11 @@ class PersonalEvent(Base):
     place: Mapped[str | None] = mapped_column(String(120))
     notes: Mapped[str | None] = mapped_column(Text)
     colour: Mapped[str] = mapped_column(String(16), default="violet", server_default="violet")
-    repeat: Mapped[str] = mapped_column(String(8), default="none", server_default="none")
+    repeat: Mapped[str] = mapped_column(String(12), default="none", server_default="none")
     repeat_until: Mapped[dt.date | None] = mapped_column(Date)
+    # A monthly repeat's day of the month while `date` falls on a shorter month's last day instead: a repeat changed
+    # from 28 February on keeps the 31st. None: `date`'s day.
+    month_day: Mapped[int | None] = mapped_column(SmallInteger)
     # Days taken off a repeat ("delete only this one"), each one of its occurrence days.
     skipped: Mapped[list[dt.date]] = mapped_column(ARRAY(Date), default=list, server_default="{}")
     remind: Mapped[int | None] = mapped_column(SmallInteger)  # minutes before the start

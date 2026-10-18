@@ -2,9 +2,11 @@
 feed, and the reminders for their events.
 
 Times are Bahrain times (core.time.BAHRAIN, UTC+3 all year). A timed event runs from its start time to its end
-time, or for an hour. An all-day event "starts" at 09:00 for its reminder. A repeat runs every day or week from
-the event's date until its repeat end, or for REPEAT_DAYS without one, less the days taken off it (`skipped`); the
-web app, the feed (RRULE and EXDATE) and the reminders all count the same occurrences."""
+time, or for an hour. An all-day event "starts" at 09:00 for its reminder. A repeat runs every day, week, two weeks
+or month from the event's date until its repeat end, or for REPEAT_DAYS without one, less the days taken off it
+(`skipped`). A monthly repeat keeps its day of the month (month_day()), and falls on a month's last day when the
+month has no such day: the 31st's is on 30 April and on 28 or 29 February. The web app
+(web/src/features/calendar/mine.ts), the feed (RRULE and EXDATE) and the reminders all count the same occurrences."""
 
 from __future__ import annotations
 
@@ -15,6 +17,7 @@ import hmac
 import logging
 import secrets
 import uuid
+from calendar import monthrange
 from collections.abc import Callable, Collection, Iterator, Sequence
 from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
@@ -46,9 +49,23 @@ MAX_EVENTS = 500
 CREATE_LIMIT = 60
 CREATE_WINDOW = timedelta(hours=1)
 REPEAT_DAYS = 365  # a repeat without an end runs for a year
+STEP_DAYS = {"daily": 1, "weekly": 7, "fortnightly": 14}  # the days between occurrences; "monthly" counts months
 ALL_DAY_AT = dt.time(9, 0)  # when an all-day event's reminder counts from
 DEFAULT_LENGTH = timedelta(hours=1)
 REMINDER_GRACE = timedelta(minutes=15)  # a reminder still goes out this long after its event started
+ZONE = "Asia/Bahrain"  # the TZID a student's own times are written in (personal_vevent)
+BAHRAIN_ZONE = [
+    "BEGIN:VTIMEZONE",
+    f"TZID:{ZONE}",
+    "BEGIN:STANDARD",
+    "DTSTART:19700101T000000",
+    "TZOFFSETFROM:+0300",
+    "TZOFFSETTO:+0300",
+    "TZNAME:+03",
+    "END:STANDARD",
+    "END:VTIMEZONE",
+]
+RRULE_FREQS = {"daily": "FREQ=DAILY", "weekly": "FREQ=WEEKLY", "fortnightly": "FREQ=WEEKLY;INTERVAL=2"}
 EVENT_GONE = "This event isn't on your calendar any more."
 DAY_GONE = "This event isn't on that day any more. Refresh the calendar and try again."
 EDITABLE = (
@@ -86,29 +103,53 @@ def last_repeat(e: PersonalEvent) -> dt.date:
     return e.repeat_until or e.date + timedelta(days=REPEAT_DAYS)
 
 
-def _step(e: PersonalEvent) -> int:
-    return 7 if e.repeat == "weekly" else 1
+def month_day(e: PersonalEvent) -> int:
+    """The day of the month a monthly repeat falls on (in a month without it: that month's last day)."""
+    return e.month_day or e.date.day
+
+
+def _short_month_end(day: dt.date, wanted: int) -> bool:
+    """Whether `day` is the last day of a month that has no day `wanted`: where a monthly repeat on `wanted` falls."""
+    return wanted > day.day == monthrange(day.year, day.month)[1]
+
+
+def _nth(e: PersonalEvent, n: int) -> dt.date:
+    """The day of a repeat's occurrence number `n` (0: its first day), days taken off it included."""
+    if e.repeat == "monthly":
+        year, month = divmod(e.date.year * 12 + e.date.month - 1 + n, 12)
+        return dt.date(year, month + 1, min(month_day(e), monthrange(year, month + 1)[1]))
+    return e.date + timedelta(days=STEP_DAYS[e.repeat] * n)
+
+
+def _first_from(e: PersonalEvent, day: dt.date) -> int:
+    """The number of a repeat's first occurrence on or after `day`."""
+    if day <= e.date:
+        return 0
+    if e.repeat == "monthly":
+        n = (day.year - e.date.year) * 12 + day.month - e.date.month
+        return n if _nth(e, n) >= day else n + 1
+    return -(-(day - e.date).days // STEP_DAYS[e.repeat])
 
 
 def on_repeat(e: PersonalEvent, day: dt.date) -> bool:
     """Whether the repeat of `e` lands on `day`, skipped days included."""
-    return e.date <= day <= last_repeat(e) and (day - e.date).days % _step(e) == 0
+    if e.repeat == "none":
+        return day == e.date
+    return e.date <= day <= last_repeat(e) and _nth(e, _first_from(e, day)) == day
 
 
 def occurrence_days(e: PersonalEvent, start: dt.date, end: dt.date) -> Iterator[dt.date]:
     """The days occurrences of `e` start on, from `start` to `end` inclusive (skipped days left out)."""
-    step = _step(e)
-    first, last = e.date, min(last_repeat(e), end)
-    if start > first and e.repeat != "none":
-        first += timedelta(days=-(-(start - first).days // step) * step)  # the first occurrence on or after start
     skipped = set(e.skipped or ())
-    day = first
-    while day <= last:
-        if day >= start and day not in skipped:
+    if e.repeat == "none":
+        if start <= e.date <= end and e.date not in skipped:
+            yield e.date
+        return
+    last, n = min(last_repeat(e), end), _first_from(e, start)
+    while (day := _nth(e, n)) <= last:
+        if day not in skipped:
             yield day
-        if e.repeat == "none":
-            return
-        day += timedelta(days=step)
+        n += 1
 
 
 def first_day(e: PersonalEvent) -> dt.date | None:
@@ -165,6 +206,9 @@ def _check(e: PersonalEvent) -> None:
             e.skipped = []
     elif e.end_date is not None:
         raise invalid("repeat", "A repeating event is on one day. Clear the last day, or don't repeat it.")
+    # a day of the month of its own only while the first day is a shorter month's last day instead
+    if e.month_day is not None and (e.repeat != "monthly" or not _short_month_end(e.date, e.month_day)):
+        e.month_day = None
     if e.repeat_until is not None and e.repeat_until < e.date:
         raise invalid("repeatUntil", "The repeat can't end before the first day.")
     if e.repeat_until is not None and e.repeat_until > e.date + timedelta(days=REPEAT_DAYS * 2):
@@ -219,8 +263,11 @@ def create_event(db: Session, user: User, body: PersonalEventCreate) -> Personal
 
 
 def update_event(db: Session, event: PersonalEvent, body: PersonalEventUpdate) -> None:
-    """Fields not sent stay; null clears the optional ones. On a refusal the event is left as it was."""
+    """Fields not sent stay; null clears the optional ones. A new first day gives a monthly repeat that day of the
+    month. On a refusal the event is left as it was."""
     changed = apply_patch(event, body, EDITABLE, clearable=CLEARABLE)
+    if "date" in changed:
+        event.month_day = None
     try:
         _check(event)
     except ApiError:
@@ -248,9 +295,10 @@ def change_occurrence(
 ) -> PersonalEvent:
     """A change made from one day of `event`. `one`: that day becomes an event of its own with the change, and the
     repeat skips it. `following`: the repeat ends the day before, and a new one with the change runs from that day to
-    where the old one ended. A change from the first day with `following`, or to an event that doesn't repeat, is a
-    change to the whole event. 404 not_found when no occurrence starts on `day`, 422 for dates and times that don't
-    fit together, 409 calendar_full and 429 as for a new event. -> the event that now holds that day."""
+    where the old one ended (a monthly one on the same day of the month, unless the change moves it). A change from
+    the first day with `following`, or to an event that doesn't repeat, is a change to the whole event. 404 not_found
+    when no occurrence starts on `day`, 422 for dates and times that don't fit together, 409 calendar_full and 429 as
+    for a new event. -> the event that now holds that day."""
     if not is_occurrence(event, day):
         raise not_found(DAY_GONE)
     if event.repeat == "none" or (scope == "following" and day == first_day(event)):
@@ -263,6 +311,8 @@ def change_occurrence(
     else:
         new = _copy(event, date=day, repeat_until=last_repeat(event), skipped=[d for d in event.skipped if d > day])
         apply_patch(new, body, EDITABLE, clearable=CLEARABLE)
+        if event.repeat == "monthly" and new.date == day:
+            new.month_day = month_day(event)  # kept while `day` is a shorter month's last day (_check)
     _check(new)
     _take_off(db, event, day, scope)
     db.add(new)
@@ -437,7 +487,26 @@ def _utc(day: dt.date, at: dt.time) -> str:
     return programme.utc_stamp(datetime.combine(day, at, tzinfo=BAHRAIN))
 
 
+def _local(day: dt.date, at: dt.time) -> str:
+    """A time in Bahrain as a TZID property writes it: '20261005T180000'."""
+    return f"{day:%Y%m%d}T{at:%H%M%S}"
+
+
+def rrule(e: PersonalEvent) -> str:
+    """A repeat's RRULE, without its end. A monthly repeat on the 29th to the 31st falls on the last of the days from
+    the 28th to its own that a month has (BYSETPOS=-1): the 31st's on 30 April and on 28 or 29 February, as in the
+    Hub, where a rule on the 31st alone would skip those months."""
+    if e.repeat != "monthly":
+        return RRULE_FREQS[e.repeat]
+    wanted = month_day(e)
+    if wanted <= 28:
+        return "FREQ=MONTHLY"
+    return f"FREQ=MONTHLY;BYMONTHDAY={','.join(str(d) for d in range(28, wanted + 1))};BYSETPOS=-1"
+
+
 def personal_vevent(e: PersonalEvent, now: datetime, base_url: str) -> list[str]:
+    """A student's event as a VEVENT. Its times are written in Bahrain time (TZID, BAHRAIN_ZONE goes with it):
+    calendar apps count a repeat's days in its start's zone, and 01:00 in Bahrain is the day before in UTC."""
     lines = ["BEGIN:VEVENT", f"UID:{e.id}@dsba-hub-personal", f"DTSTAMP:{programme.utc_stamp(now)}"]
     if e.start_time is None:
         last = e.end_date or e.date
@@ -448,17 +517,20 @@ def personal_vevent(e: PersonalEvent, now: datetime, base_url: str) -> list[str]
     else:
         start = datetime.combine(e.date, e.start_time, tzinfo=BAHRAIN)
         end = datetime.combine(e.date, e.end_time, tzinfo=BAHRAIN) if e.end_time else start + DEFAULT_LENGTH
-        lines += [f"DTSTART:{programme.utc_stamp(start)}", f"DTEND:{programme.utc_stamp(end)}"]
+        lines += [
+            f"DTSTART;TZID={ZONE}:{_local(start.date(), start.time())}",
+            f"DTEND;TZID={ZONE}:{_local(end.date(), end.time())}",
+        ]
     if e.repeat != "none":
         until = last_repeat(e)
-        # UNTIL takes DTSTART's type: a date for an all-day event, the last start in UTC for a timed one
-        stamp = programme.date_value(until) if e.start_time is None else _utc(until, e.start_time or ALL_DAY_AT)
-        lines.append(f"RRULE:FREQ={'WEEKLY' if e.repeat == 'weekly' else 'DAILY'};UNTIL={stamp}")
-        if e.skipped:  # EXDATE takes DTSTART's type too
+        # UNTIL is a date for an all-day event, and the last start in UTC for a timed one (RFC 5545, with a TZID)
+        stamp = programme.date_value(until) if e.start_time is None else _utc(until, e.start_time)
+        lines.append(f"RRULE:{rrule(e)};UNTIL={stamp}")
+        if e.skipped:  # EXDATE takes DTSTART's type
             if e.start_time is None:
                 lines.append(f"EXDATE;VALUE=DATE:{','.join(programme.date_value(d) for d in e.skipped)}")
             else:
-                lines.append(f"EXDATE:{','.join(_utc(d, e.start_time) for d in e.skipped)}")
+                lines.append(f"EXDATE;TZID={ZONE}:{','.join(_local(d, e.start_time) for d in e.skipped)}")
     lines.append(f"SUMMARY:{programme.ics_text(e.title)}")
     if e.notes:
         lines.append(f"DESCRIPTION:{programme.ics_text(e.notes)}")
@@ -486,13 +558,13 @@ def private_feed(db: Session, token: str) -> str:
     now, base = utcnow(), get_settings().web_base_url
     vevents = [programme.vevent(e, modules.get(e.module_id) if e.module_id else None, now, base) for e in dates]
     vevents += [personal_vevent(e, now, base) for e in list_events(db, user)]
-    return programme.ics_document(vevents, name="DSBA Hub: my calendar")
+    return programme.ics_document([BAHRAIN_ZONE, *vevents], name="DSBA Hub: my calendar")
 
 
 def event_ics(e: PersonalEvent) -> str:
     """One of a student's events as a file to import once."""
     vevent = personal_vevent(e, utcnow(), get_settings().web_base_url)
-    return programme.ics_document([vevent], name=e.title, subscription=False)
+    return programme.ics_document([BAHRAIN_ZONE, vevent], name=e.title, subscription=False)
 
 
 def ics_file_name(e: PersonalEvent) -> str:

@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   addDays,
   addDaysToKey,
+  addMonthsToKey,
+  dayOrdinal,
   daysBetween,
+  daysInMonth,
   daysUntil,
   dayKey,
   formatClock,
@@ -65,6 +68,35 @@ describe('day keys', () => {
     expect(addDaysToKey('2026-12-31', 1)).toBe('2027-01-01');
     expect(addDaysToKey('2026-03-01', -1)).toBe('2026-02-28');
     expect(dayKey(addDays(parseDay('2026-10-06'), 17))).toBe('2026-10-23');
+  });
+
+  it('adds months, on a shorter month’s last day when it has no such day', () => {
+    expect(addMonthsToKey('2027-01-31', 1)).toBe('2027-02-28');
+    expect(addMonthsToKey('2028-01-31', 1)).toBe('2028-02-29'); // a leap year
+    expect(addMonthsToKey('2027-01-31', 3)).toBe('2027-04-30');
+    expect(addMonthsToKey('2026-11-15', 2)).toBe('2027-01-15');
+    expect(addMonthsToKey('2027-01-15', -2)).toBe('2026-11-15');
+    expect(addMonthsToKey('2027-02-28', 1, 31)).toBe('2027-03-31'); // another day of the month
+    expect([2027, 2028].map((y) => daysInMonth(y, 2))).toEqual([28, 29]);
+    expect([1, 4, 12].map((m) => daysInMonth(2026, m))).toEqual([31, 30, 31]);
+  });
+
+  it('says a day of the month in words', () => {
+    expect([1, 2, 3, 4, 11, 12, 13, 21, 22, 23, 29, 30, 31].map(dayOrdinal)).toEqual([
+      '1st',
+      '2nd',
+      '3rd',
+      '4th',
+      '11th',
+      '12th',
+      '13th',
+      '21st',
+      '22nd',
+      '23rd',
+      '29th',
+      '30th',
+      '31st',
+    ]);
   });
 
   it('starts a day at local midnight', () => {

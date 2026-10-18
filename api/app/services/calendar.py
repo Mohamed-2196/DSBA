@@ -406,9 +406,9 @@ def vevent(e: CalendarEvent, module: Module | None, now: dt.datetime, base_url: 
     return lines
 
 
-def ics_document(vevents: Iterable[list[str]], *, name: str, subscription: bool = True) -> str:
-    """A VCALENDAR of `vevents` (each a VEVENT's lines). A `subscription` (a feed) tells calendar apps to refresh it
-    every 6 hours; a file to import once doesn't."""
+def ics_document(components: Iterable[list[str]], *, name: str, subscription: bool = True) -> str:
+    """A VCALENDAR of `components` (each a VEVENT's or a VTIMEZONE's lines). A `subscription` (a feed) tells
+    calendar apps to refresh it every 6 hours; a file to import once doesn't."""
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -420,8 +420,8 @@ def ics_document(vevents: Iterable[list[str]], *, name: str, subscription: bool 
     ]
     if subscription:
         lines += ["REFRESH-INTERVAL;VALUE=DURATION:PT6H", "X-PUBLISHED-TTL:PT6H"]
-    for vevent in vevents:
-        lines += vevent
+    for component in components:
+        lines += component
     lines.append("END:VCALENDAR")
     return CRLF.join(ics_fold(line) for line in lines) + CRLF
 

@@ -9312,7 +9312,7 @@ export interface components {
              * @default none
              * @enum {string}
              */
-            repeat: "none" | "daily" | "weekly";
+            repeat: "none" | "daily" | "weekly" | "fortnightly" | "monthly";
             /** Repeatuntil */
             repeatUntil?: string | null;
             /** Remind */
@@ -9322,8 +9322,10 @@ export interface components {
          * PersonalEventOut
          * @description An event a student added for themselves: private to them. Without `startTime` it is all day (through
          *     `endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in
-         *     Bahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year), except on the
-         *     `skipped` days.
+         *     Bahrain. A repeat runs every day, week, two weeks or month from `date` until `repeatUntil` (none: for a year),
+         *     except on the `skipped` days. A monthly repeat falls on the same day of each month, and on a month's last day
+         *     when the month has no such day (the 31st: 30 April, 28 or 29 February). That day is `date`'s, or `monthDay`
+         *     when `date` is itself such a last day (a repeat changed from 28 February on keeps the 31st).
          */
         PersonalEventOut: {
             /**
@@ -9357,9 +9359,11 @@ export interface components {
              * Repeat
              * @enum {string}
              */
-            repeat: "none" | "daily" | "weekly";
+            repeat: "none" | "daily" | "weekly" | "fortnightly" | "monthly";
             /** Repeatuntil */
             repeatUntil: string | null;
+            /** Monthday */
+            monthDay: number | null;
             /** Skipped */
             skipped: string[];
             /** Remind */
@@ -9397,7 +9401,7 @@ export interface components {
             /** Colour */
             colour?: ("violet" | "teal" | "green" | "orange" | "rose" | "slate") | null;
             /** Repeat */
-            repeat?: ("none" | "daily" | "weekly") | null;
+            repeat?: ("none" | "daily" | "weekly" | "fortnightly" | "monthly") | null;
             /** Repeatuntil */
             repeatUntil?: string | null;
             /** Remind */
