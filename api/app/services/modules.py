@@ -19,6 +19,16 @@ MODULE_UNKNOWN = "Pick a module from the list."
 ID_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"
 
 
+def link_of(kind: str, video_id: str | None, url: str | None) -> str:
+    """The link for a stored video: module_editor.parse_video() reads it back."""
+    ident = video_id or ""
+    if kind == "bbb":
+        return url or ""
+    if kind == "youtube-playlist":
+        return f"https://www.youtube.com/playlist?list={ident}"
+    return ident if ident.startswith("https://") else f"https://www.youtube.com/watch?v={ident}"
+
+
 def require_module(
     db: Session, module_id: str | None, field: str = "moduleId", *, visible: bool = False
 ) -> Module | None:

@@ -7,12 +7,13 @@ import { UpcomingEvents } from '../../calendar/public';
 import { authorName } from '../lib/authors';
 import { useTaxonomy } from '../lib/taxonomy';
 import type { ForumStats } from '../../../api/types';
-import type { CategoryId, ForumCategory } from '../types';
+import type { ForumCategoryOut } from '../../../api/types';
+import type { CategoryId } from '../types';
 import { AuthorAvatar } from './AuthorAvatar';
 import { FORUM_ICONS } from './forumIcons';
 
 /** A year's category shows its number; a category for every year, its picture. */
-export function CategoryMark({ category }: { category: Pick<ForumCategory, 'year' | 'icon'> }) {
+export function CategoryMark({ category }: { category: Pick<ForumCategoryOut, 'year' | 'icon'> }) {
   if (category.year) {
     return (
       <span className={cx('forum-cat__mark', `forum-cat__mark--y${category.year}`)} aria-hidden="true">

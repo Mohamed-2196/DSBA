@@ -51,7 +51,7 @@ function personalKeys(area: () => Storage): string[] {
 }
 
 /**
- * Remove every personal key, and reset every mounted useLocalStorage() holding one (code quality review CQ-1). The
+ * Remove every personal key, and reset every mounted useLocalStorage() holding one. The
  * tab's own copies in sessionStorage go too.
  */
 export function clearPersonalStorage(): void {

@@ -37,6 +37,9 @@ goes to the activity log with what changed, before and after. Each shows what a 
 preview, or the grades calculator's worked example), and none links to Google Drive or Docs. Pictures are uploaded
 (`module_art`, `newsletter_image`, `career_logo`) and shown only once something students see uses them.
 
+A field added to one of these documents gets a default in its schema (`api/app/schemas`): a saved document without
+the field reads with the default, so no migration copies new parts into saved documents and reading one never fails.
+
 The grades calculator keeps a student's marks in their browser by subject id, so a change to the subjects never moves
 anyone's marks; the marks never reach the server.
 

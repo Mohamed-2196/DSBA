@@ -11,6 +11,7 @@ from app.core.pagination import YearParam
 from app.core.security import DB, OptionalUser, client_ip, requires
 from app.models import User
 from app.routers._base import router_for
+from app.schemas.grades import PaperChoice
 from app.schemas.modules import (
     ModuleCreate,
     ModuleDetail,
@@ -20,7 +21,7 @@ from app.schemas.modules import (
     ModuleSave,
     ModuleSummary,
 )
-from app.services import access
+from app.services import access, grades
 from app.services import module_editor as editor
 from app.services import modules as svc
 
@@ -31,6 +32,13 @@ router = router_for("modules")
 def list_modules(db: DB, user: OptionalUser, year: YearParam | None = None) -> list[ModuleSummary]:
     """Every module, in programme order, with its published library count (None while the library is off for you)."""
     return svc.list_modules(db, year, library=access.feature_on(db, user, Feature.library))
+
+
+@router.get("/modules/choices", response_model=list[PaperChoice])
+def paper_choices(db: DB) -> list[PaperChoice]:
+    """The choices a student makes inside a year, from the grades calculator's rules: the Year 2 option and the
+    electives, each with how many to pick and its options. A student's papers hold what they picked."""
+    return grades.rules(db).choices()
 
 
 @router.get("/modules/{module_id}", response_model=ModuleDetail)

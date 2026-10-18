@@ -197,7 +197,7 @@ def test_holders_of_guides_edit_save_them(
     writer = make_user(name="Huda Guides", roles=("student", "guide-writers"))
     data = seed("guides")
     data["startHere"]["steps"][0]["title"] = "Get your UoL login"
-    data["electives"]["pick"] = 3
+    data["electives"]["title"] = "Choosing your electives"
     r = client_for(writer).put(GUIDES, json={"version": 0, "data": data})
     assert r.status_code == 200, r.text
     assert r.json()["version"] == 1
@@ -206,8 +206,8 @@ def test_holders_of_guides_edit_save_them(
     assert entry is not None
     assert (entry.target_id, entry.data["title"]) == ("guides", "The guides")
     assert entry.data["parts"] == ["startHere", "electives"]
-    assert entry.data["before"]["electives"] == {"pick": 2}
-    assert entry.data["after"]["electives"] == {"pick": 3}
+    assert entry.data["before"]["electives"] == {"title": "Choosing your Year 3 electives"}
+    assert entry.data["after"]["electives"] == {"title": "Choosing your electives"}
 
     stale = client_for(make_user(name="Maryam Rep", roles=("student", "rep"))).put(
         GUIDES, json={"version": 0, "data": seed("guides")}
@@ -242,7 +242,6 @@ def test_holders_of_guides_edit_save_them(
             "data.resultsDay.steps.0.links.2.site.link",
         ),
         (lambda g: g["startHere"]["termStart"].update(month=13), "data.startHere.termStart.month"),
-        (lambda g: g["electives"].update(pick=0), "data.electives.pick"),
     ],
 )
 def test_the_guides_are_checked(

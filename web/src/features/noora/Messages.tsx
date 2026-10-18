@@ -338,7 +338,7 @@ const ROOM_ABOVE = 12; // px left above a question that is scrolled to the top
 
 /**
  * The scrolling list. A question the student sends goes to the top, and her answer arrives below it without moving
- * the list: they read from its start, at their own pace (UX review UX-29). A conversation that is opened, or shown
+ * the list: they read from its start, at their own pace. A conversation that is opened, or shown
  * again, starts at its newest message. "Jump to latest" shows while the end is out of view.
  */
 export const MessageList = memo(function MessageList(props: MessageListProps) {

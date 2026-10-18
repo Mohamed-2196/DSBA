@@ -48,8 +48,9 @@ from app.schemas.modules import (
     ModuleOrder,
     ModuleSave,
 )
+from app.services import career, grades, site
 from app.services.content import record
-from app.services.modules import new_id
+from app.services.modules import link_of, new_id
 
 CHANGED = "Someone else saved this module while you were editing. Load it again."
 YOUTUBE_HOSTS = frozenset(
@@ -99,16 +100,6 @@ def parse_video(url: str) -> Video | None:
 def video_link(lesson: Lesson) -> str:
     """The link an editor sees for a lesson's video (parse_video() reads it back)."""
     return link_of(lesson.kind, lesson.video_id, lesson.url)
-
-
-def link_of(kind: str, video_id: str | None, url: str | None) -> str:
-    """The link for a stored video: parse_video() reads it back."""
-    ident = video_id or ""
-    if kind == "bbb":
-        return url or ""
-    if kind == "youtube-playlist":
-        return f"https://www.youtube.com/playlist?list={ident}"
-    return ident if ident.startswith("https://") else f"https://www.youtube.com/watch?v={ident}"
 
 
 def add_lesson(db: Session, m: Module, chapter: Chapter, video: Video, title: str) -> Lesson:
@@ -462,23 +453,40 @@ def uses_of(db: Session, m: Module) -> list[str]:
     return [_plural(n, one, many) for n, one, many in counts if n]
 
 
+def named_in(db: Session, module_id: str) -> list[str]:
+    """The documents edited whole that name the module by id; each refuses a save that names a module that isn't
+    there."""
+    documents = (
+        ("the grades calculator's rules", grades.rules(db).module_refs()),
+        ("Site settings", site.site(db).module_refs()),
+        ("Career Navigator", career.module_refs(db)),
+    )
+    return [name for name, refs in documents if module_id in refs]
+
+
 def _list_words(parts: Iterable[str]) -> str:
     items = list(parts)
     return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} and {items[-1]}"
 
 
 def delete_module(db: Session, user: User, module_id: str, version: int, ip: str | None) -> None:
-    """Removes a module nothing refers to. One with lessons, files, threads, notes, cards, requests or dates is
-    refused (409 content_in_use): hide it instead."""
+    """Removes a module nothing refers to. One with lessons, files, threads, notes, cards, requests or dates, or that
+    a document edited whole names (the grades calculator's rules, Site settings, Career Navigator), is refused (409
+    content_in_use): hide it instead."""
     m = get_module(db, module_id, lock=True)
     if m.version != version:
         raise conflict("module_changed", CHANGED)
-    uses = uses_of(db, m)
-    if uses:
+    uses, named = uses_of(db, m), named_in(db, m.id)
+    if uses or named:
+        why = []
+        if uses:
+            why.append(f"has {_list_words(uses)}")
+        if named:
+            why.append(f"is named in {_list_words(named)}")
         raise ApiError(
             409,
             "content_in_use",
-            f"“{m.name}” has {_list_words(uses)}. Hide it instead, so students don't see it.",
+            f"“{m.name}” {' and '.join(why)}. Hide it instead, so students don't see it.",
         )
     record(db, user, "module.delete", "module", m.id, m.name, ip, before=_snapshot(m))
     db.delete(m)

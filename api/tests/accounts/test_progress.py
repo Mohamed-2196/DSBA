@@ -215,3 +215,30 @@ def test_import_is_capped(client_for: ClientFor, make_user: MakeUser, module: Mo
     assert r.status_code == 422
     last = {f"m{i}": {"lessonId": "abc", "at": at} for i in range(101)}
     assert c.post(f"{API}/me/progress/import", json={"watched": {}, "last": last}).status_code == 422
+
+
+def test_progress_off_hides_what_was_recorded_and_on_brings_it_back(
+    client_for: ClientFor, make_user: MakeUser, module: Module, set_feature: Callable[..., None]
+) -> None:
+    """Turning lesson progress off: nothing new is saved, and what was saved before is kept but hidden until the
+    person turns it on again."""
+    set_feature("board", "everyone")
+    c = client_for(make_user(tracks=True))
+    lesson = lesson_id(module, 0, 0)
+    assert c.put(f"{API}/me/progress/lessons/{lesson}", json={"watched": True}).status_code == 200
+    assert c.put(f"{API}/me/progress/resume", json={"lessonId": lesson}).status_code == 200
+    assert c.patch(f"{API}/me", json={"preferences": {"trackProgress": False}}).status_code == 200
+    # Off: new marks are refused, and the old ones aren't served.
+    assert c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 1)}", json={"watched": True}).status_code == 409
+    assert c.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}}
+    # A card for the lesson doesn't jump to Done on hidden progress.
+    card = c.post(f"{API}/board-cards", json={"link": {"type": "lesson", "id": lesson}})
+    assert card.status_code == 201, card.text
+    assert card.json()["doneAt"] is None
+    # The export still holds everything stored about the person.
+    assert lesson in c.get(f"{API}/me/export").json()["progress"]["watched"]
+    # On again: it comes back.
+    assert c.patch(f"{API}/me", json={"preferences": {"trackProgress": True}}).status_code == 200
+    progress = c.get(f"{API}/me/progress").json()
+    assert lesson in progress["watched"]
+    assert progress["last"][module.id]["lessonId"] == lesson

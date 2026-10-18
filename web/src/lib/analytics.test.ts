@@ -10,7 +10,7 @@ import {
   withoutQuery,
 } from './analytics';
 
-describe('analyticsConfig (security review SEC-8)', () => {
+describe('analyticsConfig', () => {
   const config = analyticsConfig();
 
   it('records page views and nothing a person typed or clicked', () => {

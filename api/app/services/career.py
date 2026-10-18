@@ -97,6 +97,12 @@ def _row(db: Session, *, lock: bool = False) -> ContentDoc | None:
     return db.get(ContentDoc, CAREER_KEY, with_for_update=lock, populate_existing=lock)
 
 
+def module_refs(db: Session) -> list[str]:
+    """The modules the saved document names; none before it is loaded."""
+    row = _row(db)
+    return CareerDoc.model_validate(row.data).module_refs() if row is not None else []
+
+
 def content(db: Session) -> CareerContent:
     """What the public page shows, or no data until the document is loaded."""
     row = _row(db)

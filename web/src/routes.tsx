@@ -208,7 +208,7 @@ const pages: AppRoute[] = [
     path: '/styleguide',
     title: 'Style guide',
     Page: lazy(() => import('./features/about/StyleGuidePage')),
-    // Open in development; in production for people who hold a manager box only (code quality review CQ-17).
+    // Open in development; in production for people who hold a manager box only.
     gate: import.meta.env.DEV
       ? undefined
       : (page) => (

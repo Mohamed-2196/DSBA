@@ -454,17 +454,6 @@ function ElectivesFields({
         maxLength={60}
         required
       />
-      <TextField
-        label="How many a student takes"
-        type="number"
-        inputMode="numeric"
-        min={1}
-        max={6}
-        value={guide.pick}
-        onChange={(e) => set({ pick: Number(e.target.value) })}
-        error={err('electives.pick')}
-        required
-      />
       <TextArea
         className="dedit-grid__wide"
         label="Under the title"

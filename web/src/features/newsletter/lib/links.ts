@@ -1,5 +1,5 @@
 // Which links an issue may carry (its pictures: api/pictures.ts). Issues are written by student reps, so every URL that
-// reaches href or to goes through these checks (security review, findings 12 and 18, and SEC-3). The rules mirror the
+// reaches href or to goes through these checks. The rules mirror the
 // API's (api/app/core/links.py), so the editor can say what's wrong before saving; the API checks again either way.
 
 // The renderer's rule (ui/safeHref): an app path, or an http(s)/mailto URL; anything else is shown as plain text.

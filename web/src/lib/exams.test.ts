@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   examLabel,
+  isExamSession,
   isZone,
   paperLabel,
   SESSIONS,
@@ -25,6 +26,12 @@ describe('zones', () => {
 });
 
 describe('sittings', () => {
+  it('knows a session only by its own values', () => {
+    expect(SESSIONS.every(isExamSession)).toBe(true);
+    expect(isExamSession('june')).toBe(false);
+    expect(isExamSession('')).toBe(false);
+  });
+
   it('names a session on its own and with its year', () => {
     expect(SESSIONS.map(sessionLabel)).toEqual(['May', 'October (resits)']);
     expect(sittingLabel(2024, 'may')).toBe('May 2024');

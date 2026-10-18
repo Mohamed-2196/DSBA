@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import AuditEntry, BoardCard, Lesson, LessonResume, LessonView, Module, Note, User
-from app.seed.loader import load_modules
+from app.seed.loader import load_career, load_modules
 from app.services.module_editor import Video, parse_video, video_link
 from tests.content.conftest import API
 from tests.lessons import chapters, lesson_id
@@ -436,3 +436,29 @@ def test_the_seed_never_overwrites_modules(
     assert load_modules(db) == 0
     db.commit()
     assert load(c, first)["name"] == "Renamed by a manager"
+
+
+def test_a_module_the_documents_name_is_kept(
+    client_for: Clients, manager: User, modules: dict[str, Module], db: Session
+) -> None:
+    """The grades calculator's rules, Site settings and Career Navigator name modules by id and refuse a save that
+    names one that isn't there, so deleting a module one of them names is refused like one with lessons."""
+    c = client_for(manager)
+    gone = f"{API}/content/modules/asset-pricing"
+    r = c.delete(gone, params={"version": modules["asset-pricing"].version})
+    assert r.status_code == 409
+    assert r.json()["error"] == {
+        "code": "content_in_use",
+        "message": "“Principles of Asset Pricing” is named in the grades calculator's rules. Hide it instead, so "
+        "students don't see it.",
+    }
+    load_career(db)
+    db.commit()
+    r = c.delete(gone, params={"version": modules["asset-pricing"].version})
+    assert "is named in the grades calculator's rules and Career Navigator." in r.json()["error"]["message"]
+
+    made = c.post(
+        f"{API}/content/modules", json={"id": "unnamed-one", "name": "Unnamed", "shortName": "Unnamed", "year": 3}
+    )
+    assert made.status_code == 201, made.text
+    assert c.delete(f"{API}/content/modules/unnamed-one", params={"version": made.json()["version"]}).status_code == 204

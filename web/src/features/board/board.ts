@@ -33,8 +33,7 @@ export interface TemplateInfo {
   color: BoardColor;
 }
 
-/** The templates a student starts a board from. The API's "revision" template is left out: it is three renamed
- *  Study columns, and its name promises the revision plan that "Plan my revision" on a module makes. */
+/** The templates a student starts a board from: every template the API makes a board from. */
 export const TEMPLATES: readonly TemplateInfo[] = [
   {
     id: 'study',

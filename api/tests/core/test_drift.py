@@ -1,5 +1,5 @@
-"""Drift checks (code-quality review CQ-7): the migrations build exactly the schema the models describe (their CHECK
-lists of allowed values too), every migration can be undone, and api/openapi.json (the web app's contract) is what
+"""Drift checks: the migrations build exactly the schema the models describe (their CHECK lists of allowed values and
+their indexes' definitions too), every migration can be undone, and api/openapi.json (the web app's contract) is what
 the app serves."""
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from alembic.config import Config
 from alembic.migration import MigrationContext
 from sqlalchemy import CheckConstraint, Engine, Enum, create_engine, text
 from sqlalchemy.engine import make_url
+from sqlalchemy.pool import NullPool
 
 from app.main import create_app
 from app.models import Base
@@ -60,6 +61,37 @@ def test_the_migrations_allow_what_the_models_allow(engine: Engine) -> None:
     in_db = {name: {v.replace("''", "'") for v in _QUOTED.findall(sql)} for name, sql in rows}
     differ = {name: (values, in_db.get(name)) for name, values in expected.items() if in_db.get(name) != values}
     assert differ == {}, "a CHECK in the database doesn't list what the model allows: write a migration"
+
+
+INDEXES = text(
+    "SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' AND tablename <> 'alembic_version'"
+)
+
+
+def test_the_migrations_build_the_models_indexes(engine: Engine) -> None:
+    """alembic check sees an index's columns but not a partial index's WHERE or an index on an expression: every
+    index, as PostgreSQL defines it, must be the one the models build (a database made from them to compare)."""
+    name = f"dsba_models_{uuid.uuid4().hex[:10]}"
+    admin = create_engine(ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as c:
+        c.execute(text(f'CREATE DATABASE "{name}"'))
+    models = create_engine(make_url(ADMIN_URL).set(database=name), poolclass=NullPool)
+    try:
+        Base.metadata.create_all(models)
+        with models.connect() as c:
+            expected = dict(c.execute(INDEXES).tuples().all())
+    finally:
+        models.dispose()
+        with admin.connect() as c:
+            c.execute(text(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)'))
+        admin.dispose()
+    with engine.connect() as c:
+        built = dict(c.execute(INDEXES).tuples().all())
+    assert any(" WHERE " in d for d in expected.values())  # partial indexes are among them
+    differ = {
+        i: (expected.get(i), built.get(i)) for i in expected.keys() | built.keys() if expected.get(i) != built.get(i)
+    }
+    assert differ == {}, "an index the migrations build isn't the one the models declare: write a migration"
 
 
 def test_every_migration_can_be_undone_and_redone() -> None:
