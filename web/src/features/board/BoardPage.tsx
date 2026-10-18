@@ -71,6 +71,7 @@ import {
   planPace,
   storageText,
   TODAY_DAYS,
+  withExistingLabels,
   type CardFilter,
 } from './board';
 import { BoardDialog } from './BoardDialog';
@@ -233,8 +234,10 @@ function BoardApp() {
   const names = boards.map((b) => b.name);
   const columns = current?.columns ?? [];
   const allCards = detail.data?.cards ?? [];
-  const filtering = isFiltering(filter);
-  const shownCards = allCards.filter((c) => matches(c, filter, today));
+  // A label deleted while it was chosen leaves the filter with it.
+  const activeFilter = withExistingLabels(filter, (id) => id in labelMap);
+  const filtering = isFiltering(activeFilter);
+  const shownCards = allCards.filter((c) => matches(c, activeFilter, today));
   const readOnly = suspended || current?.archived === true;
   const phoneColumn = columns.find((c) => c.id === phoneColumnId)?.id ?? columns[0]?.id ?? null;
   const dueNow = agenda.data ? agenda.data.cards.filter((c) => c.due <= today).length : null;

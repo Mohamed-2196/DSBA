@@ -150,6 +150,10 @@ export const FOLD_AFTER_DAYS = 14;
 export const cardsIn = (cards: readonly BoardCard[], columnId: string): BoardCard[] =>
   cards.filter((c) => c.columnId === columnId);
 
+/** Cards added here that the API hasn't answered for yet: they can't be opened, moved or deleted, and no move can
+ *  name one as the card to go after. */
+export const isUnsaved = (card: Pick<BoardCard, 'id'>): boolean => card.id.startsWith('new-');
+
 /** The cards column by column, as the API sends them; cards of a column that's gone go last. */
 export function inColumnOrder(cards: readonly BoardCard[], columns: readonly BoardColumn[]): BoardCard[] {
   const known = new Set(columns.map((c) => c.id));
@@ -194,7 +198,7 @@ export const appendCard = (
   card: BoardCard,
 ): BoardCard[] => inColumnOrder([...cards, card], columns);
 
-/** The card to go after when `id` is dropped right before `beforeId` in `columnId`. */
+/** The card to go after when `id` is dropped right before `beforeId` in `columnId`: the saved card closest above. */
 export function afterIdBefore(
   cards: readonly BoardCard[],
   id: string,
@@ -202,24 +206,31 @@ export function afterIdBefore(
   beforeId: string,
 ): string | null {
   const there = cardsIn(cards, columnId).filter((c) => c.id !== id);
-  const i = there.findIndex((c) => c.id === beforeId);
-  return i > 0 ? (there[i - 1]?.id ?? null) : null;
+  const above = there.slice(
+    0,
+    Math.max(
+      0,
+      there.findIndex((c) => c.id === beforeId),
+    ),
+  );
+  return above.filter((c) => !isUnsaved(c)).at(-1)?.id ?? null;
 }
 
-/** The last card of a column, leaving out `id`: where a card dropped on the column's free space goes after. */
+/** The last saved card of a column, leaving out `id`: where a card dropped on the column's free space goes after. */
 export function lastIn(cards: readonly BoardCard[], columnId: string, id: string | null): string | null {
   return (
     cardsIn(cards, columnId)
-      .filter((c) => c.id !== id)
+      .filter((c) => c.id !== id && !isUnsaved(c))
       .at(-1)?.id ?? null
   );
 }
 
-/** Where "Move up" and "Move down" put a card: the afterId for the move, or undefined when it can't go that way. */
+/** Where "Move up" and "Move down" put a card among the saved ones: the afterId for the move, or undefined when it
+ *  can't go that way. */
 export function nudge(cards: readonly BoardCard[], id: string, by: -1 | 1): string | null | undefined {
   const card = cards.find((c) => c.id === id);
   if (!card) return undefined;
-  const there = cardsIn(cards, card.columnId);
+  const there = cardsIn(cards, card.columnId).filter((c) => c.id === id || !isUnsaved(c));
   const to = there.findIndex((c) => c.id === id) + by;
   if (to < 0 || to >= there.length) return undefined;
   const others = there.filter((c) => c.id !== id);
@@ -357,6 +368,10 @@ export interface CardFilter {
 export const NO_FILTER: CardFilter = { labels: [], due: 'any' };
 
 export const isFiltering = (f: CardFilter): boolean => f.labels.length > 0 || f.due !== 'any';
+
+/** The filter without the labels that are gone (deleted while they were chosen). */
+export const withExistingLabels = (f: CardFilter, exists: (labelId: string) => boolean): CardFilter =>
+  f.labels.every(exists) ? f : { ...f, labels: f.labels.filter(exists) };
 
 /** Does the card pass the filter? Every chosen label must be on it; the due filter looks at cards not done. */
 export function matches(card: BoardCard, f: CardFilter, today: DayKey): boolean {

@@ -13,6 +13,8 @@ import {
   dueOf,
   isOverdue,
   isPastPaper,
+  isUnsaved,
+  lastIn,
   matches,
   moveItem,
   neighbourColumn,
@@ -28,6 +30,7 @@ import {
   startName,
   storageText,
   TEMPLATES,
+  withExistingLabels,
   type Paper,
 } from './board';
 import { cleanScores } from './scores';
@@ -101,6 +104,14 @@ describe('positions from the screen', () => {
     expect(afterIdBefore(board, 'c', 'todo', 'a')).toBeNull();
     expect(afterIdBefore(board, 'a', 'todo', 'b')).toBeNull(); // without the moving card, b is first
     expect(afterIdBefore(board, 'd', 'todo', 'c')).toBe('b');
+  });
+  it('never names a card the API hasn’t answered for yet as the one to go after', () => {
+    const adding = [card('a', 'todo'), card('b', 'todo'), card('new-1', 'todo'), card('d', 'doing')];
+    expect(isUnsaved(card('new-1', 'todo'))).toBe(true);
+    expect(afterIdBefore(adding, 'd', 'todo', 'new-1')).toBe('b');
+    expect(lastIn(adding, 'todo', 'd')).toBe('b');
+    expect(nudge(adding, 'a', 1)).toBe('b');
+    expect(nudge(adding, 'b', 1)).toBeUndefined();
   });
   it('moves up and down within the column, and not past its ends', () => {
     expect(nudge(board, 'b', -1)).toBeNull();
@@ -188,6 +199,12 @@ describe('filters and agenda', () => {
     expect(matches(c1, { labels: ['l2'], due: 'today' }, '2026-10-14')).toBe(true);
     expect(matches(c2, { labels: ['l2'], due: 'any' }, '2026-10-14')).toBe(false);
     expect(matches(c2, { labels: [], due: 'week' }, '2026-10-14')).toBe(true);
+  });
+  it('drops a label that is gone from the filter', () => {
+    const f = { labels: ['l1', 'gone'], due: 'any' as const };
+    expect(withExistingLabels(f, (id) => id !== 'gone')).toEqual({ labels: ['l1'], due: 'any' });
+    const kept = { labels: ['l1'], due: 'today' as const };
+    expect(withExistingLabels(kept, () => true)).toBe(kept);
   });
   it('groups agenda into sections', () => {
     const ac = (id: string, due: string): AgendaCard => ({

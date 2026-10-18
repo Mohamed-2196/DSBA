@@ -28,9 +28,9 @@ export interface TodayViewProps {
 export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) {
   const today = todayKey();
   const agenda = useAgenda({ days: TODAY_DAYS });
-  // Ticked here, a card stays (struck through) until the agenda comes back: without it, or with it again when the
-  // move failed.
-  const [ticked, setTicked] = useState<{ on: unknown; ids: ReadonlySet<string> }>({ on: null, ids: new Set() });
+  // Ticked here, a card stays (struck through) until the agenda is read again: without it, or with it again when the
+  // move failed. An answer equal to the last keeps the same data, so the ticks go by when it came.
+  const [ticked, setTicked] = useState<{ at: number; ids: ReadonlySet<string> }>({ at: -1, ids: new Set() });
 
   if (agenda.isPending) {
     return (
@@ -76,7 +76,7 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
             {s.cards.map((card) => {
               const board = boards.find((b) => b.id === card.boardId);
               const canTick = !readOnly && board != null && doneColumn(board.columns) != null;
-              const done = ticked.on === agenda.data && ticked.ids.has(card.id);
+              const done = ticked.at === agenda.dataUpdatedAt && ticked.ids.has(card.id);
               const overdue = s.id === 'overdue';
               const when = whenText(s.id, card, today);
               return (
@@ -89,8 +89,8 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
                         disabled={done}
                         onChange={() => {
                           setTicked((prev) => ({
-                            on: agenda.data,
-                            ids: new Set(prev.on === agenda.data ? prev.ids : []).add(card.id),
+                            at: agenda.dataUpdatedAt,
+                            ids: new Set(prev.at === agenda.dataUpdatedAt ? prev.ids : []).add(card.id),
                           }));
                           onDone(card);
                         }}

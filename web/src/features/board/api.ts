@@ -41,11 +41,15 @@ const isApiPath = (path: string): path is `/api/v1/${string}` => path.startsWith
 /** Where the browser loads a file the API names by its path (a card's cover). */
 export const apiFileSrc = (path: string): string => (isApiPath(path) ? apiUrl(path) : path);
 
-/** Cards added here that the API hasn't answered for yet: they can't be opened, moved or deleted. */
-export const isUnsaved = (card: Pick<BoardCard, 'id'>): boolean => card.id.startsWith('new-');
+/** Numbers the cards added here until the API answers ('new-3', board.ts isUnsaved): only their ids need it, so one
+ *  count for the page is enough. */
 let unsavedCount = 0;
 
 // ── reading ─────────────────────────────────────────────────────────────────────────────────
+
+// The boards and the agenda are read again on every visit, however fresh: cards also arrive from elsewhere (a
+// revision plan, "Add to my board" on another page, reminders, another device), and a board must never open on what
+// it held a minute ago.
 
 export function useBoards({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
@@ -75,12 +79,13 @@ export function useAgenda({ days, enabled = true }: { days: number; enabled?: bo
   });
 }
 
+/** What is on the boards, for "Add to my board" (every paper row has one, so it isn't read again on each mount; the
+ *  card writes refresh it). */
 export function useBoardLinks({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: LINKS_KEY,
     queryFn: () => call(api.GET('/api/v1/board-links')),
     enabled,
-    refetchOnMount: 'always',
   });
 }
 
@@ -300,11 +305,14 @@ export function useDeleteLabel() {
 
 // ── cards ───────────────────────────────────────────────────────────────────────────────────
 
-/** What the card writes still on their way touched. A reload while another write is pending would bring back the
- *  board as it was before that write (a to-do just added, gone again), so the last write to settle reloads it all. */
-const touched = new Map<string, readonly unknown[]>();
+/** What the card writes still on their way touched, for each query client. A reload while another write is pending
+ *  would bring back the board as it was before that write (a to-do just added, gone again), so the last write to
+ *  settle reloads it all. */
+const touchedBy = new WeakMap<QueryClient, Map<string, readonly unknown[]>>();
 
 function cardWriteSettled(qc: QueryClient, keys: readonly (readonly unknown[])[]): void {
+  const touched = touchedBy.get(qc) ?? new Map<string, readonly unknown[]>();
+  touchedBy.set(qc, touched);
   for (const queryKey of keys) touched.set(JSON.stringify(queryKey), queryKey);
   if (qc.isMutating({ mutationKey: CARD_WRITE }) > 1) return;
   const all = [...touched.values()];
@@ -322,7 +330,8 @@ const cardsChanged = (...boardIds: string[]): (readonly unknown[])[] => [
 ];
 
 /** Adds a card. Given its board and column, it shows at the end of the column at once (it can't be opened until
- *  the API has it); from elsewhere in the hub (a link) the API picks the board. */
+ *  the API has it), and a failure says so; from elsewhere in the hub (a link) the API picks the board, and the
+ *  button that asked ("Add to my board") says what happened. */
 export function useAddCard() {
   const qc = useQueryClient();
   const toast = useToast();
@@ -364,9 +373,9 @@ export function useAddCard() {
       });
       return { snapshot, tempId };
     },
-    onError: (e, _body, context) => {
+    onError: (e, body, context) => {
       putBack(qc, context?.snapshot);
-      toast.push({ tone: 'alert', title: 'The card wasn’t added', body: errorMessage(e) });
+      if (!body.link) toast.push({ tone: 'alert', title: 'The card wasn’t added', body: errorMessage(e) });
     },
     onSuccess: (card, _body, context) => {
       if (context?.tempId)
@@ -554,20 +563,17 @@ export function useDeleteComment() {
 
 // ── revision plans ──────────────────────────────────────────────────────────────────────────
 
-/** A plan adds cards to a board the API picks (or the one asked for): every board may change. */
-function plansChanged(qc: QueryClient): void {
-  void qc.invalidateQueries({ queryKey: BOARD_PREFIX });
-  void qc.invalidateQueries({ queryKey: BOARDS_KEY });
-  void qc.invalidateQueries({ queryKey: AGENDA_KEY });
-  void qc.invalidateQueries({ queryKey: LINKS_KEY });
-}
+/** A plan adds or removes cards on a board the API picks (or the one asked for): every board may change. Plans are
+ *  card writes: they wait their turn, and the last write to settle reloads what they touched. */
+const PLAN_CHANGES: readonly (readonly unknown[])[] = [BOARD_PREFIX, BOARDS_KEY, AGENDA_KEY, LINKS_KEY];
 
 export function useMakePlan() {
   const qc = useQueryClient();
   return useMutation({
     scope: SCOPE,
+    mutationKey: CARD_WRITE,
     mutationFn: (body: BoardPlanCreate) => call(api.POST('/api/v1/board-plans', { body })),
-    onSettled: () => plansChanged(qc),
+    onSettled: () => cardWriteSettled(qc, PLAN_CHANGES),
   });
 }
 
@@ -576,9 +582,10 @@ export function useDeletePlan() {
   const toast = useToast();
   return useMutation({
     scope: SCOPE,
+    mutationKey: CARD_WRITE,
     mutationFn: (moduleId: string) =>
       call(api.DELETE('/api/v1/board-plans/{module_id}', { params: { path: { module_id: moduleId } } })),
     onError: (e) => toast.push({ tone: 'alert', title: 'The plan wasn’t removed', body: errorMessage(e) }),
-    onSettled: () => plansChanged(qc),
+    onSettled: () => cardWriteSettled(qc, PLAN_CHANGES),
   });
 }
