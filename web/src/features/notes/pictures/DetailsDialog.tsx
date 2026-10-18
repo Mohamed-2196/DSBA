@@ -1,17 +1,15 @@
 // A picture's caption (shown under it) and description (for screen readers and for searching the notes), in the text
-// or free on the page.
-import { useEffect, useState } from 'react';
+// or free on the page. It is mounted while it is open, so its fields start from the picture each time.
+import { useState } from 'react';
 import { Button, Modal, TextArea, TextField } from '../../../ui';
 import { ALT_MAX, CAPTION_MAX } from './geometry';
 
 export function DetailsDialog({
-  open,
   caption: savedCaption,
   alt: savedAlt,
   onSave,
   onClose,
 }: {
-  open: boolean;
   caption: string;
   alt: string;
   onSave: (v: { caption: string; alt: string }) => void;
@@ -19,15 +17,9 @@ export function DetailsDialog({
 }) {
   const [caption, setCaption] = useState(savedCaption);
   const [alt, setAlt] = useState(savedAlt);
-  useEffect(() => {
-    if (open) {
-      setCaption(savedCaption);
-      setAlt(savedAlt);
-    }
-  }, [open, savedCaption, savedAlt]);
   return (
     <Modal
-      open={open}
+      open
       onClose={onClose}
       title="Caption and description"
       size="sm"

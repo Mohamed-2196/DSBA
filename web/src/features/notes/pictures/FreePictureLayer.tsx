@@ -744,9 +744,8 @@ export function FreePictureLayer({
             canvas,
           )
         : null}
-      {sel ? (
+      {sel && details ? (
         <DetailsDialog
-          open={details}
           caption={sel.caption}
           alt={sel.alt}
           onClose={() => setDetails(false)}

@@ -7,8 +7,7 @@
 //   useNotes(filters), useNote(id)           the student's notes, a page at a time, and one note with its body
 //                                            (Noora's full page adds a note to a question)
 //
-// Pages: /notes (the list) and /notes/:id (the editor; /notes/new starts a note, ?module=&lesson= says
-// what it's about).
+// Pages: /notes (the list; ?notebook=, or ?module=&lesson= for one lesson's notes) and /notes/:id (the editor).
 export { LessonNotes } from './LessonNotes';
 export { useOpenNote } from './current';
 export { useAnnotate, useNote, useNotes } from './api';

@@ -396,16 +396,17 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
             document.body,
           )
         : null}
-      <DetailsDialog
-        open={details}
-        caption={p.caption}
-        alt={p.alt}
-        onClose={() => setDetails(false)}
-        onSave={(v) => {
-          updateAttributes(v);
-          setDetails(false);
-        }}
-      />
+      {details ? (
+        <DetailsDialog
+          caption={p.caption}
+          alt={p.alt}
+          onClose={() => setDetails(false)}
+          onSave={(v) => {
+            updateAttributes(v);
+            setDetails(false);
+          }}
+        />
+      ) : null}
     </NodeViewWrapper>
   );
 }

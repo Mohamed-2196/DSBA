@@ -36,7 +36,8 @@ import type {
 } from '../../api/types';
 
 export const NOTES_KEY = ['notes'] as const;
-const PAGE = 30;
+/** Notes in a page of the list. */
+export const NOTES_PAGE = 30;
 
 export interface NoteFilters {
   q?: string;
@@ -83,7 +84,7 @@ export function useNotebooks({ enabled = true }: { enabled?: boolean } = {}) {
 export function useNotes(filters: NoteFilters, { enabled = true }: { enabled?: boolean } = {}) {
   return useInfiniteQuery({
     queryKey: noteKeys.list(filters),
-    queryFn: ({ pageParam }) => listQuery(filters, PAGE, pageParam),
+    queryFn: ({ pageParam }) => listQuery(filters, NOTES_PAGE, pageParam),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
     placeholderData: keepPreviousData,
@@ -127,10 +128,19 @@ export function notesChanged(qc: QueryClient): void {
   void qc.invalidateQueries({ queryKey: noteKeys.notebooks });
 }
 
-/** After a save of the text: the note's cache entry is the saved note (its ink kept as the editor has it). */
-export function noteSaved(qc: QueryClient, note: Note): void {
+/** After an autosave (the text, or a sheet's ink): the lists and the room used are out of date, and are read again
+ *  where they are shown next, not at every save. */
+export function notesTouched(qc: QueryClient): void {
+  void qc.invalidateQueries({ queryKey: noteKeys.lists, refetchType: 'none' });
+  void qc.invalidateQueries({ queryKey: noteKeys.notebooks, refetchType: 'none' });
+}
+
+/** A note the server answered with: its cache entry is the saved note (its ink kept as the editor has it). A new
+ *  note is listed at once; an autosave (`quietly`) only marks the lists out of date. */
+export function noteSaved(qc: QueryClient, note: Note, { quietly = false }: { quietly?: boolean } = {}): void {
   qc.setQueryData(noteKeys.one(note.id), note);
-  notesChanged(qc);
+  if (quietly) notesTouched(qc);
+  else notesChanged(qc);
 }
 
 export function useCreateNote() {

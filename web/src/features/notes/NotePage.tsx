@@ -1,4 +1,4 @@
-// /notes/:noteId (and /notes/new): the notebook editor. A note is typed text, handwriting, pictures and files on
+// /notes/:noteId: the notebook editor. A note is typed text, handwriting, pictures and files on
 // ruled paper, optionally written over a PDF. The header says where it is kept and whether it is saved there; the
 // toolbar holds the tools; the pages scroll and zoom under them, the app's rail and bar can make way (full screen).
 // Pictures dropped or pasted onto the pages land free where they are dropped (or in the middle of the view); the
@@ -7,14 +7,14 @@ import { NotePencil, X } from '@phosphor-icons/react';
 import { EditorContent } from '@tiptap/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import { UPLOAD_RULES } from '../../api/uploads';
 import { Gate, useAuth } from '../../auth';
 import { useDocumentTitle, useLocalStorage, useMediaQuery, useToast } from '../../state';
 import { Button, ConfirmDialog, EmptyState, QueryError, Skeleton, cx } from '../../ui';
-import { changePages, deleteNote, discardNote, useCreateNote, useDeleteNote } from './api';
-import { EMPTY_DOC, noteLabel, type NoteDoc } from './draft';
+import { changePages, deleteNote, discardNote, useDeleteNote } from './api';
+import { noteLabel, type NoteDoc } from './draft';
 import { NoteHeader } from './NoteHeader';
 import { pageMapping, repaged, undoOf, type PageMove } from './pages';
 import { PagesDrawer, type PageAction } from './PagesDrawer';
@@ -150,19 +150,21 @@ function Notices({
       </div>,
     );
   }
-  for (const [key, failed] of [
-    ['text', editor.state === 'error' ? (editor.error ?? 'Your note’s text couldn’t be saved.') : null],
-    ['inkerr', ink.state === 'error' ? (ink.error ?? 'Your handwriting couldn’t be saved.') : null],
+  for (const [key, failed, again] of [
+    ['text', editor.state === 'error' ? (editor.error ?? 'Your note’s text couldn’t be saved.') : null, editor],
+    ['inkerr', ink.state === 'error' ? (ink.error ?? 'Your handwriting couldn’t be saved.') : null, ink],
   ] as const) {
     if (!failed) continue;
     out.push(
       <div key={key} className="nb-notice is-alert" role="alert">
         <p>{failed} It’s kept on this device.</p>
-        <div className="nb-notice__actions">
-          <Button size="sm" onClick={key === 'text' ? editor.flush : ink.flush}>
-            Try again
-          </Button>
-        </div>
+        {again.retryable ? (
+          <div className="nb-notice__actions">
+            <Button size="sm" onClick={again.flush}>
+              Try again
+            </Button>
+          </div>
+        ) : null}
       </div>,
     );
   }
@@ -213,25 +215,30 @@ function UploadTray({ uploads }: { uploads: ReturnType<typeof useNoteUploads>['p
   );
 }
 
+const NOTE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function MissingNote() {
+  return (
+    <div className="nb nb--message">
+      <EmptyState
+        icon={NotePencil}
+        title="This note doesn’t exist"
+        body="It may have been deleted."
+        action={<Button to="/notes">See all notes</Button>}
+      />
+    </div>
+  );
+}
+
 /** The note, loaded (from the server or the copy on this device), then the editor on it. */
 function NoteWorkspace({ noteId, readOnly, fresh }: { noteId: string; readOnly: boolean; fresh: boolean }) {
   const editor = useNoteEditor(noteId, { readOnly });
   const ink = useInkSync(noteId, editor.note, { readOnly });
   const pdf = usePdf(editor.note?.pdf);
   if (!editor.doc) {
-    if (editor.missing) {
-      return (
-        <div className="nb nb--message">
-          <EmptyState
-            icon={NotePencil}
-            title="This note doesn’t exist"
-            body="It may have been deleted."
-            action={<Button to="/notes">See all notes</Button>}
-          />
-        </div>
-      );
-    }
-    if (editor.loadError) return <QueryError error={editor.loadError} title="Your note didn’t load" />;
+    if (editor.missing) return <MissingNote />;
+    if (editor.loadError)
+      return <QueryError error={editor.loadError} title="Your note didn’t load" onRetry={editor.reload} />;
     return (
       <div className="nb nb--message" aria-busy="true">
         <div className="nb-skeleton">
@@ -866,7 +873,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         confirmLabel="Delete"
         tone="danger"
         busy={remove.isPending}
-        error={remove.error ? remove.error.message : null}
+        error={remove.error ? errorMessage(remove.error) : null}
         onConfirm={() =>
           remove.mutate(noteId, {
             // the copy on this device goes once the server has deleted the note, not before
@@ -882,42 +889,6 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
   );
 }
 
-function NewNoteRedirect() {
-  const [params] = useSearchParams();
-  const navigate = useNavigate();
-  const create = useCreateNote();
-  const createdRef = useRef(false);
-
-  useEffect(() => {
-    if (createdRef.current) return;
-    createdRef.current = true;
-    const notebookId = params.get('notebook');
-    const moduleId = params.get('module');
-    create.mutate(
-      {
-        title: '',
-        doc: EMPTY_DOC,
-        ...(notebookId ? { notebookId } : { moduleId, lessonId: params.get('lesson') }),
-        paper: 'lined',
-        sheets: 1,
-      },
-      {
-        onSuccess: (note) => navigate(`/notes/${note.id}`, { replace: true, state: { fresh: true } }),
-        onError: () => navigate('/notes', { replace: true }),
-      },
-    );
-  }, [create, navigate, params]);
-
-  return (
-    <div className="nb nb--message" aria-busy="true">
-      <div className="nb-skeleton">
-        <Skeleton height={44} />
-        <Skeleton height={400} />
-      </div>
-    </div>
-  );
-}
-
 export default function NotePage() {
   const { noteId } = useParams();
   const { me } = useAuth();
@@ -927,10 +898,10 @@ export default function NotePage() {
 
   return (
     <Gate title="Notes" description="Your own notes, saved as you write." signedIn>
-      {!noteId || noteId === 'new' ? (
-        <NewNoteRedirect />
-      ) : (
+      {noteId && NOTE_ID.test(noteId) ? (
         <NoteWorkspace key={noteId} noteId={noteId} readOnly={readOnly} fresh={fresh} />
+      ) : (
+        <MissingNote />
       )}
     </Gate>
   );

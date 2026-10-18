@@ -743,6 +743,22 @@ html:has(.nb--full) .noora {
   margin-top: 8px;
 }
 
+/* one lesson's notes, from a lesson page's "See all" */
+.notes-lesson-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0 0 var(--sp-12);
+  padding: 6px 6px 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+
 /* ── Body: the pages, and the drawer of pages beside them ── */
 .nb-body {
   position: relative;

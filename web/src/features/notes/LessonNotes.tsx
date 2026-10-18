@@ -3,11 +3,13 @@
 import { NotePencil, Plus } from '@phosphor-icons/react';
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { Button, QueryError, Skeleton, TextArea, timeAgo } from '../../ui';
 import { useCreateNote, useLessonNotes } from './api';
 import { docFromText, noteLabel } from './draft';
 import { BODY_MAX } from './limits';
+import { useStartNote } from './useStartNote';
 import './Notes.css';
 
 export interface LessonNotesProps {
@@ -20,6 +22,7 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
   const on = !!me && !me.needsProfile && featureOn('notes');
   const notes = useLessonNotes(moduleId, lessonId, { enabled: on });
   const create = useCreateNote();
+  const startNote = useStartNote();
   const [text, setText] = useState('');
   if (!on) return null;
   const readOnly = me?.status === 'suspended';
@@ -44,7 +47,7 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
           Your notes
         </h3>
         {total > items.length ? (
-          <Link to={`/notes?module=${encodeURIComponent(moduleId)}`} className="notes-lesson__all">
+          <Link to={`/notes?${place}`} className="notes-lesson__all">
             See all {total}
           </Link>
         ) : null}
@@ -87,7 +90,7 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
             maxLength={BODY_MAX}
             dir="auto"
             onChange={(e) => setText(e.target.value)}
-            error={create.error ? create.error.message : undefined}
+            error={create.error ? errorMessage(create.error) : undefined}
             data-hub="lesson-note-text"
           />
           <div className="notes-lesson__actions">
@@ -101,7 +104,12 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
             >
               Add note
             </Button>
-            <Button size="sm" variant="ghost" to={`/notes/new?${place}`}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => startNote.start({ moduleId, lessonId })}
+              loading={startNote.starting}
+            >
               Write a longer one
             </Button>
           </div>

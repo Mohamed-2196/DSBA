@@ -1,4 +1,5 @@
-// /notes: student's notebooks and notes, last edited first, with search, notebook filtering, and creation.
+// /notes: the student's notebooks and notes, last edited first, with search, a notebook or one lesson's notes
+// (?notebook=, or ?module=&lesson= from a lesson page), and creation.
 import {
   Book,
   DotsThree,
@@ -11,8 +12,9 @@ import {
   Plus,
   Trash,
 } from '@phosphor-icons/react';
-import { useRef, useState } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { errorMessage } from '../../api/errors';
 import type { Notebook, NoteSummary } from '../../api/types';
 import { Gate, useAuth } from '../../auth';
 import { moduleLabel } from '../../lib/modules';
@@ -46,10 +48,20 @@ import {
   uploadErrorMessage,
   uploadFile,
 } from '../../api/uploads';
-import { useCreateNote, useCreateNotebook, useDeleteNotebook, useNotebooks, useNotes, useRenameNotebook } from './api';
+import {
+  NOTES_PAGE,
+  useCreateNote,
+  useCreateNotebook,
+  useDeleteNotebook,
+  useNotebooks,
+  useNotes,
+  useRenameNotebook,
+} from './api';
 import { EMPTY_DOC, draftIds, lessonLabel, noteLabel, plainExcerpt } from './draft';
 import { TITLE_MAX } from './limits';
 import { useLessonPlace } from './lessonPlace';
+import { firstOwnNotebook } from './notebooks';
+import { useStartNote } from './useStartNote';
 import './Notes.css';
 
 function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
@@ -176,35 +188,27 @@ function StorageMeter({ label, used, limit }: { label: string; used: number; lim
   );
 }
 
-function NotebookDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+function NotebookDialog({ onClose }: { onClose: () => void }) {
   const { modules } = useModules();
   const createBook = useCreateNotebook();
   const [title, setTitle] = useState('');
   const [moduleId, setModuleId] = useState('');
 
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() && !moduleId) return;
-    createBook.mutate(
-      { title: title.trim(), moduleId: moduleId || undefined },
-      {
-        onSuccess: () => {
-          setTitle('');
-          setModuleId('');
-          onClose();
-        },
-      },
-    );
+    createBook.mutate({ title: title.trim(), moduleId: moduleId || undefined }, { onSuccess: onClose });
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="New notebook">
+    <Modal open onClose={onClose} title="New notebook">
       <form onSubmit={submit} className="notes-dialog-form">
         <TextField
           label="Notebook title"
-          placeholder="e.g. Exam Revision"
+          placeholder="e.g. Exam revision"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          error={createBook.error ? errorMessage(createBook.error) : undefined}
           autoFocus
         />
         <Select
@@ -229,22 +233,27 @@ function NotebookDialog({ open, onClose }: { open: boolean; onClose: () => void 
   );
 }
 
-function RenameDialog({ notebook, onClose }: { notebook: Notebook | null; onClose: () => void }) {
+/** Renaming one notebook: mounted for it alone (its key is the notebook), so the field opens with its title. */
+function RenameDialog({ notebook, onClose }: { notebook: Notebook; onClose: () => void }) {
   const renameBook = useRenameNotebook();
-  const [title, setTitle] = useState(notebook?.title ?? '');
+  const [title, setTitle] = useState(notebook.title);
 
-  if (!notebook) return null;
-
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     renameBook.mutate({ id: notebook.id, title: title.trim() }, { onSuccess: onClose });
   };
 
   return (
-    <Modal open={!!notebook} onClose={onClose} title="Rename notebook">
+    <Modal open onClose={onClose} title="Rename notebook">
       <form onSubmit={submit} className="notes-dialog-form">
-        <TextField label="New title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+        <TextField
+          label="New title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          error={renameBook.error ? errorMessage(renameBook.error) : undefined}
+          autoFocus
+        />
         <div className="notes-notice__actions" style={{ justifyContent: 'flex-end', marginTop: 'var(--sp-16)' }}>
           <Button variant="ghost" onClick={onClose}>
             Cancel
@@ -266,6 +275,9 @@ function NotesList() {
 
   const [q, setQ] = useQueryParam('q');
   const [selectedNotebookId, setSelectedNotebookId] = useQueryParam('notebook');
+  const [lessonModuleId, setLessonModuleId] = useQueryParam('module');
+  const [lessonId, setLessonId] = useQueryParam('lesson');
+  const startNote = useStartNote();
   const [text, setText] = useState(q ?? '');
   const search = useDebouncedValue(text.trim(), 250);
 
@@ -273,14 +285,22 @@ function NotesList() {
   const [renamingBook, setRenamingBook] = useState<Notebook | null>(null);
   const [deletingBook, setDeletingBook] = useState<Notebook | null>(null);
 
-  const filters = { q: search, notebookId: selectedNotebookId || null };
+  // one lesson's notes (from a lesson page's "See all"), or one notebook's
+  const lesson = lessonModuleId && lessonId ? { moduleId: lessonModuleId, lessonId } : null;
+  const filters = { q: search, notebookId: selectedNotebookId || null, ...lesson };
+  const lessonPlace = useLessonPlace(lesson?.moduleId ?? null, lesson?.lessonId ?? null);
+  const lessonModule = lesson ? getModule(lesson.moduleId) : null;
+  const showAll = () => {
+    setLessonModuleId(null, { replace: true });
+    setLessonId(null, { replace: true });
+  };
   const notes = useNotes(filters);
   const readOnly = me?.status === 'suspended';
 
   const [unsent] = useState(() => new Set(draftIds()));
   const items = notes.data?.pages.flatMap((p) => p.items) ?? [];
   const total = notes.data?.pages[0]?.total ?? 0;
-  const filtered = !!search || !!selectedNotebookId;
+  const filtered = !!search || !!selectedNotebookId || !!lesson;
   const more = remainingCount(notes.data?.pages);
 
   const onSearch = (value: string) => {
@@ -290,6 +310,7 @@ function NotesList() {
 
   const notebooks = notebooksQuery.data?.items ?? [];
   const storage = notebooksQuery.data?.storage;
+  const ownFirst = firstOwnNotebook(notebooks);
 
   return (
     <Page width="default">
@@ -306,7 +327,8 @@ function NotesList() {
               <Button
                 variant="primary"
                 leadingIcon={Plus}
-                to={selectedNotebookId ? `/notes/new?notebook=${encodeURIComponent(selectedNotebookId)}` : '/notes/new'}
+                onClick={() => startNote.start(lesson ?? { notebookId: selectedNotebookId })}
+                loading={startNote.starting}
                 data-hub="note-new"
               >
                 New note
@@ -347,7 +369,7 @@ function NotesList() {
             {notebooks.map((b) => {
               const mod = b.moduleId ? getModule(b.moduleId) : null;
               const isSelected = selectedNotebookId === b.id;
-              const isCustom = !b.moduleId && b.title !== 'My notebook';
+              const isCustom = !b.moduleId && b.id !== ownFirst?.id;
               return (
                 <li key={b.id} style={{ display: 'flex', alignItems: 'center' }}>
                   <button
@@ -397,6 +419,17 @@ function NotesList() {
 
         {/* ── Main Notes List ── */}
         <section aria-label="Notes in notebook">
+          {lesson ? (
+            <p className="notes-lesson-filter" data-hub="notes-lesson-filter">
+              <span>
+                Your notes on {lessonModule ? `${moduleLabel(lessonModule)}, ` : ''}
+                {lessonLabel(lessonPlace).toLowerCase()}
+              </span>
+              <Button size="sm" variant="ghost" onClick={showAll}>
+                Show all notes
+              </Button>
+            </p>
+          ) : null}
           <div className="notes-filters">
             <SearchField
               className="notes-filters__search"
@@ -440,7 +473,12 @@ function NotesList() {
                   body="Type with rich text, write with stylus ink, or annotate past papers."
                   action={
                     readOnly ? null : (
-                      <Button variant="primary" leadingIcon={Plus} to="/notes/new">
+                      <Button
+                        variant="primary"
+                        leadingIcon={Plus}
+                        onClick={() => startNote.start()}
+                        loading={startNote.starting}
+                      >
                         Write your first note
                       </Button>
                     )
@@ -463,7 +501,7 @@ function NotesList() {
               {more > 0 ? (
                 <div className="notes-more">
                   <Button onClick={() => void notes.fetchNextPage()} loading={notes.isFetchingNextPage}>
-                    Show {Math.min(more, 20)} more
+                    Show {Math.min(more, NOTES_PAGE)} more
                   </Button>
                 </div>
               ) : null}
@@ -472,15 +510,18 @@ function NotesList() {
         </section>
       </div>
 
-      <NotebookDialog open={newBookOpen} onClose={() => setNewBookOpen(false)} />
-      <RenameDialog notebook={renamingBook} onClose={() => setRenamingBook(null)} />
+      {newBookOpen ? <NotebookDialog onClose={() => setNewBookOpen(false)} /> : null}
+      {renamingBook ? (
+        <RenameDialog key={renamingBook.id} notebook={renamingBook} onClose={() => setRenamingBook(null)} />
+      ) : null}
       <ConfirmDialog
         open={!!deletingBook}
-        title={`Delete “${deletingBook?.title}”?`}
-        body="This will delete the notebook and all notes in it. It cannot be undone."
+        title={`Delete “${deletingBook?.title ?? ''}”?`}
+        body="The notebook and every note in it are deleted. This can’t be undone."
         confirmLabel="Delete"
         tone="danger"
         busy={deleteBook.isPending}
+        error={deleteBook.error ? errorMessage(deleteBook.error) : null}
         onConfirm={() => {
           if (!deletingBook) return;
           deleteBook.mutate(deletingBook.id, {
@@ -490,7 +531,10 @@ function NotesList() {
             },
           });
         }}
-        onClose={() => setDeletingBook(null)}
+        onClose={() => {
+          deleteBook.reset();
+          setDeletingBook(null);
+        }}
       />
     </Page>
   );

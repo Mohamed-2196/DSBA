@@ -14,6 +14,7 @@ import { isApiError } from '../../api/errors';
 import type { Note } from '../../api/types';
 import { fetchNote, noteKeys, noteSaved, saveNote, useNote } from './api';
 import { setOpenNote } from './current';
+import { canRetry } from './saveState';
 import { docOf, dropDraft, openNote, readDraft, sameDoc, writeDraft, type NoteDoc } from './draft';
 
 export const SAVE_AFTER = 700;
@@ -36,6 +37,8 @@ export interface NoteEditor {
   note: Note | undefined;
   state: SaveState;
   error: string | null;
+  /** whether sending again can help after the error (not for a note refused as it is, or gone) */
+  retryable: boolean;
   /** when the server last confirmed what is on screen */
   savedAt: number | null;
   /** the note as it was saved elsewhere, while state is 'conflict' */
@@ -44,6 +47,8 @@ export interface NoteEditor {
   loadError: unknown;
   /** the note doesn't exist (deleted elsewhere, or never was) */
   missing: boolean;
+  /** read the note again after it didn't load */
+  reload: () => void;
   /** a change: the parts given, or the parts worked out from the note as it is at that moment */
   change: (patch: Partial<NoteDoc> | ((current: NoteDoc) => Partial<NoteDoc>)) => void;
   /** the note as it is now, with every change made since the last render */
@@ -90,6 +95,7 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
     setStateRaw(s);
   };
   const [error, setError] = useState<string | null>(null);
+  const [retryable, setRetryable] = useState(true);
   const [theirs, setTheirs] = useState<Note | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
@@ -114,7 +120,7 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
       setState('saving');
       try {
         const note = await saveNote(noteId, { ...sent, version: baseRef.current ?? 1 });
-        noteSaved(qc, note);
+        noteSaved(qc, note, { quietly: true });
         baseRef.current = note.version;
         savedRef.current = sent; // what was sent: the server tidies the title, and sending it again changes nothing
         setError(null);
@@ -135,7 +141,7 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
               // the server has what was sent (a save whose answer was lost): it is this tab's own
               baseRef.current = theirs.version;
               savedRef.current = sent;
-              noteSaved(qc, theirs);
+              noteSaved(qc, theirs, { quietly: true });
               setState('unsaved');
               timer.current = setTimeout(() => void flush(), SAVE_AFTER);
             } else {
@@ -152,6 +158,7 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
           timer.current = setTimeout(() => void flush(), (e.retryAfter ?? 5) * 1000);
         } else {
           setError(isApiError(e) ? e.message : 'Your note couldn’t be saved.');
+          setRetryable(canRetry(e));
           setState('error');
         }
       } finally {
@@ -307,7 +314,7 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
       const next = { ...current, ...patch(current) };
       baseRef.current = note.version;
       savedRef.current = docOf(note);
-      noteSaved(qc, note);
+      noteSaved(qc, note, { quietly: true });
       show(next);
       setSavedAt(Date.now());
       if (sameDoc(next, savedRef.current)) {
@@ -336,10 +343,12 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
     note: query.data,
     state,
     error,
+    retryable,
     savedAt,
     theirs,
     loadError: doc || missing ? null : query.error,
     missing,
+    reload: () => void query.refetch(),
     change,
     latest,
     run,

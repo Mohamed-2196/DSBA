@@ -6,12 +6,14 @@
 // opens. Until all of them are in (`ready`), nothing can be drawn: a stroke on a sheet not read yet would replace it.
 // A sheet is sent once the server has its page (a page the text just added waits for the note's save), and a page
 // added, deleted or moved on the server (`run`, then `renumber`) takes its ink, its version and its copy along.
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
 import type { InkInfo, InkSheet, Note, Stroke } from '../../api/types';
-import { fetchInk, fetchNote, saveInk } from './api';
+import { fetchInk, fetchNote, notesTouched, saveInk } from './api';
 import { openInk, readInkDraft, sameJson, writeInkDraft, type InkDraft } from './draft';
 import { PAPER_BASE } from './surface/layout';
+import { canRetry } from './saveState';
 import { RETRY_EVERY, type SaveState } from './useNoteEditor';
 
 const SAVE_AFTER = 900;
@@ -32,6 +34,8 @@ export interface InkSync {
   revision: number;
   state: SaveState;
   error: string | null;
+  /** whether sending again can help after the error */
+  retryable: boolean;
   savedAt: number | null;
   /** sheets written on elsewhere since they were drawn on here */
   conflicts: readonly number[];
@@ -55,6 +59,7 @@ async function readSheets(noteId: string, sheets: readonly InkInfo[]): Promise<I
 }
 
 export function useInkSync(noteId: string, note: Note | undefined, { readOnly }: { readOnly: boolean }): InkSync {
+  const qc = useQueryClient();
   const strokes = useRef(new Map<number, readonly Stroke[]>());
   const versions = useRef(new Map<number, number>());
   const dirty = useRef(new Set<number>());
@@ -81,6 +86,7 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
     setStateRaw(s);
   };
   const [error, setError] = useState<string | null>(null);
+  const [retryable, setRetryable] = useState(true);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [conflicts, setConflicts] = useState<number[]>([]);
   const bump = () => setRevision((r) => r + 1);
@@ -136,6 +142,7 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
         if (strokes.current.get(n) === sent) dirty.current.delete(n);
       }
       keepCopy();
+      notesTouched(qc); // the room the handwriting takes changed
       setError(null);
       setSavedAt(Date.now());
       if (conflict.current.size) setState('conflict');
@@ -150,6 +157,7 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
         timer.current = setTimeout(() => void flush(), (e.retryAfter ?? 5) * 1000);
       } else {
         setError(isApiError(e) ? e.message : 'Your writing couldn’t be saved.');
+        setRetryable(canRetry(e));
         setState('error');
       }
     } finally {
@@ -158,7 +166,7 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
       idleWaiters.current = [];
       for (const go of waiting) go();
     }
-  }, [noteId, readOnly, keepCopy]);
+  }, [noteId, readOnly, keepCopy, qc]);
 
   const run = useCallback(
     async <T>(task: () => Promise<T>): Promise<T> => {
@@ -306,6 +314,7 @@ export function useInkSync(noteId: string, note: Note | undefined, { readOnly }:
     revision,
     state,
     error,
+    retryable,
     savedAt,
     conflicts,
     setSheet,
