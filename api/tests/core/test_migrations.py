@@ -143,7 +143,8 @@ def test_documents_saved_before_their_new_parts_get_them_as_they_start(scratch: 
     site, career = (json.loads((seed / f"{name}.json").read_text(encoding="utf-8")) for name in ("site", "career"))
     cfg, engine = scratch
     script = ScriptDirectory.from_config(cfg).get_revision("0033")
-    assert script is not None and isinstance(script.down_revision, str)
+    assert script is not None
+    assert isinstance(script.down_revision, str)
     before = script.down_revision  # the revision before the one that adds the parts
     command.upgrade(cfg, before)
     saved_site = {
