@@ -29,7 +29,8 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
   const later = (fn: () => void, ms: number) => timers.current.push(window.setTimeout(fn, ms));
 
   const board = keepOrder(order, words);
-  const pickedNow = picked.filter((w) => words.includes(w));
+  // Picks stay after a miss so one word can be swapped; once the game is over nothing is picked.
+  const pickedNow = over ? [] : picked.filter((w) => words.includes(w));
 
   const toggle = (word: string) => {
     if (over || busy || sending) return;

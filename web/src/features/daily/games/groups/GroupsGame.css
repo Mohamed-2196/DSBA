@@ -150,6 +150,7 @@
 }
 .dgr-group--1 {
   background: var(--dy-l1);
+  --dy-on-level: var(--highlight-ink); /* dark on the yellow in both themes: light text on it fails in dark mode */
 }
 .dgr-group--2 {
   background: var(--dy-l2);
