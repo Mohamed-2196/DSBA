@@ -1,4 +1,5 @@
-// Sign in with a one-time code: email or phone number → the code → (first time) name and cohort.
+// Sign in with a one-time code: email or phone number → the code → (first time) name, cohort and whether we email
+// them about their notifications.
 // AuthProvider shows it while someone needs to sign in, and calls the waiting actions once onDone() runs.
 // Closing it half-way keeps a pending code, so reopening it goes back to the code.
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ import { Button, HubLogo, Modal, TextField } from '../ui';
 import { CohortPicker, type CohortChoice } from './CohortPicker';
 import { checkIdentifier, displayIdentifier, formatPhone, identifierHint } from './identifiers';
 import { CodeEntry } from './CodeEntry';
+import { EmailChoice } from './EmailChoice';
 import { isAddressProblem, otpErrorMessage } from './otpErrors';
 import { ME_KEY, refreshPersonalQueries } from './queries';
 import { useAuth } from './useAuth';
@@ -64,6 +66,9 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
   const [nameError, setNameError] = useState<string | null>(null);
   const [cohort, setCohort] = useState<CohortChoice>(null);
   const [cohortError, setCohortError] = useState<string | null>(null);
+  // whether we email them about replies and date changes: asked with no answer chosen in advance
+  const [emails, setEmails] = useState<boolean | null>(null);
+  const [emailsError, setEmailsError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -84,6 +89,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
     } else if (me?.needsProfile) {
       setName(me.displayName ?? '');
       setCohort(me.year ?? browsedYear ?? null);
+      setEmails(me.preferences.notificationEmails);
       setStep('profile');
     } else if (!me) {
       setStep(pendingAlive(pending) ? 'code' : 'identifier');
@@ -160,6 +166,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
     if (result.user.needsProfile) {
       setName(result.user.displayName ?? '');
       setCohort(result.user.year ?? browsedYear ?? null);
+      setEmails(result.user.preferences.notificationEmails);
       setStep('profile');
     } else {
       finish(result.user);
@@ -178,15 +185,17 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
     const cErr = cohort === null ? 'Choose your year, or “Not a current student”.' : null;
     setNameError(nErr);
     setCohortError(cErr);
+    setEmailsError(emails === null ? 'Choose yes or no.' : null);
     setSaveError(null);
-    if (nErr || cErr) {
+    if (nErr || cErr || emails === null) {
       if (nErr) nameRef.current?.focus();
       return;
     }
     setSaving(true);
     try {
       const year: CohortYear | null = cohort === 'none' ? null : cohort;
-      const user = await call(api.PATCH('/api/v1/me', { body: { displayName, year } }));
+      const preferences = { notificationEmails: emails };
+      const user = await call(api.PATCH('/api/v1/me', { body: { displayName, year, preferences } }));
       qc.setQueryData(ME_KEY, user);
       finish(user);
     } catch (err) {
@@ -275,10 +284,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
             <Button type="submit" variant="primary" size="lg" fullWidth loading={starting}>
               Send code
             </Button>
-            <p className="signin__fine">
-              We use it to sign you in. Emails about replies and new newsletter issues are on until you turn them off in
-              Your account.
-            </p>
+            <p className="signin__fine">We use it to sign you in.</p>
           </form>
         ) : null}
 
@@ -319,6 +325,15 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
               }}
               error={cohortError}
               hint="Your modules and exams come first. You can still browse every year."
+            />
+            <EmailChoice
+              value={emails}
+              onChange={(v) => {
+                setEmails(v);
+                setEmailsError(null);
+              }}
+              error={emailsError}
+              hasEmail={!!me?.email}
             />
             {saveError ? (
               <p className="signin__alert" role="alert">

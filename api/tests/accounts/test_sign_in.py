@@ -61,12 +61,13 @@ def test_sign_in_by_email_creates_an_account(client_for: ClientFor, outbox: Outb
     assert me["displayName"] is None
     assert [r["slug"] for r in me["roles"]] == ["student"]
     assert me["status"] == "active"
-    assert me["preferences"] == {
-        "emailReplies": True,
-        "emailAnswerAccepted": True,
-        "emailUploadReviews": True,
-        "emailNewIssues": True,
-        "emailDateChanges": True,
+    assert me["preferences"] == {  # no emails until the question about them is answered in the profile step
+        "notificationEmails": None,
+        "emailReplies": False,
+        "emailAnswerAccepted": False,
+        "emailUploadReviews": False,
+        "emailNewIssues": False,
+        "emailDateChanges": False,
         "emailWeeklySummary": False,
         "trackProgress": False,
         "homeBlocks": None,

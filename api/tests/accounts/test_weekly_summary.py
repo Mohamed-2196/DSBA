@@ -105,7 +105,7 @@ def week(db: Session, make_user: MakeUser) -> Module:
 
 def _opted_in(make_user: MakeUser, db: Session, email: str, year: int | None) -> User:
     u = make_user(email=email, name=email.split("@")[0], year=year)
-    u.preferences = {"email_weekly_summary": True}
+    u.preferences = {**u.preferences, "email_weekly_summary": True}
     db.commit()
     return u
 
@@ -136,6 +136,9 @@ def test_the_summary_goes_once_a_week_to_those_who_opted_in(
     _opted_in(make_user, db, "layla@example.com", 1)
     _opted_in(make_user, db, "alumna@example.com", None)  # no year: no summary
     make_user(email="omar@example.com", name="Omar", year=2)  # didn't opt in
+    waiting = make_user(email="waiting@example.com", name="Waiting", year=2, emails=None)
+    waiting.preferences = {"email_weekly_summary": True}  # on, but no answer about emails yet: nothing is sent
+    db.commit()
 
     assert summary.send_week(db, NEXT_SUNDAY) == 2
     db.commit()
@@ -210,7 +213,7 @@ def test_turning_it_off_before_it_goes_cancels_it(
 ) -> None:
     sara = _opted_in(make_user, db, "sara@example.com", 2)
     summary.send_week(db, NEXT_SUNDAY)
-    sara.preferences = {"email_weekly_summary": False}
+    sara.preferences = {**sara.preferences, "email_weekly_summary": False}
     db.commit()
     deliver()
     assert outbox.to("sara@example.com") == []

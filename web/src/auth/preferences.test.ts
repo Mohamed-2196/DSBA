@@ -6,6 +6,7 @@ import { applyPreferences, preferencesSaved } from './preferences';
 import { ME_KEY } from './queries';
 
 const prefs: Me['preferences'] = {
+  notificationEmails: true,
   emailReplies: true,
   emailAnswerAccepted: true,
   emailUploadReviews: true,
@@ -22,6 +23,13 @@ describe('applyPreferences', () => {
       ...prefs,
       trackProgress: true,
     });
+  });
+  it('keeps the answer about emails until another comes', () => {
+    expect(applyPreferences({ ...prefs, notificationEmails: null }, { notificationEmails: false })).toEqual({
+      ...prefs,
+      notificationEmails: false,
+    });
+    expect(applyPreferences(prefs, { notificationEmails: null }).notificationEmails).toBe(true);
   });
   it('sets Home’s blocks, and null goes back to the default', () => {
     expect(applyPreferences(prefs, { homeBlocks: ['modules', 'todo'] }).homeBlocks).toEqual(['modules', 'todo']);

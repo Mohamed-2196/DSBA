@@ -8154,7 +8154,9 @@ export interface components {
         };
         /**
          * MeUpdate
-         * @description Fields that are not sent stay as they are; `year: null` clears the cohort.
+         * @description Fields that are not sent stay as they are; `year: null` clears the cohort. The first display name (the
+         *     profile step after signing up) comes with the answer about emails, `preferences.notificationEmails`, unless the
+         *     account has one.
          */
         MeUpdate: {
             /** Displayname */
@@ -9312,7 +9314,7 @@ export interface components {
              * @default none
              * @enum {string}
              */
-            repeat: "none" | "daily" | "weekly";
+            repeat: "none" | "daily" | "weekly" | "fortnightly" | "monthly";
             /** Repeatuntil */
             repeatUntil?: string | null;
             /** Remind */
@@ -9322,8 +9324,10 @@ export interface components {
          * PersonalEventOut
          * @description An event a student added for themselves: private to them. Without `startTime` it is all day (through
          *     `endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in
-         *     Bahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year), except on the
-         *     `skipped` days.
+         *     Bahrain. A repeat runs every day, week, two weeks or month from `date` until `repeatUntil` (none: for a year),
+         *     except on the `skipped` days. A monthly repeat falls on the same day of each month, and on a month's last day
+         *     when the month has no such day (the 31st: 30 April, 28 or 29 February). That day is `date`'s, or `monthDay`
+         *     when `date` is itself such a last day (a repeat changed from 28 February on keeps the 31st).
          */
         PersonalEventOut: {
             /**
@@ -9357,9 +9361,11 @@ export interface components {
              * Repeat
              * @enum {string}
              */
-            repeat: "none" | "daily" | "weekly";
+            repeat: "none" | "daily" | "weekly" | "fortnightly" | "monthly";
             /** Repeatuntil */
             repeatUntil: string | null;
+            /** Monthday */
+            monthDay: number | null;
             /** Skipped */
             skipped: string[];
             /** Remind */
@@ -9397,7 +9403,7 @@ export interface components {
             /** Colour */
             colour?: ("violet" | "teal" | "green" | "orange" | "rose" | "slate") | null;
             /** Repeat */
-            repeat?: ("none" | "daily" | "weekly") | null;
+            repeat?: ("none" | "daily" | "weekly" | "fortnightly" | "monthly") | null;
             /** Repeatuntil */
             repeatUntil?: string | null;
             /** Remind */
@@ -9518,39 +9524,24 @@ export interface components {
         /**
          * Preferences
          * @description Which notifications also come by email (to the account's email address; account security notices always do),
-         *     whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Unset means the default
-         *     here.
+         *     whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Nothing is emailed until the
+         *     person answers the question about emails when they sign up (`notificationEmails`); then each notification email
+         *     they never switched follows that answer, and the Sunday summary is off until they turn it on.
          */
         Preferences: {
-            /**
-             * Emailreplies
-             * @default true
-             */
+            /** Notificationemails */
+            notificationEmails: boolean | null;
+            /** Emailreplies */
             emailReplies: boolean;
-            /**
-             * Emailansweraccepted
-             * @default true
-             */
+            /** Emailansweraccepted */
             emailAnswerAccepted: boolean;
-            /**
-             * Emailuploadreviews
-             * @default true
-             */
+            /** Emailuploadreviews */
             emailUploadReviews: boolean;
-            /**
-             * Emailnewissues
-             * @default true
-             */
+            /** Emailnewissues */
             emailNewIssues: boolean;
-            /**
-             * Emaildatechanges
-             * @default true
-             */
+            /** Emaildatechanges */
             emailDateChanges: boolean;
-            /**
-             * Emailweeklysummary
-             * @default false
-             */
+            /** Emailweeklysummary */
             emailWeeklySummary: boolean;
             /**
              * Trackprogress
@@ -9563,9 +9554,13 @@ export interface components {
         /**
          * PreferencesUpdate
          * @description Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default
-         *     layout.
+         *     layout. The answer about emails is asked when the profile is first saved (MeUpdate); a later one changes every
+         *     notification email not switched on its own. Turning an email on before there is an answer answers "no" for the
+         *     others.
          */
         PreferencesUpdate: {
+            /** Notificationemails */
+            notificationEmails?: boolean | null;
             /** Emailreplies */
             emailReplies?: boolean | null;
             /** Emailansweraccepted */

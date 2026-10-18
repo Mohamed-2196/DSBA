@@ -170,7 +170,7 @@ def test_the_email_follows_its_switch_and_the_calendar_its_switch(
     client_for: ClientFor, make_user: MakeUser, rep: User, db: Session, set_feature: Callable[..., None]
 ) -> None:
     sara = make_user(name="Sara", year=2)
-    sara.preferences = {"email_date_changes": False}
+    sara.preferences = {**sara.preferences, "email_date_changes": False}
     db.commit()
     e = _event(db)
     client_for(rep).patch(f"{API}/calendar/events/{e.id}", json={"date": "2026-11-11", "notify": True})
