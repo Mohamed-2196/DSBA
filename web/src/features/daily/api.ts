@@ -1,33 +1,70 @@
-// The Daily's queries and moves. Signed in, the server keeps each play; a guest's moves live on this device
-// (lib/storage.ts) and go with every request, so the server can replay and check them without keeping anything.
-// Every move says which version of the day's puzzle it was made on: when an editor fixed today's puzzle since, the
-// server answers 409 puzzle_fixed and the play loads again, started over on the fixed puzzle.
+// The Daily's queries and moves. Signed in, the server keeps each play; a guest's plays live on this device
+// (lib/storage.ts) and their moves go with every request, so the server can replay and check them without keeping
+// anything, and the hub lays them over today's set (lib/guest.ts). Every move says which version of the day's puzzle
+// it was made on: when an editor fixed today's puzzle since, the server answers 409 puzzle_fixed and the play loads
+// again, started over on the fixed puzzle.
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { api, call } from '../../api/client';
 import { isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { todayKey } from '../../lib/dates';
-import { NO_GUEST_PLAY, clearGuestPlay, guestPlay, saveGuestPlay, type GuestPlay } from './lib/storage';
-import type { BoardPeriod, GameId, Move, PlayOut } from './types';
+import { useLocalStorage } from '../../state';
+import { withGuestPlays } from './lib/guest';
+import {
+  NO_GUEST_PLAY,
+  clearGuestPlay,
+  guestDayKey,
+  guestPlay,
+  parseGuestPlays,
+  saveGuestPlay,
+  type GuestPlay,
+} from './lib/storage';
+import type { BoardPeriod, DailyToday, GameId, Move, PlayOut } from './types';
 
 export const DAILY_KEY = ['daily'] as const;
 
 export const dailyKeys = {
   today: () => [...DAILY_KEY, 'today'] as const,
-  calendar: (month: string) => [...DAILY_KEY, 'calendar', month] as const,
-  leaderboard: (period: BoardPeriod, year: number | null) => [...DAILY_KEY, 'leaderboard', period, year] as const,
+  calendars: () => [...DAILY_KEY, 'calendar'] as const,
+  calendar: (month: string) => [...dailyKeys.calendars(), month] as const,
+  leaderboards: () => [...DAILY_KEY, 'leaderboard'] as const,
+  leaderboard: (period: BoardPeriod, year: number | null) => [...dailyKeys.leaderboards(), period, year] as const,
   me: () => [...DAILY_KEY, 'me'] as const,
   play: (day: string, game: GameId, variant: string, guest: boolean) =>
     [...DAILY_KEY, 'play', day, game, variant, guest] as const,
 };
 
-/** Today's set: the theme, each game and how far you got, your points and streak. */
+/** While the set's `nextAt` has passed (a clock a little fast, or a slow first answer), ask again until it changes. */
+const NEW_SET_RETRY = 5_000;
+
+/**
+ * Today's set: the theme, each game and how far you got, your points and streak. A guest's own plays are laid over
+ * it, and follow this device's storage as they change.
+ */
 export function useDailyToday() {
+  const { me } = useAuth();
+  const day = todayKey();
+  const [kept] = useLocalStorage<unknown>(guestDayKey(day), {});
+  const select = useCallback(
+    (today: DailyToday) => (me ? today : withGuestPlays(today, day, parseGuestPlays(kept))),
+    [me, day, kept],
+  );
   return useQuery({
     queryKey: dailyKeys.today(),
     queryFn: () => call(api.GET('/api/v1/daily')),
     staleTime: 30_000,
+    select,
+    refetchInterval: (query) => {
+      const nextAt = query.state.data?.nextAt;
+      return nextAt && Date.parse(nextAt) <= Date.now() ? NEW_SET_RETRY : false;
+    },
   });
+}
+
+/** What a new day changes: the set, the calendar, the week's leaderboard and your totals. */
+export function newDay(qc: QueryClient): void {
+  void qc.invalidateQueries({ queryKey: DAILY_KEY });
 }
 
 /** A month's days with puzzles out ('YYYY-MM'), and the games you finished on each. */
@@ -65,7 +102,7 @@ export function useShowOnBoard() {
     mutationFn: (showOnBoard: boolean) => call(api.PUT('/api/v1/daily/me', { body: { showOnBoard } })),
     onSuccess: (updated) => {
       qc.setQueryData(dailyKeys.me(), updated);
-      void qc.invalidateQueries({ queryKey: [...DAILY_KEY, 'leaderboard'] });
+      void qc.invalidateQueries({ queryKey: dailyKeys.leaderboards() });
     },
   });
 }
@@ -86,7 +123,8 @@ function replayGuest(day: string, game: GameId, variant: string, kept: GuestPlay
  */
 function settleGuest(day: string, game: GameId, variant: string, kept: GuestPlay, out: PlayOut): PlayOut {
   if (out.play.restarted) {
-    saveGuestPlay(day, game, variant, { revision: out.play.revision, moves: [], restarted: true }, todayKey());
+    const fresh: GuestPlay = { revision: out.play.revision, moves: [], restarted: true, status: 'new' };
+    saveGuestPlay(day, game, variant, fresh, todayKey());
     return out;
   }
   return kept.restarted && out.play.status === 'new' ? { ...out, play: { ...out.play, restarted: true } } : out;
@@ -129,8 +167,8 @@ export function useDailyPlay(day: string, game: GameId, variant: string) {
 /** What a finished play changes besides itself. */
 function afterFinish(qc: QueryClient) {
   void qc.invalidateQueries({ queryKey: dailyKeys.me() });
-  void qc.invalidateQueries({ queryKey: [...DAILY_KEY, 'leaderboard'] });
-  void qc.invalidateQueries({ queryKey: [...DAILY_KEY, 'calendar'] });
+  void qc.invalidateQueries({ queryKey: dailyKeys.leaderboards() });
+  void qc.invalidateQueries({ queryKey: dailyKeys.calendars() });
 }
 
 /** One move, checked by the server. Resolves with the play as it stands after it; rejects with the ApiError. */
@@ -151,21 +189,23 @@ export function useDailyMove(day: string, game: GameId, variant: string) {
         }),
       );
       if (guest) {
-        const moves = [...kept.moves, move];
-        saveGuestPlay(day, game, variant, { revision: out.play.revision, moves, restarted: false }, todayKey());
+        const played = { revision: out.play.revision, moves: [...kept.moves, move], restarted: false };
+        saveGuestPlay(day, game, variant, { ...played, status: out.play.status }, todayKey());
       }
       return out;
     },
     onSuccess: (out) => {
+      const before = qc.getQueryData<PlayOut>(key)?.play.status;
       qc.setQueryData(key, out);
-      void qc.invalidateQueries({ queryKey: dailyKeys.today() });
+      // A guest's hub follows this device's storage; a signed-in hub changes only when a game's status does.
+      if (!guest && out.play.status !== before) void qc.invalidateQueries({ queryKey: dailyKeys.today() });
       if (out.play.status === 'won' || out.play.status === 'lost') afterFinish(qc);
     },
     onError: (e) => {
       // Finished elsewhere (another tab), or today's puzzle was fixed since it loaded: show the play as it is now.
       if (isApiError(e) && (e.code === 'game_over' || e.code === 'puzzle_fixed')) {
         void qc.invalidateQueries({ queryKey: key });
-        if (e.code === 'puzzle_fixed') void qc.invalidateQueries({ queryKey: dailyKeys.today() });
+        if (!guest) void qc.invalidateQueries({ queryKey: dailyKeys.today() });
       }
     },
   });

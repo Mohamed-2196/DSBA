@@ -42,9 +42,17 @@ export const dailyContentKeys = {
 };
 const PAGE = 50;
 
-/** The editor's lists and the hub's own queries (a theme's title shows there). */
-function changed(qc: QueryClient): void {
-  void qc.invalidateQueries({ queryKey: DAILY_CONTENT_KEY });
+/**
+ * The editor's lists and the hub's own queries (a theme's title shows there). `fresh`: the overview a write answered
+ * with, already in the cache, so it isn't asked for again.
+ */
+function changed(qc: QueryClient, fresh?: DailyContentOverview): void {
+  if (fresh) qc.setQueryData(dailyContentKeys.overview(), fresh);
+  const overview = dailyContentKeys.overview();
+  void qc.invalidateQueries({
+    queryKey: DAILY_CONTENT_KEY,
+    predicate: (q) => !fresh || q.queryKey[1] !== overview[1],
+  });
   void qc.invalidateQueries({ queryKey: DAILY_KEY });
 }
 
@@ -76,10 +84,7 @@ function useOverviewWrite<T>(write: (body: T) => Promise<DailyContentOverview>) 
   const qc = useQueryClient();
   return useMutation({
     mutationFn: write,
-    onSuccess: (overview) => {
-      qc.setQueryData(dailyContentKeys.overview(), overview);
-      changed(qc);
-    },
+    onSuccess: (overview) => changed(qc, overview),
   });
 }
 
