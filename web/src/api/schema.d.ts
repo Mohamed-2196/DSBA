@@ -3698,6 +3698,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/grades/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Grade Rules
+         * @description The subjects and what each counts, the mark bands, what each class needs, and the modules a student chooses
+         *     between.
+         */
+        get: operations["grade_rules_api_v1_grades_rules_get"];
+        /**
+         * Save Grade Rules
+         * @description Save the rules, if nobody saved them since `version`. Audited with what changed, before and after.
+         *
+         *     Errors: grades_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
+         *     fit, bands out of order, more marks needed than the subjects give, a choice without options, a module that
+         *     doesn't exist, an id used twice).
+         */
+        put: operations["save_grade_rules_api_v1_grades_rules_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/grades/rules/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Grade Rules For Editing
+         * @description The rules with the version a save names (0 until the first save).
+         */
+        get: operations["grade_rules_for_editing_api_v1_grades_rules_edit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5243,6 +5292,18 @@ export interface components {
             /** Label */
             label: string;
         };
+        /**
+         * ClassAverages
+         * @description With `fewer` marks (not `needed`) in a class's band, the average classification mark a class asks for.
+         */
+        ClassAverages: {
+            /** First */
+            first: number;
+            /** Upper */
+            upper: number;
+            /** Lower */
+            lower: number;
+        };
         /** CloseCert */
         CloseCert: {
             /**
@@ -5504,7 +5565,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
             /** Message */
             message: string;
             /** Fields */
@@ -6551,6 +6612,92 @@ export interface components {
              * @enum {string}
              */
             kind: "give-up";
+        };
+        /** GradeBand */
+        GradeBand: {
+            /** Floor */
+            floor: number;
+            /** Gpa */
+            gpa: string;
+        };
+        /** GradeBands */
+        GradeBands: {
+            first: components["schemas"]["GradeBand"];
+            upper: components["schemas"]["GradeBand"];
+            lower: components["schemas"]["GradeBand"];
+            third: components["schemas"]["GradeBand"];
+        };
+        /**
+         * GradeOption
+         * @description A module a student may pick for a choice.
+         */
+        GradeOption: {
+            /** Id */
+            id: string;
+            /** Moduleid */
+            moduleId?: string | null;
+            /** Label */
+            label?: string | null;
+        };
+        /** GradeRules */
+        GradeRules: {
+            /** Subjects */
+            subjects: components["schemas"]["GradeSubject"][];
+            /** Averagecounts */
+            averageCounts: number;
+            bands: components["schemas"]["GradeBands"];
+            /** Needed */
+            needed: number;
+            /** Fewer */
+            fewer: number;
+            averages: components["schemas"]["ClassAverages"];
+            /** Thirdrule */
+            thirdRule: string;
+            /** Regulations */
+            regulations: string;
+            /** Year2Options */
+            year2Options: components["schemas"]["GradeOption"][];
+            /** Electives */
+            electives: components["schemas"]["GradeOption"][];
+        };
+        /** GradeRulesEditable */
+        GradeRulesEditable: {
+            data: components["schemas"]["GradeRules"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /**
+         * GradeRulesSave
+         * @description PUT /grades/rules: the rules, and the version they were edited from.
+         */
+        GradeRulesSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["GradeRules"];
+        };
+        /** GradeSubject */
+        GradeSubject: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            /** Moduleid */
+            moduleId?: string | null;
+            /** Choice */
+            choice?: ("year2Option" | "elective1" | "elective2") | null;
+            /**
+             * Counts
+             * @enum {unknown}
+             */
+            counts: "average" | 1 | 2 | 3;
         };
         /**
          * GroupMove
@@ -10360,6 +10507,7 @@ export type ChecklistCert = components['schemas']['ChecklistCert'];
 export type ChecklistForum = components['schemas']['ChecklistForum'];
 export type ChecklistItem = components['schemas']['ChecklistItem'];
 export type ChecklistLesson = components['schemas']['ChecklistLesson'];
+export type ClassAverages = components['schemas']['ClassAverages'];
 export type CloseCert = components['schemas']['CloseCert'];
 export type CloseFile = components['schemas']['CloseFile'];
 export type CloseForum = components['schemas']['CloseForum'];
@@ -10436,6 +10584,13 @@ export type GameInfo = components['schemas']['GameInfo'];
 export type GapModule = components['schemas']['GapModule'];
 export type Gaps = components['schemas']['Gaps'];
 export type GiveUpMove = components['schemas']['GiveUpMove'];
+export type GradeBand = components['schemas']['GradeBand'];
+export type GradeBands = components['schemas']['GradeBands'];
+export type GradeOption = components['schemas']['GradeOption'];
+export type GradeRules = components['schemas']['GradeRules'];
+export type GradeRulesEditable = components['schemas']['GradeRulesEditable'];
+export type GradeRulesSave = components['schemas']['GradeRulesSave'];
+export type GradeSubject = components['schemas']['GradeSubject'];
 export type GroupMove = components['schemas']['GroupMove'];
 export type GroupsView = components['schemas']['GroupsView'];
 export type GuessMove = components['schemas']['GuessMove'];
@@ -29129,6 +29284,259 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GuidesEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    grade_rules_api_v1_grades_rules_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeRules"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_grade_rules_api_v1_grades_rules_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GradeRulesSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeRulesEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    grade_rules_for_editing_api_v1_grades_rules_edit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeRulesEditable"];
                 };
             };
             /** @description Bad Request */

@@ -22,6 +22,7 @@ D11). Admin holds every box. Last checked 2026-10-17 (round 12).
 | The guides: Start here (steps, links, when Year 1's card shows, the sites told apart), Results day (steps, links, which calendar dates start the card and for how long), Choosing your electives (title, intro, how many to pick, the note) | Manage → Guides | `guides.edit` (Rep and Content manager hold it from the start) | `api/app/seed/data/guides.json`, until the first save |
 | Site settings: the links to MyClass, the UoL portal, the programme regulations and exam entry and results (label, address, a line on what each is for); About's words; contributors; students who shared notes (each module linking to its notes in the library); the footer's lines, copyright holder and launch year; the note under the grades calculator's class; Home's blocks for a student who hasn't arranged their own (a guest's leave out what needs an account); the tour's steps (title, words with keys in backticks and `{mod}`, illustration); search's other words for modules ("stats" finds modules named "statistic…") and its suggested searches | Manage → Site settings | admins | `api/app/seed/data/site.json`, until the first save |
 | Mini Noora's instructions and the programme facts her AI reads first (with a preview of the whole prompt); her script: what she says without her AI (greeting, who she is, thanks, refusal, "nothing found", photos and files), the questions she offers after hello and when nothing matches, the questions on each page (with `{module}` and `{module2}`, and whether each needs the calendar or the library), the line on her full page and its starter cards | Manage → Mini Noora | admins | `api/app/seed/data/noora.json`, until the first save |
+| The grades calculator's rules: its subjects in order (a module, or a choice the student makes), what each counts (1, 2 or 3 classification marks, or the average of those averaged) and what that average counts; where each band starts and its US GPA; what each class needs (the marks in its band or better, the smaller number with an average, and each class's average); Third Class Honours in the regulations' words; which regulations hold the rules; the modules a student picks for the Year 2 option and the electives | Manage → Grades calculator (a worked example recalculates as the draft changes, beside what the saved rules give) | admins | `api/app/seed/data/grades.json`, until the first save |
 | Mini Noora's daily limit per student and monthly budget | Manage → Numbers | admins | defaults in the code |
 | Roles and what each may do; feature switches | Access | admins | the baseline migration |
 | Requests' answers | Manage → Requests | `requests.manage` | students |
@@ -30,6 +31,9 @@ D11). Admin holds every box. Last checked 2026-10-17 (round 12).
 Every save of the documents edited whole (Career Navigator, the guides, Site settings, the forum's settings) and of a
 module is checked against the version the editor loaded (a save someone else made first is refused with a "Load it
 again" banner), and goes to the activity log with what changed, before and after.
+
+The grades calculator keeps a student's marks in their browser by subject id, so a change to the subjects never moves
+anyone's marks; the marks never reach the server.
 
 Mini Noora's prompt is never shown to students (GET /mini-noora/settings is for admins); her script is public (GET
 /mini-noora/script). Her instructions and facts can't hold `<hub_data>` or `<student_note>`, which mark what she reads
@@ -50,7 +54,7 @@ student's data; each is copy or a rule that ships with the app.
 
 | Content | Where it is | Why it's still code / what it would take |
 |---|---|---|
-| The grades calculator's rules: the 13 subjects and their weights, the class bands and the "8 marks with an average" rule | `web/src/features/grades/classify.ts`, `bands.ts`, `GradesPage.tsx` | They are the University's regulations as an algorithm, tested case by case; a change is a code change with tests. The regulations' link and the "isn't official" line are Site settings. |
+| How the grades calculator classifies (counting marks into bands, then the class rules in order) | `web/src/features/grades/classify.ts`, `whatif.ts` | The algorithm stays in code with its tests; every number and subject it uses is the rules above. The calculator's example records (marks by subject id) are `examples.ts`. |
 | What Home's blocks are, and the tour's three illustrations | `web/src/features/home/blocks.ts`, `web/src/features/onboarding/TourArt.tsx` | Each block is a part of the app; Site settings choose which a new student sees and in what order, and which illustration each step shows. |
 | Mini Noora's own words for modules in her script ("maths", "stats", "metrics") | `web/src/features/noora/brain.ts` | Search's other words are in Site settings; her script's three are tuned with its tests. |
 | Mini Noora's rules that always follow her instructions, and the maths her script shows (the MGFs, integration by parts, the reduction formula) | `FIXED_RULES` in `api/app/services/noora/prompt.py`, `web/src/features/noora/brain.ts` and `formulas.ts` | The fixed rules keep her honest, her links inside the hub and the hub's data from being read as orders: no edit may remove them, and Manage shows them read-only. The maths is worked content, tested case by case. |

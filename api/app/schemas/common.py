@@ -117,6 +117,7 @@ ErrorCode = Literal[
     "noora_changed",  # 409: someone saved Mini Noora's words since they were loaded: load them again
     "summary_changed",  # 409: someone saved the Sunday summary's words since they were loaded: load them again
     "newsletter_settings_changed",  # 409: someone saved the newsletter's settings since they were loaded
+    "grades_changed",  # 409: someone saved the grades calculator's rules since they were loaded
     # suggested videos
     "already_a_lesson",  # 409: the module already has this video as a lesson
     "already_suggested",  # 409: this video already waits for review for the module

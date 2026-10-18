@@ -1,0 +1,40 @@
+{
+  "subjects": [
+    { "id": "economics", "name": "Introduction to Economics", "year": 1, "moduleId": "economics", "choice": null, "counts": "average" },
+    { "id": "mathematics", "name": "Mathematical Methods", "year": 1, "moduleId": "mathematics", "choice": null, "counts": "average" },
+    { "id": "business", "name": "Business and Management in a Global Context", "year": 1, "moduleId": "business", "choice": null, "counts": "average" },
+    { "id": "statistics", "name": "Introduction to Mathematical Statistics", "year": 1, "moduleId": "statistics", "choice": null, "counts": "average" },
+    { "id": "advanced-stats-inferential", "name": "Advanced Statistics: Statistical Inference", "year": 2, "moduleId": "advanced-stats-inferential", "choice": null, "counts": 1 },
+    { "id": "advanced-stats-distribution", "name": "Advanced Statistics: Distribution Theory", "year": 2, "moduleId": "advanced-stats-distribution", "choice": null, "counts": 1 },
+    { "id": "business-analytics", "name": "Business Analytics: Applied Modelling and Prediction", "year": 2, "moduleId": "business-analytics", "choice": null, "counts": 2 },
+    { "id": "programming-data-science", "name": "Programming for Data Science", "year": 2, "moduleId": "programming-data-science", "choice": null, "counts": 2 },
+    { "id": "year-2-option", "name": "Year 2 option", "year": 2, "moduleId": null, "choice": "year2Option", "counts": 2 },
+    { "id": "market-research", "name": "Statistical Methods for Market Research", "year": 3, "moduleId": "market-research", "choice": null, "counts": 2 },
+    { "id": "machine-learning", "name": "Machine Learning", "year": 3, "moduleId": "machine-learning", "choice": null, "counts": 2 },
+    { "id": "elective-1", "name": "Elective 1", "year": 3, "moduleId": null, "choice": "elective1", "counts": 2 },
+    { "id": "elective-2", "name": "Elective 2", "year": 3, "moduleId": null, "choice": "elective2", "counts": 2 }
+  ],
+  "averageCounts": 2,
+  "bands": {
+    "first": { "floor": 70, "gpa": "3.7–4.0" },
+    "upper": { "floor": 60, "gpa": "3.3–3.6" },
+    "lower": { "floor": 50, "gpa": "2.7–3.2" },
+    "third": { "floor": 40, "gpa": "2.0–2.6" }
+  },
+  "needed": 10,
+  "fewer": 8,
+  "averages": { "first": 65, "upper": 56, "lower": 47 },
+  "thirdRule": "Passed at least 330 credits and attempted 360 credits",
+  "regulations": "regulations 8.7 and 8.8",
+  "year2Options": [
+    { "id": "econometrics", "moduleId": "econometrics", "label": null },
+    { "id": "information-systems", "moduleId": "information-systems", "label": null },
+    { "id": "abstract-maths", "moduleId": null, "label": "Abstract Mathematics" }
+  ],
+  "electives": [
+    { "id": "microeconomics", "moduleId": "microeconomics", "label": null },
+    { "id": "asset-pricing", "moduleId": "asset-pricing", "label": null },
+    { "id": "marketing-management", "moduleId": "marketing-management", "label": null },
+    { "id": "further-maths-economists", "moduleId": "further-maths-economists", "label": null }
+  ]
+}

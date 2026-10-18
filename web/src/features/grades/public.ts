@@ -4,3 +4,6 @@
 //                                        "no marks yet"; with the University's rules linked and the line that it
 //                                        isn't official. Reads the marks from this browser and sends nothing.
 export { ProjectedClass } from './ProjectedClass';
+//   <GradeRulesEditor />                 Manage → Grades calculator (admins): the subjects, bands and classes, with a
+//                                        worked example before saving
+export { GradeRulesEditor } from './editor/GradeRulesEditor';

@@ -1,5 +1,5 @@
-// Names and bands used by the grades UI.
-import type { BandId, ClassKind } from './classify';
+// Names and bands used by the grades UI, with the bands' marks from the rules.
+import type { BandId, ClassKind, Rules } from './classify';
 
 /** Display names for headlines (the result itself uses classify.ts RESULT). */
 export const CLASS_NAME: Record<ClassKind, string> = {
@@ -15,16 +15,25 @@ export const CLASS_SHORT: Record<ClassKind, string> = { first: 'First', upper: '
 export interface Band {
   id: BandId;
   label: string;
+  /** '70 and above', '60 to 69' */
   range: string;
+  /** '70–100' */
+  span: string;
   short: string;
+  gpa: string;
 }
 
-export const BANDS: Band[] = [
-  { id: 'first', label: 'First class', range: '70 and above', short: 'First' },
-  { id: 'upper', label: 'Upper second', range: '60 to 69', short: '2:1' },
-  { id: 'lower', label: 'Lower second', range: '50 to 59', short: '2:2' },
-  { id: 'third', label: 'Third', range: '40 to 49', short: 'Third' },
-  { id: 'fail', label: 'Fail', range: 'under 40', short: 'Fail' },
-];
+/** The bands, best first, with their marks. */
+export function bandsOf(rules: Rules): Band[] {
+  const { first, upper, lower, third } = rules.bands;
+  const between = (from: number, below: number) => ({ range: `${from} to ${below - 1}`, span: `${from}–${below - 1}` });
+  return [
+    { id: 'first', label: 'First class', range: `${first.floor} and above`, span: `${first.floor}–100`, short: 'First', gpa: first.gpa },
+    { id: 'upper', label: 'Upper second', ...between(upper.floor, first.floor), short: '2:1', gpa: upper.gpa },
+    { id: 'lower', label: 'Lower second', ...between(lower.floor, upper.floor), short: '2:2', gpa: lower.gpa },
+    { id: 'third', label: 'Third', ...between(third.floor, lower.floor), short: 'Third', gpa: third.gpa },
+    { id: 'fail', label: 'Fail', range: `under ${third.floor}`, span: `0–${third.floor - 1}`, short: 'Fail', gpa: '–' },
+  ];
+}
 
-export const bandMeta = (id: BandId): Band => BANDS.find((b) => b.id === id) ?? (BANDS[4] as Band);
+export const bandMeta = (id: BandId, rules: Rules): Band => bandsOf(rules).find((b) => b.id === id) ?? (bandsOf(rules)[4] as Band);

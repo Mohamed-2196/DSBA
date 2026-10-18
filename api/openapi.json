@@ -23242,6 +23242,290 @@
           }
         }
       }
+    },
+    "/api/v1/grades/rules": {
+      "get": {
+        "tags": [
+          "grades"
+        ],
+        "summary": "Grade Rules",
+        "description": "The subjects and what each counts, the mark bands, what each class needs, and the modules a student chooses\nbetween.",
+        "operationId": "grade_rules_api_v1_grades_rules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeRules"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "grades"
+        ],
+        "summary": "Save Grade Rules",
+        "description": "Save the rules, if nobody saved them since `version`. Audited with what changed, before and after.\n\nErrors: grades_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't\nfit, bands out of order, more marks needed than the subjects give, a choice without options, a module that\ndoesn't exist, an id used twice).",
+        "operationId": "save_grade_rules_api_v1_grades_rules_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeRulesSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeRulesEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/grades/rules/edit": {
+      "get": {
+        "tags": [
+          "grades"
+        ],
+        "summary": "Grade Rules For Editing",
+        "description": "The rules with the version a save names (0 until the first save).",
+        "operationId": "grade_rules_for_editing_api_v1_grades_rules_edit_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeRulesEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -28119,6 +28403,36 @@
         ],
         "title": "ChecklistLesson"
       },
+      "ClassAverages": {
+        "properties": {
+          "first": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "First"
+          },
+          "upper": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Upper"
+          },
+          "lower": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Lower"
+          }
+        },
+        "type": "object",
+        "required": [
+          "first",
+          "upper",
+          "lower"
+        ],
+        "title": "ClassAverages",
+        "description": "With `fewer` marks (not `needed`) in a class's band, the average classification mark a class asks for."
+      },
       "CloseCert": {
         "properties": {
           "kind": {
@@ -28810,6 +29124,7 @@
               "noora_changed",
               "summary_changed",
               "newsletter_settings_changed",
+              "grades_changed",
               "already_a_lesson",
               "already_suggested",
               "suggestion_closed",
@@ -31721,6 +32036,308 @@
         ],
         "title": "GiveUpMove",
         "description": "Ends the play as lost and shows the answer."
+      },
+      "GradeBand": {
+        "properties": {
+          "floor": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Floor"
+          },
+          "gpa": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Gpa"
+          }
+        },
+        "type": "object",
+        "required": [
+          "floor",
+          "gpa"
+        ],
+        "title": "GradeBand"
+      },
+      "GradeBands": {
+        "properties": {
+          "first": {
+            "$ref": "#/components/schemas/GradeBand"
+          },
+          "upper": {
+            "$ref": "#/components/schemas/GradeBand"
+          },
+          "lower": {
+            "$ref": "#/components/schemas/GradeBand"
+          },
+          "third": {
+            "$ref": "#/components/schemas/GradeBand"
+          }
+        },
+        "type": "object",
+        "required": [
+          "first",
+          "upper",
+          "lower",
+          "third"
+        ],
+        "title": "GradeBands"
+      },
+      "GradeOption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "GradeOption",
+        "description": "A module a student may pick for a choice."
+      },
+      "GradeRules": {
+        "properties": {
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/GradeSubject"
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Subjects"
+          },
+          "averageCounts": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Averagecounts"
+          },
+          "bands": {
+            "$ref": "#/components/schemas/GradeBands"
+          },
+          "needed": {
+            "type": "integer",
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Needed"
+          },
+          "fewer": {
+            "type": "integer",
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Fewer"
+          },
+          "averages": {
+            "$ref": "#/components/schemas/ClassAverages"
+          },
+          "thirdRule": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Thirdrule"
+          },
+          "regulations": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Regulations"
+          },
+          "year2Options": {
+            "items": {
+              "$ref": "#/components/schemas/GradeOption"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Year2Options"
+          },
+          "electives": {
+            "items": {
+              "$ref": "#/components/schemas/GradeOption"
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Electives"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subjects",
+          "averageCounts",
+          "bands",
+          "needed",
+          "fewer",
+          "averages",
+          "thirdRule",
+          "regulations",
+          "year2Options",
+          "electives"
+        ],
+        "title": "GradeRules"
+      },
+      "GradeRulesEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GradeRules"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "title": "GradeRulesEditable"
+      },
+      "GradeRulesSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GradeRules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "GradeRulesSave",
+        "description": "PUT /grades/rules: the rules, and the version they were edited from."
+      },
+      "GradeSubject": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "choice": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "year2Option",
+                  "elective1",
+                  "elective2"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Choice"
+          },
+          "counts": {
+            "enum": [
+              "average",
+              1,
+              2,
+              3
+            ],
+            "title": "Counts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "year",
+          "counts"
+        ],
+        "title": "GradeSubject"
       },
       "GroupMove": {
         "properties": {

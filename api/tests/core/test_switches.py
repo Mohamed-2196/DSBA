@@ -169,6 +169,7 @@ AREAS: dict[str, Feature] = {
     "/noora": Feature.noora_ai,
     "/admin/noora": Feature.noora_ai,
     "/mini-noora": Feature.noora,
+    "/grades": Feature.grades,
     "/video-suggestions": Feature.video_suggestions,
     "/content/video-suggestions": Feature.video_suggestions,
 }

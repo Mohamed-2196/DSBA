@@ -19,13 +19,14 @@ export type SectionId =
   | 'people'
   | 'activity'
   | 'noora'
+  | 'grades'
   | 'site';
 
 type Can = (box: Box) => boolean;
 type On = (feature: Feature) => boolean;
 
-/** Bug reports, Mini Noora's words and Site settings are Admin powers, not boxes. */
-const ADMIN_ONLY: readonly SectionId[] = ['bugs', 'noora', 'site'];
+/** Bug reports, Mini Noora's words, the grades calculator's rules and Site settings are Admin powers, not boxes. */
+const ADMIN_ONLY: readonly SectionId[] = ['bugs', 'noora', 'grades', 'site'];
 
 const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['reports', (can, on) => (can('forum.moderate') && on('forum')) || (can('library.manage') && on('library')) || (can('requests.manage') && on('requests'))],
@@ -45,6 +46,7 @@ const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['people', (can) => can('people.suspend')],
   ['activity', (can) => can('audit.read')],
   ['noora', (_can, on) => on('noora')],
+  ['grades', (_can, on) => on('grades')],
   ['site', () => true],
 ];
 
@@ -63,7 +65,7 @@ export interface SectionGroup {
 const GROUPS: readonly SectionGroup[] = [
   { id: 'waiting', label: 'Waiting', sections: ['reports', 'uploads', 'requests', 'videos', 'bugs'] },
   { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content', 'guides', 'forum'] },
-  { id: 'look-after', label: 'Look after', sections: ['gaps', 'numbers', 'people', 'activity', 'noora', 'site'] },
+  { id: 'look-after', label: 'Look after', sections: ['gaps', 'numbers', 'people', 'activity', 'noora', 'grades', 'site'] },
 ];
 
 /** The person's sections in Manage's groups (Waiting, Publish, Look after), leaving out empty groups. */

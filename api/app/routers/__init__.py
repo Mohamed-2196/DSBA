@@ -14,6 +14,7 @@ from app.routers import (
     features,
     feeds,
     forum,
+    grades,
     health,
     library,
     me,
@@ -63,5 +64,6 @@ for module in (
     bugs,
     daily,
     site,
+    grades,
 ):
     api_router.include_router(module.router)

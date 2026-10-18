@@ -4,8 +4,9 @@ import { Link } from 'react-router-dom';
 import { useModulesOptional } from '../../state/modules';
 import { cx } from '../../ui';
 import { httpsHref, useSite } from '../site/public';
+import { useGradeRules } from './api';
 import { CLASS_NAME, CLASS_SHORT } from './bands';
-import { SUBJECTS } from './classify';
+import { subjectsOf } from './classify';
 import { projectClass, type Projection } from './projection';
 import { useCalculatorRecord } from './record';
 import { subjectDisplay } from './subjects';
@@ -32,17 +33,22 @@ export interface ProjectedClassProps {
   className?: string;
 }
 
-/** The class the calculator's marks point to, with the University's rules and the line that it isn't official. */
+/** The class the calculator's marks point to, with the University's rules and the line that it isn't official.
+ *  Nothing shows until the calculator's rules have loaded. */
 export function ProjectedClass({ calculatorLink = true, className }: ProjectedClassProps) {
-  const { marks, picks } = useCalculatorRecord();
+  const rules = useGradeRules().data;
+  const record = useCalculatorRecord(rules);
   const catalogue = useModulesOptional();
   const site = useSite().data;
   const regulations = httpsHref(site?.links.regulations.url);
-  const p = projectClass(marks);
+  if (!rules || !record) return null;
+  const { marks, picks } = record;
+  const p = projectClass(marks, rules);
+  const pass = rules.bands.third.floor;
   const nameOf = (i: number): string => {
-    const subject = SUBJECTS[i];
+    const subject = subjectsOf(rules)[i];
     if (!subject) return '';
-    return catalogue ? subjectDisplay(subject, picks, catalogue.getModule).name : subject.name;
+    return catalogue ? subjectDisplay(subject, picks, catalogue.getModule, rules).name : subject.name;
   };
 
   let body;
@@ -56,11 +62,11 @@ export function ProjectedClass({ calculatorLink = true, className }: ProjectedCl
           <p className="projected__line">
             <span className="projected__label">In your calculator</span>{' '}
             <strong>
-              {p.failing.length === 1 ? '1 mark is' : `${p.failing.length} marks are`} under 40
+              {p.failing.length === 1 ? '1 mark is' : `${p.failing.length} marks are`} under {pass}
             </strong>
           </p>
           <p className="projected__more">
-            {p.failing.map(nameOf).join(', ')}. Under 40 is a fail: you resit it before the degree can be classified.
+            {p.failing.map(nameOf).join(', ')}. Under {pass} is a fail: you resit it before the degree can be classified.
           </p>
         </>
       );
@@ -79,7 +85,7 @@ export function ProjectedClass({ calculatorLink = true, className }: ProjectedCl
             <span className="projected__label">On your marks so far</span> <strong>{named(p.kind)}</strong>
           </p>
           <p className="projected__more">
-            If you keep your average of {p.average.toFixed(1)} across the {13 - p.entered} modules still to come.
+            If you keep your average of {p.average.toFixed(1)} across the {rules.subjects.length - p.entered} modules still to come.
           </p>
           <NextLine p={p} />
         </>

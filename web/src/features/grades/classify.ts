@@ -1,50 +1,41 @@
-// DSBA Hub — degree classification.
+// DSBA Hub — degree classification, by the rules admins keep in Manage → Grades calculator (GET /grades/rules).
 //
-// 13 subjects in a fixed order, each weighted as the classification counts it. Marks are the raw input
-// strings read with Number(), so a blank field counts as 0. A fail still gets a fresh breakdown and
-// average; the classification label doesn't depend on them.
+// The subjects come in the rules' order. Each counts as 1, 2 or 3 classification marks, or "average": those are
+// averaged together and the average counts as rules.averageCounts marks. A classification mark under the Third's
+// floor means a resit; a class is given by rules.needed marks in its band or a higher one, or rules.fewer of them with
+// an average classification mark of at least the class's average. Marks are the raw input strings read with Number(),
+// so a blank field counts as 0. A fail still gets a fresh breakdown and average; the classification label doesn't
+// depend on them.
 //
-// Pure module: no React, no imports. Everything stays in the browser: marks are never sent to the server.
+// Pure module: no React. Everything stays in the browser: marks are never sent to the server.
+import type { GradeRules, GradeSubject } from '../../api/types';
 
-export type ChoiceSlot = 'year2Option' | 'elective1' | 'elective2';
+export type Rules = GradeRules;
+export type ChoiceSlot = NonNullable<GradeSubject['choice']>;
 export type Picks = Partial<Record<ChoiceSlot, string>>;
 export type ClassKind = 'first' | 'upper' | 'lower' | 'third' | 'none' | 'resit';
 export type BandId = 'first' | 'upper' | 'lower' | 'third' | 'fail';
+export type TargetKind = Exclude<ClassKind, 'none' | 'resit'>;
 
-export interface Subject {
+/** A subject with its place in the calculator. */
+export interface Subject extends GradeSubject {
   index: number;
-  name: string;
-  year: 1 | 2 | 3;
-  group: 'year1' | 'advancedStats' | 'remaining';
-  /** Classification marks the subject contributes (Year 1 counts through its average). */
-  weight?: number;
-  moduleId: string | null;
-  choice?: ChoiceSlot;
 }
 
-/** The subjects, in the calculator's order. `weight` = classification marks the subject contributes. */
-export const SUBJECTS: Subject[] = [
-  // Year 1: the four marks are averaged, and the average counts as 2 classification marks.
-  { index: 0, name: 'Introduction to Economics', year: 1, group: 'year1', moduleId: 'economics' },
-  { index: 1, name: 'Mathematical Methods', year: 1, group: 'year1', moduleId: 'mathematics' },
-  { index: 2, name: 'Business and Management in a Global Context', year: 1, group: 'year1', moduleId: 'business' },
-  { index: 3, name: 'Introduction to Mathematical Statistics', year: 1, group: 'year1', moduleId: 'statistics' },
-  // Year 2: each Advanced Statistics module counts as 1 mark; the rest count as 2 marks each.
-  { index: 4, name: 'Advanced Statistics: Statistical Inference', year: 2, group: 'advancedStats', weight: 1, moduleId: 'advanced-stats-inferential' },
-  { index: 5, name: 'Advanced Statistics: Distribution Theory', year: 2, group: 'advancedStats', weight: 1, moduleId: 'advanced-stats-distribution' },
-  { index: 6, name: 'Business Analytics: Applied Modelling and Prediction', year: 2, group: 'remaining', weight: 2, moduleId: 'business-analytics' },
-  { index: 7, name: 'Programming for Data Science', year: 2, group: 'remaining', weight: 2, moduleId: 'programming-data-science' },
-  { index: 8, name: 'Abstract Mathematics/Information Systems/Econometrics', year: 2, group: 'remaining', weight: 2, moduleId: null, choice: 'year2Option' },
-  // Year 3
-  { index: 9, name: 'Statistical Methods for Market Research', year: 3, group: 'remaining', weight: 2, moduleId: 'market-research' },
-  { index: 10, name: 'Machine Learning', year: 3, group: 'remaining', weight: 2, moduleId: 'machine-learning' },
-  { index: 11, name: 'Elective1', year: 3, group: 'remaining', weight: 2, moduleId: null, choice: 'elective1' },
-  { index: 12, name: 'Elective2', year: 3, group: 'remaining', weight: 2, moduleId: null, choice: 'elective2' },
-];
+export function subjectsOf(rules: Rules): Subject[] {
+  return rules.subjects.map((s, index) => ({ ...s, index }));
+}
 
-export const SUBJECT_COUNT = SUBJECTS.length; // 13
-/** Classification marks when every subject is entered: 2 (Year 1 average) + 1 + 1 + 7 × 2. */
-export const TOTAL_CLASSIFICATION_MARKS = 18;
+/** The subjects counted through their average, by index. */
+export function pooledIndexes(rules: Rules): number[] {
+  return rules.subjects.flatMap((s, i) => (s.counts === 'average' ? [i] : []));
+}
+
+/** Classification marks when every subject has one. */
+export function totalMarks(rules: Rules): number {
+  const pooled = rules.subjects.some((s) => s.counts === 'average') ? rules.averageCounts : 0;
+  return rules.subjects.reduce((sum, s) => sum + (s.counts === 'average' ? 0 : s.counts), pooled);
+}
 
 /** The result strings. */
 export const RESULT: Record<ClassKind, string> = {
@@ -59,29 +50,30 @@ export const RESULT: Record<ClassKind, string> = {
 /** Order of the outcomes, worst to best (for "at least" comparisons in what-if searches). */
 export const RANK: Record<ClassKind, number> = { resit: 0, none: 1, third: 2, lower: 3, upper: 4, first: 5 };
 
-/** A mark's class, in words. */
-export function gradeDescription(grade: number): string {
-  if (grade >= 70) return 'First Class';
-  if (grade >= 60) return 'Upper Second Class';
-  if (grade >= 50) return 'Lower Second Class';
-  if (grade >= 40) return 'Third Class';
-  return 'Fail';
-}
+/** The lowest mark of a class's band (First → 70 …). */
+export const bandFloor = (rules: Rules, kind: TargetKind): number => rules.bands[kind].floor;
 
-/** Band key for a number (the thresholds of gradeDescription). */
-export function bandOf(grade: number): BandId {
-  if (grade >= 70) return 'first';
-  if (grade >= 60) return 'upper';
-  if (grade >= 50) return 'lower';
-  if (grade >= 40) return 'third';
+/** Band key for a number. */
+export function bandOf(grade: number, rules: Rules): BandId {
+  const { first, upper, lower, third } = rules.bands;
+  if (grade >= first.floor) return 'first';
+  if (grade >= upper.floor) return 'upper';
+  if (grade >= lower.floor) return 'lower';
+  if (grade >= third.floor) return 'third';
   return 'fail';
 }
 
-/** Always 13 raw values ('' for a missing or unreadable entry). */
-export function normalizeGrades(grades: unknown): string[] {
-  const out: string[] = Array<string>(SUBJECT_COUNT).fill('');
+const DESCRIPTION: Record<BandId, string> = { first: 'First Class', upper: 'Upper Second Class', lower: 'Lower Second Class', third: 'Third Class', fail: 'Fail' };
+
+/** A mark's class, in words. */
+export const gradeDescription = (grade: number, rules: Rules): string => DESCRIPTION[bandOf(grade, rules)];
+
+/** One raw value per subject ('' for a missing or unreadable entry). */
+export function normalizeGrades(grades: unknown, rules: Rules): string[] {
+  const count = rules.subjects.length;
+  const out: string[] = Array<string>(count).fill('');
   if (Array.isArray(grades)) {
-    for (let i = 0; i < SUBJECT_COUNT; i += 1) {
+    for (let i = 0; i < count; i += 1) {
       const g: unknown = grades[i];
       out[i] = g == null ? '' : typeof g === 'number' ? String(g) : typeof g === 'string' ? g : '';
     }
@@ -109,74 +101,63 @@ export interface Classification {
   kind: ClassKind;
   /** the result string */
   label: string;
-  /** a classification mark under 40 (blank fields count as 0) */
+  /** a classification mark under the Third's floor (blank fields count as 0) */
   failed: boolean;
   /** every subject has a mark (isComplete) */
   complete: boolean;
   /** nothing entered yet (isEmpty) */
   empty: boolean;
-  /** classification marks, in subject order */
+  /** classification marks: the average of the averaged subjects first, then the others in subject order */
   marks: ClassificationMark[];
   breakdown: { firstClass: number; upperSecondClass: number; lowerSecondClass: number; thirdClass: number };
   /** average classification mark (0 when there are no marks) */
   average: number;
-  yearOneAverage: number | null;
+  /** the average of the subjects counted through it, once they can all be read (null otherwise) */
+  groupAverage: number | null;
 }
 
-/** Classify 13 raw mark strings ('' = blank). */
-export function classify(input: unknown): Classification {
-  const grades = normalizeGrades(input);
-
-  // ── the classification ───────────────────────────────────────────────────────
+/** Classify one raw mark string per subject ('' = blank), by `rules`. */
+export function classify(input: unknown, rules: Rules): Classification {
+  const grades = normalizeGrades(input, rules);
   const classificationMarks: number[] = [];
   const sources: number[][] = [];
 
-  // Year 1 subjects (first 4): averaged, the average counted as 2 marks
-  const yearOneGrades = grades
-    .slice(0, 4)
-    .map(Number)
-    .filter((g) => !isNaN(g));
-  let yearOneAverage: number | null = null;
-  if (yearOneGrades.length === 4) {
-    yearOneAverage = yearOneGrades.reduce((sum, grade) => sum + grade, 0) / yearOneGrades.length;
-    classificationMarks.push(...Array<number>(2).fill(yearOneAverage));
-    sources.push([0, 1, 2, 3], [0, 1, 2, 3]);
+  // The averaged subjects: their average counts as rules.averageCounts marks, once every one can be read.
+  const pooled = pooledIndexes(rules);
+  const pooledGrades = pooled.map((i) => Number(grades[i])).filter((g) => !isNaN(g));
+  let groupAverage: number | null = null;
+  if (pooled.length && pooledGrades.length === pooled.length) {
+    groupAverage = pooledGrades.reduce((sum, grade) => sum + grade, 0) / pooledGrades.length;
+    classificationMarks.push(...Array<number>(rules.averageCounts).fill(groupAverage));
+    for (let k = 0; k < rules.averageCounts; k += 1) sources.push(pooled);
   }
 
-  // Advanced Statistics (subjects 5 and 6): each counted as 1 mark
-  const advanced = [4, 5].map((i) => ({ i, g: Number(grades[i]) })).filter(({ g }) => !isNaN(g));
-  advanced.forEach(({ i, g }) => {
-    classificationMarks.push(g);
-    sources.push([i]);
+  // Every other subject: its mark, as many times as it counts.
+  rules.subjects.forEach((s, i) => {
+    if (s.counts === 'average') return;
+    const g = Number(grades[i]);
+    if (isNaN(g)) return;
+    classificationMarks.push(...Array<number>(s.counts).fill(g));
+    for (let k = 0; k < s.counts; k += 1) sources.push([i]);
   });
 
-  // Remaining subjects (7 to 13): each counted as 2 marks
-  const remaining = grades
-    .slice(6)
-    .map((raw, k) => ({ i: k + 6, g: Number(raw) }))
-    .filter(({ g }) => !isNaN(g));
-  remaining.forEach(({ i, g }) => {
-    classificationMarks.push(...Array<number>(2).fill(g));
-    sources.push([i], [i]);
-  });
-
-  const failed = classificationMarks.some((g) => g < 40);
-
-  const firstClass = classificationMarks.filter((g) => g >= 70).length;
-  const upperSecondClass = classificationMarks.filter((g) => g >= 60 && g < 70).length;
-  const lowerSecondClass = classificationMarks.filter((g) => g >= 50 && g < 60).length;
-  const thirdClass = classificationMarks.filter((g) => g >= 40 && g < 50).length;
-
+  const { first, upper, lower, third } = rules.bands;
+  const failed = classificationMarks.some((g) => g < third.floor);
+  const firstClass = classificationMarks.filter((g) => g >= first.floor).length;
+  const upperSecondClass = classificationMarks.filter((g) => g >= upper.floor && g < first.floor).length;
+  const lowerSecondClass = classificationMarks.filter((g) => g >= lower.floor && g < upper.floor).length;
+  const thirdClass = classificationMarks.filter((g) => g >= third.floor && g < lower.floor).length;
   const average = classificationMarks.length > 0 ? classificationMarks.reduce((sum, grade) => sum + grade, 0) / classificationMarks.length : 0;
 
+  const { needed, fewer, averages } = rules;
+  const reaches = (marks: number, bar: number | null) => marks >= needed || (bar != null && marks >= fewer && average >= bar);
   let kind: ClassKind;
   if (failed) kind = 'resit';
-  else if (firstClass >= 10 || (firstClass >= 8 && average >= 65)) kind = 'first';
-  else if (upperSecondClass + firstClass >= 10 || (upperSecondClass + firstClass >= 8 && average >= 56)) kind = 'upper';
-  else if (lowerSecondClass + upperSecondClass + firstClass >= 10 || (lowerSecondClass + upperSecondClass + firstClass >= 8 && average >= 47)) kind = 'lower';
-  else if (thirdClass + lowerSecondClass + upperSecondClass + firstClass >= 10) kind = 'third';
+  else if (reaches(firstClass, averages.first)) kind = 'first';
+  else if (reaches(firstClass + upperSecondClass, averages.upper)) kind = 'upper';
+  else if (reaches(firstClass + upperSecondClass + lowerSecondClass, averages.lower)) kind = 'lower';
+  else if (reaches(firstClass + upperSecondClass + lowerSecondClass + thirdClass, null)) kind = 'third';
   else kind = 'none';
-  // ─────────────────────────────────────────────────────────────────────────────
 
   return {
     kind,
@@ -187,6 +168,6 @@ export function classify(input: unknown): Classification {
     marks: classificationMarks.map((value, k) => ({ value, source: sources[k] ?? [] })),
     breakdown: { firstClass, upperSecondClass, lowerSecondClass, thirdClass },
     average,
-    yearOneAverage,
+    groupAverage,
   };
 }
