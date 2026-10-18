@@ -177,7 +177,8 @@ Counts: 1 blocker, 6 majors (one fixed during the review), 14 minors and a group
 
 #### UX-47 The Word refuses everyday words that its rules allow (major)
 
-- **Where:** `/daily/word`, any size, anyone. Manage → Daily puzzles says "224 words in the guess list".
+- **Where:** `/daily/word`, any size, anyone. Manage → Daily puzzles says "224 words in the guess list". Screenshot:
+  `screens/ux13-word-refused-390.png`.
 - **What a student runs into:** the rules say "Type a five-letter word and press Enter. Your guesses can be any
   English word." On this stack CRANE, HOUSE, WATER, ABOUT, STORY, PLANT and GHOST are refused: "That's not in our
   word list. Try another word." A first guess is likely to be refused, and the game feels broken.
@@ -201,7 +202,7 @@ Counts: 1 blocker, 6 majors (one fixed during the review), 14 minors and a group
 #### UX-49 With reduced motion on, menus and popovers don't take keyboard focus (major)
 
 - **Where:** every `Menu`: the bell, the account menu, the library's Sort and the rest; any size; with "Reduce
-  motion" on (macOS, iOS) or animations off (Windows).
+  motion" on (macOS, iOS) or animations off (Windows). No screenshot: a keyboard path.
 - **What a keyboard user runs into:** Enter on the bell opens the popover, but focus stays on the bell: in five
   tries out of five, against none with motion on. ArrowDown does nothing, and Tab can move on to "Upload a file"
   while the popover stays open. The account menu and Sort behave the same. With motion on, focus lands on the first
@@ -214,6 +215,7 @@ Counts: 1 blocker, 6 majors (one fixed during the review), 14 minors and a group
 #### UX-50 Access → Roles pans sideways on tablets (major, for admins)
 
 - **Where:** `/admin/access?tab=roles` at 768×1024 (222 px of sideways pan), 844×390 (146 px) and 1180×820 (10 px).
+  No screenshot: measured from the document's width and the visual viewport's offset.
 - **What an admin runs into:** the roles table scrolls inside its panel, but a visually hidden "(can't be changed)"
   label in the table is absolutely positioned and escapes the scroller, so the page is 990 px wide on a 768 px
   tablet. A touch browser zooms the whole page out or lets it pan.
@@ -244,7 +246,7 @@ This is the reported "Guides heading twice".
 
 #### UX-52 Add a module: the reported clipped label, and focus after a failed submit (minor)
 
-- **Where:** Manage → Modules → Add a module.
+- **Where:** Manage → Modules → Add a module. No screenshot: not reproduced.
 - **What I found:** the clipped first label did not reproduce. In Chrome at all eight sizes, in development and
   production builds, light and dark, with motion on and off, after a failed submit and after tabbing back to the
   first field, "Name" sits 12–16 px inside the dialog body. The likely case is Safari on an iPhone with the keyboard
@@ -259,11 +261,12 @@ This is the reported "Guides heading twice".
 
 #### UX-53 Lessons on phones: the video is below the fold, and the poster repeats the title (minor)
 
-- **Where:** `/modules/<id>/lessons/<lesson>` at 390×844, and the poster at every size.
+- **Where:** `/modules/<id>/lessons/<lesson>` at 390×844, and the poster at every size. Screenshot:
+  `screens/ux13-lesson-390.png`.
 - **What a student runs into:**
   - The module's header (icon, code, name, description, year and exam chips, counts), the card "42 video lessons ·
-    Start lesson 1 · Past papers" and the tabs fill the first screen. The video starts about 700 px down, and "Start
-    lesson 1" shows while you are already on a lesson.
+    Start lesson 1 · Past papers · Plan my revision" and the tabs fill the first screen. The video starts about 700 px
+    down, and "Start lesson 1" shows while you are already on a lesson.
   - The poster lays "Chapter 1: Probability Space", the lesson's title and "Video 1 of 9 · A Probability Space" over a
     YouTube thumbnail that carries its own title text; the same three lines repeat under the poster.
 - **Fix:** on lesson addresses (`modules/ModulePage.tsx`) collapse the header to one line (code, short name, back to
@@ -300,7 +303,7 @@ This is the reported "Guides heading twice".
 #### UX-56 Home shows an empty To-do block to everyone without a board (minor)
 
 - **Where:** Home, signed in without a board: the top-right half of the first screen at 1440, the second block
-  (about 180 px) at 390.
+  (about 180 px) at 390. Screenshot: `screens/ux13-home-todo-1440.png`.
 - **What a student sees:** "Nothing to do right now. Add tasks, lessons and deadlines to your boards to plan your
   study. Open my boards": an empty panel in Home's best spot.
 - **Fix:** skip the To-do block while the student has no cards (it stays in Customise Home), or put one line under Up
@@ -308,7 +311,7 @@ This is the reported "Guides heading twice".
 
 #### UX-57 Quota meters as page furniture in Notes and Boards (minor)
 
-- **Where:** `/notes` and `/board`, every size; phones worst.
+- **Where:** `/notes` and `/board`, every size; phones worst. Screenshot: `screens/ux13-notes-meters-390.png`.
 - **What a student sees:** Notes shows "Text and handwriting: 1 KB of 25 MB" and "Pictures and files: 0 KB of 250 MB"
   meters in its side panel; on a phone they sit above the notes list, which starts about 760 px down. Every board ends
   with "1 of 20 boards · 0 of 1,000 cards · 0 KB of 200 MB of files".
@@ -326,7 +329,7 @@ This is the reported "Guides heading twice".
 
 #### UX-59 Lines run past 75 characters in the round 11 and 12 screens (minor)
 
-UX-20's measure regressed in the new screens. The longest lines measured:
+UX-20's measure regressed in the new screens. The longest lines measured (no screenshot: counted in the page):
 - the switch descriptions in Your account and the module editor (`.ui-switch__desc`): 115 characters at 1180–3440;
 - Manage's editor notes and hints: `.dedit__note` 97, `.ui-field__hint` 99–115, `.nl-drafts__desc` 113–149,
   `.manage-noora__note` 114–145, `.cedit__note` 103, `.dcms__note` 101;
@@ -345,14 +348,15 @@ above; or, for Manage at once, `.manage-panel p { max-width: var(--measure); }`.
   Start here's "BIBF" and "UNIVERSITY OF LONDON" (`.start-place__whose`); the poll kicker (`.nl-poll__kicker`); Manage
   → Modules' "YEAR 1" to "YEAR 3" (`.medit__year-title`); the editors' preview labels "PREVIEW", "HER CHAT, OPENING",
   "HER FULL PAGE" (`.cedit-preview__title`, `.dedit-preview__label`); the library's cover kinds "STUDENTS' NOTES",
-  "PAST PAPER" (`.lib-cover__kind`). The notebook has none left.
+  "PAST PAPER" (`.lib-cover__kind`). The notebook has none left. Screenshot:
+  `screens/ux13-uppercase-electives-1440.png`.
 - **Fix:** remove `text-transform: uppercase` and its letter-spacing from those nine rules; keep capitals only for
   puzzle letters and words (`.dw-tile`, `.dgr-word`). Style small labels with `--fw-semibold` and `--ink-2`.
 
 #### UX-61 "New" badges that never go away (minor)
 
 - **Where:** the sidebar (a yellow "New" on Noora, Forum and Daily), the icon rail and the tab bar (yellow dots on
-  Noora and Forum): every page, every persona.
+  Noora and Forum): every page, every persona. Screenshot: `screens/ux13-nav-new-badges-1440.png`.
 - **What a student sees:** `isNew: true` in `shell/nav.ts` marks three of thirteen items new for everyone, for good;
   a phone's tab bar always carries two yellow dots. A badge that never changes says nothing and makes the nav busy.
 - **Fix:** show "New" until the person has opened that page once (`hub.seen.<id>` in local storage), or until a date
@@ -361,7 +365,7 @@ above; or, for Manage at once, `.manage-panel p { max-width: var(--measure); }`.
 #### UX-62 Chip scrollers stop mid-chip on phones (minor)
 
 - **Where:** the library's module and type filters, the forum's year tabs ("Stu…") and its filter chips ("Exam p…");
-  360 to 430 px.
+  360 to 430 px. Screenshot: `screens/ux13-chips-cut-390.png`.
 - **What a student sees:** the rows scroll sideways but end at the content padding, 16 px from the screen's edge,
   cutting a chip mid-word with no fade. It reads as broken, not as more to see.
 - **Fix:** let the scrollers bleed to the screen's edge (`margin-inline: calc(-1 * var(--page-pad-left));
@@ -371,17 +375,18 @@ above; or, for Manage at once, `.manage-panel p { max-width: var(--measure); }`.
 
 #### UX-63 Activity shows raw action names and feature keys (minor)
 
-- **Where:** Manage → Activity and Access → Activity.
+- **Where:** Manage → Activity and Access → Activity. Screenshot: `screens/ux13-activity-1440.png`.
 - **What an admin reads:** "Maryam E2E module delete “E2E suggestions …”", "module update", "request remove",
-  "request status", "switched video_suggestions off". Suggestion and Daily lines still end in a colon before the
-  quote ("added a suggested video as a lesson: “…”").
-- **Fix:** in `access/audit.ts`, labels for `module.create`, `module.update`, `module.delete`, `request.remove`,
-  `request.status` and `noora.limits`; `feature.switch` with the Features tab's names ("switched Suggested videos
-  off"); no colons (UX-24).
+  "request status", "site update “Site settings”", "bug report status", "switched video_suggestions off". Suggestion
+  and Daily lines still end in a colon before the quote ("added a suggested video as a lesson: “…”").
+- **Fix:** in `access/audit.ts`, a label for every action the API records: `module.create`, `module.update`,
+  `module.delete`, `request.remove`, `request.status`, `site.update`, the bug report's status and `noora.limits`;
+  `feature.switch` with the Features tab's names ("switched Suggested videos off"); no colons (UX-24). A unit test
+  that every action in the API's audit calls has a label would keep it so.
 
 #### UX-64 Manage → Daily puzzles names the games differently from the hub (minor)
 
-- **Where:** Manage → Daily puzzles.
+- **Where:** Manage → Daily puzzles. Screenshot: `screens/ux13-daily-editor-names-1440.png`.
 - **What a rep reads:** the chips say "The word", "Groups", "Word search", "Quiz" and "Nearest neighbour", where
   students see "The Word", "Correlations", "Data Mine", "The Daily Query" and "Nearest Neighbour". A rep fixing a
   Data Mine word has to know it is "Word search".
