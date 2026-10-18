@@ -745,23 +745,26 @@ def add_guesses(db: Session, user: User, body: GuessAdd, ip: str | None) -> Gues
         raise invalid("text", "Paste at least one word.")
     if len(good) + len(bad) > 5000:
         raise invalid("text", "Add up to 5,000 words at a time.")
-    known = set(db.scalars(select(DailyGuessWord.word).where(DailyGuessWord.word.in_(good))))
+    known = _known_guesses(db, good)
     new = [w for w in good if w not in known]
-    if new and not body.dry_run:
-        db.execute(pg_insert(DailyGuessWord).values([{"word": w} for w in new]).on_conflict_do_nothing())
-        record(
-            db,
-            user,
-            "daily.guesses.add",
-            "daily_guess_words",
-            None,
-            f"{len(new)} words",
-            ip,
-            count=len(new),
-            words=new[:50],
-        )
+    if not body.dry_run:
+        _insert_guesses(db, user, new, ip)
     total = (db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0) + (len(new) if body.dry_run else 0)
     return GuessAddReport(new=new, known=[w for w in good if w in known], refused=bad, total=total)
+
+
+def _known_guesses(db: Session, words: Sequence[str]) -> set[str]:
+    return set(db.scalars(select(DailyGuessWord.word).where(DailyGuessWord.word.in_(words))))
+
+
+def _insert_guesses(db: Session, user: User, words: Sequence[str], ip: str | None) -> None:
+    """Adds words the guess list lacks, and audits them."""
+    new = [w for w in words if w not in _known_guesses(db, words)]
+    if not new:
+        return
+    db.execute(pg_insert(DailyGuessWord).values([{"word": w} for w in new]).on_conflict_do_nothing())
+    title = f"{len(new)} words"
+    record(db, user, "daily.guesses.add", "daily_guess_words", None, title, ip, count=len(new), words=new[:50])
 
 
 _GUESSED = text(
@@ -1171,11 +1174,9 @@ def import_items(db: Session, user: User, body: ImportIn, ip: str | None) -> Imp
         raise invalid("text", f"Import up to {IMPORT_ROWS} items at a time.")
     lock_themes(db, theme.id)
     trial = db.begin_nested() if body.dry_run else None
-    if body.game == "word" and body.add_guesses:
+    if body.game == "word" and body.add_guesses:  # audited like a paste into the guess list (a dry run undoes both)
         answers = [d.word.strip().upper() for _, _, d, _ in parsed if isinstance(d, WordData)]
-        fresh = [w for w in dict.fromkeys(answers) if ANSWER.fullmatch(w)]
-        if fresh:
-            db.execute(pg_insert(DailyGuessWord).values([{"word": w} for w in fresh]).on_conflict_do_nothing())
+        _insert_guesses(db, user, [w for w in dict.fromkeys(answers) if ANSWER.fullmatch(w)], ip)
     rows: list[ImportRow] = []
     keys: set[str] = set()
     good: list[DailyItem] = []

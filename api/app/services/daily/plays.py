@@ -44,7 +44,7 @@ from app.schemas.daily import (
     PlayOut,
     PlayStatus,
 )
-from app.services import accounts, ratelimit
+from app.services import access, accounts, ratelimit
 from app.services.daily import content
 from app.services.daily.badges import badges_of
 from app.services.daily.games import GAMES
@@ -496,6 +496,7 @@ def leaderboard(db: Session, viewer: User | None, period: BoardPeriod, year: int
         )
     ids = {r.user_id for r in top} | ({mine.user_id} if mine else set())
     users = {u.id: u for u in db.scalars(select(User).where(User.id.in_(ids)))} if ids else {}
+    access.prefetch(db, users.values())  # each row's badge, in two queries
     rows = [_board_row(users[r.user_id], r.points, r.played, r.rank, viewer) for r in top]
     you = _board_row(users[mine.user_id], mine.points, mine.played, mine.rank, viewer) if mine else None
     your_points = None

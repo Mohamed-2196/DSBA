@@ -287,7 +287,9 @@ def test_a_word_list_is_checked_then_imported(c: TestClient, db: Session) -> Non
     real = c.post(f"{DAILY}/import", json={**body, "dryRun": False, "addGuesses": True}).json()
     assert real["added"] == 4  # QUAKE joins the guess list too
     assert {"PLANT", "BRICK", "GLOVE", "QUAKE"} <= {i["data"]["word"] for i in items(c, "word", theme="beta")}
-    assert actions(db) == ["daily.item.import"]
+    assert actions(db) == ["daily.guesses.add", "daily.item.import"]
+    guesses = db.scalars(select(AuditEntry).where(AuditEntry.action == "daily.guesses.add")).one()
+    assert (guesses.data["count"], guesses.data["words"]) == (1, ["QUAKE"])
 
 
 def test_quiz_questions_and_groups_are_imported_from_a_spreadsheets_rows(c: TestClient) -> None:
