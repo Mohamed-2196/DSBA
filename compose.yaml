@@ -53,7 +53,8 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-dsba}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-dsba-dev-secret}
-      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:5173,http://127.0.0.1:5173
+      # Any local port: each builder's Vite runs on its own. MinIO matches these as wildcards.
+      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:*,http://127.0.0.1:*
     volumes:
       - miniodata:/data
     ports:
