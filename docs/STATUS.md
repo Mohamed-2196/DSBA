@@ -95,8 +95,13 @@ Next in the round: builders fix what the three reviews find, Daily first.
   Daily puzzles → Load a content file, or `daily-content import` (`docs/backend/CMS.md`). Done locally.
 - **Railway dev storage:** a Railway bucket, `dsba-files` (EU West), in the dev environment only. The api service's
   `DSBA_S3_*` are variable references (`${{dsba-files.ENDPOINT}}` and so on) with `DSBA_S3_FORCE_PATH_STYLE=false`,
-  and web's `DSBA_BUCKET_ORIGIN` is the bucket's own host. Never print the bucket's credentials. Its library starts
-  empty. Nobody changes Railway's settings without asking Mohamed.
+  and web's `DSBA_BUCKET_ORIGIN` is the bucket's own host. Never print the bucket's credentials. Nobody changes
+  Railway's settings without asking Mohamed.
+- **Railway dev content (2026-10-18):** the library copied from the local hub (694 items, their search text and
+  1,386 files and covers; same ids, Drive folders matched by address) and the Daily puzzles loaded from
+  `private/daily-content.json`. A shell on the dev API: `railway ssh -i ~/.ssh/railway_dsba -s api -e dev` (the key
+  "dsba-hub mac" on Mohamed's Railway account); for piped input use plain `ssh` with the host and user that
+  `railway ssh config -s api -e dev --dry-run` prints.
 - **Local MinIO** allows uploads from any localhost port (each builder's Vite has its own).
 - **Formatting:** `cd web && npm run format` (Prettier); `.git-blame-ignore-revs` keeps the formatting commit out
   of `git blame`.
