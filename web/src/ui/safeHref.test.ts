@@ -46,7 +46,7 @@ describe('safeHref', () => {
   });
 
   // Security review SEC-3: browsers drop tabs and newlines inside URLs, so this is really '//evil.example/x'.
-  it('refuses a path split by a tab (SEC-3)', () => {
+  it('refuses a path split by a tab', () => {
     expect(safeHref('/\t/evil.example/x')).toBeNull();
   });
 

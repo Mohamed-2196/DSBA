@@ -134,6 +134,8 @@ def test_removing_the_art_or_the_module_lets_the_upload_go(
     [
         "https://tracker.example.com/logo.png",  # another host would log every reader's address
         "javascript:alert(1)",
+        "data:image/svg+xml,<svg/>",
+        "//tracker.example/x.png",
         "../secrets.png",
         "/api/v1/media/not-an-id",
     ],
@@ -142,6 +144,11 @@ def test_art_is_a_picture_of_the_hub_or_an_upload(client_for: Clients, manager: 
     r = edit(client_for(manager), module.id, art=art)
     assert r.status_code == 422, r.text
     assert "art" in r.json()["error"]["fields"]
+
+
+def test_module_art_can_be_uploaded(client_for: Clients, manager: User) -> None:
+    body = {"purpose": "module_art", "fileName": "art.png", "contentType": "image/png", "sizeBytes": 100}
+    assert client_for(manager).post(f"{API}/uploads", json=body).status_code == 201
 
 
 def test_art_must_be_a_module_art_upload_that_arrived(

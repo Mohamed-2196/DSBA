@@ -73,7 +73,7 @@ describe('errorMessage', () => {
 });
 
 describe('loadProblem', () => {
-  it('says what went wrong under a state that did not load (UX-10)', () => {
+  it('says what went wrong under a state that did not load', () => {
     expect(loadProblem(new ApiError({ status: 0, code: 'network', message: 'x' }))).toBe(NETWORK_MESSAGE);
     expect(loadProblem(toApiError(response(500), undefined))).toBe(SERVER_MESSAGE);
     expect(

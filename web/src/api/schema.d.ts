@@ -591,7 +591,7 @@ export interface paths {
         head?: never;
         /**
          * Update User
-         * @description Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email
+         * @description Suspend or restore an account, or recover one: replace or remove its email
          *     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
          *     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
          *     Recovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding

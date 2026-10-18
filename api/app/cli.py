@@ -271,7 +271,7 @@ def sweep() -> SweepReport:
         for up in stale:
             storage.delete(up.storage_key)  # a pending upload's incoming object may never have arrived: still fine
             db.delete(up)
-        files = sweep_files(db, storage, now)  # library files rejected or removed a week ago (security review SEC-14)
+        files = sweep_files(db, storage, now)  # library files rejected or removed a week ago
         old_codes = delete(OtpChallenge).where(OtpChallenge.created_at < now - KEEP_CHALLENGES)
         challenges = cast(CursorResult[Any], db.execute(old_codes)).rowcount
         ended = now - SESSION_RETENTION

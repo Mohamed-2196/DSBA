@@ -128,7 +128,7 @@ describe('checkUpload', () => {
 });
 
 describe('progress', () => {
-  it('shows sizes only once bytes have moved (UX-12)', () => {
+  it('shows sizes only once bytes have moved', () => {
     expect(progressText({ loaded: 0, total: 1024 })).toBe('Uploading… 0%');
     expect(progressText({ loaded: 2.1 * MB, total: 5 * MB })).toBe('Uploading… 42% (2.1 MB of 5.0 MB)');
   });

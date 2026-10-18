@@ -1,7 +1,6 @@
-"""Mini Noora's safety limits (security review round 4): hidden modules stay unknown to her (SEC-21), every answer is
-costed even when the student drops it, and the budget holds a reservation for answers on their way (SEC-22), what
-people type reaches her as data and the page only as one of the app's routes (SEC-23), and answers streaming at once
-are bounded per student and hub-wide (SEC-26)."""
+"""Mini Noora's safety limits: hidden modules stay unknown to her, every answer is costed even when the student drops
+it, and the budget holds a reservation for answers on their way, what people type reaches her as data and the page
+only as one of the app's routes, and answers streaming at once are bounded per student and hub-wide."""
 
 from __future__ import annotations
 
@@ -81,7 +80,7 @@ def hidden_module(db: Session) -> Module:
     return m
 
 
-# ── SEC-21 ──────────────────────────────────────────────────────────────────────────────────
+# ── hidden modules ──────────────────────────────────────────────────────────────────────────
 
 
 def test_a_hidden_module_never_reaches_her_prompt(
@@ -101,7 +100,7 @@ def test_a_hidden_module_never_reaches_her_prompt(
     assert "Open module" not in screen["text"]
 
 
-# ── SEC-22 ──────────────────────────────────────────────────────────────────────────────────
+# ── what an answer costs ────────────────────────────────────────────────────────────────────
 
 
 def test_a_dropped_answer_keeps_its_question_and_its_reserved_cost(
@@ -172,7 +171,7 @@ def test_the_budget_counts_answers_on_their_way(
     assert (r.status_code, r.json()["error"]["code"]) == (503, "noora_budget_reached")
 
 
-# ── SEC-23 ──────────────────────────────────────────────────────────────────────────────────
+# ── what she is told about the page ─────────────────────────────────────────────────────────
 
 
 def test_the_page_is_passed_on_only_as_one_of_the_apps_routes(
@@ -230,7 +229,7 @@ def test_what_people_type_reaches_her_as_data(module: Module) -> None:
     assert all("\u2028" not in line for line in block.splitlines())
 
 
-# ── SEC-26 ──────────────────────────────────────────────────────────────────────────────────
+# ── answers at once ─────────────────────────────────────────────────────────────────────────
 
 
 def test_one_answer_at_a_time_for_each_student(

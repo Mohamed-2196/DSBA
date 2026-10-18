@@ -48,7 +48,7 @@ describe('describeAudit', () => {
     expect(describeAudit(entry('report.resolve', { status: 'dismissed' }))).toBe('dismissed a report about a post');
   });
 
-  it('uses the staff word for a rejected upload (UX-17)', () => {
+  it('uses the staff word for a rejected upload', () => {
     expect(describeAudit(entry('library.reject', { title: 'Week 3 notes' }))).toBe('rejected “Week 3 notes”');
   });
 

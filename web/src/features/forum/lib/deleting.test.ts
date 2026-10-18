@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { replyDeleteCopy, threadDeleteCopy } from './deleting';
 
 describe('threadDeleteCopy', () => {
-  it('says a thread with replies keeps its title and its replies (ST-12)', () => {
+  it('says a thread with replies keeps its title and its replies', () => {
     expect(threadDeleteCopy({ status: 'visible', replyCount: 3 })).toBe(
       'Its text is deleted, but its title and its 3 replies stay in the forum, so the replies can still be read. This can’t be undone.',
     );
@@ -17,7 +17,7 @@ describe('threadDeleteCopy', () => {
     );
   });
 
-  it('says a hidden thread stays hidden, and comes back deleted if it is unhidden (SEC-15)', () => {
+  it('says a hidden thread stays hidden, and comes back deleted if it is unhidden', () => {
     const copy = threadDeleteCopy({ status: 'hidden', replyCount: 4 });
     expect(copy).toContain('stays hidden');
     expect(copy).toContain('comes back as a deleted thread');
@@ -35,7 +35,7 @@ describe('replyDeleteCopy', () => {
     );
   });
 
-  it('says a hidden reply stays hidden (SEC-15)', () => {
+  it('says a hidden reply stays hidden', () => {
     expect(replyDeleteCopy({ status: 'hidden' }, true)).toContain('comes back as a deleted reply');
   });
 });
