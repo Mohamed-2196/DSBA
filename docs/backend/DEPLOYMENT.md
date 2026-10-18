@@ -170,8 +170,7 @@ see the worker's settings: its environment holds none, and the worker makes itse
 one, so the child (the same user) can't read them from `/proc/<worker>/environ` or the worker's memory either. And
 the worker holds only its own database role and bucket key (section 2). After deploying it the first time, or after
 a big import, read the files already there: `docker compose -f compose.prod.yaml run --rm texts python -m app.cli
-extract-texts` (`--retry` reads failed and empty files again; `make-covers` makes the covers of files read before
-covers existed).
+extract-texts`, which reads their words and makes their covers (`--retry` reads failed and empty files again).
 
 ## 5. Client addresses and the proxy
 

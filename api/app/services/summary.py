@@ -8,11 +8,11 @@ to paste into their year's group.
   feature is on for. It is opt-in.
 - When: the mail worker calls send_due() every few minutes; it queues the week's emails on Sunday from the words'
   send time (Bahrain). `python -m app.cli weekly-summary` does the same on any day. A person gets at most one a week
-  (weekly_summaries), whoever runs it and however often. Someone at the hourly email cap (SEC-17) is left for a
+  (weekly_summaries), whoever runs it and however often. Someone at the hourly email cap is left for a
   later run; an empty week sends nothing.
 - Its words (the subject line, the headings, the line before the closing link, and the send time) are a document that
   holders of summary.share edit in Manage → Sunday summary (WORDS, starting from app/seed/data/summary.json).
-- Links are the Hub's own, with ?from=summary; titles people typed are quoted with their links taken out (SEC-17).
+- Links are the Hub's own, with ?from=summary; titles people typed are quoted with their links taken out.
   The email ends with the link to the switches, which are behind sign-in: no token in any link."""
 
 from __future__ import annotations

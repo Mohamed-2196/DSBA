@@ -1,28 +1,39 @@
 // Your modules: which modules a student sits, and their exam zone. Picks are module ids: the Year 2 option, the
 // Year 3 electives and modules from other years (a resit, say). Without picks, a year's modules are all of them.
-import type { ModuleSummary } from '../../api/types';
+import type { ModuleSummary, PaperChoice } from '../../api/types';
 import { cohortLabel, type CohortYear } from '../../state';
 
-export interface PaperChoice {
-  /** 'Your option' */
+/** A choice inside a year, as the form offers it. */
+export interface Choice {
+  kind: PaperChoice['kind'];
+  /** 'Your option' or 'Your electives' */
   label: string;
   /** how many of `ids` a student takes */
   pick: number;
+  /** what picks hold for each option: its module's id, or its own without a module ('abstract-maths') */
   ids: readonly string[];
+  /** the options the Hub has no module page for, by id: 'Abstract Mathematics' */
+  notOnHub: Readonly<Record<string, string>>;
 }
 
-/** The choices inside a year. A choice may have no module on the Hub ('abstract-maths'). */
-export const CHOICES: Partial<Record<CohortYear, PaperChoice>> = {
-  2: { label: 'Your option', pick: 1, ids: ['econometrics', 'information-systems', 'abstract-maths'] },
-  3: {
-    label: 'Your electives',
-    pick: 2,
-    ids: ['microeconomics', 'asset-pricing', 'marketing-management', 'further-maths-economists'],
-  },
-};
+export type Choices = Partial<Record<CohortYear, Choice>>;
 
-/** Choices the Hub has no module page for, by id. */
-export const NOT_ON_HUB: Readonly<Record<string, string>> = { 'abstract-maths': 'Abstract Mathematics' };
+/** The choices inside each year, from the grades calculator's rules (GET /modules/choices). */
+export function choicesFrom(served: readonly PaperChoice[] | undefined): Choices {
+  const out: Choices = {};
+  for (const c of served ?? []) {
+    const notOnHub: Record<string, string> = {};
+    for (const o of c.options) if (!o.moduleId) notOnHub[o.id] = o.label ?? o.id;
+    out[c.year] = {
+      kind: c.kind,
+      label: c.kind === 'option' ? 'Your option' : 'Your electives',
+      pick: c.pick,
+      ids: c.options.map((o) => o.moduleId ?? o.id),
+      notOnHub,
+    };
+  }
+  return out;
+}
 
 /** Picks as stored in a browser, or anything else: only well-formed ids, once each, at most 20. */
 export function cleanPicks(raw: unknown): string[] {
@@ -40,10 +51,11 @@ export function papersFor(
   home: CohortYear | null,
   picks: readonly string[],
   catalogue: readonly ModuleSummary[],
+  choices: Choices,
 ): Set<string> | null {
   if (!year || !picks.length) return null;
   const picked = new Set(picks);
-  const choice = CHOICES[year];
+  const choice = choices[year];
   const chose = !!choice && choice.ids.some((id) => picked.has(id));
   const others = year === home ? catalogue.filter((m) => m.year !== year && picked.has(m.id)) : [];
   if (!chose && !others.length) return null;
@@ -75,13 +87,13 @@ export function modulesFor(
 }
 
 /** The one module of a pick-one choice (the Year 2 option), or none: every other module of the choice is dropped. */
-export function pickOnly(picks: readonly string[], id: string | null, choice: PaperChoice): string[] {
+export function pickOnly(picks: readonly string[], id: string | null, choice: Choice): string[] {
   const rest = picks.filter((p) => !choice.ids.includes(p));
   return id ? [...rest, id] : rest;
 }
 
 /** Toggle a pick, keeping a choice to its size: picking one more than allowed drops the earliest. */
-export function togglePick(picks: readonly string[], id: string, choice?: PaperChoice): string[] {
+export function togglePick(picks: readonly string[], id: string, choice?: Choice): string[] {
   if (picks.includes(id)) return picks.filter((p) => p !== id);
   const next = [...picks, id];
   if (!choice?.ids.includes(id)) return next;
@@ -98,11 +110,12 @@ export function papersNote(
   home: CohortYear | null,
   picks: readonly string[],
   papers: ReadonlySet<string> | null,
+  choices: Choices,
 ): { text: string; action: string } | null {
   if (!home) return null;
-  const choice = CHOICES[home];
+  const choice = choices[home];
   if (choice && !choice.ids.some((id) => picks.includes(id))) {
-    const what = choice.pick === 1 ? 'option' : 'electives';
+    const what = choice.kind === 'option' ? 'option' : 'electives';
     return {
       text: `Pick your ${cohortLabel(home)} ${what} to list only the modules you sit.`,
       action: `Pick your ${what}`,
@@ -117,11 +130,12 @@ export function picksSummary(
   home: CohortYear | null,
   picks: readonly string[],
   papers: ReadonlySet<string> | null,
+  choices: Choices,
 ): string {
   if (!home) return 'not set';
-  const choice = CHOICES[home];
+  const choice = choices[home];
   if (choice && !choice.ids.some((id) => picks.includes(id)))
-    return `${cohortLabel(home)}, ${choice.pick === 1 ? 'option' : 'electives'} not picked`;
+    return `${cohortLabel(home)}, ${choice.kind === 'option' ? 'option' : 'electives'} not picked`;
   if (!papers) return `every ${cohortLabel(home)} module`;
   return `${papers.size} ${papers.size === 1 ? 'module' : 'modules'}`;
 }

@@ -29,7 +29,6 @@ def test_a_board_starts_from_its_template(client_for: ClientFor, make_user: Make
     assert c.get(f"{API}/boards").json()["boards"] == []
     expected = {
         "study": ["To do", "In progress", "Done"],
-        "revision": ["To revise", "Revising", "Revised"],
         "assignment": ["Research", "Draft", "Review", "Submitted"],
         "weekly": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Done"],
         "personal": ["Today", "This week", "Later", "Done"],
@@ -42,7 +41,7 @@ def test_a_board_starts_from_its_template(client_for: ClientFor, make_user: Make
         assert (board["emoji"], board["color"], board["template"], board["archived"]) == ("📚", "teal", template, False)
     listed = c.get(f"{API}/boards").json()
     assert [b["name"] for b in listed["boards"]] == [t.title() for t in expected]
-    assert listed["usage"]["boards"] == 6
+    assert listed["usage"]["boards"] == 5
     assert listed["usage"]["maxBoards"] == common.MAX_BOARDS
     assert c.post(f"{API}/boards", json={"name": "x", "template": "kanban"}).status_code == 422
     assert c.post(f"{API}/boards", json={"name": "  "}).status_code == 422

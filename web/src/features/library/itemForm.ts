@@ -21,6 +21,14 @@ export interface ItemFormValues {
 
 export type ItemFormErrors = Partial<Record<keyof ItemFormValues, string>>;
 
+/** A cohort as the form's Year field holds it. */
+const cohortField = (year: CohortYear | null | undefined): ItemFormValues['year'] => (year ? `${year}` : '');
+
+/** Whether a value is one the Year field holds. */
+export function isCohortField(raw: string): raw is ItemFormValues['year'] {
+  return raw === '' || raw === '1' || raw === '2' || raw === '3';
+}
+
 export const NO_MODULE = 'none';
 
 export function emptyValues({
@@ -31,7 +39,7 @@ export function emptyValues({
     title: '',
     kind: 'notes',
     module: moduleId ?? '',
-    year: year ? (String(year) as ItemFormValues['year']) : '',
+    year: cohortField(year),
     examYear: '',
     session: '',
     zone: '',
@@ -45,7 +53,7 @@ export function valuesFromItem(item: LibraryItem): ItemFormValues {
     title: item.title,
     kind: item.kind,
     module: item.moduleId ?? NO_MODULE,
-    year: item.year ? (String(item.year) as ItemFormValues['year']) : '',
+    year: cohortField(item.year),
     examYear: item.examYear ? String(item.examYear) : '',
     session: item.examSession ?? '',
     zone: item.zone ?? '',
@@ -79,15 +87,11 @@ export function errorsFromApi(fields: Record<string, string>): ItemFormErrors {
     title: 'title',
     kind: 'kind',
     moduleId: 'module',
-    module_id: 'module',
     year: 'year',
     examYear: 'examYear',
-    exam_year: 'examYear',
     zone: 'zone',
     examSession: 'session',
-    exam_session: 'session',
     authorName: 'authorName',
-    author_name: 'authorName',
     description: 'description',
   };
   const out: ItemFormErrors = {};

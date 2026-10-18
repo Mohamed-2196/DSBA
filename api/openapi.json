@@ -2870,7 +2870,7 @@
           "admin"
         ],
         "summary": "Update User",
-        "description": "Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\nRecovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding\nAdmin (security review AD-1).\n\nErrors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,\nand so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,\nor suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422).",
+        "description": "Suspend or restore an account, or recover one: replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\nRecovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding\nAdmin (security review AD-1).\n\nErrors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,\nand so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,\nor suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422).",
         "operationId": "update_user_api_v1_admin_users__user_id__patch",
         "parameters": [
           {
@@ -3962,6 +3962,102 @@
               }
             },
             "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/modules/choices": {
+      "get": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Paper Choices",
+        "description": "The choices a student makes inside a year, from the grades calculator's rules: the Year 2 option and the\nelectives, each with how many to pick and its options. A student's papers hold what they picked.",
+        "operationId": "paper_choices_api_v1_modules_choices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaperChoice"
+                  },
+                  "type": "array",
+                  "title": "Response Paper Choices Api V1 Modules Choices Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -28371,7 +28467,6 @@
             "type": "string",
             "enum": [
               "study",
-              "revision",
               "assignment",
               "weekly",
               "personal",
@@ -28799,7 +28894,6 @@
             "type": "string",
             "enum": [
               "study",
-              "revision",
               "assignment",
               "weekly",
               "personal",
@@ -32354,12 +32448,6 @@
             "minLength": 1,
             "title": "Intro"
           },
-          "pick": {
-            "type": "integer",
-            "maximum": 6.0,
-            "minimum": 1.0,
-            "title": "Pick"
-          },
           "disclaimer": {
             "type": "string",
             "maxLength": 300,
@@ -32371,11 +32459,10 @@
         "required": [
           "title",
           "intro",
-          "pick",
           "disclaimer"
         ],
         "title": "Electives",
-        "description": "/career/electives: the Year 3 electives side by side, built from the modules and Career Navigator."
+        "description": "/career/electives: the Year 3 electives side by side, built from the modules and Career Navigator; how many a\nstudent takes is the grades calculator's (GET /modules/choices)."
       },
       "ErrorDetail": {
         "properties": {
@@ -41681,6 +41768,47 @@
           "offset"
         ],
         "title": "Page[VocabularyOut]"
+      },
+      "PaperChoice": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "option",
+              "electives"
+            ],
+            "title": "Kind"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "pick": {
+            "type": "integer",
+            "title": "Pick"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/GradeOption"
+            },
+            "type": "array",
+            "title": "Options"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "year",
+          "pick",
+          "options"
+        ],
+        "title": "PaperChoice",
+        "description": "A choice a student makes inside a year: `pick` of the options, the Year 2 option or the electives. Their papers\nhold what they picked (GradeOption.paper_id); without a pick, every module of the year counts."
       },
       "PaperQuestion": {
         "properties": {

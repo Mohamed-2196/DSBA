@@ -399,7 +399,7 @@ def get_settings() -> Settings:
 
 
 def texts_settings() -> Settings:
-    """The text worker's settings (`text-worker`, `extract-texts`, `make-covers`): in production only the database
+    """The text worker's settings (`text-worker`, `extract-texts`): in production only the database
     and the bucket are checked, the only settings it is given. Raises ConfigError naming every problem."""
     settings = Settings()
     problems = settings.texts_problems() if settings.is_production else []

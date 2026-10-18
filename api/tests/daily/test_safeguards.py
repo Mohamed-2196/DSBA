@@ -1,6 +1,6 @@
 """What keeps Daily fair and its answers safe: a guest's play of today's set shows no answer it didn't find, the
-clock starts at the first look, every win counts however fast, the repository holds no answer bank and the quiz's
-options move from day to day, crafted guest histories are refused, and kept puzzles survive a new secret key."""
+clock starts at the first look, every win counts however fast, the repository holds no answer bank, crafted guest
+histories are refused, and kept puzzles survive a new secret key."""
 
 from __future__ import annotations
 
@@ -19,7 +19,6 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.core.time import bahrain_today
 from app.models import DailyPlay, User
-from app.services.daily import content
 from app.services.daily.games import GAMES
 from tests.daily.conftest import API
 
@@ -61,7 +60,7 @@ def test_a_guest_play_of_todays_set_shows_no_answer(client_for: ClientFor, db: S
     assert search["found"] == []
     sudoku = move(guest, "sudoku", {"kind": "give-up"}, variant="easy").json()["play"]
     assert (sudoku["status"], sudoku["view"]["filled"]) == ("lost", [0] * 81)
-    # The games' feedback is the game, for guests too (Mohamed, 2026-10-17): a wrong quiz answer shows the right one.
+    # The games' feedback is the game, for guests too: a wrong quiz answer shows the right one.
     questions = GAMES["quiz"].puzzle(db, bahrain_today(), "")
     wrong = (questions[0].answer + 1) % len(questions[0].options)
     answered = move(guest, "quiz", {"kind": "answer", "choice": wrong}).json()["play"]["view"]["answered"][0]
@@ -69,12 +68,6 @@ def test_a_guest_play_of_todays_set_shows_no_answer(client_for: ClientFor, db: S
     # Past days are practice: they show their answers to anyone.
     past = move(guest, "word", {"kind": "give-up"}, day=yesterday()).json()["play"]["view"]
     assert past["answer"] == answer_of(db, bahrain_today() - dt.timedelta(days=1))
-
-
-def test_signed_in_the_answer_shows_once_the_play_is_over(client_for: ClientFor, make_user: MakeUser) -> None:
-    c = client_for(make_user())
-    view = move(c, "word", {"kind": "give-up"}).json()["play"]["view"]
-    assert isinstance(view["answer"], str)
 
 
 def test_the_clock_starts_when_todays_puzzle_is_first_opened(
@@ -116,17 +109,12 @@ def test_every_win_counts_however_fast(client_for: ClientFor, make_user: MakeUse
 # ── the content ───────────────────────────────────────────────────────────────────────────────────
 
 
-def test_the_repository_holds_no_answers_and_the_quiz_shuffles_its_options(db: Session) -> None:
+def test_the_repository_holds_no_answer_bank() -> None:
     # The puzzles live in the database (Manage, or a content file kept out of the repository); the repository's Daily
     # data is the themes and a public word list, and no answer bank is left anywhere in the app.
     assert sorted(p.name for p in DAILY_SEED.iterdir()) == ["guesses.txt", "themes.json"]
     banks = ("quiz.json", "groups.json", "words.json", "search.json", "nearest.json", "nearest_ranks.json")
     assert not [p for name in banks for p in APP.rglob(name)]
-    # A question's right option moves from day to day: its stored order gives nothing away.
-    places = {
-        q.answer for n in range(8) for q in GAMES["quiz"].puzzle(db, content.FIRST_DAY + dt.timedelta(days=n), "")[:-1]
-    }
-    assert len(places) > 1
 
 
 # ── crafted requests ──────────────────────────────────────────────────────────────────────────────

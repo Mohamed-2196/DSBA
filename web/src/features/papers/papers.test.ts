@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { ModuleSummary } from '../../api/types';
+import type { ModuleSummary, PaperChoice } from '../../api/types';
 import {
-  CHOICES,
+  choicesFrom,
   cleanPicks,
   isMine,
   modulesFor,
@@ -26,6 +26,27 @@ const mod = (id: string, year: 1 | 2 | 3): ModuleSummary => ({
   libraryCount: null,
 });
 
+const option = (id: string, label: string | null = null) => ({ id, moduleId: label ? null : id, label });
+
+/** The choices as the grades calculator's rules serve them (GET /modules/choices). */
+const SERVED: PaperChoice[] = [
+  {
+    kind: 'option',
+    year: 2,
+    pick: 1,
+    options: [option('econometrics'), option('information-systems'), option('abstract-maths', 'Abstract Mathematics')],
+  },
+  {
+    kind: 'electives',
+    year: 3,
+    pick: 2,
+    options: ['microeconomics', 'asset-pricing', 'marketing-management', 'further-maths-economists'].map((id) =>
+      option(id),
+    ),
+  },
+];
+const CHOICES = choicesFrom(SERVED);
+
 const catalogue = [
   mod('statistics', 1),
   mod('mathematics', 1),
@@ -38,25 +59,52 @@ const catalogue = [
   mod('marketing-management', 3),
 ];
 
+describe('choicesFrom', () => {
+  it('names each choice, keeps what picks hold and the options with no module page', () => {
+    expect(CHOICES[2]).toEqual({
+      kind: 'option',
+      label: 'Your option',
+      pick: 1,
+      ids: ['econometrics', 'information-systems', 'abstract-maths'],
+      notOnHub: { 'abstract-maths': 'Abstract Mathematics' },
+    });
+    expect(CHOICES[3]?.label).toBe('Your electives');
+    expect(CHOICES[1]).toBeUndefined();
+    expect(choicesFrom(undefined)).toEqual({});
+  });
+});
+
 describe('papersFor', () => {
   it('is every module of the year without picks', () => {
-    expect(papersFor(2, 2, [], catalogue)).toBeNull();
-    expect(papersFor(null, 2, ['econometrics'], catalogue)).toBeNull();
+    expect(papersFor(2, 2, [], catalogue, CHOICES)).toBeNull();
+    expect(papersFor(null, 2, ['econometrics'], catalogue, CHOICES)).toBeNull();
   });
 
   it('keeps only the option picked, with the compulsory modules', () => {
-    expect([...(papersFor(2, 2, ['econometrics'], catalogue) ?? [])]).toEqual([
+    expect([...(papersFor(2, 2, ['econometrics'], catalogue, CHOICES) ?? [])]).toEqual([
       'advanced-stats-inferential',
       'econometrics',
     ]);
     // Abstract Mathematics has no module: both Hub options go
-    expect([...(papersFor(2, 2, ['abstract-maths'], catalogue) ?? [])]).toEqual(['advanced-stats-inferential']);
+    expect([...(papersFor(2, 2, ['abstract-maths'], catalogue, CHOICES) ?? [])]).toEqual([
+      'advanced-stats-inferential',
+    ]);
+  });
+
+  it('follows the rules: a module taken out of the option is one everybody in the year sits', () => {
+    const [y2, y3] = SERVED;
+    const fewer = choicesFrom([{ ...y2, options: y2.options.filter((o) => o.id !== 'information-systems') }, y3]);
+    expect([...(papersFor(2, 2, ['econometrics'], catalogue, fewer) ?? [])]).toEqual([
+      'advanced-stats-inferential',
+      'econometrics',
+      'information-systems',
+    ]);
   });
 
   it('adds papers from other years in your own year only', () => {
-    const mine = papersFor(3, 3, ['statistics', 'microeconomics', 'asset-pricing'], catalogue);
+    const mine = papersFor(3, 3, ['statistics', 'microeconomics', 'asset-pricing'], catalogue, CHOICES);
     expect([...(mine ?? [])]).toEqual(['machine-learning', 'microeconomics', 'asset-pricing', 'statistics']);
-    expect(papersFor(1, 3, ['statistics', 'microeconomics'], catalogue)).toBeNull(); // browsing Year 1
+    expect(papersFor(1, 3, ['statistics', 'microeconomics'], catalogue, CHOICES)).toBeNull(); // browsing Year 1
   });
 });
 
@@ -100,23 +148,23 @@ it('cleanPicks trusts nothing stored', () => {
 });
 
 it('picksSummary', () => {
-  expect(picksSummary(1, [], null)).toBe('every Year 1 module');
-  expect(picksSummary(2, [], null)).toBe('Year 2, option not picked');
-  expect(picksSummary(3, ['statistics'], null)).toBe('Year 3, electives not picked');
-  expect(picksSummary(2, ['econometrics'], new Set(['a', 'b']))).toBe('2 modules');
-  expect(picksSummary(2, ['econometrics'], new Set(['a']))).toBe('1 module');
-  expect(picksSummary(null, [], null)).toBe('not set');
+  expect(picksSummary(1, [], null, CHOICES)).toBe('every Year 1 module');
+  expect(picksSummary(2, [], null, CHOICES)).toBe('Year 2, option not picked');
+  expect(picksSummary(3, ['statistics'], null, CHOICES)).toBe('Year 3, electives not picked');
+  expect(picksSummary(2, ['econometrics'], new Set(['a', 'b']), CHOICES)).toBe('2 modules');
+  expect(picksSummary(2, ['econometrics'], new Set(['a']), CHOICES)).toBe('1 module');
+  expect(picksSummary(null, [], null, CHOICES)).toBe('not set');
 });
 
 it('papersNote says what Home lists and what is left to pick', () => {
-  expect(papersNote(null, [], null)).toBeNull();
-  expect(papersNote(2, [], null)).toEqual({
+  expect(papersNote(null, [], null, CHOICES)).toBeNull();
+  expect(papersNote(2, [], null, CHOICES)).toEqual({
     text: 'Pick your Year 2 option to list only the modules you sit.',
     action: 'Pick your option',
   });
-  expect(papersNote(3, [], null)?.action).toBe('Pick your electives');
-  expect(papersNote(1, [], null)).toEqual({ text: 'Every Year 1 module.', action: 'Change' });
-  expect(papersNote(2, ['econometrics'], new Set(['a', 'b', 'c']))).toEqual({
+  expect(papersNote(3, [], null, CHOICES)?.action).toBe('Pick your electives');
+  expect(papersNote(1, [], null, CHOICES)).toEqual({ text: 'Every Year 1 module.', action: 'Change' });
+  expect(papersNote(2, ['econometrics'], new Set(['a', 'b', 'c']), CHOICES)).toEqual({
     text: 'The 3 modules you sit.',
     action: 'Change',
   });

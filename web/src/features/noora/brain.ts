@@ -366,7 +366,7 @@ function lessonOn(k: Knowledge, d: Distribution, home: IndexedModule | undefined
 /**
  * "How do I find the MGF?" The MGF of the distribution asked about, in the parameters it is written in; the
  * worked Laplace example (the question from the launch film) only when the Laplace distribution is what was
- * asked about; otherwise the definition, and an honest word that there is no worked example (student test ST-3).
+ * asked about; otherwise the definition, and an honest word that there is no worked example.
  * Where to look: the ST2133 chapter on univariate distributions, the lesson on that distribution, the library.
  */
 function aboutTheMgf(k: Knowledge, said: string, photo: boolean): Reply {
@@ -383,7 +383,7 @@ function aboutTheMgf(k: Knowledge, said: string, photo: boolean): Reply {
         to: `/library?module=${encodeURIComponent(m.id)}`,
       },
   ].filter(isRef);
-  // She can't see pictures: she says so before anything else (student test ST-3).
+  // She can't see pictures: she says so before anything else.
   const first = photo ? `${k.script.noPhotos} ` : '';
   if (d?.id === 'laplace')
     return {

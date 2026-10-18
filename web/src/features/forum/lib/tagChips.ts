@@ -1,7 +1,7 @@
 // The tag chips of the list's filter bar. A plain function (ForumPage gives it the counts and the threads on screen).
-import type { ForumTag } from '../types';
+import type { ForumTagOut } from '../../../api/types';
 
-type Tag = Pick<ForumTag, 'id' | 'label'>;
+type Tag = Pick<ForumTagOut, 'id' | 'label'>;
 
 export interface TagChip extends Tag {
   /** how many threads have it (in the current category); undefined while the counts haven't arrived */

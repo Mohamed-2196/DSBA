@@ -591,7 +591,7 @@ export interface paths {
         head?: never;
         /**
          * Update User
-         * @description Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email
+         * @description Suspend or restore an account, or recover one: replace or remove its email
          *     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
          *     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
          *     Recovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding
@@ -748,6 +748,27 @@ export interface paths {
          * @description Every module, in programme order, with its published library count (None while the library is off for you).
          */
         get: operations["list_modules_api_v1_modules_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/modules/choices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paper Choices
+         * @description The choices a student makes inside a year, from the grades calculator's rules: the Year 2 option and the
+         *     electives, each with how many to pick and its options. A student's papers hold what they picked.
+         */
+        get: operations["paper_choices_api_v1_modules_choices_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4754,7 +4775,7 @@ export interface components {
              * @default blank
              * @enum {string}
              */
-            template: "study" | "revision" | "assignment" | "weekly" | "personal" | "blank";
+            template: "study" | "assignment" | "weekly" | "personal" | "blank";
         };
         /**
          * BoardDetail
@@ -4930,7 +4951,7 @@ export interface components {
              * Template
              * @enum {string}
              */
-            template: "study" | "revision" | "assignment" | "weekly" | "personal" | "blank";
+            template: "study" | "assignment" | "weekly" | "personal" | "blank";
             /** Archived */
             archived: boolean;
             /** Columns */
@@ -6101,15 +6122,14 @@ export interface components {
         };
         /**
          * Electives
-         * @description /career/electives: the Year 3 electives side by side, built from the modules and Career Navigator.
+         * @description /career/electives: the Year 3 electives side by side, built from the modules and Career Navigator; how many a
+         *     student takes is the grades calculator's (GET /modules/choices).
          */
         Electives: {
             /** Title */
             title: string;
             /** Intro */
             intro: string;
-            /** Pick */
-            pick: number;
             /** Disclaimer */
             disclaimer: string;
         };
@@ -9256,6 +9276,27 @@ export interface components {
             /** Offset */
             offset: number;
         };
+        /**
+         * PaperChoice
+         * @description A choice a student makes inside a year: `pick` of the options, the Year 2 option or the electives. Their papers
+         *     hold what they picked (GradeOption.paper_id); without a pick, every module of the year counts.
+         */
+        PaperChoice: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "option" | "electives";
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            /** Pick */
+            pick: number;
+            /** Options */
+            options: components["schemas"]["GradeOption"][];
+        };
         /** PaperQuestion */
         PaperQuestion: {
             /**
@@ -11883,6 +11924,7 @@ export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
 export type PageLink = components['schemas']['PageLink'];
 export type PageItemOut = components['schemas']['Page_ItemOut_'];
 export type PageVocabularyOut = components['schemas']['Page_VocabularyOut_'];
+export type PaperChoice = components['schemas']['PaperChoice'];
 export type PaperQuestion = components['schemas']['PaperQuestion'];
 export type PaperQuestionCreate = components['schemas']['PaperQuestionCreate'];
 export type PaperRef = components['schemas']['PaperRef'];
@@ -15256,6 +15298,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModuleSummary"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    paper_choices_api_v1_modules_choices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperChoice"][];
                 };
             };
             /** @description Bad Request */

@@ -20,15 +20,12 @@ import-drive       copy the files of the modules' Google Drive folders into the 
                    files; --pace S: seconds between downloads, default 2; --yes: no question). Safe to run again:
                    it tries skipped and failed files again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
 exam-meta          read the exam year, session, zone and kind of the past papers, reports and solutions the Drive
-                   import brought in, from their names, fill what each lacks, and tidy their titles (--dry-run:
-                   only list them)
+                   import brought in, from their names, and fill what each lacks (--dry-run: only list them)
 text-worker        read the words of each newly published PDF and Word file, for search inside papers; runs until
                    stopped. Several can run side by side.
-extract-texts      read the words of the published files that have none yet (the backfill), then stop (--retry:
-                   read failed and empty files again too; --limit N files)
-make-covers        make the cover (the first page as a small picture) of the published PDF and Word files read
-                   before covers existed, then stop (--limit N files)
-                   (text-worker, extract-texts and make-covers need only the database and the bucket settings)
+extract-texts      read the words (and make the covers) of the published files that have none yet, then stop
+                   (--retry: read failed and empty files again too; --limit N files)
+                   (text-worker and extract-texts need only the database and the bucket settings)
 texts-role         create the text worker's database role, or set its password (DSBA_TEXTS_DB_PASSWORD), with only
                    what the worker needs; production runs it after every migration
 daily-content import FILE   add the Daily puzzles' content from a file kept out of the repository (themes, guess
@@ -274,7 +271,7 @@ def sweep() -> SweepReport:
         for up in stale:
             storage.delete(up.storage_key)  # a pending upload's incoming object may never have arrived: still fine
             db.delete(up)
-        files = sweep_files(db, storage, now)  # library files rejected or removed a week ago (security review SEC-14)
+        files = sweep_files(db, storage, now)  # library files rejected or removed a week ago
         old_codes = delete(OtpChallenge).where(OtpChallenge.created_at < now - KEEP_CHALLENGES)
         challenges = cast(CursorResult[Any], db.execute(old_codes)).rowcount
         ended = now - SESSION_RETENTION
@@ -354,7 +351,7 @@ def cmd_texts_role(_: argparse.Namespace) -> int:
 
 
 def cmd_extract_texts(args: argparse.Namespace) -> int:
-    """The backfill: reads every published file without text, printing how it went."""
+    """Reads every published file without text, printing how it went."""
     from app.models import TextStatus
     from app.services import paper_text
 
@@ -371,24 +368,6 @@ def cmd_extract_texts(args: argparse.Namespace) -> int:
         f"read {sum(counts.values())} file(s): {counts[TextStatus.done]} with text, "
         f"{counts[TextStatus.empty]} without (scans), {counts[TextStatus.failed]} failed"
     )
-    return 0
-
-
-def cmd_make_covers(args: argparse.Namespace) -> int:
-    """The covers' backfill: the files whose text was read before covers existed."""
-    from app.services import paper_text
-
-    logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
-    sessions, storage = texts_worker()
-    with sessions() as db:
-        todo = paper_text.without_cover(db, args.limit)
-    print(f"{len(todo)} file(s) without a cover")
-    made = 0
-    for item in todo:
-        with sessions() as db:
-            made += paper_text.make_cover(db, item, storage)
-            db.commit()
-    print(f"made {made} cover(s); {len(todo) - made} file(s) gave none")
     return 0
 
 
@@ -439,9 +418,8 @@ def cmd_import_drive(args: argparse.Namespace) -> int:
 
 
 def cmd_exam_meta(args: argparse.Namespace) -> int:
-    """Imported papers, reports and VLE files get the exam details their names give (backfill_exam_meta), and
-    imported files the tidy titles (tidy_imported_titles)."""
-    from app.services.drive_import import backfill_exam_meta, tidy_imported_titles
+    """Imported papers, reports and VLE files get the exam details their names give (backfill_exam_meta)."""
+    from app.services.drive_import import backfill_exam_meta
 
     with get_sessionmaker()() as db:
         result = backfill_exam_meta(db, dry_run=args.dry_run)
@@ -449,10 +427,6 @@ def cmd_exam_meta(args: argparse.Namespace) -> int:
             print(f"  {line}")
         verb = "Would change" if args.dry_run else "Changed"
         print(f"{verb} {len(result.changed)} of {result.checked} imported papers, reports and VLE files.")
-        titles = tidy_imported_titles(db, dry_run=args.dry_run)
-        for line in titles:
-            print(f"  {line}")
-        print(f"{'Would tidy' if args.dry_run else 'Tidied'} {len(titles)} imported titles.")
         if not args.dry_run:
             db.commit()
     return 0
@@ -632,9 +606,6 @@ def main(argv: list[str] | None = None) -> int:
     et.add_argument("--retry", action="store_true", help="read failed and empty files again too")
     et.add_argument("--limit", metavar="N", type=_positive, default=None, help="read at most N files this run")
     et.set_defaults(fn=cmd_extract_texts)
-    mc = sub.add_parser("make-covers")
-    mc.add_argument("--limit", metavar="N", type=_positive, default=None, help="at most N files this run")
-    mc.set_defaults(fn=cmd_make_covers)
     sub.add_parser("texts-role").set_defaults(fn=cmd_texts_role)
     dc = sub.add_parser("daily-content")
     dc.add_argument("action", choices=["import", "export"])

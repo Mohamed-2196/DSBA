@@ -18,6 +18,10 @@ export function isZone(raw: unknown): raw is Zone {
   return typeof raw === 'string' && (ZONES as readonly string[]).includes(raw);
 }
 
+export function isExamSession(raw: unknown): raw is ExamSession {
+  return typeof raw === 'string' && (SESSIONS as readonly string[]).includes(raw);
+}
+
 /** 'Zone A', or 'RTC' for the paper set for Recognised Teaching Centres. */
 export function zoneLabel(zone: Zone): string {
   return zone === 'RTC' ? 'RTC' : `Zone ${zone}`;

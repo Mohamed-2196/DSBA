@@ -951,24 +951,3 @@ def backfill_exam_meta(db: Session, *, dry_run: bool = False) -> ExamBackfill:
         if not dry_run:
             item.kind, item.exam_year, item.exam_session, item.zone = after
     return out
-
-
-def tidy_imported_titles(db: Session, *, dry_run: bool = False) -> list[str]:
-    """Imported files whose title is still their file name without its extension get the tidy title
-    (exam_names.tidy_title); a title a rep changed stays. -> 'module · old -> new' per change. The caller commits."""
-    changed: list[str] = []
-    items = db.scalars(
-        select(LibraryItem)
-        .where(LibraryItem.import_key.is_not(None), LibraryItem.file_name.is_not(None))
-        .order_by(LibraryItem.module_id, LibraryItem.title)
-    ).all()
-    for item in items:
-        name = item.file_name or ""
-        raw = clip(name.rsplit(".", 1)[0].strip() or name, TITLE_MAX)
-        tidy = clip(exam_names.tidy_title(name), TITLE_MAX)
-        if item.title != raw or tidy == raw:
-            continue
-        changed.append(f"{item.module_id or 'no module'} \u00b7 {item.title} -> {tidy}")
-        if not dry_run:
-            item.title = tidy
-    return changed

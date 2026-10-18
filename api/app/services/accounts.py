@@ -94,8 +94,7 @@ from app.schemas.notifications import NotificationKind
 from app.services import access, otp, sessions
 from app.services.audit import record
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
-from app.services.module_editor import link_of
-from app.services.modules import student_lesson, student_lessons
+from app.services.modules import link_of, student_lesson, student_lessons
 from app.services.outbox import ACCOUNT_NOTICE, ANSWER, answer_of, wants
 from app.services.storage import Storage
 
