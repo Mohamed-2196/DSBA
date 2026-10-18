@@ -1,21 +1,13 @@
 // Notes (R-5): switched on for the run, a student writes a note that saves as she types, finds it by searching, adds
 // a quick note on a lesson, and deletes both. A guest is asked to sign in. Notes end switched off, as they start.
 import { expect, test } from './fixtures';
-import { api, personaContext, setSwitch } from './support';
+import { api, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'notes', 'everyone');
-  await ctx.close();
-});
+test.beforeAll(async ({ browser }) => switchOn(browser, 'notes', ['notes']));
 
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'notes', 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'notes'));
 
 test('a student writes a note, finds it and deletes it', async ({ sara, run }) => {
   const title = `Moments [e2e ${run.tag}]`;

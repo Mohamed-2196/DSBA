@@ -12,9 +12,9 @@ test('a student hides and moves Home blocks, and it is saved to the account', as
 
   await ali.locator('[data-hub="home-customize-open"]').click();
   const dialog = ali.getByRole('dialog', { name: 'Customise Home' });
-  const comingUp = dialog.getByRole('switch', { name: 'Coming up' });
-  await comingUp.click(); // the account's preferences change a tick after the click (optimistic update)
-  await expect(comingUp).not.toBeChecked();
+  const upNext = dialog.getByRole('switch', { name: 'Up next' });
+  await upNext.click(); // the account's preferences change a tick after the click (optimistic update)
+  await expect(upNext).not.toBeChecked();
   await dialog.getByRole('button', { name: 'Move My modules up' }).click();
   await dialog.getByRole('button', { name: 'Done' }).click();
   await expect(ali.locator('.home-blocks [data-block="coming_up"]')).toHaveCount(0);

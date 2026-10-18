@@ -211,10 +211,9 @@ test('Sara stars a file and finds it under Starred; search and filters find it',
   await expect(results.filter({ hasText: t.ipynb })).toHaveCount(0);
 });
 
-test('ST-1: a starred file from another year shows under Starred', async ({ ali }) => {
+test('a starred file from another year shows under Starred', async ({ ali }) => {
   // A Year 2 file someone else shared (Ali is Year 1, and his own uploads show under "Your uploads" anyway).
-  const other = (await api<{ items: Item[] }>(ali, 'GET', '/api/v1/library/items?year=2&source=link&limit=1')).body
-    .items[0];
+  const other = (await api<{ items: Item[] }>(ali, 'GET', '/api/v1/library/items?year=2&limit=1')).body.items[0];
   expect((await api(ali, 'PUT', `/api/v1/library/items/${other.id}/star`)).status).toBe(200);
   await ali.goto('/library?starred=1');
   // Starred is Ali's own list: it covers every year unless he picks one.
@@ -268,7 +267,7 @@ test('D9: a photo of notes is checked, reviewed and shown on its page', async ({
   expect(shown.headers()['content-disposition']).toMatch(/^inline/);
 });
 
-test('ST-14: two publishes at once tell the uploader once', async ({ rep, ali, run }) => {
+test('two publishes at once tell the uploader once', async ({ rep, ali, run }) => {
   // The CSV the rep turned down earlier: two publishes sent together, as a double click sends them.
   const csv = (
     await api<{ items: Item[] }>(ali, 'GET', `/api/v1/library/items?mine=true&q=${run.tag}`)

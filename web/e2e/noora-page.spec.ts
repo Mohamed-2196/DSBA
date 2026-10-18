@@ -3,23 +3,13 @@
 // and carrying conversations over from Mini Noora.
 import type { Page, Request } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { personaContext, setSwitch } from './support';
+import { personaContext, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const admin = await ctx.newPage();
-  await setSwitch(admin, 'noora.ai', 'everyone');
-  await ctx.close();
-});
+test.beforeAll(async ({ browser }) => switchOn(browser, 'noora-page', ['noora.ai']));
 
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const admin = await ctx.newPage();
-  await setSwitch(admin, 'noora.ai', 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'noora-page'));
 
 const sse = (...events: object[]) => events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join('');
 
@@ -73,14 +63,14 @@ test('/noora welcomes the student, starter cards fill the composer, and answers 
   await expect(page.locator('.nr-code')).toBeVisible();
 
   // Conversation appears in the sidebar
-  await expect(page.locator('[data-hub="noora-sidebar-chat"]')).toHaveCount(1);
+  await expect(page.locator('[data-hub="noora-chat-item"]')).toHaveCount(1);
 
   // New chat resets to welcome view
-  await page.getByRole('button', { name: 'New chat' }).click();
+  await page.locator('[data-hub="noora-page-new"]').click();
   await expect(page.getByRole('heading', { name: /What can I help with/ })).toBeVisible();
 
   // Clicking the saved chat restores it
-  await page.locator('[data-hub="noora-sidebar-chat"]').first().click();
+  await page.locator('[data-hub="noora-chat-open"]').first().click();
   await expect(page.locator('[data-hub="noora-message"][data-from="me"]')).toContainText('Explain');
 
   await ctx.close();

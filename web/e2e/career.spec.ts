@@ -1,5 +1,5 @@
-// Manage → Career Navigator (holders of career.edit): add/edit employer, preview changes,
-// save with versioning, verify students see it on /career, and check activity log.
+// Manage → Career Navigator (holders of career.edit): add an employer, preview the change, save it, see it on
+// /career as a student and in the activity log. Nothing is kept: the page is put back as it was.
 import { expect, test } from './fixtures';
 import { api } from './support';
 
@@ -15,28 +15,32 @@ test('a career editor edits Career Navigator, previews it, and students see the 
 
   try {
     await admin.goto('/manage?tab=career');
-    await expect(admin.getByRole('heading', { name: 'Career Navigator', level: 3 })).toBeVisible();
+    await expect(admin.getByRole('heading', { name: 'Career Navigator', level: 2 })).toBeVisible();
 
     // The sections exist
     await expect(admin.getByRole('button', { name: /Employers/i })).toBeVisible();
     await expect(admin.getByRole('button', { name: /Tracks/i })).toBeVisible();
     await expect(admin.getByRole('button', { name: /Roles/i })).toBeVisible();
 
-    // Add an employer
+    // Add an employer: the new one opens for editing. Its name goes last: the employer takes its id from the name
+    // when the name loses the focus (see the next test).
     await admin.getByRole('button', { name: 'Add an employer' }).click();
-    const nameInput = admin.getByRole('textbox', { name: 'Name', exact: true }).last();
-    await nameInput.fill(employerName);
-    const monoInput = admin.getByRole('textbox', { name: 'Initials', exact: true }).last();
-    await monoInput.fill('E2E');
-    const sectorInput = admin.getByRole('textbox', { name: 'Sector', exact: true }).last();
-    await sectorInput.fill('Technology');
-    const whyInput = admin.getByRole('textbox', { name: 'Why it’s here', exact: true }).last();
-    await whyInput.fill('Leading technology employer for e2e test.');
+    const added = admin.locator('[data-item-id]').filter({ has: admin.locator('button[aria-expanded="true"]') });
+    await added.getByRole('textbox', { name: 'Initials', exact: true }).fill('E2E');
+    await added.getByRole('combobox', { name: 'Sector', exact: true }).fill('Technology'); // a box with suggestions
+    await added
+      .getByRole('textbox', { name: 'Why it’s here', exact: true })
+      .fill('Leading technology employer for e2e test.');
+    await added.getByRole('textbox', { name: 'Its own page', exact: true }).fill('https://example.com/careers');
+    await added.getByRole('textbox', { name: 'Name', exact: true }).fill(employerName);
 
     // Preview drawer opens and shows the employer card
     await admin.getByRole('button', { name: 'Preview' }).click();
-    await expect(admin.getByRole('dialog', { name: 'Preview' })).toBeVisible();
-    await expect(admin.getByRole('dialog', { name: 'Preview' }).getByText(employerName)).toBeVisible();
+    const preview = admin.getByRole('dialog', { name: 'Preview' });
+    await expect(preview).toBeVisible();
+    // The page shows the first employers; the new one is last.
+    await preview.getByRole('button', { name: /^Show all \d+ employers$/ }).click();
+    await expect(preview.getByRole('heading', { name: employerName })).toBeVisible();
     await admin.getByRole('button', { name: 'Close' }).click();
 
     // Save changes
@@ -45,7 +49,7 @@ test('a career editor edits Career Navigator, previews it, and students see the 
 
     // Students see the new employer on /career
     await sara.goto('/career?all=1');
-    await expect(sara.getByText(employerName)).toBeVisible();
+    await expect(sara.getByRole('heading', { name: employerName })).toBeVisible();
 
     // Manage Activity log records the update
     await admin.goto('/manage?tab=activity');
@@ -60,4 +64,18 @@ test('a career editor edits Career Navigator, previews it, and students see the 
       });
     }
   }
+});
+
+test('typing an employer’s name and moving on to its initials keeps them', async ({ admin }) => {
+  test.fail(
+    true,
+    'the employer takes a new id from its name when the name loses the focus and is drawn again, so the box the editor moved to loses the focus and what is typed next',
+  );
+  await admin.goto('/manage?tab=career');
+  await admin.getByRole('button', { name: 'Add an employer' }).click();
+  const added = admin.locator('[data-item-id]').filter({ has: admin.locator('button[aria-expanded="true"]') });
+  await added.getByRole('textbox', { name: 'Name', exact: true }).fill('E2E Tab Employer');
+  await admin.keyboard.press('Tab');
+  await admin.keyboard.type('ET');
+  await expect(added.getByRole('textbox', { name: 'Initials', exact: true })).toHaveValue('ET', { timeout: 3_000 });
 });

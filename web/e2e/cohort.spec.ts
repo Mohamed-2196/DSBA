@@ -2,26 +2,17 @@
 // student"; Sara follows his thread and hears when it is answered; a rep's poll takes one vote from Sara and shows
 // her the counts. The switches end off, as they start.
 import { expect, test } from './fixtures';
-import { api, personaContext, remember, setSwitch } from './support';
+import { api, remember, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-const SWITCHES = ['forum.anonymous', 'forum.follow', 'newsletter.polls'] as const;
 const bahrainToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date());
 
-test.beforeAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const page = await ctx.newPage();
-  for (const s of SWITCHES) await setSwitch(page, s, 'everyone');
-  await ctx.close();
-});
+test.beforeAll(async ({ browser }) =>
+  switchOn(browser, 'cohort', ['forum.anonymous', 'forum.follow', 'newsletter.polls']),
+);
 
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const page = await ctx.newPage();
-  for (const s of SWITCHES) await setSwitch(page, s, 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'cohort'));
 
 test('Ali asks without his name; Sara follows and hears about the answer', async ({ ali, sara, rep, run }) => {
   const title = `Is this too basic to ask? [e2e ${run.tag}]`;

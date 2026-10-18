@@ -1,28 +1,16 @@
 // Mini Noora's AI answers (R-6): switched on for the run. The stack has no Claude key, so the first test proves the
-// fallback for real: she answers from her script with a notice. The others stand in for Claude at the network
+// fallback for real: she answers from her script and says so. The others stand in for Claude at the network
 // (page.route) and check what the web app sends: the page, the open module and lesson, and the note only when the
-// student ticks "Include my note". The switches end as they start (off).
+// student ticks "Include my note". The switches end as they were.
 import type { Page, Request } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { api, personaContext, setSwitch } from './support';
+import { api, personaContext, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const admin = await ctx.newPage();
-  await setSwitch(admin, 'noora.ai', 'everyone');
-  await setSwitch(admin, 'notes', 'everyone');
-  await ctx.close();
-});
+test.beforeAll(async ({ browser }) => switchOn(browser, 'noora-ai', ['noora.ai', 'notes']));
 
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const admin = await ctx.newPage();
-  await setSwitch(admin, 'noora.ai', 'off');
-  await setSwitch(admin, 'notes', 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'noora-ai'));
 
 const sse = (...events: object[]) => events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join('');
 
@@ -59,12 +47,12 @@ test('without a Claude key she answers from her script, with a notice', async ({
   const page = await ctx.newPage();
   await page.goto('/');
   const chat = await openNoora(page);
+  // Her status says the AI is off (no key): she says so before the first question, and her header says so after.
+  await expect(chat.locator('[data-hub="noora-ai-paused"]')).toContainText('My AI answers aren’t available right now');
   await chat.getByLabel('Message Mini Noora').fill('When is my next exam?');
   await chat.getByLabel('Message Mini Noora').press('Enter');
-  // Her status says the AI is off (no key), so she says so above the chat; an answer that was already on its way
-  // when the status came carries the notice instead. Either way the student is told, and she answers.
   await expect(chat.locator('[data-hub="noora-message"][data-from="noora"]').last()).toContainText('Your next exam');
-  await expect(chat).toContainText('from my script');
+  await expect(chat.getByText('Script answers only')).toBeVisible();
   await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('stays in this browser');
   await ctx.close();
 });
@@ -87,7 +75,7 @@ test('her answer streams in with a card, and she is told the page and the lesson
     'Your next exam is on the calendar.',
   );
   await expect(chat.locator('[data-hub="noora-refs"]').getByRole('link', { name: /calendar/ })).toBeVisible();
-  await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('28 of 30 left today');
+  await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('28 of 30 questions left today');
   const body: unknown = asked[0]?.postDataJSON();
   expect(body).toMatchObject({ question: 'What is this lesson about?', moduleId, lessonId, note: null });
   await ctx.close();
@@ -102,7 +90,10 @@ test('the open note goes only when the student ticks Include my note, for one qu
   await page.locator('[data-hub="note-text"]').click();
   await page.keyboard.type('M(t) = E[e^{tX}]');
   await expect(page.locator('[data-hub="note-status"]')).toContainText('Saved in');
-  const chat = await openNoora(page);
+  // A note fills the page, so she waits out of sight: her shortcut brings her with her chat.
+  await page.keyboard.press('Control+/');
+  const chat = page.locator('[data-hub="noora-chat"]');
+  await expect(chat).toBeVisible();
   const include = chat.locator('[data-hub="noora-include-note"]');
   await include.click(); // the chip is the label; its checkbox is visually hidden
   await expect(include.getByRole('checkbox')).toBeChecked();
@@ -117,7 +108,8 @@ test('the open note goes only when the student ticks Include my note, for one qu
   await chat.getByLabel('Message Mini Noora').press('Enter');
   await expect.poll(() => asked.length).toBe(2);
   expect(asked[1]?.postDataJSON()).toMatchObject({ note: null });
-  // The note is deleted again.
+  // The note is deleted again (her card closed first: it sits over the note's header).
+  await chat.getByRole('button', { name: 'Close chat' }).click();
   await page.locator('[data-hub="note-more"]').click();
   await page.getByRole('menuitem', { name: 'Delete note' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();

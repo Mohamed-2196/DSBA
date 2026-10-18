@@ -123,7 +123,7 @@ test('a rep adds, edits and deletes an event; students see each change', async (
   expect(await feed()).not.toContain(`UID:${id}@`); // other events of this run stay in the feed
 });
 
-test('ST-2: an event for a Year 2 module added with the default cohort is a Year 2 event', async ({ rep, run }) => {
+test('an event for a Year 2 module added with the default cohort is a Year 2 event', async ({ rep, run }) => {
   const id = await addEvent(rep, {
     title: `ST2133 drop-in [e2e ${run.tag}]`,
     date: inDays(13),

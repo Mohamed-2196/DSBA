@@ -1,28 +1,19 @@
 // A past question a day: with an Econometrics exam tomorrow and ten tagged questions on its paper, Sara
-// (Year 2) finds the day's question on Home, opens it at its page and keeps the paper on her board.
-// Both switches arrive off, so the spec switches them on and back off.
+// (Year 2) adds the day's question to Home, opens it at its page and keeps the paper on her board. The spec switches
+// its features on and puts them back as it found them.
 import { expect, test } from './fixtures';
-import { api, makeFiles, personaContext, remember, setSwitch } from './support';
+import { api, makeFiles, remember, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-const SWITCHES = ['library.questions', 'library.daily-question', 'board'] as const;
 const inDays = (n: number) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date(Date.now() + n * 86_400_000));
 
-test.beforeAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const page = await ctx.newPage();
-  for (const f of SWITCHES) await setSwitch(page, f, 'everyone');
-  await ctx.close();
-});
+test.beforeAll(async ({ browser }) =>
+  switchOn(browser, 'daily-question', ['library.questions', 'library.daily-question', 'board']),
+);
 
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const page = await ctx.newPage();
-  for (const f of SWITCHES) await setSwitch(page, f, 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'daily-question'));
 
 test('Sara opens the day’s past question from Home and keeps its paper on her board', async ({ sara, rep, run }) => {
   const files = makeFiles(run.tag);
@@ -68,7 +59,13 @@ test('Sara opens the day’s past question from Home and keeps its paper on her 
     expect(exam.status).toBe(201);
     remember('events', exam.body.id);
 
+    // It isn't on Home by default: Sara adds it in Customise Home.
     await sara.goto('/');
+    await sara.locator('[data-hub="home-customize-open"]').click();
+    const customise = sara.getByRole('dialog', { name: 'Customise Home' });
+    await customise.getByRole('switch', { name: 'Daily question' }).click();
+    await expect(customise.getByRole('switch', { name: 'Daily question' })).toBeChecked();
+    await customise.getByRole('button', { name: 'Done' }).click();
     const card = sara.locator('[data-hub="daily-question"]');
     await expect(card.getByRole('heading', { name: 'A past question a day' })).toBeVisible();
     await expect(card).toContainText('May 2024, Zone A');
@@ -78,5 +75,6 @@ test('Sara opens the day’s past question from Home and keeps its paper on her 
     await expect(sara).toHaveURL(new RegExp(`/library/${paper.slug}\\?page=1$`));
   } finally {
     await api(rep, 'DELETE', `/api/v1/library/items/${paper.id}`);
+    await api(sara, 'PATCH', '/api/v1/me', { preferences: { homeBlocks: null } });
   }
 });

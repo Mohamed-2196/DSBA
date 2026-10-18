@@ -1,10 +1,12 @@
-// Boards (R-4): they arrive switched off. With them on, a student starts a board from a template, adds a card, moves
-// it with the card's menu, adds an exam from the calendar and opens it on the board. The switch goes back off
-// afterwards.
+// Boards (R-4): off, a student is told so. With them on, a student starts a board from a template, adds a card,
+// moves it with the card's menu, adds an exam from the calendar and opens it on the board. The switch ends as it was.
 import { expect, test } from './fixtures';
-import { api, personaContext, setSwitch } from './support';
+import { api, setSwitch, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
+
+test.beforeAll(async ({ browser }) => switchOn(browser, 'board', ['board']));
+test.afterAll(async ({ browser }) => switchBack(browser, 'board'));
 
 interface Boards {
   boards: { id: string; archived: boolean; columns: { id: string; name: string }[] }[];
@@ -61,11 +63,4 @@ test('a student adds a card, moves it, and adds an exam from the calendar', asyn
   // "On your board" opens the board with the exam's card open.
   await expect(sara).toHaveURL(/\/board\?board=[^&]+&card=/);
   await expect(sara.locator('[data-hub="board-card-drawer"]')).toBeVisible();
-});
-
-test.afterAll(async ({ browser }) => {
-  // Switched back off for the rest of the run: the board arrives off.
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'board', 'off');
-  await ctx.close();
 });

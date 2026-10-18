@@ -1,8 +1,8 @@
 // Suggested videos: Sara suggests a video for a Year 3 module with no lessons yet; an admin (who holds
-// content.edit) adds it as a lesson in a new chapter from Manage; Sara is told, and the lesson is there. The feature
-// arrives switched off, and is switched off again afterwards.
+// content.edit) adds it as a lesson in a new chapter from Manage; Sara is told, and the lesson is there. The switch
+// ends as it was.
 import { expect, test } from './fixtures';
-import { api, personaContext, removeModule, setSwitch } from './support';
+import { api, removeModule, switchBack, switchOn } from './support';
 
 interface Note {
   kind: string;
@@ -10,7 +10,7 @@ interface Note {
   url: string | null;
 }
 
-test('a student suggests a video and a content editor adds it as a lesson', async ({ admin, sara, run }) => {
+test('a student suggests a video and a content editor adds it as a lesson', async ({ admin, browser, sara, run }) => {
   const id = `e2e-suggest-${run.tag}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-');
   const title = `Gradient descent [e2e ${run.tag}]`;
   const made = await api(admin, 'POST', '/api/v1/content/modules', {
@@ -21,7 +21,7 @@ test('a student suggests a video and a content editor adds it as a lesson', asyn
   });
   expect(made.status).toBe(201);
   try {
-    await setSwitch(admin, 'video_suggestions', 'everyone');
+    await switchOn(browser, 'suggestions', ['video_suggestions']);
 
     await sara.goto(`/modules/${id}?tab=lessons`);
     const panel = sara.locator('[data-hub="suggest-video"]');
@@ -54,9 +54,4 @@ test('a student suggests a video and a content editor adds it as a lesson', asyn
   }
 });
 
-test.afterAll(async ({ browser }) => {
-  // Switched back off for the rest of the run: suggestions arrive off.
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'video_suggestions', 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'suggestions'));

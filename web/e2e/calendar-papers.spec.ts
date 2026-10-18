@@ -1,4 +1,4 @@
-// Your papers and dates: Sara (Year 2) picks Econometrics as her option and the
+// Your papers and dates: Sara (Year 2) picks Econometrics as her option on Home and the
 // calendar leaves out Information Systems' dates; an exam shows its length, rules and source; a careers date shows
 // on its employer's card in Career Navigator.
 import { expect, test } from './fixtures';
@@ -33,6 +33,8 @@ test('a Year 2 student picks her option and the calendar follows it', async ({ r
 
   await sara.goto('/calendar');
   await expect(sara.getByText(`IS mock ${tag}`).first()).toBeVisible();
+  // She picks her option from Home's "My modules".
+  await sara.goto('/');
   await sara.locator('[data-hub="papers-open"]').first().click();
   const dialog = sara.locator('[data-hub="papers-dialog"]');
   await dialog
@@ -43,6 +45,8 @@ test('a Year 2 student picks her option and the calendar follows it', async ({ r
   await expect
     .poll(async () => (await api<{ papers: string[] }>(sara, 'GET', '/api/v1/me')).body.papers)
     .toEqual(['econometrics']);
+  await sara.goto('/calendar');
+  await expect(sara.getByText(`Econometrics exam ${tag}`).first()).toBeVisible();
   await expect(sara.getByText(`IS mock ${tag}`)).toHaveCount(0);
 
   await sara.goto(`/calendar?event=${encodeURIComponent(em.body.id)}`);

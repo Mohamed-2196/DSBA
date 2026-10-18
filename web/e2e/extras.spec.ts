@@ -51,7 +51,7 @@ test('Mini Noora answers with the date of an exam and where to look', async ({ b
   await expect(chat.locator('[data-hub="noora-suggestion"]').first()).toBeVisible();
   await chat.getByLabel('Message Mini Noora').fill('When is my EC1002 exam?');
   await chat.getByLabel('Message Mini Noora').press('Enter');
-  await expect(chat).toContainText(/The next EC1002 Economics exam is on \w+day \d+ \w+/);
+  await expect(chat).toContainText(/The next EC1002 Economics exam is (on|today,|tomorrow,) \w+day \d+ \w+/);
   // Her links open the page and, on a laptop, her card stays open beside her.
   await chat
     .getByRole('link')
@@ -83,10 +83,16 @@ test('Mini Noora can be carried to the other edge, and ⌘/ or Ctrl+/ opens her 
   await page.mouse.down();
   for (let i = 1; i <= 20; i++) await page.mouse.move(start.x + 20 - i * 40, start.y + 50 - i * 10);
   await page.mouse.up();
-  // Let go left of the middle: she snaps to the left edge, and stays there after a reload.
-  await expect.poll(async () => (await her.boundingBox())?.x).toBeLessThan(20);
+  // Let go left of the middle: she goes to the lane at the page's left edge, beside the sidebar, and stays there
+  // after a reload.
+  const rail = (await page.locator('[data-hub="sidebar"]').boundingBox())?.width ?? 0;
+  const inLeftLane = async () => {
+    const x = (await her.boundingBox())?.x ?? Infinity;
+    return x >= rail && x < rail + 40;
+  };
+  await expect.poll(inLeftLane).toBe(true);
   await page.reload();
-  await expect.poll(async () => (await her.boundingBox())?.x).toBeLessThan(20);
+  await expect.poll(inLeftLane).toBe(true);
   await page.keyboard.press('Control+/');
   await expect(page.locator('[data-hub="noora-chat"]')).toBeVisible();
   await expect(page.getByLabel('Message Mini Noora')).toBeFocused();

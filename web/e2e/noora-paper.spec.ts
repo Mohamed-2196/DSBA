@@ -3,21 +3,13 @@
 // it is taken off. Claude is stood in for at the network (the stack has no key). The switch ends as it starts (off).
 import type { Request } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { api, personaContext, setSwitch } from './support';
+import { api, personaContext, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'noora.ai', 'everyone');
-  await ctx.close();
-});
+test.beforeAll(async ({ browser }) => switchOn(browser, 'noora-paper', ['noora.ai']));
 
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'noora.ai', 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'noora-paper'));
 
 const sse = (...events: object[]) => events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join('');
 

@@ -2,7 +2,7 @@
 // suspend him (he reads but can't post) and lift it; see it all under Activity.
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { api, personaContext, readRun, remember, roleIdBySlug } from './support';
+import { api, freshStaffSession, personaContext, readRun, remember, roleIdBySlug } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -13,6 +13,9 @@ async function findAli(admin: Page, email: string) {
   await expect(row).toBeVisible();
   return row;
 }
+
+// Roles and suspensions need a recent sign-in, and the admin's session was made when the run started.
+test.beforeEach(async ({ admin }) => freshStaffSession(admin, 'admin'));
 
 // Whatever happens, Ali ends as a plain, active student for the specs that follow.
 test.afterAll(async ({ browser }) => {

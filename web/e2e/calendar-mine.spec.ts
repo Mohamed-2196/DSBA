@@ -22,7 +22,7 @@ test('a student adds their own weekly event, sees it on the calendar and Home, e
   await sara.locator('[data-hub="calendar-mine-add"]').click();
   const form = sara.getByRole('dialog');
   await form.getByLabel('Title').fill(title);
-  await form.getByLabel('Day').fill(inDays(1));
+  await form.getByRole('textbox', { name: 'Day', exact: true }).fill(inDays(1));
   await form.getByLabel('Starts').fill('18:00');
   await form.getByLabel('Ends').fill('19:30');
   await form.getByLabel('Repeat').selectOption('weekly');
