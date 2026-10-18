@@ -6,6 +6,7 @@ import { useModules } from '../../state/modules';
 import { useHelpBelow } from './api';
 import { ModuleTag, PlaceBadge } from './components/ThreadBits';
 import { yearsBelow } from './lib/helpBelow';
+import { useTaxonomy } from './lib/taxonomy';
 import './components/forum.css';
 import './HotThreads.css';
 
@@ -20,9 +21,11 @@ export function HelpBelow() {
   const years = status === 'signed-in' ? yearsBelow(normalizeYear(me?.year)) : [];
   const on = featureOn('forum') && featureOn('forum.help-below') && years.length > 0;
   const below = useHelpBelow({ years, enabled: on });
+  const { categoryForYear } = useTaxonomy();
   if (!on || !below.data?.length) return null;
   const who = years.length > 1 ? 'Years 1 and 2' : 'Year 1';
-  const all = years.length > 1 ? '/forum?status=no-replies&sort=new' : '/forum?cohort=year-1&status=no-replies&sort=new';
+  const firstYears = years.length > 1 ? null : categoryForYear(1);
+  const all = firstYears ? `/forum?cohort=${firstYears}&status=no-replies&sort=new` : '/forum?status=no-replies&sort=new';
   return (
     <PageSection className="home-sec home-sec--below" aria-labelledby="home-below" data-hub="help-below">
       <SectionHeader

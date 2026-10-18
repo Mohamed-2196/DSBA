@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import type { ForumMeta } from '../../../api/types';
 import { useForumMeta } from '../api';
-import type { CategoryId, ForumCategory, ForumGuideline, ForumTag, ForumTip } from '../types';
+import type { CategoryId, ForumCategory, ForumGuideline, ForumIcon, ForumTag, ForumTip } from '../types';
 
 export interface Taxonomy {
   /** the categories offered, in order (retired ones left out) */
@@ -32,6 +32,16 @@ export function looksLikeId(v: string | null | undefined): v is string {
 }
 
 const MAX_TAGS = 3;
+
+/** How a thread's place shows on its row: its category's short name, in the year's colour for a year's category, or
+ *  with the category's picture for a category for every year. */
+export type Place = { year: number; label: string } | { year: null; label: string; icon: ForumIcon };
+
+/** The place of a thread in `category`, or null while the categories haven't loaded. */
+export function placeOf(category: ForumCategory | null): Place | null {
+  if (!category) return null;
+  return category.year == null ? { year: null, label: category.short, icon: category.icon ?? 'chat' } : { year: category.year, label: category.short };
+}
 
 /** The taxonomy from GET /forum/meta; empty (and not ready) before it has loaded. */
 export function taxonomyFrom(meta: ForumMeta | undefined): Taxonomy {

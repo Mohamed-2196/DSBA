@@ -161,6 +161,15 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    # Threads in a category or with a tag made since go back to the first ones: General, and no such tag.
+    first = sa.bindparam("first", [c[0] for c in CATEGORIES], expanding=True)
+    op.execute(sa.text("UPDATE forum_threads SET category = 'general' WHERE category NOT IN :first").bindparams(first))
+    op.execute(
+        sa.text(
+            "UPDATE forum_threads SET tags = ARRAY(SELECT t FROM unnest(tags) AS t WHERE t = ANY(:kept)) "
+            "WHERE NOT tags <@ CAST(:kept AS varchar[])"
+        ).bindparams(kept=[t[0] for t in TAGS])
+    )
     op.execute("UPDATE content_docs SET data = data - 'intro' - 'employersNote' WHERE key = 'career'")
     op.execute(
         "UPDATE content_docs SET data = data - 'homeBlocks' - 'tour' - 'searchNicknames' - 'searchSuggestions' "

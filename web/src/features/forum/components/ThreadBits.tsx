@@ -1,11 +1,12 @@
 // Small presentational pieces shared by rows, the thread page and the public widgets.
 import type { CSSProperties, ReactNode } from 'react';
-import { ChatCircle, ChatsCircle, CheckCircle, UsersThree } from '@phosphor-icons/react';
+import { ChatCircle, CheckCircle } from '@phosphor-icons/react';
 import type { ModuleSummary, ThreadSummary, UserPublic } from '../../../api/types';
 import { Badge, CohortBadge, Highlight, cx } from '../../../ui';
 import { cohortTextColor } from '../../../state';
 import { roleFlair } from '../lib/authors';
-import { useTaxonomy } from '../lib/taxonomy';
+import { placeOf, useTaxonomy } from '../lib/taxonomy';
+import { FORUM_ICONS } from './forumIcons';
 import { RollingNumber } from './RollingNumber';
 
 /** Module as a typographic object: the unit code in its cohort colour, then the short name. */
@@ -19,23 +20,20 @@ export function ModuleTag({ module, showName = true, className }: { module: Modu
   );
 }
 
-/** Where the thread lives: the cohort (Year 1/2/3), or Study group / General. */
-export function PlaceBadge({ thread, size = 'sm' }: { thread: Pick<ThreadSummary, 'category' | 'year'>; size?: 'sm' | 'md' }) {
-  if (thread.category === 'study-groups') {
+/** Where the thread lives (placeOf): Year 2 in its colour, or Study group with its picture. Nothing until the
+ *  categories have loaded. */
+export function PlaceBadge({ thread, size = 'sm' }: { thread: Pick<ThreadSummary, 'category'>; size?: 'sm' | 'md' }) {
+  const { getCategory } = useTaxonomy();
+  const place = placeOf(getCategory(thread.category));
+  if (!place) return null;
+  if (place.year == null) {
     return (
-      <Badge tone="neutral" size={size} icon={UsersThree} className="forum-place">
-        Study group
+      <Badge tone="neutral" size={size} icon={FORUM_ICONS[place.icon].icon} className="forum-place">
+        {place.label}
       </Badge>
     );
   }
-  if (thread.category === 'general') {
-    return (
-      <Badge tone="neutral" size={size} icon={ChatsCircle} className="forum-place">
-        General
-      </Badge>
-    );
-  }
-  return <CohortBadge year={thread.year} variant="dot" size={size} className="forum-place" />;
+  return <CohortBadge year={place.year} label={place.label} variant="dot" size={size} className="forum-place" />;
 }
 
 /** 'Student rep' (moderators) or 'Admin' as a small neutral pill. It goes where a year badge would go, and replaces it. */

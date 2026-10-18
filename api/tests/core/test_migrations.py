@@ -136,7 +136,8 @@ def test_the_database_refuses_what_the_contract_does_not_list(scratch: tuple[Con
 
 def test_documents_saved_before_their_new_parts_get_them_as_they_start(scratch: tuple[Config, Engine]) -> None:
     """Site settings and Career Navigator saved before the parts added since then get those parts from the seed; the
-    forum gets the categories and tags it had, as tables."""
+    forum gets the categories and tags it had, as tables. Going back, a thread in a category or with a tag made since
+    returns to the first ones."""
     import json
 
     seed = API_ROOT / "app" / "seed" / "data"
@@ -164,7 +165,23 @@ def test_documents_saved_before_their_new_parts_get_them_as_they_start(scratch: 
         assert docs["career"] == career
         assert c.scalar(text("SELECT count(*) FROM forum_categories WHERE NOT retired")) == 5
         assert c.scalar(text("SELECT count(*) FROM forum_tags")) == 12
+    with engine.begin() as c:  # a moderator's own category and tag, and a thread with both
+        c.execute(
+            text(
+                "INSERT INTO forum_categories (id, label, short, year, blurb) "
+                "VALUES ('projects', 'Projects', 'Projects', NULL, 'Group work')"
+            )
+        )
+        c.execute(text("INSERT INTO forum_tags (id, label) VALUES ('kaggle', 'Kaggle')"))
+        c.execute(
+            text(
+                "INSERT INTO forum_threads (id, slug, title, body, category, status, tags) "
+                "VALUES (gen_random_uuid(), 'team', 'Team?', 'Text', 'projects', 'visible', '{kaggle,python}')"
+            )
+        )
     command.downgrade(cfg, before)
     with engine.connect() as c:
         docs = dict(c.execute(text("SELECT key, data FROM content_docs")).tuples().all())
         assert (docs["site"], docs["career"]) == (saved_site, saved_career)
+        thread = c.execute(text("SELECT category, tags FROM forum_threads WHERE slug = 'team'")).one()
+        assert tuple(thread) == ("general", ["python"])  # back among the first ones

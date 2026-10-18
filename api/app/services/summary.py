@@ -33,6 +33,7 @@ from app.core.text import clip
 from app.core.time import BAHRAIN, utcnow
 from app.models import (
     CalendarEvent,
+    ForumCategory,
     ForumThread,
     IssueStatus,
     ItemStatus,
@@ -200,7 +201,10 @@ def build(
                 ForumThread.locked.is_(False),
                 ForumThread.reply_count == 0,
                 ForumThread.created_at >= since,
-                or_(ForumThread.category == f"year-{year}", ForumThread.module_id.in_(year_modules)),
+                or_(
+                    ForumThread.category.in_(select(ForumCategory.id).where(ForumCategory.year == year)),
+                    ForumThread.module_id.in_(year_modules),
+                ),
             )
             .order_by(ForumThread.created_at.desc(), ForumThread.id)
             .limit(MAX_ITEMS)

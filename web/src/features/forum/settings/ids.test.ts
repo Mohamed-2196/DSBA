@@ -26,4 +26,8 @@ describe('withSavedIds', () => {
     ];
     expect(withSavedIds(items, new Set(['year-1']), (i) => i.label, 'category').map((i) => i.id)).toEqual(['year-1', 'year-1-2', 'careers']);
   });
+
+  it('never gives a reserved id', () => {
+    expect(withSavedIds([{ id: 'category-2', label: 'All' }], new Set(), (i) => i.label, 'category', ['all']).map((i) => i.id)).toEqual(['all-2']);
+  });
 });

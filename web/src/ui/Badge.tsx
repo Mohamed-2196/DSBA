@@ -56,12 +56,14 @@ export interface CohortBadgeProps extends Omit<HTMLAttributes<HTMLSpanElement>, 
   size?: BadgeSize;
   /** 'Y2' instead of 'Year 2' */
   short?: boolean;
+  /** words in place of the year's name, in its colour (a forum category's short name) */
+  label?: string;
 }
 
 /** Cohort label in the cohort colour. */
-export function CohortBadge({ year, variant = 'soft', size = 'md', short = false, className, ...rest }: CohortBadgeProps) {
+export function CohortBadge({ year, variant = 'soft', size = 'md', short = false, label: words, className, ...rest }: CohortBadgeProps) {
   const y = normalizeYear(year);
-  const label = y ? (short ? COHORTS[y].short : COHORTS[y].label) : cohortLabel(null);
+  const label = words ?? (y ? (short ? COHORTS[y].short : COHORTS[y].label) : cohortLabel(null));
   return (
     <span className={cx('ui-cohort', `ui-cohort--${variant}`, `ui-badge--${size}`, y ? `ui-cohort--y${y}` : 'ui-cohort--all', className)} {...rest}>
       {variant !== 'solid' ? <span className="ui-cohort__dot" aria-hidden="true" /> : null}

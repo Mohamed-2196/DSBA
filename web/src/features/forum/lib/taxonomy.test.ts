@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ForumMeta } from '../../../api/types';
-import { looksLikeId, taxonomyFrom } from './taxonomy';
+import { looksLikeId, placeOf, taxonomyFrom } from './taxonomy';
 
 const META: ForumMeta = {
   categories: [
@@ -54,6 +54,23 @@ describe('taxonomyFrom', () => {
     expect(t.categoryForYear(1)).toBe('year-1-maths');
     expect(t.categoryForYear(2)).toBeNull();
     expect(t.categoryForYear(null)).toBeNull();
+  });
+});
+
+describe('placeOf', () => {
+  const t = taxonomyFrom(META);
+
+  it('shows a year’s category by its short name, in the year’s colour', () => {
+    expect(placeOf(t.getCategory('year-1-maths'))).toEqual({ year: 1, label: 'Maths' });
+  });
+
+  it('shows a category for every year with its picture, or speech bubbles without one', () => {
+    expect(placeOf(t.getCategory('study-groups'))).toEqual({ year: null, label: 'Study group', icon: 'people' });
+    expect(placeOf({ id: 'campus', label: 'Campus', short: 'Campus', year: null, blurb: 'Life on campus', retired: false })).toEqual({ year: null, label: 'Campus', icon: 'chat' });
+  });
+
+  it('shows nothing while the categories load', () => {
+    expect(placeOf(taxonomyFrom(undefined).getCategory('year-1'))).toBeNull();
   });
 });
 

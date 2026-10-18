@@ -199,6 +199,7 @@ def test_a_tag_in_use_is_retired_not_removed(client_for: Client, moderator: User
         (lambda d: d["categories"][0].update(id="Year One"), "data.categories.0.id"),
         (lambda d: d["categories"][0].update(label=" "), "data.categories.0.label"),
         (lambda d: d["categories"][0].update(year=4), "data.categories.0.year"),
+        (lambda d: d["categories"].append({**d["categories"][0], "id": "all", "label": "All"}), "data"),  # the All tab
         (lambda d: d["tags"][0].update(label="x" * 41), "data.tags.0.label"),
         (lambda d: d.update(defaultCategory="year-1"), "data"),  # a year's category
         (lambda d: d.update(defaultCategory="nowhere"), "data"),

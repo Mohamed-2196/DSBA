@@ -12,6 +12,7 @@ from app.schemas.common import ApiModel, Page, PostStatus, UserPublic, Year
 
 # A category's or a tag's id: in links (?cohort=year-2), set when it is made and never changed.
 TaxonomyId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=32)]
+ALL_TAB = "all"  # ?cohort=all is the forum's All tab, so no category has this id
 Sort = Literal["hot", "new", "top"]
 # What a follower hears about: an accepted answer, every reply too, or nothing (switched off by hand).
 FollowLevel = Literal["answers", "replies", "off"]
@@ -250,6 +251,8 @@ class ForumSettings(ForumDoc):
         _unique((t.id for t in self.tags), "tags")
         _unique((g.id for g in self.guidelines), "guidelines")
         _unique((t.id for t in self.tips), "tips")
+        if any(c.id == ALL_TAB for c in self.categories):
+            raise PydanticCustomError("reserved", "A category's id can't be “all”: it's the forum's All tab.")
         if all(c.retired for c in self.categories):
             raise PydanticCustomError("no_category", "Keep at least one category that isn't retired.")
         default = next((c for c in self.categories if c.id == self.default_category), None)

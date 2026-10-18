@@ -21,6 +21,7 @@ from app.models import (
     AuditEntry,
     CalendarEvent,
     EmailOutbox,
+    ForumCategory,
     ForumThread,
     IssueStatus,
     ItemSource,
@@ -162,6 +163,33 @@ def test_the_summary_goes_once_a_week_to_those_who_opted_in(
     assert "Issue 7: Exam season" in first_years.text
     assert "Week 3 notes" not in first_years.text
     assert len(outbox.to("sara@example.com")) == 1
+
+
+def test_a_year_s_questions_come_from_every_category_for_that_year(
+    week: Module, make_user: MakeUser, db: Session, outbox: Outbox, deliver: Deliver
+) -> None:
+    """A category moderators make for a year counts as that year's, like the forum's first ones."""
+    db.add(ForumCategory(id="y2-projects", label="Year 2 projects", short="Projects", year=2, blurb="Group work"))
+    db.add(
+        ForumThread(
+            slug=f"brief-{uuid.uuid4().hex[:6]}",
+            title="Who has the project brief?",
+            body="...",
+            category="y2-projects",
+            author_id=make_user(name="Planner", year=2).id,
+        )
+    )
+    db.commit()
+    _opted_in(make_user, db, "sara@example.com", 2)
+    _opted_in(make_user, db, "layla@example.com", 1)
+    assert summary.send_week(db, NEXT_SUNDAY) == 2
+    db.commit()
+    deliver()
+    [mail] = outbox.to("sara@example.com")
+    assert "Who has the project brief?" in mail.text
+    assert "How do I find the MGF?" in mail.text
+    [first_years] = outbox.to("layla@example.com")
+    assert "Who has the project brief?" not in first_years.text
 
 
 def test_an_empty_week_sends_nothing(make_user: MakeUser, db: Session) -> None:
