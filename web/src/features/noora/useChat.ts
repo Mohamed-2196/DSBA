@@ -6,6 +6,7 @@ import { replyFromAnswer, visibleText } from './answer';
 import { answer, greeting } from './brain';
 import { release, type Attachment } from './files';
 import { useKnowledge } from './knowledge';
+import { withReply } from './saved';
 import type { Message, MyMessage, NooraMessage, Question, Reply } from './types';
 
 const BURST_EVERY = 24; // ms between bursts of characters while a reply streams in
@@ -70,8 +71,9 @@ export interface Chat {
   paused: Pause | null;
   /** true if the message was taken. `edit`: the id of a question it replaces, with everything after it */
   send: (message: { text: string; attachments?: Attachment[]; edit?: number | null }) => boolean;
-  /** stop the answer on its way: what has arrived stays, marked as stopped */
-  stop: () => void;
+  /** stop the answer on its way: what has arrived stays, marked as stopped. Returns that reply (null when nothing was
+   *  on its way). */
+  stop: () => NooraMessage | null;
   /** ask the last question again: her last answer goes */
   regenerate: () => void;
   /** start again: every message goes, and an answer on its way is dropped */
@@ -217,11 +219,7 @@ export function useChat({
   useEffect(() => () => asking.current?.abort(), []);
 
   /** Puts her reply in the list, or replaces the one with its id (an answer that is still arriving). */
-  const put = useCallback((reply: NooraMessage) => {
-    setMessages((list) =>
-      list.some((m) => m.id === reply.id) ? list.map((m) => (m.id === reply.id ? reply : m)) : [...list, reply],
-    );
-  }, []);
+  const put = useCallback((reply: NooraMessage) => setMessages((list) => withReply(list, reply)), []);
 
   const askAi = useCallback(
     (now: ChatAi, question: Question, replyId: number, history: NooraTurn[]) => {
@@ -340,14 +338,15 @@ export function useChat({
 
   const stop = useCallback(() => {
     const now = pendingRef.current;
-    if (!now) return;
+    if (!now) return null;
     asking.current?.abort();
     asking.current = null;
     const reply = stoppedReply(now, partial.current, aiRef.current?.modules ?? [], Date.now());
-    if (!reply) return;
+    if (!reply) return null;
     put(reply);
     setPending({ phase: 'done', reply });
     answering.current = false;
+    return reply;
   }, [put]);
 
   // One clock moves a scripted reply through its phases. While she thinks, it also waits for her material to

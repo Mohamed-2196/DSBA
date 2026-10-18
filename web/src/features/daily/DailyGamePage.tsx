@@ -10,7 +10,6 @@ import { useAuth } from '../../auth';
 import { isDayKey, todayKey } from '../../lib/dates';
 import { useDocumentTitle, useQueryParam } from '../../state';
 import { Button, ConfirmDialog, EmptyState, IconButton, Menu, QueryError, Skeleton, cx } from '../../ui';
-import { useMiniNooraAway } from '../noora/public';
 import { useDailyMove, useDailyPlay, useDailyToday } from './api';
 import { Flash, type FlashMessage, type FlashTone } from './components/Flash';
 import { GameTile } from './components/GameGlyph';
@@ -27,7 +26,6 @@ import './DailyGamePage.css';
 
 export default function DailyGamePage() {
   const params = useParams<{ game: string; day?: string }>();
-  useMiniNooraAway();
   if (!isGameId(params.game) || (params.day !== undefined && !isDayKey(params.day))) {
     return (
       <div className="dy dg dg--missing">
