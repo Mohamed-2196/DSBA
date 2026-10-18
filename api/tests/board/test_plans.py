@@ -210,16 +210,16 @@ def test_a_plan_goes_to_the_board_asked_for_and_stays_there(
 ) -> None:
     c = client_for(make_user())
     make_board(c, "Everyday", "personal")
-    revision = make_board(c, "Exams", "revision")
-    made = plan(c, module, 9, boardId=revision["id"])
-    assert made["plan"]["boardId"] == revision["id"]
-    got = c.get(f"{API}/boards/{revision['id']}").json()
-    assert {x["columnId"] for x in got["cards"]} == {column(revision, "To revise")}
+    exams = make_board(c, "Exams", "study")
+    made = plan(c, module, 9, boardId=exams["id"])
+    assert made["plan"]["boardId"] == exams["id"]
+    got = c.get(f"{API}/boards/{exams['id']}").json()
+    assert {x["columnId"] for x in got["cards"]} == {column(exams, "To do")}
     assert [p["moduleId"] for p in got["plans"]] == [module.id]
-    assert plan(c, module, 12)["plan"]["boardId"] == revision["id"]  # planning again keeps its board
+    assert plan(c, module, 12)["plan"]["boardId"] == exams["id"]  # planning again keeps its board
     # cards nearest done are first in the plan's days
     first, *_rest = got["cards"]
-    move(c, got["cards"][-1], column(revision, "Revising"))
-    again = {x["id"]: x for x in c.get(f"{API}/boards/{revision['id']}").json()["cards"]}
+    move(c, got["cards"][-1], column(exams, "In progress"))
+    again = {x["id"]: x for x in c.get(f"{API}/boards/{exams['id']}").json()["cards"]}
     assert again[got["cards"][-1]["id"]]["planDate"] == bahrain_today().isoformat()
     assert again[first["id"]]["planDate"] is not None

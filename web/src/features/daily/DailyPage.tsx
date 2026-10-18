@@ -5,7 +5,7 @@ import { Flame, Snowflake } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { useQueryParam } from '../../state';
 import { Button, Page, ProgressRing, QueryError, Skeleton, TabPanel, Tabs, cx } from '../../ui';
-import { dailyKeys, useDailyToday } from './api';
+import { newDay, useDailyToday } from './api';
 import { ArchiveView } from './components/ArchiveView';
 import { Countdown } from './components/Countdown';
 import { GameCard } from './components/GameCard';
@@ -29,20 +29,23 @@ export default function DailyPage() {
   const [tabParam, setTab] = useQueryParam('tab', 'today');
   const tab: Tab = TABS.some((t) => t.id === tabParam) ? (tabParam as Tab) : 'today';
 
+  // What has loaded stays on screen when a later refresh fails.
   return (
     <Page className="dy dh">
-      {today.isError ? (
-        <>
-          <h1 className="dh-title">Daily puzzles</h1>
-          <QueryError
-            error={today.error}
-            title="Today’s puzzles didn’t load"
-            onRetry={() => void today.refetch()}
-            retrying={today.isFetching}
-          />
-        </>
-      ) : today.isPending ? (
-        <HubSkeleton />
+      {today.data === undefined ? (
+        today.isError ? (
+          <>
+            <h1 className="dh-title">Daily puzzles</h1>
+            <QueryError
+              error={today.error}
+              title="Today’s puzzles didn’t load"
+              onRetry={() => void today.refetch()}
+              retrying={today.isFetching}
+            />
+          </>
+        ) : (
+          <HubSkeleton />
+        )
       ) : (
         <>
           <Head today={today.data} />
@@ -135,7 +138,7 @@ function Head({ today }: { today: DailyToday }) {
           <p className="dh-fact">
             <span>New puzzles in</span>
             <strong>
-              <Countdown to={today.nextAt} onDone={() => void qc.invalidateQueries({ queryKey: dailyKeys.today() })} />
+              <Countdown to={today.nextAt} onDone={() => newDay(qc)} />
             </strong>
           </p>
         </div>

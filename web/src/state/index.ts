@@ -3,7 +3,7 @@ export { ThemeProvider } from './ThemeProvider';
 export { YearProvider } from './YearProvider';
 export { ToastProvider } from './ToastProvider';
 export { useTheme, useYear, useToast, useAccountYearSync } from './hooks';
-export { useLocalStorage, removeStored } from './useLocalStorage';
+export { useLocalStorage, removeStored, writeStored } from './useLocalStorage';
 export { useQueryParam } from './useQueryParam';
 export { useDebouncedValue } from './useDebouncedValue';
 export { useDocumentTitle } from './useDocumentTitle';

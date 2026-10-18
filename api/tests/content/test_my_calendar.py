@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import BAHRAIN, bahrain_today
 from app.models import CalendarEvent, CalendarPrefs, Module, Notification, PersonalEvent, User, UserStatus
+from app.services import grades
 from app.services import my_calendar as svc
 from tests.content.conftest import API
 
@@ -116,7 +117,10 @@ def test_guests_sign_in_first(client: TestClient) -> None:
         ({"startTime": "10:00", "endTime": "09:00"}, "endTime"),
         ({"startTime": "10:00", "endDate": "2099-01-01"}, "endDate"),
         ({"repeat": "daily", "endDate": "2099-01-01"}, "repeat"),
+        ({"repeat": "monthly", "endDate": "2099-01-01"}, "repeat"),
+        ({"repeat": "yearly"}, "repeat"),
         ({"repeat": "weekly", "date": "2026-01-05", "repeatUntil": "2026-01-01"}, "repeatUntil"),
+        ({"repeat": "fortnightly", "date": "2026-01-05", "repeatUntil": "2029-01-01"}, "repeatUntil"),
         ({"repeat": "weekly", "date": "2026-01-05", "repeatUntil": "2029-01-01"}, "repeatUntil"),
         ({"colour": "gold"}, "colour"),
         ({"remind": 15}, "remind"),
@@ -336,11 +340,12 @@ def test_the_feed_and_the_file_leave_skipped_days_out(
     c.delete(f"{MINE}/{timed['id']}/occurrences/2026-10-26")
     c.delete(f"{MINE}/{allday['id']}/occurrences/2026-10-07")
     ics = unfolded(client.get(feed_of(c)).text)
-    assert "EXDATE:20261012T150000Z,20261026T150000Z" in ics
+    assert "EXDATE;TZID=Asia/Bahrain:20261012T180000,20261026T180000" in ics
     assert "EXDATE;VALUE=DATE:20261007" in ics
     r = c.get(f"{MINE}/{timed['id']}.ics")
     assert r.headers["content-disposition"] == 'attachment; filename="weekly-gym.ics"'
-    assert "EXDATE:20261012T150000Z,20261026T150000Z" in unfolded(r.text)
+    assert "EXDATE;TZID=Asia/Bahrain:20261012T180000,20261026T180000" in unfolded(r.text)
+    assert "BEGIN:VTIMEZONE\r\nTZID:Asia/Bahrain\r\n" in r.text  # the zone its times are in goes with it
     arabic = add(c, title="مراجعة")
     assert c.get(f"{MINE}/{arabic['id']}.ics").headers["content-disposition"] == 'attachment; filename="my-event.ics"'
 
@@ -389,9 +394,13 @@ def test_the_private_feed(
     assert "SUMMARY:Statistics mock" in ics
     assert "Year 1 exam" not in ics
     assert "Reading week" not in ics
-    assert "DTSTART:20261005T150000Z" in ics
-    assert "DTEND:20261005T160000Z" in ics
-    assert "RRULE:FREQ=WEEKLY;UNTIL=20261231T150000Z" in ics
+    assert (
+        "TZID:Asia/Bahrain\r\nBEGIN:STANDARD\r\nDTSTART:19700101T000000\r\nTZOFFSETFROM:+0300\r\nTZOFFSETTO:+0300"
+        in ics
+    )
+    assert "DTSTART;TZID=Asia/Bahrain:20261005T180000" in ics  # Bahrain time
+    assert "DTEND;TZID=Asia/Bahrain:20261005T190000" in ics  # an hour
+    assert "RRULE:FREQ=WEEKLY;UNTIL=20261231T150000Z" in ics  # its last start, in UTC
     assert "TRIGGER:-PT60M" in ics
     assert "DTSTART;VALUE=DATE:20261020" in ics
     assert "DTEND;VALUE=DATE:20261023" in ics
@@ -419,6 +428,48 @@ def test_hiding_a_module_or_a_type_and_following_papers(
     user.papers = ["econometrics"]  # an option picked: the other options' dates leave; a core module's stay
     db.commit()
     assert "Statistics mock" in client.get(path).text
+
+
+def test_a_choice_not_picked_leaves_the_feed_as_the_grade_rules_have_it(
+    client_for: Clients,
+    make_user: MakeUser,
+    programme: dict[str, CalendarEvent],
+    client: TestClient,
+    db: Session,
+) -> None:
+    """The Year 2 option comes from the grades calculator's rules: the option a student didn't pick leaves their
+    feed, and a module an admin takes out of the option is one every Year 2 student sits again."""
+    day = bahrain_today() + dt.timedelta(days=9)
+    db.add_all(
+        [
+            CalendarEvent(
+                id="econ-mock", date=day, title="Econometrics mock", type="mock", year=2, module_id="econometrics"
+            ),
+            CalendarEvent(
+                id="is-mock",
+                date=day,
+                title="Information systems mock",
+                type="mock",
+                year=2,
+                module_id="information-systems",
+            ),
+        ]
+    )
+    user = make_user(year=2)
+    user.papers = ["econometrics"]
+    db.commit()
+    path = feed_of(client_for(user))
+    ics = client.get(path).text
+    assert "Econometrics mock" in ics
+    assert "Statistics mock" in ics  # a module every Year 2 student sits
+    assert "Information systems mock" not in ics
+
+    current = grades.rules(db)
+    others = [o for o in current.year2_options if o.id != "information-systems"]
+    admin = make_user(name="Head Admin", roles=("student", "admin"))
+    grades.save(db, admin, current.model_copy(update={"year2_options": others}), 0, None)
+    db.commit()
+    assert "Information systems mock" in client.get(path).text
 
 
 def test_a_new_address_retires_the_old_one(client_for: Clients, make_user: MakeUser, client: TestClient) -> None:

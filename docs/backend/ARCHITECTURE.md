@@ -73,7 +73,7 @@ api/                          Python backend
   app/seed/                   the seed loader and the starting content (data/*.json; data/daily: the Daily themes
                               and the word game's guess list)
   app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, weekly-summary,
-                              import-drive, exam-meta, text-worker, extract-texts, make-covers, texts-role,
+                              import-drive, exam-meta, text-worker, extract-texts, texts-role,
                               daily-content, dev-login, enable-features (`python -m app.cli --help` says what each does)
   tests/conftest.py           shared harness (each run makes its own database)
   tests/core|accounts|community|content|notes|board|noora|daily/   each area's tests
@@ -312,7 +312,7 @@ Docker". Either way:
   Sunday summaries at the time set in Manage → Sunday summary, and turns board cards' and personal events'
   reminders into notifications. Sign-in codes don't need it; reminders do.
 - **The text worker:** `python -m app.cli text-worker` reads the words and makes the cover of each published PDF and
-  Word file, for search inside papers. `extract-texts` and `make-covers` do the files already there.
+  Word file, for search inside papers. `extract-texts` does the files already there.
 - **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-4-5-20251001`) power
   rich AI answers when the `noora.ai` feature switch is turned on; without the key or when off, Noora answers in
   script mode.
@@ -423,7 +423,8 @@ questions they raised:
 
 - **D1 Email notifications are real.** Notifications that matter go out by email to people who have an email
   address and keep the matching switch on: replies to your thread or reply, your answer accepted, your upload
-  published or rejected, account security notices (already sent), and new newsletter issues. Delivery uses an
+  published or rejected, account security notices (already sent), new newsletter issues and date changes. Sign-up
+  asks once whether to email them; that answer sets every switch, and until it is given nothing is emailed. Delivery uses an
   outbox table drained by a worker, so a slow mail server never slows a request and failures retry. The
   switches on Your account map one-to-one to these kinds, and the in-app notification is never silenced by an
   email switch.
@@ -474,3 +475,12 @@ re-chains them at merge.
   feature, so they can try one before switching it on.
 - **D13 PostHog stays anonymous analytics.** Its own feature flags stay off. Switches reach it only as the list of
   features on during a visit, set by the web app.
+- **D14 Content editing needs an admin's session, not a fresh code** (Mohamed, 2026-10-18). Site settings and the
+  grade rules save on an admin's normal session; only Mini Noora's instructions ask for a code after ten minutes.
+- **D15 Round 13's product calls** (Mohamed, 2026-10-18):
+  - Daily: an editor can fix today's puzzle; Correlations groups hold four to eight words, four a day; every win
+    scores, however fast.
+  - Notebook pictures sit in line or float anywhere on the page.
+  - Personal events repeat weekly, every two weeks or monthly.
+  - Sign-up asks whether to email replies, mentions and date changes; nothing is emailed until it's answered.
+  - Practice scores for past papers are saved to the account; Home's To-do lists dated cards only.

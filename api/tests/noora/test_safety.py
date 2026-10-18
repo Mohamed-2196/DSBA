@@ -1,13 +1,14 @@
-"""Mini Noora's safety limits (security review round 4): hidden modules stay unknown to her (SEC-21), every answer is
-costed even when the student drops it, and the budget holds a reservation for answers on their way (SEC-22), what
-people type reaches her as data and the page only as one of the app's routes (SEC-23), and answers streaming at once
-are bounded per student and hub-wide (SEC-26)."""
+"""Mini Noora's safety limits: hidden modules stay unknown to her, every answer is costed even when the student drops
+it, and the budget holds a reservation for answers on their way, what people type reaches her as data and the page
+only as one of the app's routes, and answers streaming at once are bounded per student and hub-wide."""
 
 from __future__ import annotations
 
 import datetime as dt
+import re
 import uuid
 from collections.abc import Callable, Iterator
+from pathlib import Path
 from typing import Any
 
 import anyio
@@ -79,7 +80,7 @@ def hidden_module(db: Session) -> Module:
     return m
 
 
-# ── SEC-21 ──────────────────────────────────────────────────────────────────────────────────
+# ── hidden modules ──────────────────────────────────────────────────────────────────────────
 
 
 def test_a_hidden_module_never_reaches_her_prompt(
@@ -99,7 +100,7 @@ def test_a_hidden_module_never_reaches_her_prompt(
     assert "Open module" not in screen["text"]
 
 
-# ── SEC-22 ──────────────────────────────────────────────────────────────────────────────────
+# ── what an answer costs ────────────────────────────────────────────────────────────────────
 
 
 def test_a_dropped_answer_keeps_its_question_and_its_reserved_cost(
@@ -170,7 +171,7 @@ def test_the_budget_counts_answers_on_their_way(
     assert (r.status_code, r.json()["error"]["code"]) == (503, "noora_budget_reached")
 
 
-# ── SEC-23 ──────────────────────────────────────────────────────────────────────────────────
+# ── what she is told about the page ─────────────────────────────────────────────────────────
 
 
 def test_the_page_is_passed_on_only_as_one_of_the_apps_routes(
@@ -189,6 +190,23 @@ def test_the_page_is_passed_on_only_as_one_of_the_apps_routes(
     assert prompt.page("/forum?q=a b") == "/forum"  # a query string that isn't plain is dropped
     for bad in ("/admin/secret", "https://evil.example/", "//evil.example", "/modules/a/b/c", "/notes/x\ny"):
         assert prompt.page(bad) is None, bad
+
+
+ROUTES = Path(__file__).resolve().parents[3] / "web" / "src" / "routes.tsx"
+
+
+def test_her_pages_are_the_apps_pages() -> None:
+    """Every page of the app (web/src/routes.tsx) is one she is told a student is on, and every page she may send a
+    student to is one of the app's."""
+    paths = re.findall(r"path: '([^']+)'", ROUTES.read_text(encoding="utf-8"))
+    assert {"/start-here", "/results-day", "/career/electives", "/daily/:day/:game"} <= set(paths)
+    for path in paths:
+        if path != "*":
+            sample = re.sub(r":\w+", "x-1", path)
+            assert prompt.page(sample) == sample, path
+    for link, _, _ in prompt.PAGES:
+        sample = re.sub(r"<[^>]+>", "x-1", link).partition("?")[0]
+        assert prompt.page(sample) == sample, link
 
 
 def test_what_people_type_reaches_her_as_data(module: Module) -> None:
@@ -211,7 +229,7 @@ def test_what_people_type_reaches_her_as_data(module: Module) -> None:
     assert all("\u2028" not in line for line in block.splitlines())
 
 
-# ── SEC-26 ──────────────────────────────────────────────────────────────────────────────────
+# ── answers at once ─────────────────────────────────────────────────────────────────────────
 
 
 def test_one_answer_at_a_time_for_each_student(

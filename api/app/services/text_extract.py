@@ -1,5 +1,5 @@
 """Reads the text of one PDF or Word file, page by page, and makes its cover. It runs in a child process of its own
-(`python -m app.services.text_extract pdf|docx [--cover] [--no-text]`, the file on stdin, JSON on stdout), so a file
+(`python -m app.services.text_extract pdf|docx [--cover]`, the file on stdin, JSON on stdout), so a file
 built to hang the reader or eat memory takes down only that process: the text worker (app/services/paper_text.py)
 kills it after a time limit, caps its memory and gives it no secrets in its environment.
 
@@ -178,24 +178,20 @@ def cover_of(fmt: str, data: bytes) -> tuple[str | None, str | None]:
 
 def main(argv: list[str]) -> int:
     flags = set(argv[1:])
-    if not argv or argv[0] not in READERS or not flags <= {"--cover", "--no-text"}:
-        print(
-            f"usage: python -m app.services.text_extract {'|'.join(READERS)} [--cover] [--no-text] < file",
-            file=sys.stderr,
-        )
+    if not argv or argv[0] not in READERS or not flags <= {"--cover"}:
+        print(f"usage: python -m app.services.text_extract {'|'.join(READERS)} [--cover] < file", file=sys.stderr)
         return 2
     fmt = argv[0]
     data = sys.stdin.buffer.read()
     out: dict[str, Any] = {}
     if "--cover" in flags:
         out["cover"], out["cover_error"] = cover_of(fmt, data)
-    if "--no-text" not in flags:
-        try:
-            out["pages"] = READERS[fmt](data)
-        except ExtractError as e:
-            out["error"] = str(e)
-        except Exception as e:  # anything pypdf trips on in a damaged file
-            out["error"] = f"unreadable ({type(e).__name__})"
+    try:
+        out["pages"] = READERS[fmt](data)
+    except ExtractError as e:
+        out["error"] = str(e)
+    except Exception as e:  # anything pypdf trips on in a damaged file
+        out["error"] = f"unreadable ({type(e).__name__})"
     json.dump(out, sys.stdout)
     return 0
 

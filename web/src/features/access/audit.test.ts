@@ -30,6 +30,17 @@ describe('describeAudit', () => {
     );
   });
 
+  it('says what a fix to today’s Daily puzzle changed, and whose games started again', () => {
+    const fix = { title: 'The Word: PLANT', changes: ['The answer is PLANT, not BLUNT.'], restarted: 2 };
+    expect(describeAudit(entry('daily.today.fix', fix))).toBe(
+      'fixed today’s Daily puzzle “The Word: PLANT”. The answer is PLANT, not BLUNT. 2 games partway through started again.',
+    );
+    const many = { title: 'Correlations: Pets', changes: ['A.', 'B.', 'C.', 'D.'], restarted: 0 };
+    expect(describeAudit(entry('daily.today.fix', many))).toBe(
+      'fixed today’s Daily puzzle “Correlations: Pets”. A. B. And 2 more.',
+    );
+  });
+
   it('names the newsletter issue', () => {
     expect(describeAudit(entry('newsletter.publish', { title: 'The pilot' }))).toBe(
       'published the newsletter issue “The pilot”',
@@ -48,7 +59,7 @@ describe('describeAudit', () => {
     expect(describeAudit(entry('report.resolve', { status: 'dismissed' }))).toBe('dismissed a report about a post');
   });
 
-  it('uses the staff word for a rejected upload (UX-17)', () => {
+  it('uses the staff word for a rejected upload', () => {
     expect(describeAudit(entry('library.reject', { title: 'Week 3 notes' }))).toBe('rejected “Week 3 notes”');
   });
 

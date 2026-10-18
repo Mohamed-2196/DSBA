@@ -2,13 +2,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   dayOrder,
   findEvent,
+  formMonthDay,
   isHidden,
   lastRepeat,
+  monthDayOf,
+  monthlyRule,
   myCalendar,
   occurrenceDays,
   occurrences,
   oneRowPerRepeat,
   reminderLabel,
+  repeatHint,
   repeatLabel,
   repeatShort,
   seriesOf,
@@ -30,6 +34,7 @@ const own = (over: Partial<PersonalEvent> = {}): PersonalEvent => ({
   colour: 'teal',
   repeat: 'none',
   repeatUntil: null,
+  monthDay: null,
   skipped: [],
   remind: null,
   createdAt: '2026-10-01T00:00:00Z',
@@ -106,6 +111,61 @@ describe('occurrences', () => {
     ]); // a leap year
   });
 
+  it('lays out a repeat every two weeks on its weekday, across a year end', () => {
+    // Thursday 17 December 2026
+    const lab = own({ date: '2026-12-17', repeat: 'fortnightly', repeatUntil: '2027-02-11' });
+    expect(occurrenceDays(lab)).toEqual(['2026-12-17', '2026-12-31', '2027-01-14', '2027-01-28', '2027-02-11']);
+    const year = occurrenceDays(own({ date: '2026-10-18', repeat: 'fortnightly' }));
+    expect([year.length, year[year.length - 1]]).toEqual([27, '2027-10-17']); // a year without an end
+  });
+
+  it('puts a monthly repeat on its day, or on a shorter month’s last day', () => {
+    expect(occurrenceDays(own({ date: '2027-01-31', repeat: 'monthly', repeatUntil: '2027-07-31' }))).toEqual([
+      '2027-01-31',
+      '2027-02-28',
+      '2027-03-31',
+      '2027-04-30',
+      '2027-05-31',
+      '2027-06-30',
+      '2027-07-31',
+    ]);
+    // a leap year's February has its 29th
+    expect(occurrenceDays(own({ date: '2028-01-31', repeat: 'monthly', repeatUntil: '2028-03-31' }))).toEqual([
+      '2028-01-31',
+      '2028-02-29',
+      '2028-03-31',
+    ]);
+    for (const day of ['29', '30']) {
+      const days = occurrenceDays(own({ date: `2027-01-${day}`, repeat: 'monthly', repeatUntil: `2028-04-${day}` }));
+      expect(days.filter((d) => d.slice(5, 7) === '02')).toEqual(['2027-02-28', '2028-02-29']);
+      expect(days.filter((d) => d.slice(5, 7) !== '02').every((d) => d.endsWith(`-${day}`))).toBe(true);
+      expect(days).toHaveLength(16);
+    }
+    // its end: a day in between, or the day it falls on
+    expect(occurrenceDays(own({ date: '2027-01-15', repeat: 'monthly', repeatUntil: '2027-04-14' })).pop()).toBe(
+      '2027-03-15',
+    );
+    expect(occurrenceDays(own({ date: '2027-01-31', repeat: 'monthly', repeatUntil: '2027-04-30' })).pop()).toBe(
+      '2027-04-30',
+    );
+    const year = own({ date: '2027-01-31', repeat: 'monthly' });
+    expect([lastRepeat(year), occurrenceDays(year).length]).toEqual(['2028-01-31', 13]);
+    // days taken off it
+    expect(
+      occurrenceDays(
+        own({ date: '2027-01-31', repeat: 'monthly', repeatUntil: '2027-04-30', skipped: ['2027-02-28'] }),
+      ),
+    ).toEqual(['2027-01-31', '2027-03-31', '2027-04-30']);
+  });
+
+  it('keeps the 31st in a repeat that starts on a shorter month’s last day', () => {
+    const later = own({ date: '2027-02-28', repeat: 'monthly', monthDay: 31, repeatUntil: '2027-05-31' });
+    expect(monthDayOf(later)).toBe(31);
+    expect(occurrenceDays(later)).toEqual(['2027-02-28', '2027-03-31', '2027-04-30', '2027-05-31']);
+    const the28th = own({ date: '2027-02-28', repeat: 'monthly', repeatUntil: '2027-04-30' });
+    expect(occurrenceDays(the28th)).toEqual(['2027-02-28', '2027-03-28', '2027-04-28']);
+  });
+
   it('leaves out the days taken off a repeat, and lists one row per repeat', () => {
     const gym = own({
       date: '2026-10-25',
@@ -123,6 +183,8 @@ describe('occurrences', () => {
       '2026-11-08 Dentist',
     ]);
     expect(repeatShort(gym)).toBe('Sundays');
+    expect(repeatShort({ ...gym, repeat: 'fortnightly' })).toBe('Every other Sunday');
+    expect(repeatShort({ ...gym, repeat: 'monthly' })).toBe('Every month');
     expect(repeatShort(own({ repeat: 'daily' }))).toBe('Every day');
     expect(repeatShort(own())).toBeNull();
   });
@@ -186,6 +248,23 @@ describe('on a device in a daylight-saving zone', () => {
       '2026-11-08',
       '2026-11-15',
     ]);
+    expect(occurrenceDays(own({ date: '2026-10-25', repeat: 'fortnightly', repeatUntil: '2026-11-22' }))).toEqual([
+      '2026-10-25',
+      '2026-11-08',
+      '2026-11-22',
+    ]);
+    vi.stubEnv('TZ', 'America/Santiago'); // the clocks go forward at midnight on Sunday 6 September 2026
+    expect(occurrenceDays(own({ date: '2026-08-06', repeat: 'monthly', repeatUntil: '2026-10-06' }))).toEqual([
+      '2026-08-06',
+      '2026-09-06',
+      '2026-10-06',
+    ]);
+    expect(occurrenceDays(own({ date: '2026-08-31', repeat: 'monthly', repeatUntil: '2026-11-30' }))).toEqual([
+      '2026-08-31',
+      '2026-09-30',
+      '2026-10-31',
+      '2026-11-30',
+    ]);
   });
 });
 
@@ -218,9 +297,45 @@ describe('labels', () => {
     expect(timeRange({ startTime: null, endTime: null })).toBeNull();
     expect(repeatLabel(own({ repeat: 'weekly', repeatUntil: '2026-12-31' }))).toBe('Every week until 31 December 2026');
     expect(repeatLabel(own({ repeat: 'daily' }))).toBe('Every day for a year');
+    expect(repeatLabel(own({ repeat: 'fortnightly', repeatUntil: '2026-12-31' }))).toBe(
+      'Every two weeks until 31 December 2026',
+    );
+    expect(repeatLabel(own({ repeat: 'monthly' }))).toBe('Every month for a year');
     expect(reminderLabel(30, false)).toBe('30 minutes before');
     expect(reminderLabel(1440, true)).toBe('The day before, at 9:00');
     expect(reminderLabel(null, true)).toBeNull();
+  });
+
+  it('says which day a monthly repeat falls on, and where in a month without it', () => {
+    expect(monthlyRule(18)).toBe('On the 18th of every month.');
+    expect(monthlyRule(1)).toBe('On the 1st of every month.');
+    expect(monthlyRule(28)).toBe('On the 28th of every month.');
+    expect(monthlyRule(29)).toBe('On the 29th of every month, or the last day of February.');
+    expect(monthlyRule(30)).toBe('On the 30th of every month, or the last day of February.');
+    expect(monthlyRule(31)).toBe('On the 31st of every month, or the last day of shorter months.');
+  });
+
+  it('says what the repeat chosen in the form means', () => {
+    // Sunday 18 October 2026
+    expect(repeatHint('weekly', '2026-10-18', 18)).toBe('Every Sunday.');
+    expect(repeatHint('fortnightly', '2026-10-18', 18)).toBe('Every other Sunday.');
+    expect(repeatHint('monthly', '2027-01-31', 31)).toBe(
+      'On the 31st of every month, or the last day of shorter months.',
+    );
+    expect(repeatHint('daily', '2026-10-18', 18)).toBeUndefined();
+    expect(repeatHint('none', '2026-10-18', 18)).toBeUndefined();
+  });
+
+  it('keeps a monthly repeat’s day of the month while the form keeps its first day', () => {
+    const rent = own({ date: '2027-01-31', repeat: 'monthly' });
+    expect(formMonthDay(null, '2027-02-28', '2027-02-28')).toBe(28); // a new event
+    expect(formMonthDay(rent, '2027-01-31', '2027-01-31')).toBe(31); // the whole repeat
+    expect(formMonthDay(rent, '2027-02-28', '2027-02-28')).toBe(31); // from 28 February on
+    expect(formMonthDay(rent, '2027-02-28', '2027-03-05')).toBe(5); // moved
+    expect(formMonthDay(own({ date: '2027-01-31', repeat: 'weekly' }), '2027-01-31', '2027-01-31')).toBe(31);
+    const later = own({ date: '2027-02-28', repeat: 'monthly', monthDay: 31 });
+    expect(formMonthDay(later, '2027-02-28', '2027-02-28')).toBe(31);
+    expect(formMonthDay(later, '2027-02-28', '2027-02-27')).toBe(27);
   });
 });
 

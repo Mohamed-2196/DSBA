@@ -44,8 +44,15 @@ export function WordGame({ out, busy, play, flash, paused }: GameProps) {
     flash(message, 'alert');
   };
 
+  // Enter pressed while the last guess still turns over: it goes in once the tiles have turned.
+  const queued = useRef(false);
+
   const submit = async () => {
-    if (over || busy || revealing !== null) return;
+    if (over || busy) return;
+    if (revealing !== null) {
+      queued.current = true;
+      return;
+    }
     if (typed.length < length) {
       refuse(typed.length ? 'Not enough letters' : 'Type a five-letter word');
       return;
@@ -91,6 +98,11 @@ export function WordGame({ out, busy, play, flash, paused }: GameProps) {
   useLayoutEffect(() => {
     pressRef.current = press;
   });
+  useEffect(() => {
+    if (revealing !== null || !queued.current) return;
+    queued.current = false;
+    pressRef.current('Enter');
+  }, [revealing]);
   useEffect(() => {
     if (paused || over) return undefined;
     const onKey = (e: KeyboardEvent) => {

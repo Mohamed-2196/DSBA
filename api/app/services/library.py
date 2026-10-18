@@ -68,7 +68,7 @@ from app.services.uploads import extension, serve_type
 
 log = logging.getLogger("dsba.library")
 
-MAX_PENDING = 10  # files one student may have waiting for review (security review SEC-14)
+MAX_PENDING = 10  # files one student may have waiting for review
 FILE_GRACE = timedelta(days=7)  # a rejected or removed file stays in the bucket this long, then the sweep deletes it
 # When the reference material counts as published (the seeded links, and the files the Drive import brings in from
 # their folders): before anything students share, so "newest first" lists their uploads above it whenever the seed
@@ -526,7 +526,7 @@ def pending_count(db: Session, user: User) -> int:
 
 
 def check_pending_room(db: Session, user: User, *, lock: bool = False) -> None:
-    """At most MAX_PENDING of a student's files wait for review at once (security review SEC-14); library managers'
+    """At most MAX_PENDING of a student's files wait for review at once; library managers'
     files are published at once. With `lock`, parallel requests by the same person count one after the other."""
     if manages(user):
         return
@@ -759,7 +759,7 @@ def review(
 
 def sweep_files(db: Session, storage: Storage | None = None, now: datetime | None = None) -> int:
     """For the daily sweep: deletes from the bucket the files of items rejected or removed more than FILE_GRACE ago
-    (security review SEC-14), with their covers, upload rows and text; the item rows stay, without a file. -> how many
+    with their covers, upload rows and text; the item rows stay, without a file. -> how many
     files. The caller commits. Safe to run again: a file already gone is skipped."""
     cutoff = (now or utcnow()) - FILE_GRACE
     decided = func.coalesce(LibraryItem.updated_at, LibraryItem.reviewed_at, LibraryItem.created_at)

@@ -29,6 +29,12 @@ def rules(db: Session) -> GradeRules:
     return documents.current(db, RULES)
 
 
+def choice_ids(db: Session) -> dict[int, frozenset[str]]:
+    """For each year with a choice (the Year 2 option, the electives), what a student's papers hold when they pick
+    from it."""
+    return {c.year: frozenset(o.paper_id() for o in c.options) for c in rules(db).choices()}
+
+
 def editable(db: Session) -> GradeRulesEditable:
     return GradeRulesEditable.model_validate(documents.editable(db, RULES), from_attributes=True)
 

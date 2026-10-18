@@ -8,7 +8,7 @@ import { moduleLabel } from '../../lib/modules';
 import { cohortLabel, YEARS, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, Modal } from '../../ui';
-import { CHOICES, NOT_ON_HUB, pickOnly, picksSummary, togglePick } from './papers';
+import { pickOnly, picksSummary, togglePick } from './papers';
 import { usePapers } from './usePapers';
 import './Papers.css';
 
@@ -65,8 +65,9 @@ export function PapersDialog({ open, onClose, onSaved }: PapersDialogProps) {
   }, [open]);
 
   const home = current.home;
-  const choice = home ? CHOICES[home] : undefined;
-  const name = (id: string) => NOT_ON_HUB[id] ?? (moduleLabel(getModule(id)) || id);
+  const choice = home ? current.choices[home] : undefined;
+  const notOnHub = (id: string) => choice?.notOnHub[id];
+  const name = (id: string) => notOnHub(id) ?? (moduleLabel(getModule(id)) || id);
   const others = YEARS.filter((y) => y !== home);
   const chosen = choice?.ids.find((id) => picks.includes(id)) ?? null;
 
@@ -116,7 +117,7 @@ export function PapersDialog({ open, onClose, onSaved }: PapersDialogProps) {
                 checked={chosen === id}
                 onChange={() => setPicks((p) => pickOnly(p, id, choice))}
                 title={name(id)}
-                hint={NOT_ON_HUB[id] ? 'No module page on the Hub' : undefined}
+                hint={notOnHub(id) ? 'No module page on the Hub' : undefined}
               />
             ))}
             <Option
@@ -140,7 +141,7 @@ export function PapersDialog({ open, onClose, onSaved }: PapersDialogProps) {
                 checked={picks.includes(id)}
                 onChange={() => setPicks((p) => togglePick(p, id, choice))}
                 title={name(id)}
-                hint={NOT_ON_HUB[id] ? 'No module page on the Hub' : undefined}
+                hint={notOnHub(id) ? 'No module page on the Hub' : undefined}
               />
             ))}
           </fieldset>
@@ -204,7 +205,7 @@ export function PapersDialog({ open, onClose, onSaved }: PapersDialogProps) {
 /** "Your modules: Year 2, option not picked" and a button to change them. */
 export function PapersButton({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
-  const { home, picks, papers } = usePapers();
+  const { home, picks, papers, choices } = usePapers();
   return (
     <>
       <Button
@@ -215,7 +216,7 @@ export function PapersButton({ className }: { className?: string }) {
         data-hub="papers-open"
         aria-haspopup="dialog"
       >
-        Your modules: {picksSummary(home, picks, papers)}
+        Your modules: {picksSummary(home, picks, papers, choices)}
       </Button>
       <PapersDialog open={open} onClose={() => setOpen(false)} />
     </>

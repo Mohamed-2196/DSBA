@@ -445,15 +445,6 @@ function ElectivesFields({
         maxLength={60}
         required
       />
-      <WholeNumberField
-        label="How many a student takes"
-        min={1}
-        max={6}
-        value={guide.pick}
-        onValue={(pick) => set({ pick })}
-        error={err('electives.pick')}
-        required
-      />
       <TextArea
         className="dedit-grid__wide"
         label="Under the title"

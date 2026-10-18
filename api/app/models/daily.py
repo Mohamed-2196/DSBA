@@ -17,7 +17,11 @@ from app.schemas.daily import GameId, PlayStatus
 class DailyPlay(Base):
     """One person's play of one game (and variant: Sudoku's difficulty) on one day. `moves` is the whole play; the
     server replays it to check each new move, and the columns beside it are what it adds up to, for the hub, streaks
-    and the leaderboard. A play is `scored` when it was the person's first of that game on its own day."""
+    and the leaderboard. A play is `scored` when it was the person's first of that game on its own day.
+
+    `revision` is the version of the day's puzzle the play is on (daily_sets.revision). A fix to today's puzzle
+    leaves finished plays on the version they finished, and starts the others again on the fixed one: those partway
+    through are `restarted`, so the player is told why."""
 
     __tablename__ = "daily_plays"
     __table_args__ = (
@@ -41,8 +45,9 @@ class DailyPlay(Base):
     points: Mapped[int] = mapped_column(SmallInteger, default=0)
     mistakes: Mapped[int] = mapped_column(SmallInteger, default=0)
     hints: Mapped[int] = mapped_column(SmallInteger, default=0)
-    too_fast: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
-    started_at: Mapped[datetime] = created_ts()  # the first move
+    revision: Mapped[int] = mapped_column(SmallInteger, default=0, server_default="0")
+    restarted: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    started_at: Mapped[datetime] = created_ts()  # the clock: today's puzzle first opened (Sudoku: the first move)
     updated_at: Mapped[datetime] = created_ts()  # the last move
     finished_at: Mapped[datetime | None]
 

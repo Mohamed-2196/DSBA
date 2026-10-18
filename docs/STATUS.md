@@ -72,8 +72,24 @@ code and the look of every screen, then fixes what the reviews find.
 | `round13/dailyfix` | api-builder | Daily: "fix today's puzzle" in Manage, Correlations groups of four to eight words (four a day), then the reviews' Daily findings |
 | `round13/pictures` | web-builder | the notebook: pictures in line or free anywhere on the page (moved, resized, cropped, turned, layered, under the ink, in the export), then the reviews' notebook findings |
 
-Mohamed's calls (2026-10-18): storage on the Railway dev site (done by the lead: a Railway bucket); a "fix today's
-puzzle" button; Correlations groups of four to eight words; notebook pictures that float anywhere on the page.
+Mohamed's calls (2026-10-18), D14 and D15 in ARCHITECTURE: storage, the library and the Daily puzzles on the
+Railway dev site (done by the lead); a "fix today's puzzle" button; Correlations groups of four to eight words; no
+4-second rule in Daily; notebook pictures that float anywhere on the page; fortnightly and monthly repeats; sign-up
+asks about notification emails; practice scores saved to the account; To-do shows dated cards only; Site settings and
+the grade rules need no fresh code.
+
+Merged so far (checks green: 1,584 API and 906 web tests):
+- `round13/quality`: CQ-47 to CQ-82; ARCHITECTURE, DEPLOYMENT and README current.
+- `round13/squash`: baseline 0033 plus 0034; zones and sittings named once; two races. Its follow-ups (CQ-50, 51,
+  52, 54, 58, 63, 74) are still running on the same branch.
+- `round13/repeats`: fortnightly and monthly repeats (0036), feeds in Bahrain time, sign-up's email question.
+- `round13/dailyfix` (first part): fix today's puzzle (0035), groups of four to eight, every win scores, CQ-49, 54,
+  64, 80. It keeps going with the reviews' Daily findings.
+
+Also running: `round13/fixweb` (Manage's leave guard and field errors, Home, boards, Mini Noora's chat switch, the
+first download's size, practice scores on the account) and `round13/pictures`. Migrations taken: 0037 notebook, 0038
+practice scores, 0039 board templates; the lead chains them in merge order. The local `dsba` database moves on when
+the tester's e2e run ends (`scripts/e2e.sh --restore` restarts the API on the main checkout, which migrates).
 
 Next in the round: builders fix what the three reviews find, Daily first.
 
@@ -130,11 +146,9 @@ Next in the round: builders fix what the three reviews find, Daily first.
   - Noora's programme facts start with one: add more in Manage → Mini Noora (her starter cards come in fours).
   - The notebook: is 25 MB of text and handwriting per student enough?
   - Calendar repeats: fortnightly or monthly needs a migration. Boards: no hourly cap on card saves yet.
-  - Daily: a win within 4 seconds of opening scores nothing. Right limit?
   - Bug reports (defaults chosen 2026-10-18): deleted with the reporter's account rather than kept anonymised;
     screenshots kept 90 days after a report closes. Names that spell a staff word across spaces or dots ("A. D.
     Minhas") are refused.
-  - Should notification emails stay on by default?
   - Should there be a site-wide daily upload budget (SEC-14)?
   - Should a rep confirm seniors, beyond the 30-day rule?
   - A "shared computer" sign-in with a shorter session, and sessions that end after some days without use (S-2)?

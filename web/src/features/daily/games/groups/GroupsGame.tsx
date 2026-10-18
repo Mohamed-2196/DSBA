@@ -98,7 +98,7 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
                 key={word}
                 type="button"
                 className={cx('dgr-word', on && 'is-picked', on && sending && 'is-sending', on && wrong && 'is-wrong')}
-                style={{ '--n': pickedNow.indexOf(word), '--chars': Math.max(word.length, 4) } as CSSProperties}
+                style={{ '--n': pickedNow.indexOf(word), '--chars': Math.max(word.length, 6) } as CSSProperties}
                 aria-pressed={on}
                 aria-label={word}
                 disabled={over}

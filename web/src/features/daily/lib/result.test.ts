@@ -12,9 +12,10 @@ const base = {
   mistakes: 0,
   hints: 0,
   seconds: 75,
-  tooFast: false,
   result: null,
   share: 'x',
+  revision: 0,
+  restarted: false,
 };
 
 describe('resultOf', () => {

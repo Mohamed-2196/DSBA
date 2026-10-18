@@ -1,5 +1,5 @@
-"""The round 12 security review's findings for Boards, as regression tests: each asserts the fix (SEC-38, SEC-39, and
-the board half of SEC-45)."""
+"""What a student's cards may hold: their text has a total, a file taken off a card keeps its place in the hourly
+upload limit, and a due date is between 2000 and 2100."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ def put(c: TestClient, storage: Any) -> str:
     return upload(c, storage, purpose="board", name="notes.pdf", content_type="application/pdf", body=PDF)
 
 
-def test_sec38_the_text_on_a_students_cards_has_a_total(
+def test_the_text_on_a_students_cards_has_a_total(
     client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Titles, descriptions, checklists and comments count towards one total per student (10 MB). A change that
@@ -71,7 +71,7 @@ def test_sec38_the_text_on_a_students_cards_has_a_total(
     assert c.patch(url, json={"title": "Mind map"}).status_code == 409
 
 
-def test_sec39_taking_a_file_off_a_card_keeps_its_place_in_the_hourly_upload_limit(
+def test_taking_a_file_off_a_card_keeps_its_place_in_the_hourly_upload_limit(
     client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Detaching deletes the object at once and frees its room, but the upload still counts towards the 20 an hour;
@@ -114,7 +114,7 @@ def test_sec39_taking_a_file_off_a_card_keeps_its_place_in_the_hourly_upload_lim
 
 
 @pytest.mark.parametrize("due", ["0001-01-01", "1999-12-31", "2101-01-01", "9999-12-31"])
-def test_sec45_a_cards_due_date_is_between_2000_and_2100(client_for: ClientFor, make_user: MakeUser, due: str) -> None:
+def test_a_cards_due_date_is_between_2000_and_2100(client_for: ClientFor, make_user: MakeUser, due: str) -> None:
     c = client_for(make_user())
     card = add(c, title="Ancient")
     url = f"{API}/board-cards/{card['id']}"

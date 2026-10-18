@@ -67,20 +67,25 @@ PAGES: tuple[tuple[str, str, Feature | None], ...] = (
     ("/forum/new", "Start a forum thread", Feature.forum),
     ("/newsletter", "The DSBA newsletter", Feature.newsletter),
     ("/career", "Career Navigator: careers and the skills they need", Feature.career),
+    ("/career/electives", "The Year 3 electives side by side, and the roles each leads to", Feature.career),
     ("/grades", "The grades calculator", Feature.grades),
     ("/notes", "The student's own private notes", Feature.notes),
     ("/board", "The student's study board", Feature.board),
     ("/requests", "Ask the student reps for something (a past paper, a fix, an event)", Feature.requests),
+    ("/daily", "Daily: a few short puzzles, the same for everyone each day", Feature.daily),
+    ("/start-here", "Start here: the first steps for a new student", None),
+    ("/results-day", "Results day: what to do when the results come out", None),
     ("/about", "About DSBA Hub", None),
 )
 
 CALENDAR_DATES = 8  # the next dates she is told about
 
-# The app's own routes (web/src/routes.tsx). A page the student is on goes to Noora only when its path is one of them.
+# The app's own routes (web/src/routes.tsx; a test keeps them in step). A page the student is on goes to Noora only
+# when its path is one of them.
 ROUTE_PATH = re.compile(
-    r"/(?:about|account|admin/access|board|calendar|career|forum(?:/[\w-]+)?|grades|library(?:/[\w-]+)?|manage"
-    r"|modules(?:/[\w-]+(?:/lessons/[\w-]+)?)?|newsletter(?:/[\w-]+(?:/edit)?)?|noora|notes(?:/[\w-]+)?"
-    r"|requests(?:/[\w-]+)?)?/?",
+    r"/(?:about|account|admin/access|board|calendar|career(?:/electives)?|daily(?:/[\w-]+){0,2}|forum(?:/[\w-]+)?"
+    r"|grades|library(?:/[\w-]+)?|manage|modules(?:/[\w-]+(?:/lessons/[\w-]+)?)?|newsletter(?:/[\w-]+(?:/edit)?)?"
+    r"|noora|notes(?:/[\w-]+)?|requests(?:/[\w-]+)?|results-day|start-here|styleguide)?/?",
     re.ASCII,
 )
 ROUTE_QUERY = re.compile(r"[\w=&.-]{1,100}", re.ASCII)

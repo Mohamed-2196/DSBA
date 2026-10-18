@@ -2,9 +2,6 @@
 import type { EventGap, GapModule, LessonGap, ScanGap, SittingGap } from '../../api/types';
 import { countOf } from '../../ui';
 
-/** 'ST2133 Advanced statistics', or the name alone when the module has no code. */
-export const moduleName = (m: GapModule): string => (m.unitCode ? `${m.unitCode} ${m.name}` : m.name);
-
 /** Where a module's papers and files are added. */
 export const moduleFiles = (m: GapModule): string => `/modules/${encodeURIComponent(m.id)}?tab=files`;
 

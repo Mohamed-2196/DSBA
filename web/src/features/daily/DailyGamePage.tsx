@@ -238,6 +238,7 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
           )
         ) : out ? (
           <Component
+            key={out.play.revision}
             out={out}
             busy={move.isPending}
             play={play}
@@ -285,7 +286,11 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
   );
 }
 
-/** Why a play won't count, when it won't: a guest's isn't kept, a past day's is practice, and so is a second Sudoku. */
+/**
+ * A line over the board: why the play started again when a fix to today's puzzle restarted it (until the next move);
+ * otherwise why it won't count, when it won't: a guest's isn't kept, a past day's is practice, and so is a second
+ * Sudoku.
+ */
 function Notice({
   out,
   isToday,
@@ -299,6 +304,13 @@ function Notice({
   scoredVariant: string | undefined;
   onSignIn: () => void;
 }) {
+  if (out.play.restarted) {
+    return (
+      <p className="dg-notice" role="status">
+        <span>We fixed a mistake in today’s puzzle, so your game started again.</span>
+      </p>
+    );
+  }
   if (!signedIn) {
     return (
       <p className="dg-notice">
