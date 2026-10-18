@@ -105,8 +105,9 @@ export function CommandPalette() {
         isOn: featureOn,
         offers: { threads: startsThreads, upload: uploads },
         portals,
+        suggestions: site?.searchSuggestions,
       }),
-    [query, year, activeYear, theme, nooraHidden, expanded, recent, search.data, getModule, getModulesForYear, featureOn, startsThreads, uploads, portals],
+    [query, year, activeYear, theme, nooraHidden, expanded, recent, search.data, getModule, getModulesForYear, featureOn, startsThreads, uploads, portals, site?.searchSuggestions],
   );
   // Until the API has answered the words typed, "nothing found" would be premature.
   const searching = results.empty && waiting;

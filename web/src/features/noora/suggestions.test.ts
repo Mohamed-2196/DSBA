@@ -1,6 +1,6 @@
 // The questions Mini Noora offers for each page, and that her brain answers every one of them.
 import { describe, expect, it, vi } from 'vitest';
-import type { ModuleDetail, ModuleSummary } from '../../api/types';
+import type { ModuleDetail, ModuleSummary, NooraDoc } from '../../api/types';
 import type { Feature } from '../../auth';
 
 vi.mock('../calendar/public', () => ({
@@ -15,6 +15,8 @@ vi.mock('../modules/public', () => ({
 
 const { answer, buildKnowledge } = await import('./brain');
 const { pageSuggestions } = await import('./suggestions');
+const { readSeed } = await import('../../testing/seed');
+const SCRIPT = readSeed<NooraDoc>('noora').script;
 
 const summary = (id: string, unitCode: string, name: string, year: number): ModuleSummary =>
   ({ id, unitCode, name, shortName: name, year, description: `${name}.`, chapterCount: 1, lessonCount: 2 }) as ModuleSummary;
@@ -41,7 +43,7 @@ const events = [
 ] as unknown as Parameters<typeof buildKnowledge>[2];
 
 const allOn = () => true;
-const ctx = (pathname: string, isOn: (f: Feature) => boolean = allOn) => ({ pathname, year: 2, modules: catalogue, isOn });
+const ctx = (pathname: string, isOn: (f: Feature) => boolean = allOn) => ({ pathname, year: 2, modules: catalogue, isOn, pages: SCRIPT.pageChips });
 
 const PAGES = ['/', '/modules', `/modules/${DIST.id}`, '/library', '/library/abc', '/calendar', '/forum', '/forum/some-thread', '/forum/new', '/grades', '/notes', '/notes/a-note', '/career', '/newsletter/issue-1', '/about'];
 
@@ -73,8 +75,20 @@ describe('pageSuggestions', () => {
     }
   });
 
+  it('takes the questions an admin writes: a module of the year for {module} and {module2}, and what each needs', () => {
+    const pages = [
+      { page: 'grades' as const, chips: [{ text: 'Is {module2} harder than {module}?', needs: null }, { text: 'Where are the {module} past papers?', needs: 'library' as const }] },
+      { page: 'other' as const, chips: [{ text: 'What is a p-value?', needs: null }, { text: 'Where is hypothesis testing?', needs: null }] },
+    ];
+    expect(pageSuggestions({ ...ctx('/grades'), pages })).toEqual(['Is ST2134 harder than ST2133?', 'Where are the ST2133 past papers?', 'What is a p-value?', 'Where is hypothesis testing?']);
+    const noLibrary = (f: Feature) => f !== 'library';
+    expect(pageSuggestions({ ...ctx('/grades', noLibrary), pages })).toEqual(['Is ST2134 harder than ST2133?', 'What is a p-value?', 'Where is hypothesis testing?']);
+    // A student without a second module of their year gets no question that names one.
+    expect(pageSuggestions({ ...ctx('/grades'), modules: [DIST], pages })).toEqual(['Where are the ST2133 past papers?', 'What is a p-value?', 'Where is hypothesis testing?']);
+  });
+
   it('only offers questions her brain can answer', () => {
-    const knowledge = buildKnowledge(catalogue, details, events, 'Sara', allOn);
+    const knowledge = buildKnowledge(catalogue, details, events, 'Sara', allOn, SCRIPT);
     const now = new Date(2099, 0, 1).getTime();
     for (const page of PAGES) {
       for (const chip of pageSuggestions(ctx(page))) {

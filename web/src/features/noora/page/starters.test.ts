@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { ModuleSummary } from '../../../api/types';
+import type { ModuleSummary, NooraDoc } from '../../../api/types';
+import { readSeed } from '../../../testing/seed';
 import { fill, starters } from './starters';
+
+const CARDS = readSeed<NooraDoc>('noora').script.starters;
 
 describe('fill', () => {
   it('drops the brackets and selects what was in them', () => {
@@ -23,19 +26,20 @@ describe('fill', () => {
 describe('starters', () => {
   const st = { id: 'st2133', year: 2, unitCode: 'ST2133', shortName: 'Stats', name: 'Advanced statistics' } as ModuleSummary;
 
-  it('offers every kind of help, each with something to fill in', () => {
-    const list = starters([], null);
+  it('starts with every kind of help, each with something to fill in', () => {
+    const list = starters(CARDS, [], null);
     expect(list.map((s) => s.id)).toEqual(['explain', 'solve', 'quiz', 'plan', 'summarise', 'career', 'write', 'find']);
     for (const s of list) expect(s.template).toMatch(/\[[^\]]+\]/);
   });
 
-  it('fills whole rows of four or of two', () => {
-    expect(starters([], null).length % 4).toBe(0);
+  it('starts with whole rows of four or of two', () => {
+    expect(CARDS.length % 4).toBe(0);
   });
 
-  it('uses a module of the student’s year', () => {
-    expect(starters([st], 2).find((s) => s.id === 'plan')?.template).toContain('[ST2133]');
-    expect(starters([st], 1).find((s) => s.id === 'plan')?.template).toContain('[my next exam]');
-    expect(starters([st], 2).find((s) => s.id === 'find')?.template).toBe('Where are [the past papers for ST2133]?');
+  it('uses a module of the student’s year for {module}', () => {
+    expect(starters(CARDS, [st], 2).find((s) => s.id === 'plan')?.template).toContain('[ST2133]');
+    expect(starters(CARDS, [st], 2).find((s) => s.id === 'plan')?.example).toBe('A plan for ST2133 around my exams');
+    expect(starters(CARDS, [st], 1).find((s) => s.id === 'plan')?.template).toContain('[my next exam]');
+    expect(starters(CARDS, [st], 2).find((s) => s.id === 'find')?.template).toBe('Where are [the past papers for ST2133]?');
   });
 });

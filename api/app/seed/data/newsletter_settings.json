@@ -1,0 +1,8 @@
+{
+  "masthead": "News from the DSBA programme, written by students for students. We publish when there’s something worth your time.",
+  "pictures": [
+    { "id": "cover-illustration", "src": "brand/newsletter-cover.jpg", "label": "Newsletter cover illustration", "width": 1086, "height": 1448, "cover": true },
+    { "id": "cfa-research-challenge", "src": "demo/news/cfa-research-challenge.jpg", "label": "CFA Research Challenge poster", "width": 986, "height": 701, "cover": false },
+    { "id": "speech-day", "src": "demo/news/speech-day.jpg", "label": "Speech Day poster", "width": 1080, "height": 1350, "cover": false }
+  ]
+}

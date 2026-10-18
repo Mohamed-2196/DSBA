@@ -3,15 +3,9 @@ import { Link } from 'react-router-dom';
 import { CheckCircle } from '@phosphor-icons/react';
 import type { ModuleSummary, ThreadSummary } from '../../../api/types';
 import { useModules } from '../../../state/modules';
+import { useTaxonomy } from '../lib/taxonomy';
 import type { SimilarState } from '../lib/useSimilar';
 import { ModuleTag, ReplyCount } from './ThreadBits';
-
-const TIPS = [
-  'Ask one clear question in the title.',
-  "Say what you've tried so far and where you got stuck.",
-  'Pick the module so the right cohort sees it.',
-  'Put formulas between $ signs, and code in backticks.',
-];
 
 /** Threads like the one being written: a title, its replies (answered or not), the module and votes. */
 export function SimilarList({ threads }: { threads: ThreadSummary[] }) {
@@ -53,6 +47,7 @@ export function SimilarInline({ similar }: { similar: SimilarState }) {
 }
 
 export function ComposerAside({ similar, module }: { similar: SimilarState; module: ModuleSummary | null }) {
+  const { tips } = useTaxonomy();
   return (
     <aside className="forum-new__side" aria-label="Before you post">
       <section className="forum-new__block forum-new__block--similar" aria-live="polite" aria-labelledby="forum-new-similar">
@@ -75,16 +70,18 @@ export function ComposerAside({ similar, module }: { similar: SimilarState; modu
         )}
       </section>
 
-      <section className="forum-new__block" aria-labelledby="forum-new-tips">
-        <h2 id="forum-new-tips" className="forum-side__title">
-          Tips for a good thread
-        </h2>
-        <ul role="list" className="forum-tips">
-          {TIPS.map((tip) => (
-            <li key={tip}>{tip.split('`').map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part))}</li>
-          ))}
-        </ul>
-      </section>
+      {tips.length ? (
+        <section className="forum-new__block" aria-labelledby="forum-new-tips">
+          <h2 id="forum-new-tips" className="forum-side__title">
+            Tips for a good thread
+          </h2>
+          <ul role="list" className="forum-tips">
+            {tips.map((tip) => (
+              <li key={tip.id}>{tip.text.split('`').map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part))}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {module ? (
         <section className="forum-new__block" aria-labelledby="forum-new-module">

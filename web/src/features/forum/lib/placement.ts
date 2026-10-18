@@ -1,6 +1,6 @@
 import { useModules } from '../../../state/modules';
 import type { CategoryId } from '../types';
-import { categoryForYear, useTaxonomy } from './taxonomy';
+import { useTaxonomy } from './taxonomy';
 
 export interface Placement {
   category: CategoryId;
@@ -14,7 +14,7 @@ export interface Placement {
  */
 export function usePlacementRules() {
   const { getModule } = useModules();
-  const { getCategory } = useTaxonomy();
+  const { getCategory, categoryForYear } = useTaxonomy();
   return {
     withModule(p: Placement, moduleId: string): Placement {
       const next = getModule(moduleId);

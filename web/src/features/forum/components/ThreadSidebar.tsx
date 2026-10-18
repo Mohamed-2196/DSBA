@@ -1,6 +1,6 @@
 import { useMemo, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarBlank, ChatsCircle, Plus, UsersThree } from '@phosphor-icons/react';
+import { CalendarBlank, ChatsCircle, Plus } from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
 import type { ModuleSummary, ThreadDetail } from '../../../api/types';
 import { Button, CohortBadge, ModuleArt, ModuleIcon, Skeleton, formatDate, moduleArtSrc, timeAgo } from '../../../ui';
@@ -14,6 +14,7 @@ import { participants, takesReplies } from '../lib/replies';
 import { useTaxonomy } from '../lib/taxonomy';
 import type { ForumCategory } from '../types';
 import { AuthorAvatar } from './AuthorAvatar';
+import { FORUM_ICONS } from './forumIcons';
 import { ReplyCount } from './ThreadBits';
 
 function ModuleCard({ module }: { module: ModuleSummary }) {
@@ -62,7 +63,7 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
 }
 
 function CategoryCard({ category }: { category: ForumCategory }) {
-  const Icon = category.id === 'study-groups' ? UsersThree : ChatsCircle;
+  const Icon = FORUM_ICONS[category.icon ?? 'chat'].icon;
   return (
     <section className="forum-tside__card" aria-label="Category">
       <span className="forum-tside__icon" aria-hidden="true">

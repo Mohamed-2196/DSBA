@@ -7,15 +7,15 @@ const onlyOn = (...features: Feature[]) => (feature: Feature) => features.includ
 
 describe('sectionsFor', () => {
   it('gives a rep the queues, the newsletter, the calendar and the numbers', () => {
-    expect(sectionsFor(holds('forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view'))).toEqual(['reports', 'uploads', 'newsletter', 'calendar', 'gaps', 'numbers']);
+    expect(sectionsFor(holds('forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view'))).toEqual(['reports', 'uploads', 'newsletter', 'calendar', 'forum', 'gaps', 'numbers']);
   });
 
   it('gives a newsletter manager only the newsletter', () => {
     expect(sectionsFor(holds('newsletter.manage'))).toEqual(['newsletter']);
   });
 
-  it('shows reports to a forum moderator without the library', () => {
-    expect(sectionsFor(holds('forum.moderate'))).toEqual(['reports']);
+  it('gives a forum moderator the reports and the forum’s settings, without the library', () => {
+    expect(sectionsFor(holds('forum.moderate'))).toEqual(['reports', 'forum']);
   });
 
   it('gives people and activity to their boxes', () => {
@@ -46,7 +46,7 @@ describe('sectionsFor', () => {
 
   it('leaves out the sections of switched-off features', () => {
     const rep = holds('forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'career.edit', 'stats.view');
-    expect(sectionsFor(rep, onlyOn('forum'))).toEqual(['reports', 'numbers']);
+    expect(sectionsFor(rep, onlyOn('forum'))).toEqual(['reports', 'forum', 'numbers']);
     expect(sectionsFor(rep, onlyOn('library', 'career'))).toEqual(['reports', 'uploads', 'career', 'gaps', 'numbers']);
   });
 
@@ -65,10 +65,13 @@ describe('sectionsFor', () => {
     expect(sectionsFor(holds('forum.moderate'), onlyOn('library'))).toEqual([]);
   });
 
-  it('gives bug reports and Site settings to admins only', () => {
+  it('gives bug reports, Mini Noora and Site settings to admins only', () => {
     expect(sectionsFor(holds('stats.view'))).not.toContain('bugs');
+    expect(sectionsFor(holds('stats.view'))).not.toContain('noora');
     expect(sectionsFor(holds('stats.view'))).not.toContain('site');
-    expect(sectionsFor(holds('stats.view'), undefined, true)).toEqual(['bugs', 'numbers', 'site']);
+    expect(sectionsFor(holds('stats.view'), undefined, true)).toEqual(['bugs', 'numbers', 'noora', 'grades', 'site']);
+    expect(sectionsFor(holds('stats.view'))).not.toContain('grades');
+    expect(sectionsFor(holds('stats.view'), onlyOn(), true)).toEqual(['bugs', 'numbers', 'site']);
   });
 
   it('gives the guides to their box, with no switch to wait for', () => {

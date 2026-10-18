@@ -1,8 +1,9 @@
 // What Mini Noora reads to answer: every module's chapters and lessons (GET /modules/{id}, one request per module,
-// made once the chat is first opened), the calendar from today on (while it is on), and the student's first name.
+// made once the chat is first opened), the calendar from today on (while it is on), the student's first name, and her
+// script (what she says in her own words).
 import { useMemo } from 'react';
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
-import type { ModuleDetail } from '../../api/types';
+import type { ModuleDetail, NooraScript } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { dayKeyFromToday, useCalendarEvents } from '../calendar/public';
@@ -30,7 +31,7 @@ export interface KnowledgeState {
   ready: boolean;
 }
 
-export function useKnowledge(): KnowledgeState {
+export function useKnowledge(script: NooraScript): KnowledgeState {
   const { modules } = useModules();
   const { me, status, featureOn } = useAuth();
   const calendarOn = featureOn('calendar');
@@ -40,6 +41,6 @@ export function useKnowledge(): KnowledgeState {
   const events = useCalendarEvents({ from: dayKeyFromToday() }, { enabled: calendarOn });
   const name = status === 'signed-in' ? firstNameOf(me?.displayName) : null;
   const eventList = events.data ?? null;
-  const knowledge = useMemo(() => buildKnowledge(modules, details.byId, eventList, name, featureOn), [modules, details.byId, eventList, name, featureOn]);
+  const knowledge = useMemo(() => buildKnowledge(modules, details.byId, eventList, name, featureOn, script), [modules, details.byId, eventList, name, featureOn, script]);
   return { knowledge, ready: details.settled && (!calendarOn || !events.isPending) };
 }

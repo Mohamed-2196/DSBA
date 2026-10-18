@@ -7,7 +7,7 @@ import { SignIn, SlidersHorizontal, SquaresFour } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { COHORTS, YEARS, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, CohortBadge, EmptyState, ErrorBoundary, Menu, Page, PageSection, Panel, SectionHeader, cx } from '../../ui';
+import { Button, CohortBadge, EmptyState, ErrorBoundary, Menu, Page, PageSection, Panel, QueryError, SectionHeader, Skeleton, cx } from '../../ui';
 import { BoardTodo } from '../board/public';
 import { useMyCalendarEvents } from '../calendar/public';
 import { HelpBelow } from '../forum/public';
@@ -273,7 +273,18 @@ export default function HomePage() {
         </Button>
       </header>
 
-      {blocks.length ? (
+      {layout.problem ? (
+        <QueryError error={layout.problem.error} title="Your Home didn’t load" onRetry={layout.problem.retry} retrying={layout.problem.retrying} />
+      ) : layout.waiting ? (
+        <div className="home-blocks" aria-busy="true">
+          <span className="visually-hidden">Loading your Home</span>
+          <div className="home-blocks__grid" aria-hidden="true">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} height={220} radius={16} />
+            ))}
+          </div>
+        </div>
+      ) : blocks.length ? (
         <div className="home-blocks">
           <div className="home-blocks__grid">{blocks}</div>
         </div>

@@ -142,9 +142,8 @@ export function Opportunities() {
       ) : null}
 
       <p className="career-note career-opps__note">
-        Every button opens the employer’s own careers or programme page in a new tab. Programmes open and close during the year and each sets its own entry rules,
-        so check the page for current dates. The track tags are our guide to the kind of work, not a list of vacancies.{data.checkedOn ? ` Links checked on ${data.checkedOn}.` : ''} Logos
-        belong to their owners and are shown only to identify each organisation; DSBA Hub is not affiliated with or endorsed by any of them.
+        {data.employersNote}
+        {data.checkedOn ? ` Links checked on ${data.checkedOn}.` : ''}
       </p>
     </PageSection>
   );

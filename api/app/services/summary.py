@@ -6,10 +6,12 @@ to paste into their year's group.
   yet, and the newsletter issue of the last seven days. A section whose feature is off for the reader is left out.
 - Who gets it: accounts with an email address and a year that switched "Sunday summary" on, among those the summary
   feature is on for. It is opt-in.
-- When: the mail worker calls send_due() every few minutes; it queues the week's emails on Sunday from SEND_FROM
-  (Bahrain). `python -m app.cli weekly-summary` does the same on any day. A person gets at most one a week
+- When: the mail worker calls send_due() every few minutes; it queues the week's emails on Sunday from the words'
+  send time (Bahrain). `python -m app.cli weekly-summary` does the same on any day. A person gets at most one a week
   (weekly_summaries), whoever runs it and however often. Someone at the hourly email cap (SEC-17) is left for a
   later run; an empty week sends nothing.
+- Its words (the subject line, the headings, the line before the closing link, and the send time) are a document that
+  holders of summary.share edit in Manage → Sunday summary (WORDS, starting from app/seed/data/summary.json).
 - Links are the Hub's own, with ?from=summary; titles people typed are quoted with their links taken out (SEC-17).
   The email ends with the link to the switches, which are behind sign-in: no token in any link."""
 
@@ -31,6 +33,7 @@ from app.core.text import clip
 from app.core.time import BAHRAIN, utcnow
 from app.models import (
     CalendarEvent,
+    ForumCategory,
     ForumThread,
     IssueStatus,
     ItemStatus,
@@ -41,8 +44,8 @@ from app.models import (
     User,
     WeeklySummarySent,
 )
-from app.schemas.summary import SummaryPreview
-from app.services import access
+from app.schemas.summary import SummaryEditable, SummaryPreview, SummaryWords
+from app.services import access, documents
 from app.services.calendar import NOTICE_TYPES
 from app.services.calendar import summary as event_name
 from app.services.notify import inbox_full, switch_footer, unlink
@@ -51,11 +54,33 @@ from app.services.outbox import WEEKLY_SUMMARY, queue, wanted_by
 log = logging.getLogger("dsba.summary")
 
 SWITCH = "email_weekly_summary"
-SEND_FROM = dt.time(8, 0)  # Sunday, Bahrain time
 LOOK_BACK = dt.timedelta(days=7)  # new files and questions, the newsletter
 MAX_ITEMS = 6  # per section
 TITLE_MAX = 90
 FROM = "from=summary"
+WORDS: documents.Kind[SummaryWords] = documents.Kind(
+    key="summary",
+    model=SummaryWords,
+    seed="summary",
+    title="Sunday summary",
+    action="summary.words",
+    changed="summary_changed",
+    changed_message="Someone saved the Sunday summary's words after you opened them. Load them again, then make your "
+    "changes.",
+)
+
+
+def words(db: Session) -> SummaryWords:
+    return documents.current(db, WORDS)
+
+
+def editable(db: Session) -> SummaryEditable:
+    return SummaryEditable.model_validate(documents.editable(db, WORDS), from_attributes=True)
+
+
+def save_words(db: Session, user: User, data: SummaryWords, version: int, ip: str | None) -> SummaryEditable:
+    """Saves the words (409 summary_changed when someone saved them since `version`), audited with what changed."""
+    return SummaryEditable.model_validate(documents.save(db, user, WORDS, data, version, ip), from_attributes=True)
 
 
 def week_of(day: dt.date) -> dt.date:
@@ -74,10 +99,11 @@ class Summary:
     year: int
     week_of: dt.date
     sections: list[Section]
+    words: SummaryWords
 
     @property
     def subject(self) -> str:
-        return f"Your week in DSBA Hub, Year {self.year}: {_span(self.week_of)}"
+        return self.words.subject.replace("{year}", str(self.year)).replace("{week}", _span(self.week_of))
 
     @property
     def empty(self) -> bool:
@@ -90,7 +116,7 @@ class Summary:
         for s in self.sections:
             if s.lines:
                 out += [s.heading, *s.lines, ""]
-        out.append(f"Everything else: {base}/?{FROM}")
+        out.append(f"{self.words.closing} {base}/?{FROM}")
         return "\n".join(out) + "\n"
 
     def email(self) -> str:
@@ -117,8 +143,13 @@ def _since(sunday: dt.date) -> dt.datetime:
     return dt.datetime.combine(sunday, dt.time(), tzinfo=BAHRAIN) - LOOK_BACK
 
 
-def build(db: Session, year: int, sunday: dt.date, features: frozenset[Feature]) -> Summary:
-    """Year `year`'s summary for the week starting `sunday`, with the sections of `features` only."""
+def build(
+    db: Session, year: int, sunday: dt.date, features: frozenset[Feature], told: SummaryWords | None = None
+) -> Summary:
+    """Year `year`'s summary for the week starting `sunday`, with the sections of `features` only, in the saved words
+    (or `told`, a draft of them)."""
+    said = told or words(db)
+    headings = said.headings
     since = _since(sunday)
     sections: list[Section] = []
     if Feature.calendar in features:
@@ -141,7 +172,7 @@ def build(db: Session, year: int, sunday: dt.date, features: frozenset[Feature])
             unconfirmed = " (not confirmed yet)" if e.sample else ""
             lines.append(f"- {when}: {_title(event_name(e))}{f' ({unlink(extra)})' if extra else ''}{unconfirmed}")
             lines.append(f"  {_link(f'/calendar?date={e.date.isoformat()}&event={e.id}')}")
-        sections.append(Section("Exams and deadlines this week", lines))
+        sections.append(Section(headings.calendar, lines))
     year_modules = select(Module.id).where(Module.year == year, Module.hidden.is_(False))
     if Feature.library in features:
         items = db.scalars(
@@ -160,7 +191,7 @@ def build(db: Session, year: int, sunday: dt.date, features: frozenset[Feature])
         lines = []
         for i in items:
             lines += [f"- {_title(i.title)}", f"  {_link(f'/library/{i.slug}')}"]
-        sections.append(Section("New in the library", lines))
+        sections.append(Section(headings.library, lines))
     if Feature.forum in features:
         threads = db.scalars(
             select(ForumThread)
@@ -170,7 +201,10 @@ def build(db: Session, year: int, sunday: dt.date, features: frozenset[Feature])
                 ForumThread.locked.is_(False),
                 ForumThread.reply_count == 0,
                 ForumThread.created_at >= since,
-                or_(ForumThread.category == f"year-{year}", ForumThread.module_id.in_(year_modules)),
+                or_(
+                    ForumThread.category.in_(select(ForumCategory.id).where(ForumCategory.year == year)),
+                    ForumThread.module_id.in_(year_modules),
+                ),
             )
             .order_by(ForumThread.created_at.desc(), ForumThread.id)
             .limit(MAX_ITEMS)
@@ -178,7 +212,7 @@ def build(db: Session, year: int, sunday: dt.date, features: frozenset[Feature])
         lines = []
         for t in threads:
             lines += [f"- {_title(t.title)}", f"  {_link(f'/forum/{t.slug}')}"]
-        sections.append(Section("Questions you could answer", lines))
+        sections.append(Section(headings.forum, lines))
     if Feature.newsletter in features:
         issue = db.scalars(
             select(NewsletterIssue)
@@ -191,8 +225,8 @@ def build(db: Session, year: int, sunday: dt.date, features: frozenset[Feature])
             if issue
             else []
         )
-        sections.append(Section("The DSBA Newsletter", lines))
-    return Summary(year, sunday, sections)
+        sections.append(Section(headings.newsletter, lines))
+    return Summary(year, sunday, sections, said)
 
 
 def _features_for(db: Session, user: User | None) -> frozenset[Feature]:
@@ -200,11 +234,11 @@ def _features_for(db: Session, user: User | None) -> frozenset[Feature]:
     return frozenset(access.features_on(db, user))
 
 
-def preview(db: Session, user: User, year: int, today: dt.date) -> SummaryPreview:
+def preview(db: Session, user: User, year: int, today: dt.date, told: SummaryWords | None = None) -> SummaryPreview:
     """This week's summary for `year`, without the email's footer, with the sections of the features on for the
-    person asking, and how many people in that year have it switched on."""
+    person asking, and how many people in that year have it switched on. `told`: a draft of the words."""
     sunday = week_of(today)
-    s = build(db, year, sunday, _features_for(db, user))
+    s = build(db, year, sunday, _features_for(db, user), told)
     readers = _recipients(db, year)
     return SummaryPreview(
         year=year, week_of=sunday, subject=s.subject, text=s.text(), empty=s.empty, subscribers=len(readers)
@@ -228,12 +262,13 @@ def send_week(db: Session, today: dt.date) -> int:
     """Queues this week's summary for everyone who wants it and hasn't had it this week (the caller commits).
     -> how many were queued."""
     sunday = week_of(today)
+    said = words(db)
     queued = 0
     for year in (1, 2, 3):
         for user in _recipients(db, year):
             if user.email is None or inbox_full(db, user.id):
                 continue
-            s = build(db, year, sunday, _features_for(db, user))
+            s = build(db, year, sunday, _features_for(db, user), said)
             if s.empty:
                 continue
             claimed = db.scalar(
@@ -249,18 +284,20 @@ def send_week(db: Session, today: dt.date) -> int:
     return queued
 
 
-def due(now: dt.datetime) -> bool:
-    """Whether it's time for the week's summary: Sunday from SEND_FROM, in Bahrain."""
+def due(now: dt.datetime, send_at: dt.time) -> bool:
+    """Whether it's time for the week's summary: Sunday from `send_at`, in Bahrain."""
     local = now.astimezone(BAHRAIN)
-    return local.weekday() == 6 and local.time() >= SEND_FROM
+    return local.weekday() == 6 and local.time() >= send_at
 
 
 def send_due(sessions: Callable[[], AbstractContextManager[Session]], now: dt.datetime | None = None) -> int:
-    """The mail worker's weekly step: on Sunday from SEND_FROM, queues the week's summaries. -> how many."""
+    """The mail worker's weekly step: on Sunday from the words' send time, queues the week's summaries. -> how many."""
     now = now or utcnow()
-    if not due(now):
+    if now.astimezone(BAHRAIN).weekday() != 6:
         return 0
     with sessions() as db:
+        if not due(now, words(db).send_time()):
+            return 0
         queued = send_week(db, now.astimezone(BAHRAIN).date())
         db.commit()
     if queued:

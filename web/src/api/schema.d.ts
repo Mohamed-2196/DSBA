@@ -1298,10 +1298,42 @@ export interface paths {
         };
         /**
          * Meta
-         * @description Categories and tags (the server validates threads against these).
+         * @description Every category and tag in their order (retired ones too: their threads keep them, but they aren't offered),
+         *     where a thread goes when no year fits it, and the forum's guidelines and tips. Threads are checked against
+         *     these.
          */
         get: operations["meta_api_v1_forum_meta_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forum/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Forum Settings
+         * @description Manage → Forum: the categories, tags, guidelines and tips with the version a save names (0 until the first
+         *     save), and how many threads use each category and tag.
+         */
+        get: operations["forum_settings_api_v1_forum_settings_get"];
+        /**
+         * Save Forum Settings
+         * @description Save the categories, tags, guidelines and tips together, if nobody saved them since `version`. Audited with
+         *     what changed, before and after.
+         *
+         *     Errors: forum_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
+         *     fit, an id used twice, no category left, a default category that is retired or belongs to a year, a category or
+         *     tag that threads use removed instead of retired).
+         */
+        put: operations["save_forum_settings_api_v1_forum_settings_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1340,7 +1372,7 @@ export interface paths {
          * List Threads
          * @description Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);
          *     deleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its
-         *     category, or a module of that year) plus forum-wide ones (study groups and general without a module).
+         *     category, or a module of that year) plus forum-wide ones (a category for every year, without a module).
          *     `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.
          */
         get: operations["list_threads_api_v1_forum_threads_get"];
@@ -1849,6 +1881,75 @@ export interface paths {
          *     Errors: not_found (404), forbidden (403: someone else's request), nothing_found (409: no file waiting).
          */
         post: operations["answer_found_api_v1_requests__request_id__found_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/newsletter/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Newsletter Settings
+         * @description The line under the newsletter's name.
+         */
+        get: operations["newsletter_settings_api_v1_newsletter_settings_get"];
+        /**
+         * Save Newsletter Settings
+         * @description Save the masthead's line and the pictures the editor offers, if nobody saved them since `version`. An uploaded
+         *     picture is kept while it's offered. Audited with what changed, before and after.
+         *
+         *     Errors: newsletter_settings_changed (409: someone saved them since: load them again), invalid_input (422: a field
+         *     that doesn't fit, a picture that isn't one of the newsletter's, a picture offered twice).
+         */
+        put: operations["save_newsletter_settings_api_v1_newsletter_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/newsletter/pictures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Newsletter Pictures
+         * @description The pictures the issue editor offers for covers and beside sections. For the people who manage the newsletter:
+         *     an offered picture may be for an issue nobody has read yet.
+         */
+        get: operations["newsletter_pictures_api_v1_newsletter_pictures_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/newsletter/settings/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Newsletter Settings For Editing
+         * @description The settings with the version a save names (0 until the first save).
+         */
+        get: operations["newsletter_settings_for_editing_api_v1_newsletter_settings_edit_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3119,6 +3220,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mini-noora/script": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Noora Script
+         * @description What she says when she answers from her script, the questions she offers on each page, and the cards of her
+         *     full page.
+         */
+        get: operations["noora_script_api_v1_mini_noora_script_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mini-noora/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Noora Settings
+         * @description Her prompt and script with the version a save names (0 until the first save), and the rules that always follow
+         *     her instructions.
+         */
+        get: operations["noora_settings_api_v1_mini_noora_settings_get"];
+        /**
+         * Save Noora Settings
+         * @description Save her prompt and script, if nobody saved them since `version`. Admins only, with a session started or
+         *     stepped up in the last ten minutes: every student's answers follow her instructions. Audited with what changed,
+         *     before and after (the prompt's words for admins only).
+         *
+         *     Errors: step_up_required (403), noora_changed (409: someone saved them since: load them again), invalid_input
+         *     (422: a field that doesn't fit, <hub_data> or <student_note> in her instructions or facts, a placeholder other
+         *     than {module} and {module2}, a page listed twice or without the questions for every other page, an id used twice,
+         *     starter cards other than four or eight).
+         */
+        put: operations["save_noora_settings_api_v1_mini_noora_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mini-noora/settings/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Noora Prompt
+         * @description The prompt her AI would read with these instructions and facts: for a Year 2 student on Home today, from the
+         *     hub's own modules and calendar. Nothing is saved.
+         */
+        post: operations["preview_noora_prompt_api_v1_mini_noora_settings_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/summary/preview": {
         parameters: {
             query?: never;
@@ -3134,6 +3309,54 @@ export interface paths {
         get: operations["preview_api_v1_summary_preview_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/summary/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Summary Words
+         * @description The summary's words with the version a save names (0 until the first save).
+         */
+        get: operations["summary_words_api_v1_summary_settings_get"];
+        /**
+         * Save Summary Words
+         * @description Save the subject line, the headings, the closing line and the Sunday send time, if nobody saved them since
+         *     `version`. Audited with what changed, before and after.
+         *
+         *     Errors: summary_changed (409: someone saved them since: load them again), invalid_input (422: a field that
+         *     doesn't fit, a placeholder other than {year} and {week}, a time that isn't HH:MM).
+         */
+        put: operations["save_summary_words_api_v1_summary_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/summary/settings/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Summary Words
+         * @description This week's summary for a year in a draft of the words. Nothing is saved or sent.
+         */
+        post: operations["preview_summary_words_api_v1_summary_settings_preview_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3892,6 +4115,55 @@ export interface paths {
          * @description The guides with the version a save names (0 until the first save).
          */
         get: operations["guides_for_editing_api_v1_guides_edit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/grades/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Grade Rules
+         * @description The subjects and what each counts, the mark bands, what each class needs, and the modules a student chooses
+         *     between.
+         */
+        get: operations["grade_rules_api_v1_grades_rules_get"];
+        /**
+         * Save Grade Rules
+         * @description Save the rules, if nobody saved them since `version`. Audited with what changed, before and after.
+         *
+         *     Errors: grades_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
+         *     fit, bands out of order, more marks needed than the subjects give, a choice without options, a module that
+         *     doesn't exist, an id used twice).
+         */
+        put: operations["save_grade_rules_api_v1_grades_rules_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/grades/rules/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Grade Rules For Editing
+         * @description The rules with the version a save names (0 until the first save).
+         */
+        get: operations["grade_rules_for_editing_api_v1_grades_rules_edit_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5161,6 +5433,10 @@ export interface components {
         };
         /** CareerDoc */
         CareerDoc: {
+            /** Intro */
+            intro: string;
+            /** Employersnote */
+            employersNote: string;
             /** Checkedon */
             checkedOn: string;
             /** Initialcount */
@@ -5386,22 +5662,6 @@ export interface components {
              */
             hidden: boolean;
         };
-        /** CategoryOut */
-        CategoryOut: {
-            /**
-             * Id
-             * @enum {string}
-             */
-            id: "year-1" | "year-2" | "year-3" | "study-groups" | "general";
-            /** Label */
-            label: string;
-            /** Short */
-            short: string;
-            /** Year */
-            year: (1 | 2 | 3) | null;
-            /** Blurb */
-            blurb: string;
-        };
         /** Cell */
         Cell: {
             /** Row */
@@ -5504,6 +5764,18 @@ export interface components {
             chapter: string;
             /** Label */
             label: string;
+        };
+        /**
+         * ClassAverages
+         * @description With `fewer` marks (not `needed`) in a class's band, the average classification mark a class asks for.
+         */
+        ClassAverages: {
+            /** First */
+            first: number;
+            /** Upper */
+            upper: number;
+            /** Lower */
+            lower: number;
         };
         /** CloseCert */
         CloseCert: {
@@ -5802,7 +6074,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
             /** Message */
             message: string;
             /** Fields */
@@ -6489,11 +6761,8 @@ export interface components {
             title: string;
             /** Body */
             body: string;
-            /**
-             * Category
-             * @enum {string}
-             */
-            category: "year-1" | "year-2" | "year-3" | "study-groups" | "general";
+            /** Category */
+            category: string;
             /** Moduleid */
             moduleId: string | null;
             /** Tags */
@@ -6605,14 +6874,108 @@ export interface components {
              */
             following: "answers" | "replies" | "off";
         };
-        /** ForumMeta */
+        /**
+         * ForumCategoryOut
+         * @description Where a thread lives. A retired one is no longer offered; its threads keep it.
+         */
+        ForumCategoryOut: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Short */
+            short: string;
+            /** Year */
+            year: (1 | 2 | 3) | null;
+            /** Blurb */
+            blurb: string;
+            /** Icon */
+            icon?: ("search" | "tag" | "check" | "shield" | "heart" | "chat" | "people" | "book" | "calendar" | "flag" | "info" | "briefcase") | null;
+            /**
+             * Retired
+             * @default false
+             */
+            retired: boolean;
+        };
+        /**
+         * ForumGuideline
+         * @description One of the forum's guidelines, in the sidebar.
+         */
+        ForumGuideline: {
+            /** Id */
+            id: string;
+            /**
+             * Icon
+             * @enum {string}
+             */
+            icon: "search" | "tag" | "check" | "shield" | "heart" | "chat" | "people" | "book" | "calendar" | "flag" | "info" | "briefcase";
+            /** Text */
+            text: string;
+        };
+        /**
+         * ForumMeta
+         * @description Everything the forum's pages need to place and file threads: every category and tag (retired ones too, for
+         *     the threads that carry them), where a thread goes when no year fits, and the guidelines and tips.
+         */
         ForumMeta: {
             /** Categories */
-            categories: components["schemas"]["CategoryOut"][];
+            categories: components["schemas"]["ForumCategoryOut"][];
             /** Tags */
-            tags: components["schemas"]["TagOut"][];
+            tags: components["schemas"]["ForumTagOut"][];
             /** Maxtags */
             maxTags: number;
+            /** Defaultcategory */
+            defaultCategory: string;
+            /** Guidelines */
+            guidelines: components["schemas"]["ForumGuideline"][];
+            /** Tips */
+            tips: components["schemas"]["ForumTip"][];
+        };
+        /**
+         * ForumSettings
+         * @description Manage → Forum, saved as a whole: the categories and tags in their order, and the forum's words.
+         */
+        ForumSettings: {
+            /** Defaultcategory */
+            defaultCategory: string;
+            /** Guidelines */
+            guidelines: components["schemas"]["ForumGuideline"][];
+            /** Tips */
+            tips: components["schemas"]["ForumTip"][];
+            /** Categories */
+            categories: components["schemas"]["ForumCategoryOut"][];
+            /** Tags */
+            tags: components["schemas"]["ForumTagOut"][];
+        };
+        /**
+         * ForumSettingsEditable
+         * @description The settings with the version a save names (0 until the first save), and how many threads use each category
+         *     and tag (one in use is retired rather than removed).
+         */
+        ForumSettingsEditable: {
+            data: components["schemas"]["ForumSettings"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+            /** Threadsbycategory */
+            threadsByCategory: {
+                [key: string]: number;
+            };
+            /** Threadsbytag */
+            threadsByTag: {
+                [key: string]: number;
+            };
+        };
+        /**
+         * ForumSettingsSave
+         * @description PUT /forum/settings: everything, and the version it was edited from.
+         */
+        ForumSettingsSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["ForumSettings"];
         };
         /**
          * ForumStats
@@ -6645,6 +7008,28 @@ export interface components {
                     [key: string]: number;
                 };
             };
+        };
+        /** ForumTagOut */
+        ForumTagOut: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Retired
+             * @default false
+             */
+            retired: boolean;
+        };
+        /**
+         * ForumTip
+         * @description A tip for a good thread, beside the composer. `code` in backticks shows as code.
+         */
+        ForumTip: {
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
         };
         /**
          * FoundAnswer
@@ -6789,6 +7174,92 @@ export interface components {
              * @enum {string}
              */
             kind: "give-up";
+        };
+        /** GradeBand */
+        GradeBand: {
+            /** Floor */
+            floor: number;
+            /** Gpa */
+            gpa: string;
+        };
+        /** GradeBands */
+        GradeBands: {
+            first: components["schemas"]["GradeBand"];
+            upper: components["schemas"]["GradeBand"];
+            lower: components["schemas"]["GradeBand"];
+            third: components["schemas"]["GradeBand"];
+        };
+        /**
+         * GradeOption
+         * @description A module a student may pick for a choice.
+         */
+        GradeOption: {
+            /** Id */
+            id: string;
+            /** Moduleid */
+            moduleId?: string | null;
+            /** Label */
+            label?: string | null;
+        };
+        /** GradeRules */
+        GradeRules: {
+            /** Subjects */
+            subjects: components["schemas"]["GradeSubject"][];
+            /** Averagecounts */
+            averageCounts: number;
+            bands: components["schemas"]["GradeBands"];
+            /** Needed */
+            needed: number;
+            /** Fewer */
+            fewer: number;
+            averages: components["schemas"]["ClassAverages"];
+            /** Thirdrule */
+            thirdRule: string;
+            /** Regulations */
+            regulations: string;
+            /** Year2Options */
+            year2Options: components["schemas"]["GradeOption"][];
+            /** Electives */
+            electives: components["schemas"]["GradeOption"][];
+        };
+        /** GradeRulesEditable */
+        GradeRulesEditable: {
+            data: components["schemas"]["GradeRules"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /**
+         * GradeRulesSave
+         * @description PUT /grades/rules: the rules, and the version they were edited from.
+         */
+        GradeRulesSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["GradeRules"];
+        };
+        /** GradeSubject */
+        GradeSubject: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            /** Moduleid */
+            moduleId?: string | null;
+            /** Choice */
+            choice?: ("year2Option" | "elective1" | "elective2") | null;
+            /**
+             * Counts
+             * @enum {unknown}
+             */
+            counts: "average" | 1 | 2 | 3;
         };
         /**
          * GroupData
@@ -7599,6 +8070,12 @@ export interface components {
             year?: (1 | 2 | 3) | null;
             /** Description */
             description?: string | null;
+            /** Examyear */
+            examYear?: number | null;
+            /** Zone */
+            zone?: ("A" | "B" | "RTC") | null;
+            /** Examsession */
+            examSession?: ("may" | "october") | null;
             /** Authorname */
             authorName?: string | null;
         };
@@ -7984,6 +8461,81 @@ export interface components {
             answer: string | null;
         };
         /**
+         * NewsletterMasthead
+         * @description GET /newsletter/settings: what readers see of the settings.
+         */
+        NewsletterMasthead: {
+            /** Masthead */
+            masthead: string;
+        };
+        /**
+         * NewsletterPicture
+         * @description A picture the issue editor offers to choose: a picture of the web app or an uploaded newsletter picture. Width
+         *     and height (pixels) reserve its space while it loads.
+         */
+        NewsletterPicture: {
+            /** Id */
+            id: string;
+            /** Src */
+            src: string;
+            /** Label */
+            label: string;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /**
+             * Cover
+             * @default false
+             */
+            cover: boolean;
+        };
+        /**
+         * NewsletterSettings
+         * @description The newsletter's own words and the pictures its editor offers, edited by holders of newsletter.manage in
+         *     Manage → Newsletter (its starting content is app/seed/data/newsletter_settings.json).
+         */
+        NewsletterSettings: {
+            /** Masthead */
+            masthead: string;
+            /** Pictures */
+            pictures: components["schemas"]["NewsletterPicture"][];
+        };
+        /** NewsletterSettingsEditable */
+        NewsletterSettingsEditable: {
+            data: components["schemas"]["NewsletterSettings"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /**
+         * NewsletterSettingsSave
+         * @description PUT /newsletter/settings: everything, and the version it was edited from.
+         */
+        NewsletterSettingsSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["NewsletterSettings"];
+        };
+        /**
+         * NooraChip
+         * @description A question she offers. Left out while the feature it needs is off for the student, or when it names a module
+         *     the student has none of.
+         */
+        NooraChip: {
+            /** Text */
+            text: string;
+            /** Needs */
+            needs?: ("calendar" | "library") | null;
+        };
+        /** NooraDoc */
+        NooraDoc: {
+            prompt: components["schemas"]["NooraPrompt"];
+            script: components["schemas"]["NooraScript"];
+        };
+        /**
          * NooraDoneEvent
          * @description The answer is complete.
          */
@@ -7995,6 +8547,21 @@ export interface components {
             type: "done";
             /** Questionsleft */
             questionsLeft: number;
+        };
+        /**
+         * NooraEditable
+         * @description The document for admins, with the version a save must name (0 until the first save: the starting content),
+         *     and the rules that always follow her instructions, which no edit removes.
+         */
+        NooraEditable: {
+            data: components["schemas"]["NooraDoc"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+            /** Fixedrules */
+            fixedRules: string;
         };
         /**
          * NooraErrorEvent
@@ -8016,6 +8583,13 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** NooraFact */
+        NooraFact: {
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
+        };
         /** NooraLimitsIn */
         NooraLimitsIn: {
             /** Dailyquestions */
@@ -8036,6 +8610,16 @@ export interface components {
             /** Body */
             body: string;
         };
+        /** NooraPageChips */
+        NooraPageChips: {
+            /**
+             * Page
+             * @enum {string}
+             */
+            page: "home" | "modules" | "module" | "library" | "calendar" | "forum" | "notes" | "grades" | "other";
+            /** Chips */
+            chips: components["schemas"]["NooraChip"][];
+        };
         /**
          * NooraPaper
          * @description A past paper's question the student is asking about. The server reads the page's words and the examiners'
@@ -8051,6 +8635,37 @@ export interface components {
             page: number;
             /** Question */
             question: string;
+        };
+        /**
+         * NooraPrompt
+         * @description What her AI reads first: who she is and how she answers, then the facts about the programme.
+         */
+        NooraPrompt: {
+            /** Instructions */
+            instructions: string;
+            /** Facts */
+            facts: components["schemas"]["NooraFact"][];
+        };
+        /**
+         * NooraPromptAssembled
+         * @description What her AI reads before a question: the part that is the same for every question (her instructions, the
+         *     facts, the fixed rules, the hub's pages and its modules) and, as an example, the part about one student's screen
+         *     (Year 2, on Home, today).
+         */
+        NooraPromptAssembled: {
+            /** Stable */
+            stable: string;
+            /** Screen */
+            screen: string;
+            /** Tokens */
+            tokens: number;
+        };
+        /**
+         * NooraPromptPreview
+         * @description POST /mini-noora/settings/preview: the prompt as her AI would read it, from a draft.
+         */
+        NooraPromptPreview: {
+            prompt: components["schemas"]["NooraPrompt"];
         };
         /**
          * NooraQuestion
@@ -8074,6 +8689,68 @@ export interface components {
             paper?: components["schemas"]["NooraPaper"] | null;
             /** History */
             history?: components["schemas"]["NooraTurn"][];
+        };
+        /**
+         * NooraSave
+         * @description PUT /mini-noora/settings: the whole document, and the version it was edited from.
+         */
+        NooraSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["NooraDoc"];
+        };
+        /**
+         * NooraScript
+         * @description What she says from her script, and what she offers to answer.
+         */
+        NooraScript: {
+            /** Greeting */
+            greeting: string;
+            /** Greetingchips */
+            greetingChips: string[];
+            /** Who */
+            who: string;
+            /** Thanks */
+            thanks: string;
+            /** Refusal */
+            refusal: string;
+            /** Notfound */
+            notFound: string;
+            /** Tryinstead */
+            tryInstead: string[];
+            /** Nophotos */
+            noPhotos: string;
+            /** Photoask */
+            photoAsk: string;
+            /** Fileguess */
+            fileGuess: string;
+            /** Fileunknown */
+            fileUnknown: string;
+            /** Welcome */
+            welcome: string;
+            /** Pagechips */
+            pageChips: components["schemas"]["NooraPageChips"][];
+            /** Starters */
+            starters: components["schemas"]["NooraStarter"][];
+        };
+        /**
+         * NooraStarter
+         * @description A card of her full page: it fills the question box with `template`, its [part in square brackets] selected.
+         */
+        NooraStarter: {
+            /** Id */
+            id: string;
+            /**
+             * Icon
+             * @enum {string}
+             */
+            icon: "lightbulb" | "teacher" | "checklist" | "notepad" | "exam" | "briefcase" | "pencil" | "magnifier";
+            /** Title */
+            title: string;
+            /** Example */
+            example: string;
+            /** Template */
+            template: string;
         };
         /**
          * NooraStatus
@@ -9668,6 +10345,19 @@ export interface components {
             /** Page */
             page: number | null;
         };
+        /**
+         * SearchNickname
+         * @description A word students type for modules: search also finds the modules with a word of their name starting with
+         *     `finds` ('stats' finds every module named "… statistics …").
+         */
+        SearchNickname: {
+            /** Id */
+            id: string;
+            /** Word */
+            word: string;
+            /** Finds */
+            finds: string;
+        };
         /** SearchResults */
         SearchResults: {
             /** Query */
@@ -9835,6 +10525,14 @@ export interface components {
             copyrightHolder: string;
             /** Launchyear */
             launchYear: number;
+            /** Homeblocks */
+            homeBlocks: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[];
+            /** Tour */
+            tour: components["schemas"]["TourStep"][];
+            /** Searchnicknames */
+            searchNicknames: components["schemas"]["SearchNickname"][];
+            /** Searchsuggestions */
+            searchSuggestions: string[];
         };
         /**
          * SiteEditable
@@ -10171,6 +10869,44 @@ export interface components {
             offset: number;
         };
         /**
+         * SummaryDraftPreview
+         * @description POST /summary/settings/preview: this week's summary for a year with a draft of the words.
+         */
+        SummaryDraftPreview: {
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            words: components["schemas"]["SummaryWords"];
+        };
+        /**
+         * SummaryEditable
+         * @description The words with the version a save must name (0 until the first save: the starting content).
+         */
+        SummaryEditable: {
+            data: components["schemas"]["SummaryWords"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /**
+         * SummaryHeadings
+         * @description Above each part of the summary; a part with nothing in it this week is left out.
+         */
+        SummaryHeadings: {
+            /** Calendar */
+            calendar: string;
+            /** Library */
+            library: string;
+            /** Forum */
+            forum: string;
+            /** Newsletter */
+            newsletter: string;
+        };
+        /**
          * SummaryPreview
          * @description A year's Sunday summary for this week, as plain text with links: what the email says above its footer, and
          *     what a rep pastes into the year's group.
@@ -10195,6 +10931,25 @@ export interface components {
             /** Subscribers */
             subscribers: number;
         };
+        /**
+         * SummarySave
+         * @description PUT /summary/settings: the words, and the version they were edited from.
+         */
+        SummarySave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["SummaryWords"];
+        };
+        /** SummaryWords */
+        SummaryWords: {
+            /** Subject */
+            subject: string;
+            headings: components["schemas"]["SummaryHeadings"];
+            /** Closing */
+            closing: string;
+            /** Sendat */
+            sendAt: string;
+        };
         /** SwitchUpdate */
         SwitchUpdate: {
             /**
@@ -10207,13 +10962,6 @@ export interface components {
              * @default []
              */
             roleIds: string[];
-        };
-        /** TagOut */
-        TagOut: {
-            /** Id */
-            id: string;
-            /** Label */
-            label: string;
         };
         /** TermStart */
         TermStart: {
@@ -10305,7 +11053,7 @@ export interface components {
              */
             body: string;
             /** Category */
-            category?: ("year-1" | "year-2" | "year-3" | "study-groups" | "general") | null;
+            category?: string | null;
             /** Moduleid */
             moduleId?: string | null;
             /** Tags */
@@ -10331,11 +11079,8 @@ export interface components {
             title: string;
             /** Excerpt */
             excerpt: string;
-            /**
-             * Category
-             * @enum {string}
-             */
-            category: "year-1" | "year-2" | "year-3" | "study-groups" | "general";
+            /** Category */
+            category: string;
             /** Moduleid */
             moduleId: string | null;
             /** Year */
@@ -10432,11 +11177,8 @@ export interface components {
             title: string;
             /** Excerpt */
             excerpt: string;
-            /**
-             * Category
-             * @enum {string}
-             */
-            category: "year-1" | "year-2" | "year-3" | "study-groups" | "general";
+            /** Category */
+            category: string;
             /** Moduleid */
             moduleId: string | null;
             /** Year */
@@ -10486,11 +11228,29 @@ export interface components {
             /** Body */
             body?: string | null;
             /** Category */
-            category?: ("year-1" | "year-2" | "year-3" | "study-groups" | "general") | null;
+            category?: string | null;
             /** Moduleid */
             moduleId?: string | null;
             /** Tags */
             tags?: string[] | null;
+        };
+        /**
+         * TourStep
+         * @description A step of the tour a new student may take ("Take the tour" in the year prompt). Text between `backticks` shows
+         *     as a key to press, and {mod} as the platform's key: ⌘ on a Mac, Ctrl elsewhere.
+         */
+        TourStep: {
+            /** Id */
+            id: string;
+            /**
+             * Art
+             * @enum {string}
+             */
+            art: "search" | "library" | "forum";
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
         };
         /** UploadCreate */
         UploadCreate: {
@@ -10775,7 +11535,6 @@ export type CareerRole = components['schemas']['CareerRole'];
 export type CareerSave = components['schemas']['CareerSave'];
 export type CareerSkill = components['schemas']['CareerSkill'];
 export type CareerTrack = components['schemas']['CareerTrack'];
-export type CategoryOut = components['schemas']['CategoryOut'];
 export type Cell = components['schemas']['Cell'];
 export type CertFile = components['schemas']['CertFile'];
 export type Chapter = components['schemas']['Chapter'];
@@ -10785,6 +11544,7 @@ export type ChecklistCert = components['schemas']['ChecklistCert'];
 export type ChecklistForum = components['schemas']['ChecklistForum'];
 export type ChecklistItem = components['schemas']['ChecklistItem'];
 export type ChecklistLesson = components['schemas']['ChecklistLesson'];
+export type ClassAverages = components['schemas']['ClassAverages'];
 export type CloseCert = components['schemas']['CloseCert'];
 export type CloseFile = components['schemas']['CloseFile'];
 export type CloseForum = components['schemas']['CloseForum'];
@@ -10845,8 +11605,15 @@ export type FileLink = components['schemas']['FileLink'];
 export type FindMove = components['schemas']['FindMove'];
 export type FollowRequest = components['schemas']['FollowRequest'];
 export type FollowResult = components['schemas']['FollowResult'];
+export type ForumCategoryOut = components['schemas']['ForumCategoryOut'];
+export type ForumGuideline = components['schemas']['ForumGuideline'];
 export type ForumMeta = components['schemas']['ForumMeta'];
+export type ForumSettings = components['schemas']['ForumSettings'];
+export type ForumSettingsEditable = components['schemas']['ForumSettingsEditable'];
+export type ForumSettingsSave = components['schemas']['ForumSettingsSave'];
 export type ForumStats = components['schemas']['ForumStats'];
+export type ForumTagOut = components['schemas']['ForumTagOut'];
+export type ForumTip = components['schemas']['ForumTip'];
 export type FoundAnswer = components['schemas']['FoundAnswer'];
 export type FoundGroup = components['schemas']['FoundGroup'];
 export type FoundItem = components['schemas']['FoundItem'];
@@ -10858,6 +11625,13 @@ export type GameInfo = components['schemas']['GameInfo'];
 export type GapModule = components['schemas']['GapModule'];
 export type Gaps = components['schemas']['Gaps'];
 export type GiveUpMove = components['schemas']['GiveUpMove'];
+export type GradeBand = components['schemas']['GradeBand'];
+export type GradeBands = components['schemas']['GradeBands'];
+export type GradeOption = components['schemas']['GradeOption'];
+export type GradeRules = components['schemas']['GradeRules'];
+export type GradeRulesEditable = components['schemas']['GradeRulesEditable'];
+export type GradeRulesSave = components['schemas']['GradeRulesSave'];
+export type GradeSubject = components['schemas']['GradeSubject'];
 export type GroupData = components['schemas']['GroupData'];
 export type GroupMove = components['schemas']['GroupMove'];
 export type GroupsView = components['schemas']['GroupsView'];
@@ -10922,12 +11696,28 @@ export type MySenior = components['schemas']['MySenior'];
 export type NearestData = components['schemas']['NearestData'];
 export type NearestGuess = components['schemas']['NearestGuess'];
 export type NearestView = components['schemas']['NearestView'];
+export type NewsletterMasthead = components['schemas']['NewsletterMasthead'];
+export type NewsletterPicture = components['schemas']['NewsletterPicture'];
+export type NewsletterSettings = components['schemas']['NewsletterSettings'];
+export type NewsletterSettingsEditable = components['schemas']['NewsletterSettingsEditable'];
+export type NewsletterSettingsSave = components['schemas']['NewsletterSettingsSave'];
+export type NooraChip = components['schemas']['NooraChip'];
+export type NooraDoc = components['schemas']['NooraDoc'];
 export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
+export type NooraEditable = components['schemas']['NooraEditable'];
 export type NooraErrorEvent = components['schemas']['NooraErrorEvent'];
+export type NooraFact = components['schemas']['NooraFact'];
 export type NooraLimitsIn = components['schemas']['NooraLimitsIn'];
 export type NooraNote = components['schemas']['NooraNote'];
+export type NooraPageChips = components['schemas']['NooraPageChips'];
 export type NooraPaper = components['schemas']['NooraPaper'];
+export type NooraPrompt = components['schemas']['NooraPrompt'];
+export type NooraPromptAssembled = components['schemas']['NooraPromptAssembled'];
+export type NooraPromptPreview = components['schemas']['NooraPromptPreview'];
 export type NooraQuestion = components['schemas']['NooraQuestion'];
+export type NooraSave = components['schemas']['NooraSave'];
+export type NooraScript = components['schemas']['NooraScript'];
+export type NooraStarter = components['schemas']['NooraStarter'];
 export type NooraStatus = components['schemas']['NooraStatus'];
 export type NooraTextEvent = components['schemas']['NooraTextEvent'];
 export type NooraTotals = components['schemas']['NooraTotals'];
@@ -11015,6 +11805,7 @@ export type ScanGap = components['schemas']['ScanGap'];
 export type SearchData = components['schemas']['SearchData'];
 export type SearchFound = components['schemas']['SearchFound'];
 export type SearchHit = components['schemas']['SearchHit'];
+export type SearchNickname = components['schemas']['SearchNickname'];
 export type SearchResults = components['schemas']['SearchResults'];
 export type SearchView = components['schemas']['SearchView'];
 export type Senior = components['schemas']['Senior'];
@@ -11049,9 +11840,13 @@ export type SuggestionCreate = components['schemas']['SuggestionCreate'];
 export type SuggestionDecline = components['schemas']['SuggestionDecline'];
 export type SuggestionOut = components['schemas']['SuggestionOut'];
 export type SuggestionPage = components['schemas']['SuggestionPage'];
+export type SummaryDraftPreview = components['schemas']['SummaryDraftPreview'];
+export type SummaryEditable = components['schemas']['SummaryEditable'];
+export type SummaryHeadings = components['schemas']['SummaryHeadings'];
 export type SummaryPreview = components['schemas']['SummaryPreview'];
+export type SummarySave = components['schemas']['SummarySave'];
+export type SummaryWords = components['schemas']['SummaryWords'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
-export type TagOut = components['schemas']['TagOut'];
 export type TermStart = components['schemas']['TermStart'];
 export type TextMatch = components['schemas']['TextMatch'];
 export type Theme = components['schemas']['Theme'];
@@ -11065,6 +11860,7 @@ export type ThreadModeration = components['schemas']['ThreadModeration'];
 export type ThreadPage = components['schemas']['ThreadPage'];
 export type ThreadSummary = components['schemas']['ThreadSummary'];
 export type ThreadUpdate = components['schemas']['ThreadUpdate'];
+export type TourStep = components['schemas']['TourStep'];
 export type UploadCreate = components['schemas']['UploadCreate'];
 export type UploadOut = components['schemas']['UploadOut'];
 export type UserPublic = components['schemas']['UserPublic'];
@@ -17132,6 +17928,176 @@ export interface operations {
             };
         };
     };
+    forum_settings_api_v1_forum_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForumSettingsEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_forum_settings_api_v1_forum_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForumSettingsSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForumSettingsEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     stats_api_v1_forum_stats_get: {
         parameters: {
             query?: never;
@@ -17220,7 +18186,7 @@ export interface operations {
             query?: {
                 /** @description Full-text search: title, body, replies, module */
                 q?: string | null;
-                category?: ("year-1" | "year-2" | "year-3" | "study-groups" | "general") | null;
+                category?: string | null;
                 module_id?: string | null;
                 tag?: string | null;
                 year?: number | null;
@@ -19852,6 +20818,342 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RequestOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    newsletter_settings_api_v1_newsletter_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsletterMasthead"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_newsletter_settings_api_v1_newsletter_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewsletterSettingsSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsletterSettingsEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    newsletter_pictures_api_v1_newsletter_pictures_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsletterPicture"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    newsletter_settings_for_editing_api_v1_newsletter_settings_edit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsletterSettingsEditable"];
                 };
             };
             /** @description Bad Request */
@@ -26981,6 +28283,346 @@ export interface operations {
             };
         };
     };
+    noora_script_api_v1_mini_noora_script_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraScript"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    noora_settings_api_v1_mini_noora_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_noora_settings_api_v1_mini_noora_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NooraSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_noora_prompt_api_v1_mini_noora_settings_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NooraPromptPreview"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraPromptAssembled"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     preview_api_v1_summary_preview_get: {
         parameters: {
             query: {
@@ -26992,6 +28634,263 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryPreview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    summary_words_api_v1_summary_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_summary_words_api_v1_summary_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SummarySave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_summary_words_api_v1_summary_settings_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SummaryDraftPreview"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -30725,6 +32624,259 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GuidesEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    grade_rules_api_v1_grades_rules_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeRules"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_grade_rules_api_v1_grades_rules_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GradeRulesSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeRulesEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    grade_rules_for_editing_api_v1_grades_rules_edit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeRulesEditable"];
                 };
             };
             /** @description Bad Request */

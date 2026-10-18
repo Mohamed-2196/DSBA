@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ModuleSummary } from '../../api/types';
-import { NO_MODULE, checkValues, emptyValues, errorsFromApi, toCreateBody, toUpdateBody, type ItemFormValues } from './itemForm';
+import { NO_MODULE, checkValues, emptyValues, errorsFromApi, linkProblem, toCreateBody, toUpdateBody, type ItemFormValues } from './itemForm';
 
 const ST2133: ModuleSummary = {
   id: 'advanced-stats-distribution',
@@ -87,5 +87,17 @@ describe('errorsFromApi', () => {
       title: 'Too long.',
     });
     expect(errorsFromApi({ exam_year: 'Too early.' })).toEqual({ examYear: 'Too early.' });
+  });
+});
+
+describe('linkProblem', () => {
+  it('takes an https:// link to another site, and nothing else', () => {
+    expect(linkProblem('https://www.london.ac.uk/past-papers')).toBeNull();
+    expect(linkProblem(' ')).toBe('Paste the link.');
+    expect(linkProblem('http://example.com')).toBe('Use an https:// link.');
+    expect(linkProblem('example.com/papers')).toBe('Use an https:// link.');
+    expect(linkProblem('https://user:pw@example.com')).toBe('Remove the user name and password from the link.');
+    expect(linkProblem('https://drive.google.com/file/d/1abc/view')).toMatch(/Google Drive/);
+    expect(linkProblem('https://DOCS.google.com/document/d/1abc')).toMatch(/Google Drive/);
   });
 });

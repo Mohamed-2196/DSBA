@@ -1,7 +1,7 @@
 // The list filters as they live in the URL (?cohort=year-2&tag=r&sort=new&q=mgf&status=no-replies&module=…), as
 // plain functions over URLSearchParams (lib/useForumFilters.ts is the React face of them).
 import type { ForumFilters, ThreadSort } from '../types';
-import { isCategoryId } from './categories';
+import { looksLikeId } from './taxonomy';
 
 export const DEFAULT_FILTERS: ForumFilters = { cohort: 'all', tag: '', sort: 'hot', q: '', status: '', module: '' };
 
@@ -15,7 +15,7 @@ export function readFilters(params: URLSearchParams): ForumFilters {
   const cohort = params.get('cohort');
   const sort = params.get('sort');
   return {
-    cohort: isCategoryId(cohort) ? cohort : 'all',
+    cohort: looksLikeId(cohort) ? cohort : 'all',
     tag: params.get('tag') || '',
     sort: isSort(sort) ? sort : 'hot',
     q: params.get('q') || '',

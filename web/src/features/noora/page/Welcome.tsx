@@ -1,16 +1,17 @@
 // The full page before anything is asked: Noora greets the student by name and shows, with one card per kind of
 // help, that she answers anything they study. A card fills the box with a question to finish (starters.ts).
-import { Briefcase, ChalkboardTeacher, Exam, Lightbulb, ListChecks, MagnifyingGlass, NotePencil, PencilLine, SignIn, type Icon } from '@phosphor-icons/react';
+import { SignIn } from '@phosphor-icons/react';
 import { useMediaQuery } from '../../../state';
 import { Button } from '../../../ui';
 import { Face } from '../Face';
-import type { Starter, StarterId } from './starters';
-
-const ICONS: Record<StarterId, Icon> = { explain: Lightbulb, solve: ChalkboardTeacher, quiz: ListChecks, plan: NotePencil, summarise: Exam, career: Briefcase, write: PencilLine, find: MagnifyingGlass };
+import { STARTER_ICONS } from './starterIcons';
+import type { Starter } from './starters';
 
 export interface WelcomeProps {
   /** the student's first name, or null (a guest) */
   name: string | null;
+  /** the line under her greeting (her script's welcome) */
+  lead: string;
   starters: readonly Starter[];
   onStart: (starter: Starter) => void;
   /** why her AI isn't answering (null: it is) */
@@ -22,16 +23,13 @@ export interface WelcomeProps {
 /** A short screen or a phone (NooraPage.css tightens the welcome there too). */
 const SHORT = '(max-height: 880px), (max-width: 699px) and (max-height: 960px)';
 
-export function Welcome({ name, starters, onStart, paused, onSignIn }: WelcomeProps) {
+export function Welcome({ name, lead, starters, onStart, paused, onSignIn }: WelcomeProps) {
   const short = useMediaQuery(SHORT);
   return (
     <div className="np-welcome" data-hub="noora-welcome">
       <Face bust="wave" size={short ? 48 : 64} className="np-welcome__face" />
       <h2 className="np-welcome__title">{name ? `What can I help with, ${name}?` : 'What can I help with?'}</h2>
-      <p className="np-welcome__lead">
-        Ask me anything you’re studying: a concept, a past paper question, a revision plan, your next step after the degree. I know your modules and the Hub, and
-        I’ll show you where to look.
-      </p>
+      <p className="np-welcome__lead">{lead}</p>
       {onSignIn ? (
         <div className="np-welcome__notice">
           <p>Sign in to get full answers from my AI. Until then I answer from my script: modules, lessons, exam dates and where things are.</p>
@@ -46,7 +44,7 @@ export function Welcome({ name, starters, onStart, paused, onSignIn }: WelcomePr
       ) : null}
       <ul role="list" className="np-starters" aria-label="Ways to start">
         {starters.map((s) => {
-          const StarterIcon = ICONS[s.id];
+          const StarterIcon = STARTER_ICONS[s.icon].icon;
           return (
             <li key={s.id}>
               <button type="button" className="np-starter" onClick={() => onStart(s)} data-hub="noora-starter" data-starter={s.id}>

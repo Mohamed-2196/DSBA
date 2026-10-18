@@ -34,6 +34,7 @@ export function stepUpPurpose(request: Pick<Request, 'method' | 'url'>): string 
   if (path.startsWith('/api/v1/admin/roles')) return 'change roles';
   if (path.startsWith('/api/v1/admin/users/') && path.endsWith('/roles')) return 'change someone’s roles';
   if (path.startsWith('/api/v1/admin/features/')) return 'switch a feature';
+  if (path === '/api/v1/mini-noora/settings') return 'change Mini Noora’s words';
   return 'make this change';
 }
 

@@ -2,6 +2,7 @@
 // the tab's conversation is carried on after a reload, every settled conversation is saved, and the student can
 // switch to another, start a new one, rename or delete one, or delete them all.
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { NooraScript } from '../../api/types';
 import { removeStored, useLocalStorage } from '../../state';
 import { CHATS_KEY, newChatId, parseChats, readCurrent, renameChat, withChat, withoutChat, writeCurrent, type SavedChat } from './saved';
 import { useChat, type Chat, type ChatAi } from './useChat';
@@ -20,12 +21,12 @@ export interface Conversation extends Chat {
   removeAll: () => void;
 }
 
-export function useConversation({ year, calm, ai }: { year: number | null; calm: boolean; ai: ChatAi | null }): Conversation {
+export function useConversation({ year, calm, ai, script }: { year: number | null; calm: boolean; ai: ChatAi | null; script: NooraScript }): Conversation {
   const [first] = useState(readCurrent);
   const [chatId, setChatId] = useState(() => first?.id ?? newChatId());
   const [stored, setStored] = useLocalStorage<unknown>(CHATS_KEY, []);
   const chats = useMemo(() => parseChats(stored), [stored]);
-  const chat = useChat({ year, calm, ai, initial: first?.messages });
+  const chat = useChat({ year, calm, ai, script, initial: first?.messages });
   const { busy, messages, stop, clear, load } = chat;
 
   // Only settled conversations are saved.

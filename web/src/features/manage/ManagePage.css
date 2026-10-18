@@ -155,3 +155,6 @@
 @media (pointer: coarse) {
   .manage-nav__item { min-height: 44px; }
 }
+.manage-summary__subject { margin: 0; font-weight: var(--fw-semibold); overflow-wrap: anywhere; }
+.manage-doc { display: grid; gap: var(--sp-12); min-width: 0; }
+.manage-doc__title { margin: 0; font-size: var(--fs-16); font-weight: var(--fw-semibold); }

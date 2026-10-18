@@ -11,7 +11,7 @@ from app.schemas.board import BoardLinkType, ChecklistItem, Priority
 from app.schemas.bugs import ExportBugReport
 from app.schemas.calendar import EventType, PersonalEventOut
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
-from app.schemas.forum import Category, FollowLevel
+from app.schemas.forum import FollowLevel
 from app.schemas.library import ItemStatus, LibraryKind, Zone
 from app.schemas.moderation import ReportReason, ReportTarget
 from app.schemas.modules import Progress
@@ -177,7 +177,7 @@ class ExportThread(ApiModel):
     slug: str
     title: str
     body: str
-    category: Category
+    category: str
     module_id: str | None
     tags: list[str]
     status: PostStatus

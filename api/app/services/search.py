@@ -22,6 +22,7 @@ from app.core.time import BAHRAIN, bahrain_today
 from app.models import (
     CalendarEvent,
     Chapter,
+    ForumCategory,
     ForumThread,
     IssueStatus,
     ItemStatus,
@@ -33,11 +34,10 @@ from app.models import (
     User,
 )
 from app.schemas.misc import SearchHit, SearchResults, SearchType
-from app.services import access, paper_text
+from app.services import access, paper_text, site
 from app.services import library as lib
 from app.services.calendar import TYPE_LABELS, cohort_label
 from app.services.exam_names import zone_label
-from app.services.forum.taxonomy import CATEGORY_BY_ID
 from app.services.forum.text import to_plain_text  # a post reads the same in search as in the forum (CQ-6)
 from app.services.newsletter import issue_text
 
@@ -50,22 +50,6 @@ TYPE_FEATURES: dict[SearchType, Feature] = {
     "issue": Feature.newsletter,
     "event": Feature.calendar,
 }
-
-# What students type for modules: other names that find them.
-MODULE_ALIASES: dict[str, tuple[str, ...]] = {
-    "stats": ("statistic",),
-    "stat": ("statistic",),
-    "maths": ("mathemat",),
-    "math": ("mathemat",),
-    "metrics": ("econometric",),
-    "ml": ("machine learning",),
-    "ai": ("machine learning",),
-    "coding": ("programming",),
-    "python": ("programming",),
-    "sql": ("programming",),
-    "ba": ("business analytics",),
-}
-
 
 # ── the query ────────────────────────────────────────────────────────────────────────────────
 
@@ -113,11 +97,12 @@ def _threads(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int)
             ForumThread.slug,
             ForumThread.title,
             ForumThread.body,
-            ForumThread.category,
+            ForumCategory.label.label("category"),
             ForumThread.reply_count,
             ForumThread.last_activity_at,
             Module.unit_code,
         )
+        .join(ForumCategory, ForumCategory.id == ForumThread.category)
         .outerjoin(Module, Module.id == ForumThread.module_id)
         .where(ForumThread.status == PostStatus.visible, ForumThread.search_vector.bool_op("@@")(tsq))
         .order_by(rank.desc(), ForumThread.last_activity_at.desc())
@@ -126,8 +111,7 @@ def _threads(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int)
     hits = []
     for r in rows:
         replies = f"{r.reply_count} {'reply' if r.reply_count == 1 else 'replies'}"
-        category = CATEGORY_BY_ID.get(r.category)
-        where = r.unit_code or (category.label if category else None)
+        where = r.unit_code or r.category
         hits.append(
             SearchHit(
                 type="thread",
@@ -224,8 +208,17 @@ def _issues(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int) 
     return hits
 
 
-def _module_word(word: str) -> ColumnElement[bool]:
-    options = [word, *MODULE_ALIASES.get(word, ())]
+def nicknames(db: Session) -> dict[str, tuple[str, ...]]:
+    """What students type for modules, and the start of a word of the names it finds ('stats': 'statistic'): Site
+    settings' search nicknames."""
+    found: dict[str, tuple[str, ...]] = {}
+    for n in site.site(db).search_nicknames:
+        found[n.word] = (*found.get(n.word, ()), n.finds)
+    return found
+
+
+def _module_word(word: str, aliases: dict[str, tuple[str, ...]]) -> ColumnElement[bool]:
+    options = [word, *aliases.get(word, ())]
     return or_(
         Module.unit_code.ilike(f"%{word}%"),
         *(_starts_word(Module.name, w) for w in options),
@@ -234,9 +227,10 @@ def _module_word(word: str) -> ColumnElement[bool]:
 
 
 def _modules(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
+    aliases = nicknames(db)
     mods = db.scalars(
         select(Module)
-        .where(Module.hidden.is_(False), *(_module_word(t) for t in terms))
+        .where(Module.hidden.is_(False), *(_module_word(t, aliases) for t in terms))
         .order_by(Module.position, Module.id)
         .limit(limit)
     ).all()

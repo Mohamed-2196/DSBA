@@ -13,18 +13,21 @@ export type SectionId =
   | 'content'
   | 'daily'
   | 'guides'
+  | 'forum'
   | 'videos'
   | 'gaps'
   | 'numbers'
   | 'people'
   | 'activity'
+  | 'noora'
+  | 'grades'
   | 'site';
 
 type Can = (box: Box) => boolean;
 type On = (feature: Feature) => boolean;
 
-/** Bug reports and Site settings are Admin powers, not boxes. */
-const ADMIN_ONLY: readonly SectionId[] = ['bugs', 'site'];
+/** Bug reports, Mini Noora's words, the grades calculator's rules and Site settings are Admin powers, not boxes. */
+const ADMIN_ONLY: readonly SectionId[] = ['bugs', 'noora', 'grades', 'site'];
 
 const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['reports', (can, on) => (can('forum.moderate') && on('forum')) || (can('library.manage') && on('library')) || (can('requests.manage') && on('requests'))],
@@ -39,10 +42,13 @@ const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['content', (can) => can('content.edit')],
   ['daily', (can, on) => can('content.edit') && on('daily')],
   ['guides', (can) => can('guides.edit')],
+  ['forum', (can, on) => can('forum.moderate') && on('forum')],
   ['gaps', (can, on) => (can('library.manage') && on('library')) || can('content.edit') || (can('calendar.manage') && on('calendar')) || (can('requests.manage') && on('requests'))],
   ['numbers', (can) => can('stats.view')],
   ['people', (can) => can('people.suspend')],
   ['activity', (can) => can('audit.read')],
+  ['noora', (_can, on) => on('noora')],
+  ['grades', (_can, on) => on('grades')],
   ['site', () => true],
 ];
 
@@ -60,8 +66,8 @@ export interface SectionGroup {
 
 const GROUPS: readonly SectionGroup[] = [
   { id: 'waiting', label: 'Waiting', sections: ['reports', 'uploads', 'requests', 'videos', 'bugs'] },
-  { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content', 'daily', 'guides'] },
-  { id: 'look-after', label: 'Look after', sections: ['gaps', 'numbers', 'people', 'activity', 'site'] },
+  { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content', 'daily', 'guides', 'forum'] },
+  { id: 'look-after', label: 'Look after', sections: ['gaps', 'numbers', 'people', 'activity', 'noora', 'grades', 'site'] },
 ];
 
 /** The person's sections in Manage's groups (Waiting, Publish, Look after), leaving out empty groups. */

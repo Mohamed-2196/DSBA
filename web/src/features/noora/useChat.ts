@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
-import type { ModuleSummary, NooraQuestion, NooraTurn } from '../../api/types';
+import type { ModuleSummary, NooraQuestion, NooraScript, NooraTurn } from '../../api/types';
 import { AnswerCutOff, streamAnswer } from './ai';
 import { replyFromAnswer, visibleText } from './answer';
 import { answer, greeting } from './brain';
@@ -116,10 +116,10 @@ const highestId = (messages: readonly Message[]): number => messages.reduce((top
  * year: the year the student is browsing (the brain uses it to break ties). calm: reduced motion, scripted replies
  * appear whole instead of streaming. ai: her AI while it's on for the student; null: only her script, and nothing
  * leaves the browser. When her AI can't answer, her script does, with a short notice. initial: a conversation to
- * carry on with.
+ * carry on with. script: what she says in her own words.
  */
-export function useChat({ year, calm, ai, initial = [] }: { year: number | null; calm: boolean; ai: ChatAi | null; initial?: Message[] }): Chat {
-  const { knowledge, ready } = useKnowledge();
+export function useChat({ year, calm, ai, script, initial = [] }: { year: number | null; calm: boolean; ai: ChatAi | null; script: NooraScript; initial?: Message[] }): Chat {
+  const { knowledge, ready } = useKnowledge(script);
   const latest = useRef(knowledge);
   useEffect(() => {
     latest.current = knowledge;
@@ -129,7 +129,7 @@ export function useChat({ year, calm, ai, initial = [] }: { year: number | null;
     aiRef.current = ai;
   }, [ai]);
 
-  const hello = useMemo(() => greeting(knowledge.name), [knowledge.name]);
+  const hello = useMemo(() => greeting(knowledge.name, script), [knowledge.name, script]);
   const [messages, setMessages] = useState<Message[]>(initial);
   const [pending, setPending] = useState<Pending | null>(null);
   const [paused, setPaused] = useState<Pause | null>(null);

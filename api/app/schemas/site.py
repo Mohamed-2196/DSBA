@@ -1,6 +1,7 @@
 """Site settings: the hub's own words and links, in one document that admins save as a whole (PUT /site). The links to
 BIBF's and the University's sites, the About page, the footer, the people who made the hub and the students who shared
-their notes. Its starting content is app/seed/data/site.json.
+their notes, Home's blocks for a student who hasn't arranged their own, the steps of the tour, and search's nicknames
+for modules and its suggested searches. Its starting content is app/seed/data/site.json.
 
 Links to other sites are https://. The modules a student shared notes for are module ids, and must exist."""
 
@@ -8,11 +9,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import Field, StringConstraints, model_validator
+from pydantic import AfterValidator, Field, StringConstraints, model_validator
 from pydantic_core import PydanticCustomError
 
+from app.schemas.auth import MAX_HOME_BLOCKS, HomeBlock
 from app.schemas.common import ApiModel, UserPublic
 from app.schemas.links import MARKUP, SiteUrl
 
@@ -59,6 +61,36 @@ class NoteCredit(ApiModel):
     modules: list[ModuleId] = Field(min_length=1, max_length=16)
 
 
+def _lowered(value: str) -> str:
+    """A word as search compares it: lower case."""
+    return value.lower()
+
+
+class TourStep(ApiModel):
+    """A step of the tour a new student may take ("Take the tour" in the year prompt). Text between `backticks` shows
+    as a key to press, and {mod} as the platform's key: ⌘ on a Mac, Ctrl elsewhere."""
+
+    id: ItemId
+    art: Literal["search", "library", "forum"]  # the illustration beside it
+    title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)]
+    body: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]
+
+
+class SearchNickname(ApiModel):
+    """A word students type for modules: search also finds the modules with a word of their name starting with
+    `finds` ('stats' finds every module named "… statistics …")."""
+
+    id: ItemId
+    word: Annotated[
+        str, StringConstraints(strip_whitespace=True, pattern=r"^[A-Za-z0-9]{1,20}$"), AfterValidator(_lowered)
+    ]
+    finds: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, pattern=r"^[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$", max_length=40),
+        AfterValidator(_lowered),
+    ]
+
+
 def _unique(ids: Iterable[str], what: str) -> None:
     seen: set[str] = set()
     for i in ids:
@@ -78,11 +110,19 @@ class SiteDoc(ApiModel):
     disclaimer: Sentence  # in the footer and on About
     copyright_holder: Name
     launch_year: int = Field(ge=2000, le=2100)  # the footer's © runs from this year to this one
+    home_blocks: list[HomeBlock] = Field(min_length=1, max_length=MAX_HOME_BLOCKS)  # Home before a student arranges it
+    tour: list[TourStep] = Field(min_length=1, max_length=5)
+    search_nicknames: list[SearchNickname] = Field(max_length=40)
+    search_suggestions: list[Label] = Field(min_length=1, max_length=6)  # in search before anything is typed
 
     @model_validator(mode="after")
     def _ids(self) -> SiteDoc:
         _unique((c.id for c in self.contributors), "contributors")
         _unique((n.id for n in self.note_credits), "students who shared notes")
+        _unique((t.id for t in self.tour), "steps of the tour")
+        _unique((n.id for n in self.search_nicknames), "nicknames")
+        if len(set(self.home_blocks)) != len(self.home_blocks):
+            raise PydanticCustomError("duplicate", "A block of Home is listed twice.")
         for n in self.note_credits:
             if len(set(n.modules)) != len(n.modules):
                 raise PydanticCustomError("duplicate", f"A module is listed twice for {n.name}.")

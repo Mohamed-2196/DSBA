@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { GUEST_DEFAULT, STUDENT_DEFAULT, layoutOf, offeredBlocks, moveBlock, normalizeBlocks, showBlock, withUnavailable, type HomeBlock } from './blocks';
+import type { SiteDoc } from '../../api/types';
+import { readSeed } from '../../testing/seed';
+import { guestDefault, layoutOf, offeredBlocks, moveBlock, normalizeBlocks, showBlock, withUnavailable, type HomeBlock } from './blocks';
+
+// The hub's default for a new student, as Site settings start.
+const STUDENT_DEFAULT = readSeed<SiteDoc>('site').homeBlocks;
 
 const all = (...blocks: HomeBlock[]) => new Set<HomeBlock>(blocks);
 
@@ -26,8 +31,8 @@ describe('layoutOf', () => {
     expect(l.hidden).toEqual(['todo', 'files']);
   });
   it('gives guests no account-only blocks by default', () => {
-    expect(GUEST_DEFAULT).not.toContain('todo');
-    expect(GUEST_DEFAULT).not.toContain('help_below');
+    expect(guestDefault(STUDENT_DEFAULT)).not.toContain('todo');
+    expect(guestDefault(['todo', 'help_below', 'modules'])).toEqual(['modules']);
   });
 });
 
@@ -64,7 +69,7 @@ describe('offeredBlocks', () => {
     expect(guest).not.toContain('continue');
     expect(offeredBlocks(on(), { signedIn: false, tracking: true })).toContain('continue');
   });
-  it('puts the dashboard first by default', () => {
+  it('starts with the dashboard first', () => {
     expect(STUDENT_DEFAULT).toEqual(['start_here', 'results_day', 'coming_up', 'todo', 'continue', 'modules', 'files', 'forum', 'daily', 'noora']);
   });
 });

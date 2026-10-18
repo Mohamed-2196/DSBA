@@ -196,7 +196,8 @@ html:has(.np--full) { overflow: hidden; }
   line-height: 1.45;
 }
 .np-welcome__notice > p { flex: 1 1 30ch; text-align: left; }
-/* Eight cards (starters.ts): rows of four, or of two in a narrow column, so no card is ever left alone in a row. */
+/* Four or eight cards (her script; the API keeps the count): rows of four, or of two in a narrow column, so no card
+   is ever left alone in a row. */
 .np-starters {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

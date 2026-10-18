@@ -246,6 +246,17 @@ export function PageTextSection() {
   const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <div className="cedit-form">
+      <TextArea label="Under the page’s title" hint="One line on what the page is." rows={2} value={doc.intro} onChange={(v) => set({ intro: v.target.value })} error={err('intro')} maxLength={600} required />
+      <TextArea
+        label="Under the employers"
+        hint="What their buttons open, what the tags mean, and whose logos they are. “Links checked on …” follows it."
+        rows={4}
+        value={doc.employersNote}
+        onChange={(v) => set({ employersNote: v.target.value })}
+        error={err('employersNote')}
+        maxLength={600}
+        required
+      />
       <div className="cedit-grid">
         <TextField
           label="Links last checked"

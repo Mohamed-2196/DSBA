@@ -1,9 +1,19 @@
 // The "what if" hints: each answer checked against marks worked out by hand.
 import { describe, expect, it } from 'vitest';
-import { SUBJECT_COUNT } from './classify';
-import { blankIndexes, holdingFloors, improvementPlan, resitOutlook, targetsForRemaining } from './whatif';
+import type { GradeRules } from '../../api/types';
+import { readSeed } from '../../testing/seed';
+import * as whatif from './whatif';
 
-/** 13 marks: `fill` everywhere, with some subjects (by index) set apart. */
+// The rules as the hub starts with them: today's programme regulations (api/app/seed/data/grades.json).
+const RULES = readSeed<GradeRules>('grades');
+const SUBJECT_COUNT = RULES.subjects.length;
+const blankIndexes = (g: unknown) => whatif.blankIndexes(g, RULES);
+const targetsForRemaining = (g: unknown) => whatif.targetsForRemaining(g, RULES);
+const improvementPlan = (g: unknown) => whatif.improvementPlan(g, RULES);
+const holdingFloors = (g: unknown) => whatif.holdingFloors(g, RULES);
+const resitOutlook = (g: unknown) => whatif.resitOutlook(g, RULES);
+
+/** A mark per subject: `fill` everywhere, with some subjects (by index) set apart. */
 const marks = (fill: number | string, set: Record<number, number | string> = {}): string[] =>
   Array.from({ length: SUBJECT_COUNT }, (_, i) => String(set[i] ?? fill));
 
@@ -113,7 +123,7 @@ describe('resitOutlook', () => {
   it('names the failed module and the outcome once it is passed with 40', () => {
     expect(resitOutlook(marks(60, { 7: 35 }))).toEqual({
       failing: [{ index: 7, mark: 35, blank: false }],
-      yearOneAverageFails: false,
+      groupAverageFails: false,
       outcome: 'upper',
       marks: marks(60, { 7: 40 }),
     });
@@ -128,7 +138,7 @@ describe('resitOutlook', () => {
   it('names the Year 1 marks under 40 when the Year 1 average fails', () => {
     // average 20: modules 0 to 2 are resat, module 3 (50) stands; then the average is 42.5
     const outlook = resitOutlook(marks(60, { 0: 10, 1: 10, 2: 10, 3: 50 }));
-    expect(outlook?.yearOneAverageFails).toBe(true);
+    expect(outlook?.groupAverageFails).toBe(true);
     expect(outlook?.failing.map((f) => f.index)).toEqual([0, 1, 2]);
     expect(outlook?.marks.slice(0, 4)).toEqual(['40', '40', '40', '50']);
     expect(outlook?.outcome).toBe('upper');

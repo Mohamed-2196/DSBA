@@ -31,7 +31,7 @@ from app.schemas.access import UserRolesUpdate
 from app.schemas.common import ErrorResponse
 from app.schemas.gaps import Gaps
 from app.schemas.moderation import AdminStats, AdminUser, AdminUserPage, AdminUserUpdate, AuditOut, AuditPage
-from app.services import access, accounts, bugs, gaps, reports, requests, roles, sessions, suggestions
+from app.services import access, accounts, bugs, documents, gaps, reports, requests, roles, sessions, suggestions
 from app.services.accounts import public_user
 from app.services.audit import record
 from app.services.identifiers import Kind, destination_hint, normalize_identifier
@@ -301,6 +301,7 @@ def audit_log(
         .all()
     )
     access.prefetch(db, [a for _, a in rows])
+    admin = access.is_admin(user)
     items = [
         AuditOut.model_validate(
             {
@@ -309,7 +310,7 @@ def audit_log(
                 "action": e.action,
                 "target_type": e.target_type,
                 "target_id": e.target_id,
-                "data": e.data or {},
+                "data": documents.audit_view(e.data or {}, admin=admin),
                 "created_at": e.created_at,
             }
         )

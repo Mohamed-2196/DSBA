@@ -1,7 +1,6 @@
 // The unfinished thread kept on this device (localStorage DRAFT_KEY) until it is posted or discarded. Signing out
 // removes it (auth/queries.ts PERSONAL_STORAGE_PREFIXES). Plain functions: the composer (NewThreadPage) holds the state.
 import type { CategoryId } from '../types';
-import { isCategoryId } from './categories';
 import { TITLE_MAX } from './threadForm';
 
 export const DRAFT_KEY = 'hub.mine.forum.draft';
@@ -40,20 +39,25 @@ export function draftOwner(raw: unknown, viewer: string | null): 'none' | 'mine'
 }
 
 /**
- * The draft as a form this viewer may continue, or null. `knownModule` and `knownTag` keep what the API still has
- * (a draft can outlive a module or a tag); the category falls back to `fallbackCategory`.
+ * The draft as a form this viewer may continue, or null. `knownModule` and `offeredCategory` keep what the API still
+ * has (a draft can outlive a module or a category); the category falls back to `fallbackCategory`.
  */
 export function restoreDraft(
   raw: unknown,
   viewer: string | null,
-  { knownModule, fallbackCategory, maxTags }: { knownModule: (id: string) => boolean; fallbackCategory: CategoryId; maxTags: number },
+  {
+    knownModule,
+    offeredCategory,
+    fallbackCategory,
+    maxTags,
+  }: { knownModule: (id: string) => boolean; offeredCategory: (id: string) => boolean; fallbackCategory: CategoryId; maxTags: number },
 ): ThreadForm | null {
   if (draftOwner(raw, viewer) !== 'mine' || !isDraft(raw)) return null;
   return {
     title: raw.title.slice(0, TITLE_MAX),
     body: raw.body,
     moduleId: typeof raw.moduleId === 'string' && knownModule(raw.moduleId) ? raw.moduleId : '',
-    category: isCategoryId(raw.category) ? raw.category : fallbackCategory,
+    category: typeof raw.category === 'string' && offeredCategory(raw.category) ? raw.category : fallbackCategory,
     tags: Array.isArray(raw.tags) ? raw.tags.filter((t): t is string => typeof t === 'string').slice(0, maxTags) : [],
   };
 }

@@ -141,5 +141,6 @@ describe('session guard: step-up (D2)', () => {
     expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/admin/roles/r1` })).toBe('change roles');
     expect(stepUpPurpose({ method: 'PUT', url: `${API}/api/v1/admin/users/u1/roles` })).toBe('change someone’s roles');
     expect(stepUpPurpose({ method: 'PUT', url: `${API}/api/v1/admin/features/calendar` })).toBe('switch a feature');
+    expect(stepUpPurpose({ method: 'PUT', url: `${API}/api/v1/mini-noora/settings` })).toBe('change Mini Noora’s words');
   });
 });

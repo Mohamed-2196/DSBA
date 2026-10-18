@@ -13,7 +13,6 @@ import { RoleFit } from './RoleFit';
 import './CareerPage.css';
 
 const TITLE = 'Career Navigator';
-const DESCRIPTION = 'Graduate programmes, internships and careers pages at employers in Bahrain.';
 
 export function CareerBody({ data }: { data: CareerDoc }) {
   const { activeYear } = useYear();
@@ -21,7 +20,7 @@ export function CareerBody({ data }: { data: CareerDoc }) {
   const role = data.roles.find((r) => r.id === roleParam) ?? data.roles.find((r) => r.id === data.defaultRoleId) ?? data.roles[0];
   return (
     <CareerContext.Provider value={data}>
-      <PageHeader title={TITLE} description={DESCRIPTION} actions={data.featured ? <FeaturedCompetition /> : null} />
+      <PageHeader title={TITLE} description={data.intro} actions={data.featured ? <FeaturedCompetition /> : null} />
       <Opportunities />
       <Certificates />
       {Object.values(data.chosen).includes('elective') ? <ElectivesLink /> : null}
@@ -58,19 +57,19 @@ export default function CareerPage() {
     <Page width="wide" className="career-page">
       {q.isPending ? (
         <>
-          <PageHeader title={TITLE} description={DESCRIPTION} />
+          <PageHeader title={TITLE} />
           <CareerSkeleton />
         </>
       ) : q.isError ? (
         <>
-          <PageHeader title={TITLE} description={DESCRIPTION} />
+          <PageHeader title={TITLE} />
           <QueryError error={q.error} title="Career Navigator didn’t load" onRetry={() => void q.refetch()} retrying={q.isFetching} />
         </>
       ) : q.data ? (
         <CareerBody data={q.data} />
       ) : (
         <>
-          <PageHeader title={TITLE} description={DESCRIPTION} />
+          <PageHeader title={TITLE} />
           <Panel padding="none">
             <EmptyState icon={Compass} title="Career Navigator is being set up" body="Employers, certificates and the skills behind each role will show here soon." action={<Button to="/">Back to Home</Button>} />
           </Panel>

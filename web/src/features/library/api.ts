@@ -19,6 +19,7 @@ import type {
   LibraryItem,
   LibraryItemCreate,
   LibraryItemUpdate,
+  LibraryLinkCreate,
   LibraryPage,
   ReviewDecision,
   StarResult,
@@ -272,6 +273,19 @@ export function useCreateItem() {
       void qc.invalidateQueries({ queryKey: LISTS_KEY });
       if (item.status === 'published') refreshCounts(qc);
       else void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
+    },
+  });
+}
+
+/** A link to a resource kept on another site (library managers): published at once. */
+export function useCreateLink() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: LibraryLinkCreate): Promise<LibraryItem> => call(api.POST('/api/v1/library/links', { body })),
+    onSuccess: (item) => {
+      qc.setQueryData(libraryKeys.item(item.id), item);
+      void qc.invalidateQueries({ queryKey: LISTS_KEY });
+      refreshCounts(qc);
     },
   });
 }

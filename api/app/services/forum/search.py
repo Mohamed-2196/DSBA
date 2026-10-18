@@ -18,9 +18,10 @@ from collections.abc import Sequence
 from typing import Any
 
 from sqlalchemy import ColumnElement, String, and_, exists, func, literal, or_, select
+from sqlalchemy.orm import Session
 
 from app.models import ForumReply, ForumThread, Module, PostStatus
-from app.services.forum.taxonomy import CATEGORIES, TAGS
+from app.services.forum.taxonomy import categories, tags
 
 
 def has_tag(tag: str) -> ColumnElement[bool]:
@@ -65,10 +66,6 @@ def _words_of(*texts: str) -> frozenset[str]:
     return frozenset(w for t in texts for w in _tokens(t))
 
 
-_TAG_WORDS = {t.id: _words_of(t.id, t.label) for t in TAGS}
-_CATEGORY_WORDS = {c.id: _words_of(c.id, c.label, c.short) for c in CATEGORIES}
-
-
 def _named(words_by_id: dict[str, frozenset[str]], term: str, prefix: bool) -> list[str]:
     return [i for i, words in words_by_id.items() if any(w == term or (prefix and w.startswith(term)) for w in words)]
 
@@ -96,7 +93,7 @@ def _matches_anywhere(
     return or_(*conds)
 
 
-def search_condition(q: str) -> ColumnElement[bool] | None:
+def search_condition(db: Session, q: str) -> ColumnElement[bool] | None:
     """Every word must match somewhere in the thread, its replies, its module, its tags or its category.
     Words of two letters or more match as prefixes (search as you type; the 'simple' config doesn't stem).
     A query with quotes or "-word" is handed to websearch_to_tsquery as it is. None: nothing to search for."""
@@ -106,9 +103,11 @@ def search_condition(q: str) -> ColumnElement[bool] | None:
     terms = search_terms(q)
     if not terms:
         return None
+    tag_words = {t.id: _words_of(t.id, t.label) for t in tags(db)}
+    category_words = {c.id: _words_of(c.id, c.label, c.short) for c in categories(db)}
     conds: list[ColumnElement[bool]] = []
     for term in terms:
         prefix = len(term) >= 2
         tsq = func.to_tsquery("simple", f"{term}:*" if prefix else term)
-        conds.append(_matches_anywhere(tsq, _named(_TAG_WORDS, term, prefix), _named(_CATEGORY_WORDS, term, prefix)))
+        conds.append(_matches_anywhere(tsq, _named(tag_words, term, prefix), _named(category_words, term, prefix)))
     return and_(*conds)

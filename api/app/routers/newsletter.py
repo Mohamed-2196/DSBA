@@ -16,6 +16,10 @@ from app.schemas.newsletter import (
     IssueDetail,
     IssueSummary,
     IssueUpdate,
+    NewsletterMasthead,
+    NewsletterPicture,
+    NewsletterSettingsEditable,
+    NewsletterSettingsSave,
     PollResult,
     PollVoteRequest,
     PublishedIssue,
@@ -24,10 +28,44 @@ from app.schemas.newsletter import (
 )
 from app.services import access, polls
 from app.services import newsletter as svc
+from app.services import newsletter_settings as settings_svc
 
 router = router_for("newsletter", needs_feature(Feature.newsletter))
 NewsletterManager = Annotated[User, requires(Box.newsletter_manage)]
 Reader = Annotated[User, requires(Box.newsletter_react)]  # reacts to issues
+
+
+@router.get("/newsletter/settings", response_model=NewsletterMasthead)
+def newsletter_settings(db: DB) -> NewsletterMasthead:
+    """The line under the newsletter's name."""
+    return NewsletterMasthead(masthead=settings_svc.settings(db).masthead)
+
+
+@router.get("/newsletter/pictures", response_model=list[NewsletterPicture])
+def newsletter_pictures(db: DB, _: NewsletterManager) -> list[NewsletterPicture]:
+    """The pictures the issue editor offers for covers and beside sections. For the people who manage the newsletter:
+    an offered picture may be for an issue nobody has read yet."""
+    return settings_svc.settings(db).pictures
+
+
+@router.get("/newsletter/settings/edit", response_model=NewsletterSettingsEditable)
+def newsletter_settings_for_editing(db: DB, _: NewsletterManager) -> NewsletterSettingsEditable:
+    """The settings with the version a save names (0 until the first save)."""
+    return settings_svc.editable(db)
+
+
+@router.put("/newsletter/settings", response_model=NewsletterSettingsEditable)
+def save_newsletter_settings(
+    body: NewsletterSettingsSave, request: Request, user: NewsletterManager, db: DB
+) -> NewsletterSettingsEditable:
+    """Save the masthead's line and the pictures the editor offers, if nobody saved them since `version`. An uploaded
+    picture is kept while it's offered. Audited with what changed, before and after.
+
+    Errors: newsletter_settings_changed (409: someone saved them since: load them again), invalid_input (422: a field
+    that doesn't fit, a picture that isn't one of the newsletter's, a picture offered twice)."""
+    out = settings_svc.save(db, user, body.data, body.version, client_ip(request))
+    db.commit()
+    return out
 
 
 @router.get("/newsletter/issues", response_model=list[IssueSummary])

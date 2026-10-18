@@ -47,3 +47,6 @@ export { moduleArtSrc } from './moduleArtSrc';
 export { ErrorBoundary } from './ErrorBoundary';
 export { cx, modKeyLabel, timeAgo, formatDate, formatCount, countOf } from './utils';
 export { safeInternalPath } from './safeHref';
+export { DocFrame, ListEditor, RowsEditor, type DocProblem } from './docEditor/kit';
+export { docErrors, hasErrorUnder, type DocErrors } from './docEditor/errors';
+export { focusDocStatus, newItemId, useWarnBeforeLeaving } from './docEditor/doc';

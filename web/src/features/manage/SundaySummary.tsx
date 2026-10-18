@@ -1,16 +1,18 @@
 // Manage's Sunday summary: this week's text for a year, to paste into its WhatsApp group, and how many people in
-// that year get it by email. The mail worker sends the emails on Sunday morning by itself; nothing is sent here.
+// that year get it by email. The mail worker sends the emails on Sunday at the words' send time by itself; nothing is
+// sent here.
 import { Copy } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { formatLong, parseDay } from '../../lib/dates';
 import { copyText } from '../../lib/share';
 import { cohortLabel, useToast, YEARS, type CohortYear } from '../../state';
 import { Button, Panel, QueryError, SegmentedControl, Skeleton, formatCount } from '../../ui';
-import { useSummaryPreview } from './api';
+import { useSummaryPreview, useSummaryWords } from './api';
 
 export function SundaySummary({ defaultYear }: { defaultYear: CohortYear | null }) {
   const [year, setYear] = useState<CohortYear>(defaultYear ?? 1);
   const preview = useSummaryPreview(year);
+  const sendAt = useSummaryWords().data?.data.sendAt;
   const { push } = useToast();
   const p = preview.data;
   const copy = async () => {
@@ -22,7 +24,7 @@ export function SundaySummary({ defaultYear }: { defaultYear: CohortYear | null 
     <Panel className="manage-summary" data-hub="sunday-summary">
       <h3 className="manage-noora__title">Sunday summary</h3>
       <p className="manage-noora__note">
-        This week’s summary for a year, to paste into its group. People who turn it on in Your account get it by email on Sunday morning.
+        This week’s summary for a year, to paste into its group. People who turn it on in Your account get it by email on Sunday{sendAt ? ` from ${sendAt}, Bahrain time` : ''}.
       </p>
       <SegmentedControl label="Year" options={YEARS.map((y) => ({ value: y, label: cohortLabel(y) }))} value={year} onChange={setYear} size="sm" />
       {preview.isError ? (

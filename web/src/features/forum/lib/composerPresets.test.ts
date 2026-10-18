@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type { CategoryId } from '../types';
-import { FALLBACK_CATEGORIES } from './categories';
 import { composerPresets, type PresetLookups } from './composerPresets';
 import { TITLE_MAX } from './threadForm';
 
@@ -9,10 +7,20 @@ const MODULES = [
   { id: 'advanced-stats-distribution', unitCode: 'ST2133', year: 2 as const },
   { id: 'machine-learning', unitCode: null, year: 3 as const },
 ];
+// The categories as GET /forum/meta could list them.
+const CATEGORIES: { id: string; year: 1 | 2 | 3 | null }[] = [
+  { id: 'year-1', year: 1 },
+  { id: 'year-2', year: 2 },
+  { id: 'year-3', year: 3 },
+  { id: 'study-groups', year: null },
+  { id: 'general', year: null },
+];
 const find: PresetLookups = {
   getModule: (id) => MODULES.find((m) => m.id === id) ?? null,
   getModuleByUnitCode: (code) => MODULES.find((m) => m.unitCode === code) ?? null,
-  getCategory: (id: CategoryId) => FALLBACK_CATEGORIES.find((c) => c.id === id) ?? null,
+  getCategory: (id) => CATEGORIES.find((c) => c.id === id) ?? null,
+  categoryForYear: (year) => CATEGORIES.find((c) => c.year != null && c.year === year)?.id ?? null,
+  defaultCategory: 'general',
 };
 const presets = (query: string, ownYear: number | null = 2) => composerPresets(new URLSearchParams(query), find, ownYear);
 
@@ -35,7 +43,7 @@ describe('composerPresets', () => {
     expect(presets('category=study-groups&module=mathematics')).toMatchObject({ category: 'study-groups', moduleId: 'mathematics' });
   });
 
-  it('falls back to the person’s own year, then General', () => {
+  it('falls back to the person’s own year, then the default category', () => {
     expect(presets('title=Calculators%20in%20the%20exam', 3)).toMatchObject({ category: 'year-3', moduleId: '' });
     expect(presets('title=Calculators%20in%20the%20exam', null)).toMatchObject({ category: 'general' });
   });

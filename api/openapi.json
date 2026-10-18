@@ -7399,7 +7399,7 @@
           "forum"
         ],
         "summary": "Meta",
-        "description": "Categories and tags (the server validates threads against these).",
+        "description": "Every category and tag in their order (retired ones too: their threads keep them, but they aren't offered),\nwhere a thread goes when no year fits it, and the forum's guidelines and tips. Threads are checked against\nthese.",
         "operationId": "meta_api_v1_forum_meta_get",
         "responses": {
           "200": {
@@ -7408,6 +7408,198 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForumMeta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forum/settings": {
+      "get": {
+        "tags": [
+          "forum"
+        ],
+        "summary": "Forum Settings",
+        "description": "Manage \u2192 Forum: the categories, tags, guidelines and tips with the version a save names (0 until the first\nsave), and how many threads use each category and tag.",
+        "operationId": "forum_settings_api_v1_forum_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForumSettingsEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "forum"
+        ],
+        "summary": "Save Forum Settings",
+        "description": "Save the categories, tags, guidelines and tips together, if nobody saved them since `version`. Audited with\nwhat changed, before and after.\n\nErrors: forum_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't\nfit, an id used twice, no category left, a default category that is retired or belongs to a year, a category or\ntag that threads use removed instead of retired).",
+        "operationId": "save_forum_settings_api_v1_forum_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForumSettingsSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForumSettingsEditable"
                 }
               }
             }
@@ -7583,7 +7775,7 @@
           "forum"
         ],
         "summary": "List Threads",
-        "description": "Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);\ndeleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its\ncategory, or a module of that year) plus forum-wide ones (study groups and general without a module).\n`hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.",
+        "description": "Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);\ndeleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its\ncategory, or a module of that year) plus forum-wide ones (a category for every year, without a module).\n`hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.",
         "operationId": "list_threads_api_v1_forum_threads_get",
         "parameters": [
           {
@@ -7612,14 +7804,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    "year-1",
-                    "year-2",
-                    "year-3",
-                    "study-groups",
-                    "general"
-                  ],
-                  "type": "string"
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32,
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                 },
                 {
                   "type": "null"
@@ -11205,6 +11393,386 @@
               }
             },
             "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/newsletter/settings": {
+      "get": {
+        "tags": [
+          "newsletter"
+        ],
+        "summary": "Newsletter Settings",
+        "description": "The line under the newsletter's name.",
+        "operationId": "newsletter_settings_api_v1_newsletter_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsletterMasthead"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "newsletter"
+        ],
+        "summary": "Save Newsletter Settings",
+        "description": "Save the masthead's line and the pictures the editor offers, if nobody saved them since `version`. An uploaded\npicture is kept while it's offered. Audited with what changed, before and after.\n\nErrors: newsletter_settings_changed (409: someone saved them since: load them again), invalid_input (422: a field\nthat doesn't fit, a picture that isn't one of the newsletter's, a picture offered twice).",
+        "operationId": "save_newsletter_settings_api_v1_newsletter_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsletterSettingsSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsletterSettingsEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/newsletter/pictures": {
+      "get": {
+        "tags": [
+          "newsletter"
+        ],
+        "summary": "Newsletter Pictures",
+        "description": "The pictures the issue editor offers for covers and beside sections. For the people who manage the newsletter:\nan offered picture may be for an issue nobody has read yet.",
+        "operationId": "newsletter_pictures_api_v1_newsletter_pictures_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NewsletterPicture"
+                  },
+                  "type": "array",
+                  "title": "Response Newsletter Pictures Api V1 Newsletter Pictures Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/newsletter/settings/edit": {
+      "get": {
+        "tags": [
+          "newsletter"
+        ],
+        "summary": "Newsletter Settings For Editing",
+        "description": "The settings with the version a save names (0 until the first save).",
+        "operationId": "newsletter_settings_for_editing_api_v1_newsletter_settings_edit_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsletterSettingsEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -20088,6 +20656,392 @@
         }
       }
     },
+    "/api/v1/mini-noora/script": {
+      "get": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Noora Script",
+        "description": "What she says when she answers from her script, the questions she offers on each page, and the cards of her\nfull page.",
+        "operationId": "noora_script_api_v1_mini_noora_script_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraScript"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mini-noora/settings": {
+      "get": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Noora Settings",
+        "description": "Her prompt and script with the version a save names (0 until the first save), and the rules that always follow\nher instructions.",
+        "operationId": "noora_settings_api_v1_mini_noora_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Save Noora Settings",
+        "description": "Save her prompt and script, if nobody saved them since `version`. Admins only, with a session started or\nstepped up in the last ten minutes: every student's answers follow her instructions. Audited with what changed,\nbefore and after (the prompt's words for admins only).\n\nErrors: step_up_required (403), noora_changed (409: someone saved them since: load them again), invalid_input\n(422: a field that doesn't fit, <hub_data> or <student_note> in her instructions or facts, a placeholder other\nthan {module} and {module2}, a page listed twice or without the questions for every other page, an id used twice,\nstarter cards other than four or eight).",
+        "operationId": "save_noora_settings_api_v1_mini_noora_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NooraSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mini-noora/settings/preview": {
+      "post": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Preview Noora Prompt",
+        "description": "The prompt her AI would read with these instructions and facts: for a Year 2 student on Home today, from the\nhub's own modules and calendar. Nothing is saved.",
+        "operationId": "preview_noora_prompt_api_v1_mini_noora_settings_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NooraPromptPreview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraPromptAssembled"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/summary/preview": {
       "get": {
         "tags": [
@@ -20191,6 +21145,300 @@
               }
             },
             "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/summary/settings": {
+      "get": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Summary Words",
+        "description": "The summary's words with the version a save names (0 until the first save).",
+        "operationId": "summary_words_api_v1_summary_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Save Summary Words",
+        "description": "Save the subject line, the headings, the closing line and the Sunday send time, if nobody saved them since\n`version`. Audited with what changed, before and after.\n\nErrors: summary_changed (409: someone saved them since: load them again), invalid_input (422: a field that\ndoesn't fit, a placeholder other than {year} and {week}, a time that isn't HH:MM).",
+        "operationId": "save_summary_words_api_v1_summary_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SummarySave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/summary/settings/preview": {
+      "post": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Preview Summary Words",
+        "description": "This week's summary for a year in a draft of the words. Nothing is saved or sent.",
+        "operationId": "preview_summary_words_api_v1_summary_settings_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SummaryDraftPreview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -24888,6 +26136,290 @@
           }
         }
       }
+    },
+    "/api/v1/grades/rules": {
+      "get": {
+        "tags": [
+          "grades"
+        ],
+        "summary": "Grade Rules",
+        "description": "The subjects and what each counts, the mark bands, what each class needs, and the modules a student chooses\nbetween.",
+        "operationId": "grade_rules_api_v1_grades_rules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeRules"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "grades"
+        ],
+        "summary": "Save Grade Rules",
+        "description": "Save the rules, if nobody saved them since `version`. Audited with what changed, before and after.\n\nErrors: grades_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't\nfit, bands out of order, more marks needed than the subjects give, a choice without options, a module that\ndoesn't exist, an id used twice).",
+        "operationId": "save_grade_rules_api_v1_grades_rules_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeRulesSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeRulesEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/grades/rules/edit": {
+      "get": {
+        "tags": [
+          "grades"
+        ],
+        "summary": "Grade Rules For Editing",
+        "description": "The rules with the version a save names (0 until the first save).",
+        "operationId": "grade_rules_for_editing_api_v1_grades_rules_edit_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeRulesEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -28903,6 +30435,18 @@
       },
       "CareerDoc": {
         "properties": {
+          "intro": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Intro"
+          },
+          "employersNote": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Employersnote"
+          },
           "checkedOn": {
             "type": "string",
             "maxLength": 60,
@@ -29055,6 +30599,8 @@
         },
         "type": "object",
         "required": [
+          "intro",
+          "employersNote",
           "checkedOn",
           "initialCount",
           "tracks",
@@ -29611,58 +31157,6 @@
         ],
         "title": "CareerTrack"
       },
-      "CategoryOut": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "enum": [
-              "year-1",
-              "year-2",
-              "year-3",
-              "study-groups",
-              "general"
-            ],
-            "title": "Id"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "short": {
-            "type": "string",
-            "title": "Short"
-          },
-          "year": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "enum": [
-                  1,
-                  2,
-                  3
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Year"
-          },
-          "blurb": {
-            "type": "string",
-            "title": "Blurb"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "label",
-          "short",
-          "year",
-          "blurb"
-        ],
-        "title": "CategoryOut"
-      },
       "Cell": {
         "properties": {
           "row": {
@@ -29937,6 +31431,36 @@
           "label"
         ],
         "title": "ChecklistLesson"
+      },
+      "ClassAverages": {
+        "properties": {
+          "first": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "First"
+          },
+          "upper": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Upper"
+          },
+          "lower": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Lower"
+          }
+        },
+        "type": "object",
+        "required": [
+          "first",
+          "upper",
+          "lower"
+        ],
+        "title": "ClassAverages",
+        "description": "With `fewer` marks (not `needed`) in a class's band, the average classification mark a class asks for."
       },
       "CloseCert": {
         "properties": {
@@ -30710,6 +32234,11 @@
               "career_changed",
               "site_changed",
               "guides_changed",
+              "forum_changed",
+              "noora_changed",
+              "summary_changed",
+              "newsletter_settings_changed",
+              "grades_changed",
               "already_a_lesson",
               "already_suggested",
               "suggestion_closed",
@@ -32596,13 +34125,6 @@
           },
           "category": {
             "type": "string",
-            "enum": [
-              "year-1",
-              "year-2",
-              "year-3",
-              "study-groups",
-              "general"
-            ],
             "title": "Category"
           },
           "moduleId": {
@@ -32921,18 +34443,146 @@
         ],
         "title": "FollowResult"
       },
+      "ForumCategoryOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "short": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Short"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "blurb": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Blurb"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "search",
+                  "tag",
+                  "check",
+                  "shield",
+                  "heart",
+                  "chat",
+                  "people",
+                  "book",
+                  "calendar",
+                  "flag",
+                  "info",
+                  "briefcase"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "retired": {
+            "type": "boolean",
+            "title": "Retired",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "short",
+          "year",
+          "blurb"
+        ],
+        "title": "ForumCategoryOut",
+        "description": "Where a thread lives. A retired one is no longer offered; its threads keep it."
+      },
+      "ForumGuideline": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "search",
+              "tag",
+              "check",
+              "shield",
+              "heart",
+              "chat",
+              "people",
+              "book",
+              "calendar",
+              "flag",
+              "info",
+              "briefcase"
+            ],
+            "title": "Icon"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "icon",
+          "text"
+        ],
+        "title": "ForumGuideline",
+        "description": "One of the forum's guidelines, in the sidebar."
+      },
       "ForumMeta": {
         "properties": {
           "categories": {
             "items": {
-              "$ref": "#/components/schemas/CategoryOut"
+              "$ref": "#/components/schemas/ForumCategoryOut"
             },
             "type": "array",
             "title": "Categories"
           },
           "tags": {
             "items": {
-              "$ref": "#/components/schemas/TagOut"
+              "$ref": "#/components/schemas/ForumTagOut"
             },
             "type": "array",
             "title": "Tags"
@@ -32940,15 +34590,170 @@
           "maxTags": {
             "type": "integer",
             "title": "Maxtags"
+          },
+          "defaultCategory": {
+            "type": "string",
+            "title": "Defaultcategory"
+          },
+          "guidelines": {
+            "items": {
+              "$ref": "#/components/schemas/ForumGuideline"
+            },
+            "type": "array",
+            "title": "Guidelines"
+          },
+          "tips": {
+            "items": {
+              "$ref": "#/components/schemas/ForumTip"
+            },
+            "type": "array",
+            "title": "Tips"
           }
         },
         "type": "object",
         "required": [
           "categories",
           "tags",
-          "maxTags"
+          "maxTags",
+          "defaultCategory",
+          "guidelines",
+          "tips"
         ],
-        "title": "ForumMeta"
+        "title": "ForumMeta",
+        "description": "Everything the forum's pages need to place and file threads: every category and tag (retired ones too, for\nthe threads that carry them), where a thread goes when no year fits, and the guidelines and tips."
+      },
+      "ForumSettings": {
+        "properties": {
+          "defaultCategory": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Defaultcategory"
+          },
+          "guidelines": {
+            "items": {
+              "$ref": "#/components/schemas/ForumGuideline"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Guidelines"
+          },
+          "tips": {
+            "items": {
+              "$ref": "#/components/schemas/ForumTip"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Tips"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/ForumCategoryOut"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Categories"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/ForumTagOut"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "defaultCategory",
+          "guidelines",
+          "tips",
+          "categories",
+          "tags"
+        ],
+        "title": "ForumSettings",
+        "description": "Manage \u2192 Forum, saved as a whole: the categories and tags in their order, and the forum's words."
+      },
+      "ForumSettingsEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ForumSettings"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "threadsByCategory": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Threadsbycategory"
+          },
+          "threadsByTag": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Threadsbytag"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy",
+          "threadsByCategory",
+          "threadsByTag"
+        ],
+        "title": "ForumSettingsEditable",
+        "description": "The settings with the version a save names (0 until the first save), and how many threads use each category\nand tag (one in use is retired rather than removed)."
+      },
+      "ForumSettingsSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ForumSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "ForumSettingsSave",
+        "description": "PUT /forum/settings: everything, and the version it was edited from."
       },
       "ForumStats": {
         "properties": {
@@ -33013,6 +34818,58 @@
         ],
         "title": "ForumStats",
         "description": "Counts over the threads a guest's list shows (visible ones, and deleted ones that still have replies)."
+      },
+      "ForumTagOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "retired": {
+            "type": "boolean",
+            "title": "Retired",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "ForumTagOut"
+      },
+      "ForumTip": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "ForumTip",
+        "description": "A tip for a good thread, beside the composer. `code` in backticks shows as code."
       },
       "FoundAnswer": {
         "properties": {
@@ -33415,6 +35272,308 @@
         ],
         "title": "GiveUpMove",
         "description": "Ends the play as lost and shows the answer."
+      },
+      "GradeBand": {
+        "properties": {
+          "floor": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Floor"
+          },
+          "gpa": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Gpa"
+          }
+        },
+        "type": "object",
+        "required": [
+          "floor",
+          "gpa"
+        ],
+        "title": "GradeBand"
+      },
+      "GradeBands": {
+        "properties": {
+          "first": {
+            "$ref": "#/components/schemas/GradeBand"
+          },
+          "upper": {
+            "$ref": "#/components/schemas/GradeBand"
+          },
+          "lower": {
+            "$ref": "#/components/schemas/GradeBand"
+          },
+          "third": {
+            "$ref": "#/components/schemas/GradeBand"
+          }
+        },
+        "type": "object",
+        "required": [
+          "first",
+          "upper",
+          "lower",
+          "third"
+        ],
+        "title": "GradeBands"
+      },
+      "GradeOption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "GradeOption",
+        "description": "A module a student may pick for a choice."
+      },
+      "GradeRules": {
+        "properties": {
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/GradeSubject"
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Subjects"
+          },
+          "averageCounts": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Averagecounts"
+          },
+          "bands": {
+            "$ref": "#/components/schemas/GradeBands"
+          },
+          "needed": {
+            "type": "integer",
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Needed"
+          },
+          "fewer": {
+            "type": "integer",
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Fewer"
+          },
+          "averages": {
+            "$ref": "#/components/schemas/ClassAverages"
+          },
+          "thirdRule": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Thirdrule"
+          },
+          "regulations": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Regulations"
+          },
+          "year2Options": {
+            "items": {
+              "$ref": "#/components/schemas/GradeOption"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Year2Options"
+          },
+          "electives": {
+            "items": {
+              "$ref": "#/components/schemas/GradeOption"
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Electives"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subjects",
+          "averageCounts",
+          "bands",
+          "needed",
+          "fewer",
+          "averages",
+          "thirdRule",
+          "regulations",
+          "year2Options",
+          "electives"
+        ],
+        "title": "GradeRules"
+      },
+      "GradeRulesEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GradeRules"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "title": "GradeRulesEditable"
+      },
+      "GradeRulesSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GradeRules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "GradeRulesSave",
+        "description": "PUT /grades/rules: the rules, and the version they were edited from."
+      },
+      "GradeSubject": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "choice": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "year2Option",
+                  "elective1",
+                  "elective2"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Choice"
+          },
+          "counts": {
+            "enum": [
+              "average",
+              1,
+              2,
+              3
+            ],
+            "title": "Counts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "year",
+          "counts"
+        ],
+        "title": "GradeSubject"
       },
       "GroupData": {
         "properties": {
@@ -36080,6 +38239,50 @@
             ],
             "title": "Description"
           },
+          "examYear": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2100.0,
+                "minimum": 1990.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examyear"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "RTC"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          },
+          "examSession": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "may",
+                  "october"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examsession"
+          },
           "authorName": {
             "anyOf": [
               {
@@ -37393,6 +39596,202 @@
         ],
         "title": "NearestView"
       },
+      "NewsletterMasthead": {
+        "properties": {
+          "masthead": {
+            "type": "string",
+            "title": "Masthead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "masthead"
+        ],
+        "title": "NewsletterMasthead",
+        "description": "GET /newsletter/settings: what readers see of the settings."
+      },
+      "NewsletterPicture": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "src": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Src"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "width": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Height"
+          },
+          "cover": {
+            "type": "boolean",
+            "title": "Cover",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "src",
+          "label",
+          "width",
+          "height"
+        ],
+        "title": "NewsletterPicture",
+        "description": "A picture the issue editor offers to choose: a picture of the web app or an uploaded newsletter picture. Width\nand height (pixels) reserve its space while it loads."
+      },
+      "NewsletterSettings": {
+        "properties": {
+          "masthead": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Masthead"
+          },
+          "pictures": {
+            "items": {
+              "$ref": "#/components/schemas/NewsletterPicture"
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Pictures"
+          }
+        },
+        "type": "object",
+        "required": [
+          "masthead",
+          "pictures"
+        ],
+        "title": "NewsletterSettings",
+        "description": "The newsletter's own words and the pictures its editor offers, edited by holders of newsletter.manage in\nManage \u2192 Newsletter (its starting content is app/seed/data/newsletter_settings.json)."
+      },
+      "NewsletterSettingsEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/NewsletterSettings"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "title": "NewsletterSettingsEditable"
+      },
+      "NewsletterSettingsSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NewsletterSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "NewsletterSettingsSave",
+        "description": "PUT /newsletter/settings: everything, and the version it was edited from."
+      },
+      "NooraChip": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "needs": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "calendar",
+                  "library"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "NooraChip",
+        "description": "A question she offers. Left out while the feature it needs is off for the student, or when it names a module\nthe student has none of."
+      },
+      "NooraDoc": {
+        "properties": {
+          "prompt": {
+            "$ref": "#/components/schemas/NooraPrompt"
+          },
+          "script": {
+            "$ref": "#/components/schemas/NooraScript"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt",
+          "script"
+        ],
+        "title": "NooraDoc"
+      },
       "NooraDoneEvent": {
         "properties": {
           "type": {
@@ -37412,6 +39811,53 @@
         ],
         "title": "NooraDoneEvent",
         "description": "The answer is complete."
+      },
+      "NooraEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/NooraDoc"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fixedRules": {
+            "type": "string",
+            "title": "Fixedrules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy",
+          "fixedRules"
+        ],
+        "title": "NooraEditable",
+        "description": "The document for admins, with the version a save must name (0 until the first save: the starting content),\nand the rules that always follow her instructions, which no edit removes."
       },
       "NooraErrorEvent": {
         "properties": {
@@ -37438,6 +39884,29 @@
         ],
         "title": "NooraErrorEvent",
         "description": "The answer stopped. `code` is noora_unavailable: what came so far may be shown, with a line that it was cut\noff."
+      },
+      "NooraFact": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "NooraFact"
       },
       "NooraLimitsIn": {
         "properties": {
@@ -37482,6 +39951,40 @@
         "title": "NooraNote",
         "description": "The note open in the editor. Sent only when the student ticks \"Include my note\" for this question."
       },
+      "NooraPageChips": {
+        "properties": {
+          "page": {
+            "type": "string",
+            "enum": [
+              "home",
+              "modules",
+              "module",
+              "library",
+              "calendar",
+              "forum",
+              "notes",
+              "grades",
+              "other"
+            ],
+            "title": "Page"
+          },
+          "chips": {
+            "items": {
+              "$ref": "#/components/schemas/NooraChip"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Chips"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page",
+          "chips"
+        ],
+        "title": "NooraPageChips"
+      },
       "NooraPaper": {
         "properties": {
           "itemId": {
@@ -37511,6 +40014,68 @@
         ],
         "title": "NooraPaper",
         "description": "A past paper's question the student is asking about. The server reads the page's words and the examiners'\nreport for the same sitting itself."
+      },
+      "NooraPrompt": {
+        "properties": {
+          "instructions": {
+            "type": "string",
+            "maxLength": 8000,
+            "minLength": 40,
+            "title": "Instructions"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/NooraFact"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Facts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "instructions",
+          "facts"
+        ],
+        "title": "NooraPrompt",
+        "description": "What her AI reads first: who she is and how she answers, then the facts about the programme."
+      },
+      "NooraPromptAssembled": {
+        "properties": {
+          "stable": {
+            "type": "string",
+            "title": "Stable"
+          },
+          "screen": {
+            "type": "string",
+            "title": "Screen"
+          },
+          "tokens": {
+            "type": "integer",
+            "title": "Tokens"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stable",
+          "screen",
+          "tokens"
+        ],
+        "title": "NooraPromptAssembled",
+        "description": "What her AI reads before a question: the part that is the same for every question (her instructions, the\nfacts, the fixed rules, the hub's pages and its modules) and, as an example, the part about one student's screen\n(Year 2, on Home, today)."
+      },
+      "NooraPromptPreview": {
+        "properties": {
+          "prompt": {
+            "$ref": "#/components/schemas/NooraPrompt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt"
+        ],
+        "title": "NooraPromptPreview",
+        "description": "POST /mini-noora/settings/preview: the prompt as her AI would read it, from a draft."
       },
       "NooraQuestion": {
         "properties": {
@@ -37601,6 +40166,201 @@
         ],
         "title": "NooraQuestion",
         "description": "A question, and what's on the student's screen. The server looks the module and lesson up itself."
+      },
+      "NooraSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NooraDoc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "NooraSave",
+        "description": "PUT /mini-noora/settings: the whole document, and the version it was edited from."
+      },
+      "NooraScript": {
+        "properties": {
+          "greeting": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Greeting"
+          },
+          "greetingChips": {
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Greetingchips"
+          },
+          "who": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Who"
+          },
+          "thanks": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Thanks"
+          },
+          "refusal": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Refusal"
+          },
+          "notFound": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Notfound"
+          },
+          "tryInstead": {
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Tryinstead"
+          },
+          "noPhotos": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Nophotos"
+          },
+          "photoAsk": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Photoask"
+          },
+          "fileGuess": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Fileguess"
+          },
+          "fileUnknown": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Fileunknown"
+          },
+          "welcome": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Welcome"
+          },
+          "pageChips": {
+            "items": {
+              "$ref": "#/components/schemas/NooraPageChips"
+            },
+            "type": "array",
+            "maxItems": 9,
+            "minItems": 1,
+            "title": "Pagechips"
+          },
+          "starters": {
+            "items": {
+              "$ref": "#/components/schemas/NooraStarter"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 4,
+            "title": "Starters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "greeting",
+          "greetingChips",
+          "who",
+          "thanks",
+          "refusal",
+          "notFound",
+          "tryInstead",
+          "noPhotos",
+          "photoAsk",
+          "fileGuess",
+          "fileUnknown",
+          "welcome",
+          "pageChips",
+          "starters"
+        ],
+        "title": "NooraScript",
+        "description": "What she says from her script, and what she offers to answer."
+      },
+      "NooraStarter": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "lightbulb",
+              "teacher",
+              "checklist",
+              "notepad",
+              "exam",
+              "briefcase",
+              "pencil",
+              "magnifier"
+            ],
+            "title": "Icon"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "example": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Example"
+          },
+          "template": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Template"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "icon",
+          "title",
+          "example",
+          "template"
+        ],
+        "title": "NooraStarter",
+        "description": "A card of her full page: it fills the question box with `template`, its [part in square brackets] selected."
       },
       "NooraStatus": {
         "properties": {
@@ -42130,6 +44890,36 @@
         ],
         "title": "SearchHit"
       },
+      "SearchNickname": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "word": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9]{1,20}$",
+            "title": "Word"
+          },
+          "finds": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$",
+            "title": "Finds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "word",
+          "finds"
+        ],
+        "title": "SearchNickname",
+        "description": "A word students type for modules: search also finds the modules with a word of their name starting with\n`finds` ('stats' finds every module named \"\u2026 statistics \u2026\")."
+      },
       "SearchResults": {
         "properties": {
           "query": {
@@ -42604,6 +45394,58 @@
             "maximum": 2100.0,
             "minimum": 2000.0,
             "title": "Launchyear"
+          },
+          "homeBlocks": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "start_here",
+                "results_day",
+                "coming_up",
+                "todo",
+                "continue",
+                "modules",
+                "files",
+                "forum",
+                "noora",
+                "daily_question",
+                "help_below",
+                "newsletter",
+                "daily"
+              ]
+            },
+            "type": "array",
+            "maxItems": 13,
+            "minItems": 1,
+            "title": "Homeblocks"
+          },
+          "tour": {
+            "items": {
+              "$ref": "#/components/schemas/TourStep"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Tour"
+          },
+          "searchNicknames": {
+            "items": {
+              "$ref": "#/components/schemas/SearchNickname"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Searchnicknames"
+          },
+          "searchSuggestions": {
+            "items": {
+              "type": "string",
+              "maxLength": 60,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Searchsuggestions"
           }
         },
         "type": "object",
@@ -42617,7 +45459,11 @@
           "gradesNote",
           "disclaimer",
           "copyrightHolder",
-          "launchYear"
+          "launchYear",
+          "homeBlocks",
+          "tour",
+          "searchNicknames",
+          "searchSuggestions"
         ],
         "title": "SiteDoc"
       },
@@ -43552,6 +46398,108 @@
         ],
         "title": "SuggestionPage"
       },
+      "SummaryDraftPreview": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "words": {
+            "$ref": "#/components/schemas/SummaryWords"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "words"
+        ],
+        "title": "SummaryDraftPreview",
+        "description": "POST /summary/settings/preview: this week's summary for a year with a draft of the words."
+      },
+      "SummaryEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SummaryWords"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "title": "SummaryEditable",
+        "description": "The words with the version a save must name (0 until the first save: the starting content)."
+      },
+      "SummaryHeadings": {
+        "properties": {
+          "calendar": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Calendar"
+          },
+          "library": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Library"
+          },
+          "forum": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Forum"
+          },
+          "newsletter": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Newsletter"
+          }
+        },
+        "type": "object",
+        "required": [
+          "calendar",
+          "library",
+          "forum",
+          "newsletter"
+        ],
+        "title": "SummaryHeadings",
+        "description": "Above each part of the summary; a part with nothing in it this week is left out."
+      },
       "SummaryPreview": {
         "properties": {
           "year": {
@@ -43597,6 +46545,57 @@
         "title": "SummaryPreview",
         "description": "A year's Sunday summary for this week, as plain text with links: what the email says above its footer, and\nwhat a rep pastes into the year's group."
       },
+      "SummarySave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SummaryWords"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "SummarySave",
+        "description": "PUT /summary/settings: the words, and the version they were edited from."
+      },
+      "SummaryWords": {
+        "properties": {
+          "subject": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Subject"
+          },
+          "headings": {
+            "$ref": "#/components/schemas/SummaryHeadings"
+          },
+          "closing": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Closing"
+          },
+          "sendAt": {
+            "type": "string",
+            "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$",
+            "title": "Sendat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "headings",
+          "closing",
+          "sendAt"
+        ],
+        "title": "SummaryWords"
+      },
       "SwitchUpdate": {
         "properties": {
           "mode": {
@@ -43623,24 +46622,6 @@
           "mode"
         ],
         "title": "SwitchUpdate"
-      },
-      "TagOut": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "label"
-        ],
-        "title": "TagOut"
       },
       "TermStart": {
         "properties": {
@@ -43862,13 +46843,9 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "year-1",
-                  "year-2",
-                  "year-3",
-                  "study-groups",
-                  "general"
-                ]
+                "maxLength": 32,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
               },
               {
                 "type": "null"
@@ -43890,7 +46867,9 @@
           "tags": {
             "items": {
               "type": "string",
-              "pattern": "^[a-z0-9-]{1,32}$"
+              "maxLength": 32,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
             },
             "type": "array",
             "maxItems": 3,
@@ -43941,13 +46920,6 @@
           },
           "category": {
             "type": "string",
-            "enum": [
-              "year-1",
-              "year-2",
-              "year-3",
-              "study-groups",
-              "general"
-            ],
             "title": "Category"
           },
           "moduleId": {
@@ -44270,13 +47242,6 @@
           },
           "category": {
             "type": "string",
-            "enum": [
-              "year-1",
-              "year-2",
-              "year-3",
-              "study-groups",
-              "general"
-            ],
             "title": "Category"
           },
           "moduleId": {
@@ -44459,13 +47424,9 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "year-1",
-                  "year-2",
-                  "year-3",
-                  "study-groups",
-                  "general"
-                ]
+                "maxLength": 32,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
               },
               {
                 "type": "null"
@@ -44489,7 +47450,9 @@
               {
                 "items": {
                   "type": "string",
-                  "pattern": "^[a-z0-9-]{1,32}$"
+                  "maxLength": 32,
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                 },
                 "type": "array",
                 "maxItems": 3
@@ -44503,6 +47466,47 @@
         },
         "type": "object",
         "title": "ThreadUpdate"
+      },
+      "TourStep": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "art": {
+            "type": "string",
+            "enum": [
+              "search",
+              "library",
+              "forum"
+            ],
+            "title": "Art"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Body"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "art",
+          "title",
+          "body"
+        ],
+        "title": "TourStep",
+        "description": "A step of the tour a new student may take (\"Take the tour\" in the year prompt). Text between `backticks` shows\nas a key to press, and {mod} as the platform's key: \u2318 on a Mac, Ctrl elsewhere."
       },
       "UploadCreate": {
         "properties": {

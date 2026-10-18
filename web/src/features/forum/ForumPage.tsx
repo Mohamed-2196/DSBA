@@ -32,9 +32,11 @@ export default function ForumPage() {
   const posts = mayTry('forum.post');
   const qc = useQueryClient();
   const { getModule } = useModules();
-  const { getCategory, tags: allTags } = useTaxonomy();
+  const { getCategory, getTag, tags: offeredTags, ready } = useTaxonomy();
   const [filters, update, clear] = useForumFilters();
-  const { cohort, tag, sort, status, module: moduleId } = filters;
+  const { tag, sort, status, module: moduleId } = filters;
+  // A category the forum doesn't have (an old link) shows every thread once the categories have loaded.
+  const cohort = ready && filters.cohort !== 'all' && !getCategory(filters.cohort) ? 'all' : filters.cohort;
   const location = useLocation();
   const posted = (location.state as PostedState | null)?.posted ?? null;
   const vote = useThreadVote();
@@ -70,6 +72,9 @@ export default function ForumPage() {
   }, [loaded, posted, refined, qc, cohort]);
 
   const tagCounts = cohort === 'all' ? stats.data?.byTag : stats.data?.tagsByCategory?.[cohort];
+  // A retired tag still filters (a thread's link to it), so it keeps its chip while it's picked.
+  const pickedTag = getTag(tag);
+  const allTags = useMemo(() => (pickedTag?.retired ? [...offeredTags, pickedTag] : offeredTags), [offeredTags, pickedTag]);
   const chips = useMemo(() => tagChips({ counts: tagCounts, shownTags: loaded.map((t) => t.tags), allTags, selected: tag }), [tagCounts, loaded, allTags, tag]);
 
   const terms = highlightTerms(q);
@@ -111,7 +116,7 @@ export default function ForumPage() {
         }
       />
 
-      <ForumFilterBar filters={filters} update={update} stats={stats.data} chips={chips} scope={scope} />
+      <ForumFilterBar filters={{ ...filters, cohort }} update={update} stats={stats.data} chips={chips} scope={scope} />
 
       <div className="forum-layout">
         <TabPanel idBase="forum" id={cohort} value={cohort} className="forum-layout__main">

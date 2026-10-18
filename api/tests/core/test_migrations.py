@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError
@@ -131,3 +132,56 @@ def test_the_database_refuses_what_the_contract_does_not_list(scratch: tuple[Con
     for constraint, statement in refused.items():
         with pytest.raises(IntegrityError, match=constraint), engine.begin() as c:
             c.execute(text(statement), ids)
+
+
+def test_documents_saved_before_their_new_parts_get_them_as_they_start(scratch: tuple[Config, Engine]) -> None:
+    """Site settings and Career Navigator saved before the parts added since then get those parts from the seed; the
+    forum gets the categories and tags it had, as tables. Going back, a thread in a category or with a tag made since
+    returns to the first ones."""
+    import json
+
+    seed = API_ROOT / "app" / "seed" / "data"
+    site, career = (json.loads((seed / f"{name}.json").read_text(encoding="utf-8")) for name in ("site", "career"))
+    cfg, engine = scratch
+    script = ScriptDirectory.from_config(cfg).get_revision("0033")
+    assert script is not None
+    assert isinstance(script.down_revision, str)
+    before = script.down_revision  # the revision before the one that adds the parts
+    command.upgrade(cfg, before)
+    saved_site = {
+        k: v for k, v in site.items() if k not in ("homeBlocks", "tour", "searchNicknames", "searchSuggestions")
+    }
+    saved_career = {k: v for k, v in career.items() if k not in ("intro", "employersNote")}
+    with engine.begin() as c:
+        for key, data in (("site", saved_site), ("career", saved_career)):
+            c.execute(
+                text("INSERT INTO content_docs (key, data, version) VALUES (:key, CAST(:data AS jsonb), 3)"),
+                {"key": key, "data": json.dumps(data)},
+            )
+    command.upgrade(cfg, "head")
+    with engine.connect() as c:
+        docs = dict(c.execute(text("SELECT key, data FROM content_docs")).tuples().all())
+        assert docs["site"] == site
+        assert docs["career"] == career
+        assert c.scalar(text("SELECT count(*) FROM forum_categories WHERE NOT retired")) == 5
+        assert c.scalar(text("SELECT count(*) FROM forum_tags")) == 12
+    with engine.begin() as c:  # a moderator's own category and tag, and a thread with both
+        c.execute(
+            text(
+                "INSERT INTO forum_categories (id, label, short, year, blurb) "
+                "VALUES ('projects', 'Projects', 'Projects', NULL, 'Group work')"
+            )
+        )
+        c.execute(text("INSERT INTO forum_tags (id, label) VALUES ('kaggle', 'Kaggle')"))
+        c.execute(
+            text(
+                "INSERT INTO forum_threads (id, slug, title, body, category, status, tags) "
+                "VALUES (gen_random_uuid(), 'team', 'Team?', 'Text', 'projects', 'visible', '{kaggle,python}')"
+            )
+        )
+    command.downgrade(cfg, before)
+    with engine.connect() as c:
+        docs = dict(c.execute(text("SELECT key, data FROM content_docs")).tuples().all())
+        assert (docs["site"], docs["career"]) == (saved_site, saved_career)
+        thread = c.execute(text("SELECT category, tags FROM forum_threads WHERE slug = 'team'")).one()
+        assert tuple(thread) == ("general", ["python"])  # back among the first ones

@@ -1,5 +1,6 @@
-// What sits beside a section's text in the editor: nothing, one of the app's pictures (with its description and
-// caption), a typographic card, or a few numbers. One at a time, as the reader shows it.
+// What sits beside a section's text in the editor: nothing, a picture (one the newsletter's settings offer, or one
+// uploaded for the issue, with its description and caption), a typographic card, or a few numbers. One at a time, as
+// the reader shows it.
 import { useId, useRef, useState } from 'react';
 import { Plus, TextAa, UploadSimple } from '@phosphor-icons/react';
 import { Button, SegmentedControl, Switch, cx } from '../../../ui';
@@ -7,7 +8,8 @@ import { UPLOAD_RULES, checkUpload, progressText, uploadErrorMessage, uploadFile
 import { LIMITS, blankStat, controlId, fieldPath, moveByKey, removeByKey, updateByKey, type Beside, type FieldErrors, type SectionDraft } from '../lib/draft';
 import { pictureSrc } from '../../../api/pictures';
 import { ItemTools, MARKUP_HINT, TextBox, TextInput } from './fields';
-import { pictureChoices, type AppPicture } from './pictures';
+import { useOfferedPictures } from '../api';
+import { pictureChoices, readImageDimensions, type AppPicture } from './pictures';
 
 const BESIDE: { value: Beside; label: string }[] = [
   { value: 'none', label: 'Nothing' },
@@ -15,24 +17,6 @@ const BESIDE: { value: Beside; label: string }[] = [
   { value: 'card', label: 'Card' },
   { value: 'stats', label: 'Numbers' },
 ];
-
-function readImageDimensions(file: File): Promise<{ width: number; height: number }> {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      const w = img.naturalWidth || 1;
-      const h = img.naturalHeight || 1;
-      URL.revokeObjectURL(url);
-      resolve({ width: w, height: h });
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: 1200, height: 900 });
-    };
-    img.src = url;
-  });
-}
 
 export interface PicturePickerProps {
   /** the radio group's name, unique on the page */
@@ -155,6 +139,7 @@ export interface BesideEditorProps {
 
 export function BesideEditor({ section: s, errors, onChange }: BesideEditorProps) {
   const path = (field: string) => fieldPath.section(s.key, field);
+  const offered = useOfferedPictures().data ?? [];
   const setFigure = (patch: Partial<SectionDraft['figure']>) => onChange((x) => ({ ...x, figure: { ...x.figure, ...patch } }));
   const setCard = (patch: Partial<SectionDraft['card']>) => onChange((x) => ({ ...x, card: { ...x.card, ...patch } }));
   const setStats = (patch: Partial<SectionDraft['stats']>) => onChange((x) => ({ ...x, stats: { ...x.stats, ...patch } }));
@@ -177,7 +162,7 @@ export function BesideEditor({ section: s, errors, onChange }: BesideEditorProps
           <PicturePicker
             name={`figure-${s.key}`}
             label="Picture"
-            choices={pictureChoices(s.figure)}
+            choices={pictureChoices(offered, s.figure)}
             value={s.figure.src || null}
             onChoose={(p) => setFigure(p ? { src: p.src, width: p.width, height: p.height } : { src: '', width: 0, height: 0 })}
             id={controlId(path('figure.src'))}

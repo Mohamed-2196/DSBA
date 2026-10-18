@@ -4,13 +4,7 @@
 //                    University, search, the grades calculator and the guides' saved links
 //   contributorLine(), copyrightYears(), httpsHref(), notesInLibrary()   reading them
 //   <SiteEditor />   Manage → Site settings (admins)
-//
-// The editing kit the documents edited whole in Manage share (the guides' editor uses it too):
-//   <DocFrame />, <ListEditor />, <RowsEditor />, newItemId()   the frame and its save bar, lists of items
-//   docErrors(), hasErrorUnder()                                the API's 422 as the editor shows it
+// The editing kit every document edited whole in Manage shares (DocFrame, ListEditor, ...) is in src/ui (docEditor/).
 export { useSite } from './api';
-export { docErrors, hasErrorUnder } from './editor/errors';
-export { newItemId } from './editor/doc';
-export { DocFrame, ListEditor, RowsEditor, type DocProblem } from './editor/kit';
 export { contributorLine, copyrightYears, httpsHref, notesInLibrary, type SiteLinkKey } from './lib/site';
 export { SiteEditor } from './SiteEditor';

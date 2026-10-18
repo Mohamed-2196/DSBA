@@ -1,23 +1,20 @@
 // "What if" hints for the grade calculator. Every answer here is found by running classify()
 // on modified marks, so a hint can never disagree with the result it explains.
-import { classify, normalizeGrades, RANK, SUBJECTS, type ClassKind } from './classify';
+import { bandFloor, classify, normalizeGrades, pooledIndexes, RANK, subjectsOf, type ClassKind, type Rules, type TargetKind } from './classify';
 
-export type TargetKind = Exclude<ClassKind, 'none' | 'resit'>;
+export type { TargetKind } from './classify';
 
 /** Next outcome up from a classified (non-resit) result. */
 export const NEXT_CLASS: Partial<Record<ClassKind, TargetKind>> = { none: 'third', third: 'lower', lower: 'upper', upper: 'first' };
-/** Lowest mark of the band that a class counts (First → 70 …). */
-export const BAND_FLOOR: Record<TargetKind, number> = { first: 70, upper: 60, lower: 50, third: 40 };
 
 const TARGETS: readonly TargetKind[] = ['first', 'upper', 'lower', 'third'];
 
 const isBlank = (raw: string | null | undefined): boolean => raw == null || raw.trim() === '';
-const reaches = (marks: string[], target: ClassKind): boolean => RANK[classify(marks).kind] >= RANK[target];
 const at = (marks: readonly string[], i: number): string => marks[i] ?? '';
 
 /** Indexes of subjects with no mark yet. */
-export function blankIndexes(grades: unknown): number[] {
-  return normalizeGrades(grades)
+export function blankIndexes(grades: unknown, rules: Rules): number[] {
+  return normalizeGrades(grades, rules)
     .map((raw, i) => (isBlank(raw) ? i : -1))
     .filter((i) => i >= 0);
 }
@@ -33,16 +30,17 @@ export interface RemainingTarget {
  * Partial input: for each class, the lowest whole mark that, scored in every subject still blank,
  * gives that class.
  */
-export function targetsForRemaining(grades: unknown): RemainingTarget[] {
-  const g = normalizeGrades(grades);
-  const blanks = blankIndexes(g);
+export function targetsForRemaining(grades: unknown, rules: Rules): RemainingTarget[] {
+  const g = normalizeGrades(grades, rules);
+  const blanks = blankIndexes(g, rules);
   if (!blanks.length) return [];
+  const reaches = (marks: string[], target: ClassKind): boolean => RANK[classify(marks, rules).kind] >= RANK[target];
   const fill = (m: number) => g.map((raw, i) => (blanks.includes(i) ? String(m) : raw));
   return TARGETS.map((kind) => {
     let mark: number | null = null;
-    // Below 40 is always a resit, so 40 is the floor. classify() is monotone in every mark,
+    // Below the Third's floor is always a resit, so that is where to start. classify() is monotone in every mark,
     // so the first mark that works is the minimum.
-    for (let m = 40; m <= 100; m += 1) {
+    for (let m = rules.bands.third.floor; m <= 100; m += 1) {
       if (reaches(fill(m), kind)) {
         mark = m;
         break;
@@ -71,9 +69,10 @@ export interface ImprovementPlan {
  * to reach the next class. Tries every single-module change first, then a greedy multi-module plan
  * that raises marks to the band that counts, cheapest classification mark first, and prunes it.
  */
-export function improvementPlan(grades: unknown): ImprovementPlan | null {
-  const g = normalizeGrades(grades);
-  const now = classify(g);
+export function improvementPlan(grades: unknown, rules: Rules): ImprovementPlan | null {
+  const g = normalizeGrades(grades, rules);
+  const now = classify(g, rules);
+  const reaches = (marks: string[], target: ClassKind): boolean => RANK[classify(marks, rules).kind] >= RANK[target];
   if (!now.complete || now.failed) return null;
   const target = NEXT_CLASS[now.kind];
   if (!target) return null;
@@ -97,34 +96,36 @@ export function improvementPlan(grades: unknown): ImprovementPlan | null {
   if (single) return { target, ...single };
 
   // 2. Greedy over "raise to the band floor" moves.
-  const floor = BAND_FLOOR[target];
+  const floor = bandFloor(rules, target);
+  const pooled = pooledIndexes(rules);
   let marks = g.slice();
   const changed = new Map<number, string>(); // index -> original value
   for (let step = 0; step < 20 && !reaches(marks, target); step += 1) {
     const moves: { next: string[]; cost: number; gain: number }[] = [];
-    // Year 1 counts through its average (2 marks): raise the lowest Year 1 marks until it reaches the floor.
-    let sum = [0, 1, 2, 3].reduce((s, i) => s + Number(at(marks, i)), 0);
-    if (sum / 4 < floor) {
+    // The averaged subjects count through their average: raise their lowest marks until it reaches the floor.
+    const n = pooled.length;
+    let sum = pooled.reduce((s, i) => s + Number(at(marks, i)), 0);
+    if (n && sum / n < floor) {
       const next = marks.slice();
-      [0, 1, 2, 3]
+      [...pooled]
         .sort((a, b) => Number(at(marks, a)) - Number(at(marks, b)))
         .forEach((i) => {
-          if (sum >= floor * 4) return;
+          if (sum >= floor * n) return;
           const cur = Number(at(next, i));
-          const up = Math.min(100, Math.ceil(cur + (floor * 4 - sum)));
+          const up = Math.min(100, Math.ceil(cur + (floor * n - sum)));
           sum += up - cur;
           next[i] = String(up);
         });
-      const cost = [0, 1, 2, 3].reduce((s, i) => s + (Number(at(next, i)) - Number(at(marks, i))), 0);
-      if (cost > 0) moves.push({ next, cost, gain: 2 });
+      const cost = pooled.reduce((s, i) => s + (Number(at(next, i)) - Number(at(marks, i))), 0);
+      if (cost > 0) moves.push({ next, cost, gain: rules.averageCounts });
     }
-    SUBJECTS.forEach((s) => {
-      if (s.year === 1) return;
+    subjectsOf(rules).forEach((s) => {
+      if (s.counts === 'average') return;
       const cur = Number(at(marks, s.index));
       if (cur >= floor) return;
       const next = marks.slice();
       next[s.index] = String(floor);
-      moves.push({ next, cost: floor - cur, gain: s.weight ?? 2 });
+      moves.push({ next, cost: floor - cur, gain: s.counts });
     });
     moves.sort((a, b) => a.cost / a.gain - b.cost / b.gain);
     const move = moves[0];
@@ -163,17 +164,17 @@ export interface HoldingFloor {
  * Complete, classified input: for each subject, the lowest whole mark it could fall to (everything
  * else unchanged) while keeping the current class. Found by stepping down until classify() drops.
  */
-export function holdingFloors(grades: unknown): HoldingFloor[] | null {
-  const g = normalizeGrades(grades);
-  const now = classify(g);
+export function holdingFloors(grades: unknown, rules: Rules): HoldingFloor[] | null {
+  const g = normalizeGrades(grades, rules);
+  const now = classify(g, rules);
   if (!now.complete || now.failed) return null;
-  return SUBJECTS.map((s) => {
+  return subjectsOf(rules).map((s) => {
     const cur = Number(at(g, s.index));
     let floor = cur;
     for (let v = Math.floor(cur); v >= 0; v -= 1) {
       const test = g.slice();
       test[s.index] = String(v);
-      if (RANK[classify(test).kind] >= RANK[now.kind]) floor = v;
+      if (RANK[classify(test, rules).kind] >= RANK[now.kind]) floor = v;
       else break;
     }
     return { index: s.index, from: cur, floor };
@@ -182,30 +183,32 @@ export function holdingFloors(grades: unknown): HoldingFloor[] | null {
 
 export interface ResitOutlook {
   failing: { index: number; mark: number; blank: boolean }[];
-  yearOneAverageFails: boolean;
-  /** what the calculator gives once the failing subjects are passed with 40 */
+  /** the average of the averaged subjects is under the pass mark */
+  groupAverageFails: boolean;
+  /** what the calculator gives once the failing subjects are passed */
   outcome: ClassKind;
   marks: string[];
 }
 
 /**
- * Complete input with a fail: the subjects that trigger the resit, and what the calculator gives
- * once they are passed with 40. (Year 1 is checked only through its average.)
+ * Input with a fail: the subjects that trigger the resit, and what the calculator gives once they are passed with
+ * the pass mark (the Third's floor). The averaged subjects are checked only through their average.
  */
-export function resitOutlook(grades: unknown): ResitOutlook | null {
-  const g = normalizeGrades(grades);
-  const now = classify(g);
+export function resitOutlook(grades: unknown, rules: Rules): ResitOutlook | null {
+  const g = normalizeGrades(grades, rules);
+  const now = classify(g, rules);
   if (!now.failed) return null;
+  const pass = rules.bands.third.floor;
   const failing: ResitOutlook['failing'] = [];
   const fixed = g.slice();
-  const yearOneAverageFails = now.yearOneAverage != null && now.yearOneAverage < 40;
-  SUBJECTS.forEach((s) => {
+  const groupAverageFails = now.groupAverage != null && now.groupAverage < pass;
+  subjectsOf(rules).forEach((s) => {
     const raw = at(g, s.index);
     const mark = Number(raw);
-    if (isNaN(mark) || mark >= 40) return;
-    if (s.year === 1 && !yearOneAverageFails) return;
+    if (isNaN(mark) || mark >= pass) return;
+    if (s.counts === 'average' && !groupAverageFails) return;
     failing.push({ index: s.index, mark, blank: isBlank(raw) });
-    fixed[s.index] = '40';
+    fixed[s.index] = String(pass);
   });
-  return { failing, yearOneAverageFails, outcome: classify(fixed).kind, marks: fixed };
+  return { failing, groupAverageFails, outcome: classify(fixed, rules).kind, marks: fixed };
 }

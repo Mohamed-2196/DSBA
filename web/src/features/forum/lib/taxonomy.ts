@@ -1,43 +1,70 @@
-// Forum categories and tags. The API is the source (GET /forum/meta, which the server validates threads against);
-// until it has loaded, the built-in category labels of lib/categories.ts draw the tabs.
+// Forum categories and tags, and the forum's guidelines and tips: the API's (GET /forum/meta), which moderators edit
+// in Manage → Forum and threads are checked against. There are none until it has loaded: the pages wait for it
+// (`ready`). A retired category or tag is no longer offered, but threads that have it still show its name.
 import { useMemo } from 'react';
 import type { ForumMeta } from '../../../api/types';
 import { useForumMeta } from '../api';
-import type { ForumCategory, ForumTag } from '../types';
-import { FALLBACK_CATEGORIES, MAX_TAGS_DEFAULT } from './categories';
-
-export {  categoryForYear,  } from './categories';
+import type { CategoryId, ForumCategory, ForumGuideline, ForumIcon, ForumTag, ForumTip } from '../types';
 
 export interface Taxonomy {
+  /** the categories offered, in order (retired ones left out) */
   categories: readonly ForumCategory[];
-  tags: ForumTag[];
+  /** the tags offered, in order (retired ones left out) */
+  tags: readonly ForumTag[];
   maxTags: number;
-  /** true once /forum/meta has loaded (tags are empty until then) */
+  /** where a thread goes when no year fits it */
+  defaultCategory: CategoryId | null;
+  guidelines: readonly ForumGuideline[];
+  tips: readonly ForumTip[];
+  /** true once /forum/meta has loaded */
   ready: boolean;
+  /** any category, retired ones too (a thread keeps its category) */
   getCategory: (id: string | null | undefined) => ForumCategory | null;
+  /** any tag, retired ones too */
   getTag: (id: string | null | undefined) => ForumTag | null;
+  /** the first category offered for a cohort, or null */
+  categoryForYear: (year: number | null | undefined) => CategoryId | null;
 }
 
-/** The taxonomy from GET /forum/meta, or the built-in categories (and no tags) before it has loaded. */
+/** What a category or tag id looks like ('year-2', 'exam-prep'), for ids read from a link or a stored draft. */
+export function looksLikeId(v: string | null | undefined): v is string {
+  return !!v && v.length <= 32 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v);
+}
+
+const MAX_TAGS = 3;
+
+/** How a thread's place shows on its row: its category's short name, in the year's colour for a year's category, or
+ *  with the category's picture for a category for every year. */
+export type Place = { year: number; label: string } | { year: null; label: string; icon: ForumIcon };
+
+/** The place of a thread in `category`, or null while the categories haven't loaded. */
+export function placeOf(category: ForumCategory | null): Place | null {
+  if (!category) return null;
+  return category.year == null ? { year: null, label: category.short, icon: category.icon ?? 'chat' } : { year: category.year, label: category.short };
+}
+
+/** The taxonomy from GET /forum/meta; empty (and not ready) before it has loaded. */
 export function taxonomyFrom(meta: ForumMeta | undefined): Taxonomy {
-  const fromApi = meta?.categories ?? [];
-  const categories: readonly ForumCategory[] = fromApi.length
-    ? fromApi.map((c) => ({ id: c.id, label: c.label, short: c.short, year: c.year ?? null, blurb: c.blurb }))
-    : FALLBACK_CATEGORIES;
-  const tags: ForumTag[] = meta?.tags ?? [];
-  const catById = new Map(categories.map((c) => [c.id as string, c]));
-  const tagById = new Map(tags.map((t) => [t.id, t]));
+  const all = meta?.categories ?? [];
+  const allTags = meta?.tags ?? [];
+  const categories = all.filter((c) => !c.retired);
+  const catById = new Map(all.map((c) => [c.id, c]));
+  const tagById = new Map(allTags.map((t) => [t.id, t]));
   return {
     categories,
-    tags,
-    maxTags: meta?.maxTags ?? MAX_TAGS_DEFAULT,
+    tags: allTags.filter((t) => !t.retired),
+    maxTags: meta?.maxTags ?? MAX_TAGS,
+    defaultCategory: meta?.defaultCategory ?? null,
+    guidelines: meta?.guidelines ?? [],
+    tips: meta?.tips ?? [],
     ready: !!meta,
     getCategory: (id) => (id ? (catById.get(id) ?? null) : null),
     getTag: (id) => (id ? (tagById.get(id) ?? null) : null),
+    categoryForYear: (year) => (year == null ? null : (categories.find((c) => c.year === year)?.id ?? null)),
   };
 }
 
-/** Categories and tags from the API, with built-in category labels while they load. */
+/** Categories, tags, guidelines and tips from the API. */
 export function useTaxonomy(): Taxonomy {
   const meta = useForumMeta();
   return useMemo(() => taxonomyFrom(meta.data), [meta.data]);

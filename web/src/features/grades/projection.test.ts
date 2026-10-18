@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { SUBJECT_COUNT } from './classify';
-import { projectClass } from './projection';
+import type { GradeRules } from '../../api/types';
+import { readSeed } from '../../testing/seed';
+import { projectClass as projectBy } from './projection';
 
-/** 13 marks: `fill` everywhere, with some subjects (by index) set apart. */
+// The rules as the hub starts with them: today's programme regulations (api/app/seed/data/grades.json).
+const RULES = readSeed<GradeRules>('grades');
+const SUBJECT_COUNT = RULES.subjects.length;
+const projectClass = (input: unknown) => projectBy(input, RULES);
+
+/** A mark per subject: `fill` everywhere, with some subjects (by index) set apart. */
 const marks = (fill: number | string, set: Record<number, number | string> = {}): string[] =>
   Array.from({ length: SUBJECT_COUNT }, (_, i) => String(set[i] ?? fill));
 

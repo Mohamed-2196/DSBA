@@ -1,42 +1,11 @@
-// The optional three-step tour of what's new, in a dialog. It opens only when asked for ("Take the tour" in the
-// year prompt): nothing about it blocks a page (decision D7).
-import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
+// The optional tour of what's new, in a dialog. It opens only when asked for ("Take the tour" in the year prompt):
+// nothing about it blocks a page (decision D7). Its steps are Site settings' tour, which admins edit.
+import { useEffect, useRef, useState } from 'react';
 import { COHORTS, type CohortYear } from '../../state';
-import { Button, Kbd, Modal, cx, modKeyLabel } from '../../ui';
-import { ForumArt, LibraryArt, SearchArt } from './TourArt';
-
-interface TourStep {
-  id: string;
-  title: string;
-  body: ReactNode;
-  Art: ComponentType;
-}
-
-const TOUR: TourStep[] = [
-  {
-    id: 'search',
-    title: 'Search everything',
-    body: (
-      <>
-        Press <Kbd>{modKeyLabel()}</Kbd>
-        <Kbd>K</Kbd> or <Kbd>/</Kbd> from any page to find a module, a past paper, a thread or an exam date.
-      </>
-    ),
-    Art: SearchArt,
-  },
-  {
-    id: 'library',
-    title: 'Files open right here',
-    body: 'Notes, past papers and study guides open in the library’s reader, and download in one click. Share yours, too: a student rep checks each one first.',
-    Art: LibraryArt,
-  },
-  {
-    id: 'forum',
-    title: 'Ask your cohort',
-    body: 'The forum is for questions, answers and study groups. When there is news from the programme, you will find it in The DSBA Newsletter.',
-    Art: ForumArt,
-  },
-];
+import { Button, Modal, cx } from '../../ui';
+import { useSite } from '../site/public';
+import { tourArtOf } from './tourArts';
+import { TourText } from './TourText';
 
 export interface TourProps {
   open: boolean;
@@ -46,6 +15,7 @@ export interface TourProps {
 }
 
 export function Tour({ open, year, onClose }: TourProps) {
+  const TOUR = useSite().data?.tour ?? [];
   const [step, setStep] = useState(1);
   const nextRef = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -57,13 +27,14 @@ export function Tour({ open, year, onClose }: TourProps) {
   }, [open, step]);
   const tour = TOUR[step - 1] ?? TOUR[0];
   if (!tour) return null;
+  const Art = tourArtOf(tour.art);
   const last = step >= TOUR.length;
   return (
     <Modal open={open} onClose={onClose} title={`What’s new: ${tour.title}`} hideHeader size="xl" className="onb onb--tour" bodyClassName="onb-body" data-hub="onboarding-tour">
       <div className="onb-step onb-step--tour" key={tour.id}>
         <div className="onb-tour">
           <div className="onb-tour__art">
-            <tour.Art />
+            <Art />
           </div>
           <div className="onb-tour__text">
             <p className="onb-tour__kicker">
@@ -75,7 +46,9 @@ export function Tour({ open, year, onClose }: TourProps) {
               </span>
             </p>
             <h2 className="onb-tour__title">{tour.title}</h2>
-            <p className="onb-tour__body">{tour.body}</p>
+            <p className="onb-tour__body">
+              <TourText text={tour.body} />
+            </p>
             <div className="onb-tour__actions">
               {last ? (
                 <span />

@@ -1,6 +1,6 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, GearSix, HandWaving, ListChecks, ListMagnifyingGlass, Newspaper, Power, PuzzlePiece, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
+import { BookOpenText, Bug, Calculator, CalendarCheck, CalendarDots, ChartBar, ChatCircleDots, ChatsCircle, ClockCounterClockwise, Compass, Flag, GearSix, HandWaving, ListChecks, ListMagnifyingGlass, Newspaper, Power, PuzzlePiece, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, useQueryParam } from '../../state';
@@ -8,17 +8,20 @@ import { Button, EmptyState, ErrorBoundary, Count, Page, PageHeader, Panel, Quer
 import { ActivityLog, PeopleList } from '../access/public';
 import { CareerEditor } from '../career/public';
 import { DailyContentEditor } from '../daily/public';
-import { ReportsQueue } from '../forum/public';
+import { ForumSettingsEditor, ReportsQueue } from '../forum/public';
 import { ModulesEditor, SuggestionsQueue } from '../modules/public';
 import { FlaggedQuestions, UploadsQueue } from '../library/public';
 import { RequestsQueue } from '../requests/public';
-import { IssuesManager } from '../newsletter/public';
+import { GradeRulesEditor } from '../grades/public';
+import { IssuesManager, NewsletterSettingsEditor } from '../newsletter/public';
+import { NooraEditor } from '../noora/public';
 import { SiteEditor } from '../site/public';
 import { GuidesEditor } from '../start/public';
 import { useAdminStats } from './api';
 import { Gaps } from './Gaps';
 import { NooraNumbers } from './NooraNumbers';
 import { SundaySummary } from './SundaySummary';
+import { SummaryWords } from './SummaryWords';
 import { BugReports } from '../bugs/public';
 import { groupSections, sectionsFor, type SectionId } from './sections';
 import './ManagePage.css';
@@ -35,11 +38,14 @@ const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
   content: { label: 'Modules', icon: BookOpenText },
   daily: { label: 'Daily puzzles', icon: PuzzlePiece },
   guides: { label: 'Guides', icon: ListChecks },
+  forum: { label: 'Forum', icon: ChatsCircle },
   videos: { label: 'Suggested videos', icon: YoutubeLogo },
   gaps: { label: 'Gaps', icon: ListMagnifyingGlass },
   numbers: { label: 'Numbers', icon: ChartBar },
   people: { label: 'People', icon: UsersThree },
   activity: { label: 'Activity', icon: ClockCounterClockwise },
+  noora: { label: 'Mini Noora', icon: ChatCircleDots },
+  grades: { label: 'Grades calculator', icon: Calculator },
   site: { label: 'Site settings', icon: GearSix },
 };
 
@@ -95,7 +101,13 @@ function LinkOut({ icon, title, body, to, label }: { icon: Icon; title: string; 
 
 function SummaryForMe() {
   const { me } = useAuth();
-  return <SundaySummary defaultYear={normalizeYear(me?.year)} />;
+  const year = normalizeYear(me?.year);
+  return (
+    <div className="manage-stack">
+      <SundaySummary defaultYear={year} />
+      <SummaryWords defaultYear={year} />
+    </div>
+  );
 }
 
 const BODIES: Record<SectionId, () => ReactNode> = {
@@ -108,23 +120,31 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   ),
   requests: () => <RequestsQueue />,
   bugs: () => <BugReports />,
-  newsletter: () => <IssuesManager />,
+  newsletter: () => (
+    <div className="manage-stack">
+      <IssuesManager />
+      <NewsletterSettingsEditor />
+    </div>
+  ),
   calendar: () => <LinkOut icon={CalendarDots} title="The calendar" body="Add, edit and delete events from the calendar itself." to="/calendar" label="Open the calendar" />,
   summary: () => <SummaryForMe />,
   career: () => <CareerEditor />,
   content: () => <ModulesEditor />,
   daily: () => <DailyContentEditor />,
   guides: () => <GuidesEditor />,
+  forum: () => <ForumSettingsEditor />,
   videos: () => <SuggestionsQueue />,
   gaps: () => <Gaps />,
   numbers: () => <Numbers />,
   people: () => <PeopleList />,
   activity: () => <ActivityLog />,
+  noora: () => <NooraEditor />,
+  grades: () => <GradeRulesEditor />,
   site: () => <SiteEditor />,
 };
 
 /** The tabs that hold a draft. */
-const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['career', 'guides', 'site']);
+const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['newsletter', 'summary', 'career', 'guides', 'forum', 'noora', 'grades', 'site']);
 
 const HEADER = <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />;
 

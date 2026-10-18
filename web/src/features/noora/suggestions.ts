@@ -1,10 +1,14 @@
 // What Mini Noora offers to answer when her panel opens: three or four questions about the page the student is on,
-// built from the route and the module catalogue that is already loaded. One entry per route; the first that
-// matches wins. Every question is one her brain answers well (suggestions.test.ts asks each one).
-// Pure: no React, no network.
+// from her script (GET /mini-noora/script, edited in Manage → Mini Noora) and the module catalogue that is already
+// loaded. In a question, {module} is the module of the page, or else the first module of the student's year, and
+// {module2} the second, each by its unit code. A question is left out while the feature it needs is off, or when it
+// names a module the student has none of. The questions her script starts with are ones her brain answers well
+// (suggestions.test.ts asks each one). Pure: no React, no network.
 import { matchPath } from 'react-router-dom';
-import type { ModuleSummary } from '../../api/types';
+import type { ModuleSummary, NooraChip, NooraPageChips } from '../../api/types';
 import type { Feature } from '../../auth';
+
+export type NooraPage = NooraPageChips['page'];
 
 export interface PageContext {
   pathname: string;
@@ -13,15 +17,32 @@ export interface PageContext {
   /** the module catalogue */
   modules: readonly ModuleSummary[];
   isOn: (feature: Feature) => boolean;
-}
-
-type Params = Record<string, string | undefined>;
-interface Entry {
-  path: string;
-  chips: (ctx: PageContext, params: Params) => (string | false | null | undefined)[];
+  /** her questions for each page (her script's pageChips) */
+  pages: readonly NooraPageChips[];
 }
 
 const MAX = 4;
+
+/** The pages with questions of their own; the first that matches wins. Anywhere else is 'other'. */
+const ROUTES: readonly { page: NooraPage; path: string }[] = [
+  { page: 'home', path: '/' },
+  { page: 'modules', path: '/modules' },
+  { page: 'module', path: '/modules/:moduleId' },
+  { page: 'library', path: '/library/*' },
+  { page: 'calendar', path: '/calendar' },
+  { page: 'forum', path: '/forum/*' },
+  { page: 'notes', path: '/notes/*' },
+  { page: 'grades', path: '/grades' },
+];
+
+/** The page a path is, for her questions, and the module it is about. */
+export function pageOf(pathname: string): { page: NooraPage; moduleId: string | null } {
+  for (const r of ROUTES) {
+    const match = matchPath({ path: r.path, end: true }, pathname);
+    if (match) return { page: r.page, moduleId: match.params.moduleId ?? null };
+  }
+  return { page: 'other', moduleId: null };
+}
 
 /** A module's short name in a question: its unit code ('ST2133'), or its name when it has none. */
 const called = (m: ModuleSummary): string => m.unitCode ?? m.name;
@@ -29,89 +50,25 @@ const called = (m: ModuleSummary): string => m.unitCode ?? m.name;
 /** The modules of the student's year (every module when no year is chosen), in catalogue order. */
 const ofYear = (ctx: PageContext): ModuleSummary[] => ctx.modules.filter((m) => ctx.year == null || m.year === ctx.year);
 
-const nextExam = (ctx: PageContext) => ctx.isOn('calendar') && 'When is my next exam?';
-const whatsIn = (m: ModuleSummary | undefined) => m && `What’s in ${called(m)}?`;
-const papersFor = (ctx: PageContext, m: ModuleSummary | undefined) => ctx.isOn('library') && m && `Where are the ${called(m)} past papers?`;
-const examOf = (ctx: PageContext, m: ModuleSummary | undefined) => ctx.isOn('calendar') && m && `When is the ${called(m)} exam?`;
-
-/** For the pages of one module (and its lessons). */
-function aboutModule(ctx: PageContext, params: Params): (string | false | undefined)[] {
-  const m = ctx.modules.find((x) => x.id === params.moduleId);
-  if (!m) return [];
-  return [whatsIn(m), papersFor(ctx, m), examOf(ctx, m), 'Where is integration by parts?'];
+/** A question as the student sees it, or null when it can't be asked here. */
+export function chipText(chip: NooraChip, isOn: (feature: Feature) => boolean, module: ModuleSummary | undefined, module2: ModuleSummary | undefined): string | null {
+  if (chip.needs && !isOn(chip.needs)) return null;
+  if (chip.text.includes('{module}') && !module) return null;
+  if (chip.text.includes('{module2}') && !module2) return null;
+  return chip.text.replaceAll('{module2}', module2 ? called(module2) : '').replaceAll('{module}', module ? called(module) : '');
 }
-
-const ENTRIES: Entry[] = [
-  {
-    path: '/',
-    chips: (ctx) => {
-      const [first] = ofYear(ctx);
-      return [nextExam(ctx), whatsIn(first), papersFor(ctx, first), 'How do I find the MGF?'];
-    },
-  },
-  {
-    path: '/modules',
-    chips: (ctx) => {
-      const [a, b] = ofYear(ctx);
-      return [whatsIn(a), whatsIn(b), 'Where is hypothesis testing?', nextExam(ctx)];
-    },
-  },
-  { path: '/modules/:moduleId', chips: aboutModule },
-  {
-    path: '/library/*',
-    chips: (ctx) => {
-      const [a, b] = ofYear(ctx);
-      return [papersFor(ctx, a), papersFor(ctx, b), 'Where is hypothesis testing?', nextExam(ctx)];
-    },
-  },
-  {
-    path: '/calendar',
-    chips: (ctx) => {
-      const [first] = ofYear(ctx);
-      return [nextExam(ctx), ctx.isOn('calendar') && 'When is my next mock?', examOf(ctx, first), papersFor(ctx, first)];
-    },
-  },
-  {
-    path: '/forum/*',
-    chips: (ctx) => ['What is a reduction formula?', 'Where is integration by parts?', 'How do I find the MGF?', nextExam(ctx)],
-  },
-  {
-    path: '/notes/*',
-    chips: (ctx) => {
-      const [first] = ofYear(ctx);
-      return [whatsIn(first), 'Where is integration by parts?', 'How do I find the MGF?', papersFor(ctx, first)];
-    },
-  },
-  {
-    path: '/grades',
-    chips: (ctx) => {
-      const [a, b] = ofYear(ctx);
-      return [nextExam(ctx), examOf(ctx, a), examOf(ctx, b), whatsIn(a)];
-    },
-  },
-];
-
-/** Anywhere else. */
-const FALLBACK = (ctx: PageContext): (string | false | undefined)[] => {
-  const [first] = ofYear(ctx);
-  return [nextExam(ctx), whatsIn(first), 'Where is hypothesis testing?', 'How do I find the MGF?'];
-};
 
 /** Three or four questions for the page at `ctx.pathname`. */
 export function pageSuggestions(ctx: PageContext): string[] {
-  let raw: (string | false | null | undefined)[] | null = null;
-  for (const entry of ENTRIES) {
-    const match = matchPath({ path: entry.path, end: true }, ctx.pathname);
-    if (match) {
-      raw = entry.chips(ctx, match.params);
-      break;
-    }
-  }
-  let chips = unique(raw ?? []);
-  if (chips.length < 3) chips = unique([...chips, ...FALLBACK(ctx)]);
+  const { page, moduleId } = pageOf(ctx.pathname);
+  const [first, second] = ofYear(ctx);
+  const chipsOf = (p: NooraPage) => ctx.pages.find((x) => x.page === p)?.chips ?? [];
+  const onPage = page === 'module' ? ctx.modules.find((m) => m.id === moduleId) : first;
+  let chips = unique(chipsOf(page).map((c) => chipText(c, ctx.isOn, onPage, second)));
+  if (chips.length < 3 && page !== 'other') chips = unique([...chips, ...chipsOf('other').map((c) => chipText(c, ctx.isOn, first, second))]);
   return chips.slice(0, MAX);
 }
 
-function unique(list: (string | false | null | undefined)[]): string[] {
+function unique(list: (string | null)[]): string[] {
   return [...new Set(list.filter((s): s is string => typeof s === 'string' && s.length > 0))];
 }

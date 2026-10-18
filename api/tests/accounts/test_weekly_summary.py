@@ -8,16 +8,20 @@ import datetime as dt
 import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.access import Box
 from app.core.time import BAHRAIN, bahrain_today, utcnow
 from app.models import (
+    AuditEntry,
     CalendarEvent,
     EmailOutbox,
+    ForumCategory,
     ForumThread,
     IssueStatus,
     ItemSource,
@@ -119,9 +123,10 @@ def test_week_of_and_when_it_is_due() -> None:
     assert summary.week_of(dt.date(2026, 10, 14)) == dt.date(2026, 10, 11)
     assert summary.week_of(dt.date(2026, 10, 17)) == dt.date(2026, 10, 11)
     sunday = dt.datetime(2026, 10, 18, tzinfo=BAHRAIN)
-    assert not summary.due(sunday + dt.timedelta(hours=7, minutes=59))
-    assert summary.due(sunday + dt.timedelta(hours=8))
-    assert not summary.due(sunday + dt.timedelta(days=1, hours=9))
+    eight = dt.time(8)
+    assert not summary.due(sunday + dt.timedelta(hours=7, minutes=59), eight)
+    assert summary.due(sunday + dt.timedelta(hours=8), eight)
+    assert not summary.due(sunday + dt.timedelta(days=1, hours=9), eight)
 
 
 def test_the_summary_goes_once_a_week_to_those_who_opted_in(
@@ -158,6 +163,33 @@ def test_the_summary_goes_once_a_week_to_those_who_opted_in(
     assert "Issue 7: Exam season" in first_years.text
     assert "Week 3 notes" not in first_years.text
     assert len(outbox.to("sara@example.com")) == 1
+
+
+def test_a_year_s_questions_come_from_every_category_for_that_year(
+    week: Module, make_user: MakeUser, db: Session, outbox: Outbox, deliver: Deliver
+) -> None:
+    """A category moderators make for a year counts as that year's, like the forum's first ones."""
+    db.add(ForumCategory(id="y2-projects", label="Year 2 projects", short="Projects", year=2, blurb="Group work"))
+    db.add(
+        ForumThread(
+            slug=f"brief-{uuid.uuid4().hex[:6]}",
+            title="Who has the project brief?",
+            body="...",
+            category="y2-projects",
+            author_id=make_user(name="Planner", year=2).id,
+        )
+    )
+    db.commit()
+    _opted_in(make_user, db, "sara@example.com", 2)
+    _opted_in(make_user, db, "layla@example.com", 1)
+    assert summary.send_week(db, NEXT_SUNDAY) == 2
+    db.commit()
+    deliver()
+    [mail] = outbox.to("sara@example.com")
+    assert "Who has the project brief?" in mail.text
+    assert "How do I find the MGF?" in mail.text
+    [first_years] = outbox.to("layla@example.com")
+    assert "Who has the project brief?" not in first_years.text
 
 
 def test_an_empty_week_sends_nothing(make_user: MakeUser, db: Session) -> None:
@@ -240,3 +272,112 @@ def test_the_command_previews_and_sends(
     assert capsys.readouterr().out == "queued 1 Sunday summary\n"
     assert cli.main(["weekly-summary"]) == 0
     assert capsys.readouterr().out == "queued 0 Sunday summaries\n"
+
+
+# ── its words ────────────────────────────────────────────────────────────────────────────────
+
+
+WORDS = f"{API}/summary/settings"
+
+
+def _words(client: TestClient) -> dict[str, Any]:
+    r = client.get(WORDS)
+    assert r.status_code == 200, r.text
+    data: dict[str, Any] = r.json()
+    return data
+
+
+def test_holders_of_summary_share_edit_its_words_and_the_emails_use_them(
+    week: Module,
+    client_for: ClientFor,
+    make_user: MakeUser,
+    make_role: Callable[..., Any],
+    db: Session,
+    outbox: Outbox,
+    deliver: Deliver,
+) -> None:
+    student = make_user(name="Student", year=2)
+    for who in (None, student):
+        assert client_for(who).get(WORDS).status_code == (401 if who is None else 403)
+    make_role("summary-sharers", Box.summary_share)
+    sharer = client_for(make_user(name="Huda Sharer", roles=("student", "summary-sharers")))
+    loaded = _words(sharer)
+    assert (loaded["version"], loaded["data"]["sendAt"]) == (0, "08:00")
+    words = loaded["data"]
+    words["subject"] = "Year {year}, the week of {week}"
+    words["headings"]["calendar"] = "Coming up this week"
+    words["closing"] = "And the rest:"
+    words["sendAt"] = "06:30"
+    assert client_for(student).put(WORDS, json={"version": 0, "data": words}).status_code == 403
+    r = sharer.put(WORDS, json={"version": 0, "data": words})
+    assert r.status_code == 200, r.text
+    assert r.json()["version"] == 1
+    entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "summary.words"))
+    assert entry is not None
+    assert entry.data["parts"] == ["subject", "headings", "closing", "sendAt"]
+
+    _opted_in(make_user, db, "sara@example.com", 2)
+    assert summary.send_week(db, NEXT_SUNDAY) == 1
+    db.commit()
+    deliver()
+    [mail] = outbox.to("sara@example.com")
+    assert mail.subject is not None
+    assert mail.subject.startswith("Year 2, the week of ")
+    assert "Coming up this week" in mail.text
+    assert "Exams and deadlines this week" not in mail.text
+    assert "And the rest: " in mail.text
+
+    stale = sharer.put(WORDS, json={"version": 0, "data": words | {"closing": "More:"}})
+    assert (stale.status_code, stale.json()["error"]["code"]) == (409, "summary_changed")
+
+
+def test_the_mail_worker_waits_for_the_saved_send_time(
+    week: Module, client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    admin = client_for(make_user(name="Amina Admin", roles=("student", "admin")))
+    words = _words(admin)["data"] | {"sendAt": "10:15"}
+    assert admin.put(WORDS, json={"version": 0, "data": words}).status_code == 200
+    _opted_in(make_user, db, "sara@example.com", 2)
+
+    @contextmanager
+    def sessions() -> Iterator[Session]:
+        yield db
+
+    sunday = dt.datetime.combine(NEXT_SUNDAY, dt.time(10), tzinfo=BAHRAIN)
+    assert summary.send_due(sessions, now=sunday) == 0
+    assert summary.send_due(sessions, now=sunday + dt.timedelta(minutes=15)) == 1
+
+
+def test_a_draft_of_the_words_is_previewed_without_saving_it(
+    week: Module, client_for: ClientFor, make_user: MakeUser
+) -> None:
+    rep = client_for(make_user(name="Rep", roles=("student", "rep"), year=2))
+    words = _words(rep)["data"] | {"subject": "Week {week} for Year {year}"}
+    words["headings"]["forum"] = "Unanswered questions"
+    r = rep.post(f"{WORDS}/preview", json={"year": 2, "words": words})
+    assert r.status_code == 200, r.text
+    assert r.json()["subject"].startswith("Week ")
+    assert r.json()["subject"].endswith(" for Year 2")
+    assert "Unanswered questions" in r.json()["text"]
+    assert _words(rep)["version"] == 0
+
+
+@pytest.mark.parametrize(
+    ("change", "field"),
+    [
+        (lambda w: w.update(subject="Your week, {cohort}"), "data.subject"),
+        (lambda w: w.update(sendAt="25:00"), "data.sendAt"),
+        (lambda w: w.update(sendAt="8am"), "data.sendAt"),
+        (lambda w: w["headings"].update(library=" "), "data.headings.library"),
+        (lambda w: w.update(closing=""), "data.closing"),
+    ],
+)
+def test_the_words_are_checked(
+    client_for: ClientFor, make_user: MakeUser, change: Callable[[dict[str, Any]], None], field: str
+) -> None:
+    admin = client_for(make_user(name="Amina Admin", roles=("student", "admin")))
+    words = _words(admin)["data"]
+    change(words)
+    r = admin.put(WORDS, json={"version": 0, "data": words})
+    assert r.status_code == 422, r.text
+    assert field in r.json()["error"]["fields"]

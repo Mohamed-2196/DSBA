@@ -23,7 +23,8 @@ from app.core.errors import ApiError
 from app.core.time import utcnow
 from app.models import AccessRole, AuditEntry, Notification, RoleBox, User, UserStatus
 from app.schemas.access import RoleUpdate
-from app.services import access, accounts, roles
+from app.services import access, accounts, documents, roles
+from app.services.noora.settings import NOORA
 from tests.accounts.conftest import API, Outbox, sync_csrf
 
 ClientFor = Callable[..., TestClient]
@@ -368,8 +369,8 @@ def test_admin_changes_need_a_recent_step_up(
     older_sessions: Callable[..., None],
     outbox: Outbox,
 ) -> None:
-    """AD-1: a stolen admin session, however old, can't give roles, edit them, flip switches or raise the AI budget
-    (SEC-25) without a code."""
+    """AD-1: a stolen admin session, however old, can't give roles, edit them, flip switches, raise the AI budget
+    (SEC-25) or rewrite Mini Noora's instructions without a code."""
     sara = make_user(name="Sara Student")
     writes: list[tuple[str, str, dict[str, Any] | None]] = [
         ("POST", "/admin/roles", {"name": "Events team", "boxes": []}),
@@ -378,6 +379,7 @@ def test_admin_changes_need_a_recent_step_up(
         ("PUT", f"/admin/users/{sara.id}/roles", {"roleIds": [role_id(db, "student"), role_id(db, "rep")]}),
         ("PUT", "/admin/features/forum", {"mode": "off"}),
         ("PUT", "/admin/noora", {"dailyQuestions": 500, "monthlyBudgetCents": 1_000_000}),
+        ("PUT", "/mini-noora/settings", {"version": 0, "data": documents.starting(NOORA).model_dump(by_alias=True)}),
     ]
     c = client_for(boss)
     older_sessions()

@@ -212,6 +212,20 @@ def test_module_aliases_prefixes_and_types(content: None, client_for: Clients) -
     assert guest.get(f"{API}/search", params={"q": "x", "limit": 21}).status_code == 422
 
 
+def test_search_takes_the_nicknames_admins_give_modules(
+    content: None, client_for: Clients, make_user: Callable[..., User]
+) -> None:
+    guest = client_for()
+    assert search(guest, "probability")["modules"] == []
+    admin = client_for(make_user(name="Amina Admin", roles=("student", "admin")))
+    site = admin.get(f"{API}/site/edit").json()
+    site["data"]["searchNicknames"].append({"id": "probability", "word": "Probability", "finds": "distribution"})
+    site["data"]["searchNicknames"] = [n for n in site["data"]["searchNicknames"] if n["word"] != "metrics"]
+    assert admin.put(f"{API}/site", json={"version": site["version"], "data": site["data"]}).status_code == 200
+    assert titles(search(guest, "probability")["modules"]) == ["Advanced Statistics: Distribution Theory"]
+    assert search(guest, "metrics")["modules"] == []  # that nickname went
+
+
 def test_dates_not_confirmed_yet_say_so(content: None, client_for: Clients) -> None:
     hits = search(client_for(), "machine learning mock", types=["event"])["events"]
     assert titles(hits) == ["Machine Learning mock exam"]

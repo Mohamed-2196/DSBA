@@ -1,10 +1,12 @@
 // Mini Noora's "brain". It is a script, not a mind: it looks the student's words up in the Hub's own modules
-// (every module, chapter and titled lesson, from the API) and calendar, and answers with where to look.
+// (every module, chapter and titled lesson, from the API) and calendar, and answers with where to look. What she
+// says in her own words (her greeting, who she is, her thanks, refusals and apologies, and the questions she offers)
+// is her script from the API, which admins edit in Manage → Mini Noora; the maths she shows stays here.
 // Everything here is a pure function of its arguments: no network, no storage, no React. The data comes in as a
 // Knowledge object, built by buildKnowledge() from what the API returned (see knowledge.ts).
 //
 //   answer(question, knowledge, now) → Reply { mood, text, formula?, steps?, refs, suggestions? }
-import type { ModuleDetail, ModuleSummary } from '../../api/types';
+import type { ModuleDetail, ModuleSummary, NooraScript } from '../../api/types';
 import { daysBetween, formatLongDay, formatShort, today as bahrainToday } from '../../lib/dates';
 import type { Feature } from '../../auth';
 import { eventDate, type CalendarEvent } from '../calendar/public';
@@ -67,6 +69,8 @@ export interface Knowledge {
   name: string | null;
   /** whether a feature is on for the student: answers leave out the calendar and the library while they're off */
   isOn: (feature: Feature) => boolean;
+  /** what she says in her own words */
+  script: NooraScript;
 }
 
 function indexModule(m: ModuleSummary, detail: ModuleDetail | undefined): IndexedModule {
@@ -153,9 +157,10 @@ export function buildKnowledge(
   events: CalendarEvent[] | null,
   name: string | null,
   isOn: (feature: Feature) => boolean,
+  script: NooraScript,
 ): Knowledge {
   const modules = catalogue.map((m) => indexModule(m, details.get(m.id)));
-  return { modules, topics: topicsOf(modules), events, name, isOn };
+  return { modules, topics: topicsOf(modules), events, name, isOn, script };
 }
 
 // What a title word may add to a short query word and still be the same word: 'test' finds 'testing',
@@ -264,17 +269,13 @@ function topicRefs(topics: FoundTopic[]): Ref[] {
 }
 
 // ── Answers ───────────────────────────────────────────────────────────────────────────────────────
-const SUGGESTIONS = ['How do I find the MGF?', 'Where is integration by parts?', 'What’s in ST2133?', 'When is my next exam?'];
-const TRY_INSTEAD = ['Where is hypothesis testing?', 'What’s in ST2133?', 'When is my next exam?'];
 const MGF_EXAMPLES = ['MGF of a Poisson', 'MGF of the normal', 'MGF of the exponential'];
-/** She can't see pictures: she says so before anything else (student test ST-3). */
-const NO_PHOTOS = 'I can’t read photos in this preview yet.';
 
 const hello = (name: string | null): string => (name ? `Hi ${name}!` : 'Hi!');
 
 /** What she says when the chat opens. */
-export function greeting(name: string | null): Reply {
-  return { mood: 'wave', text: `${hello(name)} Ask me where a topic is taught, what’s in a module or when your next exam is.`, refs: [], suggestions: SUGGESTIONS };
+export function greeting(name: string | null, script: NooraScript): Reply {
+  return { mood: 'wave', text: `${hello(name)} ${script.greeting}`, refs: [], suggestions: script.greetingChips };
 }
 
 /**
@@ -316,7 +317,8 @@ function aboutTheMgf(k: Knowledge, said: string, photo: boolean): Reply {
     d && lessonOn(k, d, m),
     m && k.isOn('library') && { code: 'Library', label: `${m.code ?? m.name} notes and past papers`, to: `/library?module=${encodeURIComponent(m.id)}` },
   ].filter(isRef);
-  const first = photo ? `${NO_PHOTOS} ` : '';
+  // She can't see pictures: she says so before anything else (student test ST-3).
+  const first = photo ? `${k.script.noPhotos} ` : '';
   if (d?.id === 'laplace') return { mood: 'happy', text: `${first}The MGF of the Laplace distribution, density k·e^(−λ|x|), step by step:`, steps: LAPLACE_MGF_STEPS, refs };
   if (d?.mgf) return { mood: 'happy', text: `${first}The MGF of ${d.name}:`, formula: d.mgf, refs };
   if (d) return { mood: 'neutral', text: `${first}I don’t have a worked MGF for ${d.name}. Start from the definition, with its probability function or density:`, formula: MGF_DEFINITION, refs };
@@ -486,11 +488,12 @@ function lookUp(k: Knowledge, text: string, said: string, year: number | null): 
 
 /** Answer one message. `now` is the time, for exam countdowns. */
 export function answer({ text, attachments, year }: Question, k: Knowledge, now: number = Date.now()): Reply {
+  const { script } = k;
   // She can't see pictures: a photo is answered by the words that came with it (and its file name), and she says so.
   const photo = attachments.some((a) => a.kind === 'image');
   const said = wordsOf(text).join(' ');
   const withNames = wordsOf([text, ...attachments.map((a) => a.name.replace(/\.[a-z0-9]+$/i, ''))].join(' ')).join(' ');
-  const honest = (r: Reply): Reply => (photo ? { ...r, text: `${NO_PHOTOS} Going by your message: ${r.text}` } : r);
+  const honest = (r: Reply): Reply => (photo ? { ...r, text: `${script.noPhotos} Going by your message: ${r.text}` } : r);
   const named = (): IndexedModule | null => {
     const found = findModule(k, text, topicWords(said).map(stem), year);
     return found && found.sure ? found.module : null;
@@ -499,12 +502,12 @@ export function answer({ text, attachments, year }: Question, k: Knowledge, now:
   if (ASKS_TO_CHEAT.test(said)) {
     const found = BY_PARTS.test(said) ? aboutIntegrationByParts(k) : lookUp(k, text, said, year);
     const refs = found ? found.refs.slice(0, 4) : [];
-    return { mood: 'angry', text: `Nice try 😤 I won’t do it for you, but I’ll show you where it’s taught.${refs.length ? '' : ' Tell me the topic.'}`, refs };
+    return { mood: 'angry', text: `${script.refusal}${refs.length ? '' : ' Tell me the topic.'}`, refs };
   }
   if (ABOUT_MGF.test(photo ? withNames : said)) return aboutTheMgf(k, photo ? withNames : said, photo);
   if (THE_FORUM_QUESTION.test(said)) return honest(aboutTheReductionFormula(k));
   if (BY_PARTS.test(said)) return honest(aboutIntegrationByParts(k));
-  if (SAYS_THANKS.test(said)) return { mood: 'laughing', text: 'Any time 😄 Good luck with the revision!', refs: [] };
+  if (SAYS_THANKS.test(said)) return { mood: 'laughing', text: script.thanks, refs: [] };
   if (ABOUT_FILES.test(said)) return honest(aboutFiles(k, named()));
   if (ABOUT_EXAMS.test(said)) return honest(aboutExams(k, said, year, named(), now));
 
@@ -512,26 +515,21 @@ export function answer({ text, attachments, year }: Question, k: Knowledge, now:
   if (found) return honest(found);
 
   if (photo) {
-    return { mood: 'neutral', text: `${NO_PHOTOS} Type the question, or tell me the topic, and I’ll find where it’s taught.`, refs: [], suggestions: TRY_INSTEAD.slice(0, 2) };
+    return { mood: 'neutral', text: `${script.noPhotos} ${script.photoAsk}`, refs: [], suggestions: script.tryInstead.slice(0, 2) };
   }
   if (SAYS_HELLO.test(said)) {
-    return { mood: 'wave', text: `${hello(k.name)} Ask me where a topic is taught, what’s in a module, or when your next exam is.`, refs: [], suggestions: SUGGESTIONS.slice(0, 3) };
+    return { mood: 'wave', text: `${hello(k.name)} ${script.greeting}`, refs: [], suggestions: script.greetingChips.slice(0, 3) };
   }
   if (ASKS_WHO.test(said)) {
-    return {
-      mood: 'wave',
-      text: 'I’m Mini Noora, the Hub’s study helper. I can find the chapter or lesson for a topic, tell you what’s in a module and check your exam dates.',
-      refs: [],
-      suggestions: SUGGESTIONS.slice(0, 3),
-    };
+    return { mood: 'wave', text: script.who, refs: [], suggestions: script.greetingChips.slice(0, 3) };
   }
 
   if (attachments.length) {
     // A file she cannot open. Its name often says what it is ("ST2133-past-paper.pdf"), so go by that.
     const names = attachments.map((a) => a.name.replace(/\.[a-z0-9]+$/i, '')).join(' ');
     const guess = lookUp(k, names, wordsOf(names).join(' '), year);
-    if (guess) return { mood: 'happy', text: 'I can’t open files in this preview, but going by the name, this is where I’d look.', refs: guess.refs.slice(0, 4) };
-    return { mood: 'neutral', text: 'I can’t open files in this preview. Tell me the topic and I’ll find the chapter.', refs: [], suggestions: TRY_INSTEAD.slice(0, 2) };
+    if (guess) return { mood: 'happy', text: script.fileGuess, refs: guess.refs.slice(0, 4) };
+    return { mood: 'neutral', text: script.fileUnknown, refs: [], suggestions: script.tryInstead.slice(0, 2) };
   }
-  return { mood: 'sad', text: 'I couldn’t find that in the DSBA material yet.', refs: [], suggestions: TRY_INSTEAD };
+  return { mood: 'sad', text: script.notFound, refs: [], suggestions: script.tryInstead };
 }

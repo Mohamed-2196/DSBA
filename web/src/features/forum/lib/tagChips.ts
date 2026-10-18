@@ -1,7 +1,9 @@
 // The tag chips of the list's filter bar. A plain function (ForumPage gives it the counts and the threads on screen).
 import type { ForumTag } from '../types';
 
-export interface TagChip extends ForumTag {
+type Tag = Pick<ForumTag, 'id' | 'label'>;
+
+export interface TagChip extends Tag {
   /** how many threads have it (in the current category); undefined while the counts haven't arrived */
   count?: number;
 }
@@ -11,8 +13,8 @@ export interface TagChipsInput {
   counts: Record<string, number> | undefined;
   /** the tags of the threads on screen: they stand in, uncounted, until the counts arrive */
   shownTags: readonly (readonly string[])[];
-  /** every tag the forum knows, in the API's order */
-  allTags: readonly ForumTag[];
+  /** the tags the forum offers, in the API's order (and the selected one, even if it was retired since) */
+  allTags: readonly Tag[];
   /** the tag the list is filtered by ('' for none): it always has a chip, so it can be turned off */
   selected: string;
   max?: number;
@@ -23,7 +25,7 @@ export function tagChips({ counts, shownTags, allTags, selected, max = 6 }: TagC
   const n = new Map<string, number>();
   if (counts) for (const [id, c] of Object.entries(counts)) n.set(id, c);
   else for (const tags of shownTags) for (const id of tags) n.set(id, (n.get(id) ?? 0) + 1);
-  const chip = (t: ForumTag): TagChip => ({ ...t, count: counts ? (n.get(t.id) ?? 0) : undefined });
+  const chip = (t: Tag): TagChip => ({ id: t.id, label: t.label, count: counts ? (n.get(t.id) ?? 0) : undefined });
   const chips = allTags
     .filter((t) => (n.get(t.id) ?? 0) > 0)
     .sort((a, b) => (n.get(b.id) ?? 0) - (n.get(a.id) ?? 0))

@@ -19,6 +19,34 @@ class PostStatus(enum.StrEnum):
     deleted = "deleted"  # by its author: the thread keeps its place, the text is gone
 
 
+class ForumCategory(Base):
+    """Where a thread lives (exactly one each). Moderators edit the list in Manage → Forum. A category threads use is
+    retired rather than deleted: it stops being offered, and its threads keep it."""
+
+    __tablename__ = "forum_categories"
+    __table_args__ = (year_range(),)
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)  # 'year-1': in links, never changed
+    label: Mapped[str] = mapped_column(String(40))  # 'Year 1'
+    short: Mapped[str] = mapped_column(String(20))  # on a thread's row: 'Study group'
+    year: Mapped[int | None] = mapped_column(SmallInteger)  # its cohort; None: every year sees it
+    blurb: Mapped[str] = mapped_column(String(120))  # under the label in the forum's sidebar
+    icon: Mapped[str | None] = mapped_column(String(20))  # beside a category for every year: 'people'
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    retired: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+
+
+class ForumTag(Base):
+    """A tag a thread may carry. Retired like a category when threads carry it."""
+
+    __tablename__ = "forum_tags"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)  # 'exam-prep'
+    label: Mapped[str] = mapped_column(String(40))
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    retired: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+
+
 class ForumThread(Base):
     __tablename__ = "forum_threads"
     __table_args__ = (
@@ -33,7 +61,8 @@ class ForumThread(Base):
     slug: Mapped[str] = mapped_column(SLUG, unique=True)
     title: Mapped[str] = mapped_column(String(160))
     body: Mapped[str] = mapped_column(Text)  # markdown (the client's renderer: no raw HTML)
-    category: Mapped[str] = mapped_column(String(32))  # year-1 | year-2 | year-3 | study-groups | general
+    # A category in use can't be deleted: it is retired instead.
+    category: Mapped[str] = mapped_column(ForeignKey("forum_categories.id", ondelete="RESTRICT"))
     module_id: Mapped[str | None] = mapped_column(ForeignKey("modules.id", ondelete="SET NULL"))
     tags: Mapped[list[str]] = mapped_column(ARRAY(String(32)), default=list, server_default="{}")
     author_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))

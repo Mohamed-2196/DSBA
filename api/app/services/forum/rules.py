@@ -1,5 +1,5 @@
-"""Rules every forum write shares: what a title, body and tags may be, the module a thread is about, slugs, rate
-limits, the thread's counters, status changes and the audit helper."""
+"""Rules every forum write shares: what a title, body, category and tags may be, the module a thread is about, slugs,
+rate limits, the thread's counters, status changes and the audit helper."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from app.core.errors import invalid
 from app.core.text import slugify, unique_slug
 from app.models import ForumReply, ForumThread, Module, PostStatus, User
 from app.services.audit import record
-from app.services.forum.taxonomy import MAX_TAGS, TAG_BY_ID
+from app.services.forum.taxonomy import MAX_TAGS, Taxonomy
 from app.services.forum.text import clean_body, clean_title, has_text, media_ids
 from app.services.forum.visibility import as_id
 from app.services.modules import require_module
@@ -56,12 +56,25 @@ def valid_body(value: str, field: str = "body", *, required: bool = False) -> st
     return body
 
 
-def valid_tags(tags: Sequence[str]) -> list[str]:
+def valid_category(t: Taxonomy, category: str | None, current: str | None = None) -> str | None:
+    """A category from the list. A retired one only when the thread already has it."""
+    if category is None:
+        return None
+    found = t.category(category)
+    if found is None or (found.retired and category != current):
+        raise invalid("category", "Choose a category from the list.")
+    return category
+
+
+def valid_tags(t: Taxonomy, tags: Sequence[str], current: Sequence[str] = ()) -> list[str]:
+    """Tags from the list, each once. A retired tag only when the thread already has it."""
     unique = list(dict.fromkeys(tags))
     if len(unique) > MAX_TAGS:
         raise invalid("tags", f"Pick up to {MAX_TAGS} tags.")
-    if any(t not in TAG_BY_ID for t in unique):
-        raise invalid("tags", "Pick tags from the list.")
+    for tag_id in unique:
+        found = t.tag(tag_id)
+        if found is None or (found.retired and tag_id not in current):
+            raise invalid("tags", "Pick tags from the list.")
     return unique
 
 

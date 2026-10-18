@@ -11,6 +11,7 @@
 //   <Prose text="…" />                    renders the forum's Markdown (lib/markdown.ts) as React elements, never HTML.
 //   useStartsThreads()                    true when a "Start a thread" link belongs on the page (the forum is on and the
 //                                         person may post; a guest signs in when they post).
+//   <ForumSettingsEditor />               Manage → Forum (forum.moderate): categories, tags, guidelines and tips.
 //
 // Thread links are /forum/<slug>. Searching the forum is GET /api/v1/search (the ⌘K palette).
 export { HelpBelow } from './HelpBelow';
@@ -21,3 +22,4 @@ export { ReportsQueue } from './ReportsQueue';
 export { useStartsThreads } from './lib/posting';
 export { MarkdownEditor } from './components/MarkdownEditor';
 export { Prose } from './components/Prose';
+export { ForumSettingsEditor } from './settings/ForumSettingsEditor';

@@ -253,6 +253,8 @@ def _known(refs: Iterable[str], known: set[str], what: str) -> None:
 
 
 class CareerDoc(ApiModel):
+    intro: Text  # under the page's title
+    employers_note: Text  # under the employers: what their buttons open, the tags, and the logos
     checked_on: Short  # the day every link was last checked ('2 October 2026')
     initial_count: int = Field(ge=1, le=100)  # employer cards shown before "Show all"
     tracks: list[CareerTrack] = Field(max_length=20)

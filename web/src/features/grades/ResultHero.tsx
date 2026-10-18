@@ -1,8 +1,9 @@
 import { useCallback, useState, type ReactNode } from 'react';
 import { useModules } from '../../state/modules';
 import { Badge, cx } from '../../ui';
-import { bandMeta, BANDS, CLASS_NAME, CLASS_SHORT } from './bands';
-import { bandOf, RESULT, SUBJECTS, TOTAL_CLASSIFICATION_MARKS, type BandId, type Classification, type ClassificationMark, type ClassKind, type Picks } from './classify';
+import { bandMeta, bandsOf, CLASS_NAME, CLASS_SHORT } from './bands';
+import { bandOf, pooledIndexes, RESULT, subjectsOf, totalMarks, type BandId, type Classification, type ClassificationMark, type ClassKind, type Picks, type Rules } from './classify';
+import { countsSentence, countsSummary } from './rulesText';
 import { subjectDisplay } from './subjects';
 import { blankIndexes, holdingFloors, improvementPlan, NEXT_CLASS, resitOutlook, targetsForRemaining, type HoldingFloor, type TargetKind } from './whatif';
 
@@ -10,7 +11,6 @@ type HeroState = 'empty' | 'partial' | 'resit' | 'classified';
 type NameOf = (index: number) => string;
 
 const BAND_FLOOR_FOR: Record<TargetKind, string> = { first: 'first-class', upper: 'upper second-class', lower: 'lower second-class', third: 'third-class' };
-const AVG_BAR: Partial<Record<TargetKind, number>> = { first: 65, upper: 56, lower: 47 };
 const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ''));
 
 /** Classification marks that come only from entered fields (classify() counts a blank as 0; those aren't drawn). */
@@ -23,22 +23,31 @@ export interface ResultHeroProps {
   marks: string[];
   picks: Picks;
   result: Classification;
+  rules: Rules;
 }
 
 /**
- * The live result: the class set big, the average, what would change it, and the 18-cell chart.
+ * The live result: the class set big, the average, what would change it, and a cell for each classification mark.
  * data-hub="grades-result" (the chart is data-hub="grades-breakdown").
  */
-export function ResultHero({ marks, picks, result }: ResultHeroProps) {
+export function ResultHero({ marks, picks, result, rules }: ResultHeroProps) {
   const { getModule } = useModules();
-  const blanks = blankIndexes(marks);
-  const entered = 13 - blanks.length;
+  const blanks = blankIndexes(marks, rules);
+  const count = rules.subjects.length;
+  const entered = count - blanks.length;
   const state: HeroState = entered === 0 ? 'empty' : blanks.length ? 'partial' : result.failed ? 'resit' : 'classified';
   const cells = state === 'empty' ? [] : shownMarks(result, blanks);
-  const nameOf = useCallback<NameOf>((i) => {
-    const subject = SUBJECTS[i];
-    return subject ? subjectDisplay(subject, picks, getModule).name : '';
-  }, [picks, getModule]);
+  const nameOf = useCallback<NameOf>(
+    (i) => {
+      const subject = subjectsOf(rules)[i];
+      return subject ? subjectDisplay(subject, picks, getModule, rules).name : '';
+    },
+    [picks, getModule, rules],
+  );
+  const summary = countsSummary(rules, (s) => {
+    const d = subjectDisplay(s, picks, getModule, rules);
+    return d.code ?? d.short;
+  });
 
   const kicker = 'Your classification';
   let big: string;
@@ -47,19 +56,19 @@ export function ResultHero({ marks, picks, result }: ResultHeroProps) {
   if (state === 'empty') {
     big = 'Type a mark';
     name = 'to see your class';
-    body = <EmptyBody />;
+    body = <p className="grades-hero__lede">{`Type your module marks below. ${countsSentence(summary)}`}</p>;
   } else if (state === 'partial') {
-    big = `${entered} of 13`;
+    big = `${entered} of ${count}`;
     name = 'marks entered so far';
-    body = <Targets marks={marks} />;
+    body = <Targets marks={marks} rules={rules} />;
   } else if (state === 'resit') {
     big = CLASS_SHORT.resit;
     name = RESULT.resit; // the result string, as classify() gives it
-    body = <Resit marks={marks} result={result} nameOf={nameOf} />;
+    body = <Resit marks={marks} result={result} nameOf={nameOf} rules={rules} label={summary.pooled?.label ?? null} />;
   } else {
     big = CLASS_SHORT[result.kind];
     name = CLASS_NAME[result.kind];
-    body = <Classified marks={marks} result={result} nameOf={nameOf} />;
+    body = <Classified marks={marks} result={result} nameOf={nameOf} rules={rules} />;
   }
 
   return (
@@ -80,25 +89,17 @@ export function ResultHero({ marks, picks, result }: ResultHeroProps) {
           {state === 'classified' ? `${CLASS_NAME[result.kind]}, average ${result.average.toFixed(2)}` : state === 'resit' ? RESULT.resit : ''}
         </p>
       </div>
-      {state !== 'empty' ? <Breakdown cells={cells} state={state} nameOf={nameOf} kind={result.kind} /> : null}
+      {state !== 'empty' ? <Breakdown cells={cells} state={state} nameOf={nameOf} kind={result.kind} rules={rules} pooledLabel={summary.pooled?.label ?? null} /> : null}
     </section>
   );
 }
 
-function EmptyBody() {
-  return (
-    <p className="grades-hero__lede">
-      Type your module marks below. Year 1 counts as one average worth 2 classification marks, each Advanced Statistics module counts 1, and every other module counts 2: 18
-      marks in all.
-    </p>
-  );
-}
-
-function Targets({ marks }: { marks: string[] }) {
-  const targets = targetsForRemaining(marks);
+function Targets({ marks, rules }: { marks: string[]; rules: Rules }) {
+  const targets = targetsForRemaining(marks, rules);
   const blocked = targets.every((t) => t.mark == null);
+  const pass = rules.bands.third.floor;
   if (blocked) {
-    return <p className="grades-hero__lede">A mark under 40 means a resit, whatever you score in the modules left. Pass it and the targets for each class show up here.</p>;
+    return <p className="grades-hero__lede">{`A mark under ${pass} means a resit, whatever you score in the modules left. Pass it and the targets for each class show up here.`}</p>;
   }
   return (
     <div className="grades-targets">
@@ -111,9 +112,9 @@ function Targets({ marks }: { marks: string[] }) {
               <td>
                 {t.mark == null ? (
                   <span className="grades-targets__out">Out of reach</span>
-                ) : t.mark === 40 ? (
+                ) : t.mark === pass ? (
                   <span className="grades-targets__pass">
-                    <strong>40</strong> a pass is enough
+                    <strong>{pass}</strong> a pass is enough
                   </span>
                 ) : (
                   <strong>{t.mark}</strong>
@@ -127,26 +128,31 @@ function Targets({ marks }: { marks: string[] }) {
   );
 }
 
-function Resit({ marks, result, nameOf }: { marks: string[]; result: Classification; nameOf: NameOf }) {
-  const outlook = resitOutlook(marks);
+function Resit({ marks, result, nameOf, rules, label }: { marks: string[]; result: Classification; nameOf: NameOf; rules: Rules; label: string | null }) {
+  const outlook = resitOutlook(marks, rules);
   if (!outlook) return null;
-  const modules = outlook.failing.filter((f) => SUBJECTS[f.index]?.year !== 1).map((f) => `${nameOf(f.index)} (${fmt(f.mark)})`);
-  const yearOne = outlook.yearOneAverageFails && result.yearOneAverage != null ? [`your Year 1 average (${fmt(Number(result.yearOneAverage.toFixed(2)))})`] : [];
-  const parts = [...yearOne, ...modules];
+  const pass = rules.bands.third.floor;
+  const modules = outlook.failing.filter((f) => rules.subjects[f.index]?.counts !== 'average').map((f) => `${nameOf(f.index)} (${fmt(f.mark)})`);
+  const pooled = outlook.groupAverageFails && result.groupAverage != null ? [`your ${label ?? 'averaged modules’'} average (${fmt(Number(result.groupAverage.toFixed(2)))})`] : [];
+  const parts = [...pooled, ...modules];
   const many = parts.length > 1;
   return (
     <div className="grades-hints">
       <p className="grades-hints__line">
-        <strong>Under 40:</strong> {parts.join(', ')}.
+        <strong>Under {pass}:</strong> {parts.join(', ')}.
       </p>
       <p className="grades-hints__line">
-        Pass {many ? 'them' : 'it'} with 40 or more and this calculator gives <strong>{CLASS_NAME[outlook.outcome]}</strong>.
+        Pass {many ? 'them' : 'it'} with {pass} or more and this calculator gives <strong>{CLASS_NAME[outlook.outcome]}</strong>.
       </p>
     </div>
   );
 }
 
-function Classified({ marks, result, nameOf }: { marks: string[]; result: Classification; nameOf: NameOf }) {
+function Classified({ marks, result, nameOf, rules }: { marks: string[]; result: Classification; nameOf: NameOf; rules: Rules }) {
+  const { needed, fewer, averages } = rules;
+  const bar: Partial<Record<TargetKind, number>> = averages;
+  const pass = rules.bands.third.floor;
+  const between = fewer === needed - 1 ? `${fewer}` : `${fewer} to ${needed - 1}`;
   const b = result.breakdown;
   const atOrAbove: Record<TargetKind, number> = {
     first: b.firstClass,
@@ -162,17 +168,17 @@ function Classified({ marks, result, nameOf }: { marks: string[]; result: Classi
   if (k === 'first') {
     // How safely the First is held.
     const n = atOrAbove.first;
-    if (n >= 10)
+    if (n >= needed)
       lines.push(
         <>
           You have <strong>{n} first-class marks</strong>
-          {n > 10 ? `, ${n - 10} more than the 10 a First needs` : ', exactly the 10 a First needs'}.
+          {n > needed ? `, ${n - needed} more than the ${needed} a First needs` : `, exactly the ${needed} a First needs`}.
         </>,
       );
     else
       lines.push(
         <>
-          You have <strong>{n} first-class marks</strong> and an average of <strong>{avg}</strong>: with 8 or 9, a First needs an average of 65 or more.
+          You have <strong>{n} first-class marks</strong> and an average of <strong>{avg}</strong>: with {between}, a First needs an average of {averages.first} or more.
         </>,
       );
   } else if (t && t !== 'third') {
@@ -183,18 +189,22 @@ function Classified({ marks, result, nameOf }: { marks: string[]; result: Classi
         <strong>
           {atOrAbove[t]} {word(t)} marks
         </strong>
-        . {CLASS_SHORT[t] === 'First' ? 'A First' : `A ${CLASS_SHORT[t]}`} needs 10, or 8 with an average of {AVG_BAR[t]} or more (yours is {avg}).
+        . {CLASS_SHORT[t] === 'First' ? 'A First' : `A ${CLASS_SHORT[t]}`} needs {needed}, or {fewer} with an average of {bar[t]} or more (yours is {avg}).
       </>,
     );
   } else if (k === 'none') {
-    lines.push(<>A Third needs 10 classification marks of 40 or more.</>);
+    lines.push(
+      <>
+        A Third needs {needed} classification marks of {pass} or more.
+      </>,
+    );
   }
-  const plan = t ? improvementPlan(marks) : null;
+  const plan = t ? improvementPlan(marks, rules) : null;
   // A First: which modules it hangs on (dropping them under their floor would cost the class).
   let hold: { fragile: HoldingFloor[]; floor: number } | null = null;
   if (k === 'first') {
-    const floors = holdingFloors(marks) ?? [];
-    const fragile = floors.filter((f) => f.floor > 40).sort((a, c) => c.floor - a.floor || a.from - c.from);
+    const floors = holdingFloors(marks, rules) ?? [];
+    const fragile = floors.filter((f) => f.floor > pass).sort((a, c) => c.floor - a.floor || a.from - c.from);
     hold = { fragile, floor: Math.max(...floors.map((f) => f.floor)) };
   }
   return (
@@ -251,25 +261,28 @@ function Classified({ marks, result, nameOf }: { marks: string[]; result: Classi
 }
 
 /**
- * The 18 classification marks as cells, best first, coloured by band (ordinal cobalt ramp), with the
- * rule thresholds (8 and 10 marks) drawn on the strip. The legend doubles as the table view.
+ * The classification marks as cells, best first, coloured by band (ordinal cobalt ramp), with the
+ * rule thresholds (rules.fewer and rules.needed marks) drawn on the strip. The legend doubles as the table view.
  */
-function Breakdown({ cells, state, nameOf, kind }: { cells: ClassificationMark[]; state: HeroState; nameOf: NameOf; kind: ClassKind }) {
+function Breakdown({ cells, state, nameOf, kind, rules, pooledLabel }: { cells: ClassificationMark[]; state: HeroState; nameOf: NameOf; kind: ClassKind; rules: Rules; pooledLabel: string | null }) {
   const [hover, setHover] = useState<number | null>(null);
   const sorted = [...cells].sort((a, b) => b.value - a.value);
-  const total = Math.max(TOTAL_CLASSIFICATION_MARKS, sorted.length);
+  const total = Math.max(totalMarks(rules), sorted.length);
   const pending = total - sorted.length;
   const counts: Record<BandId, number> = { first: 0, upper: 0, lower: 0, third: 0, fail: 0 };
   sorted.forEach((c) => {
-    counts[bandOf(c.value)] += 1;
+    counts[bandOf(c.value, rules)] += 1;
   });
+  const pooledCount = pooledIndexes(rules).length;
   const GAP = 4;
   const at = (k: number) => `calc(${k} * ((100% - ${(total - 1) * GAP}px) / ${total} + ${GAP}px) - ${GAP / 2}px)`;
   const describe = (c: ClassificationMark) => {
     const first = c.source[0] ?? 0;
-    const src = c.source.length === 4 ? 'Year 1 average' : nameOf(first);
-    const weight = c.source.length === 4 ? 2 : (SUBJECTS[first]?.weight ?? 2);
-    return `${src}: ${fmt(Number(c.value.toFixed(2)))}, ${bandMeta(bandOf(c.value)).label.toLowerCase()}, ${weight === 1 ? '1 mark' : `${weight} marks`}`;
+    const pooled = pooledCount > 0 && c.source.length === pooledCount && rules.subjects[first]?.counts === 'average';
+    const src = pooled ? `${pooledLabel ?? 'Averaged modules’'} average` : nameOf(first);
+    const counted = rules.subjects[first]?.counts;
+    const weight = pooled ? rules.averageCounts : typeof counted === 'number' ? counted : 1;
+    return `${src}: ${fmt(Number(c.value.toFixed(2)))}, ${bandMeta(bandOf(c.value, rules), rules).label.toLowerCase()}, ${weight === 1 ? '1 mark' : `${weight} marks`}`;
   };
   const hovered = hover != null ? sorted[hover] : undefined;
 
@@ -282,14 +295,14 @@ function Breakdown({ cells, state, nameOf, kind }: { cells: ClassificationMark[]
       <div className="grades-chart__plot">
         <div className="grades-chart__cells" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))`, gap: GAP }} aria-hidden="true" onMouseLeave={() => setHover(null)}>
           {sorted.map((c, i) => (
-            <span key={i} className={cx('grades-cell', `grades-cell--${bandOf(c.value)}`, hover === i && 'is-hover')} onMouseEnter={() => setHover(i)} />
+            <span key={i} className={cx('grades-cell', `grades-cell--${bandOf(c.value, rules)}`, hover === i && 'is-hover')} onMouseEnter={() => setHover(i)} />
           ))}
           {Array.from({ length: pending }, (_, i) => (
             <span key={`p${i}`} className="grades-cell grades-cell--pending" />
           ))}
         </div>
-        {[8, 10].map((k) => (
-          <span key={k} className={cx('grades-chart__rule', k === 10 && 'is-ten')} style={{ left: at(k) }} aria-hidden="true">
+        {[...new Set([rules.fewer, rules.needed])].map((k) => (
+          <span key={k} className={cx('grades-chart__rule', k === rules.needed && 'is-ten')} style={{ left: at(k) }} aria-hidden="true">
             <span className="grades-chart__rule-label">{k}</span>
           </span>
         ))}
@@ -300,12 +313,12 @@ function Breakdown({ cells, state, nameOf, kind }: { cells: ClassificationMark[]
         ) : null}
       </div>
       <p className="grades-chart__rulecap">
-        A class needs <strong>10</strong> marks in its band or better, or <strong>8</strong> with a high enough average.
+        A class needs <strong>{rules.needed}</strong> marks in its band or better, or <strong>{rules.fewer}</strong> with a high enough average.
       </p>
       <table className="grades-legend">
         <caption className="visually-hidden">Classification marks per band</caption>
         <tbody>
-          {BANDS.filter((band) => band.id !== 'fail' || counts.fail > 0).map((band) => (
+          {bandsOf(rules).filter((band) => band.id !== 'fail' || counts.fail > 0).map((band) => (
             <tr key={band.id}>
               <th scope="row">
                 <span className={cx('grades-swatch', `grades-cell--${band.id}`)} aria-hidden="true" />

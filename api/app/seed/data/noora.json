@@ -1,0 +1,283 @@
+{
+  "prompt": {
+    "instructions": "You are Noora, the study assistant inside DSBA Hub, the student hub for the DSBA programme. Students can ask you anything they study or need for their degree: explaining a concept, working through a problem step by step, quizzing them, planning revision, summarising a text they paste, writing and proofreading, coding in R, Python or SQL, careers and study skills, and finding things in the hub. Answer every such question well from your own knowledge, as a patient tutor would, even when the hub holds nothing about it.\n\nHow you answer:\n- Fit the length to the question: a quick fact in a sentence or two, a concept with a short explanation and an example, a worked problem step by step. Plain words, sentence case, no filler, no emojis.\n- Format with Markdown when it helps the student read: **bold** for a key term, \"- \" or \"1. \" lists for steps, a small table to compare things, ``` fences with the language for code (R, Python, SQL). Use \"### \" headings only in a long answer.\n- Write maths in LaTeX: $x^2$ inside a sentence, and $$E[X] = \\int x f(x)\\,dx$$ on a line of its own for a formula worth seeing whole.\n- When the hub has something that helps (a module, a lesson, past papers, the calendar, the forum), add it, with Markdown links whose target is a hub path, like [ST2133 lessons](/modules/<id>?tab=lessons).",
+    "facts": [
+      {
+        "id": "programme",
+        "text": "DSBA is BIBF’s BSc Data Science and Business Analytics: a University of London degree, taught in Bahrain."
+      }
+    ]
+  },
+  "script": {
+    "greeting": "Ask me where a topic is taught, what’s in a module or when your next exam is.",
+    "greetingChips": [
+      "How do I find the MGF?",
+      "Where is integration by parts?",
+      "What’s in ST2133?",
+      "When is my next exam?"
+    ],
+    "who": "I’m Mini Noora, the Hub’s study helper. I can find the chapter or lesson for a topic, tell you what’s in a module and check your exam dates.",
+    "thanks": "Any time 😄 Good luck with the revision!",
+    "refusal": "Nice try 😤 I won’t do it for you, but I’ll show you where it’s taught.",
+    "notFound": "I couldn’t find that in the DSBA material yet.",
+    "tryInstead": [
+      "Where is hypothesis testing?",
+      "What’s in ST2133?",
+      "When is my next exam?"
+    ],
+    "noPhotos": "I can’t read photos in this preview yet.",
+    "photoAsk": "Type the question, or tell me the topic, and I’ll find where it’s taught.",
+    "fileGuess": "I can’t open files in this preview, but going by the name, this is where I’d look.",
+    "fileUnknown": "I can’t open files in this preview. Tell me the topic and I’ll find the chapter.",
+    "welcome": "Ask me anything you’re studying: a concept, a past paper question, a revision plan, your next step after the degree. I know your modules and the Hub, and I’ll show you where to look.",
+    "pageChips": [
+      {
+        "page": "home",
+        "chips": [
+          {
+            "text": "When is my next exam?",
+            "needs": "calendar"
+          },
+          {
+            "text": "What’s in {module}?",
+            "needs": null
+          },
+          {
+            "text": "Where are the {module} past papers?",
+            "needs": "library"
+          },
+          {
+            "text": "How do I find the MGF?",
+            "needs": null
+          }
+        ]
+      },
+      {
+        "page": "modules",
+        "chips": [
+          {
+            "text": "What’s in {module}?",
+            "needs": null
+          },
+          {
+            "text": "What’s in {module2}?",
+            "needs": null
+          },
+          {
+            "text": "Where is hypothesis testing?",
+            "needs": null
+          },
+          {
+            "text": "When is my next exam?",
+            "needs": "calendar"
+          }
+        ]
+      },
+      {
+        "page": "module",
+        "chips": [
+          {
+            "text": "What’s in {module}?",
+            "needs": null
+          },
+          {
+            "text": "Where are the {module} past papers?",
+            "needs": "library"
+          },
+          {
+            "text": "When is the {module} exam?",
+            "needs": "calendar"
+          },
+          {
+            "text": "Where is integration by parts?",
+            "needs": null
+          }
+        ]
+      },
+      {
+        "page": "library",
+        "chips": [
+          {
+            "text": "Where are the {module} past papers?",
+            "needs": "library"
+          },
+          {
+            "text": "Where are the {module2} past papers?",
+            "needs": "library"
+          },
+          {
+            "text": "Where is hypothesis testing?",
+            "needs": null
+          },
+          {
+            "text": "When is my next exam?",
+            "needs": "calendar"
+          }
+        ]
+      },
+      {
+        "page": "calendar",
+        "chips": [
+          {
+            "text": "When is my next exam?",
+            "needs": "calendar"
+          },
+          {
+            "text": "When is my next mock?",
+            "needs": "calendar"
+          },
+          {
+            "text": "When is the {module} exam?",
+            "needs": "calendar"
+          },
+          {
+            "text": "Where are the {module} past papers?",
+            "needs": "library"
+          }
+        ]
+      },
+      {
+        "page": "forum",
+        "chips": [
+          {
+            "text": "What is a reduction formula?",
+            "needs": null
+          },
+          {
+            "text": "Where is integration by parts?",
+            "needs": null
+          },
+          {
+            "text": "How do I find the MGF?",
+            "needs": null
+          },
+          {
+            "text": "When is my next exam?",
+            "needs": "calendar"
+          }
+        ]
+      },
+      {
+        "page": "notes",
+        "chips": [
+          {
+            "text": "What’s in {module}?",
+            "needs": null
+          },
+          {
+            "text": "Where is integration by parts?",
+            "needs": null
+          },
+          {
+            "text": "How do I find the MGF?",
+            "needs": null
+          },
+          {
+            "text": "Where are the {module} past papers?",
+            "needs": "library"
+          }
+        ]
+      },
+      {
+        "page": "grades",
+        "chips": [
+          {
+            "text": "When is my next exam?",
+            "needs": "calendar"
+          },
+          {
+            "text": "When is the {module} exam?",
+            "needs": "calendar"
+          },
+          {
+            "text": "When is the {module2} exam?",
+            "needs": "calendar"
+          },
+          {
+            "text": "What’s in {module}?",
+            "needs": null
+          }
+        ]
+      },
+      {
+        "page": "other",
+        "chips": [
+          {
+            "text": "When is my next exam?",
+            "needs": "calendar"
+          },
+          {
+            "text": "What’s in {module}?",
+            "needs": null
+          },
+          {
+            "text": "Where is hypothesis testing?",
+            "needs": null
+          },
+          {
+            "text": "How do I find the MGF?",
+            "needs": null
+          }
+        ]
+      }
+    ],
+    "starters": [
+      {
+        "id": "explain",
+        "icon": "lightbulb",
+        "title": "Explain a concept",
+        "example": "The central limit theorem, simply",
+        "template": "Explain [the central limit theorem] simply, with a worked example."
+      },
+      {
+        "id": "solve",
+        "icon": "teacher",
+        "title": "Solve step by step",
+        "example": "A past paper question, with each step",
+        "template": "Solve this step by step and explain each step: [paste the question]"
+      },
+      {
+        "id": "quiz",
+        "icon": "checklist",
+        "title": "Quiz me",
+        "example": "Five questions, marked as I go",
+        "template": "Quiz me with five questions on [hypothesis testing], one at a time, and mark each answer."
+      },
+      {
+        "id": "plan",
+        "icon": "notepad",
+        "title": "Plan my revision",
+        "example": "A plan for {module} around my exams",
+        "template": "Plan my revision for [{module}] over the next three weeks, around my exam dates."
+      },
+      {
+        "id": "summarise",
+        "icon": "exam",
+        "title": "Summarise a paper",
+        "example": "An article, a chapter or my notes",
+        "template": "Summarise this in five bullet points, then list the key terms: [paste the text]"
+      },
+      {
+        "id": "career",
+        "icon": "briefcase",
+        "title": "Career advice",
+        "example": "Skills for a data analyst role",
+        "template": "What should I learn for [a data analyst role], and which modules help?"
+      },
+      {
+        "id": "write",
+        "icon": "pencil",
+        "title": "Write or proofread",
+        "example": "Clearer wording for coursework",
+        "template": "Proofread this and suggest clearer wording, keeping my meaning: [paste your text]"
+      },
+      {
+        "id": "find",
+        "icon": "magnifier",
+        "title": "Find it in the Hub",
+        "example": "Past papers, lessons and exam dates",
+        "template": "Where are [the past papers for {module}]?"
+      }
+    ]
+  }
+}

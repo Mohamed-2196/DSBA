@@ -4,8 +4,9 @@ and the issue shows it as its cover art or a section's figure, '/api/v1/media/<i
 When an issue is saved, every uploaded picture it shows must be a newsletter picture that was checked (422 on the
 field otherwise), and becomes attached to the issue (uploads.newsletter_issue_id): the daily sweep keeps it. A
 picture two issues show belongs to the one saved last. Pictures an issue stops showing, or a deleted issue showed,
-are released: they move to another issue that shows them, or go back to 'uploaded' and the sweep removes them a day
-later. /media serves a newsletter picture to everyone once a published issue shows it (uploads.in_published_issue).
+are released: they move to another issue that shows them, stay while the newsletter's settings offer them to the
+editor (newsletter_settings.py), or go back to 'uploaded' and the sweep removes them a day later. /media serves a
+newsletter picture to everyone once a published issue shows it (uploads.in_published_issue).
 Services leave the commit to the handler."""
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from app.core.errors import invalid
 from app.core.links import MEDIA_PATH, media_path
 from app.models import NewsletterIssue, Upload, UploadPurpose, UploadStatus
 from app.schemas.newsletter import IssueCover, IssueSection
+from app.services import newsletter_settings
 
 NOT_A_PICTURE = "Upload this picture again: it isn't one of the newsletter's pictures."
 
@@ -76,7 +78,7 @@ def _other_issue_showing(db: Session, upload_id: uuid.UUID, issue_id: uuid.UUID)
 
 def release(db: Session, issue: NewsletterIssue, keep: set[uuid.UUID] | None = None) -> None:
     """The issue's pictures outside `keep` (all of them for a deleted issue) move to another issue that shows them,
-    or go back to 'uploaded' for the sweep."""
+    stay while the newsletter's settings offer them, or go back to 'uploaded' for the sweep."""
     held = db.scalars(
         select(Upload).where(
             Upload.newsletter_issue_id == issue.id,
@@ -84,8 +86,9 @@ def release(db: Session, issue: NewsletterIssue, keep: set[uuid.UUID] | None = N
             Upload.id.not_in(keep or set()),
         )
     ).all()
+    still_offered = newsletter_settings.offered(db) if held else set()
     for up in held:
         other = _other_issue_showing(db, up.id, issue.id)
         up.newsletter_issue_id = other
-        if other is None:
+        if other is None and up.id not in still_offered:
             up.status = UploadStatus.uploaded

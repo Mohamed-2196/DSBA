@@ -25,7 +25,17 @@ from app.models.daily_content import (
     DailyTheme,
     DailyThemeWeek,
 )
-from app.models.forum import FollowLevel, ForumReply, ForumThread, PostStatus, ReplyVote, ThreadFollow, ThreadVote
+from app.models.forum import (
+    FollowLevel,
+    ForumCategory,
+    ForumReply,
+    ForumTag,
+    ForumThread,
+    PostStatus,
+    ReplyVote,
+    ThreadFollow,
+    ThreadVote,
+)
 from app.models.library import (
     DriveFolder,
     ItemSource,
@@ -82,7 +92,9 @@ __all__ = [
     "FeatureSwitch",
     "FeatureSwitchRole",
     "FollowLevel",
+    "ForumCategory",
     "ForumReply",
+    "ForumTag",
     "ForumThread",
     "IssueStatus",
     "ItemSource",

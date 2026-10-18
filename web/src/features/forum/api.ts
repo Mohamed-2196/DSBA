@@ -169,12 +169,12 @@ function refreshFollow(qc: QueryClient, threadId: string): void {
 
 // ── Reads ───────────────────────────────────────────────────────────────────────────────────────
 
+/** Categories, tags, guidelines and tips. Moderators change them rarely: one load every ten minutes is plenty. */
 export function useForumMeta() {
   return useQuery({
     queryKey: forumKeys.meta,
     queryFn: ({ signal }) => call(api.GET('/api/v1/forum/meta', { signal })),
-    staleTime: Infinity,
-    gcTime: Infinity,
+    staleTime: 10 * 60_000,
   });
 }
 

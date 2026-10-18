@@ -7,8 +7,8 @@ import { errorMessage, isApiError } from '../../../api/errors';
 import type { Electives, GuidePlace, GuidesDoc, GuidesEditable, GuideStep, ResultsDay, StartHere } from '../../../api/types';
 import { FEATURE_KEYS } from '../../../auth';
 import { useToast } from '../../../state';
-import { Chip, Drawer, PageHeader, Panel, QueryError, Select, Skeleton, TextArea, TextField, cx } from '../../../ui';
-import { DocFrame, ListEditor, RowsEditor, docErrors, hasErrorUnder, newItemId, useSite, type DocProblem, type SiteLinkKey } from '../../site/public';
+import { Chip, DocFrame, Drawer, ListEditor, PageHeader, Panel, QueryError, RowsEditor, Select, Skeleton, TextArea, TextField, cx, docErrors, focusDocStatus, hasErrorUnder, newItemId, type DocProblem } from '../../../ui';
+import { useSite, type SiteLinkKey } from '../../site/public';
 import { useGuidesForEditing, useReloadGuides, useSaveGuides } from '../api';
 import { ResultsDayBody } from '../ResultsDayPage';
 import { StartHereBody } from '../StartHerePage';
@@ -63,9 +63,11 @@ function Editor({ loaded, section, setSection }: { loaded: GuidesEditable; secti
     save.mutate(
       { version: loaded.version, data: doc },
       {
-        onSuccess: () => {
+        onSuccess: (out) => {
+          setDoc(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
           setFields({});
           toast({ title: 'Saved. Students see the changes now.', tone: 'success' });
+          focusDocStatus();
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'guides_changed') return setProblem({ kind: 'changed', what: 'the guides' });

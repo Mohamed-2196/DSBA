@@ -1,9 +1,15 @@
-// What the documents edited whole in Manage share (Site settings, the guides): the frame with its save bar, the
-// banner for a save someone else made first, and ordered lists of items that open into forms. Each document's own
-// fields are its editor's.
+// What the documents edited whole in Manage share (Site settings, the guides, the forum's settings, Mini Noora, the
+// grades calculator's rules and the others): the frame with its save bar, the banner for a save someone else made
+// first, and ordered lists of items that open into forms. Each document's own fields are its editor's.
 import { ArrowDown, ArrowSquareOut, ArrowUp, CaretDown, Eye, Plus, Trash } from '@phosphor-icons/react';
 import { useState, type ReactNode } from 'react';
-import { Badge, Button, ConfirmDialog, IconButton, Panel, cx, timeAgo } from '../../../ui';
+import { Badge } from '../Badge';
+import { Button } from '../Button';
+import { ConfirmDialog } from '../ConfirmDialog';
+import { IconButton } from '../IconButton';
+import { cx } from '../internal';
+import { Panel } from '../Panel';
+import { timeAgo } from '../utils';
 import { useWarnBeforeLeaving } from './doc';
 import './kit.css';
 
@@ -23,8 +29,8 @@ export interface DocFrameProps {
   onSave: () => void;
   problem: DocProblem | null;
   onReload: () => void;
-  /** the sections: chips that pick one */
-  nav: ReactNode;
+  /** the sections: chips that pick one (none for a document of one part) */
+  nav?: ReactNode;
   /** the section's title and what it holds */
   section: { title: string; about: string };
   children: ReactNode;
@@ -36,7 +42,7 @@ export function DocFrame({ title, savedAt, savedBy, dirty, saving, pageTo, onPre
     <div className="dedit">
       <div className="dedit__head">
         <div className="dedit__intro">
-          <p className="dedit__note" role="status">
+          <p className="dedit__note" role="status" tabIndex={-1} data-doc-status>
             {savedAt ? `Saved ${timeAgo(savedAt)}${savedBy ? ` by ${savedBy}` : ''}. ` : 'Not changed in the hub yet: this is its starting content. '}
             {dirty ? 'You have changes that aren’t saved.' : 'No unsaved changes.'}
           </p>
@@ -76,9 +82,11 @@ export function DocFrame({ title, savedAt, savedBy, dirty, saving, pageTo, onPre
         </div>
       ) : null}
 
-      <nav className="dedit__nav" aria-label={`Parts of ${title}`}>
-        {nav}
-      </nav>
+      {nav ? (
+        <nav className="dedit__nav" aria-label={`Parts of ${title}`}>
+          {nav}
+        </nav>
+      ) : null}
 
       <Panel as="section" padding="md" className="dedit__panel" aria-labelledby="dedit-section-title">
         <div className="dedit__section-head">
@@ -116,11 +124,15 @@ export interface ListEditorProps<T extends { id: string }> {
   hasError?: (index: number) => boolean;
   /** items saved before; the others are marked new */
   savedIds?: ReadonlySet<string>;
+  /** why an item can't be removed (its remove button is off and says so), or null */
+  keepReason?: (item: T) => string | null;
+  /** false: items come some other way (an upload), so there's no "Add" button */
+  canAdd?: boolean;
   min?: number;
   max?: number;
 }
 
-export function ListEditor<T extends { id: string }>({ items, noun, titleOf, metaOf, onChange, make, children, hasError, savedIds, min = 0, max = 60 }: ListEditorProps<T>) {
+export function ListEditor<T extends { id: string }>({ items, noun, titleOf, metaOf, onChange, make, children, hasError, savedIds, keepReason, canAdd = true, min = 0, max = 60 }: ListEditorProps<T>) {
   const [open, setOpen] = useState<string | null>(null);
   const [removing, setRemoving] = useState<{ id: string; title: string } | null>(null);
   const move = (from: number, by: -1 | 1) => {
@@ -139,6 +151,7 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
             const isOpen = open === item.id;
             const title = titleOf(item) || `New ${noun}`;
             const formId = `dedit-item-${item.id}`;
+            const kept = keepReason?.(item) ?? null;
             return (
               <li key={item.id} className={cx('dedit-item', isOpen && 'is-open', hasError?.(i) && 'has-error')} data-item-id={item.id}>
                 <div className="dedit-item__row">
@@ -157,7 +170,7 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
                   <span className="dedit-item__tools">
                     <IconButton size="sm" icon={ArrowUp} label={`Move ${title} up`} disabled={i === 0} onClick={() => move(i, -1)} />
                     <IconButton size="sm" icon={ArrowDown} label={`Move ${title} down`} disabled={i === items.length - 1} onClick={() => move(i, 1)} />
-                    <IconButton size="sm" icon={Trash} label={`Remove ${title}`} tooltip disabled={items.length <= min} onClick={() => setRemoving({ id: item.id, title })} />
+                    <IconButton size="sm" icon={Trash} label={kept ?? `Remove ${title}`} tooltip disabled={items.length <= min || kept !== null} onClick={() => setRemoving({ id: item.id, title })} />
                   </span>
                 </div>
                 {isOpen ? (
@@ -172,7 +185,7 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
       ) : (
         <p className="dedit__empty">{`No ${noun}s yet.`}</p>
       )}
-      {items.length < max ? (
+      {canAdd && items.length < max ? (
         <Button
           variant="secondary"
           leadingIcon={Plus}
@@ -204,7 +217,23 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
 
 /** A short list whose rows are edited in place (a step's links, Start here's places): move and remove buttons on
  *  each row, and a button to add one. */
-export function RowsEditor<T>({ items, noun, onChange, make, children, max = 10 }: { items: readonly T[]; noun: string; onChange: (next: T[]) => void; make: () => T; children: (item: T, index: number, set: (next: T) => void) => ReactNode; max?: number }) {
+export function RowsEditor<T>({
+  items,
+  noun,
+  onChange,
+  make,
+  children,
+  min = 0,
+  max = 10,
+}: {
+  items: readonly T[];
+  noun: string;
+  onChange: (next: T[]) => void;
+  make: () => T;
+  children: (item: T, index: number, set: (next: T) => void) => ReactNode;
+  min?: number;
+  max?: number;
+}) {
   const move = (from: number, by: -1 | 1) => {
     const next = items.slice();
     const [item] = next.splice(from, 1);
@@ -222,7 +251,7 @@ export function RowsEditor<T>({ items, noun, onChange, make, children, max = 10 
               <span className="dedit-row__tools">
                 <IconButton size="sm" icon={ArrowUp} label={`Move ${noun} ${i + 1} up`} disabled={i === 0} onClick={() => move(i, -1)} />
                 <IconButton size="sm" icon={ArrowDown} label={`Move ${noun} ${i + 1} down`} disabled={i === items.length - 1} onClick={() => move(i, 1)} />
-                <IconButton size="sm" icon={Trash} label={`Remove ${noun} ${i + 1}`} onClick={() => onChange(items.filter((_, j) => j !== i))} />
+                <IconButton size="sm" icon={Trash} label={`Remove ${noun} ${i + 1}`} disabled={items.length <= min} onClick={() => onChange(items.filter((_, j) => j !== i))} />
               </span>
             </li>
           ))}

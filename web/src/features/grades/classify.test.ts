@@ -1,8 +1,19 @@
 // The degree classification: its rules, checked on whole sets of marks.
 import { describe, expect, it } from 'vitest';
-import { bandOf, classify, gradeDescription, isComplete, isEmpty, normalizeGrades, RESULT, SUBJECT_COUNT, TOTAL_CLASSIFICATION_MARKS } from './classify';
+import type { GradeRules } from '../../api/types';
+import { readSeed } from '../../testing/seed';
+import { bandOf as bandFor, classify as classifyBy, gradeDescription as describe1, isComplete, isEmpty, normalizeGrades as normalize, RESULT, totalMarks } from './classify';
 
-/** 13 marks: `fill` everywhere, with some subjects (by index) set apart. */
+// The rules as the hub starts with them: today's programme regulations (api/app/seed/data/grades.json).
+const RULES = readSeed<GradeRules>('grades');
+const SUBJECT_COUNT = RULES.subjects.length;
+const TOTAL_CLASSIFICATION_MARKS = totalMarks(RULES);
+const classify = (input: unknown) => classifyBy(input, RULES);
+const normalizeGrades = (input: unknown) => normalize(input, RULES);
+const bandOf = (g: number) => bandFor(g, RULES);
+const gradeDescription = (g: number) => describe1(g, RULES);
+
+/** A mark per subject: `fill` everywhere, with some subjects (by index) set apart. */
 const marks = (fill: number | string, set: Record<number, number | string> = {}): string[] =>
   Array.from({ length: SUBJECT_COUNT }, (_, i) => String(set[i] ?? fill));
 
@@ -19,7 +30,7 @@ describe('classify', () => {
 
   it('counts the Year 1 average twice, the Advanced Statistics modules once and the rest twice', () => {
     const c = classify(marks(60, { 0: 80, 1: 60, 2: 70, 3: 50 }));
-    expect(c.yearOneAverage).toBe(65);
+    expect(c.groupAverage).toBe(65);
     expect(c.marks.slice(0, 2)).toEqual([
       { value: 65, source: [0, 1, 2, 3] },
       { value: 65, source: [0, 1, 2, 3] },
@@ -67,7 +78,7 @@ describe('classify', () => {
     expect(c.marks).toEqual([]);
     expect(c.average).toBe(0);
     expect(c.kind).toBe('none');
-    expect(c.yearOneAverage).toBeNull();
+    expect(c.groupAverage).toBeNull();
   });
 
   it('knows an empty sheet', () => {
@@ -78,7 +89,7 @@ describe('classify', () => {
 });
 
 describe('the helpers', () => {
-  it('always gives 13 strings', () => {
+  it('always gives one string per subject', () => {
     const out = normalizeGrades([70, '65', null, undefined, {}]);
     expect(out).toHaveLength(SUBJECT_COUNT);
     expect(out.slice(0, 6)).toEqual(['70', '65', '', '', '', '']);
@@ -95,5 +106,28 @@ describe('the helpers', () => {
     expect(isComplete(marks(50, { 3: '0' }))).toBe(false);
     expect(isEmpty(marks('0'))).toBe(true);
     expect(isEmpty(marks('', { 5: 41 }))).toBe(false);
+  });
+});
+
+describe('rules an admin changes', () => {
+  it('moves the bands, the marks a class needs and the averages with them', () => {
+    const higher: GradeRules = { ...RULES, bands: { ...RULES.bands, first: { ...RULES.bands.first, floor: 75 } } };
+    expect(classifyBy(marks(72), RULES).kind).toBe('first');
+    expect(classifyBy(marks(72), higher).kind).toBe('upper');
+    expect(bandFor(72, higher)).toBe('upper');
+    // 8 first-class marks and an average under 65: an Upper Second, until a First asks for an average of 60.
+    const eight = marks(58, { 0: 72, 1: 72, 2: 72, 3: 72, 4: 72, 5: 72, 6: 72, 7: 72 });
+    expect(classifyBy(eight, RULES).kind).toBe('upper');
+    expect(classifyBy(eight, { ...RULES, averages: { ...RULES.averages, first: 60 } }).kind).toBe('first');
+  });
+
+  it('counts a new subject, and what each subject counts', () => {
+    const dissertation = { id: 'dissertation', name: 'Dissertation', year: 3 as const, moduleId: null, choice: null, counts: 3 as const };
+    const more: GradeRules = { ...RULES, subjects: [...RULES.subjects, dissertation] };
+    const c = classifyBy([...marks(60), '80'], more);
+    expect(c.marks).toHaveLength(21);
+    expect(c.marks.slice(-3).map((m) => m.source)).toEqual([[13], [13], [13]]);
+    // Year 1 counted once, through its average.
+    expect(classifyBy(marks(60, { 0: 80, 1: 60, 2: 70, 3: 50 }), { ...RULES, averageCounts: 1 }).marks.filter((m) => m.source.length === 4)).toHaveLength(1);
   });
 });

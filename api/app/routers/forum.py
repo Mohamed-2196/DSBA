@@ -15,16 +15,18 @@ from app.models import User
 from app.routers._base import router_for
 from app.schemas.forum import (
     AcceptRequest,
-    Category,
     FollowRequest,
     FollowResult,
     ForumMeta,
+    ForumSettingsEditable,
+    ForumSettingsSave,
     ForumStats,
     Reply,
     ReplyCreate,
     ReplyModeration,
     ReplyUpdate,
     Sort,
+    TaxonomyId,
     ThreadCreate,
     ThreadDetail,
     ThreadModeration,
@@ -33,7 +35,7 @@ from app.schemas.forum import (
     ThreadUpdate,
     VoteResult,
 )
-from app.services.forum import follows, queries, replies, taxonomy, threads, views, visibility, votes
+from app.services.forum import follows, queries, replies, settings, taxonomy, threads, views, visibility, votes
 
 router = router_for("forum", needs_feature(Feature.forum))
 Poster = Annotated[User, requires(Box.forum_post)]  # start threads, reply, vote
@@ -41,9 +43,33 @@ ForumModerator = Annotated[User, requires(Box.forum_moderate)]
 
 
 @router.get("/forum/meta", response_model=ForumMeta)
-def meta() -> ForumMeta:
-    """Categories and tags (the server validates threads against these)."""
-    return taxonomy.forum_meta()
+def meta(db: DB) -> ForumMeta:
+    """Every category and tag in their order (retired ones too: their threads keep them, but they aren't offered),
+    where a thread goes when no year fits it, and the forum's guidelines and tips. Threads are checked against
+    these."""
+    return taxonomy.forum_meta(db)
+
+
+@router.get("/forum/settings", response_model=ForumSettingsEditable)
+def forum_settings(db: DB, _: ForumModerator) -> ForumSettingsEditable:
+    """Manage → Forum: the categories, tags, guidelines and tips with the version a save names (0 until the first
+    save), and how many threads use each category and tag."""
+    return settings.editable(db)
+
+
+@router.put("/forum/settings", response_model=ForumSettingsEditable)
+def save_forum_settings(
+    body: ForumSettingsSave, request: Request, user: ForumModerator, db: DB
+) -> ForumSettingsEditable:
+    """Save the categories, tags, guidelines and tips together, if nobody saved them since `version`. Audited with
+    what changed, before and after.
+
+    Errors: forum_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
+    fit, an id used twice, no category left, a default category that is retired or belongs to a year, a category or
+    tag that threads use removed instead of retired)."""
+    out = settings.save(db, user, body, client_ip(request))
+    db.commit()
+    return out
 
 
 @router.get("/forum/stats", response_model=ForumStats)
@@ -57,7 +83,7 @@ def list_threads(
     db: DB,
     user: OptionalUser,
     q: str | None = Query(default=None, max_length=200, description="Full-text search: title, body, replies, module"),
-    category: Category | None = None,
+    category: TaxonomyId | None = None,
     module_id: str | None = None,
     tag: str | None = None,
     year: YearParam | None = None,
@@ -69,7 +95,7 @@ def list_threads(
 ) -> ThreadPage:
     """Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);
     deleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its
-    category, or a module of that year) plus forum-wide ones (study groups and general without a module).
+    category, or a module of that year) plus forum-wide ones (a category for every year, without a module).
     `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5."""
     if mine and user is None:
         raise unauthenticated("Sign in to see your threads.")

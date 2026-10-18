@@ -2,24 +2,49 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowCounterClockwise, CaretDown, Flask, LockSimple } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { BREAKPOINTS, useLocalStorage, useMediaQuery, useQueryParam, useToast } from '../../state';
-import { Button, cx, Menu, Page, PageHeader, PageSection, SectionHeader } from '../../ui';
+import { useModules } from '../../state/modules';
+import { Button, cx, Menu, Page, PageHeader, PageSection, QueryError, SectionHeader, Skeleton } from '../../ui';
 import { httpsHref, useSite } from '../site/public';
-import { CLASS_NAME, CLASS_SHORT } from './bands';
-import { classify, normalizeGrades, type BandId, type ChoiceSlot, type Classification, type Picks } from './classify';
-import { readRecord, STORAGE_KEY } from './record';
-import { EMPTY_RECORD, EXAMPLES, type GradesRecord } from './examples';
+import { useGradeRules } from './api';
+import { bandsOf, CLASS_NAME, CLASS_SHORT } from './bands';
+import { classify, type ChoiceSlot, type Classification, type Picks, type Rules } from './classify';
+import { emptyRecord, EXAMPLES, exampleRecord } from './examples';
 import { usePapers } from '../papers/public';
 import { MarksSheet } from './MarksSheet';
-import { withPaperPicks } from './subjects';
+import { EMPTY_STORED, readRecord, STORAGE_KEY, storedRecord, type GradesRecord } from './record';
+import { countsSummary, listed } from './rulesText';
+import { subjectDisplay, withPaperPicks } from './subjects';
 import { ResultHero } from './ResultHero';
 import { blankIndexes, improvementPlan } from './whatif';
 import './GradesPage.css';
 
 const hasMarks = (rec: GradesRecord): boolean => rec.marks.some((m) => m !== '');
 
+const TITLE = 'Grades';
+const DESCRIPTION = 'Work out your degree classification from your module marks.';
+
+/** The calculator waits for its rules (GET /grades/rules): admins keep them in Manage → Grades calculator. */
 export default function GradesPage() {
-  const [stored, setRecord] = useLocalStorage<unknown>(STORAGE_KEY, EMPTY_RECORD);
-  const record = useMemo(() => readRecord(stored), [stored]);
+  const rules = useGradeRules();
+  if (rules.data) return <Calculator rules={rules.data} />;
+  return (
+    <Page className="grades-page">
+      <PageHeader title={TITLE} description={DESCRIPTION} />
+      {rules.isError ? (
+        <QueryError error={rules.error} title="The calculator’s rules didn’t load" onRetry={() => void rules.refetch()} retrying={rules.isFetching} />
+      ) : (
+        <div aria-busy="true">
+          <span className="visually-hidden">Loading the grades calculator</span>
+          <Skeleton height={260} radius={16} />
+        </div>
+      )}
+    </Page>
+  );
+}
+
+function Calculator({ rules }: { rules: Rules }) {
+  const [stored, setStored] = useLocalStorage<unknown>(STORAGE_KEY, EMPTY_STORED);
+  const record = useMemo(() => readRecord(stored, rules), [stored, rules]);
   const { push } = useToast();
   const { status } = useAuth();
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
@@ -27,56 +52,59 @@ export default function GradesPage() {
 
   const marks = record.marks;
   const { picks: paperPicks } = usePapers();
-  const picks = useMemo(() => withPaperPicks(record.picks, paperPicks), [record.picks, paperPicks]);
-  const result = useMemo(() => classify(marks), [marks]);
-  const plan = useMemo(() => (blankIndexes(marks).length === 0 && !result.failed && result.kind !== 'first' ? improvementPlan(marks) : null), [marks, result]);
+  const picks = useMemo(() => withPaperPicks(record.picks, paperPicks, rules), [record.picks, paperPicks, rules]);
+  const result = useMemo(() => classify(marks, rules), [marks, rules]);
+  const plan = useMemo(() => (blankIndexes(marks, rules).length === 0 && !result.failed && result.kind !== 'first' ? improvementPlan(marks, rules) : null), [marks, result, rules]);
   const aims = useMemo(() => new Map((plan?.changes ?? []).map((c) => [c.index, c.to])), [plan]);
 
-  const recordRef = useRef(record);
+  const storedRef = useRef(stored);
   useEffect(() => {
-    recordRef.current = record;
-  }, [record]);
+    storedRef.current = stored;
+  }, [stored]);
 
+  /** Changes the record as stored now (another tab may have written since this one last read it). */
+  const change = useCallback(
+    (edit: (rec: GradesRecord) => GradesRecord) => setStored((prev: unknown) => storedRecord(edit(readRecord(prev, rules)), rules, prev)),
+    [setStored, rules],
+  );
   const setMark = useCallback(
     (i: number, v: string) =>
-      setRecord((prev: unknown) => {
-        const rec = readRecord(prev);
+      change((rec) => {
         const next = rec.marks.slice();
         next[i] = v;
         return { marks: next, picks: rec.picks };
       }),
-    [setRecord],
+    [change],
   );
   const setPick = useCallback(
     (choice: ChoiceSlot, value: string | undefined) =>
-      setRecord((prev: unknown) => {
-        const rec = readRecord(prev);
+      change((rec) => {
         const nextPicks: Picks = { ...rec.picks };
         if (value) nextPicks[choice] = value;
         else delete nextPicks[choice];
         return { marks: rec.marks, picks: nextPicks };
       }),
-    [setRecord],
+    [change],
   );
 
   const replaceWith = useCallback(
     (next: GradesRecord, { title, body }: { title: string; body: string }) => {
-      const prev = recordRef.current;
-      setRecord(next);
-      if (hasMarks(prev)) {
-        push({ tone: 'info', title, body, duration: 8000, action: { label: 'Undo', onClick: () => setRecord(prev) } });
+      const prev = storedRef.current;
+      setStored(storedRecord(next, rules));
+      if (hasMarks(readRecord(prev, rules))) {
+        push({ tone: 'info', title, body, duration: 8000, action: { label: 'Undo', onClick: () => setStored(prev) } });
       }
     },
-    [push, setRecord],
+    [push, setStored, rules],
   );
 
   const loadExample = useCallback(
     (id: string) => {
-      const ex = EXAMPLES[id];
+      const ex = exampleRecord(id, rules);
       if (!ex) return;
-      replaceWith({ marks: [...ex.marks], picks: { ...ex.picks } }, { title: 'Example loaded', body: 'It replaced the marks you had entered.' });
+      replaceWith(ex, { title: 'Example loaded', body: 'It replaced the marks you had entered.' });
     },
-    [replaceWith],
+    [replaceWith, rules],
   );
 
   // ?example=first|upper|resit|partial (shareable demo links) — load once, then drop the param.
@@ -87,9 +115,9 @@ export default function GradesPage() {
   }, [exampleParam, loadExample, setExampleParam]);
 
   const reset = () => {
-    const prev = recordRef.current;
-    setRecord({ marks: normalizeGrades(null), picks: prev.picks });
-    push({ tone: 'info', title: 'Marks cleared', duration: 8000, action: { label: 'Undo', onClick: () => setRecord(prev) } });
+    const prev = storedRef.current;
+    setStored(storedRecord({ ...emptyRecord(rules), picks: record.picks }, rules));
+    push({ tone: 'info', title: 'Marks cleared', duration: 8000, action: { label: 'Undo', onClick: () => setStored(prev) } });
   };
 
   const actions = (
@@ -113,8 +141,8 @@ export default function GradesPage() {
   return (
     <Page className="grades-page">
       <PageHeader
-        title="Grades"
-        description="Work out your degree classification from your module marks."
+        title={TITLE}
+        description={DESCRIPTION}
         actions={actions}
         meta={
           <p className="grades-privacy" data-hub="grades-privacy">
@@ -126,39 +154,31 @@ export default function GradesPage() {
       />
 
       <PageSection aria-label="Your classification" className="grades-sec--hero">
-        <ResultHero marks={marks} picks={picks} result={result} />
+        <ResultHero marks={marks} picks={picks} result={result} rules={rules} />
       </PageSection>
 
       <PageSection aria-label="Module marks" className="grades-sec--sheet">
-        <MarksSheet marks={marks} picks={picks} yearOneAverage={result.yearOneAverage} aims={aims} onMark={setMark} onPick={setPick} />
+        <MarksSheet marks={marks} picks={picks} groupAverage={result.groupAverage} aims={aims} onMark={setMark} onPick={setPick} rules={rules} />
       </PageSection>
 
       <PageSection aria-labelledby="grades-how">
         <SectionHeader id="grades-how" title="How the classification works" description="The rules this calculator applies, step by step." />
-        <Rules />
+        <RulesExplained rules={rules} />
       </PageSection>
 
-      {isMobile ? <StickyResult marks={marks} result={result} /> : null}
+      {isMobile ? <StickyResult marks={marks} result={result} rules={rules} /> : null}
     </Page>
   );
 }
 
-const BAND_ROWS: [BandId, string, string, string][] = [
-  ['first', 'First class (1st)', '70–100', '3.7–4.0'],
-  ['upper', 'Upper second (2:1)', '60–69', '3.3–3.6'],
-  ['lower', 'Lower second (2:2)', '50–59', '2.7–3.2'],
-  ['third', 'Third', '40–49', '2.0–2.6'],
-  ['fail', 'Fail', '0–39', '–'],
-];
-
 /** Where the rules come from: Site settings' note on the calculator and its link to the programme regulations. */
-function SourceNote() {
+function SourceNote({ rules }: { rules: Rules }) {
   const site = useSite().data;
   if (!site) return null;
   const regulations = httpsHref(site.links.regulations.url);
   return (
     <p className="grades-how__note" data-hub="grades-source">
-      {site.gradesNote} The rules are in regulations 8.7 and 8.8 of the{' '}
+      {site.gradesNote} The rules are in {rules.regulations} of the{' '}
       {regulations ? (
         <a href={regulations} target="_blank" rel="noopener noreferrer">
           {site.links.regulations.label}
@@ -172,22 +192,42 @@ function SourceNote() {
   );
 }
 
-function Rules() {
+const CLASS_ROWS: { kind: 'first' | 'upper' | 'lower'; band: string }[] = [
+  { kind: 'first', band: 'first-class' },
+  { kind: 'upper', band: 'upper second-class' },
+  { kind: 'lower', band: 'lower second-class' },
+];
+
+/** The rules, in words, from the rules themselves. */
+export function RulesExplained({ rules }: { rules: Rules }) {
+  const { getModule } = useModules();
+  const summary = countsSummary(rules, (s) => {
+    const d = subjectDisplay(s, {}, getModule, rules);
+    return d.code ?? d.short;
+  });
+  const pass = rules.bands.third.floor;
+  const marks = (n: number) => (n === 1 ? 'mark' : 'marks');
   return (
     <div className="grades-how">
       <div className="grades-how__col">
         <ol className="grades-steps">
+          {summary.pooled ? (
+            <li>
+              <strong>{summary.pooled.label}</strong> is averaged. The average counts as <strong>{summary.pooled.counts}</strong> classification {marks(summary.pooled.counts)}.
+            </li>
+          ) : null}
+          {summary.special.map((s) => (
+            <li key={s.counts}>
+              <strong>{listed(s.names)}</strong> {s.names.length === 1 ? 'counts' : 'each count'} as <strong>{s.counts}</strong> {marks(s.counts)}.
+            </li>
+          ))}
+          {summary.rest != null ? (
+            <li>
+              Every <strong>{summary.special.length || summary.pooled ? 'other module' : 'module'}</strong> counts as <strong>{summary.rest}</strong> {marks(summary.rest)}. That makes {summary.total} classification marks.
+            </li>
+          ) : null}
           <li>
-            <strong>Year 1</strong> is averaged. The average counts as <strong>2</strong> classification marks.
-          </li>
-          <li>
-            Each <strong>Advanced Statistics</strong> module (ST2133, ST2134) counts as <strong>1</strong> mark.
-          </li>
-          <li>
-            Every <strong>other module</strong> counts as <strong>2</strong> marks. That makes 18 classification marks.
-          </li>
-          <li>
-            Any classification mark <strong>under 40</strong> means a resit before the degree can be classified.
+            Any classification mark <strong>under {pass}</strong> means a resit before the degree can be classified.
           </li>
         </ol>
         <table className="grades-table">
@@ -199,27 +239,22 @@ function Rules() {
             </tr>
           </thead>
           <tbody>
+            {CLASS_ROWS.map(({ kind, band }) => (
+              <tr key={kind}>
+                <th scope="row">{CLASS_NAME[kind]}</th>
+                <td>
+                  {rules.needed} {band} marks, or {rules.fewer} {band} marks and an average classification mark of at least {rules.averages[kind]}
+                </td>
+              </tr>
+            ))}
             <tr>
-              <th scope="row">First Class Honours</th>
-              <td>Ten first-class marks, or eight first-class marks and an average classification mark of at least 65</td>
-            </tr>
-            <tr>
-              <th scope="row">Upper Second Class Honours</th>
-              <td>Ten upper second-class marks, or eight upper second-class marks and an average classification mark of at least 56</td>
-            </tr>
-            <tr>
-              <th scope="row">Lower Second Class Honours</th>
-              <td>Ten lower second-class marks, or eight lower second-class marks and an average classification mark of at least 47</td>
-            </tr>
-            <tr>
-              <th scope="row">Third Class Honours</th>
-              <td>Passed at least 330 credits and attempted 360 credits</td>
+              <th scope="row">{CLASS_NAME.third}</th>
+              <td>{rules.thirdRule}</td>
             </tr>
           </tbody>
         </table>
         <p className="grades-how__note">
-          A mark in a higher band also counts for the classes below it. For Third Class Honours this calculator
-          checks for ten classification marks of 40 or more.
+          A mark in a higher band also counts for the classes below it. For Third Class Honours this calculator checks for {rules.needed} classification marks of {pass} or more.
         </p>
       </div>
       <div className="grades-how__col">
@@ -233,26 +268,26 @@ function Rules() {
             </tr>
           </thead>
           <tbody>
-            {BAND_ROWS.map(([id, label, range, gpa]) => (
-              <tr key={id}>
+            {bandsOf(rules).map((b) => (
+              <tr key={b.id}>
                 <th scope="row">
-                  <span className={cx('grades-swatch', `grades-cell--${id}`)} aria-hidden="true" />
-                  {label}
+                  <span className={cx('grades-swatch', `grades-cell--${b.id}`)} aria-hidden="true" />
+                  {b.id === 'first' ? `${b.label} (1st)` : b.id === 'upper' || b.id === 'lower' ? `${b.label} (${b.short})` : b.label}
                 </th>
-                <td>{range}</td>
-                <td>{gpa}</td>
+                <td>{b.span}</td>
+                <td>{b.gpa}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <SourceNote />
+        <SourceNote rules={rules} />
       </div>
     </div>
   );
 }
 
 /** Mobile: the live result stays in view while you type further down the form. */
-function StickyResult({ marks, result }: { marks: string[]; result: Classification }) {
+function StickyResult({ marks, result, rules }: { marks: string[]; result: Classification; rules: Rules }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const hero = document.querySelector('[data-hub="grades-result"]');
@@ -261,8 +296,9 @@ function StickyResult({ marks, result }: { marks: string[]; result: Classificati
     io.observe(hero);
     return () => io.disconnect();
   }, []);
-  const blanks = blankIndexes(marks).length;
-  if (!visible || blanks === 13) return null;
+  const blanks = blankIndexes(marks, rules).length;
+  const count = rules.subjects.length;
+  if (!visible || blanks === count) return null;
   const kind = blanks ? null : result.failed ? 'resit' : result.kind;
   return (
     <button
@@ -270,7 +306,7 @@ function StickyResult({ marks, result }: { marks: string[]; result: Classificati
       className="grades-sticky"
       onClick={() => document.querySelector('[data-hub="grades-result"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
     >
-      <span className="grades-sticky__big">{kind ? CLASS_SHORT[kind] : `${13 - blanks}/13`}</span>
+      <span className="grades-sticky__big">{kind ? CLASS_SHORT[kind] : `${count - blanks}/${count}`}</span>
       <span className="grades-sticky__text">
         {kind ? CLASS_NAME[kind] : `${blanks} marks to go`}
         {kind && kind !== 'resit' ? <span className="grades-sticky__avg">Average {result.average.toFixed(2)}</span> : null}
