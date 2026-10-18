@@ -416,10 +416,8 @@ def delete_item(db: Session, user: User, item_id: uuid.UUID, version: int, ip: s
     check_version(item, version)
     ran = db.scalar(select(func.count()).where(DailySetItem.item_id == item.id)) or 0
     if ran:
-        days = "day" if ran == 1 else "days"
-        raise conflict(
-            "content_in_use", f"It ran on {ran} {days}, which keep it. Retire it instead, so it doesn't run again."
-        )
+        days = "1 day, which keeps" if ran == 1 else f"{ran} days, which keep"
+        raise conflict("content_in_use", f"It ran on {days} it. Retire it instead, so it doesn't run again.")
     lock_themes(db, item.theme_id)
     before = _snapshot(item)
     with db.begin_nested():  # undone if it leaves a theme short

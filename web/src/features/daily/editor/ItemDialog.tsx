@@ -182,7 +182,7 @@ export function ItemDialog({ game, item, themes, defaultTheme, fixToday = false,
         fixing
           ? 'Your fix reaches today’s puzzle and the days to come. You’ll see today’s puzzle with it before it’s applied.'
           : item && item.uses > 0
-            ? `It ran on ${item.uses} ${item.uses === 1 ? 'day' : 'days'}, which keep it as it was. Your changes reach the days to come.`
+            ? `It ran on ${item.uses === 1 ? '1 day, which keeps' : `${item.uses} days, which keep`} it as it was. Your changes reach the days to come.`
             : undefined
       }
       footer={
