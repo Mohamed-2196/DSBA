@@ -21,6 +21,7 @@ SIZE = 10
 WORDS = 8
 MIN_LETTERS, MAX_LETTERS = 4, SIZE  # a word's length
 MAX_HIDDEN = 60  # letters in the day's eight words together, so they fit the grid with room to spare
+CHOICES = 20_000  # the most words choose() weighs for a day before it calls the theme not ready
 HINT_COST = 10
 MISS_FREE = 3  # misses that cost nothing
 MISS_COST = 2
@@ -92,6 +93,15 @@ def _fits(chosen: list[Entry], entry: Entry) -> bool:
     return all(word not in o and o not in word for o in others) and len(word) + sum(map(len, others)) <= MAX_HIDDEN
 
 
+def _can_finish(chosen: list[Entry], rest: list[Entry]) -> bool:
+    """Whether the words left could still fill the day's places: enough of them fit with those chosen, and the
+    shortest of them leave room in the grid."""
+    need = WORDS - len(chosen)
+    lengths = sorted(len(e.data["word"]) for e in rest if _fits(chosen, e))
+    letters = sum(len(e.data["word"]) for e in chosen)
+    return len(lengths) >= need and letters + sum(lengths[:need]) <= MAX_HIDDEN
+
+
 def _cell(at: tuple[int, int]) -> Cell:
     return Cell(row=at[0], col=at[1])
 
@@ -114,7 +124,32 @@ class SearchGame(ContentGame[Puzzle, SearchState]):
     max_moves = 200
 
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
-        return content.spread(pool, used, day, WORDS, self.id, seed, _fits)
+        """Eight words that fit together, in the order content.ranked() gives: a word is taken only when the words
+        after it can still fill the places left, and a choice that leads nowhere is undone. So a day finds eight
+        whenever the theme has eight that fit, whatever the order, and the readiness check can ask any order."""
+        ranked = content.ranked(pool, used, day, self.id, seed)
+        weighed = 0
+
+        def pick(chosen: list[Entry], start: int) -> list[Entry] | None:
+            nonlocal weighed
+            if len(chosen) == WORDS:
+                return chosen
+            for at in range(start, len(ranked)):
+                entry = ranked[at]
+                weighed += 1
+                if weighed > CHOICES:
+                    raise NotReadyError("search: too many ways to weigh")
+                taken = [*chosen, entry]
+                if _fits(chosen, entry) and _can_finish(taken, ranked[at + 1 :]):
+                    found = pick(taken, at + 1)
+                    if found is not None:
+                        return found
+            return None
+
+        found = pick([], 0)
+        if found is None:
+            raise NotReadyError(f"search: the theme's words can't give {WORDS} that fit together")
+        return found
 
     def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> Puzzle:
         r = content.rng(seed, self.id, day, "grid")
