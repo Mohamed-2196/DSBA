@@ -109,9 +109,9 @@ On AWS, attach it to an IAM user of its own. On MinIO, the same JSON is a policy
 `mc admin policy attach <alias> dsba-texts --user <key>`.
 
 **`DSBA_BUCKET_ORIGIN`** is the origin presigned URLs point at; the Content-Security-Policy allows uploads to it,
-and images, PDF previews and media from it. With `DSBA_S3_FORCE_PATH_STYLE=false` on AWS that is
-`https://<bucket>.s3.<region>.amazonaws.com`; with path-style URLs (MinIO) it is the endpoint's origin, e.g.
-`https://files.example.com`.
+and images, PDF previews and media from it. With `DSBA_S3_FORCE_PATH_STYLE=false` the URLs use the bucket's own
+host: on AWS `https://<bucket>.s3.<region>.amazonaws.com`, on a Railway bucket `https://<bucket>.t3.storageapi.dev`;
+with path-style URLs (MinIO) it is the endpoint's origin, e.g. `https://files.example.com`.
 
 ## 4. Start
 
