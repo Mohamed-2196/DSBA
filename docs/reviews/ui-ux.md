@@ -1,5 +1,452 @@
 # UI/UX review: DSBA Hub on the real API
 
+## Round 13 review (18 October 2026)
+
+Reviewer: UI/UX. Build: `feature/backend` at `25234ed` (rounds 11 and 12), then `ac4647e` once round 13's Daily fix,
+repeats and squash were merged during the review; every finding below was re-checked on `ac4647e`. The web app ran
+from my own Vite (`:5191`) against the shared stack's API, plus a production build (`vite preview`, `:5192`) for one
+check. No application code was changed.
+
+Method: Playwright 1.56 driving the installed Google Chrome. Personas by dev-login: a guest (first visit, and with a
+year), Layla (Year 1, `ux13-y1@example.com`), Sara (Year 2), Yusuf (Year 3, `ux13-y3@example.com`), Rami (rep) and
+Mohamed (admin). About 1,100 page loads: every route and every Manage and Access tab at 360×740, 390×844 and 844×390
+(touch), 768×1024 and 1180×820 (touch), 1440×900, 1920×1080 and 3440×1440, and dark mode at 390 and 1440. Scripted
+checks on each load: sideways scroll (the document and the visual viewport), elements past the edge, text clipped
+without an ellipsis, touch targets by hit-testing (re-measured fully in view before reporting), the longest line in
+characters, uppercase transforms, text contrast on solid grounds, unlabelled fields and page errors. Flows walked by
+script, with screenshots looked at on contact sheets:
+- all six Daily games won (Year 1 on a phone, Year 2 at 1440) and lost (Year 3 and a guest on a phone), with the
+  rules, giving up and the result card;
+- the shell's overlays (More, account menu, bell, year switcher, ⌘K, Customise Home, Mini Noora, report a bug) at
+  390, 844×390 and 1440;
+- every Manage dialog at 390, 844×390 and 1440, the module editor and the newsletter editor;
+- Time me, an upload, a request, a calendar event, a board from a template, formulas typed and pasted into a note;
+- keyboard paths through menus, the palette and dialogs, with and without reduced motion.
+
+Caveats: the student-tester's e2e runs shared the stack. For part of the sweep nine features were off for students
+(notes, board, summary and six smaller switches); those screens were swept again once they were back. Noora's AI is
+off locally (no key), so she was seen in script mode only. The data holds e2e leftovers (`[e2e …]` titles). Test data
+I left: Layla's empty Study board, and the Daily plays of Layla, Sara and Yusuf for 18 October. A mistaken tap created
+two notes (see UX-44); I deleted both.
+
+### Summary
+
+**Daily, judged fresh.** The round 12 hub is not broken any more: it uses the design system, every game fits a
+phone, and the rules sheets with worked examples, the result strip and the keyboard shortcuts are well made. But it
+reads as a settings grid, not a games page. Six identical white cards each carry a small pastel glyph, a grey "Up to
+100 points" pill and a blue "Play" button, under a five-line status card. On a 390 px phone the first game starts
+480 px down (570 px once all six are done). Dark mode makes Correlations' yellow group and Data Mine's yellow chip
+unreadable (1.8:1). The Word refuses everyday words although its rules promise "any English word". A guest's
+finished games now reach the hub (fixed during the review by `round13/dailyfix`).
+
+**The rest.** Structurally sound: no page scrolls sideways except Access → Roles on tablets, dialogs fit 844×390,
+and the round 10 majors are fixed. What makes it feel unfinished is a layer of repetition and chrome:
+- the same name twice on screen (Manage's picker and heading, the editors' chips and headings, a lesson's poster and
+  title);
+- "New" badges that never go away, quota meters on every notebook and board, an empty To-do block on Home;
+- uppercase labels, and notes in the new editors that run to 100–150 characters a line.
+
+One real break: on the most common phones (375 to 412 px) the past paper toolbar overlaps, and tapping Time me opens
+"Annotate in my notebook" and makes a note.
+
+Counts: 1 blocker, 6 majors (one fixed during the review), 14 minors and a group of nits: UX-44 to UX-65.
+
+### Earlier findings
+
+| ID | Was | Now | Evidence |
+|---|---|---|---|
+| UX-23 | nit | **open** | The newsletter's draft titles are still 31–32 px tall under touch (`.nl-drafts__name`). |
+| UX-24 | nit | **partly fixed** | Library lines name the file; new actions have no labels and colons remain (UX-63). |
+| UX-25 | nit | **open** | The leave dialog still says "Cancel" (`ConfirmDialog` has no cancel label; `newsletter/editor/Editor.tsx:522`); `.nl-editor__side` still can't take focus. |
+| UX-26 | nit | **open** | Smooth scrolls ignore reduced motion in `GradesPage.tsx:348`, `StyleGuidePage.tsx:231` and now `notes/NotePage.tsx:360`; "decided not to publish" remains in `YourUploads.tsx:59`. |
+| UX-27 | nit | **partly fixed** | PDFs show their first page; JPG and PNG uploads still get the typographic card. |
+| UX-28 | major | **fixed** | Your account loads with the module catalogue delayed 2.5 s; no crash. |
+| UX-29 | major | **fixed** | At 844×390 the chat is a full-screen sheet, the AI-off note is a line in the conversation, and an answer's start is in view. Leftover nit in UX-65. |
+| UX-30 | major | **fixed** | Manage has a grouped list (Waiting, Publish, Look after) with counts from 1024 px and a "Show" picker below. New repetition: UX-51. |
+| UX-31 | minor | **fixed** | Phones: Noora waits in the tab bar. Laptops and monitors: her own lane; she covers nothing at 390, 1440 or 3440. |
+| UX-32 | minor | **mostly fixed** | "Open until 24 Oct", "28 files added to MT1186". Open: "Help the year below" on Home, "Help the years below" in Customise Home. |
+| UX-33 | minor | **fixed** | "Your modules", the option as radios with "Not decided yet", and the new intro. |
+| UX-34 | minor | **fixed** | "Past papers" opens the Files tab's sittings (`?tab=files#papers`). |
+| UX-35 | minor | **partly fixed** | Real covers, all 16 module icons, the grades bars hidden until a mark. "Type a mark to see your class" is still 76 px display type. The sidebar logos stay at Mohamed's request. |
+| UX-36 | minor | **partly fixed** | No duplicate "variance" results. Raw file names ("ST3134 - Advanced Statistics - … - Zone-B"), PDF-soup snippets and a Year 1 video first for a Year 2 student remain. |
+| UX-37 | minor | **partly fixed** | Time me says the clock keeps going and tells you when time's up. The paper still opens outside the Hub on phones, and the button can't be pressed at 375–412 px (UX-44). |
+| UX-38 | minor | **open** | Career Navigator is 13,829 px tall at 390. |
+| UX-39 | nit | **fixed** | Section links stay on their heading's line on phones. |
+| UX-40 | nit | **mostly fixed** | Formulas tip, "You asked", results day and About are fixed. Open: Numbers' hint "0 pauses her AI answers." (`manage/NooraNumbers.tsx:43`). |
+| UX-41 | nit | **fixed** | Focus moves to the module's heading, the save bar sticks while there are changes, and the icon field explains itself. |
+| UX-42 | nit | **open** | "Install the app" is still only in Start here: not in the More drawer or the account menu. |
+| UX-43 | nit | **mostly fixed** | Electives links and the library placeholder are fixed, and Noora's message time uses the UI font. Open: at 390 and 768 the footer's first contributor sits 11 px lower than the others. |
+
+### Responsive results
+
+- **Sideways scroll:** none, except Access → Roles at 768, 844×390 and 1180 (UX-50).
+- **Overlap:** the past paper toolbar from 360 to 820 px (UX-44). Nothing else overlaps; Mini Noora keeps to her lane.
+- **Clipped text:** the calendar's month chips at 1180 and 1440 (UX-65).
+- **Dialogs on short screens:** all fit 844×390 with their actions in view and focus inside: Add a module, New role,
+  Start a new issue, Add an answer word, Customise Home, the palette and the six rules sheets. /noora's welcome is
+  cramped there (UX-65).
+- **Touch targets:** page-level controls pass when measured fully in view. Leftovers: the newsletter's draft titles
+  (UX-23), Time me under the Annotate button (UX-44), Daily's past-day cells at 360 (38 px wide) and the career
+  page's featured link (37 px hit area). The game grids (Data Mine 31–33 px, Sudoku 34–38 px per cell) are small by
+  nature and work.
+- **Measure:** see UX-59.
+- **Long pages at 390:** Career Navigator 13,829 px (UX-38), Gaps 12,114, the library 5,481, Year 1's Home 4,220,
+  Manage's Career editor 6,201, Guides 4,861 and Daily puzzles 4,704.
+- **Dark mode:** consistent across every screen at 390 and 1440, apart from UX-48.
+
+### New findings
+
+| ID | Severity | Title |
+|---|---|---|
+| UX-44 | blocker | Past paper toolbar on phones: controls overlap, and Time me opens the notebook at 375–412 px |
+| UX-45 | major | The Daily hub reads as a settings grid, not a games page |
+| UX-46 | major | A guest's finished Daily games didn't reach the hub or Home (**fixed** during the review, `107516f`) |
+| UX-47 | major | The Word refuses everyday words that its rules allow |
+| UX-48 | major | Dark mode: Correlations' yellow group and Data Mine's yellow chip are unreadable |
+| UX-49 | major | With reduced motion on, menus and popovers don't take keyboard focus |
+| UX-50 | major | Access → Roles pans sideways on tablets |
+| UX-51 | minor | Manage says each section's name twice, and its editors push the first field down on phones |
+| UX-52 | minor | Add a module: the reported clipped label, and focus after a failed submit |
+| UX-53 | minor | Lessons on phones: the video is below the fold, and the poster repeats the title |
+| UX-54 | minor | In script mode Noora offers starter cards that lead nowhere |
+| UX-55 | minor | Finished games: a lit selection on a lost board, and an emoji block on the result card |
+| UX-56 | minor | Home shows an empty To-do block to everyone without a board |
+| UX-57 | minor | Quota meters as page furniture in Notes and Boards |
+| UX-58 | minor | Notebook: pasted formulas stay as raw LaTeX |
+| UX-59 | minor | Lines run past 75 characters in the round 11 and 12 screens |
+| UX-60 | minor | Uppercase labels against sentence case |
+| UX-61 | minor | "New" badges that never go away |
+| UX-62 | minor | Chip scrollers stop mid-chip on phones |
+| UX-63 | minor | Activity shows raw action names and feature keys |
+| UX-64 | minor | Manage → Daily puzzles names the games differently from the hub |
+| UX-65 | nit | Small leftovers |
+
+#### UX-44 Past paper toolbar on phones: controls overlap, and Time me opens the notebook (blocker)
+
+- **Where:** a past paper's page (`/library/st2133-exam-paper-may-2026`), signed in, with notes on; 360 to 820 px
+  wide. Screenshot: `screens/ux13-paper-toolbar-390.png`.
+- **What a student runs into:**
+  - The toolbar holds the code, Star, Report, Time me, "Annotate in my notebook" and Download. Time me and Ask Noora
+    shrink to icons on phones; the Annotate button keeps its full label, shrinks below it (100–159 px wide for 143–174
+    px of label), and its centred label spills both ways: over Time me and under Download. The code reads "ST21:".
+  - At 375–412 px (iPhone 12 to 16, Pixel) the middle of the Time me icon belongs to the Annotate button. Tapping the
+    timer opens a new note (`/notes/<id>`) instead of the timer, and leaves a stray note each time. Playwright's tap
+    on Time me times out because the Annotate button intercepts it.
+- **Fix:**
+  - `library/FileViewerPage.tsx`: on phones render Annotate as an `IconButton` (label "Annotate in my notebook", icon
+    `Notebook`), as Time me already is; or put Report, Copy link and Annotate in one "More" menu below 700 px.
+  - `ui/Button.css`: `.ui-button { flex-shrink: 0; }`, so a button is never narrower than its label; then guard the
+    row with `.lib-tb__actions { overflow-x: auto; }`.
+  - `FileViewerPage.css`: `.lib-tb__facts strong { flex-shrink: 0; }`, so the module code shows whole.
+  - Add an e2e at 390×844 that taps Time me and expects its dialog.
+
+#### UX-45 The Daily hub reads as a settings grid, not a games page (major)
+
+- **Where:** `/daily`, every size; 390×844 worst. Screenshot: `screens/ux13-daily-hub-390.png`.
+- **What a student sees:**
+  - The first phone screen is status, not games: "Daily #18 · Sunday 18 October", the title, the theme pill and its
+    blurb, then a card with a ring ("0/6"), "Six new puzzles", "0 points today", "Start a streak today" and "New
+    puzzles in 11:50:46", then the tabs. The first game starts 480 px down (570 px once all six are done): one and a
+    half of the six games show.
+  - Six identical cards: a 48 px pastel glyph, the name, a two-line tagline, a rule, a grey "Up to 100 points" pill
+    and a blue "Play" button. That is six primary buttons in one view and the same points six times (only Sudoku says
+    150). Nothing shows today's puzzles or what is new about them.
+  - When all six are done, three things say so: the ring "6/6", "All six done" and a green "That's all six for today"
+    banner. The foot line repeats that the puzzles change at midnight, under a countdown that already says it.
+- **Fix** (`daily/DailyPage.tsx`, `DailyPage.css`, `components/GameCard.tsx`):
+  - One header: "Daily #18 · Data week", the blurb under it, and one status row: "0 of 6 · 0 points · Start a streak
+    · Next set in 11 h 50 min" (no seconds). Drop the summary card, the "That's all six" banner and the foot line.
+  - Make each game a tile: two columns on phones, three from 900 px. The glyph at 72–96 px on the game's own tint
+    (the `--dy-*` tokens) fills the tile's top; then the name, a one-line tagline and the state in a corner ("New",
+    "Playing", "Solved · +80"). The whole tile is the link: no "Play" button and no "Up to 100 points" pill (scoring
+    belongs in the rules).
+  - On a solved tile, show the play's own picture (The Word's colour rows, the groups' colour bars) instead of "See
+    result".
+  - Target: all six tiles on the first screen at 390×844.
+  - The glyphs are drawn in code. If Mohamed wants richer art, write six prompts (one per game, in the module icons'
+    flat style) into `docs/design/asset-prompts-round3.md`.
+
+#### UX-46 A guest's finished Daily games didn't reach the hub or Home (major, fixed)
+
+- **Where:** `/daily` and Home's "Today's Daily", as a guest.
+- **What a guest saw on `25234ed`:** after solving The Word in three guesses, the hub still said "0/6 · Six new
+  puzzles" with "Play" on The Word, and Home said "0 of 6 done · The Word Not started", while the game showed
+  "Impressive, solved in 3 guesses".
+- **Now:** fixed by `round13/dailyfix` (`107516f`, merged during the review): the hub says "1 of 6 done" and the card
+  "Solved · See result", and Home agrees.
+
+#### UX-47 The Word refuses everyday words that its rules allow (major)
+
+- **Where:** `/daily/word`, any size, anyone. Manage → Daily puzzles says "224 words in the guess list". Screenshot:
+  `screens/ux13-word-refused-390.png`.
+- **What a student runs into:** the rules say "Type a five-letter word and press Enter. Your guesses can be any
+  English word." On this stack CRANE, HOUSE, WATER, ABOUT, STORY, PLANT and GHOST are refused: "That's not in our
+  word list. Try another word." A first guess is likely to be refused, and the game feels broken.
+- **Why:** the app ships 12,560 words in `api/app/seed/data/daily/guesses.txt`, but `load_daily()`
+  (`app/seed/loader.py:269`) loads them only into an empty Daily, and this database got its Daily from a content
+  import. The list holds 224 words, mostly answers.
+- **Fix:** insert the shipped list whenever it's missing (`ON CONFLICT DO NOTHING`, at start-up or in `daily-content
+  import`); in Manage, warn when the guess list is under 5,000 words. Check the Railway dev site's count in Manage →
+  Daily puzzles.
+
+#### UX-48 Dark mode: Correlations' yellow group and Data Mine's yellow chip are unreadable (major)
+
+- **Where:** `/daily/groups` once the yellow group is solved, and `/daily/search` once the first word is found; dark
+  theme, any size. Screenshot: `screens/ux13-groups-dark-390.png`.
+- **What a student sees:** white text on mustard: "PYTHON DATA TYPES / LIST, TUPLE, BOOL, SET" at 1.83:1, and the
+  found chip "CLOUD" at 1.86:1. The green, blue and purple groups pass (4.9 to 7.9:1).
+- **Fix:** in `daily/daily.css` keep level 1 and tone 0 light in dark mode too, and set their text to
+  `var(--highlight-ink)` (`.dgr-group--1, .ds-word.is-tone-0 { color: var(--highlight-ink); }`); or darken `--dy-l1`
+  under `[data-theme='dark']` until `--ink` reaches 4.5:1. Add the game tints to the style guide's contrast table.
+
+#### UX-49 With reduced motion on, menus and popovers don't take keyboard focus (major)
+
+- **Where:** every `Menu`: the bell, the account menu, the library's Sort and the rest; any size; with "Reduce
+  motion" on (macOS, iOS) or animations off (Windows). No screenshot: a keyboard path.
+- **What a keyboard user runs into:** Enter on the bell opens the popover, but focus stays on the bell: in five
+  tries out of five, against none with motion on. ArrowDown does nothing, and Tab can move on to "Upload a file"
+  while the popover stays open. The account menu and Sort behave the same. With motion on, focus lands on the first
+  item, as UX-2 fixed.
+- **Fix:** `ui/Menu.tsx` focuses the first item in an effect once `pos` is set. Under reduced motion the call lands on
+  an item whose text isn't rendered yet (the panel is most likely still `visibility: hidden`), so the browser ignores
+  it. Focus inside a `requestAnimationFrame` after the position is applied, as `useOverlay` does, and let ArrowDown on
+  the trigger move into an open popover. Add an e2e that opens the bell with `reducedMotion: 'reduce'`.
+
+#### UX-50 Access → Roles pans sideways on tablets (major, for admins)
+
+- **Where:** `/admin/access?tab=roles` at 768×1024 (222 px of sideways pan), 844×390 (146 px) and 1180×820 (10 px).
+  No screenshot: measured from the document's width and the visual viewport's offset.
+- **What an admin runs into:** the roles table scrolls inside its panel, but a visually hidden "(can't be changed)"
+  label in the table is absolutely positioned and escapes the scroller, so the page is 990 px wide on a 768 px
+  tablet. A touch browser zooms the whole page out or lets it pan.
+- **Fix:** `access/AccessPage.css`: `.access-grid-wrap { position: relative; }`, so the wrap clips its hidden labels.
+  Add a fade at the wrap's right edge while it scrolls: at 768 the Student, Newsletter manager and Content manager
+  columns are cut at the panel's edge with no cue.
+
+#### UX-51 Manage says each section's name twice, and its editors push the first field down on phones (minor)
+
+This is the reported "Guides heading twice".
+
+- **Where:** Manage, every section; 390×844 worst. Screenshot: `screens/ux13-manage-guides-390.png`.
+- **What a rep sees:**
+  - Below 1024 px the "Show" picker reads "Guides" and the heading right under it reads "Guides". From 1024 px the
+    highlighted list item and the heading repeat it side by side.
+  - In the document editors (Guides, Site settings, Forum, Mini Noora, Grades calculator, Career Navigator) the chip
+    "Start here" sits just above the heading "Start here".
+  - On a phone, Guides shows the picker, the heading, a status line, four buttons on two rows ("Open the page",
+    "Preview", "Undo changes", "Save") and three chips on two rows before its first field, about 920 px down.
+  - The same pattern on a phone's board: the tab "To do 0" over a column headed "To do 0".
+- **Fix:**
+  - `manage/ManagePage.tsx`: make `.manage-panel__title` `visually-hidden`; the picker and the list already name the
+    section.
+  - `ui/docEditor/kit.tsx`: drop the H4 `.dedit__section` when chips name the part, and keep its `about` line under
+    the chips. Below 700 px move "Open the page" and "Preview" into a "…" menu, and make the Save row a sticky bar at
+    the bottom, as the module editor's.
+  - `board/BoardPage.tsx`: on phones, leave the column's title to the tabs.
+
+#### UX-52 Add a module: the reported clipped label, and focus after a failed submit (minor)
+
+- **Where:** Manage → Modules → Add a module. No screenshot: not reproduced.
+- **What I found:** the clipped first label did not reproduce. In Chrome at all eight sizes, in development and
+  production builds, light and dark, with motion on and off, after a failed submit and after tabbing back to the
+  first field, "Name" sits 12–16 px inside the dialog body. The likely case is Safari on an iPhone with the keyboard
+  up: the autofocused Name field is scrolled to the top of the sheet and its label slides under the header. One real
+  gap: after "Add the module" with empty fields, the errors show but focus stays on the button.
+- **Fix:**
+  - `ui/Modal.css`: `.ui-modal__body, .ui-drawer__body { scroll-padding-top: var(--sp-32); }` and
+    `.ui-field :is(input, select, textarea) { scroll-margin-top: 2.25rem; }`, so a field scrolled into view keeps its
+    label.
+  - Autofocus the first field only on fine pointers: `data-autofocus` when `(pointer: fine)` matches.
+  - `modules/editor/ModulesEditor.tsx` (`AddModule`): after a failed submit, focus the first invalid field.
+
+#### UX-53 Lessons on phones: the video is below the fold, and the poster repeats the title (minor)
+
+- **Where:** `/modules/<id>/lessons/<lesson>` at 390×844, and the poster at every size. Screenshot:
+  `screens/ux13-lesson-390.png`.
+- **What a student runs into:**
+  - The module's header (icon, code, name, description, year and exam chips, counts), the card "42 video lessons ·
+    Start lesson 1 · Past papers · Plan my revision" and the tabs fill the first screen. The video starts about 700 px
+    down, and "Start lesson 1" shows while you are already on a lesson.
+  - The poster lays "Chapter 1: Probability Space", the lesson's title and "Video 1 of 9 · A Probability Space" over a
+    YouTube thumbnail that carries its own title text; the same three lines repeat under the poster.
+- **Fix:** on lesson addresses (`modules/ModulePage.tsx`) collapse the header to one line (code, short name, back to
+  the module) above the tabs, and hide the "Start lesson 1" card on the Lessons tab. In `modules/Poster.tsx` keep only
+  the play button and the "YouTube" chip over the thumbnail.
+
+#### UX-54 In script mode Noora offers starter cards that lead nowhere (minor)
+
+- **Where:** `/noora` and the chat card, any size, whenever she answers from her script: no key, the month's budget
+  spent, or the day's cap reached. Screenshot: `screens/ux13-noora-script-dead-end-390.png`.
+- **What a student runs into:** the page says "My AI answers aren't available right now" and still offers eight
+  cards: Explain a concept, Solve step by step, Quiz me, Plan my revision, Summarise a paper, Career advice, Write or
+  proofread, Find it in the Hub. "Quiz me" sends "Quiz me with five questions on hypothesis testing, one at a time,
+  and mark each answer." and gets "I couldn't find that in the DSBA material yet."
+- **Fix:** when `useNooraAi` reports script mode, show only what the script answers: "Find it in the Hub", "When is my
+  next exam?", "What's in ST2133?", "Where is <topic> taught?". Keep one signal in the header: the "Script answers"
+  chip or the notice, not both.
+
+#### UX-55 Finished games: a lit selection on a lost board, and an emoji block on the result card (minor)
+
+- **Where:** `/daily/groups` lost as a guest at 390, and the result card at every size. Screenshot:
+  `screens/ux13-groups-guest-lost-390.png`.
+- **What a student sees:**
+  - A guest's lost Correlations board keeps the last wrong pick lit in blue (REDIS, SCHEMA, RELATION, CHEAT) beside
+    "Not this time": it looks mid-game.
+  - The result card's share preview is a centred grey box of the operating system's emoji squares, glossy and in
+    colours that aren't the Hub's: the loudest thing on the card.
+  - "Guest: not kept" reads as a fragment, and Nearest Neighbour's preview breaks "…in 5 guesses, 1 / hint".
+- **Fix:** `games/groups/GroupsGame.tsx`: clear the pick when the play is over and show the unsolved words at 60% with
+  "3 groups not found". `components/ResultDialog.tsx`: draw the result in the Hub's own tile colours (`--dy-*`) as
+  the card's picture and keep the emoji for the copied text; say "Points aren't kept for guests"; left-align the
+  share text.
+
+#### UX-56 Home shows an empty To-do block to everyone without a board (minor)
+
+- **Where:** Home, signed in without a board: the top-right half of the first screen at 1440, the second block
+  (about 180 px) at 390. Screenshot: `screens/ux13-home-todo-1440.png`.
+- **What a student sees:** "Nothing to do right now. Add tasks, lessons and deadlines to your boards to plan your
+  study. Open my boards": an empty panel in Home's best spot.
+- **Fix:** skip the To-do block while the student has no cards (it stays in Customise Home), or put one line under Up
+  next instead: "Plan your week on a board →".
+
+#### UX-57 Quota meters as page furniture in Notes and Boards (minor)
+
+- **Where:** `/notes` and `/board`, every size; phones worst. Screenshot: `screens/ux13-notes-meters-390.png`.
+- **What a student sees:** Notes shows "Text and handwriting: 1 KB of 25 MB" and "Pictures and files: 0 KB of 250 MB"
+  meters in its side panel; on a phone they sit above the notes list, which starts about 760 px down. Every board ends
+  with "1 of 20 boards · 0 of 1,000 cards · 0 KB of 200 MB of files".
+- **Fix:** show a limit only past 80% of it (with a quiet line in Your account otherwise). On phones put the notes
+  list first, with the notebooks as a Select above it.
+
+#### UX-58 Notebook: pasted formulas stay as raw LaTeX (minor)
+
+- **Where:** a note, any size. Screenshot: `screens/ux13-notes-raw-latex-1440.png`.
+- **What a student runs into:** typing `$x^2$ ` sets a formula, but pasting `$\frac{a}{b}$` or `$$E[X]=\mu$$` (from
+  Noora, a forum post or another note) keeps the dollar signs and the LaTeX. Sara's "Probability Distributions Cheat
+  Sheet" shows `$$f(x) = \frac{1}{\sigma \sqrt{2\pi}} …$$` in the note and in the notes list.
+- **Fix:** `notes/text/nodes.tsx` has input rules only: add `addPasteRules()` with Tiptap's `nodePasteRule` for the
+  inline and block patterns, and render the list's previews with `renderTeX` (or strip the markup).
+
+#### UX-59 Lines run past 75 characters in the round 11 and 12 screens (minor)
+
+UX-20's measure regressed in the new screens. The longest lines measured (no screenshot: counted in the page):
+- the switch descriptions in Your account and the module editor (`.ui-switch__desc`): 115 characters at 1180–3440;
+- Manage's editor notes and hints: `.dedit__note` 97, `.ui-field__hint` 99–115, `.nl-drafts__desc` 113–149,
+  `.manage-noora__note` 114–145, `.cedit__note` 103, `.dcms__note` 101;
+- the composer's photo note (`.forum-composer__attach-note`): 89–119;
+- the Files tab's past papers intro (`.pp__intro`): 96;
+- a paper's "Questions by topic" text (`.lib-qtags__desc`): 104–108 at 768–844;
+- Daily's leaderboard note (`.dh-board__trust`): 105; the grades privacy note (`.grades-privacy`): 100.
+
+**Fix:** `max-width: var(--measure)` on `.ui-switch__desc` and `.ui-field__hint` in `src/ui`, and on the classes
+above; or, for Manage at once, `.manage-panel p { max-width: var(--measure); }`.
+
+#### UX-60 Uppercase labels against sentence case (minor)
+
+- **Where:** Correlations' group labels (`.dgr-group__label`); the result's answer (`.dg-result__answer`: "PYTHON",
+  while Nearest Neighbour's board says "python"); Electives' "SKILLS IT BUILDS" and "LEADS TO" (`.elective__label`);
+  Start here's "BIBF" and "UNIVERSITY OF LONDON" (`.start-place__whose`); the poll kicker (`.nl-poll__kicker`); Manage
+  → Modules' "YEAR 1" to "YEAR 3" (`.medit__year-title`); the editors' preview labels "PREVIEW", "HER CHAT, OPENING",
+  "HER FULL PAGE" (`.cedit-preview__title`, `.dedit-preview__label`); the library's cover kinds "STUDENTS' NOTES",
+  "PAST PAPER" (`.lib-cover__kind`). The notebook has none left. Screenshot:
+  `screens/ux13-uppercase-electives-1440.png`.
+- **Fix:** remove `text-transform: uppercase` and its letter-spacing from those nine rules; keep capitals only for
+  puzzle letters and words (`.dw-tile`, `.dgr-word`). Style small labels with `--fw-semibold` and `--ink-2`.
+
+#### UX-61 "New" badges that never go away (minor)
+
+- **Where:** the sidebar (a yellow "New" on Noora, Forum and Daily), the icon rail and the tab bar (yellow dots on
+  Noora and Forum): every page, every persona. Screenshot: `screens/ux13-nav-new-badges-1440.png`.
+- **What a student sees:** `isNew: true` in `shell/nav.ts` marks three of thirteen items new for everyone, for good;
+  a phone's tab bar always carries two yellow dots. A badge that never changes says nothing and makes the nav busy.
+- **Fix:** show "New" until the person has opened that page once (`hub.seen.<id>` in local storage), or until a date
+  set in Site settings; never more than one at a time.
+
+#### UX-62 Chip scrollers stop mid-chip on phones (minor)
+
+- **Where:** the library's module and type filters, the forum's year tabs ("Stu…") and its filter chips ("Exam p…");
+  360 to 430 px. Screenshot: `screens/ux13-chips-cut-390.png`.
+- **What a student sees:** the rows scroll sideways but end at the content padding, 16 px from the screen's edge,
+  cutting a chip mid-word with no fade. It reads as broken, not as more to see.
+- **Fix:** let the scrollers bleed to the screen's edge (`margin-inline: calc(-1 * var(--page-pad-left));
+  padding-inline: var(--page-pad-left);`) and fade the last 24 px while there is more (`mask-image:
+  linear-gradient(to right, #000 calc(100% - 24px), transparent)`). On phones the library's module filter can be a
+  Select.
+
+#### UX-63 Activity shows raw action names and feature keys (minor)
+
+- **Where:** Manage → Activity and Access → Activity. Screenshot: `screens/ux13-activity-1440.png`.
+- **What an admin reads:** "Maryam E2E module delete “E2E suggestions …”", "module update", "request remove",
+  "request status", "site update “Site settings”", "bug report status", "switched video_suggestions off". Suggestion
+  and Daily lines still end in a colon before the quote ("added a suggested video as a lesson: “…”").
+- **Fix:** in `access/audit.ts`, a label for every action the API records: `module.create`, `module.update`,
+  `module.delete`, `request.remove`, `request.status`, `site.update`, the bug report's status and `noora.limits`;
+  `feature.switch` with the Features tab's names ("switched Suggested videos off"); no colons (UX-24). A unit test
+  that every action in the API's audit calls has a label would keep it so.
+
+#### UX-64 Manage → Daily puzzles names the games differently from the hub (minor)
+
+- **Where:** Manage → Daily puzzles. Screenshot: `screens/ux13-daily-editor-names-1440.png`.
+- **What a rep reads:** the chips say "The word", "Groups", "Word search", "Quiz" and "Nearest neighbour", where
+  students see "The Word", "Correlations", "Data Mine", "The Daily Query" and "Nearest Neighbour". A rep fixing a
+  Data Mine word has to know it is "Word search".
+- **Fix:** the games' names, with the content after them: "Correlations · 101 groups", "Data Mine · 172 words".
+
+#### UX-65 Small leftovers (nit)
+
+- Calendar month grid at 1180 and 1440: event chips cut their titles mid-letter (`.cal-chip__title`). Add
+  `white-space: nowrap; text-overflow: ellipsis`.
+- One name for "Help the year below" (Home) and "Help the years below" (Customise Home).
+- Year 3's modules page at 390: the subtitle wraps with its "|" separator at the start of the second line.
+- Correlations: long words shrink and hyphenate ("CARDINAL-ITY"), so one board has three type sizes. Size the
+  board's type from its longest word, without hyphens.
+- Daily → Past days at 360: the day cells are 38 px wide. Cut `border-spacing` to 2 px.
+- Noora's "Where to look" subtitles ("Sun 18 Oct", "EC2020") use the monospace font (`.nc-card__code`). Use the UI
+  font with tabular figures.
+- At 844×390: /noora's starter cards are cut in half by the composer, and in the chat card "Jump to latest" floats
+  over the first link of an answer.
+- Newsletter editor at 768: the actions squeeze the title into "Edit / issue 99". Wrap the actions under the title
+  below 900 px.
+- The sidebar at 1440×900 cuts "UoL student portal" under the Theme row (it scrolls). 40 px rows on fine pointers
+  would fit thirteen items and two links.
+- The calendar's other-month day numbers and the year menu's "Current" are 3.64:1, under AA.
+- The forum composer's hidden photo input has no label.
+- Library: the real first pages of UoL exam papers look alike at grid size (a white page with a crest). Print the
+  code, year and kind under each cover so they can be told apart.
+
+### What works well and should stay
+
+- **Daily's rules sheets** with worked examples (TREND, CHART, SLOPE), shown once on a first visit; the phone game
+  bar (back, title, rules, more); the result strip under a finished board; keyboard shortcuts per game.
+- **Manage's grouped list** with counts (Waiting, Publish, Look after), and the module editor: focus on open, the save
+  bar that sticks while there are changes, and the picture field that explains itself.
+- **Mini Noora's lane** on laptops and her tab on phones: she no longer covers the page.
+- **Dark mode**: consistent across every screen apart from UX-48.
+- **Board templates** as a start page, and the year prompt with "Showing Year 1" for a first visit.
+
+### The ten changes that would most improve the look and feel
+
+1. **Rebuild the Daily hub around six tiles that show their state**, all on a phone's first screen, with one status
+   line and no per-card "Play" buttons or points pills (UX-45, UX-55).
+2. **Fix the past paper toolbar on phones**, and stop any button shrinking below its label in the design system
+   (UX-44).
+3. **Say each thing once:** one heading per section in Manage and the editors, one title per lesson, one "done" per
+   Daily (UX-51, UX-53, UX-45).
+4. **Remove chrome that never changes:** permanent "New" badges, quota meters, the empty To-do block (UX-61, UX-57,
+   UX-56).
+5. **Give every tint a text colour that passes in both themes**, and put the game tints in the style guide's contrast
+   table (UX-48).
+6. **Sentence case everywhere** except puzzle letters (UX-60).
+7. **Hold text to the measure in the design system**, not page by page (UX-59).
+8. **Content first on phones:** the lesson's video, the notes list, a Manage editor's first field, Career Navigator
+   in sections (UX-53, UX-57, UX-51, UX-38).
+9. **Make scrollers look scrollable and keep what they hold inside:** bleed to the edge with a fade, and contain
+   hidden labels (UX-62, UX-50).
+10. **Keep the promises the screens make:** The Word's "any English word" (UX-47), Noora's starter cards in script
+    mode (UX-54), and keyboard focus in menus with reduced motion (UX-49).
+
+---
+
 ## Round 10 review (14 October 2026)
 
 Reviewer: UI/UX. Build: `feature/backend` at `6c90aa9` (rounds 5 to 9 merged), on the shared Docker stack
