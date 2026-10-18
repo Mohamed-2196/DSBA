@@ -33,7 +33,8 @@ class WordData(ApiModel):
 
 class GroupData(ApiModel):
     """Groups: what the group's words share (shown once it's found), how hard it is (1 plainest to 4 trickiest), and
-    its words: four or more, a day shows four of them. No word may be in two groups of the same theme."""
+    its words: four to eight. A day shows four of them, picked from the day's seed, and never a word that another of
+    that day's groups has too."""
 
     game: Literal["groups"]
     label: str = Field(max_length=120)
@@ -94,6 +95,7 @@ class ItemOut(ApiModel):
     version: int
     uses: int  # days it went out on
     last_used: dt.date | None
+    in_today: bool  # today's puzzle, out already, uses it: a save reaches the days to come, a fix today's too
     closest: list[str] | None  # Nearest neighbour's secret words: the closest words, nearest first
     updated_at: datetime
 
@@ -298,6 +300,53 @@ class DayPreview(ApiModel):
     day: dt.date
     theme: Theme
     games: list[PreviewGame]
+
+
+# --- today's puzzles, and fixing them ------------------------------------------------------------------------------
+
+
+class TodayGame(ApiModel):
+    """A game's puzzle today and the items it uses: where a fix starts."""
+
+    game: ContentGame
+    out: bool  # someone has opened it today, so it's kept: a fix makes a new version of it
+    revision: int  # the fixes it has had today (0: as it was made)
+    fixes_left: int  # how many more times it can be fixed today
+    puzzle: PreviewPuzzle | None  # None: the theme can't make it today
+    problem: str | None  # why there's no puzzle
+    items: list[ItemOut]  # the items it uses, as they are now, in the puzzle's order
+    playing: int  # signed-in players partway through it: a fix starts their game again
+    finished: int  # signed-in players who finished it: their results stand
+
+
+class TodayPuzzles(ApiModel):
+    day: dt.date
+    theme: Theme
+    games: list[TodayGame]
+
+
+class TodayFixIn(ApiModel):
+    """A correction to an item today's puzzle uses: its fields as corrected, for today and the days to come. `day` and
+    `revision` are today's puzzle as it was loaded and `version` the item's (409 puzzle_changed when one of them changed
+    since). `dryRun` shows what today becomes and changes nothing."""
+
+    day: dt.date
+    revision: int = Field(ge=0, le=1000)
+    version: int = Field(ge=1)
+    data: ItemData
+    dry_run: bool = False
+
+
+class TodayFixOut(ApiModel):
+    applied: bool  # false on a dry run
+    game: ContentGame
+    revision: int  # today's puzzle's version after this (a dry run: as it is)
+    before: PreviewPuzzle  # today's puzzle as players have it
+    after: PreviewPuzzle  # today's puzzle with the fix
+    changes: list[str]  # what the fix changes in today's puzzle, in plain words; empty: today's puzzle stays as it is
+    playing: int  # signed-in players partway through: their game starts again
+    finished: int  # signed-in players who finished: their results stand
+    item: ItemOut  # the item as it stands after this (a dry run: as it was)
 
 
 # --- a content file (admins) ---------------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 """a board starts from one of the five templates students are offered
 
 Revision ID: 0039
-Revises: 0034
+Revises: 0036
 Create Date: 2026-10-18 16:00:00
 
 Drops the "revision" template: three renamed Study columns, whose name promises the revision plan that "Plan my
@@ -15,7 +15,7 @@ from collections.abc import Sequence
 from alembic import op
 
 revision: str = "0039"
-down_revision: str | None = "0034"
+down_revision: str | None = "0036"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

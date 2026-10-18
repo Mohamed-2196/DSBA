@@ -1,6 +1,7 @@
 """Daily puzzles' content, edited in Manage: the weekly themes and their schedule, each game's puzzle items, the word
 game's guess list and Nearest neighbour's vocabulary. Each day's puzzles are stored the first time they are asked
-for, with the items they took, so neither editing the content nor changing a key ever changes a day that is out."""
+for, with the items they took, so neither editing the content nor changing a key ever changes a day that is out; only
+an editor's fix to today's puzzle does, and it keeps the puzzle it replaced."""
 
 from __future__ import annotations
 
@@ -108,9 +109,10 @@ class DailyItem(Base):
 
 
 class DailySet(Base):
-    """A game's puzzle for one day (and variant: Sudoku's difficulty), made the first time anyone asked for it and
-    never changed after: `puzzle` is what plays are checked against, whatever happens to the content or the keys
-    afterwards. `theme_id` is the theme it was made for (none for Sudoku)."""
+    """A game's puzzle for one day (and variant: Sudoku's difficulty), made the first time anyone asked for it: `puzzle`
+    is what plays are checked against, whatever happens to the content or the keys afterwards. Only a fix to today's
+    puzzle in Manage changes it: the puzzle it replaces is kept (daily_set_revisions) for the plays finished on it, and
+    `revision` counts the fixes. `theme_id` is the theme it was made for (none for Sudoku)."""
 
     __tablename__ = "daily_sets"
     __table_args__ = (check_in("game", get_args(GameId)),)
@@ -120,7 +122,30 @@ class DailySet(Base):
     variant: Mapped[str] = mapped_column(String(12), primary_key=True, default="", server_default="")
     theme_id: Mapped[str | None] = mapped_column(ForeignKey("daily_themes.id", ondelete="RESTRICT"), index=True)
     puzzle: Mapped[dict[str, Any]] = mapped_column(default=dict)
+    revision: Mapped[int] = mapped_column(SmallInteger, default=0, server_default="0")
     created_at: Mapped[datetime] = created_ts()
+
+
+class DailySetRevision(Base):
+    """A day's puzzle as it was before a fix replaced it: the plays finished on it keep their results, so they are
+    shown and checked against this one (DailyPlay.revision)."""
+
+    __tablename__ = "daily_set_revisions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["day", "game", "variant"],
+            ["daily_sets.day", "daily_sets.game", "daily_sets.variant"],
+            name="fk_daily_set_revisions_set",
+            ondelete="CASCADE",
+        ),
+    )
+
+    day: Mapped[dt.date] = mapped_column(Date, primary_key=True)
+    game: Mapped[str] = mapped_column(String(16), primary_key=True)
+    variant: Mapped[str] = mapped_column(String(12), primary_key=True, default="", server_default="")
+    revision: Mapped[int] = mapped_column(SmallInteger, primary_key=True)
+    puzzle: Mapped[dict[str, Any]] = mapped_column(default=dict)
+    created_at: Mapped[datetime] = created_ts()  # when the fix replaced it
 
 
 class DailySetItem(Base):

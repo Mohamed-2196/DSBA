@@ -95,7 +95,7 @@ from app.services import access, otp, sessions
 from app.services.audit import record
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
 from app.services.modules import link_of, student_lesson, student_lessons
-from app.services.outbox import ACCOUNT_NOTICE, wants
+from app.services.outbox import ACCOUNT_NOTICE, ANSWER, answer_of, wants
 from app.services.storage import Storage
 
 log = logging.getLogger("dsba.accounts")
@@ -104,10 +104,12 @@ NOTIFICATION_KINDS = frozenset(get_args(NotificationKind))
 # ── the signed-in user ───────────────────────────────────────────────────────────────────────
 
 
-# The email switches, one per kind of email (decision D1), and the other switches kept on the account.
+# The email switches, one per kind of email (decision D1), and the other switches kept on the account: the answer
+# about emails at sign-up, and lesson progress.
 EMAIL_SWITCHES = tuple(name for name in Preferences.model_fields if name.startswith("email_"))
-SWITCHES = (*EMAIL_SWITCHES, "track_progress")
+SWITCHES = (*EMAIL_SWITCHES, ANSWER, "track_progress")
 HOME_BLOCKS = frozenset(get_args(HomeBlock))
+NO_ANSWER = "Choose whether we email you about replies and date changes."
 
 
 def _stored(user: User) -> dict[str, Any]:
@@ -128,9 +130,11 @@ def tracks_progress(user: User) -> bool:
 
 
 def preferences_of(user: User) -> Preferences:
-    """The preferences as stored on the account (users.preferences; unset means the default)."""
+    """The preferences as they work for the account: users.preferences, with each email switch as outbox.wants()
+    reads it."""
     return Preferences.model_validate(
         {
+            "notification_emails": answer_of(user),
             **{name: wants(user, name) for name in EMAIL_SWITCHES},
             "track_progress": tracks_progress(user),
             "home_blocks": home_blocks_of(user),
@@ -140,11 +144,14 @@ def preferences_of(user: User) -> Preferences:
 
 def update_preferences(user: User, changes: PreferencesUpdate) -> None:
     """Applies what was sent: a switch sent as null stays as it is; `home_blocks` sent as null goes back to the
-    default layout, and repeated blocks are dropped."""
+    default layout, and repeated blocks are dropped. An email turned on before the question about emails was
+    answered answers it "no": that email comes, and the others stay off."""
     sent = changes.model_dump(exclude_unset=True)
     stored = _stored(user)
     merged: dict[str, Any] = {name: stored[name] for name in SWITCHES if isinstance(stored.get(name), bool)}
     merged.update({name: value for name, value in sent.items() if name in SWITCHES and value is not None})
+    if ANSWER not in merged and any(sent.get(name) is True for name in EMAIL_SWITCHES):
+        merged[ANSWER] = False
     blocks = sent["home_blocks"] if "home_blocks" in sent else home_blocks_of(user)
     if blocks is not None:
         merged["home_blocks"] = list(dict.fromkeys(blocks))
@@ -153,14 +160,18 @@ def update_preferences(user: User, changes: PreferencesUpdate) -> None:
 
 def update_profile(user: User, body: MeUpdate) -> None:
     """Applies PATCH /me: only the fields sent change. A new year clears the papers (another year's choices), and
-    repeated papers are dropped. Raises invalid_display_name (422), or forbidden (403) for a suspended account's
-    new name."""
+    repeated papers are dropped. The first display name needs the answer about emails, unless the account has one.
+    Raises invalid_display_name (422), invalid_input (422) on `preferences.notificationEmails`, or forbidden (403)
+    for a suspended account's new name."""
     sent = body.model_fields_set
     if "display_name" in sent:
         if body.display_name is None:
             raise invalid("displayName", "Enter a display name.", code="invalid_display_name")
         staff = any(slug in (ADMIN, REP) for slug in access.access_of(user).slugs)  # Admin and Rep holders only
         name = clean_display_name(body.display_name, staff=staff)
+        answer = body.preferences.notification_emails if body.preferences is not None else None
+        if user.display_name is None and answer is None and answer_of(user) is None:
+            raise invalid("preferences.notificationEmails", NO_ANSWER)
         if name != user.display_name:
             if user.status == UserStatus.suspended:
                 raise forbidden("Your account is suspended, so your name can't change. Contact a student rep.")

@@ -1,6 +1,6 @@
-"""Fair play in Daily: today's answers stay hidden from guests, the clock starts when a puzzle is first opened, a win
-straight away scores nothing, the repository holds no answer bank, crafted histories and months are refused, and a
-new secret key leaves the kept puzzles and finished plays as they are."""
+"""What keeps Daily fair and its answers safe: a guest's play of today's set shows no answer it didn't find, the
+clock starts at the first look, every win counts however fast, the repository holds no answer bank, crafted guest
+histories are refused, and kept puzzles survive a new secret key."""
 
 from __future__ import annotations
 
@@ -20,8 +20,6 @@ from app.config import get_settings
 from app.core.time import bahrain_today
 from app.models import DailyPlay, User
 from app.services.daily.games import GAMES
-from app.services.daily.games.nearest import NearestGame
-from app.services.daily.games.word import WordGame
 from tests.daily.conftest import API
 
 APP = Path(__file__).resolve().parents[2] / "app"
@@ -48,7 +46,7 @@ def answer_of(db: Session, day: dt.date) -> str:
     return word
 
 
-# ── the play's flow ───────────────────────────────────────────────────────────────────────────────
+# ── the play ──────────────────────────────────────────────────────────────────────────────────────
 
 
 def test_a_guest_play_of_todays_set_shows_no_answer(client_for: ClientFor, db: Session) -> None:
@@ -93,26 +91,19 @@ def test_the_clock_starts_when_todays_puzzle_is_first_opened(
     assert len(db.scalars(select(DailyPlay)).all()) == 1
 
 
-def test_a_one_move_win_straight_away_is_too_fast(
-    client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_every_win_counts_however_fast(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     player = make_user(name="Quick Fingers")
     c = client_for(player)
     assert c.put(f"{API}/daily/me", json={"showOnBoard": True}).status_code == 200
     answer = answer_of(db, bahrain_today())
     c.get(f"{API}/daily/{today()}/word")
     play = move(c, "word", {"kind": "guess", "word": answer}).json()["play"]
-    assert (play["status"], play["scored"], play["tooFast"], play["points"]) == ("won", True, True, 0)
-    assert client_for().get(f"{API}/daily/leaderboard").json()["rows"] == []
-    # Nearest Neighbour's first-guess win is held to the same.
+    assert (play["status"], play["scored"], play["points"]) == ("won", True, 100)
     target = GAMES["nearest"].puzzle(db, bahrain_today(), "").target
     play = move(c, "nearest", {"kind": "guess", "word": target}).json()["play"]
-    assert (play["status"], play["tooFast"], play["points"]) == ("won", True, 0)
-    # At a person's pace, the same win scores.
-    monkeypatch.setattr(WordGame, "min_seconds", 0)
-    monkeypatch.setattr(NearestGame, "min_seconds", 0)
-    other = client_for(make_user())
-    assert move(other, "word", {"kind": "guess", "word": answer}).json()["play"]["points"] == 100
+    assert (play["status"], play["points"]) == ("won", 100)
+    board = client_for().get(f"{API}/daily/leaderboard").json()["rows"]
+    assert [(r["user"]["displayName"], r["points"]) for r in board] == [("Quick Fingers", 200)]
 
 
 # ── the content ───────────────────────────────────────────────────────────────────────────────────
@@ -126,7 +117,7 @@ def test_the_repository_holds_no_answer_bank() -> None:
     assert not [p for name in banks for p in APP.rglob(name)]
 
 
-# ── crafted histories ─────────────────────────────────────────────────────────────────────────────
+# ── crafted requests ──────────────────────────────────────────────────────────────────────────────
 
 
 @pytest.fixture
@@ -168,7 +159,6 @@ def test_rotating_the_secret_key_leaves_kept_puzzles_and_finished_plays_as_they_
 ) -> None:
     # Each day's puzzles are kept the first time they're made, and Daily seeds its choices with a key of its own
     # (daily_seed), so a new DSBA_SECRET_KEY changes nothing that's out.
-    monkeypatch.setattr(WordGame, "min_seconds", 0)  # the clock isn't what this is about
     c = client_for(make_user())
     answer = answer_of(db, bahrain_today())
     sudoku = GAMES["sudoku"].puzzle(db, bahrain_today(), "easy")

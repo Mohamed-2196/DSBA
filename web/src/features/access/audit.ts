@@ -135,6 +135,16 @@ const ACTIONS: Record<string, Describe> = {
   'daily.item.restore': (d) => `brought back a Daily puzzle:${quoted(d.title)}`,
   'daily.item.delete': (d) => `deleted a Daily puzzle:${quoted(d.title)}`,
   'daily.item.import': (d) => `imported Daily puzzles:${quoted(d.title)}`,
+  'daily.today.fix': (d) => {
+    const changes = names(d.changes);
+    const shown = changes.slice(0, 2).join(' ');
+    const more = changes.length > 2 ? ` And ${changes.length - 2} more.` : '';
+    const again = count(d.restarted);
+    const restarted = again
+      ? ` ${formatCount(again)} ${again === 1 ? 'game' : 'games'} partway through started again.`
+      : '';
+    return `fixed today’s Daily puzzle${quoted(d.title)}.${shown ? ` ${shown}` : ''}${more}${restarted}`;
+  },
   'daily.content.import': (d) => `loaded the Daily puzzles’ content from a file${via(d)}`,
   'daily.theme.create': (d) => `added the Daily theme${quoted(d.title)}`,
   'daily.theme.update': (d) => `edited the Daily theme${quoted(d.title)}`,

@@ -145,6 +145,7 @@ ErrorCode = Literal[
     "unknown_word",  # 422: a guess the game doesn't know as a word
     "already_tried",  # 409: the same guess (word, group or line) again
     "game_over",  # 409: the play is finished: no more moves
+    "puzzle_fixed",  # 409: an editor fixed today's puzzle since the play was loaded: load it again (it starts over)
     "not_out_yet",  # 404: a day whose puzzles aren't out yet, before the first one, or a game its theme can't make
     "puzzle_changed",  # 409: another editor saved this puzzle content since it was loaded: load it again
     "theme_not_ready",  # 409: the change would leave a theme that runs without enough puzzles for a game

@@ -414,7 +414,8 @@ questions they raised:
 
 - **D1 Email notifications are real.** Notifications that matter go out by email to people who have an email
   address and keep the matching switch on: replies to your thread or reply, your answer accepted, your upload
-  published or rejected, account security notices (already sent), and new newsletter issues. Delivery uses an
+  published or rejected, account security notices (already sent), new newsletter issues and date changes. Sign-up
+  asks once whether to email them; that answer sets every switch, and until it is given nothing is emailed. Delivery uses an
   outbox table drained by a worker, so a slow mail server never slows a request and failures retry. The
   switches on Your account map one-to-one to these kinds, and the in-app notification is never silenced by an
   email switch.
@@ -465,3 +466,12 @@ re-chains them at merge.
   feature, so they can try one before switching it on.
 - **D13 PostHog stays anonymous analytics.** Its own feature flags stay off. Switches reach it only as the list of
   features on during a visit, set by the web app.
+- **D14 Content editing needs an admin's session, not a fresh code** (Mohamed, 2026-10-18). Site settings and the
+  grade rules save on an admin's normal session; only Mini Noora's instructions ask for a code after ten minutes.
+- **D15 Round 13's product calls** (Mohamed, 2026-10-18):
+  - Daily: an editor can fix today's puzzle; Correlations groups hold four to eight words, four a day; every win
+    scores, however fast.
+  - Notebook pictures sit in line or float anywhere on the page.
+  - Personal events repeat weekly, every two weeks or monthly.
+  - Sign-up asks whether to email replies, mentions and date changes; nothing is emailed until it's answered.
+  - Practice scores for past papers are saved to the account; Home's To-do lists dated cards only.

@@ -117,7 +117,10 @@ def test_guests_sign_in_first(client: TestClient) -> None:
         ({"startTime": "10:00", "endTime": "09:00"}, "endTime"),
         ({"startTime": "10:00", "endDate": "2099-01-01"}, "endDate"),
         ({"repeat": "daily", "endDate": "2099-01-01"}, "repeat"),
+        ({"repeat": "monthly", "endDate": "2099-01-01"}, "repeat"),
+        ({"repeat": "yearly"}, "repeat"),
         ({"repeat": "weekly", "date": "2026-01-05", "repeatUntil": "2026-01-01"}, "repeatUntil"),
+        ({"repeat": "fortnightly", "date": "2026-01-05", "repeatUntil": "2029-01-01"}, "repeatUntil"),
         ({"repeat": "weekly", "date": "2026-01-05", "repeatUntil": "2029-01-01"}, "repeatUntil"),
         ({"colour": "gold"}, "colour"),
         ({"remind": 15}, "remind"),
@@ -337,11 +340,12 @@ def test_the_feed_and_the_file_leave_skipped_days_out(
     c.delete(f"{MINE}/{timed['id']}/occurrences/2026-10-26")
     c.delete(f"{MINE}/{allday['id']}/occurrences/2026-10-07")
     ics = unfolded(client.get(feed_of(c)).text)
-    assert "EXDATE:20261012T150000Z,20261026T150000Z" in ics
+    assert "EXDATE;TZID=Asia/Bahrain:20261012T180000,20261026T180000" in ics
     assert "EXDATE;VALUE=DATE:20261007" in ics
     r = c.get(f"{MINE}/{timed['id']}.ics")
     assert r.headers["content-disposition"] == 'attachment; filename="weekly-gym.ics"'
-    assert "EXDATE:20261012T150000Z,20261026T150000Z" in unfolded(r.text)
+    assert "EXDATE;TZID=Asia/Bahrain:20261012T180000,20261026T180000" in unfolded(r.text)
+    assert "BEGIN:VTIMEZONE\r\nTZID:Asia/Bahrain\r\n" in r.text  # the zone its times are in goes with it
     arabic = add(c, title="مراجعة")
     assert c.get(f"{MINE}/{arabic['id']}.ics").headers["content-disposition"] == 'attachment; filename="my-event.ics"'
 
@@ -390,9 +394,13 @@ def test_the_private_feed(
     assert "SUMMARY:Statistics mock" in ics
     assert "Year 1 exam" not in ics
     assert "Reading week" not in ics
-    assert "DTSTART:20261005T150000Z" in ics
-    assert "DTEND:20261005T160000Z" in ics
-    assert "RRULE:FREQ=WEEKLY;UNTIL=20261231T150000Z" in ics
+    assert (
+        "TZID:Asia/Bahrain\r\nBEGIN:STANDARD\r\nDTSTART:19700101T000000\r\nTZOFFSETFROM:+0300\r\nTZOFFSETTO:+0300"
+        in ics
+    )
+    assert "DTSTART;TZID=Asia/Bahrain:20261005T180000" in ics  # Bahrain time
+    assert "DTEND;TZID=Asia/Bahrain:20261005T190000" in ics  # an hour
+    assert "RRULE:FREQ=WEEKLY;UNTIL=20261231T150000Z" in ics  # its last start, in UTC
     assert "TRIGGER:-PT60M" in ics
     assert "DTSTART;VALUE=DATE:20261020" in ics
     assert "DTEND;VALUE=DATE:20261023" in ics

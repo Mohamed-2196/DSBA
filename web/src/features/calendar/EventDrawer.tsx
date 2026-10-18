@@ -29,7 +29,7 @@ import {
   whenAndWhere,
   windowLeft,
 } from './eventMeta';
-import { reminderLabel, repeatLabel } from './mine';
+import { monthDayOf, monthlyRule, reminderLabel, repeatLabel } from './mine';
 import type { CalendarEvent, EventType } from './types';
 import type { HiddenKind } from './useMyCalendar';
 
@@ -464,7 +464,12 @@ function MineContent({
           {repeat ? (
             <div>
               <dt>Repeats</dt>
-              <dd>{repeat}</dd>
+              <dd>
+                {repeat}
+                {mine.repeat === 'monthly' ? (
+                  <span className="cal-drawer__rule">{monthlyRule(monthDayOf(mine))}</span>
+                ) : null}
+              </dd>
             </div>
           ) : null}
           {notOn ? (

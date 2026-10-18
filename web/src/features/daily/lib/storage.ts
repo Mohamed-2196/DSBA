@@ -1,9 +1,11 @@
-// What the Daily keeps on this device: a guest's moves (the server keeps nothing for guests), the games whose
-// rules a person has seen, and Sudoku's pencil marks (personal: 'hub.mine.' keys go on sign-out). Storage can be
-// missing or refused (a private window): every read falls back to nothing and every write is best effort.
-import type { GameId, Move } from '../types';
+// What the Daily keeps on this device: a guest's plays (the server keeps nothing for guests), the games whose
+// rules a person has seen, and Sudoku's pencil marks. Plays and marks are personal: 'hub.mine.' keys go on sign-out,
+// so the next person at a shared computer starts afresh. Storage can be missing or refused (a private window): every
+// read falls back to nothing and every write is best effort.
+import { writeStored } from '../../../state';
+import type { GameId, Move, PlayStatus } from '../types';
 
-const GUEST = 'hub.daily.guest.';
+const GUEST = 'hub.mine.daily.guest.';
 const NOTES = 'hub.mine.daily.notes.';
 const SEEN = 'hub.daily.seen';
 /** Days of moves and notes kept: older ones are cleared as new ones are written. */
@@ -52,24 +54,72 @@ export function prune(prefix: string, today: string, keep: number = KEEP_DAYS): 
   }
 }
 
-// ── A guest's moves ─────────────────────────────────────────────────────────────────────────────
+// ── A guest's plays ─────────────────────────────────────────────────────────────────────────────
 
-const guestKey = (day: string, game: GameId, variant: string) => `${GUEST}${day}:${game}:${variant || 'default'}`;
-
-/** A guest's moves on a day's game (and difficulty), oldest first. */
-export function guestMoves(day: string, game: GameId, variant = ''): Move[] {
-  const stored = read(guestKey(day, game, variant));
-  return Array.isArray(stored) ? (stored as Move[]) : [];
+/** A guest's play of a day's game (and difficulty). */
+export interface GuestPlay {
+  /** the version of the day's puzzle the moves were made on: an editor's fix to today's puzzle makes a new one */
+  revision: number;
+  /** oldest first */
+  moves: Move[];
+  /** a fix started this play again: the game says so until the next move */
+  restarted: boolean;
+  /** how the play stands, for the hub */
+  status: PlayStatus;
 }
 
-export function saveGuestMoves(day: string, game: GameId, variant: string, moves: Move[], today: string): void {
-  write(guestKey(day, game, variant), moves);
+/** A day's guest plays, by game and difficulty ('word:default', 'sudoku:hard'). */
+export type GuestPlays = Record<string, GuestPlay>;
+
+export const NO_GUEST_PLAY: GuestPlay = { revision: 0, moves: [], restarted: false, status: 'new' };
+
+const STATUSES: readonly PlayStatus[] = ['new', 'playing', 'won', 'lost'];
+
+/** The key that keeps a day's guest plays (one key a day, so the hub can follow it). */
+export const guestDayKey = (day: string) => `${GUEST}${day}`;
+
+/** Where a game's play sits among the day's. */
+export const guestSlot = (game: GameId, variant: string) => `${game}:${variant || 'default'}`;
+
+function parsePlay(value: unknown): GuestPlay | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const { revision, moves, restarted, status } = value as Record<string, unknown>;
+  if (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 0 || !Array.isArray(moves)) return null;
+  return {
+    revision,
+    moves: moves as Move[],
+    restarted: restarted === true,
+    status: STATUSES.find((s) => s === status) ?? (moves.length ? 'playing' : 'new'),
+  };
+}
+
+/** A day's guest plays as kept, without anything malformed. */
+export function parseGuestPlays(value: unknown): GuestPlays {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const plays: GuestPlays = {};
+  for (const [slot, play] of Object.entries(value as Record<string, unknown>)) {
+    const parsed = parsePlay(play);
+    if (parsed) plays[slot] = parsed;
+  }
+  return plays;
+}
+
+/** A guest's play on a day's game (and difficulty); none when there is none. */
+export function guestPlay(day: string, game: GameId, variant = ''): GuestPlay {
+  return parseGuestPlays(read(guestDayKey(day)))[guestSlot(game, variant)] ?? NO_GUEST_PLAY;
+}
+
+export function saveGuestPlay(day: string, game: GameId, variant: string, play: GuestPlay, today: string): void {
+  const plays = { ...parseGuestPlays(read(guestDayKey(day))), [guestSlot(game, variant)]: play };
+  writeStored(guestDayKey(day), plays);
   prune(GUEST, today);
 }
 
-/** Forgets a guest's moves: the server couldn't replay them (they were made on another puzzle). */
-export function clearGuestMoves(day: string, game: GameId, variant = ''): void {
-  remove(guestKey(day, game, variant));
+/** Forgets a guest's play: the server couldn't replay its moves. */
+export function clearGuestPlay(day: string, game: GameId, variant = ''): void {
+  const plays = parseGuestPlays(read(guestDayKey(day)));
+  delete plays[guestSlot(game, variant)];
+  writeStored(guestDayKey(day), Object.keys(plays).length ? plays : undefined);
 }
 
 // ── The rules, seen once per game ───────────────────────────────────────────────────────────────

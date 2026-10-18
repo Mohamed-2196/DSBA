@@ -80,7 +80,6 @@ class WordGame(ContentGame[Puzzle, WordState]):
     max_points = POINTS[0]
     moves = frozenset({"guess", "give-up"})
     max_moves = MAX_GUESSES + 1
-    min_seconds = 4  # from opening the puzzle: a first-guess win any faster was looked up
 
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
         return content.spread(pool, used, day, 1, self.id, seed)
@@ -118,7 +117,7 @@ class WordGame(ContentGame[Puzzle, WordState]):
             return "lost"
         return "playing"
 
-    def points(self, puzzle: Puzzle, state: WordState, variant: str, seconds: int) -> int:
+    def points(self, puzzle: Puzzle, state: WordState, variant: str) -> int:
         return POINTS[len(state.rows) - 1] if self.status(puzzle, state) == "won" else 0
 
     def counts(self, state: WordState) -> tuple[int, int]:

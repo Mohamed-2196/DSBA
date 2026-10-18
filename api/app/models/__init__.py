@@ -22,6 +22,7 @@ from app.models.daily_content import (
     DailySeed,
     DailySet,
     DailySetItem,
+    DailySetRevision,
     DailyTheme,
     DailyThemeWeek,
 )
@@ -85,6 +86,7 @@ __all__ = [
     "DailySeed",
     "DailySet",
     "DailySetItem",
+    "DailySetRevision",
     "DailyTheme",
     "DailyThemeWeek",
     "DriveFolder",

@@ -132,7 +132,7 @@ def test_a_new_issue_tells_everyone_and_emails_those_who_want_it(
     editor = make_user(email="editor@example.com")
     wants = make_user(email="wants@example.com")
     declined = make_user(email="declined@example.com")
-    declined.preferences = {"email_new_issues": False}
+    declined.preferences = {**declined.preferences, "email_new_issues": False}
     phone_only = make_user(phone="+97333123491")
     db.commit()
     count = notify_all(
@@ -173,6 +173,36 @@ def test_turned_off_or_moved_before_sending_cancels(
     assert outbox == []
     assert [r.status for r in _queued(db, switched)] == [OutboxStatus.cancelled]
     assert [r.status for r in _queued(db, moved)] == [OutboxStatus.cancelled]
+
+
+def test_nothing_is_emailed_before_the_answer_about_emails(
+    make_user: MakeUser, db: Session, outbox: Outbox, deliver: Deliver
+) -> None:
+    """Until someone answers the question about emails when they sign up, their notifications come in the Hub only:
+    notify(), notify_all() and the worker's last check before sending all hold the email back."""
+    unanswered = make_user(email="unanswered@example.com", emails=None)
+    said_no = make_user(email="no@example.com", emails=False)
+    said_yes = make_user(email="yes@example.com")
+    actor = make_user()
+    for person in (unanswered, said_no, said_yes):
+        notify(db, person.id, "thread_reply", "A reply to your thread", url="/forum/a", actor=actor)
+    notify_all(db, "new_issue", "The November issue is out", url="/newsletter/november", actor=actor)
+    db.commit()
+    assert [len(_notifications(db, p)) for p in (unanswered, said_no, said_yes)] == [2, 2, 2]  # the Hub tells all
+    assert _queued(db, unanswered) == _queued(db, said_no) == []
+    assert sorted(r.kind for r in _queued(db, said_yes)) == ["new_issue", "thread_reply"]
+    # a switch stored without an answer waits for one too, up to the last check before sending
+    unanswered.preferences = {"email_replies": True}
+    mail_outbox.queue(
+        db, to="unanswered@example.com", subject="A reply", body="A reply.", kind="thread_reply", user_id=unanswered.id
+    )
+    db.commit()
+    notify(db, unanswered.id, "thread_reply", "Another reply", url="/forum/a", actor=actor)
+    db.commit()
+    deliver()
+    assert outbox.to("unanswered@example.com") == []
+    assert [r.status for r in _queued(db, unanswered)] == [OutboxStatus.cancelled]
+    assert len(outbox.to("yes@example.com")) == 2
 
 
 def test_account_notices_ignore_the_switches(

@@ -6,7 +6,13 @@ row is made when the person first opens the puzzle, so its clock starts then (Su
 difficulty to look at it doesn't choose it). A guest's play lives in their browser, which sends its moves with each
 new one; nothing is kept. A guest's play gets the game's usual feedback, but a guest's play of today's set never
 shows the answers it didn't find, even once it's over. A play counts (`scored`) when it's the person's first of that
-game on the puzzle's own day."""
+game on the puzzle's own day.
+
+An editor can fix today's puzzle (today.py), which makes a new version of it. A play is on one version (`revision`):
+one finished on an earlier version stands, shown and checked against that version, points included; the fix starts
+the others again on the new one, and a player who had made moves is told why (`restarted`, until their next move).
+A move made on a view of an earlier version answers 409 puzzle_fixed, so the browser loads the play again. A guest's
+browser sends the version its moves were made on: a finished history stands, an unfinished one starts again."""
 
 from __future__ import annotations
 
@@ -38,11 +44,11 @@ from app.schemas.daily import (
     PlayOut,
     PlayStatus,
 )
-from app.services import accounts, ratelimit
+from app.services import access, accounts, ratelimit
 from app.services.daily import content
 from app.services.daily.badges import badges_of
 from app.services.daily.games import GAMES
-from app.services.daily.games.base import Game
+from app.services.daily.games.base import Edition, Game
 from app.services.daily.streaks import streak_of
 
 MOVES = TypeAdapter(list[Move])
@@ -82,6 +88,22 @@ class _Replay:
 
 def _over() -> ApiError:
     return conflict("game_over", "This puzzle is finished. Try another one.")
+
+
+def _fixed() -> ApiError:
+    return conflict("puzzle_fixed", "We fixed a mistake in today's puzzle, so this game starts again.")
+
+
+def _puzzle_at(
+    db: Session, game: Game[Any, Any], day: dt.date, variant: str, edition: Edition[Any], revision: int
+) -> Any:
+    """The puzzle a play on `revision` is checked against: the day's as it stands, or the one a fix replaced."""
+    if revision == edition.revision:
+        return edition.puzzle
+    earlier = game.earlier(db, day, variant, revision)
+    if earlier is None:
+        raise invalid("revision", "This puzzle has no such version. Open it again.")
+    return earlier
 
 
 def _replay(game: Game[Any, Any], puzzle: Any, moves: list[Move]) -> _Replay:
@@ -146,15 +168,18 @@ def _play_out(
     row: DailyPlay | None,
     scored: bool,
     secret: bool,
+    revision: int,
+    restarted: bool = False,
 ) -> PlayOut:
-    """The play as its player sees it. `secret`: a guest's play of today's set, which doesn't show the answers it
-    didn't find once it's over."""
+    """The play as its player sees it, on the version `revision` of the day's puzzle. `secret`: a guest's play of
+    today's set, which doesn't show the answers it didn't find once it's over. `restarted`: a fix started it again
+    (a kept play says so itself until its next move)."""
     played = game.status(puzzle, replay.state)
     status: PlayStatus = played if moves else "new"
     over = moves > 0 and played in FINISHED
     seconds = _seconds(row)
     # Kept plays carry what they earned; a guest's shows what it would have earned.
-    points = row.points if row else (game.points(puzzle, replay.state, variant, seconds or 0) if over else 0)
+    points = row.points if row else (game.points(puzzle, replay.state, variant) if over else 0)
     mistakes, hints = game.counts(replay.state)
     share = f"DSBA Daily #{number_of(day)}\n{game.share(puzzle, replay.state, played)}" if over else None
     return PlayOut(
@@ -171,9 +196,10 @@ def _play_out(
             mistakes=mistakes,
             hints=hints,
             seconds=seconds,
-            too_fast=bool(row and row.too_fast),
             result=replay.result,
             share=share,
+            revision=revision,
+            restarted=restarted or bool(row and row.restarted and row.status == "new"),
             view=game.view(puzzle, replay.state, over and not secret),
         ),
     )
@@ -185,19 +211,28 @@ def _secret(user: User | None, day: dt.date) -> bool:
 
 def get_play(db: Session, user: User | None, day: dt.date, game_id: GameId, variant: str) -> PlayOut:
     """The play as it stands: signed in, as kept; a guest gets a fresh one (their browser replays its own). Signed
-    in, the first look at one of today's puzzles makes its row, which starts its clock."""
+    in, the first look at one of today's puzzles makes its row, which starts its clock; a play a fix started again
+    starts its clock at each look until its next move."""
     check_day(day)
     game = game_of(game_id)
     variant = check_variant(game, variant)
-    puzzle = game.puzzle(db, day, variant)
+    edition = game.edition(db, day, variant)
     row = _row(db, user, day, game_id, variant) if user else None
-    if user is not None and row is None and day == bahrain_today() and game.variants == ("",) and _may_play(user):
-        ratelimit.lock(db, f"daily:{user.id}")  # one at a time per person, like moves
-        row = _row(db, user, day, game_id, variant) or _open(db, user, game, day, variant)
+    if user is not None and day == bahrain_today() and game.variants == ("",) and _may_play(user):
+        if row is None:
+            ratelimit.lock(db, f"daily:{user.id}")  # one at a time per person, like moves
+            row = _row(db, user, day, game_id, variant) or _open(db, user, game, day, variant, edition.revision)
+        elif row.restarted and row.status == "new":
+            ratelimit.lock(db, f"daily:{user.id}")
+            db.refresh(row)  # as it is now that no move can come in between
+            if row.status == "new":
+                row.started_at = utcnow()
+    revision = row.revision if row else edition.revision
+    puzzle = _puzzle_at(db, game, day, variant, edition, revision)
     moves = MOVES.validate_python(row.moves) if row else []
     scored = _counts(db, user, day, game_id, row)
     replay = _replay(game, puzzle, moves)
-    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, _secret(user, day))
+    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, _secret(user, day), revision)
 
 
 def _may_play(user: User) -> bool:
@@ -205,8 +240,8 @@ def _may_play(user: User) -> bool:
     return user.status == UserStatus.active and bool(user.display_name)
 
 
-def _open(db: Session, user: User, game: Game[Any, Any], day: dt.date, variant: str) -> DailyPlay:
-    """A new row for a play: not started, its clock running."""
+def _open(db: Session, user: User, game: Game[Any, Any], day: dt.date, variant: str, revision: int) -> DailyPlay:
+    """A new row for a play on the version `revision` of the day's puzzle: not started, its clock running."""
     row = DailyPlay(
         user_id=user.id,
         day=day,
@@ -214,6 +249,7 @@ def _open(db: Session, user: User, game: Game[Any, Any], day: dt.date, variant: 
         variant=variant,
         status="new",
         scored=_counts(db, user, day, game.id, None),
+        revision=revision,
         started_at=utcnow(),
     )
     db.add(row)
@@ -227,26 +263,55 @@ def make_move(db: Session, user: User | None, day: dt.date, game_id: GameId, bod
     check_day(day)
     game = game_of(game_id)
     variant = check_variant(game, body.variant)
-    puzzle = game.puzzle(db, day, variant)
-    if user is not None:
-        ratelimit.lock(db, f"daily:{user.id}")  # one move at a time per person: the scored check below races otherwise
-    row = _row(db, user, day, game_id, variant) if user else None
-    moves = MOVES.validate_python(row.moves) if row else ([] if user else list(body.history))
-    replay = _replay(game, puzzle, moves)
+    edition = game.edition(db, day, variant)
     secret = _secret(user, day)
+    if user is None:
+        moves = list(body.history)
+        revision = body.revision if moves else edition.revision
+        if revision != edition.revision:
+            return _guest_on_earlier(db, game, day, variant, edition, body, secret)
+        row = None
+    else:
+        ratelimit.lock(db, f"daily:{user.id}")  # one move at a time per person: the scored check below races otherwise
+        row = _row(db, user, day, game_id, variant)
+        moves = MOVES.validate_python(row.moves) if row else []
+        revision = row.revision if row else edition.revision
+    puzzle = _puzzle_at(db, game, day, variant, edition, revision)
+    replay = _replay(game, puzzle, moves)
     if body.move is None:
         scored = _counts(db, user, day, game_id, row)
-        return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, secret)
+        return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, secret, revision)
     if body.move.kind not in game.moves:
         raise invalid("move", f"{game.title} doesn't take that move.")
     if (moves and game.status(puzzle, replay.state) in FINISHED) or len(moves) >= game.max_moves:
         raise _over()
+    if body.revision != revision:
+        raise _fixed()  # the move was made on a version a fix replaced
     replay.result = game.apply(puzzle, replay.state, body.move)
     moves.append(body.move)
     if user is not None:
-        row = _keep(db, user, game, day, variant, puzzle, replay, moves, row)
+        row = _keep(db, user, game, day, variant, puzzle, replay, moves, row, revision)
     scored = _counts(db, user, day, game_id, row)
-    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, secret)
+    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, secret, revision)
+
+
+def _guest_on_earlier(
+    db: Session, game: Game[Any, Any], day: dt.date, variant: str, edition: Edition[Any], body: MoveIn, secret: bool
+) -> PlayOut:
+    """A guest's moves made on a version of the puzzle a fix replaced: finished, the play stands as it finished;
+    otherwise it starts again on the fixed puzzle (a new move on it answers 409 puzzle_fixed first)."""
+    earlier = _puzzle_at(db, game, day, variant, edition, body.revision)
+    replay = _replay(game, earlier, list(body.history))
+    if game.status(earlier, replay.state) in FINISHED:
+        if body.move is not None:
+            raise _over()
+        return _play_out(db, game, day, variant, earlier, replay, len(body.history), None, False, secret, body.revision)
+    if body.move is not None:
+        raise _fixed()
+    fresh = _replay(game, edition.puzzle, [])
+    return _play_out(
+        db, game, day, variant, edition.puzzle, fresh, 0, None, False, secret, edition.revision, restarted=True
+    )
 
 
 def _keep(
@@ -259,10 +324,11 @@ def _keep(
     replay: _Replay,
     moves: list[Move],
     row: DailyPlay | None,
+    revision: int,
 ) -> DailyPlay:
     now = utcnow()
     if row is None:
-        row = _open(db, user, game, day, variant)
+        row = _open(db, user, game, day, variant, revision)
     status = game.status(puzzle, replay.state)
     row.moves = [m.model_dump(mode="json", by_alias=True) for m in moves]
     row.status = status
@@ -270,9 +336,7 @@ def _keep(
     row.updated_at = now
     if status in FINISHED and row.finished_at is None:  # a play is priced once, when it first finishes
         row.finished_at = now
-        seconds = int((now - row.started_at).total_seconds())
-        row.too_fast = status == "won" and seconds < game.min_seconds
-        row.points = 0 if row.too_fast else game.points(puzzle, replay.state, variant, seconds)
+        row.points = game.points(puzzle, replay.state, variant)
     db.flush()
     return row
 
@@ -432,6 +496,7 @@ def leaderboard(db: Session, viewer: User | None, period: BoardPeriod, year: int
         )
     ids = {r.user_id for r in top} | ({mine.user_id} if mine else set())
     users = {u.id: u for u in db.scalars(select(User).where(User.id.in_(ids)))} if ids else {}
+    access.prefetch(db, users.values())  # each row's badge, in two queries
     rows = [_board_row(users[r.user_id], r.points, r.played, r.rank, viewer) for r in top]
     you = _board_row(users[mine.user_id], mine.points, mine.played, mine.rank, viewer) if mine else None
     your_points = None

@@ -59,7 +59,6 @@ export function ResultDialog({ open, onClose, out, signedIn, secret, streak, nex
           ) : (
             <span className="dy-chip">Guest: not kept</span>
           )}
-          {play.tooFast ? <span className="dy-chip">Too fast to count</span> : null}
           {play.scored && streak && streak.current > 0 ? (
             <span className="dy-chip dy-chip--streak dy-num">
               <Flame weight="fill" aria-hidden="true" />

@@ -85,7 +85,7 @@ class CalendarEventSaved(CalendarEventOut):
 
 # The colours a student's own events can take (the web app draws each with its own token).
 PersonalColour = Literal["violet", "teal", "green", "orange", "rose", "slate"]
-Repeat = Literal["none", "daily", "weekly"]
+Repeat = Literal["none", "daily", "weekly", "fortnightly", "monthly"]
 # What a change or a deletion made from one day of a repeat covers: that day only, or that day and every later one.
 OccurrenceScope = Literal["one", "following"]
 # Minutes before the start a reminder comes; an all-day event "starts" at 09:00 (services/my_calendar.py).
@@ -100,8 +100,10 @@ ModuleId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9][a-z0-9-]{0,63}$"
 class PersonalEventOut(ApiModel):
     """An event a student added for themselves: private to them. Without `startTime` it is all day (through
     `endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in
-    Bahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year), except on the
-    `skipped` days."""
+    Bahrain. A repeat runs every day, week, two weeks or month from `date` until `repeatUntil` (none: for a year),
+    except on the `skipped` days. A monthly repeat falls on the same day of each month, and on a month's last day
+    when the month has no such day (the 31st: 30 April, 28 or 29 February). That day is `date`'s, or `monthDay`
+    when `date` is itself such a last day (a repeat changed from 28 February on keeps the 31st)."""
 
     id: UUID
     title: str
@@ -114,6 +116,7 @@ class PersonalEventOut(ApiModel):
     colour: PersonalColour
     repeat: Repeat
     repeat_until: dt.date | None
+    month_day: int | None  # a monthly repeat's day of the month when it isn't `date`'s (29 to 31); None: `date`'s
     skipped: list[dt.date]  # days taken off the repeat, oldest first
     remind: Reminder | None  # minutes before; None: no reminder
     created_at: datetime

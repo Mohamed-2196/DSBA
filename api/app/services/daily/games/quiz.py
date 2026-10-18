@@ -124,7 +124,6 @@ class QuizGame(ContentGame[tuple[Question, ...], QuizState]):
     max_points = QUESTIONS * POINTS_EACH
     moves = frozenset({"answer", "give-up"})
     max_moves = QUESTIONS + 1
-    min_seconds = 5
 
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
         return content.spread(pool, used, day, FROM_THEME, self.id, seed)
@@ -133,6 +132,33 @@ class QuizGame(ContentGame[tuple[Question, ...], QuizState]):
         modules = list(db.scalars(select(Module).where(Module.hidden.is_(False))))
         about = module_question(modules, content.rng(seed, self.id, day, "modules"))
         return (*(_from_theme(db, day, e, seed) for e in chosen), *([about] if about else []))
+
+    def rebuild(
+        self,
+        db: Session,
+        day: dt.date,
+        puzzle: tuple[Question, ...],
+        before: list[Entry],
+        after: list[Entry],
+        seed: bytes,
+    ) -> tuple[Question, ...]:
+        """Each theme's question stays in its place, asked as its item is now; the question about the modules stays as
+        it is. A question finds its place by its words as they were."""
+        themed, about = puzzle[: len(before)], puzzle[len(before) :]
+        places: dict[int, Entry] = {}
+        unplaced: list[Entry] = []
+        for entry in before:
+            place = next(
+                (i for i, q in enumerate(themed) if i not in places and q.prompt == entry.data["question"]), None
+            )
+            if place is None:
+                unplaced.append(entry)
+            else:
+                places[place] = entry
+        free = [i for i in range(len(themed)) if i not in places]
+        places.update(zip(free, unplaced, strict=False))
+        now = {e.id: e for e in after}
+        return (*(_from_theme(db, day, now[places[i].id], seed) for i in sorted(places)), *about)
 
     def dump(self, puzzle: tuple[Question, ...]) -> dict[str, Any]:
         return {"questions": [asdict(q) for q in puzzle]}
@@ -169,7 +195,7 @@ class QuizGame(ContentGame[tuple[Question, ...], QuizState]):
             return "playing"
         return "won" if self._right(state) >= TO_WIN else "lost"
 
-    def points(self, puzzle: tuple[Question, ...], state: QuizState, variant: str, seconds: int) -> int:
+    def points(self, puzzle: tuple[Question, ...], state: QuizState, variant: str) -> int:
         return self._right(state) * POINTS_EACH
 
     def counts(self, state: QuizState) -> tuple[int, int]:
