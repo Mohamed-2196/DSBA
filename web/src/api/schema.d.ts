@@ -7187,6 +7187,8 @@ export interface components {
             points: number;
             /** Scored */
             scored: boolean;
+            /** Picture */
+            picture: ("hit" | "near" | "miss" | "wrong" | "l1" | "l2" | "l3" | "l4")[][] | null;
         };
         /**
          * GameInfo
@@ -9562,6 +9564,8 @@ export interface components {
             result: string | null;
             /** Share */
             share: string | null;
+            /** Picture */
+            picture: ("hit" | "near" | "miss" | "wrong" | "l1" | "l2" | "l3" | "l4")[][] | null;
             /** Revision */
             revision: number;
             /** Restarted */

@@ -40,6 +40,7 @@ from app.schemas.daily import (
     Leaderboard,
     Move,
     MoveIn,
+    Picture,
     Play,
     PlayOut,
     PlayStatus,
@@ -198,6 +199,7 @@ def _play_out(
             seconds=seconds,
             result=replay.result,
             share=share,
+            picture=game.picture(puzzle, replay.state) if over else None,
             revision=revision,
             restarted=restarted or bool(row and row.restarted and row.status == "new"),
             view=game.view(puzzle, replay.state, over and not secret),
@@ -353,6 +355,12 @@ def _played_days(db: Session, user: User) -> list[dt.date]:
     return list(db.scalars(q.distinct()))
 
 
+def _picture(db: Session, game: Game[Any, Any], day: dt.date, row: DailyPlay) -> Picture:
+    """A finished play's picture, replayed from its moves on the version of the day's puzzle it was played on."""
+    puzzle = _puzzle_at(db, game, day, row.variant, game.edition(db, day, row.variant), row.revision)
+    return game.picture(puzzle, _replay(game, puzzle, MOVES.validate_python(row.moves)).state)
+
+
 def today_of(db: Session, user: User | None) -> DailyToday:
     today = bahrain_today()
     rows = (
@@ -371,6 +379,7 @@ def today_of(db: Session, user: User | None) -> DailyToday:
                 variant=lead.variant if lead else "",
                 points=sum(r.points for r in mine if r.scored),
                 scored=any(r.scored for r in mine),
+                picture=_picture(db, game, today, lead) if lead is not None and lead.status in FINISHED else None,
             )
         )
     return DailyToday(
