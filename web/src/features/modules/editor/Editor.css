@@ -202,9 +202,8 @@
 .medit__year-title {
   margin: var(--sp-8) 0 0;
   font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
   color: var(--ink-2);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .medit__list {
   margin: 0;

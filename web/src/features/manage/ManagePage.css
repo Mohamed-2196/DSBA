@@ -90,7 +90,7 @@
 }
 .manage-summary__text {
   width: 100%;
-  max-width: 75ch;
+  max-width: var(--measure);
   margin: 0;
   padding: var(--sp-12);
   border: 1px solid var(--line);
@@ -310,4 +310,9 @@
   margin: 0;
   font-size: var(--fs-16);
   font-weight: var(--fw-semibold);
+}
+
+/* Prose in every section, hints included, stays a comfortable line long. */
+.manage-panel p {
+  max-width: var(--measure);
 }

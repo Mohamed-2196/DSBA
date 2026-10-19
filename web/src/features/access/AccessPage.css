@@ -194,3 +194,8 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Prose on every tab, hints included, stays a comfortable line long. */
+.access-panel p {
+  max-width: var(--measure);
+}

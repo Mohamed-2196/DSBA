@@ -351,9 +351,8 @@
 .cedit-preview__title {
   margin: 0;
   font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
   color: var(--ink-2);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .cedit-preview__cards {
   margin: 0;
