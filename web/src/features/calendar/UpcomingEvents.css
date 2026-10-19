@@ -3,7 +3,7 @@
 .cal-upcoming {
   container-type: inline-size;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
   overflow: hidden;
 }
@@ -30,7 +30,7 @@
 }
 .cal-upcoming__row:focus-visible {
   outline-offset: -2px;
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
 }
 
 .cal-upcoming__body {
@@ -82,7 +82,7 @@
   text-wrap: balance;
 }
 .cal-upcoming__count.is-soon.is-exam {
-  color: var(--alert-strong);
+  color: var(--exam);
 }
 
 /* Narrow containers (a phone, the forum sidebar): the title gets the full width, the countdown shares the meta line. */

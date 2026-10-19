@@ -212,7 +212,7 @@ function YourProgress({
                   {cp.watched}/{cp.total}
                 </span>
                 <span className="mod-prog__bar" aria-hidden="true">
-                  <span style={{ width: `${cp.pct}%`, background: complete ? 'var(--signal)' : color }} />
+                  <span style={{ width: `${cp.pct}%`, background: complete ? 'var(--success-fill)' : color }} />
                 </span>
               </button>
             </li>

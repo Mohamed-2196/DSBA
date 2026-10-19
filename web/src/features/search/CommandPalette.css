@@ -32,7 +32,7 @@
 }
 .cmdk-field__icon {
   font-size: 22px;
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .cmdk-input {
   flex: 1 1 auto;
@@ -45,7 +45,7 @@
   font-weight: var(--fw-medium);
   letter-spacing: -0.01em;
   outline: none;
-  caret-color: var(--cobalt);
+  caret-color: var(--accent);
 }
 .cmdk-input:focus-visible {
   outline: none;
@@ -112,7 +112,7 @@
   bottom: 12px;
   width: 3px;
   border-radius: 0 3px 3px 0;
-  background: var(--cobalt);
+  background: var(--accent);
 }
 .cmdk-group {
   position: relative;
@@ -134,7 +134,7 @@
   font-weight: var(--fw-medium);
 }
 .cmdk-group__action {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
 }
@@ -276,16 +276,17 @@
   --c-strong: var(--y3-strong);
 }
 .cmdk-tile--lesson {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 13px;
 }
 .cmdk-tile--issue {
-  background: var(--navy);
-  color: #fff;
-  font-family: var(--font-serif);
+  background: var(--inverse);
+  color: var(--on-inverse);
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-head);
   font-size: var(--fs-16);
-  font-weight: 600;
+  font-weight: var(--fw-display);
   font-variant-numeric: lining-nums tabular-nums;
 }
 
@@ -309,15 +310,15 @@
   line-height: 13px;
 }
 .cmdk-date--exam .cmdk-date__m {
-  background: var(--alert-strong);
-  color: var(--alert-ink);
+  background: var(--exam);
+  color: var(--on-error);
 }
 .cmdk-date--mock .cmdk-date__m {
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .cmdk-date--revision .cmdk-date__m {
-  background: var(--signal-strong);
+  background: var(--success);
   color: var(--surface);
 }
 .cmdk-date--deadline .cmdk-date__m {
@@ -370,7 +371,7 @@
   white-space: nowrap;
 }
 .cmdk-meta.is-exam {
-  color: var(--alert-strong);
+  color: var(--exam);
   font-weight: var(--fw-semibold);
 }
 .cmdk-ext {
@@ -479,7 +480,7 @@
   .ui-modal__panel.cmdk {
     margin-top: 0;
     max-height: calc(100dvh - 16px);
-    border-radius: var(--r-panel);
+    border-radius: var(--r-card);
   }
   .cmdk-field {
     height: 56px;

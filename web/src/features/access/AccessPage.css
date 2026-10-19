@@ -5,7 +5,7 @@
 }
 .access-panel:focus-visible {
   outline-offset: 4px;
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
 }
 .access-tools {
   display: flex;
@@ -60,7 +60,7 @@
   font-weight: var(--fw-semibold);
 }
 .access-grid__yes {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-16);
 }
 
@@ -148,7 +148,7 @@
 }
 .access-problem {
   margin: 0;
-  color: var(--alert-strong);
+  color: var(--error);
 }
 .access-note {
   margin: 0;

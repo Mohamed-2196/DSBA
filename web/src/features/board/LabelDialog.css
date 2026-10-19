@@ -23,7 +23,7 @@
 .label-dialog__item.is-editing {
   display: block;
   padding: var(--sp-12);
-  border-color: var(--cobalt);
+  border-color: var(--accent);
 }
 .label-dialog__name {
   display: inline-flex;

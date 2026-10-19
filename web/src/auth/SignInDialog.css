@@ -38,7 +38,7 @@
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
 }
@@ -52,7 +52,7 @@
 .otp__field .ui-control__input {
   padding-inline: 12px calc(12px - 0.42em);
   font-family: var(--font-mono);
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: 600;
   letter-spacing: 0.42em;
   text-align: center;
@@ -139,14 +139,14 @@
   box-shadow: inset 0 0 0 1px var(--c);
 }
 .signin-cohort--none input:checked + label {
-  --c: var(--cobalt);
+  --c: var(--accent);
 }
 .signin-cohort input:focus-visible + label {
   outline: var(--focus-width) solid var(--focus-color);
   outline-offset: var(--focus-offset);
 }
 .signin-cohorts.has-error .signin-cohort label {
-  border-color: var(--alert-strong);
+  border-color: var(--error);
 }
 .signin-cohorts__error {
   grid-column: 1 / -1;
@@ -160,5 +160,5 @@
   line-height: 1.4;
 }
 .signin-cohort--answer input:checked + label {
-  --c: var(--cobalt);
+  --c: var(--accent);
 }

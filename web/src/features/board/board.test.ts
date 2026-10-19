@@ -331,11 +331,11 @@ describe('templates and colours', () => {
   });
   it('has a text colour for every board colour', () => {
     expect(COLORS.map((c) => colorInk(c.id))).toEqual([
-      'var(--cobalt)',
+      'var(--accent)',
       'var(--y1-strong)',
-      'var(--signal-strong)',
+      'var(--success)',
       'var(--y3-strong)',
-      'var(--alert-strong)',
+      'var(--error)',
       'var(--ink-2)',
     ]);
   });

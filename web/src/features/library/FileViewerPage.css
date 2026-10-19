@@ -75,7 +75,7 @@
   margin: 0;
   min-width: 0;
   color: var(--ink);
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   line-height: var(--lh-heading);
   letter-spacing: var(--tracking-head);
@@ -171,7 +171,7 @@
   background: var(--highlight-soft);
 }
 .lib-status--rejected {
-  background: var(--alert-soft);
+  background: var(--error-soft);
 }
 .lib-status--removed {
   background: var(--surface-2);
@@ -404,7 +404,7 @@
   text-underline-offset: 0.18em;
 }
 .lib-meta__code {
-  font-size: var(--fs-31);
+  font-size: var(--fs-28);
   font-weight: var(--fw-heavy);
   line-height: 1;
   letter-spacing: var(--tracking-head);
@@ -468,7 +468,7 @@
 }
 .lib-meta__source {
   padding: var(--sp-16);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface-2);
 }
 .lib-meta__source p {
@@ -671,7 +671,7 @@
   font-size: var(--fs-14);
 }
 .lib-timer__text a {
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
 }
 .lib-timer__clock {
@@ -726,7 +726,7 @@
 }
 button.lib-qtags__q {
   min-height: 32px;
-  color: var(--cobalt);
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 0.18em;
   cursor: pointer;
@@ -738,7 +738,7 @@ button.lib-qtags__q {
   overflow-wrap: anywhere;
 }
 .lib-qtags__flags {
-  color: var(--alert, var(--ink-2));
+  color: var(--error, var(--ink-2));
   font-size: var(--fs-12);
 }
 .lib-qtags__acts {
@@ -804,7 +804,7 @@ button.lib-qtags__q {
   overflow: hidden;
   border-radius: 4px;
   background: #fff;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
 }
 .lib-pdf__canvas {
   display: block;

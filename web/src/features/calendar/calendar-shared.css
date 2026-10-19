@@ -14,22 +14,22 @@
   --tone-text: var(--ink-2);
 } /* a type this file has not met yet */
 .cal-tone--exam {
-  --tone: var(--alert-strong);
-  --tone-on: var(--alert-ink);
-  --tone-soft: var(--alert-soft);
-  --tone-text: var(--alert-strong);
+  --tone: var(--exam);
+  --tone-on: var(--on-error);
+  --tone-soft: var(--exam-soft);
+  --tone-text: var(--exam);
 }
 .cal-tone--mock {
-  --tone: var(--cobalt);
-  --tone-on: var(--cobalt-ink);
-  --tone-soft: var(--cobalt-soft);
-  --tone-text: var(--cobalt);
+  --tone: var(--accent);
+  --tone-on: var(--on-accent);
+  --tone-soft: var(--accent-soft);
+  --tone-text: var(--accent);
 }
 .cal-tone--revision {
-  --tone: var(--signal);
+  --tone: var(--success-fill);
   --tone-on: var(--highlight-ink);
-  --tone-soft: var(--signal-soft);
-  --tone-text: var(--signal-strong);
+  --tone-soft: var(--success-soft);
+  --tone-text: var(--success);
 }
 .cal-tone--deadline {
   --tone: var(--highlight);
@@ -71,13 +71,13 @@
   background: var(--ink-3);
 }
 .cal-dot--exam {
-  background: var(--alert);
+  background: var(--exam);
 }
 .cal-dot--mock {
-  background: var(--cobalt);
+  background: var(--accent);
 }
 .cal-dot--revision {
-  background: var(--signal);
+  background: var(--success-fill);
 }
 .cal-dot--deadline {
   background: var(--highlight);
@@ -135,24 +135,24 @@
   font-weight: var(--fw-semibold);
 }
 .cal-leaf--exam {
-  --leaf-band: var(--alert-soft);
-  --leaf-band-ink: var(--alert-strong);
-  --leaf-edge: color-mix(in srgb, var(--alert) 38%, var(--line));
+  --leaf-band: var(--exam-soft);
+  --leaf-band-ink: var(--exam);
+  --leaf-edge: color-mix(in srgb, var(--exam) 38%, var(--line));
 }
 .cal-leaf--exam.is-solid {
-  --leaf-band: var(--alert-strong);
-  --leaf-band-ink: var(--alert-ink);
-  --leaf-edge: var(--alert-strong);
+  --leaf-band: var(--exam);
+  --leaf-band-ink: var(--on-error);
+  --leaf-edge: var(--exam);
 }
 .cal-leaf--mock {
-  --leaf-band: var(--cobalt-soft);
-  --leaf-band-ink: var(--cobalt);
-  --leaf-edge: color-mix(in srgb, var(--cobalt) 32%, var(--line));
+  --leaf-band: var(--accent-soft);
+  --leaf-band-ink: var(--accent);
+  --leaf-edge: color-mix(in srgb, var(--accent) 32%, var(--line));
 }
 .cal-leaf--revision {
-  --leaf-band: var(--signal-soft);
-  --leaf-band-ink: var(--signal-strong);
-  --leaf-edge: color-mix(in srgb, var(--signal) 38%, var(--line));
+  --leaf-band: var(--success-soft);
+  --leaf-band-ink: var(--success);
+  --leaf-edge: color-mix(in srgb, var(--success-fill) 38%, var(--line));
 }
 .cal-leaf--event {
   --leaf-band: color-mix(in srgb, var(--y3) 15%, var(--surface));
@@ -170,9 +170,9 @@
   --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong));
 }
 .cal-leaf--today.is-solid {
-  --leaf-band: var(--cobalt);
-  --leaf-band-ink: var(--cobalt-ink);
-  --leaf-edge: var(--cobalt);
+  --leaf-band: var(--accent);
+  --leaf-band-ink: var(--on-accent);
+  --leaf-edge: var(--accent);
 }
 
 /* A student's own events: the colour they picked (--mine), on a square dot so it never reads as a programme type,

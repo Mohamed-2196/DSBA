@@ -13,7 +13,7 @@
   gap: var(--sp-8);
 }
 .lib-review__error {
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
 }

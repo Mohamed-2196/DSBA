@@ -182,7 +182,7 @@ function ModuleHeader({
               value={progressReady ? progress.pct : 0}
               size={64}
               stroke={6}
-              color={progress.pct === 100 ? 'var(--signal)' : cohortColor(m.year)}
+              color={progress.pct === 100 ? 'var(--success-fill)' : cohortColor(m.year)}
               label="Lessons watched"
             />
             <div className="mod-head__progress-text">

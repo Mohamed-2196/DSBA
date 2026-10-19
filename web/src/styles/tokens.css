@@ -1,4 +1,4 @@
-/* DSBA Hub — design tokens (spec §1).
+/* DSBA Hub — design tokens (Deskmates: docs/design/deskmates/brand/BRAND.md).
    Colours: light on `:root, [data-theme='light']`, dark on `[data-theme='dark']` (both can be nested,
    e.g. <div data-theme="dark"> renders a dark island inside a light page — the style guide uses this).
    Spec tokens are exact. Derived tokens (marked "derived") exist for AA-contrast text on fills, tints
@@ -8,12 +8,15 @@
 /* ── Non-colour tokens ───────────────────────────────────────────────── */
 :root {
   /* Type */
-  --font-sans:
-    'Schibsted Grotesk Variable', 'Schibsted Grotesk', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, -apple-system,
-    'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Newsreader Variable', 'Newsreader', 'IBM Plex Sans Arabic', Georgia, 'Times New Roman', serif;
+  --font-ui:
+    'Figtree Variable', 'Figtree', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    sans-serif;
+  /* Headings, greetings and card titles: Bricolage Grotesque at --fw-display, optical size by the browser. */
+  --font-display:
+    'Bricolage Grotesque Variable', 'Bricolage Grotesque', 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  /* major third, 16px base (+ intermediate steps used across feature views) */
+  /* The type scale: 16px body; 17 subhead, 22 heading, 28 title (a phone page title), 34 display, 44 display-xl */
   --fs-11: 0.6875rem;
   --fs-12: 0.75rem;
   --fs-13: 0.8125rem;
@@ -21,29 +24,29 @@
   --fs-15: 0.9375rem;
   --fs-16: 1rem;
   --fs-18: 1.125rem;
+  --fs-17: 1.0625rem;
   --fs-20: 1.25rem;
-  --fs-25: 1.5625rem;
-  --fs-31: 1.9375rem;
-  --fs-39: 2.4375rem;
-  --fs-49: 3.0625rem;
-  --fs-61: 3.8125rem;
-  --fs-76: 4.75rem;
-  --lh-display: 1.05; /* 49+ */
-  --lh-heading: 1.2; /* 20–39 */
-  --lh-sans: 1.55; /* sans body */
+  --fs-22: 1.375rem;
+  --fs-28: 1.75rem;
+  --fs-34: 2.125rem;
+  --fs-44: 2.75rem;
+  --lh-display: 1.1; /* 34 and 44 */
+  --lh-heading: 1.22; /* 20–28 */
+  --lh-sans: 1.55; /* body: 16 / 25 */
   --lh-body: var(--lh-sans);
-  --lh-serif: 1.65; /* serif body */
-  --tracking-head: -0.02em;
-  --tracking-display: -0.03em;
+  --lh-arabic: 1.75; /* Arabic running text */
+  --tracking-head: -0.015em;
+  --tracking-display: -0.025em;
   /* Longest line of running text: about 75 characters. A ch is the width of a zero, so the count depends on the
-     typeface and the size: 54ch keeps Schibsted Grotesk, small text included, under 76, and 50ch Newsreader. */
-  --measure: 54ch;
-  --measure-serif: 50ch;
+     typeface. Figtree's zero is wide for its letters: 50ch holds at most 73 characters of English at every size
+     (measured in Chrome; 52ch already reaches 79). */
+  --measure: 50ch;
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
   --fw-bold: 700;
   --fw-heavy: 800;
+  --fw-display: 750;
 
   /* Space (4/8/12/16/24/32/48/64/96 + intermediate steps) */
   --sp-2: 2px;
@@ -64,29 +67,35 @@
   /* Radii by hierarchy */
   --r-pill: 999px; /* chips, pills, badges */
   --r-full: var(--r-pill);
-  --r-control: 10px; /* inputs, buttons */
+  --r-control: 13px; /* buttons */
+  --r-input: 14px; /* text fields, selects */
+  --r-nav: 14px; /* sidebar items */
+  --r-tab: 17px; /* tab and segment pills */
   --r-sm: 8px;
-  --r-panel: 16px; /* panels, menus, toasts */
-  --r-feature: 24px; /* large feature panels, modals, drawers */
+  --r-card: 18px; /* index cards, menus, toasts */
+  --r-panel: 22px; /* feature panels, dialogs, drawers */
+  --r-sheet: 28px; /* bottom sheets */
   --r-page: 4px; /* document pages */
-  --r-xs: 6px; /* kbd, tiny swatches, tooltips */
+  --r-xs: 6px; /* document thumbnails, kbd, tooltips */
 
-  /* Motion: 150–250ms, one easing */
+  /* Motion: 140 / 200 / 320ms on one easing; the bounce is for the happy hop only */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --dur-fast: 150ms;
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 140ms;
   --t-fast: var(--dur-fast) var(--ease);
   --dur: 200ms;
-  --dur-slow: 250ms;
+  --dur-slow: 320ms;
 
-  /* Focus: 2px cobalt ring, 2px offset (--focus-color is set per theme below) */
+  /* Focus: 2px accent ring, 2px offset (--focus-color is set per theme below) */
   --focus-width: 2px;
   --focus-offset: 2px;
 
   /* Layout */
-  --rail-w: 264px;
+  --rail-w: 248px;
   --rail-w-collapsed: 72px;
   --topbar-h: 64px;
-  --tabbar-h: 64px;
+  --tabbar-h: 84px; /* plus env(safe-area-inset-bottom) where it is used */
+  --touch-min: 44px;
   --content-max: 1180px;
   --content-max-wide: 1440px;
   --content-max-narrow: 760px;
@@ -133,40 +142,113 @@
 [data-theme='light'] {
   color-scheme: light;
 
-  /* Spec */
-  --paper: #f4f7fc; /* app background (cool, never cream) */
-  --surface: #ffffff; /* panels, cards */
-  --surface-2: #eaf0f9; /* inset areas, hovers, table stripes */
-  --ink: #0a1f44; /* primary text & headings */
-  --ink-2: #425372; /* secondary text (AA on paper/surface) */
-  --ink-3: #7587a6; /* tertiary: icons, placeholders, large meta — NOT AA for small text in light */
-  --line: #dce5f2; /* borders/dividers */
-  --cobalt: #1558f0; /* primary actions, links, focus */
-  --cobalt-ink: #ffffff; /* text on cobalt */
-  --navy: #0c2d75; /* deep brand navy (dark islands, deep accents) */
-  --brand: #1558f0; /* the logo tile (same blue in both themes) */
-  --highlight: #ffe14a; /* highlighter marks only — never a text colour */
-  --signal: #12b886; /* live, answered, success, watched */
-  --alert: #f03e5e; /* exams, errors, destructive */
-  --y1: #0fa3b1; /* Year 1 (lagoon) */
-  --y2: #1f6feb; /* Year 2 (azure) */
-  --y3: #f08c00; /* Year 3 (amber) */
-  --shadow-float: 0 18px 40px -18px rgba(10, 31, 68, 0.35), 0 2px 6px rgba(10, 31, 68, 0.06);
+  /* Ground and text */
+  --paper: #f2f5fb; /* canvas: cool, never cream */
+  --surface: #ffffff; /* cards, panels */
+  --surface-2: #ecf1f9; /* inset: wells, hovers, table stripes */
+  --raised: #ffffff; /* menus and popovers above a surface */
+  --ink: #0a1f44; /* text and headings */
+  --ink-2: #3e4e6e; /* secondary text */
+  --ink-3: #5a6a8c; /* tertiary text, meta, placeholders: AA on paper, surface and inset */
+  --line: #dce4f1; /* dividers, card edges */
+  --line-strong: #c5d2e6; /* chip borders, scrollbar thumb */
+  --control-border: #7f90ad; /* text fields, selects, switches: 3.23:1 on surface (WCAG 1.4.11) */
+
+  /* Accent: the logo's royal blue, a little brighter */
+  --accent: #2445c2; /* primary buttons, links, focus */
+  --on-accent: #ffffff;
+  --accent-hover: #1f3a93;
+  --accent-edge: #1f3a93; /* the lip under a primary button */
+  --accent-soft: #e3e9ff; /* selected rows, info */
+  --accent-text: #1f3a93; /* accent as text on accent-soft */
+  --press-edge: inset 0 -3px 0 var(--accent-edge);
+  --inverse: #0a1f44; /* the one dark pill (Filters) and dark badges */
+  --on-inverse: #f2f5fb;
+  --logo-blue: #1f3a93; /* the logo's blue: Noora's ring, the logo tile */
+  --highlight: #ffe14a; /* highlighter marks only, never a text colour */
+
+  /* Status */
+  --success: #18794a; /* answered, saved, watched: text and icons */
+  --success-fill: #2db87d; /* bars, dots, large fills */
+  --success-soft: #ddf5e9;
+  --warning: #8f5a00; /* warning text */
+  --warning-fill: #ffc233; /* badges and counts, with --on-warning-fill on them */
+  --on-warning-fill: #0a1f44;
+  --warning-soft: #fff1c7;
+  --error: #c0262d; /* errors and destructive actions */
+  --on-error: #ffffff;
+  --error-hover: #9f1f25;
+  --error-soft: #fce8e8;
+  --exam: #c21d5c; /* exams only: never error or the calendar's red */
+  --on-exam: #ffffff;
+  --exam-soft: #fce4ee;
+
+  /* Cohorts: fill, text, soft, and text on the fill */
+  --y1: #3bc9db;
+  --y2: #6fa2ff;
+  --y3: #ffa94d;
+  --y1-strong: #0a727c;
+  --y2-strong: #1a5fcc;
+  --y3-strong: #9a5209;
+  --y1-soft: #d7f4f7;
+  --y2-soft: #dce8ff;
+  --y3-soft: #ffe8d1;
+  --on-y1: #0a1f44;
+  --on-y2: #0a1f44;
+  --on-y3: #0a1f44;
+
+  /* Sections: art (drawings, the active icon body; never text), tint (the resting icon body, quiet fills),
+     pill (the active nav item, section headers) and text (labels and counts in the section's colour, AA on its pill).
+     A component sets the short forms --sec-art, --sec-tint, --sec-pill and --sec-text from one section. */
+  --sec-home-art: #4c6ef5;
+  --sec-home-tint: #c9d4ff;
+  --sec-home-pill: #e3e9ff;
+  --sec-home-text: #1f3a93;
+  --sec-library-art: #ffc233;
+  --sec-library-tint: #ffe29a;
+  --sec-library-pill: #fff1c7;
+  --sec-library-text: #865c00;
+  --sec-modules-art: #2db87d;
+  --sec-modules-tint: #b9ebd2;
+  --sec-modules-pill: #ddf5e9;
+  --sec-modules-text: #15744a;
+  --sec-notebook-art: #7b61ff;
+  --sec-notebook-tint: #d9d0ff;
+  --sec-notebook-pill: #ece7ff;
+  --sec-notebook-text: #5b3fd9;
+  --sec-forum-art: #f25ca2;
+  --sec-forum-tint: #ffc7e1;
+  --sec-forum-pill: #ffe3f0;
+  --sec-forum-text: #b0246b;
+  --sec-calendar-art: #f0524b;
+  --sec-calendar-tint: #ffcbc6;
+  --sec-calendar-pill: #ffe4e1;
+  --sec-calendar-text: #c2332b;
+  --sec-search-art: #8e9bb8;
+  --sec-search-tint: #d5dcea;
+  --sec-search-pill: #e6ebf4;
+  --sec-search-text: #4a5878;
+  --sec-tools-art: var(--sec-home-art);
+  --sec-tools-tint: var(--sec-home-tint);
+  --sec-tools-pill: var(--sec-home-pill);
+  --sec-tools-text: var(--sec-home-text);
+
+  /* Icons (ui/Icon): the line; --icon-tint and --icon-paper are set per use */
+  --icon-line: #3e4e6e;
+  --icon-line-active: #14234d;
+  /* Drawings */
+  --art-outline: #14234d;
+  --art-halo: transparent; /* the ring round a desk-mate on dark grounds */
+  --noora-frame: #e6e0fa;
+  --noora-ring: #1f3a93;
+  --noora-online: #18794a;
+
+  /* Depth */
+  --shadow-card: 0 2px 6px rgba(10, 31, 68, 0.07);
+  --shadow-float: 0 8px 20px rgba(10, 31, 68, 0.21);
 
   /* Derived */
-  --line-strong: #c6d3e6; /* input/chip borders, scrollbar thumb */
-  --control-border: #7f90ad; /* text fields, selects, switches: 3.23:1 on surface, 3.01:1 on paper (WCAG 1.4.11) */
   --highlight-ink: #0a1f44; /* text sitting on a highlighter mark (both themes) */
-  --alert-strong: #c81e43; /* alert as small text / danger fill (AA) */
-  --alert-ink: #ffffff; /* text on an --alert-strong fill */
-  --alert-hover: #a9183a; /* danger button hover */
-  --signal-strong: #0a7d5b; /* success as small text (AA) */
-  --y1-strong: #0b7c87; /* cohort colour as small text (AA) */
-  --y2-strong: #1a62d4;
-  --y3-strong: #a35e00;
-  --on-y1: #0a1f44; /* text on a solid cohort fill (AA) */
-  --on-y2: #ffffff;
-  --on-y3: #0a1f44;
   /* colours a student gives their own calendar events: each AA as small text on a surface */
   --mine-violet: #6741d9;
   --mine-teal: #0b7285;
@@ -174,26 +256,19 @@
   --mine-orange: #c2410c;
   --mine-rose: #c2255c;
   --mine-slate: #495057;
-  --cobalt-hover: #0f47cf;
-  --cobalt-soft: #e6eeff; /* cobalt tint (selected rows, info) */
-  --alert-soft: #feecef;
-  --signal-soft: #e3f6f0;
   --highlight-soft: #fff7cc;
   --thumb-bg: #ffffff; /* sliding thumb of segmented controls / pill tabs */
   --thumb-shadow: 0 1px 2px rgba(10, 31, 68, 0.1), 0 0 0 1px var(--line);
-  --tile-stroke: transparent; /* hairline around the navy logo tile (visible in dark) */
-  --key-spent: #5d6f90; /* derived: an on-screen key that's been used up (The Word's ruled-out letters), receding */
+  --tile-stroke: transparent; /* hairline around the logo tile (visible in dark) */
+  --key-spent: #5d6f90; /* an on-screen key that's been used up (The Word's ruled-out letters), receding */
   --key-spent-ink: #ffffff;
-  --art-tile: #eef3fc; /* light ground under module illustrations (both themes) */
-  --art-tile-stroke: #dce5f2;
+  --art-tile: #ecf1f9; /* light ground under module illustrations (both themes) */
+  --art-tile-stroke: #dce4f1;
   --scrim: rgba(10, 31, 68, 0.42);
-  --focus-color: var(--cobalt);
+  --focus-color: var(--accent);
   --surface-1: var(--surface);
   --surface-hover: var(--surface-2);
-  --shadow-sm: 0 1px 3px rgba(10, 31, 68, 0.08);
-  --shadow-md: 0 6px 18px rgba(10, 31, 68, 0.12);
-  --shadow-panel: 0 8px 24px -8px rgba(10, 31, 68, 0.14);
-  --show-on-light: block; /* theme-conditional display (BrandLogo) */
+  --show-on-light: block; /* theme-conditional display (BrandLogo, HubLogo) */
   --show-on-dark: none;
 }
 
@@ -201,65 +276,108 @@
 [data-theme='dark'] {
   color-scheme: dark;
 
-  /* Spec */
-  --paper: #07122b;
-  --surface: #0d1b3b;
-  --surface-2: #14264f;
-  --ink: #ecf2ff;
-  --ink-2: #a6b6d8;
-  --ink-3: #7488b0;
-  --line: #213563;
-  --cobalt: #6fa2ff;
-  --cobalt-ink: #07122b;
-  --navy: #0c2d75;
-  --brand: #1d5ff5;
-  --highlight: #ffe14a;
-  --signal: #38d9a9;
-  --alert: #ff6b81;
-  --y1: #3bc9db;
-  --y2: #5e9bff;
-  --y3: #ffa94d;
-  --shadow-float: 0 18px 40px -18px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.28);
+  --paper: #0b1530;
+  --surface: #111e3e;
+  --surface-2: #1a2b54;
+  --raised: #16244a;
+  --ink: #eaf0ff;
+  --ink-2: #a9b8d9;
+  --ink-3: #8798be;
+  --line: #22355f;
+  --line-strong: #2f4677;
+  --control-border: #5670a6; /* 3.33:1 on surface */
 
-  /* Derived */
-  --line-strong: #2f477e;
-  --control-border: #5670a6; /* 3.45:1 on surface, 3.77:1 on paper */
-  --highlight-ink: #0a1f44;
-  --alert-strong: #ff6b81;
-  --alert-ink: #07122b;
-  --alert-hover: #ff8a9c;
-  --signal-strong: #38d9a9;
+  --accent: #8da6ff;
+  --on-accent: #0b1530;
+  --accent-hover: #a9bcff;
+  --accent-edge: #5f7be0;
+  --accent-soft: #1e2c66;
+  --accent-text: #8da6ff;
+  --inverse: #eaf0ff;
+  --on-inverse: #0b1530;
+  --logo-blue: #1f3a93; /* the logo doesn't change with the theme */
+  --highlight: #ffe14a;
+
+  --success: #5bd49a;
+  --success-fill: #2db87d;
+  --success-soft: #15382c;
+  --warning: #ffc233;
+  --warning-fill: #ffc233;
+  --on-warning-fill: #0a1f44;
+  --warning-soft: #3a3218;
+  --error: #ff7a7a;
+  --on-error: #0b1530;
+  --error-hover: #ff9a9a;
+  --error-soft: #3f1f26;
+  --exam: #ff7eb0;
+  --on-exam: #0b1530;
+  --exam-soft: #3e1b2e;
+
+  --y1: #3bc9db;
+  --y2: #6fa2ff;
+  --y3: #ffa94d;
   --y1-strong: #3bc9db;
-  --y2-strong: #5e9bff;
+  --y2-strong: #6fa2ff;
   --y3-strong: #ffa94d;
-  --on-y1: #07122b;
-  --on-y2: #07122b;
-  --on-y3: #07122b;
+  --y1-soft: #123a45;
+  --y2-soft: #1b2d55;
+  --y3-soft: #3a2a1c;
+  --on-y1: #0b1530;
+  --on-y2: #0b1530;
+  --on-y3: #0b1530;
+
+  /* The art tones are the same in both themes */
+  --sec-home-tint: #33438f;
+  --sec-home-pill: #1e2c66;
+  --sec-home-text: #8da6ff;
+  --sec-library-tint: #6e5a22;
+  --sec-library-pill: #3a3218;
+  --sec-library-text: #ffc94d;
+  --sec-modules-tint: #1e5c45;
+  --sec-modules-pill: #15382c;
+  --sec-modules-text: #5bd49a;
+  --sec-notebook-tint: #433889;
+  --sec-notebook-pill: #2a2560;
+  --sec-notebook-text: #ad9dff;
+  --sec-forum-tint: #6e2d55;
+  --sec-forum-pill: #42213a;
+  --sec-forum-text: #ff8cc6;
+  --sec-calendar-tint: #6e3036;
+  --sec-calendar-pill: #42222a;
+  --sec-calendar-text: #ff8a80;
+  --sec-search-tint: #3a4870;
+  --sec-search-pill: #24304f;
+  --sec-search-text: #aab8d6;
+
+  --icon-line: #a9b8d9;
+  --icon-line-active: #eaf0ff;
+  --art-halo: #eaf0ff;
+  --noora-frame: #2a2f5e;
+  --noora-ring: #8da6ff;
+  --noora-online: #5bd49a;
+
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+  --highlight-ink: #0a1f44;
   --mine-violet: #b197fc;
   --mine-teal: #66d9e8;
   --mine-green: #8ce99a;
   --mine-orange: #ffa94d;
   --mine-rose: #f783ac;
   --mine-slate: #ced4da;
-  --cobalt-hover: #96bbff;
-  --cobalt-soft: #173066;
-  --alert-soft: #3a1f45;
-  --signal-soft: #133e4a;
   --highlight-soft: #3a3a3f;
-  --thumb-bg: #213563;
+  --thumb-bg: #22355f;
   --thumb-shadow: none;
   --tile-stroke: rgba(255, 255, 255, 0.14);
   --key-spent: #0a1733;
-  --key-spent-ink: #7488b0;
+  --key-spent-ink: #8798be;
   --art-tile: #dde6f7;
   --art-tile-stroke: transparent;
   --scrim: rgba(2, 8, 20, 0.62);
-  --focus-color: var(--cobalt);
+  --focus-color: var(--accent);
   --surface-1: var(--surface);
   --surface-hover: var(--surface-2);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
-  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.38);
-  --shadow-panel: 0 8px 24px -8px rgba(0, 0, 0, 0.45);
   --show-on-light: none;
   --show-on-dark: block;
 }

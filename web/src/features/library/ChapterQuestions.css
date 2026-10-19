@@ -2,7 +2,7 @@
 .lib-chq {
   display: grid;
   gap: var(--sp-12);
-  max-width: var(--measure, 75ch);
+  max-width: var(--measure);
 }
 .lib-chq__h {
   margin: 0;
@@ -91,7 +91,7 @@
   line-height: 1.5;
 }
 .lib-chq__empty a {
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
 }
 

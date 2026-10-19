@@ -8,7 +8,7 @@
   display: inline-block;
   overflow: hidden;
   border-radius: var(--r-pill);
-  background: var(--cobalt-soft);
+  background: var(--accent-soft);
 }
 .nc-face__img {
   position: absolute;
@@ -39,7 +39,7 @@
   display: none;
 }
 .ncard--float {
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   transform-origin: 100% 100%;
   animation: ncard-in var(--dur-slow) var(--ease);
 }
@@ -55,7 +55,7 @@
 
 .ncard--sheet {
   border-width: 1px 0 0;
-  border-radius: var(--r-feature) var(--r-feature) 0 0;
+  border-radius: var(--r-panel) var(--r-panel) 0 0;
   animation: ncard-rise var(--dur-slow) var(--ease);
 }
 @keyframes ncard-rise {

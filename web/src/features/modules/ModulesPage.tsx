@@ -152,7 +152,7 @@ function ModuleRow({
                       value={progress.pct}
                       size={56}
                       stroke={5}
-                      color={progress.pct === 100 ? 'var(--signal)' : cohortColor(m.year)}
+                      color={progress.pct === 100 ? 'var(--success-fill)' : cohortColor(m.year)}
                     />
                   </span>
                   <span className="mod-row__watched">

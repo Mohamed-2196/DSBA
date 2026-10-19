@@ -10,7 +10,7 @@
 }
 .lib-daily__q {
   margin: 0;
-  max-width: var(--measure, 75ch);
+  max-width: var(--measure);
   color: var(--ink);
   font-size: var(--fs-20);
   font-weight: var(--fw-bold);
@@ -23,7 +23,7 @@
 }
 .lib-daily__chapter {
   margin: 0;
-  max-width: var(--measure, 75ch);
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.5;

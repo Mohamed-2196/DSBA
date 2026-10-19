@@ -100,7 +100,7 @@
   background: var(--surface-2);
 }
 .nc-jump svg {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 @media (pointer: coarse) {
   .nc-jump {
@@ -153,7 +153,7 @@
   padding: 0 10px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-pill);
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
   transition: background-color var(--dur-fast) var(--ease);
 }
@@ -203,7 +203,7 @@
   list-style: decimal;
 }
 .nr ol > li::marker {
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
 }
 .nr li {
   padding-left: 0.15em;
@@ -226,9 +226,9 @@
   border-top: 1px solid var(--line);
 }
 .nr a {
-  color: var(--cobalt);
+  color: var(--accent);
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--cobalt) 40%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
   text-underline-offset: 2px;
 }
 .nr a:hover {
@@ -260,7 +260,7 @@
 .nr-code__lang {
   flex: 1 1 auto;
   color: var(--ink-2);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: var(--fw-semibold);
   text-transform: lowercase;
@@ -273,7 +273,7 @@
   padding: 0 8px;
   border-radius: var(--r-xs);
   color: var(--ink-2);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: var(--fw-semibold);
   transition:
@@ -428,7 +428,7 @@
   height: 1em;
   margin-left: 2px;
   border-radius: 1px;
-  background: var(--cobalt);
+  background: var(--accent);
   vertical-align: -0.14em;
 }
 
@@ -449,7 +449,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--cobalt);
+  background: var(--accent);
   opacity: 0.3;
   animation: nc-breathe 1.2s ease-in-out infinite;
 }
@@ -493,7 +493,7 @@
 .nc-hello__text {
   max-width: 34ch;
   color: var(--ink);
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
   font-size: var(--fs-20);
   line-height: 1.4;
   letter-spacing: -0.005em;
@@ -520,7 +520,7 @@
   min-height: 36px;
   padding: 6px 4px;
   border-bottom: 1px solid var(--line);
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
   line-height: 1.35;
@@ -543,10 +543,10 @@
     color var(--dur-fast) var(--ease);
 }
 .nc-suggest__item:hover {
-  color: var(--cobalt-hover);
+  color: var(--accent-hover);
 }
 .nc-suggest__item:hover .nc-suggest__go {
-  color: var(--cobalt);
+  color: var(--accent);
   transform: translateX(2px);
 }
 .nc-suggest__item:focus-visible {
@@ -594,7 +594,7 @@ a.nc-card:hover {
 }
 .nc-card__icon {
   flex: 0 0 auto;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 20px;
 }
 .nc-card__text {
@@ -627,7 +627,7 @@ a.nc-card:hover {
     color var(--dur-fast) var(--ease);
 }
 a.nc-card:hover .nc-card__go {
-  color: var(--cobalt);
+  color: var(--accent);
   transform: translateX(2px);
 }
 
@@ -649,7 +649,7 @@ a.nc-card:hover .nc-card__go {
   border-radius: var(--r-control);
   background: var(--surface-2);
   color: var(--ink);
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
   text-align: center;
 }
 .nc-formula__line {
@@ -726,14 +726,14 @@ a.nc-card:hover .nc-card__go {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1;
 }
 .nc-step__label i {
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
   font-size: 1.12em;
   font-style: italic;
   font-weight: var(--fw-medium);
@@ -741,7 +741,7 @@ a.nc-card:hover .nc-card__go {
 .nc-step__line {
   margin-top: 5px;
   overflow-x: auto;
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
   font-size: var(--fs-16);
   line-height: 1.5;
   text-align: center;
@@ -835,7 +835,7 @@ a.nc-card:hover .nc-card__go {
 }
 .nc-file__icon {
   flex: 0 0 auto;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 20px;
 }
 .nc-file__name {
@@ -913,10 +913,10 @@ a.nc-card:hover .nc-card__go {
   place-content: center;
   justify-items: center;
   gap: var(--sp-8);
-  border: 2px dashed var(--cobalt);
+  border: 2px dashed var(--accent);
   border-radius: var(--r-control);
-  background: color-mix(in srgb, var(--cobalt-soft) 94%, transparent);
-  color: var(--cobalt);
+  background: color-mix(in srgb, var(--accent-soft) 94%, transparent);
+  color: var(--accent);
   font-size: var(--fs-16);
   font-weight: var(--fw-semibold);
   visibility: hidden;
@@ -971,7 +971,7 @@ a.nc-card:hover .nc-card__go {
 }
 .nc-see__icon {
   flex: 0 0 auto;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 14px;
 }
 .nc-see__label {
@@ -1029,7 +1029,7 @@ a.nc-card:hover .nc-card__go {
   min-height: 28px;
   padding: 0 8px;
   border-radius: var(--r-pill);
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
 }
 .nc-editing__cancel:hover {
@@ -1044,7 +1044,7 @@ a.nc-card:hover .nc-card__go {
 .nc-field {
   display: grid;
   border: 1px solid var(--control-border);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
   transition:
     border-color var(--dur-fast) var(--ease),
@@ -1054,13 +1054,13 @@ a.nc-card:hover .nc-card__go {
   border-color: var(--ink-3);
 }
 .nc-field:focus-within {
-  border-color: var(--cobalt);
-  box-shadow: 0 0 0 3px var(--cobalt-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .nc-field.is-over,
 .nc-field.is-over:focus-within {
-  border-color: var(--alert-strong);
-  box-shadow: 0 0 0 3px var(--alert-soft);
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px var(--error-soft);
 }
 .nc-field .nc-tray {
   padding: 12px 12px 0;
@@ -1142,8 +1142,8 @@ a.nc-card:hover .nc-card__go {
 }
 .nc-toggle.is-on {
   border-color: transparent;
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .nc-tools__end {
   flex: 0 0 auto;
@@ -1161,7 +1161,7 @@ a.nc-card:hover .nc-card__go {
   white-space: nowrap;
 }
 .nc-count.is-over {
-  color: var(--alert-strong);
+  color: var(--error);
   font-weight: var(--fw-semibold);
 }
 
@@ -1204,7 +1204,7 @@ a.nc-card:hover .nc-card__go {
   background: var(--surface-2);
 }
 .nc-recent__item[aria-current] {
-  background: var(--cobalt-soft);
+  background: var(--accent-soft);
 }
 .nc-recent__name {
   overflow: hidden;

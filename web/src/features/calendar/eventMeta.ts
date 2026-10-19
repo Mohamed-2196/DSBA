@@ -5,9 +5,9 @@ import { daysBetween, formatDay, monthName, parseDay, type DayKey } from '../../
 import type { CalendarEvent, EventType, EventTypeMeta } from './types';
 
 export const EVENT_TYPES: Record<EventType, EventTypeMeta> = {
-  exam: { label: 'Exam', plural: 'exams', token: '--alert', color: 'var(--alert)' },
-  mock: { label: 'Mock exam', plural: 'mock exams', token: '--cobalt', color: 'var(--cobalt)' },
-  revision: { label: 'Revision', plural: 'revision sessions', token: '--signal', color: 'var(--signal)' },
+  exam: { label: 'Exam', plural: 'exams', token: '--exam', color: 'var(--exam)' },
+  mock: { label: 'Mock exam', plural: 'mock exams', token: '--accent', color: 'var(--accent)' },
+  revision: { label: 'Revision', plural: 'revision sessions', token: '--success-fill', color: 'var(--success-fill)' },
   deadline: { label: 'Deadline', plural: 'deadlines', token: '--highlight', color: 'var(--highlight)' },
   // Application windows of Career Navigator's employers.
   careers: { label: 'Careers', plural: 'careers dates', token: '--ink', color: 'var(--ink)' },
@@ -32,11 +32,11 @@ export const TYPE_ORDER: readonly EventType[] = [
 
 export const isEventType = (value: unknown): value is EventType => typeof value === 'string' && value in EVENT_TYPES;
 
-export type BadgeTone = 'neutral' | 'cobalt' | 'signal' | 'alert' | 'highlight';
+export type BadgeTone = 'neutral' | 'cobalt' | 'signal' | 'alert' | 'exam' | 'highlight';
 
 /** Badge tone per type (ui Badge tones; 'event' is tinted amber by the calendar's own CSS). */
 export const TYPE_BADGE_TONE: Record<EventType, BadgeTone> = {
-  exam: 'alert',
+  exam: 'exam',
   mock: 'cobalt',
   revision: 'signal',
   deadline: 'highlight',

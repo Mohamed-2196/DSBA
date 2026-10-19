@@ -47,8 +47,8 @@
 
 /* The fallback: initials on a tint of the page's own ink. */
 .career-logo.is-missing {
-  background: color-mix(in srgb, var(--cobalt) 7%, var(--surface-2));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cobalt) 12%, var(--line));
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, var(--line));
 }
 .career-logo__mono {
   color: var(--ink);

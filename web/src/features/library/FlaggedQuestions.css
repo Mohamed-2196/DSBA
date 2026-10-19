@@ -30,7 +30,7 @@
 .lib-flagged__text {
   flex: 1 1 280px;
   min-width: 0;
-  max-width: var(--measure, 75ch);
+  max-width: var(--measure);
   margin: 0;
   color: var(--ink);
   font-size: var(--fs-14);
@@ -38,7 +38,7 @@
   overflow-wrap: anywhere;
 }
 .lib-flagged__text a {
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
 }
 .lib-flagged__acts {

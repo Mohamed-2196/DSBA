@@ -150,14 +150,14 @@
   padding-right: var(--sp-24);
   border-right: 1px solid var(--line-strong);
   color: var(--mc);
-  font-size: var(--fs-76);
+  font-size: var(--fs-44);
   line-height: 0.92;
   letter-spacing: -0.045em;
 }
 .mod-head__name {
   min-width: 0;
   max-width: 22ch;
-  font-size: var(--fs-31);
+  font-size: var(--fs-28);
   font-weight: var(--fw-heavy);
   line-height: 1.1;
   letter-spacing: var(--tracking-head);
@@ -169,7 +169,7 @@
   width: 76px;
   height: 76px;
   flex: 0 0 auto;
-  border-radius: var(--r-feature);
+  border-radius: var(--r-panel);
   background: color-mix(in srgb, var(--mcb) 12%, var(--surface));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mcb) 24%, transparent);
   color: var(--mc);
@@ -189,17 +189,17 @@
   .mod-head__code {
     padding-right: 0;
     border-right: 0;
-    font-size: var(--fs-49);
+    font-size: var(--fs-44);
     line-height: 0.86;
   }
   .mod-head__name {
     max-width: none;
-    font-size: var(--fs-25);
+    font-size: var(--fs-22);
   }
   .mod-head__plate {
     width: 60px;
     height: 60px;
-    border-radius: var(--r-panel);
+    border-radius: var(--r-card);
     font-size: 32px;
   }
 }
@@ -387,14 +387,14 @@ button.mod-row:hover .mod-row__title {
   background: var(--ink-3);
 }
 .mod-date--exam .mod-date__dot {
-  background: var(--alert);
+  background: var(--exam);
 }
 .mod-date--mock .mod-date__dot,
 .mod-date--deadline .mod-date__dot {
-  background: var(--cobalt);
+  background: var(--accent);
 }
 .mod-date--revision .mod-date__dot {
-  background: var(--signal);
+  background: var(--success-fill);
 }
 .mod-date__when {
   color: var(--ink-2);
@@ -403,7 +403,7 @@ button.mod-row:hover .mod-row__title {
   white-space: nowrap;
 }
 .mod-date__when.is-soon {
-  color: var(--alert-strong);
+  color: var(--error);
   font-weight: var(--fw-semibold);
 }
 
@@ -558,7 +558,7 @@ button.mod-row:hover .mod-row__title {
   font-size: var(--fs-12);
 }
 .mod-prog__frac svg {
-  color: var(--signal);
+  color: var(--success);
   font-size: 14px;
 }
 .mod-prog__bar {
@@ -700,7 +700,7 @@ button.mod-row:hover .mod-row__title {
   margin: 0 -20px;
   border: 0;
   border-top: 1px solid var(--line);
-  border-radius: 0 0 var(--r-panel) var(--r-panel);
+  border-radius: 0 0 var(--r-card) var(--r-card);
   box-shadow: none;
   background: transparent;
 }

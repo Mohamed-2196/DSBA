@@ -72,7 +72,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   /* She fades in once her first sprite has arrived, rather than popping in half-loaded. */
   opacity: 0;
   transition: opacity var(--dur-slow) var(--ease);
@@ -143,7 +143,7 @@
 }
 /* While her chat is open a quiet ring of light under her feet ties her to it. */
 .noora[data-open] .noora__ground {
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--cobalt) 45%, transparent), transparent);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 45%, transparent), transparent);
 }
 
 /* At rest she breathes; she waves with a little sway, and thinks with a slow tilt. She squashes, then settles, when
@@ -234,7 +234,7 @@
   width: max-content;
   max-width: min(260px, calc(100vw - 120px));
   border: 1px solid var(--line);
-  border-radius: var(--r-panel) var(--r-panel) var(--r-xs) var(--r-panel);
+  border-radius: var(--r-card) var(--r-card) var(--r-xs) var(--r-card);
   background: var(--surface);
   box-shadow: var(--shadow-float);
   transform-origin: 100% 100%;
@@ -256,7 +256,7 @@
 .noora__hint[data-side='right'] {
   right: auto;
   left: calc(100% + 10px);
-  border-radius: var(--r-panel) var(--r-panel) var(--r-panel) var(--r-xs);
+  border-radius: var(--r-card) var(--r-card) var(--r-card) var(--r-xs);
   transform-origin: 0 100%;
 }
 @keyframes noora-hint-in {

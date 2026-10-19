@@ -29,12 +29,12 @@
   font-size: 18px;
 }
 .nl-reaction.is-on {
-  border-color: var(--cobalt);
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .nl-reaction--love.is-on .nl-reaction__icon {
-  color: var(--alert);
+  color: var(--error);
 }
 .nl-reaction.is-popping .nl-reaction__icon {
   animation: nl-react-pop 240ms var(--ease);

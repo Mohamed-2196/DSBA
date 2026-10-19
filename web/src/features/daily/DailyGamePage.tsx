@@ -380,8 +380,8 @@ function StageSkeleton() {
   return (
     <div className="dg-skeleton" aria-busy="true">
       <span className="visually-hidden">Loading the puzzle</span>
-      <Skeleton width="min(360px, 90%)" height="min(360px, 50vh)" radius="var(--r-panel)" />
-      <Skeleton width="min(480px, 95%)" height={120} radius="var(--r-panel)" />
+      <Skeleton width="min(360px, 90%)" height="min(360px, 50vh)" radius="var(--r-card)" />
+      <Skeleton width="min(480px, 95%)" height={120} radius="var(--r-card)" />
     </div>
   );
 }

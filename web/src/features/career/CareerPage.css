@@ -48,7 +48,7 @@
   margin-bottom: 20px;
 }
 .career-page .ui-page-section > .ui-section-header .ui-section-header__title {
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   letter-spacing: var(--tracking-head);
 }
@@ -80,7 +80,7 @@
   text-decoration: none;
 }
 .career-mod:hover .career-mod__name {
-  color: var(--cobalt);
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -129,7 +129,7 @@
 /* ── "Look here": a ring on the card a button just scrolled to. It stays put for reduced motion and fades otherwise.
    (jumpTo removes the class after 1.8s.) ──────────────────────────────────────────────────────────── */
 .career-flash {
-  outline: 3px solid var(--cobalt);
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -140,7 +140,7 @@
 @keyframes career-flash {
   0%,
   35% {
-    outline-color: var(--cobalt);
+    outline-color: var(--accent);
   }
   100% {
     outline-color: transparent;
@@ -192,7 +192,7 @@
   color: var(--ink);
 }
 .career-parts__link.is-current {
-  background: var(--cobalt-soft);
+  background: var(--accent-soft);
   color: var(--ink);
 }
 /* A part scrolled to keeps its heading clear of the top bar and this row. */

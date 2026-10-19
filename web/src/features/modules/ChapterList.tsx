@@ -179,7 +179,7 @@ export function ChapterList({
       </div>
       {tracking ? (
         <div className="mod-chapters__bar" aria-hidden="true">
-          <span style={{ width: `${p.pct}%`, background: p.pct === 100 ? 'var(--signal)' : color }} />
+          <span style={{ width: `${p.pct}%`, background: p.pct === 100 ? 'var(--success-fill)' : color }} />
         </div>
       ) : null}
 
@@ -202,7 +202,7 @@ export function ChapterList({
                     value={cp.pct}
                     size={34}
                     stroke={3}
-                    color={done ? 'var(--signal)' : color}
+                    color={done ? 'var(--success-fill)' : color}
                     showValue={false}
                   >
                     {done ? (

@@ -81,7 +81,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--signal);
+  background: var(--success-fill);
   transition: width var(--dur) var(--ease);
 }
 .card-detail__chips {
@@ -143,7 +143,7 @@
   width: 18px;
   height: 18px;
   margin: 0;
-  accent-color: var(--cobalt);
+  accent-color: var(--accent);
 }
 .card-detail__todo-text {
   font-size: var(--fs-14);
@@ -256,7 +256,7 @@ a.card-files__name:hover {
 }
 .card-files__icon {
   flex: none;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 26px;
 }
 .card-files__file .card-files__meta {
@@ -307,7 +307,7 @@ a.card-files__name:hover {
 }
 
 .card-detail__link {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
 }
@@ -325,7 +325,7 @@ a.card-files__name:hover {
   font-size: var(--fs-12);
 }
 .card-detail__delete {
-  color: var(--alert-strong);
+  color: var(--error);
 }
 
 @media (max-width: 699px) {

@@ -22,7 +22,7 @@
   padding: 0;
   list-style: none;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .req-card {
@@ -111,17 +111,17 @@
     border-color var(--dur-fast) var(--ease);
 }
 .req-metoo:hover:not(:disabled) {
-  border-color: var(--cobalt);
-  color: var(--cobalt);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .req-metoo:focus-visible {
   outline: var(--focus-width) solid var(--focus-color);
   outline-offset: var(--focus-offset);
 }
 .req-metoo.is-on {
-  border-color: var(--cobalt);
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .req-metoo:disabled {
   cursor: default;
@@ -168,7 +168,7 @@
   margin-top: var(--sp-16);
 }
 .req-detail__title {
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   line-height: var(--lh-heading);
   overflow-wrap: anywhere;
@@ -298,7 +298,7 @@
   gap: var(--sp-8);
 }
 .req-form__error {
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
 }
 .req-similar {
@@ -327,7 +327,7 @@
   min-width: 0;
 }
 .req-similar a {
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
@@ -362,7 +362,7 @@
   padding: 0;
   list-style: none;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .req-done__list > li + li {
@@ -384,7 +384,7 @@
 }
 .req-done__icon {
   margin-top: 2px;
-  color: var(--signal-strong);
+  color: var(--success);
   font-size: 20px;
 }
 .req-done__main {

@@ -43,7 +43,7 @@
   display: block;
   height: 100%;
   border-radius: var(--r-pill);
-  background: var(--cobalt);
+  background: var(--accent);
   transition: width var(--dur) var(--ease);
 }
 .career-ready__list {
@@ -63,7 +63,7 @@
 }
 .career-ready__done {
   margin-top: var(--sp-8);
-  color: var(--signal-strong);
+  color: var(--success);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
 }
@@ -96,14 +96,14 @@
   content: '';
   width: 12px;
   height: 12px;
-  background: var(--cobalt-ink);
+  background: var(--on-accent);
   clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
   transform: scale(0);
   transition: transform var(--dur-fast) var(--ease);
 }
 .career-check__box:checked {
-  background: var(--cobalt);
-  border-color: var(--cobalt);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .career-check__box:checked::after {
   transform: scale(1);
@@ -139,7 +139,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--cobalt);
+  color: var(--accent);
   font: inherit;
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
@@ -170,7 +170,7 @@
 .career-study__icon {
   flex: none;
   font-size: 28px;
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .career-study__text {
   flex: 1 1 320px;

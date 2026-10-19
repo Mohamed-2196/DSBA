@@ -100,27 +100,27 @@ export const COLORS: readonly { id: BoardColor; label: string }[] = [
 /** The design token a board or label colour fills a dot or a bar with. */
 export function colorVar(color: BoardColor): string {
   const tokens: Record<BoardColor, string> = {
-    cobalt: 'var(--cobalt)',
+    cobalt: 'var(--accent)',
     teal: 'var(--y1)',
-    green: 'var(--signal)',
+    green: 'var(--success-fill)',
     amber: 'var(--y3)',
-    coral: 'var(--alert)',
+    coral: 'var(--error)',
     slate: 'var(--ink-3)',
   };
-  return tokens[color] ?? 'var(--cobalt)';
+  return tokens[color] ?? 'var(--accent)';
 }
 
 /** The same colour for small text: each one reads at AA on a surface, in both themes. */
 export function colorInk(color: BoardColor): string {
   const tokens: Record<BoardColor, string> = {
-    cobalt: 'var(--cobalt)',
+    cobalt: 'var(--accent)',
     teal: 'var(--y1-strong)',
-    green: 'var(--signal-strong)',
+    green: 'var(--success)',
     amber: 'var(--y3-strong)',
-    coral: 'var(--alert-strong)',
+    coral: 'var(--error)',
     slate: 'var(--ink-2)',
   };
-  return tokens[color] ?? 'var(--cobalt)';
+  return tokens[color] ?? 'var(--accent)';
 }
 
 /** Icons a student may give a board (optional: a board's colour already tells boards apart). */

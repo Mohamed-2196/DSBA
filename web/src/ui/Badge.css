@@ -7,7 +7,7 @@
   padding: 0 9px;
   border-radius: var(--r-pill);
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   line-height: 1;
   letter-spacing: 0;
   white-space: nowrap;
@@ -27,20 +27,24 @@
   color: var(--ink-2);
 }
 .ui-badge--cobalt {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 .ui-badge--signal {
-  background: var(--signal-soft);
-  color: var(--signal-strong);
+  background: var(--success-soft);
+  color: var(--success);
 }
 .ui-badge--alert {
-  background: var(--alert-soft);
-  color: var(--alert-strong);
+  background: var(--error-soft);
+  color: var(--error);
+}
+.ui-badge--exam {
+  background: var(--exam-soft);
+  color: var(--exam);
 }
 .ui-badge--navy {
-  background: var(--navy);
-  color: #fff;
+  background: var(--inverse);
+  color: var(--on-inverse);
 }
 .ui-badge--outline {
   background: transparent;
@@ -60,21 +64,25 @@
 .ui-cohort {
   --c: var(--ink-3);
   --c-strong: var(--ink-2);
+  --c-soft: var(--surface-2);
   --c-on: var(--surface);
 }
 .ui-cohort--y1 {
   --c: var(--y1);
   --c-strong: var(--y1-strong);
+  --c-soft: var(--y1-soft);
   --c-on: var(--on-y1);
 }
 .ui-cohort--y2 {
   --c: var(--y2);
   --c-strong: var(--y2-strong);
+  --c-soft: var(--y2-soft);
   --c-on: var(--on-y2);
 }
 .ui-cohort--y3 {
   --c: var(--y3);
   --c-strong: var(--y3-strong);
+  --c-soft: var(--y3-soft);
   --c-on: var(--on-y3);
 }
 .ui-cohort__dot {
@@ -85,8 +93,8 @@
   flex: 0 0 auto;
 }
 .ui-cohort--soft {
-  background: color-mix(in srgb, var(--c) 13%, var(--surface));
-  color: var(--ink);
+  background: var(--c-soft);
+  color: var(--c-strong);
 }
 .ui-cohort--solid {
   background: var(--c);

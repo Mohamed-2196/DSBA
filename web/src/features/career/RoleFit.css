@@ -72,7 +72,7 @@
   position: relative;
   display: inline-flex;
   align-items: baseline;
-  font-size: var(--fs-31);
+  font-size: var(--fs-28);
   font-weight: var(--fw-heavy);
   line-height: 1;
   letter-spacing: -0.03em;
@@ -93,7 +93,7 @@
   display: flex;
   align-items: center;
   gap: var(--sp-8);
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   line-height: 1.15;
   letter-spacing: var(--tracking-head);
@@ -101,7 +101,7 @@
 .career-fit__role-icon {
   flex: none;
   font-size: 26px;
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .career-score__headline {
   margin-top: var(--sp-4);
@@ -157,8 +157,8 @@
   height: 28px;
   padding: 0 var(--sp-12) 0 10px;
   border-radius: var(--r-pill);
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
   line-height: 1;
@@ -169,8 +169,8 @@
     color var(--dur-fast) var(--ease);
 }
 .career-fitcert:hover {
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .career-fitcert__icon {
   font-size: 15px;
@@ -195,7 +195,7 @@
   color: var(--ink-3);
 }
 .career-group.is-covered .career-group__icon {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .career-group__count {
   display: inline-grid;
@@ -222,7 +222,7 @@
 .career-skill {
   min-width: 0;
   padding-left: var(--sp-12);
-  border-left: 2px solid var(--cobalt);
+  border-left: 2px solid var(--accent);
 }
 .career-skill.is-later {
   border-left-style: dashed;
@@ -278,7 +278,7 @@
   margin-top: var(--sp-8);
   padding: var(--sp-8) var(--sp-12);
   border-radius: var(--r-control);
-  background: var(--cobalt-soft);
+  background: var(--accent-soft);
   color: var(--ink);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
@@ -289,7 +289,7 @@
   transition: background-color var(--dur-fast) var(--ease);
 }
 .career-close:hover {
-  background: color-mix(in srgb, var(--cobalt) 16%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
 }
 @media (pointer: coarse) {
   .career-fitcert {
@@ -304,7 +304,7 @@
   flex: none;
   margin-top: 1px;
   font-size: 18px;
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .career-close__text {
   min-width: 0;
@@ -314,7 +314,7 @@
   flex: none;
   margin-top: 3px;
   font-size: 14px;
-  color: var(--cobalt);
+  color: var(--accent);
   transition: transform var(--dur-fast) var(--ease);
 }
 .career-close:hover .career-close__go {
