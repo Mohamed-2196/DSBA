@@ -1,6 +1,7 @@
 // Printing a note, or saving it as a PDF from the print dialog: every sheet on a page of its own, as it is on screen.
 // The PDF's pages are drawn sharp for paper first (with their progress shown), the paper keeps its lines, the typed
-// text and pictures sit where they are, and the handwriting prints as vectors. Nothing of the app prints around it.
+// text and the pictures in it sit where they are, the free pictures at their places over them, and the handwriting
+// prints over everything as vectors. Nothing of the app prints around it.
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import type { Stroke } from '../../../api/types';
@@ -8,6 +9,8 @@ import { StrokePaths, type InkStroke } from '../../../lib/ink';
 import { Button, Modal, cx } from '../../../ui';
 import type { Paper } from '../draft';
 import type { LoadedPdf } from '../pdf';
+import { FreePictureView } from '../pictures/FreePictureView';
+import type { FreePicture } from '../pictures/geometry';
 import {
   PAPER_BASE,
   SHEET_HEIGHT,
@@ -32,6 +35,8 @@ interface PrintNoteProps {
   paper: Paper;
   pdf: LoadedPdf | null;
   strokesOf: (sheet: number) => readonly Stroke[];
+  /** the pictures free on the pages */
+  pictures: readonly FreePicture[];
   /** where the note's text is on screen (it is copied onto the paper pages) */
   textSource: RefObject<HTMLElement>;
   onDone: () => void;
@@ -88,7 +93,7 @@ async function drawPage(pdf: LoadedPdf, page: number): Promise<string> {
   return URL.createObjectURL(blob);
 }
 
-export function PrintNote({ title, sheets, paper, pdf, strokesOf, textSource, onDone }: PrintNoteProps) {
+export function PrintNote({ title, sheets, paper, pdf, strokesOf, pictures, textSource, onDone }: PrintNoteProps) {
   const [images, setImages] = useState<Record<number, string>>({});
   const [failed, setFailed] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -179,6 +184,11 @@ export function PrintNote({ title, sheets, paper, pdf, strokesOf, textSource, on
                 ) : null}
                 {s.kind === 'paper' ? <PaperRules paper={paper} height={s.height} /> : null}
                 {s.kind === 'paper' ? <PrintText source={text} page={s.index - PAPER_BASE} /> : null}
+                {pictures
+                  .filter((p) => p.sheet === s.index)
+                  .map((p) => (
+                    <FreePictureView key={p.id} p={p} />
+                  ))}
                 <svg
                   className="nb-print__ink"
                   width={SHEET_WIDTH}

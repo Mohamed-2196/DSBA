@@ -1,6 +1,7 @@
-// A picture in a note, and everything that edits it: tap it to select it, then drag it to another place (up or down
-// the text, across it, or lower down the page), pull a corner to resize it (its shape stays), crop it, turn it, give
-// it a caption and a description, open it full size, or delete it. Its controls keep their size at any zoom.
+// A picture in the text of a note, and everything that edits it: tap it to select it, then drag it to another place
+// (up or down the text, across it, or lower down the page), pull a corner to resize it (its shape stays), crop it,
+// turn it, make it free to put it anywhere on the page, give it a caption and a description, open it full size, or
+// delete it. Its controls keep their size at any zoom.
 import {
   ArrowClockwise,
   ArrowSquareOut,
@@ -24,10 +25,14 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { Button, Modal, TextArea, TextField, cx } from '../../../ui';
+import { useMediaQuery } from '../../../state';
+import { cx, type MenuItem } from '../../../ui';
 import { noteFileHref } from '../api';
+import { DetailsDialog } from '../pictures/DetailsDialog';
+import { usePictureSpace } from '../pictures/space';
 import { LINE, TEXT_WIDTH } from '../surface/layout';
-import { BlockBar, BlockBarButton } from './BlockBar';
+import { BarMenu, BlockBar, BlockBarButton, PlacementSwitch } from './BlockBar';
+import { CROP_HANDLES, rectStyle } from './crop';
 import {
   FULL,
   cropAttrs,
@@ -48,28 +53,9 @@ import { useBlockMove } from './useBlockMove';
 
 /** Room above and below a picture, in units; the whole picture takes whole lines of the paper. */
 const PAD = 8;
-const CAPTION_MAX = 300;
-const ALT_MAX = 500;
 
 type Corner = 'nw' | 'ne' | 'sw' | 'se';
 const CORNERS: Corner[] = ['nw', 'ne', 'sw', 'se'];
-const CROP_HANDLES: { id: string; edges: Edges }[] = [
-  { id: 'nw', edges: { top: true, left: true } },
-  { id: 'n', edges: { top: true } },
-  { id: 'ne', edges: { top: true, right: true } },
-  { id: 'e', edges: { right: true } },
-  { id: 'se', edges: { bottom: true, right: true } },
-  { id: 's', edges: { bottom: true } },
-  { id: 'sw', edges: { bottom: true, left: true } },
-  { id: 'w', edges: { left: true } },
-];
-
-const rectStyle = (r: Rect): CSSProperties => ({
-  left: `${r.x * 100}%`,
-  top: `${r.y * 100}%`,
-  width: `${r.w * 100}%`,
-  height: `${r.h * 100}%`,
-});
 
 /** Follows one pointer from a press on `e.currentTarget` until it lets go: `onMove` gets how far it went (pixels). */
 function follow(
@@ -136,68 +122,6 @@ function Shown({
   );
 }
 
-function DetailsDialog({
-  open,
-  p,
-  onSave,
-  onClose,
-}: {
-  open: boolean;
-  p: PictureAttrs;
-  onSave: (v: { caption: string; alt: string }) => void;
-  onClose: () => void;
-}) {
-  const [caption, setCaption] = useState(p.caption);
-  const [alt, setAlt] = useState(p.alt);
-  useEffect(() => {
-    if (open) {
-      setCaption(p.caption);
-      setAlt(p.alt);
-    }
-  }, [open, p.caption, p.alt]);
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Caption and description"
-      size="sm"
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => onSave({ caption: caption.trim(), alt: alt.trim() })}
-            data-hub="picture-details-save"
-          >
-            Save
-          </Button>
-        </>
-      }
-    >
-      <div className="nb-details">
-        <TextField
-          label="Caption"
-          hint="Shown under the picture."
-          value={caption}
-          maxLength={CAPTION_MAX}
-          onChange={(e) => setCaption(e.target.value)}
-          data-autofocus
-        />
-        <TextArea
-          label="Description"
-          hint="What the picture shows, for screen readers and for searching your notes."
-          rows={3}
-          value={alt}
-          maxLength={ALT_MAX}
-          onChange={(e) => setAlt(e.target.value)}
-        />
-      </div>
-    </Modal>
-  );
-}
-
 export function PictureView({ node, updateAttributes, deleteNode, editor, selected, getPos }: ReactNodeViewProps) {
   const p = pictureAttrs(node.attrs);
   const editable = editor.isEditable;
@@ -212,6 +136,8 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
   const [details, setDetails] = useState(false);
   const [broken, setBroken] = useState(false);
   const frame = useRef<HTMLDivElement>(null);
+  const space = usePictureSpace();
+  const narrow = useMediaQuery('(max-width: 699px)');
 
   const width = (size?.width ?? p.width) * TEXT_WIDTH;
   const x = size?.x ?? p.x;
@@ -315,6 +241,35 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
     );
   };
 
+  // Free: the picture goes on the page where it is now, out of the text (one step to undo).
+  const makeFree = () => {
+    const pos = getPos();
+    const el = frame.current;
+    if (!space || pos === undefined || !el) return;
+    space.makeFree(pos, p, el.getBoundingClientRect());
+  };
+  const places = [
+    { x: 0, label: 'To the left', icon: TextAlignLeft },
+    { x: 0.5, label: 'In the middle', icon: TextAlignCenter },
+    { x: 1, label: 'To the right', icon: TextAlignRight },
+  ];
+  const more: MenuItem[] = [
+    ...(narrow
+      ? [
+          ...places.map((a) => ({
+            id: `x${a.x}`,
+            label: a.label,
+            icon: a.icon,
+            hint: p.x === a.x ? 'Now' : undefined,
+            onSelect: () => updateAttributes({ x: a.x }),
+          })),
+          { divider: true as const },
+        ]
+      : []),
+    { id: 'details', label: 'Caption and description', icon: TextT, onSelect: () => setDetails(true) },
+    { id: 'open', label: 'Open full size', icon: ArrowSquareOut, href: noteFileHref(p.upload) },
+  ];
+
   const boxStyle: CSSProperties = {
     width,
     marginLeft: left,
@@ -386,6 +341,12 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
               </BlockBar>
             ) : (
               <BlockBar label="Picture">
+                {space ? (
+                  <>
+                    <PlacementSwitch free={false} onFree={makeFree} />
+                    <span className="nb-blockbar__sep" aria-hidden="true" />
+                  </>
+                ) : null}
                 <BlockBarButton
                   icon={Crop}
                   label="Crop"
@@ -394,32 +355,26 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
                 />
                 <BlockBarButton
                   icon={ArrowClockwise}
-                  label="Turn"
+                  label="Turn a quarter"
                   onClick={() => updateAttributes({ rotate: nextTurn(p.rotate) })}
                   disabled={broken}
                 />
+                {narrow ? null : (
+                  <>
+                    <span className="nb-blockbar__sep" aria-hidden="true" />
+                    {places.map((a) => (
+                      <BlockBarButton
+                        key={a.x}
+                        icon={a.icon}
+                        label={a.label}
+                        pressed={p.x === a.x}
+                        onClick={() => updateAttributes({ x: a.x })}
+                      />
+                    ))}
+                  </>
+                )}
                 <span className="nb-blockbar__sep" aria-hidden="true" />
-                <BlockBarButton
-                  icon={TextAlignLeft}
-                  label="To the left"
-                  pressed={p.x === 0}
-                  onClick={() => updateAttributes({ x: 0 })}
-                />
-                <BlockBarButton
-                  icon={TextAlignCenter}
-                  label="In the middle"
-                  pressed={p.x === 0.5}
-                  onClick={() => updateAttributes({ x: 0.5 })}
-                />
-                <BlockBarButton
-                  icon={TextAlignRight}
-                  label="To the right"
-                  pressed={p.x === 1}
-                  onClick={() => updateAttributes({ x: 1 })}
-                />
-                <span className="nb-blockbar__sep" aria-hidden="true" />
-                <BlockBarButton icon={TextT} label="Caption and description" onClick={() => setDetails(true)} />
-                <BlockBarButton icon={ArrowSquareOut} label="Open full size" href={noteFileHref(p.upload)} />
+                <BarMenu label="More for this picture" items={more} />
                 <BlockBarButton icon={Trash} label="Delete picture" danger onClick={deleteNode} />
               </BlockBar>
             )
@@ -441,15 +396,17 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
             document.body,
           )
         : null}
-      <DetailsDialog
-        open={details}
-        p={p}
-        onClose={() => setDetails(false)}
-        onSave={(v) => {
-          updateAttributes(v);
-          setDetails(false);
-        }}
-      />
+      {details ? (
+        <DetailsDialog
+          caption={p.caption}
+          alt={p.alt}
+          onClose={() => setDetails(false)}
+          onSave={(v) => {
+            updateAttributes(v);
+            setDetails(false);
+          }}
+        />
+      ) : null}
     </NodeViewWrapper>
   );
 }

@@ -5,12 +5,16 @@
 //   - Offline: the copy waits, and is sent when the browser is back online (and every RETRY_EVERY ms until then).
 //   - Saved elsewhere since (409 note_changed, another tab): the student keeps theirs (saved over the other) or loads
 //     the other.
+//   - A change made on the server at once (a page added, deleted or moved: `run`) waits for the save under way, sends
+//     what waits first, and holds the saves while it runs; the note the server answers with is then the one saved
+//     (`adopt`).
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
 import type { Note } from '../../api/types';
 import { fetchNote, noteKeys, noteSaved, saveNote, useNote } from './api';
 import { setOpenNote } from './current';
+import { canRetry } from './saveState';
 import { docOf, dropDraft, openNote, readDraft, sameDoc, writeDraft, type NoteDoc } from './draft';
 
 export const SAVE_AFTER = 700;
@@ -33,6 +37,8 @@ export interface NoteEditor {
   note: Note | undefined;
   state: SaveState;
   error: string | null;
+  /** whether sending again can help after the error (not for a note refused as it is, or gone) */
+  retryable: boolean;
   /** when the server last confirmed what is on screen */
   savedAt: number | null;
   /** the note as it was saved elsewhere, while state is 'conflict' */
@@ -41,7 +47,18 @@ export interface NoteEditor {
   loadError: unknown;
   /** the note doesn't exist (deleted elsewhere, or never was) */
   missing: boolean;
-  change: (patch: Partial<NoteDoc>) => void;
+  /** read the note again after it didn't load */
+  reload: () => void;
+  /** a change: the parts given, or the parts worked out from the note as it is at that moment */
+  change: (patch: Partial<NoteDoc> | ((current: NoteDoc) => Partial<NoteDoc>)) => void;
+  /** the note as it is now, with every change made since the last render */
+  latest: () => NoteDoc | null;
+  /** runs `task` once what waits is saved, with the saves held until it ends */
+  run: <T>(task: () => Promise<T>) => Promise<T>;
+  /** the version the note on screen is written over */
+  base: () => number;
+  /** the server changed the note (`note`), and `patch` makes the same change here: the server's note is the saved one */
+  adopt: (note: Note, patch: (current: NoteDoc) => Partial<NoteDoc>) => void;
   /** send now (a retry, or before leaving) */
   flush: () => void;
   keepMine: () => void;
@@ -59,6 +76,8 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
   const baseRef = useRef<number | null>(null);
   const savedRef = useRef<NoteDoc | null>(null);
   const busy = useRef(false);
+  const held = useRef(false);
+  const idleWaiters = useRef<(() => void)[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const opened = useRef(false);
   const plain = useRef('');
@@ -76,6 +95,7 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
     setStateRaw(s);
   };
   const [error, setError] = useState<string | null>(null);
+  const [retryable, setRetryable] = useState(true);
   const [theirs, setTheirs] = useState<Note | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
@@ -84,54 +104,96 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
     setDoc(next);
   };
 
-  const flush = useCallback(async (): Promise<void> => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
-    const sent = docRef.current;
-    if (readOnly || busy.current || !sent || stateRef.current === 'conflict' || !opened.current) return;
-    if (sameDoc(sent, savedRef.current)) {
-      dropDraft(noteId);
-      setState('saved');
-      return;
-    }
-    busy.current = true;
-    setState('saving');
-    try {
-      const note = await saveNote(noteId, { ...sent, version: baseRef.current ?? 1 });
-      noteSaved(qc, note);
-      baseRef.current = note.version;
-      savedRef.current = sent; // what was sent: the server tidies the title, and sending it again changes nothing
-      setError(null);
-      setSavedAt(Date.now());
-      if (sameDoc(docRef.current, sent)) {
+  const flush = useCallback(
+    async (force = false): Promise<void> => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = null;
+      const sent = docRef.current;
+      if (readOnly || busy.current || !sent || stateRef.current === 'conflict' || !opened.current) return;
+      if (held.current && !force) return; // a change on the server is under way: its end sends what waits
+      if (sameDoc(sent, savedRef.current)) {
         dropDraft(noteId);
         setState('saved');
-      } else {
-        if (docRef.current) writeDraft(noteId, docRef.current, note.version);
-        setState('unsaved');
-        timer.current = setTimeout(() => void flush(), SAVE_AFTER);
+        return;
       }
-    } catch (e) {
-      if (isApiError(e) && e.code === 'note_changed') {
-        try {
-          setTheirs(await fetchNote(noteId));
-          setState('conflict');
-        } catch {
-          setState('offline');
+      busy.current = true;
+      setState('saving');
+      try {
+        const note = await saveNote(noteId, { ...sent, version: baseRef.current ?? 1 });
+        noteSaved(qc, note, { quietly: true });
+        baseRef.current = note.version;
+        savedRef.current = sent; // what was sent: the server tidies the title, and sending it again changes nothing
+        setError(null);
+        setSavedAt(Date.now());
+        if (sameDoc(docRef.current, sent)) {
+          dropDraft(noteId);
+          setState('saved');
+        } else {
+          if (docRef.current) writeDraft(noteId, docRef.current, note.version);
+          setState('unsaved');
+          timer.current = setTimeout(() => void flush(), SAVE_AFTER);
         }
-      } else if (isApiError(e) && (e.code === 'network' || e.status >= 500)) {
-        setState('offline');
-      } else if (isApiError(e) && e.code === 'rate_limited') {
-        setState('unsaved');
-        timer.current = setTimeout(() => void flush(), (e.retryAfter ?? 5) * 1000);
-      } else {
-        setError(isApiError(e) ? e.message : 'Your note couldn’t be saved.');
-        setState('error');
+      } catch (e) {
+        if (isApiError(e) && e.code === 'note_changed') {
+          try {
+            const theirs = await fetchNote(noteId);
+            if (sameDoc(docOf(theirs), sent)) {
+              // the server has what was sent (a save whose answer was lost): it is this tab's own
+              baseRef.current = theirs.version;
+              savedRef.current = sent;
+              noteSaved(qc, theirs, { quietly: true });
+              setState('unsaved');
+              timer.current = setTimeout(() => void flush(), SAVE_AFTER);
+            } else {
+              setTheirs(theirs);
+              setState('conflict');
+            }
+          } catch {
+            setState('offline');
+          }
+        } else if (isApiError(e) && (e.code === 'network' || e.status >= 500)) {
+          setState('offline');
+        } else if (isApiError(e) && e.code === 'rate_limited') {
+          setState('unsaved');
+          timer.current = setTimeout(() => void flush(), (e.retryAfter ?? 5) * 1000);
+        } else {
+          setError(isApiError(e) ? e.message : 'Your note couldn’t be saved.');
+          setRetryable(canRetry(e));
+          setState('error');
+        }
+      } finally {
+        busy.current = false;
+        const waiting = idleWaiters.current;
+        idleWaiters.current = [];
+        for (const go of waiting) go();
       }
-    } finally {
-      busy.current = false;
-    }
-  }, [qc, readOnly, noteId]);
+    },
+    [qc, readOnly, noteId],
+  );
+
+  /** Resolves once no save is under way. */
+  const idle = useCallback(
+    (): Promise<void> => (busy.current ? new Promise<void>((go) => idleWaiters.current.push(go)) : Promise.resolve()),
+    [],
+  );
+
+  const run = useCallback(
+    async <T>(task: () => Promise<T>): Promise<T> => {
+      held.current = true;
+      try {
+        await idle();
+        if (!sameDoc(docRef.current, savedRef.current)) await flush(true);
+        await idle();
+        return await task();
+      } finally {
+        held.current = false;
+        if (!sameDoc(docRef.current, savedRef.current)) void flush();
+      }
+    },
+    [flush, idle],
+  );
+
+  const base = useCallback(() => baseRef.current ?? 1, []);
 
   // The server's copy arrives: open the note from it and the copy here.
   useEffect(() => {
@@ -149,6 +211,7 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
       setState('unsaved');
       void flush();
     } else {
+      dropDraft(noteId); // a copy here that says what the server says is no longer waiting
       setSavedAt(Date.parse(query.data.updatedAt));
     }
   }, [query.data, flush, noteId]);
@@ -206,10 +269,10 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
   );
 
   const change = useCallback(
-    (patch: Partial<NoteDoc>) => {
+    (patch: Partial<NoteDoc> | ((current: NoteDoc) => Partial<NoteDoc>)) => {
       const current = docRef.current;
       if (!current || readOnly) return;
-      const next = { ...current, ...patch };
+      const next = { ...current, ...(typeof patch === 'function' ? patch(current) : patch) };
       if (sameDoc(next, current)) return;
       show(next);
       writeDraft(noteId, next, baseRef.current ?? 1);
@@ -242,6 +305,31 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
     setSavedAt(Date.parse(theirs.updatedAt));
   }, [theirs, qc, noteId]);
 
+  const latest = useCallback(() => docRef.current, []);
+
+  const adopt = useCallback(
+    (note: Note, patch: (current: NoteDoc) => Partial<NoteDoc>) => {
+      const current = docRef.current;
+      if (!current) return;
+      const next = { ...current, ...patch(current) };
+      baseRef.current = note.version;
+      savedRef.current = docOf(note);
+      noteSaved(qc, note, { quietly: true });
+      show(next);
+      setSavedAt(Date.now());
+      if (sameDoc(next, savedRef.current)) {
+        dropDraft(noteId);
+        setState('saved');
+      } else {
+        writeDraft(noteId, next, note.version);
+        setState('unsaved');
+        if (timer.current) clearTimeout(timer.current);
+        timer.current = setTimeout(() => void flush(), SAVE_AFTER);
+      }
+    },
+    [qc, noteId, flush],
+  );
+
   const discard = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     dropDraft(noteId);
@@ -255,11 +343,17 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
     note: query.data,
     state,
     error,
+    retryable,
     savedAt,
     theirs,
     loadError: doc || missing ? null : query.error,
     missing,
+    reload: () => void query.refetch(),
     change,
+    latest,
+    run,
+    base,
+    adopt,
     flush: () => void flush(),
     keepMine,
     loadTheirs,

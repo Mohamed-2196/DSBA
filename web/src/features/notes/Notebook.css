@@ -1,226 +1,4 @@
-/* Notes: the list of notebooks and notes (/notes), the editor (/notes/:id) and a lesson's "Your notes". */
-
-/* ── The list ─────────────────────────────────────────────────────────────────────────────────── */
-.notes-notice {
-  margin: 0 0 var(--sp-16);
-  padding: var(--sp-12) var(--sp-16);
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  background: var(--surface-2);
-  color: var(--ink);
-  font-size: var(--fs-14);
-  max-width: 75ch;
-}
-.notes-notice p {
-  margin: 0;
-}
-.notes-notice__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-8);
-  margin-top: var(--sp-8);
-}
-
-.notes-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--sp-24);
-  align-items: start;
-}
-@media (min-width: 768px) {
-  .notes-layout {
-    grid-template-columns: 260px minmax(0, 1fr);
-  }
-}
-
-.notebooks-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-16);
-  padding: var(--sp-16);
-  border: 1px solid var(--line);
-  border-radius: var(--r-panel);
-  background: var(--surface);
-}
-.notebooks-sidebar__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.notebooks-sidebar__title {
-  margin: 0;
-  font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
-}
-.notebooks-sidebar__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.notebook-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-8);
-  width: 100%;
-  min-height: 40px;
-  padding: var(--sp-8) var(--sp-12);
-  border: 1px solid transparent;
-  border-radius: var(--r-control);
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--fs-14);
-  text-align: left;
-  cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease);
-}
-.notebook-item:hover {
-  background: var(--surface-2);
-}
-.notebook-item.is-active {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
-  font-weight: var(--fw-semibold);
-}
-.notebook-item__name {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-8);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.notebook-item__count {
-  flex: none;
-  padding: 2px 7px;
-  border-radius: var(--r-pill);
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-}
-.notebook-item.is-active .notebook-item__count {
-  background: var(--surface);
-  color: var(--cobalt);
-}
-@media (pointer: coarse) {
-  .notebook-item {
-    min-height: 44px;
-  }
-}
-
-.notebooks-storage {
-  display: grid;
-  gap: var(--sp-12);
-  padding-top: var(--sp-12);
-  border-top: 1px solid var(--line);
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-}
-.notebooks-storage__item p {
-  margin: 0 0 6px;
-}
-.notebooks-storage__meter {
-  height: 6px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: var(--surface-2);
-}
-.notebooks-storage__fill {
-  height: 100%;
-  border-radius: 3px;
-  background: var(--cobalt);
-}
-.notebooks-storage__fill.is-nearly-full {
-  background: var(--alert-strong);
-}
-
-.notes-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-12);
-  align-items: center;
-  margin-bottom: var(--sp-16);
-}
-.notes-filters__search {
-  flex: 1 1 16rem;
-  min-width: 0;
-}
-.notes-count {
-  margin: 0 0 var(--sp-8);
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-}
-.notes-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.notes-row + .notes-row {
-  border-top: 1px solid var(--line);
-}
-.notes-row__link {
-  display: grid;
-  gap: var(--sp-4);
-  min-height: 44px;
-  padding: var(--sp-12) var(--sp-16);
-  color: inherit;
-  text-decoration: none;
-  border-radius: var(--r-control);
-}
-.notes-row__link:hover .notes-row__title {
-  color: var(--cobalt);
-  text-decoration: underline;
-}
-.notes-row__link:focus-visible {
-  outline: 2px solid var(--focus-color);
-  outline-offset: -2px;
-}
-.notes-row__title {
-  font-weight: var(--fw-semibold);
-  overflow-wrap: anywhere;
-}
-.notes-row__excerpt {
-  display: -webkit-box;
-  max-width: 75ch;
-  overflow: hidden;
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-  overflow-wrap: anywhere;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-.notes-row__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-4) var(--sp-12);
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-}
-.notes-more {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--sp-16);
-}
-.notes-skeleton {
-  display: grid;
-  gap: var(--sp-24);
-  padding: var(--sp-16);
-}
-.notes-dialog-form {
-  display: grid;
-  gap: var(--sp-12);
-}
-.notes-new {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-8);
-}
+/* The notebook's editor (/notes/:id, NotePage.tsx): the header, the toolbar, the pages and everything on them. */
 
 /* ── The editor: a frame the window's height under the top bar; only the pages scroll ───────────── */
 .shell:has(.nb) .shell-footer,
@@ -836,11 +614,13 @@ html:has(.nb--full) .noora {
 .nb-pdfpage.is-drawn {
   opacity: 1;
 }
+/* The layers of a page, bottom to top: the paper or the PDF, the typed text, the free pictures (3), the ink (4), the
+   line being drawn (5), the handles of the free picture picked (6), and a picture or file picked in the text (7). */
 .nb-sheet__ink {
   position: absolute;
   left: 0;
   width: 800px;
-  z-index: 3;
+  z-index: 4;
   pointer-events: none;
 }
 .nb-sheet--pdf .nb-sheet__ink {
@@ -875,7 +655,6 @@ html:has(.nb--full) .noora {
   position: absolute;
   left: 0;
   right: 0;
-  z-index: 1;
   height: 0;
   border-top: 2px dashed var(--page-break);
   pointer-events: none;
@@ -887,9 +666,10 @@ html:has(.nb--full) .noora {
   color: var(--page-ink-3);
   font: 600 12px/1 var(--font-sans);
 }
+/* The typed text stacks nothing of its own: it lies on the paper (after its page breaks), under the free pictures and
+   the ink, and a picture or file picked in it comes above them with its toolbar. */
 .nb-paper__text {
   position: absolute;
-  z-index: 2;
 }
 
 /* ── The typed text: every block keeps to the 32-unit lines ── */
@@ -1060,6 +840,7 @@ html:has(.nb--full) .noora {
   padding: 0;
 }
 .nb-math__edit {
+  position: relative;
   display: inline-flex;
   flex-direction: column;
   gap: 4px;
@@ -1116,6 +897,11 @@ html:has(.nb--full) .noora {
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
+}
+.nb-picture.is-selected .nb-picture__box,
+.nb-file.is-selected .nb-file__card,
+.nb-math__edit {
+  z-index: 7;
 }
 .nb-picture.is-selected .nb-picture__frame {
   outline: calc(2px / var(--z, 1)) solid var(--page-accent);
@@ -1278,6 +1064,244 @@ html:has(.nb--full) .noora {
   cursor: ew-resize;
 }
 
+/* pictures free on the page (pictures/FreePictureLayer.tsx). The layer stacks nothing of its own: the pictures lie
+   between the typed text and the ink, the one picked has its handles above the ink. */
+.nb-frees {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.nb-free {
+  position: absolute;
+  transform-origin: 50% 50%;
+}
+.nb-stack .nb-free {
+  z-index: 3;
+}
+.nb-free.is-live {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.nb-free.is-live.is-selected {
+  cursor: move;
+  touch-action: none;
+}
+.nb-free.is-moving {
+  opacity: 0.88;
+}
+.nb-free:focus {
+  outline: none;
+}
+/* the keyboard's ring, while the picture isn't picked (picked, its handles show where it is) */
+.nb-free:focus-visible:not(.is-selected) {
+  outline: calc(2px / var(--z, 1)) solid var(--page-accent);
+  outline-offset: calc(5px / var(--z, 1));
+}
+.nb-free__frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  background: #eef2f8;
+}
+.nb-free__frame img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+.nb-free__broken {
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--page-rule);
+  color: var(--page-ink-3);
+  font-size: 28px;
+}
+/* under the picture, on the page's colour like the picture itself: readable over the writing it covers */
+.nb-free__caption {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 2px 6px 4px;
+  border-radius: 0 0 3px 3px;
+  background: var(--page);
+  color: var(--page-ink-2);
+  font: 14px/20px var(--font-sans);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.nb-free-chrome {
+  position: absolute;
+  z-index: 6;
+  transform-origin: 50% 50%;
+  outline: calc(2px / var(--z, 1)) solid var(--page-accent);
+  pointer-events: none;
+}
+.nb-free-chrome.is-moving {
+  outline-style: dashed;
+}
+.nb-free-chrome.is-cropping {
+  outline: none;
+}
+.nb-free-chrome__corner,
+.nb-free-chrome__turn {
+  position: absolute;
+  box-sizing: border-box;
+  border: calc(2px / var(--z, 1)) solid var(--page-accent);
+  border-radius: 50%;
+  background: #ffffff;
+  pointer-events: auto;
+  touch-action: none;
+}
+.nb-free-chrome__corner {
+  width: calc(16px / var(--z, 1));
+  height: calc(16px / var(--z, 1));
+}
+/* a larger target than it looks: 40 px, 44 px on a touch screen */
+.nb-free-chrome__corner::before,
+.nb-free-chrome__turn::before {
+  content: '';
+  position: absolute;
+  inset: calc(-12px / var(--z, 1));
+  border-radius: 50%;
+}
+.nb-free-chrome__corner.is-nw {
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  cursor: nwse-resize;
+}
+.nb-free-chrome__corner.is-ne {
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  cursor: nesw-resize;
+}
+.nb-free-chrome__corner.is-sw {
+  bottom: 0;
+  left: 0;
+  transform: translate(-50%, 50%);
+  cursor: nesw-resize;
+}
+.nb-free-chrome__corner.is-se {
+  right: 0;
+  bottom: 0;
+  transform: translate(50%, 50%);
+  cursor: nwse-resize;
+}
+/* the turn handle, above the middle of the top edge (it turns with the picture) */
+.nb-free-chrome__stem {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: calc(2px / var(--z, 1));
+  height: calc(28px / var(--z, 1));
+  margin-left: calc(-1px / var(--z, 1));
+  background: var(--page-accent);
+}
+.nb-free-chrome__turn {
+  bottom: 100%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: calc(22px / var(--z, 1));
+  height: calc(22px / var(--z, 1));
+  margin-bottom: calc(28px / var(--z, 1));
+  transform: translate(-50%, 50%);
+  color: var(--page-accent);
+  font-size: calc(13px / var(--z, 1));
+  cursor: grab;
+}
+.nb-free-chrome__turn:active {
+  cursor: grabbing;
+}
+@media (pointer: coarse) {
+  .nb-free-chrome__corner {
+    width: calc(18px / var(--z, 1));
+    height: calc(18px / var(--z, 1));
+  }
+  .nb-free-chrome__corner::before {
+    inset: calc(-14px / var(--z, 1));
+  }
+  .nb-free-chrome__turn::before {
+    inset: calc(-11px / var(--z, 1));
+  }
+}
+/* cropping a free picture: the whole picture, turned as it is, with the part kept marked on it */
+.nb-free-crop {
+  position: absolute;
+}
+.nb-free-crop .nb-crop__rect,
+.nb-free-crop .nb-crop__handle {
+  pointer-events: auto;
+}
+
+/* In line or free: one switch, in the toolbar of every picture */
+.nb-placement {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.nb-placement__item {
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+}
+.nb-placement__item:hover:not(:disabled, .is-active) {
+  color: var(--ink);
+}
+.nb-placement__item.is-active {
+  background: var(--thumb-bg);
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--thumb-shadow);
+  cursor: default;
+}
+.nb-placement__item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@media (pointer: coarse) {
+  .nb-placement__item {
+    height: 44px;
+    padding: 0 12px;
+  }
+}
+
+/* the toolbar of a free picture, in the page's pixels (it keeps its size at any zoom) */
+.nb-picbar {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.2;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* files */
 .nb-file {
   box-sizing: border-box;
@@ -1371,7 +1395,8 @@ html:has(.nb--full) .noora {
   font-size: 14px;
   line-height: 1.2;
   white-space: nowrap;
-  transform: translateX(-50%) scale(calc(1 / var(--z, 1)));
+  /* moved across in the screen's pixels (--bar-shift), centred over its block, scaled back to its own size */
+  transform: translateX(calc(var(--bar-shift, 0px) / var(--z, 1))) translateX(-50%) scale(calc(1 / var(--z, 1)));
   transform-origin: bottom center;
   user-select: none;
   -webkit-user-select: none;
@@ -1614,6 +1639,10 @@ html:has(.nb--full) .noora {
 .nb-thumb__text {
   position: absolute;
 }
+/* in a page's thumbnail, the text's pictures and files lie under its free pictures and ink */
+.nb-thumb__text :is(.nb-picture__box, .nb-file__card) {
+  z-index: auto;
+}
 .nb-thumb__label {
   color: var(--ink-2);
   font-size: var(--fs-12);
@@ -1699,82 +1728,9 @@ html:has(.nb--full) .noora {
   }
 }
 
-/* ── A lesson's notes ── */
-.notes-lesson {
-  display: grid;
-  gap: var(--sp-12);
-  min-width: 0;
-  margin-top: var(--sp-16);
-  padding-top: var(--sp-16);
-  border-top: 1px solid var(--line);
-}
-.notes-lesson__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-8);
-}
-.notes-lesson__title {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-8);
-  margin: 0;
-  font-size: var(--fs-16);
-}
-.notes-lesson__all {
-  font-size: var(--fs-14);
-}
-.notes-lesson__list {
-  display: grid;
-  gap: var(--sp-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.notes-lesson__list li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--sp-4) var(--sp-12);
-}
-.notes-lesson__list a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  overflow-wrap: anywhere;
-}
-.notes-lesson__when {
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-}
-.notes-lesson__empty {
-  margin: 0;
-  max-width: 75ch;
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-}
-.notes-lesson__add {
-  display: grid;
-  gap: var(--sp-8);
-}
-.notes-lesson__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-8);
-}
-
-@media (pointer: fine) {
-  .notes-lesson__list a,
-  .notes-row__link {
-    min-height: 0;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .nb-pdfpage,
-  .nb-tool,
-  .notebook-item {
+  .nb-tool {
     transition: none;
   }
 }

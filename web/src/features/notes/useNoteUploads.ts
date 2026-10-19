@@ -1,16 +1,17 @@
 // Pictures and files added to a note: chosen, pasted or dropped. Each one is checked before it travels, a big photo
-// is made smaller first (a note's pictures don't need more than PICTURE_MAX pixels a side), it uploads with its
-// progress shown, and it goes into the text where it was dropped or where the cursor is. Failures say why.
-import type { Editor } from '@tiptap/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+// is made smaller first (a note's pictures don't need more than PICTURE_MAX pixels a side), and it uploads with its
+// progress shown; once it is in, `place` puts it where it goes (free on the page, or in the text). Failures say why.
+import { useCallback, useState } from 'react';
 import { checkUpload, progressPercent, uploadErrorMessage, uploadFile } from '../../api/uploads';
 import { useToast } from '../../state';
-import { TEXT_WIDTH } from './surface/layout';
-import { startWidth } from './text/picture';
+import { ALT_MAX } from './pictures/geometry';
 
 /** The longest side a picture keeps; bigger ones are scaled down before they upload. */
 export const PICTURE_MAX = 2400;
 const PICTURE = /^image\/(png|jpeg|webp|gif)$/;
+
+/** Whether a file is a picture a note shows (the others are files to open). */
+export const isPicture = (file: Pick<File, 'type'>): boolean => PICTURE.test(file.type);
 
 export interface PendingUpload {
   id: string;
@@ -18,6 +19,14 @@ export interface PendingUpload {
   /** 0-100 */
   percent: number;
   cancel: () => void;
+}
+
+/** A file that is in: its upload, name and size, and for a picture its own size and the description its name gives. */
+export interface Uploaded {
+  upload: string;
+  name: string;
+  size: number;
+  picture: { width: number; height: number; alt: string } | null;
 }
 
 interface Measured {
@@ -50,20 +59,26 @@ async function preparePicture(file: File): Promise<Measured> {
   }
 }
 
-export function useNoteUploads(editor: Editor | null) {
+/** The description a picture's file name gives it ('whiteboard_week-4.jpg': 'whiteboard week 4'), and none for the
+ *  names pasted screenshots get. */
+export function altFromName(name: string): string {
+  const alt = name
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .trim();
+  return /^(image|screenshot|clipboard)$/i.test(alt) ? '' : alt.slice(0, ALT_MAX);
+}
+
+export function useNoteUploads() {
   const { push } = useToast();
   const [pending, setPending] = useState<PendingUpload[]>([]);
-  const editorRef = useRef(editor);
-  useEffect(() => {
-    editorRef.current = editor;
-  }, [editor]);
 
   const update = (id: string, patch: Partial<PendingUpload>) =>
     setPending((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const drop = (id: string) => setPending((list) => list.filter((p) => p.id !== id));
 
   const add = useCallback(
-    async (files: readonly File[], at: number | null = null) => {
+    async (files: readonly File[], place: (done: Uploaded) => void) => {
       for (const original of files) {
         const problem = checkUpload('note_file', original);
         if (problem) {
@@ -74,38 +89,18 @@ export function useNoteUploads(editor: Editor | null) {
         const abort = new AbortController();
         setPending((list) => [...list, { id, name: original.name, percent: 0, cancel: () => abort.abort() }]);
         try {
-          const picture = PICTURE.test(original.type) ? await preparePicture(original).catch(() => null) : null;
+          const picture = isPicture(original) ? await preparePicture(original).catch(() => null) : null;
           const file = picture?.file ?? original;
           const out = await uploadFile('note_file', file, {
             signal: abort.signal,
             onProgress: (p) => update(id, { percent: progressPercent(p) }),
           });
-          const ed = editorRef.current;
-          if (!ed || ed.isDestroyed) continue;
-          const place = at !== null && at <= ed.state.doc.content.size ? at : null;
-          if (picture) {
-            const alt = original.name
-              .replace(/\.[a-z0-9]+$/i, '')
-              .replace(/[-_]+/g, ' ')
-              .trim();
-            ed.chain()
-              .focus()
-              .insertNotePicture(
-                {
-                  upload: out.uploadId,
-                  alt: alt === 'image' ? '' : alt,
-                  ratio: picture.width / Math.max(1, picture.height),
-                  width: startWidth(picture.width, TEXT_WIDTH),
-                },
-                place,
-              )
-              .run();
-          } else {
-            ed.chain()
-              .focus()
-              .insertNoteFile({ upload: out.uploadId, name: original.name, size: file.size }, place)
-              .run();
-          }
+          place({
+            upload: out.uploadId,
+            name: original.name,
+            size: file.size,
+            picture: picture ? { width: picture.width, height: picture.height, alt: altFromName(original.name) } : null,
+          });
         } catch (e) {
           if (!abort.signal.aborted)
             push({

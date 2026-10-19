@@ -2232,6 +2232,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notes/{note_id}/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Pages
+         * @description Add (`insert`), delete or move a page of paper in one go: the handwriting and free pictures of the pages after
+         *     it move with them. Send the `version` you loaded, as for a save (409 note_changed). Errors: invalid_input (422: a
+         *     page or a place the note doesn't have, the last page, more than the most pages), rate_limited (429).
+         */
+        post: operations["change_pages_api_v1_notes__note_id__pages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notes/{note_id}/ink/{sheet}": {
         parameters: {
             query?: never;
@@ -2248,8 +2270,9 @@ export interface paths {
          * Save Ink
          * @description Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).
          *     Send the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:
-         *     invalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger than
-         *     that, refused unread), notes_full (409), rate_limited (429).
+         *     not_found (404: a sheet the note doesn't have: a page of paper past its last, or a PDF's page on a note without
+         *     one), invalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger
+         *     than that, refused unread), notes_full (409), rate_limited (429).
          */
         put: operations["save_ink_api_v1_notes__note_id__ink__sheet__put"];
         post?: never;
@@ -9287,6 +9310,25 @@ export interface components {
             /** Code */
             code: string;
         };
+        /**
+         * PageChange
+         * @description A change to a note's pages of paper, made at once with the version it was loaded at: `insert` a blank page at
+         *     `page` (0 up to the number of pages: that many adds one at the end), `delete` page `page`, or `move` page `page`
+         *     to place `to`. The handwriting and the free pictures go with their pages.
+         */
+        PageChange: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "insert" | "delete" | "move";
+            /** Page */
+            page: number;
+            /** To */
+            to?: number | null;
+            /** Version */
+            version: number;
+        };
         /** PageLink */
         PageLink: {
             /**
@@ -11991,6 +12033,7 @@ export type OfferTypeLabels = components['schemas']['OfferTypeLabels'];
 export type OtpChallengeOut = components['schemas']['OtpChallengeOut'];
 export type OtpStartRequest = components['schemas']['OtpStartRequest'];
 export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
+export type PageChange = components['schemas']['PageChange'];
 export type PageLink = components['schemas']['PageLink'];
 export type PageItemOut = components['schemas']['Page_ItemOut_'];
 export type PageVocabularyOut = components['schemas']['Page_VocabularyOut_'];
@@ -23138,6 +23181,95 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    change_pages_api_v1_notes__note_id__pages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                note_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PageChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Note"];
+                };
             };
             /** @description Bad Request */
             400: {
