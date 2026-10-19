@@ -357,3 +357,11 @@
     font-size: var(--fs-20);
   }
 }
+
+/* Phones: the skills wait under the score until asked for. */
+.career-fit__more {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-16);
+  border-top: 1px solid var(--line);
+}

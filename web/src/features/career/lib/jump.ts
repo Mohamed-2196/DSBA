@@ -23,3 +23,12 @@ export function jumpTo(
   }
   return true;
 }
+
+/** The event a skill row sends for a certificate a phone has folded away: Certificates unfolds, then shows it. */
+export const SHOW_CERT_EVENT = 'career:show-cert';
+
+/** Scroll to a certificate's card, unfolding the list first when it is folded away (phones). */
+export function jumpToCert(certId: string): void {
+  if (jumpTo(`career-cert-${certId}`, { flash: true, block: 'center' })) return;
+  window.dispatchEvent(new CustomEvent<string>(SHOW_CERT_EVENT, { detail: certId }));
+}

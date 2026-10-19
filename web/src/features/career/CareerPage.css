@@ -157,3 +157,63 @@
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--sp-16);
 }
+
+/* ── The parts of the page: a row of links under the title, sticky under the top bar ───────────────────────── */
+.career-parts {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: var(--z-sticky);
+  margin: calc(-1 * var(--sp-8)) 0 var(--sp-32);
+  padding-block: var(--sp-8);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+.career-parts__row {
+  display: flex;
+  gap: var(--sp-4);
+}
+.career-parts__link {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--sp-12);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.career-parts__link:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.career-parts__link.is-current {
+  background: var(--cobalt-soft);
+  color: var(--ink);
+}
+/* A part scrolled to keeps its heading clear of the top bar and this row. */
+.career-page :is(#career-opportunities, #career-certificates, #career-role-fit, #career-after) {
+  scroll-margin-top: calc(var(--topbar-h) + 72px);
+}
+@media (pointer: coarse) {
+  .career-parts__link {
+    min-height: 44px;
+  }
+}
+@media (max-width: 699px) {
+  .career-parts {
+    top: 56px;
+    margin-inline: calc(-1 * var(--content-pad));
+  }
+  .career-parts__row {
+    padding-inline: var(--content-pad);
+    scroll-padding-inline: var(--content-pad);
+  }
+  .career-page :is(#career-opportunities, #career-certificates, #career-role-fit, #career-after) {
+    scroll-margin-top: calc(56px + 72px);
+  }
+}
