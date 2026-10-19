@@ -100,9 +100,9 @@ export function askAboutHref(item: Pick<LibraryItem, 'moduleId'>, name: string, 
 
 /** The one line of meta under a card, matching the sort. */
 export function cardMeta(item: LibraryItem, sort: LibrarySort): string {
-  if (sort === 'popular') return downloadsLabel(item.downloadCount);
+  if (sort === 'popular' && item.downloadCount > 0) return downloadsLabel(item.downloadCount);
   if (sort === 'sitting' && hasExamTitle(item)) return sizeLabel(item); // the title names the kind
-  if (sort === 'title' || sort === 'relevance' || sort === 'sitting')
+  if (sort === 'title' || sort === 'relevance' || sort === 'sitting' || sort === 'popular')
     return `${kindLabel(item.kind)}, ${sizeLabel(item)}`;
   return `Added ${timeAgo(addedAt(item))}`;
 }
@@ -114,7 +114,8 @@ export function cardMeta(item: LibraryItem, sort: LibrarySort): string {
 export function rowMeta(item: LibraryItem, sort: LibrarySort): string {
   const named = hasExamTitle(item) && item.kind !== 'past-paper';
   const parts = [named ? null : kindLabel(item.kind), sizeLabel(item)];
-  if (sort === 'popular') parts.push(downloadsLabel(item.downloadCount));
+  // A count of nothing says nothing: '0 downloads' is left out.
+  if (sort === 'popular') parts.push(item.downloadCount > 0 ? downloadsLabel(item.downloadCount) : null);
   else if (sort === 'new') parts.push(`added ${timeAgo(addedAt(item))}`);
   return parts.filter(Boolean).join(' · ');
 }
