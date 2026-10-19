@@ -1,10 +1,12 @@
-// The result card at the end of a play: what it came to, the points and streak, the shareable grid, and the way to
-// the next puzzle.
+// The result card at the end of a play: what it came to, its picture in the hub's colours, the points and streak, the
+// share button (the shared text has the emoji grid), and the way to the next puzzle.
+import type { CSSProperties } from 'react';
 import { ArrowRight, Flame } from '@phosphor-icons/react';
 import { Button, Modal } from '../../../ui';
 import { HELD, resultOf } from '../lib/result';
-import type { GameDay, PlayOut, Streak } from '../types';
+import { hasSquares, type GameDay, type PlayOut, type Streak } from '../types';
 import { GameTile } from './GameGlyph';
+import { PlayPicture } from './PlayPicture';
 import { ShareButton } from './ShareButton';
 
 export interface ResultDialogProps {
@@ -48,6 +50,11 @@ export function ResultDialog({ open, onClose, out, signedIn, secret, streak, nex
           </p>
         </div>
         {result.held ? <p className="dg-result__held">{HELD}</p> : null}
+        {hasSquares(play.picture) ? (
+          <div className="dg-result__picture" style={{ '--g': `var(--dy-${info.id})` } as CSSProperties}>
+            <PlayPicture picture={play.picture} />
+          </div>
+        ) : null}
 
         <div className="dg-result__chips">
           {play.scored ? (
@@ -57,7 +64,7 @@ export function ResultDialog({ open, onClose, out, signedIn, secret, streak, nex
           ) : signedIn ? (
             <span className="dy-chip">Practice: no points</span>
           ) : (
-            <span className="dy-chip">Guest: not kept</span>
+            <span className="dy-chip">Points aren’t kept for guests</span>
           )}
           {play.scored && streak && streak.current > 0 ? (
             <span className="dy-chip dy-chip--streak dy-num">
@@ -66,8 +73,6 @@ export function ResultDialog({ open, onClose, out, signedIn, secret, streak, nex
             </span>
           ) : null}
         </div>
-
-        {play.share ? <pre className="dy-share-card">{play.share}</pre> : null}
 
         <div className="dg-result__actions">
           {play.share ? <ShareButton share={play.share} fullWidth /> : null}

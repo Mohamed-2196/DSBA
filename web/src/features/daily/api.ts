@@ -178,7 +178,13 @@ export function useDailyMove(day: string, game: GameId, variant: string) {
       );
       if (guest) {
         const played = { revision: out.play.revision, moves: [...kept.moves, move], restarted: false };
-        saveGuestPlay(day, game, variant, { ...played, status: out.play.status }, todayKey());
+        saveGuestPlay(
+          day,
+          game,
+          variant,
+          { ...played, status: out.play.status, picture: out.play.picture },
+          todayKey(),
+        );
       }
       return out;
     },

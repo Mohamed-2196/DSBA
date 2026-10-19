@@ -1,6 +1,6 @@
-// The time left until the next set, ticking each second. When it runs out, `onDone` fetches the new set.
+// The time left until the next set, in hours and minutes. When it runs out, `onDone` fetches the new set.
 import { useEffect, useRef, useState } from 'react';
-import { formatCountdown } from '../lib/time';
+import { formatTimeLeft } from '../lib/time';
 
 export function Countdown({ to, onDone }: { to: string; onDone?: () => void }) {
   const [now, setNow] = useState(() => Date.now());
@@ -21,7 +21,7 @@ export function Countdown({ to, onDone }: { to: string; onDone?: () => void }) {
   }, [to]);
   return (
     <time className="dy-num" dateTime={to}>
-      {formatCountdown(to, now)}
+      {formatTimeLeft(to, now)}
     </time>
   );
 }

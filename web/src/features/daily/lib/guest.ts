@@ -1,4 +1,5 @@
-// A guest's plays. The server keeps nothing for guests: their device keeps the moves and sends them each time.
+// A guest's plays. The server keeps nothing for guests: their device keeps the moves (and a finished play's picture)
+// and sends the moves each time.
 // - On the hub and Home, today's set comes back with every game new, so the plays this device keeps are laid over it:
 //   each game's furthest status, the Sudoku difficulty to open, and how many are done.
 // - When an editor fixed today's puzzle, moves made on the version it replaced come back finished as they were, or
@@ -20,7 +21,7 @@ export function withGuestPlays(today: DailyToday, day: string, plays: GuestPlays
       null,
     );
     if (!lead || lead.play.status === 'new') return game;
-    return { ...game, status: lead.play.status, variant: lead.variant };
+    return { ...game, status: lead.play.status, variant: lead.variant, picture: lead.play.picture };
   });
   return { ...today, games, done: games.filter((g) => g.status === 'won' || g.status === 'lost').length };
 }
@@ -31,8 +32,12 @@ export function withGuestPlays(today: DailyToday, day: string, plays: GuestPlays
  */
 export function settledGuestPlay(kept: GuestPlay, out: PlayOut): { out: PlayOut; keep: GuestPlay | null } {
   if (out.play.restarted) {
-    return { out, keep: { revision: out.play.revision, moves: [], restarted: true, status: 'new' } };
+    return { out, keep: { revision: out.play.revision, moves: [], restarted: true, status: 'new', picture: null } };
   }
   const restarted = kept.restarted && out.play.status === 'new';
-  return { out: restarted ? { ...out, play: { ...out.play, restarted: true } } : out, keep: null };
+  const shown = restarted ? { ...out, play: { ...out.play, restarted: true } } : out;
+  // A finished play kept without its picture gets it, for the hub's tile.
+  const keep =
+    out.play.picture && !kept.picture ? { ...kept, status: out.play.status, picture: out.play.picture } : null;
+  return { out: shown, keep };
 }

@@ -43,8 +43,9 @@ const play = (revision: number, ...moves: Move[]): GuestPlay => ({
   moves,
   restarted: false,
   status: moves.length ? 'playing' : 'new',
+  picture: null,
 });
-const none = { revision: 0, moves: [], restarted: false, status: 'new' };
+const none = { revision: 0, moves: [], restarted: false, status: 'new', picture: null };
 
 describe('a guest’s plays', () => {
   it('are kept per day, game and difficulty, with the version of the puzzle each was played on', () => {
@@ -81,9 +82,13 @@ describe('a guest’s plays', () => {
       'word:default': { revision: -1, moves: [] },
       'quiz:default': { revision: 1 },
       'groups:default': [],
-      'search:default': { revision: 0, moves: [{ kind: 'hint' }], status: 'nonsense' },
+      'search:default': { revision: 0, moves: [{ kind: 'hint' }], status: 'nonsense', picture: [['bright']] },
+      'sudoku:easy': { revision: 0, moves: [{ kind: 'give-up' }], status: 'lost', picture: [['hit', 'miss']] },
     };
-    expect(parseGuestPlays(kept)).toEqual({ 'search:default': play(0, { kind: 'hint' }) });
+    expect(parseGuestPlays(kept)).toEqual({
+      'search:default': play(0, { kind: 'hint' }),
+      'sudoku:easy': { ...play(0, { kind: 'give-up' }), status: 'lost', picture: [['hit', 'miss']] },
+    });
     for (const value of ['[{"kind":"hint"}]', 'nonsense', '42']) {
       g.window?.localStorage.setItem(guestDayKey('2026-10-17'), value);
       expect(guestPlay('2026-10-17', 'word')).toEqual(none);

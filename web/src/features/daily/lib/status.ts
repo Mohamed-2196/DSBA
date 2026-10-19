@@ -1,4 +1,4 @@
-// How a game stands on the hub and Home: where its card leads, and what it says.
+// How a game stands on the hub and Home: where its tile leads, and the state it shows.
 import type { GameDay } from '../types';
 
 export type Tone = 'new' | 'playing' | 'won' | 'lost';
@@ -8,20 +8,17 @@ export function gameLink(game: GameDay): string {
   return game.variant ? `/daily/${game.info.id}?difficulty=${game.variant}` : `/daily/${game.info.id}`;
 }
 
-/** The card's status line, the word on its button, and its tone. */
-export function statusOf(game: GameDay): { label: string; action: string; tone: Tone } {
+/** The game's state in a word or two ('New', 'Playing', 'Solved · +80', 'Not solved'), and its tone. */
+export function statusOf(game: GameDay): { label: string; tone: Tone } {
+  const earned = game.scored && game.points > 0 ? ` · +${game.points}` : '';
   switch (game.status) {
     case 'won':
-      return { label: game.scored ? `Solved · ${game.points} points` : 'Solved', action: 'See result', tone: 'won' };
+      return { label: `Solved${earned}`, tone: 'won' };
     case 'lost':
-      return {
-        label: game.scored && game.points ? `Done · ${game.points} points` : 'Done',
-        action: 'See result',
-        tone: 'lost',
-      };
+      return { label: earned ? `Done${earned}` : 'Not solved', tone: 'lost' };
     case 'playing':
-      return { label: 'In progress', action: 'Continue', tone: 'playing' };
+      return { label: 'Playing', tone: 'playing' };
     default:
-      return { label: `Up to ${game.info.maxPoints} points`, action: 'Play', tone: 'new' };
+      return { label: 'New', tone: 'new' };
   }
 }

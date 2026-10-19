@@ -84,7 +84,13 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
   return (
     <div className="dgr">
       <p className="dgr-lede">
-        {over ? (state.status === 'won' ? 'All four groups found' : 'The groups') : 'Make four groups of four'}
+        {!over
+          ? 'Make four groups of four'
+          : state.status === 'won'
+            ? 'All four groups found'
+            : board.length
+              ? `${board.length / 4} ${board.length === 4 ? 'group' : 'groups'} not found`
+              : 'The groups'}
       </p>
 
       <div className="dgr-board-wrap">
