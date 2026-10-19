@@ -10,9 +10,10 @@ squares instead of either.
 **Capability gap.** The coding tools can't generate images. Mohamed makes these with an image model and drops them
 in `web/public/brand/incoming/`. A builder then moves them to `web/public/daily/` and wires them into the tile's art slot
 (`GameCard.tsx`, `.dh-tile__art` in `DailyPage.css`). All six are in: exported at 192×192 WebP (4 to 9 kB each) in
-`web/public/daily/`, and checked on `/daily` at 360, 390, 844 (sideways), 768, 1440 and 2560 px in both themes.
+`web/public/daily/`, and checked on `/daily` at 360, 390, 844 (sideways), 768, 1440 and 2560 px in both themes. The AI-generated
+originals, exact prompts and inspection notes are in `generated/2026-10-19/CATALOGUE.md`.
 
-**Earlier rounds.** `asset-prompts.md` (brand, Mini Noora, module icons, empty states) and `asset-prompts-round2.md`.
+**Earlier rounds.** `asset-prompts.md` (brand, module icons, empty states) and `asset-prompts-round2.md`.
 
 ## Shared art direction
 

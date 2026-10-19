@@ -1,7 +1,7 @@
 # Status
 
 This is the handoff between sessions: where the work stands, what's next and what Mohamed still has to decide.
-Update it whenever you finish or start something. Last updated 2026-10-18, when round 13 started.
+Update it whenever you finish or start something. Last updated 2026-10-19, when round 14's study-core work merged.
 
 ## Where things stand
 
@@ -78,44 +78,52 @@ Railway dev site (done by the lead); a "fix today's puzzle" button; Correlations
 asks about notification emails; practice scores saved to the account; To-do shows dated cards only; Site settings and
 the grade rules need no fresh code.
 
-Merged (checks green: 1,668 API and 982 web tests):
+Merged, round 13 (all on `feature/backend`):
 - `round13/quality`: CQ-47 to CQ-82; ARCHITECTURE, DEPLOYMENT and README current.
-- `round13/squash`: baseline 0033 plus 0034; then CQ-50/51/52/54/58/63/74, board templates (0039, "revision"
-  becomes "study"), the index drift check, guarded module deletion.
+- `round13/squash`: baseline 0033 plus 0034; CQ-50/51/52/54/58/63/74, board templates (0039), the index drift
+  check, guarded module deletion.
 - `round13/repeats`: fortnightly and monthly repeats (0036), feeds in Bahrain time, sign-up's email question.
-- `round13/uiux`: UX-44 to UX-65 with screenshots; UX-28 to UX-43 re-checked.
-- `round13/pictures`: free pictures anywhere on a page (0037), formulas from a paste (UX-58), the storage meter
-  only near the limit and a notebook picker on phones (UX-57), CQ-47/48/59/61/71.
-- `round13/dailyfix`: fix today's puzzle (0035), groups of four to eight, one hub of six tiles (UX-45), result
-  pictures (UX-55), game colours that pass contrast with a live table in the style guide (UX-48), the guess list
-  topped up to the shipped one (UX-47), the hub's game names in Manage (UX-64), Daily's prose and labels (UX-59/60).
-- `round13/fixweb`: one leave guard in Manage (CQ-60), fields that show their errors (CQ-62), practice scores in
-  the account (0038), the first download down from 239 to 101 kB gzip (CQ-61), Home, boards and Mini Noora
-  (CQ-65/66/67), the year prompt off the Daily games, UX-50/51/52/54/56/57/59/60/63.
+- `round13/uiux`: UX-44 to UX-65; UX-28 to UX-43 re-checked.
+- `round13/pictures`: free pictures anywhere on a page (0037), formulas from a paste, CQ-47/48/59/61/71.
+- `round13/dailyfix`, `round13/dailyart`: fix today's puzzle (0035), one hub of six tiles with the game art, a
+  guest's win kept on sign-in with guards (0041, D17), contrast, ST-24/25/26/29/30.
+- `round13/fixweb`: Manage's leave guard, practice scores in the account (0038), a smaller first download.
+- `round13/errors`, `round13/fields`: validation errors in plain sentences, shown on their fields.
+- `round13/uxfix`, `round13/measure`: the paper toolbar on phones (UX-44), "New" until first opened, prose
+  held to the measure.
+- `round13/limits`: the notebook upload limit an admin setting, 60 an hour, with numbers in Manage (0040, D16); a
+  released file must fit the room again (security).
+- `round13/pdfscan`: scanned papers draw in the notebook (`'wasm-unsafe-eval'` in the CSP), Career keeps focus.
+- `round13/e2e`: the suite follows rounds 11-13; last full run 103 passed, 0 failed (before round 14).
 
-Migration chain: 0033 → 0034 → 0035 → 0036 → 0039 → 0037 → 0038 (one head).
+Artwork decision (2026-10-19): Mohamed cancelled the older Mini Noora refresh and confirmed the existing character
+assets are good. Keep the current Noora artwork. Daily's six game pictures are integrated; the AI-generated
+originals and prompts are in `docs/design/generated/2026-10-19/` (not committed yet).
 
-Still running: `round13/e2e` (tester), `round13/uxfix` (UX-44 paper toolbar first, then focus, chips and the "New"
-badges, which stay until a student first opens the section), `round13/errors` (plain sentences for the API's
-validation errors instead of Pydantic's wording).
+## Round 14 (the study core first): merged 2026-10-19
 
-Daily game art: six prompts in `docs/design/asset-prompts-round3.md`, matched to the module icons' style; the drawn
-shapes stay until Mohamed's images arrive.
+Mohamed (2026-10-19): too much went into Daily; the work now goes to the sections students live in. Reviews:
+`docs/reviews/ui-ux.md` UX-66 to UX-79 and `docs/reviews/student-test.md` ST-40 to ST-57, round 14 sections.
+His calls: notes reflow on phones; ink moves with its text; IDEA-40 to IDEA-43 approved.
 
-## Round 14 (the study core first)
+Merged (checks green: 1,776 API and 1,141 web tests):
+- `round14/library`: papers named by sitting and sorted newest first, a compact sittings table, Filters as a
+  sheet on phones, who shared a note, "Ask about this paper", one rule for a module's counts (ST-34).
+- `round14/modulehome`: the module page is the module's home (UX-69); Home's Up next is future-only (UX-76).
+- `round14/offline`: the last lists a student saw stay readable offline for a week, per account (IDEA-43).
+- `round14/forum`: a Yours tab (IDEA-42), search by your year with spelling help (0044, pg_trgm), thread titles on
+  phones, posting opens the thread, modules by year, formulas as text in notifications, threads that link a paper.
+- `round14/carryon`: Carry on (IDEA-40), Back keeps your place, the paper timer everywhere and papers in the Hub on
+  phones, a score when the timer stops, a revision plan that fits the days left, Home leads with study (0043).
+- `round14/notebook`: notes reflow on phones (UX-70), ink moves with its text (ST-38), notes know their module
+  (IDEA-41, 0042), notes beside the playing video with time stamps (ST-44).
+- Lead: a file copied into two modules shows in both (ST-46); offline account switch fix.
 
-- `round14/library` (web-builder): the library as one piece (UX-66, 67, 68, 71, 72; ST-34). Phones get search,
-  Filters (a sheet) and Sort, so files start at 278 px of 844; papers are named by their sitting ("ST2133 · May
-  2019 · Zone A") everywhere and open at the newest sitting (`sort=sitting`); sittings are a compact table on the
-  Files tab and in the library; notes say who shared them; a paper's page has one Download and "Ask about this
-  paper". One rule counts a module's files, so the count, the shelves (now with links and "Other files") and the list
-  agree. Open from UX-72: the module's threads that link a paper (needs the API).
+Migration chain: 0033 → 0034 → 0035 → 0036 → 0039 → 0037 → 0038 → 0040 → 0041 → 0044 → 0043 → 0042 (one head).
+Art handoff for the core: `docs/design/asset-prompts-round4.md` (C1 no lessons, C2 sign in, C3 not found, F1 forum).
 
-- `round14/carryon` (web and API): the study core first. Carry on on Home and the module page (IDEA-40, ST-43);
-  one Time me clock that floats over every page, the notebook included, and asks for the score when it stops (ST-41,
-  ST-47); phones read papers in the Hub (pdf.js); Back keeps the sittings open and the scroll place (ST-42); revision
-  plans that fit the days left, with a paper a day in the last week (ST-40); Home leads with study blocks and Today's
-  Daily is opt-in (ST-50, migration 0043 after 0044); a cold load shows the frame and a skeleton (UX-77).
+Next in round 14: the full e2e run on everything above; the module page shows the student's own notes
+(`useModuleNotes`) and the library's sittings table; the content gaps below.
 
 ## Operating notes
 
@@ -161,8 +169,10 @@ shapes stay until Mohamed's images arrive.
 
 ## Waiting on Mohamed
 
-- **Content gaps:** the six Year 3 modules have no unit codes; none of the 10 October exams has a time or place;
-  each VLE MCQ window is two one-day events; IS2184 and every Year 3 module have no lessons.
+- **Art picks:** C1, C2, C3 and F1 in `docs/design/asset-prompts-round4.md` (F1 is generated and waiting).
+- **Content gaps** (round 14 test, ST-45/48/49): tagged past questions exist only for EC1002 and EC2020; solutions
+  for 0-2 sittings per module; an exam's "What to bring" opens an empty forum tag; the six Year 3 modules have no
+  unit codes; none of the 10 October exams has a time or place; each VLE MCQ window is two one-day events; IS2184 and every Year 3 module have no lessons.
 - **`exam_meta_from_name()`:** the real past-paper name patterns, in `api/app/services/exam_names.py`.
 - **Roadmap questions:** each feature in `docs/ROADMAP.md` lists what he needs to decide. R-1 (roles) comes first.
 - **Ideas to approve:** 24 proposals in `docs/ideas.md` (IDEA-1 to IDEA-24), merged 2026-10-13.

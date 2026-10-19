@@ -1,12 +1,12 @@
 # Asset prompts
 
-Prompts for the hub's real artwork: the DSBA Hub lockup, the module icons, Mini Noora and the empty-state art. Run them
+Prompts for the hub's real artwork: the DSBA Hub lockup, the module icons and the empty-state art. Run them
 yourself, then drop the files into `web/public/brand/incoming/` under the names in that folder's README.
 
 **Generator settings.** Use one image model for each set (GPT Image, Midjourney v7, Ideogram 3 or Recraft v3; Recraft
 and Ideogram handle lettering and flat vector best). Ask for a **transparent background**; if the model can't, ask for
-plain white `#FFFFFF` and remove it afterwards. Square sets use **1:1**. Noora's full-body poses use **6:7**, and her
-busts 1:1. For **consistency**, make the first image of each set, keep its seed (Midjourney `--seed`, or `--sref`/
+plain white `#FFFFFF` and remove it afterwards. Square sets use **1:1**. For **consistency**, make the first image of
+each set, keep its seed (Midjourney `--seed`, or `--sref`/
 `--cref` pointing at it; in other tools, attach it as the style or character reference), and reuse it for every other
 prompt in the set. Generate at 2x or more, then downscale. Nothing may contain third-party logos or imitate one.
 
@@ -104,70 +104,7 @@ Calm, grown-up, university feel, consistent with a set of 16 matching icons. Sub
 
 ---
 
-## 3. Mini Noora, refreshed
-
-She stays the hub's guide (draggable, she walks, talks and reacts), but grows up: adult proportions, calmer face, a
-cleaner illustration style. Keep her identity: cream hijab wrapped loosely around the neck, warm light-tan skin, brown
-eyes, a navy two-button suit jacket and trousers, a cream blouse, dark brown shoes, a small round white pin on the left
-lapel. **The pin is plain white with no letters or logo.** Same poses and canvases as `web/public/noora/sprites.json`,
-so the files drop in 1:1.
-
-- Full body: 680×784 transparent PNG, feet on the line 16 px above the bottom edge (y=768), centred on x=340, the same
-  height in every pose. Generate at 6:7 and crop to fit.
-- Bust: 600×600 transparent PNG, head and shoulders, the same framing in every bust.
-
-**3a. Character sheet (make this first; it is the reference for every pose).** File: `noora-sheet.png`, any size,
-not used by the app.
-
-```text
-Character design sheet, transparent or plain white background, flat vector illustration. A young Bahraini university
-woman in her early twenties, a student guide. Adult proportions (head about one sixth of her height), slim, upright,
-confident posture. Natural, friendly face: almond-shaped brown eyes of normal size (not oversized, not chibi), soft
-defined brows, small nose, a gentle closed-mouth smile, light blush. Warm light-tan skin. Cream hijab #F3EBDD draped
-softly and wrapped loosely around the neck and shoulders. Tailored navy suit #1B2F63: two-button jacket with notch
-lapels and matching straight trousers, cream blouse beneath, dark brown flat shoes. A small plain round white pin on
-her left lapel with nothing on it. Style: clean modern editorial vector, smooth shapes, thin dark-navy #0A1F44
-outlines, flat colour with one soft shade tone per colour, no gradients, no texture, no anime, no chibi, no 3D.
-Show her in four views on one sheet: front, three-quarter, side profile facing right, back. No text, no logos.
-```
-
-**3b. Poses.** Paste this prefix, then the pose line, with the sheet attached as the character reference and the seed
-reused.
-
-```text
-The same character as the attached character sheet, identical face, outfit, colours and line style, flat vector,
-transparent background, full body, standing on an invisible ground line, nothing cropped, no text, no logos. Pose:
-```
-
-| File | Pose line |
-| --- | --- |
-| `idle.png` | Facing the viewer, relaxed and upright, arms loosely at her sides, gentle smile. |
-| `side-right.png` | Side profile facing right, standing still, arms at her sides, calm expression. |
-| `side-left.png` | Side profile facing left, standing still, arms at her sides, calm expression. |
-| `back.png` | Seen from behind, standing still, arms at her sides, the hijab draping down her back. |
-| `walk-right.png` | Walking to the right in profile, mid-stride, one arm swinging forward, light confident step. |
-| `walk-left.png` | Walking to the left in profile, mid-stride, one arm swinging forward, light confident step. |
-| `talking.png` | Facing the viewer, mouth open mid-sentence, one hand raised palm-up at chest height as if explaining. |
-| `happy.png` | Facing the viewer, warm open smile, hands lightly clasped in front of her. |
-| `excited.png` | Facing the viewer, bright smile, both fists raised to shoulder height in a small celebration. |
-| `surprised.png` | Facing the viewer, eyebrows raised, mouth a small round "o", one hand near her cheek. |
-| `sad.png` | Facing the viewer, small sympathetic frown, head tilted slightly, hands together in front. |
-
-For busts, swap "full body, standing on an invisible ground line" for "head and shoulders bust, centred, cropped at
-mid-chest":
-
-| File | Pose line |
-| --- | --- |
-| `bust-neutral.png` | Calm, attentive, soft closed-mouth smile, looking at the viewer. |
-| `bust-wave.png` | Smiling and waving with her right hand raised beside her face. |
-| `bust-thinking.png` | Looking up and to the side, one finger resting on her chin, thoughtful. |
-| `bust-laughing.png` | Laughing naturally, eyes slightly closed, a hand near her mouth. |
-| `bust-winking.png` | A friendly wink with one eye, a small knowing smile. |
-| `bust-angry.png` | Mildly cross rather than furious: brows drawn together, lips pressed, arms folded. |
-
----
-
-## 4. Empty-state and Home spot illustrations
+## 3. Empty-state and Home spot illustrations
 
 Small scenes for empty lists and errors, in the module-icon style. 800×600 transparent PNG (4:3). Paste the module
 icon preamble from section 2, replace "One simple symbolic object" with "One small calm scene of two or three

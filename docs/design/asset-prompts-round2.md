@@ -41,6 +41,10 @@ tracing.
 
 ## Module icons
 
+**2026-10-17 update.** All sixteen module icons now ship, including replacements for the seven listed below
+(see `web/public/modules/README.md` and `docs/STATUS.md`). The rejection notes and prompts below record the
+earlier round; they are not outstanding generation requests.
+
 **Kept (9, in `web/public/modules/`):** EC1002, MN1178, MT1186, ST1215, ST2133, ST2134, ST2195, ST2187, EC2020.
 They share one look: flat fills, thick rounded navy axes, blue, teal, amber and yellow, almost no highlights.
 
@@ -89,6 +93,11 @@ sit in a set of 16 matching icons next to the references. Subject:
 | `module-further-maths.png` | Further Mathematics for Economists | A curved surface drawn as a wireframe grid of evenly spaced cobalt lines on flat blue, rising to a single peak marked by a small amber dot, on two navy axes. |
 
 ## Illustrations
+
+**2026-10-19 update.** `empty-board.png` has an AI-generated candidate in `web/public/brand/incoming/`, inspected
+on light and dark backgrounds; owner selection and integration remain pending. Native output, exact prompt and
+findings are in [`generated/2026-10-19/CATALOGUE.md`](generated/2026-10-19/CATALOGUE.md). `home-welcome.png`
+remains conditional on Home gaining a header.
 
 **What went wrong in round 1, for the whole set.** Every image painted a grey checkerboard where the transparency
 should be, so the backdrop had to be cut out by hand. The style also drifted from flat to glossy: white highlight
