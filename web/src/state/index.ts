@@ -12,4 +12,5 @@ export { useLeaveGuard, type LeaveGuard } from './useLeaveGuard';
 export { UnsavedProvider, useUnsavedChanges, useUnsavedRegistry } from './unsaved';
 export { YEARS, COHORTS, normalizeYear, cohortColor, cohortTextColor, cohortLabel, type CohortYear } from './cohort';
 export { useMediaQuery, BREAKPOINTS } from './useMediaQuery';
+export { useOnline } from './useOnline';
 export type { Theme, ToastInput } from './contexts';

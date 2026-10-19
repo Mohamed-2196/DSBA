@@ -1,0 +1,34 @@
+/* Lined up with the page under it; the line itself is only as wide as its words. */
+.shell-offline {
+  width: 100%;
+  max-width: calc(var(--content-max-wide) + var(--page-pad-left) + var(--page-pad-right));
+  margin-inline: auto;
+  padding: var(--sp-12) var(--page-pad-right) 0 var(--page-pad-left);
+}
+.shell-offline__line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-8);
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: var(--sp-8) var(--sp-12);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  line-height: var(--lh-sans);
+}
+.shell-offline__icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--ink-3);
+}
+.shell-offline__text {
+  max-width: 70ch;
+}
+.shell-offline__text strong {
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+}

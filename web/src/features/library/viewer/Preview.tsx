@@ -171,7 +171,11 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
     }
     return <NoPreview item={item} problem />;
   }
-  if (!src) return <Loading label={kind === 'pdf' ? 'Loading the PDF' : 'Loading the image'} />;
+  if (!src) {
+    // Offline the link waits for the connection (files aren't kept for offline reading): say so, not "Loading".
+    const waiting = link.isPaused ? 'You’re offline. The file shows once you’re back online.' : null;
+    return <Loading label={waiting ?? (kind === 'pdf' ? 'Loading the PDF' : 'Loading the image')} />;
+  }
 
   if (kind === 'image') return <ImagePreview item={item} src={src} />;
   const at = page ? `#page=${page}` : '';

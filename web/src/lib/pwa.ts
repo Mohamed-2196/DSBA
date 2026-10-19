@@ -1,7 +1,8 @@
 // The installed app: the service worker (src/sw/sw.ts, built to /sw.js) and the browser's install prompt.
 //
 //   startPwa()            main.tsx, once: listens for the install prompt and, in a production build, registers the
-//                         worker. The worker keeps the app shell and built files only, never API answers.
+//                         worker. The worker keeps the app shell and built files only, never API answers
+//                         (the app keeps what was read for offline reading itself: api/offline.ts).
 //   useUpdateReady()      true once a new build is installed and waiting (shell/UpdatePrompt.tsx offers "Reload")
 //   applyUpdate()         hands over to the waiting build; the page reloads when it takes charge
 //   useInstall()          { canPrompt, installed, prompt }: "Install the app" where the browser offers it (Chrome,
