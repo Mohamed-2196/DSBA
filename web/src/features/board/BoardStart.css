@@ -8,7 +8,7 @@
   font-weight: var(--fw-bold);
 }
 .board-start__lead {
-  max-width: var(--measure, 65ch);
+  max-width: var(--measure);
   margin: var(--sp-6) 0 var(--sp-20);
   color: var(--ink-2);
   font-size: var(--fs-15);
@@ -141,7 +141,7 @@
   margin-top: var(--sp-24);
 }
 .board-start__aside p {
-  max-width: var(--measure, 65ch);
+  max-width: var(--measure);
   margin: 0;
   color: var(--ink-2);
   font-size: var(--fs-14);

@@ -39,7 +39,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 4px var(--sp-8);
-  max-width: 72ch;
+  max-width: var(--measure);
   margin-top: var(--sp-8);
   color: var(--ink-2);
   font-size: var(--fs-16);

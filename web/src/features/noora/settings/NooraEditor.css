@@ -43,7 +43,7 @@
 }
 .noora-set__greeting {
   margin: 0;
-  max-width: 60ch;
+  max-width: var(--measure);
   padding: var(--sp-12) var(--sp-16);
   border-radius: var(--r-panel);
   background: var(--surface-2);

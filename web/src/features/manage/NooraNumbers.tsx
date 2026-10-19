@@ -40,7 +40,7 @@ function LimitsForm({ usage }: { usage: NooraUsageOut }) {
     <form className="manage-noora__form" onSubmit={submit} data-hub="noora-limits">
       <TextField
         label="Questions per student a day"
-        hint="0 pauses her AI answers."
+        hint="Set it to 0 to pause her AI answers."
         type="number"
         inputMode="numeric"
         min={0}

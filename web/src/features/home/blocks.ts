@@ -68,8 +68,8 @@ export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
     span: 'wide',
   },
   help_below: {
-    title: 'Help the years below',
-    description: 'Questions from Years 1 and 2 that need an answer.',
+    title: 'Help the year below',
+    description: 'Questions from the years below yours that need an answer.',
     features: ['forum', 'forum.help-below'],
     account: true,
     span: 'wide',

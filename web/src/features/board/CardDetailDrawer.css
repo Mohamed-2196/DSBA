@@ -91,7 +91,7 @@
 }
 .card-detail__none,
 .card-detail__note {
-  max-width: 65ch;
+  max-width: var(--measure);
   margin: 0;
   color: var(--ink-2);
   font-size: var(--fs-14);
@@ -282,7 +282,7 @@ a.card-files__name:hover {
   background: var(--surface-2);
 }
 .card-comments__body {
-  max-width: 75ch;
+  max-width: var(--measure);
   margin: 0;
   font-size: var(--fs-14);
   white-space: pre-wrap;

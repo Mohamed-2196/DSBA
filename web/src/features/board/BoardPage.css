@@ -1,6 +1,6 @@
 /* Boards: the tabs, the toolbar, columns of cards (one column at a time on phones), the list and Today. */
 .board-page__notice {
-  max-width: 75ch;
+  max-width: var(--measure);
   margin: 0 0 var(--sp-16);
   padding: var(--sp-12) var(--sp-16);
   border-radius: var(--r-control);
@@ -136,7 +136,7 @@
 }
 .board-archived__text {
   flex: 1 1 320px;
-  max-width: 75ch;
+  max-width: var(--measure);
   margin: 0;
   color: var(--ink-2);
   font-size: var(--fs-14);

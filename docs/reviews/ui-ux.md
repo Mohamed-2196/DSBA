@@ -64,7 +64,7 @@ Counts: 1 blocker, 6 majors (one fixed during the review), 14 minors and a group
 | UX-29 | major | **fixed** | At 844×390 the chat is a full-screen sheet, the AI-off note is a line in the conversation, and an answer's start is in view. Leftover nit in UX-65. |
 | UX-30 | major | **fixed** | Manage has a grouped list (Waiting, Publish, Look after) with counts from 1024 px and a "Show" picker below. New repetition: UX-51. |
 | UX-31 | minor | **fixed** | Phones: Noora waits in the tab bar. Laptops and monitors: her own lane; she covers nothing at 390, 1440 or 3440. |
-| UX-32 | minor | **mostly fixed** | "Open until 24 Oct", "28 files added to MT1186". Open: "Help the year below" on Home, "Help the years below" in Customise Home. |
+| UX-32 | minor | **fixed** | "Open until 24 Oct", "28 files added to MT1186". Home and Customise Home both say "Help the year below" (`round13/measure`). |
 | UX-33 | minor | **fixed** | "Your modules", the option as radios with "Not decided yet", and the new intro. |
 | UX-34 | minor | **fixed** | "Past papers" opens the Files tab's sittings (`?tab=files#papers`). |
 | UX-35 | minor | **partly fixed** | Real covers, all 16 module icons, the grades bars hidden until a mark. "Type a mark to see your class" is still 76 px display type. The sidebar logos stay at Mohamed's request. |
@@ -72,7 +72,7 @@ Counts: 1 blocker, 6 majors (one fixed during the review), 14 minors and a group
 | UX-37 | minor | **partly fixed** | Time me says the clock keeps going and tells you when time's up. The paper still opens outside the Hub on phones, and the button can't be pressed at 375–412 px (UX-44). |
 | UX-38 | minor | **open** | Career Navigator is 13,829 px tall at 390. |
 | UX-39 | nit | **fixed** | Section links stay on their heading's line on phones. |
-| UX-40 | nit | **mostly fixed** | Formulas tip, "You asked", results day and About are fixed. Open: Numbers' hint "0 pauses her AI answers." (`manage/NooraNumbers.tsx:43`). |
+| UX-40 | nit | **fixed** | Formulas tip, "You asked", results day and About are fixed; Numbers' hint reads "Set it to 0 to pause her AI answers." (`round13/measure`). |
 | UX-41 | nit | **fixed** | Focus moves to the module's heading, the save bar sticks while there are changes, and the icon field explains itself. |
 | UX-42 | nit | **open** | "Install the app" is still only in Start here: not in the More drawer or the account menu. |
 | UX-43 | nit | **mostly fixed** | Electives links and the library placeholder are fixed, and Noora's message time uses the UI font. Open: at 390 and 768 the footer's first contributor sits 11 px lower than the others. |
@@ -341,6 +341,11 @@ UX-20's measure regressed in the new screens. The longest lines measured (no scr
 **Fix:** `max-width: var(--measure)` on `.ui-switch__desc` and `.ui-field__hint` in `src/ui`, and on the classes
 above; or, for Manage at once, `.manage-panel p { max-width: var(--measure); }`.
 
+**Fixed** (`round13/uxfix`, then `round13/measure`): Home's guest line, the boards' notices, archived text, card notes
+and comments, Noora's answers, notices, questions and welcome on her page and in Mini Noora, and Manage → Mini
+Noora's greeting now hold to `--measure` instead of 60–75ch. Measured at 390, 1440 and 2560, light and dark: no line
+over 75 characters on Home, a board, /noora or Mini Noora, and nothing scrolls sideways.
+
 #### UX-60 Uppercase labels against sentence case (minor)
 
 - **Where:** Correlations' group labels (`.dgr-group__label`); the result's answer (`.dg-result__answer`: "PYTHON",
@@ -396,13 +401,14 @@ above; or, for Manage at once, `.manage-panel p { max-width: var(--measure); }`.
 
 - Calendar month grid at 1180 and 1440: event chips cut their titles mid-letter (`.cal-chip__title`). Add
   `white-space: nowrap; text-overflow: ellipsis`.
-- One name for "Help the year below" (Home) and "Help the years below" (Customise Home).
+- One name for "Help the year below" (Home) and "Help the years below" (Customise Home). **Fixed**
+  (`round13/measure`).
 - Year 3's modules page at 390: the subtitle wraps with its "|" separator at the start of the second line.
 - Correlations: long words shrink and hyphenate ("CARDINAL-ITY"), so one board has three type sizes. Size the
   board's type from its longest word, without hyphens.
 - Daily → Past days at 360: the day cells are 38 px wide. Cut `border-spacing` to 2 px.
 - Noora's "Where to look" subtitles ("Sun 18 Oct", "EC2020") use the monospace font (`.nc-card__code`). Use the UI
-  font with tabular figures.
+  font with tabular figures. **Fixed** (`round13/measure`).
 - At 844×390: /noora's starter cards are cut in half by the composer, and in the chat card "Jump to latest" floats
   over the first link of an answer.
 - Newsletter editor at 768: the actions squeeze the title into "Edit / issue 99". Wrap the actions under the title

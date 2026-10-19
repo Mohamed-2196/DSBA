@@ -383,6 +383,7 @@ function ManageScreen() {
         title="Leave without saving?"
         body={<p>{`Your changes to ${andList.format(unsaved.names)} aren’t saved. If you leave, they’re lost.`}</p>}
         confirmLabel="Leave without saving"
+        cancelLabel="Keep editing"
         tone="danger"
         onConfirm={guard.leave}
         onClose={guard.stay}
