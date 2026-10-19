@@ -78,13 +78,7 @@ export default function RequestsPage() {
         icon={HandWaving}
         title="No requests match these filters"
         body="Try another kind or status."
-        action={
-          <Button
-            onClick={() => setParams({ kind: null, status: null, mine: null })}
-          >
-            Clear filters
-          </Button>
-        }
+        action={<Button onClick={() => setParams({ kind: null, status: null, mine: null })}>Clear filters</Button>}
       />
     ) : (
       <EmptyState
