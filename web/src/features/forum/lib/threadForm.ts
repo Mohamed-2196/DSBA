@@ -1,6 +1,6 @@
 // What a thread's and a reply's fields may be before they are sent, for the composer and the edit forms alike. The
 // API has the last word (api/app/schemas/forum.py, services/forum/rules.py): these only catch what the browser can.
-import { ApiError } from '../../../api/errors';
+import { ApiError, placeFieldErrors } from '../../../api/errors';
 
 /** A title says what is being asked: at least this long (the API takes 5; the forms ask a little more). */
 export const TITLE_MIN = 8;
@@ -27,14 +27,13 @@ export function titleProblem(title: string): string | null {
 
 /**
  * The fields an API refusal names, as the form's errors ("Pick a module from the list." under Module, "Pick up to 3
- * tags." under Tags), or null when it names none of them: then the refusal is about the whole form (a rate limit,
+ * tags." under Tags, and a message about one tag under Tags too), or null when it names none of them: then the refusal is about the whole form (a rate limit,
  * the server), and the API's message says what to do.
  */
 export function threadFieldErrors(e: unknown): ThreadErrors | null {
   if (!(e instanceof ApiError)) return null;
-  const out: ThreadErrors = {};
-  for (const k of FIELDS) if (e.fields[k]) out[k] = e.fields[k];
-  return Object.keys(out).length ? out : null;
+  const { fields } = placeFieldErrors(e.fields, FIELDS);
+  return Object.keys(fields).length ? fields : null;
 }
 
 /** "120/500" once a text is close to its limit (the last fifth), so nobody is cut off without warning. */

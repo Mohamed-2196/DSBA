@@ -1,6 +1,6 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { errorMessage, isApiError } from '../../api/errors';
+import { errorMessage, isApiError, placeFieldErrors, unplacedMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { isDayKey, todayKey } from '../../lib/dates';
 import { Button, Modal, TextField } from '../../ui';
@@ -9,7 +9,7 @@ import { LIMITS } from './lib/draft';
 import { slugify } from './lib/text';
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const FIELDS = new Set(['title', 'number', 'date', 'slug']);
+const FIELDS = ['title', 'number', 'date', 'slug'] as const;
 
 /** Moderators: start a new issue (a draft) and go straight to its editor. */
 export function NewIssueDialog({
@@ -79,8 +79,11 @@ export function NewIssueDialog({
         onError: (err) => {
           if (isApiError(err) && err.code === 'slug_taken')
             setErrors({ slug: 'Another issue already uses this address. Choose another.' });
-          else if (isApiError(err) && Object.keys(err.fields).some((k) => FIELDS.has(k))) setErrors(err.fields);
-          else setFormError(errorMessage(err, 'The issue wasn’t created. Try again.'));
+          else if (isApiError(err) && Object.keys(err.fields).length) {
+            const placed = placeFieldErrors(err.fields, FIELDS);
+            setErrors(placed.fields);
+            setFormError(unplacedMessage(err, placed));
+          } else setFormError(errorMessage(err, 'The issue wasn’t created. Try again.'));
         },
       },
     );

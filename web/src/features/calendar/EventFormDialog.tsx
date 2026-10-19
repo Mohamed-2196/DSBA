@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState, type FormEvent } from 'react';
 import type { CalendarEventSaved, ModuleSummary } from '../../api/types';
-import { errorMessage, isApiError } from '../../api/errors';
+import { errorMessage, isApiError, placeFieldErrors, unplacedMessage } from '../../api/errors';
 import { moduleLabel } from '../../lib/modules';
 import { cohortLabel, normalizeYear, YEARS, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
@@ -106,22 +106,22 @@ function validate(f: FormState): FieldErrors {
   return errors;
 }
 
-// API field names (camelCase on the wire) → form fields.
-const API_FIELDS: Record<string, keyof FormState> = {
-  title: 'title',
-  type: 'type',
-  date: 'date',
-  endDate: 'endDate',
-  year: 'year',
-  moduleId: 'moduleId',
-  time: 'time',
-  place: 'place',
-  duration: 'duration',
-  rules: 'rules',
-  source: 'source',
-  checkedOn: 'checkedOn',
-  employerId: 'employerId',
-};
+// The form's fields, named as the API names them in its errors.
+const API_FIELDS: readonly (keyof FormState)[] = [
+  'title',
+  'type',
+  'date',
+  'endDate',
+  'year',
+  'moduleId',
+  'time',
+  'place',
+  'duration',
+  'rules',
+  'source',
+  'checkedOn',
+  'employerId',
+];
 
 const EXAM_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock']);
 
@@ -218,13 +218,9 @@ export function EventFormDialog({
     };
     const fail = (err: unknown) => {
       if (isApiError(err) && Object.keys(err.fields).length) {
-        const mapped: FieldErrors = {};
-        for (const [k, msg] of Object.entries(err.fields)) {
-          const field = API_FIELDS[k];
-          if (field) mapped[field] = msg;
-        }
-        setErrors(mapped);
-        if (!Object.keys(mapped).length) setFormError(err.message);
+        const placed = placeFieldErrors(err.fields, API_FIELDS);
+        setErrors(placed.fields);
+        setFormError(unplacedMessage(err, placed));
       } else setFormError(errorMessage(err, 'The date wasn’t saved. Try again.'));
     };
     const tellable = TOLD_TYPES.has(form.type);

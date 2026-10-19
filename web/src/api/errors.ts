@@ -26,7 +26,7 @@ export class ApiError extends Error {
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
-    this.fields = fields ?? {};
+    this.fields = fields ? fieldsByName(fields) : {};
     this.retryAfter = retryAfter ?? null;
   }
 
@@ -48,6 +48,71 @@ export function toApiError(response: Response, body: unknown): ApiError {
     fields: e?.fields ?? null,
     retryAfter: e?.retryAfter ?? null,
   });
+}
+
+/** Where a request's value came from, as a validation error's path may start: never a field's own name in a path. */
+const LOCATIONS = new Set(['body', 'query', 'path', 'header', 'cookie']);
+
+/**
+ * A field error's key as a form names the field: 'title', 'data.tagline', 'links.0.url'. A leading 'body.' or
+ * 'query.' says only where the value came from, so it goes; a field called 'body' (a post's text) keeps its name.
+ */
+export function fieldKey(key: string): string {
+  const dot = key.indexOf('.');
+  return dot > 0 && LOCATIONS.has(key.slice(0, dot)) ? key.slice(dot + 1) : key;
+}
+
+/** Every key of the API's `fields` as fieldKey names it; the first message wins when two keys name one field. */
+function fieldsByName(fields: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, message] of Object.entries(fields)) {
+    const name = fieldKey(key);
+    if (!(name in out)) out[name] = message;
+  }
+  return out;
+}
+
+/** A form's field errors: each on the field it names, and the messages no field of the form shows. */
+export interface PlacedErrors<K extends string> {
+  fields: Partial<Record<K, string>>;
+  /** about the request as a whole, or a field the form doesn't show, once each */
+  other: string[];
+}
+
+/**
+ * Put the API's field errors on a form's fields. A key goes to the field it names, or to the closest field it lies
+ * under: 'tags.1' (one of the tags) goes to 'tags', 'links.0.url' to 'links.0.url' when the form has that field and
+ * to 'links' when it has only the list. Keys are taken as fieldKey names them, so 'body.title' goes to 'title'.
+ */
+export function placeFieldErrors<K extends string>(
+  fields: Record<string, string>,
+  names: readonly K[],
+): PlacedErrors<K> {
+  const out: PlacedErrors<K> = { fields: {}, other: [] };
+  for (const [key, message] of Object.entries(fields)) {
+    const path = fieldKey(key);
+    let field: K | undefined;
+    for (const name of names) {
+      if ((path === name || path.startsWith(`${name}.`)) && (field === undefined || name.length > field.length))
+        field = name;
+    }
+    if (field === undefined) {
+      if (!out.other.includes(message)) out.other.push(message);
+    } else if (out.fields[field] === undefined) {
+      out.fields[field] = message;
+    }
+  }
+  return out;
+}
+
+/**
+ * What a form says above its fields after `e`: the API's message when it put nothing on a field, else the messages
+ * no field shows, or null when every message is on a field.
+ */
+export function unplacedMessage<K extends string>(e: unknown, placed: PlacedErrors<K>): string | null {
+  if (!e) return null;
+  if (!Object.keys(placed.fields).length) return errorMessage(e);
+  return placed.other.join(' ') || null;
 }
 
 export function isApiError(e: unknown): e is ApiError {

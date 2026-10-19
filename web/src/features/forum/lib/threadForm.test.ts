@@ -28,6 +28,12 @@ describe('threadFieldErrors', () => {
     });
   });
 
+  it('puts a message about one tag under Tags', () => {
+    expect(threadFieldErrors(refusal({ 'tags.1': 'Keep each tag under 30 characters.' }))).toEqual({
+      tags: 'Keep each tag under 30 characters.',
+    });
+  });
+
   it('is null for a refusal of the whole form (a rate limit, the server) and for anything thrown that is not the API', () => {
     expect(threadFieldErrors(refusal(null, 429))).toBeNull();
     expect(threadFieldErrors(refusal({ parentId: 'Reply to the first reply instead.' }))).toBeNull();
