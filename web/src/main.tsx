@@ -15,6 +15,8 @@ import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import App from './App';
+import { indexedDbStore, startOfflineCache } from './api/offline';
+import { queryClient } from './api/queryClient';
 import { startPwa } from './lib/pwa';
 
 const root = document.getElementById('root');
@@ -23,10 +25,16 @@ if (!root) throw new Error('#root is missing from index.html');
 // The installed app: the install prompt and, in a production build, the service worker (lib/pwa.ts).
 startPwa();
 
-createRoot(root).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+// What was kept for reading offline (api/offline.ts) is read before the first render, so a page opened offline has it
+// at once. IndexedDB answers in milliseconds; a stuck one holds the app back for half a second at most.
+const offlineReady =
+  'indexedDB' in window ? startOfflineCache(queryClient, indexedDbStore()).catch(() => undefined) : null;
+void Promise.race([offlineReady, new Promise((resolve) => setTimeout(resolve, 500))]).then(() =>
+  createRoot(root).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  ),
 );
 
 // Product analytics only when the build has a key (VITE_POSTHOG_KEY): the SDK then loads on its own, after the app,
