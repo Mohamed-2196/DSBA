@@ -2,41 +2,10 @@
 // PDF in a frame, or nothing. Every page at the width of the screen, one under the other, drawn as it comes near;
 // pinch to zoom. So a paper reads in the Hub, beside Time me, instead of in another tab (ST-41).
 import { ArrowSquareOut, FilePdf } from '@phosphor-icons/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { Button, Spinner } from '../../../ui';
-import { loadPdfJs } from '../../notes/public';
-
-interface Sized {
-  doc: PDFDocumentProxy;
-  /** each page's height over its width */
-  ratios: number[];
-}
-
-type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; pdf: Sized };
-
-async function open(url: string): Promise<Sized> {
-  const lib = await loadPdfJs();
-  // As the notebook opens them: the whole file once (the link expires), no XFA, the decoders and fonts from our assets.
-  const assets = new URL(__PDFJS_ASSETS__, window.location.origin).href;
-  const doc = await lib.getDocument({
-    url,
-    disableRange: true,
-    disableStream: true,
-    disableAutoFetch: true,
-    enableXfa: false,
-    wasmUrl: `${assets}wasm/`,
-    cMapUrl: `${assets}cmaps/`,
-    standardFontDataUrl: `${assets}standard_fonts/`,
-    iccUrl: `${assets}iccs/`,
-  }).promise;
-  const ratios: number[] = [];
-  for (let i = 1; i <= doc.numPages; i++) {
-    const vp = (await doc.getPage(i)).getViewport({ scale: 1 });
-    ratios.push(vp.height / vp.width);
-  }
-  return { doc, ratios };
-}
+import { usePdfAt } from '../../notes/public';
 
 /** One page: a box of the page's shape at once, drawn when it comes within a screen or two. */
 function Page({ doc, n, ratio, width }: { doc: PDFDocumentProxy; n: number; ratio: number; width: number }) {
@@ -106,27 +75,13 @@ export function PdfPages({
   title: string;
   page: number | null;
 }) {
-  const [state, setState] = useState<State>({ status: 'loading' });
-  const [attempt, setAttempt] = useState(0);
+  const { state, retry } = usePdfAt(src);
   const frame = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
-
-  useEffect(() => {
-    let live = true;
-    let opened: Sized | null = null;
-    setState({ status: 'loading' });
-    open(src)
-      .then((pdf) => {
-        opened = pdf;
-        if (live) setState({ status: 'ready', pdf });
-        else void pdf.doc.loadingTask.destroy();
-      })
-      .catch(() => live && setState({ status: 'error' }));
-    return () => {
-      live = false;
-      if (opened) void opened.doc.loadingTask.destroy();
-    };
-  }, [src, attempt]);
+  const ratios = useMemo(
+    () => (state.status === 'ready' ? state.pdf.pages.map((p) => p.height / p.width) : []),
+    [state],
+  );
 
   useEffect(() => {
     const el = frame.current;
@@ -157,7 +112,7 @@ export function PdfPages({
           <h2 className="lib-nopreview__title">The PDF didn’t open here</h2>
           <p>Check your connection and try again, or open it in your phone’s PDF viewer.</p>
           <div className="lib-pdf__actions">
-            <Button variant="primary" onClick={() => setAttempt((a) => a + 1)}>
+            <Button variant="primary" onClick={retry}>
               Try again
             </Button>
             {openOwn}
@@ -165,14 +120,14 @@ export function PdfPages({
         </div>
       </div>
     );
-  if (state.status === 'loading')
+  if (state.status !== 'ready')
     return (
       <div className="lib-preview__loading" role="status">
         <Spinner />
         <span>Loading the PDF</span>
       </div>
     );
-  const { doc, ratios } = state.pdf;
+  const { doc } = state.pdf;
   return (
     <div className="lib-pdf" data-hub="file-pdf-pages">
       <div className="lib-pdf__bar">
