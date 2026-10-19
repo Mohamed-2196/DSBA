@@ -1,9 +1,9 @@
 /* A button is never narrower than its label: in a row that runs out of room it keeps its size (the row wraps or
    scrolls), where squeezing it would spill its label over its neighbours. */
 .ui-button {
-  --btn-h: 40px;
-  --btn-px: 16px;
-  --btn-fs: var(--fs-14);
+  --btn-h: 44px;
+  --btn-px: 18px;
+  --btn-fs: var(--fs-15);
   position: relative;
   display: inline-flex;
   flex-shrink: 0;
@@ -12,11 +12,11 @@
   gap: 8px;
   height: var(--btn-h);
   padding: 0 var(--btn-px);
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
   border-radius: var(--r-control);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: var(--btn-fs);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   line-height: 1;
   letter-spacing: -0.005em;
   white-space: nowrap;
@@ -28,6 +28,7 @@
     background-color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease);
 }
 .ui-button:active:not(:disabled):not([aria-disabled='true']) {
@@ -41,8 +42,9 @@
 }
 
 .ui-button--sm {
-  --btn-h: 32px;
-  --btn-px: 12px;
+  --btn-h: 36px;
+  --btn-px: 14px;
+  --btn-fs: var(--fs-14);
   gap: 6px;
 }
 .ui-button--lg {
@@ -57,12 +59,22 @@
   width: 100%;
 }
 
+/* Primary: pressable, with a 3px lip of the darker blue along its bottom edge. Pressed, it sinks 2px and the lip goes.
+   Icons inside it are drawn in the button's own colours. */
 .ui-button--primary {
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--press-edge);
+  --icon-tint: color-mix(in srgb, var(--on-accent) 30%, transparent);
+  --icon-paper: var(--accent);
 }
 .ui-button--primary:hover {
-  background: var(--cobalt-hover);
+  background: var(--accent-hover);
+  --icon-paper: var(--accent-hover);
+}
+.ui-button--primary:active:not(:disabled):not([aria-disabled='true']) {
+  box-shadow: none;
+  transform: translateY(2px);
 }
 
 .ui-button--secondary {
@@ -70,41 +82,52 @@
   color: var(--ink);
   border-color: var(--line-strong);
 }
+.ui-button--secondary:hover,
+.ui-button--ghost:hover {
+  --icon-paper: var(--surface-2);
+}
 .ui-button--secondary:hover {
   background: var(--surface-2);
 }
 
 .ui-button--ghost {
   background: transparent;
-  color: var(--ink-2);
+  color: var(--accent-text);
 }
 .ui-button--ghost:hover {
-  background: var(--surface-2);
-  color: var(--ink);
+  background: var(--accent-soft);
 }
 
 .ui-button--danger {
-  background: var(--alert-strong);
-  color: var(--alert-ink);
+  background: var(--error);
+  color: var(--on-error);
+  --icon-tint: color-mix(in srgb, var(--on-error) 30%, transparent);
+  --icon-paper: var(--error);
 }
 .ui-button--danger:hover {
-  background: var(--alert-hover);
+  background: var(--error-hover);
+  --icon-paper: var(--error-hover);
 }
 
-.ui-button:disabled,
-.ui-button[aria-disabled='true'] {
-  opacity: 0.45;
+/* Disabled: a flat inset with quiet text (no lip, no fill), so it never reads as the main action. */
+.ui-button:disabled:not(.is-loading),
+.ui-button[aria-disabled='true']:not(.is-loading) {
+  background: var(--surface-2);
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--ink-3);
   cursor: not-allowed;
 }
 .ui-button.is-loading {
   opacity: 0.8;
+  cursor: progress;
 }
 
 /* Touch screens: every button is at least 44px tall and wide. */
 @media (pointer: coarse) {
   .ui-button--sm,
   .ui-button--md {
-    --btn-h: 44px;
+    --btn-h: var(--touch-min);
   }
   .ui-button {
     min-width: 44px;

@@ -6,7 +6,7 @@
   width: var(--ib);
   height: var(--ib);
   flex: 0 0 auto;
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
   border-radius: var(--r-control);
   color: var(--ink-2);
   font-size: 20px;
@@ -42,11 +42,23 @@
   background: var(--surface-2);
 }
 .ui-iconbutton--primary {
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--press-edge);
+  --icon-tint: color-mix(in srgb, var(--on-accent) 30%, transparent);
+  --icon-paper: var(--accent);
 }
 .ui-iconbutton--primary:hover {
-  background: var(--cobalt-hover);
+  background: var(--accent-hover);
+  --icon-paper: var(--accent-hover);
+}
+.ui-iconbutton--primary:active:not(:disabled) {
+  box-shadow: none;
+  transform: translateY(2px);
+}
+.ui-iconbutton--ghost:hover,
+.ui-iconbutton--secondary:hover {
+  --icon-paper: var(--surface-2);
 }
 .ui-iconbutton:disabled {
   opacity: 0.45;
@@ -60,7 +72,7 @@
   width: 8px;
   height: 8px;
   border-radius: var(--r-pill);
-  background: var(--alert);
+  background: var(--error);
   box-shadow: 0 0 0 2px var(--paper);
 }
 .ui-iconbutton__badge--count {
@@ -72,8 +84,8 @@
   padding: 0 5px;
   display: grid;
   place-items: center;
-  background: var(--alert-strong);
-  color: var(--alert-ink);
+  background: var(--error);
+  color: var(--on-error);
   font-size: 11px;
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
@@ -84,6 +96,6 @@
 @media (pointer: coarse) {
   .ui-iconbutton--sm,
   .ui-iconbutton--md {
-    --ib: 44px;
+    --ib: var(--touch-min);
   }
 }

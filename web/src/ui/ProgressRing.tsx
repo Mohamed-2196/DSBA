@@ -9,7 +9,7 @@ export interface ProgressRingProps {
   size?: number;
   /** px (default 4) */
   stroke?: number;
-  /** CSS colour (default var(--cobalt)); e.g. cohortColor(year) or 'var(--signal)' */
+  /** CSS colour (default var(--accent)); e.g. cohortColor(year) or 'var(--success-fill)' */
   color?: string;
   /** print the % in the middle (default true when size ≥ 36) */
   showValue?: boolean;
@@ -25,7 +25,7 @@ export function ProgressRing({
   value = 0,
   size = 40,
   stroke = 4,
-  color = 'var(--cobalt)',
+  color = 'var(--accent)',
   showValue,
   label = 'Progress',
   className,

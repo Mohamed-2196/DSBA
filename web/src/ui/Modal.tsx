@@ -1,6 +1,7 @@
 import { useId, useRef, type HTMLAttributes, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from '@phosphor-icons/react';
+import { Icon } from './Icon';
+import * as glyph from './icons/glyphs';
 import { cx, useOverlay, usePresence } from './internal';
 import { IconButton } from './IconButton';
 import './Modal.css';
@@ -70,7 +71,13 @@ export function Modal({
               </p>
             ) : null}
           </div>
-          <IconButton label="Close" icon={X} size="sm" onClick={onClose} className="ui-modal__close" />
+          <IconButton
+            label="Close"
+            icon={<Icon glyph={glyph.close} />}
+            size="sm"
+            onClick={onClose}
+            className="ui-modal__close"
+          />
         </header>
         <div className={cx('ui-modal__body', bodyClassName)}>{children}</div>
         {footer ? <footer className="ui-modal__footer">{footer}</footer> : null}
@@ -133,7 +140,13 @@ export function Drawer({
               </p>
             ) : null}
           </div>
-          <IconButton label="Close" icon={X} size="sm" onClick={onClose} className="ui-modal__close" />
+          <IconButton
+            label="Close"
+            icon={<Icon glyph={glyph.close} />}
+            size="sm"
+            onClick={onClose}
+            className="ui-modal__close"
+          />
         </header>
         <div className={cx('ui-drawer__body', bodyClassName)}>{children}</div>
         {footer ? <footer className="ui-modal__footer">{footer}</footer> : null}

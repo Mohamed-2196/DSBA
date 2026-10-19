@@ -48,7 +48,7 @@ export function ConfirmDialog({
       size="sm"
       footer={
         <>
-          <Button variant="ghost" onClick={onClose} disabled={busy} data-autofocus={danger ? true : undefined}>
+          <Button variant="secondary" onClick={onClose} disabled={busy} data-autofocus={danger ? true : undefined}>
             {cancelLabel}
           </Button>
           <Button

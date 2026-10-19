@@ -9,9 +9,10 @@
   min-width: 0;
 }
 .ui-section-header__title {
-  font-size: var(--fs-20);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.015em;
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
   line-height: var(--lh-heading);
 }
 h3.ui-section-header__title {

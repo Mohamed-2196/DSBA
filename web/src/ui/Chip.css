@@ -3,14 +3,14 @@
   flex: 0 0 auto; /* in a one-line scrolling row a chip keeps its width instead of squashing */
   align-items: center;
   gap: 7px;
-  height: 32px;
-  padding: 0 13px;
-  border: 1px solid var(--line-strong);
+  height: 40px;
+  padding: 0 15px;
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--r-pill);
   background: var(--surface);
-  color: var(--ink-2);
+  color: var(--ink);
   font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   line-height: 1;
   white-space: nowrap;
   transition:
@@ -19,13 +19,13 @@
     color var(--dur-fast) var(--ease);
 }
 .ui-chip--sm {
-  height: 28px;
-  padding: 0 11px;
-  font-size: var(--fs-12);
+  height: 36px;
+  padding: 0 13px;
+  font-size: var(--fs-13);
 }
 .ui-chip:hover {
   border-color: var(--ink-3);
-  color: var(--ink);
+  background: var(--surface-2);
 }
 .ui-chip__icon {
   font-size: 16px;
@@ -40,21 +40,23 @@
   font-variant-numeric: tabular-nums;
   font-weight: var(--fw-semibold);
 }
+/* Selected: the section's pill, edged and lettered in its text colour (the accent outside a section). */
 .ui-chip.is-selected {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
+  background: var(--sec-pill, var(--accent-soft));
+  border-color: var(--sec-text, var(--accent-text));
+  color: var(--sec-text, var(--accent-text));
+  font-weight: var(--fw-bold);
 }
 .ui-chip.is-selected .ui-chip__count {
-  color: color-mix(in srgb, var(--paper) 70%, transparent);
+  color: inherit;
 }
 
 /* Touch screens: 44px chips (UX review UX-11). */
 @media (pointer: coarse) {
   .ui-chip,
   .ui-chip--sm {
-    height: 44px;
-    min-width: 44px;
+    height: var(--touch-min);
+    min-width: var(--touch-min);
     justify-content: center;
   }
 }

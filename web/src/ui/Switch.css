@@ -29,8 +29,8 @@
 .ui-switch__input {
   position: relative;
   flex: 0 0 auto;
-  width: 40px;
-  height: 24px;
+  width: 48px;
+  height: 28px;
   margin: 0;
   border-radius: var(--r-pill);
   background: var(--control-border);
@@ -43,25 +43,25 @@
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: var(--r-pill);
   background: var(--thumb-bg);
   box-shadow: 0 1px 2px rgba(10, 31, 68, 0.2);
   transition: transform var(--dur) var(--ease);
 }
 .ui-switch__input:checked {
-  background: var(--cobalt);
+  background: var(--accent);
 }
 .ui-switch__input:checked::before {
-  transform: translateX(16px);
-  background: var(--cobalt-ink);
+  transform: translateX(20px);
+  background: var(--on-accent);
 }
 .ui-switch__input:hover:not(:disabled) {
   background: var(--ink-3);
 }
 .ui-switch__input:checked:hover:not(:disabled) {
-  background: var(--cobalt-hover);
+  background: var(--accent-hover);
 }
 .ui-switch__input:disabled {
   opacity: 0.45;

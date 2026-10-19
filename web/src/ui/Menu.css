@@ -6,9 +6,9 @@
   max-height: min(70vh, 560px);
   overflow-y: auto;
   padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--raised);
   box-shadow: var(--shadow-float);
   outline: none;
   animation: ui-menu-in var(--dur-fast) var(--ease);
@@ -19,7 +19,7 @@
 }
 .ui-menu--popover {
   padding: 0;
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
 }
 @keyframes ui-menu-in {
   from {
@@ -33,9 +33,9 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 36px;
-  padding: 0 10px;
-  border-radius: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
   color: var(--ink);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
@@ -49,18 +49,23 @@
   background: var(--surface-2);
 }
 .ui-menu__item:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--cobalt);
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 .ui-menu__item[aria-disabled='true'] {
   opacity: 0.45;
   cursor: not-allowed;
 }
 .ui-menu__item.is-danger {
-  color: var(--alert-strong);
+  color: var(--error);
 }
 .ui-menu__icon {
-  font-size: 18px;
-  color: var(--ink-2);
+  font-size: 20px;
+  color: var(--icon-line);
+  --icon-paper: var(--raised);
+}
+.ui-menu__item:hover .ui-menu__icon,
+.ui-menu__item:focus-visible .ui-menu__icon {
+  --icon-paper: var(--surface-2);
 }
 .ui-menu__item.is-danger .ui-menu__icon {
   color: inherit;

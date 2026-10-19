@@ -1,5 +1,5 @@
 .ui-avatar {
-  --c: var(--cobalt);
+  --c: var(--accent);
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
@@ -21,11 +21,11 @@
   --c: var(--y3);
 }
 .ui-avatar--cobalt {
-  --c: var(--cobalt);
+  --c: var(--accent);
 }
 .ui-avatar--signal {
-  --c: var(--signal);
+  --c: var(--success-fill);
 }
 .ui-avatar--alert {
-  --c: var(--alert);
+  --c: var(--error);
 }

@@ -10,7 +10,8 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
-import { CaretDown, MagnifyingGlass, WarningCircle, X } from '@phosphor-icons/react';
+import { Icon } from './Icon';
+import * as glyph from './icons/glyphs';
 import { cx, renderIcon, type IconSource } from './internal';
 import { Kbd } from './Kbd';
 import { modKeyLabel } from './utils';
@@ -67,7 +68,7 @@ export function Field({
       {children(id, describedBy)}
       {error ? (
         <p id={errId} className="ui-field__error">
-          <WarningCircle aria-hidden="true" weight="fill" />
+          <Icon glyph={glyph.error} />
           {error}
         </p>
       ) : hint ? (
@@ -245,7 +246,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
                 ))
               : children}
           </select>
-          <CaretDown className="ui-control__caret" aria-hidden="true" weight="bold" />
+          <Icon glyph={glyph.chevronDown} className="ui-control__caret" />
         </div>
       )}
     </Field>
@@ -309,7 +310,7 @@ export const SearchField = forwardRef<HTMLElement, SearchFieldProps>(function Se
         aria-label={label}
         {...buttonProps}
       >
-        <MagnifyingGlass className="ui-search__icon" aria-hidden="true" />
+        <Icon glyph={glyph.search} className="ui-search__icon" />
         <span className="ui-search__placeholder">{placeholder}</span>
         {kbd ? (
           <span className="ui-search__kbd" aria-hidden="true">
@@ -322,7 +323,7 @@ export const SearchField = forwardRef<HTMLElement, SearchFieldProps>(function Se
   const hasValue = value != null && value !== '';
   return (
     <div className={cx('ui-search', `ui-search--${size}`, className)} onClick={onClick}>
-      <MagnifyingGlass className="ui-search__icon" aria-hidden="true" />
+      <Icon glyph={glyph.search} className="ui-search__icon" />
       <input
         ref={ref as Ref<HTMLInputElement>}
         type="search"
@@ -346,7 +347,7 @@ export const SearchField = forwardRef<HTMLElement, SearchFieldProps>(function Se
             onValueChange?.('');
           }}
         >
-          <X aria-hidden="true" weight="bold" />
+          <Icon glyph={glyph.close} />
         </button>
       ) : kbd ? (
         <span className="ui-search__kbd" aria-hidden="true">

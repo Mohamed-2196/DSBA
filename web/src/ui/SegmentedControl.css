@@ -3,7 +3,7 @@
   display: inline-flex;
   padding: 3px;
   gap: 2px;
-  border-radius: var(--r-control);
+  border-radius: var(--r-tab);
   background: var(--surface-2);
   isolation: isolate;
 }
@@ -20,7 +20,7 @@
   bottom: 3px;
   left: 0;
   z-index: -1;
-  border-radius: 8px;
+  border-radius: 14px;
   background: var(--thumb-bg);
   box-shadow: var(--thumb-shadow);
   transition:
@@ -36,7 +36,7 @@
   height: 34px;
   min-width: 34px;
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: 14px;
   color: var(--ink-2);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);

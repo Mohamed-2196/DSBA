@@ -11,7 +11,7 @@
 }
 .ui-empty__icon {
   font-size: 44px;
-  color: var(--cobalt);
+  color: var(--accent);
   margin-bottom: var(--sp-12);
   line-height: 0;
 }
@@ -22,16 +22,17 @@
 .ui-empty__title {
   margin: 0;
   color: var(--ink);
+  font-family: var(--font-display);
   font-size: var(--fs-20);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.015em;
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
 }
 .ui-empty__art {
   width: 168px;
   margin-bottom: var(--sp-12);
   line-height: 0;
   /* a soft disc behind the scene, so its white parts sit on something in both themes */
-  background: radial-gradient(closest-side, var(--cobalt-soft) 0%, var(--cobalt-soft) 62%, transparent 100%);
+  background: radial-gradient(closest-side, var(--accent-soft) 0%, var(--accent-soft) 62%, transparent 100%);
   border-radius: 50%;
 }
 .ui-empty__art img {
