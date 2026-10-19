@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <title>Binder, the modules desk-mate (sleepy)</title>
+  <g stroke="#14234D" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="102" cy="184" rx="58" ry="7" fill="#14234D" opacity=".12" stroke="none"/>
+    <!-- year dividers poking out: Year 1, 2, 3 -->
+    <rect x="146" y="50" width="32" height="26" rx="6" fill="#3BC9DB"/>
+    <rect x="146" y="84" width="32" height="26" rx="6" fill="#6FA2FF"/>
+    <rect x="146" y="118" width="32" height="26" rx="6" fill="#FFA94D"/>
+    <!-- feet -->
+    <rect x="70" y="162" width="22" height="18" rx="9" fill="#14234D"/>
+    <rect x="118" y="162" width="22" height="18" rx="9" fill="#14234D"/>
+    <!-- cover -->
+    <rect x="44" y="28" width="114" height="140" rx="16" fill="#2DB87D" stroke="none"/>
+    <path d="M44 44q0-16 16-16h12v140H60q-16 0-16-16z" fill="#1F9463" stroke="none"/>
+    <rect x="44" y="28" width="114" height="140" rx="16" fill="none"/>
+    <path d="M72 30v136" stroke-width="4"/>
+    <!-- spine finger hole -->
+    <ellipse cx="58" cy="146" rx="5" ry="9" fill="#126846" stroke="none"/>
+    <!-- label window -->
+    <rect x="84" y="42" width="60" height="30" rx="7" fill="#FFFFFF"/>
+    <path d="M94 53h30M94 62h20" stroke="#2DB87D" stroke-width="4"/>
+    <!-- rings showing at the top edge -->
+    <path d="M52 34v-10a7 7 0 0 1 14 0v6" fill="none" stroke="#9AA8C4" stroke-width="5"/>
+  </g>
+  <g>
+    <path d="M91 104q7 6 14 0" fill="none" stroke="#14234D" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M125 104q7 6 14 0" fill="none" stroke="#14234D" stroke-width="4.5" stroke-linecap="round"/>
+    
+    <ellipse cx="86" cy="117" rx="7.5" ry="4.3" fill="#FF9DB0" opacity=".7"/>
+    <ellipse cx="144" cy="117" rx="7.5" ry="4.3" fill="#FF9DB0" opacity=".7"/>
+    <ellipse cx="115" cy="118" rx="3" ry="2.5" fill="#14234D"/>
+  </g>
+<g fill="none" stroke="#5F6F92" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M160 22h14l-14 16h14"/><path d="M180 50h9l-9 10h9"/></g></svg>

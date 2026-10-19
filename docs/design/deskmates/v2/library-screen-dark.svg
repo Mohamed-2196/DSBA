@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844" width="390" height="844"><title>Library on a phone, Deskmates v2 (dark)</title><style>@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&amp;family=Figtree:wght@400..800&amp;family=JetBrains+Mono:wght@500;700&amp;display=block');.ui{font-family:Figtree,system-ui,sans-serif}.disp{font-family:'Bricolage Grotesque',Figtree,sans-serif}.mono{font-family:'JetBrains Mono',monospace}</style>
+<defs><filter id="lift" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0A1F44" flood-opacity="0.35"/></filter><filter id="float" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0A1F44" flood-opacity="1.05"/></filter><filter id="halo" x="-10%" y="-10%" width="120%" height="120%"><feMorphology in="SourceAlpha" operator="dilate" radius="2" result="d"/><feFlood flood-color="#EAF0FF" flood-opacity=".9"/><feComposite in2="d" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="nc"><circle cx="338" cy="704" r="27"/></clipPath></defs>
+<rect width="390" height="844" fill="#0B1530"/>
+<text x="28" y="32" class="ui" font-size="15" font-weight="700" fill="#EAF0FF" text-anchor="start" >9:41</text>
+<g fill="#EAF0FF"><rect x="306" y="22" width="3" height="8" rx="1"/><rect x="311" y="19" width="3" height="11" rx="1"/><rect x="316" y="16" width="3" height="14" rx="1"/><rect x="330" y="17" width="26" height="13" rx="4" fill="none" stroke="#EAF0FF" stroke-width="1.5"/><rect x="332.5" y="19.5" width="18" height="8" rx="2"/></g>
+<image href="hub-lockup-horizontal-white.png" x="16" y="56" width="148.5" height="21"/>
+<circle cx="352" cy="66" r="18" fill="#1B2D55"/>
+<text x="352" y="71" class="ui" font-size="14" font-weight="800" fill="#6FA2FF" text-anchor="middle" >S</text>
+<rect x="16" y="96" width="358" height="86" rx="22" fill="#3A3218"/>
+<image filter="url(#halo)" href="sections/library.svg" x="282" y="86" width="98" height="98"/>
+<text x="34" y="132" class="disp" font-size="28" font-weight="750" fill="#EAF0FF" text-anchor="start" letter-spacing="-0.6">Library</text>
+<text x="34" y="156" class="ui" font-size="14" font-weight="500" fill="#A9B8D9" text-anchor="start" >1,240 papers, reports and notes</text>
+<text x="34" y="174" class="ui" font-size="13" font-weight="700" fill="#FFC94D" text-anchor="start" >12 new this week</text>
+<rect x="16" y="194" width="358" height="46" rx="14" fill="#111E3E" stroke="#2F4677" stroke-width="1.5"/>
+<g transform="translate(30 205) scale(1.0)" stroke="#A9B8D9" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15.4 15.4l5.2 5.2" fill="none" stroke-width="2.75"/><path d="M3.9000000000000004 10.5a6.6 6.6 0 1 0 13.2 0a6.6 6.6 0 1 0-13.2 0z" fill="#3A4870"/><path d="M7.4 9.4a3.3 3.3 0 0 1 2.4-2.5" fill="none"/></g>
+<text x="62" y="222" class="ui" font-size="15" font-weight="400" fill="#8798BE" text-anchor="start" >Search a code, year or topic</text>
+<rect x="16" y="250" width="118" height="44" rx="22" fill="#EAF0FF"/>
+<path d="M34 266h16M34 272h12M34 278h8" stroke="#0B1530" stroke-width="2" stroke-linecap="round"/>
+<text x="56" y="277" class="ui" font-size="14" font-weight="700" fill="#0B1530" text-anchor="start" >Filters</text>
+<circle cx="114" cy="272" r="10" fill="#FFC233"/>
+<text x="114" y="276.5" class="ui" font-size="12" font-weight="800" fill="#0A1F44" text-anchor="middle" >2</text>
+<rect x="142" y="250" width="100" height="44" rx="22" fill="#111E3E" stroke="#2F4677" stroke-width="1.5"/>
+<text x="158" y="277" class="ui" font-size="14" font-weight="600" fill="#EAF0FF" text-anchor="start" >ST2133</text>
+<path d="M215 267l10 10M225 267l-10 10" stroke="#A9B8D9" stroke-width="2" stroke-linecap="round"/>
+<rect x="250" y="250" width="124" height="44" rx="22" fill="#111E3E" stroke="#2F4677" stroke-width="1.5"/>
+<text x="266" y="277" class="ui" font-size="14" font-weight="600" fill="#EAF0FF" text-anchor="start" >May 2019</text>
+<path d="M347 267l10 10M357 267l-10 10" stroke="#A9B8D9" stroke-width="2" stroke-linecap="round"/>
+<text x="16" y="318" class="ui" font-size="13" font-weight="600" fill="#A9B8D9" text-anchor="start" >ST2133 Advanced Statistics: Distribution Theory</text>
+<text x="374" y="318" class="ui" font-size="13" font-weight="400" fill="#A9B8D9" text-anchor="end" >4 items</text>
+<g filter="url(#lift)"><rect x="16" y="328" width="358" height="110" rx="18" fill="#111E3E" stroke="#22355F" stroke-width="1.5"/></g>
+<g transform="translate(30 342) scale(1.0)"><rect width="40" height="50" rx="6" fill="#F4F7FD" stroke="#14234D" stroke-width="2"/><rect width="40" height="14" rx="6" fill="#FFC233" stroke="#14234D" stroke-width="2"/><path d="M8 26h24M8 33h18M8 40h22" stroke="#C9D5EA" stroke-width="2.5" stroke-linecap="round"/></g>
+<text x="84" y="356" class="ui" font-size="16" font-weight="700" fill="#EAF0FF" text-anchor="start" >ST2133 · May 2019 · Zone A</text>
+<text x="84" y="376" class="ui" font-size="13" font-weight="400" fill="#A9B8D9" text-anchor="start" >Past paper · 6 pages · solutions inside</text>
+<rect x="84" y="390" width="104" height="36" rx="12" fill="#5F7BE0"/><rect x="84" y="390" width="104" height="33" rx="12" fill="#8DA6FF"/>
+<circle cx="103" cy="406" r="7" fill="none" stroke="#0B1530" stroke-width="2"/><path d="M103 402v4l3 2M101 396h4" stroke="#0B1530" stroke-width="2" stroke-linecap="round"/>
+<text x="117" y="411" class="ui" font-size="14" font-weight="700" fill="#0B1530" text-anchor="start" >Time me</text>
+<rect x="196" y="390" width="72" height="36" rx="12" fill="#111E3E" stroke="#2F4677" stroke-width="1.5"/>
+<text x="232" y="413" class="ui" font-size="14" font-weight="600" fill="#EAF0FF" text-anchor="middle" >Open</text>
+<rect x="330" y="342" width="30" height="30" rx="10" fill="#1A2B54"/><path d="M340 350h10v15l-5-4-5 4z" fill="none" stroke="#A9B8D9" stroke-width="2" stroke-linejoin="round"/>
+<g filter="url(#lift)"><rect x="16" y="446" width="358" height="76" rx="18" fill="#111E3E" stroke="#22355F" stroke-width="1.5"/></g>
+<g transform="translate(30 459) scale(1.0)"><rect width="40" height="50" rx="6" fill="#F4F7FD" stroke="#14234D" stroke-width="2"/><rect width="40" height="14" rx="6" fill="#2DB87D" stroke="#14234D" stroke-width="2"/><path d="M10 30l6 6 12-12" fill="none" stroke="#18794A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="84" y="477" class="ui" font-size="16" font-weight="700" fill="#EAF0FF" text-anchor="start" >ST2133 · May 2019 · Examiners' report</text>
+<text x="84" y="498" class="ui" font-size="13" font-weight="400" fill="#A9B8D9" text-anchor="start" >Report · 14 pages · what markers wanted</text>
+<g filter="url(#lift)"><rect x="16" y="530" width="358" height="76" rx="18" fill="#111E3E" stroke="#22355F" stroke-width="1.5"/></g>
+<g transform="translate(30 543) scale(1.0)"><rect width="40" height="50" rx="6" fill="#F4F7FD" stroke="#14234D" stroke-width="2"/><rect width="40" height="14" rx="6" fill="#FFC233" stroke="#14234D" stroke-width="2"/><path d="M8 26h24M8 33h18M8 40h22" stroke="#C9D5EA" stroke-width="2.5" stroke-linecap="round"/></g>
+<text x="84" y="561" class="ui" font-size="16" font-weight="700" fill="#EAF0FF" text-anchor="start" >ST2133 · May 2019 · Zone B</text>
+<text x="84" y="582" class="ui" font-size="13" font-weight="400" fill="#A9B8D9" text-anchor="start" >Past paper · 6 pages · <tspan fill="#5BD49A" font-weight="700">you finished it, 71%</tspan></text>
+<g filter="url(#lift)"><rect x="16" y="614" width="358" height="96" rx="18" fill="#111E3E" stroke="#22355F" stroke-width="1.5"/></g>
+<g transform="translate(30 628) scale(1.0)"><rect width="40" height="50" rx="6" fill="#F4F7FD" stroke="#14234D" stroke-width="2"/><rect width="40" height="14" rx="6" fill="#7B61FF" stroke="#14234D" stroke-width="2"/><path d="M8 30q6-6 12 0t12 0M8 40q6-5 12 0" fill="none" stroke="#7B61FF" stroke-width="2.5" stroke-linecap="round"/></g>
+<text x="84" y="646" class="ui" font-size="16" font-weight="700" fill="#EAF0FF" text-anchor="start" >MGFs, worked from scratch</text>
+<text x="84" y="667" class="ui" font-size="13" font-weight="400" fill="#A9B8D9" text-anchor="start" >Shared by Fatima · Year 3</text>
+<rect x="84" y="678" width="56" height="22" rx="11" fill="#3A2A1C"/>
+<text x="112" y="693" class="ui" font-size="12" font-weight="700" fill="#FFA94D" text-anchor="middle" >Year 3</text>
+<text x="150" y="693" class="ui" font-size="12" font-weight="400" fill="#A9B8D9" text-anchor="start" >Students' note · 18 useful</text>
+<g filter="url(#float)"><circle cx="338" cy="704" r="31" fill="#111E3E" stroke="#8DA6FF" stroke-width="3"/></g>
+<circle cx="338" cy="704" r="27" fill="#2A2F5E"/><image href="../bust-neutral.png" x="306" y="674" width="64" height="64" clip-path="url(#nc)"/>
+<circle cx="361" cy="681" r="6" fill="#5BD49A" stroke="#111E3E" stroke-width="2.5"/>
+<rect x="0" y="738" width="390" height="106" fill="#111E3E"/><path d="M0 738.75h390" stroke="#22355F" stroke-width="1.5"/>
+<g transform="translate(27 751) scale(1.0)" stroke="#A9B8D9" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.2 19.2L6.4 13.2L10.6 9.6" fill="none"/><path d="M6.35 18.8h7.3a1.35 1.35 0 0 1 1.35 1.35v0.0a1.35 1.35 0 0 1-1.35 1.35h-7.3a1.35 1.35 0 0 1-1.35-1.35v-0.0a1.35 1.35 0 0 1 1.35-1.35z" fill="#111E3E"/><path d="M9.4 9.9C9.4 5.6 11.6 3 15 3s5.6 2.6 5.6 6.9z" fill="#33438F"/><path d="M8.6 9.9h12.8" fill="none"/><path d="M5.15 13.2a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0-2.5 0z" fill="#A9B8D9" stroke="none"/><path d="M13.4 10.4a1.6 1.4 0 0 0 3.2 0z" fill="#33438F"/></g>
+<text x="39" y="798" class="ui" font-size="12" font-weight="600" fill="#A9B8D9" text-anchor="middle" >Home</text>
+<g transform="translate(105 751) scale(1.0)" stroke="#A9B8D9" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 3h9.6a2.2 2.2 0 0 1 2.2 2.2v13.6a2.2 2.2 0 0 1-2.2 2.2h-9.6a2.2 2.2 0 0 1-2.2-2.2v-13.6a2.2 2.2 0 0 1 2.2-2.2z" fill="#1E5C45"/><path d="M7.6 3.4v17.2" fill="none"/><path d="M11.0 6h3.4a0.8 0.8 0 0 1 0.8 0.8v1.6a0.8 0.8 0 0 1-0.8 0.8h-3.4a0.8 0.8 0 0 1-0.8-0.8v-1.6a0.8 0.8 0 0 1 0.8-0.8z" fill="#111E3E"/><path d="M18 6h1.4a1.1 1.1 0 0 1 1.1 1.1v2.2a1.1 1.1 0 0 1-1.1 1.1H18M18 12.2h1.4a1.1 1.1 0 0 1 1.1 1.1v2.2a1.1 1.1 0 0 1-1.1 1.1H18" fill="none"/></g>
+<text x="117" y="798" class="ui" font-size="12" font-weight="600" fill="#A9B8D9" text-anchor="middle" >Modules</text>
+<rect x="165" y="746" width="60" height="34" rx="17" fill="#3A3218"/>
+<g transform="translate(183 751) scale(1.0)" stroke="#EAF0FF" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 17.4h15.6a1.2 1.2 0 0 1 1.2 1.2v1.2000000000000002a1.2 1.2 0 0 1-1.2 1.2h-15.6a1.2 1.2 0 0 1-1.2-1.2v-1.2000000000000002a1.2 1.2 0 0 1 1.2-1.2z" fill="#FFC233"/><path d="M5.8 13.8h13.6a1.2 1.2 0 0 1 1.2 1.2v1.2000000000000002a1.2 1.2 0 0 1-1.2 1.2h-13.6a1.2 1.2 0 0 1-1.2-1.2v-1.2000000000000002a1.2 1.2 0 0 1 1.2-1.2z" fill="#FFC233"/><path d="M7 3h7.4L18 6.6v7.2H7z" fill="#3A3218"/><path d="M14.4 3v3.6H18M9.6 8.6h3.6M9.6 11.2h5.4" fill="none"/></g>
+<text x="195" y="798" class="ui" font-size="12" font-weight="800" fill="#FFC94D" text-anchor="middle" >Library</text>
+<g transform="translate(261 751) scale(1.0)" stroke="#A9B8D9" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 3h7.8a3.1 3.1 0 0 1 3.1 3.1v3.7a3.1 3.1 0 0 1-3.1 3.1H9.6L6 15.8v-2.95A3.1 3.1 0 0 1 2.5 9.8V6.1A3.1 3.1 0 0 1 5.6 3z" fill="#6E2D55"/><path d="M12.3 11.4h5.9a2.8 2.8 0 0 1 2.8 2.8v1.8a2.8 2.8 0 0 1-2.4 2.77V21l-2.9-2.4h-3.4a2.8 2.8 0 0 1-2.8-2.8v-1.6a2.8 2.8 0 0 1 2.8-2.8z" fill="#111E3E"/></g>
+<text x="273" y="798" class="ui" font-size="12" font-weight="600" fill="#A9B8D9" text-anchor="middle" >Forum</text>
+<g transform="translate(339 751) scale(1.0)" stroke="#A9B8D9" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3.3 12a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0-4.4 0z" fill="#33438F"/><path d="M9.8 12a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0-4.4 0z" fill="#33438F"/><path d="M16.3 12a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0-4.4 0z" fill="#33438F"/></g>
+<text x="351" y="798" class="ui" font-size="12" font-weight="600" fill="#A9B8D9" text-anchor="middle" >More</text>
+<rect x="128" y="826" width="134" height="5" rx="2.5" fill="#EAF0FF"/>
+</svg>

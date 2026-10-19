@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <title>Pip and Pod, the forum desk-mates (happy)</title>
+  <g stroke="#14234D" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="100" cy="184" rx="66" ry="7" fill="#14234D" opacity=".12" stroke="none"/>
+    <!-- Pod: the big answering bubble -->
+    <path d="M58 30h62a34 34 0 0 1 34 34v18a34 34 0 0 1-34 34H66l-22 18 4-22a34 34 0 0 1-24-32V64a34 34 0 0 1 34-34z" fill="#F25CA2"/>
+    <!-- Pip: the small asking bubble -->
+    <path d="M118 102h34a26 26 0 0 1 26 26v8a26 26 0 0 1-20 25l4 18-18-16h-26a26 26 0 0 1-26-26v-9a26 26 0 0 1 26-26z" fill="#FFFFFF"/>
+    <!-- Pip's question mark tuft -->
+    <path d="M168 82q0-9 8-9t8 8q0 5-6 8v5" fill="none" stroke="#F25CA2" stroke-width="4.5"/><circle cx="178" cy="102" r="2.6" fill="#F25CA2" stroke="none"/>
+  </g>
+  <!-- Pod's face -->
+  <g>
+    <path d="M65 72q7 -12 14 0" fill="none" stroke="#14234D" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M99 72q7 -12 14 0" fill="none" stroke="#14234D" stroke-width="4.5" stroke-linecap="round"/>
+    
+    <ellipse cx="59" cy="84" rx="7.5" ry="4.3" fill="#FF9DB0" opacity=".75"/>
+    <ellipse cx="119" cy="84" rx="7.5" ry="4.3" fill="#FF9DB0" opacity=".75"/>
+    <path d="M80 81q9 16 18 0z" fill="#B23A3A" stroke="#14234D" stroke-width="3.5" stroke-linejoin="round"/>
+  </g>
+  <!-- Pip's face, looking up at Pod -->
+  <g>
+    <path d="M117.5 132q6.5 -11 13 0" fill="none" stroke="#14234D" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M143.5 132q6.5 -11 13 0" fill="none" stroke="#14234D" stroke-width="4.5" stroke-linecap="round"/>
+    
+    <ellipse cx="114" cy="143" rx="6.5" ry="3.8" fill="#FF8FA3" opacity=".55"/>
+    <ellipse cx="160" cy="143" rx="6.5" ry="3.8" fill="#FF8FA3" opacity=".55"/>
+    <path d="M132.5 147q4.5 -7 9 0" fill="none" stroke="#14234D" stroke-width="4.5" stroke-linecap="round"/>
+  </g>
+<g fill="#FFC233" stroke="#14234D" stroke-width="2.5" stroke-linejoin="round"><path d="M22 40l4 9 9 4-9 4-4 9-4-9-9-4 9-4z"/><path d="M178 26l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/></g></svg>

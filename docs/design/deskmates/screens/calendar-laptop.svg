@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900"><title>Calendar, month view, on a laptop, Deskmates v2</title><style>@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&amp;family=Figtree:ital,wght@0,400..800;1,400..700&amp;family=JetBrains+Mono:wght@500;700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=block');.ui{font-family:Figtree,'IBM Plex Sans Arabic',system-ui,sans-serif}.disp{font-family:'Bricolage Grotesque','IBM Plex Sans Arabic',Figtree,sans-serif}.mono{font-family:'JetBrains Mono',ui-monospace,monospace}.ar{font-family:'IBM Plex Sans Arabic',sans-serif}</style><defs><filter id="lift" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0A1F44" flood-opacity="0.07"/></filter><filter id="float" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0A1F44" flood-opacity="0.21"/></filter></defs>
+<rect x="0" y="0" width="1440" height="900" rx="0" fill="#F2F5FB" />
+<rect x="0" y="0" width="248" height="900" rx="0" fill="#FFFFFF" />
+<path d="M248.75 0L248.75 900" stroke="#DCE4F1" stroke-width="1.5" stroke-linecap="butt" />
+<image href="../../../../web/public/brand/hub-lockup-horizontal.png" x="24" y="30" width="190.9" height="27"/>
+<g transform="translate(26 99) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.2 19.2L6.4 13.2L10.6 9.6" fill="none"/><path d="M6.35 18.8h7.3a1.35 1.35 0 0 1 1.35 1.35v0.0a1.35 1.35 0 0 1-1.35 1.35h-7.3a1.35 1.35 0 0 1-1.35-1.35v-0.0a1.35 1.35 0 0 1 1.35-1.35z" fill="#FFFFFF"/><path d="M9.4 9.9C9.4 5.6 11.6 3 15 3s5.6 2.6 5.6 6.9z" fill="#C9D4FF"/><path d="M8.6 9.9h12.8" fill="none"/><path d="M5.15 13.2a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0-2.5 0z" fill="#3E4E6E" stroke="none"/><path d="M13.4 10.4a1.6 1.4 0 0 0 3.2 0z" fill="#C9D4FF"/></g>
+<text x="60" y="115" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Home</text>
+<g transform="translate(26 147) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 3h9.6a2.2 2.2 0 0 1 2.2 2.2v13.6a2.2 2.2 0 0 1-2.2 2.2h-9.6a2.2 2.2 0 0 1-2.2-2.2v-13.6a2.2 2.2 0 0 1 2.2-2.2z" fill="#B9EBD2"/><path d="M7.6 3.4v17.2" fill="none"/><path d="M11.0 6h3.4a0.8 0.8 0 0 1 0.8 0.8v1.6a0.8 0.8 0 0 1-0.8 0.8h-3.4a0.8 0.8 0 0 1-0.8-0.8v-1.6a0.8 0.8 0 0 1 0.8-0.8z" fill="#FFFFFF"/><path d="M18 6h1.4a1.1 1.1 0 0 1 1.1 1.1v2.2a1.1 1.1 0 0 1-1.1 1.1H18M18 12.2h1.4a1.1 1.1 0 0 1 1.1 1.1v2.2a1.1 1.1 0 0 1-1.1 1.1H18" fill="none"/></g>
+<text x="60" y="163" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Modules</text>
+<g transform="translate(26 195) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 17.4h15.6a1.2 1.2 0 0 1 1.2 1.2v1.2000000000000002a1.2 1.2 0 0 1-1.2 1.2h-15.6a1.2 1.2 0 0 1-1.2-1.2v-1.2000000000000002a1.2 1.2 0 0 1 1.2-1.2z" fill="#FFE29A"/><path d="M5.8 13.8h13.6a1.2 1.2 0 0 1 1.2 1.2v1.2000000000000002a1.2 1.2 0 0 1-1.2 1.2h-13.6a1.2 1.2 0 0 1-1.2-1.2v-1.2000000000000002a1.2 1.2 0 0 1 1.2-1.2z" fill="#FFE29A"/><path d="M7 3h7.4L18 6.6v7.2H7z" fill="#FFFFFF"/><path d="M14.4 3v3.6H18M9.6 8.6h3.6M9.6 11.2h5.4" fill="none"/></g>
+<text x="60" y="211" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Library</text>
+<g transform="translate(26 243) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5.7 4.6h8.1a2.2 2.2 0 0 1 2.2 2.2v11.999999999999998a2.2 2.2 0 0 1-2.2 2.2h-8.1a2.2 2.2 0 0 1-2.2-2.2v-11.999999999999998a2.2 2.2 0 0 1 2.2-2.2z" fill="#D9D0FF"/><path d="M7.2 8.6h5.0a0.8 0.8 0 0 1 0.8 0.8v1.6a0.8 0.8 0 0 1-0.8 0.8h-5.0a0.8 0.8 0 0 1-0.8-0.8v-1.6a0.8 0.8 0 0 1 0.8-0.8z" fill="#FFFFFF"/><path d="M6.6 3v3.4M9.75 3v3.4M12.9 3v3.4" fill="none"/><path d="M18.6 4.6h2.6v11.6l-1.3 3.2-1.3-3.2z" fill="#FFFFFF"/><path d="M18.6 16.2h2.6" fill="none"/></g>
+<text x="60" y="259" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Notebook</text>
+<g transform="translate(26 291) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 3h7.8a3.1 3.1 0 0 1 3.1 3.1v3.7a3.1 3.1 0 0 1-3.1 3.1H9.6L6 15.8v-2.95A3.1 3.1 0 0 1 2.5 9.8V6.1A3.1 3.1 0 0 1 5.6 3z" fill="#FFC7E1"/><path d="M12.3 11.4h5.9a2.8 2.8 0 0 1 2.8 2.8v1.8a2.8 2.8 0 0 1-2.4 2.77V21l-2.9-2.4h-3.4a2.8 2.8 0 0 1-2.8-2.8v-1.6a2.8 2.8 0 0 1 2.8-2.8z" fill="#FFFFFF"/></g>
+<text x="60" y="307" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Forum</text>
+<rect x="12" y="328" width="224" height="44" rx="14" fill="#FFE4E1" />
+<g transform="translate(26 339) scale(0.9166666666666666)" stroke="#14234D" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M6.1 5h11.8a2.6 2.6 0 0 1 2.6 2.6v10.8a2.6 2.6 0 0 1-2.6 2.6h-11.8a2.6 2.6 0 0 1-2.6-2.6v-10.8a2.6 2.6 0 0 1 2.6-2.6z" fill="#FFE4E1"/><path d="M3.5 7.6A2.6 2.6 0 0 1 6.1 5h11.8a2.6 2.6 0 0 1 2.6 2.6v2.9h-17z" fill="#F0524B"/><path d="M8.5 3v4M15.5 3v4" fill="none"/><path d="M10.3 15.6a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0-3.4 0z" fill="#14234D" stroke="none"/></g>
+<text x="60" y="355" class="ui" font-size="15" font-weight="700" fill="#C2332B" text-anchor="start" >Calendar</text>
+<path d="M24 382L224 382" stroke="#DCE4F1" stroke-width="1.5" stroke-linecap="round" />
+<text x="28" y="406" class="ui" font-size="11" font-weight="800" fill="#5A6A8C" text-anchor="start" letter-spacing="1.1" >TOOLS</text>
+<g transform="translate(26 429) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5.1 4h13.8a2.6 2.6 0 0 1 2.6 2.6v10.8a2.6 2.6 0 0 1-2.6 2.6h-13.8a2.6 2.6 0 0 1-2.6-2.6v-10.8a2.6 2.6 0 0 1 2.6-2.6z" fill="#FFFFFF"/><path d="M5.7 7.6l5.6-.6.6 5.6-5.6.6z" fill="#C9D4FF"/><path d="M13.2 8.4l5 .5-.7 7.6-5-.5z" fill="#C9D4FF"/><path d="M7.6 7.4a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M14.8 8.7a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/></g>
+<text x="60" y="445" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Boards</text>
+<g transform="translate(26 477) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 2.5h8.8a2.6 2.6 0 0 1 2.6 2.6v13.8a2.6 2.6 0 0 1-2.6 2.6h-8.8a2.6 2.6 0 0 1-2.6-2.6v-13.8a2.6 2.6 0 0 1 2.6-2.6z" fill="#FFFFFF"/><path d="M8.5 5h7a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1z" fill="#C9D4FF"/><path d="M8.2 12.8a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M11 12.8a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M13.8 12.8a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M8.2 15.9a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M11 15.9a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M13.8 15.9a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M8.2 19a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M13.8 19a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/></g>
+<text x="60" y="493" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Grades</text>
+<g transform="translate(26 525) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0z" fill="#FFFFFF"/><path d="M12 5.4l2.4 6.6H9.6z" fill="#C9D4FF"/><path d="M9.6 12h4.8L12 18.6z" fill="none"/><path d="M10.9 12a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0z" fill="#3E4E6E" stroke="none"/></g>
+<text x="60" y="541" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Career Navigator</text>
+<g transform="translate(26 573) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16.8 8h2.6a1.6 1.6 0 0 1 1.6 1.6V18a2.5 2.5 0 0 1-2.5 2.5" fill="#FFFFFF"/><path d="M3.5 5.6A1.6 1.6 0 0 1 5.1 4h10.1a1.6 1.6 0 0 1 1.6 1.6V18a2.5 2.5 0 0 0 2.5 2.5H6a2.5 2.5 0 0 1-2.5-2.5z" fill="#FFFFFF"/><path d="M7.2 7h6.0a0.8 0.8 0 0 1 0.8 0.8v2.9999999999999996a0.8 0.8 0 0 1-0.8 0.8h-6.0a0.8 0.8 0 0 1-0.8-0.8v-2.9999999999999996a0.8 0.8 0 0 1 0.8-0.8z" fill="#C9D4FF"/><path d="M6.4 14.6h7.6M6.4 17.4h5" fill="none"/></g>
+<text x="60" y="589" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Newsletter</text>
+<g transform="translate(26 621) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h11a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3h-11a3 3 0 0 1-3-3v-11a3 3 0 0 1 3-3z" fill="#FFFFFF"/><path d="M9.2 9.2h5.6v5.6H9.2z" fill="#C9D4FF"/><path d="M14.8 14.8h5.7v2.7a3 3 0 0 1-3 3h-2.7z" fill="#C9D4FF"/><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" fill="none"/></g>
+<text x="60" y="637" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Daily puzzles</text>
+<rect x="16" y="824" width="216" height="52" rx="16" fill="#ECF1F9" />
+<circle cx="44" cy="850" r="16" fill="#DCE8FF"/>
+<text x="44" y="855.76" class="ui" font-size="13" font-weight="800" fill="#1A5FCC" text-anchor="middle" >S</text>
+<text x="70" y="846" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >Sara</text>
+<text x="70" y="864" class="ui" font-size="12" font-weight="700" fill="#1A5FCC" text-anchor="start" >Year 2</text>
+<rect x="280.75" y="24.75" width="518.5" height="42.5" rx="14" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5" />
+<g transform="translate(293 34.0) scale(1.0)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15.4 15.4l5.2 5.2" fill="none" stroke-width="2.75"/><path d="M3.9000000000000004 10.5a6.6 6.6 0 1 0 13.2 0a6.6 6.6 0 1 0-13.2 0z" fill="#D5DCEA"/><path d="M7.4 9.4a3.3 3.3 0 0 1 2.4-2.5" fill="none"/></g>
+<text x="326" y="51.3" class="ui" font-size="15" font-weight="400" fill="#5A6A8C" text-anchor="start" >Search papers, lessons, threads</text>
+<rect x="750" y="35" width="33" height="22" rx="6" fill="#ECF1F9" stroke="#C5D2E6" stroke-width="1" />
+<text x="766.5" y="50.5" class="ui" font-size="12" font-weight="700" fill="#3E4E6E" text-anchor="middle" >⌘K</text>
+<rect x="1312.75" y="24.75" width="42.5" height="42.5" rx="14" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5" />
+<g transform="translate(1334 44) scale(1)"><path d="M-8 6h16M-6 6v-6a6 6 0 0 1 12 0v6M-3 10h6" fill="none" stroke="#3E4E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<circle cx="1347" cy="33" r="5" fill="#F0524B"/>
+<rect x="1364.75" y="24.75" width="42.5" height="42.5" rx="14" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5" />
+<g transform="translate(1386 46) scale(1)"><path d="M6 3a8 8 0 1 1-7-10 6 6 0 0 0 7 10z" fill="none" stroke="#3E4E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<rect x="280" y="92" width="1128" height="124" rx="24" fill="#FFE4E1" />
+<image href="../v2/sections/calendar.svg" x="1296" y="100" width="110" height="110"/>
+<text x="308" y="142" class="disp" font-size="34" font-weight="750" fill="#0A1F44" text-anchor="start" letter-spacing="-0.75" >Calendar</text>
+<text x="308" y="172" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Exams, deadlines and term dates for Year 2, with your own events.</text>
+<text x="308" y="194" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Hide what you don’t need, and add any of it to your own calendar app.</text>
+<rect x="1145" y="132" width="133" height="44" rx="13" fill="#1F3A93" />
+<rect x="1145" y="132" width="133" height="41" rx="13" fill="#2445C2" />
+<g transform="translate(1161.2 152.05) scale(1)"><path d="M-6 0h12M0-6v12" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="1222.5" y="157.45" class="ui" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle" >New event</text>
+<rect x="1030.75" y="132.75" width="103.5" height="42.5" rx="13" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5" />
+<text x="1082.5" y="158.95" class="ui" font-size="15" font-weight="700" fill="#0A1F44" text-anchor="middle" >Subscribe</text>
+<rect x="911.75" y="132.75" width="107.5" height="42.5" rx="13" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5" />
+<text x="965.5" y="158.95" class="ui" font-size="15" font-weight="700" fill="#0A1F44" text-anchor="middle" >Customise</text>
+<rect x="280" y="232" width="153" height="44" rx="14" fill="#ECF1F9" />
+<text x="315.5" y="259" class="ui" font-size="14" font-weight="600" fill="#3E4E6E" text-anchor="middle" >List</text>
+<g filter="url(#lift)"><rect x="347" y="236" width="82" height="36" rx="11" fill="#FFFFFF"/></g>
+<text x="388" y="259" class="ui" font-size="14" font-weight="800" fill="#0A1F44" text-anchor="middle" >Month</text>
+<rect x="445.75" y="232.75" width="130.5" height="42.5" rx="14" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5" />
+<text x="461" y="259" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >Year 2</text>
+<g transform="translate(553 254) scale(0.8)"><path d="M-6-3l6 6 6-6" fill="none" stroke="#3E4E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<rect x="1326.75" y="232.75" width="80.5" height="42.5" rx="13" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5" />
+<text x="1367" y="258.62" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="middle" >Today</text>
+<rect x="1062.75" y="232.75" width="42.5" height="42.5" rx="13" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5" />
+<g transform="translate(1084 254) scale(1)"><path d="M3-6l-6 6 6 6" fill="none" stroke="#0A1F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="1186" y="262" class="disp" font-size="22" font-weight="750" fill="#0A1F44" text-anchor="middle" letter-spacing="-0.48" >October 2025</text>
+<rect x="1266.75" y="232.75" width="42.5" height="42.5" rx="13" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5" />
+<g transform="translate(1288 254) scale(1)"><path d="M-3-6l6 6-6 6" fill="none" stroke="#0A1F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<rect x="284" y="293" width="14" height="14" rx="4" fill="#C21D5C" />
+<text x="304" y="305" class="ui" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >Exam</text>
+<rect x="358.2" y="293" width="14" height="14" rx="4" fill="#E3E9FF" />
+<text x="378.2" y="305" class="ui" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >Mock exam</text>
+<rect x="467.3" y="293" width="14" height="14" rx="4" fill="#DDF5E9" />
+<text x="487.3" y="305" class="ui" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >Revision</text>
+<rect x="559" y="293" width="14" height="14" rx="4" fill="#FFC233" />
+<text x="579" y="305" class="ui" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >Deadline</text>
+<rect x="652.5" y="293" width="14" height="14" rx="4" fill="#FFE8D1" />
+<text x="672.5" y="305" class="ui" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >Event</text>
+<rect x="728.6" y="293" width="14" height="14" rx="4" fill="#ECF1F9" stroke="#C5D2E6" stroke-width="1" />
+<text x="748.6" y="305" class="ui" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >Term dates</text>
+<rect x="836.2" y="293" width="14" height="14" rx="4" fill="#FFFFFF" stroke="#2445C2" stroke-width="1.5" stroke-dasharray="3 2"/>
+<text x="856.2" y="305" class="ui" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >Your events</text>
+<g filter="url(#lift)"><rect x="280" y="322" width="1128" height="586" rx="18" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<text x="294" y="346" class="ui" font-size="11" font-weight="800" fill="#5A6A8C" text-anchor="start" letter-spacing="1" >MON</text>
+<text x="455.143" y="346" class="ui" font-size="11" font-weight="800" fill="#5A6A8C" text-anchor="start" letter-spacing="1" >TUE</text>
+<text x="616.286" y="346" class="ui" font-size="11" font-weight="800" fill="#5A6A8C" text-anchor="start" letter-spacing="1" >WED</text>
+<text x="777.429" y="346" class="ui" font-size="11" font-weight="800" fill="#5A6A8C" text-anchor="start" letter-spacing="1" >THU</text>
+<text x="938.571" y="346" class="ui" font-size="11" font-weight="800" fill="#5A6A8C" text-anchor="start" letter-spacing="1" >FRI</text>
+<text x="1099.71" y="346" class="ui" font-size="11" font-weight="800" fill="#5A6A8C" text-anchor="start" letter-spacing="1" >SAT</text>
+<text x="1260.86" y="346" class="ui" font-size="11" font-weight="800" fill="#5A6A8C" text-anchor="start" letter-spacing="1" >SUN</text>
+<path d="M280 358L1408 358" stroke="#DCE4F1" stroke-width="1.5" stroke-linecap="round" />
+<path d="M280 468L1408 468" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<path d="M280 578L1408 578" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<path d="M280 688L1408 688" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<path d="M280 798L1408 798" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<path d="M441.143 358L441.143 908" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<path d="M602.286 358L602.286 908" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<path d="M763.429 358L763.429 908" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<path d="M924.571 358L924.571 908" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<path d="M1085.71 358L1085.71 908" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<path d="M1246.86 358L1246.86 908" stroke="#DCE4F1" stroke-width="1" stroke-linecap="round" />
+<rect x="281" y="359" width="159.143" height="108" rx="0" fill="#FFFFFF" />
+<text x="294" y="385" class="ui" font-size="14" font-weight="500" fill="#5A6A8C" text-anchor="start" >29</text>
+<rect x="442.143" y="359" width="159.143" height="108" rx="0" fill="#FFFFFF" />
+<text x="455.143" y="385" class="ui" font-size="14" font-weight="500" fill="#5A6A8C" text-anchor="start" >30</text>
+<text x="616.286" y="385" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >1</text>
+<rect x="610.286" y="398" width="145.143" height="24" rx="7" fill="#ECF1F9" />
+<text x="618.286" y="414.2" class="ui" font-size="12" font-weight="700" fill="#3E4E6E" text-anchor="start" >Term starts</text>
+<text x="777.429" y="385" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >2</text>
+<text x="938.571" y="385" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >3</text>
+<text x="1099.71" y="385" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >4</text>
+<text x="1260.86" y="385" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >5</text>
+<text x="294" y="495" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >6</text>
+<rect x="288" y="508" width="145.143" height="24" rx="7" fill="#E3E9FF" />
+<text x="296" y="524.2" class="ui" font-size="12" font-weight="700" fill="#1F3A93" text-anchor="start" >EC2020 Mock exam</text>
+<text x="455.143" y="495" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >7</text>
+<text x="616.286" y="495" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >8</text>
+<text x="777.429" y="495" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >9</text>
+<rect x="771.429" y="508" width="145.143" height="24" rx="7" fill="#E3E9FF" />
+<text x="779.429" y="524.2" class="ui" font-size="12" font-weight="700" fill="#1F3A93" text-anchor="start" >ST2133 Mock exam</text>
+<text x="938.571" y="495" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >10</text>
+<text x="1099.71" y="495" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >11</text>
+<text x="1260.86" y="495" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >12</text>
+<text x="294" y="605" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >13</text>
+<text x="455.143" y="605" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >14</text>
+<text x="616.286" y="605" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >15</text>
+<rect x="610.286" y="618" width="145.143" height="24" rx="7" fill="#DDF5E9" />
+<text x="618.286" y="634.2" class="ui" font-size="12" font-weight="700" fill="#18794A" text-anchor="start" >Revision: hypothesis t…</text>
+<text x="777.429" y="605" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >16</text>
+<text x="938.571" y="605" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >17</text>
+<rect x="932.571" y="618" width="145.143" height="24" rx="7" fill="#FFE8D1" />
+<text x="940.571" y="634.2" class="ui" font-size="12" font-weight="700" fill="#9A5209" text-anchor="start" >Event: careers fair</text>
+<text x="1099.71" y="605" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >18</text>
+<circle cx="1270.857142857143" cy="600" r="15" fill="#2445C2"/>
+<text x="1270.86" y="605" class="ui" font-size="14" font-weight="800" fill="#FFFFFF" text-anchor="middle" >19</text>
+<text x="1292.86" y="605" class="ui" font-size="12" font-weight="700" fill="#1F3A93" text-anchor="start" >Today</text>
+<text x="294" y="715" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >20</text>
+<rect x="288" y="728" width="145.143" height="24" rx="7" fill="#DDF5E9" />
+<text x="296" y="744.2" class="ui" font-size="12" font-weight="700" fill="#18794A" text-anchor="start" >ST2134 revision 10:00</text>
+<text x="455.143" y="715" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >21</text>
+<rect x="449.893" y="728.75" width="143.643" height="22.5" rx="7" fill="#FFFFFF" stroke="#2445C2" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="457.143" y="744.2" class="ui" font-size="12" font-weight="700" fill="#1F3A93" text-anchor="start" >Study group 18:00</text>
+<text x="616.286" y="715" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >22</text>
+<text x="777.429" y="715" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >23</text>
+<rect x="771.429" y="728" width="145.143" height="24" rx="7" fill="#C21D5C" />
+<g transform="translate(783.429 740) scale(0.6)"><rect x="-7" y="-6" width="14" height="13" rx="2.5" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M-7-1h14M-3-8v4M3-8v4" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="793.429" y="744.2" class="ui" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="start" >ST2134 Exam 9:00</text>
+<text x="938.571" y="715" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >24</text>
+<rect x="932.571" y="728" width="145.143" height="24" rx="7" fill="#FFC233" />
+<text x="940.571" y="744.2" class="ui" font-size="12" font-weight="700" fill="#0A1F44" text-anchor="start" >IS2184 coursework due</text>
+<text x="1099.71" y="715" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >25</text>
+<text x="1260.86" y="715" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >26</text>
+<text x="294" y="825" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >27</text>
+<text x="455.143" y="825" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >28</text>
+<rect x="449.143" y="838" width="145.143" height="24" rx="7" fill="#C21D5C" />
+<g transform="translate(461.143 850) scale(0.6)"><rect x="-7" y="-6" width="14" height="13" rx="2.5" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M-7-1h14M-3-8v4M3-8v4" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="471.143" y="854.2" class="ui" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="start" >ST2133 Exam 14:00</text>
+<text x="616.286" y="825" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >29</text>
+<text x="777.429" y="825" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >30</text>
+<text x="938.571" y="825" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >31</text>
+<rect x="1086.71" y="799" width="159.143" height="108" rx="0" fill="#FFFFFF" />
+<text x="1099.71" y="825" class="ui" font-size="14" font-weight="500" fill="#5A6A8C" text-anchor="start" >Nov 1</text>
+<rect x="1247.86" y="799" width="159.143" height="108" rx="0" fill="#FFFFFF" />
+<text x="1260.86" y="825" class="ui" font-size="14" font-weight="500" fill="#5A6A8C" text-anchor="start" >2</text>
+<rect x="288" y="758" width="467.429" height="26" rx="8" fill="#FFC233" />
+<text x="298" y="775.5" class="ui" font-size="12" font-weight="700" fill="#0A1F44" text-anchor="start" >ST2134 MCQ on VLE · open now, closes Wed 22 Oct</text>
+<clipPath id="nc1"><circle cx="1364" cy="836" r="31"/></clipPath>
+<g filter="url(#float)"><circle cx="1364" cy="836" r="35" fill="#FFFFFF" stroke="#1F3A93" stroke-width="3"/></g>
+<circle cx="1364" cy="836" r="31" fill="#E6E0FA"/><image href="../../../../web/public/noora/bust-neutral.png" x="1328" y="802" width="72" height="72" clip-path="url(#nc1)"/>
+<circle cx="1389.9" cy="810.1" r="6" fill="#18794A" stroke="#FFFFFF" stroke-width="2.5"/>
+</svg>

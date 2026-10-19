@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <title>Lumen, the Home desk-mate (sleepy)</title>
+  <g stroke="#14234D" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="100" cy="184" rx="58" ry="7" fill="#14234D" opacity=".12" stroke="none"/>
+    <!-- light falling on the desk -->
+    <path d="M74 116h72l18 52H56z" fill="#FFE29A" opacity=".45" stroke="none"/>
+    <!-- arm, behind the shade -->
+    <path d="M100 166L44 128L90 76" fill="none" stroke="#14234D" stroke-width="13"/>
+    <path d="M100 166L44 128L90 76" fill="none" stroke="#9AA8C4" stroke-width="5"/>
+    <circle cx="44" cy="128" r="9" fill="#DCE3F0"/>
+    <!-- base -->
+    <rect x="66" y="160" width="68" height="20" rx="10" fill="#1F3A93"/>
+    <circle cx="100" cy="166" r="6" fill="#DCE3F0"/>
+    <!-- shade: the face -->
+    <path d="M52 108c0-48 22-80 56-80s56 32 56 80z" fill="#4C6EF5"/>
+    <path d="M76 52q-8 12-10 30" fill="none" stroke="#7D95FF" stroke-width="5"/>
+    <!-- bulb peeking under the rim -->
+    <path d="M90 112a18 13 0 0 0 36 0z" fill="#FFC233"/>
+    <rect x="46" y="102" width="124" height="13" rx="6.5" fill="#3554D9"/>
+  </g>
+  <g>
+    <path d="M85 76q7 6 14 0" fill="none" stroke="#14234D" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M119 76q7 6 14 0" fill="none" stroke="#14234D" stroke-width="4.5" stroke-linecap="round"/>
+    
+    <ellipse cx="78" cy="89" rx="7.5" ry="4.3" fill="#FF9DB0" opacity=".7"/>
+    <ellipse cx="140" cy="89" rx="7.5" ry="4.3" fill="#FF9DB0" opacity=".7"/>
+    <ellipse cx="109" cy="90" rx="3" ry="2.5" fill="#14234D"/>
+  </g>
+<g fill="none" stroke="#5F6F92" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M160 22h14l-14 16h14"/><path d="M180 50h9l-9 10h9"/></g></svg>

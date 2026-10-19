@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <title>Jot, the notebook desk-mate with a pencil tail (idle)</title>
+  <g stroke="#14234D" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="98" cy="184" rx="58" ry="7" fill="#14234D" opacity=".12" stroke="none"/>
+    <!-- pencil tail, curling up from behind -->
+    <g transform="rotate(-38 150 150)">
+      <rect x="126" y="140" width="56" height="18" rx="3" fill="#FFC233"/>
+      <path d="M131 149h46" stroke="#E8A600" stroke-width="3"/>
+      <rect x="178" y="139" width="10" height="20" rx="2" fill="#B7C2D8"/>
+      <path d="M188 139h6a6 6 0 0 1 6 6v8a6 6 0 0 1-6 6h-6z" fill="#FF8FA3"/>
+    </g>
+    <!-- feet -->
+    <rect x="62" y="162" width="22" height="18" rx="9" fill="#14234D"/>
+    <rect x="108" y="162" width="22" height="18" rx="9" fill="#14234D"/>
+    <!-- cover -->
+    <rect x="40" y="38" width="110" height="130" rx="16" fill="#7B61FF"/>
+    <!-- elastic band -->
+    <path d="M128 40v126" stroke="none"/>
+    <rect x="124" y="38" width="10" height="130" fill="#FF7A9A" stroke-width="0"/>
+    <path d="M124 40v126M134 40v126" stroke-width="3"/>
+    <rect x="40" y="38" width="110" height="130" rx="16" fill="none"/>
+    <!-- label -->
+    <rect x="54" y="58" width="58" height="24" rx="6" fill="#FFFFFF"/>
+    <path d="M63 70h28" stroke="#7B61FF" stroke-width="4"/>
+    <!-- spiral -->
+    <g fill="#DCE3F0" stroke-width="4">
+      <rect x="52" y="28" width="9" height="20" rx="4.5"/>
+      <rect x="70" y="28" width="9" height="20" rx="4.5"/>
+      <rect x="88" y="28" width="9" height="20" rx="4.5"/>
+      <rect x="106" y="28" width="9" height="20" rx="4.5"/>
+    </g>
+    <!-- arm -->
+    <path d="M42 120c-9 2-14 9-12 17" fill="none"/>
+  </g>
+  <g>
+    <ellipse cx="70" cy="112" rx="6" ry="7.5" fill="#14234D"/>
+    <ellipse cx="104" cy="112" rx="6" ry="7.5" fill="#14234D"/>
+    <circle cx="68" cy="109" r="2.2" fill="#fff"/><circle cx="102" cy="109" r="2.2" fill="#fff"/>
+    <ellipse cx="58" cy="125" rx="7.5" ry="4.3" fill="#FF9DB0" opacity=".7"/>
+    <ellipse cx="116" cy="125" rx="7.5" ry="4.3" fill="#FF9DB0" opacity=".7"/>
+    <path d="M81 123q6 6 12 0" fill="none" stroke="#14234D" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900"><title>Home on a laptop, Deskmates v2</title><style>@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&amp;family=Figtree:wght@400..800&amp;family=JetBrains+Mono:wght@500;700&amp;display=block');.ui{font-family:Figtree,system-ui,sans-serif}.disp{font-family:'Bricolage Grotesque',Figtree,sans-serif}.mono{font-family:'JetBrains Mono',monospace}</style>
+<defs><filter id="lift" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0A1F44" flood-opacity="0.07"/></filter><filter id="float" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0A1F44" flood-opacity="0.21"/></filter><clipPath id="nc"><circle cx="1364" cy="836" r="31"/></clipPath></defs>
+<rect width="1440" height="900" fill="#F2F5FB"/>
+<rect width="248" height="900" fill="#FFFFFF"/><path d="M248.75 0v900" stroke="#DCE4F1" stroke-width="1.5"/>
+<image href="hub-lockup-horizontal.png" x="24" y="30" width="190.9" height="27"/>
+<rect x="12" y="88" width="224" height="44" rx="14" fill="#E3E9FF"/>
+<g transform="translate(26 99) scale(0.9166666666666666)" stroke="#14234D" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M10.2 19.2L6.4 13.2L10.6 9.6" fill="none"/><path d="M6.35 18.8h7.3a1.35 1.35 0 0 1 1.35 1.35v0.0a1.35 1.35 0 0 1-1.35 1.35h-7.3a1.35 1.35 0 0 1-1.35-1.35v-0.0a1.35 1.35 0 0 1 1.35-1.35z" fill="#E3E9FF"/><path d="M9.4 9.9C9.4 5.6 11.6 3 15 3s5.6 2.6 5.6 6.9z" fill="#4C6EF5"/><path d="M8.6 9.9h12.8" fill="none"/><path d="M5.15 13.2a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0-2.5 0z" fill="#14234D" stroke="none"/><path d="M13.4 10.4a1.6 1.4 0 0 0 3.2 0z" fill="#4C6EF5"/></g>
+<text x="60" y="115" class="ui" font-size="15" font-weight="700" fill="#1F3A93" text-anchor="start" >Home</text>
+<g transform="translate(26 147) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 3h9.6a2.2 2.2 0 0 1 2.2 2.2v13.6a2.2 2.2 0 0 1-2.2 2.2h-9.6a2.2 2.2 0 0 1-2.2-2.2v-13.6a2.2 2.2 0 0 1 2.2-2.2z" fill="#B9EBD2"/><path d="M7.6 3.4v17.2" fill="none"/><path d="M11.0 6h3.4a0.8 0.8 0 0 1 0.8 0.8v1.6a0.8 0.8 0 0 1-0.8 0.8h-3.4a0.8 0.8 0 0 1-0.8-0.8v-1.6a0.8 0.8 0 0 1 0.8-0.8z" fill="#FFFFFF"/><path d="M18 6h1.4a1.1 1.1 0 0 1 1.1 1.1v2.2a1.1 1.1 0 0 1-1.1 1.1H18M18 12.2h1.4a1.1 1.1 0 0 1 1.1 1.1v2.2a1.1 1.1 0 0 1-1.1 1.1H18" fill="none"/></g>
+<text x="60" y="163" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Modules</text>
+<g transform="translate(26 195) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 17.4h15.6a1.2 1.2 0 0 1 1.2 1.2v1.2000000000000002a1.2 1.2 0 0 1-1.2 1.2h-15.6a1.2 1.2 0 0 1-1.2-1.2v-1.2000000000000002a1.2 1.2 0 0 1 1.2-1.2z" fill="#FFE29A"/><path d="M5.8 13.8h13.6a1.2 1.2 0 0 1 1.2 1.2v1.2000000000000002a1.2 1.2 0 0 1-1.2 1.2h-13.6a1.2 1.2 0 0 1-1.2-1.2v-1.2000000000000002a1.2 1.2 0 0 1 1.2-1.2z" fill="#FFE29A"/><path d="M7 3h7.4L18 6.6v7.2H7z" fill="#FFFFFF"/><path d="M14.4 3v3.6H18M9.6 8.6h3.6M9.6 11.2h5.4" fill="none"/></g>
+<text x="60" y="211" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Library</text>
+<g transform="translate(26 243) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5.7 4.6h8.1a2.2 2.2 0 0 1 2.2 2.2v11.999999999999998a2.2 2.2 0 0 1-2.2 2.2h-8.1a2.2 2.2 0 0 1-2.2-2.2v-11.999999999999998a2.2 2.2 0 0 1 2.2-2.2z" fill="#D9D0FF"/><path d="M7.2 8.6h5.0a0.8 0.8 0 0 1 0.8 0.8v1.6a0.8 0.8 0 0 1-0.8 0.8h-5.0a0.8 0.8 0 0 1-0.8-0.8v-1.6a0.8 0.8 0 0 1 0.8-0.8z" fill="#FFFFFF"/><path d="M6.6 3v3.4M9.75 3v3.4M12.9 3v3.4" fill="none"/><path d="M18.6 4.6h2.6v11.6l-1.3 3.2-1.3-3.2z" fill="#FFFFFF"/><path d="M18.6 16.2h2.6" fill="none"/></g>
+<text x="60" y="259" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Notebook</text>
+<g transform="translate(26 291) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 3h7.8a3.1 3.1 0 0 1 3.1 3.1v3.7a3.1 3.1 0 0 1-3.1 3.1H9.6L6 15.8v-2.95A3.1 3.1 0 0 1 2.5 9.8V6.1A3.1 3.1 0 0 1 5.6 3z" fill="#FFC7E1"/><path d="M12.3 11.4h5.9a2.8 2.8 0 0 1 2.8 2.8v1.8a2.8 2.8 0 0 1-2.4 2.77V21l-2.9-2.4h-3.4a2.8 2.8 0 0 1-2.8-2.8v-1.6a2.8 2.8 0 0 1 2.8-2.8z" fill="#FFFFFF"/></g>
+<text x="60" y="307" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Forum</text>
+<g transform="translate(26 339) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.1 5h11.8a2.6 2.6 0 0 1 2.6 2.6v10.8a2.6 2.6 0 0 1-2.6 2.6h-11.8a2.6 2.6 0 0 1-2.6-2.6v-10.8a2.6 2.6 0 0 1 2.6-2.6z" fill="#FFFFFF"/><path d="M3.5 7.6A2.6 2.6 0 0 1 6.1 5h11.8a2.6 2.6 0 0 1 2.6 2.6v2.9h-17z" fill="#FFCBC6"/><path d="M8.5 3v4M15.5 3v4" fill="none"/><path d="M10.3 15.6a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0-3.4 0z" fill="#3E4E6E" stroke="none"/></g>
+<text x="60" y="355" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Calendar</text>
+<path d="M24 382h200" stroke="#DCE4F1" stroke-width="1.5"/>
+<text x="28" y="406" class="ui" font-size="11" font-weight="800" fill="#5A6A8C" text-anchor="start" letter-spacing="1">TOOLS</text>
+<g transform="translate(26 429) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5.1 4h13.8a2.6 2.6 0 0 1 2.6 2.6v10.8a2.6 2.6 0 0 1-2.6 2.6h-13.8a2.6 2.6 0 0 1-2.6-2.6v-10.8a2.6 2.6 0 0 1 2.6-2.6z" fill="#FFFFFF"/><path d="M5.7 7.6l5.6-.6.6 5.6-5.6.6z" fill="#C9D4FF"/><path d="M13.2 8.4l5 .5-.7 7.6-5-.5z" fill="#C9D4FF"/><path d="M7.6 7.4a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M14.8 8.7a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/></g>
+<text x="60" y="445" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Boards</text>
+<g transform="translate(26 477) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 2.5h8.8a2.6 2.6 0 0 1 2.6 2.6v13.8a2.6 2.6 0 0 1-2.6 2.6h-8.8a2.6 2.6 0 0 1-2.6-2.6v-13.8a2.6 2.6 0 0 1 2.6-2.6z" fill="#FFFFFF"/><path d="M8.5 5h7a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1z" fill="#C9D4FF"/><path d="M8.2 12.8a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M11 12.8a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M13.8 12.8a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M8.2 15.9a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M11 15.9a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M13.8 15.9a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M8.2 19a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/><path d="M13.8 19a1 1 0 1 0 2 0a1 1 0 1 0-2 0z" fill="#3E4E6E" stroke="none"/></g>
+<text x="60" y="493" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Grades</text>
+<g transform="translate(26 525) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0z" fill="#FFFFFF"/><path d="M12 5.4l2.4 6.6H9.6z" fill="#C9D4FF"/><path d="M9.6 12h4.8L12 18.6z" fill="none"/><path d="M10.9 12a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0z" fill="#3E4E6E" stroke="none"/></g>
+<text x="60" y="541" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Career Navigator</text>
+<g transform="translate(26 573) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16.8 8h2.6a1.6 1.6 0 0 1 1.6 1.6V18a2.5 2.5 0 0 1-2.5 2.5" fill="#FFFFFF"/><path d="M3.5 5.6A1.6 1.6 0 0 1 5.1 4h10.1a1.6 1.6 0 0 1 1.6 1.6V18a2.5 2.5 0 0 0 2.5 2.5H6a2.5 2.5 0 0 1-2.5-2.5z" fill="#FFFFFF"/><path d="M7.2 7h6.0a0.8 0.8 0 0 1 0.8 0.8v2.9999999999999996a0.8 0.8 0 0 1-0.8 0.8h-6.0a0.8 0.8 0 0 1-0.8-0.8v-2.9999999999999996a0.8 0.8 0 0 1 0.8-0.8z" fill="#C9D4FF"/><path d="M6.4 14.6h7.6M6.4 17.4h5" fill="none"/></g>
+<text x="60" y="589" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Newsletter</text>
+<g transform="translate(26 621) scale(0.9166666666666666)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h11a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3h-11a3 3 0 0 1-3-3v-11a3 3 0 0 1 3-3z" fill="#FFFFFF"/><path d="M9.2 9.2h5.6v5.6H9.2z" fill="#C9D4FF"/><path d="M14.8 14.8h5.7v2.7a3 3 0 0 1-3 3h-2.7z" fill="#C9D4FF"/><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" fill="none"/></g>
+<text x="60" y="637" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Daily puzzles</text>
+<rect x="16" y="824" width="216" height="52" rx="16" fill="#ECF1F9"/>
+<circle cx="44" cy="850" r="16" fill="#DCE8FF"/>
+<text x="44" y="855" class="ui" font-size="14" font-weight="800" fill="#1A5FCC" text-anchor="middle" >S</text>
+<text x="70" y="846" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >Sara</text>
+<text x="70" y="864" class="ui" font-size="12" font-weight="700" fill="#1A5FCC" text-anchor="start" >Year 2</text>
+<rect x="280" y="24" width="520" height="44" rx="14" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5"/>
+<g transform="translate(292 34) scale(1.0)" stroke="#3E4E6E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15.4 15.4l5.2 5.2" fill="none" stroke-width="2.75"/><path d="M3.9000000000000004 10.5a6.6 6.6 0 1 0 13.2 0a6.6 6.6 0 1 0-13.2 0z" fill="#D5DCEA"/><path d="M7.4 9.4a3.3 3.3 0 0 1 2.4-2.5" fill="none"/></g>
+<text x="326" y="51" class="ui" font-size="15" font-weight="400" fill="#5A6A8C" text-anchor="start" >Search papers, lessons, threads</text>
+<rect x="748" y="34" width="40" height="24" rx="7" fill="#ECF1F9"/>
+<text x="768" y="51" class="ui" font-size="12" font-weight="700" fill="#3E4E6E" text-anchor="middle" >⌘K</text>
+<rect x="1312" y="24" width="44" height="44" rx="14" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5"/><path d="M1326 52h16M1328 52v-8a6 6 0 0 1 12 0v8M1331 56h6" fill="none" stroke="#3E4E6E" stroke-width="2" stroke-linecap="round"/><circle cx="1347" cy="33" r="5" fill="#F0524B"/>
+<rect x="1364" y="24" width="44" height="44" rx="14" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5"/><path d="M1392 50a10 10 0 1 1-8-14 8 8 0 0 0 8 14z" fill="none" stroke="#3E4E6E" stroke-width="2" stroke-linejoin="round"/>
+<rect x="280" y="92" width="1128" height="124" rx="24" fill="#E3E9FF"/>
+<image href="sections/home.svg" x="286" y="96" width="116" height="116"/>
+<text x="404" y="146" class="disp" font-size="34" font-weight="750" fill="#0A1F44" text-anchor="start" letter-spacing="-0.8">Good evening, Sara</text>
+<text x="404" y="176" class="ui" font-size="15" font-weight="500" fill="#3E4E6E" text-anchor="start" >Exam in 4 days. Your Zone A timer is still running.</text>
+<text x="404" y="198" class="ui" font-size="13" font-weight="700" fill="#1F3A93" text-anchor="start" >Wednesday 19 October · Week 6</text>
+<rect x="820" y="104" width="108" height="100" rx="18" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/>
+<image href="sections/library.svg" x="846" y="106" width="56" height="56"/>
+<text x="874" y="180" class="ui" font-size="13" font-weight="700" fill="#0A1F44" text-anchor="middle" >Library</text>
+<text x="874" y="196" class="ui" font-size="12" font-weight="600" fill="#865C00" text-anchor="middle" >12 new</text>
+<rect x="938" y="104" width="108" height="100" rx="18" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/>
+<image href="sections/modules.svg" x="964" y="106" width="56" height="56"/>
+<text x="992" y="180" class="ui" font-size="13" font-weight="700" fill="#0A1F44" text-anchor="middle" >Modules</text>
+<text x="992" y="196" class="ui" font-size="12" font-weight="600" fill="#15744A" text-anchor="middle" >4 this term</text>
+<rect x="1056" y="104" width="108" height="100" rx="18" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/>
+<image href="sections/notebook.svg" x="1082" y="106" width="56" height="56"/>
+<text x="1110" y="180" class="ui" font-size="13" font-weight="700" fill="#0A1F44" text-anchor="middle" >Notebook</text>
+<text x="1110" y="196" class="ui" font-size="12" font-weight="600" fill="#5B3FD9" text-anchor="middle" >2 drafts</text>
+<rect x="1174" y="104" width="108" height="100" rx="18" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/>
+<image href="sections/forum.svg" x="1200" y="106" width="56" height="56"/>
+<text x="1228" y="180" class="ui" font-size="13" font-weight="700" fill="#0A1F44" text-anchor="middle" >Forum</text>
+<text x="1228" y="196" class="ui" font-size="12" font-weight="600" fill="#B0246B" text-anchor="middle" >3 replies</text>
+<rect x="1292" y="104" width="108" height="100" rx="18" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/>
+<image href="sections/calendar.svg" x="1318" y="106" width="56" height="56"/>
+<text x="1346" y="180" class="ui" font-size="13" font-weight="700" fill="#0A1F44" text-anchor="middle" >Calendar</text>
+<text x="1346" y="196" class="ui" font-size="12" font-weight="600" fill="#C2332B" text-anchor="middle" >Exam Thu</text>
+<g filter="url(#lift)"><rect x="280" y="240" width="368" height="214" rx="20" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<text x="304" y="274" class="ui" font-size="12" font-weight="800" fill="#C21D5C" text-anchor="start" letter-spacing="1.2">UP NEXT</text>
+<image href="sections/calendar.svg" x="556" y="248" width="80" height="80"/>
+<rect x="304" y="292" width="56" height="64" rx="12" fill="#FFFFFF" stroke="#14234D" stroke-width="2"/><path d="M305 304a11 11 0 0 1 11-11h32a11 11 0 0 1 11 11v8h-54z" fill="#C21D5C"/>
+<text x="332" y="308" class="ui" font-size="11" font-weight="800" fill="#FFFFFF" text-anchor="middle" >OCT</text>
+<text x="332" y="344" class="disp" font-size="24" font-weight="800" fill="#0A1F44" text-anchor="middle" >23</text>
+<text x="376" y="316" class="ui" font-size="17" font-weight="700" fill="#0A1F44" text-anchor="start" >ST2134 Statistical</text>
+<text x="376" y="338" class="ui" font-size="17" font-weight="700" fill="#0A1F44" text-anchor="start" >Inference</text>
+<text x="304" y="384" class="ui" font-size="15" font-weight="700" fill="#C21D5C" text-anchor="start" >Thu 23 Oct, 9:00 · Exam</text>
+<text x="304" y="404" class="ui" font-size="14" font-weight="400" fill="#3E4E6E" text-anchor="start" >Hall B · bring a calculator</text>
+<rect x="304" y="414" width="164" height="30" rx="10" fill="#ECF1F9"/>
+<text x="386" y="434" class="ui" font-size="13" font-weight="700" fill="#0A1F44" text-anchor="middle" >Revise the 2022 paper</text>
+<g filter="url(#lift)"><rect x="672" y="240" width="368" height="214" rx="20" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<text x="696" y="274" class="ui" font-size="12" font-weight="800" fill="#1F3A93" text-anchor="start" letter-spacing="1.2">CARRY ON</text>
+<g transform="translate(696 292) scale(1.1)"><rect width="40" height="50" rx="6" fill="#FFFFFF" stroke="#14234D" stroke-width="2"/><rect width="40" height="14" rx="6" fill="#FFC233" stroke="#14234D" stroke-width="2"/><path d="M8 26h24M8 33h18M8 40h22" stroke="#C9D5EA" stroke-width="2.5" stroke-linecap="round"/></g>
+<text x="754" y="312" class="ui" font-size="16" font-weight="700" fill="#0A1F44" text-anchor="start" >ST2133 · May 2019 · Zone A</text>
+<text x="754" y="334" class="ui" font-size="14" font-weight="400" fill="#3E4E6E" text-anchor="start" >Timed attempt · question 4 of 6</text>
+<text x="696" y="394" class="mono" font-size="40" font-weight="700" fill="#0A1F44" text-anchor="start" letter-spacing="-1">42:10</text>
+<text x="824" y="392" class="ui" font-size="14" font-weight="600" fill="#3E4E6E" text-anchor="start" >left of 3:00:00</text>
+<rect x="696" y="408" width="200" height="8" rx="4" fill="#ECF1F9"/><rect x="696" y="408" width="153" height="8" rx="4" fill="#2445C2"/>
+<rect x="914" y="396" width="102" height="40" rx="13" fill="#1F3A93"/><rect x="914" y="396" width="102" height="37" rx="13" fill="#2445C2"/>
+<text x="965" y="420" class="ui" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle" >Resume</text>
+<text x="280" y="494" class="disp" font-size="22" font-weight="750" fill="#0A1F44" text-anchor="start" letter-spacing="-0.4">My modules</text>
+<text x="1040" y="494" class="ui" font-size="14" font-weight="700" fill="#1F3A93" text-anchor="end" >All 16 modules</text>
+<g filter="url(#lift)"><rect x="280" y="512" width="178" height="170" rx="20" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<g transform="translate(298 528)"><rect width="38" height="46" rx="7" fill="#4C6EF5" stroke="#14234D" stroke-width="2"/><path d="M9 1v44" stroke="#14234D" stroke-width="2"/><rect x="15" y="8" width="18" height="9" rx="3" fill="#FFFFFF" stroke="#14234D" stroke-width="1.5"/></g>
+<text x="298" y="598" class="ui" font-size="15" font-weight="700" fill="#0A1F44" text-anchor="start" >Statistical Inference</text>
+<text x="298" y="618" class="mono" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >ST2134</text>
+<text x="298" y="646" class="ui" font-size="13" font-weight="500" fill="#3E4E6E" text-anchor="start" >Lesson 7 of 12</text>
+<rect x="298" y="658" width="142" height="6" rx="3" fill="#ECF1F9"/><rect x="298" y="658" width="82" height="6" rx="3" fill="#4C6EF5"/>
+<g filter="url(#lift)"><rect x="474" y="512" width="178" height="170" rx="20" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<g transform="translate(492 528)"><rect width="38" height="46" rx="7" fill="#2DB87D" stroke="#14234D" stroke-width="2"/><path d="M9 1v44" stroke="#14234D" stroke-width="2"/><rect x="15" y="8" width="18" height="9" rx="3" fill="#FFFFFF" stroke="#14234D" stroke-width="1.5"/></g>
+<text x="492" y="598" class="ui" font-size="15" font-weight="700" fill="#0A1F44" text-anchor="start" >Distribution Theory</text>
+<text x="492" y="618" class="mono" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >ST2133</text>
+<text x="492" y="646" class="ui" font-size="13" font-weight="500" fill="#3E4E6E" text-anchor="start" >Lesson 9 of 11</text>
+<rect x="492" y="658" width="142" height="6" rx="3" fill="#ECF1F9"/><rect x="492" y="658" width="114" height="6" rx="3" fill="#2DB87D"/>
+<g filter="url(#lift)"><rect x="668" y="512" width="178" height="170" rx="20" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<g transform="translate(686 528)"><rect width="38" height="46" rx="7" fill="#FFA94D" stroke="#14234D" stroke-width="2"/><path d="M9 1v44" stroke="#14234D" stroke-width="2"/><rect x="15" y="8" width="18" height="9" rx="3" fill="#FFFFFF" stroke="#14234D" stroke-width="1.5"/></g>
+<text x="686" y="598" class="ui" font-size="15" font-weight="700" fill="#0A1F44" text-anchor="start" >Microeconomics</text>
+<text x="686" y="618" class="mono" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >EC2066</text>
+<text x="686" y="646" class="ui" font-size="13" font-weight="500" fill="#3E4E6E" text-anchor="start" >Lesson 3 of 10</text>
+<rect x="686" y="658" width="142" height="6" rx="3" fill="#ECF1F9"/><rect x="686" y="658" width="43" height="6" rx="3" fill="#FFA94D"/>
+<g filter="url(#lift)"><rect x="862" y="512" width="178" height="170" rx="20" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<g transform="translate(880 528)"><rect width="38" height="46" rx="7" fill="#7B61FF" stroke="#14234D" stroke-width="2"/><path d="M9 1v44" stroke="#14234D" stroke-width="2"/><rect x="15" y="8" width="18" height="9" rx="3" fill="#FFFFFF" stroke="#14234D" stroke-width="1.5"/></g>
+<text x="880" y="598" class="ui" font-size="15" font-weight="700" fill="#0A1F44" text-anchor="start" >Information Systems</text>
+<text x="880" y="618" class="mono" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="start" >IS2184</text>
+<text x="880" y="646" class="ui" font-size="13" font-weight="500" fill="#3E4E6E" text-anchor="start" >Lesson 5 of 9</text>
+<rect x="880" y="658" width="142" height="6" rx="3" fill="#ECF1F9"/><rect x="880" y="658" width="78" height="6" rx="3" fill="#7B61FF"/>
+<g filter="url(#lift)"><rect x="280" y="706" width="760" height="170" rx="20" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<text x="304" y="740" class="disp" font-size="18" font-weight="750" fill="#0A1F44" text-anchor="start" >New files</text>
+<text x="1016" y="740" class="ui" font-size="14" font-weight="700" fill="#1F3A93" text-anchor="end" >Open the library</text>
+<g transform="translate(304 764) scale(0.85)"><rect width="40" height="50" rx="6" fill="#FFFFFF" stroke="#14234D" stroke-width="2"/><rect width="40" height="14" rx="6" fill="#FFC233" stroke="#14234D" stroke-width="2"/><path d="M8 26h24M8 33h18M8 40h22" stroke="#C9D5EA" stroke-width="2.5" stroke-linecap="round"/></g>
+<text x="352" y="780" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >ST2134 · Oct 2025 · Zone A</text>
+<text x="352" y="800" class="ui" font-size="13" font-weight="400" fill="#3E4E6E" text-anchor="start" >Past paper · added today</text>
+<g transform="translate(544 764) scale(0.85)"><rect width="40" height="50" rx="6" fill="#FFFFFF" stroke="#14234D" stroke-width="2"/><rect width="40" height="14" rx="6" fill="#2DB87D" stroke="#14234D" stroke-width="2"/><path d="M10 30l6 6 12-12" fill="none" stroke="#18794A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="592" y="780" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >ST2134 · Oct 2025 ·</text>
+<text x="592" y="798" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >Examiners' report</text>
+<text x="592" y="822" class="ui" font-size="13" font-weight="400" fill="#3E4E6E" text-anchor="start" >Report · added today</text>
+<g transform="translate(784 764) scale(0.85)"><rect width="40" height="50" rx="6" fill="#FFFFFF" stroke="#14234D" stroke-width="2"/><rect width="40" height="14" rx="6" fill="#7B61FF" stroke="#14234D" stroke-width="2"/><path d="M8 30q6-6 12 0t12 0M8 40q6-5 12 0" fill="none" stroke="#7B61FF" stroke-width="2.5" stroke-linecap="round"/></g>
+<text x="832" y="780" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="start" >Hypothesis tests on one page</text>
+<text x="832" y="800" class="ui" font-size="13" font-weight="400" fill="#3E4E6E" text-anchor="start" >Shared by Ali · Year 2</text>
+<g filter="url(#lift)"><rect x="1064" y="240" width="344" height="388" rx="20" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<text x="1088" y="274" class="ui" font-size="12" font-weight="800" fill="#1F3A93" text-anchor="start" letter-spacing="1.2">TO-DO</text>
+<text x="1384" y="274" class="ui" font-size="13" font-weight="600" fill="#3E4E6E" text-anchor="end" >3 of 6 done</text>
+<rect x="1088" y="296" width="24" height="24" rx="8" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="2"/>
+<text x="1124" y="313" class="ui" font-size="14" font-weight="600" fill="#0A1F44" text-anchor="start" >Finish ST2133 Zone A, timed</text>
+<text x="1384" y="313" class="ui" font-size="12" font-weight="700" fill="#C2332B" text-anchor="end" >Today</text>
+<path d="M1088 332h296" stroke="#DCE4F1" stroke-width="1"/>
+<rect x="1088" y="342" width="24" height="24" rx="8" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="2"/>
+<text x="1124" y="359" class="ui" font-size="14" font-weight="600" fill="#0A1F44" text-anchor="start" >Read ST2134 examiners' report</text>
+<text x="1384" y="359" class="ui" font-size="12" font-weight="700" fill="#3E4E6E" text-anchor="end" >Tomorrow</text>
+<path d="M1088 378h296" stroke="#DCE4F1" stroke-width="1"/>
+<rect x="1088" y="388" width="24" height="24" rx="8" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="2"/>
+<text x="1124" y="405" class="ui" font-size="14" font-weight="600" fill="#0A1F44" text-anchor="start" >Reply to Ali on MGF question</text>
+<text x="1384" y="405" class="ui" font-size="12" font-weight="700" fill="#3E4E6E" text-anchor="end" >Fri</text>
+<path d="M1088 424h296" stroke="#DCE4F1" stroke-width="1"/>
+<rect x="1088" y="434" width="24" height="24" rx="8" fill="#18794A"/><path d="M1094 446l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1124" y="451" class="ui" font-size="14" font-weight="500" fill="#5A6A8C" text-anchor="start" text-decoration="line-through">Upload week 5 notes</text>
+<path d="M1088 470h296" stroke="#DCE4F1" stroke-width="1"/>
+<rect x="1088" y="480" width="24" height="24" rx="8" fill="#18794A"/><path d="M1094 492l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1124" y="497" class="ui" font-size="14" font-weight="500" fill="#5A6A8C" text-anchor="start" text-decoration="line-through">Book a revision room</text>
+<path d="M1088 516h296" stroke="#DCE4F1" stroke-width="1"/>
+<rect x="1088" y="526" width="24" height="24" rx="8" fill="#18794A"/><path d="M1094 538l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1124" y="543" class="ui" font-size="14" font-weight="500" fill="#5A6A8C" text-anchor="start" text-decoration="line-through">Week 5 quiz</text>
+<path d="M1088 562h296" stroke="#DCE4F1" stroke-width="1"/>
+<rect x="1088" y="574" width="296" height="36" rx="12" fill="#ECF1F9"/>
+<text x="1112" y="598" class="ui" font-size="14" font-weight="700" fill="#3E4E6E" text-anchor="start" >+  Add a to-do</text>
+<g filter="url(#lift)"><rect x="1064" y="652" width="344" height="224" rx="20" fill="#FFFFFF" stroke="#DCE4F1" stroke-width="1.5"/></g>
+<image href="sections/forum.svg" x="1318" y="652" width="84" height="84"/>
+<text x="1088" y="686" class="ui" font-size="12" font-weight="800" fill="#B0246B" text-anchor="start" letter-spacing="1.2">REPLIES TO YOU</text>
+<text x="1088" y="716" class="ui" font-size="15" font-weight="700" fill="#0A1F44" text-anchor="start" >Ali answered your question</text>
+<text x="1088" y="736" class="ui" font-size="14" font-weight="400" fill="#3E4E6E" text-anchor="start" >“Why does the MGF identify the</text>
+<text x="1088" y="754" class="ui" font-size="14" font-weight="400" fill="#3E4E6E" text-anchor="start" >distribution?” · ST2133 · 2h</text>
+<text x="1088" y="794" class="ui" font-size="13" font-weight="500" fill="#3E4E6E" text-anchor="start" >Fatima and 2 more liked it</text>
+<rect x="1088" y="812" width="128" height="40" rx="13" fill="#FFFFFF" stroke="#C5D2E6" stroke-width="1.5"/>
+<text x="1152" y="837" class="ui" font-size="14" font-weight="700" fill="#0A1F44" text-anchor="middle" >Read thread</text>
+<g filter="url(#float)"><circle cx="1364" cy="836" r="35" fill="#FFFFFF" stroke="#1F3A93" stroke-width="3"/></g>
+<circle cx="1364" cy="836" r="31" fill="#E6E0FA"/><image href="../bust-neutral.png" x="1327" y="802" width="74" height="74" clip-path="url(#nc)"/>
+<circle cx="1390" cy="810" r="6.5" fill="#18794A" stroke="#FFFFFF" stroke-width="2.5"/>
+</svg>
