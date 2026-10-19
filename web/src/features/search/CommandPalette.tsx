@@ -9,7 +9,7 @@ import { showsUpload, useAuth } from '../../auth';
 import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Count, Kbd, Spinner, Modal, cx } from '../../ui';
+import { Count, Deskmate, Kbd, Spinner, Modal, cx } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { openBugReport } from '../bugs/public';
 import { askNoora, hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
@@ -335,7 +335,8 @@ export function CommandPalette({ opening }: { opening: string }) {
       >
         <span ref={indicatorRef} className="cmdk-indicator" aria-hidden="true" />
         {searching ? (
-          <div className="cmdk-empty" aria-busy="true">
+          <div className="cmdk-empty cmdk-empty--art" aria-busy="true">
+            <Deskmate mate="loupe" state="searching" size={64} className="cmdk-empty__mate cmdk-empty__mate--late" />
             <p className="cmdk-empty__title">Searching for “{query.trim()}”…</p>
           </div>
         ) : failed ? (
@@ -347,14 +348,7 @@ export function CommandPalette({ opening }: { opening: string }) {
           </div>
         ) : results.empty ? (
           <div className="cmdk-empty cmdk-empty--art">
-            <img
-              className="cmdk-empty__art"
-              src="/illustrations/empty-search.png"
-              alt=""
-              width={800}
-              height={600}
-              decoding="async"
-            />
+            <Deskmate mate="loupe" state="sleepy" size={88} className="cmdk-empty__mate" />
             <div>
               <p className="cmdk-empty__title">No results for “{query.trim()}”</p>
               <p className="cmdk-empty__body">

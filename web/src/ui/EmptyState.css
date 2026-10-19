@@ -43,6 +43,15 @@
   width: 120px;
   margin-bottom: var(--sp-8);
 }
+.ui-empty__mate {
+  margin-bottom: var(--sp-8);
+  line-height: 0;
+}
+@media (max-width: 699px) {
+  .ui-empty--md .ui-empty__mate {
+    --mate-size: 116px;
+  }
+}
 .ui-empty--sm .ui-empty__title {
   font-size: var(--fs-16);
 }

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { CalendarCheck, Clock, Exam } from '@phosphor-icons/react';
+import { Clock, Exam } from '@phosphor-icons/react';
 import { cohortLabel, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, CohortBadge, cx, EmptyState, Highlight } from '../../ui';
@@ -77,8 +77,7 @@ function NextExamCard({ year, next, today, onOpen }: NextExamCardProps) {
       <section className="cal-card cal-exam cal-exam--none" aria-label="Your next exam" data-hub="next-exam">
         <EmptyState
           size="sm"
-          icon={CalendarCheck}
-          illustration="nothing-due"
+          mate="blink"
           title={year ? `No exams ahead for ${cohortLabel(year)}` : 'No exams ahead'}
           body="Exam dates show up here as soon as they’re announced."
         />

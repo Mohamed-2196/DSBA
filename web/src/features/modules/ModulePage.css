@@ -126,6 +126,28 @@
   min-width: 0;
   container: mod-head / inline-size;
 }
+/* The module's band, in the Modules colour, with Binder at the end in the module's year colour. */
+.mod-head__main[data-section] {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  padding: var(--sp-24) var(--sp-24) var(--sp-24) var(--sp-32);
+  border-radius: var(--r-panel);
+  background: var(--sec-pill);
+}
+.mod-head__band-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.mod-head__mate {
+  flex: none;
+  align-self: flex-end;
+  margin-bottom: calc(var(--sp-24) * -1 + 6px);
+  --mate-size: 100px;
+}
+.mod-head__mate > .ui-mate {
+  display: block;
+}
 /* The lockup: the module illustration (or unit code / plate) set beside the name. */
 .mod-head__title {
   display: flex;
@@ -564,6 +586,14 @@ button.mod-row:hover .mod-row__title {
   }
   .mod-head__grid {
     gap: var(--sp-12);
+  }
+  .mod-head__main[data-section] {
+    gap: var(--sp-8);
+    padding: var(--sp-8) var(--sp-12) var(--sp-8) var(--sp-12);
+  }
+  .mod-head__mate {
+    margin-bottom: -6px;
+    --mate-size: 60px;
   }
   .mod-head__title {
     flex-direction: row;

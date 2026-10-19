@@ -9,7 +9,6 @@ import {
   Funnel,
   Lightning,
   LinkSimple,
-  MagnifyingGlass,
   Notebook,
   NotePencil,
   PencilLine,
@@ -45,6 +44,7 @@ import {
   Kbd,
   Menu,
   Page,
+  Deskmate,
   PageHeader,
   PageSection,
   QueryError,
@@ -399,14 +399,14 @@ export default function LibraryPage() {
           year ? (
             // A year was picked on purpose: the other years may hold starred files.
             <EmptyState
-              icon={Star}
+              mate="stacks"
               title={`No starred files for ${yearLabel}`}
               body="Files you starred for other years are under All years."
               action={<Button onClick={() => setYear('all')}>See all years</Button>}
             />
           ) : (
             <EmptyState
-              icon={Star}
+              mate="stacks"
               title="No starred files yet"
               body="Star the files you keep coming back to and they will wait for you here."
               action={<Button onClick={() => update({ starred: null })}>Show all files</Button>}
@@ -415,14 +415,14 @@ export default function LibraryPage() {
         ) : mineOnly && !q && !module && !kind && !source ? (
           year ? (
             <EmptyState
-              icon={UploadSimple}
+              mate="stacks"
               title={`No uploads for ${yearLabel}`}
               body="Files you uploaded for other years are under All years."
               action={<Button onClick={() => setYear('all')}>See all years</Button>}
             />
           ) : (
             <EmptyState
-              icon={UploadSimple}
+              mate="stacks"
               title="You haven’t uploaded anything yet"
               body="Share your notes, a cheat sheet or a past paper with other students."
               action={
@@ -436,8 +436,7 @@ export default function LibraryPage() {
           )
         ) : !anyFilter ? (
           <EmptyState
-            icon={Books}
-            illustration="no-notes"
+            mate="stacks"
             title={`No files ${yearLabel ? `for ${yearLabel} ` : ''}yet`}
             body="Past papers, notes and guides that students share will show up here. Have something useful? Share it."
             action={
@@ -457,8 +456,7 @@ export default function LibraryPage() {
           />
         ) : (
           <EmptyState
-            icon={MagnifyingGlass}
-            illustration="search"
+            mate="stacks"
             title="No files match these filters"
             body={
               q
@@ -637,7 +635,7 @@ export default function LibraryPage() {
   return (
     <Page width="wide" className="lib-page">
       {compact ? (
-        <header className="lib-mhead">
+        <header className="lib-mhead" data-section="library">
           <h1 className="lib-mhead__title">Library</h1>
           {linksShown ? (
             <IconButton label="Add a link" icon={LinkSimple} onClick={openLinking} data-hub="link-button" />
@@ -651,9 +649,11 @@ export default function LibraryPage() {
               data-hub="upload-button"
             />
           ) : null}
+          <Deskmate mate="stacks" size={48} className="lib-mhead__mate" />
         </header>
       ) : (
         <PageHeader
+          section="library"
           title="Library"
           description="Past papers, study guides and students’ notes for every module. Read them here, download them, or share your own."
           actions={

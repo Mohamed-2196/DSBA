@@ -1,17 +1,6 @@
 // /notes: the student's notebooks and notes, last edited first, with search, a notebook, a module's notes (from every
 // notebook) or one lesson's (?notebook=, ?module=, or ?module=&lesson= from a lesson page), and creation.
-import {
-  Book,
-  DotsThree,
-  FilePdf,
-  Folder,
-  FolderPlus,
-  MagnifyingGlass,
-  NotePencil,
-  PencilSimple,
-  Plus,
-  Trash,
-} from '@phosphor-icons/react';
+import { Book, DotsThree, FilePdf, Folder, FolderPlus, PencilSimple, Plus, Trash } from '@phosphor-icons/react';
 import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
@@ -373,7 +362,8 @@ function NotesList() {
   return (
     <Page width="default">
       <PageHeader
-        title="Notebooks"
+        section="notebook"
+        title="Notebook"
         description="Your notes, handwriting, formulas and PDF annotations. Kept private to you."
         actions={
           readOnly ? null : (
@@ -537,16 +527,10 @@ function NotesList() {
           ) : items.length === 0 ? (
             <Panel>
               {filtered ? (
-                <EmptyState
-                  icon={MagnifyingGlass}
-                  illustration="search"
-                  title="No notes match"
-                  body="Try other words, or another notebook."
-                />
+                <EmptyState mate="jot" title="No notes match" body="Try other words, or another notebook." />
               ) : (
                 <EmptyState
-                  icon={NotePencil}
-                  illustration="no-notes"
+                  mate="jot"
                   title="No notes yet"
                   body="Type with rich text, write with stylus ink, or annotate past papers."
                   action={
@@ -620,7 +604,7 @@ function NotesList() {
 
 export default function NotesPage() {
   return (
-    <Gate title="Notes" description="Your own notes, saved as you type." signedIn>
+    <Gate title="Notebook" description="Your own notes, saved as you type." signedIn>
       <NotesList />
     </Gate>
   );

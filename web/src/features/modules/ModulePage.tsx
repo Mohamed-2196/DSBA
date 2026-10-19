@@ -26,6 +26,7 @@ import {
   Badge,
   Button,
   CohortBadge,
+  Deskmate,
   EmptyState,
   ErrorBoundary,
   ModuleArt,
@@ -249,36 +250,41 @@ function ModuleHeader({
         ) : null}
       </div>
       <div className="mod-head__grid">
-        <div className="mod-head__main">
-          <h1 className="mod-head__title">
-            {hasArt ? (
-              <ModuleArt art={m.art} className="mod-head__art" />
-            ) : m.unitCode && !phone ? (
-              <span className="mod-head__code u-code">{m.unitCode}</span>
-            ) : (
-              <span className="mod-head__plate" aria-hidden="true">
-                <ModuleIcon moduleId={m.id} weight="duotone" />
+        <div className="mod-head__main" data-section="modules">
+          <div className="mod-head__band-text">
+            <h1 className="mod-head__title">
+              {hasArt ? (
+                <ModuleArt art={m.art} className="mod-head__art" />
+              ) : m.unitCode && !phone ? (
+                <span className="mod-head__code u-code">{m.unitCode}</span>
+              ) : (
+                <span className="mod-head__plate" aria-hidden="true">
+                  <ModuleIcon moduleId={m.id} weight="duotone" />
+                </span>
+              )}
+              <span className="mod-head__heading">
+                {m.unitCode && (hasArt || phone) ? <span className="mod-head__label u-code">{m.unitCode} </span> : null}
+                <span className="mod-head__name">{phone && m.unitCode ? m.shortName || m.name : m.name}</span>
               </span>
-            )}
-            <span className="mod-head__heading">
-              {m.unitCode && (hasArt || phone) ? <span className="mod-head__label u-code">{m.unitCode} </span> : null}
-              <span className="mod-head__name">{phone && m.unitCode ? m.shortName || m.name : m.name}</span>
-            </span>
-          </h1>
-          {m.description ? (
-            <div className="mod-head__desc" id={aboutId} hidden={phone && !about}>
-              <Prose text={m.description} />
-            </div>
-          ) : null}
-          <div className="mod-head__meta">
-            <CohortBadge year={m.year} />
-            {exam ? (
-              <Badge tone="alert" icon={CalendarBlank}>
-                Exam {exam.weekdayDate}, {exam.relative}
-              </Badge>
+            </h1>
+            {m.description ? (
+              <div className="mod-head__desc" id={aboutId} hidden={phone && !about}>
+                <Prose text={m.description} />
+              </div>
             ) : null}
-            {counts.length && !phone ? <span className="mod-head__counts">{counts.join(', ')}</span> : null}
+            <div className="mod-head__meta">
+              <CohortBadge year={m.year} />
+              {exam ? (
+                <Badge tone="alert" icon={CalendarBlank}>
+                  Exam {exam.weekdayDate}, {exam.relative}
+                </Badge>
+              ) : null}
+              {counts.length && !phone ? <span className="mod-head__counts">{counts.join(', ')}</span> : null}
+            </div>
           </div>
+          <span className="mod-head__mate">
+            <Deskmate mate="binder" size={100} cover={`var(--y${m.year})`} />
+          </span>
         </div>
         {side}
       </div>
@@ -396,7 +402,7 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
     lessonsPanel = (
       <Panel padding="none">
         <EmptyState
-          icon={PlayCircle}
+          mate="binder"
           title={`No video lessons for ${m.unitCode || m.name} yet`}
           body="The study guide and past papers are in Overview. Have notes or a past paper for this module? Share them in the library."
           action={

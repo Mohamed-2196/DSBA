@@ -53,7 +53,7 @@ export function PlanRevision({
         data-hub="board-plan"
         aria-label={short && !planned ? label : undefined}
         onClick={() => {
-          if (requireAuth('Sign in to plan your revision on your study board', show)) show();
+          if (requireAuth('Sign in to plan your revision on a board', show)) show();
         }}
       >
         {short ? (planned ? 'Update plan' : 'Plan') : label}
@@ -131,6 +131,7 @@ function PlanDialog({ moduleId, moduleName, examDate, paperEvery, boardId: initi
         onSuccess: ({ added, plan, leftOut }) => {
           toast.push({
             tone: 'success',
+            mate: 'blink',
             title: added ? `Added ${added} card${added === 1 ? '' : 's'} to your board` : 'Your plan is up to date',
             body: planNote(added, leftOut),
             action: { label: 'Open board', onClick: () => void navigate(`/board?board=${plan.boardId}`) },

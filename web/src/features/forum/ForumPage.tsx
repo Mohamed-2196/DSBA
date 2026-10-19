@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ChatCircle, ChatsCircle, MagnifyingGlass, Plus, X } from '@phosphor-icons/react';
+import { Plus, X } from '@phosphor-icons/react';
 import type { ThreadSummary } from '../../api/types';
 import { remainingCount } from '../../api/paging';
 import { useAuth } from '../../auth';
@@ -85,6 +85,7 @@ export default function ForumPage() {
   return (
     <Page className="forum-page">
       <PageHeader
+        section="forum"
         title="Forum"
         description="Ask your cohort, share what worked and find people to revise with."
         actions={
@@ -228,7 +229,7 @@ function NoThreadsOfYours({ onBrowse }: { onBrowse: () => void }) {
   const posts = useAuth().mayTry('forum.post');
   return (
     <EmptyState
-      icon={ChatsCircle}
+      mate="pip-pod"
       title="No threads of yours yet"
       body="Threads you start, reply to or follow show up here, newest activity first."
       action={
@@ -263,8 +264,7 @@ function NoThreads({
   if (q) {
     return (
       <EmptyState
-        icon={MagnifyingGlass}
-        illustration="search"
+        mate="pip-pod"
         title={`No threads match “${q}”`}
         body="Try fewer words or another category, or ask it as a new thread so your cohort can answer."
         action={
@@ -282,7 +282,7 @@ function NoThreads({
   }
   return (
     <EmptyState
-      icon={ChatCircle}
+      mate="pip-pod"
       title={refined ? 'No threads match these filters' : `No threads in ${scope || 'the forum'} yet`}
       body={
         refined

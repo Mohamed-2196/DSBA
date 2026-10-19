@@ -631,6 +631,7 @@ export function useSaveScore() {
     onSuccess: (_data, { score }) =>
       toast.push({
         tone: 'success',
+        ...(score === null ? {} : { mate: 'lumen' as const }),
         title: score === null ? 'Score removed' : `Saved: ${score}%`,
         body: score === null ? undefined : 'It shows on the paper and in its sitting.',
       }),

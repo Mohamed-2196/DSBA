@@ -37,6 +37,9 @@
   color: var(--error);
   --icon-tint: var(--sec-calendar-tint);
 }
+.ui-toast__mate {
+  margin: -6px 0 -6px -4px;
+}
 .ui-toast__text {
   flex: 1 1 auto;
   min-width: 0;

@@ -1,4 +1,6 @@
 import type { ElementType, HTMLAttributes, ReactNode } from 'react';
+import { Deskmate } from './deskmates/Deskmate';
+import { SECTION_MATE, type MateSection } from './deskmates/mates';
 import { cx } from './internal';
 import './Page.css';
 
@@ -30,14 +32,34 @@ export interface PageHeaderProps {
   meta?: ReactNode;
   /** element above the title (e.g. a big unit code set with u-code, or an icon) */
   leading?: ReactNode;
+  /**
+   * A core section's page: the header becomes a band in the section's colour with its deskmate (idle, decorative).
+   * On phones the actions sit under the band.
+   */
+  section?: MateSection;
+  /** the deskmate in a section band, when it needs more than the default (a pose, Binder's cover) */
+  mate?: ReactNode;
   className?: string;
   children?: ReactNode;
 }
 
 /** Page header pattern: H1 title, one-line description, optional actions (right) and meta row. */
-export function PageHeader({ title, description, actions, meta, leading, className, children }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  actions,
+  meta,
+  leading,
+  section,
+  mate,
+  className,
+  children,
+}: PageHeaderProps) {
   return (
-    <header className={cx('ui-page-header', className)}>
+    <header className={cx('ui-page-header', section && 'ui-page-header--band', className)} data-section={section}>
+      {section ? (
+        <div className="ui-page-header__mate">{mate ?? <Deskmate mate={SECTION_MATE[section]} size={100} />}</div>
+      ) : null}
       <div className="ui-page-header__main">
         {leading ? <div className="ui-page-header__leading">{leading}</div> : null}
         <h1 className="ui-page-header__title">{title}</h1>

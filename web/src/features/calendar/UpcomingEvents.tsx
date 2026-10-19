@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarBlank } from '@phosphor-icons/react';
 import { cohortLabel, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, cx, EmptyState, QueryError, Skeleton } from '../../ui';
@@ -115,8 +114,7 @@ export function UpcomingEvents({ n = 5, year: forYear, skip = null }: UpcomingEv
         {ownFailed}
         <EmptyState
           size="sm"
-          icon={CalendarBlank}
-          illustration="nothing-due"
+          mate="blink"
           title="Nothing coming up"
           body={`Exams, deadlines and events${year ? ` for ${cohortLabel(year)}` : ''} show up here as soon as they're announced.`}
           action={

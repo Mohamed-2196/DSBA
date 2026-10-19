@@ -1,13 +1,18 @@
 import type { ReactNode } from 'react';
+import { Deskmate } from './deskmates/Deskmate';
+import type { MateName } from './deskmates/types';
 import { cx, renderIcon, type IconSource } from './internal';
 import './EmptyState.css';
 
-/** The spot illustrations in web/public/illustrations, one per kind of empty. */
-export type EmptyIllustration = 'nothing-due' | 'no-notes' | 'offline' | 'search';
+/** The spot illustrations in web/public/illustrations: only being offline has one; empty lists have a deskmate. */
+export type EmptyIllustration = 'offline';
 
 export interface EmptyStateProps {
   /** Phosphor component, e.g. ChatsCircle (duotone weight is applied) */
   icon?: IconSource | null;
+  /** the section's deskmate, asleep, shown in place of the icon: jot (no notes), blink (nothing due), binder (no
+   *  lessons or modules), loupe (no results), pip-pod (no threads), stacks (no files) */
+  mate?: MateName;
   /** a small decorative scene shown in place of the icon */
   illustration?: EmptyIllustration;
   /** what's empty, plainly ("No threads yet") */
@@ -27,6 +32,7 @@ export interface EmptyStateProps {
 /** Empty state that invites action. */
 export function EmptyState({
   icon,
+  mate,
   illustration,
   title,
   titleAs: Title = 'p',
@@ -39,7 +45,11 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className={cx('ui-empty', `ui-empty--${size}`, className)}>
-      {illustration ? (
+      {mate ? (
+        <div className="ui-empty__mate">
+          <Deskmate mate={mate} state="sleepy" size={size === 'sm' ? 112 : 160} />
+        </div>
+      ) : illustration ? (
         <div className="ui-empty__art">
           <img src={`/illustrations/empty-${illustration}.png`} alt="" width={800} height={600} decoding="async" />
         </div>
