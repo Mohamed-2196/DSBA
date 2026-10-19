@@ -1,10 +1,10 @@
 // The quiet line under the top bar while there is no connection: what the page shows (what was kept from the last
 // visit, api/offline.ts) and that changes wait for the connection. Nothing when online.
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { CloudSlash } from '@phosphor-icons/react';
 import { useCallback, useSyncExternalStore } from 'react';
 import { offlineScope } from '../api/offlineCache';
 import { useOnline } from '../state';
+import { Icon, glyph } from '../ui';
 import './OfflineBar.css';
 
 /** A screen is waiting for something that is kept for offline reading, but wasn't kept this time. */
@@ -34,7 +34,7 @@ export function OfflineBar() {
   return (
     <div className="shell-offline" role="status" data-hub="offline-bar">
       <p className="shell-offline__line">
-        <CloudSlash size={16} weight="bold" aria-hidden className="shell-offline__icon" />
+        <Icon glyph={glyph.offline} size={16} className="shell-offline__icon" />
         <span className="shell-offline__text">
           <strong>Offline</strong> ·{' '}
           {waiting

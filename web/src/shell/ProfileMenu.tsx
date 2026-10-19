@@ -1,18 +1,7 @@
-import {
-  Bug,
-  DotsThree,
-  DownloadSimple,
-  Key,
-  SignIn,
-  SignOut,
-  UserCircle,
-  UserCirclePlus,
-  Wrench,
-} from '@phosphor-icons/react';
 import { errorMessage } from '../api/errors';
 import { accountLine, badgeOf, useAuth } from '../auth';
 import { useToast } from '../state';
-import { Avatar, Button, IconButton, Menu, Skeleton, cx, type MenuItem } from '../ui';
+import { Avatar, Button, Icon, IconButton, Menu, Skeleton, cx, glyph, type MenuItem } from '../ui';
 import { openBugReport } from '../features/bugs/public';
 import { InstallSteps } from './InstallSteps';
 import { useInstallOffer } from './useInstallOffer';
@@ -51,7 +40,7 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
       return (
         <IconButton
           label="Sign in"
-          icon={SignIn}
+          icon={<Icon glyph={glyph.signIn} />}
           tooltip
           tooltipSide="right"
           onClick={() => openSignIn()}
@@ -64,7 +53,7 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
         variant="secondary"
         size={inTopbar ? 'sm' : 'md'}
         fullWidth={!inTopbar}
-        leadingIcon={inTopbar ? null : SignIn}
+        leadingIcon={inTopbar ? null : <Icon glyph={glyph.signIn} />}
         className={cx('shell-signin', inTopbar && 'shell-signin--topbar')}
         onClick={() => openSignIn()}
         data-hub="sign-in"
@@ -102,17 +91,24 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
       ),
     },
     ...(me.needsProfile
-      ? [{ id: 'profile', label: 'Finish your profile', icon: UserCirclePlus, onSelect: () => openSignIn() }]
+      ? [
+          {
+            id: 'profile',
+            label: 'Finish your profile',
+            icon: <Icon glyph={glyph.user} />,
+            onSelect: () => openSignIn(),
+          },
+        ]
       : []),
-    { id: 'account', label: 'Your account', icon: UserCircle, to: '/account' },
-    ...(manages ? [{ id: 'manage', label: 'Manage', icon: Wrench, to: '/manage' }] : []),
-    ...(isAdmin ? [{ id: 'access', label: 'Access', icon: Key, to: '/admin/access' }] : []),
+    { id: 'account', label: 'Your account', icon: <Icon glyph={glyph.user} />, to: '/account' },
+    ...(manages ? [{ id: 'manage', label: 'Manage', icon: <Icon glyph={glyph.settings} />, to: '/manage' }] : []),
+    ...(isAdmin ? [{ id: 'access', label: 'Access', icon: <Icon glyph={glyph.lock} />, to: '/admin/access' }] : []),
     ...(install.way
-      ? [{ id: 'install', label: 'Install the app', icon: DownloadSimple, onSelect: install.start }]
+      ? [{ id: 'install', label: 'Install the app', icon: <Icon glyph={glyph.download} />, onSelect: install.start }]
       : []),
-    { id: 'bug', label: 'Report a bug', icon: Bug, onSelect: openBugReport },
+    { id: 'bug', label: 'Report a bug', icon: <Icon glyph={glyph.flag} />, onSelect: openBugReport },
     { divider: true },
-    { id: 'sign-out', label: 'Sign out', icon: SignOut, onSelect: () => void onSignOut() },
+    { id: 'sign-out', label: 'Sign out', icon: <Icon glyph={glyph.signOut} />, onSelect: () => void onSignOut() },
   ];
 
   return (
@@ -136,7 +132,7 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
                   <span className="shell-profile__name">{name}</span>
                   {line ? <span className="shell-profile__meta">{line}</span> : null}
                 </span>
-                <DotsThree className="shell-profile__more" aria-hidden="true" weight="bold" />
+                <Icon glyph={glyph.more} size={20} className="shell-profile__more" />
               </>
             ) : null}
           </button>

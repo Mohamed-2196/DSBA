@@ -13,7 +13,7 @@
     grid-auto-flow: column;
     grid-auto-columns: minmax(0, 1fr);
     height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
+    padding: 0 var(--sp-4) env(safe-area-inset-bottom);
     background: var(--surface);
     border-top: 1px solid var(--line);
   }
@@ -24,56 +24,62 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
+  min-width: 0;
   color: var(--ink-2);
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
+  line-height: 16px;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
 }
+/* Active: the section's pill behind the icon, a bold label in the section's text colour and the icon's active
+   drawing (BRAND.md §5). */
 .shell-tabbar__item.is-active {
-  color: var(--ink);
+  color: var(--sec-text);
+  font-weight: var(--fw-heavy);
 }
 .shell-tabbar__item:focus-visible {
   outline-offset: -4px;
-  border-radius: 12px;
-}
-.shell-tabbar__mark {
-  position: absolute;
-  top: 0;
-  width: 24px;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
-  background: transparent;
-}
-.shell-tabbar__item.is-active .shell-tabbar__mark {
-  background: var(--cobalt);
+  border-radius: var(--r-nav);
 }
 .shell-tabbar__icon {
   position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  color: var(--icon-line);
   font-size: 24px;
   line-height: 0;
-  margin-top: 6px;
+  transition: background-color var(--dur-fast) var(--ease);
 }
 .shell-tabbar__item.is-active .shell-tabbar__icon {
-  color: var(--cobalt);
+  background: var(--sec-pill);
+  color: var(--icon-line-active);
+}
+.shell-tabbar__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .shell-tabbar__face {
   display: block;
-  margin-block: -1px;
   box-shadow: 0 0 0 1.5px var(--line);
 }
 .shell-tabbar__item.is-active .shell-tabbar__face {
-  box-shadow: 0 0 0 2px var(--cobalt);
+  box-shadow: 0 0 0 2px var(--noora-ring);
 }
 .shell-tabbar__newdot {
   position: absolute;
-  top: -1px;
-  right: -4px;
+  top: 1px;
+  right: 12px;
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--highlight);
+  background: var(--warning-fill);
   box-shadow: 0 0 0 2px var(--surface);
 }
 
@@ -89,9 +95,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 44px;
-  padding: 0 10px;
-  border-radius: var(--r-control);
+  min-height: var(--touch-min);
+  padding: 0 12px;
+  border-radius: var(--r-nav);
   color: var(--ink);
   font-size: var(--fs-16);
   font-weight: var(--fw-medium);
@@ -106,19 +112,21 @@ button.shell-more__item {
 }
 .shell-more__item svg {
   font-size: 20px;
-  color: var(--ink-2);
+  color: var(--icon-line);
 }
 .shell-more__item.is-active {
-  background: var(--surface-2);
+  background: var(--sec-pill);
+  color: var(--sec-text);
+  font-weight: var(--fw-bold);
 }
 .shell-more__item.is-active svg {
-  color: var(--cobalt);
+  color: var(--icon-line-active);
 }
 .shell-more__item span {
   flex: 1 1 auto;
 }
-.shell-more__ext {
-  font-size: 14px;
+.shell-more__item .shell-more__ext {
+  color: var(--ink-3);
 }
 .shell-more .shell-theme {
   padding-left: 10px;

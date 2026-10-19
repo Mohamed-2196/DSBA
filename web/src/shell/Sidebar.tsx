@@ -1,8 +1,7 @@
-import { createElement } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { ArrowSquareOut } from '@phosphor-icons/react';
 import { BREAKPOINTS, useMediaQuery } from '../state';
-import { Badge, BrandLogo, HubLogo, Tooltip, cx } from '../ui';
+import { Badge, BrandLogo, HubLogo, Icon, Tooltip, cx, glyph } from '../ui';
+import { NooraFace } from '../features/noora/public';
 import { type NavItem as NavConfig } from './nav';
 import { usePortalLinks, type PortalLink } from './portals';
 import { useShownNav } from './useShownNav';
@@ -19,11 +18,17 @@ function NavItem({ item, collapsed }: { item: NavConfig; collapsed: boolean }) {
       className={({ isActive }) => cx('shell-nav__item', isActive && 'is-active')}
       aria-label={collapsed ? (item.isNew ? `${item.label} (new)` : item.label) : undefined}
       data-hub={`nav-${item.id}`}
+      data-section={item.section}
     >
       {({ isActive }) => (
         <>
           <span className="shell-nav__icon">
-            {createElement(item.icon, { weight: isActive ? 'duotone' : 'regular', 'aria-hidden': true })}
+            {/* Noora is a person, not a section: her face stands where an icon would. */}
+            {item.id === 'noora' ? (
+              <NooraFace size={22} className="shell-nav__face" />
+            ) : (
+              <Icon glyph={item.icon} size={20} active={isActive} />
+            )}
             {item.isNew ? <span className="shell-nav__newdot" aria-hidden="true" /> : null}
           </span>
           <span className="shell-nav__label">{item.label}</span>
@@ -59,7 +64,7 @@ function ExternalItem({ item, collapsed }: { item: PortalLink; collapsed: boolea
         <BrandLogo name={item.logo} height={collapsed ? 20 : (item.logoHeight ?? 18)} decorative />
       </span>
       <span className="shell-nav__label">{item.label}</span>
-      <ArrowSquareOut className="shell-nav__out" aria-hidden="true" />
+      <Icon glyph={glyph.external} size={16} className="shell-nav__out" />
     </a>
   );
   return collapsed ? (
@@ -79,6 +84,8 @@ function ExternalItem({ item, collapsed }: { item: PortalLink; collapsed: boolea
 export function Sidebar() {
   const collapsed = useMediaQuery(BREAKPOINTS.tablet);
   const nav = useShownNav();
+  const main = nav.filter((item) => item.group === 'main');
+  const tools = nav.filter((item) => item.group === 'tools');
   const portals = usePortalLinks();
   return (
     // The column wrapper runs the full page height (surface + border); the rail inside is sticky.
@@ -86,7 +93,7 @@ export function Sidebar() {
       <aside className={cx('shell-rail', collapsed && 'is-collapsed')} data-hub="sidebar" aria-label="Sidebar">
         <div className="shell-rail__brand">
           <Link to="/" className="shell-brand" aria-label="DSBA Hub home" data-hub="brand">
-            <HubLogo variant={collapsed ? 'tile' : 'lockup'} size={collapsed ? 32 : 36} textInset={6} decorative />
+            <HubLogo variant={collapsed ? 'tile' : 'lockup'} size={collapsed ? 32 : 39} textInset={6} decorative />
           </Link>
         </div>
 
@@ -97,12 +104,26 @@ export function Sidebar() {
         <div className="shell-rail__scroll">
           <nav className="shell-nav" aria-label="Main">
             <ul role="list">
-              {nav.map((item) => (
+              {main.map((item) => (
                 <li key={item.id}>
                   <NavItem item={item} collapsed={collapsed} />
                 </li>
               ))}
             </ul>
+            {tools.length ? (
+              <>
+                <p className={cx('shell-nav__group', collapsed && 'visually-hidden')} id="shell-nav-tools">
+                  Tools
+                </p>
+                <ul role="list" aria-labelledby="shell-nav-tools">
+                  {tools.map((item) => (
+                    <li key={item.id}>
+                      <NavItem item={item} collapsed={collapsed} />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
           </nav>
 
           <nav className="shell-rail__links" aria-label="Student portals">

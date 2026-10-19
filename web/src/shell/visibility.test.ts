@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { House } from '@phosphor-icons/react';
+import { home } from '../ui/icons/glyphs';
 import type { NavItem } from './nav';
 import { loadingNav, rememberedNav, visibleNav } from './visibility';
 
@@ -7,7 +7,9 @@ const item = (id: string, feature?: NavItem['feature']): NavItem => ({
   id,
   label: id,
   to: `/${id}`,
-  icon: House,
+  icon: home,
+  section: 'home',
+  group: 'main',
   feature,
 });
 

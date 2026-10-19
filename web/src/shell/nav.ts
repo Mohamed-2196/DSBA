@@ -1,27 +1,19 @@
 // Navigation config for the shell (rail, mobile tab bar, More drawer).
-import {
-  Books,
-  Calculator,
-  CalendarDots,
-  ChatTeardropText,
-  ChatsCircle,
-  Compass,
-  GameController,
-  HandWaving,
-  House,
-  Kanban,
-  Newspaper,
-  NotePencil,
-  SquaresFour,
-  type Icon,
-} from '@phosphor-icons/react';
+import { glyph, type Glyph } from '../ui';
 import type { Feature } from '../auth';
+
+/** A section's colours (tokens.css --sec-<section>-*): its icon, its active pill and its labels. */
+export type NavSection = 'home' | 'library' | 'modules' | 'notebook' | 'forum' | 'calendar' | 'search' | 'tools';
 
 export interface NavItem {
   id: string;
   label: string;
   to: string;
-  icon: Icon;
+  /** a brand icon; Noora shows her face instead */
+  icon: Glyph;
+  section: NavSection;
+  /** 'tools' items sit under the rail's Tools heading */
+  group: 'main' | 'tools';
   /** match the path exactly (Home) */
   end?: boolean;
   /** a "New" badge (rail) or dot (icon rail, tab bar) */
@@ -33,19 +25,112 @@ export interface NavItem {
 }
 
 export const NAV: NavItem[] = [
-  { id: 'home', label: 'Home', to: '/', icon: House, end: true },
-  { id: 'modules', label: 'Modules', to: '/modules', icon: SquaresFour },
-  { id: 'noora', label: 'Noora', to: '/noora', icon: ChatTeardropText, isNew: true, feature: 'noora' },
-  { id: 'library', label: 'Library', to: '/library', icon: Books, feature: 'library' },
-  { id: 'newsletter', label: 'Newsletter', to: '/newsletter', icon: Newspaper, feature: 'newsletter' },
-  { id: 'forum', label: 'Forum', to: '/forum', icon: ChatsCircle, isNew: true, feature: 'forum' },
-  { id: 'career', label: 'Career Navigator', to: '/career', icon: Compass, feature: 'career' },
-  { id: 'calendar', label: 'Calendar', to: '/calendar', icon: CalendarDots, feature: 'calendar' },
-  { id: 'grades', label: 'Grades', to: '/grades', icon: Calculator, feature: 'grades' },
-  { id: 'notes', label: 'Notes', to: '/notes', icon: NotePencil, feature: 'notes', signedIn: true },
-  { id: 'board', label: 'Study board', to: '/board', icon: Kanban, feature: 'board', signedIn: true },
-  { id: 'daily', label: 'Daily', to: '/daily', icon: GameController, feature: 'daily', isNew: true },
-  { id: 'requests', label: 'Requests', to: '/requests', icon: HandWaving, feature: 'requests' },
+  { id: 'home', label: 'Home', to: '/', icon: glyph.home, section: 'home', group: 'main', end: true },
+  { id: 'modules', label: 'Modules', to: '/modules', icon: glyph.modules, section: 'modules', group: 'main' },
+  {
+    id: 'library',
+    label: 'Library',
+    to: '/library',
+    icon: glyph.library,
+    section: 'library',
+    group: 'main',
+    feature: 'library',
+  },
+  {
+    id: 'notes',
+    label: 'Notes',
+    to: '/notes',
+    icon: glyph.notebook,
+    section: 'notebook',
+    group: 'main',
+    feature: 'notes',
+    signedIn: true,
+  },
+  {
+    id: 'forum',
+    label: 'Forum',
+    to: '/forum',
+    icon: glyph.forum,
+    section: 'forum',
+    group: 'main',
+    isNew: true,
+    feature: 'forum',
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    to: '/calendar',
+    icon: glyph.calendar,
+    section: 'calendar',
+    group: 'main',
+    feature: 'calendar',
+  },
+  {
+    id: 'noora',
+    label: 'Noora',
+    to: '/noora',
+    icon: glyph.sparkle,
+    section: 'home',
+    group: 'main',
+    isNew: true,
+    feature: 'noora',
+  },
+  {
+    id: 'board',
+    label: 'Study board',
+    to: '/board',
+    icon: glyph.boards,
+    section: 'tools',
+    group: 'tools',
+    feature: 'board',
+    signedIn: true,
+  },
+  {
+    id: 'grades',
+    label: 'Grades',
+    to: '/grades',
+    icon: glyph.grades,
+    section: 'tools',
+    group: 'tools',
+    feature: 'grades',
+  },
+  {
+    id: 'career',
+    label: 'Career Navigator',
+    to: '/career',
+    icon: glyph.career,
+    section: 'tools',
+    group: 'tools',
+    feature: 'career',
+  },
+  {
+    id: 'newsletter',
+    label: 'Newsletter',
+    to: '/newsletter',
+    icon: glyph.newsletter,
+    section: 'tools',
+    group: 'tools',
+    feature: 'newsletter',
+  },
+  {
+    id: 'daily',
+    label: 'Daily',
+    to: '/daily',
+    icon: glyph.daily,
+    section: 'tools',
+    group: 'tools',
+    feature: 'daily',
+    isNew: true,
+  },
+  {
+    id: 'requests',
+    label: 'Requests',
+    to: '/requests',
+    icon: glyph.question,
+    section: 'tools',
+    group: 'tools',
+    feature: 'requests',
+  },
 ];
 
 /** Mobile bottom tabs (+ "More"). */

@@ -26,7 +26,7 @@
   color: var(--ink-3);
 }
 .shell-offline__text {
-  max-width: 70ch;
+  max-width: var(--measure);
 }
 .shell-offline__text strong {
   color: var(--ink);

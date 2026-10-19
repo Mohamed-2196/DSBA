@@ -1,6 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { ArrowClockwise, House, WarningCircle } from '@phosphor-icons/react';
-import { Button, EmptyState, Page, Panel } from '../ui';
+import { Button, EmptyState, Page, Panel, Icon, glyph } from '../ui';
 
 interface RouteErrorBoundaryProps {
   routeId: string;
@@ -25,15 +24,19 @@ export class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, { err
       <Page>
         <Panel padding="none">
           <EmptyState
-            icon={WarningCircle}
+            icon={<Icon glyph={glyph.error} />}
             title="This page didn’t load"
             body="Something went wrong while showing this page. The rest of DSBA Hub still works, so try again or head back home."
             action={
               <>
-                <Button variant="primary" leadingIcon={ArrowClockwise} onClick={() => this.setState({ error: null })}>
+                <Button
+                  variant="primary"
+                  leadingIcon={<Icon glyph={glyph.refresh} />}
+                  onClick={() => this.setState({ error: null })}
+                >
                   Try again
                 </Button>
-                <Button to="/" leadingIcon={House}>
+                <Button to="/" leadingIcon={<Icon glyph={glyph.home} />}>
                   Go to Home
                 </Button>
               </>

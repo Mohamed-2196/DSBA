@@ -30,8 +30,8 @@
   z-index: calc(var(--z-tooltip) + 1);
   padding: 10px 14px;
   border-radius: var(--r-control);
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
   font-weight: var(--fw-semibold);
   transform: translateY(-160%);
 }
