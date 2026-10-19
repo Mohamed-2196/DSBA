@@ -27,6 +27,7 @@ from app.models import (
 )
 
 MIN_LENGTH = 4  # shorter words are left as typed: "lse" isn't a misspelt "use"
+MAX_WORDS = 5  # words of a query looked at: each unknown one costs a query over the titles
 MIN_SIMILARITY = 0.4  # "hypothisis" ~ "hypothesis" 0.57, "exam" ~ "example" 0.44, "lagrange" ~ "language" 0.29
 WORD_SPLIT = "[^[:alnum:]]+"
 _WORD = re.compile(r"[^\W_]+")
@@ -54,8 +55,8 @@ def _vocabulary() -> Any:
 
 def corrections(db: Session, terms: list[str]) -> dict[str, str]:
     """{typed: meant} for the words of `terms` the hub doesn't use and that are close to one it does. Words with
-    digits (module codes, years) and short words are never corrected."""
-    candidates = [t for t in dict.fromkeys(terms) if len(t) >= MIN_LENGTH and t.isalpha()]
+    digits (module codes, years) and short words are never corrected, and only the first MAX_WORDS are looked at."""
+    candidates = [t for t in dict.fromkeys(terms) if len(t) >= MIN_LENGTH and t.isalpha()][:MAX_WORDS]
     if not candidates:
         return {}
     vocab = _vocabulary()
