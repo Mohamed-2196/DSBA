@@ -1,11 +1,11 @@
 // Home's "New files": the newest files in the student's modules (their papers, once picked; else their year's), with
-// their real titles; a batch added to one module on one day is one row (fileRows.ts).
+// papers named by their sitting ('May 2025 · Zone A'); a batch added to one module on one day is one row (fileRows.ts).
 import { Books, Files, FileText } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, EmptyState, Panel, QueryError } from '../../ui';
-import { libraryItemPath, libraryKindLabel, useRecentFiles } from '../library/public';
+import { libraryItemPath, libraryItemTitle, libraryKindLabel, useRecentFiles } from '../library/public';
 import { modulesFor, usePapers } from '../papers/public';
 import { HomeList, HomeListLoading, type HomeListRow } from './HomeList';
 import { newFileRows } from './fileRows';
@@ -37,7 +37,7 @@ export function NewFiles({ year, n = 5 }: { year: CohortYear; n?: number }) {
       return {
         id: r.id,
         icon: FileText,
-        title: r.item.title,
+        title: libraryItemTitle(r.item, null), // the code shows beside it
         to: libraryItemPath(r.item),
         code: codeOf(r.item.moduleId),
         what: libraryKindLabel(r.item.kind),

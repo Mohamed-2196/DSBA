@@ -2,13 +2,17 @@ import { describe, expect, it } from 'vitest';
 import type { LibraryItem } from '../../api/types';
 import {
   addedAt,
+  askAboutHref,
   cardMeta,
   downloadsLabel,
+  examTitle,
+  hasExamTitle,
   isNew,
   linkPlace,
   matchLine,
   moduleTag,
   pageParam,
+  sharedBy,
   sizeLabel,
   statusInfo,
 } from './display';
@@ -106,6 +110,7 @@ describe('labels', () => {
     expect(cardMeta(it, 'popular')).toBe('3 downloads');
     expect(cardMeta(it, 'title')).toBe('Students’ notes, PDF, 412 KB');
     expect(cardMeta(it, 'new')).toMatch(/^Added /);
+    expect(cardMeta(it, 'sitting')).toBe('Students’ notes, PDF, 412 KB');
   });
 
   it('labels what isn’t public yet: "Not published" for students, never "rejected"', () => {
@@ -113,6 +118,60 @@ describe('labels', () => {
     expect(statusInfo('rejected')).toEqual({ label: 'Not published', tone: 'alert' });
     expect(statusInfo('removed')?.label).toBe('Removed');
     expect(statusInfo('published')).toBeNull();
+  });
+});
+
+describe('names', () => {
+  const raw = 'ST2133 - Advanced Statistics - Distribution Theory - 2019 Exam - Zone-A';
+  const paper = (patch: Partial<LibraryItem> = {}) =>
+    item({ kind: 'past-paper', title: raw, examYear: 2019, examSession: 'may', zone: 'A', ...patch });
+
+  it('names a file of a sitting by its sitting and zone', () => {
+    expect(examTitle(paper(), 'ST2133')).toBe('ST2133 · May 2019 · Zone A');
+    expect(examTitle(paper(), null)).toBe('May 2019 · Zone A');
+    expect(examTitle(paper({ zone: 'RTC', examSession: 'october' }), 'MN3141')).toBe('MN3141 · October 2019 · RTC');
+    expect(examTitle(paper({ kind: 'examiners-report', zone: null }), 'ST2133')).toBe(
+      'ST2133 · May 2019 · Examiners’ report',
+    );
+    expect(examTitle(paper({ kind: 'exam-solutions', examSession: null, zone: 'B' }), 'ST2133')).toBe(
+      'ST2133 · 2019 · Zone B · Solutions',
+    );
+    expect(hasExamTitle(paper())).toBe(true);
+    expect(cardMeta(paper(), 'sitting')).toBe('PDF, 412 KB'); // the title already says it is a paper
+  });
+
+  it('keeps the title of anything else', () => {
+    expect(examTitle(paper({ examYear: null }), 'ST2133')).toBe(raw);
+    expect(examTitle(item({ examYear: 2019 }), 'ST2133')).toBe('ST2133 MGF notes'); // notes have no sitting
+    expect(hasExamTitle(paper({ examYear: null }))).toBe(false);
+  });
+
+  it('says who shared a file: the credit, or the student and their year or badge', () => {
+    expect(sharedBy(item())).toBe('Shared by Sara A. · Year 2');
+    expect(sharedBy(item({ authorName: 'Mahdi' }))).toBe('By Mahdi');
+    const rep = {
+      id: 'a5e1c0de-0000-4000-8000-000000000002',
+      displayName: 'Rep',
+      year: 3 as const,
+      badge: 'Student rep',
+    };
+    expect(sharedBy(item({ uploadedBy: rep }))).toBe('Shared by Rep · Student rep');
+    expect(sharedBy(item({ uploadedBy: { ...rep, year: null, badge: null } }))).toBe('Shared by Rep');
+    expect(sharedBy(item({ uploadedBy: null }))).toBeNull(); // imported
+    expect(sharedBy(paper())).toBeNull();
+  });
+});
+
+describe('askAboutHref', () => {
+  it('starts a thread about the module, linking the paper', () => {
+    const href = askAboutHref(item(), 'ST2133 · May 2019 · Zone A', 'https://hub.example/library/x');
+    const q = new URL(href, 'https://hub.example').searchParams;
+    expect(href.startsWith('/forum/new?')).toBe(true);
+    expect(q.get('module')).toBe('advanced-stats-distribution');
+    expect(q.get('body')).toBe('About [ST2133 · May 2019 · Zone A](https://hub.example/library/x):\n\n');
+    expect(new URL(askAboutHref(item(), 'a [b]', 'u'), 'https://h').searchParams.get('body')).toBe(
+      'About [a b](u):\n\n',
+    );
   });
 });
 

@@ -33,11 +33,11 @@ from app.models import (
     PostStatus,
     User,
 )
+from app.schemas.library import EXAM_KINDS
 from app.schemas.misc import SearchHit, SearchResults, SearchType
 from app.services import access, paper_text, site
 from app.services import library as lib
 from app.services.calendar import TYPE_LABELS, cohort_label
-from app.services.exam_names import sitting_label, zone_label
 from app.services.forum.text import to_plain_text  # a post reads the same in search as in the forum (CQ-6)
 from app.services.newsletter import issue_text
 
@@ -128,13 +128,9 @@ def _threads(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int)
 
 
 def _library_meta(item: LibraryItem, module: str | None) -> list[str]:
-    """What tells two files apart, first: 'May 2021 examiners\u2019 report', 'zone A', then the module
-    ('ST2133'); for other files their kind and module."""
-    if item.exam_year is not None:
-        meta = [f"{sitting_label(item.exam_year, item.exam_session)} {lib.kind_label(item.kind).lower()}"]
-        if item.zone:
-            meta.append(zone_label(item.zone))
-        return [*meta, module or ""]
+    """The kind, then the module unless the title (library.exam_title) already leads with it."""
+    if item.exam_year is not None and item.kind in EXAM_KINDS:
+        return [lib.kind_label(item.kind)]
     return [lib.kind_label(item.kind), module or ""]
 
 
@@ -170,7 +166,7 @@ def _library(
             SearchHit(
                 type="library",
                 id=str(item.id),
-                title=item.title,
+                title=lib.exam_title(item, code or short),
                 snippet=found.snippet if found else snippet(about, terms),
                 url=f"/library/{item.slug}" + (f"?page={found.page}" if found and found.page else ""),
                 meta=" · ".join(p for p in meta if p),

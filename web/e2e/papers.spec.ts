@@ -1,6 +1,6 @@
 // Past papers, end to end: a rep shares a May 2024 zone A paper and its examiners' report; Sara finds them together
-// on the module's Files tab, times herself, tags question 3 with a chapter, and finds it on the Lessons tab. The spec
-// switches tagging on and puts it back as it was.
+// in one row of the module's Files tab, times herself, tags question 3 with a chapter, and finds it on the Lessons
+// tab. The spec switches tagging on and puts it back as it was.
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { api, makeFiles, remember, switchBack, switchOn } from './support';
@@ -64,20 +64,21 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     await sara.goto('/modules/economics?tab=files');
     const sittings = sara.locator('[data-hub="paper-sittings"]');
     await expect(sittings).toBeVisible();
-    // Newest first: an older sitting may be past the first few.
+    // Newest first: on a phone an older sitting may be past the first few.
     const showAll = sittings.getByRole('button', { name: /^Show all \d+ sittings$/ });
     if (await showAll.isVisible()) await showAll.click();
-    // Each zone's paper is a card with its first page; the sitting's examiners' report is a link on its cards.
-    const open = `Open EC1002 ZA May 2024 [e2e ${run.tag}]`;
+    // One row per sitting: each zone's paper, then the sitting's examiners' report, as links named by the sitting.
     const may = sittings.getByRole('listitem', { name: 'May 2024', exact: true });
-    const card = may.locator('[data-hub="paper-card"]').filter({ has: sara.getByRole('link', { name: open }) });
     await expect(
       may
-        .getByRole('link', { name: /^Report( \d)?$/ })
+        .getByRole('link', { name: /^May 2024 (Zone [AB] )?[Rr]eport( \d)?$/ })
         .and(sara.getByTitle(`EC1002 commentary May 2024 [e2e ${run.tag}]`))
         .first(),
     ).toBeVisible();
-    await card.getByRole('link', { name: open }).click();
+    await may
+      .getByRole('link', { name: /^May 2024 Zone A( \(\d\))? paper/ })
+      .and(sara.getByTitle(`EC1002 ZA May 2024 [e2e ${run.tag}]`))
+      .click();
     await expect(sara).toHaveURL(new RegExp(`/library/${paper.slug}$`));
 
     const sitting = sara.locator('[data-hub="file-sitting"]');

@@ -46,7 +46,7 @@ import { DeleteItemDialog, EditItemDialog } from './components/EditItemDialog';
 import type { LinkState } from './components/FileCard';
 import { ReviewActions } from './components/ReviewActions';
 import { StarButton } from './components/StarButton';
-import { isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
+import { examTitle, isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
 import { KIND_BY_ID, formatOf } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
@@ -83,8 +83,11 @@ export default function FileViewerPage() {
   const [params] = useSearchParams();
   const { search, state } = useLocation();
   const item = useLibraryItem(fileId);
+  const { getModule } = useModules();
   const notFound = item.isError && isApiError(item.error) && (item.error.status === 404 || item.error.status === 422);
-  useDocumentTitle(item.data ? item.data.title : notFound ? 'File not found' : null);
+  useDocumentTitle(
+    item.data ? examTitle(item.data, moduleTag(getModule(item.data.moduleId))) : notFound ? 'File not found' : null,
+  );
 
   if (item.isPending) return <ViewerSkeleton />;
   if (item.isError) {
@@ -239,6 +242,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const backTo = typeof state?.from === 'string' ? state.from : '/library';
   const linkState = useMemo<LinkState>(() => ({ from: backTo }), [backTo]);
   const m = getModule(item.moduleId);
+  const name = examTitle(item, moduleTag(m));
   const kind = KIND_BY_ID[item.kind];
   const fmt = formatOf(item);
   const isLink = item.source === 'link';
@@ -317,7 +321,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
     </Button>
   ) : !layout.primaryLabel ? (
     <IconButton
-      label={`Download ${item.title}`}
+      label={`Download ${name}`}
       icon={DownloadSimple}
       href={downloadHref(item)}
       onClick={counted}
@@ -362,7 +366,9 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           </ol>
         </nav>
         <div className="lib-viewer__titlerow">
-          <h1 className="lib-viewer__title">{item.title}</h1>
+          <h1 className="lib-viewer__title" title={name === item.title ? undefined : item.title}>
+            {name}
+          </h1>
           <span className="lib-viewer__badges">
             {fmt ? <Badge tone="outline">{fmt.tag}</Badge> : <Badge tone="outline">Link</Badge>}
             {isNew(item) ? <Badge tone="highlight">New</Badge> : null}
@@ -386,7 +392,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
             <StarButton
               on={item.starred}
               onToggle={() => toggleStar(item)}
-              title={item.title}
+              title={name}
               size="md"
               tooltip={isDesktop}
             />
@@ -439,7 +445,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
       ) : null}
 
       <div className={cx('lib-viewer__body', isDesktop && metaOpen && 'has-meta')}>
-        <div className="lib-viewer__canvas" role="region" aria-label={`${item.title}, preview`}>
+        <div className="lib-viewer__canvas" role="region" aria-label={`${name}, preview`}>
           <Preview item={item} compact={isMobile} page={page} />
         </div>
         {metaOpen ? (

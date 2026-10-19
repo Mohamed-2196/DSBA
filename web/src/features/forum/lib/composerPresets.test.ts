@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { composerPresets, type PresetLookups } from './composerPresets';
-import { TITLE_MAX } from './threadForm';
+import { BODY_MAX, TITLE_MAX } from './threadForm';
 
 const MODULES = [
   { id: 'mathematics', unitCode: 'MT1186', year: 1 as const },
@@ -29,6 +29,18 @@ describe('composerPresets', () => {
   it('asks for nothing without presets, so a stored draft can come back', () => {
     expect(presets('')).toBeNull();
     expect(presets('title=%20%20&category=nowhere&module=gone')).toBeNull();
+  });
+
+  it('takes the details, cut to the composer’s limit', () => {
+    const body = 'About [ST2133 · May 2019 · Zone A](https://hub.example/library/st2133-2019-za)';
+    expect(presets(`module=ST2133&body=${encodeURIComponent(body)}`)).toEqual({
+      title: '',
+      body,
+      category: 'year-2',
+      moduleId: 'advanced-stats-distribution',
+      tags: [],
+    });
+    expect(presets(`body=${'x'.repeat(BODY_MAX + 10)}`)?.body).toHaveLength(BODY_MAX);
   });
 
   it('posts about a module in its year', () => {

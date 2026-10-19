@@ -7,6 +7,7 @@ from collections.abc import Callable
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.core.time import utcnow
 from app.models import ItemSource, ItemStatus, LibraryItem, Module, User
 from app.seed.loader import read
 from tests.content.conftest import API
@@ -94,3 +95,46 @@ def test_library_counts_follow_the_library_switch(
     assert {m["libraryCount"] for m in guest.get(f"{API}/modules").json()} == {None}
     boss = client_for(make_user(name="Head Admin", roles=("student", "admin")))
     assert boss.get(f"{API}/modules/{spec['id']}").json()["libraryCount"] == 1  # admins see every feature
+
+
+def test_the_module_count_the_shelves_and_the_list_agree(
+    client_for: Clients, modules: dict[str, Module], db: Session
+) -> None:
+    """Student test ST-34: a second copy of a file (the same bytes) is counted nowhere, and a link counts
+    everywhere, so the Files tab's number, its shelves and the module's library list say the same."""
+    spec = next(m for m in read("modules") if m.get("chapters"))
+
+    def paper(slug: str, digest: str | None, kind: str = "past-paper") -> LibraryItem:
+        return LibraryItem(
+            slug=slug,
+            source=ItemSource.file,
+            kind=kind,
+            title=slug,
+            module_id=spec["id"],
+            storage_key=f"library/{slug}.pdf",
+            file_name=f"{slug}.pdf",
+            content_type="application/pdf",
+            size_bytes=10,
+            content_hash=digest,
+            status=ItemStatus.published,
+            published_at=utcnow(),
+        )
+
+    db.add(paper("first-copy", "abc"))
+    db.commit()
+    db.add_all(
+        [
+            paper("second-copy", "abc"),  # the same bytes, added later: a duplicate
+            paper("odd-one", None, kind="other"),
+            _item("notes-link", spec["id"], ItemStatus.published),
+        ]
+    )
+    db.commit()
+    guest = client_for()
+    detail = guest.get(f"{API}/modules/{spec['id']}").json()
+    listed = guest.get(f"{API}/library/items", params={"module_id": spec["id"]}).json()
+    shelves = {s["kind"]: s["files"] for s in detail["shelves"]}
+    assert shelves == {"past-paper": 1, "notes": 1, "other": 1}
+    assert detail["libraryCount"] == listed["total"] == sum(shelves.values()) == 3
+    summary = next(m for m in guest.get(f"{API}/modules").json() if m["id"] == spec["id"])
+    assert summary["libraryCount"] == 3

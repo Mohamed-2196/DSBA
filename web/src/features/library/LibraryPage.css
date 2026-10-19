@@ -252,7 +252,112 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* ── Phones: a one-line header, then search, Filters and Sort, and the filters that are on ──────── */
+.lib-mhead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-12);
+}
+.lib-mhead__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-25);
+  font-weight: var(--fw-heavy);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-head);
+}
+.lib-filters--compact {
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-16);
+}
+.lib-filters__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8);
+}
+.lib-filters__n {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: var(--sp-6);
+  padding: 0 var(--sp-6);
+  border-radius: var(--r-pill);
+  background: var(--cobalt);
+  color: var(--cobalt-ink);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+.lib-filters__active {
+  display: flex;
+  gap: var(--sp-6);
+  margin: 0;
+  padding: 2px 0;
+  list-style: none;
+}
+.lib-active {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--sp-6);
+  min-height: 36px;
+  padding: 0 var(--sp-10) 0 var(--sp-12);
+  border: 1px solid var(--cobalt);
+  border-radius: var(--r-pill);
+  background: var(--cobalt-soft);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.lib-active svg {
+  width: 14px;
+  height: 14px;
+  color: var(--ink-2);
+}
+.lib-active:hover {
+  background: var(--surface-hover);
+}
+@media (pointer: coarse) {
+  .lib-active {
+    min-height: 44px;
+  }
+}
+
+/* The filter sheet. */
+.lib-sheet__body {
+  display: grid;
+  gap: var(--sp-16);
+}
+.lib-sheet__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
+
 /* ── Results ───────────────────────────────────────────────────────── */
+.lib-results--sittings {
+  display: grid;
+  gap: var(--sp-32);
+  margin-top: var(--sp-24);
+}
+.lib-card__by {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lib-row__by {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .lib-results-bar {
   display: flex;
   flex-wrap: wrap;
@@ -620,7 +725,10 @@
     scrollbar-width: none;
   }
   .lib-browse {
-    margin-top: var(--sp-32);
+    margin-top: 0;
+  }
+  .lib-results--sittings {
+    margin-top: var(--sp-16);
   }
   /* The filters run to the screen's edges, as New this week does, so a chip row is cut by the screen. */
   .lib-filters {
@@ -673,7 +781,8 @@
   .lib-table td:first-child {
     padding-left: var(--sp-12);
   }
-  .lib-row__module {
+  .lib-row__module,
+  .lib-row__by {
     display: none;
   }
   .lib-yours {

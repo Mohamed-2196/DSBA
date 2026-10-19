@@ -3,7 +3,8 @@ import type { ModuleSummary } from '../../api/types';
 import { formatSize } from '../../api/uploads';
 import { hostOf } from '../../lib/share';
 import { timeAgo } from '../../ui';
-import { formatOf, kindLabel, type ItemStatus } from './kinds';
+import { sittingLabel, zoneLabel } from '../../lib/exams';
+import { EXAM_KINDS, formatOf, kindLabel, type ItemStatus } from './kinds';
 import type { LibraryItem, LibrarySort } from './types';
 
 const WEEK = 7 * 24 * 3600 * 1000;
@@ -51,10 +52,58 @@ export function moduleTag(m: Pick<ModuleSummary, 'unitCode' | 'shortName'> | nul
   return m ? m.unitCode || m.shortName : null;
 }
 
+type ExamTitled = Pick<LibraryItem, 'title' | 'kind' | 'examYear' | 'examSession' | 'zone'>;
+
+/**
+ * The name a file of a sitting goes by in lists, built from its exam year, session and zone: 'ST2133 · May 2019 ·
+ * Zone A', 'ST2133 · October 2023 · Examiners’ report'. `module` leads it (the module's tag), unless the list is the
+ * module's own (null). Other files, and papers without an exam year, keep their title. The API's twin is
+ * exam_title() in api/app/services/library.py (search results).
+ */
+export function examTitle(item: ExamTitled, module: string | null): string {
+  if (!item.examYear || !EXAM_KINDS.has(item.kind)) return item.title;
+  const parts = [module, sittingLabel(item.examYear, item.examSession)];
+  if (item.zone) parts.push(zoneLabel(item.zone));
+  if (item.kind !== 'past-paper') parts.push(kindLabel(item.kind));
+  return parts.filter(Boolean).join(' · ');
+}
+
+/** Whether examTitle() names the item by its sitting rather than its title. */
+export function hasExamTitle(item: ExamTitled): boolean {
+  return !!item.examYear && EXAM_KINDS.has(item.kind);
+}
+
+/**
+ * Who a file comes from, for students' notes and the like: the author's credit ('By Mahdi'), or the student who
+ * shared it ('Shared by Sara A. · Year 3', or their badge, 'Student rep'). Null for files of a sitting, whose
+ * sitting is what matters, and for files nobody shared (the imported library).
+ */
+export function sharedBy(item: Pick<LibraryItem, 'kind' | 'authorName' | 'uploadedBy'>): string | null {
+  if (EXAM_KINDS.has(item.kind)) return null;
+  if (item.authorName) return `By ${item.authorName}`;
+  const who = item.uploadedBy;
+  if (!who) return null;
+  const tag = who.badge ?? (who.year ? `Year ${who.year}` : null);
+  return tag ? `Shared by ${who.displayName} · ${tag}` : `Shared by ${who.displayName}`;
+}
+
+/**
+ * "Ask about this paper": a new forum thread about the item's module, its details starting with a link to the item
+ * (`url`: the item's full address, appUrl(itemPath(item))).
+ */
+export function askAboutHref(item: Pick<LibraryItem, 'moduleId'>, name: string, url: string): string {
+  const q = new URLSearchParams();
+  if (item.moduleId) q.set('module', item.moduleId);
+  q.set('body', `About [${name.replace(/[[\]]/g, '')}](${url}):\n\n`);
+  return `/forum/new?${q.toString()}`;
+}
+
 /** The one line of meta under a card, matching the sort. */
 export function cardMeta(item: LibraryItem, sort: LibrarySort): string {
   if (sort === 'popular') return downloadsLabel(item.downloadCount);
-  if (sort === 'title' || sort === 'relevance') return `${kindLabel(item.kind)}, ${sizeLabel(item)}`;
+  if (sort === 'sitting' && hasExamTitle(item)) return sizeLabel(item); // the title names the kind
+  if (sort === 'title' || sort === 'relevance' || sort === 'sitting')
+    return `${kindLabel(item.kind)}, ${sizeLabel(item)}`;
   return `Added ${timeAgo(addedAt(item))}`;
 }
 

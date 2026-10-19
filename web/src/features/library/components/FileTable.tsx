@@ -4,7 +4,18 @@ import { Link } from 'react-router-dom';
 import { useModules } from '../../../state/modules';
 import { Badge, IconButton, cx, timeAgo } from '../../../ui';
 import { downloadHref, itemPath, openLinkHref } from '../api';
-import { addedAt, isNew, linkPlace, matchLine, moduleTag, sizeLabel, statusInfo } from '../display';
+import {
+  addedAt,
+  examTitle,
+  hasExamTitle,
+  isNew,
+  linkPlace,
+  matchLine,
+  moduleTag,
+  sharedBy,
+  sizeLabel,
+  statusInfo,
+} from '../display';
 import { formatOf, kindLabel } from '../kinds';
 import type { LibraryItem, LibrarySort } from '../types';
 import type { LinkState } from './FileCard';
@@ -84,14 +95,21 @@ export function FileTable({
             const m = getModule(f.moduleId);
             const fmt = formatOf(f);
             const status = statusInfo(f.status);
+            const name = examTitle(f, moduleTag(m));
+            const by = sharedBy(f);
             return (
               <tr key={f.id} className="lib-row" data-hub="file-card">
                 <td className="lib-table__name">
-                  <Link to={itemPath(f)} state={linkState} className="lib-row__link">
+                  <Link
+                    to={itemPath(f)}
+                    state={linkState}
+                    className="lib-row__link"
+                    title={name === f.title ? undefined : f.title}
+                  >
                     <FileThumb item={f} size="list" />
                     <span className="lib-row__text">
                       <span className="lib-row__title">
-                        <span className="lib-row__name">{f.title}</span>
+                        <span className="lib-row__name">{name}</span>
                         {isNew(f) ? (
                           <Badge tone="highlight" size="sm">
                             New
@@ -104,12 +122,13 @@ export function FileTable({
                         ) : null}
                       </span>
                       <span className="lib-row__sub">
-                        {m ? <span className="lib-row__code">{moduleTag(m)}</span> : null}
+                        {m && !hasExamTitle(f) ? <span className="lib-row__code">{moduleTag(m)}</span> : null}
                         <span className="lib-row__mobile-meta">
                           {fmt ? <span className="lib-card__fmt">{fmt.tag}</span> : null}
-                          {kindLabel(f.kind)}, {timeAgo(addedAt(f))}
+                          {by ?? `${kindLabel(f.kind)}, ${timeAgo(addedAt(f))}`}
                         </span>
-                        {m ? <span className="lib-row__module">{m.name}</span> : null}
+                        {by ? <span className="lib-row__by">{by}</span> : null}
+                        {m && !by ? <span className="lib-row__module">{m.name}</span> : null}
                       </span>
                       {f.match ? <span className="lib-card__match">{matchLine(f)}</span> : null}
                     </span>
@@ -124,11 +143,11 @@ export function FileTable({
                 <td className="lib-table__actions">
                   <span className="lib-row__actions">
                     {f.status === 'published' ? (
-                      <StarButton on={f.starred} onToggle={() => onToggleStar(f)} title={f.title} />
+                      <StarButton on={f.starred} onToggle={() => onToggleStar(f)} title={name} />
                     ) : null}
                     {f.source === 'link' ? (
                       <IconButton
-                        label={`Open ${f.title} on ${linkPlace(f)} (opens in a new tab)`}
+                        label={`Open ${name} on ${linkPlace(f)} (opens in a new tab)`}
                         icon={ArrowSquareOut}
                         href={openLinkHref(f)}
                         size="sm"
@@ -136,7 +155,7 @@ export function FileTable({
                       />
                     ) : (
                       <IconButton
-                        label={`Download ${f.title}`}
+                        label={`Download ${name}`}
                         icon={DownloadSimple}
                         href={downloadHref(f)}
                         size="sm"

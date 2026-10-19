@@ -10,7 +10,7 @@ import type {
   Sitting,
   SittingZone,
 } from '../../api/types';
-import { ZONES } from '../../lib/exams';
+import { zoneLabel } from '../../lib/exams';
 
 export const PAPERS_KEY = ['library', 'papers'] as const;
 export const QUESTIONS_KEY = ['library', 'questions'] as const;
@@ -244,47 +244,49 @@ export function clockLabel(ms: number): string {
   return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-/** One card of the past papers grid: a zone's paper with what goes with it, or a sitting's report on its own. */
-export interface PaperCard {
-  key: string;
-  /** what the card opens: the paper, or the report (or solutions) of a sitting that has no paper yet */
+/** A file in a sitting's row, with what its link says ('Zone A', 'Paper', 'Report', 'Zone B solutions'). */
+export interface SittingLink {
   item: LibraryItem;
-  zone: SittingZone['zone'];
-  reports: LibraryItem[];
-  solutions: LibraryItem[];
+  label: string;
 }
 
-/**
- * A sitting's cards: one per paper (its zone's reports and solutions, then those for every zone), the student's zone
- * first; a sitting without a paper shows its reports and solutions as cards of their own. `only`: one zone's cards
- * (and those for every zone).
- */
-export function sittingCards(
-  sitting: Sitting,
-  yours: SittingZone['zone'],
-  only: SittingZone['zone'] = null,
-): PaperCard[] {
-  const every = sitting.zones.find((z) => z.zone === null);
-  const zones = yourZoneFirst(sitting.zones, yours).filter((z) => !only || z.zone === only || z.zone === null);
-  const cards: PaperCard[] = zones.flatMap((z) =>
-    z.papers.map((item) => ({
-      key: item.id,
-      item,
-      zone: z.zone,
-      reports: z.zone && every ? [...z.reports, ...every.reports] : z.reports,
-      solutions: z.zone && every ? [...z.solutions, ...every.solutions] : z.solutions,
-    })),
-  );
-  if (cards.length || sitting.zones.some((z) => z.papers.length)) return cards;
-  return zones.flatMap((z) =>
-    [...z.reports, ...z.solutions].map((item) => ({ key: item.id, item, zone: z.zone, reports: [], solutions: [] })),
-  );
+/** One row of the past papers table: a sitting's papers (one per zone), its reports and solutions, and the paper
+ *  Time me opens (the student's zone's, else the first). */
+export interface SittingRow {
+  papers: (SittingLink & { zone: SittingZone['zone']; yours: boolean })[];
+  reports: SittingLink[];
+  solutions: SittingLink[];
+  timeMe: LibraryItem | null;
 }
 
-/** The zones a module's sittings have papers for, in the library's order. */
-export function zonesIn(sittings: readonly Sitting[]): NonNullable<SittingZone['zone']>[] {
-  const found = new Set(sittings.flatMap((s) => s.zones.filter((z) => z.papers.length).map((z) => z.zone)));
-  return ZONES.filter((z) => found.has(z));
+/** 'Report', or 'Report 2' for a second one; 'Zone A report' when the sitting's reports differ by zone. */
+function labelled(zones: readonly SittingZone[], key: 'reports' | 'solutions', word: string): SittingLink[] {
+  const byZone = zones.filter((z) => z[key].length);
+  const perZone = byZone.length > 1 && byZone.some((z) => z.zone);
+  const out: SittingLink[] = [];
+  for (const z of byZone) {
+    const base = perZone && z.zone ? `${zoneLabel(z.zone)} ${word.toLowerCase()}` : word;
+    z[key].forEach((item, i) => out.push({ item, label: i ? `${base} ${i + 1}` : base }));
+  }
+  if (!perZone && out.length > 1) return out.map((l, i) => ({ ...l, label: i ? `${word} ${i + 1}` : word }));
+  return out;
+}
+
+/** A sitting as one row of the past papers table, the student's zone first. */
+export function sittingRow(sitting: Sitting, yours: SittingZone['zone']): SittingRow {
+  const zones = yourZoneFirst(sitting.zones, yours);
+  const papers = zones.flatMap((z) =>
+    z.papers.map((item, i) => {
+      const base = z.zone ? zoneLabel(z.zone) : 'Paper';
+      return { item, zone: z.zone, yours: !!yours && z.zone === yours, label: i ? `${base} (${i + 1})` : base };
+    }),
+  );
+  return {
+    papers,
+    reports: labelled(zones, 'reports', 'Report'),
+    solutions: labelled(zones, 'solutions', 'Solutions'),
+    timeMe: papers[0]?.item ?? null,
+  };
 }
 
 /** A sitting's zones with the student's own zone first (null: as they come). */

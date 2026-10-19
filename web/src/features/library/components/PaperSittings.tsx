@@ -1,154 +1,150 @@
-// A module's past papers (the Files tab, #papers): a grid of sittings, newest first. Each sitting shows a card per
-// zone's paper with its real first page, and the ways in: Open, the examiners' report, solutions and Time me.
-// Papers without an exam year follow as "Other papers".
+// A module's past papers as a table, newest sitting first: one row per sitting with each zone's paper, the examiners'
+// report, the solutions and Time me. On phones a row stacks: the sitting, then its links. Used on the module's Files
+// tab (#papers) and as the library's Past papers view for one module. Papers without an exam year follow as "Other
+// papers".
 import { Exam, Timer } from '@phosphor-icons/react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { LibraryItem, Sitting, SittingZone } from '../../../api/types';
-import { RTC_NOTE, sittingLabel, zoneLabel, type Zone } from '../../../lib/exams';
-import { Badge, Button, Panel, SegmentedControl, Skeleton } from '../../../ui';
+import { RTC_NOTE, sittingLabel } from '../../../lib/exams';
+import { BREAKPOINTS, useMediaQuery } from '../../../state';
+import { Button, Panel, Skeleton, cx } from '../../../ui';
 import { PaperDone, SittingsDone } from '../../board/public';
 import { usePapers } from '../../papers/public';
 import { itemPath } from '../api';
-import { kindLabel } from '../kinds';
-import { sittingCards, sittingFiles, usePaperSittings, zonesIn, type PaperCard } from '../papers';
+import { sittingFiles, sittingRow, usePaperSittings, type SittingLink } from '../papers';
 import type { LinkState } from './FileCard';
-import { FileThumb } from './FileThumb';
+import '../ModuleFiles.css';
 import './PaperSittings.css';
 
-const FIRST = 4;
-type ZoneFilter = Zone | 'all';
+/** Sittings a phone shows before "Show all": about a screen's worth. Wider screens show every sitting. */
+const FIRST_ON_PHONES = 8;
 
 /** "?time=1" on a paper's address opens Time me as the paper opens. */
 const timeMeHref = (item: LibraryItem) => `${itemPath(item)}?time=1`;
 
-function PaperCardView({
-  card,
-  yours,
+function FileLink({
+  link,
+  when,
+  noun,
   linkState,
-  board,
+  yours = false,
 }: {
-  card: PaperCard;
-  yours: boolean;
+  link: SittingLink;
+  /** the sitting, for screen readers: 'May 2024 Zone A paper' */
+  when: string;
+  noun?: string;
   linkState: LinkState;
-  board: boolean;
+  yours?: boolean;
 }) {
-  const { item, zone, reports, solutions } = card;
-  const isPaper = item.kind === 'past-paper';
-  const name = isPaper ? (zone ? zoneLabel(zone) : 'All zones') : kindLabel(item.kind);
   return (
-    <li className="pp-card" data-hub="paper-card">
-      <Link
-        to={itemPath(item)}
-        state={linkState}
-        className="pp-card__cover"
-        aria-label={`Open ${item.title}`}
-        title={item.title}
-      >
-        <FileThumb item={item} size="strip" />
-      </Link>
-      <div className="pp-card__body">
-        <p className="pp-card__name">
-          <span>{name}</span>
-          {yours ? (
-            <Badge tone="highlight" size="sm">
-              Your zone
-            </Badge>
-          ) : null}
-          {board && isPaper ? <PaperDone itemId={item.id} /> : null}
-        </p>
-        <Button size="sm" variant="primary" to={itemPath(item)} fullWidth className="pp-card__open">
-          Open
-        </Button>
-        {isPaper ? (
-          <ul role="list" className="pp-card__more">
-            {reports.map((r, i) => (
-              <li key={r.id}>
-                <Link to={itemPath(r)} state={linkState} className="pp-card__link" title={r.title}>
-                  {reports.length > 1 ? `Report ${i + 1}` : 'Report'}
-                </Link>
-              </li>
-            ))}
-            {solutions.map((f, i) => (
-              <li key={f.id}>
-                <Link to={itemPath(f)} state={linkState} className="pp-card__link" title={f.title}>
-                  {solutions.length > 1 ? `Solutions ${i + 1}` : 'Solutions'}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link
-                to={timeMeHref(item)}
-                state={linkState}
-                className="pp-card__link"
-                aria-label={`Time me on ${item.title}`}
-              >
-                <Timer aria-hidden="true" weight="bold" />
-                Time me
-              </Link>
-            </li>
-          </ul>
-        ) : null}
-      </div>
-    </li>
+    <Link
+      to={itemPath(link.item)}
+      state={linkState}
+      className={cx('pp-link', yours && 'is-yours')}
+      title={link.item.title}
+    >
+      <span className="visually-hidden">{when} </span>
+      {link.label}
+      {noun ? <span className="visually-hidden"> {noun}</span> : null}
+      {yours ? <span className="visually-hidden">, your zone</span> : null}
+    </Link>
   );
 }
 
-function SittingBlock({
+function None({ text }: { text: string }) {
+  return (
+    <span className="pp-row__none">
+      <span aria-hidden="true">–</span>
+      <span className="visually-hidden">{text}</span>
+    </span>
+  );
+}
+
+function SittingRowView({
   sitting,
   zone,
-  only,
   linkState,
   board,
 }: {
   sitting: Sitting;
   zone: SittingZone['zone'];
-  only: SittingZone['zone'];
   linkState: LinkState;
   board: boolean;
 }) {
-  const cards = sittingCards(sitting, zone, only);
-  if (!cards.length) return null;
-  const hasPaper = sitting.zones.some((z) => z.papers.length);
-  const hasReport = sitting.zones.some((z) => z.reports.length);
-  const label = sittingLabel(sitting.examYear, sitting.session);
+  const row = sittingRow(sitting, zone);
+  const when = sittingLabel(sitting.examYear, sitting.session);
   return (
-    <li className="pp-sitting" aria-label={label}>
-      <h4 className="pp-sitting__when">
-        <span className="u-tabular">{label}</span>
-        {sitting.session === 'october' ? <span className="pp-sitting__kind">Resit sitting</span> : null}
-        {hasPaper && !hasReport ? <span className="pp-sitting__none">No examiners’ report yet</span> : null}
-        {!hasPaper ? <span className="pp-sitting__none">Paper not in the Hub yet</span> : null}
-      </h4>
-      <ul role="list" className="pp-grid">
-        {cards.map((c) => (
-          <PaperCardView key={c.key} card={c} yours={!!zone && c.zone === zone} linkState={linkState} board={board} />
-        ))}
-      </ul>
+    <li className="pp-row" aria-label={when} data-hub="paper-sitting">
+      <p className="pp-row__when">
+        <span className="u-tabular">{when}</span>
+        {sitting.session === 'october' ? <span className="pp-row__resit">Resit</span> : null}
+      </p>
+      <div className="pp-row__files">
+        <div className="pp-row__cell pp-row__papers">
+          {row.papers.length ? (
+            row.papers.map((p) => (
+              <span key={p.item.id} className="pp-row__paper">
+                <FileLink link={p} when={when} noun="paper" linkState={linkState} yours={p.yours} />
+                {board ? <PaperDone itemId={p.item.id} /> : null}
+              </span>
+            ))
+          ) : (
+            <span className="pp-row__missing">Paper not in the Hub yet</span>
+          )}
+        </div>
+        <div className="pp-row__cell pp-row__reports">
+          {row.reports.length ? (
+            row.reports.map((l) => <FileLink key={l.item.id} link={l} when={when} linkState={linkState} />)
+          ) : (
+            <None text="No examiners’ report yet" />
+          )}
+        </div>
+        <div className="pp-row__cell pp-row__solutions">
+          {row.solutions.length ? (
+            row.solutions.map((l) => <FileLink key={l.item.id} link={l} when={when} linkState={linkState} />)
+          ) : (
+            <None text="No solutions yet" />
+          )}
+        </div>
+        <div className="pp-row__cell pp-row__time">
+          {row.timeMe ? (
+            <Link
+              to={timeMeHref(row.timeMe)}
+              state={linkState}
+              className="pp-time"
+              aria-label={`Time me on the ${when} paper${row.papers.length > 1 ? `, ${row.papers[0].label}` : ''}`}
+              title="Time me"
+            >
+              <Timer aria-hidden="true" weight="bold" />
+            </Link>
+          ) : null}
+        </div>
+      </div>
     </li>
   );
 }
 
-/** The Files tab's past papers. Renders nothing while the module has none. `board`: the study board is on, so the
- *  heading says how many sittings are done. */
+/** A module's past papers by sitting. Renders nothing while the module has none. `board`: the study board is on, so
+ *  the heading says how many sittings are done. `headingLevel`: 3 inside the module's Files tab, 2 in the library. */
 export function PaperSittings({
   moduleId,
   linkState,
   renderOther,
   board,
+  headingLevel = 3,
 }: {
   moduleId: string;
   linkState: LinkState;
   renderOther: (items: LibraryItem[]) => ReactNode;
   board: boolean;
+  headingLevel?: 2 | 3;
 }) {
   const papers = usePaperSittings(moduleId);
   const { zone } = usePapers();
+  const isMobile = useMediaQuery(BREAKPOINTS.mobile);
   const [all, setAll] = useState(false);
-  const zones = useMemo(() => zonesIn(papers.data?.sittings ?? []), [papers.data]);
-  const [picked, setPicked] = useState<ZoneFilter | null>(null);
-  // Your zone's papers by default, once the module has them; every zone otherwise.
-  const filter: ZoneFilter = picked ?? (zone && zones.includes(zone) ? zone : 'all');
+  const H = headingLevel === 2 ? 'h2' : 'h3';
   if (papers.isPending) {
     return (
       <section className="lib-mf__group" aria-busy="true" aria-label="Past papers">
@@ -160,15 +156,14 @@ export function PaperSittings({
   if (papers.isError) return null; // the files below still list every paper
   const { sittings, other } = papers.data;
   if (!sittings.length && !other.length) return null;
-  const only = filter === 'all' ? null : filter;
-  const shown = sittings.filter((s) => sittingCards(s, zone, only).length);
-  const visible = all ? shown : shown.slice(0, FIRST);
+  const capped = isMobile && !all && sittings.length > FIRST_ON_PHONES + 2;
+  const visible = capped ? sittings.slice(0, FIRST_ON_PHONES) : sittings;
   return (
     <>
       {sittings.length ? (
         <section id="papers" className="lib-mf__group pp" aria-labelledby="lib-mf-sittings" data-hub="paper-sittings">
           <div className="pp__head">
-            <h3 id="lib-mf-sittings" className="lib-mf__h">
+            <H id="lib-mf-sittings" className="lib-mf__h">
               <Exam aria-hidden="true" weight="duotone" className="pp__icon" />
               Past papers
               <span className="lib-mf__count">
@@ -180,46 +175,34 @@ export function PaperSittings({
                   className="lib-mf__sittings"
                 />
               ) : null}
-            </h3>
-            {zones.length > 1 ? (
-              <SegmentedControl<ZoneFilter>
-                label="Zone"
-                size="sm"
-                value={filter}
-                onChange={(z) => {
-                  setPicked(z);
-                  setAll(false);
-                }}
-                options={[
-                  { value: 'all', label: 'All zones' },
-                  ...zones.map((z) => ({ value: z, label: zoneLabel(z) })),
-                ]}
-              />
-            ) : null}
+            </H>
+            <p className="pp__intro">Newest first.{zone ? ' Your zone’s paper is marked.' : ''}</p>
           </div>
-          <p className="pp__intro">
-            Newest first. Open a paper, check it against the examiners’ report, or sit it against the clock with Time
-            me.
-          </p>
           <Panel as="div" padding="none" className="pp__panel">
+            <div className="pp-table__head" aria-hidden="true">
+              <span>Sitting</span>
+              <span>Paper</span>
+              <span>Examiners’ report</span>
+              <span>Solutions</span>
+              <span className="pp-table__time">Time me</span>
+            </div>
             <ul role="list" className="pp__sittings">
               {visible.map((s) => (
-                <SittingBlock
+                <SittingRowView
                   key={`${s.examYear}-${s.session ?? 'any'}`}
                   sitting={s}
                   zone={zone}
-                  only={only}
                   linkState={linkState}
                   board={board}
                 />
               ))}
             </ul>
           </Panel>
-          {zones.includes('RTC') ? <p className="pp__note">{RTC_NOTE}</p> : null}
-          {shown.length > FIRST ? (
+          {sittings.some((s) => s.zones.some((z) => z.zone === 'RTC')) ? <p className="pp__note">{RTC_NOTE}</p> : null}
+          {capped || all ? (
             <div className="pp__more">
               <Button size="sm" variant="ghost" onClick={() => setAll((a) => !a)} aria-expanded={all}>
-                {all ? 'Show fewer sittings' : `Show all ${shown.length} sittings`}
+                {all ? 'Show fewer sittings' : `Show all ${sittings.length} sittings`}
               </Button>
             </div>
           ) : null}
@@ -227,10 +210,10 @@ export function PaperSittings({
       ) : null}
       {other.length ? (
         <section className="lib-mf__group" aria-labelledby="lib-mf-other-papers">
-          <h3 id="lib-mf-other-papers" className="lib-mf__h">
+          <H id="lib-mf-other-papers" className="lib-mf__h">
             Other papers
             <span className="lib-mf__count">{other.length}</span>
-          </h3>
+          </H>
           <p className="pp__intro">Mocks, sample papers and papers whose sitting isn’t known.</p>
           {renderOther(other)}
         </section>
