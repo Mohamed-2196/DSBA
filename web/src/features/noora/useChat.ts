@@ -88,6 +88,11 @@ export type Pause = 'limit' | 'budget' | 'off';
 const STOPPED = 'You stopped this answer.';
 
 /** Why an answer comes from her script instead of her AI, and whether to stop asking her AI for this visit. */
+/** Her reply when her AI's safeguards declined the question: the plain message only, nothing of what had arrived. */
+export function declinedReply(message: string, id: number, at: number): NooraMessage {
+  return { id, from: 'noora', at, mood: 'neutral', text: message, refs: [], declined: true };
+}
+
 export function fallback(e: unknown): { notice: string; pause: Pause | null } {
   const code = isApiError(e) ? e.code : null;
   if (code === 'noora_daily_limit')
@@ -255,6 +260,11 @@ export function useChat({
         })
         .catch((e: unknown) => {
           if (controller.signal.aborted) return;
+          // Declined: what had arrived goes, and only her plain message stays (asking again won't help).
+          if (e instanceof AnswerCutOff && e.declined) {
+            finish(declinedReply(e.message, replyId, at));
+            return;
+          }
           if (e instanceof AnswerCutOff && e.said) {
             finish({
               ...replyFromAnswer(partial.current, now.modules),

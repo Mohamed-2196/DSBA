@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../../api/errors';
 import type { Message } from './types';
-import { fallback, historyOf, lastQuestionAt, stoppedReply, type Pending } from './useChat';
+import { declinedReply, fallback, historyOf, lastQuestionAt, stoppedReply, type Pending } from './useChat';
 
 describe('fallback', () => {
   it('pauses her AI for the visit when the day or the month is used up', () => {
@@ -21,6 +21,23 @@ describe('fallback', () => {
     expect(fallback(new ApiError({ status: 503, code: 'noora_busy', message: '' })).pause).toBeNull();
     expect(fallback(new ApiError({ status: 0, code: 'network', message: '' })).pause).toBeNull();
     expect(fallback(new Error('cut off')).notice).toMatch(/from my script/);
+  });
+});
+
+describe('declinedReply', () => {
+  it('is her plain message only: no retry, no notice, no cards', () => {
+    const reply = declinedReply('I can’t help with that one.', 7, 5);
+    expect(reply).toEqual({
+      id: 7,
+      from: 'noora',
+      at: 5,
+      mood: 'neutral',
+      text: 'I can’t help with that one.',
+      refs: [],
+      declined: true,
+    });
+    expect(reply).not.toHaveProperty('retry');
+    expect(reply).not.toHaveProperty('ai');
   });
 });
 

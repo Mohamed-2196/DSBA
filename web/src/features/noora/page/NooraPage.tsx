@@ -5,19 +5,7 @@
 // The same conversation as the chat card: "Open full chat" there carries it over, and the card carries on with it.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  ArrowLeft,
-  BookOpenText,
-  DotsThree,
-  Exam,
-  Keyboard,
-  NotePencil,
-  PencilSimple,
-  SidebarSimple,
-  SquaresFour,
-  Trash,
-  TrayArrowDown,
-} from '@phosphor-icons/react';
+import { Keyboard } from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
 import { useDocumentTitle, useLocalStorage, useMediaQuery, useYear } from '../../../state';
 import { useModules } from '../../../state/modules';
@@ -35,6 +23,8 @@ import {
   Tooltip,
   cx,
   modKeyLabel,
+  Icon,
+  glyph,
 } from '../../../ui';
 import { useNote } from '../../notes/public';
 import { carriesFiles, faceFor, highestId, spokenFor } from '../chat';
@@ -321,7 +311,7 @@ function NooraScreen({ script }: { script: NooraScript }) {
     <>
       {added.subject ? (
         <Seen
-          icon={added.subject.kind === 'lesson' ? BookOpenText : SquaresFour}
+          icon={added.subject.kind === 'lesson' ? glyph.video : glyph.modules}
           label={added.subject.label}
           title="Noora reads it with each question."
           removeLabel={`Take off ${added.subject.label}`}
@@ -331,7 +321,7 @@ function NooraScreen({ script }: { script: NooraScript }) {
       ) : null}
       {added.paper ? (
         <Seen
-          icon={Exam}
+          icon={glyph.exam}
           label={added.paper.label}
           title="That page and the examiners’ report go to Claude with your questions."
           removeLabel="Take off the paper"
@@ -341,7 +331,7 @@ function NooraScreen({ script }: { script: NooraScript }) {
       ) : null}
       {added.note ? (
         <Seen
-          icon={NotePencil}
+          icon={glyph.notebook}
           label={
             note.isError
               ? `${added.note.label} (didn’t load)`
@@ -435,7 +425,7 @@ function NooraScreen({ script }: { script: NooraScript }) {
           {full ? (
             <IconButton
               label="Back to the Hub"
-              icon={ArrowLeft}
+              icon={<Icon glyph={glyph.back} />}
               size="sm"
               onClick={() => (canGoBack() ? navigate(-1) : navigate('/'))}
               data-hub="noora-back"
@@ -444,7 +434,7 @@ function NooraScreen({ script }: { script: NooraScript }) {
           {full || !sideShown ? (
             <IconButton
               label="Show chats"
-              icon={SidebarSimple}
+              icon={<Icon glyph={glyph.sidebar} />}
               size="sm"
               tooltip={!full}
               onClick={toggleSide}
@@ -465,7 +455,7 @@ function NooraScreen({ script }: { script: NooraScript }) {
             {usingAi || messages.length || pending ? model : null}
             <IconButton
               label="New chat"
-              icon={NotePencil}
+              icon={<Icon glyph={glyph.edit} />}
               size="sm"
               tooltip
               disabled={!messages.length && !pending}
@@ -475,19 +465,26 @@ function NooraScreen({ script }: { script: NooraScript }) {
             <Menu
               align="end"
               label="Chat options"
-              trigger={<IconButton label="Chat options" icon={DotsThree} size="sm" data-hub="noora-page-more" />}
+              trigger={
+                <IconButton
+                  label="Chat options"
+                  icon={<Icon glyph={glyph.more} />}
+                  size="sm"
+                  data-hub="noora-page-more"
+                />
+              }
               items={[
                 {
                   id: 'rename',
                   label: 'Rename chat',
-                  icon: PencilSimple,
+                  icon: <Icon glyph={glyph.edit} />,
                   disabled: !current,
                   onSelect: () => setRenaming(true),
                 },
                 {
                   id: 'delete',
                   label: 'Delete chat',
-                  icon: Trash,
+                  icon: <Icon glyph={glyph.trash} />,
                   danger: true,
                   disabled: !current,
                   onSelect: () => current && setConfirming({ kind: 'one', chat: current }),
@@ -558,7 +555,7 @@ function NooraScreen({ script }: { script: NooraScript }) {
           </p>
         </div>
         <div className="nc-drop np-drop" aria-hidden="true">
-          <TrayArrowDown weight="duotone" />
+          <Icon glyph={glyph.download} />
           Drop to attach
         </div>
       </section>

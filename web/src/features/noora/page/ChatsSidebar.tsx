@@ -1,9 +1,8 @@
 // The full page's list of chats: "New chat", a search over every saved chat's name and words, and the chats by day
 // (Today, Yesterday, Previous 7 days...). Each can be renamed in place or deleted. Everything is in this browser only.
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { ChatsCircle, DotsThree, NotePencil, PencilSimple, SidebarSimple, Trash } from '@phosphor-icons/react';
 import { useDebouncedValue } from '../../../state';
-import { Button, IconButton, Menu, SearchField, cx } from '../../../ui';
+import { Button, IconButton, Menu, SearchField, cx, Icon, glyph } from '../../../ui';
 import { groupChats, searchChats, TITLE_MAX, type SavedChat } from '../saved';
 
 export interface ChatsSidebarProps {
@@ -79,7 +78,7 @@ export function ChatsSidebar({
         {onHide ? (
           <IconButton
             label="Hide chats"
-            icon={SidebarSimple}
+            icon={<Icon glyph={glyph.sidebar} />}
             size="sm"
             tooltip
             onClick={onHide}
@@ -90,7 +89,7 @@ export function ChatsSidebar({
         <Button
           size="sm"
           variant="secondary"
-          leadingIcon={NotePencil}
+          leadingIcon={<Icon glyph={glyph.edit} />}
           onClick={onNew}
           className="np-side__new"
           data-hub="noora-page-new"
@@ -148,18 +147,23 @@ export function ChatsSidebar({
                           trigger={
                             <IconButton
                               label={`Options for “${chat.title}”`}
-                              icon={DotsThree}
+                              icon={<Icon glyph={glyph.more} />}
                               size="sm"
                               className="np-chat__more"
                               data-hub="noora-chat-more"
                             />
                           }
                           items={[
-                            { id: 'rename', label: 'Rename', icon: PencilSimple, onSelect: () => setRenaming(chat.id) },
+                            {
+                              id: 'rename',
+                              label: 'Rename',
+                              icon: <Icon glyph={glyph.edit} />,
+                              onSelect: () => setRenaming(chat.id),
+                            },
                             {
                               id: 'delete',
                               label: 'Delete',
-                              icon: Trash,
+                              icon: <Icon glyph={glyph.trash} />,
                               danger: true,
                               onSelect: () => onDelete(chat),
                             },
@@ -174,7 +178,7 @@ export function ChatsSidebar({
           ))
         ) : (
           <div className="np-side__empty" data-hub="noora-chats-empty">
-            <ChatsCircle aria-hidden="true" weight="duotone" />
+            <Icon glyph={glyph.forum} />
             <p>{searching ? 'No chats match. Try other words.' : 'No chats yet. Your chats show up here.'}</p>
           </div>
         )}
@@ -184,7 +188,7 @@ export function ChatsSidebar({
         <Button
           variant="ghost"
           size="sm"
-          leadingIcon={Trash}
+          leadingIcon={<Icon glyph={glyph.trash} />}
           onClick={onDeleteAll}
           disabled={!chats.length}
           data-hub="noora-delete-all"

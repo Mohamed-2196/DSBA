@@ -1,6 +1,6 @@
 import { useLayoutEffect, type ReactNode, type RefObject } from 'react';
-import { ArrowUp, Browser, Exam, NotePencil, Paperclip, Plus, Stop, X, type Icon } from '@phosphor-icons/react';
-import { IconButton, Tooltip, cx } from '../../ui';
+import { Stop } from '@phosphor-icons/react';
+import { Icon, IconButton, Tooltip, cx, glyph, type Glyph } from '../../ui';
 import { FileChip } from './Attachment';
 import type { Attachment } from './files';
 
@@ -73,7 +73,7 @@ export interface ComposerProps {
 }
 
 interface SeenProps {
-  icon: Icon;
+  icon: Glyph;
   label: string;
   title: string;
   removeLabel: string;
@@ -83,13 +83,13 @@ interface SeenProps {
 }
 
 /** One thing her AI can see, with a button to take it off. */
-export function Seen({ icon: SeenIcon, label, title, removeLabel, onRemove, hub, removeHub }: SeenProps) {
+export function Seen({ icon, label, title, removeLabel, onRemove, hub, removeHub }: SeenProps) {
   return (
     <li className="nc-see" data-hub={hub} title={title}>
-      <SeenIcon className="nc-see__icon" aria-hidden="true" weight="duotone" />
+      <Icon glyph={icon} className="nc-see__icon" />
       <span className="nc-see__label">{label}</span>
       <button type="button" className="nc-see__remove" aria-label={removeLabel} onClick={onRemove} data-hub={removeHub}>
-        <X weight="bold" aria-hidden="true" />
+        <Icon glyph={glyph.close} />
       </button>
     </li>
   );
@@ -142,7 +142,7 @@ export function Composer(props: ComposerProps) {
 
   const remove = (file: Attachment) => (
     <button type="button" className="nc-tray__remove" aria-label={`Remove ${file.name}`} onClick={() => onRemove(file)}>
-      <X weight="bold" aria-hidden="true" />
+      <Icon glyph={glyph.close} />
     </button>
   );
 
@@ -155,7 +155,7 @@ export function Composer(props: ComposerProps) {
           {context}
           {pageChoice?.shared ? (
             <Seen
-              icon={Browser}
+              icon={glyph.page}
               label={pageChoice.label}
               title="This page goes to Claude with your questions."
               removeLabel="Don’t share this page"
@@ -165,7 +165,7 @@ export function Composer(props: ComposerProps) {
           ) : null}
           {paperChoice ? (
             <Seen
-              icon={Exam}
+              icon={glyph.exam}
               label={`Question ${paperChoice.question}, page ${paperChoice.page}`}
               title={`“${paperChoice.title}”. That page and the examiners’ report go to Claude with your questions.`}
               removeLabel="Stop asking about this paper"
@@ -176,7 +176,7 @@ export function Composer(props: ComposerProps) {
           ) : null}
           {noteChoice?.checked ? (
             <Seen
-              icon={NotePencil}
+              icon={glyph.notebook}
               label={noteChoice.long ? `${noteChoice.title} (first 20,000 characters)` : noteChoice.title}
               title={`“${noteChoice.title}” goes to Claude with this question only.`}
               removeLabel="Don’t include my note"
@@ -192,7 +192,7 @@ export function Composer(props: ComposerProps) {
                 onClick={() => pageChoice.onChange(true)}
                 data-hub="noora-see-page-add"
               >
-                <Plus className="nc-see__icon" aria-hidden="true" weight="bold" />
+                <Icon glyph={glyph.plus} className="nc-see__icon" />
                 <span className="nc-see__label">Share this page</span>
               </button>
             </li>
@@ -279,7 +279,7 @@ export function Composer(props: ComposerProps) {
         />
         <div className="nc-tools">
           {/* A label around the real file input: a click, the keyboard and the tooling's setInputFiles all reach it. */}
-          <Tooltip label="Attach a photo or file" side="top" describe={false}>
+          <Tooltip label="Attach a photo or file" side="top" describe={false} className="nc-attach">
             <label className="nc-tool nc-tool--icon" data-hub="noora-attach">
               <input
                 type="file"
@@ -291,7 +291,7 @@ export function Composer(props: ComposerProps) {
                   e.target.value = ''; // so the same file can be picked again
                 }}
               />
-              <Paperclip aria-hidden="true" />
+              <Icon glyph={glyph.attach} />
             </label>
           </Tooltip>
           {tools}
@@ -307,7 +307,7 @@ export function Composer(props: ComposerProps) {
                 checked={noteChoice.checked}
                 onChange={(e) => noteChoice.onChange(e.target.checked)}
               />
-              <NotePencil aria-hidden="true" weight={noteChoice.checked ? 'fill' : 'regular'} />
+              <Icon glyph={glyph.notebook} active={noteChoice.checked} />
               <span>Include my note</span>
             </label>
           ) : null}
@@ -335,7 +335,7 @@ export function Composer(props: ComposerProps) {
               <IconButton
                 type="submit"
                 label="Send"
-                icon={<ArrowUp weight="bold" />}
+                icon={<Icon glyph={glyph.send} />}
                 variant="primary"
                 size="sm"
                 className="nc-send"

@@ -21,11 +21,15 @@ export function useNooraStatus(enabled: boolean) {
   });
 }
 
-/** The answer stopped part-way (`said`: some of it had arrived). */
+/**
+ * The answer stopped part-way (`said`: some of it had arrived). `declined`: Claude's safeguards turned the question
+ * down (noora_declined): what arrived is to be dropped, and asking again won't help.
+ */
 export class AnswerCutOff extends Error {
   constructor(
     message: string,
     readonly said: boolean,
+    readonly declined = false,
   ) {
     super(message);
     this.name = 'AnswerCutOff';
@@ -78,7 +82,7 @@ export async function readAnswer(
         } else if (event.type === 'done') {
           return event.questionsLeft;
         } else {
-          throw new AnswerCutOff(event.message, said);
+          throw new AnswerCutOff(event.message, said, event.code === 'noora_declined');
         }
       }
     }

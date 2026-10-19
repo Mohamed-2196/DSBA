@@ -72,7 +72,7 @@ PAGES: tuple[tuple[str, str, Feature | None], ...] = (
     ("/career/electives", "The Year 3 electives side by side, and the roles each leads to", Feature.career),
     ("/grades", "The grades calculator", Feature.grades),
     ("/notes", "The student's own private notes", Feature.notes),
-    ("/board", "The student's study board", Feature.board),
+    ("/board", "Boards: the student's own boards of cards", Feature.board),
     ("/requests", "Ask the student reps for something (a past paper, a fix, an event)", Feature.requests),
     ("/daily", "Daily: a few short puzzles, the same for everyone each day", Feature.daily),
     ("/start-here", "Start here: the first steps for a new student", None),
