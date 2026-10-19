@@ -142,8 +142,7 @@ export function NotebookNumbers() {
         <>
           {n.cappedUploads ? (
             <p className="manage-noora__note">
-              {countOf(n.cappedUploads, 'upload')} refused at the limit of {formatCount(n.uploadsPerHour)} an hour in
-              the last 7 days.
+              {countOf(n.cappedUploads, 'upload')} refused at the hourly limit in the last 7 days.
             </p>
           ) : null}
           <Storage n={n} />
