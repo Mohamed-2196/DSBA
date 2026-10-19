@@ -751,3 +751,69 @@ wrong.
 
 IDEA-33, IDEA-34, IDEA-37 and IDEA-38 are a day each: give them to whoever next works on the board, Home, Career
 Navigator and requests.
+
+## Round 14: the study core (from the UI/UX review, 19 October 2026)
+
+These came from the UI/UX review's round 14 (`docs/reviews/ui-ux.md`, UX-66 on). That review covered the sections
+students open several times a day, judged against VLE, WhatsApp and a Drive folder. The fixes there need no new
+data; these do, so they wait for Mohamed. They don't repeat IDEA-25 (one page for tonight's exam) or IDEA-29 (share
+a note with your module), which they would sit well beside.
+
+### IDEA-40. Pick up where you left off · quick win
+
+- **The moment:** Sara, between lectures, on her phone: "I had the 2019 ST2133 paper and my MGF note open last
+  night. Where were they?" Today Home can't help unless she turned lesson progress on, and the palette opens empty.
+- **The idea:** keep the last eight things opened in this browser: papers and files, notes, threads and lessons.
+  Show them as "Recent" when ⌘K opens with no query, and as an optional Home block, "Pick up where you left off".
+  Nothing goes to the server, so it isn't tracking and needs no opt-in. Clear it with the rest of local data on
+  sign-out.
+- **Builds on:** `useStored`/`removeStored` (`src/state`), the palette's groups, Home's blocks (`home/blocks.ts`).
+- **Size:** S, web only.
+- **Costs and risks:** one more Home block. Shared computers: cleared on sign-out, and a guest's list stays in the
+  browser.
+- **How we'd know it worked:** palette opens that end on a Recent item. The Home block kept on rather than hidden.
+- **Status:** proposed.
+
+### IDEA-41. Notes that know their module
+
+- **The moment:** Hamad writes a note on chapter 2 in the notebook. A week later, on ST2133's page and on the
+  chapter's lesson, there's no sign of it, and the notebook list says "Untitled note".
+- **The idea:** give a note an optional module, and chapter, picked from the note's menu. A note started from a
+  lesson's "Write a longer one" or a paper's "Annotate in my notebook" gets them already set. Then show "Your notes"
+  on the module's Overview, on the chapter's lessons and on the paper's page (your annotations of this paper). Filter
+  the notes list by module.
+- **Builds on:** notes and notebooks, the lesson's quick notes (which already belong to a lesson), the paper's
+  Annotate action, the module page's Overview (UX-69).
+- **Size:** M: a column on notes with a migration, an API filter and three web placements.
+- **Costs and risks:** another field students may ignore. Setting it automatically from where the note was started
+  covers most cases.
+- **How we'd know it worked:** the share of notes with a module, and notes opened from a module or paper page.
+- **Status:** proposed.
+
+### IDEA-42. Your threads: following and mine · quick win
+
+- **The moment:** Layla asked about Lagrange multipliers on Monday and follows two other threads. On Wednesday she
+  wants all three, and the forum offers years, categories and "No replies yet", but not "mine".
+- **The idea:** a "Yours" tab in the forum list: threads you started, replied to or follow, newest activity first,
+  with an unread dot where there's a reply you haven't seen. On phones it's the first tab after All.
+- **Builds on:** follows (IDEA-7), notifications (they already know what's unread), the forum list's tabs.
+- **Size:** S: a list filter in the API and a tab.
+- **Costs and risks:** none beyond one more tab. The tab row already scrolls on phones (UX-62).
+- **How we'd know it worked:** visits to the tab. Replies posted within a day of the notification.
+- **Status:** proposed.
+
+### IDEA-43. The last lists you saw, without a connection
+
+- **The moment:** Yusuf opens the hub on campus wifi that has just dropped. He gets a spinner, though he looked at
+  ST2133's sittings an hour ago.
+- **The idea:** persist the query cache for the core lists (My modules, a module's sittings and files, the forum's
+  first page, Up next) in IndexedDB for 24 hours. Show them at once with "Showing what you saw at 10:42" while they
+  refresh. Files themselves are not stored. Round 2 left out saving papers offline; this is only the lists, so the
+  short-lived file links don't matter.
+- **Builds on:** TanStack Query's persister, the service worker that already caches the shell, `QueryError` for the
+  failed refresh.
+- **Size:** S to M, web only.
+- **Costs and risks:** stale data shown as current. The time stamp line handles it, and private lists (notes) stay
+  out of the cache.
+- **How we'd know it worked:** fewer spinners on a cold load, and the time to first content on a throttled phone.
+- **Status:** proposed.

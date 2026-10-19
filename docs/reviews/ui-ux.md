@@ -1,5 +1,395 @@
 # UI/UX review: DSBA Hub on the real API
 
+## Round 14: the study core (19 October 2026)
+
+Reviewer: UI/UX. Build: `feature/backend` at `c4e345d`, on the shared stack (app :5173, API :8000). No application
+code was changed.
+
+**Brief.** Mohamed: the hub's value is the study core, not Daily. I judged the sections students open several times
+a day, as a student who already has VLE, WhatsApp groups and a Google Drive of papers. For each one I asked what
+would make them reach for the hub first. Daily is out of scope.
+
+**Method.** Playwright 1.56 driving the installed Google Chrome. Made-up accounts by dev-login:
+`ux14-y1@example.com`, `ux14-y2@example.com` (the main persona), `ux14-y3@example.com`, `ux14-rep@example.com`, and
+a guest.
+- **Sweep.** 15 core routes at 360×780, 390×844, 768×1024, 1440×900 and 2560×1440 in light, and 390 and 1440 in
+  dark (110 loads). Phones and tablets with touch emulated. Each load checked for sideways scroll, elements past the
+  edge, touch targets, unlabelled fields, line length and page errors. Phone pages were also shot scrolled.
+- **Flows by script:**
+  - library: filter to one module's past papers, grid and list, a paper and a student's note;
+  - module: the Files and Discussion tabs, a lesson;
+  - search: ⌘K on a phone and at 1440 with five real queries;
+  - forum: a Year 1 thread, a Year 2 reply, and Year 1's bell;
+  - calendar: New event at 390 and 844×390;
+  - grades: marks typed in;
+  - notebook: a new note typed on a phone;
+  - upload: the dialog from a module;
+  - empty searches, Time me on a phone, and cold loads on a throttled connection (600 ms latency, 50 kB/s).
+- **Screenshots.** Looked at directly. The full set is in the session's scratchpad (`r14-coreux/`), and the crops
+  that back findings are in `screens/ux14-*`.
+
+**Test data I left:**
+- the thread "[ux14] How many marks is the MGF proof usually worth?" (Test Y1) and one reply (Test Y2);
+- one note in Test Y2's notebook.
+
+The library still holds e2e leftovers.
+
+### Summary
+
+**The core works.** Nothing scrolls sideways at any size, in either theme. Dialogs fit 844×390. The forum round
+trip (post, reply, bell) is quick and clear, the upload dialog fills in the module and type from where you are, empty
+searches invite an action, and the round 13 phone fixes hold: Time me opens its timer, and lessons lead with the
+video.
+
+**What stops a student reaching for it first** is the number of taps and scrolls to the thing they came for, and
+papers that can't be told apart:
+- On a 390 phone the library shows **no file on its first screen**: the first one starts at 812 px of 844.
+- Past papers are listed by their **raw file names**: "ST2133 - Advanced Statistics - Distribution Theory - 2019
+  Exam - Zone-A". Every phone list, the paper page's "More from this module" and search cut that name off before the
+  year and zone, so 29 rows read the same.
+- The module page is the natural home for a module, but on a phone its header fills the first screen. Its Overview
+  then sends you on with buttons ("Open 2 files", "See past papers") instead of showing the papers, notes, threads
+  and dates it already has.
+- In the notebook on a phone, **typed text is 7 px tall**, and a new note doesn't put the cursor anywhere.
+
+**Counts:** 4 majors, 9 minors and a group of nits (UX-66 to UX-79). Ten earlier findings re-checked (table below).
+
+### Where to put design effort next
+
+1. **The library: browsing and a paper's page.** Students come here most and leave fastest when it fails; the
+   alternative is "does anyone have the 2019 paper?" in WhatsApp. The data is already good: sittings, zones, reports
+   and solutions are linked, and examYear, examSession and zone are on every paper. The presentation hides it: raw
+   names, filters before files, a cover grid for papers that look alike, and Download three times on the paper page.
+   UX-66, UX-67, UX-68, UX-71 and UX-72 are one piece of work.
+2. **The module page as the module's home.** Home's "My modules" (with exam dates) and search already lead here.
+   If the Overview showed the last three sittings, the newest notes and who wrote them, the module's threads, your
+   notes and the next dates, a student would open ST2133 instead of four apps. UX-69 is the fix; IDEA-40 and IDEA-41
+   in `docs/ideas.md` are the links that need new data.
+3. **The notebook on phones.** It is the one core feature that is broken rather than slow on a phone: 7 px text and
+   no cursor (UX-70). Typed notes between lectures are its most common use. Notes also stand alone: a note doesn't
+   know its module, so it never turns up beside the lesson or paper it's about (IDEA-41).
+
+Home, the forum and the calendar are in good shape and need polish only (UX-73 to UX-77). Grades, Career Navigator
+and the newsletter are visited rarely enough that their current density is fine.
+
+### Section by section: what would make it the first place a student goes
+
+- **Library.** Get to a file in one screen: search plus one "Filters" button on phones, then rows that say "May
+  2019 · Zone A · Report · Solutions". Newest sitting first. Show who shared a note. Make "My modules" the default
+  scope for a signed-in student rather than the whole year.
+- **A paper's page.** The paper, its sitting's other zone, report and solutions, Time me, and "Ask about this paper"
+  (a thread with the paper linked). On phones it opens in the phone's PDF viewer (UX-37, still open). While it does,
+  the hub page is a launcher, and it should be short: title, Open the PDF, and the sitting's other files.
+- **Modules and lessons.** The lesson page is good: video first, previous and next, your notes on the lesson, the
+  chapter's past questions. The module page needs a compact phone header and an Overview that shows things rather
+  than links to them (UX-69). Lessons don't link to the chapter's threads or files.
+- **Notebook.** Fix the phone size and focus (UX-70). The list rows say only "Untitled note · Edited just now"
+  (UX-77).
+- **Search (⌘K).** Fast, grouped, and finds papers by code and year ("st2133 2019" returns both zones and the
+  report first). Ranking ignores the student's year: "exam" opens with Year 1 videos whose titles start with "Exam…"
+  and Year 1's exams (UX-73).
+- **Forum.** Thread, reply, follow and notifications work well. List rows on phones squeeze the title into a
+  150 px column (UX-74), and posting returns you to the list (UX-75). There's no "Following" or "Mine" view (IDEA-42).
+- **Calendar.** Strong: the next exam, this week, type chips and a month. The New event form fails on its first try
+  (UX-79).
+- **Home.** "Up next" and "My modules" with exam dates are the right first screen. "Up next" repeats the exam and
+  leads with a past date (UX-76). Nothing on Home picks up where you left off unless lesson progress is on (IDEA-40).
+- **Grades, Career Navigator, newsletter.** Fine for how often they're opened. Career is now 7,017 px at 390 (it
+  was 13,829). "Type a mark to see your class" is still display type (UX-35).
+
+### Earlier findings (re-checked in the core screens)
+
+| ID | Was | Now | Evidence |
+|---|---|---|---|
+| UX-35 | minor | **partly fixed** | "Type a mark / to see your class" is still about 76 px type at 390 and pushes the first mark field below the fold. |
+| UX-36 | minor | **open** | Raw file names everywhere (UX-67), and search ranking ignores your year (UX-73). |
+| UX-37 | minor | **open** | Phones: "Read the PDF. It opens in your phone's PDF viewer." Tablets and laptops show it in the page. |
+| UX-38 | minor | **partly fixed** | Career Navigator is 7,017 px at 390 (was 13,829). |
+| UX-44 | blocker | **fixed** | At 390 the toolbar is Star, Time me, More and Download icons. Tapping Time me opens its dialog; More holds Copy link, Annotate and Report. |
+| UX-53 | minor | **fixed** | Lesson addresses have a one-line header ("‹ ST2133 Distribution theory"), the video is first, and the poster shows only the play button and the YouTube chip. |
+| UX-56 | minor | **fixed** | No empty To-do block on Home for a student without a board. |
+| UX-57 | minor | **fixed** | No quota meter on the notes list. |
+| UX-61 | minor | **fixed** | "New" goes once the page is opened (Forum lost it after one visit). |
+| UX-62 | minor | **open** | The library's module and type chips and the forum's tabs still stop mid-chip at 360 and 390, with no fade ("ST2…", "Examiners' repo…", "Stud…"). |
+
+UX-23 to UX-26, UX-42, UX-43 and the newsletter editor and Manage items weren't re-checked: they're outside this
+round's scope.
+
+### Responsive results
+
+- **Sideways scroll:** none. That covers 15 routes at 360, 390, 768, 1440 and 2560 in light, and 390 and 1440 in
+  dark. Overflow happens only inside the chip and tab scrollers, as designed.
+- **Touch targets (390, touch):** pass, apart from the lesson page's back arrow (`.mod-head__back`, 24×44).
+- **Dialogs on short screens:** New event, Upload a file, Time me and the palette fit 844×390 with their actions in
+  view.
+- **Measure:** the longest prose line measured on these screens is 70 characters (1440 and 2560).
+- **Dark mode:** consistent on every core screen at 390 and 1440.
+- **2560:** the content column stays centred at about 1,400 px. The module Overview and the sittings list leave
+  most of it empty (UX-68, UX-69).
+- **Page lengths at 390:** Home 3,444 px, library 5,217 (24 files), module 2,720, lesson 3,065, forum 3,366,
+  calendar 3,513, grades 4,067, career 7,017.
+
+### New findings
+
+| ID | Severity | Title |
+|---|---|---|
+| UX-66 | major | Library on phones: no file on the first screen |
+| UX-67 | major | Past papers can't be told apart: raw file names, cut off before the year and zone |
+| UX-68 | major | Sittings take a 190 px card each, in a full-width row; the library's paper view doesn't use them at all |
+| UX-69 | minor | Module page on phones: the header fills the first screen, and the Overview sends you elsewhere |
+| UX-70 | major | Notebook on phones: typed text is 7 px, and a new note has no cursor |
+| UX-71 | minor | Students' notes don't say who shared them |
+| UX-72 | minor | A paper's page: Download three times, Questions by topic twice, no way to ask about it |
+| UX-73 | minor | Search ranks other years and prefix matches first |
+| UX-74 | minor | Forum list on phones: the title gets a 150 px column |
+| UX-75 | minor | Posting a thread drops you on the list, not the thread |
+| UX-76 | minor | Home's Up next repeats the exam and starts with a past date |
+| UX-77 | minor | Cold loads: a blank spinner, and the tab bar grows from 3 items to 6 |
+| UX-78 | minor | Notebook list: four create buttons when empty, and rows without content |
+| UX-79 | nit | Small leftovers |
+
+#### UX-66 Library on phones: no file on the first screen (major)
+
+- **Where:** `/library`, 360 to 430 px, any persona. Screenshot: `screens/ux14-library-first-screen-390.png`.
+- **What a student runs into:** before the first file the page stacks:
+  - the title and a three-line intro, "251 files for Year 2", and Upload a file;
+  - search, then a Year segment (All, Y1, Y2, Y3) that repeats the top bar's Y2 switcher;
+  - a module chip row, then a type chip row;
+  - "251 files" again, Starred, Your uploads, Styled covers, Sort, and the grid/list toggle.
+
+  The first file starts at 812 px on an 844 px screen, so every visit means a scroll. With a module and Past papers
+  chosen, it's the same. VLE and a Drive folder both show files on the first screen.
+- **Fix** (`library/LibraryPage.tsx`, `LibraryPage.css`), below 700 px:
+  - a one-line header ("Library" and an Upload icon button);
+  - the search field;
+  - one row with a "Filters" button with a count ("Filters · 2") and Sort. The button opens a sheet with year,
+    module (a Select), type, Starred, Your uploads, Styled covers and the view;
+  - the chosen filters as removable chips under it, only when set.
+
+  Drop the intro, the first count and the year segment on phones, since the top bar's switcher sets the year.
+  Target: at least three list rows or one row of covers on the first 390×844 screen.
+
+#### UX-67 Past papers can't be told apart: raw file names, cut off before the year and zone (major)
+
+- **Where:** the library grid and list, a paper page's "More from this module" and the ⌘K results; every phone size
+  worst. Screenshots: `screens/ux14-library-list-names-390.png` and `screens/ux14-paper-more-from-module-390.png`.
+- **What a student runs into:**
+  - Titles are the imported file names. At 390 the list row reads "ST2133 - Advanced Statistics …" on all 29 ST2133
+    papers. The grid's two-line title reads "ST2133 - Advanced Statistics - Distribution…".
+  - "More from this module" on a paper page shows "EC2020 - Elements of Econometrics - 200…" six times.
+  - The year and zone survive only in the grid's small cover badge ("PDF · 2011 · Zone A") and in the ⌘K subtitle.
+  - The page heading is the file name too: "EC2020 - Elements of Econometrics - 2004 Exam - Zone-A".
+  - "Most downloaded" with every count at 0 lists 2008 first, then 2010, 2011…: the oldest paper leads.
+
+  A student looking for last year's paper scrolls 29 lookalike rows to the bottom.
+- **Fix:**
+  - One `paperTitle(item)` in `library/` that builds the name from `examYear`, `examSession`, `zone` and the type for
+    papers, reports and solutions: "May 2019 · Zone A" (title) with "ST2133 past paper" (subtitle), and "May 2019
+    examiners' report". Use it in the card, the list row, "More from this module", the palette and the page's `<h1>`
+    ("ST2133 past paper, May 2019, Zone A"). Keep the file name in the Download card.
+  - Sort papers newest sitting first by default when the type is Past papers, or when a module is chosen. Break ties
+    in "Most downloaded" by newest.
+  - This closes UX-36's naming half.
+
+#### UX-68 Sittings take a 190 px card each, in a full-width row; the library's paper view doesn't use them at all (major)
+
+- **Where:** a module's Files tab (`/modules/<id>?tab=files`), 390 and 1440. Screenshot: `screens/ux14-sittings-1440.png`.
+- **What a student sees:**
+  - The grouping is right (May 2026, October 2025 resit, …, with Report, Solutions and Time me under each zone). But
+    every sitting is a row holding one 190×330 px card with a page thumbnail and a full-width "Open" button, and a
+    sitting with both zones holds two.
+  - At 1440, about 1,000 px of each row is empty. At 390 each sitting is about 340 px tall, so the first screen of
+    the Files tab shows one sitting, and "Show all 22 sittings" is a long scroll.
+  - The library's own "Past papers" filter ignores sittings and shows the flat grid from UX-67, so the same papers
+    are browsed two different ways.
+- **Fix** (`library/papers.ts`, the sittings component, `LibraryPage.tsx`):
+  - Make sittings a compact table: one 56–64 px row per sitting, "May 2026" on the left. Then the zones as buttons
+    ("Zone A", "Zone B", or "Paper" for all zones), then "Report", "Solutions" and a Time me icon.
+  - Thumbnails only from 1024 px, and small (48 px).
+  - Target: eight sittings on one 390×844 screen, and all 22 at 1440 without "Show all".
+  - In the library, when one module is chosen with Past papers, render the same sittings table instead of the grid.
+
+#### UX-69 Module page on phones: the header fills the first screen, and the Overview sends you elsewhere (minor)
+
+- **Where:** `/modules/<id>` at 390 (Overview, Files and Discussion), and the Overview at 1440 and 2560. Screenshot:
+  `screens/ux14-module-first-screen-390.png`.
+- **What a student runs into:**
+  - The first phone screen is the back link, a 56 px icon, the code, a two-line name and a two-line description,
+    then the Year and Exam chips, a counts line, and a card ("42 video lessons · Start lesson 1 · Past papers · Plan my
+    revision"). The tabs sit at 690 px. On the Files or Discussion tab the content starts below the fold, every time.
+  - The Overview's "Resources" is three category boxes with "Open 2 files", "See past papers" and "Open 2 files".
+    That is a tap to a tab or the library for things the page already has: sittings, notes, threads and dates.
+  - "Start lesson 1" stays for a student who is halfway through, because progress is opt-in.
+  - At 2560 the Overview is three short boxes beside a sidebar, and most of the screen is empty.
+- **Fix** (`modules/ModulePage.tsx`):
+  - On phones, a compact header: the icon at 40 px inline with the code and short name, and the description behind
+    "About this module". Make the tabs sticky under the top bar.
+  - The start card becomes one row: Lessons, Past papers and Plan.
+  - Replace "Resources" with previews of what exists, each ending in "All …":
+    - the last three sittings (UX-68's rows);
+    - the three newest students' notes, with who shared them (UX-71);
+    - the three latest threads from the Discussion tab;
+    - the next two dates.
+
+  This is presentation only: the data is already on the page's tabs.
+
+#### UX-70 Notebook on phones: typed text is 7 px, and a new note has no cursor (major)
+
+- **Where:** `/notes/<id>` at 390×844 (and any phone), Type tool. Screenshot: `screens/ux14-note-text-size-390.png`.
+- **What a student runs into:**
+  - New note opens the A4 page fitted to the screen at 43%. Body text is 17 px on the page, so 7.3 px on screen:
+    "MGF of a sum of independent Poissons…" is unreadable without zooming in, and zooming in makes the page pan.
+  - After New note, focus is on `<body>`. Typing does nothing until you find and tap the page's first line, and the
+    placeholder "Type here, or pick the pen and write by hand" is 5 px.
+  - Typing a quick note between lectures is the notebook's most common phone use.
+- **Fix** (`notes/NotePage.tsx`, `Toolbar.tsx`):
+  - On coarse pointers under 600 px, open typed notes in a reading width: the text column reflows to the screen at
+    100% (16–17 px), and the page frame is used for ink and export. Or open at "fit text width" (about 90%), with the
+    page panning inside the canvas.
+  - Either way, body text should never render under 14 px.
+  - Put the caret on the first line after New note, so the phone keyboard opens.
+  - This touches round 12's "one scaled page layout", so it is Mohamed's call which of the two.
+
+#### UX-71 Students' notes don't say who shared them (minor)
+
+- **Where:** the Files tab's "Students' notes", the library cards and rows, and a note's page
+  (`/library/st2133-mgf-summary-…`).
+- **What a student sees:** "ST2133 MGF summary · PDF, 1 KB · Added 5d ago". The page's details list Type, Added,
+  Format, Size and Downloads, but no name or year. The API sends `uploadedBy` and the optional `authorName` credit,
+  yet only the review queue shows them. Notes from seniors are the library's unique content, and "Shared by a Year 3
+  student" is what makes a student trust one.
+- **Fix:** show "Shared by Sara · Year 3" (or the `authorName` credit, "By …") on the row, the card's meta line and
+  the page's details (`library/ModuleFiles.tsx`, `LibraryCard`, `FileViewerPage.tsx`). If showing names is a concern,
+  "Shared by a Year 3 student" works with only the uploader's year. Mohamed's call.
+
+#### UX-72 A paper's page: Download three times, Questions by topic twice, no way to ask about it (minor)
+
+- **Where:** `/library/<paper>` at 390, and the side panel at 1440.
+- **What a student sees:**
+  - On a phone: the toolbar's Download icon, "Download (239 KB)" under "Open the PDF", and further down a Download
+    card with the file name and another "Download (239 KB)".
+  - "Questions by topic" says it twice: "Practice past questions organized by topic. Tag questions to help
+    classmates…", then "No questions tagged yet. Tag one so it shows under its chapter on the Lessons tab."
+  - Nothing links the paper to the forum. The question students have on a paper ("what does 3(b) want?") goes to
+    WhatsApp.
+- **Fix** (`library/FileViewerPage.tsx`):
+  - Keep the toolbar's Download and "Open the PDF", and drop the Download card for PDFs.
+  - Give Questions by topic one line: "No questions tagged yet. Tag one so it shows on its chapter."
+  - Add "Ask about this paper": `/forum/new` with the module set and the paper's link in the details. Under it, the
+    module's threads that link this paper, if any.
+
+#### UX-73 Search ranks other years and prefix matches first (minor)
+
+- **Where:** ⌘K and the phone's search, as a Year 2 student.
+- **What a student gets:**
+  - "exam" opens with Lessons: "Example Income and Substitution Effects…" (EC1002, Year 1), then files. The
+    calendar group comes last, starting with Year 1's EC1002 exam "today".
+  - "hypothesis test" leads with ST1215's chapter (Year 1) before ST2134's.
+  - "st2133 2019", "mgf" and "lagrange" are good.
+- **Fix:**
+  - In the search service, boost results from the viewer's year and papers (`me.year`, "Your papers").
+  - Rank a whole-word match above a prefix ("exam" over "Example").
+  - Put the Calendar group first when the query is a date word ("exam", "deadline", "results").
+  - This closes UX-36's ranking half.
+
+#### UX-74 Forum list on phones: the title gets a 150 px column (minor)
+
+- **Where:** `/forum` at 360 to 430. Screenshot: `screens/ux14-forum-row-360.png`.
+- **What a student sees:** each row has a 44 px vote box on the left and, when the post has a picture, a 76 px
+  thumbnail on the right. The title wraps in the middle: "ST2133: is the MGF / of a sum of / independent / Poissons
+  the / product?" runs to five lines at 360. About one and a third threads fit on a screen.
+- **Fix** (`forum/ThreadList` CSS), below 600 px:
+  - Move the vote count into the meta row, as "↑ 1" beside the replies.
+  - Replace the thumbnail with a small picture icon in the meta row.
+  - Let the title use the full width, clamped to three lines.
+
+  Target: three threads per 390×844 screen.
+
+#### UX-75 Posting a thread drops you on the list, not the thread (minor)
+
+- **Where:** `/forum/new` → Post thread, any size.
+- **What a student runs into:** the app returns to `/forum` with a toast ("Thread posted · View thread"). A student
+  who just asked wants their thread: to check it, copy the link into the WhatsApp group, or follow it. On phones the
+  toast also covers the second row of the list.
+- **Fix:** navigate to the new thread (`/forum/<slug>`), with the toast "Thread posted. Your cohort can see it now."
+  shown there.
+
+#### UX-76 Home's Up next repeats the exam and starts with a past date (minor)
+
+- **Where:** Home, every size. Screenshot: `screens/ux14-home-up-next-768.png`.
+- **What a student sees:**
+  - The headline card says "4 days · Next exam ST2134 · Friday 23 October". The list under it repeats "Fri 23 Oct ·
+    ST2134 … · 4 days" as its third row.
+  - The list starts with "Tue 13 Oct: NBB EVOLVE applications · Open until 24 Oct", a date six days in the past
+    leading "Up next".
+- **Fix** (`home/ComingUp.tsx`):
+  - Leave the headline exam out of the list.
+  - Date windows (careers, applications) are placed and labelled by their closing date ("Sat 24 Oct · Closes"),
+    not their opening.
+
+#### UX-77 Cold loads: a blank spinner, and the tab bar grows from 3 items to 6 (minor)
+
+- **Where:** a first load of `/library`, `/forum` or a module on a slow connection (600 ms latency, 50 kB/s), at
+  390.
+- **What a student sees:**
+  - A centred spinner on an empty page. The tab bar shows Home, Modules and More; then Noora, Library and Forum pop
+    in once `/me` returns, and every tab moves under the thumb.
+  - Nothing of the last visit is shown, although the service worker caches the app shell.
+- **Fix:**
+  - Keep the tab bar's six slots stable: remember the last features in local storage, or render placeholders until
+    `/me` arrives.
+  - Skeletons for the shapes that are known: the library's rows, a module header, the forum list.
+  - Showing the last-seen lists while they refresh is in IDEA-43.
+
+#### UX-78 Notebook list: four create buttons when empty, and rows without content (minor)
+
+- **Where:** `/notes`, 390 and 1440.
+- **What a student sees:**
+  - With no notes there are New notebook, Write on a PDF and New note in the header, a "Write your first note"
+    button in the empty state, and a notebook Select and search field that have nothing to act on.
+  - With notes, each row says only "Untitled note · Edited just now": no first line, no snippet and no module.
+- **Fix** (`notes/NotesPage.tsx`):
+  - With no notes, show only the empty state: its own two actions, "Write a note" and "Write on a PDF".
+  - With notes, a row's title falls back to its first line of text, under it a one-line snippet, and then the
+    notebook.
+
+#### UX-79 Small leftovers (nit)
+
+- **Calendar, New event:** "Starts" is required while All day is off by default, so the first save fails with
+  "Choose when it starts, or make it all day". Prefill Starts with the next full hour.
+- **A guest on a shared paper link:** the "Which year are you in?" sheet covers "Open the PDF" (390). Raise it only
+  after the first scroll, or make it a one-line bar.
+- **Lesson page:** the back arrow (`.mod-head__back`) is 24 px wide. Give it 44 px.
+- **Forum:** your own reply carries a yellow "New" badge the moment you post it.
+- **Module Overview:** "Books and study guide" and "Students' notes" say "Open 2 files"; "Past papers" has no count
+  ("22 sittings" is known).
+- **Grades (UX-35):** "Type a mark to see your class" at about 76 px pushes the first field below the fold at 390.
+  Use 28 px.
+
+### Art
+
+Checked against `docs/design/asset-prompts-round4.md`:
+- **C1 (no lessons)** is right and the most seen: IS2184 and every Year 3 module hit it. But don't put art in an
+  empty "Continue" block (`ContinueLearning.tsx`). Progress is opt-in, so an empty Continue should hide, not
+  illustrate.
+- **C2 (a guest on a personal feature)** and **C3 (not found)** are right.
+- **F1 (a quiet discussion)** is right. A module's Discussion tab is where students meet it most, more than the
+  forum's own list.
+- **Where a picture would genuinely help:** nowhere else in the core. The pictures students actually use here are the
+  papers' first pages, and in the grid they look alike (UoL crest on white). That needs printed facts (code, sitting,
+  zone: UX-67, UX-68), not illustration. Grades, Career, the calendar and search are better without art.
+
+### What works well and should stay
+
+- The forum's thread page: one clear reply box, ⌘ Enter to post, Following, related threads, and a notification that
+  quotes the reply.
+- The upload dialog from a module page prefills the module and the type.
+- Empty searches name the query and offer the next step ("Ask it as a thread", "Ask for it").
+- The lesson page: the video first, previous and next, your notes on the lesson, the chapter's past questions.
+- ⌘K finds papers by code and year, and shows the sitting in each subtitle.
+- The calendar: the next exam card, this week, type chips and a dialog that fits 844×390.
+- Home's "My modules", with each module's exam date.
+
 ## Round 13 review (18 October 2026)
 
 Reviewer: UI/UX. Build: `feature/backend` at `25234ed` (rounds 11 and 12), then `ac4647e` once round 13's Daily fix,
