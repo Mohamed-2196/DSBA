@@ -179,6 +179,55 @@ def test_students_tag_questions_chapters_list_them_and_reps_remove_wrong_ones(
     assert guest.get(url).json() == []
 
 
+def test_papers_that_number_each_section_from_one_keep_b1_apart_from_a1(
+    client_for: Clients,
+    student: User,
+    moderator: User,
+    paper: dict[str, Any],
+    set_feature: Callable[..., None],
+    db: Session,
+) -> None:
+    set_feature("library.questions", "everyone")
+    me, rep, guest = client_for(student), client_for(moderator), client_for()
+    first = chapters(db)[0]
+    url = f"{API}/library/items/{paper['id']}/questions"
+
+    b1 = me.post(url, json={"section": "B", "question": 1, "chapterId": first.id})
+    assert b1.status_code == 201, b1.text
+    assert (b1.json()["section"], b1.json()["question"]) == ("B", 1)
+    assert me.post(url, json={"section": "A", "question": 1, "chapterId": first.id}).status_code == 201
+    plain = me.post(url, json={"question": 1, "chapterId": first.id})
+    assert (plain.status_code, plain.json()["section"]) == (201, None)
+
+    again = me.post(url, json={"section": "B", "question": 1, "chapterId": first.id})
+    assert again.status_code == 409
+    assert again.json()["error"]["message"] == f"B1 is already tagged with {first.title}. Pick another chapter."
+    twice = me.post(url, json={"question": 1, "chapterId": first.id})  # no section: still one Q1 a chapter
+    assert (twice.status_code, twice.json()["error"]["message"].split(" is")[0]) == (409, "Q1")
+    for wrong in ("b", "AB", "1", ""):
+        r = me.post(url, json={"section": wrong, "question": 2, "chapterId": first.id})
+        assert r.status_code == 422, wrong
+
+    # the paper's page and the chapter's list: no section first, then A, then B
+    assert [(t["section"], t["question"]) for t in guest.get(url).json()] == [(None, 1), ("A", 1), ("B", 1)]
+    by_module = guest.get(f"{API}/library/questions", params={"module_id": MODULE}).json()
+    assert [(t["section"], t["question"]) for t in by_module] == [(None, 1), ("A", 1), ("B", 1)]
+    assert [(t["section"], t["question"]) for t in me.get(f"{API}/me/export").json()["questionTags"]] == [
+        ("B", 1),
+        ("A", 1),
+        (None, 1),
+    ]
+
+    # kept and removed by a rep: the audit log names B1 and keeps its section
+    assert rep.put(f"{API}/library/questions/{b1.json()['id']}/flag").status_code == 200
+    assert rep.post(f"{API}/library/questions/{b1.json()['id']}/keep").status_code == 200
+    assert rep.delete(f"{API}/library/questions/{b1.json()['id']}").status_code == 204
+    keep = db.scalars(select(AuditEntry).where(AuditEntry.action == "library.question_keep")).one()
+    removed = db.scalars(select(AuditEntry).where(AuditEntry.action == "library.question_remove")).one()
+    assert keep.data["title"] == removed.data["title"] == "B1 of EC1002 ZA May 2024"
+    assert (removed.data["section"], removed.data["question"]) == ("B", 1)
+
+
 def test_flags_count_once_each_and_leave_with_the_account(
     client_for: Clients,
     student: User,

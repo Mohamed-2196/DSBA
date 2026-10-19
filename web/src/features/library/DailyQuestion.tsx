@@ -7,7 +7,7 @@ import { Button, PageSection, Panel, SectionHeader } from '../../ui';
 import { AddToBoard } from '../board/public';
 import { DAILY_WINDOW_DAYS, dailyQuestion } from './daily';
 import { paperLabel } from '../../lib/exams';
-import { questionHref, useModuleQuestions } from './papers';
+import { questionHref, questionNumber, useModuleQuestions } from './papers';
 import './DailyQuestion.css';
 
 export interface DailyQuestionProps {
@@ -45,7 +45,7 @@ export function DailyQuestion({ moduleId, moduleName, examDays, day, className }
           {moduleName} · exam {inDays(examDays)}
         </p>
         <p className="lib-daily__q">
-          <span className="u-tabular">Question {q.question}</span>, {sitting}
+          <span className="u-tabular">Question {questionNumber(q)}</span>, {sitting}
           {q.page ? <span className="lib-daily__page u-tabular"> (p. {q.page})</span> : null}
         </p>
         <p className="lib-daily__chapter">On {q.chapterTitle}. A new one tomorrow.</p>

@@ -13,6 +13,8 @@ import {
   paperContext,
   questionHref,
   questionLabel,
+  questionName,
+  questionNumber,
   sittingFiles,
   sittingRow,
   yourZoneFirst,
@@ -79,6 +81,7 @@ function tag(patch: Partial<PaperQuestion>): PaperQuestion {
     },
     chapterId: 'c1',
     chapterTitle: 'Elasticity',
+    section: null,
     question: 3,
     page: null,
     flagged: false,
@@ -127,6 +130,10 @@ describe('questions', () => {
   it('labels a question and opens its paper at its page', () => {
     expect(questionLabel(tag({}))).toBe('Q3');
     expect(questionLabel(tag({ page: 4 }))).toBe('Q3 (p. 4)');
+    expect(questionLabel(tag({ section: 'B', question: 1, page: 7 }))).toBe('B1 (p. 7)');
+    expect(questionName(tag({ section: 'B', question: 1 }))).toBe('B1');
+    expect(questionNumber(tag({ section: 'B', question: 1 }))).toBe('B1');
+    expect(questionNumber(tag({}))).toBe('3');
     expect(questionHref(tag({}))).toBe('/library/ec1002-za-may-2024');
     expect(questionHref(tag({ page: 4 }))).toBe('/library/ec1002-za-may-2024?page=4');
   });

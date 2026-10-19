@@ -428,6 +428,7 @@ class ExportQuestionTag(ApiModel):
     id: UUID
     item_id: UUID
     chapter_id: str
+    section: str | None
     question: int
     page: int | None
     created_at: datetime

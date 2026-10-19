@@ -770,6 +770,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
             id=t.id,
             item_id=t.item_id,
             chapter_id=t.chapter_id,
+            section=t.section,
             question=t.question,
             page=t.page,
             created_at=t.created_at,

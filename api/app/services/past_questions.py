@@ -1,6 +1,6 @@
 """Past questions by topic: students tag a past paper's question with one of its module's chapters ("Q3:
-Elasticity"), each chapter lists the questions tagged with it, any student flags a wrong tag, and the people who
-manage the library remove it.
+Elasticity", or "B1: Elasticity" on a paper that numbers each section from 1), each chapter lists the questions
+tagged with it, any student flags a wrong tag, and the people who manage the library remove it.
 
 Only a module's published past papers take tags, and only with that module's chapters. Who tagged what is kept for
 moderation only: nobody else sees it."""
@@ -27,6 +27,11 @@ from app.services.modules import require_module
 from app.services.ratelimit import enforce
 
 TAGS_PER_HOUR = 60
+
+
+def label(section: str | None, question: int) -> str:
+    """How a question is named: 'B1' on a paper that numbers each section from 1, else 'Q3'."""
+    return f"{section}{question}" if section else f"Q{question}"
 
 
 def _paper(item: LibraryItem, covers: set[uuid.UUID]) -> PaperRef:
@@ -69,6 +74,7 @@ def to_out(db: Session, tags: Sequence[PaperQuestion], user: User | None) -> lis
                 paper=_paper(items[t.item_id], covers),
                 chapter_id=t.chapter_id,
                 chapter_title=chapters[t.chapter_id].title,
+                section=t.section,
                 question=t.question,
                 page=t.page,
                 flagged=t.id in flagged,
@@ -97,7 +103,9 @@ def for_paper(db: Session, item_id: uuid.UUID, user: User | None) -> list[PaperQ
         select(PaperQuestion)
         .join(Chapter, Chapter.id == PaperQuestion.chapter_id)
         .where(PaperQuestion.item_id == item.id)
-        .order_by(PaperQuestion.question, Chapter.position, PaperQuestion.created_at)
+        .order_by(
+            PaperQuestion.section.nulls_first(), PaperQuestion.question, Chapter.position, PaperQuestion.created_at
+        )
     ).all()
     return to_out(db, tags, user)
 
@@ -127,6 +135,7 @@ def for_module(
             Chapter.position,
             *newest_sitting_first(LibraryItem.exam_year, LibraryItem.exam_session),
             LibraryItem.zone.nulls_last(),
+            PaperQuestion.section.nulls_first(),
             PaperQuestion.question,
         )
     return to_out(db, db.scalars(q.order_by(PaperQuestion.id)).all(), user)
@@ -148,14 +157,21 @@ def tag(db: Session, user: User, item_id: uuid.UUID, body: PaperQuestionCreate) 
         message="You've tagged a lot of questions. Try again in {}.",
     )
     row = PaperQuestion(
-        item_id=item.id, chapter_id=chapter.id, question=body.question, page=body.page, tagged_by=user.id
+        item_id=item.id,
+        chapter_id=chapter.id,
+        section=body.section,
+        question=body.question,
+        page=body.page,
+        tagged_by=user.id,
     )
     try:
         with db.begin_nested():
             db.add(row)
             db.flush()
     except IntegrityError:
-        raise conflict("already_tagged", f"Question {body.question} is already tagged with {chapter.title}.") from None
+        name = label(body.section, body.question)
+        message = f"{name} is already tagged with {chapter.title}. Pick another chapter."
+        raise conflict("already_tagged", message) from None
     return row
 
 
@@ -174,7 +190,7 @@ def remove(db: Session, user: User, row: PaperQuestion, ip: str | None) -> None:
         raise forbidden("Only the student who tagged it or a student rep can remove this tag.")
     if not mine:
         item = db.get(LibraryItem, row.item_id)
-        title = f"Q{row.question} of {item.title if item else 'a paper'}"
+        title = f"{label(row.section, row.question)} of {item.title if item else 'a paper'}"
         record(
             db,
             user,
@@ -184,6 +200,7 @@ def remove(db: Session, user: User, row: PaperQuestion, ip: str | None) -> None:
             title,
             ip,
             chapter=row.chapter_id,
+            section=row.section,
             question=row.question,  # the seed doesn't bring back a removed tag (seed/loader.py)
         )
     db.delete(row)
@@ -198,7 +215,7 @@ def keep(db: Session, user: User, row: PaperQuestion, ip: str | None) -> None:
     db.execute(delete(PaperQuestionFlag).where(PaperQuestionFlag.question_id == row.id))
     row.flag_count = 0
     item = db.get(LibraryItem, row.item_id)
-    title = f"Q{row.question} of {item.title if item else 'a paper'}"
+    title = f"{label(row.section, row.question)} of {item.title if item else 'a paper'}"
     record(db, user, "library.question_keep", "library_item", row.item_id, title, ip, chapter=row.chapter_id)
 
 

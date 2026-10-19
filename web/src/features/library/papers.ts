@@ -155,9 +155,21 @@ export function paperContext(sittings: Sitting[] | undefined, itemId: string): P
   return null;
 }
 
-/** 'Q3', and 'Q3 (p. 4)' when the page is known. */
-export function questionLabel(q: Pick<PaperQuestion, 'question' | 'page'>): string {
-  return q.page ? `Q${q.question} (p. ${q.page})` : `Q${q.question}`;
+type Numbered = Pick<PaperQuestion, 'section' | 'question'>;
+
+/** The number as the paper prints it: '3', or 'B1' on a paper that numbers each section from 1. */
+export function questionNumber(q: Numbered): string {
+  return `${q.section ?? ''}${q.question}`;
+}
+
+/** 'Q3', or 'B1' where the paper has sections. */
+export function questionName(q: Numbered): string {
+  return q.section ? questionNumber(q) : `Q${q.question}`;
+}
+
+/** 'Q3' or 'B1', and 'Q3 (p. 4)' when the page is known. */
+export function questionLabel(q: Numbered & Pick<PaperQuestion, 'page'>): string {
+  return q.page ? `${questionName(q)} (p. ${q.page})` : questionName(q);
 }
 
 /** The paper's page, open at the question's page when it is known. */

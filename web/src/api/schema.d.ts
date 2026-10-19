@@ -6793,6 +6793,8 @@ export interface components {
             itemId: string;
             /** Chapterid */
             chapterId: string;
+            /** Section */
+            section: string | null;
             /** Question */
             question: number;
             /** Page */
@@ -9592,6 +9594,8 @@ export interface components {
             chapterId: string;
             /** Chaptertitle */
             chapterTitle: string;
+            /** Section */
+            section: string | null;
             /** Question */
             question: number;
             /** Page */
@@ -9612,6 +9616,8 @@ export interface components {
         };
         /** PaperQuestionCreate */
         PaperQuestionCreate: {
+            /** Section */
+            section?: string | null;
             /** Question */
             question: number;
             /** Chapterid */

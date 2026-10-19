@@ -9,15 +9,25 @@ import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
 import { Button, IconButton, Modal, Select, Skeleton, TextField } from '../../../ui';
 import { moduleDetailQuery } from '../../modules/public';
-import { questionLabel, useFlagQuestion, usePaperQuestions, useRemoveQuestion, useTagQuestion } from '../papers';
+import {
+  questionLabel,
+  questionNumber,
+  useFlagQuestion,
+  usePaperQuestions,
+  useRemoveQuestion,
+  useTagQuestion,
+} from '../papers';
 
 const QUESTIONS = Array.from({ length: 20 }, (_, i) => i + 1);
+/** Sections a paper numbers from 1 each (Section A: 1 to 4, Section B: 1 to 3). */
+const SECTIONS = ['A', 'B', 'C', 'D'] as const;
 
 function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) => void }) {
   const { requireAuth, me } = useAuth();
   const { push } = useToast();
   const flag = useFlagQuestion();
   const remove = useRemoveQuestion();
+  const number = questionNumber(tag);
   const toggleFlag = () => {
     const run = () =>
       flag.mutate(
@@ -37,7 +47,7 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
           type="button"
           className="lib-qtags__q"
           onClick={() => onPage(tag.page ?? 1)}
-          aria-label={`Go to page ${tag.page} for question ${tag.question}`}
+          aria-label={`Go to page ${tag.page} for question ${number}`}
         >
           {questionLabel(tag)}
         </button>
@@ -49,11 +59,7 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
       <span className="lib-qtags__acts">
         {!tag.isMine && me?.status !== 'suspended' ? (
           <IconButton
-            label={
-              tag.flagged
-                ? `Take back your flag on question ${tag.question}`
-                : `Flag question ${tag.question}: wrong chapter`
-            }
+            label={tag.flagged ? `Take back your flag on question ${number}` : `Flag question ${number}: wrong chapter`}
             icon={Flag}
             size="sm"
             toggle
@@ -64,7 +70,7 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
         ) : null}
         {tag.canRemove ? (
           <IconButton
-            label={`Remove the tag on question ${tag.question}`}
+            label={`Remove the tag on question ${number}`}
             icon={Trash}
             size="sm"
             onClick={() =>
@@ -95,12 +101,14 @@ export function TagQuestionDialog({
 }) {
   const { push } = useToast();
   const tag = useTagQuestion(item.id);
+  const [section, setSection] = useState('');
   const [question, setQuestion] = useState('');
   const [chapter, setChapter] = useState('');
   const [page, setPage] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const reset = () => {
+    setSection('');
     setQuestion('');
     setChapter('');
     setPage('');
@@ -120,7 +128,7 @@ export function TagQuestionDialog({
       return;
     }
     tag.mutate(
-      { question: Number(question), chapterId: chapter, page: page ? Number(page) : null },
+      { section: section || null, question: Number(question), chapterId: chapter, page: page ? Number(page) : null },
       {
         onSuccess: (t) => {
           push({ title: `Tagged ${questionLabel(t)}: ${t.chapterTitle}`, tone: 'success' });
@@ -157,11 +165,24 @@ export function TagQuestionDialog({
     >
       <form id="tag-question-form" className="lib-qtags__form" onSubmit={submit} noValidate>
         <div className="lib-qtags__fields">
+          <Select
+            label="Section"
+            value={section}
+            onChange={(e) => setSection(e.target.value)}
+            hint="If each section starts at 1"
+          >
+            <option value="">None</option>
+            {SECTIONS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </Select>
           <Select label="Question" value={question} onChange={(e) => setQuestion(e.target.value)}>
             <option value="">Pick</option>
             {QUESTIONS.map((n) => (
               <option key={n} value={n}>
-                Q{n}
+                {section ? `${section}${n}` : `Q${n}`}
               </option>
             ))}
           </Select>

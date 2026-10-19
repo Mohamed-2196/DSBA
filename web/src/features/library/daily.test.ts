@@ -16,6 +16,7 @@ function tag(n: number): PaperQuestion {
     },
     chapterId: 'c1',
     chapterTitle: 'Elasticity',
+    section: null,
     question: n,
     page: null,
     flagged: false,
