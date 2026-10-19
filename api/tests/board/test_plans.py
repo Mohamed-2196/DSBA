@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import uuid
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
@@ -14,10 +13,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.time import bahrain_today
-from app.models import BoardCard, BoardColumn, BoardPlan, Module, User
+from app.models import BoardCard, BoardColumn, BoardPlan, Chapter, Lesson, Module, User
 from app.services.board import cards as cards_svc
 from app.services.board import common
 from app.services.board import plans as svc
+from app.services.modules import lesson_name
 from tests.board.conftest import API, column, first_board, make_board, move, paper
 from tests.lessons import lesson_id
 
@@ -42,33 +42,17 @@ def board(c: TestClient) -> dict[str, Any]:
     return out
 
 
-def test_spread_puts_the_cards_evenly_before_the_exam() -> None:
-    today = dt.date(2026, 5, 1)
-    cards = [BoardCard(id=uuid.uuid4()) for _ in range(4)]
-    days = cards_svc.spread(cards, dt.date(2026, 5, 3), today)
-    assert [days[c.id].day for c in cards] == [1, 1, 2, 2]
-    days = cards_svc.spread(cards[:2], dt.date(2026, 5, 11), today)
-    assert [days[c.id].day for c in cards[:2]] == [1, 6]
-    assert cards_svc.spread(cards, today, today) == {}
-
-
-def test_papers_close_their_share_of_the_lessons() -> None:
-    items = svc._interleave(["a", "b", "c", "d"], ["p1", "p2"])
-    lessons_then = [("lesson", "a"), ("lesson", "b"), ("library_item", "p1")]
-    assert items == [*lessons_then, ("lesson", "c"), ("lesson", "d"), ("library_item", "p2")]
-    assert svc._interleave([], ["p"]) == [("library_item", "p")]
-
-
 def test_a_plan_adds_unwatched_lessons_and_papers_and_spreads_them(
     client_for: ClientFor, make_user: MakeUser, module: Module, db: Session, set_feature: Callable[..., None]
 ) -> None:
     set_feature("library", "everyone")
-    old, new = paper(db, module, 2022), paper(db, module, 2024)
+    paper(db, module, 2022)
+    new = paper(db, module, 2024)
     paper(db, module, 2023, kind="examiners-report")
     c = client_for(make_user(tracks=True))
     c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 0)}", json={"watched": True})
     made = plan(c, module, 6, paperEvery=3)
-    assert made["added"] == 4  # two lessons, two papers (6 days, one every 3)
+    assert (made["added"], made["leftOut"]) == (4, 0)  # two lessons and both papers: under a week, a paper a day
     assert made["plan"] == {
         "moduleId": module.id,
         "moduleName": "Test",
@@ -83,17 +67,26 @@ def test_a_plan_adds_unwatched_lessons_and_papers_and_spreads_them(
     assert got["plans"] == [made["plan"]]
     assert c.get(f"{API}/boards").json()["plans"] == [made["plan"]]
     todo = [x for x in got["cards"] if x["column"] == "To do"]
-    assert [x["title"] for x in todo] == ["Test: One, lesson 2", old.title, "Test: Two, lesson 1", new.title]
+    assert [x["title"] for x in todo] == [
+        "TS1000 · One, video 2",
+        "TS1000 · Two, video 1",
+        "TS1000 past paper · 2022 · zone A",
+        "TS1000 past paper · 2024 · zone A",
+    ]
     assert all(x["planModuleId"] == module.id for x in todo)
     today = bahrain_today()
-    assert [x["planDate"] for x in todo] == [(today + timedelta(days=d)).isoformat() for d in (0, 1, 3, 4)]
-    assert todo[1]["link"]["kind"] == "past-paper"
+    # the papers on the last two days, the lessons spread before them
+    assert [x["planDate"] for x in todo] == [(today + timedelta(days=d)).isoformat() for d in (0, 3, 4, 5)]
+    assert todo[2]["link"]["kind"] == "past-paper"
+    assert [i["text"] for i in todo[2]["checklist"]] == list(svc.PAPER_STEPS)
+    assert todo[0]["checklist"] == []
+    assert todo[3]["link"]["id"] == str(new.id)  # the newest sitting is the last paper before the exam
 
     # watching a lesson ticks it off and the rest spread again
     c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 1)}", json={"watched": True})
     got = board(c)
     todo = [x for x in got["cards"] if x["column"] == "To do"]
-    assert [x["planDate"] for x in todo] == [(today + timedelta(days=d)).isoformat() for d in (0, 2, 4)]
+    assert [x["planDate"] for x in todo] == [(today + timedelta(days=d)).isoformat() for d in (0, 4, 5)]
     assert (got["plans"][0]["left"], got["plans"][0]["done"]) == (3, 1)
     assert next(x for x in got["cards"] if x["column"] == "Done")["planDate"] is None
 
@@ -112,10 +105,35 @@ def test_a_plan_skips_what_is_already_on_the_board_and_papers_when_the_library_i
     c = client_for(make_user())
     c.post(f"{API}/board-cards", json={"link": {"type": "lesson", "id": lesson_id(module, 1, 0)}})
     made = plan(c, module, 30)
-    assert made["added"] == 2
+    assert (made["added"], made["leftOut"]) == (2, 0)
     own = next(x for x in board(c)["cards"] if x["link"]["id"] == lesson_id(module, 1, 0))
     assert own["planModuleId"] is None
     assert own["planDate"] is None
+
+
+def test_close_to_the_exam_a_plan_keeps_the_hard_chapters_and_skips_scored_papers(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session, set_feature: Callable[..., None]
+) -> None:
+    set_feature("library", "everyone")
+    old, scored = paper(db, module, 2022), paper(db, module, 2024)
+    c = client_for(make_user())
+    assert c.put(f"{API}/paper-scores/{scored.id}", json={"score": 68}).status_code == 200
+    two = module.chapters[1].id
+    made = plan(c, module, 1, focusChapters=[two])
+    # one day: one paper and room for two lessons, the hard chapter's first
+    assert (made["added"], made["leftOut"]) == (3, 1)
+    todo = [x for x in board(c)["cards"] if x["column"] == "To do"]
+    titles = ["TS1000 · Two, video 1", "TS1000 · Limits", "TS1000 past paper · 2022 · zone A"]
+    assert [x["title"] for x in todo] == titles
+    assert todo[2]["link"]["id"] == str(old.id)
+    assert {x["planDate"] for x in todo} == {bahrain_today().isoformat()}
+
+
+def test_a_class_recording_is_named_by_its_day() -> None:
+    chapter = Chapter(title="Point estimation")
+    url = "https://vc.bibf.com/playback/presentation/2.3/6579700419d6e7d39b414c4f1762334cd3738a01-1758094343105"
+    assert lesson_name(Lesson(kind="bbb", url=url, chapter=chapter)) == "Point estimation: class of 17 Sep 2025"
+    assert lesson_name(Lesson(kind="bbb", title="Revision", url=url, chapter=chapter)) == "Revision"
 
 
 def test_a_plan_needs_a_module_and_a_date_after_today(
@@ -149,7 +167,7 @@ def test_removing_a_plan_keeps_what_is_done(
     assert c.delete(f"{API}/board-plans/{module.id}").status_code == 204
     got = board(c)
     assert got["plans"] == []
-    assert [(x["title"], x["column"], x["planModuleId"]) for x in got["cards"]] == [("Test: Limits", "Done", None)]
+    assert [(x["title"], x["column"], x["planModuleId"]) for x in got["cards"]] == [("TS1000 · Limits", "Done", None)]
     assert c.delete(f"{API}/board-plans/{module.id}").status_code == 404
 
 

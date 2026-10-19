@@ -316,19 +316,24 @@ class BoardLinkState(ApiModel):
 
 
 class BoardPlanCreate(ApiModel):
-    """Plans a module's revision up to `examDate` on `boardId` (the student's first board when not sent): a card for
-    each lesson not watched yet and a past paper every `paperEvery` days. Planning the same module again keeps its
-    cards and board, adds what's missing and takes the new date."""
+    """Plans a module's revision up to `examDate` on `boardId` (the student's first board when not sent): past papers,
+    one every `paperEvery` days and one a day in the last week, and the lessons not watched yet that fit beside them.
+    Planning the same module again keeps its cards and board, adds what's missing and takes the new date."""
 
     module_id: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)]
     exam_date: dt.date
     paper_every: int = Field(default=3, ge=1, le=14)
     board_id: UUID | None = None
+    # chapters the student finds hard: their lessons come first when not every lesson fits before the exam
+    focus_chapters: list[Annotated[str, StringConstraints(min_length=1, max_length=64)]] = Field(
+        default_factory=list, max_length=100
+    )
 
 
 class BoardPlanMade(ApiModel):
     plan: BoardPlan
     added: int  # cards added to the board's first column
+    left_out: int  # lessons not watched that don't fit before the exam, so weren't added
 
 
 # ── practice scores ─────────────────────────────────────────────────────────────────────────

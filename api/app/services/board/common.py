@@ -215,7 +215,7 @@ def resolve_links(db: Session, user: User | None, keys: Iterable[LinkKey]) -> di
         found["lesson", lesson.id] = BoardLink(
             type="lesson",
             id=lesson.id,
-            title=f"{lesson.chapter.module.short_name}: {lesson_name(lesson)}",
+            title=f"{lesson.chapter.module.unit_code or lesson.chapter.module.short_name} · {lesson_name(lesson)}",
             url=lesson_path(lesson),
             date=None,
             kind=None,

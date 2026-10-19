@@ -265,7 +265,7 @@ def test_moves_keep_progress_notes_and_cards(
     assert stored is not None
     assert stored.lesson_id == b
     cards = {x.title: x.lesson_id for x in db.scalars(select(BoardCard).where(BoardCard.user_id == student.id))}
-    assert cards == {"Test: Video aaaaaaaaaaa": a, "Test: Video bbbbbbbbbbb": b}
+    assert cards == {"TS1001 · Video aaaaaaaaaaa": a, "TS1001 · Video bbbbbbbbbbb": b}
     first = s.get(f"{API}/boards").json()["boards"][0]["id"]
     board = s.get(f"{API}/boards/{first}").json()["cards"]
     assert {x["link"]["url"] for x in board} == {f"/modules/{mid}/lessons/{a}", f"/modules/{mid}/lessons/{b}"}
