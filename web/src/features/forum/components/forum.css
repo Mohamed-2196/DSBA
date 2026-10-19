@@ -101,10 +101,34 @@
   object-position: 38% 50%;
 }
 
+/* The vote and the counts share a foot on narrow rows; on wide ones each keeps its own column. */
+.forum-row__foot {
+  display: contents;
+}
 .forum-row__vote {
   grid-area: vote;
   position: relative;
   z-index: 1;
+}
+/* A post with a picture, on a narrow row: an icon in place of the thumbnail. */
+.forum-row__picture {
+  display: none;
+  align-items: center;
+  color: var(--ink-2);
+  font-size: 16px;
+}
+/* There is something new for you in this thread (Yours): a dot before the title. */
+.forum-row__unread {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-inline-end: 8px;
+  border-radius: 50%;
+  background: var(--cobalt);
+  vertical-align: 1px;
+}
+.forum-row.is-unread .forum-row__link {
+  font-weight: var(--fw-bold);
 }
 .forum-row__main {
   grid-area: main;
@@ -195,23 +219,21 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Just posted: slides in; the title gets the highlighter swipe (see ThreadRow). */
-.forum-row.is-fresh {
-  animation: forum-row-in var(--dur-slow) var(--ease) both;
-}
-@keyframes forum-row-in {
-  from {
-    opacity: 0;
-    transform: translateY(-12px);
-  }
-}
-
+/* Narrow lists (phones, a sidebar): the title takes the row's whole width, up to three lines (UX-74). The vote moves
+   to the foot of the row as a pill beside the replies and the time, and a picture shows as an icon there instead of
+   a thumbnail. */
 @container forum-list (max-width: 560px) {
-  .forum-row {
-    grid-template-columns: 40px minmax(0, 1fr);
-    grid-template-areas: 'vote main' 'vote stats';
-    column-gap: 14px;
-    padding: 14px 16px 14px 12px;
+  .forum-row,
+  .forum-row.has-image {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'main' 'foot';
+    padding: 14px 16px;
+  }
+  .forum-row__title {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
   .forum-row__excerpt {
     display: none;
@@ -220,30 +242,45 @@
     margin-top: 8px;
     gap: 6px 10px;
   }
+  .forum-row__foot {
+    grid-area: foot;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .forum-row__vote,
+  .forum-row__stats {
+    grid-area: auto;
+  }
   .forum-row__stats {
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
     gap: 12px;
-    margin-top: 10px;
     padding: 0;
     min-width: 0;
   }
   .forum-row .forum-vote {
-    width: 40px;
-    height: 48px;
-    min-width: 0;
+    flex-direction: row;
+    gap: 6px;
+    width: auto;
+    height: 30px;
+    padding: 0 11px 0 9px;
+    border-radius: var(--r-pill);
+    font-size: var(--fs-12);
+  }
+  .forum-row .forum-vote__icon {
+    font-size: 14px;
   }
   .forum-row .forum-tag:nth-of-type(n + 2) {
     display: none;
   }
-  .forum-row.has-image {
-    grid-template-columns: 40px minmax(0, 1fr) 76px;
-    grid-template-areas: 'vote main thumb' 'vote stats thumb';
-  }
   .forum-row__thumb {
-    width: 76px;
-    height: 52px;
+    display: none;
+  }
+  .forum-row__picture {
+    display: inline-flex;
   }
 }
 @media (pointer: coarse) {
@@ -253,14 +290,13 @@
     padding-block: 13px;
   }
   @container forum-list (max-width: 560px) {
-    .forum-row {
-      grid-template-columns: 44px minmax(0, 1fr);
-    }
-    .forum-row.has-image {
-      grid-template-columns: 44px minmax(0, 1fr) 76px;
-    }
     .forum-row .forum-vote {
-      width: 44px;
+      height: 44px;
+      padding-inline: 12px;
+    }
+    /* The title's 44px link box would push the meta down: the row is the target, so the link needs no padding. */
+    .forum-row__link {
+      padding-block: 0;
     }
   }
 }
@@ -751,6 +787,24 @@
   font-size: var(--fs-12);
 }
 
+/* A paper's page: the threads that link to it (PaperThreads). */
+.forum-paperthreads {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.forum-paperthreads__title {
+  margin: 0;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+}
+.forum-paperthreads__more {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
+
 /* Links to other sites say where they go (security review, finding 11). */
 .forum-prose__ext {
   overflow-wrap: anywhere;
@@ -890,6 +944,20 @@
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   align-items: start;
   gap: var(--sp-16);
+}
+/* "Your title mentions MT1186" and its Tag button, under the module (both forms). */
+.forum-composer__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  max-width: var(--measure);
+  margin: 0;
+  padding: 8px 8px 8px 14px;
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
 }
 .forum-composer__tags {
   margin: 0;
@@ -1064,7 +1132,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .forum-row.is-fresh,
   .forum-vote__icon.is-popping,
   .forum-roll > span,
   .forum-attachment {

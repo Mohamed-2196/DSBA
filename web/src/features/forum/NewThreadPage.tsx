@@ -23,7 +23,7 @@ import { ComposerAside, SimilarInline } from './components/ComposerAside';
 import { ComposerFooter } from './components/ComposerFooter';
 import { MarkdownEditor } from './components/MarkdownEditor';
 import { CantPostNote } from './components/ThreadNotices';
-import { CategorySelect, ModuleSelect, TagPicker } from './components/ThreadFields';
+import { CategorySelect, ModuleFromTitle, ModuleSelect, TagPicker } from './components/ThreadFields';
 import './components/forum.css';
 import './components/dialogs.css';
 import './ForumPage.css';
@@ -212,13 +212,9 @@ function Composer() {
         onSuccess: (thread) => {
           finish();
           images.reset();
-          navigate('/forum', { state: { posted: { id: thread.id, slug: thread.slug } } });
-          push({
-            title: 'Thread posted',
-            body: 'Your cohort can see it now.',
-            tone: 'success',
-            action: { label: 'View thread', onClick: () => navigate(`/forum/${thread.slug}`) },
-          });
+          // Straight to the new thread: to check it, share its link or follow it (UX-75).
+          navigate(`/forum/${thread.slug}`);
+          push({ title: 'Thread posted', body: 'Your cohort can see it now.', tone: 'success' });
         },
         onError: (e) => {
           // A field the API turned down ("Pick a module from the list.", too many tags…) says so under that field.
@@ -319,6 +315,7 @@ function Composer() {
             />
             <ModuleSelect
               value={form.moduleId}
+              category={form.category}
               error={errors.moduleId}
               onChange={(id) => {
                 setForm((f) => ({ ...f, ...rules.withModule(f, id) }));
@@ -326,6 +323,12 @@ function Composer() {
               }}
             />
           </div>
+
+          <ModuleFromTitle
+            title={form.title}
+            moduleId={form.moduleId}
+            onPick={(id) => setForm((f) => ({ ...f, ...rules.withModule(f, id) }))}
+          />
 
           <TagPicker value={form.tags} error={errors.tags} onChange={(tags) => set({ tags })} />
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../../../api/errors';
-import { TITLE_MIN, remainingNote, threadFieldErrors, titleProblem } from './threadForm';
+import { TITLE_MIN, moduleCodeIn, remainingNote, threadFieldErrors, titleProblem } from './threadForm';
 
 const refusal = (fields: Record<string, string> | null, status = 422) =>
   new ApiError({ status, code: status === 429 ? 'rate_limited' : 'invalid_input', message: 'Refused.', fields });
@@ -46,5 +46,19 @@ describe('remainingNote', () => {
     expect(remainingNote(399, 500)).toBeNull();
     expect(remainingNote(400, 500)).toBe('400/500');
     expect(remainingNote(500, 500)).toBe('500/500');
+  });
+});
+
+describe('moduleCodeIn', () => {
+  it('finds a module code in a title, in any case and with a space', () => {
+    expect(moduleCodeIn('MT1186: domain of ln(x² − 4)')).toBe('MT1186');
+    expect(moduleCodeIn('help with st 2133 q3')).toBe('ST2133');
+    expect(moduleCodeIn('Is (EC1002) curved?')).toBe('EC1002');
+  });
+  it('leaves out what only looks like one', () => {
+    expect(moduleCodeIn('May 2019 paper')).toBeNull();
+    expect(moduleCodeIn('ABC1234 is not a code')).toBeNull();
+    expect(moduleCodeIn('MT11860')).toBeNull();
+    expect(moduleCodeIn('')).toBeNull();
   });
 });

@@ -8,7 +8,7 @@ import { BODY_MAX, TITLE_MAX, threadFieldErrors, titleProblem, type ThreadErrors
 import { useAttachImages } from '../lib/useAttachImages';
 import { AttachmentList } from './ImageAttachments';
 import { MarkdownEditor } from './MarkdownEditor';
-import { CategorySelect, ModuleSelect, TagPicker } from './ThreadFields';
+import { CategorySelect, ModuleFromTitle, ModuleSelect, TagPicker } from './ThreadFields';
 import './dialogs.css';
 
 type Errors = ThreadErrors & { form?: string };
@@ -103,6 +103,7 @@ export function ThreadEditForm({
         />
         <ModuleSelect
           value={place.moduleId}
+          category={place.category}
           error={errors.moduleId}
           onChange={(id) => {
             setPlace((p) => rules.withModule(p, id));
@@ -110,6 +111,11 @@ export function ThreadEditForm({
           }}
         />
       </div>
+      <ModuleFromTitle
+        title={title}
+        moduleId={place.moduleId}
+        onPick={(id) => setPlace((p) => rules.withModule(p, id))}
+      />
       <TagPicker value={tags} onChange={setTags} error={errors.tags} />
       <input {...images.fileInput} />
       <MarkdownEditor

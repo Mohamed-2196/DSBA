@@ -1,8 +1,9 @@
 // The "where and what" fields of a thread, shared by the composer and the edit form.
-import { Chip, Select } from '../../../ui';
+import { Button, Chip, Select } from '../../../ui';
 import { useModules } from '../../../state/modules';
 import { YEARS, moduleLabel } from '../../../lib/modules';
 import { useTaxonomy } from '../lib/taxonomy';
+import { moduleCodeIn } from '../lib/threadForm';
 import type { CategoryId } from '../types';
 
 /** The categories offered, and the thread's own when it was retired since (it may stay there). */
@@ -33,36 +34,82 @@ export function CategorySelect({
   );
 }
 
+/**
+ * The modules a thread can be about: a year's category offers that year's modules only (ST-51); a category for every
+ * year offers them all, by year. A module from elsewhere that the thread has already stays listed.
+ */
 export function ModuleSelect({
   value,
+  category,
   onChange,
   error,
 }: {
   value: string;
+  /** where the thread goes: its year decides the modules offered */
+  category: CategoryId;
   onChange: (id: string) => void;
   error?: string | null;
 }) {
-  const { getModulesForYear } = useModules();
+  const { getModule, getModulesForYear } = useModules();
+  const { getCategory } = useTaxonomy();
+  const year = getCategory(category)?.year ?? null;
+  const offered = year ? getModulesForYear(year) : [];
+  const current = getModule(value);
+  const kept = year && current && !offered.some((m) => m.id === current.id) ? current : null;
   return (
     <Select
       label="Module"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      hint="Optional"
+      hint={year ? `Optional. Year ${year} modules` : 'Optional'}
       error={error ?? undefined}
       data-hub="composer-module"
     >
       <option value="">No specific module</option>
-      {YEARS.map((y) => (
-        <optgroup key={y} label={`Year ${y}`}>
-          {getModulesForYear(y).map((m) => (
+      {year
+        ? [...offered, ...(kept ? [kept] : [])].map((m) => (
             <option key={m.id} value={m.id}>
               {moduleLabel(m)}
             </option>
+          ))
+        : YEARS.map((y) => (
+            <optgroup key={y} label={`Year ${y}`}>
+              {getModulesForYear(y).map((m) => (
+                <option key={m.id} value={m.id}>
+                  {moduleLabel(m)}
+                </option>
+              ))}
+            </optgroup>
           ))}
-        </optgroup>
-      ))}
     </Select>
+  );
+}
+
+/**
+ * A module code in the title ("MT1186: …") that isn't the thread's module yet: one tap tags it (ST-51). Picking it
+ * moves a year's thread to the module's year (lib/placement.ts).
+ */
+export function ModuleFromTitle({
+  title,
+  moduleId,
+  onPick,
+}: {
+  title: string;
+  moduleId: string;
+  onPick: (id: string) => void;
+}) {
+  const { getModuleByUnitCode } = useModules();
+  const found = getModuleByUnitCode(moduleCodeIn(title));
+  if (!found || found.id === moduleId) return null;
+  return (
+    <p className="forum-composer__suggest" data-hub="composer-module-suggestion">
+      <span>
+        Your title mentions {found.unitCode}, {found.name}.
+      </span>
+      <Button size="sm" onClick={() => onPick(found.id)}>
+        Tag {found.unitCode}
+      </Button>
+    </p>
   );
 }
 

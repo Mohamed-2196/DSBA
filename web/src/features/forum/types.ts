@@ -12,8 +12,8 @@ export type ReportStatus = ReportOut['status'];
 
 /** The list filters, as they live in the URL (?cohort=year-2&tag=r&sort=new&q=mgf&status=no-replies&module=…). */
 export interface ForumFilters {
-  /** a category id, or 'all' */
-  cohort: CategoryId | 'all';
+  /** a category id, 'all', or 'yours' (threads you started, replied to or follow: signed in only) */
+  cohort: CategoryId | 'all' | 'yours';
   tag: string;
   sort: ThreadSort;
   q: string;
