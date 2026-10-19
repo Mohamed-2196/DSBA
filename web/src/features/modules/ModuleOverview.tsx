@@ -1,7 +1,8 @@
-// Overview tab: the module's home. Previews of what the other tabs and the calendar hold, each ending in a link to
-// the whole of it: the next dates, lesson progress (for a student who keeps it and has started), the latest past
-// papers, the newest students' notes, the newest threads with "Ask a question", and the rest of the library (decision
-// D6: contributing means uploading). A block with nothing to show is left out, not shown empty.
+// Overview tab: the module's home. What to carry on with (the papers, notes and lessons opened last), then previews
+// of what the other tabs and the calendar hold, each ending in a link to the whole of it: the next dates, lesson
+// progress (for a student who keeps it and has started), the latest past papers, the newest students' notes, the
+// newest threads with "Ask a question", and the rest of the library (decision D6: contributing means uploading). A
+// block with nothing to show is left out, not shown empty.
 import { CalendarBlank, ChatsCircle, CheckCircle, Files, Plus, UploadSimple } from '@phosphor-icons/react';
 import { useId, useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
@@ -12,6 +13,7 @@ import { zoneLabel } from '../../lib/exams';
 import { cohortColor } from '../../state';
 import { Badge, Button, Panel, QueryError, Skeleton, countOf, cx, timeAgo } from '../../ui';
 import { aheadRows, typeLabel } from '../calendar/public';
+import { CarryOn, useCarryOn } from '../carryon/public';
 import { useModuleLatestThreads, useStartsThreads } from '../forum/public';
 import { libraryItemPath } from '../library/public';
 import { useModuleFiles } from './api';
@@ -462,6 +464,17 @@ function MoreInLibrary({
   );
 }
 
+/** Carry on with this module: the paper being timed, and its papers, notes and lessons opened last. */
+function CarryOnHere({ moduleId }: { moduleId: string }) {
+  const { any } = useCarryOn({ moduleId, n: 3 });
+  if (!any) return null;
+  return (
+    <Block title="Carry on" hub="module-carry-on" className="mod-blk--carry">
+      <CarryOn moduleId={moduleId} n={3} className="mod-carry" />
+    </Block>
+  );
+}
+
 export function ModuleOverview({
   module: m,
   state,
@@ -488,6 +501,7 @@ export function ModuleOverview({
   const name = m.unitCode || m.name;
   return (
     <div className="mod-ov" data-hub="module-overview">
+      <CarryOnHere moduleId={m.id} />
       {featureOn('calendar') ? <NextDates module={m} /> : null}
       {showsProgress(tracking, resume) ? (
         <YourProgress module={m} state={state} resume={resume} onOpenLesson={onOpenLesson} onTab={onTab} />

@@ -29672,6 +29672,16 @@
               }
             ],
             "title": "Boardid"
+          },
+          "focusChapters": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Focuschapters"
           }
         },
         "type": "object",
@@ -29680,7 +29690,7 @@
           "examDate"
         ],
         "title": "BoardPlanCreate",
-        "description": "Plans a module's revision up to `examDate` on `boardId` (the student's first board when not sent): a card for\neach lesson not watched yet and a past paper every `paperEvery` days. Planning the same module again keeps its\ncards and board, adds what's missing and takes the new date."
+        "description": "Plans a module's revision up to `examDate` on `boardId` (the student's first board when not sent): past papers,\none every `paperEvery` days and one a day in the last week, and the lessons not watched yet that fit beside them.\nPlanning the same module again keeps its cards and board, adds what's missing and takes the new date."
       },
       "BoardPlanMade": {
         "properties": {
@@ -29690,12 +29700,17 @@
           "added": {
             "type": "integer",
             "title": "Added"
+          },
+          "leftOut": {
+            "type": "integer",
+            "title": "Leftout"
           }
         },
         "type": "object",
         "required": [
           "plan",
-          "added"
+          "added",
+          "leftOut"
         ],
         "title": "BoardPlanMade"
       },
@@ -44165,6 +44180,7 @@
                     "start_here",
                     "results_day",
                     "coming_up",
+                    "carry_on",
                     "todo",
                     "continue",
                     "modules",
@@ -44298,6 +44314,7 @@
                     "start_here",
                     "results_day",
                     "coming_up",
+                    "carry_on",
                     "todo",
                     "continue",
                     "modules",
@@ -44311,7 +44328,7 @@
                   ]
                 },
                 "type": "array",
-                "maxItems": 13
+                "maxItems": 14
               },
               {
                 "type": "null"
@@ -47074,6 +47091,7 @@
                 "start_here",
                 "results_day",
                 "coming_up",
+                "carry_on",
                 "todo",
                 "continue",
                 "modules",
@@ -47087,7 +47105,7 @@
               ]
             },
             "type": "array",
-            "maxItems": 13,
+            "maxItems": 14,
             "minItems": 1,
             "title": "Homeblocks"
           },

@@ -3,11 +3,11 @@
 // tab (#papers) and as the library's Past papers view for one module. Papers without an exam year follow as "Other
 // papers".
 import { Exam, Timer } from '@phosphor-icons/react';
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { LibraryItem, Sitting, SittingZone } from '../../../api/types';
 import { RTC_NOTE, sittingLabel } from '../../../lib/exams';
-import { BREAKPOINTS, useMediaQuery } from '../../../state';
+import { BREAKPOINTS, useEntryState, useMediaQuery } from '../../../state';
 import { Button, Panel, Skeleton, cx } from '../../../ui';
 import { PaperDone, SittingsDone } from '../../board/public';
 import { usePapers } from '../../papers/public';
@@ -143,7 +143,8 @@ export function PaperSittings({
   const papers = usePaperSittings(moduleId);
   const { zone } = usePapers();
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
-  const [all, setAll] = useState(false);
+  // Kept with the visit: back from a paper, the list is as long as it was (ST-42).
+  const [all, setAll] = useEntryState(`sittings.${moduleId}`, false);
   const H = headingLevel === 2 ? 'h2' : 'h3';
   if (papers.isPending) {
     return (
@@ -201,7 +202,7 @@ export function PaperSittings({
           {sittings.some((s) => s.zones.some((z) => z.zone === 'RTC')) ? <p className="pp__note">{RTC_NOTE}</p> : null}
           {capped || all ? (
             <div className="pp__more">
-              <Button size="sm" variant="ghost" onClick={() => setAll((a) => !a)} aria-expanded={all}>
+              <Button size="sm" variant="ghost" onClick={() => setAll(!all)} aria-expanded={all}>
                 {all ? 'Show fewer sittings' : `Show all ${sittings.length} sittings`}
               </Button>
             </div>

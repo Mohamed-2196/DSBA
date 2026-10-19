@@ -6,10 +6,12 @@ import { useAuth } from '../auth';
 import { useLocalStorage } from '../state';
 import { NAV, type NavItem } from './nav';
 import { SEEN_KEY, asSeen, markSeen, navAt, withSeen } from './seen';
-import { visibleNav } from './visibility';
+import { SHOWN_NAV_KEY, loadingNav, rememberedNav, visibleNav } from './visibility';
 
 export function useShownNav(): NavItem[] {
-  const { featureOn, me } = useAuth();
+  const { featureOn, me, status } = useAuth();
+  const [shownBefore, setShownBefore] = useLocalStorage<unknown>(SHOWN_NAV_KEY, null);
+  const loading = status === 'loading';
   const { pathname } = useLocation();
   const [stored, setStored] = useLocalStorage<unknown>(SEEN_KEY, {});
   const seen = useMemo(() => asSeen(stored), [stored]);
@@ -26,5 +28,16 @@ export function useShownNav(): NavItem[] {
     });
   }, [hereId, account, setStored]);
 
-  return useMemo(() => withSeen(visibleNav(NAV, featureOn, !!me), seen, account), [featureOn, me, seen, account]);
+  const items = useMemo(
+    () => (loading ? loadingNav(NAV, rememberedNav(shownBefore)) : visibleNav(NAV, featureOn, !!me)),
+    [loading, shownBefore, featureOn, me],
+  );
+  // Remember what is shown, for the next cold start.
+  const ids = loading ? null : items.map((n) => n.id).join(',');
+  useEffect(() => {
+    if (ids === null) return;
+    setShownBefore((prev: unknown) => (rememberedNav(prev)?.join(',') === ids ? prev : ids ? ids.split(',') : []));
+  }, [ids, setShownBefore]);
+
+  return useMemo(() => withSeen(items, seen, account), [items, seen, account]);
 }

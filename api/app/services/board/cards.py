@@ -80,6 +80,7 @@ from app.services.board.common import (
     top_position,
 )
 from app.services.board.reminders import schedule
+from app.services.board.schedule import PlanKind, days_for
 from app.services.content import apply_patch
 from app.services.uploads import IMAGE_CONTENT_TYPES
 
@@ -102,16 +103,6 @@ def file_url(upload_id: uuid.UUID) -> str:
 # ── what a card shows ───────────────────────────────────────────────────────────────────────
 
 
-def spread(cards: Sequence[BoardCard], exam_date: dt.date, today: dt.date) -> dict[uuid.UUID, dt.date]:
-    """The day each of a plan's cards still to do falls on: evenly over the days from today to the day before the
-    exam, in the order given. None on the exam day or after it."""
-    days = (exam_date - today).days
-    if days <= 0 or not cards:
-        return {}
-    n = len(cards)
-    return {c.id: today + timedelta(days=i * days // n) for i, c in enumerate(cards)}
-
-
 def _plans(db: Session, user_id: uuid.UUID) -> dict[uuid.UUID, BoardPlan]:
     q = select(BoardPlan).where(BoardPlan.user_id == user_id).order_by(BoardPlan.exam_date, BoardPlan.created_at)
     return {p.id: p for p in db.scalars(q)}
@@ -131,12 +122,17 @@ def _plan_cards(db: Session, user_id: uuid.UUID) -> list[tuple[BoardCard, BoardC
 def plan_dates(
     rows: Sequence[tuple[BoardCard, BoardColumn]], plans: dict[uuid.UUID, BoardPlan], today: dt.date
 ) -> dict[uuid.UUID, dt.date]:
-    """Each plan's cards not done, spread to its exam: the columns nearest done first, each in its order."""
+    """Each plan's cards not done, on their days to its exam (schedule.py): the columns nearest done first, each in
+    its order. A card that doesn't fit has no day."""
     out: dict[uuid.UUID, dt.date] = {}
     for plan_id, plan in plans.items():
         mine = [(card, col) for card, col in rows if card.plan_id == plan_id and not col.done]
         mine.sort(key=lambda r: -r[1].position)  # stable: keeps each column's order
-        out |= spread([card for card, _ in mine], plan.exam_date, today)
+        cards = [card for card, _ in mine]
+        kinds: list[PlanKind] = ["paper" if c.link_type == "library_item" else "lesson" for c in cards]
+        for card, day in zip(cards, days_for(kinds, (plan.exam_date - today).days), strict=True):
+            if day is not None:
+                out[card.id] = today + timedelta(days=day)
     return out
 
 

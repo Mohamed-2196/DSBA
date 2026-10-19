@@ -148,7 +148,7 @@ def test_of_two_first_saves_the_second_is_refused(db: Session, admin: User, monk
         (lambda d: d.update(launchYear=1999), "data.launchYear"),
         (lambda d: d.update(tagline=" "), "data.tagline"),
         (lambda d: d["homeBlocks"].append("modules"), "data"),
-        (lambda d: d["homeBlocks"].append("weather"), "data.homeBlocks.10"),
+        (lambda d: d["homeBlocks"].append("weather"), "data.homeBlocks.11"),
         (lambda d: d.update(homeBlocks=[]), "data.homeBlocks"),
         (lambda d: d["tour"][0].update(art="rocket"), "data.tour.0.art"),
         (lambda d: d.update(tour=[]), "data.tour"),

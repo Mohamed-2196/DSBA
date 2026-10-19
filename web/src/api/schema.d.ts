@@ -5038,9 +5038,9 @@ export interface components {
         };
         /**
          * BoardPlanCreate
-         * @description Plans a module's revision up to `examDate` on `boardId` (the student's first board when not sent): a card for
-         *     each lesson not watched yet and a past paper every `paperEvery` days. Planning the same module again keeps its
-         *     cards and board, adds what's missing and takes the new date.
+         * @description Plans a module's revision up to `examDate` on `boardId` (the student's first board when not sent): past papers,
+         *     one every `paperEvery` days and one a day in the last week, and the lessons not watched yet that fit beside them.
+         *     Planning the same module again keeps its cards and board, adds what's missing and takes the new date.
          */
         BoardPlanCreate: {
             /** Moduleid */
@@ -5057,12 +5057,16 @@ export interface components {
             paperEvery: number;
             /** Boardid */
             boardId?: string | null;
+            /** Focuschapters */
+            focusChapters?: string[];
         };
         /** BoardPlanMade */
         BoardPlanMade: {
             plan: components["schemas"]["BoardPlan"];
             /** Added */
             added: number;
+            /** Leftout */
+            leftOut: number;
         };
         /** BoardRow */
         BoardRow: {
@@ -9935,7 +9939,7 @@ export interface components {
              */
             trackProgress: boolean;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
         };
         /**
          * PreferencesUpdate
@@ -9962,7 +9966,7 @@ export interface components {
             /** Trackprogress */
             trackProgress?: boolean | null;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
         };
         /**
          * PresignedUpload
@@ -10909,7 +10913,7 @@ export interface components {
             /** Launchyear */
             launchYear: number;
             /** Homeblocks */
-            homeBlocks: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[];
+            homeBlocks: ("start_here" | "results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[];
             /** Tour */
             tour: components["schemas"]["TourStep"][];
             /** Searchnicknames */

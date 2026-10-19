@@ -772,7 +772,7 @@ a note with your module), which they would sit well beside.
 - **Costs and risks:** one more Home block. Shared computers: cleared on sign-out, and a guest's list stays in the
   browser.
 - **How we'd know it worked:** palette opens that end on a Recent item. The Home block kept on rather than hidden.
-- **Status:** proposed.
+- **Status:** approved and built (`round14/carryon`): Home's and the module page's "Carry on".
 
 ### IDEA-41. Notes that know their module
 

@@ -144,7 +144,7 @@ round's scope.
 | UX-74 | minor | Forum list on phones: the title gets a 150 px column (**fixed**) |
 | UX-75 | minor | Posting a thread drops you on the list, not the thread (**fixed**) |
 | UX-76 | minor | Home's Up next repeats the exam and starts with a past date (**fixed**) |
-| UX-77 | minor | Cold loads: a blank spinner, and the tab bar grows from 3 items to 6 |
+| UX-77 | minor | Cold loads: a blank spinner, and the tab bar grows from 3 items to 6: **fixed** (`round14/carryon`) |
 | UX-78 | minor | Notebook list: four create buttons when empty, and rows without content |
 | UX-79 | nit | Small leftovers |
 
@@ -408,6 +408,8 @@ sidebar list and the module Overview use too).
     `/me` arrives.
   - Skeletons for the shapes that are known: the library's rows, a module header, the forum list.
   - Showing the last-seen lists while they refresh is in IDEA-43.
+
+- **Fixed** (`round14/carryon`): `index.html` draws the Hub's frame and a page skeleton before the code arrives; lazy pages wait on a page skeleton instead of a spinner; the nav shows the entries it showed last time while `/me` loads (every entry that needs no account on a first visit), so the tab bar has its six slots from the first frame. Checked at 390 with 600 ms latency and 50 kB/s: skeleton at 0.7 s, six tabs throughout.
 
 #### UX-78 Notebook list: four create buttons when empty, and rows without content (minor)
 

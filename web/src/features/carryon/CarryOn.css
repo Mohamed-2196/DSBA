@@ -1,0 +1,110 @@
+.carry {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* While there are only a row or two: what fills this card, and where it's kept. */
+.carry__hint {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: var(--sp-16) var(--sp-24);
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  text-align: center;
+  text-wrap: balance;
+}
+.carry__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--sp-8);
+}
+.carry__item + .carry__item {
+  border-top: 1px solid var(--line);
+}
+.carry__row {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  min-height: 56px;
+  padding: 10px var(--sp-16);
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.carry__row:hover {
+  background: var(--surface-2);
+}
+.carry__row:focus-visible,
+.carry__note:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--focus-color);
+}
+.carry__icon {
+  flex: 0 0 auto;
+  color: var(--ink-2);
+  font-size: 22px;
+}
+.carry__icon--timed {
+  color: var(--ink);
+}
+.carry__item--timed {
+  background: var(--highlight-soft);
+}
+.carry__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+.carry__title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+  overflow-wrap: break-word;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.carry__meta {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
+.carry__meta--timed {
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+}
+.carry__note {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  min-height: 36px;
+  margin: 0 var(--sp-12) 0 auto;
+  padding: 0 var(--sp-12);
+  border-radius: var(--r-pill);
+  color: var(--cobalt);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+.carry__note:hover {
+  background: var(--surface-2);
+}
+/* A phone: the note link goes under its paper, lined up with the title. */
+@media (max-width: 519px) {
+  .carry__note {
+    margin: -8px 0 8px 50px;
+  }
+}
+@media (pointer: coarse) {
+  .carry__note {
+    min-height: 44px;
+  }
+}

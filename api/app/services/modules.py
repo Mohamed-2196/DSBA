@@ -3,8 +3,10 @@ rule for "a module id from a request". Hidden modules, chapters and lessons are 
 
 from __future__ import annotations
 
+import re
 import secrets
 from collections.abc import Iterable
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import select
@@ -89,12 +91,29 @@ def student_lessons(db: Session, ids: Iterable[str]) -> dict[str, Lesson]:
     return {lesson.id: lesson for lesson in db.scalars(q)}
 
 
+_RECORDED_AT = re.compile(r"-(\d{13})$")  # a class recording's address ends with when it was made, in milliseconds
+_MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+_BAHRAIN = timezone(timedelta(hours=3))  # where the classes are held
+
+
+def recorded_on(lesson: Lesson) -> str | None:
+    """'17 Sep 2025': the day a class recording was made (as the web app's lessons.ts reads it), or None."""
+    found = _RECORDED_AT.search(lesson.url or "") if lesson.kind == "bbb" else None
+    if found is None:
+        return None
+    day = datetime.fromtimestamp(int(found.group(1)) / 1000, tz=_BAHRAIN)
+    return f"{day.day} {_MONTHS[day.month - 1]} {day.year}"
+
+
 def lesson_name(lesson: Lesson) -> str:
-    """The lesson's title, or 'Chapter title, lesson 3' for one without."""
+    """What a lesson is called: its title; 'Chapter title: class of 17 Sep 2025' for a class recording; 'Chapter
+    title, video 3' for a video without a title."""
     if lesson.title:
         return lesson.title
+    if day := recorded_on(lesson):
+        return f"{lesson.chapter.title}: class of {day}"
     siblings = visible_lessons(lesson.chapter) if not lesson.hidden else lesson.chapter.lessons
-    return f"{lesson.chapter.title}, lesson {siblings.index(lesson) + 1}"
+    return f"{lesson.chapter.title}, video {siblings.index(lesson) + 1}"
 
 
 def lesson_path(lesson: Lesson) -> str:

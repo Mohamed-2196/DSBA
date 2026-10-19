@@ -4,6 +4,7 @@
 //   useTracking()                   { on, ready, mode, set(on) }: whether lesson progress is kept (opt in; the
 //                                   account's trackProgress, or this browser's choice for a guest)
 //   lessonHref(moduleId, lessonId)  a lesson's address
+//   lessonName(chapter, v)          a lesson's name outside its chapter ('Point estimation: class of 17 Sep 2025')
 //   findLesson(module, lessonId)    where a lesson is in a module's chapters ({ c, v }), or null
 //   moduleDetailQuery(id)           a module with its chapters and videos, as query options: the one cache entry
 //                                   for GET /modules/{id} (useQuery(moduleDetailQuery(id)), useQueries, prefetchQuery)
@@ -15,7 +16,7 @@ import { lazy } from 'react';
 export { ContinueLearning } from './ContinueLearning';
 export { findLesson, useModuleProgress } from './progress';
 export { useTracking } from './tracking';
-export { lessonHref } from './lessons';
+export { lessonHref, lessonName } from './lessons';
 export { moduleDetailQuery } from './api';
 // Manage's editor loads with Manage (inside its Suspense), so no other page carries it.
 export const ModulesEditor = lazy(() => import('./editor/ModulesEditor').then((m) => ({ default: m.ModulesEditor })));

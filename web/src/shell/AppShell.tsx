@@ -1,5 +1,5 @@
-import { useEffect, type ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
+import { lazy, Suspense, type ReactNode } from 'react';
+import { matchPath, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { ModulesGate } from '../state/ModulesProvider';
 import { ErrorBoundary, Toaster } from '../ui';
@@ -8,6 +8,7 @@ import { PaletteHost } from '../features/search/public';
 import { Onboarding } from '../features/onboarding/public';
 import { MiniNoora } from '../features/noora/public';
 import { BugReportDialog } from '../features/bugs/public';
+import { useScrollMemory } from './scrollMemory';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { UpdatePrompt } from './UpdatePrompt';
@@ -16,13 +17,18 @@ import { MobileNav } from './MobileNav';
 import { SiteFooter } from './SiteFooter';
 import './AppShell.css';
 
+// Loaded after the page, not with the app: most pages load the library's code anyway, and the recorder is needed only
+// on a note or a lesson.
+const TimerPill = lazy(() => import('../features/library/public').then((m) => ({ default: m.TimerPill })));
+const VisitRecorder = lazy(() => import('../features/carryon/public').then((m) => ({ default: m.VisitRecorder })));
+const RECORDED = ['/notes/:noteId', '/modules/:moduleId/lessons/:lessonId'];
+
 /** App frame: rail + sticky top bar + content (+ footer), mobile tab bar, and global overlays. */
 export function AppShell({ children }: { children?: ReactNode }) {
-  const { pathname } = useLocation();
   const { status, featureOn } = useAuth();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+  const { pathname } = useLocation();
+  useScrollMemory();
+  const recorded = RECORDED.some((p) => matchPath(p, pathname));
 
   return (
     <div className="shell">
@@ -36,6 +42,12 @@ export function AppShell({ children }: { children?: ReactNode }) {
         <main id="main" tabIndex={-1} className="shell-content">
           {children}
         </main>
+        {/* Time me's clock, on every page but the paper's own: it floats over the foot of the page. */}
+        <ErrorBoundary name="TimerPill" fallback={null}>
+          <Suspense fallback={null}>
+            <TimerPill />
+          </Suspense>
+        </ErrorBoundary>
         <SiteFooter />
       </div>
       <MobileNav />
@@ -56,6 +68,13 @@ export function AppShell({ children }: { children?: ReactNode }) {
       {featureOn('noora') ? (
         <ErrorBoundary name="MiniNoora" fallback={null}>
           <MiniNoora />
+        </ErrorBoundary>
+      ) : null}
+      {recorded ? (
+        <ErrorBoundary name="VisitRecorder" fallback={null}>
+          <Suspense fallback={null}>
+            <VisitRecorder />
+          </Suspense>
         </ErrorBoundary>
       ) : null}
       <ErrorBoundary name="BugReport" fallback={null}>

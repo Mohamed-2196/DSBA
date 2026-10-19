@@ -691,3 +691,16 @@ button.mod-row:hover .mod-row__title {
 .mod-head__about[aria-expanded='true'] .mod-head__about-caret {
   transform: rotate(180deg);
 }
+
+/* Carry on: its rows run to the block's edges. */
+.mod-blk--carry {
+  padding-bottom: 0;
+}
+.mod-carry {
+  margin: 0 -20px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 var(--r-panel) var(--r-panel);
+  box-shadow: none;
+  background: transparent;
+}

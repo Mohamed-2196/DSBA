@@ -40,11 +40,18 @@
 }
 
 .shell-loader {
-  display: grid;
-  place-items: center;
-  min-height: 50vh;
   opacity: 0;
   animation: shell-loader-in var(--dur) var(--ease) 120ms forwards;
+}
+.shell-loader__head {
+  display: grid;
+  gap: var(--sp-12);
+  margin-bottom: var(--sp-24);
+}
+.shell-loader__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--sp-16);
 }
 @keyframes shell-loader-in {
   to {

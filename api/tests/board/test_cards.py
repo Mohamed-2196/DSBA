@@ -177,10 +177,10 @@ def test_cards_from_the_hub(
     }
     lesson = add(c, link={"type": "lesson", "id": lesson_id(module, 0, 0)}, title="Watch limits")
     assert lesson["title"] == "Watch limits"
-    assert lesson["link"]["title"] == "Test: Limits"
+    assert lesson["link"]["title"] == "TS1000 · Limits"
     assert lesson["link"]["url"] == f"/modules/{module.id}/lessons/{lesson_id(module, 0, 0)}"
     untitled = add(c, link={"type": "lesson", "id": lesson_id(module, 0, 1)})
-    assert untitled["title"] == "Test: One, lesson 2"
+    assert untitled["title"] == "TS1000 · One, video 2"
     assert add(c, link={"type": "module", "id": module.id})["link"]["url"] == f"/modules/{module.id}"
     file = add(c, link={"type": "library_item", "id": item["id"]})
     assert (file["title"], file["link"]["url"], file["link"]["kind"]) == (

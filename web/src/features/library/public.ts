@@ -17,6 +17,12 @@
 //                                        six weeks, enough tags) and renders nothing otherwise
 //   useModuleQuestions(moduleId)       a module's past exam questions tagged by chapter (Noora's full page asks about one)
 //   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
+//   useTimeMe()                         the paper being timed with Time me ({ timer, start, pause, resume, stop }),
+//                                        kept in this browser
+//   <TimerPill />                       the floating Time me clock, on every page but the paper's own (the shell
+//                                        mounts it once)
+//   <ClockText timer />                 '1:23:45 left' for the paper being timed, ticking
+//   timedPaperPath(paper)               the timed paper's page
 import { createElement, lazy, Suspense, useCallback, useState, type ReactNode } from 'react';
 import { showsUpload, useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
@@ -31,6 +37,8 @@ export { UploadsQueue } from './UploadsQueue';
 export { ChapterQuestions } from './ChapterQuestions';
 export { FlaggedQuestions } from './FlaggedQuestions';
 export { DailyQuestion } from './DailyQuestion';
+export { ClockText, TimerPill, useTimeMe } from './viewer/ExamTimer';
+export { timedPaperPath, type RunningTimer, type TimedPaper } from './timeMe';
 
 const LazyModuleFiles = lazy(() => import('./ModuleFiles'));
 const LazyUploadDialog = lazy(() => import('./components/UploadDialog').then((m) => ({ default: m.UploadDialog })));
