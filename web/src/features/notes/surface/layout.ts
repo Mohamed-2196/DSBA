@@ -86,8 +86,9 @@ export function sheetAt(layout: Layout, y: number): Placed | null {
   return sheets[sheets.length - 1];
 }
 
-/** The zoom that fits a sheet's width in `available` pixels (with a margin), within the zoom range. */
-export const fitZoom = (available: number, margin = 24): number =>
+/** The zoom that fits a sheet's width in `available` pixels (with a margin, narrower on a tablet so its typed text
+ *  stays at 14 px or more), within the zoom range. */
+export const fitZoom = (available: number, margin = available < SHEET_WIDTH ? 12 : 24): number =>
   clampZoom(Math.min(1.5, (available - margin * 2) / SHEET_WIDTH));
 
 /** Sheets of paper the typed text needs: it starts TEXT_TOP down the first one and keeps a line free at the end. */

@@ -57,6 +57,8 @@ describe('layout', () => {
     expect(fitZoom(848)).toBe(1);
     expect(fitZoom(5000)).toBe(1.5);
     expect(fitZoom(100)).toBe(0.3);
+    // a tablet: the typed text (17 units) stays at 14 px or more
+    expect(fitZoom(700) * 17).toBeGreaterThanOrEqual(14);
     expect(clampZoom(9)).toBe(4);
   });
 

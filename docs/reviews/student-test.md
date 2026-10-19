@@ -42,7 +42,7 @@ newsletter editor on a phone.
 | ST-41 | major | Year 2 | Time me is only on the library page: annotating the paper in the notebook hides the clock; on a phone the paper opens in another tab | every timed paper; students time themselves on their phone's clock instead |
 | ST-42 | major | Year 2 | Back from a paper collapses "Show all 16 sittings" and scrolls to the top | 10–15 s per paper or report opened; several minutes per revision session |
 | ST-43 | major | all | Nothing on Home picks up where you left off: the paper, the note, a running timer, the lesson | ~1 min to find the place again, every session |
-| ST-44 | major | Year 1 | "Write a longer one" leaves the lesson and stops the video; the quick note box is below the fold | every lecture watched; notes go back to paper or a phone app |
+| ST-44 | major | Year 1 | "Write a longer one" leaves the lesson and stops the video; the quick note box is below the fold | every lecture watched; notes go back to paper or a phone app: **fixed** (`round14/notebook`) |
 | ST-45 | major (content) | Year 2 | Every October exam says "Time not set yet" 4 days out; "What to bring" opens an empty forum list | a trip to the VLE or WhatsApp for every exam |
 | ST-46 | minor | Year 2 | ST2134's textbook (Statistical Inference 2nd ed.) and a notes file are hidden from ST2134 as copies of other modules' files | the core book can't be found from its module |
 | ST-47 | minor | Year 2 | Saving a practice score takes five steps on two screens; stopping Time me doesn't ask | ~40 s per paper; most scores won't be saved |
@@ -112,6 +112,11 @@ newsletter editor on a phone.
   lesson's notes when nothing was typed (ST-37 again).
 - Time: every lecture; the note-taking students will keep doing it on paper.
 - Screenshots: `j2-laptop-playing.png`, `j2-laptop-quicknote.png`, `j2-laptop-longer.png`.
+- **Fixed** (`round14/notebook`): "Take notes" beside Add to my board (and "Write beside the video" under Your
+  notes) opens the lesson's notes beside the playing video in place of the chapter list, or as a sheet under the
+  video on a phone; the video stays in sight. A lesson without notes opens a new one with the cursor ready. "Video
+  time" puts the YouTube player's time in the note ("▶ 4:05"); tapping it takes the video there, and in the notebook
+  it opens the lesson at that time (`?t=`). Class recordings have no clock, so no stamp.
 
 #### ST-45 (major, content) No exam times, and "What to bring" is an empty list
 
@@ -196,7 +201,7 @@ newsletter editor on a phone.
 | ST-27 | still open: the EC1002 2003 paper opens as blank pages in "Annotate in my notebook" (`j1-laptop-annotate.png` is the May 2025 paper, fine; the 2003 one is white) |
 | ST-33 | still open (the link card's copy is unchanged in `Preview.tsx`) |
 | ST-34 | still open (ST-57) |
-| ST-37 | still open, now reached from a lesson's "Write a longer one" (ST-44) |
+| ST-37 | **fixed** (`round14/notebook`): an empty note is never listed or counted, and goes an hour on |
 | ST-24 to ST-26, ST-28 to ST-32, ST-35, ST-36, ST-38, ST-39 | not re-checked: Daily and Manage, out of this round's scope |
 
 ### Results
@@ -243,8 +248,8 @@ Daily puzzles end to end all work.
 | ST-34 | nit | A module page counts its files twice, differently (Files 120 / "115 files for EC1002") | fixed (round14/library) |
 | ST-35 | nit | Nearest Neighbour's share text: "not found in 1 guesses" | open |
 | ST-36 | nit | Manage → Daily puzzles names the games differently from the Daily (Groups, Word search, Quiz) | open |
-| ST-37 | nit | Opening "New note" and leaving it empty leaves an "Untitled note" behind | open (only when the tab is closed) |
-| ST-38 | minor, product | Notebook: a picture put in below handwriting slides under the ink | open (product call) |
+| ST-37 | nit | Opening "New note" and leaving it empty leaves an "Untitled note" behind | **fixed** (`round14/notebook`): empty notes aren't listed or counted, and are deleted an hour on |
+| ST-38 | minor, product | Notebook: a picture put in below handwriting slides under the ink | **fixed** (`round14/notebook`, Mohamed: ink moves with text): each stroke on paper is anchored to the block of text beside it (or the text's end, up to half a page below) and moves down with it, onto the next page |
 | ST-39 | nit | Correlations takes no picks for a moment after a group is found; Data Mine ignores taps while a line is checked | open |
 
 Also found and already fixed on `feature/backend` before this report: an Enter pressed while The Word's tiles turn was
