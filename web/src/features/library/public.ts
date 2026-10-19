@@ -37,8 +37,13 @@ export { useRecentFiles } from './api';
 export { useModuleQuestions, usePaperSittings } from './papers';
 export { SittingsTable } from './components/SittingsTable';
 export { itemPath as libraryItemPath } from './api';
-export { examTitle as libraryItemTitle } from './display';
-export { EXAM_KINDS as LIBRARY_EXAM_KINDS, KINDS as LIBRARY_KINDS, kindLabel as libraryKindLabel } from './kinds';
+export { examTitle as libraryItemTitle, isNew as isNewLibraryItem } from './display';
+export {
+  EXAM_KINDS as LIBRARY_EXAM_KINDS,
+  KINDS as LIBRARY_KINDS,
+  docTone as libraryDocTone,
+  kindLabel as libraryKindLabel,
+} from './kinds';
 export { UploadsQueue } from './UploadsQueue';
 export { ChapterQuestions } from './ChapterQuestions';
 export { FlaggedQuestions } from './FlaggedQuestions';

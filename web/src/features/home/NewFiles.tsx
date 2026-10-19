@@ -1,11 +1,10 @@
 // Home's "New files": the newest files in the student's modules (their papers, once picked; else their year's), with
 // papers named by their sitting ('May 2025 · Zone A'); a batch added to one module on one day is one row (fileRows.ts).
-import { Books, Files, FileText } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, EmptyState, Panel, QueryError } from '../../ui';
-import { libraryItemPath, libraryItemTitle, libraryKindLabel, useRecentFiles } from '../library/public';
+import { Button, DocThumb, EmptyState, Icon, Panel, QueryError, glyph } from '../../ui';
+import { libraryDocTone, libraryItemPath, libraryItemTitle, libraryKindLabel, useRecentFiles } from '../library/public';
 import { modulesFor, usePapers } from '../papers/public';
 import { HomeList, HomeListLoading, type HomeListRow } from './HomeList';
 import { newFileRows } from './fileRows';
@@ -26,7 +25,7 @@ export function NewFiles({ year, n = 5 }: { year: CohortYear; n?: number }) {
         const code = codeOf(r.moduleId) ?? 'a module';
         return {
           id: r.id,
-          icon: Files,
+          icon: <DocThumb tone="guide" size="md" />,
           title: `${r.count} files added to ${code}`,
           to: `/library?module=${encodeURIComponent(r.moduleId)}`,
           code: null,
@@ -36,7 +35,7 @@ export function NewFiles({ year, n = 5 }: { year: CohortYear; n?: number }) {
       }
       return {
         id: r.id,
-        icon: FileText,
+        icon: <DocThumb tone={libraryDocTone(r.item)} size="md" />,
         title: libraryItemTitle(r.item, null), // the code shows beside it
         to: libraryItemPath(r.item),
         code: codeOf(r.item.moduleId),
@@ -63,7 +62,7 @@ export function NewFiles({ year, n = 5 }: { year: CohortYear; n?: number }) {
       <Panel padding="none" data-hub="home-files">
         <EmptyState
           size="sm"
-          icon={Books}
+          icon={<Icon glyph={glyph.library} />}
           title="No new files in your modules"
           body="Notes and past papers your classmates add show here first."
           action={
