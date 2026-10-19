@@ -680,7 +680,10 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
     (action: PageAction) => {
       const scrollTo = (sheet: number) => {
         const el = scrollerRef.current?.querySelector<HTMLElement>(`[data-sheet="${sheet}"]`);
-        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        el?.scrollIntoView({
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          block: 'start',
+        });
       };
       if (action.kind === 'go') {
         scrollTo(action.sheet);
