@@ -1,5 +1,5 @@
-"""The seed loader. Expectations come from the seed files themselves (code quality review CQ-7): a rep's request to
-add a date or fix a title changes the data, never these tests. What is tested is how the files are loaded: once,
+"""The seed loader. Expectations come from the seed files themselves: a rep's request to add a date or fix a title
+changes the data, never these tests. What is tested is how the files are loaded: once,
 completely, and never over what moderators changed since."""
 
 from __future__ import annotations
@@ -9,7 +9,7 @@ from collections.abc import Callable
 from typing import Any, get_args
 
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models import (
@@ -28,7 +28,7 @@ from app.models import (
 from app.schemas.calendar import EventType
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCover, IssueSection
-from app.seed.loader import daily_guess_words, load_all, module_folders, read, seed_issue
+from app.seed.loader import daily_guess_words, load_all, load_daily, module_folders, read, seed_issue
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -129,7 +129,8 @@ def test_seed_loads_everything_once(db: Session) -> None:
     files = {name: len(read(name)) for name in ("modules", "calendar", "newsletter")}
     folders = expected_folders()
     themes = len(read("daily/themes"))
-    assert first_load(db) == {**files, "career": 1, "drive-folders": folders, "daily": themes}
+    daily = themes + len(daily_guess_words())
+    assert first_load(db) == {**files, "career": 1, "drive-folders": folders, "daily": daily}
     totals = (count(db, Module), count(db, CalendarEvent), count(db, NewsletterIssue), count(db, ContentDoc))
     assert totals == (files["modules"], files["calendar"], files["newsletter"], 1)
     assert (count(db, DriveFolder), count(db, LibraryItem)) == (folders, 0)  # the library holds no Drive links
@@ -151,6 +152,22 @@ def test_seed_loads_everything_once(db: Session) -> None:
         files["newsletter"],
         folders,
     )
+
+
+def test_the_seed_fills_a_short_guess_list_and_leaves_a_full_one_as_editors_keep_it(db: Session) -> None:
+    """A Daily whose content file came first holds that file's answers only, and the word game refuses everyday
+    guesses: the next seed adds the shipped list. Words editors took off a full list stay off."""
+    shipped = daily_guess_words()
+    db.add_all(DailyGuessWord(word=w) for w in ("BLORP", shipped[0]))  # the file's own answer, and a dictionary word
+    db.commit()
+    assert load_daily(db) == len(read("daily/themes")) + len(shipped) - 1
+    db.commit()
+    assert count(db, DailyGuessWord) == len(shipped) + 1
+
+    db.execute(delete(DailyGuessWord).where(DailyGuessWord.word.in_(shipped[:3])))  # an editor took three off
+    db.commit()
+    assert load_daily(db) == 0
+    assert count(db, DailyGuessWord) == len(shipped) - 2
 
 
 def test_seeded_content_is_what_the_files_say(db: Session) -> None:

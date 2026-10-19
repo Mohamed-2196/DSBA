@@ -113,10 +113,11 @@ describe('statusOf', () => {
   const day = (status: GameDay['status'], extra: Partial<GameDay> = {}) =>
     ({ info: { id: 'word', maxPoints: 100 }, status, points: 0, scored: false, variant: '', ...extra }) as GameDay;
 
-  it('says what a card does next', () => {
-    expect(statusOf(day('new'))).toEqual({ label: 'Up to 100 points', action: 'Play', tone: 'new' });
-    expect(statusOf(day('playing')).action).toBe('Continue');
-    expect(statusOf(day('won', { scored: true, points: 90 })).label).toBe('Solved · 90 points');
-    expect(statusOf(day('lost', { scored: true })).label).toBe('Done');
+  it('says how a game stands in a word or two', () => {
+    expect(statusOf(day('new'))).toEqual({ label: 'New', tone: 'new' });
+    expect(statusOf(day('playing')).label).toBe('Playing');
+    expect(statusOf(day('won', { scored: true, points: 90 })).label).toBe('Solved · +90');
+    expect(statusOf(day('won')).label).toBe('Solved');
+    expect(statusOf(day('lost', { scored: true })).label).toBe('Not solved');
   });
 });

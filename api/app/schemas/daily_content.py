@@ -138,6 +138,7 @@ class DailyContentOverview(ApiModel):
     themes: list[ThemeOut]  # the rotation in order, then the themes out of it
     weeks: list[WeekOut]  # this week and the next ones
     guess_words: int
+    guess_list_short: bool  # it lacks the hub's list: the seed and a content import add it
     vocabulary_words: int
     tags: list[str]  # every tag the vocabulary uses, alphabetical
 

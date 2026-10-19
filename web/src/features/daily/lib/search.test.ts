@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cellAt, lineCells, pointIn, snapEnd } from './search';
+import { cellAt, cellTones, findTone, lineCells, pointIn, snapEnd } from './search';
 
 describe('lineCells', () => {
   it('walks straight lines in any of the eight directions', () => {
@@ -53,5 +53,19 @@ describe('pointIn and cellAt', () => {
 
   it('is nothing outside the grid', () => {
     expect(cellAt(pointIn(40, 70, rect, 10), 10)).toBeNull();
+  });
+});
+
+describe('cellTones', () => {
+  it('gives each crossed cell the colour of the last find over it, and none to words shown at the end', () => {
+    const across = { start: { row: 0, col: 0 }, end: { row: 0, col: 3 }, revealed: false };
+    const down = { start: { row: 0, col: 2 }, end: { row: 3, col: 2 }, revealed: false };
+    const shown = { start: { row: 4, col: 0 }, end: { row: 4, col: 3 }, revealed: true };
+    const tones = cellTones([across, down, shown]);
+    expect(tones.get('0,0')).toBe(findTone(0));
+    expect(tones.get('0,2')).toBe(findTone(1)); // the later find is on top
+    expect(tones.get('3,2')).toBe(findTone(1));
+    expect(tones.has('4,0')).toBe(false);
+    expect(tones.size).toBe(7);
   });
 });

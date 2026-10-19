@@ -79,3 +79,14 @@ export function cellAt(point: { row: number; col: number }, size: number): Pos |
 
 /** The colour slot (0-7) of the nth word found, so neighbouring finds look different. */
 export const findTone = (index: number): number => (index * 3) % 8;
+
+/** Each cell's colour under its letter: the slot of the last find whose line crosses it (words shown at the end
+ * have none). Slot 0, the yellow, stays light in both themes, so its letters take dark text. */
+export function cellTones(found: readonly { start: Pos; end: Pos; revealed: boolean }[]): Map<string, number> {
+  const tones = new Map<string, number>();
+  found.forEach((f, i) => {
+    if (f.revealed) return;
+    for (const cell of lineCells(f.start, f.end) ?? []) tones.set(posKey(cell), findTone(i));
+  });
+  return tones;
+}

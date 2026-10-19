@@ -32261,6 +32261,10 @@
             "type": "integer",
             "title": "Guesswords"
           },
+          "guessListShort": {
+            "type": "boolean",
+            "title": "Guesslistshort"
+          },
           "vocabularyWords": {
             "type": "integer",
             "title": "Vocabularywords"
@@ -32280,6 +32284,7 @@
           "themes",
           "weeks",
           "guessWords",
+          "guessListShort",
           "vocabularyWords",
           "tags"
         ],
@@ -35500,6 +35505,33 @@
           "scored": {
             "type": "boolean",
             "title": "Scored"
+          },
+          "picture": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "hit",
+                      "near",
+                      "miss",
+                      "wrong",
+                      "l1",
+                      "l2",
+                      "l3",
+                      "l4"
+                    ]
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Picture"
           }
         },
         "type": "object",
@@ -35508,7 +35540,8 @@
           "status",
           "variant",
           "points",
-          "scored"
+          "scored",
+          "picture"
         ],
         "title": "GameDay",
         "description": "A game on the hub: its card, and how far the viewer got."
@@ -42803,6 +42836,33 @@
             ],
             "title": "Share"
           },
+          "picture": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "hit",
+                      "near",
+                      "miss",
+                      "wrong",
+                      "l1",
+                      "l2",
+                      "l3",
+                      "l4"
+                    ]
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Picture"
+          },
           "revision": {
             "type": "integer",
             "title": "Revision"
@@ -42860,6 +42920,7 @@
           "seconds",
           "result",
           "share",
+          "picture",
           "revision",
           "restarted",
           "view"

@@ -24,14 +24,13 @@ from typing import Any, cast
 
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import func, select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError, invalid
 from app.core.time import bahrain_today
 from app.models import DailyGuessWord, DailyItem, DailyNearestWord, DailyTheme, User
 from app.schemas.daily_content import BundleCounts, BundleGameCounts, BundleIn, BundleReport, ContentGame
-from app.seed.loader import daily_guess_words
+from app.seed.loader import add_guess_words, daily_guess_words, top_up_guess_list
 from app.services import audit
 from app.services.daily import editor, rules
 
@@ -130,13 +129,11 @@ def _themes(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> No
 
 
 def _guesses(db: Session, words: Sequence[str], out: ImportResult) -> None:
+    """The file's guess words and answers that the guess list lacks; then, into a list that is still short, the
+    shipped list, which files leave out (counted as added)."""
     good = sorted({w.strip().upper() for w in words if rules.ANSWER.fullmatch(w.strip().upper())})
-    if not good:
-        return
-    before = db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0
-    db.execute(pg_insert(DailyGuessWord).values([{"word": w} for w in good]).on_conflict_do_nothing())
-    added = (db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0) - before
-    out.guesses["added"] += added
+    added = add_guess_words(db, good)
+    out.guesses["added"] += added + top_up_guess_list(db)
     out.guesses["kept"] += len(good) - added
 
 

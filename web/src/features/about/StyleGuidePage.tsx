@@ -59,6 +59,7 @@ import {
   cx,
 } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, useCalendarEvents, type EventType } from '../calendar/public';
+import { GameColours } from '../daily/public';
 import './StyleGuidePage.css';
 
 // ── Reference data ────────────────────────────────────────────────────────
@@ -564,6 +565,14 @@ export default function StyleGuidePage() {
                   <Swatch key={token} token={token} use={use} />
                 ))}
               </ul>
+            </div>
+            <div className="sg-colour-group">
+              <h3 className="sg-subhead">Daily’s game colours</h3>
+              <p className="sg-caption">
+                From <code>features/daily/daily.css</code>: each fill with the text it carries, light theme then dark,
+                and the contrast measured here. Text needs 4.5:1.
+              </p>
+              <GameColours />
             </div>
             <div className="sg-colour-group">
               <h3 className="sg-subhead">Calendar event types</h3>

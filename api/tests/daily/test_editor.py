@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import bahrain_today
 from app.models import AuditEntry, DailyItem, DailyTheme, User
+from app.seed.loader import add_guess_words, daily_guess_words
 from app.services.daily import content
 from app.services.daily.games import GAMES
 from tests.daily.conftest import API, GUESSES, VOCABULARY
@@ -87,6 +88,13 @@ def test_the_overview_shows_each_theme_with_what_it_has_and_the_weeks_to_come(c:
     assert body["tags"] == sorted({t for tags, _ in VOCABULARY.values() for t in tags})
 
 
+def test_the_overview_says_when_the_guess_list_lacks_the_shipped_one(c: TestClient, db: Session) -> None:
+    assert overview(c)["guessListShort"] is True  # the test words only
+    add_guess_words(db, daily_guess_words())
+    db.commit()
+    assert overview(c)["guessListShort"] is False
+
+
 # ── each game's rules ────────────────────────────────────────────────────────────────────────
 
 
@@ -111,7 +119,7 @@ NINE = ["ACE", "KING", "QUEEN", "JACK", "JOKER"]  # with UNIQUE, nine words: one
         ({"game": "groups", "label": "colours", "level": 2, "words": UNIQUE}, "data.label", "group called"),
         ({"game": "groups", "label": "Odd", "level": 5, "words": UNIQUE}, "data.groups.level", ""),
         ({"game": "search", "word": "ABC"}, "data.word", "4 to 10 letters"),
-        ({"game": "search", "word": "median"}, "data.word", "already in Alpha week's word search"),
+        ({"game": "search", "word": "median"}, "data.word", "already a Data Mine word in Alpha week"),
         (quiz(question="Short?"), "data.question", "10 to 200"),
         (quiz(options=["Only one"]), "data.options", "2 to 6"),
         (quiz(options=["Same", "same "]), "data.options", "different"),
@@ -119,7 +127,7 @@ NINE = ["ACE", "KING", "QUEEN", "JACK", "JOKER"]  # with UNIQUE, nine words: one
         (quiz(answer=2), "data.answer", "right answer"),
         (quiz(explanation=" "), "data.explanation", "300"),
         (quiz(moduleId="no-such-module"), "data.moduleId", "modules"),
-        (quiz(question="Which option is right in alpha question 1?"), "data.question", "already in the quiz"),
+        (quiz(question="Which option is right in alpha question 1?"), "data.question", "already has this question"),
         ({"game": "nearest", "word": "zebra"}, "data.word", "isn't in the vocabulary"),
         ({"game": "nearest", "word": "Mean"}, "data.word", "already a secret word"),
     ],
@@ -418,7 +426,7 @@ def test_a_preview_names_what_a_short_theme_lacks(c: TestClient, db: Session) ->
     db.commit()
     body = c.get(f"{DAILY}/preview", params={"day": (bahrain_today() + dt.timedelta(days=1)).isoformat()}).json()
     search = next(g for g in body["games"] if g["game"] == "search")
-    assert (search["puzzle"], search["problem"]) == (None, "Word search needs at least 8 words.")
+    assert (search["puzzle"], search["problem"]) == (None, "Data Mine needs at least 8 words.")
 
 
 def test_a_new_install_puts_its_first_theme_in_the_rotation(c: TestClient, db: Session) -> None:

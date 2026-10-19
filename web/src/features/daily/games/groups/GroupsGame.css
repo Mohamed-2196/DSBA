@@ -76,9 +76,10 @@
   color: var(--dy-on-pick);
   box-shadow: none;
 }
+/* Once it's over, the words left are what wasn't found: faded. */
 .dgr-word:disabled {
   cursor: default;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -150,6 +151,7 @@
 }
 .dgr-group--1 {
   background: var(--dy-l1);
+  --dy-on-level: var(--dy-on-l1);
 }
 .dgr-group--2 {
   background: var(--dy-l2);
@@ -163,8 +165,6 @@
 .dgr-group__label {
   font-size: var(--fs-14);
   font-weight: var(--fw-heavy);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 .dgr-group__words {
   font-size: var(--fs-14);

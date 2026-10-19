@@ -14,7 +14,7 @@ from typing import Any, ClassVar, Generic, Literal, TypeVar
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError, invalid
-from app.schemas.daily import GameId, GameInfo, GameView, Move
+from app.schemas.daily import GameId, GameInfo, GameView, Mark, Move, Picture
 from app.services.daily import content
 from app.services.daily.content import Entry, Uses
 
@@ -22,6 +22,11 @@ P = TypeVar("P")  # the day's puzzle, including its answer: it never leaves the 
 S = TypeVar("S")  # a play's state, rebuilt from its moves
 
 Status = Literal["playing", "won", "lost"]
+
+
+def rows_of(marks: list[Mark], width: int) -> Picture:
+    """Marks in rows of `width`, the last one shorter."""
+    return [marks[i : i + width] for i in range(0, len(marks), width)]
 
 
 @dataclass(frozen=True)
@@ -92,6 +97,10 @@ class Game(ABC, Generic[P, S]):
     @abstractmethod
     def share(self, puzzle: P, state: S, status: Status) -> str:
         """A result grid without spoilers (the first line names the game; the hub adds the date)."""
+
+    @abstractmethod
+    def picture(self, puzzle: P, state: S) -> Picture:
+        """The finished play in squares, rows of marks, for the hub's tile and the result card: no spoilers."""
 
 
 class ContentGame(Game[P, S]):

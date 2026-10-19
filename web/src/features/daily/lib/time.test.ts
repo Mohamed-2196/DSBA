@@ -1,16 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { formatCountdown, formatDuration } from './time';
+import { formatDuration, formatTimeLeft } from './time';
 import { withLink } from './share';
 
-describe('formatCountdown', () => {
+describe('formatTimeLeft', () => {
   const now = Date.UTC(2026, 9, 17, 18, 0, 0);
+  const inSeconds = (s: number) => new Date(now + s * 1000).toISOString();
 
-  it('counts down in hours, minutes and seconds', () => {
-    expect(formatCountdown(new Date(now + (2 * 3600 + 30 * 60 + 15) * 1000).toISOString(), now)).toBe('02:30:15');
+  it('counts down in hours and minutes, rounding up', () => {
+    expect(formatTimeLeft(inSeconds(11 * 3600 + 50 * 60), now)).toBe('11 h 50 min');
+    expect(formatTimeLeft(inSeconds(2 * 3600 + 30 * 60 + 15), now)).toBe('2 h 31 min');
+    expect(formatTimeLeft(inSeconds(3 * 3600), now)).toBe('3 h');
+    expect(formatTimeLeft(inSeconds(50 * 60), now)).toBe('50 min');
   });
 
-  it('stops at zero', () => {
-    expect(formatCountdown(new Date(now - 5000).toISOString(), now)).toBe('00:00:00');
+  it('says a minute until the end', () => {
+    expect(formatTimeLeft(inSeconds(20), now)).toBe('1 min');
+    expect(formatTimeLeft(inSeconds(-5), now)).toBe('1 min');
   });
 });
 
