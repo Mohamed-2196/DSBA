@@ -175,7 +175,17 @@ def remove(db: Session, user: User, row: PaperQuestion, ip: str | None) -> None:
     if not mine:
         item = db.get(LibraryItem, row.item_id)
         title = f"Q{row.question} of {item.title if item else 'a paper'}"
-        record(db, user, "library.question_remove", "library_item", row.item_id, title, ip, chapter=row.chapter_id)
+        record(
+            db,
+            user,
+            "library.question_remove",
+            "library_item",
+            row.item_id,
+            title,
+            ip,
+            chapter=row.chapter_id,
+            question=row.question,  # the seed doesn't bring back a removed tag (seed/loader.py)
+        )
     db.delete(row)
 
 

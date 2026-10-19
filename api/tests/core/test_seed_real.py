@@ -1,4 +1,5 @@
-"""scripts/seed-real.sh: one command that fills an install with the real content (migrations, seed, Drive import).
+"""scripts/seed-real.sh: one command that fills an install with the real content (migrations, seed, Drive import,
+then the past questions Claude tagged, on the papers the import brought).
 
 The script runs from a copy in a temporary folder, with its own compose files and .env, and a stand-in for docker that
 records each call: nothing here touches a real stack or a real .env."""
@@ -75,8 +76,9 @@ def test_it_migrates_seeds_then_imports_in_the_local_stack(setup: Setup) -> None
         [*compose, "api", "alembic", "upgrade", "head"],
         [*compose, "api", "python", "-m", "app.cli", "seed"],
         [*compose, "-e", "DSBA_GOOGLE_API_KEY", "api", "python", "-m", "app.cli", "import-drive"],
+        [*compose, "api", "python", "-m", "app.cli", "seed", "--only", "paper-questions"],
     ]
-    assert "== 3/3 Library files from Google Drive" in done.stdout
+    assert "== 3/4 Library files from Google Drive" in done.stdout
     assert KEY not in done.stdout + done.stderr  # passed on by name only, never on a command line
     assert KEY not in setup.log.read_text()
 
@@ -85,7 +87,7 @@ def test_prod_uses_the_servers_stack_and_passes_the_imports_options_through(setu
     done = setup.run("--prod", "--dry-run", "--module", "statistics", env={"DSBA_GOOGLE_API_KEY": KEY})
     assert done.returncode == 0, done.stderr
     calls = setup.calls()
-    assert [call[:3] for call in calls] == [["compose", "-f", str(setup.root / "compose.prod.yaml")]] * 3
+    assert [call[:3] for call in calls] == [["compose", "-f", str(setup.root / "compose.prod.yaml")]] * 4
     assert calls[1][-1] == "seed"  # the dry run still loads the links the plan reads
     assert calls[2][calls[2].index("import-drive") :] == ["import-drive", "--dry-run", "--module", "statistics"]
 
@@ -125,7 +127,7 @@ def test_a_step_that_fails_stops_the_rest(setup: Setup) -> None:
     done = setup.run(env={"DSBA_GOOGLE_API_KEY": KEY, "DOCKER_FAIL_ON": "alembic"})
     assert done.returncode == 1
     assert len(setup.calls()) == 1
-    assert "== 2/3" not in done.stdout
+    assert "== 2/4" not in done.stdout
 
 
 def test_help_says_what_it_does(setup: Setup) -> None:

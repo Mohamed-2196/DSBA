@@ -1,7 +1,8 @@
 """Command line: python -m app.cli <command>.
 
 openapi            print the OpenAPI document (the web app generates its types from it)
-seed [--only X]    load the reference content (modules, calendar, newsletter, career, the Drive folders to import)
+seed [--only X]    load the reference content (modules, calendar, newsletter, career, the Drive folders to import,
+                   and the past questions Claude tagged, on the papers the install has)
 set-role ID ROLE...  make the account with this email or phone number hold exactly these roles (slugs; audited)
 backup             pg_dump the database into the backup bucket, encrypted at rest, and keep the newest
                    DSBA_BACKUP_KEEP (docs/backend/DEPLOYMENT.md: where backups go, and how to restore one)
@@ -31,6 +32,14 @@ texts-role         create the text worker's database role, or set its password (
 daily-content import FILE   add the Daily puzzles' content from a file kept out of the repository (themes, guess
                    words, vocabulary, items; what the database has stays as it is). export FILE writes the database's
                    content to one (it holds every answer: keep it private)
+tag-questions      have Claude tag each published past paper's questions with its module's chapters: one request a
+                   paper, sent as one Message Batch (half the price), then saved as the results come back. Prints
+                   the estimate and asks first (--dry-run: only the estimate; --sample N: N papers one by one,
+                   printed and saved, for a look at the quality; --module ID or unit code; --limit N papers;
+                   --redo: papers Claude tagged before too; --batch ID: collect a batch sent earlier; --yes: no
+                   question). Needs DSBA_ANTHROPIC_API_KEY, except for --dry-run
+export-question-tags [FILE]  write Claude's tags to the seed (default app/seed/data/paper_questions.json), keyed
+                   by each paper's import key and file hash, so `seed` gives every environment the same tags
 dev-login ID       development only: print a session token for an account (created if needed, holding Student;
                    --role gives one more role)
 enable-features    development only: switch every feature on for everyone (each change goes to the activity log)
@@ -66,6 +75,8 @@ from app.services.storage import Storage, get_storage, s3_client
 
 if TYPE_CHECKING:
     from mypy_boto3_s3 import S3Client
+
+    from app.services.question_tagging import Report as TaggingReport
 
 # Rows a dump leaves out: sign-in codes and sessions are of no use after a restore (everyone signs in again).
 BACKUP_SKIP_DATA = ("otp_challenges", "user_sessions")
@@ -462,6 +473,78 @@ def _seconds(value: str) -> float:
     return n
 
 
+def cmd_tag_questions(args: argparse.Namespace) -> int:
+    """Past questions tagged by Claude (app/services/question_tagging.py)."""
+    from app.services import question_tagging as qt
+
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
+    with get_sessionmaker()() as db:
+        module_id = None
+        if args.module is not None:
+            module = qt.resolve_module(db, args.module)
+            if module is None:
+                print(f"There is no module {args.module!r} (give its id or its unit code).", file=sys.stderr)
+                return 2
+            module_id = module.id
+        claude = None if args.dry_run else qt.connect(get_settings())
+        if claude is None and not args.dry_run:
+            print("Tagging needs DSBA_ANTHROPIC_API_KEY. Nothing was sent.", file=sys.stderr)
+            return 1
+        if args.batch is not None:
+            assert claude is not None
+            qt.wait(claude, args.batch, out=print)
+            return _tagging_report(qt.collect_batch(db, claude, args.batch, redo=args.redo), batch=True)
+
+        ids = qt.candidates(db, module_id=module_id, redo=args.redo, limit=args.sample or args.limit)
+        papers, skipped = qt.load_papers(db, ids)
+        for item_id, why in skipped:
+            print(f"  passed by {item_id}: {why}")
+        est = qt.estimate(papers)
+        how = "one by one" if args.sample else "as one batch"
+        print(
+            f"{est.papers} papers to tag {how} with {qt.MODEL}: about {est.input_tokens:,} input and "
+            f"{est.output_tokens:,} output tokens, about ${est.cost(batch=not args.sample):.2f}."
+        )
+        if args.dry_run or not papers:
+            return 0
+        assert claude is not None
+        if args.sample:
+            return _tagging_report(qt.run_sample(db, claude, papers, redo=args.redo, out=print), batch=False)
+        if not args.yes and not _confirm("Send them? [y/N] "):
+            print("Nothing was sent.")
+            return 1
+        batch = qt.submit_batch(claude, papers)
+        print(f"Sent batch {batch.id}. If this stops, collect it with: tag-questions --batch {batch.id}")
+        qt.wait(claude, batch.id, out=print)
+        return _tagging_report(qt.collect_batch(db, claude, batch.id, redo=args.redo), batch=True)
+
+
+def _tagging_report(report: TaggingReport, *, batch: bool) -> int:
+    for title, why in report.failed:
+        print(f"  failed: {title}: {why}")
+    print(
+        f"Tagged {report.papers} papers ({report.tags} tags); {len(report.failed)} failed. Used "
+        f"{report.input_tokens:,} input and {report.output_tokens:,} output tokens, about "
+        f"${report.cost(batch=batch):.2f}."
+    )
+    return 0
+
+
+def cmd_export_question_tags(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from app.seed.loader import DATA
+    from app.services import question_tagging as qt
+
+    path = Path(args.file) if args.file else DATA / f"{qt.SEED_FILE}.json"
+    with get_sessionmaker()() as db:
+        entries = qt.export_tags(db)
+    path.write_text(json.dumps(entries, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    tags = sum(len(q["chapters"]) for e in entries for q in e["questions"])
+    print(f"Wrote {tags} tags on {len(entries)} papers to {path}.")
+    return 0
+
+
 def cmd_daily_content(args: argparse.Namespace) -> int:
     from pathlib import Path
 
@@ -571,7 +654,9 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("openapi").set_defaults(fn=cmd_openapi)
     sp = sub.add_parser("seed")
     sp.add_argument(
-        "--only", choices=["modules", "calendar", "newsletter", "career", "drive-folders", "daily"], default=None
+        "--only",
+        choices=["modules", "calendar", "newsletter", "career", "drive-folders", "daily", "paper-questions"],
+        default=None,
     )
     sp.set_defaults(fn=cmd_seed)
     sr = sub.add_parser("set-role")
@@ -617,6 +702,19 @@ def main(argv: list[str] | None = None) -> int:
     dc.add_argument("action", choices=["import", "export"])
     dc.add_argument("file", metavar="FILE")
     dc.set_defaults(fn=cmd_daily_content)
+    tq = sub.add_parser("tag-questions")
+    once = tq.add_mutually_exclusive_group()
+    once.add_argument("--dry-run", action="store_true", help="print the papers and the estimate; send nothing")
+    once.add_argument("--sample", metavar="N", type=_positive, default=None, help="tag N papers one by one, printed")
+    once.add_argument("--batch", metavar="ID", default=None, help="collect the results of a batch sent earlier")
+    tq.add_argument("--module", metavar="ID", default=None, help="only this module (its id or unit code)")
+    tq.add_argument("--limit", metavar="N", type=_positive, default=None, help="at most N papers this run")
+    tq.add_argument("--redo", action="store_true", help="tag papers Claude tagged before again (replaces its tags)")
+    tq.add_argument("--yes", action="store_true", help="send the batch without asking first")
+    tq.set_defaults(fn=cmd_tag_questions)
+    xq = sub.add_parser("export-question-tags")
+    xq.add_argument("file", metavar="FILE", nargs="?", default=None, help="default: the seed's paper_questions.json")
+    xq.set_defaults(fn=cmd_export_question_tags)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
     dl.add_argument("--role", default=None, metavar="ROLE", help="give this role too (a slug, such as rep or admin)")

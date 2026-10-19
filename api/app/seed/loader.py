@@ -1,5 +1,6 @@
 """Loads the reference content in app/seed/data/*.json: modules, calendar dates, newsletter issues, the Career
-Navigator document, the Drive folders the import copies into the library, and Daily's themes and guess list.
+Navigator document, the Drive folders the import copies into the library, Daily's themes and guess list, and the
+past papers' questions Claude tagged (on the papers this install has: run the seed again after the Drive import).
 
 Idempotent: running it again adds what is missing and never overwrites what moderators changed through the API.
 Something a moderator deleted stays deleted: calendar events and newsletter issues are looked up in the audit log
@@ -37,7 +38,7 @@ from app.models import (
 )
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCreate
-from app.services import career, newsletter
+from app.services import career, newsletter, question_tagging
 
 DATA = Path(__file__).parent / "data"
 
@@ -308,7 +309,16 @@ def add_guess_words(db: Session, words: Sequence[str]) -> int:
     return guess_list_size(db) - before
 
 
-# Order matters: Drive folders and calendar events refer to modules.
+# ── past questions ───────────────────────────────────────────────────────────────────────────
+
+
+def load_paper_questions(db: Session) -> int:
+    """Claude's tags of past papers' questions (`python -m app.cli export-question-tags` writes the file), on the
+    papers this install has: services/question_tagging.py import_tags() says what it leaves out."""
+    return question_tagging.import_tags(db, read(question_tagging.SEED_FILE))
+
+
+# Order matters: Drive folders and calendar events refer to modules, the tags to chapters and papers.
 SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
     "calendar": load_calendar,
@@ -316,6 +326,7 @@ SECTIONS: dict[str, Callable[[Session], int]] = {
     "career": load_career,
     "drive-folders": load_drive_folders,
     "daily": load_daily,
+    "paper-questions": load_paper_questions,
 }
 
 

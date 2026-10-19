@@ -130,7 +130,13 @@ def test_seed_loads_everything_once(db: Session) -> None:
     folders = expected_folders()
     themes = len(read("daily/themes"))
     daily = themes + len(daily_guess_words())
-    assert first_load(db) == {**files, "career": 1, "drive-folders": folders, "daily": daily}
+    assert first_load(db) == {
+        **files,
+        "career": 1,
+        "drive-folders": folders,
+        "daily": daily,
+        "paper-questions": 0,  # the library is empty until the import
+    }
     totals = (count(db, Module), count(db, CalendarEvent), count(db, NewsletterIssue), count(db, ContentDoc))
     assert totals == (files["modules"], files["calendar"], files["newsletter"], 1)
     assert (count(db, DriveFolder), count(db, LibraryItem)) == (folders, 0)  # the library holds no Drive links
@@ -146,7 +152,15 @@ def test_seed_loads_everything_once(db: Session) -> None:
     # run it again: nothing is added, and the modules stay as they are
     again = load_all(db)
     db.commit()
-    assert again == {"modules": 0, "calendar": 0, "newsletter": 0, "career": 0, "drive-folders": 0, "daily": 0}
+    assert again == {
+        "modules": 0,
+        "calendar": 0,
+        "newsletter": 0,
+        "career": 0,
+        "drive-folders": 0,
+        "daily": 0,
+        "paper-questions": 0,
+    }
     assert (count(db, CalendarEvent), count(db, NewsletterIssue), count(db, DriveFolder)) == (
         files["calendar"],
         files["newsletter"],
@@ -242,7 +256,15 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
 
     again = load_all(db)
     db.commit()
-    assert again == {"modules": 0, "calendar": 0, "newsletter": 0, "career": 0, "drive-folders": 0, "daily": 0}
+    assert again == {
+        "modules": 0,
+        "calendar": 0,
+        "newsletter": 0,
+        "career": 0,
+        "drive-folders": 0,
+        "daily": 0,
+        "paper-questions": 0,
+    }
     edited = db.get(CalendarEvent, edited_event)
     assert edited is not None
     assert edited.place == "Hall 2"
