@@ -25,9 +25,7 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.add_column("daily_plays", sa.Column("kept_at", sa.DateTime(timezone=True), nullable=True))
     op.add_column("daily_plays", sa.Column("kept_ip", postgresql.INET(), nullable=True))
-    op.create_index(
-        "ix_daily_plays_kept", "daily_plays", ["kept_at"], postgresql_where=sa.text("kept_at IS NOT NULL")
-    )
+    op.create_index("ix_daily_plays_kept", "daily_plays", ["kept_at"], postgresql_where=sa.text("kept_at IS NOT NULL"))
 
 
 def downgrade() -> None:
