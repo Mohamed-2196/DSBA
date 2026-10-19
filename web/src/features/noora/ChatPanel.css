@@ -642,7 +642,7 @@ a.nc-card:hover .nc-card__go {
   animation: nc-arrive var(--dur-slow) var(--ease) calc(200ms + var(--i) * 90ms) both;
 }
 
-/* ── The formula card: a pale inset in her bubble, set in the serif with italic variables ────────── */
+/* ── The formula card: a pale inset in her bubble, with italic variables ────────── */
 .nc-formula {
   margin-top: 10px;
   padding: 12px 14px 11px;

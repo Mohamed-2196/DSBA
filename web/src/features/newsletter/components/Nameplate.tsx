@@ -2,7 +2,7 @@ import { cx } from '../../../ui';
 import './Nameplate.css';
 
 /**
- * "The DSBA Newsletter" in Newsreader, with the highlighter swipe on "DSBA". Pure text (real glyphs,
+ * "The DSBA Newsletter" in the display face, with the highlighter swipe on "DSBA". Pure text (real glyphs,
  * selectable, one accessible name): whoever places it sets the font size. Used inline in run-heads.
  * Each half sits in its own span so the masthead can break between them on a phone.
  */

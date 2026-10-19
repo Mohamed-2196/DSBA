@@ -3,14 +3,14 @@
   padding: var(--sp-64) 0 var(--sp-32);
 }
 .notfound__code {
-  font-size: var(--fs-76);
+  font-size: var(--fs-44);
   line-height: 0.9;
   letter-spacing: -0.04em;
   color: var(--ink);
 }
 .notfound__title {
   margin-top: var(--sp-16);
-  font-size: var(--fs-31);
+  font-size: var(--fs-28);
   font-weight: var(--fw-heavy);
 }
 .notfound__body {
