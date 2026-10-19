@@ -669,6 +669,10 @@ export function makeFiles(tag: string): TestFiles {
       ]),
     );
     fs.writeFileSync(
+      files.paper,
+      pdf([`EC1002 Introduction to Economics, May 2024, Zone A (${tag})`, 'Answer FOUR questions.']),
+    );
+    fs.writeFileSync(
       files.report,
       pdf([`EC1002 examiners' commentary (${tag})`, 'Question 3: most candidates did well.']),
     );
