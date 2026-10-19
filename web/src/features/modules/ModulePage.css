@@ -410,7 +410,7 @@ button.mod-row:hover .mod-row__title {
 
 /* The rest of the library: a shelf, what it holds, how many files. */
 .mod-shelf {
-  grid-template-columns: 22px minmax(0, 1fr) auto;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
   align-items: start;
 }
 .mod-shelf__icon {

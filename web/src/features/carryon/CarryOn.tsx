@@ -1,24 +1,31 @@
 // "Carry on": the paper being timed, then the last papers, files, notes and lessons opened in this browser, each a
 // link back to it (a paper with the note written on it). On Home for everything, and on a module's Overview for that
 // module's. Renders nothing while there is nothing to pick up.
-import { Exam, FileText, NotePencil, PlayCircle, Timer, type Icon } from '@phosphor-icons/react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { cx, Panel, timeAgo } from '../../ui';
+import { cx, DocThumb, Icon, Panel, glyph, timeAgo } from '../../ui';
 import { ClockText, timedPaperPath } from '../library/public';
 import type { CarryOnRow, VisitKind } from './recent';
 import { useCarryOn } from './useCarryOn';
 import './CarryOn.css';
 
-const ICON: Record<VisitKind, Icon> = { paper: Exam, file: FileText, note: NotePencil, lesson: PlayCircle };
+/** Papers, files and notes are drawn documents; a lesson is a play button. */
+const ICON: Record<VisitKind, ReactNode> = {
+  paper: <DocThumb tone="paper" size="md" />,
+  file: <DocThumb tone="guide" size="md" />,
+  note: <DocThumb tone="note" size="md" />,
+  lesson: <Icon glyph={glyph.play} size={24} />,
+};
 const WHAT: Record<VisitKind, string> = { paper: 'Past paper', file: 'File', note: 'Note', lesson: 'Lesson' };
 
 function Row({ row }: { row: CarryOnRow }) {
   const { visit, note } = row;
-  const RowIcon = ICON[visit.kind];
   return (
     <li className="carry__item">
       <Link to={visit.path} className="carry__row">
-        <RowIcon className="carry__icon" weight="duotone" aria-hidden="true" />
+        <span className="carry__icon" aria-hidden="true">
+          {ICON[visit.kind]}
+        </span>
         <span className="carry__text">
           <span className="carry__title">{visit.title}</span>
           <span className="carry__meta">
@@ -28,7 +35,7 @@ function Row({ row }: { row: CarryOnRow }) {
       </Link>
       {note ? (
         <Link to={note.path} className="carry__note" data-hub="carry-on-note">
-          <NotePencil aria-hidden="true" weight="duotone" />
+          <Icon glyph={glyph.notebook} />
           Your notes on it
         </Link>
       ) : null}
@@ -55,17 +62,21 @@ export function CarryOn({
         {timed ? (
           <li className="carry__item carry__item--timed">
             <Link to={timedPaperPath(timed.paper)} className="carry__row">
-              <Timer className="carry__icon carry__icon--timed" weight="duotone" aria-hidden="true" />
+              <span className="carry__icon" aria-hidden="true">
+                <DocThumb tone="paper" size="md" />
+              </span>
               <span className="carry__text">
                 <span className="carry__title">{timed.paper.title}</span>
-                <span className="carry__meta carry__meta--timed">
-                  Time me: <ClockText timer={timed} />
+                <span className="carry__meta">Timed attempt</span>
+                {/* The clock, set in mono as the brand's timer is (BRAND.md §3). */}
+                <span className="carry__clock">
+                  <ClockText timer={timed} />
                 </span>
               </span>
             </Link>
             {timedNote ? (
               <Link to={timedNote.path} className="carry__note" data-hub="carry-on-note">
-                <NotePencil aria-hidden="true" weight="duotone" />
+                <Icon glyph={glyph.notebook} />
                 Your notes on it
               </Link>
             ) : null}
