@@ -1,14 +1,12 @@
 import { useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import { ChatCircle, MagnifyingGlass, Plus, X } from '@phosphor-icons/react';
-import type { ThreadDetail, ThreadSummary } from '../../api/types';
+import { ChatCircle, ChatsCircle, MagnifyingGlass, Plus, X } from '@phosphor-icons/react';
+import type { ThreadSummary } from '../../api/types';
 import { remainingCount } from '../../api/paging';
 import { useAuth } from '../../auth';
 import { Button, EmptyState, Page, PageHeader, Panel, QueryError, TabPanel, cx, formatCount } from '../../ui';
 import { useDebouncedValue } from '../../state';
 import { useModules } from '../../state/modules';
-import { flattenPages, forumKeys, useForumStats, useThreadList, useThreadVote } from './api';
+import { flattenPages, useForumStats, useThreadList, useThreadVote } from './api';
 import { highlightTerms } from './lib/search';
 import { tagChips } from './lib/tagChips';
 import { useTaxonomy } from './lib/taxonomy';
@@ -22,32 +20,35 @@ import { ThreadRow, ThreadRowSkeletons } from './components/ThreadRow';
 import './components/forum.css';
 import './ForumPage.css';
 
-/** What the list page is told after "Post thread" (location state): the new thread slides in at the top. */
-interface PostedState {
-  posted?: { id: string; slug: string };
-}
-
 export default function ForumPage() {
-  const { requireAuth, mayTry } = useAuth();
+  const { me, requireAuth, mayTry } = useAuth();
   const posts = mayTry('forum.post');
-  const qc = useQueryClient();
   const { getModule } = useModules();
   const { getCategory, getTag, tags: offeredTags, ready } = useTaxonomy();
   const [filters, update, clear] = useForumFilters();
   const { tag, sort, status, module: moduleId } = filters;
-  // A category the forum doesn't have (an old link) shows every thread once the categories have loaded.
-  const cohort = ready && filters.cohort !== 'all' && !getCategory(filters.cohort) ? 'all' : filters.cohort;
-  const location = useLocation();
-  const posted = (location.state as PostedState | null)?.posted ?? null;
+  // Yours is for a signed-in person. A category the forum doesn't have (an old link) shows every thread once the
+  // categories have loaded.
+  const yours = filters.cohort === 'yours' && !!me;
+  const cohort =
+    filters.cohort === 'yours'
+      ? yours
+        ? 'yours'
+        : 'all'
+      : ready && filters.cohort !== 'all' && !getCategory(filters.cohort)
+        ? 'all'
+        : filters.cohort;
+  const category = cohort === 'all' || cohort === 'yours' ? null : cohort;
   const vote = useThreadVote();
 
   // The request waits until typing pauses.
   const q = useDebouncedValue(filters.q.trim(), 300);
   const filterModule = getModule(moduleId);
   const params: ThreadListParams = {
-    sort,
+    sort: yours ? 'new' : sort,
     q: q || undefined,
-    category: cohort === 'all' ? undefined : cohort,
+    yours: yours || undefined,
+    category: category ?? undefined,
     tag: tag || undefined,
     module_id: filterModule?.id,
     unanswered: status === 'no-replies' || undefined,
@@ -60,18 +61,8 @@ export default function ForumPage() {
   const refined = Boolean(q || tag || status || filterModule);
   const searching = filters.q.trim() !== q || (list.isFetching && list.isPlaceholderData);
 
-  // The thread you just posted goes first (sliding in), even when the sort would put it lower.
-  const visible = useMemo(() => {
-    if (!posted) return loaded;
-    const i = loaded.findIndex((t) => t.id === posted.id);
-    if (i > 0) return [loaded[i], ...loaded.slice(0, i), ...loaded.slice(i + 1)];
-    if (i === 0 || refined) return loaded;
-    // Not on the first page yet (a slow list, another sort): the thread the API returned stands in.
-    const created: ThreadSummary | undefined = qc.getQueryData<ThreadDetail>(forumKeys.thread(posted.slug));
-    return created && (cohort === 'all' || created.category === cohort) ? [created, ...loaded] : loaded;
-  }, [loaded, posted, refined, qc, cohort]);
-
-  const tagCounts = cohort === 'all' ? stats.data?.byTag : stats.data?.tagsByCategory?.[cohort];
+  // Yours: the tags of your threads on screen, uncounted (the counts are over everyone's).
+  const tagCounts = yours ? undefined : category ? stats.data?.tagsByCategory?.[category] : stats.data?.byTag;
   // A retired tag still filters (a thread's link to it), so it keeps its chip while it's picked.
   const pickedTag = getTag(tag);
   const allTags = useMemo(
@@ -84,7 +75,7 @@ export default function ForumPage() {
   );
 
   const terms = highlightTerms(q);
-  const scope = cohort === 'all' ? null : (getCategory(cohort)?.label ?? null);
+  const scope = yours ? 'your threads' : category ? (getCategory(category)?.label ?? null) : null;
   const clearFilters = () => clear(['cohort', 'sort']);
   const onVote = (t: ThreadSummary) => {
     if (!requireAuth('Sign in to vote', () => vote.mutate({ threadId: t.id, up: true }))) return;
@@ -128,11 +119,18 @@ export default function ForumPage() {
         }
       />
 
-      <ForumFilterBar filters={{ ...filters, cohort }} update={update} stats={stats.data} chips={chips} scope={scope} />
+      <ForumFilterBar
+        filters={{ ...filters, cohort }}
+        update={update}
+        stats={stats.data}
+        chips={chips}
+        scope={scope}
+        showYours={!!me}
+      />
 
       <div className="forum-layout">
         <TabPanel idBase="forum" id={cohort} value={cohort} className="forum-layout__main">
-          <h2 className="visually-hidden">{scope ? `${scope} threads` : 'All threads'}</h2>
+          <h2 className="visually-hidden">{yours ? 'Your threads' : scope ? `${scope} threads` : 'All threads'}</h2>
           {refined && list.data ? (
             <div className="forum-results" role="status">
               <span>
@@ -166,7 +164,7 @@ export default function ForumPage() {
               onRetry={() => void list.refetch()}
               retrying={list.isFetching}
             />
-          ) : visible.length ? (
+          ) : loaded.length ? (
             <>
               <Panel
                 as="div"
@@ -175,8 +173,14 @@ export default function ForumPage() {
                 aria-busy={searching || undefined}
               >
                 <ul role="list" className="forum-list">
-                  {visible.map((t) => (
-                    <ThreadRow key={t.id} thread={t} onVote={onVote} fresh={t.id === posted?.id} terms={terms} />
+                  {loaded.map((t) => (
+                    <ThreadRow
+                      key={t.id}
+                      thread={t}
+                      onVote={onVote}
+                      terms={terms}
+                      time={yours ? 'activity' : 'posted'}
+                    />
                   ))}
                 </ul>
               </Panel>
@@ -200,7 +204,11 @@ export default function ForumPage() {
             </>
           ) : (
             <Panel as="div" padding="none" className={cx(searching && 'is-updating')}>
-              <NoThreads q={q} refined={refined} scope={scope} cohort={cohort} onClear={clearFilters} />
+              {yours && !refined ? (
+                <NoThreadsOfYours onBrowse={() => update({ cohort: 'all' })} />
+              ) : (
+                <NoThreads q={q} refined={refined} scope={scope} category={category} onClear={clearFilters} />
+              )}
             </Panel>
           )}
         </TabPanel>
@@ -215,18 +223,40 @@ export default function ForumPage() {
   );
 }
 
+/** Yours is empty: nothing started, replied to or followed yet. */
+function NoThreadsOfYours({ onBrowse }: { onBrowse: () => void }) {
+  const posts = useAuth().mayTry('forum.post');
+  return (
+    <EmptyState
+      icon={ChatsCircle}
+      title="No threads of yours yet"
+      body="Threads you start, reply to or follow show up here, newest activity first."
+      action={
+        <>
+          {posts ? (
+            <Button variant="primary" leadingIcon={Plus} to="/forum/new">
+              Start a thread
+            </Button>
+          ) : null}
+          <Button onClick={onBrowse}>Browse all threads</Button>
+        </>
+      }
+    />
+  );
+}
+
 /** The list is empty: nothing matches the search, or the filters, or there is nothing in the category yet. */
 function NoThreads({
   q,
   refined,
   scope,
-  cohort,
+  category,
   onClear,
 }: {
   q: string;
   refined: boolean;
   scope: string | null;
-  cohort: CategoryId | 'all';
+  category: CategoryId | null;
   onClear: () => void;
 }) {
   const posts = useAuth().mayTry('forum.post');
@@ -265,7 +295,7 @@ function NoThreads({
             <Button
               variant="primary"
               leadingIcon={Plus}
-              to={cohort === 'all' ? '/forum/new' : `/forum/new?category=${cohort}`}
+              to={category ? `/forum/new?category=${category}` : '/forum/new'}
             >
               Start a thread
             </Button>

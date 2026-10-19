@@ -20,7 +20,10 @@ class SearchHit(ApiModel):
 
 
 class SearchResults(ApiModel):
-    query: str
+    query: str  # as typed
+    # The query the results are for when `query` found nothing and its misspelt words were corrected: "hypothesis"
+    # for "hypothisis". None when the results are for `query` itself.
+    corrected: str | None
     threads: list[SearchHit]
     library: list[SearchHit]
     issues: list[SearchHit]

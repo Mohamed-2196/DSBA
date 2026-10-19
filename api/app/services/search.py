@@ -4,7 +4,12 @@ A query is full text on the generated `search_vector` columns ('simple' configur
 what was typed ("quoted phrases", -exclusions, or), with a prefix match on the last word, so results appear while
 the word is still being typed ("distribution theo" finds "Distribution Theory"). Modules and calendar events have
 no search vector: they match when every word starts a word of their name, title or code; so do chapters and
-lessons. Library files match inside their text too (app/services/paper_text.py)."""
+lessons. Library files match inside their text too (app/services/paper_text.py).
+
+Ranking, in every group: for a signed-in student, what belongs to them first (the papers they sit, then their year;
+a guest's order is the same for everyone), then whole-word matches above prefix matches ("exam" before "Example"),
+then each group's own order. A query that finds nothing is tried once more with its misspelt words corrected
+(search_spelling.py); the results say which query they are for."""
 
 from __future__ import annotations
 
@@ -35,7 +40,7 @@ from app.models import (
 )
 from app.schemas.library import EXAM_KINDS
 from app.schemas.misc import SearchHit, SearchResults, SearchType
-from app.services import access, paper_text, site
+from app.services import access, paper_text, search_spelling, site
 from app.services import library as lib
 from app.services.calendar import TYPE_LABELS, cohort_label
 from app.services.forum.text import to_plain_text  # a post reads the same in search as in the forum (CQ-6)
@@ -80,16 +85,47 @@ def text_query(q: str) -> ColumnElement[Any] | None:
     return func.websearch_to_tsquery("simple", head).op("&&")(prefix)
 
 
+def exact_query(q: str) -> ColumnElement[Any]:
+    """websearch_to_tsquery('simple', q): every word whole, none as a prefix."""
+    return func.websearch_to_tsquery("simple", q.strip())
+
+
 def _starts_word(column: Any, word: str) -> ColumnElement[bool]:
     """column has a word starting with `word` (case-insensitive; `word` is letters and digits only)."""
     pattern = r"\m" + word.replace(" ", r"\s+")
     return func.coalesce(column, "").op("~*")(pattern)
 
 
+def _has_word(column: Any, word: str) -> ColumnElement[bool]:
+    """column has `word` as a whole word (case-insensitive; `word` is letters and digits only)."""
+    return func.coalesce(column, "").op("~*")(r"\m" + word + r"\M")
+
+
+def _whole_words_first(*columns: Any, terms: list[str]) -> ColumnElement[Any]:
+    """Ordering: rows where every term is a whole word of one of `columns` first ("exam" before "Example")."""
+    return and_(*(or_(*(_has_word(c, t) for c in columns)) for t in terms)).desc()
+
+
+def mine_first(viewer: User | None, module_id: Any, year: Any, *, every_year: bool = False) -> list[Any]:
+    """Ordering for a signed-in student: rows of the papers they sit, then of their year (with `every_year`, rows
+    without a year count as theirs: a date for every cohort), then the rest. Nothing for guests and people without
+    a year or papers, so their order stays the same for everyone."""
+    if viewer is None or (viewer.year is None and not viewer.papers):
+        return []
+    whens: list[tuple[ColumnElement[bool], int]] = []
+    if viewer.papers:
+        whens.append((module_id.in_(viewer.papers), 0))
+    if viewer.year is not None:
+        whens.append((or_(year == viewer.year, year.is_(None)) if every_year else (year == viewer.year), 1))
+    return [case(*whens, else_=2)]
+
+
 # ── the site-wide search ─────────────────────────────────────────────────────────────────────
 
 
-def _threads(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int) -> list[SearchHit]:
+def _threads(
+    db: Session, tsq: ColumnElement[Any], exact: ColumnElement[Any], terms: list[str], limit: int, viewer: User | None
+) -> list[SearchHit]:
     rank = func.ts_rank(ForumThread.search_vector, tsq)
     rows = db.execute(
         select(
@@ -105,7 +141,13 @@ def _threads(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int)
         .join(ForumCategory, ForumCategory.id == ForumThread.category)
         .outerjoin(Module, Module.id == ForumThread.module_id)
         .where(ForumThread.status == PostStatus.visible, ForumThread.search_vector.bool_op("@@")(tsq))
-        .order_by(rank.desc(), ForumThread.last_activity_at.desc())
+        .order_by(
+            # the thread's cohort: its category's year, else its module's (forum.queries.year_expr)
+            *mine_first(viewer, ForumThread.module_id, func.coalesce(ForumCategory.year, Module.year)),
+            ForumThread.search_vector.bool_op("@@")(exact).desc(),
+            rank.desc(),
+            ForumThread.last_activity_at.desc(),
+        )
         .limit(limit)
     ).all()
     hits = []
@@ -135,11 +177,11 @@ def _library_meta(item: LibraryItem, module: str | None) -> list[str]:
 
 
 def _library(
-    db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int, viewer: User | None
+    db: Session, tsq: ColumnElement[Any], exact: ColumnElement[Any], terms: list[str], limit: int, viewer: User | None
 ) -> list[SearchHit]:
-    """Files whose title, description, author or module match first (the viewer's year first among them); then
-    those that match only inside (their snippet and page come from the text). A second copy of a file is left out
-    (library.duplicate)."""
+    """Files whose title, description, author or module match first (the viewer's papers and year first among
+    them, whole words before prefixes); then those that match only inside (their snippet and page come from the
+    text). A second copy of a file is left out (library.duplicate)."""
     doc = lib.search_document()
     in_doc = doc.bool_op("@@")(tsq)
     rows = db.execute(
@@ -148,7 +190,8 @@ def _library(
         .where(LibraryItem.status == ItemStatus.published, ~lib.duplicate(), or_(in_doc, paper_text.content_match(tsq)))
         .order_by(
             in_doc.desc(),
-            *lib.your_year_first(viewer),
+            *mine_first(viewer, LibraryItem.module_id, LibraryItem.year),
+            doc.bool_op("@@")(exact).desc(),
             func.ts_rank(doc, tsq).desc(),
             LibraryItem.published_at.desc().nulls_last(),
         )
@@ -177,11 +220,17 @@ def _library(
     return hits
 
 
-def _issues(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int) -> list[SearchHit]:
+def _issues(
+    db: Session, tsq: ColumnElement[Any], exact: ColumnElement[Any], terms: list[str], limit: int
+) -> list[SearchHit]:
     issues = db.scalars(
         select(NewsletterIssue)
         .where(NewsletterIssue.status == IssueStatus.published, NewsletterIssue.search_vector.bool_op("@@")(tsq))
-        .order_by(func.ts_rank(NewsletterIssue.search_vector, tsq).desc(), NewsletterIssue.date.desc())
+        .order_by(
+            NewsletterIssue.search_vector.bool_op("@@")(exact).desc(),
+            func.ts_rank(NewsletterIssue.search_vector, tsq).desc(),
+            NewsletterIssue.date.desc(),
+        )
         .limit(limit)
     ).all()
     hits = []
@@ -221,12 +270,12 @@ def _module_word(word: str, aliases: dict[str, tuple[str, ...]]) -> ColumnElemen
     )
 
 
-def _modules(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
+def _modules(db: Session, terms: list[str], limit: int, viewer: User | None) -> list[SearchHit]:
     aliases = nicknames(db)
     mods = db.scalars(
         select(Module)
         .where(Module.hidden.is_(False), *(_module_word(t, aliases) for t in terms))
-        .order_by(Module.position, Module.id)
+        .order_by(*mine_first(viewer, Module.id, Module.year), Module.position, Module.id)
         .limit(limit)
     ).all()
     return [
@@ -244,9 +293,11 @@ def _modules(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
     ]
 
 
-def _lessons(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
+def _lessons(db: Session, terms: list[str], limit: int, viewer: User | None) -> list[SearchHit]:
     """Chapters whose title has every word, opening their first lesson; then videos whose title (with their
-    chapter's) has every word. YouTube titles are noisy, so chapters rank first."""
+    chapter's) has every word. YouTube titles are noisy, so chapters rank first. Within each, the viewer's modules
+    first, then whole words before prefixes."""
+    yours = mine_first(viewer, Module.id, Module.year)
     first = (
         select(Lesson.id)
         .where(Lesson.chapter_id == Chapter.id, Lesson.hidden.is_(False))
@@ -267,7 +318,14 @@ def _lessons(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
         )
         .join(Module, Module.id == Chapter.module_id)
         .where(Module.hidden.is_(False), Chapter.hidden.is_(False), chapter_has_all, first.is_not(None))
-        .order_by(Module.year, Module.position, Chapter.position, Chapter.id)
+        .order_by(
+            *yours,
+            _whole_words_first(Chapter.title, terms=terms),
+            Module.year,
+            Module.position,
+            Chapter.position,
+            Chapter.id,
+        )
         .limit(limit)
     ).all()
     hits = [
@@ -293,7 +351,15 @@ def _lessons(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
         .join(Module, Module.id == Lesson.module_id)
         .where(Module.hidden.is_(False), Chapter.hidden.is_(False), Lesson.hidden.is_(False))
         .where(Lesson.title.is_not(None), *word_in_either, ~chapter_has_all)
-        .order_by(Module.year, Module.position, Chapter.position, Lesson.position, Lesson.id)
+        .order_by(
+            *yours,
+            _whole_words_first(Lesson.title, Chapter.title, terms=terms),
+            Module.year,
+            Module.position,
+            Chapter.position,
+            Lesson.position,
+            Lesson.id,
+        )
         .limit(room)
     ).all()
     for lesson, chapter, module_id, code, short in videos:
@@ -321,15 +387,16 @@ def _event_word(word: str) -> ColumnElement[bool]:
     )
 
 
-def _events(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
+def _events(db: Session, terms: list[str], limit: int, viewer: User | None) -> list[SearchHit]:
     today = bahrain_today()
     upcoming = func.coalesce(CalendarEvent.end_date, CalendarEvent.date) >= today
     rows = db.scalars(
         select(CalendarEvent)
         .outerjoin(Module, Module.id == CalendarEvent.module_id)
         .where(and_(*(_event_word(t) for t in terms)))
-        # what is still ahead first (soonest first), then the past (latest first)
+        # the viewer's dates first; then what is still ahead (soonest first), then the past (latest first)
         .order_by(
+            *mine_first(viewer, CalendarEvent.module_id, CalendarEvent.year, every_year=True),
             upcoming.desc(),
             case((upcoming, CalendarEvent.date), else_=None).asc(),
             CalendarEvent.date.desc(),
@@ -358,25 +425,49 @@ def _events(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
     return hits
 
 
+def _found_nothing(r: SearchResults) -> bool:
+    return not (r.threads or r.library or r.issues or r.modules or r.lessons or r.events)
+
+
+def _search(db: Session, q: str, want: set[SearchType], limit: int, viewer: User | None) -> SearchResults:
+    terms = words(q)
+    tsq = text_query(q)
+    results = SearchResults(
+        query=q, corrected=None, threads=[], library=[], issues=[], modules=[], lessons=[], events=[]
+    )
+    if not terms or tsq is None:
+        return results
+    exact = exact_query(q)
+    if "thread" in want:
+        results.threads = _threads(db, tsq, exact, terms, limit, viewer)
+    if "library" in want:
+        results.library = _library(db, tsq, exact, terms, limit, viewer)
+    if "issue" in want:
+        results.issues = _issues(db, tsq, exact, terms, limit)
+    if "module" in want:
+        results.modules = _modules(db, terms, limit, viewer)
+    if "lesson" in want:
+        results.lessons = _lessons(db, terms, limit, viewer)
+    if "event" in want:
+        results.events = _events(db, terms, limit, viewer)
+    return results
+
+
 def run_search(db: Session, q: str, types: list[SearchType] | None, limit: int, viewer: User | None) -> SearchResults:
+    """The results for `q`; when it finds nothing, the results for `q` with its misspelt words corrected, with
+    `corrected` saying what was searched for instead (still `query`: what was typed)."""
     want = {
         t for t in (types or ALL_TYPES) if t not in TYPE_FEATURES or access.feature_on(db, viewer, TYPE_FEATURES[t])
     }
-    terms = words(q)
-    tsq = text_query(q)
-    results = SearchResults(query=q, threads=[], library=[], issues=[], modules=[], lessons=[], events=[])
-    if not terms or tsq is None:
+    results = _search(db, q, want, limit, viewer)
+    if not _found_nothing(results) or not words(q):
         return results
-    if "thread" in want:
-        results.threads = _threads(db, tsq, terms, limit)
-    if "library" in want:
-        results.library = _library(db, tsq, terms, limit, viewer)
-    if "issue" in want:
-        results.issues = _issues(db, tsq, terms, limit)
-    if "module" in want:
-        results.modules = _modules(db, terms, limit)
-    if "lesson" in want:
-        results.lessons = _lessons(db, terms, limit)
-    if "event" in want:
-        results.events = _events(db, terms, limit)
-    return results
+    fixed = search_spelling.corrected_query(q, search_spelling.corrections(db, words(q)))
+    if fixed == q:
+        return results
+    second = _search(db, fixed, want, limit, viewer)
+    if _found_nothing(second):
+        return results
+    second.query = q
+    second.corrected = fixed
+    return second

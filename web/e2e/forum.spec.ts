@@ -57,8 +57,7 @@ test('Sara starts a thread with a picture of her working', async ({ sara, run })
   threadId = thread.id;
   remember('threads', thread.id);
   await expect(sara.getByText('Thread posted')).toBeVisible();
-
-  await sara.goto(`/forum/${slug}`);
+  await expect(sara).toHaveURL(new RegExp(`/forum/${slug}$`)); // straight to the new thread (UX-75)
   await expect(sara.getByRole('heading', { level: 1 })).toContainText('MGF of a sum of independent Poissons');
   const img = sara.locator('main img[src^="/api/v1/media/"]').first();
   await expect(img).toBeVisible();

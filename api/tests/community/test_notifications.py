@@ -72,3 +72,17 @@ def test_hiding_a_reply_takes_its_notifications_back(
     # showing it again doesn't bring the notification back: it was news when it was posted
     assert client_for(moderator).post(f"{API}/forum/replies/{spam['id']}/moderate", json={"status": "visible"})
     assert notifications_for(db, student) == []
+
+
+def test_formulas_read_as_text_in_notifications_and_their_emails(
+    client_for: Client, student: User, classmate: User, db: Session
+) -> None:
+    """ST-52: a reply's formulas are quoted as readable text, not as LaTeX."""
+    t = new_thread(client_for(student), title="Domain of ln(x^2 - 4)?")
+    new_reply(client_for(classmate), t["id"], "ln needs a positive argument: $x^2 - 4 > 0$, so $|x| > 2$")
+    [n] = notifications_for(db, student)
+    assert n.body == "ln needs a positive argument: x² \u2212 4 > 0, so |x| > 2"
+    email = db.scalar(select(EmailOutbox).where(EmailOutbox.user_id == student.id))
+    assert email is not None
+    assert "x² \u2212 4 > 0, so |x| > 2" in email.body
+    assert "$" not in email.body

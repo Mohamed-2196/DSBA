@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { EyeSlash, LockSimple, PushPin } from '@phosphor-icons/react';
+import { EyeSlash, Image, LockSimple, PushPin } from '@phosphor-icons/react';
 import type { ThreadSummary } from '../../../api/types';
-import { Badge, Highlight, Skeleton, cx, timeAgo } from '../../../ui';
+import { Badge, Skeleton, cx, timeAgo } from '../../../ui';
 import { useModules } from '../../../state/modules';
 import { postAuthorName, unnamed } from '../lib/authors';
 import { mediaSrc } from '../lib/links';
@@ -14,8 +14,8 @@ import { AuthorFlair, HighlightedText, ModuleTag, PlaceBadge, ReplyCount, TagBad
 export interface ThreadRowProps {
   thread: ThreadSummary;
   onVote?: (thread: ThreadSummary) => void;
-  /** just posted by this student: slides in and the title gets a highlighter swipe */
-  fresh?: boolean;
+  /** the time shown: when it was posted, or its newest activity (Yours) */
+  time?: 'posted' | 'activity';
   /** search terms to mark in the title and excerpt */
   terms?: string[];
   showModule?: boolean;
@@ -24,6 +24,8 @@ export interface ThreadRowProps {
 
 /**
  * One dense thread row: vote gutter, title + excerpt + meta, a thumbnail when the post has a picture, reply count + time.
+ * In a narrow list (forum.css) the title takes the whole width and the vote, the counts and a picture icon share a
+ * foot. A dot marks a thread with notifications the person hasn't read (`unread`).
  * The whole row is clickable (stretched title link); the vote button sits above it.
  * Titles and excerpts are dir="auto": an Arabic title sits right-aligned, an English one stays left-aligned
  * (the vote, author, badges and counts around them stay left-to-right).
@@ -31,7 +33,7 @@ export interface ThreadRowProps {
 export function ThreadRow({
   thread,
   onVote,
-  fresh = false,
+  time = 'posted',
   terms,
   showModule = true,
   headingLevel = 3,
@@ -44,12 +46,13 @@ export function ThreadRow({
   const hidden = thread.status === 'hidden';
   // A deleted thread stays listed (without its text) while it has replies; neither it nor a hidden one takes votes.
   const deleted = thread.status === 'deleted';
+  const at = time === 'activity' ? thread.lastActivityAt : thread.createdAt;
   return (
     <li
       className={cx(
         'forum-row',
         thread.pinned && 'is-pinned',
-        fresh && 'is-fresh',
+        thread.unread && 'is-unread',
         thumb && 'has-image',
         hidden && 'is-hidden',
         deleted && 'is-deleted',
@@ -57,25 +60,13 @@ export function ThreadRow({
       data-hub="thread-row"
       data-thread-id={thread.id}
     >
-      <div className="forum-row__vote">
-        <VoteButton
-          count={thread.voteCount}
-          voted={thread.voted}
-          onToggle={() => onVote?.(thread)}
-          disabled={hidden || deleted}
-        />
-      </div>
       <div className="forum-row__main">
         <Heading className="forum-row__title" dir="auto">
+          {thread.unread ? <span className="forum-row__unread" aria-hidden="true" /> : null}
           {thread.pinned ? <PushPin weight="fill" className="forum-row__pin" aria-hidden="true" /> : null}
           <Link to={`/forum/${thread.slug}`} className="forum-row__link">
-            {fresh ? (
-              <Highlight animate delay={220}>
-                {thread.title}
-              </Highlight>
-            ) : (
-              <HighlightedText text={thread.title} terms={terms} />
-            )}
+            <HighlightedText text={thread.title} terms={terms} />
+            {thread.unread ? <span className="visually-hidden"> (new replies)</span> : null}
           </Link>
           {thread.pinned ? (
             <Badge tone="cobalt" size="sm">
@@ -126,11 +117,22 @@ export function ThreadRow({
           <span className="visually-hidden">Includes an image</span>
         </div>
       ) : null}
-      <div className="forum-row__stats">
-        <ReplyCount count={thread.replyCount} answered={thread.answered} />
-        <time className="forum-row__time" dateTime={thread.createdAt}>
-          {timeAgo(thread.createdAt)}
-        </time>
+      <div className="forum-row__foot">
+        <div className="forum-row__vote">
+          <VoteButton
+            count={thread.voteCount}
+            voted={thread.voted}
+            onToggle={() => onVote?.(thread)}
+            disabled={hidden || deleted}
+          />
+        </div>
+        <div className="forum-row__stats">
+          <ReplyCount count={thread.replyCount} answered={thread.answered} />
+          <time className="forum-row__time" dateTime={at}>
+            {time === 'activity' ? `Active ${timeAgo(at)}` : timeAgo(at)}
+          </time>
+          {thumb ? <Image className="forum-row__picture" aria-hidden="true" /> : null}
+        </div>
       </div>
     </li>
   );
@@ -142,16 +144,18 @@ export function ThreadRowSkeletons({ count = 5 }: { count?: number }) {
     <ul role="list" className="forum-list" aria-hidden="true">
       {Array.from({ length: count }, (_, i) => (
         <li key={i} className="forum-row forum-row--skeleton">
-          <div className="forum-row__vote">
-            <Skeleton width={48} height={56} radius="var(--r-control)" />
-          </div>
           <div className="forum-row__main">
             <Skeleton width={i % 2 ? '72%' : '58%'} height="1.1em" />
             <Skeleton width="88%" height="0.9em" style={{ marginTop: 10 }} />
             <Skeleton width="40%" height="0.8em" style={{ marginTop: 12 }} />
           </div>
-          <div className="forum-row__stats">
-            <Skeleton width={44} height={24} radius="var(--r-pill)" />
+          <div className="forum-row__foot">
+            <div className="forum-row__vote">
+              <Skeleton width={48} height={56} radius="var(--r-control)" />
+            </div>
+            <div className="forum-row__stats">
+              <Skeleton width={44} height={24} radius="var(--r-pill)" />
+            </div>
           </div>
         </li>
       ))}

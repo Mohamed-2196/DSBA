@@ -800,7 +800,8 @@ a note with your module), which they would sit well beside.
 - **Size:** S: a list filter in the API and a tab.
 - **Costs and risks:** none beyond one more tab. The tab row already scrolls on phones (UX-62).
 - **How we'd know it worked:** visits to the tab. Replies posted within a day of the notification.
-- **Status:** proposed.
+- **Status:** built (`round14/forum`): the Yours tab after All (signed in), newest activity first, with a dot and a
+  bold title where a notification about the thread is unread; opening the thread reads them.
 
 ### IDEA-43. The last lists you saw, without a connection
 

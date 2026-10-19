@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChatCircle } from '@phosphor-icons/react';
 import type { ForumStats } from '../../../api/types';
-import { Chip, SearchField, SegmentedControl, Tabs, useScrollFade } from '../../../ui';
+import { Chip, SearchField, SegmentedControl, Tabs, cx, useScrollFade } from '../../../ui';
 import type { FilterPatch } from '../lib/filters';
 import type { TagChip } from '../lib/tagChips';
 import { useTaxonomy } from '../lib/taxonomy';
@@ -24,26 +24,32 @@ export interface ForumFilterBarProps {
   chips: TagChip[];
   /** the category's name when one is picked ("Search Year 2") */
   scope: string | null;
+  /** the Yours tab (signed in): threads you started, replied to or follow */
+  showYours: boolean;
 }
 
 /**
  * The list's filters, all in the URL: categories (tabs), sort, search, "No replies yet" and the most used tags.
- * Wide: tabs and sort on a hairline, then search and chips. Narrow (phones): tabs, then search on its own row (it needs
+ * Signed in, Yours follows All: newest activity first, so it has no sort. Wide: tabs and sort on a hairline, then
+ * search and chips. Narrow (phones): tabs, then search on its own row (it needs
  * the room), then sort and the chips, which scroll sideways.
  */
-export function ForumFilterBar({ filters, update, stats, chips, scope }: ForumFilterBarProps) {
+export function ForumFilterBar({ filters, update, stats, chips, scope, showYours }: ForumFilterBarProps) {
   const { categories, getCategory } = useTaxonomy();
   const { cohort, tag, sort, status } = filters;
   // A retired category is no longer a tab, unless it's the one picked (a thread's link to its category).
-  const picked = cohort === 'all' ? null : getCategory(cohort);
+  const picked = cohort === 'all' || cohort === 'yours' ? null : getCategory(cohort);
   const shown = picked?.retired ? [...categories, picked] : categories;
   // The search box is local state mirrored into the URL, so typing never fights the router.
   const [query, setQuery] = useState(filters.q);
   useEffect(() => setQuery(filters.q), [filters.q]);
   // "No replies yet" counts the threads waiting in the current category.
-  const waiting = shownCount(cohort === 'all' ? stats?.noReplies : stats?.noRepliesByCategory?.[cohort]);
+  // (Yours has no count: the stats are over everyone's threads.)
+  const waiting =
+    cohort === 'yours' ? undefined : shownCount(picked ? stats?.noRepliesByCategory?.[picked.id] : stats?.noReplies);
   const tabs = [
     { id: 'all', label: 'All', count: shownCount(stats?.total) },
+    ...(showYours ? [{ id: 'yours', label: 'Yours' }] : []),
     ...shown.map((c) => ({ id: c.id, label: c.label, count: shownCount(stats?.byCategory[c.id]) })),
   ];
 
@@ -62,7 +68,7 @@ export function ForumFilterBar({ filters, update, stats, chips, scope }: ForumFi
           onChange={(id) => update({ cohort: id, tag: '' })}
         />
       </div>
-      <div className="forum-filters__sort">
+      <div className={cx('forum-filters__sort', cohort === 'yours' && 'is-unused')}>
         <SegmentedControl
           label="Sort threads"
           size="sm"

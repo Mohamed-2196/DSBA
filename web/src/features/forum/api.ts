@@ -19,7 +19,7 @@ import {
 } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ApiError, errorMessage } from '../../api/errors';
-import { ADMIN_STATS_KEY } from '../../api/keys';
+import { ADMIN_STATS_KEY, NOTIFICATIONS_KEY } from '../../api/keys';
 import { nextOffset } from '../../api/paging';
 import type {
   FollowRequest,
@@ -56,7 +56,8 @@ function cleanParams(p: ThreadListParams): ThreadListParams {
   if (p.tag) out.tag = p.tag;
   if (p.year) out.year = p.year;
   if (p.unanswered) out.unanswered = true;
-  if (p.mine) out.mine = true;
+  if (p.yours) out.yours = true;
+  if (p.paper) out.paper = p.paper;
   return out;
 }
 
@@ -231,6 +232,21 @@ export function flattenPages(data: { pages: ThreadPage[] } | undefined): ThreadS
   return out;
 }
 
+/** The threads whose post or a reply links to a library item (/library/<slug>), newest first: a paper's page. */
+export function usePaperThreads(slug: string, { n = 5, enabled = true }: { n?: number; enabled?: boolean } = {}) {
+  const list = useThreadList({ paper: slug, sort: 'new' }, { pageSize: n, enabled: enabled && !!slug });
+  const first = list.data?.pages[0];
+  return {
+    threads: first?.items ?? [],
+    total: first?.total ?? 0,
+    isPending: list.isPending,
+    isError: list.isError,
+    error: list.error,
+    isFetching: list.isFetching,
+    refetch: list.refetch,
+  };
+}
+
 /** A module's newest threads (the module page's Overview): the first `n` of its "new" list, with the total. */
 export function useModuleLatestThreads(
   moduleId: string,
@@ -352,6 +368,18 @@ export function useRelatedThreads(threadId: string | null | undefined, n = 4) {
       ),
     enabled: !!threadId,
     staleTime: 5 * 60_000,
+  });
+}
+
+/** The signed-in person opened a thread they have unread notifications about: those are read now. The thread stops
+ *  being `unread` in every cached list at once, and the bell reads its count again. */
+export function useThreadSeen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (threadId: string) =>
+      call(api.POST('/api/v1/forum/threads/{thread_id}/seen', { params: { path: { thread_id: threadId } } })),
+    onMutate: (threadId) => patchThread(qc, threadId, (t) => ({ ...t, unread: false })),
+    onSettled: () => qc.invalidateQueries({ queryKey: NOTIFICATIONS_KEY }),
   });
 }
 

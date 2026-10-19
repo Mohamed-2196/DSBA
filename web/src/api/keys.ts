@@ -20,3 +20,6 @@ export const ACCESS_FEATURES_KEY = ['admin', 'features'] as const;
 export const PROGRESS_KEY = ['progress'] as const;
 /** Per account, so one person's progress is never shown to the next one on this browser. */
 export const progressKey = (userId: string) => [...PROGRESS_KEY, userId] as const;
+
+/** GET /notifications: the bell. The forum reads it again after a thread's notifications are marked read. */
+export const NOTIFICATIONS_KEY = ['notifications'] as const;
