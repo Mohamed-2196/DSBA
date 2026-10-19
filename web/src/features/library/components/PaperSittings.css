@@ -64,7 +64,6 @@
 }
 .pp-row {
   min-height: 52px;
-  border-radius: var(--r-card);
   transition: background-color var(--dur-fast) var(--ease);
 }
 .pp-row + .pp-row {
@@ -184,9 +183,16 @@
     display: none;
   }
   .pp-row {
-    grid-template-columns: 6.5rem minmax(0, 1fr);
-    gap: var(--sp-8);
-    padding: var(--sp-6) var(--sp-8) var(--sp-6) var(--sp-12);
+    grid-template-columns: 6rem minmax(0, 1fr);
+    gap: var(--sp-6);
+    padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-12);
+  }
+  .pp-row__when {
+    font-size: var(--fs-14);
+  }
+  .pp-link {
+    gap: var(--sp-6);
+    padding-inline: var(--sp-4) var(--sp-6);
   }
   .pp-row__files {
     display: flex;

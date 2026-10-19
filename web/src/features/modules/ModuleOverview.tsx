@@ -1,18 +1,30 @@
-// Overview tab: the module's home. What to carry on with (the papers, notes and lessons opened last), then previews
-// of what the other tabs and the calendar hold, each ending in a link to the whole of it: the next dates, lesson
-// progress (for a student who keeps it and has started), the student's own notes about the module, the latest
-// sittings of past papers, the newest students' notes, the newest threads with "Ask a question", and the rest of the
-// library (decision D6: contributing means uploading). A block with nothing to show is left out, not shown empty: a
+// Overview tab: the module's home (module-laptop.png): previews of what the other tabs and the calendar hold, each
+// with a link to the whole of it at its top right. The next dates and the latest sittings of past papers lead, then
+// the student's own notes about the module, lesson progress (for a student who keeps it and has started), the newest
+// threads with "Ask a question", what to carry on with (the papers, notes and lessons opened last), the newest
+// students' notes and the rest of the library (decision D6: contributing means uploading). A block with nothing to show is left out, not shown empty: a
 // student with no notes about the module gets "New note" on the lesson progress or Carry on block instead (or, with
 // neither, a one-line Your notes block).
-import { CalendarBlank, ChatsCircle, CheckCircle, Files, NotePencil, Plus, UploadSimple } from '@phosphor-icons/react';
 import { useId, useMemo, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
 import { useAuth } from '../../auth';
 import { daysUntil, formatDay, todayKey } from '../../lib/dates';
 import { cohortColor } from '../../state';
-import { Badge, Button, Panel, QueryError, Skeleton, countOf, cx, timeAgo } from '../../ui';
+import {
+  Badge,
+  Button,
+  DocThumb,
+  Icon,
+  type DocTone,
+  Panel,
+  QueryError,
+  Skeleton,
+  countOf,
+  cx,
+  glyph,
+  timeAgo,
+} from '../../ui';
 import { aheadRows, typeLabel } from '../calendar/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
 import { useModuleLatestThreads, useStartsThreads } from '../forum/public';
@@ -38,6 +50,8 @@ const PICKUP_ACTION: Record<ResumeKind, string> = {
   start: 'Start lesson 1',
   done: 'Watch again',
 };
+/** How a shelf's document is drawn: papers yellow, notes violet, the rest blue (as in the library). */
+const SHELF_TONE: Partial<Record<string, DocTone>> = { 'past-paper': 'paper', notes: 'note', 'cheat-sheet': 'note' };
 const MAX_CHAPTERS = 6;
 const SITTINGS = 3;
 const ROWS = 3;
@@ -46,12 +60,15 @@ const ROWS = 3;
 function Block({
   title,
   className,
+  link,
   footer,
   children,
   hub,
 }: {
   title: string;
   className?: string;
+  /** the link to the whole of it ("All 36 files"), at the top right */
+  link?: ReactNode;
   footer?: ReactNode;
   children: ReactNode;
   hub: string;
@@ -59,9 +76,12 @@ function Block({
   const id = useId();
   return (
     <Panel padding="none" className={cx('mod-blk', className)} aria-labelledby={id} data-hub={hub}>
-      <h2 id={id} className="mod-blk__title">
-        {title}
-      </h2>
+      <div className="mod-blk__head">
+        <h2 id={id} className="mod-blk__title">
+          {title}
+        </h2>
+        {link}
+      </div>
       <div className="mod-blk__body">{children}</div>
       {footer ? <div className="mod-blk__foot">{footer}</div> : null}
     </Panel>
@@ -108,7 +128,13 @@ function NextDates({ module: m }: { module: ModuleDetail }) {
       title={title}
       hub="module-dates"
       footer={
-        <Button variant="ghost" size="sm" to="/calendar" leadingIcon={CalendarBlank}>
+        <Button
+          variant="ghost"
+          size="sm"
+          to="/calendar"
+          leadingIcon={<Icon glyph={glyph.calendar} />}
+          className="mod-blk__quiet"
+        >
           Open the calendar
         </Button>
       }
@@ -173,14 +199,12 @@ function YourProgress({
       title={PICKUP_TITLE[resume.kind]}
       className="mod-blk--progress"
       hub="module-progress"
-      footer={
-        <>
-          <Button variant="ghost" size="sm" onClick={() => onTab('lessons')}>
-            All {countOf(m.chapters.length, 'chapter')}
-          </Button>
-          {extra}
-        </>
+      link={
+        <Button variant="ghost" size="sm" onClick={() => onTab('lessons')} className="mod-blk__link">
+          All {countOf(m.chapters.length, 'chapter')}
+        </Button>
       }
+      footer={extra}
     >
       <Link
         to={lessonHref(m.id, video.id)}
@@ -214,7 +238,7 @@ function YourProgress({
                 <span className="mod-prog__num u-tabular">{c + 1}</span>
                 <span className="mod-prog__name">{chapter.title}</span>
                 <span className="mod-prog__frac u-tabular">
-                  {complete ? <CheckCircle weight="fill" aria-hidden="true" /> : null}
+                  {complete ? <Icon glyph={glyph.check} className="mod-prog__tick" /> : null}
                   {cp.watched}/{cp.total}
                 </span>
                 <span className="mod-prog__bar" aria-hidden="true">
@@ -257,8 +281,9 @@ function LatestPapers({ moduleId, onTab }: { moduleId: string; onTab: (tab: stri
     <Block
       title={title}
       hub="module-papers"
-      footer={
-        <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files', 'papers')}>
+      className="mod-blk--papers"
+      link={
+        <Button variant="ghost" size="sm" onClick={() => onTab('files', 'papers')} className="mod-blk__link">
           {sittings.length > SITTINGS ? `All ${sittings.length} sittings` : 'All past papers'}
         </Button>
       }
@@ -304,24 +329,23 @@ function YourNotes({
     <Block
       title={title}
       hub="module-your-notes"
-      footer={
-        <>
-          <Button
-            variant="ghost"
-            size="sm"
-            leadingIcon={NotePencil}
-            to={`/notes?module=${encodeURIComponent(moduleId)}`}
-          >
-            {total > items.length ? `All ${total} notes` : 'All your notes'}
-          </Button>
-          {newNote}
-        </>
+      link={
+        <Button
+          variant="ghost"
+          size="sm"
+          to={`/notes?module=${encodeURIComponent(moduleId)}`}
+          className="mod-blk__link"
+        >
+          {total > items.length ? `All ${total} notes` : 'All notes'}
+        </Button>
       }
+      footer={newNote}
     >
       <ul className="mod-rows" role="list">
         {items.map((n) => (
           <li key={n.id}>
-            <Link to={`/notes/${n.id}`} className="mod-row">
+            <Link to={`/notes/${n.id}`} className="mod-row mod-row--doc">
+              <DocThumb tone="note" size="md" />
               <span className="mod-row__text">
                 <span className="mod-row__title" dir="auto">
                   <NoteName note={n} />
@@ -369,8 +393,8 @@ function NewestNotes({ moduleId, onTab }: { moduleId: string; onTab: (tab: strin
     <Block
       title={title}
       hub="module-notes"
-      footer={
-        <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files', 'files-notes')}>
+      link={
+        <Button variant="ghost" size="sm" onClick={() => onTab('files', 'files-notes')} className="mod-blk__link">
           All notes
         </Button>
       }
@@ -381,7 +405,8 @@ function NewestNotes({ moduleId, onTab }: { moduleId: string; onTab: (tab: strin
           const when = timeAgo(n.publishedAt ?? n.createdAt);
           return (
             <li key={n.id}>
-              <Link to={libraryItemPath(n)} className="mod-row">
+              <Link to={libraryItemPath(n)} className="mod-row mod-row--doc">
+                <DocThumb tone="note" size="md" />
                 <span className="mod-row__text">
                   <span className="mod-row__title">{n.title}</span>
                   <span className="mod-row__meta">{who ? `Shared by ${who}, ${when}` : `Shared ${when}`}</span>
@@ -419,17 +444,22 @@ function NewestThreads({ moduleId, name, onTab }: { moduleId: string; name: stri
     <Block
       title={title}
       hub="module-discussion"
+      link={
+        <Button variant="ghost" size="sm" onClick={() => onTab('discussion')} className="mod-blk__link">
+          {q.total > ROWS ? `All ${q.total} threads` : 'All threads'}
+        </Button>
+      }
       footer={
-        <>
-          <Button variant="ghost" size="sm" leadingIcon={ChatsCircle} onClick={() => onTab('discussion')}>
-            {q.total > ROWS ? `All ${q.total} threads` : 'All threads'}
+        starts ? (
+          <Button
+            variant="primary"
+            size="sm"
+            leadingIcon={<Icon glyph={glyph.plus} />}
+            to={`/forum/new?module=${encodeURIComponent(moduleId)}`}
+          >
+            Ask a question
           </Button>
-          {starts ? (
-            <Button size="sm" leadingIcon={Plus} to={`/forum/new?module=${encodeURIComponent(moduleId)}`}>
-              Ask a question
-            </Button>
-          ) : null}
-        </>
+        ) : null
       }
     >
       <ul className="mod-rows" role="list">
@@ -439,8 +469,12 @@ function NewestThreads({ moduleId, name, onTab }: { moduleId: string; name: stri
               <span className="mod-row__text">
                 <span className="mod-row__title">{t.title}</span>
                 <span className="mod-row__meta">
-                  {countOf(t.replyCount, 'reply', 'replies')}
-                  {t.answered ? ', answered' : ''}, {timeAgo(t.lastActivityAt)}
+                  {countOf(t.replyCount, 'reply', 'replies')}, {timeAgo(t.lastActivityAt)}
+                  {t.answered ? (
+                    <span className="mod-row__answered">
+                      <Icon glyph={glyph.check} /> Answered
+                    </span>
+                  ) : null}
                 </span>
               </span>
             </Link>
@@ -474,12 +508,18 @@ function MoreInLibrary({
       footer={
         <>
           {libraryCount ? (
-            <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files')}>
+            <Button variant="ghost" size="sm" onClick={() => onTab('files')} className="mod-blk__quiet">
               All {countOf(libraryCount, 'file')}
             </Button>
           ) : null}
           {onUpload ? (
-            <Button variant="ghost" size="sm" leadingIcon={UploadSimple} onClick={onUpload}>
+            <Button
+              variant="ghost"
+              size="sm"
+              leadingIcon={<Icon glyph={glyph.upload} />}
+              onClick={onUpload}
+              className="mod-blk__quiet"
+            >
               Upload a file
             </Button>
           ) : null}
@@ -489,12 +529,12 @@ function MoreInLibrary({
       {rest.length ? (
         <ul className="mod-rows" role="list">
           {rest.map((sh) => {
-            const Icon = sh.icon;
+            const doc = <DocThumb tone={SHELF_TONE[sh.kind] ?? 'guide'} size="md" className="mod-shelf__icon" />;
             return (
               <li key={sh.kind}>
                 {sh.beingAdded ? (
                   <span className="mod-row mod-shelf" data-hub="module-shelf">
-                    <Icon weight="duotone" className="mod-shelf__icon" aria-hidden="true" />
+                    {doc}
                     <span className="mod-row__text">
                       <span className="mod-row__title">{sh.label}</span>
                       <span className="mod-row__meta">On their way into the Hub. Check back soon.</span>
@@ -510,7 +550,7 @@ function MoreInLibrary({
                     data-hub="module-shelf"
                     onClick={() => onTab('files', sh.hash)}
                   >
-                    <Icon weight="duotone" className="mod-shelf__icon" aria-hidden="true" />
+                    {doc}
                     <span className="mod-row__text">
                       <span className="mod-row__title">{sh.label}</span>
                       <span className="mod-row__meta">{sh.description}</span>
@@ -575,9 +615,9 @@ export function ModuleOverview({
   const newNote =
     notesOn && me?.status !== 'suspended' ? (
       <Button
-        variant="ghost"
+        variant="secondary"
         size="sm"
-        leadingIcon={Plus}
+        leadingIcon={<Icon glyph={glyph.plus} />}
         loading={startNote.starting}
         onClick={() => startNote.start({ moduleId: m.id })}
         data-hub="module-new-note"
@@ -593,8 +633,10 @@ export function ModuleOverview({
   const noteAlone = !progressShown && !carrying ? looseNote : null;
   return (
     <div className="mod-ov" data-hub="module-overview">
-      <CarryOnHere moduleId={m.id} extra={noteOnCarry} />
       {featureOn('calendar') ? <NextDates module={m} /> : null}
+      {libraryOn ? <LatestPapers moduleId={m.id} onTab={onTab} /> : null}
+      {hasNotes ? <YourNotes moduleId={m.id} notes={notes} newNote={newNote} /> : null}
+      {noteAlone ? <NoNotes name={name} newNote={noteAlone} /> : null}
       {progressShown ? (
         <YourProgress
           module={m}
@@ -605,11 +647,9 @@ export function ModuleOverview({
           extra={noteOnProgress}
         />
       ) : null}
-      {hasNotes ? <YourNotes moduleId={m.id} notes={notes} newNote={newNote} /> : null}
-      {noteAlone ? <NoNotes name={name} newNote={noteAlone} /> : null}
-      {libraryOn ? <LatestPapers moduleId={m.id} onTab={onTab} /> : null}
-      {libraryOn ? <NewestNotes moduleId={m.id} onTab={onTab} /> : null}
       {moduleTabOn('discussion', featureOn) ? <NewestThreads moduleId={m.id} name={name} onTab={onTab} /> : null}
+      <CarryOnHere moduleId={m.id} extra={noteOnCarry} />
+      {libraryOn ? <NewestNotes moduleId={m.id} onTab={onTab} /> : null}
       {libraryOn ? <MoreInLibrary module={m} libraryCount={libraryCount} onTab={onTab} onUpload={onUpload} /> : null}
     </div>
   );
