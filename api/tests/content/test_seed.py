@@ -26,8 +26,8 @@ from app.models import (
     Lesson,
     LibraryItem,
     Module,
-    Note,
     NewsletterIssue,
+    Note,
     User,
 )
 from app.schemas.calendar import EventType
@@ -350,7 +350,7 @@ def test_the_seed_removes_a_broken_chapter_and_moves_students_notes_and_cards_to
     assert saved is not None
     assert saved.lesson_id == "me34n26c"
     cards = db.scalars(select(BoardCard.lesson_id).where(BoardCard.lesson_id.is_not(None))).all()
-    assert sorted(cards) == ["me34n26c", "me34n26c"]
+    assert list(cards) == ["me34n26c", "me34n26c"]
     db.refresh(module)
     assert [c.position for c in module.chapters] == list(range(len(module.chapters)))
     assert module.version == version + 1
