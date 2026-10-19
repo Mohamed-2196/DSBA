@@ -37,6 +37,7 @@ from app.models import (
     NooraUsage,
     Note,
     Notebook,
+    NotebookUploadDay,
     NoteInk,
     Notification,
     PaperQuestion,
@@ -70,6 +71,7 @@ from app.schemas.auth import (
     ExportNooraDay,
     ExportNote,
     ExportNotebook,
+    ExportNotebookUploadDay,
     ExportNotification,
     ExportPollVote,
     ExportQuestionTag,
@@ -937,6 +939,12 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         senior=senior,
         notebooks=notebooks,
         noora_usage=noora,
+        notebook_uploads=[
+            ExportNotebookUploadDay(day=d.day, uploads=d.uploads, size_bytes=d.size_bytes, capped=d.capped)
+            for d in db.scalars(
+                select(NotebookUploadDay).where(NotebookUploadDay.user_id == uid).order_by(NotebookUploadDay.day)
+            )
+        ],
         video_suggestions=[
             ExportSuggestion(
                 id=s.id,

@@ -41,7 +41,7 @@ from app.models import (
     User,
 )
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
-from app.services import access, ratelimit
+from app.services import access, notebook_uploads, ratelimit
 from app.services.forum.visibility import can_read_thread, moderates
 from app.services.storage import INCOMING_PREFIX, Storage, error_code, get_storage, safe_file_name
 
@@ -239,14 +239,18 @@ def _unsupported(purpose: UploadPurpose) -> ApiError:
     return ApiError(422, "unsupported_type", msg, fields={"fileName": msg})
 
 
-def check_rate(db: Session, user: User) -> None:
-    """UPLOADS_PER_HOUR per person (rows in the window, whatever became of them). Holds the person's upload lock
-    until the transaction ends: the caller inserts the new row in it."""
+def check_rate(db: Session, user: User, purpose: UploadPurpose) -> None:
+    """UPLOADS_PER_HOUR per person (rows in the window, whatever became of them), notes' files apart: those have the
+    hourly limit admins set (services/notebook_uploads.py). Holds the person's upload lock until the transaction
+    ends: the caller inserts the new row in it."""
+    if purpose == UploadPurpose.note_file:
+        notebook_uploads.check_rate(db, user)
+        return
     ratelimit.enforce(
         db,
         f"uploads:{user.id}",
         Upload.created_at,
-        [Upload.user_id == user.id],
+        [Upload.user_id == user.id, Upload.purpose != UploadPurpose.note_file],
         limit=UPLOADS_PER_HOUR,
         window=timedelta(hours=1),
         message="You've uploaded a lot in the last hour. Try again in {}.",
@@ -281,8 +285,10 @@ def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage 
     if body.size_bytes > limit:
         msg = f"This file is too big: the limit is {limit // (1024 * 1024)} MB."
         raise ApiError(422, "too_large", msg, fields={"sizeBytes": msg})
-    check_rate(db, user)  # takes the lock, held until the transaction ends
+    check_rate(db, user, purpose)  # takes the lock, held until the transaction ends
     _check_room(db, user, purpose, body.size_bytes)
+    if purpose == UploadPurpose.note_file:
+        notebook_uploads.record_upload(db, user, body.size_bytes)
 
     upload_id = uuid.uuid4()
     up = Upload(

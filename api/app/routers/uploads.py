@@ -29,7 +29,7 @@ def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUplo
     and GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room; career_logo: PNG, JPEG, WebP up to
     DSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r, `application/octet-stream` is
     accepted too). POST `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads
-    per hour.
+    per hour; note files apart, with the hourly limit admins set (60 to start).
 
     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
     for review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),

@@ -3,15 +3,31 @@
 A note mixes typed rich text and the pictures free on its pages (`doc`, a ProseMirror document; `text` is its plain
 text for search), handwriting (`NoteInk`, vector strokes per sheet), pictures and files (the student's uploads it
 lists in `uploads`), and optionally a PDF it is written over: a library file (`library_item_id`) or one the student
-imported (`pdf_upload_id`)."""
+imported (`pdf_upload_id`).
+
+The notebook's uploads have an hourly limit admins set (`NotebookLimits`), and their counts per student per day
+(`NotebookUploadDay`) give Manage its numbers."""
 
 from __future__ import annotations
 
+import datetime as dt
 import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ForeignKey, Index, Integer, String, Text, Uuid, text
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    Date,
+    ForeignKey,
+    Index,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+    Uuid,
+    text,
+)
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -19,6 +35,7 @@ from app.models.base import Base, check_in, created_ts, uuid_pk
 
 PAPERS = ("blank", "lined", "grid", "dotted")
 NO_UPLOADS = text("'{}'")  # (inside Note, `text` is the column)
+DEFAULT_UPLOADS_PER_HOUR = 60
 
 
 class Notebook(Base):
@@ -100,3 +117,36 @@ class NoteInk(Base):
     size_bytes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     updated_at: Mapped[datetime] = created_ts()
+
+
+class NotebookLimits(Base):
+    """The one row of the notebook's limits that admins set: the pictures, files and PDFs a student may upload to
+    their notes in an hour."""
+
+    __tablename__ = "notebook_limits"
+    __table_args__ = (CheckConstraint("id = 1", name="single_row"),)
+
+    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, default=1)
+    uploads_per_hour: Mapped[int] = mapped_column(
+        Integer, default=DEFAULT_UPLOADS_PER_HOUR, server_default=str(DEFAULT_UPLOADS_PER_HOUR)
+    )
+    updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    updated_at: Mapped[datetime | None]
+
+
+class NotebookUploadDay(Base):
+    """One student's notebook uploads on one day (in Bahrain): the uploads started, their bytes, and the ones refused
+    at the hourly limit. Only counts: no file names."""
+
+    __tablename__ = "notebook_upload_days"
+    __table_args__ = (
+        Index("ix_notebook_upload_days_user_day", "user_id", "day", unique=True),
+        Index("ix_notebook_upload_days_day", "day"),  # the week's numbers
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    day: Mapped[dt.date] = mapped_column(Date)
+    uploads: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    size_bytes: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")
+    capped: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # refused at the hourly limit

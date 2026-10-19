@@ -365,6 +365,15 @@ class ExportNooraDay(ApiModel):
     output_tokens: int
 
 
+class ExportNotebookUploadDay(ApiModel):
+    """The notebook's uploads on one day: only counts (the files are in `notebooks`)."""
+
+    day: date
+    uploads: int
+    size_bytes: int
+    capped: int  # refused at the hourly limit
+
+
 class ExportVote(ApiModel):
     type: Literal["thread", "reply"]
     id: UUID
@@ -485,6 +494,7 @@ class AccountExport(ApiModel):
     senior: ExportSenior | None  # the "Ask a senior" listing
     notebooks: list[ExportNotebook]  # private notebooks and their notes
     noora_usage: list[ExportNooraDay]  # Mini Noora's AI questions per day
+    notebook_uploads: list[ExportNotebookUploadDay]  # notebook uploads per day
     video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons
     calendar_events: list[PersonalEventOut]  # events on their own calendar
     calendar_settings: ExportCalendarSettings | None  # the programme dates they hide, and their private feed

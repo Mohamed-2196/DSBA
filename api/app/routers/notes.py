@@ -1,17 +1,20 @@
 """A student's private notebook: notebooks, notes, their ink and files. Reading needs an account; writing an
 active one (a suspended account reads its notes). Nobody else, admins included, reads someone's notebook: another
-person's notebook, note or file answers 404."""
+person's notebook, note or file answers 404. Admins set the notebook's upload limit and see its numbers (totals,
+and the top uploaders by display name)."""
 
 from __future__ import annotations
 
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import Path, Query, Response, status
+from fastapi import Path, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
 from app.core.access import Feature
 from app.core.pagination import Limit, Offset
-from app.core.security import DB, ActiveUser, CurrentUser, needs_feature
+from app.core.security import DB, ActiveUser, CurrentUser, client_ip, needs_feature, requires_admin
+from app.models import User
 from app.routers._base import router_for
 from app.schemas.notes import (
     AnnotateRequest,
@@ -20,16 +23,19 @@ from app.schemas.notes import (
     Note,
     Notebook,
     NotebookCreate,
+    NotebookLimitsIn,
     NotebookList,
     NotebookUpdate,
+    NotebookUploadsOut,
     NoteCreate,
     NotePage,
     NoteUpdate,
     PageChange,
 )
-from app.services import notes
+from app.services import notebook_uploads, notes
 
 router = router_for("notes", needs_feature(Feature.notes))
+Admin = Annotated[User, requires_admin()]
 
 # The presigned link lives download_url_ttl_seconds (300 s by default): the browser may reuse the redirect for less.
 FILE_CACHE = "private, max-age=240"
@@ -169,3 +175,23 @@ def note_file(upload_id: UUID, user: CurrentUser, db: DB, download: bool = False
     PDFs) or, with `download`, saved under its name."""
     url = notes.file_url(db, user, upload_id, download=download)
     return RedirectResponse(url, status_code=status.HTTP_302_FOUND, headers={"Cache-Control": FILE_CACHE})
+
+
+# ── Manage: the notebook's uploads (admins) ──
+
+
+@router.get("/admin/notebook", response_model=NotebookUploadsOut)
+def notebook_numbers(user: Admin, db: DB) -> NotebookUploadsOut:
+    """The notebook's upload limit and its numbers: uploads in the last hour, 24 hours and 7 days, students refused
+    at the limit, the top uploaders by count and by bytes (display names only), and everyone's note files against
+    the sum of their rooms. Admins only."""
+    return notebook_uploads.numbers(db)
+
+
+@router.put("/admin/notebook", response_model=NotebookUploadsOut)
+def set_notebook_limits(body: NotebookLimitsIn, request: Request, user: Admin, db: DB) -> NotebookUploadsOut:
+    """Set the pictures, files and PDFs each student may upload to their notes in an hour (1-1000). Admins only.
+    Audited (`notebook.limits`)."""
+    notebook_uploads.set_limits(db, user, body, client_ip(request))
+    db.commit()
+    return notebook_uploads.numbers(db)
