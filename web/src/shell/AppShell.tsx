@@ -12,6 +12,7 @@ import { useScrollMemory } from './scrollMemory';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { UpdatePrompt } from './UpdatePrompt';
+import { OfflineBar } from './OfflineBar';
 import { MobileNav } from './MobileNav';
 import { SiteFooter } from './SiteFooter';
 import './AppShell.css';
@@ -37,6 +38,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
       <Sidebar />
       <div className="shell-main">
         <TopBar />
+        <OfflineBar />
         <main id="main" tabIndex={-1} className="shell-content">
           {children}
         </main>

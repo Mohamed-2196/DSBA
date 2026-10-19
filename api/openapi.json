@@ -7872,7 +7872,7 @@
           "forum"
         ],
         "summary": "List Threads",
-        "description": "Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);\ndeleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its\ncategory, or a module of that year) plus forum-wide ones (a category for every year, without a module).\n`hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.",
+        "description": "Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);\ndeleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its\ncategory, or a module of that year) plus forum-wide ones (a category for every year, without a module).\n`hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5. `yours` ignores `sort`: newest activity first, without\npinning. Signed in, `unread` marks a thread with notifications about it the person hasn't read.",
         "operationId": "list_threads_api_v1_forum_threads_get",
         "parameters": [
           {
@@ -7992,16 +7992,35 @@
             "description": "Only threads without a visible reply yet"
           },
           {
-            "name": "mine",
+            "name": "yours",
             "in": "query",
             "required": false,
             "schema": {
               "type": "boolean",
-              "description": "Only the signed-in user's threads (needs a session)",
+              "description": "Only threads the signed-in user started, replied to or follows, newest activity first (needs a session)",
               "default": false,
-              "title": "Mine"
+              "title": "Yours"
             },
-            "description": "Only the signed-in user's threads (needs a session)"
+            "description": "Only threads the signed-in user started, replied to or follows, newest activity first (needs a session)"
+          },
+          {
+            "name": "paper",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9-]{1,120}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A library item's slug: only threads whose post or a reply links to it (/library/<slug>)",
+              "title": "Paper"
+            },
+            "description": "A library item's slug: only threads whose post or a reply links to it (/library/<slug>)"
           },
           {
             "name": "limit",
@@ -8817,6 +8836,103 @@
                 }
               }
             }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/forum/threads/{thread_id}/seen": {
+      "post": {
+        "tags": [
+          "forum"
+        ],
+        "summary": "Thread Seen",
+        "description": "The signed-in user opened the thread: their unread notifications about it (replies, an answer) are marked\nread, and it stops being `unread` in their lists. For a thread they can open; nothing to mark is fine.",
+        "operationId": "thread_seen_api_v1_forum_threads__thread_id__seen_post",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "400": {
             "content": {
@@ -46487,6 +46603,17 @@
             "type": "string",
             "title": "Query"
           },
+          "corrected": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrected"
+          },
           "threads": {
             "items": {
               "$ref": "#/components/schemas/SearchHit"
@@ -46533,6 +46660,7 @@
         "type": "object",
         "required": [
           "query",
+          "corrected",
           "threads",
           "library",
           "issues",
@@ -48605,6 +48733,10 @@
             "type": "boolean",
             "title": "Ismine"
           },
+          "unread": {
+            "type": "boolean",
+            "title": "Unread"
+          },
           "body": {
             "type": "string",
             "title": "Body"
@@ -48686,6 +48818,7 @@
           "status",
           "image",
           "isMine",
+          "unread",
           "body",
           "editedAt",
           "acceptedReplyId",
@@ -48926,6 +49059,10 @@
           "isMine": {
             "type": "boolean",
             "title": "Ismine"
+          },
+          "unread": {
+            "type": "boolean",
+            "title": "Unread"
           }
         },
         "type": "object",
@@ -48951,7 +49088,8 @@
           "locked",
           "status",
           "image",
-          "isMine"
+          "isMine",
+          "unread"
         ],
         "title": "ThreadSummary"
       },

@@ -49,10 +49,10 @@ newsletter editor on a phone.
 | ST-48 | minor (content) | Years 1–3 | "Past questions by topic" is empty in 14 of 16 modules; solutions exist for 1–2 sittings per module; ST2134 chapter 4 has one video | the topic-revision path is a dead end in most modules |
 | ST-49 | minor | Year 3 | Year 3 modules have no unit codes, no lessons, and an empty module that promises a study guide and offers a revision plan | Year 3 finds little and stops looking |
 | ST-50 | minor | all | Home's defaults show Today's Daily but hide the Daily question (a past exam question before your next exam) | the one study block on Home is off unless found in Customise |
-| ST-51 | minor | Year 1 | New thread: Module lists all 16 modules whatever "Post in" says, and isn't taken from the code in the title | wrong module tagged, wrong exam shown beside the thread |
-| ST-52 | nit | Year 1 | Reply notifications show raw formulas (`$x^2 - 4 > 0$`) | seconds |
+| ST-51 | minor | Year 1 | New thread: Module lists all 16 modules whatever "Post in" says, and isn't taken from the code in the title (**fixed**) | wrong module tagged, wrong exam shown beside the thread |
+| ST-52 | nit | Year 1 | Reply notifications show raw formulas (`$x^2 - 4 > 0$`) (**fixed**) | seconds |
 | ST-53 | nit | Year 2 | Modules page isn't in exam order (ST2133 first, ST2134 sooner); Home is | seconds |
-| ST-54 | nit | Year 2 | Search has no spelling tolerance ("hypothisis": nothing) | a retype |
+| ST-54 | nit | Year 2 | Search has no spelling tolerance ("hypothisis": nothing) (**fixed**) | a retype |
 | ST-55 | nit | Year 2 | Calendar's "This week" leaves out Friday's ST2134 exam (only the hero card shows it) | a moment of doubt |
 | ST-56 | nit | Year 2 | Paper page: "Examiners’ report Examiners’ report"; "About this file: In VLE and older exams."; "Esc Back to the library" goes to the module | seconds |
 | ST-57 | nit | Year 2 | ST2134 counts: "16 sittings" beside "1 of 14 sittings done"; 42, 40 and 38 files (ST-34 again) | doubt about what's missing |
@@ -172,15 +172,22 @@ newsletter editor on a phone.
   "MT1186:". A slip picked EC1002, and the thread's side panel then said "EC1002, Exam 19 Oct today". A question
   about a past paper can't point at the paper or question number except by pasting a link.
 - Screenshot: `j3-phone-preview.png`.
+- **Fixed** (`round14/forum`): a year's category offers that year's modules only (a category for every year offers
+  them all, by year), and a code in the title ("MT1186: …") brings "Your title mentions MT1186, Mathematical
+  Methods. Tag MT1186" under Module, in the composer and the edit form. Linking a paper: "Ask about this paper"
+  (round14/library) puts its link in the details, and the paper's threads are found by that link (UX-72).
 
 #### ST-52 to ST-57 (nits)
 
 - ST-52: the bell's preview of a reply shows its formulas as typed: "ln needs a positive argument … $x^2 - 4 > 0$, so
-  $|x| > 2$" (`j3-phone-y1-bell.png`).
+  $|x| > 2$" (`j3-phone-y1-bell.png`). **Fixed** (`round14/forum`): formulas read as text ("x² − 4 > 0, so |x| > 2")
+  in notifications, their emails, list excerpts and search snippets.
 - ST-53: `/modules` (Year 2) lists ST2133 (exam in 11 days) before ST2134 (4 days); Home's My modules is in exam
   order.
 - ST-54: "hypothisis" finds nothing, and "integration by parts" ranks EC2020 and ST2134 reports above the MT1186
-  workbook (`j2-laptop-search-*.png`).
+  workbook (`j2-laptop-search-*.png`). **Fixed** (`round14/forum`): a query that finds nothing is retried with its
+  misspelt words corrected by trigram similarity, and the palette says what it searched for instead. Ranking now
+  puts your papers and year, then whole words, first (UX-73).
 - ST-55: `/calendar` "This week" shows Friday 23 Oct with only the ST2187 mock; ST2134's exam that day is only in
   the "Your next exam" card above.
 - ST-56: the paper page's sitting panel reads "Examiners’ report  Examiners’ report" and "Solutions  Solutions";

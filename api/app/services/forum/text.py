@@ -1,6 +1,7 @@
-"""The forum's small markdown (paragraphs, lists, quotes, fenced code, **bold**, *italic*, `code`, links and images,
-as web/src/features/forum/lib/markdown.js parses it) turned into plain text: excerpts, the first picture of a post and
-the forum images it refers to. Also the cleaning every title and body goes through before it is stored.
+"""The forum's small markdown (paragraphs, lists, quotes, fenced code, **bold**, *italic*, `code`, links, images and
+$formulas$, as web/src/features/forum/lib/markdown.ts parses it) turned into plain text, formulas included
+(tex.py): excerpts, the first picture of a post and the forum images it refers to. Also the cleaning every title
+and body goes through before it is stored.
 
 Nothing here touches the database: search and other areas can use it for forum text too (code quality review CQ-6).
 Control characters (NUL above all) are dropped from what people write: the middleware that refuses them in addresses
@@ -15,6 +16,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from app.core.links import MEDIA_PATH  # the paths /media serves: one definition (code quality review CQ-6)
+from app.services.forum.tex import tex_to_text
 
 EXCERPT_LENGTH = 200
 
@@ -38,6 +40,7 @@ def has_text(value: str) -> bool:
 
 
 _FENCE = re.compile(r"^\s*```")
+_MATH = re.compile(r"^\s*\$\$")
 _UL = re.compile(r"^\s*[-*]\s+")
 _OL = re.compile(r"^\s*\d+[.)]\s+")
 _QUOTE = re.compile(r"^\s*>\s?")
@@ -45,9 +48,11 @@ _HEADING = re.compile(r"(?m)^[ \t]*#{1,6}[ \t]+")
 _IMAGE_LINE = re.compile(r"^\s*!\[([^\]\n]*)\]\(([^\s)]+)\)\s*$")
 _IMAGE = re.compile(r"!\[([^\]\n]*)\]\(([^\s)]*)\)")
 _CODE_SPAN = re.compile(r"`[^`\n]+`")
-# Inline tokens, leftmost first: code, image, bold, italic, link. Underscores are not italic (R_f, β_i).
+# Inline tokens, leftmost first: code, image, bold, italic, link, formula. Underscores are not italic (R_f, β_i). A
+# formula is $…$ with no space just inside either $ and no digit right after the closing one ("$5 or $10" is text).
 _INLINE = re.compile(
     r"(`[^`\n]+`)"
+    r"|(\$(?=\S)[^$\n]*?\S\$(?!\d)|\$[^\s$]\$(?!\d))"
     r"|(!\[([^\]\n]*)\]\([^\s)]*\))"
     r"|(\*\*[^*\n]+?\*\*)"
     r"|(\*[^*\s][^*\n]*?\*)"
@@ -58,18 +63,19 @@ _EXCERPT_TAIL = re.compile(r"[\s,.;:!?(–\-،؛؟]+$")  # noqa: RUF001 - the Ar
 
 @dataclass(frozen=True, slots=True)
 class _Block:
-    kind: Literal["p", "list", "quote", "code", "image"]
+    kind: Literal["p", "list", "quote", "code", "math", "image"]
     texts: tuple[str, ...] = ()
     alt: str = ""
     src: str = ""
 
 
 def _block_start(line: str) -> bool:
-    return any(rx.match(line) for rx in (_FENCE, _UL, _OL, _QUOTE, _IMAGE_LINE))
+    return any(rx.match(line) for rx in (_FENCE, _MATH, _UL, _OL, _QUOTE, _IMAGE_LINE))
 
 
 def parse_blocks(src: str) -> list[_Block]:
-    """Paragraphs, lists, quotes, fenced code and images on a line of their own (as the web app parses them)."""
+    """Paragraphs, lists, quotes, fenced code, $$formulas$$ and images on a line of their own (as the web app parses
+    them)."""
     lines = src.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     blocks: list[_Block] = []
     i = 0
@@ -86,6 +92,25 @@ def parse_blocks(src: str) -> list[_Block]:
                 i += 1
             i += 1  # the closing fence (or the end)
             blocks.append(_Block("code", ("\n".join(buf),)))
+            continue
+        if _MATH.match(line):
+            # $$ … $$ on one line, or from a line starting $$ to the line that ends with $$ (or the end of the text)
+            tex = line.strip()[2:]
+            i += 1
+            if tex.rstrip().endswith("$$") and len(tex.strip()) >= 2:
+                tex = tex.rstrip()[:-2]
+            else:
+                buf = [tex]
+                while i < len(lines):
+                    nxt = lines[i]
+                    i += 1
+                    if nxt.rstrip().endswith("$$"):
+                        buf.append(nxt.rstrip()[:-2])
+                        break
+                    buf.append(nxt)
+                tex = "\n".join(buf)
+            if tex.strip():
+                blocks.append(_Block("math", (tex.strip(),)))
             continue
         if _UL.match(line) or _OL.match(line):
             rx = _OL if _OL.match(line) else _UL
@@ -125,11 +150,13 @@ def _inline_plain(text: str, image_alt: bool) -> str:
         tok = m.group(0)
         if m.group(1):  # `code`
             out.append(tok[1:-1])
-        elif m.group(2):  # ![alt](src)
-            out.append(m.group(3) if image_alt else "")
-        elif m.group(4):  # **bold**
+        elif m.group(2):  # $formula$
+            out.append(tex_to_text(tok[1:-1]))
+        elif m.group(3):  # ![alt](src)
+            out.append(m.group(4) if image_alt else "")
+        elif m.group(5):  # **bold**
             out.append(tok[2:-2])
-        elif m.group(5):  # *italic*
+        elif m.group(6):  # *italic*
             out.append(tok[1:-1])
         else:  # [text](href)
             out.append(tok[1 : tok.index("](")])
@@ -144,6 +171,8 @@ def to_plain_text(src: str, *, code_as: str | None = None, image_alt: bool = Fal
     for b in parse_blocks(src):
         if b.kind == "code":
             parts.append(code_as if code_as is not None else b.texts[0])
+        elif b.kind == "math":
+            parts.append(tex_to_text(b.texts[0]))
         elif b.kind == "image":
             parts.append(b.alt if image_alt else "")
         else:
@@ -197,7 +226,7 @@ def pictures(src: str) -> list[dict[str, str]]:
     """The pictures in a post that the web app would show, in order: {src, alt} each."""
     out: list[dict[str, str]] = []
     for b in parse_blocks(src):
-        if b.kind == "code":
+        if b.kind in ("code", "math"):
             continue
         found = (
             [(b.alt, b.src)]

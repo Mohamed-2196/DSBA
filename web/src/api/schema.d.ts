@@ -1394,7 +1394,8 @@ export interface paths {
          * @description Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);
          *     deleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its
          *     category, or a module of that year) plus forum-wide ones (a category for every year, without a module).
-         *     `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.
+         *     `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5. `yours` ignores `sort`: newest activity first, without
+         *     pinning. Signed in, `unread` marks a thread with notifications about it the person hasn't read.
          */
         get: operations["list_threads_api_v1_forum_threads_get"];
         put?: never;
@@ -1521,6 +1522,27 @@ export interface paths {
          */
         put: operations["follow_thread_api_v1_forum_threads__thread_id__follow_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forum/threads/{thread_id}/seen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Thread Seen
+         * @description The signed-in user opened the thread: their unread notifications about it (replies, an answer) are marked
+         *     read, and it stops being `unread` in their lists. For a thread they can open; nothing to mark is fine.
+         */
+        post: operations["thread_seen_api_v1_forum_threads__thread_id__seen_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -10725,6 +10747,8 @@ export interface components {
         SearchResults: {
             /** Query */
             query: string;
+            /** Corrected */
+            corrected: string | null;
             /** Threads */
             threads: components["schemas"]["SearchHit"][];
             /** Library */
@@ -11485,6 +11509,8 @@ export interface components {
             image: components["schemas"]["PostImage"] | null;
             /** Ismine */
             isMine: boolean;
+            /** Unread */
+            unread: boolean;
             /** Body */
             body: string;
             /** Editedat */
@@ -11583,6 +11609,8 @@ export interface components {
             image: components["schemas"]["PostImage"] | null;
             /** Ismine */
             isMine: boolean;
+            /** Unread */
+            unread: boolean;
         };
         /** ThreadUpdate */
         ThreadUpdate: {
@@ -18737,8 +18765,10 @@ export interface operations {
                 sort?: "hot" | "new" | "top";
                 /** @description Only threads without a visible reply yet */
                 unanswered?: boolean;
-                /** @description Only the signed-in user's threads (needs a session) */
-                mine?: boolean;
+                /** @description Only threads the signed-in user started, replied to or follows, newest activity first (needs a session) */
+                yours?: boolean;
+                /** @description A library item's slug: only threads whose post or a reply links to it (/library/<slug>) */
+                paper?: string | null;
                 /** @description Page size */
                 limit?: number;
                 /** @description Items to skip */
@@ -19364,6 +19394,89 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["FollowResult"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    thread_seen_api_v1_forum_threads__thread_id__seen_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {

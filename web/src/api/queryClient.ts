@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, onlineManager } from '@tanstack/react-query';
 import { ApiError } from './errors';
 
 export const queryClient = new QueryClient({
@@ -14,3 +14,7 @@ export const queryClient = new QueryClient({
     mutations: { retry: false, networkMode: 'always' },
   },
 });
+
+// TanStack Query assumes a connection until the browser says otherwise: start from what the browser knows, so a page
+// opened offline waits for the connection (showing what was kept, api/offline.ts) instead of failing every request.
+if (typeof navigator !== 'undefined' && navigator.onLine === false) onlineManager.setOnline(false);

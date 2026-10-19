@@ -1,6 +1,7 @@
 // The hub's service worker, built to /sw.js by the build (vite.config.ts, serviceWorker()), which also writes in its
 // manifest: the build's version and the files every page needs (index.html, the entry script and its styles).
-// What it keeps and what it leaves alone is in routes.ts. It never keeps an API answer.
+// What it keeps and what it leaves alone is in routes.ts. It never keeps an API answer: what a student last read is
+// kept by the app itself, per account, for reading offline (src/api/offline.ts).
 //
 // A new build installs beside the running one and waits; the page offers "Reload" (shell/UpdatePrompt.tsx), which
 // sends SKIP_WAITING, and the page reloads once the new worker is in charge.

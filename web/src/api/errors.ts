@@ -126,6 +126,13 @@ export function isFeatureOff(e: unknown): boolean {
 
 /** The request never reached the API (offline, DNS, the server down behind the proxy). */
 export const NETWORK_MESSAGE = 'Couldn’t reach the Hub. Check your connection and try again.';
+/** The browser says there is no connection: an action can't go through, and only kept pages show (api/offline.ts). */
+export const OFFLINE_ACTION_MESSAGE = 'You’re offline, so this didn’t go through. Try again once you’re back online.';
+export const OFFLINE_LOAD_MESSAGE =
+  'You’re offline and this wasn’t kept from your last visit. It loads once you’re back online.';
+
+const browserOffline = (): boolean => typeof navigator !== 'undefined' && navigator.onLine === false;
+
 /** The API failed, or the app did: not something the person can fix by checking their Wi-Fi (UX review UX-10). */
 export const SERVER_MESSAGE = 'Something went wrong on our side. Try again in a minute.';
 
@@ -141,7 +148,7 @@ export function isNetworkError(e: unknown): boolean {
  */
 export function errorMessage(e: unknown, fallback = 'Something went wrong. Try again.'): string {
   if (!(e instanceof ApiError)) return fallback;
-  if (e.code === 'network') return NETWORK_MESSAGE;
+  if (e.code === 'network') return browserOffline() ? OFFLINE_ACTION_MESSAGE : NETWORK_MESSAGE;
   if (e.code === 'internal') return SERVER_MESSAGE;
   return e.message || fallback;
 }
@@ -152,7 +159,7 @@ export function errorMessage(e: unknown, fallback = 'Something went wrong. Try a
  */
 export function loadProblem(e: unknown): string {
   if (!(e instanceof ApiError)) return SERVER_MESSAGE;
-  if (e.code === 'network') return NETWORK_MESSAGE;
+  if (e.code === 'network') return browserOffline() ? OFFLINE_LOAD_MESSAGE : NETWORK_MESSAGE;
   if (e.status >= 500 || e.code === 'internal' || e.code === 'error' || !e.message) return SERVER_MESSAGE;
   return e.message;
 }
