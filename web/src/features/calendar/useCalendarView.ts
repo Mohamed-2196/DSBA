@@ -1,4 +1,5 @@
-// What the calendar page shows, from its address: ?cohort=all, ?types=exam,mock, ?view=month (phones and tablets),
+// What the calendar page shows, from its address: ?cohort=all, ?types=exam,mock, ?view=list|month (the default
+// depends on the screen),
 // ?month=YYYY-MM (the month grid) and ?event=<id> (the open event; 'mine-<id>' for one of the student's own).
 // ?types=mine shows only the student's own events.
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -71,12 +72,18 @@ export interface CalendarView {
   close: () => void;
 }
 
-export function useCalendarView(events: CalendarEvent[], today: Date, signedIn = false): CalendarView {
+export function useCalendarView(
+  events: CalendarEvent[],
+  today: Date,
+  signedIn = false,
+  /** the view without ?view=: the month on laptops and wider, the list on phones and tablets */
+  defaultMode: CalendarMode = 'list',
+): CalendarView {
   const { year, papers } = usePapers();
   const [monthParam, setMonthParam] = useQueryParam('month');
   const [cohortParam, setCohortParam] = useQueryParam('cohort', 'mine');
   const [typesParam, setTypesParam] = useQueryParam('types', '');
-  const [modeParam, setModeParam] = useQueryParam('view', 'list');
+  const [modeParam, setModeParam] = useQueryParam('view', defaultMode);
   const [eventId, setEventId] = useQueryParam('event');
   const linkedEventRef = useRef(eventId); // a shared ?event= link opens on that event's month
 

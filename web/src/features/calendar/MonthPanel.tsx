@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CalendarPlus, CaretLeft, CaretRight } from '@phosphor-icons/react';
-import { Button, cx, IconButton } from '../../ui';
+import { Button, cx, Icon, IconButton, glyph } from '../../ui';
 import { dayKey, formatLongDay, parseDay, type DayKey } from '../../lib/dates';
 import { addMonths, monthKey, monthTitle } from './dates';
 import { DayList } from './DayList';
@@ -20,11 +19,38 @@ export interface MonthPanelProps {
   onAdd: (day: DayKey) => void;
 }
 
-/** A month on a grid, with its arrows and "Today". data-hub="calendar-month". */
-export function MonthPanel({ view, today, compact, onAdd }: MonthPanelProps) {
-  const { month, monthEvents, goMonth, goToday, isCurrentMonth, eventId, cohortYear, open } = view;
+/** The month's title between its arrows, and Today (the calendar's bar). */
+export function MonthNav({ view }: { view: CalendarView }) {
+  const { month, goMonth, goToday, isCurrentMonth } = view;
   const before = addMonths(month, -1);
   const after = addMonths(month, 1);
+  return (
+    <div className="cal-nav">
+      <IconButton
+        label={`Previous month, ${monthTitle(before)}`}
+        icon={<Icon glyph={glyph.chevronLeft} />}
+        variant="secondary"
+        onClick={() => goMonth(before)}
+      />
+      <h3 id={MONTH_TITLE_ID} className="cal-nav__title" aria-live="polite">
+        {monthTitle(month)}
+      </h3>
+      <IconButton
+        label={`Next month, ${monthTitle(after)}`}
+        icon={<Icon glyph={glyph.chevronRight} />}
+        variant="secondary"
+        onClick={() => goMonth(after)}
+      />
+      <Button onClick={goToday} disabled={isCurrentMonth} className="cal-nav__today">
+        Today
+      </Button>
+    </div>
+  );
+}
+
+/** A month on a grid (its arrows and Today are in the bar above, MonthNav). data-hub="calendar-month". */
+export function MonthPanel({ view, today, compact, onAdd }: MonthPanelProps) {
+  const { month, monthEvents, goMonth, eventId, cohortYear, open } = view;
 
   return (
     <section
@@ -32,30 +58,6 @@ export function MonthPanel({ view, today, compact, onAdd }: MonthPanelProps) {
       aria-labelledby={MONTH_TITLE_ID}
       data-hub="calendar-month"
     >
-      <div className="cal-month__bar">
-        <h3 id={MONTH_TITLE_ID} className="cal-month__title" aria-live="polite">
-          {monthTitle(month)}
-        </h3>
-        <Button size="sm" variant="ghost" onClick={goToday} disabled={isCurrentMonth} className="cal-month__today">
-          Today
-        </Button>
-        <span className="cal-month__arrows">
-          <IconButton
-            label={`Previous month, ${monthTitle(before)}`}
-            icon={CaretLeft}
-            variant="secondary"
-            size="sm"
-            onClick={() => goMonth(before)}
-          />
-          <IconButton
-            label={`Next month, ${monthTitle(after)}`}
-            icon={CaretRight}
-            variant="secondary"
-            size="sm"
-            onClick={() => goMonth(after)}
-          />
-        </span>
-      </div>
       {compact ? (
         <CompactMonth view={view} today={today} onAdd={onAdd} key={monthKey(month)} />
       ) : (
@@ -109,7 +111,7 @@ function CompactMonth({ view, today, onAdd }: { view: CalendarView; today: Date;
               <Button
                 size="sm"
                 variant="ghost"
-                leadingIcon={CalendarPlus}
+                leadingIcon={<Icon glyph={glyph.plus} />}
                 onClick={() => onAdd(day)}
                 data-hub="calendar-day-add"
               >

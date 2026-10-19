@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { CalendarPlus, Plus, RssSimple, SlidersHorizontal } from '@phosphor-icons/react';
+import { RssSimple } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
-import { cohortLabel, useSetQueryParams, useToast, useYear } from '../../state';
-import { Button, ConfirmDialog, Page, PageHeader, PageSection, QueryError, Skeleton } from '../../ui';
+import { BREAKPOINTS, cohortLabel, useMediaQuery, useSetQueryParams, useToast, useYear } from '../../state';
+import { Button, ConfirmDialog, Icon, Page, PageHeader, PageSection, QueryError, Skeleton, glyph } from '../../ui';
 import { formatLong, formatLongDay, parseDay, todayKey, today as bahrainToday, type DayKey } from '../../lib/dates';
 import { useCalendarEvents, useDeleteEvent, useDeleteMyEvent, useDeleteMyOccurrence } from './api';
-import { Browse } from './Browse';
+import { Browse, CalendarBar } from './Browse';
 import { CustomiseDialog } from './CustomiseDialog';
 import { monthKey } from './dates';
 import { EventDrawer } from './EventDrawer';
@@ -74,7 +74,11 @@ export default function CalendarPage() {
   const actions = (
     <>
       {my.signedIn ? (
-        <Button leadingIcon={SlidersHorizontal} onClick={() => setCustomising(true)} data-hub="calendar-customise-open">
+        <Button
+          leadingIcon={<Icon glyph={glyph.settings} />}
+          onClick={() => setCustomising(true)}
+          data-hub="calendar-customise-open"
+        >
           Customise
         </Button>
       ) : null}
@@ -82,11 +86,20 @@ export default function CalendarPage() {
         Subscribe
       </Button>
       {manages ? (
-        <Button leadingIcon={Plus} onClick={() => setEditing({ event: null })} data-hub="calendar-add">
+        <Button
+          leadingIcon={<Icon glyph={glyph.plus} />}
+          onClick={() => setEditing({ event: null })}
+          data-hub="calendar-add"
+        >
           Programme date
         </Button>
       ) : null}
-      <Button variant="primary" leadingIcon={CalendarPlus} onClick={() => addMine()} data-hub="calendar-mine-add">
+      <Button
+        variant="primary"
+        leadingIcon={<Icon glyph={glyph.plus} />}
+        onClick={() => addMine()}
+        data-hub="calendar-mine-add"
+      >
         New event
       </Button>
     </>
@@ -260,7 +273,8 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine,
   const removeDay = useDeleteMyOccurrence();
   // Today in Bahrain, read once per visit: relative dates stay the same while the page is open.
   const [today] = useState(() => bahrainToday());
-  const view = useCalendarView(events, today, my.signedIn);
+  const wide = useMediaQuery(BREAKPOINTS.desktop);
+  const view = useCalendarView(events, today, my.signedIn, wide ? 'month' : 'list');
   const { eventId, open, close } = view;
   const [deleting, setDeleting] = useState<CalendarEvent | null>(null);
   const [deletingMine, setDeletingMine] = useState<{ event: CalendarEvent; scope: ChangeScope } | null>(null);
@@ -328,17 +342,20 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine,
           className="cal-mine-error"
         />
       ) : null}
-      <PageSection>
-        <ForYou
-          year={view.year}
-          nextExam={view.nextExam}
-          week={view.week}
-          today={today}
-          todayKey={view.todayKey}
-          selectedId={eventId}
-          onOpen={open}
-        />
-      </PageSection>
+      <CalendarBar view={view} />
+      {view.mode === 'list' ? (
+        <PageSection>
+          <ForYou
+            year={view.year}
+            nextExam={view.nextExam}
+            week={view.week}
+            today={today}
+            todayKey={view.todayKey}
+            selectedId={eventId}
+            onOpen={open}
+          />
+        </PageSection>
+      ) : null}
 
       <PageSection>
         <Browse view={view} today={today} calendarEmpty={calendarEmpty} onAddDate={onAddDate} onAddMine={onAddMine} />

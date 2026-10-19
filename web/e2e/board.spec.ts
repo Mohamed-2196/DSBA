@@ -51,7 +51,7 @@ test('a student adds a card, moves it, and adds an exam from the calendar', asyn
   };
   await expect.poll(columnOf).toBe('Done');
 
-  await sara.goto('/calendar?cohort=all&types=exam');
+  await sara.goto('/calendar?cohort=all&types=exam&view=list');
   // The week at the top lists every type, so pick an exam's row.
   await sara.locator('[data-hub="calendar-event"].cal-tone--exam').first().click();
   const drawer = sara.getByRole('dialog');

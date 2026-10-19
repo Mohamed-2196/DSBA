@@ -1,8 +1,7 @@
 // "Add to calendar": links to the API's .ics files (one date, or every exam of a cohort), so there is one iCalendar
 // writer, on the server (code quality review CQ-5). A short note says what to do with the file.
-import { CalendarPlus, DownloadSimple } from '@phosphor-icons/react';
 import { cohortLabel, useToast, type CohortYear } from '../../state';
-import { Button, IconButton, type ButtonSize, type ButtonVariant, type TooltipSide } from '../../ui';
+import { Button, IconButton, type ButtonSize, type ButtonVariant, type TooltipSide, Icon, glyph } from '../../ui';
 import { formatLong, parseDay } from '../../lib/dates';
 import { eventIcsUrl, examsIcsUrl } from './api';
 import type { CalendarEvent } from './types';
@@ -40,7 +39,7 @@ export function AddToCalendar({
     return (
       <IconButton
         label={`Add ${event.title} on ${formatLong(parseDay(event.date))} to your calendar`}
-        icon={CalendarPlus}
+        icon={<Icon glyph={glyph.calendarAdd} />}
         size={size}
         href={href}
         download
@@ -56,7 +55,7 @@ export function AddToCalendar({
     <Button
       variant={variant}
       size={size}
-      leadingIcon={CalendarPlus}
+      leadingIcon={<Icon glyph={glyph.calendarAdd} />}
       href={href}
       download
       external={false}
@@ -82,7 +81,7 @@ export function AddExamsToCalendar({
   return (
     <Button
       size={size}
-      leadingIcon={DownloadSimple}
+      leadingIcon={<Icon glyph={glyph.download} />}
       href={examsIcsUrl(year, papers)}
       download
       external={false}

@@ -1,10 +1,21 @@
-import { CalendarPlus, EyeSlash, LinkSimple, PencilSimple, Trash } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { AddToBoard } from '../board/public';
 import { BREAKPOINTS, useMediaQuery, useToast, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleArt, ModuleIcon, moduleArtSrc } from '../../ui';
+import {
+  Badge,
+  Button,
+  CohortBadge,
+  cx,
+  Drawer,
+  IconButton,
+  ModuleArt,
+  ModuleIcon,
+  moduleArtSrc,
+  Icon,
+  glyph,
+} from '../../ui';
 import {
   dayKey,
   daysUntil,
@@ -94,14 +105,18 @@ export function EventDrawer({
         event?.mine ? (
           <div className="cal-drawer__footer">
             {onEditMine ? (
-              <Button leadingIcon={PencilSimple} onClick={() => onEditMine(event)} data-hub="calendar-mine-edit">
+              <Button
+                leadingIcon={<Icon glyph={glyph.edit} />}
+                onClick={() => onEditMine(event)}
+                data-hub="calendar-mine-edit"
+              >
                 Edit
               </Button>
             ) : null}
             {onDeleteMine ? (
               <IconButton
                 label="Delete this event"
-                icon={Trash}
+                icon={<Icon glyph={glyph.trash} />}
                 variant="secondary"
                 tooltip
                 tooltipSide="top"
@@ -112,7 +127,7 @@ export function EventDrawer({
             <span className="cal-drawer__spacer" />
             <Button
               variant="primary"
-              leadingIcon={CalendarPlus}
+              leadingIcon={<Icon glyph={glyph.calendarAdd} />}
               href={myEventIcsUrl(event.mine.id)}
               download
               external={false}
@@ -125,7 +140,7 @@ export function EventDrawer({
           <div className="cal-drawer__footer">
             <IconButton
               label="Copy link to this date"
-              icon={LinkSimple}
+              icon={<Icon glyph={glyph.link} />}
               variant="secondary"
               tooltip
               tooltipSide="top"
@@ -134,7 +149,7 @@ export function EventDrawer({
             {onEdit ? (
               <IconButton
                 label="Edit this date"
-                icon={PencilSimple}
+                icon={<Icon glyph={glyph.edit} />}
                 variant="secondary"
                 tooltip
                 tooltipSide="top"
@@ -145,7 +160,7 @@ export function EventDrawer({
             {onDelete ? (
               <IconButton
                 label="Delete this date"
-                icon={Trash}
+                icon={<Icon glyph={glyph.trash} />}
                 variant="secondary"
                 tooltip
                 tooltipSide="top"
@@ -377,7 +392,7 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
           <div className="cal-drawer__hide">
             <Button
               size="sm"
-              leadingIcon={EyeSlash}
+              leadingIcon={<Icon glyph={glyph.eyeOff} />}
               onClick={() => onHide(event, 'hiddenEvents', event.id)}
               data-hub="calendar-hide"
             >
