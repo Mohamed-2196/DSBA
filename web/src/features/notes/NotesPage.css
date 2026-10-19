@@ -137,6 +137,30 @@
 .notebooks-storage__fill.is-nearly-full {
   background: var(--alert-strong);
 }
+.notebooks-storage__room {
+  margin: 6px 0 0;
+  max-width: 75ch;
+}
+.notebooks-sidebar__book {
+  display: flex;
+  align-items: center;
+}
+/* phones: the notebooks as a picker above the notes */
+.notes-picker {
+  display: flex;
+  gap: var(--sp-8);
+  align-items: center;
+  margin-bottom: var(--sp-12);
+}
+.notes-picker__select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.notes-section > .notebooks-storage {
+  margin-bottom: var(--sp-16);
+  padding-top: 0;
+  border-top: 0;
+}
 
 .notes-filters {
   display: flex;
