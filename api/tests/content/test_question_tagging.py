@@ -8,6 +8,7 @@ import json
 import uuid
 from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -278,7 +279,9 @@ def test_only_published_past_papers_with_text_are_tagged_once_each_and_never_a_s
     db: Session, modules: dict[str, Module], moderator: User
 ) -> None:
     first = paper(db, "EC1002 ZA May 2024", content=b"same bytes")
-    paper(db, "EC1002 ZA May 2024 (copy)", content=b"same bytes")  # a second copy: the library shows the first
+    copy = paper(db, "EC1002 ZA May 2024 (copy)", content=b"same bytes")  # a second copy: the library shows the first
+    db.refresh(first)
+    copy.created_at = first.created_at + timedelta(seconds=1)  # one transaction: both were made at the same time
     paper(db, "EC1002 Examiners report 2024", kind="examiners-report")
     paper(db, "EC1002 Solutions 2024", kind="exam-solutions")
     paper(db, "EC1002 unread", status=TextStatus.failed, text=None)
