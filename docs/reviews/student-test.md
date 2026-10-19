@@ -44,7 +44,7 @@ newsletter editor on a phone.
 | ST-43 | major | all | Nothing on Home picks up where you left off: the paper, the note, a running timer, the lesson | ~1 min to find the place again, every session |
 | ST-44 | major | Year 1 | "Write a longer one" leaves the lesson and stops the video; the quick note box is below the fold | every lecture watched; notes go back to paper or a phone app |
 | ST-45 | major (content) | Year 2 | Every October exam says "Time not set yet" 4 days out; "What to bring" opens an empty forum list | a trip to the VLE or WhatsApp for every exam |
-| ST-46 | minor | Year 2 | ST2134's textbook (Statistical Inference 2nd ed.) and a notes file are hidden from ST2134 as copies of other modules' files | the core book can't be found from its module |
+| ST-46 | minor | Year 2 | ST2134's textbook (Statistical Inference 2nd ed.) and a notes file are hidden from ST2134 as copies of other modules' files: **fixed** (a copy is a duplicate only within its module) | the core book can't be found from its module |
 | ST-47 | minor | Year 2 | Saving a practice score takes five steps on two screens; stopping Time me doesn't ask | ~40 s per paper; most scores won't be saved |
 | ST-48 | minor (content) | Years 1–3 | "Past questions by topic" is empty in 14 of 16 modules; solutions exist for 1–2 sittings per module; ST2134 chapter 4 has one video | the topic-revision path is a dead end in most modules |
 | ST-49 | minor | Year 3 | Year 3 modules have no unit codes, no lessons, and an empty module that promises a study guide and offers a revision plan | Year 3 finds little and stops looking |
