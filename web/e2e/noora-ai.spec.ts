@@ -85,7 +85,9 @@ test('the open note goes only when the student ticks Include my note, for one qu
   const ctx = await personaContext(browser, 'sara', { noora: true });
   const page = await ctx.newPage();
   const asked = await standIn(page);
-  await page.goto('/notes/new');
+  await page.goto('/notes');
+  await page.locator('[data-hub="note-new"]').click();
+  await expect(page).toHaveURL(/\/notes\/[0-9a-f-]{36}$/);
   await page.locator('[data-hub="note-title"]').fill(`Moments for Noora [e2e ${run.tag}]`);
   await page.locator('[data-hub="note-text"]').click();
   await page.keyboard.type('M(t) = E[e^{tX}]');

@@ -109,7 +109,11 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     await sara.goto('/modules/economics?tab=lessons');
     const past = sara.locator('[data-hub="chapter-questions"]');
     await expect(past.getByRole('heading', { name: 'Past exam questions on this chapter' })).toBeVisible();
-    await past.getByRole('link', { name: /May 2024, Zone A\s*Q3 \(p\. 2\)/ }).click();
+    await past
+      .getByRole('link')
+      .filter({ hasText: 'Q3 (p. 2)' })
+      .and(sara.getByTitle(`EC1002 ZA May 2024 [e2e ${run.tag}]`))
+      .click();
     await expect(sara).toHaveURL(new RegExp(`/library/${paper.slug}\\?page=2$`));
   } finally {
     for (const item of made) await api(rep, 'DELETE', `/api/v1/library/items/${item.id}`);

@@ -154,7 +154,7 @@ test('a guest plays every game to a finish', async ({ guest }) => {
   await page.keyboard.type(a.word);
   await page.keyboard.press('Enter');
   await expect(result(page)).toContainText('Solved in 1 guess');
-  await expect(result(page)).toContainText('Guest: not kept');
+  await expect(result(page)).toContainText('Points aren’t kept for guests');
 
   await open(page, 'groups');
   for (const group of a.groups) {
@@ -213,7 +213,7 @@ test('a guest’s hub counts the puzzles they finished', async ({ guest }) => {
   await guest.keyboard.press('Enter');
   await expect(result(guest)).toContainText('Solved in 1 guess');
   await guest.goto('/daily');
-  await expect(guest.getByRole('region', { name: 'Today so far' })).toContainText('1 of 6 done');
+  await expect(guest.getByRole('list', { name: 'Today so far' })).toContainText('1 of 6 done');
   await expect(guest.locator('a[data-game="word"]')).toContainText('Solved');
 });
 
@@ -308,9 +308,9 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
   expect(me.body.done).toBe(6);
   expect(me.body.games.every((g) => g.scored)).toBe(true);
   await page.goto('/daily');
-  const summary = page.getByRole('region', { name: 'Today so far' });
-  await expect(summary).toContainText('All six done');
-  await expect(summary).toContainText(`${me.body.points} points today`);
+  const summary = page.getByRole('list', { name: 'Today so far' });
+  await expect(summary).toContainText('6 of 6 done');
+  await expect(summary).toContainText(`${me.body.points} points`);
 
   // His name shows on the leaderboard only once he chooses it.
   await page.getByRole('tab', { name: 'Leaderboard' }).tap();
