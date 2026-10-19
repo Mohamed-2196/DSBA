@@ -167,9 +167,10 @@ class LibraryStar(Base):
 
 
 class PaperQuestion(Base):
-    """A question of a past paper, tagged by a student with one of its module's chapters ("Q3: Elasticity"), so
-    the chapter lists it. `tagged_by` is kept for moderation only; any student may flag a wrong tag, and people who
-    manage the library remove it."""
+    """A question of a past paper, tagged with one of its module's chapters ("Q3: Elasticity"), so the chapter lists
+    it. A student tags it (`tagged_by`, kept for moderation only), or Claude does (`tagged_by_model`: the model's id;
+    app/services/question_tagging.py, shipped to every environment by the seed). Any student may flag a wrong tag,
+    and people who manage the library remove it."""
 
     __tablename__ = "paper_questions"
     __table_args__ = (
@@ -178,6 +179,7 @@ class PaperQuestion(Base):
         Index("ix_paper_questions_tagged_by", "tagged_by"),  # tags per hour, export, account deletion (SET NULL)
         CheckConstraint("question BETWEEN 1 AND 40", name="question_range"),
         CheckConstraint("page IS NULL OR page BETWEEN 1 AND 999", name="page_range"),
+        CheckConstraint("tagged_by IS NULL OR tagged_by_model IS NULL", name="one_tagger"),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -186,6 +188,7 @@ class PaperQuestion(Base):
     question: Mapped[int] = mapped_column(SmallInteger)
     page: Mapped[int | None] = mapped_column(SmallInteger)  # where the question starts in the PDF
     tagged_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    tagged_by_model: Mapped[str | None] = mapped_column(String(40))  # 'claude-haiku-5-5'; None: a student's tag
     flag_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = created_ts()
 
