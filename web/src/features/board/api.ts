@@ -608,7 +608,8 @@ export function usePaperScores({ enabled = true }: { enabled?: boolean } = {}) {
   });
 }
 
-/** Saves a practice score (null removes it). The board shows it at once, and goes back if the API refuses. */
+/** Saves a practice score (null removes it). The board shows it at once, and goes back if the API refuses. The toasts
+ *  live here, not in `mutate()`'s callbacks, so they still show when the dialog that saved has closed. */
 export function useSaveScore() {
   const qc = useQueryClient();
   const toast = useToast();
@@ -627,6 +628,12 @@ export function useSaveScore() {
       );
       return before;
     },
+    onSuccess: (_data, { score }) =>
+      toast.push({
+        tone: 'success',
+        title: score === null ? 'Score removed' : `Saved: ${score}%`,
+        body: score === null ? undefined : 'It shows on the paper and in its sitting.',
+      }),
     onError: (e, _vars, before) => {
       qc.setQueryData(SCORES_KEY, before);
       toast.push({ tone: 'alert', title: 'Your score wasn’t saved', body: errorMessage(e) });

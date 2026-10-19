@@ -1,5 +1,4 @@
 import { useId, useState, type FormEvent } from 'react';
-import { useToast } from '../../state';
 import { Button, Modal, TextField } from '../../ui';
 import { usePaperScores, useSaveScore } from './api';
 import { parseScore } from './board';
@@ -70,25 +69,12 @@ export function ScoreDialog({ title, score, onSave, onClose }: ScoreDialogProps)
 export function PaperScoreDialog({ itemId, title, onClose }: { itemId: string; title: string; onClose: () => void }) {
   const scores = usePaperScores();
   const save = useSaveScore();
-  const toast = useToast();
   if (scores.isPending) return null;
   return (
     <ScoreDialog
       title={title}
       score={scores.data?.[itemId] ?? null}
-      onSave={(score) =>
-        save.mutate(
-          { itemId, score },
-          {
-            onSuccess: () =>
-              toast.push({
-                tone: 'success',
-                title: score === null ? 'Score removed' : `Saved: ${score}%`,
-                body: score === null ? undefined : 'It shows on the paper and in its sitting.',
-              }),
-          },
-        )
-      }
+      onSave={(score) => save.mutate({ itemId, score })}
       onClose={onClose}
     />
   );
