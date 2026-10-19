@@ -118,7 +118,7 @@ export function LessonNotePanel({ moduleId, lessonId, video, onClose }: LessonNo
                 />
                 <IconButton
                   icon={ArrowSquareOut}
-                  label="Open in Notes"
+                  label="Open in Notebook"
                   to={`/notes/${open.id}`}
                   tooltip
                   data-hub="lesson-note-full"

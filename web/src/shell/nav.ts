@@ -38,7 +38,7 @@ export const NAV: NavItem[] = [
   },
   {
     id: 'notes',
-    label: 'Notes',
+    label: 'Notebook',
     to: '/notes',
     icon: glyph.notebook,
     section: 'notebook',
@@ -77,7 +77,7 @@ export const NAV: NavItem[] = [
   },
   {
     id: 'board',
-    label: 'Study board',
+    label: 'Boards',
     to: '/board',
     icon: glyph.boards,
     section: 'tools',

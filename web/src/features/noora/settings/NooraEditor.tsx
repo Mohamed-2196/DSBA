@@ -93,7 +93,7 @@ const PAGES: { page: NooraPage; label: string }[] = [
   { page: 'library', label: 'The library' },
   { page: 'calendar', label: 'The calendar' },
   { page: 'forum', label: 'The forum' },
-  { page: 'notes', label: 'Notes' },
+  { page: 'notes', label: 'Notebook' },
   { page: 'grades', label: 'The grades calculator' },
   { page: 'other', label: 'Every other page' },
 ];

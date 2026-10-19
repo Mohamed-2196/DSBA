@@ -1069,7 +1069,7 @@ export default function NotePage() {
   const fresh = !!(location.state as { fresh?: boolean } | null)?.fresh;
 
   return (
-    <Gate title="Notes" description="Your own notes, saved as you write." signedIn>
+    <Gate title="Notebook" description="Your own notes, saved as you write." signedIn>
       {noteId && NOTE_ID.test(noteId) ? (
         <NoteWorkspace key={noteId} noteId={noteId} readOnly={readOnly} fresh={fresh} />
       ) : (

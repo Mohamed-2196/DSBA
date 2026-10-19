@@ -19,7 +19,7 @@ import './PaperSittings.css';
 /** Sittings a phone shows before "Show all": about a screen's worth. Wider screens show every sitting. */
 const FIRST_ON_PHONES = 8;
 
-/** A module's past papers by sitting. Renders nothing while the module has none. `board`: the study board is on, so
+/** A module's past papers by sitting. Renders nothing while the module has none. `board`: boards are on, so
  *  the heading says how many sittings are done. `headingLevel`: 3 inside the module's Files tab, 2 in the library. */
 export function PaperSittings({
   moduleId,

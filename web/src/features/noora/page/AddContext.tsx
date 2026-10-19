@@ -270,7 +270,9 @@ function NotePicker({ onAdd, onClose }: { onAdd: (n: NotePick) => void; onClose:
         </ul>
       ) : (
         <p className="np-pick__empty">
-          {q ? 'No notes match. Try other words.' : 'You have no notes yet. Write one in Notes, then add it here.'}
+          {q
+            ? 'No notes match. Try other words.'
+            : 'You have no notes yet. Write one in your notebook, then add it here.'}
         </p>
       )}
     </PickerFrame>

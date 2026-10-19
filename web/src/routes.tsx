@@ -122,14 +122,14 @@ const pages: AppRoute[] = [
   {
     id: 'notes',
     path: '/notes',
-    title: 'Notes',
+    title: 'Notebook',
     Page: lazy(() => import('./features/notes/NotesPage')),
     feature: 'notes',
   },
   {
     id: 'note',
     path: '/notes/:noteId',
-    title: 'Notes',
+    title: 'Notebook',
     Page: lazy(() => import('./features/notes/NotePage')),
     feature: 'notes',
   },
@@ -185,7 +185,7 @@ const pages: AppRoute[] = [
   {
     id: 'board',
     path: '/board',
-    title: 'Study board',
+    title: 'Boards',
     Page: lazy(() => import('./features/board/BoardPage')),
     feature: 'board',
     modules: false,

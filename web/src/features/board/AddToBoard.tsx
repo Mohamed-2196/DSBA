@@ -63,7 +63,7 @@ export function AddToBoard({ link, size = 'sm', className }: AddToBoardProps) {
       className={className}
       data-hub="board-add"
       onClick={() => {
-        if (!requireAuth('Sign in to add this to your study board', run)) return;
+        if (!requireAuth('Sign in to add this to a board', run)) return;
         run();
       }}
     >

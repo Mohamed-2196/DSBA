@@ -215,7 +215,7 @@ export const PAGE_ENTRIES: Item[] = (
     {
       path: '/board',
       feature: 'board',
-      title: 'Study board',
+      title: 'Boards',
       icon: 'Kanban',
       keywords: ['to do', 'todo', 'tasks', 'kanban', 'planner', 'revision plan', 'progress'],
     },
