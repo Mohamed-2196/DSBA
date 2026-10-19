@@ -31,8 +31,9 @@ export function useIsSaved(section: EditorSection, id: string): boolean {
 
 /** Gives a new item another id; every reference to it, and the open row, follow. */
 export function useRenameNew(section: EditorSection, kind: RefKind | null) {
-  const { update, setOpen } = useEditor();
+  const { update, setOpen, keepRow } = useEditor();
   return (id: string, next: string) => {
+    keepRow(section, next, id);
     if (kind) update((d) => renameItem(d, kind, id, next));
     else update((d) => ({ ...d, checklist: d.checklist.map((x) => (x.id === id ? { ...x, id: next } : x)) }));
     setOpen(openKey(section, next));

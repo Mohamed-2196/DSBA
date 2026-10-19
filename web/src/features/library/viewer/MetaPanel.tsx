@@ -1,4 +1,4 @@
-import { ArrowSquareOut, DownloadSimple, GoogleDriveLogo } from '@phosphor-icons/react';
+import { ArrowSquareOut, DownloadSimple, LinkSimple } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { formatSize } from '../../../api/uploads';
@@ -120,7 +120,7 @@ export function MetaPanel({
           ) : null}
         </Row>
         {isLink ? (
-          <Row label="Where">{host ? `${linkPlace(item)} (${host})` : linkPlace(item)}</Row>
+          <Row label="Where">{host && host !== linkPlace(item) ? `${linkPlace(item)} (${host})` : linkPlace(item)}</Row>
         ) : (
           <>
             {fmt ? <Row label="Format">{fmt.name}</Row> : null}
@@ -148,10 +148,10 @@ export function MetaPanel({
       {item.status === 'removed' ? null : isLink ? (
         <section className="lib-meta__source" aria-labelledby="lib-meta-source">
           <h2 id="lib-meta-source" className="lib-meta__h">
-            <GoogleDriveLogo aria-hidden="true" weight="duotone" />
+            <LinkSimple aria-hidden="true" weight="duotone" />
             Original on {linkPlace(item)}
           </h2>
-          <p>It stays where it was shared{host ? `, on ${host}` : ''}. The button opens it in a new tab.</p>
+          <p>It stays where it was shared. The button opens it in a new tab.</p>
           <Button href={openLinkHref(item)} trailingIcon={ArrowSquareOut} fullWidth>
             Open in {linkPlace(item)}
           </Button>

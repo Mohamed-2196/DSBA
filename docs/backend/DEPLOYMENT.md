@@ -195,8 +195,8 @@ Caddy (`web/deploy/Caddyfile`) sets on everything: `Strict-Transport-Security: m
 and `X-Content-Type-Options` and `Referrer-Policy` where the answer has none. On the web app's pages:
 
 ```
-Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-<theme script>'; style-src 'self'
-  'unsafe-inline'; img-src 'self' data: blob: https://i.ytimg.com <bucket>; media-src 'self' https:;
+Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-<theme script>';
+  style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.ytimg.com <bucket>; media-src 'self' https:;
   font-src 'self' data:; connect-src 'self' <bucket>; frame-src https://www.youtube.com
   https://www.youtube-nocookie.com https://vc.bibf.com <bucket>; object-src 'none'; base-uri 'self';
   form-action 'self'; frame-ancestors 'none'; worker-src 'self'; manifest-src 'self'
@@ -205,6 +205,9 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-<theme sc
 - No inline script runs except the theme script in `index.html` (applied before first paint): its hash is computed
   from the built page when the image is built (`web/deploy/csp-hashes.mjs`), so it always matches. `javascript:`
   links can't run either, whichever renderer lets one through.
+- `'wasm-unsafe-eval'`: the notebook's PDF reader (pdf.js) decodes scanned pages (JBIG2, JPEG 2000) with
+  WebAssembly it fetches from the app's own `/assets/pdfjs-<version>/`. It allows compiling WebAssembly only, never
+  `eval` of JavaScript; without it pdf.js falls back to slower plain-JS decoders.
 - `style-src 'unsafe-inline'`: React sets inline `style` attributes; styles can't run script.
 - Turning analytics on needs the PostHog host in `connect-src` (`DSBA_CSP_CONNECT_EXTRA`) and nothing else
   (section 9).

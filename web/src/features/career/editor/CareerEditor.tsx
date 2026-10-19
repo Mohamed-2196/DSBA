@@ -11,7 +11,7 @@ import { docErrors } from '../../../ui/docEditor';
 import { CareerBody } from '../CareerPage';
 import { useCareerForEditing, useReloadCareer, useSaveCareer } from './api';
 import { CAREER_SHAPE, SECTIONS, errorPlace, publicDoc, savedIdsOf, type EditorSection } from './doc';
-import { EditorContext, openKey, type EditorState } from './state';
+import { EditorContext, keepRowKey, openKey, rowKeyOf, type EditorState, type RowKeys } from './state';
 import { EmployersSection } from './sections/Employers';
 import {
   CertsSection,
@@ -132,6 +132,7 @@ function Editor({ first }: { first: Loaded }) {
   const [doc, setDoc] = useState<CareerDoc>(saved);
   const [section, setSection] = useState<EditorSection>('employers');
   const [open, setOpen] = useState<string | null>(null);
+  const [rowKeys, setRowKeys] = useState<RowKeys>({});
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<Problem | null>(null);
   const [reloadFailed, setReloadFailed] = useState(false);
@@ -151,6 +152,7 @@ function Editor({ first }: { first: Loaded }) {
     setDoc(next.data);
     setFields({});
     setProblem(null);
+    setRowKeys({});
   };
   const loadAgain = () => {
     setReloadFailed(false);
@@ -165,8 +167,10 @@ function Editor({ first }: { first: Loaded }) {
       err: (path) => fields[path],
       open,
       setOpen,
+      rowKey: (section, id) => rowKeyOf(rowKeys, section, id),
+      keepRow: (section, id, from) => setRowKeys((keys) => keepRowKey(keys, section, id, from)),
     }),
-    [doc, saved, fields, open],
+    [doc, saved, fields, open, rowKeys],
   );
 
   const submit = () => {

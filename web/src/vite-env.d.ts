@@ -14,6 +14,9 @@ interface ImportMetaEnv {
 /** The build's version (vite.config.ts): in the footer, in index.html and sent with bug reports. */
 declare const __APP_VERSION__: string;
 
+/** Where pdf.js's decoders, character maps and fonts are served, ending in '/' (vite.config.ts, pdfjsAssets()). */
+declare const __PDFJS_ASSETS__: string;
+
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }

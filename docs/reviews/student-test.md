@@ -28,18 +28,18 @@ Daily puzzles end to end all work.
 |---|---|---|---|
 | ST-24 | major | Daily: "Sign in to keep your points" throws away the guest's game and shows "Not this time" over the profile step | open |
 | ST-25 | major | Daily: a guest's hub said 0/6 and "Play" on games they had finished | fixed (on `feature/backend`, e2e passes) |
-| ST-27 | major | Notebook: scanned (JBIG2) past papers open blank in "Annotate in my notebook" | open |
+| ST-27 | major | Notebook: scanned (JBIG2) past papers open blank in "Annotate in my notebook" | fixed (round13/pdfscan) |
 | ST-26 | minor | Daily, guests: "Give up and see the answer" shows no answer; the Query says "Sign in to see the answer" beside every answer | open |
-| ST-28 | minor | Manage → Career Navigator: after typing a name, the next box loses the focus and what is typed next | open (e2e `test.fail`) |
+| ST-28 | minor | Manage → Career Navigator: after typing a name, the next box loses the focus and what is typed next | fixed (round13/pdfscan; the e2e is a normal test) |
 | ST-29 | minor | Sudoku on a phone held sideways: each digit key's count is drawn over the digit | open |
 | ST-30 | minor | The Word in dark mode: ruled-out letters are brighter than the unused ones | open |
 | ST-31 | minor | Correlations, guest loss: the last wrong four stay picked under "The groups", which shows no groups | open |
 | ST-32 | nit | The Daily Query's end: "See your result" and "Result" side by side, two primary buttons | open |
-| ST-33 | nit | A library link added today says it "was shared before the Hub had its own library" | open |
+| ST-33 | nit | A library link added today says it "was shared before the Hub had its own library" | fixed (round13/pdfscan) |
 | ST-34 | nit | A module page counts its files twice, differently (Files 120 / "115 files for EC1002") | open |
 | ST-35 | nit | Nearest Neighbour's share text: "not found in 1 guesses" | open |
 | ST-36 | nit | Manage → Daily puzzles names the games differently from the Daily (Groups, Word search, Quiz) | open |
-| ST-37 | nit | Opening "New note" and leaving it empty leaves an "Untitled note" behind | open |
+| ST-37 | nit | Opening "New note" and leaving it empty leaves an "Untitled note" behind | open (only when the tab is closed) |
 | ST-38 | minor, product | Notebook: a picture put in below handwriting slides under the ink | open (product call) |
 | ST-39 | nit | Correlations takes no picks for a moment after a group is found; Data Mine ignores taps while a line is checked | open |
 
@@ -77,6 +77,11 @@ dropped (7d7d0d7), the 4-second rule (removed).
   `getDocument` without pdf.js's wasm, so every JBIG2 image (the usual compression of scanned papers) is dropped; a
   newer paper (EC2020 May 2026) shows its text but loses its images too. Printing such a note prints blank pages.
 - Screenshots: `l-2003-paper.png` (library viewer, fine), `n-2003-annotate.png` (notebook, blank).
+- Fixed on round13/pdfscan: the build ships pdf.js's decoders, character maps, standard fonts and colour profiles
+  at `/assets/pdfjs-<version>/` and the notebook passes their URLs to `getDocument`; the CSP allows
+  `'wasm-unsafe-eval'` so they run as WebAssembly (without it they fall back to pdf.js's plain-JS decoders). The 2003
+  scan and the EC2020 May 2026 paper (its crest included) draw on a laptop, a phone and a phone held sideways. The
+  library's viewer was never affected: it shows the PDF in the browser's own viewer, not pdf.js.
 
 #### ST-26 (minor) Guests: "Give up and see the answer" shows no answer
 
@@ -94,6 +99,8 @@ dropped (7d7d0d7), the 4-second rule (removed).
   nowhere, and Save says "Some fields need a look before saving". Same for a new track. e2e: `career.spec.ts`
   "typing an employer’s name and moving on to its initials keeps them" (`test.fail`). Screenshot:
   `m-career-tab-after-name.png`.
+- Fixed on round13/pdfscan: rows were keyed by id, so the new id mounted the form again. A new item's row now keeps
+  the key it was added with while its id follows the name (and the Id field shows the new id).
 
 #### ST-29 (minor) Sudoku sideways: the counts sit on the digits
 
@@ -118,12 +125,17 @@ dropped (7d7d0d7), the 4-second rule (removed).
   primary buttons. `d-zainab-phone-quiz-end.png`.
 - ST-33: a rep's new link page says "This one lives on example.com, where it was shared before the Hub had its own
   library", shows "example.com (example.com)" and three "Open in example.com" buttons. `l-link-page.png`.
+  Fixed on round13/pdfscan: the line says "The Hub links to it and keeps no copy.", "Where" names the host once,
+  Drive links are named Google Drive (so the sign-in hint shows), and the source panel's Drive logo is a link icon.
+  The three buttons stay: the toolbar, the preview and the side panel each offer the file's main action, as for files.
 - ST-34: EC1002's header and Files tab say 120 files, the tab's line says "115 files for EC1002" (the API's
   `libraryCount` counts five files no shelf shows). `p-zainab-economics-files.png`.
 - ST-35: Nearest Neighbour's share text "not found in 1 guesses" (`services/daily/games/nearest.py`).
 - ST-36: Manage → Daily puzzles' chips say The word, Groups, Word search, Quiz; students see The Word, Correlations,
   Data Mine, The Daily Query. `m-daily-editor.png`.
 - ST-37: "New note" makes a note at once; leaving it empty leaves "Untitled note" in the list. `n-notes-list.png`.
+  Re-checked on round13/pdfscan: leaving by the Notes link, the browser's Back, the sidebar, or after a reload deletes
+  the empty note. Closing the tab leaves it: deleting on `pagehide` would also delete it on a reload.
 - ST-38 (product): ink keeps its place on the page, so a picture added below handwriting slides under it.
   `n-note-picture-selected.png`. Related to the open question about free-floating pictures.
 - ST-39: Correlations ignores picks for 300 ms after a group is found and Data Mine ignores taps while a line is

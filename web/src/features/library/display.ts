@@ -30,9 +30,12 @@ export function downloadsLabel(n: number): string {
   return `${n.toLocaleString('en-GB')} ${n === 1 ? 'download' : 'downloads'}`;
 }
 
-/** Where a link leads, in words: its host ('vle.london.ac.uk'). */
+const PLACES: Record<string, string> = { 'drive.google.com': 'Google Drive', 'docs.google.com': 'Google Drive' };
+
+/** Where a link leads, in words: 'Google Drive', or its host ('vle.london.ac.uk'). */
 export function linkPlace(item: Pick<LibraryItem, 'url'>): string {
-  return hostOf(item.url) || 'another site';
+  const host = hostOf(item.url);
+  return PLACES[host] ?? (host || 'another site');
 }
 
 /** 'PDF, 2.4 MB' for files; the host for links. */
