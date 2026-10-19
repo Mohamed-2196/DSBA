@@ -655,7 +655,16 @@ def main(argv: list[str] | None = None) -> int:
     sp = sub.add_parser("seed")
     sp.add_argument(
         "--only",
-        choices=["modules", "calendar", "newsletter", "career", "drive-folders", "daily", "paper-questions"],
+        choices=[
+            "modules",
+            "broken-chapters",
+            "calendar",
+            "newsletter",
+            "career",
+            "drive-folders",
+            "daily",
+            "paper-questions",
+        ],
         default=None,
     )
     sp.set_defaults(fn=cmd_seed)

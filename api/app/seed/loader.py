@@ -6,7 +6,8 @@ Idempotent: running it again adds what is missing and never overwrites what mode
 Something a moderator deleted stays deleted: calendar events and newsletter issues are looked up in the audit log
 (calendar.delete, newsletter.delete).
 Modules are starting content only: they load into an empty catalogue, and after that content managers edit them in
-the app (a module they removed stays removed).
+the app (a module they removed stays removed). The one exception is BROKEN_CHAPTERS, which the seed removes from any
+catalogue that has them.
 Newsletter issues and the career document go through the schemas the API checks writes with, and are stored in
 the same shape: a seed file that doesn't fit them fails loudly instead of loading content the app can't show.
 Owner: content agent."""
@@ -20,12 +21,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from app.models import (
     AuditEntry,
+    BoardCard,
     CalendarEvent,
     Chapter,
     ContentDoc,
@@ -35,6 +37,7 @@ from app.models import (
     Lesson,
     Module,
     NewsletterIssue,
+    Note,
 )
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCreate
@@ -92,6 +95,40 @@ def load_modules(db: Session) -> int:
         )
         n += 1
     db.flush()
+    return n
+
+
+# Chapters the first catalogue held by mistake, each with its lessons' stand-ins in the chapter it repeats:
+# MN1178's second "International Project Management", whose only lesson was a half-downloaded file.
+BROKEN_CHAPTERS: dict[str, dict[str, str]] = {"fjdyedyg": {"6z8mmrtu": "me34n26c"}}
+
+
+def remove_broken_chapters(db: Session) -> int:
+    """BROKEN_CHAPTERS, removed wherever they still are. Students' notes and study-board cards on their lessons move
+    to the stand-in lesson; a note loses its lesson, and a card goes, when the stand-in is gone too or the card's
+    board already holds it. Watched lessons and tags go with the chapter.
+    The module's chapters are numbered again and its version goes up, so an editor open on it reloads first."""
+    n = 0
+    for chapter_id, stand_ins in BROKEN_CHAPTERS.items():
+        chapter = db.get(Chapter, chapter_id)
+        if chapter is None:
+            continue
+        for lesson_id, stand_in in stand_ins.items():
+            to = stand_in if db.get(Lesson, stand_in) is not None else None
+            db.execute(update(Note).where(Note.lesson_id == lesson_id).values(lesson_id=to))
+            cards = BoardCard.lesson_id == lesson_id
+            if to is not None:  # a board holds a lesson once: where it holds both, the broken one's card goes
+                has_it = select(BoardCard.board_id).where(BoardCard.lesson_id == to)
+                db.execute(update(BoardCard).where(cards, BoardCard.board_id.not_in(has_it)).values(lesson_id=to))
+            db.execute(delete(BoardCard).where(cards))
+        module = chapter.module
+        module.chapters.remove(chapter)
+        db.delete(chapter)
+        for position, c in enumerate(module.chapters):
+            c.position = position
+        module.version += 1
+        db.flush()
+        n += 1
     return n
 
 
@@ -321,6 +358,7 @@ def load_paper_questions(db: Session) -> int:
 # Order matters: Drive folders and calendar events refer to modules, the tags to chapters and papers.
 SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
+    "broken-chapters": remove_broken_chapters,
     "calendar": load_calendar,
     "newsletter": load_newsletter,
     "career": load_career,
