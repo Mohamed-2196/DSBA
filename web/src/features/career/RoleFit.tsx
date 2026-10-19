@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  CaretDown,
   Briefcase,
   Certificate,
   ChartBar,
@@ -17,14 +18,14 @@ import {
   type Icon,
 } from '@phosphor-icons/react';
 import type { CareerRole } from '../../api/types';
-import { cohortColor, cohortLabel, type CohortYear } from '../../state';
+import { BREAKPOINTS, cohortColor, cohortLabel, useMediaQuery, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, Chip, CohortBadge, PageSection, Panel, ProgressRing, SectionHeader, cx } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { useCareerData } from './context';
 import { usePapers } from '../papers/public';
 import { evaluateRole, type RoleFitResult, type SkillStatus } from './lib/fit';
-import { jumpTo } from './lib/jump';
+import { jumpToCert } from './lib/jump';
 import { askLink } from './lib/links';
 import { SkillRow } from './SkillRow';
 import './RoleFit.css';
@@ -83,6 +84,9 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
   const fit = useMemo(() => evaluateRole(data, getModule, role, year, papers), [data, getModule, role, year, papers]);
   // The skills ease in only when the student picks another role, never on arrival.
   const [swapped, setSwapped] = useState(false);
+  // Phones: the skills fold under the score until asked for (each role lists a dozen or more).
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const [skillsOpen, setSkillsOpen] = useState(false);
   const n = fit.covered.length;
   const cohort = cohortLabel(year);
   const RoleIcon = ROLE_ICONS[role.id];
@@ -183,11 +187,7 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
                 <ul role="list" className="career-fitcerts__list">
                   {fitCerts.map((c) => (
                     <li key={c.id}>
-                      <button
-                        type="button"
-                        className="career-fitcert"
-                        onClick={() => jumpTo(`career-cert-${c.id}`, { flash: true, block: 'center' })}
-                      >
+                      <button type="button" className="career-fitcert" onClick={() => jumpToCert(c.id)}>
                         <Certificate className="career-fitcert__icon" aria-hidden="true" />
                         {c.short}
                       </button>
@@ -210,31 +210,46 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
             ) : null}
           </div>
 
-          <div className={cx('career-fit__skills', swapped && 'is-swapped')} key={role.id}>
-            {GROUPS.map((g) => {
-              const rows = fit[g.key];
-              if (!rows.length) return null;
-              const GroupIcon = g.icon;
-              return (
-                <section
-                  key={g.status}
-                  className={cx('career-group', `is-${g.status}`)}
-                  aria-label={`${g.title}: ${rows.length}`}
-                >
-                  <h4 className="career-group__title">
-                    <GroupIcon className="career-group__icon" weight={g.weight} aria-hidden="true" />
-                    {g.title}
-                    <span className="career-group__count">{rows.length}</span>
-                  </h4>
-                  <ul role="list" className="career-group__list">
-                    {rows.map((row) => (
-                      <SkillRow key={row.id} row={row} roleId={role.id} />
-                    ))}
-                  </ul>
-                </section>
-              );
-            })}
-          </div>
+          {phone && !skillsOpen ? (
+            <div className="career-fit__more">
+              <Button
+                variant="secondary"
+                trailingIcon={CaretDown}
+                aria-expanded={false}
+                aria-controls="career-fit-skills"
+                onClick={() => setSkillsOpen(true)}
+                data-hub="career-fit-show"
+              >
+                {`Show the ${fit.total} skills`}
+              </Button>
+            </div>
+          ) : (
+            <div className={cx('career-fit__skills', swapped && 'is-swapped')} key={role.id} id="career-fit-skills">
+              {GROUPS.map((g) => {
+                const rows = fit[g.key];
+                if (!rows.length) return null;
+                const GroupIcon = g.icon;
+                return (
+                  <section
+                    key={g.status}
+                    className={cx('career-group', `is-${g.status}`)}
+                    aria-label={`${g.title}: ${rows.length}`}
+                  >
+                    <h4 className="career-group__title">
+                      <GroupIcon className="career-group__icon" weight={g.weight} aria-hidden="true" />
+                      {g.title}
+                      <span className="career-group__count">{rows.length}</span>
+                    </h4>
+                    <ul role="list" className="career-group__list">
+                      {rows.map((row) => (
+                        <SkillRow key={row.id} row={row} roleId={role.id} />
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
+          )}
         </Panel>
 
         <div className="career-fit__note">

@@ -6,6 +6,7 @@ import { AfterDsba } from './AfterDsba';
 import { useCareer } from './api';
 import { Certificates } from './Certificates';
 import { CareerContext } from './context';
+import { CareerSections, type CareerPart } from './CareerSections';
 import { ElectivesLink } from './ElectivesLink';
 import { FeaturedCompetition } from './FeaturedCompetition';
 import { Opportunities } from './Opportunities';
@@ -19,9 +20,16 @@ export function CareerBody({ data }: { data: CareerDoc }) {
   const [roleParam, setRoleParam] = useQueryParam('role', data.defaultRoleId);
   const role =
     data.roles.find((r) => r.id === roleParam) ?? data.roles.find((r) => r.id === data.defaultRoleId) ?? data.roles[0];
+  const parts: CareerPart[] = [
+    { id: 'career-opportunities', label: 'Where to apply' },
+    ...(data.certs.length ? [{ id: 'career-certificates', label: 'Certificates' }] : []),
+    ...(role ? [{ id: 'career-role-fit', label: 'Build the skills' }] : []),
+    ...(data.checklist.length || data.furtherStudy ? [{ id: 'career-after', label: 'Before you apply' }] : []),
+  ];
   return (
     <CareerContext.Provider value={data}>
       <PageHeader title={TITLE} description={data.intro} actions={data.featured ? <FeaturedCompetition /> : null} />
+      <CareerSections parts={parts} />
       <Opportunities />
       <Certificates />
       {Object.values(data.chosen).includes('elective') ? <ElectivesLink /> : null}

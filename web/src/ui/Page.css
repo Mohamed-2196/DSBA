@@ -11,17 +11,19 @@
   max-width: calc(var(--content-max-narrow) + var(--page-pad-left) + var(--page-pad-right));
 }
 
+/* The actions sit beside the title while it keeps about 20rem, and wrap under it before they squeeze it. */
 .ui-page-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
-  gap: var(--sp-24);
+  gap: var(--sp-16) var(--sp-24);
   margin-bottom: var(--sp-32);
 }
 .ui-page-header__leading {
   margin-bottom: var(--sp-12);
 }
 .ui-page-header__main {
-  flex: 1 1 auto;
+  flex: 1 1 20rem;
   min-width: 0;
 }
 .ui-page-header__title {
@@ -64,6 +66,9 @@
     align-items: stretch;
     gap: var(--sp-16);
     margin-bottom: var(--sp-24);
+  }
+  .ui-page-header__main {
+    flex-basis: auto;
   }
   .ui-page-header__title {
     font-size: var(--fs-31);

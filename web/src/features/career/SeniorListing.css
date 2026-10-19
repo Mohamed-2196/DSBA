@@ -32,7 +32,7 @@
 .senior-form__note {
   color: var(--ink-2);
   font-size: var(--fs-14);
-  max-width: 65ch;
+  max-width: var(--measure);
 }
 @media (pointer: coarse) {
   .senior-form__chips .ui-chip {

@@ -9,7 +9,7 @@
 }
 .gedit-note p {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .gedit-install {
   align-self: center;

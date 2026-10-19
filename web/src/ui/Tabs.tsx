@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactNode } from 'react';
 import { cx, renderIcon, type IconSource } from './internal';
 import { Count } from './Badge';
+import { useScrollFade } from './useScrollFade';
 import './Tabs.css';
 
 export interface TabItem<T extends string = string> {
@@ -43,6 +44,7 @@ export function Tabs<T extends string = string>({
   const listRef = useRef<HTMLDivElement>(null);
   const [ink, setInk] = useState<{ x: number; w: number } | null>(null);
   const index = tabs.findIndex((t) => t.id === value);
+  useScrollFade(listRef, null, String(tabs.length));
 
   useLayoutEffect(() => {
     const list = listRef.current;
@@ -78,7 +80,7 @@ export function Tabs<T extends string = string>({
       ref={listRef}
       role="tablist"
       aria-label={label}
-      className={cx('ui-tabs', `ui-tabs--${variant}`, `ui-tabs--${size}`, className)}
+      className={cx('ui-tabs', 'u-scroll-row', `ui-tabs--${variant}`, `ui-tabs--${size}`, className)}
       onKeyDown={onKeyDown}
       {...rest}
     >

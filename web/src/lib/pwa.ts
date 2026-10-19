@@ -6,6 +6,8 @@
 //   applyUpdate()         hands over to the waiting build; the page reloads when it takes charge
 //   useInstall()          { canPrompt, installed, prompt }: "Install the app" where the browser offers it (Chrome,
 //                         Edge, Android); iPhone and iPad have no prompt, so pages explain Share, Add to Home Screen.
+//   installWay()          how this device installs the app: the browser's prompt, or the steps for an iPhone or
+//                         Android; null where it is installed or can't be (shell/InstallApp.tsx offers it)
 import { useSyncExternalStore } from 'react';
 
 /** The event Chrome and Edge fire when the app can be installed (not in TypeScript's DOM types). */
@@ -141,4 +143,30 @@ export function useInstall(): InstallState {
   const canPrompt = useSyncExternalStore(subscribe, getCanPrompt, () => false);
   const installed = useSyncExternalStore(subscribe, getInstalled, () => false);
   return { canPrompt, installed, prompt: promptInstall };
+}
+
+export type InstallWay = 'prompt' | 'iphone' | 'android';
+
+/**
+ * How this device installs the app: the browser's own prompt when it offers one, else the steps for an iPhone or
+ * iPad (Safari has no prompt) or for Android; null when it is installed already or the browser can't install it
+ * (desktop Firefox and Safari).
+ */
+export function installWay({
+  canPrompt,
+  installed,
+  userAgent,
+  touchPoints,
+}: {
+  canPrompt: boolean;
+  installed: boolean;
+  userAgent: string;
+  touchPoints: number;
+}): InstallWay | null {
+  if (installed) return null;
+  if (canPrompt) return 'prompt';
+  // iPadOS reports itself as a Mac; its touch screen gives it away.
+  if (/iPhone|iPad|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && touchPoints > 1)) return 'iphone';
+  if (/Android/.test(userAgent)) return 'android';
+  return null;
 }

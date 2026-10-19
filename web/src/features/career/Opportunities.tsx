@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CaretDown, CaretUp, MagnifyingGlass } from '@phosphor-icons/react';
 import type { ModuleSummary } from '../../api/types';
-import { useQueryParam } from '../../state';
+import { BREAKPOINTS, useMediaQuery, useQueryParam } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, Chip, EmptyState, PageSection, Panel, cx } from '../../ui';
 import { useCareerData } from './context';
@@ -15,6 +15,9 @@ const TYPE_FILTERS: { id: 'graduate' | 'internship'; color: string }[] = [
   { id: 'graduate', color: 'var(--cobalt)' },
   { id: 'internship', color: 'var(--signal)' },
 ];
+
+/** How many employers a phone shows before "Show all". */
+const PHONE_FIRST = 4;
 
 /**
  * The board: real employers, each with a logo slot, what it offers students and graduates, and one button to the
@@ -43,9 +46,12 @@ export function Opportunities() {
     return c;
   }, [pool]);
   const matches = track === 'all' ? pool : pool.filter((e) => e.tracks.includes(track));
-  const foldable = !filtered && matches.length > data.initialCount;
+  // Phones show fewer at first: each card is a screen tall there.
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const first = phone ? Math.min(PHONE_FIRST, data.initialCount) : data.initialCount;
+  const foldable = !filtered && matches.length > first;
   const folded = foldable && allParam !== '1';
-  const shown = folded ? matches.slice(0, data.initialCount) : matches;
+  const shown = folded ? matches.slice(0, first) : matches;
   const active = tracks.get(track) ?? null;
 
   const pickTrack = (id: string) => {

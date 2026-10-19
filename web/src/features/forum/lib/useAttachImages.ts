@@ -92,6 +92,7 @@ export function useAttachImages({ text, setText, textareaRef, gate }: AttachImag
     className: 'visually-hidden',
     tabIndex: -1,
     'aria-hidden': true,
+    'aria-label': 'Add pictures',
     onChange,
   };
 

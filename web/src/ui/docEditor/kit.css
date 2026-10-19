@@ -52,7 +52,7 @@
 .dedit__banner p {
   margin: 0;
   flex: 1 1 24ch;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .dedit__parts {
   display: grid;

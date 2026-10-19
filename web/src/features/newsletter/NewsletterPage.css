@@ -411,6 +411,7 @@
   margin-top: 4px;
   color: var(--ink-2);
   font-size: var(--fs-14);
+  max-width: var(--measure);
 }
 .nl-drafts__list > li + li {
   border-top: 1px solid var(--line);
@@ -445,6 +446,13 @@
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+@media (pointer: coarse) {
+  .nl-drafts__name {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
 }
 .nl-drafts__name:hover {
   text-decoration: underline;

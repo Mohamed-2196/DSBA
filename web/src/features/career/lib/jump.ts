@@ -1,7 +1,6 @@
 // Career Navigator: scroll to a part of the page (buttons, not #hash links).
 
-const reducedMotion = (): boolean =>
-  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+import { scrollMotion } from '../../../lib/motion';
 
 /**
  * Scroll an element into view by id and, with `flash`, ring it for a moment so the eye finds it.
@@ -13,7 +12,7 @@ export function jumpTo(
 ): boolean {
   const el = typeof document === 'undefined' ? null : document.getElementById(id);
   if (!el) return false;
-  el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block });
+  el.scrollIntoView({ behavior: scrollMotion(), block });
   if (flash) {
     el.classList.remove('career-flash');
     // Force a reflow so the animation restarts when the same target is chosen twice.
@@ -22,4 +21,13 @@ export function jumpTo(
     window.setTimeout(() => el.classList.remove('career-flash'), 1800);
   }
   return true;
+}
+
+/** The event a skill row sends for a certificate a phone has folded away: Certificates unfolds, then shows it. */
+export const SHOW_CERT_EVENT = 'career:show-cert';
+
+/** Scroll to a certificate's card, unfolding the list first when it is folded away (phones). */
+export function jumpToCert(certId: string): void {
+  if (jumpTo(`career-cert-${certId}`, { flash: true, block: 'center' })) return;
+  window.dispatchEvent(new CustomEvent<string>(SHOW_CERT_EVENT, { detail: certId }));
 }

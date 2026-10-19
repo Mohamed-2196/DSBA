@@ -47,6 +47,65 @@
   }
 }
 
+/* The Lessons tab: one line, the back link and the module, then the tabs. */
+.mod-head--compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--sp-16);
+  margin-bottom: var(--sp-16);
+}
+.mod-head--compact .mod-head__back {
+  margin: 0;
+}
+.mod-head__line {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-20);
+  line-height: var(--lh-heading);
+}
+.mod-head__line-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-8);
+  max-width: 100%;
+  color: var(--ink);
+  text-decoration: none;
+}
+.mod-head__line-link:hover .mod-head__line-name {
+  text-decoration: underline;
+}
+.mod-head__line-code {
+  flex: none;
+  color: var(--mc);
+}
+.mod-head__line-name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+@media (pointer: coarse) {
+  .mod-head--compact .mod-head__back {
+    margin: 0 0 0 -2px;
+  }
+  .mod-head__line-link {
+    min-height: 44px;
+    align-items: center;
+  }
+}
+@media (max-width: 699px) {
+  .mod-head--compact .mod-head__back-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 .mod-head__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 22rem;

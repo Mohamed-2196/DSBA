@@ -15,8 +15,6 @@
   color: var(--ink-2);
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 .nl-poll__question {
   font-size: var(--fs-20);

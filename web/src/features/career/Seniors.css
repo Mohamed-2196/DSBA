@@ -91,6 +91,6 @@
   color: var(--ink-3);
   font-size: var(--fs-14);
   line-height: 1.45;
-  max-width: 60ch;
+  max-width: var(--measure);
   overflow-wrap: anywhere;
 }

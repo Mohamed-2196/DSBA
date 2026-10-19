@@ -61,6 +61,7 @@ import {
 } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, useCalendarEvents, type EventType } from '../calendar/public';
 import { GameColours } from '../daily/public';
+import { scrollMotion } from '../../lib/motion';
 import './StyleGuidePage.css';
 
 // ── Reference data ────────────────────────────────────────────────────────
@@ -230,7 +231,7 @@ function useEventCounts(): { counts: Partial<Record<EventType, number>>; total: 
 
 // ── Building blocks of this page ──────────────────────────────────────────
 function scrollToSection(id: string) {
-  document.getElementById(`sg-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById(`sg-${id}`)?.scrollIntoView({ behavior: scrollMotion(), block: 'start' });
 }
 
 function Section({

@@ -8,6 +8,11 @@ const quoted = (v: unknown): string => {
   const s = str(v);
   return s ? ` “${s.length > 80 ? `${s.slice(0, 79)}…` : s}”` : '';
 };
+/** "the library file “X”", so a library line never reads like a newsletter one; "a library file" untitled. */
+const libraryFile = (title: unknown): string => {
+  const q = quoted(title);
+  return q ? `the library file${q}` : 'a library file';
+};
 const names = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 const list = (v: string[]): string => (v.length ? v.join(', ') : 'no roles');
 const MODES: Record<string, string> = { off: 'off', roles: 'on for some roles', everyone: 'on for everyone' };
@@ -136,11 +141,11 @@ const ACTIONS: Record<string, Describe> = {
   },
   'report.resolve': (d) =>
     d.status === 'dismissed' ? `dismissed a report about ${reported(d)}` : `acted on a report about ${reported(d)}`,
-  'library.publish': (d) => `published${quoted(d.title) || ' an upload'}`,
-  'library.reject': (d) => `rejected${quoted(d.title) || ' an upload'}`,
+  'library.publish': (d) => `published ${libraryFile(d.title)}`,
+  'library.reject': (d) => `rejected ${libraryFile(d.title)}`,
   'library.link': (d) => `added the link${quoted(d.title)} to the library`,
-  'library.edit': (d) => `edited${quoted(d.title) || ' a library file'}`,
-  'library.remove': (d) => `removed${quoted(d.title) || ' a library file'}`,
+  'library.edit': (d) => `edited ${libraryFile(d.title)}`,
+  'library.remove': (d) => `removed ${libraryFile(d.title)}`,
   'library.import': driveImport,
   'library.question_keep': (d) => `confirmed the topic of${quoted(d.title) || ' a question'}`,
   'library.question_remove': (d) => `removed the topic of${quoted(d.title) || ' a question'}`,

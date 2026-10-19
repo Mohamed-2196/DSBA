@@ -343,7 +343,7 @@
 /* Where a search found its words inside the file. */
 .lib-card__match {
   display: -webkit-box;
-  max-width: 75ch;
+  max-width: var(--measure);
   overflow: hidden;
   color: var(--ink-2);
   font-size: var(--fs-12);
@@ -622,21 +622,23 @@
   .lib-browse {
     margin-top: var(--sp-32);
   }
+  /* The filters run to the screen's edges, as New this week does, so a chip row is cut by the screen. */
   .lib-filters {
-    padding: var(--sp-12);
+    margin-inline: calc(-1 * var(--content-pad));
+    padding: var(--sp-12) var(--content-pad);
+    border-inline: 0;
+    border-radius: 0;
   }
   .lib-filters__year {
     align-self: stretch;
   }
   .lib-filters__chips {
     flex-wrap: nowrap;
-    width: calc(100% + 2 * var(--sp-12));
-    margin-inline: calc(-1 * var(--sp-12));
-    padding: 2px var(--sp-12);
-    overflow-x: auto;
-    scrollbar-width: none;
+    width: calc(100% + 2 * var(--content-pad));
+    margin-inline: calc(-1 * var(--content-pad));
+    padding: 2px var(--content-pad);
+    scroll-padding-inline: var(--content-pad);
   }
-  .lib-filters__chips::-webkit-scrollbar,
   .lib-new__list::-webkit-scrollbar {
     display: none;
   }

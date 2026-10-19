@@ -1,9 +1,21 @@
-import { Bug, DotsThree, Key, SignIn, SignOut, UserCircle, UserCirclePlus, Wrench } from '@phosphor-icons/react';
+import {
+  Bug,
+  DotsThree,
+  DownloadSimple,
+  Key,
+  SignIn,
+  SignOut,
+  UserCircle,
+  UserCirclePlus,
+  Wrench,
+} from '@phosphor-icons/react';
 import { errorMessage } from '../api/errors';
 import { accountLine, badgeOf, useAuth } from '../auth';
 import { useToast } from '../state';
 import { Avatar, Button, IconButton, Menu, Skeleton, cx, type MenuItem } from '../ui';
 import { openBugReport } from '../features/bugs/public';
+import { InstallSteps } from './InstallSteps';
+import { useInstallOffer } from './useInstallOffer';
 import './ProfileMenu.css';
 
 interface ProfileMenuProps {
@@ -15,12 +27,13 @@ interface ProfileMenuProps {
 
 /**
  * Who is signed in, with the account menu (Finish your profile when it's missing, Your account, Manage for people
- * who hold a manager box, Access for admins, Report a bug, Sign out). Guests get a Sign in button. The line under the name is the
+ * who hold a manager box, Access for admins, Install the app where it can be, Report a bug, Sign out). Guests get a Sign in button. The line under the name is the
  * person's badge when they have one, otherwise their cohort.
  */
 export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenuProps) {
   const { me, status, manages, isAdmin, openSignIn, signOut } = useAuth();
   const { push } = useToast();
+  const install = useInstallOffer();
   const inTopbar = placement === 'topbar';
   const small = compact || inTopbar;
 
@@ -94,36 +107,42 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
     { id: 'account', label: 'Your account', icon: UserCircle, to: '/account' },
     ...(manages ? [{ id: 'manage', label: 'Manage', icon: Wrench, to: '/manage' }] : []),
     ...(isAdmin ? [{ id: 'access', label: 'Access', icon: Key, to: '/admin/access' }] : []),
+    ...(install.way
+      ? [{ id: 'install', label: 'Install the app', icon: DownloadSimple, onSelect: install.start }]
+      : []),
     { id: 'bug', label: 'Report a bug', icon: Bug, onSelect: openBugReport },
     { divider: true },
     { id: 'sign-out', label: 'Sign out', icon: SignOut, onSelect: () => void onSignOut() },
   ];
 
   return (
-    <Menu
-      side={inTopbar ? 'bottom' : compact ? 'right' : 'top'}
-      align={inTopbar || compact ? 'end' : 'start'}
-      label="Account"
-      items={items}
-      trigger={
-        <button
-          type="button"
-          className={cx('shell-profile', small && 'shell-profile--compact')}
-          aria-label={`${name}${line ? `, ${line}` : ''}. Open the account menu`}
-          data-hub="profile"
-        >
-          <Avatar name={me.displayName || identity} size="md" decorative />
-          {!small ? (
-            <>
-              <span className="shell-profile__text">
-                <span className="shell-profile__name">{name}</span>
-                {line ? <span className="shell-profile__meta">{line}</span> : null}
-              </span>
-              <DotsThree className="shell-profile__more" aria-hidden="true" weight="bold" />
-            </>
-          ) : null}
-        </button>
-      }
-    />
+    <>
+      <Menu
+        side={inTopbar ? 'bottom' : compact ? 'right' : 'top'}
+        align={inTopbar || compact ? 'end' : 'start'}
+        label="Account"
+        items={items}
+        trigger={
+          <button
+            type="button"
+            className={cx('shell-profile', small && 'shell-profile--compact')}
+            aria-label={`${name}${line ? `, ${line}` : ''}. Open the account menu`}
+            data-hub="profile"
+          >
+            <Avatar name={me.displayName || identity} size="md" decorative />
+            {!small ? (
+              <>
+                <span className="shell-profile__text">
+                  <span className="shell-profile__name">{name}</span>
+                  {line ? <span className="shell-profile__meta">{line}</span> : null}
+                </span>
+                <DotsThree className="shell-profile__more" aria-hidden="true" weight="bold" />
+              </>
+            ) : null}
+          </button>
+        }
+      />
+      <InstallSteps offer={install} />
+    </>
   );
 }

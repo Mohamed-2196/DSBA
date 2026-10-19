@@ -25,7 +25,7 @@
 }
 .cedit__note {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
@@ -52,7 +52,7 @@
 .cedit__banner p {
   margin: 0;
   flex: 1 1 24ch;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .cedit__parts {
   display: grid;
@@ -336,7 +336,7 @@
 .cedit-guide li {
   display: grid;
   gap: var(--sp-2, 2px);
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 
 /* previews: the student's card, as it will look */

@@ -102,7 +102,7 @@
   align-items: baseline;
   gap: 2px 10px;
   margin-top: var(--sp-12);
-  max-width: 60ch;
+  max-width: var(--measure);
 }
 .cal-exam__code {
   color: var(--alert-strong);
@@ -139,7 +139,7 @@
   align-items: center;
   gap: 4px 8px;
   margin-top: var(--sp-12);
-  max-width: 60ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.5;
@@ -465,10 +465,10 @@
   color: var(--ink-2);
   font-weight: var(--fw-medium);
 }
+/* Days of the next or last month: quieter, but still readable (--ink-2 passes AA where a faded one didn't). */
 .cal-day.is-outside .cal-day__num {
   color: var(--ink-2);
   font-weight: var(--fw-regular);
-  opacity: 0.7;
 }
 .cal-day.is-today .cal-day__num {
   background: var(--cobalt);
@@ -567,11 +567,12 @@
   font-weight: var(--fw-bold);
   line-height: 1;
 }
+/* One line, ending in an ellipsis: a word wider than the chip would otherwise be cut mid-letter. */
 .cal-chip__line {
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   padding-left: 14px;
   color: var(--ink-2);
   font-size: var(--fs-12);
@@ -1145,7 +1146,7 @@ button.cal-day__num:focus-visible {
   font-weight: var(--fw-semibold);
 }
 .cal-drawer__notes {
-  max-width: 65ch;
+  max-width: var(--measure);
   color: var(--ink);
   font-size: var(--fs-14);
   line-height: 1.55;
@@ -1313,7 +1314,7 @@ button.cal-day__num:focus-visible {
   font-weight: var(--fw-bold);
 }
 .cal-customise__line {
-  max-width: 65ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.5;
@@ -1354,7 +1355,7 @@ button.cal-day__num:focus-visible {
 
 /* Subscribe: the private link */
 .cal-subscribe__lead {
-  max-width: 65ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.5;

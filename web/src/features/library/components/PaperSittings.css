@@ -21,14 +21,14 @@
   max-width: 100%;
 }
 .pp__intro {
-  max-width: 70ch;
+  max-width: var(--measure);
   margin: 0;
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.45;
 }
 .pp__note {
-  max-width: 70ch;
+  max-width: var(--measure);
   margin: 0;
   color: var(--ink-2);
   font-size: var(--fs-12);

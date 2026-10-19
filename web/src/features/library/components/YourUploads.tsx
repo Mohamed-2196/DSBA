@@ -56,7 +56,7 @@ function UploadRow({ item, linkState, canChange }: { item: LibraryItem; linkStat
               <span className="lib-yours__note-label">Note from the student rep:</span> {item.reviewNote}
             </>
           ) : (
-            'A student rep decided not to publish this one.'
+            'This file wasn’t published.'
           )}
         </p>
       ) : null}
