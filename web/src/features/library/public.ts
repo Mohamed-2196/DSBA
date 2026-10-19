@@ -8,6 +8,8 @@
 //   <FlaggedQuestions />                question tags flagged as wrong, to keep or remove (Manage's Uploads section)
 //   libraryItemPath(item)               '/library/<slug>', the item's page
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …
+//   libraryItemTitle(item, moduleTag)   how lists name an item: a paper by its sitting ('ST2133 · May 2019 · Zone A',
+//                                        or without the code when moduleTag is null), anything else by its title
 //   <ChapterQuestions moduleId chapterId />  the Lessons tab's past exam questions tagged with a chapter
 //                                        (render it only while the library.questions feature is on)
 //   <DailyQuestion moduleId moduleName examDays day className />
@@ -23,6 +25,7 @@ import { Skeleton } from '../../ui';
 export { useRecentFiles } from './api';
 export { useModuleQuestions } from './papers';
 export { itemPath as libraryItemPath } from './api';
+export { examTitle as libraryItemTitle } from './display';
 export { EXAM_KINDS as LIBRARY_EXAM_KINDS, KINDS as LIBRARY_KINDS, kindLabel as libraryKindLabel } from './kinds';
 export { UploadsQueue } from './UploadsQueue';
 export { ChapterQuestions } from './ChapterQuestions';

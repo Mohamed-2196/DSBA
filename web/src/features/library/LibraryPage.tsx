@@ -6,6 +6,7 @@ import {
   ClipboardText,
   Exam,
   FolderSimple,
+  Funnel,
   Lightning,
   LinkSimple,
   MagnifyingGlass,
@@ -18,6 +19,7 @@ import {
   Swatches,
   UploadSimple,
   UserCircle,
+  X,
   type Icon,
 } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -39,6 +41,7 @@ import {
   Chip,
   Count,
   EmptyState,
+  IconButton,
   Kbd,
   Menu,
   Page,
@@ -56,23 +59,34 @@ import { itemPath, useLibraryFacets, useLibraryList, useLibraryPages } from './a
 import { FileCard, type LinkState } from './components/FileCard';
 import { FileTable } from './components/FileTable';
 import { FileThumb } from './components/FileThumb';
+import { FilterSheet } from './components/FilterSheet';
+import { PaperSittings } from './components/PaperSittings';
 import { useCoverStyle } from './components/coverStyle';
 import { AddLinkDialog } from './components/AddLinkDialog';
 import { UploadDialog } from './components/UploadDialog';
 import { YourUploads } from './components/YourUploads';
-import { addedAt, isNew, moduleTag } from './display';
+import { addedAt, examTitle, hasExamTitle, isNew, moduleTag } from './display';
+import {
+  CLEAR_ALL,
+  activeFilters,
+  defaultSort,
+  defaultView,
+  readSort,
+  sittingSortOffered,
+  type Patch,
+} from './filters';
 import { KINDS, KIND_BY_ID, isLibraryKind, type LibraryKind } from './kinds';
 import type { CohortYear, LibraryItem, LibrarySort, LibraryView } from './types';
 import { useStar } from './useStar';
 import { AskLink } from '../requests/public';
 import './LibraryPage.css';
 
-// "New this week" already shows what's recent, so the grid opens on what people use most.
-const DEFAULT_SORT: LibrarySort = 'popular';
-// A search lists the best matches first, unless the student picks another order.
-const SEARCH_SORT: LibrarySort = 'relevance';
+/** Phones, upright or on their side: search, Filters and Sort in place of the filter panel, so files come first. */
+const COMPACT = '(max-width: 699px), (max-height: 500px) and (pointer: coarse)';
+
 const SORTS: Record<LibrarySort, string> = {
   relevance: 'Best match',
+  sitting: 'Newest sitting',
   popular: 'Most downloaded',
   new: 'Newest',
   title: 'Name, A to Z',
@@ -90,8 +104,6 @@ const KIND_ICONS: Partial<Record<LibraryKind, Icon>> = {
   'course-materials': FolderSimple,
   'vle-materials': FolderSimple,
 };
-
-type Patch = Record<string, string | null | undefined>;
 
 /** All library filters live in the URL: ?year=&module=&type=&q=&sort=&view=&starred=1&mine=1&source=file|link.
  *  ?upload=1 opens the upload dialog (the shell's "Upload a file", decision D6), and is then taken out of the URL. */
@@ -114,13 +126,6 @@ function useLibraryParams(): [URLSearchParams, (patch: Patch) => void] {
     [setParams],
   );
   return [params, update];
-}
-
-function readSort(raw: string | null, searching: boolean): LibrarySort {
-  const fallback = searching ? SEARCH_SORT : DEFAULT_SORT;
-  if (raw === 'relevance') return searching ? 'relevance' : DEFAULT_SORT;
-  if (raw === 'new' || raw === 'popular' || raw === 'title') return raw;
-  return fallback;
 }
 
 /** The shelf: files published in the last 7 days (for the year being browsed). */
@@ -149,20 +154,21 @@ function NewThisWeek({
         </p>
       </div>
       <ul className="lib-new__list" role="list">
-        {items.map((f) => (
-          <li key={f.id} className="lib-new__item" data-hub="file-card">
-            <Link to={itemPath(f)} state={linkState} className="lib-new__link">
-              <FileThumb item={f} size="strip" />
-              <span className="lib-new__name">{f.title}</span>
-              <span className="lib-new__meta">
-                {moduleTag(getModule(f.moduleId)) ? (
-                  <span className="lib-new__code">{moduleTag(getModule(f.moduleId))}</span>
-                ) : null}
-                <span>{timeAgo(addedAt(f))}</span>
-              </span>
-            </Link>
-          </li>
-        ))}
+        {items.map((f) => {
+          const code = moduleTag(getModule(f.moduleId));
+          return (
+            <li key={f.id} className="lib-new__item" data-hub="file-card">
+              <Link to={itemPath(f)} state={linkState} className="lib-new__link">
+                <FileThumb item={f} size="strip" />
+                <span className="lib-new__name">{examTitle(f, code)}</span>
+                <span className="lib-new__meta">
+                  {code && !hasExamTitle(f) ? <span className="lib-new__code">{code}</span> : null}
+                  <span>{timeAgo(addedAt(f))}</span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </PageSection>
   );
@@ -205,12 +211,15 @@ export default function LibraryPage() {
   const [linking, setLinking] = useState({ open: false, key: 0 });
   const { getModule, getModulesForYear } = useModules();
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
+  const compact = useMediaQuery(COMPACT);
   const [params, update] = useLibraryParams();
   const [coverStyle, setCoverStyle] = useCoverStyle();
   const toggleStar = useStar();
   const searchRef = useRef<HTMLElement>(null);
   const [upload, setUpload] = useState({ open: false, key: 0 });
+  const [sheetOpen, setSheetOpen] = useState(false);
   const signedIn = status === 'signed-in';
+  const board = featureOn('board');
 
   // ── Filters from the URL ──────────────────────────────────────────
   const q = params.get('q') ?? '';
@@ -218,9 +227,11 @@ export default function LibraryPage() {
   const module = moduleParam ? getModule(moduleParam) : null;
   const typeParam = params.get('type');
   const kind = isLibraryKind(typeParam) ? typeParam : null;
-  const sort = readSort(params.get('sort'), !!q.trim());
-  const defaultSort = q.trim() ? SEARCH_SORT : DEFAULT_SORT;
-  const view: LibraryView = params.get('view') === 'list' ? 'list' : 'grid';
+  const sort = readSort(params.get('sort'), { searching: !!q.trim(), kind, module: !!module });
+  const openingSort = defaultSort(!!q.trim(), kind);
+  const viewParam = params.get('view');
+  const openingView = defaultView(kind);
+  const view: LibraryView = viewParam === 'list' || viewParam === 'grid' ? viewParam : openingView;
   const starredOnly = params.get('starred') === '1';
   const mineOnly = params.get('mine') === '1';
   const sourceParam = params.get('source');
@@ -237,7 +248,7 @@ export default function LibraryPage() {
 
   const debouncedQ = useDebouncedValue(q, 300);
   // The request follows the settled search text, so its order changes with the results, not a keystroke earlier.
-  const querySort = readSort(params.get('sort'), !!debouncedQ.trim());
+  const querySort = readSort(params.get('sort'), { searching: !!debouncedQ.trim(), kind, module: !!module });
   const list = useLibraryPages(
     {
       q: debouncedQ,
@@ -283,6 +294,23 @@ export default function LibraryPage() {
     });
   };
   const anyFilter = Boolean(module || kind || q || starredOnly || mineOnly || source);
+  // One module's past papers show as its sittings table, as on the module's Files tab.
+  const sittingsView = !!module && kind === 'past-paper' && !q.trim() && !needsAccount && !source;
+  const active = activeFilters({
+    year,
+    defaultYear,
+    module: moduleTag(module),
+    kind,
+    starred: starredOnly,
+    mine: mineOnly,
+    source,
+  });
+  const onSort = (id: LibrarySort) => update({ sort: id === openingSort ? null : id });
+  // Past papers kept on other sites, beside the sittings (which hold the Hub's own files only).
+  const paperLinks = useLibraryList(
+    { moduleId: module?.id ?? null, kind: 'past-paper', source: 'link', sort: 'title' },
+    { limit: 50, enabled: sittingsView },
+  );
   const clearFilters = () => update({ module: null, type: null, q: null, starred: null, mine: null, source: null });
   const openUpload = useCallback(() => setUpload((u) => ({ open: true, key: u.key + 1 })), []);
   const startUpload = () => {
@@ -300,6 +328,10 @@ export default function LibraryPage() {
     if (requireAuth('Sign in to upload a file', openUpload)) openUpload();
   }, [uploadParam, status, location.key, requireAuth, update, openUpload, uploadShown]);
 
+  const toggleStarred = (on: boolean) => {
+    const go = () => update({ starred: on ? '1' : null, mine: null });
+    if (!on || requireAuth('Sign in to see your starred files', go)) go();
+  };
   const yearOptions = [
     { value: 'all' as const, label: isMobile ? 'All' : 'All years' },
     ...([1, 2, 3] as const).map((y) => ({
@@ -447,6 +479,29 @@ export default function LibraryPage() {
         )}
       </div>
     );
+  } else if (sittingsView && module) {
+    results = (
+      <div className="lib-results lib-results--sittings" data-hub="library-sittings">
+        <PaperSittings
+          moduleId={module.id}
+          linkState={linkState}
+          board={board}
+          headingLevel={2}
+          renderOther={(other) => (
+            <FileTable items={other} sort={sort} onToggleStar={toggleStar} linkState={linkState} />
+          )}
+        />
+        {paperLinks.data?.items.length ? (
+          <section className="lib-mf__group" aria-labelledby="lib-paper-links">
+            <h2 id="lib-paper-links" className="lib-mf__h">
+              Links
+              <span className="lib-mf__count">{paperLinks.data.items.length}</span>
+            </h2>
+            <FileTable items={paperLinks.data.items} sort={sort} onToggleStar={toggleStar} linkState={linkState} />
+          </section>
+        ) : null}
+      </div>
+    );
   } else {
     results = (
       <div
@@ -477,13 +532,7 @@ export default function LibraryPage() {
             ))}
           </div>
         ) : (
-          <FileTable
-            items={items}
-            sort={sort}
-            onSort={(id) => update({ sort: id === defaultSort ? null : id })}
-            onToggleStar={toggleStar}
-            linkState={linkState}
-          />
+          <FileTable items={items} sort={sort} onSort={onSort} onToggleStar={toggleStar} linkState={linkState} />
         )}
         {list.hasNextPage ? (
           <div className="lib-more">
@@ -514,189 +563,289 @@ export default function LibraryPage() {
     );
   }
 
-  return (
-    <Page width="wide" className="lib-page">
-      <PageHeader
-        title="Library"
-        description="Past papers, study guides and students’ notes for every module. Read them here, download them, or share your own."
-        actions={
-          uploadShown || linksShown ? (
-            <>
-              {linksShown ? (
-                <Button
-                  leadingIcon={LinkSimple}
-                  onClick={() => setLinking((l) => ({ open: true, key: l.key + 1 }))}
-                  data-hub="link-button"
-                >
-                  Add a link
-                </Button>
-              ) : null}
-              {uploadShown ? (
-                <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload} data-hub="upload-button">
-                  Upload a file
-                </Button>
-              ) : null}
-            </>
-          ) : undefined
-        }
-        meta={
-          yearTotal != null ? (
-            <span className="lib-head-meta">
-              <strong className="u-tabular">{formatCount(yearTotal)}</strong> {yearTotal === 1 ? 'file' : 'files'}{' '}
-              {yearLabel ? `for ${yearLabel}` : 'across all years'}
-            </span>
-          ) : (
-            <Skeleton width={140} height={18} />
-          )
-        }
-      />
-
+  const countLine = list.data ? (
+    <>
+      <strong className="u-tabular">{formatCount(total)}</strong> {total === 1 ? 'file' : 'files'}
+      {mineOnly ? <span> you uploaded</span> : null}
+      {starredOnly ? <span> starred</span> : null}
+      {context ? <span> in {context}</span> : null}
+      {q ? <span> matching “{q}”</span> : null}
+      {source ? <span>{source === 'file' ? ' (files only)' : ' (links only)'}</span> : null}
+    </>
+  ) : (
+    <span className="visually-hidden">Loading files</span>
+  );
+  const sortMenu = sittingsView ? null : (
+    <Menu
+      align="end"
+      label="Sort files"
+      trigger={
+        <Button variant="ghost" size="sm" trailingIcon={CaretDown} className="lib-sort">
+          <span className="lib-sort__label">Sort: </span>
+          {SORTS[sort]}
+        </Button>
+      }
+      items={(Object.keys(SORTS) as LibrarySort[])
+        .filter((id) => (id !== 'relevance' || q.trim()) && (id !== 'sitting' || sittingSortOffered(kind, !!module)))
+        .map((id) => ({
+          id,
+          label: SORTS[id],
+          icon: id === sort ? Check : <span className="lib-sort__blank" />,
+          onSelect: () => onSort(id),
+        }))}
+    />
+  );
+  const viewToggle = sittingsView ? null : (
+    <SegmentedControl
+      label="View"
+      size="sm"
+      iconOnly
+      value={view}
+      onChange={(v) => update({ view: v === openingView ? null : v })}
+      options={[
+        { value: 'grid' as const, label: 'Grid', icon: SquaresFour },
+        { value: 'list' as const, label: 'List', icon: Rows },
+      ]}
+    />
+  );
+  const search = (
+    <SearchField
+      ref={searchRef}
+      className="lib-filters__search"
+      value={q}
+      onValueChange={(v) => update({ q: v || null })}
+      placeholder="Search files"
+      label="Search the library"
+      shortcut={compact ? null : <Kbd>/</Kbd>}
+      size="lg"
+    />
+  );
+  const openLinking = () => setLinking((l) => ({ open: true, key: l.key + 1 }));
+  // Your uploads and New this week lead the page on wider screens; on a phone the files come first. New this week
+  // makes way once the student filters or searches.
+  const extras = (
+    <>
       {signedIn && !mineOnly ? (
         <YourUploads linkState={linkState} onShowAll={() => update({ mine: '1', starred: null })} />
       ) : null}
+      {needsAccount || anyFilter ? null : <NewThisWeek year={year} yearLabel={yearLabel} linkState={linkState} />}
+    </>
+  );
 
-      {needsAccount ? null : <NewThisWeek year={year} yearLabel={yearLabel} linkState={linkState} />}
+  return (
+    <Page width="wide" className="lib-page">
+      {compact ? (
+        <header className="lib-mhead">
+          <h1 className="lib-mhead__title">Library</h1>
+          {linksShown ? (
+            <IconButton label="Add a link" icon={LinkSimple} onClick={openLinking} data-hub="link-button" />
+          ) : null}
+          {uploadShown ? (
+            <IconButton
+              label="Upload a file"
+              icon={UploadSimple}
+              variant="primary"
+              onClick={startUpload}
+              data-hub="upload-button"
+            />
+          ) : null}
+        </header>
+      ) : (
+        <PageHeader
+          title="Library"
+          description="Past papers, study guides and students’ notes for every module. Read them here, download them, or share your own."
+          actions={
+            uploadShown || linksShown ? (
+              <>
+                {linksShown ? (
+                  <Button leadingIcon={LinkSimple} onClick={openLinking} data-hub="link-button">
+                    Add a link
+                  </Button>
+                ) : null}
+                {uploadShown ? (
+                  <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload} data-hub="upload-button">
+                    Upload a file
+                  </Button>
+                ) : null}
+              </>
+            ) : undefined
+          }
+          meta={
+            yearTotal != null ? (
+              <span className="lib-head-meta">
+                <strong className="u-tabular">{formatCount(yearTotal)}</strong> {yearTotal === 1 ? 'file' : 'files'}{' '}
+                {yearLabel ? `for ${yearLabel}` : 'across all years'}
+              </span>
+            ) : (
+              <Skeleton width={140} height={18} />
+            )
+          }
+        />
+      )}
+
+      {compact ? null : extras}
 
       <PageSection aria-label="Browse files" className="lib-browse">
-        <div className="lib-filters" data-hub="library-filters">
-          <div className="lib-filters__top">
-            <SearchField
-              ref={searchRef}
-              className="lib-filters__search"
-              value={q}
-              onValueChange={(v) => update({ q: v || null })}
-              placeholder="Search files"
-              label="Search the library"
-              shortcut={isMobile ? null : <Kbd>/</Kbd>}
-              size="lg"
-            />
-            <SegmentedControl
-              label="Year"
-              options={yearOptions}
-              value={yearValue}
-              onChange={setYear}
-              className="lib-filters__year"
-              fullWidth={isMobile}
-            />
-          </div>
-          <div className="lib-filters__row" role="group" aria-label="Module">
-            <div className="lib-filters__chips u-scroll-row">
-              <Chip selected={!module} onChange={() => update({ module: null })}>
-                All modules
-              </Chip>
-              {modules.map((m) => (
-                <Chip
-                  key={m.id}
-                  selected={module?.id === m.id}
-                  onChange={(on) => update({ module: on ? m.id : null })}
-                  color={year ? undefined : `var(--y${m.year})`}
-                  title={m.name}
-                >
-                  {m.unitCode ? <span className="lib-chip-code">{m.unitCode}</span> : null}
-                  {m.unitCode ? ` ${m.shortName}` : m.shortName}
-                </Chip>
-              ))}
+        {compact ? (
+          <div className="lib-filters lib-filters--compact" data-hub="library-filters">
+            {search}
+            <div className="lib-filters__bar">
+              <Button
+                leadingIcon={Funnel}
+                onClick={() => setSheetOpen(true)}
+                aria-haspopup="dialog"
+                aria-label={active.length ? `Filters, ${active.length} on` : 'Filters'}
+                className="lib-filters__open"
+                data-hub="library-filters-open"
+              >
+                Filters
+                {active.length ? <span className="lib-filters__n">{active.length}</span> : null}
+              </Button>
+              {sortMenu}
             </div>
-          </div>
-          {availableKinds.length ? (
-            <div className="lib-filters__row" role="group" aria-label="Type">
-              <div className="lib-filters__chips u-scroll-row">
-                <Chip selected={!kind} onChange={() => update({ type: null })}>
-                  All types
-                </Chip>
-                {availableKinds.map((k) => (
-                  <Chip
-                    key={k.id}
-                    selected={kind === k.id}
-                    onChange={(on) => update({ type: on ? k.id : null })}
-                    icon={KIND_ICONS[k.id] ?? null}
-                  >
-                    {k.plural}
-                  </Chip>
+            {active.length ? (
+              <ul className="lib-filters__active u-scroll-row" aria-label="Filters on">
+                {active.map((f) => (
+                  <li key={f.id}>
+                    <button
+                      type="button"
+                      className="lib-active"
+                      onClick={() => update(f.patch)}
+                      aria-label={`Remove the filter ${f.label}`}
+                    >
+                      {f.label}
+                      <X aria-hidden="true" weight="bold" />
+                    </button>
+                  </li>
                 ))}
+              </ul>
+            ) : null}
+            <p className="visually-hidden" aria-live="polite">
+              {countLine}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="lib-filters" data-hub="library-filters">
+              <div className="lib-filters__top">
+                {search}
+                <SegmentedControl
+                  label="Year"
+                  options={yearOptions}
+                  value={yearValue}
+                  onChange={setYear}
+                  className="lib-filters__year"
+                />
+              </div>
+              <div className="lib-filters__row" role="group" aria-label="Module">
+                <div className="lib-filters__chips u-scroll-row">
+                  <Chip selected={!module} onChange={() => update({ module: null })}>
+                    All modules
+                  </Chip>
+                  {modules.map((m) => (
+                    <Chip
+                      key={m.id}
+                      selected={module?.id === m.id}
+                      onChange={(on) => update({ module: on ? m.id : null })}
+                      color={year ? undefined : `var(--y${m.year})`}
+                      title={m.name}
+                    >
+                      {m.unitCode ? <span className="lib-chip-code">{m.unitCode}</span> : null}
+                      {m.unitCode ? ` ${m.shortName}` : m.shortName}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+              {availableKinds.length ? (
+                <div className="lib-filters__row" role="group" aria-label="Type">
+                  <div className="lib-filters__chips u-scroll-row">
+                    <Chip selected={!kind} onChange={() => update({ type: null })}>
+                      All types
+                    </Chip>
+                    {availableKinds.map((k) => (
+                      <Chip
+                        key={k.id}
+                        selected={kind === k.id}
+                        onChange={(on) => update({ type: on ? k.id : null })}
+                        icon={KIND_ICONS[k.id] ?? null}
+                      >
+                        {k.plural}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="lib-results-bar">
+              <p className="lib-count" aria-live="polite">
+                {countLine}
+              </p>
+              <div className="lib-results-bar__tools">
+                <Chip
+                  selected={starredOnly}
+                  onChange={toggleStarred}
+                  icon={<Star weight={starredOnly ? 'fill' : 'regular'} />}
+                >
+                  Starred
+                </Chip>
+                {signedIn ? (
+                  <Chip
+                    selected={mineOnly}
+                    onChange={(on) => update({ mine: on ? '1' : null, starred: null })}
+                    icon={UploadSimple}
+                  >
+                    Your uploads
+                  </Chip>
+                ) : null}
+                {sittingsView ? null : (
+                  <Chip
+                    selected={coverStyle === 'styled'}
+                    onChange={(on) => setCoverStyle(on ? 'styled' : 'original')}
+                    icon={Swatches}
+                    title="Switch between original file covers and generated title covers"
+                  >
+                    Styled covers
+                  </Chip>
+                )}
+                {sortMenu}
+                {viewToggle}
               </div>
             </div>
-          ) : null}
-        </div>
-
-        <div className="lib-results-bar">
-          <p className="lib-count" aria-live="polite">
-            {list.data ? (
-              <>
-                <strong className="u-tabular">{formatCount(total)}</strong> {total === 1 ? 'file' : 'files'}
-                {mineOnly ? <span> you uploaded</span> : null}
-                {starredOnly ? <span> starred</span> : null}
-                {context ? <span> in {context}</span> : null}
-                {q ? <span> matching “{q}”</span> : null}
-                {source ? <span>{source === 'file' ? ' (files only)' : ' (links only)'}</span> : null}
-              </>
-            ) : (
-              <span className="visually-hidden">Loading files</span>
-            )}
-          </p>
-          <div className="lib-results-bar__tools">
-            <Chip
-              selected={starredOnly}
-              onChange={(on) => {
-                const go = () => update({ starred: on ? '1' : null, mine: null });
-                if (!on || requireAuth('Sign in to see your starred files', go)) go();
-              }}
-              icon={<Star weight={starredOnly ? 'fill' : 'regular'} />}
-            >
-              Starred
-            </Chip>
-            {signedIn ? (
-              <Chip
-                selected={mineOnly}
-                onChange={(on) => update({ mine: on ? '1' : null, starred: null })}
-                icon={UploadSimple}
-              >
-                Your uploads
-              </Chip>
-            ) : null}
-            <Chip
-              selected={coverStyle === 'styled'}
-              onChange={(on) => setCoverStyle(on ? 'styled' : 'original')}
-              icon={Swatches}
-              title="Switch between original file covers and generated title covers"
-            >
-              Styled covers
-            </Chip>
-            <Menu
-              align="end"
-              label="Sort files"
-              trigger={
-                <Button variant="ghost" size="sm" trailingIcon={CaretDown} className="lib-sort">
-                  <span className="lib-sort__label">Sort: </span>
-                  {SORTS[sort]}
-                </Button>
-              }
-              items={(Object.keys(SORTS) as LibrarySort[])
-                .filter((id) => id !== 'relevance' || q.trim())
-                .map((id) => ({
-                  id,
-                  label: SORTS[id],
-                  icon: id === sort ? Check : <span className="lib-sort__blank" />,
-                  onSelect: () => update({ sort: id === defaultSort ? null : id }),
-                }))}
-            />
-            <SegmentedControl
-              label="View"
-              size="sm"
-              iconOnly
-              value={view}
-              onChange={(v) => update({ view: v === 'grid' ? null : v })}
-              options={[
-                { value: 'grid' as const, label: 'Grid', icon: SquaresFour },
-                { value: 'list' as const, label: 'List', icon: Rows },
-              ]}
-            />
-          </div>
-        </div>
+          </>
+        )}
 
         {results}
         {items.length ? <AskLink lead="Missing a paper or notes?" /> : null}
       </PageSection>
+
+      {compact ? extras : null}
+
+      {compact ? (
+        <FilterSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          year={year}
+          onYear={setYear}
+          modules={modules}
+          moduleId={module?.id ?? null}
+          onModule={(id) => update({ module: id })}
+          kinds={availableKinds}
+          kind={kind}
+          onKind={(k) => update({ type: k })}
+          starred={starredOnly}
+          onStarred={toggleStarred}
+          mine={signedIn ? mineOnly : null}
+          onMine={(on) => update({ mine: on ? '1' : null, starred: null })}
+          view={sittingsView ? null : view}
+          onView={(v) => update({ view: v === openingView ? null : v })}
+          styledCovers={coverStyle === 'styled'}
+          onStyledCovers={(on) => setCoverStyle(on ? 'styled' : 'original')}
+          total={list.data ? total : null}
+          activeCount={active.length}
+          onClearAll={() => update(CLEAR_ALL)}
+        />
+      ) : null}
 
       {uploadShown ? (
         <UploadDialog

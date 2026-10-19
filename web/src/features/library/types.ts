@@ -5,8 +5,9 @@ import type { ItemSource, ItemStatus, LibraryKind } from './kinds';
 
 export type { CohortYear, LibraryItem };
 
-/** Sort orders the API knows. 'relevance' (best match first) only means something with a search. */
-export type LibrarySort = 'new' | 'popular' | 'title' | 'relevance';
+/** Sort orders the API knows. 'relevance' (best match first) only means something with a search; 'sitting' is the
+ *  newest exam sitting first (zone A, zone B, then the paper, its report and solutions). */
+export type LibrarySort = 'new' | 'popular' | 'title' | 'relevance' | 'sitting';
 
 /** Filters for GET /library/items (everything optional; `starred` and `mine` need a session). */
 export interface LibraryQuery {

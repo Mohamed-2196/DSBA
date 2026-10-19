@@ -35,6 +35,7 @@ import './NewThreadPage.css';
  *   ?module=mathematics    the module, by id (or by unit code: ?module=MT1186); a year category that disagrees with the
  *                          module's year follows the module
  *   ?title=...             the title
+ *   ?body=...              the details (Markdown)
  *   ?senior=<user id>      a senior asked from Career Navigator (career.seniors): they are told when it is posted
  * An unfinished thread is kept as a draft on this device (lib/threadDraft.ts) until it is posted or discarded. An
  * account without the forum.post box gets a note in place of the composer.
@@ -43,7 +44,7 @@ export default function NewThreadPage() {
   const { status, offer } = useAuth();
   const [params] = useSearchParams();
   // A new preset on the same route starts a fresh composer, and so does another person (lib/useAccountKey.ts).
-  const presetKey = ['category', 'module', 'title', 'senior'].map((k) => params.get(k) || '').join('|');
+  const presetKey = ['category', 'module', 'title', 'body', 'senior'].map((k) => params.get(k) || '').join('|');
   const accountKey = useAccountKey();
   const meta = useForumMeta();
   if (meta.isError) {

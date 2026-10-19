@@ -212,10 +212,9 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
           </Button>
         ) : null}
       </div>
-      <p className="lib-qtags__desc">
-        Practice past questions organized by topic. Tag questions to help classmates revise for each chapter on the
-        Lessons tab.
-      </p>
+      {tags.data?.length ? (
+        <p className="lib-qtags__desc">Each question shows on its chapter, on the module’s Lessons tab.</p>
+      ) : null}
 
       {tags.isPending ? (
         <Skeleton lines={2} />
@@ -227,7 +226,7 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
         </ul>
       ) : (
         <div className="lib-qtags__empty">
-          <p>No questions tagged yet. Tag one so it shows under its chapter on the Lessons tab.</p>
+          <p>No questions tagged yet. Tag one so it shows on its chapter.</p>
           {canTag ? (
             <Button size="sm" variant="secondary" leadingIcon={Tag} onClick={openDialog}>
               Tag this question

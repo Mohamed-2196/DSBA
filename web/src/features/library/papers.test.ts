@@ -13,10 +13,9 @@ import {
   paperContext,
   questionHref,
   questionLabel,
-  sittingCards,
   sittingFiles,
+  sittingRow,
   yourZoneFirst,
-  zonesIn,
 } from './papers';
 
 function file(id: string, kind: LibraryItem['kind'], zone: LibraryItem['zone']): LibraryItem {
@@ -155,30 +154,40 @@ describe('yourZoneFirst', () => {
   });
 });
 
-describe('sittingCards', () => {
-  it('gives each paper a card with its zone’s solutions and the report for every zone, your zone first', () => {
-    const cards = sittingCards(MAY_2024, 'B');
-    expect(cards.map((c) => [c.item.id, c.zone])).toEqual([
-      ['zb', 'B'],
-      ['za', 'A'],
+describe('sittingRow', () => {
+  it('gives a sitting one row: each zone’s paper, your zone first, its report and solutions', () => {
+    const row = sittingRow(MAY_2024, 'B');
+    expect(row.papers.map((p) => [p.item.id, p.label, p.yours])).toEqual([
+      ['zb', 'Zone B', true],
+      ['za', 'Zone A', false],
     ]);
-    expect(cards[1].reports.map((f) => f.id)).toEqual(['report']);
-    expect(cards[1].solutions.map((f) => f.id)).toEqual(['za-solutions']);
-    expect(sittingCards(MAY_2024, null, 'A').map((c) => c.item.id)).toEqual(['za']);
+    expect(row.reports.map((l) => [l.item.id, l.label])).toEqual([['report', 'Report']]);
+    expect(row.solutions.map((l) => [l.item.id, l.label])).toEqual([['za-solutions', 'Solutions']]);
+    expect(row.timeMe?.id).toBe('zb');
+    expect(sittingRow(MAY_2024, null).timeMe?.id).toBe('za');
   });
 
-  it('shows a sitting’s report on its own when no paper is in yet', () => {
+  it('names reports by zone when the zones have their own, and numbers a second one', () => {
+    const reportA = file('ra', 'examiners-report', 'A');
+    const reportB = file('rb', 'examiners-report', 'B');
     const sitting: Sitting = {
       examYear: 2023,
       session: 'october',
-      zones: [{ zone: null, papers: [], reports: [report], solutions: [] }],
+      zones: [
+        { zone: 'A', papers: [], reports: [reportA], solutions: [] },
+        { zone: 'B', papers: [], reports: [reportB], solutions: [] },
+        { zone: null, papers: [file('p', 'past-paper', null)], reports: [], solutions: [] },
+      ],
     };
-    expect(sittingCards(sitting, 'A').map((c) => c.item.id)).toEqual(['report']);
-  });
-
-  it('lists the zones that have papers', () => {
-    expect(zonesIn([MAY_2024])).toEqual(['A', 'B']);
-    expect(zonesIn([])).toEqual([]);
+    const row = sittingRow(sitting, null);
+    expect(row.papers.map((p) => p.label)).toEqual(['Paper']);
+    expect(row.reports.map((l) => l.label)).toEqual(['Zone A report', 'Zone B report']);
+    const two: Sitting = {
+      ...sitting,
+      zones: [{ zone: null, papers: [], reports: [reportA, reportB], solutions: [] }],
+    };
+    expect(sittingRow(two, 'A').reports.map((l) => l.label)).toEqual(['Report', 'Report 2']);
+    expect(sittingRow(two, 'A').timeMe).toBeNull();
   });
 });
 

@@ -1,11 +1,11 @@
-// "Start a thread" links can say what the thread is about: /forum/new?category=year-1&module=MT1186&title=…
-// (the module page's "Ask about this module", "Ask it as a thread" after a search). This turns such a link into the
+// "Start a thread" links can say what the thread is about: /forum/new?category=year-1&module=MT1186&title=…&body=…
+// (the module page's "Ask about this module", "Ask it as a thread" after a search, a paper's "Ask about this paper"). This turns such a link into the
 // form the composer opens with. A plain function: NewThreadPage gives it the catalogue lookups.
 import type { ModuleSummary } from '../../../api/types';
 import type { ForumCategoryOut } from '../../../api/types';
 import type { CategoryId } from '../types';
 import type { ThreadForm } from './threadDraft';
-import { TITLE_MAX } from './threadForm';
+import { BODY_MAX, TITLE_MAX } from './threadForm';
 
 export interface PresetLookups {
   getModule: (id: string) => Pick<ModuleSummary, 'id' | 'year'> | null;
@@ -23,6 +23,7 @@ export interface PresetLookups {
  *   ?category  where to post it; a year that disagrees with the module follows the module (the more specific
  *              choice). Without one: the module's year, then the person's own year, then the default category.
  *   ?title     the title, cut to the composer's limit
+ *   ?body      the details, cut to the composer's limit (a library paper's "Ask about this paper" links the paper)
  */
 export function composerPresets(
   params: URLSearchParams,
@@ -34,8 +35,9 @@ export function composerPresets(
   const categoryParam = params.get('category');
   const cat = categoryParam ? find.getCategory(categoryParam) : null;
   const title = (params.get('title') ?? '').slice(0, TITLE_MAX);
-  if (!cat && !mod && !title.trim()) return null;
+  const body = (params.get('body') ?? '').slice(0, BODY_MAX);
+  if (!cat && !mod && !title.trim() && !body.trim()) return null;
   const agrees = cat && !(cat.year && mod && cat.year !== mod.year);
   const category: CategoryId = agrees ? cat.id : (find.categoryForYear(mod?.year ?? ownYear) ?? find.defaultCategory);
-  return { title, body: '', category, moduleId: mod?.id ?? '', tags: [] };
+  return { title, body, category, moduleId: mod?.id ?? '', tags: [] };
 }

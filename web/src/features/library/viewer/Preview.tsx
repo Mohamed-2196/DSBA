@@ -187,9 +187,6 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
           <Button variant="primary" href={(link.data?.url ?? src) + at} external leadingIcon={FilePdf}>
             Open the PDF
           </Button>
-          <Button variant="ghost" href={downloadHref(item)} leadingIcon={DownloadSimple}>
-            Download ({formatSize(item.sizeBytes)})
-          </Button>
         </div>
       </div>
     );

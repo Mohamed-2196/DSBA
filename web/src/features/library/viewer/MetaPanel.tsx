@@ -1,4 +1,4 @@
-import { ArrowSquareOut, DownloadSimple, LinkSimple } from '@phosphor-icons/react';
+import { ArrowSquareOut, ChatsCircle, LinkSimple } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { formatSize } from '../../../api/uploads';
@@ -7,12 +7,14 @@ import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { useAuth } from '../../../auth';
 import { Button, CohortBadge, Count, Kbd, Skeleton, cx, formatDate, timeAgo } from '../../../ui';
-import { downloadHref, itemPath, openLinkHref, useLibraryList } from '../api';
+import { itemPath, openLinkHref, useLibraryList } from '../api';
 import type { LinkState } from '../components/FileCard';
 import { FileThumb } from '../components/FileThumb';
-import { addedAt, linkPlace, sizeLabel } from '../display';
+import { addedAt, askAboutHref, examTitle, hasExamTitle, linkPlace, moduleTag, sizeLabel } from '../display';
+import { appUrl } from '../../../lib/share';
+import { useStartsThreads } from '../../forum/public';
 import { examLabel } from '../../../lib/exams';
-import { formatOf, kindLabel } from '../kinds';
+import { EXAM_KINDS, formatOf, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
 import { QuestionTags } from './QuestionTags';
 import { SittingPanel } from './SittingPanel';
@@ -26,9 +28,12 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-/** Other published files of the same module. */
+/** Other published files of the same module: for a paper, the newest sittings first; else the most downloaded. */
 function MoreFromModule({ item, linkState }: { item: LibraryItem; linkState?: LinkState }) {
-  const more = useLibraryList({ moduleId: item.moduleId, sort: 'popular' }, { limit: 6, enabled: !!item.moduleId });
+  const more = useLibraryList(
+    { moduleId: item.moduleId, sort: EXAM_KINDS.has(item.kind) ? 'sitting' : 'popular' },
+    { limit: 6, enabled: !!item.moduleId },
+  );
   if (!item.moduleId) return null;
   const list = (more.data?.items ?? []).filter((f) => f.id !== item.id).slice(0, 5);
   if (more.isPending) {
@@ -47,10 +52,10 @@ function MoreFromModule({ item, linkState }: { item: LibraryItem; linkState?: Li
       <ul role="list">
         {list.map((f) => (
           <li key={f.id}>
-            <Link to={itemPath(f)} state={linkState} className="lib-related">
+            <Link to={itemPath(f)} state={linkState} className="lib-related" title={f.title}>
               <FileThumb item={f} size="related" />
               <span className="lib-related__text">
-                <span className="lib-related__title">{f.title}</span>
+                <span className="lib-related__title">{examTitle(f, null)}</span>
                 <span className="lib-related__meta">
                   {kindLabel(f.kind)}, {sizeLabel(f)}
                 </span>
@@ -82,6 +87,8 @@ export function MetaPanel({
   const { featureOn } = useAuth();
   const published = item.status === 'published' && item.source === 'file';
   const tagging = published && item.kind === 'past-paper' && !!item.moduleId && featureOn('library.questions');
+  const startsThreads = useStartsThreads();
+  const asking = published && EXAM_KINDS.has(item.kind) && !!item.moduleId && startsThreads;
   const m = getModule(item.moduleId);
   const fmt = formatOf(item);
   const exam = examLabel(item);
@@ -106,23 +113,28 @@ export function MetaPanel({
 
       <dl className="lib-meta__list">
         <Row label="Type">{kindLabel(item.kind)}</Row>
-        {exam ? <Row label="Exam">{exam}</Row> : null}
+        {exam && !hasExamTitle(item) ? <Row label="Exam">{exam}</Row> : null}
         {item.authorName ? <Row label="Author">{item.authorName}</Row> : null}
+        {who ? (
+          <Row label="Shared by">
+            {who.displayName}
+            <span className="lib-meta__sub">{who.badge ?? (who.year ? `Year ${who.year}` : null)}</span>
+          </Row>
+        ) : null}
         <Row label={item.status === 'published' ? 'Added' : 'Uploaded'}>
           <time dateTime={addedAt(item)} title={formatDate(addedAt(item))}>
             {timeAgo(addedAt(item))}
           </time>
-          {who ? (
-            <span className="lib-meta__sub">
-              by {who.displayName}
-              {who.badge ? `, ${who.badge}` : who.year ? `, Year ${who.year}` : ''}
-            </span>
-          ) : null}
         </Row>
         {isLink ? (
           <Row label="Where">{host && host !== linkPlace(item) ? `${linkPlace(item)} (${host})` : linkPlace(item)}</Row>
         ) : (
           <>
+            {item.fileName ? (
+              <Row label="File">
+                <span className="lib-meta__filename">{item.fileName}</span>
+              </Row>
+            ) : null}
             {fmt ? <Row label="Format">{fmt.name}</Row> : null}
             {item.sizeBytes ? <Row label="Size">{formatSize(item.sizeBytes)}</Row> : null}
           </>
@@ -134,6 +146,21 @@ export function MetaPanel({
       </dl>
 
       {published ? <SittingPanel item={item} linkState={linkState} /> : null}
+      {asking ? (
+        <section className="lib-meta__ask" aria-labelledby="lib-meta-ask">
+          <h2 id="lib-meta-ask" className="lib-meta__h">
+            Stuck on a question?
+          </h2>
+          <Button
+            to={askAboutHref(item, examTitle(item, moduleTag(m)), appUrl(itemPath(item)))}
+            leadingIcon={ChatsCircle}
+            fullWidth
+            data-hub="ask-about-paper"
+          >
+            Ask about this paper
+          </Button>
+        </section>
+      ) : null}
       {tagging ? <QuestionTags item={item} onPage={onPage} /> : null}
 
       {item.description ? (
@@ -156,18 +183,7 @@ export function MetaPanel({
             Open in {linkPlace(item)}
           </Button>
         </section>
-      ) : (
-        <section className="lib-meta__source" aria-labelledby="lib-meta-source">
-          <h2 id="lib-meta-source" className="lib-meta__h">
-            <DownloadSimple aria-hidden="true" weight="duotone" />
-            Download
-          </h2>
-          {item.fileName ? <p className="lib-meta__filename">{item.fileName}</p> : null}
-          <Button href={downloadHref(item)} leadingIcon={DownloadSimple} fullWidth>
-            Download{item.sizeBytes ? ` (${formatSize(item.sizeBytes)})` : ''}
-          </Button>
-        </section>
-      )}
+      ) : null}
 
       {item.status === 'published' ? <MoreFromModule item={item} linkState={linkState} /> : null}
 

@@ -13,7 +13,7 @@ import { FileThumb } from './components/FileThumb';
 import { PaperSittings } from './components/PaperSittings';
 import { StarButton } from './components/StarButton';
 import { UploadDialog } from './components/UploadDialog';
-import { addedAt, isNew, linkPlace, moduleTag, sizeLabel } from './display';
+import { addedAt, examTitle, hasExamTitle, isNew, linkPlace, moduleTag, sharedBy, sizeLabel } from './display';
 import { examLabel } from '../../lib/exams';
 import { EXAM_KINDS, KINDS, type LibraryKind } from './kinds';
 import type { LibraryItem } from './types';
@@ -33,14 +33,16 @@ function FileRow({
   onToggleStar: (item: LibraryItem) => void;
   board: boolean;
 }) {
-  const exam = examLabel(item);
+  const exam = hasExamTitle(item) ? null : examLabel(item);
+  const by = sharedBy(item);
+  const name = examTitle(item, null);
   return (
     <li className="lib-mf__row">
-      <Link to={itemPath(item)} state={linkState} className="lib-mf__link">
+      <Link to={itemPath(item)} state={linkState} className="lib-mf__link" title={item.title}>
         <FileThumb item={item} size="list" />
         <span className="lib-mf__text">
           <span className="lib-mf__title">
-            <span className="lib-mf__name">{item.title}</span>
+            <span className="lib-mf__name">{name}</span>
             {isNew(item) ? (
               <Badge tone="highlight" size="sm">
                 New
@@ -50,23 +52,23 @@ function FileRow({
           </span>
           <span className="lib-mf__meta">
             {exam ? <span>{exam}</span> : null}
+            {by ? <span className="lib-mf__by">{by}</span> : null}
             <span>{sizeLabel(item)}</span>
-            {item.authorName ? <span>{item.authorName}</span> : null}
             <span>Added {timeAgo(addedAt(item))}</span>
           </span>
         </span>
       </Link>
       <span className="lib-mf__actions">
-        <StarButton on={item.starred} onToggle={() => onToggleStar(item)} title={item.title} />
+        <StarButton on={item.starred} onToggle={() => onToggleStar(item)} title={name} />
         {item.source === 'link' ? (
           <IconButton
-            label={`Open ${item.title} on ${linkPlace(item)} (opens in a new tab)`}
+            label={`Open ${name} on ${linkPlace(item)} (opens in a new tab)`}
             icon={ArrowSquareOut}
             href={openLinkHref(item)}
             size="sm"
           />
         ) : (
-          <IconButton label={`Download ${item.title}`} icon={DownloadSimple} href={downloadHref(item)} size="sm" />
+          <IconButton label={`Download ${name}`} icon={DownloadSimple} href={downloadHref(item)} size="sm" />
         )}
       </span>
     </li>
