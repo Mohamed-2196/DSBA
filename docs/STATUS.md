@@ -111,6 +111,12 @@ shapes stay until Mohamed's images arrive.
   paper". One rule counts a module's files, so the count, the shelves (now with links and "Other files") and the list
   agree. Open from UX-72: the module's threads that link a paper (needs the API).
 
+- `round14/carryon` (web and API): the study core first. Carry on on Home and the module page (IDEA-40, ST-43);
+  one Time me clock that floats over every page, the notebook included, and asks for the score when it stops (ST-41,
+  ST-47); phones read papers in the Hub (pdf.js); Back keeps the sittings open and the scroll place (ST-42); revision
+  plans that fit the days left, with a paper a day in the last week (ST-40); Home leads with study blocks and Today's
+  Daily is opt-in (ST-50, migration 0043 after 0044); a cold load shows the frame and a skeleton (UX-77).
+
 ## Operating notes
 
 - **New features arrive switched off.** Turn them on in Manage → Access.

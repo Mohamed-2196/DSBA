@@ -59,13 +59,9 @@ test('Sara opens the day’s past question from Home and keeps its paper on her 
     expect(exam.status).toBe(201);
     remember('events', exam.body.id);
 
-    // It isn't on Home by default: Sara adds it in Customise Home.
+    // It's on Home by default: Home leads with studying (ST-50).
+    await api(sara, 'PATCH', '/api/v1/me', { preferences: { homeBlocks: null } });
     await sara.goto('/');
-    await sara.locator('[data-hub="home-customize-open"]').click();
-    const customise = sara.getByRole('dialog', { name: 'Customise Home' });
-    await customise.getByRole('switch', { name: 'Daily question' }).click();
-    await expect(customise.getByRole('switch', { name: 'Daily question' })).toBeChecked();
-    await customise.getByRole('button', { name: 'Done' }).click();
     const card = sara.locator('[data-hub="daily-question"]');
     await expect(card.getByRole('heading', { name: 'A past question a day' })).toBeVisible();
     await expect(card).toContainText('May 2024, Zone A');

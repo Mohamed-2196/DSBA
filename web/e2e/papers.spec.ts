@@ -95,6 +95,18 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     await timeMe.getByRole('button', { name: 'Start 1 hour' }).click();
     await expect(sara.locator('[data-hub="exam-timer"]')).toContainText(/0:59:\d\d left/);
     await sara.getByRole('button', { name: 'Stop the timer' }).click();
+    // Stopping asks for the score there and then while boards (where scores live) are on (ST-47); she skips it.
+    const score = sara.getByRole('dialog', { name: 'How did it go?' });
+    if (
+      await score.waitFor({ timeout: 3000 }).then(
+        () => true,
+        () => false,
+      )
+    ) {
+      await score.getByRole('button', { name: 'Skip', exact: true }).click();
+      await expect(score).toBeHidden();
+    }
+    await expect(sara.locator('[data-hub="exam-timer"]')).toBeHidden();
 
     const tags = sara.locator('[data-hub="question-tags"]');
     await tags.getByRole('button', { name: /^Tag (this|a) question$/ }).click();

@@ -177,7 +177,7 @@ export function PdfPages({
     <div className="lib-pdf" data-hub="file-pdf-pages">
       <div className="lib-pdf__bar">
         <span className="lib-pdf__count">
-          {ratios.length} {ratios.length === 1 ? 'page' : 'pages'} · pinch to zoom
+          {ratios.length} {ratios.length === 1 ? 'page' : 'pages'}
         </span>
         {openOwn}
       </div>

@@ -38,17 +38,17 @@ newsletter editor on a phone.
 
 | ID | Severity | Persona | What | Time it costs |
 |---|---|---|---|---|
-| ST-40 | major | Year 2 | "Plan my revision" four days out: 27 videos at 7 a day and one past paper, on the last day | the plan is unusable in exam week; ~10 min to rebuild by hand, or no plan |
-| ST-41 | major | Year 2 | Time me is only on the library page: annotating the paper in the notebook hides the clock; on a phone the paper opens in another tab | every timed paper; students time themselves on their phone's clock instead |
-| ST-42 | major | Year 2 | Back from a paper collapses "Show all 16 sittings" and scrolls to the top | 10–15 s per paper or report opened; several minutes per revision session |
-| ST-43 | major | all | Nothing on Home picks up where you left off: the paper, the note, a running timer, the lesson | ~1 min to find the place again, every session |
+| ST-40 | major | Year 2 | "Plan my revision" four days out: 27 videos at 7 a day and one past paper, on the last day (**fixed**: a paper a day in the last week, a daily cap, hard chapters first, cards named by video and sitting) | the plan is unusable in exam week; ~10 min to rebuild by hand, or no plan |
+| ST-41 | major | Year 2 | Time me is only on the library page: annotating the paper in the notebook hides the clock; on a phone the paper opens in another tab (**fixed**: the clock floats over every page, the notebook included; phones read the paper in the Hub) | every timed paper; students time themselves on their phone's clock instead |
+| ST-42 | major | Year 2 | Back from a paper collapses "Show all 16 sittings" and scrolls to the top (**fixed**: Back keeps the list open and the scroll place) | 10–15 s per paper or report opened; several minutes per revision session |
+| ST-43 | major | all | Nothing on Home picks up where you left off: the paper, the note, a running timer, the lesson (**fixed**: Carry on on Home and the module page) | ~1 min to find the place again, every session |
 | ST-44 | major | Year 1 | "Write a longer one" leaves the lesson and stops the video; the quick note box is below the fold | every lecture watched; notes go back to paper or a phone app |
 | ST-45 | major (content) | Year 2 | Every October exam says "Time not set yet" 4 days out; "What to bring" opens an empty forum list | a trip to the VLE or WhatsApp for every exam |
 | ST-46 | minor | Year 2 | ST2134's textbook (Statistical Inference 2nd ed.) and a notes file are hidden from ST2134 as copies of other modules' files: **fixed** (a copy is a duplicate only within its module) | the core book can't be found from its module |
-| ST-47 | minor | Year 2 | Saving a practice score takes five steps on two screens; stopping Time me doesn't ask | ~40 s per paper; most scores won't be saved |
+| ST-47 | minor | Year 2 | Saving a practice score takes five steps on two screens; stopping Time me doesn't ask (**fixed**: stopping the clock asks for the score) | ~40 s per paper; most scores won't be saved |
 | ST-48 | minor (content) | Years 1–3 | "Past questions by topic" is empty in 14 of 16 modules; solutions exist for 1–2 sittings per module; ST2134 chapter 4 has one video | the topic-revision path is a dead end in most modules |
 | ST-49 | minor | Year 3 | Year 3 modules have no unit codes, no lessons, and an empty module that promises a study guide and offers a revision plan | Year 3 finds little and stops looking |
-| ST-50 | minor | all | Home's defaults show Today's Daily but hide the Daily question (a past exam question before your next exam) | the one study block on Home is off unless found in Customise |
+| ST-50 | minor | all | Home's defaults show Today's Daily but hide the Daily question (a past exam question before your next exam) (**fixed**: Home leads with study blocks; the Daily question is on, Today’s Daily opt-in) | the one study block on Home is off unless found in Customise |
 | ST-51 | minor | Year 1 | New thread: Module lists all 16 modules whatever "Post in" says, and isn't taken from the code in the title (**fixed**) | wrong module tagged, wrong exam shown beside the thread |
 | ST-52 | nit | Year 1 | Reply notifications show raw formulas (`$x^2 - 4 > 0$`) (**fixed**) | seconds |
 | ST-53 | nit | Year 2 | Modules page isn't in exam order (ST2133 first, ST2134 sooner); Home is | seconds |
@@ -69,6 +69,8 @@ newsletter editor on a phone.
 - Time: the plan isn't followable; rebuilding it card by card is ~10 minutes, so most students will delete it.
 - Screenshots: `j1-phone-plan.png`, `j1-phone-board-plan.png`.
 
+- **Fixed** (`round14/carryon`): plans fit the days left (`services/board/schedule.py`, unit-tested): one paper every few days, a paper a day in the last week, at most four units a day (a paper counts two), what doesn't fit left out and counted ("19 lessons didn't fit before the exam"). Papers already scored are skipped; "Chapters you find hard" (and the chapters past papers ask most about) come first. Cards say "ST2134 past paper · May 2025" and "ST2134 · Point Estimation: class of 8 Oct 2025", and paper cards carry "Sit it against the clock with Time me" and "Mark it with the examiners' report". Four days out: 4 papers (one a day, May 2026 the day before) and 8 lessons.
+
 #### ST-41 (major) Time me and the notebook don't meet
 
 - Persona, where: Yousif, laptop and phone; `/library/st2134-exam-paper-may-2025` → **Time me** → Start 2 hours →
@@ -83,6 +85,8 @@ newsletter editor on a phone.
 - Time: every timed paper; on a phone it's flipping tabs for two hours.
 - Screenshots: `j1-laptop-timer-running.png`, `j1-laptop-annotate2.png`, `j1-phone-timer-running.png`.
 
+- **Fixed** (`round14/carryon`): one paper is timed at a time and its clock floats over every other page (the notebook, Home, Notes), linking back to the paper; on the paper page the bar stays in sight while scrolling. On phones the paper is drawn in the Hub (pdf.js), with "Open in your PDF viewer" beside it. The dialog no longer claims the Hub doesn't know the paper.
+
 #### ST-42 (major) Back from a paper loses your place in the sittings
 
 - Persona, where: Yousif, phone and laptop; `/modules/st2134?tab=files` → **Show all 16 sittings** → scroll to 2014
@@ -91,6 +95,8 @@ newsletter editor on a phone.
 - Got: the Files tab at the top (scrollY 0) with only four sittings and "Show all 16 sittings" again.
 - Time: 10–15 s each time; working through old papers with their reports is dozens of round trips.
 - Screenshots: `x-phone-after-back.png`, `x-laptop-after-back.png`.
+
+- **Fixed** (`round14/carryon`): Back and Forward return to where each page was left (`shell/scrollMemory.ts`), and "Show all N sittings" stays open (`useEntryState`, kept with the history entry). Checked at 390: scrollY 1,422 before and after Back, list still expanded.
 
 #### ST-43 (major) Home doesn't pick up where you left off
 
@@ -101,6 +107,8 @@ newsletter editor on a phone.
   note and the running timer appear nowhere; lesson progress is off until turned on. Getting back is Library or Notes
   → find it → open (about a minute).
 - Screenshot: `j1-phone-home-nextday.png`.
+
+- **Fixed** (`round14/carryon`, IDEA-40): "Carry on" on Home (on by default) and on the module's Overview: the paper being timed with its clock, the last papers, files, notes and lessons opened (kept in this browser per account, cleared on sign-out), and "Your notes on it" beside a paper written on in the notebook.
 
 #### ST-44 (major) Notes during a lesson stop the lesson
 
@@ -142,6 +150,8 @@ newsletter editor on a phone.
 - Expected: "How did it go?" when the timer is stopped or runs out, and on the paper page.
 - Screenshots: `j1-laptop-card-menu.png`, `j1-laptop-score-dialog.png`.
 
+- **Fixed** (`round14/carryon`): stopping Time me, or time running out, asks "How did it go?" and saves the score; the paper's More menu has "Save my score"; a scored paper shows "Done, 68%" without a board card.
+
 #### ST-48 (minor, content) Topic revision is mostly empty
 
 - Counted in the database: tagged past questions exist only for EC1002 (13) and EC2020 (120); 14 modules have none,
@@ -164,6 +174,8 @@ newsletter editor on a phone.
 - Customise Home (Year 2): "Today’s Daily" is on by default, "Daily question: A past exam question before your next
   exam" and "Help the year below" are off. For a hub whose value is studying, the defaults (Manage → Home
   defaults) should be the other way round.
+
+- **Fixed** (`round14/carryon`): the default Home is Up next, Carry on, To-do, Continue, My modules, New files, the Daily question, Forum and Ask Noora; Today's Daily is off until a student turns it on (migration 0043 brings a saved Site settings default along).
 
 #### ST-51 (minor) A new thread's module isn't tied to its year or its title
 

@@ -98,3 +98,10 @@
     min-height: 44px;
   }
 }
+/* A phone on its side: the clock alone, to cover less of a short screen. */
+@media (max-height: 500px) {
+  .lib-pill__title,
+  .lib-pill__go {
+    display: none;
+  }
+}
