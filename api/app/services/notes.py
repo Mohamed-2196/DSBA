@@ -459,30 +459,32 @@ def _check_lesson(db: Session, nb: Notebook, fields: NoteFields, note: Note | No
 def _attach(db: Session, user: User, note: Note, uploads: Iterable[uuid.UUID]) -> None:
     """The note lists the files its document shows, and its PDF, and those are in use; the ones it no longer shows
     are released unless another of the student's notes shows them. Ids that aren't the student's note files are
-    left out: the web app shows them as missing."""
+    left out: the web app shows them as missing. A released file shown again (an undo) counts against the student's
+    room again, so it must fit (409 notes_full): checked under the notebook lock, after this save's own releases."""
     wanted = set(uploads)
     if note.pdf_upload_id is not None:
         wanted.add(note.pdf_upload_id)
     before = set(note.uploads or [])
-    owned = (
-        set(
-            db.scalars(
-                select(Upload.id).where(
-                    Upload.id.in_(wanted),
-                    Upload.user_id == user.id,
-                    Upload.purpose == UploadPurpose.note_file,
-                    Upload.status.in_(KEPT_UPLOADS),
-                )
+    rows: list[tuple[uuid.UUID, UploadStatus, int]] = []
+    if wanted:
+        ratelimit.lock(db, f"notes:{user.id}")
+        found = db.execute(
+            select(Upload.id, Upload.status, Upload.size_bytes).where(
+                Upload.id.in_(wanted),
+                Upload.user_id == user.id,
+                Upload.purpose == UploadPurpose.note_file,
+                Upload.status.in_(KEPT_UPLOADS),
             )
-        )
-        if wanted
-        else set()
-    )
+        ).tuples()
+        rows = list(found)
+    owned = {up_id for up_id, _, _ in rows}
+    revived = sum(size for _, status, size in rows if status == UploadStatus.released)
     note.uploads = sorted(owned)
-    if owned:
-        db.execute(update(Upload).where(Upload.id.in_(owned)).values(status=UploadStatus.attached))
     db.flush()
     _release(db, user, before - owned)
+    check_files(db, user, revived)
+    if owned:
+        db.execute(update(Upload).where(Upload.id.in_(owned)).values(status=UploadStatus.attached))
 
 
 def _creating(db: Session, user: User) -> None:
