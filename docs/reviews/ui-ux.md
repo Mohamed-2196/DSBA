@@ -136,14 +136,14 @@ round's scope.
 | UX-66 | major | Library on phones: no file on the first screen |
 | UX-67 | major | Past papers can't be told apart: raw file names, cut off before the year and zone |
 | UX-68 | major | Sittings take a 190 px card each, in a full-width row; the library's paper view doesn't use them at all |
-| UX-69 | minor | Module page on phones: the header fills the first screen, and the Overview sends you elsewhere |
+| UX-69 | minor | Module page on phones: the header fills the first screen, and the Overview sends you elsewhere (**fixed**) |
 | UX-70 | major | Notebook on phones: typed text is 7 px, and a new note has no cursor |
 | UX-71 | minor | Students' notes don't say who shared them |
 | UX-72 | minor | A paper's page: Download three times, Questions by topic twice, no way to ask about it |
 | UX-73 | minor | Search ranks other years and prefix matches first |
 | UX-74 | minor | Forum list on phones: the title gets a 150 px column |
 | UX-75 | minor | Posting a thread drops you on the list, not the thread |
-| UX-76 | minor | Home's Up next repeats the exam and starts with a past date |
+| UX-76 | minor | Home's Up next repeats the exam and starts with a past date (**fixed**) |
 | UX-77 | minor | Cold loads: a blank spinner, and the tab bar grows from 3 items to 6 |
 | UX-78 | minor | Notebook list: four create buttons when empty, and rows without content |
 | UX-79 | nit | Small leftovers |
@@ -232,6 +232,19 @@ round's scope.
     - the next two dates.
 
   This is presentation only: the data is already on the page's tabs.
+
+**Fixed** (`round14/modulehome`):
+
+- Phones, upright and on their side: a back link with "About this module" (the description) beside it, the icon at
+  40 px with the code and short name on one line, the Year and Exam chips, then one row of Lessons (or Resume,
+  Continue), Past papers and Plan. The tabs sit at 274 px at 360 and 390 (were 668 to 690), and at 290 px at
+  844×390. The tabs stay under the top bar as the page scrolls, at every size.
+- The Overview is cards that fill the width (one column on phones, two at 1440, three at 2560): Next dates (an open
+  VLE window by its closing day), your progress (only with lesson progress on and a lesson begun), the last three
+  sittings with a link per zone, the three newest students' notes with who shared them, the three newest threads
+  with "Ask a question", and the rest of the library with "Upload a file". Each ends in "All …"; a card with
+  nothing in it is left out.
+- Open: the sittings card should become the library's sittings table (UX-68) once that lands.
 
 #### UX-70 Notebook on phones: typed text is 7 px, and a new note has no cursor (major)
 
@@ -326,6 +339,10 @@ round's scope.
   - Leave the headline exam out of the list.
   - Date windows (careers, applications) are placed and labelled by their closing date ("Sat 24 Oct · Closes"),
     not their opening.
+
+**Fixed** (`round14/modulehome`): the list under the headline leaves the headline's date out, drops anything over,
+and lists a window that has opened by its closing day with "Closes" (the calendar's `aheadRows`, which the forum's
+sidebar list and the module Overview use too).
 
 #### UX-77 Cold loads: a blank spinner, and the tab bar grows from 3 items to 6 (minor)
 

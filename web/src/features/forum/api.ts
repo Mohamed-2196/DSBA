@@ -231,6 +231,21 @@ export function flattenPages(data: { pages: ThreadPage[] } | undefined): ThreadS
   return out;
 }
 
+/** A module's newest threads (the module page's Overview): the first `n` of its "new" list, with the total. */
+export function useModuleLatestThreads(moduleId: string, { n = 3, enabled = true }: { n?: number; enabled?: boolean } = {}) {
+  const list = useThreadList({ module_id: moduleId, sort: 'new' }, { pageSize: n, enabled: enabled && !!moduleId });
+  const first = list.data?.pages[0];
+  return {
+    threads: first?.items ?? [],
+    total: first?.total ?? 0,
+    isPending: list.isPending,
+    isError: list.isError,
+    error: list.error,
+    isFetching: list.isFetching,
+    refetch: list.refetch,
+  };
+}
+
 /** The hottest threads (pinned ones left out) for a cohort plus forum-wide ones; year null: every cohort. */
 export function useHotThreads({
   n = 5,

@@ -58,10 +58,11 @@ export function useExamsByModule(year: CohortYear | null): Map<string, ExamInfo>
   }, [q.data]);
 }
 
-/** The module's dates from today on (exams, mocks, revision sessions, deadlines), oldest first. */
+/** The module's dates from today on, and those still running today (exams, mocks, revision sessions, deadlines,
+ *  VLE windows), oldest first. */
 export function useModuleDates(moduleId: string, n = 4) {
   const from = todayKey();
   const q = useCalendarEvents({ from, moduleId }, { enabled: useAuth().featureOn('calendar') });
   const events = useMemo(() => (q.data ?? []).slice(0, n), [q.data, n]);
-  return { events, isPending: q.isPending, isError: q.isError, refetch: q.refetch };
+  return { events, isPending: q.isPending, isError: q.isError, error: q.error, isFetching: q.isFetching, refetch: q.refetch };
 }

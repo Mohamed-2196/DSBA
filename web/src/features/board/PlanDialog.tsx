@@ -20,17 +20,20 @@ export interface PlanRevisionProps {
   /** the module's next exam on the calendar, to start from */
   examDate: DayKey | null;
   size?: ButtonSize;
+  /** 'Plan' (named 'Plan my revision') and 'Update plan', for a phone's row of actions */
+  short?: boolean;
   className?: string;
 }
 
 /** "Plan my revision" (or "Update revision plan" once there is one) and its dialog. Guests sign in first. The
  *  caller gates it with featureOn('board'). */
-export function PlanRevision({ moduleId, moduleName, examDate, size = 'md', className }: PlanRevisionProps) {
+export function PlanRevision({ moduleId, moduleName, examDate, size = 'md', short = false, className }: PlanRevisionProps) {
   const { status, requireAuth } = useAuth();
   const boards = useBoards({ enabled: status === 'signed-in' });
   const [open, setOpen] = useState(false);
   const planned = boards.data?.plans.find((p) => p.moduleId === moduleId) ?? null;
   const show = () => setOpen(true);
+  const label = planned ? 'Update revision plan' : 'Plan my revision';
   return (
     <>
       <Button
@@ -38,11 +41,12 @@ export function PlanRevision({ moduleId, moduleName, examDate, size = 'md', clas
         leadingIcon={CalendarCheck}
         className={className}
         data-hub="board-plan"
+        aria-label={short && !planned ? label : undefined}
         onClick={() => {
           if (requireAuth('Sign in to plan your revision on your study board', show)) show();
         }}
       >
-        {planned ? 'Update revision plan' : 'Plan my revision'}
+        {short ? (planned ? 'Update plan' : 'Plan') : label}
       </Button>
       {open ? (
         <PlanDialog

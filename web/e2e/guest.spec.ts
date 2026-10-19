@@ -6,7 +6,7 @@ import { env, prepareContext, trackErrors } from './support';
 const PAGES: [string, RegExp][] = [
   ['/', /Good (morning|afternoon|evening)/],
   ['/modules', /^Modules$/],
-  ['/modules/advanced-stats-distribution', /Advanced Statistics: Distribution Theory/],
+  ['/modules/advanced-stats-distribution', /Distribution Theory/i], // phones show the short name
   ['/library', /^Library$/],
   ['/forum', /^Forum$/],
   ['/forum/new', /^Start a thread$/],
