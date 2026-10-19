@@ -117,16 +117,22 @@ export function Menu({
     return () => document.removeEventListener('pointerdown', onDown);
   }, [open, setOpen]);
 
-  // Move focus into the panel once it is positioned.
-  useEffect(() => {
-    if (!open || !pos) return;
+  // Move focus into the panel once it is positioned and shown: on the next frame, when its visibility has been
+  // applied (focus on a hidden element is ignored).
+  const focusInside = useCallback(() => {
     const panel = panelRef.current;
     if (!panel || panel.contains(document.activeElement)) return;
     const first = panel.querySelector<HTMLElement>(
       '[role="menuitem"]:not([aria-disabled="true"]), [data-autofocus], button, a[href], input',
     );
     (first || panel).focus({ preventScroll: true });
-  }, [open, pos]);
+  }, []);
+  const placed = pos !== null;
+  useEffect(() => {
+    if (!open || !placed) return undefined;
+    const raf = requestAnimationFrame(focusInside);
+    return () => cancelAnimationFrame(raf);
+  }, [open, placed, focusInside]);
 
   const onPanelKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const panel = panelRef.current;
@@ -182,9 +188,14 @@ export function Menu({
     },
     onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
       trigger.props.onKeyDown?.(e);
-      if (isMenu && (e.key === 'ArrowDown' || e.key === 'ArrowUp') && !open) {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      if (!open && isMenu) {
         e.preventDefault();
         setOpen(true);
+      } else if (open) {
+        // Focus is still on the trigger of an open panel: the arrow keys go in.
+        e.preventDefault();
+        focusInside();
       }
     },
   } as TriggerProps);

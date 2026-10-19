@@ -236,6 +236,9 @@ b {
   letter-spacing: -0.01em;
 }
 
+/* Reduced motion: animations end at once (their end events still fire). Transitions are off, not just short: a
+   short one would also delay properties that never had a transition, such as a menu's visibility, and focus can't
+   land in a panel that is still hidden. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -243,8 +246,8 @@ b {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0ms !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }
