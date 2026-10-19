@@ -18,6 +18,7 @@ from app.schemas.daily import (
     DailyMeIn,
     DailyToday,
     GameId,
+    GuestPlayIn,
     Leaderboard,
     MoveIn,
     PlayOut,
@@ -79,5 +80,16 @@ def make_move(day: dt.date, game: GameId, body: MoveIn, db: DB, user: OptionalUs
     if user is not None:
         get_active_user(user)  # a suspended account or one without a profile plays nothing it could keep
     out = svc.make_move(db, user, day, game, body)
+    db.commit()
+    return out
+
+
+@router.post("/daily/{day}/{game}/keep", response_model=PlayOut)
+def keep_guest_play(day: dt.date, game: GameId, body: GuestPlayIn, db: DB, user: ActiveUser) -> PlayOut:
+    """Keeps the play a guest made on this device on the account they've just signed in to, and counts it for points
+    when it's their first of that game on its own day. Errors: already_played (409) when the account has made moves
+    on that puzzle, puzzle_fixed (409) when an unfinished play was on a version a fix replaced, game_over (409) or
+    invalid_input (422) for moves that don't replay, not_out_yet (404)."""
+    out = svc.keep_guest_play(db, user, day, game, body)
     db.commit()
     return out

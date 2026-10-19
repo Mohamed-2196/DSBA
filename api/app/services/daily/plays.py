@@ -37,6 +37,7 @@ from app.schemas.daily import (
     DailyToday,
     GameDay,
     GameId,
+    GuestPlayIn,
     Leaderboard,
     Move,
     MoveIn,
@@ -153,7 +154,8 @@ def _counts(db: Session, user: User | None, day: dt.date, game: GameId, row: Dai
 
 
 def _seconds(row: DailyPlay | None) -> int | None:
-    if row is None or row.finished_at is None:
+    """How long a finished play took. A guest's play kept on sign-in has no clock: it starts and finishes at once."""
+    if row is None or row.finished_at is None or row.finished_at == row.started_at:
         return None
     return int((row.finished_at - row.started_at).total_seconds())
 
@@ -297,6 +299,33 @@ def make_move(db: Session, user: User | None, day: dt.date, game_id: GameId, bod
     return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, secret, revision)
 
 
+def keep_guest_play(db: Session, user: User, day: dt.date, game_id: GameId, body: GuestPlayIn) -> PlayOut:
+    """A guest's play, kept on the account they've just signed in to, as if they'd played it signed in: it counts
+    for points when it's their first of that game on its own day. Its moves are replayed and checked like any
+    guest's. A history that finished on a version a fix replaced stands on that version; an unfinished one doesn't
+    carry over (the fix started it again). Nothing changes when the account has already made moves on the puzzle.
+    The play has no clock: it starts and finishes when it's kept."""
+    check_day(day)
+    game = game_of(game_id)
+    variant = check_variant(game, body.variant)
+    edition = game.edition(db, day, variant)
+    puzzle = _puzzle_at(db, game, day, variant, edition, body.revision)
+    moves = list(body.history)
+    replay = _replay(game, puzzle, moves)
+    if body.revision != edition.revision and game.status(puzzle, replay.state) not in FINISHED:
+        raise _fixed()
+    ratelimit.lock(db, f"daily:{user.id}")
+    row = _row(db, user, day, game_id, variant)
+    if row is not None and row.moves:
+        raise conflict("already_played", "You've already played this puzzle on your account, so that play stands.")
+    if row is None:
+        row = _open(db, user, game, day, variant, body.revision)
+    now = utcnow()
+    row.revision, row.restarted, row.started_at = body.revision, False, now
+    row = _keep(db, user, game, day, variant, puzzle, replay, moves, row, body.revision, now)
+    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, row.scored, False, body.revision)
+
+
 def _guest_on_earlier(
     db: Session, game: Game[Any, Any], day: dt.date, variant: str, edition: Edition[Any], body: MoveIn, secret: bool
 ) -> PlayOut:
@@ -327,8 +356,9 @@ def _keep(
     moves: list[Move],
     row: DailyPlay | None,
     revision: int,
+    now: dt.datetime | None = None,
 ) -> DailyPlay:
-    now = utcnow()
+    now = now or utcnow()
     if row is None:
         row = _open(db, user, game, day, variant, revision)
     status = game.status(puzzle, replay.state)

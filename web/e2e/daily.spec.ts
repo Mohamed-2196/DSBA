@@ -4,7 +4,7 @@
 // stack without the Daily's content has no puzzles: the spec says so and skips.
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { api, personaContext } from './support';
+import { api, gotoAccount, personaContext, waitForCode } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -200,7 +200,8 @@ test('a guest plays every game to a finish', async ({ guest }) => {
       await expect(page.getByRole('gridcell', { name: /from a hint$/ })).toHaveCount(1);
     }
     await page.getByRole('button', { name: 'More' }).click();
-    await page.getByRole('menuitem', { name: 'Give up and see the answer' }).click();
+    // A guest's answer waits, so the menu doesn't promise it.
+    await page.getByRole('menuitem', { name: 'Give up', exact: true }).click();
     await page.getByRole('dialog', { name: 'Give up?' }).getByRole('button', { name: 'Give up' }).click();
     await expect(result(page)).toContainText('Not this time');
   }
@@ -215,6 +216,51 @@ test('a guest’s hub counts the puzzles they finished', async ({ guest }) => {
   await guest.goto('/daily');
   await expect(guest.getByRole('list', { name: 'Today so far' })).toContainText('1 of 6 done');
   await expect(guest.locator('a[data-game="word"]')).toContainText('Solved');
+});
+
+test('a guest who wins and signs up from the result card keeps the win and its points', async ({ guest, run }) => {
+  const a = known();
+  const page = guest;
+  await open(page, 'word');
+  await page.keyboard.type(a.word);
+  await page.keyboard.press('Enter');
+  await expect(result(page)).toContainText('Solved in 1 guess');
+  await result(page).getByRole('button', { name: 'Sign in to keep your points' }).click();
+
+  // The sign-in sheet takes the card's place, and nothing covers the profile step.
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toHaveCount(1);
+  const email = `keep.e2e.${run.tag}@example.com`;
+  await dialog.getByLabel('Email or phone number').fill(email);
+  const since = Date.now();
+  await dialog.getByRole('button', { name: 'Send code' }).click();
+  await dialog.getByLabel('6-digit code').fill(await waitForCode('email', email, since));
+  await expect(dialog).toContainText('Set up your profile');
+  await expect(dialog).toHaveCount(1);
+  await dialog.getByLabel('Display name').fill('Keep E2E');
+  await dialog.getByRole('group', { name: 'Your cohort' }).getByText('Year 2', { exact: true }).click();
+  await dialog
+    .getByRole('group', { name: 'Email me about replies and date changes' })
+    .getByText('No, thanks', { exact: true })
+    .click();
+  await dialog.getByRole('button', { name: 'Save and continue' }).click();
+
+  // The card comes back with the win kept on the new account.
+  await expect(result(page)).toContainText('Solved in 1 guess');
+  await expect(result(page)).toContainText('+100 points');
+  const me = await api<{ stats: { points: number; won: number } }>(page, 'GET', '/api/v1/daily/me');
+  expect(me.body.stats).toMatchObject({ points: 100, won: 1 });
+  await page.goto('/daily');
+  await expect(page.locator('a[data-game="word"]')).toContainText('Solved · +100');
+
+  // The account goes again (made a minute ago: no code to confirm).
+  await gotoAccount(page);
+  await page.getByRole('button', { name: 'Delete account' }).click();
+  const confirm = page.getByRole('dialog');
+  const word = (await confirm.locator('.u-mono').first().innerText()).trim();
+  await confirm.getByRole('textbox').fill(word);
+  await confirm.getByRole('button', { name: /Delete my account/ }).click();
+  await expect(page.getByText('Your account is deleted')).toBeVisible();
 });
 
 test('Ali plays every game on his phone, his plays count, and he joins the leaderboard', async ({ browser, run }) => {

@@ -10,7 +10,7 @@ export interface Result {
   summary: string;
   /** the answer, shown when the play was lost and the game has one to give */
   answer: string | null;
-  /** a lost guest's play of today's set: the answer waits for an account, or for tomorrow */
+  /** a lost guest's play of today's set whose game holds its answers back: they wait for an account, or tomorrow */
   held: boolean;
 }
 
@@ -29,7 +29,8 @@ export function groupsFound(view: GroupsView): GroupsView['found'] {
 /** The headline, summary and (when lost) the answer of a finished play. `secret`: a guest's play of today's set. */
 export function resultOf(play: Play, secret = false): Result {
   const won = play.status === 'won';
-  const held = secret && !won;
+  // The Daily Query marks each answer as it's given, so it has nothing left to hold back.
+  const held = secret && !won && play.view.kind !== 'quiz';
   return { ...describe(play, won), ...(held ? { held: true, answer: null } : { held: false }) };
 }
 

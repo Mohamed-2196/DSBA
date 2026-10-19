@@ -3757,6 +3757,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/daily/{day}/{game}/keep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Keep Guest Play
+         * @description Keeps the play a guest made on this device on the account they've just signed in to, and counts it for points
+         *     when it's their first of that game on its own day. Errors: already_played (409) when the account has made moves
+         *     on that puzzle, puzzle_fixed (409) when an unfinished play was on a version a fix replaced, game_over (409) or
+         *     invalid_input (422) for moves that don't replay, not_out_yet (404).
+         */
+        post: operations["keep_guest_play_api_v1_daily__day___game__keep_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/content/daily": {
         parameters: {
             query?: never;
@@ -6211,7 +6234,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "already_played" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
             /** Message */
             message: string;
             /** Fields */
@@ -7492,6 +7515,25 @@ export interface components {
             kind: "guess";
             /** Word */
             word: string;
+        };
+        /**
+         * GuestPlayIn
+         * @description A guest's play of a day's game, kept on the account they've just signed in to: the moves their browser made
+         *     and the version of the day's puzzle it made them on (Play.revision).
+         */
+        GuestPlayIn: {
+            /**
+             * Variant
+             * @default
+             */
+            variant: string;
+            /** History */
+            history: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["FindMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"])[];
+            /**
+             * Revision
+             * @default 0
+             */
+            revision: number;
         };
         /**
          * GuidePlace
@@ -11937,6 +11979,7 @@ export type GuessAdd = components['schemas']['GuessAdd'];
 export type GuessAddReport = components['schemas']['GuessAddReport'];
 export type GuessList = components['schemas']['GuessList'];
 export type GuessMove = components['schemas']['GuessMove'];
+export type GuestPlayIn = components['schemas']['GuestPlayIn'];
 export type GuidePlace = components['schemas']['GuidePlace'];
 export type GuideStep = components['schemas']['GuideStep'];
 export type GuidesDoc = components['schemas']['GuidesDoc'];
@@ -30928,6 +30971,96 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["MoveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    keep_guest_play_api_v1_daily__day___game__keep_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+                game: "word" | "groups" | "search" | "quiz" | "nearest" | "sudoku";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuestPlayIn"];
             };
         };
         responses: {

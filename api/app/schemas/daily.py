@@ -100,6 +100,15 @@ class MoveIn(ApiModel):
     revision: int = Field(default=0, ge=0, le=1000)
 
 
+class GuestPlayIn(ApiModel):
+    """A guest's play of a day's game, kept on the account they've just signed in to: the moves their browser made
+    and the version of the day's puzzle it made them on (Play.revision)."""
+
+    variant: str = Field(default="", max_length=12)
+    history: list[Move] = Field(min_length=1, max_length=400)
+    revision: int = Field(default=0, ge=0, le=1000)
+
+
 # --- what a play shows --------------------------------------------------------------------------------------------
 
 

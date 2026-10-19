@@ -2,8 +2,8 @@
 // rules a person has seen, and Sudoku's pencil marks. Plays and marks are personal: 'hub.mine.' keys go on sign-out,
 // so the next person at a shared computer starts afresh. Storage can be missing or refused (a private window): every
 // read falls back to nothing and every write is best effort.
-import { writeStored } from '../../../state';
-import type { GameId, Mark, Move, Picture, PlayStatus } from '../types';
+import { removeStored, writeStored } from '../../../state';
+import { isGameId, type GameId, type Mark, type Move, type Picture, type PlayStatus } from '../types';
 
 const GUEST = 'hub.mine.daily.guest.';
 const NOTES = 'hub.mine.daily.notes.';
@@ -115,6 +115,16 @@ export function parseGuestPlays(value: unknown): GuestPlays {
   return plays;
 }
 
+/** A day's guest plays on this device. */
+export function guestPlaysOf(day: string): GuestPlays {
+  return parseGuestPlays(read(guestDayKey(day)));
+}
+
+/** Forgets a day's guest plays: they're kept on an account now. */
+export function forgetGuestDay(day: string): void {
+  removeStored(guestDayKey(day));
+}
+
 /** A guest's play on a day's game (and difficulty); none when there is none. */
 export function guestPlay(day: string, game: GameId, variant = ''): GuestPlay {
   return parseGuestPlays(read(guestDayKey(day)))[guestSlot(game, variant)] ?? NO_GUEST_PLAY;
@@ -126,7 +136,28 @@ export function saveGuestPlay(day: string, game: GameId, variant: string, play: 
   prune(GUEST, today);
 }
 
-/** Forgets a guest's play: the server couldn't replay its moves. */
+/** The days this device keeps guest plays of, oldest first. */
+export function guestDays(): string[] {
+  const days: string[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key?.startsWith(GUEST)) days.push(key.slice(GUEST.length));
+    }
+  } catch {
+    /* storage unavailable: nothing was kept */
+  }
+  return days.sort();
+}
+
+/** A guest's slot as its game and difficulty ('' when the game has none); null for one that isn't a game's. */
+export function slotOf(slot: string): { game: GameId; variant: string } | null {
+  const [game, variant = ''] = slot.split(':');
+  if (!isGameId(game)) return null;
+  return { game, variant: variant === 'default' ? '' : variant };
+}
+
+/** Forgets a guest's play: the server couldn't replay its moves, or it's kept on an account now. */
 export function clearGuestPlay(day: string, game: GameId, variant = ''): void {
   const plays = parseGuestPlays(read(guestDayKey(day)));
   delete plays[guestSlot(game, variant)];

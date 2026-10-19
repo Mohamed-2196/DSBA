@@ -2,7 +2,8 @@
 // (lib/storage.ts) and their moves go with every request, so the server can replay and check them without keeping
 // anything, and the hub lays them over today's set (lib/guest.ts). Every move says which version of the day's puzzle
 // it was made on: when an editor fixed today's puzzle since, the server answers 409 puzzle_fixed and the play loads
-// again, started over on the fixed puzzle.
+// again, started over on the fixed puzzle. Once a guest signs in (with a profile), the plays this device kept are
+// kept on the account before the Daily is read as theirs.
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { api, call } from '../../api/client';
@@ -10,12 +11,15 @@ import { isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { todayKey } from '../../lib/dates';
 import { useLocalStorage } from '../../state';
-import { settledGuestPlay, withGuestPlays } from './lib/guest';
+import { playsToKeep, settledGuestPlay, withGuestPlays } from './lib/guest';
 import {
   NO_GUEST_PLAY,
   clearGuestPlay,
+  forgetGuestDay,
+  guestDays,
   guestDayKey,
   guestPlay,
+  guestPlaysOf,
   parseGuestPlays,
   saveGuestPlay,
   type GuestPlay,
@@ -24,35 +28,90 @@ import type { BoardPeriod, DailyToday, GameId, Move, PlayOut } from './types';
 
 export const DAILY_KEY = ['daily'] as const;
 
+/** Who the Daily is read for: a guest, an account still without its profile, or a player whose plays are kept. */
+type Viewer = 'guest' | 'no-profile' | 'player';
+
+function useViewer(): Viewer {
+  const { me } = useAuth();
+  return !me ? 'guest' : me.needsProfile ? 'no-profile' : 'player';
+}
+
 export const dailyKeys = {
   today: () => [...DAILY_KEY, 'today'] as const,
+  todayFor: (viewer: Viewer) => [...dailyKeys.today(), viewer] as const,
   calendars: () => [...DAILY_KEY, 'calendar'] as const,
   calendar: (month: string) => [...dailyKeys.calendars(), month] as const,
   leaderboards: () => [...DAILY_KEY, 'leaderboard'] as const,
   leaderboard: (period: BoardPeriod, year: number | null) => [...dailyKeys.leaderboards(), period, year] as const,
   me: () => [...DAILY_KEY, 'me'] as const,
-  play: (day: string, game: GameId, variant: string, guest: boolean) =>
-    [...DAILY_KEY, 'play', day, game, variant, guest] as const,
+  play: (day: string, game: GameId, variant: string, viewer: Viewer) =>
+    [...DAILY_KEY, 'play', day, game, variant, viewer] as const,
 };
 
 /** While the set's `nextAt` has passed (a clock a little fast, or a slow first answer), ask again until it changes. */
 const NEW_SET_RETRY = 5_000;
+
+let keeping: Promise<boolean> | null = null;
+
+/**
+ * Keeps the guest plays this device holds on the account just signed in to, then forgets them; resolves true when
+ * any was kept. A play the account can't take (it has played that puzzle, a fix started it again, its moves no
+ * longer replay) is forgotten too; one that fails for another reason (offline, the server) waits for next time.
+ * Calls made while it runs share it.
+ */
+function keepGuestPlays(qc: QueryClient): Promise<boolean> {
+  keeping ??= (async () => {
+    let kept = false;
+    for (const day of guestDays()) {
+      for (const { game, variant, play } of playsToKeep(guestPlaysOf(day))) {
+        try {
+          await call(
+            api.POST('/api/v1/daily/{day}/{game}/keep', {
+              params: { path: { day, game } },
+              body: { variant, history: play.moves, revision: play.revision },
+            }),
+          );
+          kept = true;
+        } catch (e) {
+          if (!isApiError(e) || ![404, 409, 422].includes(e.status)) return kept;
+        }
+        clearGuestPlay(day, game, variant);
+      }
+      forgetGuestDay(day); // what's left has no moves
+    }
+    return kept;
+  })().finally(() => {
+    keeping = null;
+  });
+  return keeping.then((kept) => {
+    if (kept) afterFinish(qc);
+    return kept;
+  });
+}
+
+/** Before reading the Daily as a signed-in person with a profile: their guest plays first, if this device has any. */
+async function keepFirst(qc: QueryClient, viewer: Viewer): Promise<void> {
+  if (viewer === 'player' && guestDays().length) await keepGuestPlays(qc);
+}
 
 /**
  * Today's set: the theme, each game and how far you got, your points and streak. A guest's own plays are laid over
  * it, and follow this device's storage as they change.
  */
 export function useDailyToday() {
-  const { me } = useAuth();
+  const viewer = useViewer();
   const day = todayKey();
   const [kept] = useLocalStorage<unknown>(guestDayKey(day), {});
   const select = useCallback(
-    (today: DailyToday) => (me ? today : withGuestPlays(today, day, parseGuestPlays(kept))),
-    [me, day, kept],
+    (today: DailyToday) => (viewer !== 'guest' ? today : withGuestPlays(today, day, parseGuestPlays(kept))),
+    [viewer, day, kept],
   );
   return useQuery({
-    queryKey: dailyKeys.today(),
-    queryFn: () => call(api.GET('/api/v1/daily')),
+    queryKey: dailyKeys.todayFor(viewer),
+    queryFn: async ({ client }) => {
+      await keepFirst(client, viewer);
+      return call(api.GET('/api/v1/daily'));
+    },
     staleTime: 30_000,
     select,
     refetchInterval: (query) => {
@@ -116,8 +175,15 @@ function replayGuest(day: string, game: GameId, variant: string, kept: GuestPlay
   );
 }
 
-async function fetchPlay(day: string, game: GameId, variant: string, guest: boolean): Promise<PlayOut> {
-  if (!guest) {
+async function fetchPlay(
+  qc: QueryClient,
+  day: string,
+  game: GameId,
+  variant: string,
+  viewer: Viewer,
+): Promise<PlayOut> {
+  if (viewer !== 'guest') {
+    await keepFirst(qc, viewer);
     return call(
       api.GET('/api/v1/daily/{day}/{game}', {
         params: { path: { day, game }, query: { variant: variant || undefined } },
@@ -141,11 +207,11 @@ async function fetchPlay(day: string, game: GameId, variant: string, guest: bool
 
 /** A day's game (and Sudoku difficulty) as it stands for you. */
 export function useDailyPlay(day: string, game: GameId, variant: string) {
-  const { me, status } = useAuth();
-  const guest = !me;
+  const { status } = useAuth();
+  const viewer = useViewer();
   return useQuery({
-    queryKey: dailyKeys.play(day, game, variant, guest),
-    queryFn: () => fetchPlay(day, game, variant, guest),
+    queryKey: dailyKeys.play(day, game, variant, viewer),
+    queryFn: ({ client }) => fetchPlay(client, day, game, variant, viewer),
     enabled: status !== 'loading',
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
@@ -162,9 +228,9 @@ function afterFinish(qc: QueryClient) {
 /** One move, checked by the server. Resolves with the play as it stands after it; rejects with the ApiError. */
 export function useDailyMove(day: string, game: GameId, variant: string) {
   const qc = useQueryClient();
-  const { me } = useAuth();
-  const guest = !me;
-  const key = dailyKeys.play(day, game, variant, guest);
+  const viewer = useViewer();
+  const guest = viewer === 'guest';
+  const key = dailyKeys.play(day, game, variant, viewer);
   return useMutation({
     mutationFn: async (move: Move): Promise<PlayOut> => {
       const kept = guest ? guestPlay(day, game, variant) : NO_GUEST_PLAY;

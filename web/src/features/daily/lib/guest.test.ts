@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DailyToday, GameDay, GameId, PlayOut } from '../types';
-import { settledGuestPlay, withGuestPlays } from './guest';
+import { playsToKeep, settledGuestPlay, withGuestPlays } from './guest';
 import type { GuestPlay } from './storage';
 
 const game = (id: GameId, variants: string[] = ['']) =>
@@ -76,5 +76,24 @@ describe('settledGuestPlay', () => {
     expect(shown).toBe(finished);
     expect(keep?.picture).toEqual([['hit']]);
     expect(settledGuestPlay({ ...kept(0), status: 'won', picture: [['hit']] }, finished).keep).toBeNull();
+  });
+});
+
+describe('playsToKeep', () => {
+  const moved = (status: GuestPlay['status']): GuestPlay => ({ ...play(status), moves: [{ kind: 'hint' }] });
+
+  it('keeps the plays with moves, the furthest first, with each game and difficulty', () => {
+    const out = playsToKeep({
+      'sudoku:easy': moved('playing'),
+      'word:default': moved('lost'),
+      'sudoku:hard': moved('won'),
+      'groups:default': play('new'),
+      'chess:default': moved('won'),
+    });
+    expect(out.map(({ game, variant, play: p }) => [game, variant, p.status])).toEqual([
+      ['sudoku', 'hard', 'won'],
+      ['word', '', 'lost'],
+      ['sudoku', 'easy', 'playing'],
+    ]);
   });
 });

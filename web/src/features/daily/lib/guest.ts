@@ -2,10 +2,12 @@
 // and sends the moves each time.
 // - On the hub and Home, today's set comes back with every game new, so the plays this device keeps are laid over it:
 //   each game's furthest status, the Sudoku difficulty to open, and how many are done.
+// - On signing in, the plays are kept on the account (one each, the furthest first: a finished Sudoku is the
+//   difficulty that counts), and the device forgets them.
 // - When an editor fixed today's puzzle, moves made on the version it replaced come back finished as they were, or
 //   started again on the fixed puzzle: then the device forgets them, and remembers to say why until the next move.
-import type { DailyToday, PlayOut, PlayStatus } from '../types';
-import { guestSlot, type GuestPlay, type GuestPlays } from './storage';
+import type { DailyToday, GameId, PlayOut, PlayStatus } from '../types';
+import { guestSlot, slotOf, type GuestPlay, type GuestPlays } from './storage';
 
 const RANK: Record<PlayStatus, number> = { new: 0, playing: 1, lost: 2, won: 3 };
 
@@ -40,4 +42,21 @@ export function settledGuestPlay(kept: GuestPlay, out: PlayOut): { out: PlayOut;
   const keep =
     out.play.picture && !kept.picture ? { ...kept, status: out.play.status, picture: out.play.picture } : null;
   return { out: shown, keep };
+}
+
+export interface PlayToKeep {
+  slot: string;
+  game: GameId;
+  variant: string;
+  play: GuestPlay;
+}
+
+/** A day's guest plays to keep on an account: those with moves, the furthest first (won, lost, then playing). */
+export function playsToKeep(plays: GuestPlays): PlayToKeep[] {
+  return Object.entries(plays)
+    .flatMap(([slot, play]) => {
+      const where = slotOf(slot);
+      return where && play.moves.length ? [{ slot, ...where, play }] : [];
+    })
+    .sort((a, b) => RANK[b.play.status] - RANK[a.play.status]);
 }
