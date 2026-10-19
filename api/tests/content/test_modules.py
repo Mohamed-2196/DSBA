@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from datetime import timedelta
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -147,9 +148,12 @@ def test_the_same_file_in_two_modules_is_listed_in_both(
     copy counts as a duplicate only within the same module."""
     first, second = [m for m in read("modules") if m.get("chapters")][:2]
 
-    def book(slug: str, module_id: str) -> LibraryItem:
+    start = utcnow()
+
+    def book(slug: str, module_id: str, minutes: int) -> LibraryItem:
         return LibraryItem(
             slug=slug,
+            created_at=start + timedelta(minutes=minutes),
             source=ItemSource.file,
             kind="notes",
             title=slug,
@@ -163,9 +167,13 @@ def test_the_same_file_in_two_modules_is_listed_in_both(
             published_at=utcnow(),
         )
 
-    db.add(book("textbook-first", first["id"]))
-    db.commit()
-    db.add_all([book("textbook-second", second["id"]), book("textbook-again", first["id"])])
+    db.add_all(
+        [
+            book("textbook-first", first["id"], 0),
+            book("textbook-second", second["id"], 1),
+            book("textbook-again", first["id"], 2),  # the same bytes in the same module, later: a duplicate
+        ]
+    )
     db.commit()
     guest = client_for()
     for module, slugs in ((first, {"textbook-first"}), (second, {"textbook-second"})):
