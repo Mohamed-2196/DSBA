@@ -296,3 +296,11 @@
     justify-content: center;
   }
 }
+
+/* Laptops (a mouse, a short screen): rows a little shorter, so thirteen sections and the two outside links fit
+   without scrolling at 900px. */
+@media (pointer: fine) and (max-height: 960px) {
+  .shell-rail:not(.is-collapsed) .shell-nav__item {
+    height: 38px;
+  }
+}

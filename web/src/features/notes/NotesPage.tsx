@@ -1,4 +1,5 @@
-// /notes: student's notebooks and notes, last edited first, with search, notebook filtering, and creation.
+// /notes: the student's notebooks and notes, last edited first, with search, a notebook or one lesson's notes
+// (?notebook=, or ?module=&lesson= from a lesson page), and creation.
 import {
   Book,
   DotsThree,
@@ -11,12 +12,13 @@ import {
   Plus,
   Trash,
 } from '@phosphor-icons/react';
-import { useRef, useState } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import type { Notebook, NoteSummary } from '../../api/types';
+import { errorMessage } from '../../api/errors';
+import type { Notebook, NoteSummary, StorageUse } from '../../api/types';
 import { Gate, useAuth } from '../../auth';
 import { moduleLabel } from '../../lib/modules';
-import { useDebouncedValue, useQueryParam, useToast } from '../../state';
+import { useDebouncedValue, useMediaQuery, useQueryParam, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Badge,
@@ -26,6 +28,7 @@ import {
   IconButton,
   Menu,
   Modal,
+  type MenuItem,
   Page,
   PageHeader,
   Panel,
@@ -46,27 +49,40 @@ import {
   uploadErrorMessage,
   uploadFile,
 } from '../../api/uploads';
-import { useCreateNote, useCreateNotebook, useDeleteNotebook, useNotebooks, useNotes, useRenameNotebook } from './api';
-import { EMPTY_DOC, draftIds, lessonLabel, noteLabel, plainExcerpt } from './draft';
+import {
+  NOTES_PAGE,
+  useCreateNote,
+  useCreateNotebook,
+  useDeleteNotebook,
+  useNotebooks,
+  useNotes,
+  useRenameNotebook,
+} from './api';
+import { EMPTY_DOC, draftIds, labelParts, lessonLabel } from './draft';
 import { TITLE_MAX } from './limits';
 import { useLessonPlace } from './lessonPlace';
-import './Notes.css';
+import { MathLine } from './MathLine';
+import { firstOwnNotebook } from './notebooks';
+import { nearlyFull, type Budget } from './storage';
+import { lineParts } from './text/mathText';
+import { useStartNote } from './useStartNote';
+import './NotesPage.css';
 
 function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
   const { getModule } = useModules();
   const module = getModule(note.moduleId);
   const place = useLessonPlace(note.moduleId, note.lessonId);
-  const excerpt = plainExcerpt(note.excerpt);
+  const excerpt = lineParts(note.excerpt, 160);
 
   return (
     <li className="notes-row">
       <Link to={`/notes/${note.id}`} className="notes-row__link" data-hub="note-row">
         <span className="notes-row__title" dir="auto">
-          {noteLabel(note)}
+          <MathLine parts={labelParts(note)} />
         </span>
-        {excerpt && note.title.trim() ? (
+        {excerpt.length && note.title.trim() ? (
           <span className="notes-row__excerpt" dir="auto">
-            {excerpt}
+            <MathLine parts={excerpt} />
           </span>
         ) : null}
         <span className="notes-row__meta">
@@ -151,8 +167,8 @@ function WriteOnPdf({ notebookId }: { notebookId: string | null }) {
   );
 }
 
-/** How much of one of the notebooks' two budgets is used. */
-function StorageMeter({ label, used, limit }: { label: string; used: number; limit: number }) {
+/** How much of one of the notebooks' two budgets is used, and what makes room. */
+function StorageMeter({ label, used, limit, room }: Budget) {
   const percent = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
   return (
     <div className="notebooks-storage__item">
@@ -172,39 +188,48 @@ function StorageMeter({ label, used, limit }: { label: string; used: number; lim
           style={{ width: `${percent}%` }}
         />
       </div>
+      <p className="notebooks-storage__room">{room}</p>
     </div>
   );
 }
 
-function NotebookDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+/** The notebooks' storage, once a budget is nearly used up (storage.ts). */
+function StorageRoom({ storage }: { storage: StorageUse }) {
+  const budgets = nearlyFull(storage);
+  if (!budgets.length) return null;
+  return (
+    <div className="notebooks-storage" data-hub="notes-storage">
+      {budgets.map((b) => (
+        <StorageMeter key={b.label} {...b} />
+      ))}
+    </div>
+  );
+}
+
+/** Narrower than this, the notebooks are a picker above the notes instead of a pane beside them. */
+const NARROW = '(max-width: 767px)';
+
+function NotebookDialog({ onClose }: { onClose: () => void }) {
   const { modules } = useModules();
   const createBook = useCreateNotebook();
   const [title, setTitle] = useState('');
   const [moduleId, setModuleId] = useState('');
 
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() && !moduleId) return;
-    createBook.mutate(
-      { title: title.trim(), moduleId: moduleId || undefined },
-      {
-        onSuccess: () => {
-          setTitle('');
-          setModuleId('');
-          onClose();
-        },
-      },
-    );
+    createBook.mutate({ title: title.trim(), moduleId: moduleId || undefined }, { onSuccess: onClose });
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="New notebook">
+    <Modal open onClose={onClose} title="New notebook">
       <form onSubmit={submit} className="notes-dialog-form">
         <TextField
           label="Notebook title"
-          placeholder="e.g. Exam Revision"
+          placeholder="e.g. Exam revision"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          error={createBook.error ? errorMessage(createBook.error) : undefined}
           autoFocus
         />
         <Select
@@ -229,22 +254,27 @@ function NotebookDialog({ open, onClose }: { open: boolean; onClose: () => void 
   );
 }
 
-function RenameDialog({ notebook, onClose }: { notebook: Notebook | null; onClose: () => void }) {
+/** Renaming one notebook: mounted for it alone (its key is the notebook), so the field opens with its title. */
+function RenameDialog({ notebook, onClose }: { notebook: Notebook; onClose: () => void }) {
   const renameBook = useRenameNotebook();
-  const [title, setTitle] = useState(notebook?.title ?? '');
+  const [title, setTitle] = useState(notebook.title);
 
-  if (!notebook) return null;
-
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     renameBook.mutate({ id: notebook.id, title: title.trim() }, { onSuccess: onClose });
   };
 
   return (
-    <Modal open={!!notebook} onClose={onClose} title="Rename notebook">
+    <Modal open onClose={onClose} title="Rename notebook">
       <form onSubmit={submit} className="notes-dialog-form">
-        <TextField label="New title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+        <TextField
+          label="New title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          error={renameBook.error ? errorMessage(renameBook.error) : undefined}
+          autoFocus
+        />
         <div className="notes-notice__actions" style={{ justifyContent: 'flex-end', marginTop: 'var(--sp-16)' }}>
           <Button variant="ghost" onClick={onClose}>
             Cancel
@@ -266,6 +296,9 @@ function NotesList() {
 
   const [q, setQ] = useQueryParam('q');
   const [selectedNotebookId, setSelectedNotebookId] = useQueryParam('notebook');
+  const [lessonModuleId, setLessonModuleId] = useQueryParam('module');
+  const [lessonId, setLessonId] = useQueryParam('lesson');
+  const startNote = useStartNote();
   const [text, setText] = useState(q ?? '');
   const search = useDebouncedValue(text.trim(), 250);
 
@@ -273,14 +306,22 @@ function NotesList() {
   const [renamingBook, setRenamingBook] = useState<Notebook | null>(null);
   const [deletingBook, setDeletingBook] = useState<Notebook | null>(null);
 
-  const filters = { q: search, notebookId: selectedNotebookId || null };
+  // one lesson's notes (from a lesson page's "See all"), or one notebook's
+  const lesson = lessonModuleId && lessonId ? { moduleId: lessonModuleId, lessonId } : null;
+  const filters = { q: search, notebookId: selectedNotebookId || null, ...lesson };
+  const lessonPlace = useLessonPlace(lesson?.moduleId ?? null, lesson?.lessonId ?? null);
+  const lessonModule = lesson ? getModule(lesson.moduleId) : null;
+  const showAll = () => {
+    setLessonModuleId(null, { replace: true });
+    setLessonId(null, { replace: true });
+  };
   const notes = useNotes(filters);
   const readOnly = me?.status === 'suspended';
 
   const [unsent] = useState(() => new Set(draftIds()));
   const items = notes.data?.pages.flatMap((p) => p.items) ?? [];
   const total = notes.data?.pages[0]?.total ?? 0;
-  const filtered = !!search || !!selectedNotebookId;
+  const filtered = !!search || !!selectedNotebookId || !!lesson;
   const more = remainingCount(notes.data?.pages);
 
   const onSearch = (value: string) => {
@@ -290,6 +331,32 @@ function NotesList() {
 
   const notebooks = notebooksQuery.data?.items ?? [];
   const storage = notebooksQuery.data?.storage;
+  const ownFirst = firstOwnNotebook(notebooks);
+  const narrow = useMediaQuery(NARROW);
+  const bookName = (b: Notebook) => {
+    const mod = b.moduleId ? getModule(b.moduleId) : null;
+    return mod ? (mod.unitCode ?? mod.shortName) : b.title;
+  };
+  // a module's notebook and the first of the student's own are kept: only the others can be renamed or deleted
+  const bookOptions = (b: Notebook): MenuItem[] =>
+    !readOnly && !b.moduleId && b.id !== ownFirst?.id
+      ? [
+          { id: 'rename', label: 'Rename', icon: PencilSimple, onSelect: () => setRenamingBook(b) },
+          { id: 'delete', label: 'Delete notebook', icon: Trash, danger: true, onSelect: () => setDeletingBook(b) },
+        ]
+      : [];
+  const booksError = notebooksQuery.isError ? (
+    <QueryError
+      error={notebooksQuery.error}
+      title="Your notebooks didn’t load"
+      size="sm"
+      panel={false}
+      onRetry={() => void notebooksQuery.refetch()}
+      retrying={notebooksQuery.isFetching}
+    />
+  ) : null;
+  const selectedBook = notebooks.find((b) => b.id === selectedNotebookId) ?? null;
+  const selectedOptions = selectedBook ? bookOptions(selectedBook) : [];
 
   return (
     <Page width="default">
@@ -306,7 +373,8 @@ function NotesList() {
               <Button
                 variant="primary"
                 leadingIcon={Plus}
-                to={selectedNotebookId ? `/notes/new?notebook=${encodeURIComponent(selectedNotebookId)}` : '/notes/new'}
+                onClick={() => startNote.start(lesson ?? { notebookId: selectedNotebookId })}
+                loading={startNote.starting}
                 data-hub="note-new"
               >
                 New note
@@ -323,80 +391,98 @@ function NotesList() {
       ) : null}
 
       <div className="notes-layout">
-        {/* ── Left Pane: Notebooks Sidebar ── */}
-        <aside className="notebooks-sidebar" aria-label="Notebooks">
-          <div className="notebooks-sidebar__head">
-            <h3 className="notebooks-sidebar__title">Notebooks</h3>
-            {readOnly ? null : (
-              <IconButton icon={Plus} label="New notebook" size="sm" onClick={() => setNewBookOpen(true)} tooltip />
-            )}
-          </div>
-          <ul className="notebooks-sidebar__list">
-            <li>
-              <button
-                type="button"
-                className={cx('notebook-item', !selectedNotebookId && 'is-active')}
-                onClick={() => setSelectedNotebookId(null, { replace: true })}
-              >
-                <span className="notebook-item__name">
-                  <Book aria-hidden="true" />
-                  All notes
-                </span>
-              </button>
-            </li>
-            {notebooks.map((b) => {
-              const mod = b.moduleId ? getModule(b.moduleId) : null;
-              const isSelected = selectedNotebookId === b.id;
-              const isCustom = !b.moduleId && b.title !== 'My notebook';
-              return (
-                <li key={b.id} style={{ display: 'flex', alignItems: 'center' }}>
-                  <button
-                    type="button"
-                    className={cx('notebook-item', isSelected && 'is-active')}
-                    onClick={() => setSelectedNotebookId(b.id, { replace: true })}
-                  >
-                    <span className="notebook-item__name">
-                      <Folder aria-hidden="true" />
-                      {mod ? (mod.unitCode ?? mod.shortName) : b.title}
-                    </span>
-                    <span className="notebook-item__count">{b.noteCount}</span>
-                  </button>
-                  {isCustom && !readOnly ? (
-                    <Menu
-                      align="end"
-                      label="Notebook options"
-                      items={[
-                        { id: 'rename', label: 'Rename', icon: PencilSimple, onSelect: () => setRenamingBook(b) },
-                        {
-                          id: 'delete',
-                          label: 'Delete notebook',
-                          icon: Trash,
-                          danger: true,
-                          onSelect: () => setDeletingBook(b),
-                        },
-                      ]}
-                      trigger={<IconButton icon={DotsThree} label="Options" size="sm" />}
-                    />
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-
-          {storage ? (
-            <div className="notebooks-storage" data-hub="notes-storage">
-              <StorageMeter
-                label="Text and handwriting"
-                used={storage.writingBytes}
-                limit={storage.writingLimitBytes}
-              />
-              <StorageMeter label="Pictures and files" used={storage.filesBytes} limit={storage.filesLimitBytes} />
+        {narrow ? null : (
+          <aside className="notebooks-sidebar" aria-label="Notebooks">
+            <div className="notebooks-sidebar__head">
+              <h3 className="notebooks-sidebar__title">Notebooks</h3>
+              {readOnly ? null : (
+                <IconButton icon={Plus} label="New notebook" size="sm" onClick={() => setNewBookOpen(true)} tooltip />
+              )}
             </div>
-          ) : null}
-        </aside>
+            <ul className="notebooks-sidebar__list">
+              <li>
+                <button
+                  type="button"
+                  className={cx('notebook-item', !selectedNotebookId && 'is-active')}
+                  onClick={() => setSelectedNotebookId(null, { replace: true })}
+                >
+                  <span className="notebook-item__name">
+                    <Book aria-hidden="true" />
+                    All notes
+                  </span>
+                </button>
+              </li>
+              {notebooks.map((b) => {
+                const options = bookOptions(b);
+                return (
+                  <li key={b.id} className="notebooks-sidebar__book">
+                    <button
+                      type="button"
+                      className={cx('notebook-item', selectedNotebookId === b.id && 'is-active')}
+                      onClick={() => setSelectedNotebookId(b.id, { replace: true })}
+                    >
+                      <span className="notebook-item__name">
+                        <Folder aria-hidden="true" />
+                        {bookName(b)}
+                      </span>
+                      <span className="notebook-item__count">{b.noteCount}</span>
+                    </button>
+                    {options.length ? (
+                      <Menu
+                        align="end"
+                        label="Notebook options"
+                        items={options}
+                        trigger={<IconButton icon={DotsThree} label="Options" size="sm" />}
+                      />
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+            {booksError}
+            {storage ? <StorageRoom storage={storage} /> : null}
+          </aside>
+        )}
 
-        {/* ── Main Notes List ── */}
-        <section aria-label="Notes in notebook">
+        <section className="notes-section" aria-label="Notes in notebook">
+          {narrow ? (
+            <>
+              <div className="notes-picker" data-hub="notebook-picker">
+                <Select
+                  className="notes-picker__select"
+                  label="Notebook"
+                  hideLabel
+                  value={selectedBook?.id ?? ''}
+                  onChange={(e) => setSelectedNotebookId(e.target.value || null, { replace: true })}
+                  options={[
+                    { value: '', label: 'All notes' },
+                    ...notebooks.map((b) => ({ value: b.id, label: `${bookName(b)} (${b.noteCount})` })),
+                  ]}
+                />
+                {selectedBook && selectedOptions.length ? (
+                  <Menu
+                    align="end"
+                    label="Notebook options"
+                    items={selectedOptions}
+                    trigger={<IconButton icon={DotsThree} label={`Options for ${bookName(selectedBook)}`} />}
+                  />
+                ) : null}
+              </div>
+              {booksError}
+              {storage ? <StorageRoom storage={storage} /> : null}
+            </>
+          ) : null}
+          {lesson ? (
+            <p className="notes-lesson-filter" data-hub="notes-lesson-filter">
+              <span>
+                Your notes on {lessonModule ? `${moduleLabel(lessonModule)}, ` : ''}
+                {lessonLabel(lessonPlace).toLowerCase()}
+              </span>
+              <Button size="sm" variant="ghost" onClick={showAll}>
+                Show all notes
+              </Button>
+            </p>
+          ) : null}
           <div className="notes-filters">
             <SearchField
               className="notes-filters__search"
@@ -440,7 +526,12 @@ function NotesList() {
                   body="Type with rich text, write with stylus ink, or annotate past papers."
                   action={
                     readOnly ? null : (
-                      <Button variant="primary" leadingIcon={Plus} to="/notes/new">
+                      <Button
+                        variant="primary"
+                        leadingIcon={Plus}
+                        onClick={() => startNote.start()}
+                        loading={startNote.starting}
+                      >
                         Write your first note
                       </Button>
                     )
@@ -463,7 +554,7 @@ function NotesList() {
               {more > 0 ? (
                 <div className="notes-more">
                   <Button onClick={() => void notes.fetchNextPage()} loading={notes.isFetchingNextPage}>
-                    Show {Math.min(more, 20)} more
+                    Show {Math.min(more, NOTES_PAGE)} more
                   </Button>
                 </div>
               ) : null}
@@ -472,15 +563,18 @@ function NotesList() {
         </section>
       </div>
 
-      <NotebookDialog open={newBookOpen} onClose={() => setNewBookOpen(false)} />
-      <RenameDialog notebook={renamingBook} onClose={() => setRenamingBook(null)} />
+      {newBookOpen ? <NotebookDialog onClose={() => setNewBookOpen(false)} /> : null}
+      {renamingBook ? (
+        <RenameDialog key={renamingBook.id} notebook={renamingBook} onClose={() => setRenamingBook(null)} />
+      ) : null}
       <ConfirmDialog
         open={!!deletingBook}
-        title={`Delete “${deletingBook?.title}”?`}
-        body="This will delete the notebook and all notes in it. It cannot be undone."
+        title={`Delete “${deletingBook?.title ?? ''}”?`}
+        body="The notebook and every note in it are deleted. This can’t be undone."
         confirmLabel="Delete"
         tone="danger"
         busy={deleteBook.isPending}
+        error={deleteBook.error ? errorMessage(deleteBook.error) : null}
         onConfirm={() => {
           if (!deletingBook) return;
           deleteBook.mutate(deletingBook.id, {
@@ -490,7 +584,10 @@ function NotesList() {
             },
           });
         }}
-        onClose={() => setDeletingBook(null)}
+        onClose={() => {
+          deleteBook.reset();
+          setDeletingBook(null);
+        }}
       />
     </Page>
   );

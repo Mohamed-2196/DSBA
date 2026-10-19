@@ -5,12 +5,9 @@ import { useState } from 'react';
 import type { AgendaCard, BoardSummary } from '../../api/types';
 import { formatDay, todayKey } from '../../lib/dates';
 import { EmptyState, QueryError, Skeleton, cx } from '../../ui';
-import { useAgenda } from './api';
-import { agendaSections, colorVar, doneColumn, dueLabel, timeText, type AgendaSection } from './board';
+import { useTodayAgenda } from './api';
+import { TODAY_DAYS, agendaSections, colorVar, doneColumn, dueLabel, timeText, type AgendaSection } from './board';
 import { PriorityBadge } from './CardItem';
-
-/** How far ahead Today looks. */
-export const TODAY_DAYS = 7;
 
 /** When a card is due, as its section doesn't already say: how late, the time, or the day and time. */
 function whenText(section: AgendaSection['id'], card: AgendaCard, today: string): string | null {
@@ -30,10 +27,10 @@ export interface TodayViewProps {
 
 export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) {
   const today = todayKey();
-  const agenda = useAgenda({ days: TODAY_DAYS });
-  // Ticked here, a card stays (struck through) until the agenda comes back: without it, or with it again when the
-  // move failed.
-  const [ticked, setTicked] = useState<{ on: unknown; ids: ReadonlySet<string> }>({ on: null, ids: new Set() });
+  const agenda = useTodayAgenda();
+  // Ticked here, a card stays (struck through) until the agenda is read again: without it, or with it again when the
+  // move failed. An answer equal to the last keeps the same data, so the ticks go by when it came.
+  const [ticked, setTicked] = useState<{ at: number; ids: ReadonlySet<string> }>({ at: -1, ids: new Set() });
 
   if (agenda.isPending) {
     return (
@@ -61,7 +58,7 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
     return (
       <EmptyState
         illustration="nothing-due"
-        title="Nothing due in the next 7 days"
+        title={`Nothing due in the next ${TODAY_DAYS} days`}
         body="Cards with a due date show here from all your boards, overdue ones first."
       />
     );
@@ -79,7 +76,7 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
             {s.cards.map((card) => {
               const board = boards.find((b) => b.id === card.boardId);
               const canTick = !readOnly && board != null && doneColumn(board.columns) != null;
-              const done = ticked.on === agenda.data && ticked.ids.has(card.id);
+              const done = ticked.at === agenda.dataUpdatedAt && ticked.ids.has(card.id);
               const overdue = s.id === 'overdue';
               const when = whenText(s.id, card, today);
               return (
@@ -92,8 +89,8 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
                         disabled={done}
                         onChange={() => {
                           setTicked((prev) => ({
-                            on: agenda.data,
-                            ids: new Set(prev.on === agenda.data ? prev.ids : []).add(card.id),
+                            at: agenda.dataUpdatedAt,
+                            ids: new Set(prev.at === agenda.dataUpdatedAt ? prev.ids : []).add(card.id),
                           }));
                           onDone(card);
                         }}

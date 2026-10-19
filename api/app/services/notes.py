@@ -4,8 +4,10 @@
 - A note saves its typed text with the version it was loaded at, and each sheet's ink with that sheet's version. A
   save over something saved since (another tab, another device) answers 409 note_changed or ink_changed, and the
   writer chooses: load the newer one, or save theirs over it.
-- Pictures and files are uploads (purpose note_file) that the note's text refers to: a save attaches them to the
-  note and lets go of the ones it no longer shows (the sweep deletes those).
+- Pictures and files are the student's uploads (purpose note_file) that a note's document refers to, and its PDF; the
+  note lists them (`Note.uploads`). A file is in use while any of the student's notes lists it, so a picture copied
+  into a second note stays when the first goes; one no note lists any more is released (it stops counting against
+  the student's room, and the sweep deletes it).
 - Limits: MAX_NOTEBOOKS and MAX_NOTES per student; WRITING_LIMIT across their typed text and ink (in the database)
   and FILES_LIMIT across their files (in file storage); SHEET_MAX_BYTES of ink on one sheet; CREATES_PER_HOUR new
   notes; SAVES_PER_MINUTE saves of one note (text and ink together: the web app saves about once a second) and
@@ -19,7 +21,8 @@ import uuid
 from collections.abc import Iterable
 from datetime import timedelta
 
-from sqlalchemy import ColumnElement, cast, func, or_, select, update
+from sqlalchemy import ColumnElement, case, cast, delete, func, or_, select, update
+from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 from sqlalchemy.types import Text as TextType
@@ -43,6 +46,7 @@ from app.models import (
 from app.schemas.notes import (
     EXCERPT_LENGTH,
     MAX_SHEETS,
+    PAPER_SHEETS_FROM,
     SHEET_MAX_BYTES,
     InkInfo,
     InkSave,
@@ -55,6 +59,7 @@ from app.schemas.notes import (
     NotePdf,
     NoteSummary,
     NoteUpdate,
+    PageChange,
     StorageUse,
 )
 from app.schemas.notes import Note as NoteOut
@@ -73,10 +78,11 @@ SAVES_PER_MINUTE = 240
 PERSON_SAVES_PER_MINUTE = 400
 SAVE_WINDOW = timedelta(minutes=1)
 SEARCH_MAX = 100
-PAPER_SHEETS_FROM = 1000  # sheets 0-999 are a PDF's pages, 1000 and up its paper (schemas/notes.py MAX_SHEETS)
 MAX_SHEET_INDEX = PAPER_SHEETS_FROM + MAX_SHEETS
 OWN_NOTEBOOK = "My notebook"
-LIVE_UPLOADS = (UploadStatus.uploaded, UploadStatus.attached)
+# A note file that is still there: uploaded and not placed yet, in a note, or released and not swept yet (a save that
+# shows it again, after an undo, takes it back).
+KEPT_UPLOADS = (UploadStatus.uploaded, UploadStatus.attached, UploadStatus.released)
 
 
 def _like(text: str) -> str:
@@ -106,10 +112,13 @@ def writing_used(db: Session, user: User) -> int:
 
 
 def files_used(db: Session, user: User) -> int:
-    """Bytes of the student's note files: pictures, files and PDFs."""
+    """Bytes of the student's note files: pictures, files and PDFs in their notes, or on their way to one. Released
+    files (no note shows them any more) don't count."""
     file_bytes = db.scalar(
         select(func.coalesce(func.sum(Upload.size_bytes), 0)).where(
-            Upload.user_id == user.id, Upload.purpose == UploadPurpose.note_file
+            Upload.user_id == user.id,
+            Upload.purpose == UploadPurpose.note_file,
+            Upload.status != UploadStatus.released,
         )
     )
     return int(file_bytes or 0)
@@ -277,21 +286,40 @@ def rename_notebook(db: Session, user: User, notebook_id: uuid.UUID, title: str)
     return nb
 
 
-def _let_go_of_files(db: Session, notes: ColumnElement[bool]) -> None:
-    """The files of the notes matching `notes` are no longer used: the sweep deletes them."""
+def _release(db: Session, user: User, upload_ids: Iterable[uuid.UUID]) -> None:
+    """Of these files of the student's, the ones none of their notes lists any more are released: they stop counting
+    against the student's room, and the sweep deletes them. Run after the notes' lists are written (flushed)."""
+    ids = set(upload_ids)
+    if not ids:
+        return
+    listed = (
+        select(Note.id)
+        .where(
+            Note.user_id == user.id,
+            or_(Note.uploads.contains(array([Upload.id])), Note.pdf_upload_id == Upload.id),
+        )
+        .exists()
+    )
     db.execute(
         update(Upload)
-        .where(Upload.purpose == UploadPurpose.note_file, Upload.note_id.in_(select(Note.id).where(notes)))
-        .values(status=UploadStatus.uploaded, note_id=None)
+        .where(
+            Upload.id.in_(ids),
+            Upload.user_id == user.id,
+            Upload.purpose == UploadPurpose.note_file,
+            Upload.status == UploadStatus.attached,
+            ~listed,
+        )
+        .values(status=UploadStatus.released)
     )
 
 
 def delete_notebook(db: Session, user: User, notebook_id: uuid.UUID) -> None:
-    """Deletes the notebook and every note in it."""
+    """Deletes the notebook and every note in it; their files that no other note shows are released."""
     nb = _own_notebook(db, user, notebook_id)
-    _let_go_of_files(db, Note.notebook_id == nb.id)
+    shown = {u for (uploads,) in db.execute(select(Note.uploads).where(Note.notebook_id == nb.id)) for u in uploads}
     db.delete(nb)
     db.flush()
+    _release(db, user, shown)
 
 
 # ── notes: reading ───────────────────────────────────────────────────────────────────────────
@@ -310,7 +338,7 @@ def _pdf_of(db: Session, note: Note) -> NotePdf | None:
         )
     if note.pdf_upload_id is not None:
         up = db.get(Upload, note.pdf_upload_id)
-        ok = up is not None and up.status in LIVE_UPLOADS
+        ok = up is not None and up.status in KEPT_UPLOADS
         return NotePdf(
             library_item_id=None,
             slug=None,
@@ -429,29 +457,32 @@ def _check_lesson(db: Session, nb: Notebook, fields: NoteFields, note: Note | No
 
 
 def _attach(db: Session, user: User, note: Note, uploads: Iterable[uuid.UUID]) -> None:
-    """The note's files are the ones its text shows, and its PDF: those become attached to it, the ones it no longer
-    shows are let go of (the sweep deletes them). Ids that aren't the student's free or own files are left alone:
-    the web app shows them as missing."""
-    keep = set(uploads)
+    """The note lists the files its document shows, and its PDF, and those are in use; the ones it no longer shows
+    are released unless another of the student's notes shows them. Ids that aren't the student's note files are
+    left out: the web app shows them as missing."""
+    wanted = set(uploads)
     if note.pdf_upload_id is not None:
-        keep.add(note.pdf_upload_id)
-    if keep:
-        db.execute(
-            update(Upload)
-            .where(
-                Upload.id.in_(keep),
-                Upload.user_id == user.id,
-                Upload.purpose == UploadPurpose.note_file,
-                Upload.status.in_(LIVE_UPLOADS),
-                or_(Upload.note_id.is_(None), Upload.note_id == note.id),
+        wanted.add(note.pdf_upload_id)
+    before = set(note.uploads or [])
+    owned = (
+        set(
+            db.scalars(
+                select(Upload.id).where(
+                    Upload.id.in_(wanted),
+                    Upload.user_id == user.id,
+                    Upload.purpose == UploadPurpose.note_file,
+                    Upload.status.in_(KEPT_UPLOADS),
+                )
             )
-            .values(status=UploadStatus.attached, note_id=note.id)
         )
-    db.execute(
-        update(Upload)
-        .where(Upload.note_id == note.id, Upload.id.not_in(keep) if keep else Upload.id.is_not(None))
-        .values(status=UploadStatus.uploaded, note_id=None)
+        if wanted
+        else set()
     )
+    note.uploads = sorted(owned)
+    if owned:
+        db.execute(update(Upload).where(Upload.id.in_(owned)).values(status=UploadStatus.attached))
+    db.flush()
+    _release(db, user, before - owned)
 
 
 def _creating(db: Session, user: User) -> None:
@@ -475,12 +506,10 @@ def _pdf_upload(db: Session, user: User, upload_id: uuid.UUID) -> Upload:
         up is None
         or up.user_id != user.id
         or up.purpose != UploadPurpose.note_file
-        or up.status not in LIVE_UPLOADS
+        or up.status not in KEPT_UPLOADS
         or up.content_type != "application/pdf"
     ):
         raise invalid("pdfUploadId", "This PDF didn't upload. Choose it again.")
-    if up.note_id is not None:
-        raise invalid("pdfUploadId", "This PDF is in another note already. Upload it again for a new note.")
     return up
 
 
@@ -492,8 +521,9 @@ def create_note(db: Session, user: User, body: NoteCreate) -> Note:
     else:
         nb = own_notebook(db, user)
     _check_lesson(db, nb, body)
-    checked = note_doc.check(body.doc)
     pdf = _pdf_upload(db, user, body.pdf_upload_id) if body.pdf_upload_id is not None else None
+    sheets = body.sheets if pdf is not None else max(1, body.sheets)
+    checked = note_doc.check(body.doc, sheets=sheets)
     _creating(db, user)
     check_writing(db, user, _json_bytes(body.doc))
     now = utcnow()
@@ -504,7 +534,7 @@ def create_note(db: Session, user: User, body: NoteCreate) -> Note:
         doc=body.doc,
         text=checked.text,
         paper=body.paper,
-        sheets=body.sheets if pdf is not None else max(1, body.sheets),
+        sheets=sheets,
         lesson_id=body.lesson_id,
         pdf_upload_id=pdf.id if pdf is not None else None,
         saves_since=now,
@@ -582,24 +612,104 @@ def update_note(db: Session, user: User, note_id: uuid.UUID, body: NoteUpdate) -
         if before is None or before.module_id != nb.module_id:
             body = body.model_copy(update={"lesson_id": None})
     _check_lesson(db, nb, body, note)
+    sheets = body.sheets if _on_pdf(note) else max(1, body.sheets)
     fields = {
         "title": body.title,
         "doc": body.doc,
         "paper": body.paper,
-        "sheets": body.sheets if _on_pdf(note) else max(1, body.sheets),
+        "sheets": sheets,
         "lesson_id": body.lesson_id,
         "notebook_id": nb.id,
     }
     if all(getattr(note, k) == v for k, v in fields.items()):
         return note
-    checked = note_doc.check(body.doc) if body.doc != note.doc else None
+    # the text is checked again when it changed, or when the paper did (a free picture is on one of its sheets)
+    changed = body.doc != note.doc or sheets != note.sheets
+    checked = note_doc.check(body.doc, sheets=sheets) if changed else None
     _count_save(db, user, note)
     if checked is not None:
         check_writing(db, user, _json_bytes(body.doc) - _json_bytes(note.doc))
         note.text = checked.text
         _attach(db, user, note, checked.uploads)
+    if sheets < note.sheets:  # the pages taken off take their handwriting
+        db.execute(delete(NoteInk).where(NoteInk.note_id == note.id, NoteInk.sheet >= PAPER_SHEETS_FROM + sheets))
     for k, v in fields.items():
         setattr(note, k, v)
+    note.version += 1
+    db.flush()
+    return note
+
+
+def _has_sheet(note: Note, sheet: int) -> bool:
+    """Whether the sheet is one of the note's: a page of its PDF (when it has one), or one of its pages of paper."""
+    if sheet < PAPER_SHEETS_FROM:
+        return _on_pdf(note)
+    return sheet < PAPER_SHEETS_FROM + note.sheets
+
+
+def page_mapping(change: PageChange, pages: int) -> dict[int, int | None]:
+    """Where each page of paper goes (as sheets: PAPER_SHEETS_FROM + its place) for a change to a note with `pages`
+    pages; pages not listed stay. None: the page is deleted. 422 for a page or a place the note doesn't have."""
+    first, at = PAPER_SHEETS_FROM, change.page
+    moves: dict[int, int | None] = {}
+    if change.action == "insert":
+        if at > pages or pages >= MAX_SHEETS:
+            raise invalid("page", "A page can't be added there.")
+        moves.update({first + k: first + k + 1 for k in range(at, pages)})
+        return moves
+    if at >= pages:
+        raise invalid("page", "This page isn't in the note any more.")
+    if change.action == "delete":
+        if pages <= 1:
+            raise invalid("page", "A note keeps at least one page.")
+        moves[first + at] = None
+        moves.update({first + k: first + k - 1 for k in range(at + 1, pages)})
+        return moves
+    to = change.to if change.to is not None else at
+    if to >= pages:
+        raise invalid("to", "A page can't go there.")
+    step = 1 if to < at else -1  # the pages between make room: down when it goes up, up when it goes down
+    between = range(to, at) if to < at else range(at + 1, to + 1)
+    moves.update({first + k: first + k + step for k in between})
+    moves[first + at] = first + to
+    return moves
+
+
+def _renumber_ink(db: Session, note: Note, pages: dict[int, int | None]) -> None:
+    """The note's ink rows follow their pages: a page deleted takes its row, the others are renumbered. The primary
+    key is checked row by row, so the rows that move step out of the way first (to negative sheets)."""
+    gone = [sheet for sheet, to in pages.items() if to is None]
+    if gone:
+        db.execute(delete(NoteInk).where(NoteInk.note_id == note.id, NoteInk.sheet.in_(gone)))
+    moving = {sheet: to for sheet, to in pages.items() if to is not None and to != sheet}
+    if not moving:
+        return
+    mine = NoteInk.note_id == note.id
+    db.execute(update(NoteInk).where(mine, NoteInk.sheet.in_(moving)).values(sheet=-NoteInk.sheet - 1))
+    db.execute(
+        update(NoteInk)
+        .where(mine, NoteInk.sheet < 0)
+        .values(sheet=case({-sheet - 1: to for sheet, to in moving.items()}, value=NoteInk.sheet))
+    )
+
+
+def change_pages(db: Session, user: User, note_id: uuid.UUID, body: PageChange) -> Note:
+    """Adds, deletes or moves a page of paper at once: its handwriting and its free pictures go with it, and so do
+    the pages after it. The note must still be at `body.version` (409 note_changed otherwise), as for a save; a page
+    of typed text is the web app's to keep."""
+    note = _own(db, user, note_id, lock=True)
+    if note.version != body.version:
+        raise conflict("note_changed", "This note was changed in another tab or on another device.")
+    pages = page_mapping(body, note.sheets)
+    _count_save(db, user, note)
+    _renumber_ink(db, note, pages)
+    doc = note_doc.repaged(note.doc, pages)
+    sheets = note.sheets + {"insert": 1, "delete": -1, "move": 0}[body.action]
+    if doc != note.doc:
+        checked = note_doc.check(doc, sheets=sheets)
+        note.doc, note.text = doc, checked.text
+        _attach(db, user, note, checked.uploads)
+    note.sheets = sheets
     note.version += 1
     db.flush()
     return note
@@ -611,6 +721,8 @@ def save_ink(db: Session, user: User, note_id: uuid.UUID, sheet: int, body: InkS
     if not 0 <= sheet < MAX_SHEET_INDEX:
         raise not_found("This sheet doesn't exist.")
     note = _own(db, user, note_id, lock=True)
+    if not _has_sheet(note, sheet):
+        raise not_found("This page isn't in the note any more.")
     row = db.get(NoteInk, (note.id, sheet))
     if (row.version if row is not None else 0) != body.version:
         raise conflict("ink_changed", "This page was written on in another tab or on another device.")
@@ -650,10 +762,12 @@ def get_ink(db: Session, user: User, note_id: uuid.UUID, sheet: int) -> InkSheet
 
 
 def delete_note(db: Session, user: User, note_id: uuid.UUID) -> None:
+    """Deletes the note; its files that no other note shows are released."""
     note = _own(db, user, note_id)
-    _let_go_of_files(db, Note.id == note.id)
+    shown = set(note.uploads or [])
     db.delete(note)
     db.flush()
+    _release(db, user, shown)
 
 
 # ── files ────────────────────────────────────────────────────────────────────────────────────
@@ -663,7 +777,7 @@ def file_url(db: Session, user: User, upload_id: uuid.UUID, *, download: bool, s
     """A short-lived link to one of the student's note files: shown in the browser (pictures and PDFs) unless
     `download`, which saves it under its name. Anyone else's file, and one not uploaded yet, answers 404."""
     up = db.get(Upload, upload_id)
-    if up is None or up.user_id != user.id or up.purpose != UploadPurpose.note_file or up.status not in LIVE_UPLOADS:
+    if up is None or up.user_id != user.id or up.purpose != UploadPurpose.note_file or up.status not in KEPT_UPLOADS:
         raise not_found("This file doesn't exist.")
     st = storage or get_storage()
     return st.presigned_get(

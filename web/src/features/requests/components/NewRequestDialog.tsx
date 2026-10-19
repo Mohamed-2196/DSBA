@@ -4,7 +4,7 @@
 // unconfirmed date it asks about.
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ApiError, errorMessage } from '../../../api/errors';
+import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../../../api/errors';
 import type { RequestCreate } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { formatShort, parseDay } from '../../../lib/dates';
@@ -21,6 +21,8 @@ import type { RequestKind } from '../types';
 
 const TITLE_MAX = 140;
 const DETAILS_MAX = 2000;
+/** The fields the API names in its errors, as the form shows them. */
+const REQUEST_FIELDS = ['kind', 'title', 'details', 'moduleId', 'wantedKind', 'examYear', 'zone', 'eventId'] as const;
 
 export interface NewRequestDialogProps {
   open: boolean;
@@ -128,7 +130,9 @@ export function NewRequestDialog({ open, onClose, kind: initialKind = null }: Ne
       },
       onError: (e) => {
         if (e instanceof ApiError && Object.keys(e.fields).length) {
-          setErrors(e.fields);
+          const placed = placeFieldErrors(e.fields, REQUEST_FIELDS);
+          const form = unplacedMessage(e, placed);
+          setErrors(form ? { ...placed.fields, form } : placed.fields);
           return;
         }
         setErrors({

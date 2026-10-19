@@ -1,17 +1,16 @@
-// Home's "Ask Noora anything…": one line that opens Noora's own page with the question (/noora?q=…), or empty.
+// Home's "Ask Noora anything…": one line that opens Noora's own page and asks the question there at once, in a new
+// chat; with nothing typed, it just opens the page.
 import { ArrowRight, ChatCircleDots } from '@phosphor-icons/react';
 import { useId, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { IconButton } from '../../ui';
+import { openNoora } from '../noora/public';
 
 export function AskNoora() {
   const [text, setText] = useState('');
-  const navigate = useNavigate();
   const id = useId();
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const q = text.trim();
-    navigate(q ? `/noora?q=${encodeURIComponent(q)}` : '/noora');
+    openNoora(text.trim() || undefined);
   };
   return (
     <form className="home-ask" onSubmit={submit} role="search" aria-label="Ask Noora" data-hub="home-ask-noora">

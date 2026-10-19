@@ -11,6 +11,8 @@ export interface ConfirmDialogProps {
   body?: ReactNode;
   /** the action, as a verb: "Delete", "Suspend" (never "OK" or "Yes") */
   confirmLabel: string;
+  /** the way out, when "Cancel" could be read as cancelling the work itself: "Keep editing" */
+  cancelLabel?: string;
   /** 'danger' for what can't be undone: the dialog then opens on Cancel, so Enter never destroys anything */
   tone?: 'primary' | 'danger';
   /** the action is running: both buttons wait, and Esc or the scrim don't close the dialog */
@@ -29,6 +31,7 @@ export function ConfirmDialog({
   title,
   body,
   confirmLabel,
+  cancelLabel = 'Cancel',
   tone = 'primary',
   busy = false,
   error,
@@ -46,7 +49,7 @@ export function ConfirmDialog({
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={busy} data-autofocus={danger ? true : undefined}>
-            Cancel
+            {cancelLabel}
           </Button>
           <Button
             variant={danger ? 'danger' : 'primary'}

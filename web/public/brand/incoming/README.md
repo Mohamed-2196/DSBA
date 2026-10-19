@@ -1,6 +1,6 @@
 # Incoming artwork
 
-Drop generated files here under these exact names. Prompts: `docs/design/asset-prompts.md`. A builder then moves each
+Drop generated files here under these exact names. Prompts: `docs/design/asset-prompts.md`, and `asset-prompts-round3.md` for Daily's games. A builder then moves each
 file to its home and wires it in. All PNGs are transparent unless noted.
 
 | File | Size | Goes to |
@@ -17,5 +17,6 @@ file to its home and wires it in. All PNGs are transparent unless noted.
 | `bust-neutral.png`, `bust-wave.png`, `bust-thinking.png`, `bust-laughing.png`, `bust-winking.png`, `bust-angry.png` | 600×600 | `web/public/noora/` (replace 1:1) |
 | `empty-nothing-due.png`, `empty-no-notes.png`, `empty-board.png`, `empty-offline.png`, `empty-search.png` | 800×600 | `web/public/illustrations/` |
 | `home-welcome.png` | 2400×800 | `web/public/illustrations/` (Home header) |
+| `daily-word.png`, `daily-groups.png`, `daily-search.png`, `daily-quiz.png`, `daily-nearest.png`, `daily-sudoku.png` | 1024×1024 | `web/public/daily/` (Daily's game tiles) |
 
 `noora-sheet.png` is the character reference only; keep it out of the app.

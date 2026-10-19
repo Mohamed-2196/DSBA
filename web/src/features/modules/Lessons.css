@@ -549,7 +549,7 @@
 .mod-offer__text {
   flex: 1 1 260px;
   min-width: 0;
-  max-width: 62ch;
+  max-width: var(--measure);
   color: var(--ink);
   font-size: var(--fs-14);
 }

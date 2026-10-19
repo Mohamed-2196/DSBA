@@ -6,7 +6,7 @@ import { cx } from '../../ui';
 import { useModuleDetail } from './api';
 import { useCareerData } from './context';
 import type { SkillFit } from './lib/fit';
-import { jumpTo } from './lib/jump';
+import { jumpTo, jumpToCert } from './lib/jump';
 import { appPath, lessonPath, libraryLink, resolveClose, type CloseStep } from './lib/links';
 import { ModuleLink } from './ModuleLink';
 
@@ -77,11 +77,7 @@ function CloseAction({ close }: { close: CloseStep }) {
     }
     case 'cert':
       return (
-        <button
-          type="button"
-          className="career-close"
-          onClick={() => jumpTo(`career-cert-${close.cert}`, { flash: true, block: 'center' })}
-        >
+        <button type="button" className="career-close" onClick={() => jumpToCert(close.cert)}>
           <CloseBody close={close} />
         </button>
       );

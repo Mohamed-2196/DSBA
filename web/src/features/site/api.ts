@@ -1,6 +1,6 @@
 // Site settings: the hub's own words and links (GET /site, for everyone), and their editor (admins). A save refreshes
 // what everyone sees: the footer, About, the sidebar's links, search and the grades calculator.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import type { SiteEditable, SiteSave } from '../../api/types';
 
@@ -16,14 +16,16 @@ export function useSite() {
   });
 }
 
+const editSiteQuery = queryOptions({
+  queryKey: EDIT_SITE_KEY,
+  queryFn: ({ signal }) => call(api.GET('/api/v1/site/edit', { signal })),
+  // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+});
+
 export function useSiteForEditing() {
-  return useQuery({
-    queryKey: EDIT_SITE_KEY,
-    queryFn: ({ signal }) => call(api.GET('/api/v1/site/edit', { signal })),
-    // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  });
+  return useQuery(editSiteQuery);
 }
 
 export function useSaveSite() {
@@ -37,8 +39,8 @@ export function useSaveSite() {
   });
 }
 
-/** Loads the settings again, as someone else saved them: the editor starts over from there. */
+/** Loads the settings again, as someone else saved them: the editor starts over from the copy it returns. */
 export function useReloadSite() {
   const qc = useQueryClient();
-  return () => qc.refetchQueries({ queryKey: EDIT_SITE_KEY, exact: true });
+  return () => qc.fetchQuery({ ...editSiteQuery, staleTime: 0 });
 }

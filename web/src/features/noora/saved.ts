@@ -1,8 +1,8 @@
 // Her conversations, kept in this browser only and never on the server. Both keys start with 'hub.mine.', so signing
 // out or deleting the account removes them (shared lab computers):
 //   hub.mine.noora.chat   (sessionStorage) the conversation open in this tab, so a reload carries on with it
-//   hub.mine.noora.chats  (localStorage)   every saved conversation, newest first: the full page's sidebar and the
-//                                          card's "Recent chats"
+//   hub.mine.noora.chats  (localStorage)   every saved conversation, the one with the newest message first: the full
+//                                          page's sidebar and the card's "Recent chats"
 // Pictures are kept only as their names: their object URLs end with the page. Stored JSON is checked before it is
 // trusted. Pure, apart from the two small sessionStorage helpers.
 import { daysBetween, todayKey } from '../../lib/dates';
@@ -82,7 +82,8 @@ export function titleOf(messages: readonly Message[]): string {
   return shorten(text);
 }
 
-/** The list with this conversation saved at its top (replacing its older copy), the oldest beyond the limit gone. */
+/** The list with this conversation saved (replacing its older copy), in the order of their newest messages: opening
+ *  an old conversation leaves it where it was. The oldest beyond the limit go. */
 export function withChat(list: readonly SavedChat[], id: string, messages: readonly Message[]): SavedChat[] {
   const before = list.find((c) => c.id === id);
   const others = list.filter((c) => c.id !== id);
@@ -92,7 +93,25 @@ export function withChat(list: readonly SavedChat[], id: string, messages: reado
   const chat: SavedChat = before?.named
     ? { id, at, title: before.title, named: true, messages: stored }
     : { id, at, title: titleOf(stored), messages: stored };
-  return [chat, ...others].slice(0, CHATS_MAX);
+  return [chat, ...others].sort((x, y) => y.at - x.at).slice(0, CHATS_MAX);
+}
+
+/** The messages with her reply in them: in its place when it is there already (still coming in), or after them. */
+export function withReply(messages: readonly Message[], reply: NooraMessage): Message[] {
+  return messages.some((m) => m.id === reply.id)
+    ? messages.map((m) => (m.id === reply.id ? reply : m))
+    : [...messages, reply];
+}
+
+/** The list once the student leaves conversation `id` for another: saved as it is, with the question just asked and
+ *  the answer on its way stopped where it was (`stopped`). Saving waits while she answers, so a switch saves here. */
+export function leaveChat(
+  list: readonly SavedChat[],
+  id: string,
+  messages: readonly Message[],
+  stopped: NooraMessage | null,
+): SavedChat[] {
+  return withChat(list, id, stopped ? withReply(messages, stopped) : messages);
 }
 
 /** The list with one conversation renamed. An empty name gives it back its first question. */

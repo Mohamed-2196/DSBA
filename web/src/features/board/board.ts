@@ -7,6 +7,7 @@ import type {
   BoardColumn,
   BoardPlan,
   BoardSummary,
+  BoardUsage,
   ChecklistItem,
 } from '../../api/types';
 import { formatSize } from '../../api/uploads';
@@ -149,6 +150,10 @@ export const FOLD_AFTER_DAYS = 14;
 export const cardsIn = (cards: readonly BoardCard[], columnId: string): BoardCard[] =>
   cards.filter((c) => c.columnId === columnId);
 
+/** Cards added here that the API hasn't answered for yet: they can't be opened, moved or deleted, and no move can
+ *  name one as the card to go after. */
+export const isUnsaved = (card: Pick<BoardCard, 'id'>): boolean => card.id.startsWith('new-');
+
 /** The cards column by column, as the API sends them; cards of a column that's gone go last. */
 export function inColumnOrder(cards: readonly BoardCard[], columns: readonly BoardColumn[]): BoardCard[] {
   const known = new Set(columns.map((c) => c.id));
@@ -193,7 +198,7 @@ export const appendCard = (
   card: BoardCard,
 ): BoardCard[] => inColumnOrder([...cards, card], columns);
 
-/** The card to go after when `id` is dropped right before `beforeId` in `columnId`. */
+/** The card to go after when `id` is dropped right before `beforeId` in `columnId`: the saved card closest above. */
 export function afterIdBefore(
   cards: readonly BoardCard[],
   id: string,
@@ -201,24 +206,31 @@ export function afterIdBefore(
   beforeId: string,
 ): string | null {
   const there = cardsIn(cards, columnId).filter((c) => c.id !== id);
-  const i = there.findIndex((c) => c.id === beforeId);
-  return i > 0 ? (there[i - 1]?.id ?? null) : null;
+  const above = there.slice(
+    0,
+    Math.max(
+      0,
+      there.findIndex((c) => c.id === beforeId),
+    ),
+  );
+  return above.filter((c) => !isUnsaved(c)).at(-1)?.id ?? null;
 }
 
-/** The last card of a column, leaving out `id`: where a card dropped on the column's free space goes after. */
+/** The last saved card of a column, leaving out `id`: where a card dropped on the column's free space goes after. */
 export function lastIn(cards: readonly BoardCard[], columnId: string, id: string | null): string | null {
   return (
     cardsIn(cards, columnId)
-      .filter((c) => c.id !== id)
+      .filter((c) => c.id !== id && !isUnsaved(c))
       .at(-1)?.id ?? null
   );
 }
 
-/** Where "Move up" and "Move down" put a card: the afterId for the move, or undefined when it can't go that way. */
+/** Where "Move up" and "Move down" put a card among the saved ones: the afterId for the move, or undefined when it
+ *  can't go that way. */
 export function nudge(cards: readonly BoardCard[], id: string, by: -1 | 1): string | null | undefined {
   const card = cards.find((c) => c.id === id);
   if (!card) return undefined;
-  const there = cardsIn(cards, card.columnId);
+  const there = cardsIn(cards, card.columnId).filter((c) => c.id === id || !isUnsaved(c));
   const to = there.findIndex((c) => c.id === id) + by;
   if (to < 0 || to >= there.length) return undefined;
   const others = there.filter((c) => c.id !== id);
@@ -357,6 +369,10 @@ export const NO_FILTER: CardFilter = { labels: [], due: 'any' };
 
 export const isFiltering = (f: CardFilter): boolean => f.labels.length > 0 || f.due !== 'any';
 
+/** The filter without the labels that are gone (deleted while they were chosen). */
+export const withExistingLabels = (f: CardFilter, exists: (labelId: string) => boolean): CardFilter =>
+  f.labels.every(exists) ? f : { ...f, labels: f.labels.filter(exists) };
+
 /** Does the card pass the filter? Every chosen label must be on it; the due filter looks at cards not done. */
 export function matches(card: BoardCard, f: CardFilter, today: DayKey): boolean {
   if (f.labels.some((l) => !card.labelIds.includes(l))) return false;
@@ -368,6 +384,10 @@ export function matches(card: BoardCard, f: CardFilter, today: DayKey): boolean 
   if (f.due === 'today') return due === today;
   return due >= today && due <= addDaysToKey(today, 7);
 }
+
+/** How far ahead the agenda looks, in days: the boards' Today and Home's To-do. Cards without a date stay on the
+ *  boards. */
+export const TODAY_DAYS = 7;
 
 export interface AgendaSection {
   id: 'overdue' | 'today' | 'tomorrow' | 'week';
@@ -425,7 +445,7 @@ export function sittingsDone(papers: readonly Paper[], done: ReadonlySet<string>
   return { done: finished.size, total: all.size };
 }
 
-/** A practice score as typed: a whole or half percentage from 0 to 100, or null when left empty. */
+/** A practice score as typed: a percentage from 0 to 100 with one decimal at most, or null when left empty. */
 export function parseScore(raw: string): number | null | undefined {
   const t = raw.trim().replace(/%$/, '').trim();
   if (!t) return null;
@@ -437,4 +457,20 @@ export function parseScore(raw: string): number | null | undefined {
 /** "3.4 MB of 200 MB". */
 export function storageText(used: number, max: number): string {
   return `${formatSize(used)} of ${formatSize(max)}`;
+}
+
+/** How full a limit gets before the boards say so. */
+const NEAR_LIMIT = 0.8;
+
+/** The limits worth a line under the boards: those past 80% ("17 of 20 boards"); none most of the time. */
+export function limitsNear(usage: BoardUsage): string[] {
+  const near = (used: number, max: number) => used >= max * NEAR_LIMIT;
+  const n = (v: number) => v.toLocaleString('en-GB');
+  return [
+    near(usage.boards, usage.maxBoards) ? `${n(usage.boards)} of ${n(usage.maxBoards)} boards` : null,
+    near(usage.cards, usage.maxCards) ? `${n(usage.cards)} of ${n(usage.maxCards)} cards` : null,
+    near(usage.storageBytes, usage.maxStorageBytes)
+      ? `${storageText(usage.storageBytes, usage.maxStorageBytes)} of files`
+      : null,
+  ].filter((line): line is string => line !== null);
 }

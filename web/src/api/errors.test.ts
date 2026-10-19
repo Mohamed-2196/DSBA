@@ -4,11 +4,14 @@ import {
   NETWORK_MESSAGE,
   SERVER_MESSAGE,
   errorMessage,
+  fieldKey,
   isApiError,
   isFeatureOff,
   isNetworkError,
   loadProblem,
+  placeFieldErrors,
   toApiError,
+  unplacedMessage,
 } from './errors';
 
 const response = (status: number) => new Response(null, { status });
@@ -28,6 +31,31 @@ describe('toApiError', () => {
       error: { code: 'invalid_input', message: 'Some fields are not valid.', fields: { title: 'Too short.' } },
     });
     expect(e.fields).toEqual({ title: 'Too short.' });
+  });
+
+  it('names every field as forms do, whatever the location the key starts with', () => {
+    const e = toApiError(response(422), {
+      error: {
+        code: 'invalid_input',
+        message: 'Some fields are not valid.',
+        fields: {
+          title: 'Too short.',
+          'body.summary': 'Too long.',
+          'query.page': 'Use a whole number.',
+          'data.groups.level': 'Pick a level.',
+          'links.0.url': 'Use an https:// link.',
+          body: 'Write something.',
+        },
+      },
+    });
+    expect(e.fields).toEqual({
+      title: 'Too short.',
+      summary: 'Too long.',
+      page: 'Use a whole number.',
+      'data.groups.level': 'Pick a level.',
+      'links.0.url': 'Use an https:// link.',
+      body: 'Write something.',
+    });
   });
 
   it('falls back to a plain message when the body is not the API shape', () => {
@@ -101,5 +129,89 @@ describe('isFeatureOff', () => {
     ).toBe(true);
     expect(isFeatureOff(new ApiError({ status: 404, code: 'not_found', message: 'Not here.' }))).toBe(false);
     expect(isFeatureOff(new Error('feature_off'))).toBe(false);
+  });
+});
+
+describe('fieldKey', () => {
+  it('keeps one-part, nested and list keys as they are', () => {
+    expect(fieldKey('title')).toBe('title');
+    expect(fieldKey('data.tagline')).toBe('data.tagline');
+    expect(fieldKey('data.groups.level')).toBe('data.groups.level');
+    expect(fieldKey('links.0.url')).toBe('links.0.url');
+  });
+
+  it('drops the location the value came from, but not a field called body', () => {
+    expect(fieldKey('body.title')).toBe('title');
+    expect(fieldKey('body.links.0.url')).toBe('links.0.url');
+    expect(fieldKey('query.q')).toBe('q');
+    expect(fieldKey('body')).toBe('body');
+    expect(fieldKey('request')).toBe('request');
+  });
+});
+
+describe('placeFieldErrors', () => {
+  const names = ['title', 'body', 'tags', 'links', 'links.0.url', 'data.level'] as const;
+
+  it('puts a one-part key on its field', () => {
+    expect(placeFieldErrors({ title: 'Too short.' }, names)).toEqual({ fields: { title: 'Too short.' }, other: [] });
+  });
+
+  it('puts a location-prefixed key on its field', () => {
+    expect(placeFieldErrors({ 'body.title': 'Too short.', body: 'Write something.' }, names).fields).toEqual({
+      title: 'Too short.',
+      body: 'Write something.',
+    });
+  });
+
+  it('puts a nested key on its field, or on the closest field it lies under', () => {
+    expect(placeFieldErrors({ 'data.level': 'Pick a level.' }, names).fields).toEqual({
+      'data.level': 'Pick a level.',
+    });
+    expect(placeFieldErrors({ 'data.groups.level': 'Pick a level.' }, names)).toEqual({
+      fields: {},
+      other: ['Pick a level.'],
+    });
+  });
+
+  it('puts a list item’s key on the item’s field, or on the list', () => {
+    expect(
+      placeFieldErrors(
+        { 'links.0.url': 'Use an https:// link.', 'links.1.url': 'Give the link.', 'tags.2': 'Too long.' },
+        names,
+      ).fields,
+    ).toEqual({ 'links.0.url': 'Use an https:// link.', links: 'Give the link.', tags: 'Too long.' });
+  });
+
+  it('keeps what no field shows, once each, and the first message for a field', () => {
+    expect(
+      placeFieldErrors(
+        {
+          request: 'The request isn’t valid.',
+          version: 'Field required',
+          'tags.0': 'Too long.',
+          'tags.1': 'Too short.',
+          titles: 'x',
+        },
+        names,
+      ),
+    ).toEqual({ fields: { tags: 'Too long.' }, other: ['The request isn’t valid.', 'Field required', 'x'] });
+  });
+});
+
+describe('unplacedMessage', () => {
+  const refused = (fields: Record<string, string>) =>
+    new ApiError({ status: 422, code: 'invalid_input', message: 'Title is too short.', fields });
+
+  it('is the API’s message when no field shows any of it', () => {
+    const e = refused({ request: 'The request isn’t valid.' });
+    expect(unplacedMessage(e, placeFieldErrors(e.fields, ['title']))).toBe('Title is too short.');
+  });
+
+  it('is what no field shows, or null when every message is on a field', () => {
+    const some = refused({ title: 'Too short.', version: 'Field required' });
+    expect(unplacedMessage(some, placeFieldErrors(some.fields, ['title']))).toBe('Field required');
+    const all = refused({ 'body.title': 'Too short.' });
+    expect(unplacedMessage(all, placeFieldErrors(all.fields, ['title']))).toBeNull();
+    expect(unplacedMessage(null, placeFieldErrors({}, ['title']))).toBeNull();
   });
 });

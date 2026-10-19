@@ -14,6 +14,7 @@
 .ui-field__hint {
   font-size: var(--fs-12);
   color: var(--ink-2);
+  max-width: var(--measure);
 }
 .ui-field__error {
   display: flex;

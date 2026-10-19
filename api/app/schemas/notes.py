@@ -20,6 +20,8 @@ MAX_SHEETS = 300  # paper sheets in one note (a PDF's pages come on top)
 # whole line), a PDF page keeps its own shape.
 SHEET_WIDTH = 800
 SHEET_HEIGHT = 1120
+# Sheets 0-999 are a PDF's pages (0 its first); paper sheets count from PAPER_SHEETS_FROM (the first).
+PAPER_SHEETS_FROM = 1000
 # One sheet's ink, as JSON: a dense handwritten page is 50 to 100 KB. Every read of a sheet stays small.
 SHEET_MAX_BYTES = 512_000
 # A request to save one sheet is refused unread above this (core/limits.py): the numbers it sends may be longer than
@@ -120,8 +122,9 @@ class InkInfo(ApiModel):
 
 
 class NoteFields(ApiModel):
-    """What a student writes: a title, the typed text (a ProseMirror document: services/note_doc.py lists what it
-    may hold), the paper, how many paper sheets, and the lesson it is about (in the notebook's module)."""
+    """What a student writes: a title, the typed text and its pictures, in the text or free on the pages (a ProseMirror
+    document: services/note_doc.py lists what it may hold), the paper, how many paper sheets, and the lesson it is about
+    (in the notebook's module)."""
 
     title: Title = ""
     doc: dict[str, Any] = Field(default_factory=lambda: {"type": "doc", "content": []})
@@ -150,6 +153,23 @@ class NoteUpdate(NoteFields):
 
     notebook_id: UUID
     version: int = Field(ge=1)
+
+
+class PageChange(ApiModel):
+    """A change to a note's pages of paper, made at once with the version it was loaded at: `insert` a blank page at
+    `page` (0 up to the number of pages: that many adds one at the end), `delete` page `page`, or `move` page `page`
+    to place `to`. The handwriting and the free pictures go with their pages."""
+
+    action: Literal["insert", "delete", "move"]
+    page: int = Field(ge=0, lt=MAX_SHEETS)
+    to: int | None = Field(default=None, ge=0, lt=MAX_SHEETS)
+    version: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def _where_to(self) -> PageChange:
+        if (self.action == "move") != (self.to is not None):
+            raise ValueError("A page moves to a place (`to`), and only a move has one.")
+        return self
 
 
 class AnnotateRequest(ApiModel):

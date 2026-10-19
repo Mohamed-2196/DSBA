@@ -421,6 +421,13 @@ settings, the guides, Mini Noora, the grade rules, the newsletter's settings and
   in the API's `field_name()`, and Career moved onto `docErrors`; ids that never repeat (a random suffix) for anything
   students keep marks or ticks against; `useId()` for the heading and a ref for the status; one number field in
   `src/ui` (the grades editor's `WholeField`).
+- **Status: fixed.** `docErrors` files a one-part key (`data.copyrightHolder`) on its field, each editor names its
+  whole parts and its unions, and Career uses it (`2bbd498`); new ids end in random letters; `WholeNumberField` is in
+  `src/ui`. Every other form now places the API's errors one way: `ApiError` drops a leading `body.`/`query.` from each
+  key (`fieldKey`), and `placeFieldErrors` puts a key on its field or the closest field it lies under (`tags.1` under
+  Tags) and keeps the rest for the form's message (`unplacedMessage`), tested in `api/errors.test.ts`. The Daily
+  dialogs, the forum's thread forms, the calendar's two dialogs, the profile, a request, a video suggestion and a new
+  issue use it, so a message no field shows is never dropped.
 
 ### CQ-63. Students still can't ask for an RTC paper in the app, and zones are still written by hand (major, S)
 

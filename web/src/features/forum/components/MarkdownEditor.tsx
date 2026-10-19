@@ -21,9 +21,8 @@ import {
   TextItalic,
   type Icon,
 } from '@phosphor-icons/react';
-import { Field, IconButton, SegmentedControl, cx, modKeyLabel } from '../../../ui';
+import { Field, IconButton, SegmentedControl, cx, modKeyLabel, useScrollFade } from '../../../ui';
 import { bold, bulletList, code, italic, link, numberedList, quote, type EditFn } from '../lib/editing';
-import { useScrollFade } from '../lib/useScrollFade';
 import { Prose } from './Prose';
 import './forum.css';
 
@@ -168,7 +167,7 @@ export function MarkdownEditor({
           <div className="forum-editor__bar">
             <div
               ref={toolsRef}
-              className="forum-editor__tools"
+              className="forum-editor__tools u-scroll-row"
               role="toolbar"
               aria-label="Formatting"
               aria-controls={fid}

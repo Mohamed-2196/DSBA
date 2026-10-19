@@ -1,31 +1,33 @@
-// UX-3: unsaved edits are never thrown away by a stray navigation. While `active`, every way of leaving the page
-// inside the Hub (a link, the sidebar, a breadcrumb, a notification, the ⌘K palette, Back and Forward) is held until
-// the rep says whether to leave (useBlocker: the app runs on a data router, see App.tsx), and reloading or closing
-// the tab asks the browser's own question. The editor's own navigations, after saving or deleting, go through
-// `bypass`: they leave nothing behind.
+// Unsaved edits are never thrown away by a stray navigation. While `active`, every way of leaving inside the hub (a
+// link, the sidebar, a breadcrumb, a notification, the ⌘K palette, Back and Forward) waits until the person says
+// whether to leave (useBlocker: the app runs on a data router, see App.tsx), and reloading or closing the tab asks the
+// browser's own question. React Router holds one blocker at a time, so a page with several editors has one guard
+// (Manage's, fed by state/unsaved.ts). An editor's own navigations, after saving or deleting, go through `bypass`.
 import { useCallback, useEffect, useRef } from 'react';
-import { useBlocker, type BlockerFunction } from 'react-router-dom';
+import { useBlocker, type BlockerFunction, type Location } from 'react-router-dom';
 
 export interface LeaveGuard {
-  /** a navigation is waiting for the rep's answer */
+  /** a navigation is waiting for the answer */
   asking: boolean;
   /** stay on the page */
   stay: () => void;
-  /** go where the navigation wanted to (the edits stay unsaved; this device keeps a copy) */
+  /** go where the navigation wanted to (the edits stay unsaved) */
   leave: () => void;
   /** run one of the editor's own navigations without asking */
   bypass: (go: () => void) => void;
 }
 
-export function useLeaveGuard(active: boolean): LeaveGuard {
+/** Whether going from one address to another loses the edits. */
+export type Loses = (from: Location, to: Location) => boolean;
+
+/** Another page loses them, not an anchor on this one. */
+const toAnotherPage: Loses = (from, to) => from.pathname !== to.pathname || from.search !== to.search;
+
+export function useLeaveGuard(active: boolean, loses: Loses = toAnotherPage): LeaveGuard {
   const passing = useRef(false);
-  // Only another page asks, not an anchor on this one.
   const shouldBlock = useCallback<BlockerFunction>(
-    ({ currentLocation, nextLocation }) =>
-      active &&
-      !passing.current &&
-      (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search),
-    [active],
+    ({ currentLocation, nextLocation }) => active && !passing.current && loses(currentLocation, nextLocation),
+    [active, loses],
   );
   const blocker = useBlocker(shouldBlock);
 
@@ -40,7 +42,7 @@ export function useLeaveGuard(active: boolean): LeaveGuard {
   }, [active]);
 
   // Saved (or discarded) while the question was open: nothing is left to lose, so the question goes away and the
-  // rep stays; following the link again goes straight there.
+  // person stays; following the link again goes straight there.
   useEffect(() => {
     if (blocker.state === 'blocked' && !active) blocker.reset();
   }, [blocker, active]);

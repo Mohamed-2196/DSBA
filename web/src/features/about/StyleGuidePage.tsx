@@ -55,10 +55,13 @@ import {
   Tabs,
   TextArea,
   TextField,
+  WholeNumberField,
   Tooltip,
   cx,
 } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, useCalendarEvents, type EventType } from '../calendar/public';
+import { GameColours } from '../daily/public';
+import { scrollMotion } from '../../lib/motion';
 import './StyleGuidePage.css';
 
 // ── Reference data ────────────────────────────────────────────────────────
@@ -228,7 +231,7 @@ function useEventCounts(): { counts: Partial<Record<EventType, number>>; total: 
 
 // ── Building blocks of this page ──────────────────────────────────────────
 function scrollToSection(id: string) {
-  document.getElementById(`sg-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById(`sg-${id}`)?.scrollIntoView({ behavior: scrollMotion(), block: 'start' });
 }
 
 function Section({
@@ -409,6 +412,7 @@ export default function StyleGuidePage() {
   const [view, setView] = useState('table');
   const [year, setYear] = useState<CohortYear>(2);
   const [query, setQuery] = useState('');
+  const [weeks, setWeeks] = useState(6);
   const [modal, setModal] = useState(false);
   const [drawer, setDrawer] = useState<'right' | 'bottom' | null>(null);
   const [loading, setLoading] = useState(false);
@@ -564,6 +568,14 @@ export default function StyleGuidePage() {
                   <Swatch key={token} token={token} use={use} />
                 ))}
               </ul>
+            </div>
+            <div className="sg-colour-group">
+              <h3 className="sg-subhead">Daily’s game colours</h3>
+              <p className="sg-caption">
+                From <code>features/daily/daily.css</code>: each fill with the text it carries, light theme then dark,
+                and the contrast measured here. Text needs 4.5:1.
+              </p>
+              <GameColours />
             </div>
             <div className="sg-colour-group">
               <h3 className="sg-subhead">Calendar event types</h3>
@@ -874,10 +886,10 @@ export default function StyleGuidePage() {
           >
             <div className="sg-grid sg-grid--2">
               <Specimen
-                title="TextField"
-                note="label, hint, error, required, leadingIcon, trailing, size md | lg"
+                title="TextField, WholeNumberField"
+                note="label, hint, error, required, leadingIcon, trailing, size md | lg; a whole number kept in range"
                 stageClassName="sg-stage--column sg-stage--form"
-                code={`<TextField label="Thread title" hint="Ask one clear question." required />\n<TextField label="Final mark" error="Enter a mark between 0 and 100." />`}
+                code={`<TextField label="Thread title" hint="Ask one clear question." required />\n<TextField label="Final mark" error="Enter a mark between 0 and 100." />\n<WholeNumberField label="For how many weeks" min={1} max={20} value={weeks} onValue={setWeeks} />`}
               >
                 <TextField
                   label="Thread title"
@@ -893,6 +905,14 @@ export default function StyleGuidePage() {
                   trailing="%"
                 />
                 <TextField label="Your name" leadingIcon={User} defaultValue={SAMPLE_NAME} />
+                <WholeNumberField
+                  label="For how many weeks"
+                  hint="1 to 20. Clear it and type again: it never becomes 0."
+                  min={1}
+                  max={20}
+                  value={weeks}
+                  onValue={setWeeks}
+                />
               </Specimen>
               <Specimen
                 title="TextArea, Select"

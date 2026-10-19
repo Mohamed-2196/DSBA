@@ -252,7 +252,8 @@ class SweepReport:
 
 
 def sweep() -> SweepReport:
-    """Deletes uploads never attached to anything, or board files off their card (objects first, then rows), old
+    """Deletes uploads never attached to anything, note files no note shows any more (released) and board files off
+    their card (objects first, then rows), old
     sign-in codes, sessions that ended long ago, the files of library items rejected or removed a week ago, the
     addresses kept on bug reports and the screenshots of reports closed long ago. Safe to run at any time and to
     run again."""
@@ -264,7 +265,7 @@ def sweep() -> SweepReport:
     storage = get_storage()
     with get_sessionmaker()() as db:
         unused = or_(
-            Upload.status != UploadStatus.attached,
+            Upload.status != UploadStatus.attached,  # never attached, or a note file released
             (Upload.purpose == UploadPurpose.board) & Upload.card_id.is_(None),  # off its card, or the card is gone
         )
         stale = db.scalars(select(Upload).where(unused, Upload.created_at < now - UPLOAD_GRACE)).all()
@@ -549,7 +550,12 @@ def cmd_enable_features(_: argparse.Namespace) -> int:
             if state is not None and state.mode == "everyone":
                 continue
             access.store_switch(db, feature, "everyone", (), by=None)
-            change = {"feature": feature.value, "from": state.mode if state else "off", "to": "everyone"}
+            change = {
+                "feature": feature.value,
+                "label": FEATURES[feature].label,
+                "from": state.mode if state else "off",
+                "to": "everyone",
+            }
             record(db, None, "feature.switch", "feature", feature.value, change)
             turned_on.append(feature.value)
         db.commit()

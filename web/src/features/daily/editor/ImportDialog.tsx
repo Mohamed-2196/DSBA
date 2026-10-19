@@ -3,9 +3,9 @@
 // why; "Add" adds the rows that pass, together, in one entry of the activity log.
 import { Check, WarningCircle } from '@phosphor-icons/react';
 import { useState } from 'react';
-import { errorMessage, isApiError } from '../../../api/errors';
+import { isApiError, placeFieldErrors, unplacedMessage } from '../../../api/errors';
 import type { ImportReport, ThemeOut } from '../../../api/types';
-import { useToast } from '../../../state';
+import { useToast, useUnsavedChanges } from '../../../state';
 import { Button, Modal, Select, Switch, TextArea, cx, formatCount } from '../../../ui';
 import { useImportItems } from './api';
 import { gameInfo, type ContentGame } from './lib/items';
@@ -24,6 +24,7 @@ export function ImportDialog({ game, themes, defaultTheme, onClose }: ImportDial
   const [theme, setTheme] = useState(defaultTheme || themes[0]?.id || '');
   const [text, setText] = useState('');
   const [addGuesses, setAddGuesses] = useState(true);
+  useUnsavedChanges(text.trim() !== '', 'the import');
   const check = useImportItems();
   const commit = useImportItems();
   const { push: toast } = useToast();
@@ -31,7 +32,9 @@ export function ImportDialog({ game, themes, defaultTheme, onClose }: ImportDial
   const ready = report ? report.rows.filter((r) => r.problem === null).length : 0;
   const refused = report ? report.rows.length - ready : 0;
   const error = check.error ?? commit.error;
-  const fieldErrors = isApiError(error) ? error.fields : {};
+  const placed = placeFieldErrors(isApiError(error) ? error.fields : {}, ['theme', 'text']);
+  const fieldErrors = placed.fields;
+  const general = unplacedMessage(error, placed);
   const busy = check.isPending || commit.isPending;
   const themeTitle = themes.find((t) => t.id === theme)?.title ?? theme;
   const body = { game, theme, text, addGuesses: game === 'word' ? addGuesses : false };
@@ -121,9 +124,9 @@ export function ImportDialog({ game, themes, defaultTheme, onClose }: ImportDial
             description="An answer word must be in the guess list, so players can type it."
           />
         ) : null}
-        {error && !Object.keys(fieldErrors).length ? (
+        {general ? (
           <p className="dcms__error" role="alert">
-            {errorMessage(error)}
+            {general}
           </p>
         ) : null}
         {report ? (

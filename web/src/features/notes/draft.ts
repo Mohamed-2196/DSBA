@@ -5,6 +5,7 @@
 import type { InkSheet, Note, Stroke } from '../../api/types';
 import { removeStored } from '../../state';
 import { bindStored, readStored } from '../../state/storedValue';
+import { joinFormulaLines, lineParts, plainText, type MathPart } from './text/mathText';
 
 /** A ProseMirror document as the text editor keeps it. */
 export type RichDoc = Note['doc'];
@@ -57,7 +58,18 @@ export const docOf = (note: Note): NoteDoc => ({
   notebookId: note.notebookId,
 });
 
-const sameJson = (a: unknown, b: unknown): boolean => a === b || JSON.stringify(a) === JSON.stringify(b);
+const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+
+/** JSON with every object's keys in order: the database keeps a document's keys in an order of its own, so two
+ *  documents that say the same thing are the same text this way. */
+export function stableJson(value: unknown): string {
+  return JSON.stringify(value, (_key, v: unknown) =>
+    isRecord(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v,
+  );
+}
+
+/** Whether two values say the same, whatever the order of their keys. */
+export const sameJson = (a: unknown, b: unknown): boolean => a === b || stableJson(a) === stableJson(b);
 
 export const sameDoc = (a: NoteDoc | null | undefined, b: NoteDoc | null | undefined): boolean =>
   !!a &&
@@ -69,7 +81,6 @@ export const sameDoc = (a: NoteDoc | null | undefined, b: NoteDoc | null | undef
   a.notebookId === b.notebookId &&
   sameJson(a.doc, b.doc);
 
-const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const PAPERS: readonly Paper[] = ['blank', 'lined', 'grid', 'dotted'];
 
 /** A stored draft, or null when there is none or what is stored isn't a draft (storage edited by hand). */
@@ -172,28 +183,23 @@ export function openInk(
   return { sheets, pending, changed };
 }
 
-/** What a note is called in lists: its title, else its first line, else "Untitled note". */
-export function noteLabel(note: { title: string; text?: string; excerpt?: string }): string {
+/** What a note is called in lists: its title, else its first line (formulas and all), else "Untitled note". */
+export function labelParts(note: { title: string; text?: string; excerpt?: string }): MathPart[] {
   const title = note.title.trim();
-  if (title) return title;
-  const first = (note.text ?? note.excerpt ?? '')
+  if (title) return [{ kind: 'text', text: title }];
+  const first = joinFormulaLines(note.text ?? note.excerpt ?? '')
     .split('\n')
     .map((l) => l.replace(/^\[[ x]\]\s*/, '').trim())
     .find(Boolean);
-  if (!first) return 'Untitled note';
-  return first.length > 80 ? `${first.slice(0, 79)}…` : first;
+  const parts = first ? lineParts(first, 80) : [];
+  return parts.length ? parts : [{ kind: 'text', text: 'Untitled note' }];
 }
+
+/** What a note is called where nothing is set (a page's title, a dialog's): its formulas as their LaTeX. */
+export const noteLabel = (note: { title: string; text?: string; excerpt?: string }): string =>
+  plainText(labelParts(note));
 
 /** A lesson, as the notes name it: 'Chapter 2, video 1', or 'A lesson' while (or when) it isn't in the module. */
 export function lessonLabel(place: { c: number; v: number } | null): string {
   return place ? `Chapter ${place.c + 1}, video ${place.v + 1}` : 'A lesson';
-}
-
-/** The start of a note's text as one plain line, for lists. */
-export function plainExcerpt(text: string, max = 160): string {
-  const plain = text
-    .replace(/\$\$?([^$]*)\$\$?/g, '$1')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return plain.length > max ? `${plain.slice(0, max - 1)}…` : plain;
 }

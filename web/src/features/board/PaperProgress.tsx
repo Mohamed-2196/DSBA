@@ -2,9 +2,8 @@ import { CheckCircle } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import { useAuth } from '../../auth';
 import { Badge } from '../../ui';
-import { useBoardLinks } from './api';
+import { useBoardLinks, usePaperScores } from './api';
 import { sittingsDone, type Paper } from './board';
-import { usePaperScores } from './scores';
 
 /** The library items done on the signed-in student's boards (none for guests, or with the board off). */
 function useDoneItems(): Set<string> {
@@ -31,9 +30,9 @@ export function SittingsDone({ papers, className }: { papers: readonly Paper[]; 
 /** "Done" (with the private score, if there is one) for a paper done on the board. */
 export function PaperDone({ itemId }: { itemId: string }) {
   const done = useDoneItems();
-  const [scores] = usePaperScores();
+  // Done means signed in with the board on: only then are the scores read.
+  const score = usePaperScores({ enabled: done.has(itemId) }).data?.[itemId];
   if (!done.has(itemId)) return null;
-  const score = scores[itemId];
   return (
     <Badge tone="signal" size="sm" icon={CheckCircle}>
       {score == null ? 'Done' : `Done, ${score}%`}

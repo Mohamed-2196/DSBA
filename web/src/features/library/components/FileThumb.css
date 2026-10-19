@@ -82,8 +82,6 @@
   color: var(--ink-2);
   font-size: 30px;
   font-weight: var(--fw-bold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 .lib-cover__code {
   margin-top: 36px;

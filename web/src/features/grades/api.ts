@@ -1,6 +1,6 @@
 // The grades calculator's rules (GET /grades/rules), which admins edit in Manage → Grades calculator. The calculator
 // applies them in the browser: students' marks never reach the server.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import type { GradeRulesEditable, GradeRulesSave } from '../../api/types';
 import { PAPER_CHOICES_KEY } from '../papers/public';
@@ -19,14 +19,16 @@ export function useGradeRules() {
 // Outside the rules' own key, so refreshing them never refetches the editor's copy.
 const EDIT_RULES_KEY = ['grade-rules-edit'] as const;
 
+const editRulesQuery = queryOptions({
+  queryKey: EDIT_RULES_KEY,
+  queryFn: ({ signal }) => call(api.GET('/api/v1/grades/rules/edit', { signal })),
+  // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+});
+
 export function useGradeRulesForEditing() {
-  return useQuery({
-    queryKey: EDIT_RULES_KEY,
-    queryFn: ({ signal }) => call(api.GET('/api/v1/grades/rules/edit', { signal })),
-    // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  });
+  return useQuery(editRulesQuery);
 }
 
 export function useSaveGradeRules() {
@@ -41,7 +43,8 @@ export function useSaveGradeRules() {
   });
 }
 
+/** Loads the rules again, as someone else saved them: the editor starts over from the copy it returns. */
 export function useReloadGradeRules() {
   const qc = useQueryClient();
-  return () => qc.refetchQueries({ queryKey: EDIT_RULES_KEY, exact: true });
+  return () => qc.fetchQuery({ ...editRulesQuery, staleTime: 0 });
 }

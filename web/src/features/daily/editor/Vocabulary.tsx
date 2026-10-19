@@ -2,9 +2,9 @@
 // listed as very close. Any change ranks the secret words again; the days that are out keep their rankings.
 import { PencilSimple, Plus, Trash, X } from '@phosphor-icons/react';
 import { useId, useState, type KeyboardEvent } from 'react';
-import { errorMessage, isApiError } from '../../../api/errors';
+import { errorMessage, isApiError, placeFieldErrors, unplacedMessage } from '../../../api/errors';
 import type { VocabularyOut } from '../../../api/types';
-import { useDebouncedValue, useToast } from '../../../state';
+import { useDebouncedValue, useToast, useUnsavedChanges } from '../../../state';
 import {
   Badge,
   Button,
@@ -171,14 +171,17 @@ function WordDialog({
   const [text, setText] = useState(word?.word ?? '');
   const [tags, setTags] = useState<string[]>(word?.tags ?? []);
   const [near, setNear] = useState<string[]>(word?.near ?? []);
+  const [opened] = useState(() => JSON.stringify({ text, tags, near }));
+  useUnsavedChanges(JSON.stringify({ text, tags, near }) !== opened, 'the word');
   const add = useAddVocabulary();
   const save = useSaveVocabulary();
   const { push: toast } = useToast();
   const pending = add.isPending || save.isPending;
   const error = word ? save.error : add.error;
-  const fields = isApiError(error) ? error.fields : {};
+  const placed = placeFieldErrors(isApiError(error) ? error.fields : {}, ['word', 'tags', 'near']);
+  const fields = placed.fields;
   const changed = isApiError(error) && error.code === 'puzzle_changed';
-  const general = error && !Object.keys(fields).length && !changed ? errorMessage(error) : null;
+  const general = changed ? null : unplacedMessage(error, placed);
 
   const submit = () => {
     const done = () => {

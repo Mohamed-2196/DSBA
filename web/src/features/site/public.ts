@@ -5,6 +5,8 @@
 //   contributorLine(), copyrightYears(), httpsHref(), notesInLibrary()   reading them
 //   <SiteEditor />   Manage → Site settings (admins)
 // The editing kit every document edited whole in Manage shares (DocFrame, ListEditor, ...) is in src/ui (docEditor/).
+import { lazy } from 'react';
 export { useSite } from './api';
 export { contributorLine, copyrightYears, httpsHref, notesInLibrary, type SiteLinkKey } from './lib/site';
-export { SiteEditor } from './SiteEditor';
+// Manage's editor loads with Manage (inside its Suspense), so no other page carries it.
+export const SiteEditor = lazy(() => import('./SiteEditor').then((m) => ({ default: m.SiteEditor })));

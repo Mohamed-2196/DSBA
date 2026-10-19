@@ -14,12 +14,13 @@ from __future__ import annotations
 
 import datetime as dt
 import json
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import insert, select
+from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from app.models import (
@@ -267,17 +268,44 @@ def daily_guess_words() -> list[str]:
 
 
 def load_daily(db: Session) -> int:
-    """Once, into an empty Daily: the themes, out of the rotation until they have puzzles, and the guess list. The
-    puzzles (answers, groups, questions, vocabulary) stay out of the public repository: they come from a content
-    file (`python -m app.cli daily-content import FILE`) or from Manage."""
-    if db.scalar(select(DailyTheme.id).limit(1)) is not None or db.scalar(select(DailyGuessWord.word).limit(1)):
-        return 0
-    themes = json.loads((DAILY / "themes.json").read_text(encoding="utf-8"))
-    for position, t in enumerate(themes):
-        db.add(DailyTheme(id=t["id"], title=t["title"], blurb=t["blurb"], position=position, in_rotation=False))
-    db.execute(insert(DailyGuessWord), [{"word": w} for w in daily_guess_words()])
+    """The themes, once, into a Daily that has none (out of the rotation until they have puzzles), and the word game's
+    guess list into a Daily whose list is short. The puzzles (answers, groups, questions, vocabulary) stay out of the
+    public repository: they come from a content file (`python -m app.cli daily-content import FILE`) or from Manage."""
+    added = 0
+    if db.scalar(select(DailyTheme.id).limit(1)) is None:
+        themes = json.loads((DAILY / "themes.json").read_text(encoding="utf-8"))
+        for position, t in enumerate(themes):
+            db.add(DailyTheme(id=t["id"], title=t["title"], blurb=t["blurb"], position=position, in_rotation=False))
+        added += len(themes)
+    added += top_up_guess_list(db)
     db.flush()
-    return len(themes)
+    return added
+
+
+# A guess list shorter than this never got the shipped one (a content file loaded first brings its answers only), and
+# the word game refuses everyday guesses. Editors take words off a full list one by one, never this many.
+SHORT_GUESS_LIST = 5_000
+
+
+def guess_list_size(db: Session) -> int:
+    return db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0
+
+
+def top_up_guess_list(db: Session) -> int:
+    """The shipped guess list, into a list that is short; a full list keeps the words editors took off it. How many
+    words it added."""
+    if guess_list_size(db) >= SHORT_GUESS_LIST:
+        return 0
+    return add_guess_words(db, daily_guess_words())
+
+
+def add_guess_words(db: Session, words: Sequence[str]) -> int:
+    """The words the guess list lacks, added; how many."""
+    if not words:
+        return 0
+    before = guess_list_size(db)
+    db.execute(pg_insert(DailyGuessWord).on_conflict_do_nothing(), [{"word": w} for w in words])
+    return guess_list_size(db) - before
 
 
 # Order matters: Drive folders and calendar events refer to modules.

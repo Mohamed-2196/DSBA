@@ -7,6 +7,7 @@ import {
   DotsThree,
   DownloadSimple,
   FileMagnifyingGlass,
+  Flag,
   Info,
   LinkSimple,
   Notebook,
@@ -21,10 +22,23 @@ import { appUrl } from '../../lib/share';
 import { useCopyLink } from '../../lib/useCopyLink';
 import { BREAKPOINTS, useDocumentTitle, useMediaQuery, useToast } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, EmptyState, IconButton, Menu, Page, Panel, QueryError, Skeleton, cx, timeAgo } from '../../ui';
+import {
+  Badge,
+  Button,
+  EmptyState,
+  IconButton,
+  Menu,
+  Page,
+  Panel,
+  QueryError,
+  Skeleton,
+  cx,
+  timeAgo,
+  type MenuItem,
+} from '../../ui';
 import { useAuth } from '../../auth';
 import { AddToBoard, PaperDone } from '../board/public';
-import { ReportButton } from '../forum/public';
+import { useReport } from '../forum/public';
 import { useAnnotate } from '../notes/public';
 import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, libraryKeys, openLinkHref, useLibraryItem } from './api';
@@ -41,6 +55,7 @@ import { AskNoora } from './viewer/AskNoora';
 import { ExamTimer, TimeMeButton, TimeMeDialog, useExamClock } from './viewer/ExamTimer';
 import { MetaPanel } from './viewer/MetaPanel';
 import { Preview } from './viewer/Preview';
+import { toolbarLayout, toolbarRoom, type MoreAction } from './viewer/toolbar';
 import './FileViewerPage.css';
 
 const isTyping = (t: EventTarget | null) =>
@@ -168,7 +183,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const { push } = useToast();
   const copy = useCopyLink();
   const { suspended, moderator: managesLibrary } = useLibraryAccess();
-  const { featureOn } = useAuth();
+  const { featureOn, requireAuth } = useAuth();
   const { getModule } = useModules();
   const toggleStar = useStar();
   const isDesktop = useMediaQuery(BREAKPOINTS.desktop);
@@ -206,11 +221,18 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
     );
   const annotate = useAnnotate();
 
-  const onAnnotate = () => {
+  const startAnnotating = () =>
     annotate.mutate(item.id, {
       onSuccess: (note) => navigate(`/notes/${note.id}`),
-      onError: (err) => push({ title: isApiError(err) ? err.message : 'Couldn’t open notebook.', tone: 'alert' }),
+      onError: (err) =>
+        push({
+          title: 'Couldn’t open your notebook',
+          body: isApiError(err) ? err.message : 'Check your connection and try again.',
+          tone: 'alert',
+        }),
     });
+  const onAnnotate = () => {
+    if (requireAuth('Sign in to annotate this file in your notebook', startAnnotating)) startAnnotating();
   };
 
   const state = location.state as Partial<LinkState> | null;
@@ -250,29 +272,50 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
 
   const copyLink = () => copy(appUrl(itemPath(item)), 'Anyone can open this file with it.');
 
-  const moreItems = [
-    ...(item.canEdit
-      ? [{ id: 'edit', label: 'Edit details', icon: PencilSimple, onSelect: () => setDialog('edit') }]
-      : []),
-    ...((item.isMine || managesLibrary) && item.status !== 'removed'
-      ? [{ id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setDialog('delete') }]
-      : []),
-  ];
+  const published = item.status === 'published';
+  const reporting = useReport('library_item', item.id);
+  const layout = toolbarLayout({
+    room: toolbarRoom(isMobile, wide),
+    published,
+    annotate: featureOn('notes') && fmt?.tag === 'PDF' && published,
+    report: published && !item.isMine && reporting !== null,
+    edit: canManage && item.canEdit,
+    delete: canManage && (item.isMine || managesLibrary) && item.status !== 'removed',
+  });
+  const moreAction: Record<MoreAction, MenuItem> = {
+    copy: { id: 'copy', label: 'Copy link', icon: LinkSimple, onSelect: () => void copyLink() },
+    annotate: {
+      id: 'annotate',
+      label: 'Annotate in my notebook',
+      icon: Notebook,
+      disabled: annotate.isPending,
+      onSelect: onAnnotate,
+    },
+    report: {
+      id: 'report',
+      label: reporting?.label ?? 'Report',
+      icon: reporting?.reported ? <Flag weight="fill" /> : Flag,
+      onSelect: () => reporting?.open(),
+    },
+    edit: { id: 'edit', label: 'Edit details', icon: PencilSimple, onSelect: () => setDialog('edit') },
+    delete: { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setDialog('delete') },
+  };
+  const moreItems: MenuItem[] = layout.more.map((a, i) => (a ? moreAction[a] : { divider: true, id: `sep${i}` }));
 
   const removed = item.status === 'removed';
   const primary = removed ? null : isLink ? (
     <Button
       variant="primary"
-      size={isMobile ? 'sm' : 'md'}
+      size={layout.primaryLabel ? 'md' : 'sm'}
       href={openLinkHref(item)}
       trailingIcon={ArrowSquareOut}
       className="lib-tb__original"
       onClick={counted}
       aria-label={`Open in ${linkPlace(item)} (opens in a new tab)`}
     >
-      {isMobile ? 'Open' : `Open in ${linkPlace(item)}`}
+      {layout.primaryLabel ? `Open in ${linkPlace(item)}` : 'Open'}
     </Button>
-  ) : isMobile ? (
+  ) : !layout.primaryLabel ? (
     <IconButton
       label={`Download ${item.title}`}
       icon={DownloadSimple}
@@ -339,7 +382,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           </span>
         </div>
         <div className="lib-tb__group lib-tb__actions">
-          {item.status === 'published' ? (
+          {published ? (
             <StarButton
               on={item.starred}
               onToggle={() => toggleStar(item)}
@@ -348,40 +391,28 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
               tooltip={isDesktop}
             />
           ) : null}
-          {item.status === 'published' ? (
-            <IconButton
-              label="Copy link"
-              icon={LinkSimple}
-              onClick={() => void copyLink()}
-              tooltip={isDesktop}
-              className="lib-tb__copy"
-            />
-          ) : null}
-          {item.status === 'published' && !item.isMine ? (
-            <ReportButton targetType="library_item" targetId={item.id} className="lib-tb__report" />
-          ) : null}
-          {isPaper ? <TimeMeButton compact={isMobile} onClick={() => setTimeMeOpen(true)} /> : null}
-          {canManage && moreItems.length ? (
-            <Menu
-              align="end"
-              label="More actions"
-              items={moreItems}
-              trigger={<IconButton label="More actions" icon={DotsThree} tooltip={isDesktop} />}
-            />
-          ) : null}
-          {featureOn('notes') && fmt?.tag === 'PDF' && item.status === 'published' ? (
+          {isPaper ? <TimeMeButton compact={!layout.timeMeLabel} onClick={() => setTimeMeOpen(true)} /> : null}
+          {layout.annotate ? (
             <Button
               variant="secondary"
               leadingIcon={Notebook}
               onClick={onAnnotate}
               loading={annotate.isPending}
-              size={isMobile ? 'sm' : 'md'}
+              aria-label={layout.annotate === 'short' ? 'Annotate in my notebook' : undefined}
               data-hub="annotate-in-notebook"
             >
-              Annotate in my notebook
+              {layout.annotate === 'short' ? 'Annotate' : 'Annotate in my notebook'}
             </Button>
           ) : null}
-          <AskNoora item={item} page={page} compact={isMobile} />
+          <AskNoora item={item} page={page} compact={!layout.askLabel} />
+          {moreItems.length ? (
+            <Menu
+              align="end"
+              label="More actions"
+              items={moreItems}
+              trigger={<IconButton label="More actions" icon={DotsThree} tooltip={isDesktop} data-hub="file-more" />}
+            />
+          ) : null}
           {primary}
           {isDesktop ? (
             <>
@@ -423,6 +454,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
       </div>
 
       {timeMeOpen ? <TimeMeDialog open onClose={() => setTimeMeOpen(false)} onStart={start} /> : null}
+      {reporting?.dialog}
 
       {dialog === 'edit' ? <EditItemDialog item={item} open onClose={() => setDialog(null)} /> : null}
       {dialog === 'delete' ? (

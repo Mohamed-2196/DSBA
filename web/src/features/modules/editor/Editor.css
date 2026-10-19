@@ -15,7 +15,7 @@
 }
 .medit__lede {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
   color: var(--ink-2);
 }
 .medit__back {
@@ -129,11 +129,11 @@
 }
 .medit-art__state {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .medit-art__hint {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
@@ -181,7 +181,7 @@
 .medit__banner p {
   margin: 0;
   flex: 1 1 24ch;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .medit__remove {
   color: var(--alert-strong);
@@ -202,9 +202,8 @@
 .medit__year-title {
   margin: var(--sp-8) 0 0;
   font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
   color: var(--ink-2);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .medit__list {
   margin: 0;
@@ -401,4 +400,9 @@
   .medit__grip {
     display: none;
   }
+}
+
+/* Add a module: a field scrolled into view (a phone's keyboard opening) keeps its label in sight under the header. */
+.medit-add :is(input, select, textarea) {
+  scroll-margin-top: 2.25rem;
 }

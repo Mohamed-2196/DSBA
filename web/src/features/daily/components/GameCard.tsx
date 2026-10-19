@@ -1,39 +1,35 @@
-// A game on the hub: its glyph, name and line, how far you got today, and the way in. The whole card is the link.
-import { CheckCircle } from '@phosphor-icons/react';
+// A game's tile on the hub: its art on the game's own tint (the glyph, or the play's picture once it's finished),
+// the name, one line about it, and its state in the corner. The whole tile is the link.
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { cx } from '../../../ui';
 import { gameLink, statusOf } from '../lib/status';
-import type { GameDay } from '../types';
-import { GameTile } from './GameGlyph';
+import { hasSquares, isOver, type GameDay } from '../types';
+import { GameGlyph } from './GameGlyph';
+import { PlayPicture } from './PlayPicture';
 
 export function GameCard({ game }: { game: GameDay }) {
   const status = statusOf(game);
-  const done = status.tone === 'won' || status.tone === 'lost';
+  const picture = isOver(game.status) && hasSquares(game.picture) ? game.picture : null;
   return (
-    <Link to={gameLink(game)} className={cx('dh-card', `is-${status.tone}`)} data-game={game.info.id}>
-      <span className="dh-card__art">
-        <GameTile game={game.info.id} size={56} />
-        {done ? <CheckCircle className="dh-card__done" weight="fill" aria-hidden="true" /> : null}
+    <Link
+      to={gameLink(game)}
+      className={cx('dh-tile', `is-${status.tone}`)}
+      data-game={game.info.id}
+      style={{ '--g': `var(--dy-${game.info.id})` } as CSSProperties}
+    >
+      <span className={cx('dh-tile__art', picture && 'has-picture')} aria-hidden="true">
+        {picture ? (
+          <PlayPicture picture={picture} square={12} className="dh-tile__picture" />
+        ) : (
+          <GameGlyph game={game.info.id} />
+        )}
       </span>
-      <span className="dh-card__text">
-        <span className="dh-card__name">{game.info.title}</span>
-        <span className="dh-card__line">{game.info.tagline}</span>
+      <span className="dh-tile__name">{game.info.title}</span>
+      <span className="dh-tile__state dy-num" data-noora-avoid="">
+        {status.label}
       </span>
-      <span className="dh-card__foot">
-        <span
-          className={cx(
-            'dy-chip',
-            status.tone === 'won' && 'dy-chip--won',
-            status.tone === 'playing' && 'dy-chip--playing',
-            'dy-num',
-          )}
-        >
-          {status.label}
-        </span>
-        <span className="dh-card__go" aria-hidden="true" data-noora-avoid="">
-          {status.action}
-        </span>
-      </span>
+      <span className="dh-tile__line">{game.info.tagline}</span>
     </Link>
   );
 }

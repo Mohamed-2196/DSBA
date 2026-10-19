@@ -1,12 +1,11 @@
 import { createElement } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { ArrowSquareOut } from '@phosphor-icons/react';
-import { useAuth } from '../auth';
 import { BREAKPOINTS, useMediaQuery } from '../state';
 import { Badge, BrandLogo, HubLogo, Tooltip, cx } from '../ui';
-import { NAV, type NavItem as NavConfig } from './nav';
+import { type NavItem as NavConfig } from './nav';
 import { usePortalLinks, type PortalLink } from './portals';
-import { visibleNav } from './visibility';
+import { useShownNav } from './useShownNav';
 import { YearSwitcher } from './YearSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { ProfileMenu } from './ProfileMenu';
@@ -79,7 +78,7 @@ function ExternalItem({ item, collapsed }: { item: PortalLink; collapsed: boolea
  */
 export function Sidebar() {
   const collapsed = useMediaQuery(BREAKPOINTS.tablet);
-  const { featureOn, me } = useAuth();
+  const nav = useShownNav();
   const portals = usePortalLinks();
   return (
     // The column wrapper runs the full page height (surface + border); the rail inside is sticky.
@@ -98,7 +97,7 @@ export function Sidebar() {
         <div className="shell-rail__scroll">
           <nav className="shell-nav" aria-label="Main">
             <ul role="list">
-              {visibleNav(NAV, featureOn, !!me).map((item) => (
+              {nav.map((item) => (
                 <li key={item.id}>
                   <NavItem item={item} collapsed={collapsed} />
                 </li>

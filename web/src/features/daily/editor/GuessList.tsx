@@ -4,7 +4,7 @@ import { Plus, X } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { errorMessage } from '../../../api/errors';
 import type { GuessAddReport } from '../../../api/types';
-import { useDebouncedValue, useToast } from '../../../state';
+import { useDebouncedValue, useToast, useUnsavedChanges } from '../../../state';
 import {
   Button,
   IconButton,
@@ -110,6 +110,7 @@ export function GuessList() {
 
 function AddGuesses({ onClose }: { onClose: () => void }) {
   const [text, setText] = useState('');
+  useUnsavedChanges(text.trim() !== '', 'the guess list');
   const check = useAddGuesses();
   const add = useAddGuesses();
   const { push: toast } = useToast();

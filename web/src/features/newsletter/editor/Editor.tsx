@@ -1,7 +1,7 @@
 // The issue editor (decision D5): the issue's details, its cover and its sections as forms, with a live preview.
 // Saving sends PATCH /newsletter/issues/{id}. Problems are checked against the API's own limits as the rep goes
 // (after the first try to save), and a 422 from the API lands on the field that caused it. Unsaved edits are
-// guarded against leaving the page and kept on this device until they are saved (UX-3).
+// guarded against leaving the page and kept on this device until they are saved.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -21,7 +21,7 @@ import {
 import type { IssueDetail } from '../../../api/types';
 import { errorMessage, isApiError } from '../../../api/errors';
 import { formatDay } from '../../../lib/dates';
-import { useDocumentTitle, useMediaQuery, useToast } from '../../../state';
+import { useDocumentTitle, useLeaveGuard, useMediaQuery, useToast } from '../../../state';
 import { Badge, Button, ConfirmDialog, Menu, Page, PageHeader, SegmentedControl, cx, countOf } from '../../../ui';
 import { useUpdateIssue } from '../api';
 import { DeleteIssueButton, PublishButton } from '../components/IssueActions';
@@ -52,7 +52,6 @@ import { DetailsEditor } from './DetailsEditor';
 import { Preview } from './Preview';
 import { SectionCard } from './SectionCard';
 import { useDraftCopy } from './useDraftCopy';
-import { useLeaveGuard } from './useLeaveGuard';
 
 const NO_ERRORS: FieldErrors = {};
 /** Below this width the form and the preview take turns (Edit / Preview). */
@@ -513,7 +512,8 @@ export function Editor({ detail }: { detail: IssueDetail }) {
         <div className="nl-editor__layout">
           {sideBySide || pane === 'edit' ? form : null}
           {sideBySide || pane === 'preview' ? (
-            <div className="nl-editor__side">
+            // It scrolls on its own: a keyboard can reach it to scroll it.
+            <div className="nl-editor__side" tabIndex={0} role="region" aria-label="Preview">
               <Preview draft={draft} detail={detail} />
             </div>
           ) : null}
@@ -529,6 +529,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
             </p>
           }
           confirmLabel="Leave without saving"
+          cancelLabel="Keep editing"
           tone="danger"
           onConfirm={guard.leave}
           onClose={guard.stay}
@@ -538,6 +539,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
           title="Discard your changes?"
           body={<p>The form goes back to issue {no} as it was last saved. This can’t be undone.</p>}
           confirmLabel="Discard changes"
+          cancelLabel="Keep editing"
           tone="danger"
           onConfirm={discard}
           onClose={() => setDiscarding(false)}

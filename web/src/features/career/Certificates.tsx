@@ -1,9 +1,12 @@
-import { ArrowUpRight, Database, FileText, Timer } from '@phosphor-icons/react';
+import { ArrowUpRight, CaretDown, CaretUp, Database, FileText, Timer } from '@phosphor-icons/react';
+import { useEffect, useState } from 'react';
 import type { CareerCert, ModuleSummary } from '../../api/types';
+import { BREAKPOINTS, useMediaQuery } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, PageSection, Panel, SectionHeader, cx } from '../../ui';
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
+import { SHOW_CERT_EVENT, jumpTo } from './lib/jump';
 import { libraryLink, webUrl } from './lib/links';
 import { LogoSlot } from './LogoSlot';
 import { ModuleLink } from './ModuleLink';
@@ -99,10 +102,34 @@ export function CertCard({ cert }: { cert: CareerCert }) {
   );
 }
 
+/** How many certificates a phone shows before "Show all". */
+const PHONE_FIRST = 3;
+
 /** Certificates and courses students ask about, each with a logo slot, the effort and what DSBA already covers. */
 export function Certificates() {
   const { certs, certNote } = useCareerData();
+  // Phones show the first few: each card is most of a screen there.
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const [all, setAll] = useState(false);
+  // A skill row asked for a card that is folded away: unfold, then show it.
+  const [asked, setAsked] = useState<string | null>(null);
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      if (!(e instanceof CustomEvent) || typeof e.detail !== 'string') return;
+      setAll(true);
+      setAsked(e.detail);
+    };
+    window.addEventListener(SHOW_CERT_EVENT, onAsk);
+    return () => window.removeEventListener(SHOW_CERT_EVENT, onAsk);
+  }, []);
+  useEffect(() => {
+    if (!asked) return;
+    jumpTo(`career-cert-${asked}`, { flash: true, block: 'center' });
+    setAsked(null);
+  }, [asked]);
   if (!certs.length) return null;
+  const folded = phone && !all && certs.length > PHONE_FIRST;
+  const shown = folded ? certs.slice(0, PHONE_FIRST) : certs;
   return (
     <PageSection
       id="career-certificates"
@@ -116,10 +143,22 @@ export function Certificates() {
         description="What each one is good for, how much work it takes and which DSBA modules already cover part of it."
       />
       <ul role="list" className="career-certs__grid">
-        {certs.map((c) => (
+        {shown.map((c) => (
           <CertCard key={c.id} cert={c} />
         ))}
       </ul>
+      {phone && certs.length > PHONE_FIRST ? (
+        <div className="career-opps__more">
+          <Button
+            variant="secondary"
+            trailingIcon={folded ? CaretDown : CaretUp}
+            aria-expanded={!folded}
+            onClick={() => setAll(folded)}
+          >
+            {folded ? `Show all ${certs.length} certificates` : 'Show fewer'}
+          </Button>
+        </div>
+      ) : null}
       {certNote ? <p className="career-note">{certNote}</p> : null}
     </PageSection>
   );

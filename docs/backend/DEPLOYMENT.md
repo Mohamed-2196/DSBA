@@ -128,7 +128,8 @@ library (section 10).
 `DSBA_ADMIN_IDENTIFIERS` gives the Admin role, when they first sign in, to the people listed there. `set-role` sets
 exactly the roles you name, and writes an audit entry.
 
-**Daily puzzles' content.** The seed loads the Daily themes (out of the rotation) and the public guess list, but no
+**Daily puzzles' content.** The seed loads the Daily themes (out of the rotation) and the public guess list (into a
+list under 5,000 words, so a content file loaded first doesn't leave The Word refusing everyday guesses), but no
 puzzles: the answers stay out of the repository. Load the content file (on Mohamed's Mac,
 `/Users/mohamed/dsba-hub/private/daily-content.json`; `private/` is git-ignored), then edit it in Manage → Daily
 puzzles:

@@ -1,6 +1,7 @@
 // Lesson posters. Nothing plays from YouTube or vc.bibf.com until the student presses play, so the poster stands on
-// its own: the video's real thumbnail when it loads (class recordings and playlists have none), otherwise a plain
-// tile in the module's cohort colour; the lesson's title, "Video n of m", the source and a play button on top.
+// its own: the video's real thumbnail when it loads (class recordings and playlists have none) with only the source
+// and a play button on it, since the thumbnail carries its own title; otherwise a plain tile in the module's cohort
+// colour with the module, the lesson's title, "Video n of m" and where it loads from.
 import { Play } from '@phosphor-icons/react';
 import { useMemo, type CSSProperties } from 'react';
 import type { ModuleDetail, ModuleSummary, Video } from '../../api/types';
@@ -55,23 +56,29 @@ export function LessonPoster({
       ) : null}
 
       <span className="mod-poster__top" aria-hidden="true">
-        <span className="mod-poster__module">
-          {m.unitCode ? <span className="mod-poster__code">{m.unitCode}</span> : null}
-          <span className="mod-poster__short">{m.shortName}</span>
-        </span>
+        {thumbOk ? (
+          <span />
+        ) : (
+          <span className="mod-poster__module">
+            {m.unitCode ? <span className="mod-poster__code">{m.unitCode}</span> : null}
+            <span className="mod-poster__short">{m.shortName}</span>
+          </span>
+        )}
         <span className="mod-poster__kind">
           <KindIcon weight="fill" aria-hidden="true" />
           {kindLabel(video)}
         </span>
       </span>
 
-      <span className="mod-poster__body" aria-hidden="true">
-        <span className="mod-poster__chapter">
-          {info.real ? `Chapter ${c + 1}: ${chapter.title}` : `Chapter ${c + 1}`}
+      {thumbOk ? null : (
+        <span className="mod-poster__body" aria-hidden="true">
+          <span className="mod-poster__chapter">
+            {info.real ? `Chapter ${c + 1}: ${chapter.title}` : `Chapter ${c + 1}`}
+          </span>
+          <span className="mod-poster__title">{title}</span>
+          {subline ? <span className="mod-poster__pos">{subline}</span> : null}
         </span>
-        <span className="mod-poster__title">{title}</span>
-        {subline ? <span className="mod-poster__pos">{subline}</span> : null}
-      </span>
+      )}
 
       <span className="mod-poster__play" aria-hidden="true">
         <Play weight="fill" />
@@ -94,7 +101,7 @@ export function LessonPoster({
         ) : (
           <span />
         )}
-        <span className="mod-poster__source">Loads from {source} when you press play</span>
+        {thumbOk ? <span /> : <span className="mod-poster__source">Loads from {source} when you press play</span>}
       </span>
     </button>
   );

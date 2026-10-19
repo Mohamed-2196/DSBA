@@ -172,7 +172,10 @@ def _check_search(data: SearchData) -> Checked:
     word = data.word.strip().upper()
     if not SEARCH_WORD.fullmatch(word):
         least, most = search_game.MIN_LETTERS, search_game.MAX_LETTERS
-        raise invalid("data.word", f"Word search words are {least} to {most} letters, A to Z, with no spaces.")
+        raise invalid(
+            "data.word",
+            f"{search_game.SearchGame.title}'s words are {least} to {most} letters, A to Z, with no spaces.",
+        )
     return Checked({"word": word}, word)
 
 
@@ -220,8 +223,8 @@ def _check_nearest(look: Lookups, data: NearestData) -> Checked:
 _DUPLICATE: dict[str, Callable[[str, str], str]] = {
     "word": lambda key, where: f"“{key}” is already an answer word in {where}.",
     "groups": lambda key, where: f"{where} already has a group called “{key}”.",
-    "search": lambda key, where: f"“{key}” is already in {where}'s word search.",
-    "quiz": lambda key, where: f"This question is already in the quiz, in {where}.",
+    "search": lambda key, where: f"“{key}” is already a {search_game.SearchGame.title} word in {where}.",
+    "quiz": lambda key, where: f"{where} already has this question.",
     "nearest": lambda key, where: f"“{key}” is already a secret word in {where}.",
 }
 

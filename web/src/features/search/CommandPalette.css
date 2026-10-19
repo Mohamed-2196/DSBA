@@ -427,7 +427,7 @@
 }
 .cmdk-empty__body {
   margin-top: 4px;
-  max-width: 58ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
 }

@@ -78,7 +78,9 @@ def test_a_day_takes_the_next_group_when_the_first_would_leave_another_short(db:
     with pytest.raises(NotReadyError):
         GAME.choose([first, trees, metals, last], {}, DAY, SEED)
     problem = editor.problem_of("groups", [first, trees, metals, last])
-    assert problem == "Groups needs four groups, one a level, that each keep four words the other three don't have."
+    assert problem == (
+        "Correlations needs four groups, one a level, that each keep four words the other three don't have."
+    )
 
 
 def items(c: TestClient, **params: Any) -> list[dict[str, Any]]:

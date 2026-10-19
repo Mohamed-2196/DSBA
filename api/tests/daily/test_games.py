@@ -16,6 +16,7 @@ from app.services import access
 from app.services.daily import content
 from app.services.daily.games import GAMES
 from app.services.daily.games.groups import SQUARES
+from app.services.daily.games.nearest import CLOSE, WARM
 from tests.daily.conftest import API
 
 ClientFor = Callable[..., TestClient]
@@ -53,6 +54,10 @@ def test_groups_found_one_away_and_won(client_for: ClientFor, make_user: MakeUse
     # Each try's colours, one square per word: the levels' colours in the web app, purple for the trickiest.
     assert play["share"].splitlines()[-1] == SQUARES[p.groups[-1].level] * 4
     assert set(SQUARES.values()) == {"🟨", "🟩", "🟦", "🟪"}
+    # The picture is the share grid in squares: each try's words by level.
+    shared = [list(line) for line in play["share"].splitlines()[2:]]
+    assert [[SQUARES[int(m[1])] for m in row] for row in play["picture"]] == shared
+    assert len(play["picture"]) == 5
 
 
 def test_groups_hide_the_answers_until_the_end(client_for: ClientFor, db: Session) -> None:
@@ -79,6 +84,7 @@ def test_word_search_reads_lines_both_ways(client_for: ClientFor, make_user: Mak
         play = move(c, "search", {"kind": "find", "start": cell(placed.start), "end": cell(placed.end)}).json()["play"]
     assert (play["status"], play["points"]) == ("won", 90)
     assert not any(f["revealed"] for f in play["view"]["found"])
+    assert play["picture"] == [["hit"] * 4, ["hit"] * 4]
 
 
 def test_word_search_given_up_reveals_the_words_left(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
@@ -86,9 +92,11 @@ def test_word_search_given_up_reveals_the_words_left(client_for: ClientFor, make
     p = puzzle(db, "search")
     first = p.placed[0]
     move(c, "search", {"kind": "find", "start": cell(first.start), "end": cell(first.end)})
-    view = move(c, "search", {"kind": "give-up"}).json()["play"]["view"]
+    play = move(c, "search", {"kind": "give-up"}).json()["play"]
+    view = play["view"]
     assert [(f["word"], f["revealed"]) for f in view["found"]][:2] == [(first.word, False), (p.placed[1].word, True)]
     assert len(view["found"]) == len(p.placed)
+    assert play["picture"] == [["hit", "miss", "miss", "miss"], ["miss"] * 4]  # what was found, not where
 
 
 def test_the_quiz_explains_each_answer_and_scores_right_ones(
@@ -104,6 +112,7 @@ def test_the_quiz_explains_each_answer_and_scores_right_ones(
         play = move(c, "quiz", {"kind": "answer", "choice": choice}).json()["play"]
         assert play["view"]["answered"][i]["correct"] is bool(i)
     assert (play["status"], play["points"], play["mistakes"]) == ("won", 80, 1)
+    assert play["picture"] == [["wrong", "hit", "hit", "hit", "hit"]]
     assert move(c, "quiz", {"kind": "answer", "choice": 0}).json()["error"]["code"] == "game_over"
 
 
@@ -113,7 +122,7 @@ def test_nearest_ranks_guesses_and_hints_get_closer(client_for: ClientFor, make_
     far = p.by_rank[-1]
     play = move(c, "nearest", {"kind": "guess", "word": far.upper()}).json()["play"]
     assert play["view"]["guesses"] == [{"word": far, "rank": len(p.by_rank), "hint": False}]
-    assert play["view"]["answer"] is None
+    assert (play["view"]["answer"], play["picture"]) == (None, None)  # a picture once it's over
     r = move(c, "nearest", {"kind": "guess", "word": "zzzzqq"})
     assert r.json()["error"]["code"] == "unknown_word"
     # A word it doesn't know, with known words it may have meant.
@@ -125,6 +134,11 @@ def test_nearest_ranks_guesses_and_hints_get_closer(client_for: ClientFor, make_
     play = move(c, "nearest", {"kind": "guess", "word": p.target}).json()["play"]
     assert (play["status"], play["points"], play["view"]["answer"]) == ("won", 90, p.target)
     assert p.target not in play["share"]
+    # The guesses' closeness in order, hints left out: the found word last, close.
+    closeness = [
+        "hit" if g["rank"] <= CLOSE else "near" if g["rank"] <= WARM else "miss" for g in [play["view"]["guesses"][0]]
+    ]
+    assert play["picture"] == [[*closeness, "hit"]]
 
 
 def test_the_leaderboard_shows_only_people_who_opt_in(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:

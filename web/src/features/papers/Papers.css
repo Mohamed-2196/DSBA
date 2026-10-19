@@ -33,7 +33,7 @@
 }
 .papers__note {
   margin: 0;
-  max-width: 65ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.45;

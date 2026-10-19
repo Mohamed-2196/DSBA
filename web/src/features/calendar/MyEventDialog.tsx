@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent } from 'react';
-import { errorMessage, isApiError } from '../../api/errors';
+import { errorMessage, isApiError, placeFieldErrors, unplacedMessage } from '../../api/errors';
 import { Button, cx, Modal, Select, Switch, TextArea, TextField } from '../../ui';
 import type { DayKey } from '../../lib/dates';
 import { useCreateMyEvent, useEditMyOccurrence, useUpdateMyEvent } from './api';
@@ -99,20 +99,20 @@ function validate(f: FormState, repeat: Repeat): FieldErrors {
   return errors;
 }
 
-// API field names (camelCase on the wire) → form fields.
-const API_FIELDS: Record<string, keyof FormState> = {
-  title: 'title',
-  date: 'date',
-  endDate: 'endDate',
-  startTime: 'startTime',
-  endTime: 'endTime',
-  place: 'place',
-  notes: 'notes',
-  colour: 'colour',
-  repeat: 'repeat',
-  repeatUntil: 'repeatUntil',
-  remind: 'remind',
-};
+// The form's fields, named as the API names them in its errors.
+const API_FIELDS: readonly (keyof FormState)[] = [
+  'title',
+  'date',
+  'endDate',
+  'startTime',
+  'endTime',
+  'place',
+  'notes',
+  'colour',
+  'repeat',
+  'repeatUntil',
+  'remind',
+];
 
 /**
  * Add an event to the student's own calendar, or edit one. Only they see it. Opened from one day of a repeat, it
@@ -179,13 +179,9 @@ export function MyEventDialog({ open, event, day, onClose, onSaved }: MyEventDia
     };
     const fail = (err: unknown) => {
       if (isApiError(err) && Object.keys(err.fields).length) {
-        const mapped: FieldErrors = {};
-        for (const [k, msg] of Object.entries(err.fields)) {
-          const field = API_FIELDS[k];
-          if (field) mapped[field] = msg;
-        }
-        setErrors(mapped);
-        if (!Object.keys(mapped).length) setFormError(err.message);
+        const placed = placeFieldErrors(err.fields, API_FIELDS);
+        setErrors(placed.fields);
+        setFormError(unplacedMessage(err, placed));
       } else setFormError(errorMessage(err, 'The event wasn’t saved. Try again.'));
     };
     if (!event) create.mutate(body, { onSuccess: (saved) => onSaved(saved, true, saved.date), onError: fail });

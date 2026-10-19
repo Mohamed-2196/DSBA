@@ -1,15 +1,16 @@
 // Manage → Career Navigator (holders of career.edit): every part of the page, edited as one draft and saved together.
 // A save someone else made first (career_changed) offers to load theirs. Hidden items stay here and leave the page.
 // Every save goes to the activity log with what changed, before and after.
-import { ArrowSquareOut, Eye } from '@phosphor-icons/react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { ArrowSquareOut, DotsThree, Eye } from '@phosphor-icons/react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { CareerDoc, CareerEditable } from '../../../api/types';
-import { useToast } from '../../../state';
-import { Button, Chip, Drawer, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../../ui';
+import { BREAKPOINTS, useMediaQuery, useToast, useUnsavedChanges } from '../../../state';
+import { Button, Chip, Drawer, EmptyState, IconButton, Menu, Panel, QueryError, Skeleton, timeAgo } from '../../../ui';
+import { docErrors } from '../../../ui/docEditor';
 import { CareerBody } from '../CareerPage';
 import { useCareerForEditing, useReloadCareer, useSaveCareer } from './api';
-import { SECTIONS, errorPlace, generalErrors, publicDoc, type EditorSection } from './doc';
+import { CAREER_SHAPE, SECTIONS, errorPlace, publicDoc, savedIdsOf, type EditorSection } from './doc';
 import { EditorContext, openKey, type EditorState } from './state';
 import { EmployersSection } from './sections/Employers';
 import {
@@ -86,26 +87,15 @@ function countOf(doc: CareerDoc, section: EditorSection): number | null {
   }
 }
 
+/** The document as the editor has it: one with content. */
+type Loaded = CareerEditable & { data: CareerDoc };
+const hasContent = (e: CareerEditable): e is Loaded => e.data !== null;
+
 export function CareerEditor() {
   const query = useCareerForEditing();
-  if (query.isError)
-    return (
-      <QueryError
-        error={query.error}
-        title="Career Navigator didn’t load"
-        onRetry={() => void query.refetch()}
-        retrying={query.isFetching}
-        size="sm"
-      />
-    );
-  if (query.isPending) {
-    return (
-      <Panel padding="md">
-        <Skeleton lines={8} />
-      </Panel>
-    );
-  }
-  if (!query.data.data) {
+  // Once loaded, the editor keeps its own copy: a refetch in the background never replaces the draft.
+  if (query.data) {
+    if (hasContent(query.data)) return <Editor first={query.data} />;
     return (
       <Panel padding="none">
         <EmptyState
@@ -116,38 +106,63 @@ export function CareerEditor() {
       </Panel>
     );
   }
-  // A new version (saved here, or loaded again) starts a new draft.
-  return <Editor key={query.data.version} loaded={query.data} doc={query.data.data} />;
+  if (query.isError)
+    return (
+      <QueryError
+        error={query.error}
+        title="Career Navigator didn’t load"
+        onRetry={() => void query.refetch()}
+        retrying={query.isFetching}
+        size="sm"
+      />
+    );
+  return (
+    <Panel padding="md">
+      <Skeleton lines={8} />
+    </Panel>
+  );
 }
 
 type Problem = { kind: 'changed' } | { kind: 'other'; messages: string[] };
 
-function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc }) {
+function Editor({ first }: { first: Loaded }) {
+  // The version the draft is edited from: the one first loaded, then each one a save returns or "Load it again" loads.
+  const [loaded, setLoaded] = useState(first);
+  const saved = loaded.data;
   const [doc, setDoc] = useState<CareerDoc>(saved);
   const [section, setSection] = useState<EditorSection>('employers');
   const [open, setOpen] = useState<string | null>(null);
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<Problem | null>(null);
+  const [reloadFailed, setReloadFailed] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const save = useSaveCareer();
   const reload = useReloadCareer();
   const { push: toast } = useToast();
   const dirty = useMemo(() => JSON.stringify(doc) !== JSON.stringify(saved), [doc, saved]);
+  useUnsavedChanges(dirty, 'Career Navigator');
+  // On a phone the page and the preview wait in a menu, so the first field comes sooner.
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
 
-  // Leaving the page with unsaved changes asks first.
-  useEffect(() => {
-    if (!dirty) return undefined;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty]);
+  // A new version starts a new draft.
+  const start = (next: CareerEditable) => {
+    if (!hasContent(next)) return;
+    setLoaded(next);
+    setDoc(next.data);
+    setFields({});
+    setProblem(null);
+  };
+  const loadAgain = () => {
+    setReloadFailed(false);
+    reload().then(start, () => setReloadFailed(true));
+  };
 
   const state: EditorState = useMemo(
     () => ({
       doc,
       saved,
       update: (change) => setDoc((d) => change(d)),
-      err: (path) => fields[`data.${path}`],
+      err: (path) => fields[path],
       open,
       setOpen,
     }),
@@ -159,34 +174,27 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
     save.mutate(
       { version: loaded.version, data: doc },
       {
-        onSuccess: () => {
-          setFields({});
+        onSuccess: (out) => {
+          start(out);
           toast({ title: 'Saved. Students see the changes now.', tone: 'success' });
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'career_changed') return setProblem({ kind: 'changed' });
-          const found = isApiError(e) ? e.fields : {};
-          setFields(found);
-          const general = generalErrors(found);
-          setProblem({
-            kind: 'other',
-            messages: general.length
-              ? general
-              : [
-                  Object.keys(found).length
-                    ? 'Some fields need a look before saving. They’re marked below.'
-                    : errorMessage(e),
-                ],
-          });
-          const place = errorPlace(found);
+          const found = docErrors(isApiError(e) ? e.fields : {}, CAREER_SHAPE);
+          setFields(found.fields);
+          const marked = Object.keys(found.fields).length
+            ? ['Some fields need a look before saving. They’re marked below.']
+            : [];
+          const messages = [...found.general, ...marked];
+          setProblem({ kind: 'other', messages: messages.length ? messages : [errorMessage(e)] });
+          const place = errorPlace(found.fields);
           if (place) {
             setSection(place.section);
-            const list = place.section === 'skills' ? null : (doc as unknown as Record<string, unknown>)[place.section];
-            const item =
-              Array.isArray(list) && place.item !== null
-                ? (list[Number(place.item)] as { id?: string } | undefined)
-                : undefined;
-            const id = place.section === 'skills' ? place.item : (item?.id ?? null);
+            // A list's item is named by its index, a skill by its id.
+            const id =
+              place.section === 'skills' || place.item === null
+                ? place.item
+                : (savedIdsOf(doc, place.section)[Number(place.item)] ?? null);
             if (id) setOpen(openKey(place.section, id));
           }
         },
@@ -206,12 +214,16 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
             </p>
           </div>
           <div className="cedit__actions">
-            <Button variant="ghost" to="/career" trailingIcon={ArrowSquareOut}>
-              Open the page
-            </Button>
-            <Button variant="secondary" leadingIcon={Eye} onClick={() => setPreviewing(true)}>
-              Preview
-            </Button>
+            {phone ? null : (
+              <>
+                <Button variant="ghost" to="/career" target="_blank" rel="noopener" trailingIcon={ArrowSquareOut}>
+                  Open the page<span className="visually-hidden"> (opens in a new tab)</span>
+                </Button>
+                <Button variant="secondary" leadingIcon={Eye} onClick={() => setPreviewing(true)}>
+                  Preview
+                </Button>
+              </>
+            )}
             <Button
               variant="secondary"
               disabled={!dirty || save.isPending}
@@ -226,6 +238,17 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
             <Button onClick={submit} loading={save.isPending} disabled={!dirty}>
               Save
             </Button>
+            {phone ? (
+              <Menu
+                label="More for Career Navigator"
+                align="end"
+                items={[
+                  { id: 'page', label: 'Open the page', icon: ArrowSquareOut, href: '/career' },
+                  { id: 'preview', label: 'Preview', icon: Eye, onSelect: () => setPreviewing(true) },
+                ]}
+                trigger={<IconButton label="More" icon={DotsThree} variant="secondary" />}
+              />
+            ) : null}
           </div>
         </div>
 
@@ -237,7 +260,8 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
                   Someone else saved Career Navigator while you were editing. Load their version, then make your changes
                   again.
                 </p>
-                <Button size="sm" onClick={() => void reload()}>
+                {reloadFailed ? <p>Their version didn’t load. Check your connection, then try again.</p> : null}
+                <Button size="sm" onClick={loadAgain}>
                   Load it again
                 </Button>
               </>
@@ -247,31 +271,29 @@ function Editor({ loaded, doc: saved }: { loaded: CareerEditable; doc: CareerDoc
           </div>
         ) : null}
 
-        <nav className="cedit__nav" aria-label="Parts of Career Navigator">
-          {SECTIONS.map((s) => {
-            const n = countOf(doc, s);
-            const hasError = Object.keys(fields).some((k) => errorPlace({ [k]: '' })?.section === s);
-            return (
-              <Chip
-                key={s}
-                selected={s === section}
-                onChange={() => setSection(s)}
-                count={n}
-                className={hasError ? 'cedit__nav-error' : undefined}
-              >
-                {LABELS[s]}
-              </Chip>
-            );
-          })}
-        </nav>
+        <div className="cedit__parts">
+          <nav className="cedit__nav" aria-label="Parts of Career Navigator">
+            {SECTIONS.map((s) => {
+              const n = countOf(doc, s);
+              const hasError = Object.keys(fields).some((k) => errorPlace({ [k]: '' })?.section === s);
+              return (
+                <Chip
+                  key={s}
+                  selected={s === section}
+                  onChange={() => setSection(s)}
+                  count={n}
+                  className={hasError ? 'cedit__nav-error' : undefined}
+                >
+                  {LABELS[s]}
+                </Chip>
+              );
+            })}
+          </nav>
+          <p className="cedit__note">{ABOUT[section]}</p>
+        </div>
 
-        <Panel as="section" padding="md" className="cedit__panel" aria-labelledby="cedit-section-title">
-          <div className="cedit__section-head">
-            <h4 id="cedit-section-title" className="cedit__section">
-              {LABELS[section]}
-            </h4>
-            <p className="cedit__note">{ABOUT[section]}</p>
-          </div>
+        {/* The chip names the part: no heading repeats it. */}
+        <Panel as="section" padding="md" className="cedit__panel" aria-label={LABELS[section]}>
           {BODIES[section]()}
         </Panel>
 

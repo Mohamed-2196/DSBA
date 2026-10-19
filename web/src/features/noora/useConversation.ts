@@ -6,6 +6,7 @@ import type { NooraScript } from '../../api/types';
 import { removeStored, useLocalStorage } from '../../state';
 import {
   CHATS_KEY,
+  leaveChat,
   newChatId,
   parseChats,
   readCurrent,
@@ -20,9 +21,9 @@ import { useChat, type Chat, type ChatAi } from './useChat';
 export interface Conversation extends Chat {
   /** the conversation on screen */
   chatId: string;
-  /** every saved conversation, newest first */
+  /** every saved conversation, the one with the newest message first */
   chats: SavedChat[];
-  /** show a saved conversation (null: a new one). The one left is saved first; an answer on its way stops. */
+  /** show a saved conversation (null: a new one). An answer on its way stops, and the one left is saved first. */
   switchTo: (chat: SavedChat | null) => void;
   /** delete one saved conversation (the one on screen: a new one starts) */
   remove: (id: string) => void;
@@ -49,7 +50,7 @@ export function useConversation({
   const chat = useChat({ year, calm, ai, script, initial: first?.messages });
   const { busy, messages, stop, clear, load } = chat;
 
-  // Only settled conversations are saved.
+  // Settled conversations are saved as they change (switchTo saves the one it leaves).
   useEffect(() => {
     if (busy) return;
     writeCurrent(chatId, messages);
@@ -59,12 +60,13 @@ export function useConversation({
   const switchTo = useCallback(
     (next: SavedChat | null) => {
       if (next && next.id === chatId) return;
-      if (busy) stop();
+      const stopped = busy ? stop() : null;
+      setStored((list: unknown) => leaveChat(parseChats(list), chatId, messages, stopped));
       if (next) load(next.messages);
       else clear();
       setChatId(next?.id ?? newChatId());
     },
-    [chatId, busy, stop, load, clear],
+    [chatId, busy, messages, stop, load, clear, setStored],
   );
 
   const remove = useCallback(

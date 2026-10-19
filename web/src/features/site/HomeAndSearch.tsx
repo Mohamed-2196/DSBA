@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import type { SearchNickname, SiteDoc, TourStep } from '../../api/types';
 import { ArrowDown, ArrowUp, Trash } from '@phosphor-icons/react';
-import { IconButton, ListEditor, RowsEditor, Select, TextArea, TextField, hasErrorUnder, newItemId } from '../../ui';
+import { IconButton, Select, TextArea, TextField } from '../../ui';
+import { ListEditor, RowsEditor, hasErrorUnder, newItemId } from '../../ui/docEditor';
 import { ALL_HOME_BLOCKS, HOME_BLOCKS, type HomeBlock } from '../home/public';
 import { TOUR_ARTS } from '../onboarding/public';
 

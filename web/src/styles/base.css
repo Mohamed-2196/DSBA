@@ -228,6 +228,41 @@ b {
   max-width: var(--measure);
 }
 
+/* A row that scrolls sideways (tabs, chips, a toolbar): no scrollbar, and the cut edge fades while there is more
+   to see (ui/useScrollFade sets data-fade-start and data-fade-end), so it reads as a row to swipe, not a broken one.
+   Hidden labels inside it stay inside it. */
+.u-scroll-row {
+  position: relative;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.u-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+.u-scroll-row[data-fade-end='true'] {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+}
+.u-scroll-row[data-fade-start='true'] {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 32px);
+  mask-image: linear-gradient(to right, transparent, #000 32px);
+}
+.u-scroll-row[data-fade-start='true'][data-fade-end='true'] {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+}
+/* Phones: the row runs to the screen's edges, so the screen cuts the last chip rather than the page's padding. */
+@media (max-width: 699px) {
+  .u-scroll-row.u-scroll-row--bleed {
+    margin-left: calc(-1 * var(--page-pad-left));
+    margin-right: calc(-1 * var(--page-pad-right));
+    padding-left: var(--page-pad-left);
+    padding-right: var(--page-pad-right);
+    scroll-padding-inline: var(--page-pad-left) var(--page-pad-right);
+  }
+}
+
 /* A unit code set as a typographic object (e.g. ST2133). */
 .u-code {
   font-family: var(--font-sans);
@@ -236,6 +271,9 @@ b {
   letter-spacing: -0.01em;
 }
 
+/* Reduced motion: animations end at once (their end events still fire). Transitions are off, not just short: a
+   short one would also delay properties that never had a transition, such as a menu's visibility, and focus can't
+   land in a panel that is still hidden. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -243,8 +281,8 @@ b {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0ms !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

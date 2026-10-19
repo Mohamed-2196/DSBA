@@ -12,10 +12,10 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.errors import conflict
-from app.schemas.daily import Cell, FindMove, HintMove, Move, SearchFound, SearchView
+from app.schemas.daily import Cell, FindMove, HintMove, Mark, Move, Picture, SearchFound, SearchView
 from app.services.daily import content
 from app.services.daily.content import CantFixError, Entry, NotReadyError, Uses
-from app.services.daily.games.base import ContentGame, Status, bad_move
+from app.services.daily.games.base import ContentGame, Status, bad_move, rows_of
 
 SIZE = 10
 WORDS = 8
@@ -260,3 +260,7 @@ class SearchGame(ContentGame[Puzzle, SearchState]):
         hints = len(state.hints)
         head = f"{self.title} {n}/{len(puzzle.placed)} words, {hints} hint{'s' if hints != 1 else ''}"
         return f"{head}\n{'🟩' * n}{'⬜' * (len(puzzle.placed) - n)}"
+
+    def picture(self, puzzle: Puzzle, state: SearchState) -> Picture:
+        found: list[Mark] = ["hit"] * len(state.found)
+        return rows_of(found + ["miss"] * (len(puzzle.placed) - len(state.found)), 4)

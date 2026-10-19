@@ -786,6 +786,7 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
         "boards",
         "boardLabels",
         "boardPlans",
+        "paperScores",
         "follows",
         "pollVotes",
         "senior",

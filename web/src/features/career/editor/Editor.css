@@ -25,7 +25,7 @@
 }
 .cedit__note {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
@@ -52,7 +52,11 @@
 .cedit__banner p {
   margin: 0;
   flex: 1 1 24ch;
-  max-width: 75ch;
+  max-width: var(--measure);
+}
+.cedit__parts {
+  display: grid;
+  gap: var(--sp-8);
 }
 .cedit__nav {
   display: flex;
@@ -66,14 +70,6 @@
   display: grid;
   gap: var(--sp-16);
   min-width: 0;
-}
-.cedit__section-head {
-  display: grid;
-  gap: var(--sp-4);
-}
-.cedit__section {
-  margin: 0;
-  font-size: var(--fs-16);
 }
 
 .cedit-form {
@@ -340,7 +336,7 @@
 .cedit-guide li {
   display: grid;
   gap: var(--sp-2, 2px);
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 
 /* previews: the student's card, as it will look */
@@ -355,9 +351,8 @@
 .cedit-preview__title {
   margin: 0;
   font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
   color: var(--ink-2);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .cedit-preview__cards {
   margin: 0;

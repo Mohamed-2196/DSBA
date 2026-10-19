@@ -90,6 +90,7 @@ def test_a_solved_sudoku_scores_once(client_for: ClientFor, make_user: MakeUser,
     play = out["play"]
     assert (play["status"], play["scored"], play["points"]) == ("won", True, 60)
     assert "Sudoku, easy: solved" in play["share"]
+    assert play["picture"] == [["hit"] * 3] * 3  # the nine boxes, each done
     assert move(c, "sudoku", {"kind": "hint"}, variant="easy").json()["error"]["code"] == "game_over"
     # Another difficulty the same day is practice.
     play = solve_all(c, sudoku(db, today(), "hard"), variant="hard")["play"]
@@ -106,6 +107,11 @@ def test_a_scored_sudoku_earns_its_points(client_for: ClientFor, make_user: Make
     assert (hub["done"], hub["points"], hub["streak"]["current"], hub["streak"]["playedToday"]) == (1, 40, 1, True)
     sudoku_card = next(g for g in hub["games"] if g["info"]["id"] == "sudoku")
     assert (sudoku_card["status"], sudoku_card["points"]) == ("won", 40)
+    # The hub shows the play's picture: the box with the hint done with help.
+    assert sudoku_card["picture"] == play["picture"]
+    box = (hinted[0] // 27) * 3 + (hinted[0] % 9) // 3
+    assert [m for row in play["picture"] for m in row] == ["near" if b == box else "hit" for b in range(9)]
+    assert all(g["picture"] is None for g in hub["games"] if g["info"]["id"] != "sudoku")
 
 
 def test_past_days_are_practice_and_future_days_are_not_out(
@@ -174,8 +180,11 @@ def test_the_word_marks_guesses_and_shows_the_answer_only_at_the_end(
     assert move(c, "word", {"kind": "guess", "word": guess}).json()["error"]["code"] == "already_tried"
     r = move(c, "word", {"kind": "guess", "word": "QXZQX"})
     assert (r.status_code, r.json()["error"]["code"]) == (422, "unknown_word")
+    assert play["picture"] is None
     play = move(c, "word", {"kind": "guess", "word": answer}).json()["play"]
     assert (play["status"], play["points"], play["view"]["answer"]) == ("won", 90, answer)
+    assert play["picture"] == [row["marks"] for row in play["view"]["rows"]]
+    assert play["picture"][-1] == ["hit"] * 5
     assert play["share"].splitlines()[:2] == [f"DSBA Daily #{(bahrain_today() - FIRST_DAY).days + 1}", "The Word 2/6"]
     assert answer not in play["share"]
 
@@ -190,7 +199,17 @@ def test_six_wrong_guesses_lose_and_give_up_ends_the_word(
     assert (play["status"], play["points"], play["view"]["answer"]) == ("lost", 0, answer)
     other = client_for(make_user())
     play = move(other, "word", {"kind": "give-up"}).json()["play"]
-    assert (play["status"], play["view"]["answer"]) == ("lost", answer)
+    assert (play["status"], play["view"]["answer"], play["picture"]) == ("lost", answer, [])
+
+
+def test_a_guests_finished_play_has_its_picture_and_keeps_the_answer_back(client_for: ClientFor, db: Session) -> None:
+    c = client_for()
+    answer = word_of(db)
+    guess = {"kind": "guess", "word": "CRANE" if answer != "CRANE" else "SLATE"}
+    marks = move(c, "word", guess).json()["play"]["view"]["rows"][0]["marks"]
+    play = move(c, "word", {"kind": "give-up"}, history=[guess]).json()["play"]
+    assert (play["status"], play["view"]["answer"], play["picture"]) == ("lost", None, [marks])
+    assert answer not in str(play)
 
 
 def test_a_fresh_play_says_whether_it_will_count(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:

@@ -8,6 +8,7 @@ export type ItemStatus = 'active' | 'retired' | 'all';
 
 export interface GameInfo {
   id: ContentGame;
+  /** the game's name, as the hub shows it (each game's title in the API) */
   label: string;
   /** what one item is called: 'answer word' */
   noun: string;
@@ -22,7 +23,7 @@ export interface GameInfo {
 export const GAMES: readonly GameInfo[] = [
   {
     id: 'word',
-    label: 'The word',
+    label: 'The Word',
     noun: 'answer word',
     about: 'One five-letter answer a day. Every answer must be in the guess list, so players can type it.',
     importHint: 'Words separated by new lines, commas or spaces.',
@@ -30,7 +31,7 @@ export const GAMES: readonly GameInfo[] = [
   },
   {
     id: 'groups',
-    label: 'Groups',
+    label: 'Correlations',
     noun: 'group',
     about:
       'Four groups a day, one at each level from 1 (plainest) to 4 (trickiest). A group has 4 to 8 words, and a day shows four of them, never a word that another of its groups has.',
@@ -40,7 +41,7 @@ export const GAMES: readonly GameInfo[] = [
   },
   {
     id: 'search',
-    label: 'Word search',
+    label: 'Data Mine',
     noun: 'word',
     about: 'Eight words a day hidden in a 10 by 10 grid. Words are 4 to 10 letters.',
     importHint: 'Words separated by new lines, commas or spaces.',
@@ -48,7 +49,7 @@ export const GAMES: readonly GameInfo[] = [
   },
   {
     id: 'quiz',
-    label: 'Quiz',
+    label: 'The Daily Query',
     noun: 'question',
     about: 'Four questions a day from the theme, then one about the modules. The options are shuffled each day.',
     importHint:
@@ -58,7 +59,7 @@ export const GAMES: readonly GameInfo[] = [
   },
   {
     id: 'nearest',
-    label: 'Nearest neighbour',
+    label: 'Nearest Neighbour',
     noun: 'secret word',
     about:
       'One secret word a day, found by closeness. A secret word must be in the vocabulary, which decides what is close.',
@@ -143,12 +144,12 @@ export function otherErrors(fields: Record<string, string>, shown: readonly stri
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-/** What a theme has, in a line: '8 answer words · 20 groups · 37 search words · 26 questions · 16 secret words'. */
+/** What a theme has, in a line: '8 answer words · 20 groups · 37 Data Mine words · 26 questions · 16 secret words'. */
 export function countsLine(counts: Record<ContentGame, number>): string {
   return [
     plural(counts.word, 'answer word', 'answer words'),
     plural(counts.groups, 'group', 'groups'),
-    plural(counts.search, 'search word', 'search words'),
+    plural(counts.search, 'Data Mine word', 'Data Mine words'),
     plural(counts.quiz, 'question', 'questions'),
     plural(counts.nearest, 'secret word', 'secret words'),
   ].join(' · ');

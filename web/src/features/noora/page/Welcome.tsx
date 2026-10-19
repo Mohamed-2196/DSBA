@@ -1,6 +1,6 @@
 // The full page before anything is asked: Noora greets the student by name and shows, with one card per kind of
 // help, that she answers anything they study. A card fills the box with a question to finish (starters.ts).
-import { SignIn } from '@phosphor-icons/react';
+import { ChatCircleDots, SignIn } from '@phosphor-icons/react';
 import { useMediaQuery } from '../../../state';
 import { Button } from '../../../ui';
 import { Face } from '../Face';
@@ -14,6 +14,9 @@ export interface WelcomeProps {
   lead: string;
   starters: readonly Starter[];
   onStart: (starter: Starter) => void;
+  /** while she answers from her script: its own questions, asked at once, in place of the cards (which need her AI) */
+  questions: readonly string[] | null;
+  onAsk: (question: string) => void;
   /** why her AI isn't answering (null: it is) */
   paused: string | null;
   /** a guest: sign in to get her AI answers */
@@ -23,7 +26,7 @@ export interface WelcomeProps {
 /** A short screen or a phone (NooraPage.css tightens the welcome there too). */
 const SHORT = '(max-height: 880px), (max-width: 699px) and (max-height: 960px)';
 
-export function Welcome({ name, lead, starters, onStart, paused, onSignIn }: WelcomeProps) {
+export function Welcome({ name, lead, starters, onStart, questions, onAsk, paused, onSignIn }: WelcomeProps) {
   const short = useMediaQuery(SHORT);
   return (
     <div className="np-welcome" data-hub="noora-welcome">
@@ -45,28 +48,43 @@ export function Welcome({ name, lead, starters, onStart, paused, onSignIn }: Wel
           {paused}
         </p>
       ) : null}
-      <ul role="list" className="np-starters" aria-label="Ways to start">
-        {starters.map((s) => {
-          const StarterIcon = STARTER_ICONS[s.icon].icon;
-          return (
-            <li key={s.id}>
-              <button
-                type="button"
-                className="np-starter"
-                onClick={() => onStart(s)}
-                data-hub="noora-starter"
-                data-starter={s.id}
-              >
-                <StarterIcon className="np-starter__icon" aria-hidden="true" weight="duotone" />
+      {questions ? (
+        <ul role="list" className="np-starters" aria-label="Questions she answers">
+          {questions.map((q) => (
+            <li key={q}>
+              <button type="button" className="np-starter" onClick={() => onAsk(q)} data-hub="noora-script-question">
+                <ChatCircleDots className="np-starter__icon" aria-hidden="true" weight="duotone" />
                 <span className="np-starter__text">
-                  <span className="np-starter__title">{s.title}</span>
-                  <span className="np-starter__example">{s.example}</span>
+                  <span className="np-starter__title">{q}</span>
                 </span>
               </button>
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      ) : (
+        <ul role="list" className="np-starters" aria-label="Ways to start">
+          {starters.map((s) => {
+            const StarterIcon = STARTER_ICONS[s.icon].icon;
+            return (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  className="np-starter"
+                  onClick={() => onStart(s)}
+                  data-hub="noora-starter"
+                  data-starter={s.id}
+                >
+                  <StarterIcon className="np-starter__icon" aria-hidden="true" weight="duotone" />
+                  <span className="np-starter__text">
+                    <span className="np-starter__title">{s.title}</span>
+                    <span className="np-starter__example">{s.example}</span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

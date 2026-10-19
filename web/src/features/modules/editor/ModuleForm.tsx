@@ -1,11 +1,12 @@
 // One module in the editor: its details, its picture, and its chapters and lessons, saved together. A save someone
 // else made first (module_changed) offers to load theirs; removing something students' notes, cards, files or threads
 // refer to (content_in_use) says so and suggests hiding it instead.
-import { ArrowLeft, EyeSlash, Trash } from '@phosphor-icons/react';
-import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, ArrowSquareOut, EyeSlash, Trash } from '@phosphor-icons/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Location } from 'react-router-dom';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ModuleEdit } from '../../../api/types';
-import { useToast, YEARS } from '../../../state';
+import { useToast, useUnsavedChanges, YEARS } from '../../../state';
 import { Badge, Button, ConfirmDialog, Panel, QueryError, Select, Skeleton, Switch, TextField } from '../../../ui';
 import { MarkdownEditor } from '../../forum/public';
 import { useDeleteModule, useModuleForEditing, useReloadModule, useSaveModule } from './api';
@@ -20,6 +21,8 @@ interface Props {
 
 export function ModuleForm({ id, onClose }: Props) {
   const query = useModuleForEditing(id);
+  // Once loaded, the editor keeps its own copy: a refetch in the background never replaces the draft.
+  if (query.data) return <Editor first={query.data} onClose={onClose} />;
   if (query.isError) {
     return (
       <div className="medit">
@@ -34,18 +37,14 @@ export function ModuleForm({ id, onClose }: Props) {
       </div>
     );
   }
-  if (query.isPending) {
-    return (
-      <div className="medit">
-        <BackButton onClose={onClose} />
-        <Panel padding="md">
-          <Skeleton lines={8} />
-        </Panel>
-      </div>
-    );
-  }
-  // A new version (saved here, or loaded again) starts a new draft.
-  return <Editor key={`${query.data.id}@${query.data.version}`} loaded={query.data} onClose={onClose} />;
+  return (
+    <div className="medit">
+      <BackButton onClose={onClose} />
+      <Panel padding="md">
+        <Skeleton lines={8} />
+      </Panel>
+    </div>
+  );
 }
 
 function BackButton({ onClose }: { onClose: () => void }) {
@@ -58,8 +57,10 @@ function BackButton({ onClose }: { onClose: () => void }) {
 
 type Problem = { kind: 'changed' } | { kind: 'in-use'; message: string } | { kind: 'other'; message: string };
 
-function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }) {
-  const [draft, setDraft] = useState<Draft>(() => toDraft(loaded));
+function Editor({ first, onClose }: { first: ModuleEdit; onClose: () => void }) {
+  // The version the draft is edited from: the one first loaded, then each one a save returns or "Load it again" loads.
+  const [loaded, setLoaded] = useState(first);
+  const [draft, setDraft] = useState<Draft>(() => toDraft(first));
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<Problem | null>(null);
   const [removing, setRemoving] = useState(false);
@@ -69,19 +70,27 @@ function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }
   const { push: toast } = useToast();
   const dirty = isDirty(draft, loaded);
   const heading = useRef<HTMLHeadingElement>(null);
+  const status = useRef<HTMLSpanElement>(null);
+  // The form is on screen while the address names this module.
+  const keeps = useCallback((to: Location) => new URLSearchParams(to.search).get('module') === loaded.id, [loaded.id]);
+  const bypass = useUnsavedChanges(dirty, loaded.name, keeps);
 
   // Opening a module moves focus to its name, so a screen reader starts there and Tab goes on into the form.
   useEffect(() => {
     heading.current?.focus();
   }, [loaded.id]);
 
-  // Leaving the page with unsaved changes asks first.
-  useEffect(() => {
-    if (!dirty) return undefined;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty]);
+  // A new version starts a new draft.
+  const start = (next: ModuleEdit) => {
+    setLoaded(next);
+    setDraft(toDraft(next));
+    setFields({});
+    setProblem(null);
+  };
+  const loadAgain = () =>
+    reload().then(start, (e: unknown) =>
+      setProblem({ kind: 'other', message: `Their version didn’t load. ${errorMessage(e)}` }),
+    );
 
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
   const submit = () => {
@@ -93,7 +102,12 @@ function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }
       return;
     }
     save.mutate(toSave(draft, loaded.version), {
-      onSuccess: () => toast({ title: 'Saved. Students see the changes now.', tone: 'success' }),
+      onSuccess: (out) => {
+        start(out);
+        // The Save button that had the focus is disabled now: the focus goes to the line saying it saved.
+        status.current?.focus({ preventScroll: true });
+        toast({ title: 'Saved. Students see the changes now.', tone: 'success' });
+      },
       onError: (e) => {
         if (isApiError(e) && e.code === 'module_changed') setProblem({ kind: 'changed' });
         else if (isApiError(e) && e.code === 'content_in_use') setProblem({ kind: 'in-use', message: e.message });
@@ -110,7 +124,7 @@ function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }
       {
         onSuccess: () => {
           toast({ title: `${loaded.name} was removed.`, tone: 'success' });
-          onClose();
+          bypass(onClose);
         },
       },
     );
@@ -132,14 +146,20 @@ function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }
         </div>
         {!loaded.hidden ? (
           <div className="medit__actions">
-            <Button variant="ghost" to={`/modules/${loaded.id}`}>
-              Open the module
+            <Button
+              variant="ghost"
+              to={`/modules/${loaded.id}`}
+              target="_blank"
+              rel="noopener"
+              trailingIcon={ArrowSquareOut}
+            >
+              Open the module<span className="visually-hidden"> (opens in a new tab)</span>
             </Button>
           </div>
         ) : null}
       </div>
 
-      {problem ? <ProblemBanner problem={problem} onReload={() => void reload()} /> : null}
+      {problem ? <ProblemBanner problem={problem} onReload={() => void loadAgain()} /> : null}
 
       <Panel padding="md" className="medit__panel">
         <h4 className="medit__section">Details</h4>
@@ -205,7 +225,7 @@ function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }
 
       {/* In reach while the chapters scroll by: sticks to the bottom of the screen once there is something to save. */}
       <div className={dirty ? 'medit__savebar is-active' : 'medit__savebar'}>
-        <span className="medit__savebar-status" role="status">
+        <span className="medit__savebar-status" role="status" tabIndex={-1} ref={status}>
           {dirty ? 'Unsaved changes' : 'No unsaved changes'}
         </span>
         <div className="medit__actions">
@@ -235,7 +255,8 @@ function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }
         onConfirm={() => {
           if (!inUse) return confirmRemove();
           save.mutate(toSave({ ...draft, hidden: true }, loaded.version), {
-            onSuccess: () => {
+            onSuccess: (out) => {
+              start(out);
               setRemoving(false);
               remove.reset();
               toast({ title: `${loaded.name} is hidden from students.`, tone: 'success' });

@@ -1,7 +1,7 @@
 // The hub's numbers for Manage. The queues (forum reports, library uploads) invalidate ADMIN_STATS_KEY after a
 // decision, so they follow. A count is null while its feature is switched off. Mini Noora's AI usage and limits
 // have their own query.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ADMIN_STATS_KEY } from '../../api/keys';
 import type { NooraLimitsIn, SummaryEditable, SummarySave, SummaryWords } from '../../api/types';
@@ -52,15 +52,17 @@ export function useSummaryPreview(year: CohortYear) {
 
 const SUMMARY_WORDS_KEY = ['summary', 'words'] as const;
 
+const summaryWordsQuery = queryOptions({
+  queryKey: SUMMARY_WORDS_KEY,
+  queryFn: ({ signal }) => call(api.GET('/api/v1/summary/settings', { signal })),
+  // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+});
+
 /** The summary's words for their editor (summary.share). */
 export function useSummaryWords() {
-  return useQuery({
-    queryKey: SUMMARY_WORDS_KEY,
-    queryFn: ({ signal }) => call(api.GET('/api/v1/summary/settings', { signal })),
-    // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  });
+  return useQuery(summaryWordsQuery);
 }
 
 /** Saving the words: the week's text above shows them at once. */
@@ -75,9 +77,10 @@ export function useSaveSummaryWords() {
   });
 }
 
+/** Loads the words again, as someone else saved them: the editor starts over from the copy it returns. */
 export function useReloadSummaryWords() {
   const qc = useQueryClient();
-  return () => qc.refetchQueries({ queryKey: SUMMARY_WORDS_KEY, exact: true });
+  return () => qc.fetchQuery({ ...summaryWordsQuery, staleTime: 0 });
 }
 
 /** This week's summary for a year in a draft of the words (a POST that saves nothing), while the preview is open. */
