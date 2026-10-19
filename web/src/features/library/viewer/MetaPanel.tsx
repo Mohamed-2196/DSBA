@@ -1,4 +1,3 @@
-import { ArrowSquareOut, ChatsCircle, LinkSimple } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { formatSize } from '../../../api/uploads';
@@ -6,7 +5,7 @@ import { hostOf } from '../../../lib/share';
 import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { useAuth } from '../../../auth';
-import { Button, CohortBadge, Count, Kbd, Skeleton, cx, formatDate, timeAgo } from '../../../ui';
+import { Button, CohortBadge, Count, Icon, Kbd, Skeleton, cx, formatDate, glyph, timeAgo } from '../../../ui';
 import { itemPath, openLinkHref, useLibraryList } from '../api';
 import type { LinkState } from '../components/FileCard';
 import { FileThumb } from '../components/FileThumb';
@@ -153,7 +152,7 @@ export function MetaPanel({
           </h2>
           <Button
             to={askAboutHref(item, examTitle(item, moduleTag(m)), appUrl(itemPath(item)))}
-            leadingIcon={ChatsCircle}
+            leadingIcon={<Icon glyph={glyph.forum} />}
             fullWidth
             data-hub="ask-about-paper"
           >
@@ -177,11 +176,11 @@ export function MetaPanel({
       {item.status === 'removed' ? null : isLink ? (
         <section className="lib-meta__source" aria-labelledby="lib-meta-source">
           <h2 id="lib-meta-source" className="lib-meta__h">
-            <LinkSimple aria-hidden="true" weight="duotone" />
+            <Icon glyph={glyph.link} />
             Original on {linkPlace(item)}
           </h2>
           <p>It stays where it was shared. The button opens it in a new tab.</p>
-          <Button href={openLinkHref(item)} trailingIcon={ArrowSquareOut} fullWidth>
+          <Button href={openLinkHref(item)} trailingIcon={<Icon glyph={glyph.external} />} fullWidth>
             Open in {linkPlace(item)}
           </Button>
         </section>

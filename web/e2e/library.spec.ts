@@ -206,7 +206,7 @@ test('Sara stars a file and finds it under Starred; search and filters find it',
   await expect(guest.locator('main')).toContainText(t.pdf);
   await expect(guest.locator('main')).toContainText(t.ipynb);
   await guest.goto(`/library?year=all&module=advanced-stats-distribution&type=notes&q=${run.tag}`);
-  const results = guest.locator('main article[data-hub="file-card"], main tr[data-hub="file-card"]'); // not "New this week"
+  const results = guest.locator('main article[data-hub="file-card"]'); // not "New this week"
   await expect(results.filter({ hasText: t.pdf })).toHaveCount(1);
   await expect(results.filter({ hasText: t.ipynb })).toHaveCount(0);
 });
@@ -221,7 +221,7 @@ test('a starred file from another year shows under Starred', async ({ ali }) => 
     'aria-checked',
     'true',
   );
-  const results = ali.locator('main article[data-hub="file-card"], main tr[data-hub="file-card"]');
+  const results = ali.locator('main article[data-hub="file-card"]');
   await expect(results.locator(`a[href$="/library/${other.slug}"]`).first()).toBeVisible({ timeout: 5_000 });
   // Leaving Starred brings his own year back.
   await ali.goto('/library');

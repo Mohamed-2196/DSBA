@@ -17,6 +17,7 @@ export { Menu, type MenuItem } from './Menu';
 export { Tooltip, type TooltipSide } from './Tooltip';
 export { Toaster } from './Toaster';
 export { EmptyState } from './EmptyState';
+export { DocThumb, type DocTone } from './DocThumb';
 export { Deskmate, type DeskmateProps } from './deskmates/Deskmate';
 export { preloadDeskmate } from './deskmates/load';
 export { SECTION_MATE, type MateSection } from './deskmates/mates';

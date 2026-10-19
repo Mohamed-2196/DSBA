@@ -1,58 +1,64 @@
 /* Home: greeting, then the blocks (Customise Home sets which, and their order). */
 
-/* ── Greeting ──────────────────────────────────────────────────────── */
-/* The greeting: a band in Home's colour with Lumen at the end (the band is ::before, so on phones Customise Home can
-   sit under it). */
+/* ── Greeting (home-screen.png): a band in Home's colour, Lumen, the greeting and what's ahead, then the desk shelf
+   (a tile per section with its deskmate and a live line). The shelf sits beside the greeting where there's room
+   (container query: the rail width varies) and under it otherwise, scrolling inside itself on phones. ── */
 .home-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas: 'text custom mate';
-  align-items: center;
-  gap: 0 var(--sp-24);
+  container: home-head / inline-size;
   margin-bottom: var(--sp-32);
-}
-.home-head::before {
-  content: '';
-  grid-row: 1;
-  grid-column: 1 / -1;
-  align-self: stretch;
   border-radius: var(--r-panel);
   background: var(--sec-pill);
 }
-.home-head__text {
-  grid-area: text;
+.home-head__greet {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
   min-width: 0;
-  padding: var(--sp-24) 0 var(--sp-24) var(--sp-32);
+  padding: var(--sp-20) var(--sp-24) var(--sp-20) var(--sp-20);
 }
 .home-head__mate {
-  grid-area: mate;
-  align-self: end;
-  padding: var(--sp-12) var(--sp-24) 6px 0;
-  --mate-size: 100px;
+  flex: none;
+  align-self: flex-end;
+  margin-bottom: calc(var(--sp-20) * -1 + 6px);
+  --mate-size: 104px;
 }
 .home-head__mate > .ui-mate {
   display: block;
+}
+.home-head__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.home-head__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-34);
+  font-weight: var(--fw-display);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-display);
+}
+.home-head__lede {
+  max-width: var(--measure);
+  margin-top: var(--sp-6);
+  color: var(--ink);
+  font-size: var(--fs-16);
 }
 .home-head__meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--sp-12);
-  color: var(--ink-2);
-  font-size: var(--fs-16);
-  font-weight: var(--fw-medium);
+  gap: var(--sp-4) var(--sp-12);
+  margin-top: var(--sp-8);
+  color: var(--sec-text);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
 }
 .home-head__showing {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-4);
 }
-.home-head__title {
-  margin-top: var(--sp-8);
-  font-size: var(--fs-34);
-  font-weight: var(--fw-heavy);
-  line-height: 1.08;
-  letter-spacing: -0.025em;
+.home-head__custom {
+  margin-left: -6px;
 }
 /* A guest: what signing in adds, said once, quietly. */
 .home-head__guest {
@@ -63,13 +69,134 @@
   max-width: var(--measure);
   margin-top: var(--sp-8);
   color: var(--ink-2);
-  font-size: var(--fs-16);
+  font-size: var(--fs-14);
 }
 .home-head__guest .ui-button {
   margin-left: -6px;
 }
-.home-head__custom {
-  grid-area: custom;
+
+/* The desk shelf: white tiles on the band. */
+.home-shelf {
+  min-width: 0;
+  padding: 0 var(--sp-16) var(--sp-16);
+}
+.home-shelf__list {
+  display: flex;
+  gap: var(--sp-8);
+  margin: 0;
+  padding: 2px;
+  list-style: none;
+}
+.home-shelf__list > li {
+  flex: 1 0 104px;
+  display: flex;
+}
+.home-shelf__tile {
+  flex: 1 1 auto;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  min-height: 100px;
+  padding: var(--sp-8) var(--sp-8) var(--sp-10);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  text-align: center;
+  text-decoration: none;
+  transition:
+    transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.home-shelf__tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+.home-shelf__tile:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+.home-shelf__mate {
+  --mate-size: 52px;
+}
+.home-shelf__label {
+  margin-top: 2px;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  line-height: 1.2;
+}
+.home-shelf__line {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.home-shelf__line.is-news {
+  color: var(--sec-text);
+  font-weight: var(--fw-bold);
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-shelf__tile:hover {
+    transform: none;
+  }
+}
+/* Room for both: the shelf beside the greeting. */
+@container home-head (min-width: 1040px) {
+  .home-head__row {
+    display: flex;
+    align-items: center;
+  }
+  .home-head__greet {
+    flex: 1 1 auto;
+  }
+  .home-head__shelf,
+  .home-shelf {
+    flex: 0 0 auto;
+    padding: var(--sp-16) var(--sp-16) var(--sp-16) 0;
+  }
+  .home-shelf__list > li {
+    flex: 0 0 112px;
+  }
+}
+/* Phones: a smaller Lumen and title; the shelf scrolls sideways inside itself, cut by the band's edge. */
+@media (max-width: 699px) {
+  .home-head {
+    margin-bottom: var(--sp-24);
+  }
+  .home-head__greet {
+    flex-direction: row-reverse;
+    align-items: flex-start;
+    gap: var(--sp-8);
+    padding: var(--sp-16) var(--sp-8) var(--sp-12) var(--sp-16);
+  }
+  .home-head__mate {
+    margin-bottom: 0;
+    --mate-size: 64px;
+  }
+  .home-head__title {
+    font-size: var(--fs-28);
+  }
+  .home-head__lede {
+    font-size: var(--fs-14);
+  }
+  .home-shelf {
+    padding: 0 0 var(--sp-12);
+  }
+  .home-shelf__list {
+    padding-inline: var(--sp-12);
+    scroll-padding-inline: var(--sp-12);
+  }
+  .home-shelf__list > li {
+    flex: 0 0 96px;
+  }
+  .home-shelf__tile {
+    min-height: 92px;
+  }
+  .home-shelf__mate {
+    --mate-size: 44px;
+  }
 }
 
 /* ── Blocks: equal cards in a grid; one column, two from 680px of room, three from 1120px (container query: the
@@ -91,6 +218,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  container: blk / inline-size;
 }
 .home-block:empty {
   display: none;
@@ -121,6 +249,10 @@
 @container home (min-width: 1120px) {
   .home-blocks__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  /* My modules takes two columns for its cards, as in the mockup. */
+  .home-block--modules {
+    grid-column: span 2;
   }
 }
 
@@ -171,62 +303,66 @@
   gap: var(--sp-12);
 }
 .home-next {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--sp-16);
-  padding: var(--sp-16);
-  border: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'count text mate';
+  align-items: start;
+  gap: var(--sp-8) var(--sp-16);
+  padding: var(--sp-16) var(--sp-16) var(--sp-16) var(--sp-20);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
+/* The countdown: the days set big, at the display-number size. */
 .home-next__count {
-  flex: 0 0 auto;
+  grid-area: count;
   display: grid;
-  place-content: center;
-  justify-items: center;
-  min-width: 72px;
-  height: 72px;
-  padding: 0 var(--sp-8);
-  border-radius: var(--r-control);
-  background: color-mix(in srgb, var(--error) 10%, var(--surface));
+  justify-items: start;
+  min-width: 64px;
   color: var(--ink);
-  line-height: 1;
 }
-.home-next__days {
-  font-size: var(--fs-28);
-  font-weight: var(--fw-heavy);
-  letter-spacing: -0.02em;
+.home-next--exam .home-next__count {
+  color: var(--exam);
 }
 .home-next__unit {
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--ink-2);
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
 }
 .home-next__soon {
-  font-size: var(--fs-14);
-  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-display);
+  line-height: 1.1;
 }
 .home-next__text {
-  flex: 1 1 auto;
+  grid-area: text;
   min-width: 0;
-  display: grid;
-  gap: 4px;
+}
+.home-next__text > p + p,
+.home-next__text > a + p,
+.home-next__text > p + a {
+  margin-top: 4px;
 }
 .home-next__label {
-  color: var(--ink-2);
+  color: var(--sec-calendar-text);
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .home-next__name {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--sp-8);
+  display: block;
+  margin-top: 4px;
   color: var(--ink);
+  font-family: var(--font-display);
   font-size: var(--fs-20);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-display);
   line-height: 1.25;
+  letter-spacing: var(--tracking-head);
   text-decoration: none;
 }
 .home-next__name:hover {
@@ -241,49 +377,41 @@
 .home-next__code {
   color: var(--ink-2);
   font-size: var(--fs-16);
+  letter-spacing: -0.02em;
 }
 .home-next__when {
   color: var(--ink);
   font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-bold);
+}
+.home-next--exam .home-next__when {
+  color: var(--exam);
 }
 .home-next__rest {
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
+.home-next__mate {
+  grid-area: mate;
+  margin: -6px -6px 0 0;
+  --mate-size: 80px;
+}
+/* A narrow card: the count and Blink side by side, the words under them. */
+@container blk (max-width: 479px) {
+  .home-next {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'count mate' 'text text';
+  }
+}
+.home-next__code {
+  margin-right: var(--sp-8);
+}
 
-/* ── Your modules ──────────────────────────────────────────────────── */
+/* ── My modules: a card per module (home-screen.png), in the year's colour ─────────── */
 .home-mods {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--line);
-  border-radius: var(--r-card);
-  background: var(--surface);
-  overflow: hidden;
-}
-.home-mods__list {
-  flex: 1 1 auto;
-}
-/* What the list shows, and the button that changes it, under the last module. */
-.home-mods__note {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2px var(--sp-12);
-  padding: 8px 8px 8px var(--sp-16);
-  border-top: 1px solid var(--line);
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-  line-height: 1.4;
-}
-.home-mods__note > p {
-  flex: 1 1 22ch;
-  min-width: 0;
-}
-.home-mods__note > .ui-button {
-  margin-left: auto;
+  display: grid;
+  align-content: start;
+  gap: var(--sp-12);
 }
 .home-mods--y1 {
   --mod-c: var(--y1);
@@ -297,102 +425,125 @@
   --mod-c: var(--y3);
   --mod-strong: var(--y3-strong);
 }
-.home-mods__list li + li {
-  border-top: 1px solid var(--line);
-}
-.home-mods__row {
-  position: relative;
-  display: flex;
-  align-items: center;
+.home-mods__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
   gap: var(--sp-12);
-  min-height: 60px;
-  padding: 10px var(--sp-16);
+}
+.home-mods__list > li {
+  display: flex;
+  min-width: 0;
+}
+.home-mod {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--sp-14) var(--sp-16) var(--sp-16);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
   color: var(--ink);
   text-decoration: none;
-  transition: background-color var(--dur-fast) var(--ease);
+  transition: border-color var(--dur-fast) var(--ease);
 }
-.home-mods__row:hover {
-  background: var(--surface-2);
+.home-mod:hover {
+  border-color: var(--line-strong);
 }
-.home-mods__row:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--focus-color);
+.home-mod:hover .home-mod__name {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
 }
-.home-mods__code {
-  flex: 0 0 64px;
-  font-size: var(--fs-16);
-  line-height: 1;
-  color: var(--mod-strong);
+.home-mod:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
 }
-.home-mods__lead {
-  flex: 0 0 64px;
+.home-mod__top {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-8);
 }
-.home-mods__art {
+.home-mod__art {
   --modart-size: 44px;
 }
-.home-mods__tag {
-  margin-right: 2px;
-  color: var(--mod-strong);
-}
-.home-mods__icon {
-  flex: 0 0 auto;
+.home-mod__icon {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  margin-right: 4px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--r-control);
-  background: color-mix(in srgb, var(--mod-c) 14%, var(--surface));
+  background: color-mix(in srgb, var(--mod-c) 16%, var(--surface));
   color: var(--mod-strong);
-  font-size: 18px;
+  font-size: 24px;
 }
-.home-mods__text {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: grid;
-  gap: 1px;
+.home-mod__exam {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px var(--sp-8);
+  border-radius: var(--r-pill);
+  background: var(--exam-soft);
+  color: var(--exam);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
 }
-.home-mods__name {
+.home-mod__examdot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: currentColor;
+}
+.home-mod__name {
   display: -webkit-box;
   overflow: hidden;
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  line-height: 1.35;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-bold);
+  line-height: 1.3;
   overflow-wrap: break-word;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
-.home-mods__meta {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.home-mod__code {
+  color: var(--mod-strong);
+  font-size: var(--fs-13);
+}
+.home-mod__meta {
+  margin-top: auto;
+  padding-top: var(--sp-8);
   color: var(--ink-2);
   font-size: var(--fs-12);
 }
-.home-mods__exam {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--ink);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-}
-.home-mods__examdot {
-  width: 7px;
-  height: 7px;
+.home-mod__bar {
+  height: 6px;
+  margin-top: var(--sp-6);
   border-radius: var(--r-pill);
-  background: var(--exam);
+  background: linear-gradient(var(--mod-c), var(--mod-c)) 0 0 / var(--pct) 100% no-repeat var(--surface-2);
 }
-.home-mods__bar {
-  position: absolute;
-  left: var(--sp-16);
-  right: var(--sp-16);
-  bottom: 0;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(var(--mod-c), var(--mod-c)) 0 0 / var(--pct) 100% no-repeat;
+/* What the list shows, and the button that changes it, under the cards. */
+.home-mods__note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px var(--sp-12);
+  padding: var(--sp-8) var(--sp-8) var(--sp-8) var(--sp-16);
+  border-radius: var(--r-card);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  line-height: 1.4;
+}
+.home-mods__note > p {
+  flex: 1 1 22ch;
+  min-width: 0;
+}
+.home-mods__note > .ui-button {
+  margin-left: auto;
 }
 
 /* ── New files and Forum lists ─────────────────────────────────────────────── */
@@ -421,6 +572,7 @@
 }
 .home-list__icon {
   flex: 0 0 auto;
+  display: flex;
   color: var(--ink-2);
   font-size: 22px;
 }
@@ -492,37 +644,11 @@
 }
 
 @media (max-width: 699px) {
-  .home-head {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'text mate' 'custom custom';
-    gap: var(--sp-12) var(--sp-8);
-    margin-bottom: var(--sp-24);
-  }
-  .home-head__text {
-    padding: var(--sp-16) 0 var(--sp-16) var(--sp-20);
-  }
-  .home-head__mate {
-    padding: var(--sp-8) var(--sp-16) 4px 0;
-    --mate-size: 72px;
-  }
-  .home-head__custom {
-    justify-self: start;
-  }
-  .home-head__title {
-    font-size: var(--fs-28);
-  }
   .home-blocks__grid {
     row-gap: var(--sp-32);
   }
   .home-list__when {
     display: none;
-  }
-  .home-next__count {
-    min-width: 60px;
-    height: 60px;
-  }
-  .home-next__days {
-    font-size: var(--fs-22);
   }
 }
 @media (pointer: coarse) {
@@ -533,11 +659,93 @@
 }
 /* Short screens (a phone on its side): a slimmer greeting. */
 @media (max-height: 499px) and (min-width: 700px) {
-  .home-head__text {
-    padding: var(--sp-12) 0 var(--sp-12) var(--sp-24);
+  .home-head__greet {
+    padding-block: var(--sp-12);
   }
   .home-head__mate {
-    padding: var(--sp-8) var(--sp-16) 4px 0;
+    margin-bottom: 0;
     --mate-size: 72px;
   }
+  .home-shelf__tile {
+    min-height: 84px;
+  }
+}
+
+/* ── Replies to you (the Forum block, signed in): who answered, what, when; Pip and Pod at the corner ── */
+.home-forum {
+  display: grid;
+  gap: var(--sp-12);
+  align-content: start;
+}
+.home-replies {
+  padding: var(--sp-16) var(--sp-16) var(--sp-8);
+}
+.home-replies__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-8);
+}
+.home-replies__title {
+  padding-top: var(--sp-4);
+  color: var(--sec-text);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.home-replies__mate {
+  margin: -6px -4px -12px 0;
+  --mate-size: 56px;
+}
+.home-replies__list {
+  display: grid;
+  margin: 0 calc(-1 * var(--sp-8));
+}
+.home-replies__row {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: var(--sp-8) var(--sp-8) var(--sp-8) var(--sp-20);
+  border-radius: var(--r-control);
+  color: var(--ink);
+  text-decoration: none;
+}
+.home-replies__row:hover {
+  background: var(--surface-2);
+}
+.home-replies__row:hover .home-replies__what {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+.home-replies__row:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 0;
+}
+.home-replies__dot {
+  position: absolute;
+  top: 15px;
+  left: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-pill);
+  background: var(--sec-art);
+}
+.home-replies__what {
+  font-size: var(--fs-15);
+  font-weight: var(--fw-bold);
+  line-height: 1.3;
+}
+.home-replies__body {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.home-replies__when {
+  color: var(--ink-3);
+  font-size: var(--fs-12);
 }

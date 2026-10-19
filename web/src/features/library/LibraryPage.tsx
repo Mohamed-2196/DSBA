@@ -1,26 +1,4 @@
-import {
-  BookOpenText,
-  Books,
-  CaretDown,
-  Check,
-  ClipboardText,
-  Exam,
-  FolderSimple,
-  Funnel,
-  Lightning,
-  LinkSimple,
-  Notebook,
-  NotePencil,
-  PencilLine,
-  Rows,
-  SquaresFour,
-  Star,
-  Swatches,
-  UploadSimple,
-  UserCircle,
-  X,
-  type Icon,
-} from '@phosphor-icons/react';
+import { Rows, SquaresFour, Swatches } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { showsUpload, useAuth } from '../../auth';
@@ -39,7 +17,9 @@ import {
   Button,
   Chip,
   Count,
+  DocThumb,
   EmptyState,
+  Icon,
   IconButton,
   Kbd,
   Menu,
@@ -53,11 +33,12 @@ import {
   Skeleton,
   cx,
   formatCount,
+  glyph,
   timeAgo,
 } from '../../ui';
 import { itemPath, useLibraryFacets, useLibraryList, useLibraryPages } from './api';
 import { FileCard, type LinkState } from './components/FileCard';
-import { FileTable } from './components/FileTable';
+import { FileRows } from './components/FileRow';
 import { FileThumb } from './components/FileThumb';
 import { FilterSheet } from './components/FilterSheet';
 import { PaperSittings } from './components/PaperSittings';
@@ -68,14 +49,14 @@ import { YourUploads } from './components/YourUploads';
 import { addedAt, examTitle, hasExamTitle, isNew, moduleTag } from './display';
 import {
   CLEAR_ALL,
+  DEFAULT_VIEW,
   activeFilters,
   defaultSort,
-  defaultView,
   readSort,
   sittingSortOffered,
   type Patch,
 } from './filters';
-import { KINDS, KIND_BY_ID, isLibraryKind, type LibraryKind } from './kinds';
+import { KINDS, KIND_BY_ID, docTone, isLibraryKind } from './kinds';
 import type { CohortYear, LibraryItem, LibrarySort, LibraryView } from './types';
 import { useStar } from './useStar';
 import { AskLink } from '../requests/public';
@@ -92,19 +73,6 @@ const SORTS: Record<LibrarySort, string> = {
   popular: 'Most downloaded',
   new: 'Newest',
   title: 'Name, A to Z',
-};
-
-const KIND_ICONS: Partial<Record<LibraryKind, Icon>> = {
-  'past-paper': Exam,
-  'examiners-report': ClipboardText,
-  'subject-guide': BookOpenText,
-  reading: Books,
-  'study-guide': Notebook,
-  exercises: PencilLine,
-  notes: NotePencil,
-  'cheat-sheet': Lightning,
-  'course-materials': FolderSimple,
-  'vle-materials': FolderSimple,
 };
 
 /** All library filters live in the URL: ?year=&module=&type=&q=&sort=&view=&starred=1&mine=1&source=file|link.
@@ -130,6 +98,12 @@ function useLibraryParams(): [URLSearchParams, (patch: Patch) => void] {
   return [params, update];
 }
 
+/** Files students shared in the last 7 days (for the year browsed), the newest 12. */
+function useNewThisWeek(year: CohortYear | null): LibraryItem[] {
+  const recent = useLibraryList({ sort: 'new', year }, { limit: 12 });
+  return (recent.data?.items ?? []).filter((f) => isNew(f));
+}
+
 /** The shelf: files published in the last 7 days (for the year being browsed). */
 function NewThisWeek({
   year,
@@ -141,8 +115,7 @@ function NewThisWeek({
   linkState: LinkState;
 }) {
   const { getModule } = useModules();
-  const recent = useLibraryList({ sort: 'new', year }, { limit: 12 });
-  const items = (recent.data?.items ?? []).filter((f) => isNew(f));
+  const items = useNewThisWeek(year);
   if (!items.length) return null;
   return (
     <PageSection className="lib-new" aria-labelledby="lib-new-title" data-hub="library-new">
@@ -164,7 +137,7 @@ function NewThisWeek({
                 <FileThumb item={f} size="strip" />
                 <span className="lib-new__name">{examTitle(f, code)}</span>
                 <span className="lib-new__meta">
-                  {code && !hasExamTitle(f) ? <span className="lib-new__code">{code}</span> : null}
+                  {code && !hasExamTitle(f) ? <span className="lib-new__code u-code">{code}</span> : null}
                   <span>{timeAgo(addedAt(f))}</span>
                 </span>
               </Link>
@@ -179,11 +152,13 @@ function NewThisWeek({
 function ResultsSkeleton({ view, isMobile }: { view: LibraryView; isMobile: boolean }) {
   if (view === 'list') {
     return (
-      <div className="lib-table-wrap lib-skeleton-rows" aria-hidden="true">
+      <div className="lib-ixs" aria-hidden="true">
         {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="lib-skeleton-row">
-            <Skeleton width={46} height={65} radius={2} />
-            <Skeleton lines={2} />
+          <div key={i} className="lib-ix">
+            <Skeleton width={40} height={50} radius={6} />
+            <div className="lib-ix__main">
+              <Skeleton lines={2} />
+            </div>
           </div>
         ))}
       </div>
@@ -232,7 +207,7 @@ export default function LibraryPage() {
   const sort = readSort(params.get('sort'), { searching: !!q.trim(), kind, module: !!module });
   const openingSort = defaultSort(!!q.trim(), kind);
   const viewParam = params.get('view');
-  const openingView = defaultView(kind);
+  const openingView = DEFAULT_VIEW;
   const view: LibraryView = viewParam === 'list' || viewParam === 'grid' ? viewParam : openingView;
   const starredOnly = params.get('starred') === '1';
   const mineOnly = params.get('mine') === '1';
@@ -248,6 +223,8 @@ export default function LibraryPage() {
   const yearLabel = year ? cohortLabel(year) : null;
   const uploadParam = params.get('upload') === '1';
 
+  const newOnes = useNewThisWeek(year);
+  const newLine = `${newOnes.length === 12 ? '12+' : newOnes.length} new this week`;
   const debouncedQ = useDebouncedValue(q, 300);
   // The request follows the settled search text, so its order changes with the results, not a keystroke earlier.
   const querySort = readSort(params.get('sort'), { searching: !!debouncedQ.trim(), kind, module: !!module });
@@ -354,7 +331,7 @@ export default function LibraryPage() {
     results = (
       <div className="lib-empty">
         <EmptyState
-          icon={starredOnly ? Star : UserCircle}
+          icon={<Icon glyph={starredOnly ? glyph.star : glyph.user} />}
           title={starredOnly ? 'Sign in to see your starred files' : 'Sign in to see your uploads'}
           body={
             starredOnly
@@ -427,7 +404,7 @@ export default function LibraryPage() {
               body="Share your notes, a cheat sheet or a past paper with other students."
               action={
                 uploadShown ? (
-                  <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
+                  <Button variant="primary" leadingIcon={<Icon glyph={glyph.upload} />} onClick={startUpload}>
                     Upload a file
                   </Button>
                 ) : undefined
@@ -442,7 +419,7 @@ export default function LibraryPage() {
             action={
               <>
                 {uploadShown ? (
-                  <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
+                  <Button variant="primary" leadingIcon={<Icon glyph={glyph.upload} />} onClick={startUpload}>
                     Upload a file
                   </Button>
                 ) : null}
@@ -488,7 +465,7 @@ export default function LibraryPage() {
           board={board}
           headingLevel={2}
           renderOther={(other) => (
-            <FileTable items={other} sort={sort} onToggleStar={toggleStar} linkState={linkState} />
+            <FileRows items={other} sort={sort} onToggleStar={toggleStar} linkState={linkState} />
           )}
         />
         {paperLinks.data?.items.length ? (
@@ -497,7 +474,7 @@ export default function LibraryPage() {
               Links
               <span className="lib-mf__count">{paperLinks.data.items.length}</span>
             </h2>
-            <FileTable items={paperLinks.data.items} sort={sort} onToggleStar={toggleStar} linkState={linkState} />
+            <FileRows items={paperLinks.data.items} sort={sort} onToggleStar={toggleStar} linkState={linkState} />
           </section>
         ) : null}
       </div>
@@ -532,7 +509,7 @@ export default function LibraryPage() {
             ))}
           </div>
         ) : (
-          <FileTable items={items} sort={sort} onSort={onSort} onToggleStar={toggleStar} linkState={linkState} />
+          <FileRows items={items} sort={sort} onToggleStar={toggleStar} linkState={linkState} />
         )}
         {list.hasNextPage ? (
           <div className="lib-more">
@@ -580,17 +557,28 @@ export default function LibraryPage() {
       align="end"
       label="Sort files"
       trigger={
-        <Button variant="ghost" size="sm" trailingIcon={CaretDown} className="lib-sort">
-          <span className="lib-sort__label">Sort: </span>
-          {SORTS[sort]}
-        </Button>
+        compact ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            leadingIcon={<Icon glyph={glyph.sort} />}
+            className="lib-sort lib-sort--icon"
+            aria-label={`Sort files: ${SORTS[sort]}`}
+            title={`Sort: ${SORTS[sort]}`}
+          />
+        ) : (
+          <Button variant="ghost" size="sm" trailingIcon={<Icon glyph={glyph.chevronDown} />} className="lib-sort">
+            <span className="lib-sort__label">Sort: </span>
+            {SORTS[sort]}
+          </Button>
+        )
       }
       items={(Object.keys(SORTS) as LibrarySort[])
         .filter((id) => (id !== 'relevance' || q.trim()) && (id !== 'sitting' || sittingSortOffered(kind, !!module)))
         .map((id) => ({
           id,
           label: SORTS[id],
-          icon: id === sort ? Check : <span className="lib-sort__blank" />,
+          icon: id === sort ? <Icon glyph={glyph.check} /> : <span className="lib-sort__blank" />,
           onSelect: () => onSort(id),
         }))}
     />
@@ -633,23 +621,41 @@ export default function LibraryPage() {
   );
 
   return (
-    <Page width="wide" className="lib-page">
+    <Page width="wide" className="lib-page" data-section="library">
       {compact ? (
-        <header className="lib-mhead" data-section="library">
-          <h1 className="lib-mhead__title">Library</h1>
+        <header className="lib-mhead">
+          <div className="lib-mhead__text">
+            <h1 className="lib-mhead__title">Library</h1>
+            <p className="lib-mhead__meta">
+              {yearTotal != null ? (
+                <span>
+                  <span className="u-tabular">{formatCount(yearTotal)}</span> {yearTotal === 1 ? 'file' : 'files'}
+                  {yearLabel ? ` for ${yearLabel}` : ''}
+                </span>
+              ) : (
+                <Skeleton width={120} height={14} />
+              )}
+              {newOnes.length ? <span className="lib-mhead__new">{newLine}</span> : null}
+            </p>
+          </div>
           {linksShown ? (
-            <IconButton label="Add a link" icon={LinkSimple} onClick={openLinking} data-hub="link-button" />
+            <IconButton
+              label="Add a link"
+              icon={<Icon glyph={glyph.link} />}
+              onClick={openLinking}
+              data-hub="link-button"
+            />
           ) : null}
           {uploadShown ? (
             <IconButton
               label="Upload a file"
-              icon={UploadSimple}
+              icon={<Icon glyph={glyph.upload} />}
               variant="primary"
               onClick={startUpload}
               data-hub="upload-button"
             />
           ) : null}
-          <Deskmate mate="stacks" size={48} className="lib-mhead__mate" />
+          <Deskmate mate="stacks" size={64} className="lib-mhead__mate" />
         </header>
       ) : (
         <PageHeader
@@ -660,12 +666,17 @@ export default function LibraryPage() {
             uploadShown || linksShown ? (
               <>
                 {linksShown ? (
-                  <Button leadingIcon={LinkSimple} onClick={openLinking} data-hub="link-button">
+                  <Button leadingIcon={<Icon glyph={glyph.link} />} onClick={openLinking} data-hub="link-button">
                     Add a link
                   </Button>
                 ) : null}
                 {uploadShown ? (
-                  <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload} data-hub="upload-button">
+                  <Button
+                    variant="primary"
+                    leadingIcon={<Icon glyph={glyph.upload} />}
+                    onClick={startUpload}
+                    data-hub="upload-button"
+                  >
                     Upload a file
                   </Button>
                 ) : null}
@@ -674,10 +685,13 @@ export default function LibraryPage() {
           }
           meta={
             yearTotal != null ? (
-              <span className="lib-head-meta">
-                <strong className="u-tabular">{formatCount(yearTotal)}</strong> {yearTotal === 1 ? 'file' : 'files'}{' '}
-                {yearLabel ? `for ${yearLabel}` : 'across all years'}
-              </span>
+              <>
+                <span className="lib-head-meta">
+                  <strong className="u-tabular">{formatCount(yearTotal)}</strong> {yearTotal === 1 ? 'file' : 'files'}{' '}
+                  {yearLabel ? `for ${yearLabel}` : 'across all years'}
+                </span>
+                {newOnes.length ? <span className="lib-head-meta lib-head-meta--new">{newLine}</span> : null}
+              </>
             ) : (
               <Skeleton width={140} height={18} />
             )
@@ -692,21 +706,23 @@ export default function LibraryPage() {
           <div className="lib-filters lib-filters--compact" data-hub="library-filters">
             {search}
             <div className="lib-filters__bar">
-              <Button
-                leadingIcon={Funnel}
-                onClick={() => setSheetOpen(true)}
-                aria-haspopup="dialog"
-                aria-label={active.length ? `Filters, ${active.length} on` : 'Filters'}
-                className="lib-filters__open"
-                data-hub="library-filters-open"
-              >
-                Filters
-                {active.length ? <span className="lib-filters__n">{active.length}</span> : null}
-              </Button>
-              {sortMenu}
-            </div>
-            {active.length ? (
-              <ul className="lib-filters__active u-scroll-row" aria-label="Filters on">
+              {/* Filters, then each filter that is on as a chip that takes it off: one strip that scrolls inside
+                  itself. Sort stays at the end of the row. */}
+              <ul className="lib-filters__active u-scroll-row" aria-label="Filters">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setSheetOpen(true)}
+                    aria-haspopup="dialog"
+                    aria-label={active.length ? `Filters, ${active.length} on` : 'Filters'}
+                    className="lib-filters__open"
+                    data-hub="library-filters-open"
+                  >
+                    <Icon glyph={glyph.filter} className="lib-filters__icon" />
+                    Filters
+                    {active.length ? <span className="lib-filters__n">{active.length}</span> : null}
+                  </button>
+                </li>
                 {active.map((f) => (
                   <li key={f.id}>
                     <button
@@ -716,14 +732,28 @@ export default function LibraryPage() {
                       aria-label={`Remove the filter ${f.label}`}
                     >
                       {f.label}
-                      <X aria-hidden="true" weight="bold" />
+                      <Icon glyph={glyph.close} />
                     </button>
                   </li>
                 ))}
               </ul>
-            ) : null}
-            <p className="visually-hidden" aria-live="polite">
-              {countLine}
+              {sortMenu}
+            </div>
+            <p className="lib-context" aria-live="polite">
+              <span className="lib-context__what">
+                {module ? (
+                  <>
+                    {module.unitCode ? <span className="u-code">{module.unitCode}</span> : null} {module.name}
+                  </>
+                ) : (
+                  (yearLabel ?? 'All years')
+                )}
+              </span>
+              {list.data ? (
+                <span className="lib-context__n u-tabular">
+                  {formatCount(total)} {total === 1 ? 'file' : 'files'}
+                </span>
+              ) : null}
             </p>
           </div>
         ) : (
@@ -769,7 +799,7 @@ export default function LibraryPage() {
                         key={k.id}
                         selected={kind === k.id}
                         onChange={(on) => update({ type: on ? k.id : null })}
-                        icon={KIND_ICONS[k.id] ?? null}
+                        icon={<DocThumb tone={docTone({ kind: k.id, source: 'file' })} size="sm" />}
                       >
                         {k.plural}
                       </Chip>
@@ -787,7 +817,7 @@ export default function LibraryPage() {
                 <Chip
                   selected={starredOnly}
                   onChange={toggleStarred}
-                  icon={<Star weight={starredOnly ? 'fill' : 'regular'} />}
+                  icon={<Icon glyph={glyph.star} active={starredOnly} />}
                 >
                   Starred
                 </Chip>
@@ -795,12 +825,12 @@ export default function LibraryPage() {
                   <Chip
                     selected={mineOnly}
                     onChange={(on) => update({ mine: on ? '1' : null, starred: null })}
-                    icon={UploadSimple}
+                    icon={<Icon glyph={glyph.upload} />}
                   >
                     Your uploads
                   </Chip>
                 ) : null}
-                {sittingsView ? null : (
+                {sittingsView || view !== 'grid' ? null : (
                   <Chip
                     selected={coverStyle === 'styled'}
                     onChange={(on) => setCoverStyle(on ? 'styled' : 'original')}

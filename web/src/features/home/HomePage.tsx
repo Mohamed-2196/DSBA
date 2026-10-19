@@ -4,7 +4,6 @@
 // Blocks from other features come from their public.ts, each in its own ErrorBoundary with its own loading, empty and
 // error states; a notice with nothing to say renders nothing.
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { SignIn, SlidersHorizontal, SquaresFour } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { COHORTS, YEARS, useOnline, useYear } from '../../state';
 import { useModules } from '../../state/modules';
@@ -14,6 +13,7 @@ import {
   Deskmate,
   EmptyState,
   ErrorBoundary,
+  Icon,
   Menu,
   Page,
   PageSection,
@@ -22,11 +22,12 @@ import {
   SectionHeader,
   Skeleton,
   cx,
+  glyph,
 } from '../../ui';
 import { BoardTodo, useTodayAgenda } from '../board/public';
 import { useMyCalendarEvents } from '../calendar/public';
 import { HelpBelow } from '../forum/public';
-import { DailyQuestion } from '../library/public';
+import { DailyQuestion, useTimeMe } from '../library/public';
 import { ContinueLearning, useTracking } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
 import { usePapers } from '../papers/public';
@@ -42,7 +43,8 @@ import { useHomeLayout } from './layout';
 import { HomeForum } from './HomeForum';
 import { NewFiles } from './NewFiles';
 import { getExamSession } from './session';
-import { greetingFor, lumenPose } from './time';
+import { greetingFor, greetingLede, lumenPose } from './time';
+import { HomeShelf } from './HomeShelf';
 import { YourModules } from './YourModules';
 import './HomePage.css';
 
@@ -116,6 +118,7 @@ export default function HomePage() {
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
   const todo = useTodayAgenda({ enabled: signedIn && featureOn('board') });
   const carryOn = useCarryOn();
+  const timeMe = useTimeMe();
 
   // The blocks this person can have: every feature each needs is on, and an account or lesson progress if it needs one.
   const offeredKey = offeredBlocks(featureOn, { signedIn, tracking: tracking.on }).join();
@@ -282,70 +285,86 @@ export default function HomePage() {
   };
 
   const name = signedIn ? firstNameOf(me?.displayName) : null;
+  const lede = greetingLede(
+    nextExam ? { days: nextExam.days, name: nextExam.unitCode || nextExam.module?.unitCode || nextExam.title } : null,
+    timeMe.timer ? timeMe.timer.paper.title : null,
+  );
   const lumen = lumenPose(now, online, waved);
   const blocks = layout.shown.map(render).filter(Boolean);
 
   return (
     <Page className="home">
       <header className="home-head" data-section="home" data-hub="home-greeting">
-        <div className="home-head__mate">
-          <Deskmate mate="lumen" state={lumen} size={100} />
+        <div className="home-head__row">
+          <div className="home-head__greet">
+            <div className="home-head__mate">
+              <Deskmate mate="lumen" state={lumen} size={104} />
+            </div>
+            <div className="home-head__text">
+              <h1 className="home-head__title">
+                {greetingFor(now)}
+                {name ? `, ${name}` : ''}
+              </h1>
+              {lede ? <p className="home-head__lede">{lede}</p> : null}
+              <p className="home-head__meta">
+                <time dateTime={todayIs}>{formatLongDay(today)}</time>
+                {year ? (
+                  <CohortBadge year={year} />
+                ) : (
+                  // No year chosen yet: Year 1 is what the page shows, not the person's own year.
+                  <>
+                    <span className="home-head__showing">
+                      Showing <CohortBadge year={activeYear} />
+                    </span>
+                    <Menu
+                      align="start"
+                      label="Pick your year"
+                      items={YEARS.map((y) => ({
+                        id: `y${y}`,
+                        label: COHORTS[y].label,
+                        icon: <span className={`yr-dot yr-dot--y${y}`} />,
+                        onSelect: () => setYear(y),
+                      }))}
+                      trigger={
+                        <Button size="sm" variant="ghost" data-hub="home-pick-year">
+                          Pick your year
+                        </Button>
+                      }
+                    />
+                  </>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  leadingIcon={<Icon glyph={glyph.settings} />}
+                  onClick={() => setCustomizing(true)}
+                  className="home-head__custom"
+                  data-hub="home-customize-open"
+                >
+                  Customise Home
+                </Button>
+              </p>
+              {status === 'guest' ? (
+                <p className="home-head__guest" data-hub="home-signin">
+                  <span>
+                    {forumOn
+                      ? 'Sign in for boards, your Home on every device, and the forum.'
+                      : 'Sign in for boards and your Home on every device.'}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    leadingIcon={<Icon glyph={glyph.signIn} />}
+                    onClick={() => openSignIn()}
+                  >
+                    Sign in
+                  </Button>
+                </p>
+              ) : null}
+            </div>
+          </div>
+          <HomeShelf year={activeYear} exam={nextExam ? { days: nextExam.days, date: nextExam.when } : null} />
         </div>
-        <div className="home-head__text">
-          <p className="home-head__meta">
-            <time dateTime={todayIs}>{formatLongDay(today)}</time>
-            {year ? (
-              <CohortBadge year={year} />
-            ) : (
-              // No year chosen yet: Year 1 is what the page shows, not the person's own year.
-              <>
-                <span className="home-head__showing">
-                  Showing <CohortBadge year={activeYear} />
-                </span>
-                <Menu
-                  align="start"
-                  label="Pick your year"
-                  items={YEARS.map((y) => ({
-                    id: `y${y}`,
-                    label: COHORTS[y].label,
-                    icon: <span className={`yr-dot yr-dot--y${y}`} />,
-                    onSelect: () => setYear(y),
-                  }))}
-                  trigger={
-                    <Button size="sm" variant="ghost" data-hub="home-pick-year">
-                      Pick your year
-                    </Button>
-                  }
-                />
-              </>
-            )}
-          </p>
-          <h1 className="home-head__title">
-            {greetingFor(now)}
-            {name ? `, ${name}` : ''}
-          </h1>
-          {status === 'guest' ? (
-            <p className="home-head__guest" data-hub="home-signin">
-              <span>
-                {forumOn
-                  ? 'Sign in for boards, your Home on every device, and the forum.'
-                  : 'Sign in for boards and your Home on every device.'}
-              </span>
-              <Button size="sm" variant="ghost" leadingIcon={SignIn} onClick={() => openSignIn()}>
-                Sign in
-              </Button>
-            </p>
-          ) : null}
-        </div>
-        <Button
-          size="sm"
-          leadingIcon={SlidersHorizontal}
-          onClick={() => setCustomizing(true)}
-          className="home-head__custom"
-          data-hub="home-customize-open"
-        >
-          Customise Home
-        </Button>
       </header>
 
       {layout.problem ? (
@@ -371,7 +390,7 @@ export default function HomePage() {
       ) : (
         <Panel padding="none">
           <EmptyState
-            icon={SquaresFour}
+            icon={<Icon glyph={glyph.home} />}
             title="Your Home is empty"
             body="Choose what to show here: your next exam, your to-do, your modules and more."
             action={

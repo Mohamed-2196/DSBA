@@ -4,13 +4,12 @@
 // included. The clock runs on timestamps, so it keeps time while the tab is hidden, the phone sleeps or the page
 // reloads; when time is up it says so in the page and the tab's title, vibrates, plays a short tone and, if allowed,
 // shows a notification. Stopping it, or time running out, asks "How did it go?" and keeps the score.
-import { ArrowRight, CaretLeft, Pause, Play, Timer, X } from '@phosphor-icons/react';
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { LibraryItem } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { useLocalStorage, useMediaQuery } from '../../../state';
-import { Button, IconButton, Modal, SegmentedControl, TextField, cx } from '../../../ui';
+import { Button, Icon, IconButton, Modal, SegmentedControl, TextField, cx, glyph } from '../../../ui';
 import { PaperScoreDialog } from '../../board/public';
 import { itemPath } from '../api';
 import {
@@ -64,9 +63,9 @@ export const timedPaper = (item: LibraryItem, title: string): TimedPaper => ({
 /** The toolbar's button. */
 export function TimeMeButton({ onClick, compact }: { onClick: () => void; compact: boolean }) {
   return compact ? (
-    <IconButton label="Time me" icon={Timer} onClick={onClick} data-hub="time-me" />
+    <IconButton label="Time me" icon={<Icon glyph={glyph.timer} />} onClick={onClick} data-hub="time-me" />
   ) : (
-    <Button leadingIcon={Timer} onClick={onClick} data-hub="time-me">
+    <Button leadingIcon={<Icon glyph={glyph.timer} />} onClick={onClick} data-hub="time-me">
       Time me
     </Button>
   );
@@ -115,7 +114,13 @@ export function TimeMeDialog({
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" form="time-me-form" leadingIcon={Timer} data-hub="time-me-start">
+          <Button
+            variant="primary"
+            type="submit"
+            form="time-me-form"
+            leadingIcon={<Icon glyph={glyph.timer} />}
+            data-hub="time-me-start"
+          >
             {ms !== null ? `Start ${durationLabel(ms)}` : 'Start'}
           </Button>
         </>
@@ -302,16 +307,34 @@ function PauseResume({
 }: { paused: boolean; compact: boolean } & Pick<ClockProps, 'onPause' | 'onResume'>) {
   if (compact)
     return paused ? (
-      <IconButton label="Resume" icon={Play} size="sm" onClick={onResume} data-hub="time-me-resume" />
+      <IconButton
+        label="Resume"
+        icon={<Icon glyph={glyph.play} />}
+        size="sm"
+        onClick={onResume}
+        data-hub="time-me-resume"
+      />
     ) : (
-      <IconButton label="Pause" icon={Pause} size="sm" onClick={onPause} data-hub="time-me-pause" />
+      <IconButton
+        label="Pause"
+        icon={<Icon glyph={glyph.pause} />}
+        size="sm"
+        onClick={onPause}
+        data-hub="time-me-pause"
+      />
     );
   return paused ? (
-    <Button size="sm" leadingIcon={Play} onClick={onResume} data-hub="time-me-resume">
+    <Button size="sm" leadingIcon={<Icon glyph={glyph.play} />} onClick={onResume} data-hub="time-me-resume">
       Resume
     </Button>
   ) : (
-    <Button size="sm" variant="ghost" leadingIcon={Pause} onClick={onPause} data-hub="time-me-pause">
+    <Button
+      size="sm"
+      variant="ghost"
+      leadingIcon={<Icon glyph={glyph.pause} />}
+      onClick={onPause}
+      data-hub="time-me-pause"
+    >
       Pause
     </Button>
   );
@@ -328,7 +351,7 @@ export function ExamTimer({ timer, report, onPause, onResume, onFinish }: ClockP
       aria-live={done ? 'assertive' : 'off'}
       data-hub="exam-timer"
     >
-      <Timer aria-hidden="true" weight="duotone" className="lib-timer__icon" />
+      <Icon glyph={glyph.timer} className="lib-timer__icon" />
       {done ? (
         <p className="lib-timer__text">
           <strong>Time’s up.</strong>{' '}
@@ -361,7 +384,7 @@ export function ExamTimer({ timer, report, onPause, onResume, onFinish }: ClockP
       )}
       <IconButton
         label={done ? 'Close' : 'Stop the timer'}
-        icon={X}
+        icon={<Icon glyph={glyph.close} />}
         size="sm"
         onClick={onFinish}
         data-hub="time-me-stop"
@@ -430,7 +453,7 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
           onClick={() => fold(true)}
           data-hub="timer-pill-toggle"
         >
-          <Timer aria-hidden="true" weight="duotone" className="lib-pill__icon" />
+          <Icon glyph={glyph.timer} className="lib-pill__icon" />
           <span className="lib-pill__clock u-tabular" aria-hidden="true">
             {clockLabel(left)}
             {paused ? <span className="lib-pill__state"> paused</span> : null}
@@ -449,7 +472,7 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
         data-hub="timer-pill"
       >
         <Link to={timedPaperPath(timer.paper)} className="lib-pill__paper">
-          <Timer aria-hidden="true" weight="duotone" className="lib-pill__icon" />
+          <Icon glyph={glyph.timer} className="lib-pill__icon" />
           <span className="lib-pill__clock u-tabular">
             {done ? 'Time’s up' : clockLabel(left)}
             {paused ? <span className="lib-pill__state"> paused</span> : null}
@@ -458,7 +481,7 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
             <span className="visually-hidden">Back to </span>
             {timer.paper.title}
           </span>
-          <ArrowRight aria-hidden="true" className="lib-pill__go" />
+          <Icon glyph={glyph.forward} className="lib-pill__go" />
         </Link>
         {done ? (
           scores ? (
@@ -471,7 +494,7 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
         )}
         <IconButton
           label={done ? 'Close the timer' : 'Stop the timer'}
-          icon={X}
+          icon={<Icon glyph={glyph.close} />}
           size="sm"
           onClick={onFinish}
           data-hub="timer-pill-stop"
@@ -479,7 +502,7 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
         {short && !done ? (
           <IconButton
             label="Fold the timer"
-            icon={CaretLeft}
+            icon={<Icon glyph={glyph.chevronLeft} />}
             size="sm"
             aria-expanded
             ref={toggle}

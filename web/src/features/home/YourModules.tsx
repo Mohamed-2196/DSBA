@@ -24,7 +24,7 @@ function metaFor(m: ModuleSummary, watched: number): string {
   return 'Study guide and resources';
 }
 
-function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
+function ModuleCard({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
   const progress = useModuleProgress(m.id);
   const hasArt = moduleArtSrc(m.art) != null;
   const pct = progress.total > 0 ? Math.round((progress.watched / progress.total) * 100) : 0;
@@ -32,39 +32,34 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
     <li>
       <Link
         to={`/modules/${m.id}`}
-        className="home-mods__row"
+        className="home-mod"
         aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, exam ${formatLongDay(exam.date)}` : ''}`}
       >
-        {hasArt ? (
-          <span className="home-mods__lead">
-            <ModuleArt art={m.art} className="home-mods__art" />
-          </span>
-        ) : m.unitCode ? (
-          <span className="home-mods__code u-code" aria-hidden="true">
+        <span className="home-mod__top" aria-hidden="true">
+          {hasArt ? (
+            <ModuleArt art={m.art} className="home-mod__art" />
+          ) : (
+            <span className="home-mod__icon">
+              <ModuleIcon moduleId={m.id} />
+            </span>
+          )}
+          {exam ? (
+            <span className="home-mod__exam" title={`Exam ${inDays(exam.days)}`}>
+              <span className="home-mod__examdot" />
+              <span className="u-tabular">{formatDayMonth(exam.date)}</span>
+            </span>
+          ) : null}
+        </span>
+        <span className="home-mod__name" aria-hidden="true">
+          {m.shortName}
+        </span>
+        {m.unitCode ? (
+          <span className="home-mod__code u-code" aria-hidden="true">
             {m.unitCode}
           </span>
-        ) : (
-          <span className="home-mods__icon" aria-hidden="true">
-            <ModuleIcon moduleId={m.id} />
-          </span>
-        )}
-        <span className="home-mods__text">
-          <span className="home-mods__name">
-            {hasArt && m.unitCode ? <span className="home-mods__tag u-code">{m.unitCode}</span> : null}
-            {hasArt && m.unitCode ? ' ' : null}
-            {m.shortName}
-          </span>
-          <span className="home-mods__meta">{metaFor(m, progress.watched)}</span>
-        </span>
-        {exam ? (
-          <span className="home-mods__exam" title={`Exam ${inDays(exam.days)}`}>
-            <span className="home-mods__examdot" aria-hidden="true" />
-            <span className="u-tabular">{formatDayMonth(exam.date)}</span>
-          </span>
         ) : null}
-        {pct > 0 ? (
-          <span className="home-mods__bar" style={{ '--pct': `${pct}%` } as CSSProperties} aria-hidden="true" />
-        ) : null}
+        <span className="home-mod__meta">{metaFor(m, progress.watched)}</span>
+        <span className="home-mod__bar" style={{ '--pct': `${pct}%` } as CSSProperties} aria-hidden="true" />
       </Link>
     </li>
   );
@@ -87,8 +82,8 @@ function ModulesNote() {
   );
 }
 
-/** "My modules": the year's modules (your papers, once picked) as a quick list (illustration or unit code, name,
- *  progress while tracked, next exam), and, once the student has a year, what it lists and how to change it. */
+/** "My modules": the year's modules (your papers, once picked) as cards (illustration, name, code in mono, progress
+ *  while tracked, next exam), and, once the student has a year, what it lists and how to change it. */
 export function YourModules({ year, today, mine }: { year: CohortYear; today: Date; mine: boolean }) {
   const { modules: catalogue } = useModules();
   const { papers } = usePapers();
@@ -111,7 +106,7 @@ export function YourModules({ year, today, mine }: { year: CohortYear; today: Da
     <div className={cx('home-mods', `home-mods--y${year}`)}>
       <ul role="list" className="home-mods__list" data-hub="home-modules">
         {modules.map(({ m, exam }) => (
-          <ModuleRow key={m.id} m={m} exam={exam} />
+          <ModuleCard key={m.id} m={m} exam={exam} />
         ))}
       </ul>
       {mine ? <ModulesNote /> : null}

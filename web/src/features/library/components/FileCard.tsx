@@ -49,7 +49,7 @@ export function FileCard({
       </Link>
       <div className="lib-card__foot">
         <span className="lib-card__meta">
-          {code && !titleHasCode ? <span className="lib-card__code">{code}</span> : null}
+          {code && !titleHasCode ? <span className="lib-card__code u-code">{code}</span> : null}
           <span className="lib-card__metatext">{cardMeta(item, sort)}</span>
         </span>
         {item.status === 'published' ? (

@@ -1,11 +1,13 @@
-// The list inside Home's New files and Forum cards: an icon, a title, the module and what it is, and when.
-import type { Icon } from '@phosphor-icons/react';
+// The list inside Home's New files and Forum cards: a drawn document or an icon, a title, the module and what it is,
+// and when.
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Panel, Skeleton, timeAgo } from '../../ui';
 
 export interface HomeListRow {
   id: string;
-  icon: Icon;
+  /** a DocThumb or a brand Icon: decoration beside the title */
+  icon: ReactNode;
   title: string;
   to: string;
   code: string | null;
@@ -20,7 +22,9 @@ export function HomeList({ rows, hub }: { rows: readonly HomeListRow[]; hub: str
         {rows.map((r) => (
           <li key={r.id}>
             <Link to={r.to} className="home-list__row">
-              <r.icon className="home-list__icon" weight="duotone" aria-hidden="true" />
+              <span className="home-list__icon" aria-hidden="true">
+                {r.icon}
+              </span>
               <span className="home-list__text">
                 <span className="home-list__title">{r.title}</span>
                 <span className="home-list__meta">

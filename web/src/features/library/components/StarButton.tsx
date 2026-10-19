@@ -1,6 +1,6 @@
-import { Star } from '@phosphor-icons/react';
 import { useEffect, useState, type MouseEvent } from 'react';
-import { IconButton, cx } from '../../../ui';
+import { Icon, IconButton, cx, glyph } from '../../../ui';
+import './StarButton.css';
 
 /** Star toggle for a file. Presentational: pass `on` and `onToggle`. Pops when switched on. The star's colours
  *  are set on its own glyph (lib-star__glyph), not by restyling the IconButton (code quality review CQ-13). */
@@ -29,7 +29,7 @@ export function StarButton({
     <IconButton
       label={`Star ${title}`}
       icon={
-        <Star weight={on ? 'fill' : 'regular'} className={cx('lib-star__glyph', on && 'is-on', pop && 'is-popping')} />
+        <Icon glyph={glyph.star} active={on} className={cx('lib-star__glyph', on && 'is-on', pop && 'is-popping')} />
       }
       size={size}
       aria-pressed={on}

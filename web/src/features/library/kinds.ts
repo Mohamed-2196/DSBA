@@ -1,6 +1,7 @@
 // Library constants: kinds of files and formats. Order in KINDS is the order used in filters and groupings.
 import type { LibraryItem } from '../../api/types';
 import { fileExtension } from '../../api/uploads';
+import type { DocTone } from '../../ui';
 
 export type LibraryKind = LibraryItem['kind'];
 export type ItemSource = LibraryItem['source'];
@@ -36,6 +37,21 @@ export function isLibraryKind(value: string | null | undefined): value is Librar
 export function kindLabel(kind: LibraryKind, { plural = false }: { plural?: boolean } = {}): string {
   const k = KIND_BY_ID[kind];
   return k ? (plural ? k.plural : k.label) : 'File';
+}
+
+const DOC_TONES: Partial<Record<LibraryKind, DocTone>> = {
+  'past-paper': 'paper',
+  'examiners-report': 'report',
+  'exam-solutions': 'report',
+  notes: 'note',
+  'cheat-sheet': 'note',
+};
+
+/** How a file's thumbnail is drawn: papers yellow, reports and solutions green, students' notes violet, links grey,
+ *  guides and everything else blue. */
+export function docTone(item: Pick<LibraryItem, 'kind' | 'source'>): DocTone {
+  if (item.source === 'link') return 'link';
+  return DOC_TONES[item.kind] ?? 'guide';
 }
 
 /** Kinds that belong to an exam sitting: they carry an exam year, a session and a zone. */

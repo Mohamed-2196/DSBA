@@ -1,20 +1,6 @@
 // /library/:fileId (a slug, or an id, which gives way to the slug's address): the file with a real preview (PDFs and
 // images), its details, Download or Open, Star, Copy link and Report. Its uploader sees its review status; moderators
 // can review it here.
-import {
-  ArrowSquareOut,
-  CaretLeft,
-  DotsThree,
-  DownloadSimple,
-  Exam,
-  FileMagnifyingGlass,
-  Flag,
-  Info,
-  LinkSimple,
-  Notebook,
-  PencilSimple,
-  Trash,
-} from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -26,7 +12,9 @@ import { useModules } from '../../state/modules';
 import {
   Badge,
   Button,
+  DocThumb,
   EmptyState,
+  Icon,
   IconButton,
   Menu,
   Page,
@@ -34,6 +22,7 @@ import {
   QueryError,
   Skeleton,
   cx,
+  glyph,
   timeAgo,
   type MenuItem,
 } from '../../ui';
@@ -49,7 +38,7 @@ import type { LinkState } from './components/FileCard';
 import { ReviewActions } from './components/ReviewActions';
 import { StarButton } from './components/StarButton';
 import { examTitle, isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
-import { KIND_BY_ID, formatOf } from './kinds';
+import { KIND_BY_ID, docTone, formatOf } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
 import { paperContext, usePaperSittings } from './papers';
@@ -98,7 +87,7 @@ export default function FileViewerPage() {
         {notFound ? (
           <Panel padding="none">
             <EmptyState
-              icon={FileMagnifyingGlass}
+              icon={<Icon glyph={glyph.search} />}
               title="We couldn’t find that file"
               body="It may have been removed, or it isn’t published yet. Search the library for it instead."
               action={
@@ -168,11 +157,11 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
       ) : manage ? (
         <div className="lib-status__actions">
           {item.canEdit ? (
-            <Button size="sm" leadingIcon={PencilSimple} onClick={onEdit}>
+            <Button size="sm" leadingIcon={<Icon glyph={glyph.edit} />} onClick={onEdit}>
               Edit details
             </Button>
           ) : null}
-          <Button size="sm" variant="ghost" leadingIcon={Trash} onClick={onDelete}>
+          <Button size="sm" variant="ghost" leadingIcon={<Icon glyph={glyph.trash} />} onClick={onDelete}>
             Delete
           </Button>
         </div>
@@ -307,23 +296,34 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
     delete: canManage && (item.isMine || managesLibrary) && item.status !== 'removed',
   });
   const moreAction: Record<MoreAction, MenuItem> = {
-    score: { id: 'score', label: 'Save my score', icon: Exam, onSelect: () => setScoring(true) },
-    copy: { id: 'copy', label: 'Copy link', icon: LinkSimple, onSelect: () => void copyLink() },
+    score: {
+      id: 'score',
+      label: 'Save my score',
+      icon: <Icon glyph={glyph.grades} />,
+      onSelect: () => setScoring(true),
+    },
+    copy: { id: 'copy', label: 'Copy link', icon: <Icon glyph={glyph.link} />, onSelect: () => void copyLink() },
     annotate: {
       id: 'annotate',
       label: 'Annotate in my notebook',
-      icon: Notebook,
+      icon: <Icon glyph={glyph.notebook} />,
       disabled: annotate.isPending,
       onSelect: onAnnotate,
     },
     report: {
       id: 'report',
       label: reporting?.label ?? 'Report',
-      icon: reporting?.reported ? <Flag weight="fill" /> : Flag,
+      icon: <Icon glyph={glyph.flag} active={!!reporting?.reported} />,
       onSelect: () => reporting?.open(),
     },
-    edit: { id: 'edit', label: 'Edit details', icon: PencilSimple, onSelect: () => setDialog('edit') },
-    delete: { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setDialog('delete') },
+    edit: { id: 'edit', label: 'Edit details', icon: <Icon glyph={glyph.edit} />, onSelect: () => setDialog('edit') },
+    delete: {
+      id: 'delete',
+      label: 'Delete',
+      icon: <Icon glyph={glyph.trash} />,
+      danger: true,
+      onSelect: () => setDialog('delete'),
+    },
   };
   const moreItems: MenuItem[] = layout.more.map((a, i) => (a ? moreAction[a] : { divider: true, id: `sep${i}` }));
 
@@ -333,7 +333,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
       variant="primary"
       size={layout.primaryLabel ? 'md' : 'sm'}
       href={openLinkHref(item)}
-      trailingIcon={ArrowSquareOut}
+      trailingIcon={<Icon glyph={glyph.external} />}
       className="lib-tb__original"
       onClick={counted}
       aria-label={`Open in ${linkPlace(item)} (opens in a new tab)`}
@@ -343,7 +343,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   ) : !layout.primaryLabel ? (
     <IconButton
       label={`Download ${name}`}
-      icon={DownloadSimple}
+      icon={<Icon glyph={glyph.download} />}
       href={downloadHref(item)}
       onClick={counted}
       variant="primary"
@@ -351,7 +351,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   ) : (
     <Button
       variant="primary"
-      leadingIcon={DownloadSimple}
+      leadingIcon={<Icon glyph={glyph.download} />}
       href={downloadHref(item)}
       onClick={counted}
       className="lib-tb__download"
@@ -361,20 +361,24 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   );
 
   return (
-    <div className={cx('lib-viewer', isDesktop ? 'is-app' : 'is-stacked')} data-hub="file-viewer">
+    <div
+      className={cx('lib-viewer', isDesktop ? 'is-app' : 'is-stacked')}
+      data-section="library"
+      data-hub="file-viewer"
+    >
       <header className="lib-viewer__head">
         <nav aria-label="Breadcrumb" className="lib-crumbs">
           <ol>
             <li>
               <Link to={backTo} className="lib-crumbs__back">
-                <CaretLeft aria-hidden="true" weight="bold" />
+                <Icon glyph={glyph.chevronLeft} />
                 Library
               </Link>
             </li>
             {m ? (
               <li>
                 <Link to={`/library?module=${m.id}`}>
-                  {m.unitCode ? <strong className="u-tabular">{m.unitCode}</strong> : null}{' '}
+                  {m.unitCode ? <strong className="u-code">{m.unitCode}</strong> : null}{' '}
                   {m.unitCode ? m.shortName : m.name}
                 </Link>
               </li>
@@ -387,6 +391,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           </ol>
         </nav>
         <div className="lib-viewer__titlerow">
+          <DocThumb tone={docTone(item)} size="lg" className="lib-viewer__doc" />
           <h1 className="lib-viewer__title" title={name === item.title ? undefined : item.title}>
             {name}
           </h1>
@@ -404,7 +409,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
       <div className="lib-viewer__toolbar" role="toolbar" aria-label="File" data-hub="file-toolbar">
         <div className="lib-tb__group lib-tb__info">
           <span className="lib-tb__facts">
-            {moduleTag(m) ? <strong>{moduleTag(m)}</strong> : null}
+            {moduleTag(m) ? <strong className={m?.unitCode ? 'u-code' : undefined}>{moduleTag(m)}</strong> : null}
             <span>{sizeLabel(item)}</span>
           </span>
         </div>
@@ -422,7 +427,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           {layout.annotate ? (
             <Button
               variant="secondary"
-              leadingIcon={Notebook}
+              leadingIcon={<Icon glyph={glyph.notebook} />}
               onClick={onAnnotate}
               loading={annotate.isPending}
               aria-label={layout.annotate === 'short' ? 'Annotate in my notebook' : undefined}
@@ -437,7 +442,14 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
               align="end"
               label="More actions"
               items={moreItems}
-              trigger={<IconButton label="More actions" icon={DotsThree} tooltip={isDesktop} data-hub="file-more" />}
+              trigger={
+                <IconButton
+                  label="More actions"
+                  icon={<Icon glyph={glyph.more} />}
+                  tooltip={isDesktop}
+                  data-hub="file-more"
+                />
+              }
             />
           ) : null}
           {primary}
@@ -446,7 +458,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
               <span className="lib-tb__sep" aria-hidden="true" />
               <IconButton
                 label={metaOpen ? 'Hide details' : 'Show details'}
-                icon={Info}
+                icon={<Icon glyph={glyph.info} />}
                 toggle
                 active={metaOpen}
                 onClick={() => setMetaPref(!metaOpen)}

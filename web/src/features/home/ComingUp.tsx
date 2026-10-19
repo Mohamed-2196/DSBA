@@ -2,7 +2,7 @@
 // next dates on the calendar for the year (the calendar's own list, less the date above it).
 import { Link } from 'react-router-dom';
 import type { CohortYear } from '../../state';
-import { QueryError, Skeleton } from '../../ui';
+import { Deskmate, QueryError, Skeleton } from '../../ui';
 import { UpcomingEvents, typeLabel } from '../calendar/public';
 import { formatDay, formatLongDay } from '../../lib/dates';
 import type { ExamSession, SessionEvent } from './session';
@@ -30,17 +30,19 @@ function NextDate({ next, session }: { next: SessionEvent; session: ExamSession 
   const to = next.moduleId ? `/modules/${next.moduleId}` : `/calendar?event=${encodeURIComponent(next.id)}`;
   const rest = restLine(session);
   return (
-    <div className="home-next" data-hub="home-next-exam">
+    <div className={`home-next home-next--${next.type}`} data-hub="home-next-exam">
       <p className="home-next__count" aria-hidden="true">
         {next.days > 1 ? (
           <>
-            <span className="home-next__days u-tabular">{next.days}</span>
-            <span className="home-next__unit">days</span>
+            <span className="home-next__days u-display-num">{next.days}</span>
+            <span className="home-next__unit">days to go</span>
           </>
         ) : (
           <span className="home-next__soon">{next.days === 1 ? 'Tomorrow' : 'Today'}</span>
         )}
       </p>
+      {/* Blink holds up the count: the days left on its card. */}
+      <Deskmate mate="blink" state="countdown" count={Math.max(0, next.days)} size={80} className="home-next__mate" />
       <div className="home-next__text">
         <p className="home-next__label">{LABEL[next.type] ?? typeLabel(next.type)}</p>
         <Link to={to} className="home-next__name">

@@ -1,25 +1,12 @@
-// /modules/:moduleId: header (code, name, year, next exam, progress and quick actions; on phones one line and a row
-// of actions, so the tabs are on the first screen) and URL-driven tabs, which stay under the top bar as you scroll:
+// /modules/:moduleId: header (a band with the code, name, year, next exam and quick actions; on phones one line and a
+// row of actions, so the tabs are on the first screen) and URL-driven tabs, which stay under the top bar as you scroll:
 // ?tab=overview|lessons|files|discussion. A lesson has its own address, /modules/:moduleId/lessons/:lessonId (the
 // Lessons tab with that lesson on screen); ?tab=lessons opens where the student left off.
 // The header comes from the catalogue at once; chapters, videos and shelves load with GET /modules/{id}.
-import {
-  BookOpenText,
-  CalendarBlank,
-  CaretDown,
-  CaretLeft,
-  ChatsCircle,
-  Files,
-  Info,
-  MagnifyingGlass,
-  Play,
-  PlayCircle,
-  UploadSimple,
-} from '@phosphor-icons/react';
 import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
-import { BREAKPOINTS, COHORTS, cohortColor, useDocumentTitle, useMediaQuery, useYear } from '../../state';
+import { BREAKPOINTS, COHORTS, useDocumentTitle, useMediaQuery, useYear } from '../../state';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import {
@@ -29,17 +16,15 @@ import {
   Deskmate,
   EmptyState,
   ErrorBoundary,
-  ModuleArt,
-  ModuleIcon,
+  Icon,
   Page,
   Panel,
-  ProgressRing,
   QueryError,
   Skeleton,
   TabPanel,
   Tabs,
   countOf,
-  moduleArtSrc,
+  glyph,
 } from '../../ui';
 import { PlanRevision } from '../board/public';
 import { ModuleThreads, Prose } from '../forum/public';
@@ -48,18 +33,9 @@ import { useModule } from './api';
 import { useModuleExam, type ExamInfo } from './exams';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
 import { LessonsTab } from './LessonsTab';
-import { chapterPosition, isModuleTab, lessonHref, moduleTabOn, type ModuleTab } from './lessons';
+import { isModuleTab, lessonHref, moduleTabOn, type ModuleTab } from './lessons';
 import { ModuleOverview } from './ModuleOverview';
-import {
-  computeModuleProgress,
-  computeResumePoint,
-  findLesson,
-  summaryProgress,
-  useProgress,
-  type Fraction,
-  type ResumeKind,
-  type ResumePoint,
-} from './progress';
+import { computeResumePoint, findLesson, useProgress, type ResumeKind, type ResumePoint } from './progress';
 import { resourceSummary, shelfHash, shelfWithFiles } from './resources';
 import { SuggestVideo } from './suggestions/SuggestVideo';
 import './ModulePage.css';
@@ -83,18 +59,12 @@ const RESUME_SHORT: Record<ResumeKind, string> = {
 function ModuleHeader({
   summary: m,
   detail,
-  progress,
-  progressReady,
-  tracking,
   resume,
   exam,
   onOpenLesson,
 }: {
   summary: ModuleSummary;
   detail: ModuleDetail | undefined;
-  progress: Fraction;
-  progressReady: boolean;
-  tracking: boolean;
   resume: ResumePoint | null;
   exam: ExamInfo | null;
   onOpenLesson: (c: number, v: number) => void;
@@ -123,15 +93,6 @@ function ModuleHeader({
     ? `/modules/${m.id}?tab=files#${shelfHash('course-materials')}`
     : null;
   const backTo = year === m.year ? '/modules' : `/modules?year=${m.year}`;
-  const resumeChapter = resume && detail ? detail.chapters[resume.c] : null;
-  const hasArt = moduleArtSrc(m.art) != null;
-
-  let resumeNote: string | null = null;
-  if (resume?.kind === 'done') resumeNote = 'You have watched every video.';
-  else if (resume?.kind === 'start') resumeNote = 'Start with chapter 1.';
-  else if (resume && resumeChapter) {
-    resumeNote = `Up next: ${chapterPosition(resume.c, resumeChapter.videos[resume.v], resume.v, resumeChapter.videos.length).toLowerCase()}.`;
-  }
 
   const counts = [
     m.lessonCount
@@ -146,7 +107,7 @@ function ModuleHeader({
     resume ? (
       <Button
         variant="primary"
-        leadingIcon={Play}
+        leadingIcon={<Icon glyph={glyph.play} />}
         onClick={() => onOpenLesson(resume.c, resume.v)}
         className="mod-head__action"
       >
@@ -172,68 +133,11 @@ function ModuleHeader({
     </div>
   );
 
-  let side: ReactNode;
-  if (phone) side = actions;
-  else if (m.lessonCount) {
-    side = (
-      <Panel as="div" padding="none" className="mod-head__side">
-        {tracking ? (
-          <div className="mod-head__progress">
-            <ProgressRing
-              value={progressReady ? progress.pct : 0}
-              size={64}
-              stroke={6}
-              color={progress.pct === 100 ? 'var(--success-fill)' : cohortColor(m.year)}
-              label="Lessons watched"
-            />
-            <div className="mod-head__progress-text">
-              {progressReady ? (
-                <p className="mod-head__progress-num">
-                  <b className="u-tabular">{progress.watched}</b> of <span className="u-tabular">{progress.total}</span>{' '}
-                  lessons watched
-                </p>
-              ) : (
-                <Skeleton width={180} height={18} />
-              )}
-              {resumeNote ? <p className="mod-head__progress-note">{resumeNote}</p> : null}
-            </div>
-          </div>
-        ) : (
-          <div className="mod-head__progress">
-            <span className="mod-head__nolessons" aria-hidden="true">
-              <PlayCircle weight="duotone" />
-            </span>
-            <div className="mod-head__progress-text">
-              <p className="mod-head__progress-num">{countOf(m.lessonCount, 'video lesson')}</p>
-              <p className="mod-head__progress-note">Start with chapter 1, or pick any lesson.</p>
-            </div>
-          </div>
-        )}
-        {actions}
-      </Panel>
-    );
-  } else {
-    side = (
-      <Panel as="div" padding="none" className="mod-head__side">
-        <div className="mod-head__progress">
-          <span className="mod-head__nolessons" aria-hidden="true">
-            <BookOpenText weight="duotone" />
-          </span>
-          <div className="mod-head__progress-text">
-            <p className="mod-head__progress-num">Start with the study guide</p>
-            <p className="mod-head__progress-note">There are no video lessons for this module yet.</p>
-          </div>
-        </div>
-        {actions}
-      </Panel>
-    );
-  }
-
   return (
     <header className={`mod-head mod-head--y${m.year}`} data-hub="module-header">
       <div className="mod-head__top">
         <Link to={backTo} className="mod-head__back">
-          <CaretLeft weight="bold" aria-hidden="true" />
+          <Icon glyph={glyph.chevronLeft} />
           {COHORTS[m.year].label} modules
         </Link>
         {phone && m.description ? (
@@ -245,49 +149,39 @@ function ModuleHeader({
             onClick={() => setAbout((open) => !open)}
           >
             About this module
-            <CaretDown weight="bold" aria-hidden="true" className="mod-head__about-caret" />
+            <Icon glyph={glyph.chevronDown} className="mod-head__about-caret" />
           </button>
         ) : null}
       </div>
-      <div className="mod-head__grid">
-        <div className="mod-head__main" data-section="modules">
-          <div className="mod-head__band-text">
-            <h1 className="mod-head__title">
-              {hasArt ? (
-                <ModuleArt art={m.art} className="mod-head__art" />
-              ) : m.unitCode && !phone ? (
-                <span className="mod-head__code u-code">{m.unitCode}</span>
-              ) : (
-                <span className="mod-head__plate" aria-hidden="true">
-                  <ModuleIcon moduleId={m.id} weight="duotone" />
-                </span>
-              )}
-              <span className="mod-head__heading">
-                {m.unitCode && (hasArt || phone) ? <span className="mod-head__label u-code">{m.unitCode} </span> : null}
-                <span className="mod-head__name">{phone && m.unitCode ? m.shortName || m.name : m.name}</span>
-              </span>
-            </h1>
-            {m.description ? (
-              <div className="mod-head__desc" id={aboutId} hidden={phone && !about}>
-                <Prose text={m.description} />
-              </div>
-            ) : null}
-            <div className="mod-head__meta">
-              <CohortBadge year={m.year} />
-              {exam ? (
-                <Badge tone="alert" icon={CalendarBlank}>
-                  Exam {exam.weekdayDate}, {exam.relative}
-                </Badge>
-              ) : null}
-              {counts.length && !phone ? <span className="mod-head__counts">{counts.join(', ')}</span> : null}
+      {/* The module's band, in the Modules colour: the code set big in mono, the name, then its year, exam and
+          actions; Binder at the end in the module's year colour. */}
+      <div className="mod-head__band" data-section="modules">
+        <div className="mod-head__band-text">
+          <h1 className="mod-head__title">
+            {m.unitCode ? <span className="mod-head__code u-code">{m.unitCode} </span> : null}
+            <span className="mod-head__name">{phone && m.unitCode ? m.shortName || m.name : m.name}</span>
+          </h1>
+          {m.description ? (
+            <div className="mod-head__desc" id={aboutId} hidden={phone && !about}>
+              <Prose text={m.description} />
             </div>
+          ) : null}
+          <div className="mod-head__meta">
+            <CohortBadge year={m.year} />
+            {exam ? (
+              <Badge tone="exam" icon={<Icon glyph={glyph.calendar} />} className="mod-head__exam">
+                Exam {exam.weekdayDate}, {exam.relative}
+              </Badge>
+            ) : null}
+            {counts.length && !phone ? <span className="mod-head__counts">{counts.join(', ')}</span> : null}
           </div>
-          <span className="mod-head__mate">
-            <Deskmate mate="binder" size={100} cover={`var(--y${m.year})`} />
-          </span>
+          {phone ? null : actions}
         </div>
-        {side}
+        <span className="mod-head__mate">
+          <Deskmate mate="binder" size={112} cover={`var(--y${m.year})`} />
+        </span>
       </div>
+      {phone ? actions : null}
     </header>
   );
 }
@@ -311,7 +205,7 @@ function LessonsHeader({ summary: m }: { summary: ModuleSummary }) {
   return (
     <header className={`mod-head mod-head--compact mod-head--y${m.year}`} data-hub="module-header">
       <Link to={backTo} className="mod-head__back">
-        <CaretLeft weight="bold" aria-hidden="true" />
+        <Icon glyph={glyph.chevronLeft} />
         <span className="mod-head__back-label">{COHORTS[m.year].label} modules</span>
       </Link>
       <h1 className="mod-head__line">
@@ -335,7 +229,6 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
   const progressApi = useProgress();
   const { state, ready, tracking } = progressApi;
   const exam = useModuleExam(m.id);
-  const progress = detail ? computeModuleProgress(state, detail) : summaryProgress(state, m.id, m.lessonCount);
   const resume = detail && ready ? computeResumePoint(state, detail) : null;
   // Contributing means uploading to the library (decision D6), with this module chosen.
   const upload = useLibraryUpload({ moduleId: m.id, year: m.year });
@@ -374,10 +267,10 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
 
   const tabs = (
     [
-      { id: 'overview', label: 'Overview', icon: Info },
-      { id: 'lessons', label: 'Lessons', icon: PlayCircle, count: m.lessonCount || null },
-      { id: 'files', label: 'Files', icon: Files, count: m.libraryCount || null },
-      { id: 'discussion', label: 'Discussion', icon: ChatsCircle },
+      { id: 'overview', label: 'Overview' },
+      { id: 'lessons', label: 'Lessons', count: m.lessonCount || null },
+      { id: 'files', label: 'Files', count: m.libraryCount || null },
+      { id: 'discussion', label: 'Discussion' },
     ] as const
   ).filter((t) => moduleTabOn(t.id, featureOn));
 
@@ -409,7 +302,7 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
             <>
               <Button onClick={() => setTab('overview')}>See resources</Button>
               {upload.start ? (
-                <Button variant="primary" leadingIcon={UploadSimple} onClick={upload.start}>
+                <Button variant="primary" leadingIcon={<Icon glyph={glyph.upload} />} onClick={upload.start}>
                   Upload a file
                 </Button>
               ) : null}
@@ -425,16 +318,7 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
       {tab === 'lessons' ? (
         <LessonsHeader summary={m} />
       ) : (
-        <ModuleHeader
-          summary={m}
-          detail={detail}
-          progress={progress}
-          progressReady={ready}
-          tracking={tracking}
-          resume={resume}
-          exam={exam}
-          onOpenLesson={openLesson}
-        />
+        <ModuleHeader summary={m} detail={detail} resume={resume} exam={exam} onOpenLesson={openLesson} />
       )}
 
       <Tabs
@@ -507,7 +391,7 @@ export default function ModulePage() {
       <Page>
         <Panel padding="none">
           <EmptyState
-            icon={MagnifyingGlass}
+            icon={<Icon glyph={glyph.search} />}
             title="We couldn’t find that module"
             body="It may have been renamed. Pick it from the module list instead."
             action={

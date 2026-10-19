@@ -23,3 +23,18 @@ export function lumenPose(date: Date, online: boolean, wavedThisVisit: boolean):
   if (!online || h >= 23 || h < 5) return 'sleepy';
   return wavedThisVisit ? 'idle' : 'wave';
 }
+
+/**
+ * The line under Home's greeting: the next exam ('Your ST2134 exam is in 3 days.') and the paper being timed ('Your
+ * ST2134 · May 2025 timer is still running.'). Null when there's neither.
+ */
+export function greetingLede(exam: { days: number; name: string } | null, timing: string | null): string | null {
+  const parts: string[] = [];
+  if (exam) {
+    if (exam.days <= 0) parts.push(`Your ${exam.name} exam is today. Good luck.`);
+    else if (exam.days === 1) parts.push(`Your ${exam.name} exam is tomorrow.`);
+    else parts.push(`Your ${exam.name} exam is in ${exam.days} days.`);
+  }
+  if (timing) parts.push(`Your ${timing} timer is still running.`);
+  return parts.length ? parts.join(' ') : null;
+}

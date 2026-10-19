@@ -47,14 +47,21 @@
 }
 .carry__icon {
   flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  width: 32px;
   color: var(--ink-2);
-  font-size: 22px;
 }
-.carry__icon--timed {
+.carry__row {
+  align-items: flex-start;
+}
+.carry__clock {
+  margin-top: var(--sp-4);
   color: var(--ink);
-}
-.carry__item--timed {
-  background: var(--highlight-soft);
+  font-family: var(--font-mono);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
 }
 .carry__text {
   flex: 1 1 auto;
@@ -75,10 +82,6 @@
 .carry__meta {
   color: var(--ink-2);
   font-size: var(--fs-12);
-}
-.carry__meta--timed {
-  color: var(--ink);
-  font-weight: var(--fw-semibold);
 }
 .carry__note {
   flex: 0 0 auto;

@@ -12,6 +12,7 @@ import {
   matchLine,
   moduleTag,
   pageParam,
+  rowMeta,
   sharedBy,
   sizeLabel,
   statusInfo,
@@ -108,9 +109,23 @@ describe('labels', () => {
   it('matches the card’s line to the sort', () => {
     const it = item({ downloadCount: 3 });
     expect(cardMeta(it, 'popular')).toBe('3 downloads');
+    expect(cardMeta(item({ downloadCount: 0 }), 'popular')).toBe('Students’ notes, PDF, 412 KB');
     expect(cardMeta(it, 'title')).toBe('Students’ notes, PDF, 412 KB');
     expect(cardMeta(it, 'new')).toMatch(/^Added /);
     expect(cardMeta(it, 'sitting')).toBe('Students’ notes, PDF, 412 KB');
+  });
+
+  it('says on an index card what a file is, then what the sort is about', () => {
+    const notes = item({ downloadCount: 3 });
+    expect(rowMeta(notes, 'popular')).toBe('Students’ notes · PDF, 412 KB · 3 downloads');
+    expect(rowMeta(notes, 'title')).toBe('Students’ notes · PDF, 412 KB');
+    expect(rowMeta(item({ downloadCount: 0 }), 'popular')).toBe('Students’ notes · PDF, 412 KB');
+    expect(rowMeta(notes, 'new')).toMatch(/^Students’ notes · PDF, 412 KB · added /);
+    const paper = item({ kind: 'past-paper', examYear: 2024, examSession: 'may', zone: 'A' });
+    expect(rowMeta(paper, 'sitting')).toBe('Past paper · PDF, 412 KB');
+    // the title already says "Examiners’ report"
+    const report = item({ kind: 'examiners-report', examYear: 2024, examSession: 'may' });
+    expect(rowMeta(report, 'sitting')).toBe('PDF, 412 KB');
   });
 
   it('labels what isn’t public yet: "Not published" for students, never "rejected"', () => {

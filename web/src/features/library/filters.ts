@@ -69,8 +69,6 @@ export function sittingSortOffered(kind: LibraryKind | null, module: boolean): b
   return module || (!!kind && EXAM_KINDS.has(kind));
 }
 
-/** The view a list opens with: a list for past papers, reports and solutions, whose first pages look alike; covers
- *  for the rest. */
-export function defaultView(kind: LibraryKind | null): LibraryView {
-  return kind && EXAM_KINDS.has(kind) ? 'list' : 'grid';
-}
+/** The view a list opens with: index cards, whose drawn documents say what each file is (the covers of exam papers
+ *  look alike). Covers are a choice away. */
+export const DEFAULT_VIEW: LibraryView = 'list';

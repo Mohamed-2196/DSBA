@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { LibraryItem } from '../../api/types';
 import {
   EXAM_KINDS,
+  docTone,
   KINDS,
   KIND_BY_ID,
   MAX_PENDING_UPLOADS,
@@ -50,6 +51,15 @@ describe('kinds', () => {
 
   it('knows which kinds belong to an exam sitting', () => {
     expect([...EXAM_KINDS]).toEqual(['past-paper', 'examiners-report', 'exam-solutions']);
+  });
+
+  it('draws papers, reports, notes, guides and links in their own colours', () => {
+    expect(docTone({ kind: 'past-paper', source: 'file' })).toBe('paper');
+    expect(docTone({ kind: 'examiners-report', source: 'file' })).toBe('report');
+    expect(docTone({ kind: 'exam-solutions', source: 'file' })).toBe('report');
+    expect(docTone({ kind: 'notes', source: 'file' })).toBe('note');
+    expect(docTone({ kind: 'subject-guide', source: 'file' })).toBe('guide');
+    expect(docTone({ kind: 'past-paper', source: 'link' })).toBe('link');
   });
 
   it('mirrors the API’s limit on files waiting for review', () => {

@@ -1,0 +1,73 @@
+/* A drawn document: white paper in both themes (it is a sheet of paper), the art outline, a band in the kind's
+   art colour. */
+.ui-doc {
+  flex: 0 0 auto;
+  display: block;
+  width: var(--doc-w, 32px);
+  height: auto;
+  aspect-ratio: 32 / 40;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ui-doc--sm {
+  --doc-w: 20px;
+}
+.ui-doc--lg {
+  --doc-w: 40px;
+}
+.ui-doc__paper {
+  fill: #ffffff;
+}
+.ui-doc__edge,
+.ui-doc__rule {
+  stroke: var(--art-outline);
+  stroke-width: 2.5;
+}
+.ui-doc__band {
+  fill: var(--doc-band);
+}
+.ui-doc__lines {
+  stroke: #c5d2e6;
+  stroke-width: 2.5;
+}
+.ui-doc__tick {
+  stroke: #18794a;
+  stroke-width: 3;
+}
+.ui-doc__scribble {
+  stroke: var(--sec-notebook-art);
+  stroke-width: 2.5;
+}
+.ui-doc--paper {
+  --doc-band: var(--sec-library-art);
+}
+.ui-doc--report {
+  --doc-band: var(--sec-modules-art);
+}
+.ui-doc--note {
+  --doc-band: var(--sec-notebook-art);
+}
+.ui-doc--guide {
+  --doc-band: var(--sec-home-art);
+}
+.ui-doc--link {
+  --doc-band: var(--sec-search-art);
+}
+/* On dark grounds the sheet carries the deskmates' halo, so its outline doesn't sink into the navy. */
+[data-theme='dark'] .ui-doc {
+  filter: drop-shadow(0 0 1.5px rgba(234, 240, 255, 0.55));
+}
+@media (forced-colors: active) {
+  .ui-doc__paper,
+  .ui-doc__band {
+    fill: Canvas;
+  }
+  .ui-doc__edge,
+  .ui-doc__rule,
+  .ui-doc__lines,
+  .ui-doc__tick,
+  .ui-doc__scribble {
+    stroke: CanvasText;
+  }
+}
