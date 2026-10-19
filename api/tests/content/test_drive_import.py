@@ -224,10 +224,9 @@ def test_files_become_published_library_files_of_the_links_kind_module_and_autho
         "library/drive/statistics/pdf1/Subject-guide.pdf",
         "drive/statistics/pdf1",
     )
-    assert guide.description == "In Course materials."
+    assert guide.description is None  # where it was in Drive is no description (ST-56)
     assert (guide.uploaded_by, guide.author_name, guide.published_at) == (None, None, REFERENCE_PUBLISHED_AT)
     assert guide.slug.startswith("st1215-subject-guide")
-    assert items["Summary.pdf"].description == "In Course materials \u203a Week 1."
     assert (items["Marks.xlsx"].content_type, items["Marks.xlsx"].size_bytes) == (XLSX_TYPE, len(XLSX))
     board = items["board.png"]
     assert (board.kind, board.author_name, board.module_id, board.year) == ("notes", "Mahdi", "economics", 1)
@@ -510,7 +509,6 @@ def test_shortcuts_are_followed_each_folder_is_read_once_and_resource_keys_go_al
     assert run() == 0
     items = imported(db)
     assert sorted(items) == ["a.pdf", "b.pdf"]
-    assert items["a.pdf"].description == "In Course materials \u203a Week 1."
     assert items["b.pdf"].import_key == "drive/statistics/f2"
     assert "    - c shortcut: a shortcut to a file Drive won't show (404 notFound)" in out
     assert len([r for r in fake.requests if listing("mat1")(r)]) == 2  # two pages, once: not again via sc2

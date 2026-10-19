@@ -194,7 +194,7 @@ export function MetaPanel({
           <span className="lib-meta__keycaps">
             <Kbd>Esc</Kbd>
           </span>{' '}
-          Back to the library
+          Go back
         </p>
       </section>
     </aside>

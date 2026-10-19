@@ -639,11 +639,6 @@
 .lib-meta__sitting-link:hover {
   background: var(--surface-2);
 }
-.lib-meta__sitting-kind {
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
-}
 .lib-meta__sitting-none {
   margin: 0;
   color: var(--ink-2);

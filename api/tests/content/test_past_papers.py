@@ -216,7 +216,6 @@ def imported(db: Session, file_name: str, kind: str, **exam: Any) -> LibraryItem
         db.get(Module, MODULE),
         kind=kind,  # type: ignore[arg-type]
         title=file_name.rsplit(".", 1)[0],
-        description="From the Drive folder.",
         storage_key=f"library/drive/{MODULE}/{uuid.uuid4().hex}/f.pdf",
         file_name=file_name,
         size_bytes=10,

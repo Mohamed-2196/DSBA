@@ -4,7 +4,6 @@ import type { LibraryItem } from '../../../api/types';
 import { itemPath } from '../api';
 import type { LinkState } from '../components/FileCard';
 import { sittingLabel, zoneLabel } from '../../../lib/exams';
-import { kindLabel } from '../kinds';
 import { paperContext, usePaperSittings } from '../papers';
 
 export function SittingPanel({ item, linkState }: { item: LibraryItem; linkState?: LinkState }) {
@@ -34,7 +33,6 @@ export function SittingPanel({ item, linkState }: { item: LibraryItem; linkState
             <li key={l.item.id}>
               <Link to={itemPath(l.item)} state={linkState} className="lib-meta__sitting-link" title={l.item.title}>
                 <span>{l.label}</span>
-                <span className="lib-meta__sitting-kind">{kindLabel(l.item.kind)}</span>
               </Link>
             </li>
           ))}
