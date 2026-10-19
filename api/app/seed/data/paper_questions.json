@@ -8013,6 +8013,7 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 2,
     "chapters": [
@@ -8020,6 +8021,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 2,
     "chapters": [
@@ -8027,20 +8029,24 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 2,
     "chapters": [
+     "j86yz7hk",
      "nynrjjzb"
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 2,
     "chapters": [
-     "xg9aypby"
+     "j9gz9bqm"
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 2,
     "chapters": [
@@ -8048,6 +8054,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 3,
     "chapters": [
@@ -8055,6 +8062,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 7,
     "page": 3,
     "chapters": [
@@ -8062,10 +8070,29 @@
     ]
    },
    {
+    "section": "A",
     "question": 8,
     "page": 3,
     "chapters": [
      "tie7ydjt"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 4,
+    "chapters": [
+     "tjy8vbcf",
+     "zzcvaauv"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 5,
+    "chapters": [
+     "dxsv7nqw",
+     "grazx8hu"
     ]
    }
   ]
@@ -8661,6 +8688,7 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 2,
     "chapters": [
@@ -8668,6 +8696,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 2,
     "chapters": [
@@ -8675,20 +8704,24 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 2,
     "chapters": [
-     "nynrjjzb"
+     "nynrjjzb",
+     "zzcvaauv"
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 2,
     "chapters": [
-     "xg9aypby"
+     "j9gz9bqm"
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 2,
     "chapters": [
@@ -8696,6 +8729,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 3,
     "chapters": [
@@ -8703,6 +8737,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 7,
     "page": 3,
     "chapters": [
@@ -8710,10 +8745,29 @@
     ]
    },
    {
+    "section": "A",
     "question": 8,
     "page": 3,
     "chapters": [
      "yfigvsjd"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 4,
+    "chapters": [
+     "j86yz7hk",
+     "tjy8vbcf"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 5,
+    "chapters": [
+     "dxsv7nqw",
+     "grazx8hu"
     ]
    }
   ]
@@ -10370,13 +10424,15 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 2,
     "chapters": [
-     "cdrdx7q4"
+     "4c5atm56"
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 2,
     "chapters": [
@@ -10384,6 +10440,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 2,
     "chapters": [
@@ -10391,6 +10448,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 3,
     "chapters": [
@@ -10398,6 +10456,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 3,
     "chapters": [
@@ -10405,10 +10464,61 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 3,
     "chapters": [
      "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 4,
+    "chapters": [
+     "irsu5f86"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "2654m55h",
+     "9q4k2bdt"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
@@ -10421,14 +10531,15 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 2,
     "chapters": [
-     "4c5atm56",
-     "cdrdx7q4"
+     "4c5atm56"
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 2,
     "chapters": [
@@ -10436,6 +10547,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 2,
     "chapters": [
@@ -10443,6 +10555,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 2,
     "chapters": [
@@ -10450,6 +10563,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 3,
     "chapters": [
@@ -10457,10 +10571,61 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 3,
     "chapters": [
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 4,
+    "chapters": [
+     "irsu5f86"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 4,
+    "chapters": [
      "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "2654m55h",
+     "9q4k2bdt"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 5,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
@@ -10473,14 +10638,15 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 1,
     "chapters": [
-     "4c5atm56",
-     "cdrdx7q4"
+     "4c5atm56"
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 1,
     "chapters": [
@@ -10488,6 +10654,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 2,
     "chapters": [
@@ -10495,6 +10662,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 2,
     "chapters": [
@@ -10502,6 +10670,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 2,
     "chapters": [
@@ -10509,10 +10678,60 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 2,
     "chapters": [
      "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "irsu5f86"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "2654m55h"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 5,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
@@ -10525,6 +10744,7 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 2,
     "chapters": [
@@ -10533,6 +10753,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 2,
     "chapters": [
@@ -10540,6 +10761,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 2,
     "chapters": [
@@ -10547,6 +10769,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 3,
     "chapters": [
@@ -10554,6 +10777,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 3,
     "chapters": [
@@ -10561,10 +10785,60 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 3,
     "chapters": [
      "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 4,
+    "chapters": [
+     "irsu5f86"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "2654m55h"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
@@ -10577,6 +10851,7 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 2,
     "chapters": [
@@ -10585,6 +10860,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 2,
     "chapters": [
@@ -10592,6 +10868,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 2,
     "chapters": [
@@ -10599,6 +10876,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 3,
     "chapters": [
@@ -10606,6 +10884,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 3,
     "chapters": [
@@ -10613,10 +10892,61 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 3,
     "chapters": [
      "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 4,
+    "chapters": [
+     "irsu5f86"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "2654m55h",
+     "9q4k2bdt"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
@@ -10629,6 +10959,7 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 2,
     "chapters": [
@@ -10636,6 +10967,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 2,
     "chapters": [
@@ -10643,6 +10975,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 2,
     "chapters": [
@@ -10650,14 +10983,15 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 3,
     "chapters": [
-     "4c5atm56",
-     "cdrdx7q4"
+     "4c5atm56"
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 3,
     "chapters": [
@@ -10665,10 +10999,61 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 3,
     "chapters": [
      "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 4,
+    "chapters": [
+     "irsu5f86"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "2654m55h",
+     "9q4k2bdt"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
@@ -10681,14 +11066,15 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 4,
     "chapters": [
-     "4c5atm56",
-     "cdrdx7q4"
+     "4c5atm56"
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 4,
     "chapters": [
@@ -10696,6 +11082,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 5,
     "chapters": [
@@ -10703,6 +11090,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 5,
     "chapters": [
@@ -10710,6 +11098,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 5,
     "chapters": [
@@ -10717,10 +11106,60 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 5,
     "chapters": [
      "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 6,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 6,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 6,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 7,
+    "chapters": [
+     "irsu5f86"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 7,
+    "chapters": [
+     "2654m55h"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 7,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
@@ -10733,14 +11172,15 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 1,
     "chapters": [
-     "4c5atm56",
-     "cdrdx7q4"
+     "4c5atm56"
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 1,
     "chapters": [
@@ -10748,6 +11188,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 1,
     "chapters": [
@@ -10755,6 +11196,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 2,
     "chapters": [
@@ -10762,6 +11204,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 2,
     "chapters": [
@@ -10769,10 +11212,60 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 2,
     "chapters": [
      "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 3,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 4,
+    "chapters": [
+     "irsu5f86"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 4,
+    "chapters": [
+     "2654m55h"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 4,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
@@ -10785,14 +11278,15 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 2,
     "chapters": [
-     "4c5atm56",
-     "cdrdx7q4"
+     "4c5atm56"
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 2,
     "chapters": [
@@ -10800,6 +11294,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 2,
     "chapters": [
@@ -10807,6 +11302,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 2,
     "chapters": [
@@ -10814,6 +11310,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 3,
     "chapters": [
@@ -10821,10 +11318,60 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 3,
     "chapters": [
      "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 4,
+    "chapters": [
+     "irsu5f86"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "2654m55h"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
@@ -10837,14 +11384,15 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "section": "A",
     "question": 1,
     "page": 2,
     "chapters": [
-     "4c5atm56",
-     "cdrdx7q4"
+     "4c5atm56"
     ]
    },
    {
+    "section": "A",
     "question": 2,
     "page": 2,
     "chapters": [
@@ -10852,6 +11400,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 3,
     "page": 3,
     "chapters": [
@@ -10859,6 +11408,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 4,
     "page": 3,
     "chapters": [
@@ -10866,6 +11416,7 @@
     ]
    },
    {
+    "section": "A",
     "question": 5,
     "page": 3,
     "chapters": [
@@ -10873,10 +11424,60 @@
     ]
    },
    {
+    "section": "A",
     "question": 6,
     "page": 4,
     "chapters": [
      "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 1,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 2,
+    "page": 5,
+    "chapters": [
+     "jh4w6yes"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 3,
+    "page": 5,
+    "chapters": [
+     "cdrdx7q4",
+     "hxxq954f"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 4,
+    "page": 6,
+    "chapters": [
+     "cdrdx7q4"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "2654m55h"
+    ]
+   },
+   {
+    "section": "B",
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "irsu5f86"
     ]
    }
   ]
