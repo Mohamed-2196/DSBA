@@ -402,3 +402,8 @@
     display: none;
   }
 }
+
+/* Add a module: a field scrolled into view (a phone's keyboard opening) keeps its label in sight under the header. */
+.medit-add :is(input, select, textarea) {
+  scroll-margin-top: 2.25rem;
+}
