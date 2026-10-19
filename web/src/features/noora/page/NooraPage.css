@@ -315,7 +315,7 @@ html:has(.np--full) {
 }
 .np .nr,
 .np .nc-prose {
-  max-width: 68ch;
+  max-width: var(--measure);
   font-size: var(--fs-16);
   line-height: 1.7;
 }
@@ -334,7 +334,7 @@ html:has(.np--full) {
   border-top: 0;
 }
 .np .nc-asked {
-  max-width: min(80%, 60ch);
+  max-width: min(80%, var(--measure));
   padding: 10px 16px;
   border-radius: 20px;
   background: var(--surface-2);
@@ -376,7 +376,7 @@ html:has(.np--full) {
   text-wrap: balance;
 }
 .np-welcome__lead {
-  max-width: 56ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-16);
   line-height: 1.55;
@@ -388,7 +388,7 @@ html:has(.np--full) {
   align-items: center;
   justify-content: center;
   gap: 8px 12px;
-  max-width: 60ch;
+  max-width: var(--measure);
   padding: 10px 14px;
   border-radius: var(--r-control);
   background: var(--highlight-soft);
