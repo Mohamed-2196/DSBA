@@ -57,9 +57,9 @@ test('a paper sits with its report, Sara times herself, tags a question and find
   const files = makeFiles(run.tag);
   const made: Item[] = [];
   try {
-    const paper = await share(rep, files.pdf, `EC1002 ZA May 2024 [e2e ${run.tag}]`, 'past-paper', 'A');
+    const paper = await share(rep, files.paper, `EC1002 ZA May 2024 [e2e ${run.tag}]`, 'past-paper', 'A');
     made.push(paper);
-    made.push(await share(rep, files.pdf, `EC1002 commentary May 2024 [e2e ${run.tag}]`, 'examiners-report', ''));
+    made.push(await share(rep, files.report, `EC1002 commentary May 2024 [e2e ${run.tag}]`, 'examiners-report', ''));
 
     await sara.goto('/modules/economics?tab=files');
     const sittings = sara.locator('[data-hub="paper-sittings"]');
@@ -67,16 +67,15 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     // Newest first: an older sitting may be past the first few.
     const showAll = sittings.getByRole('button', { name: /^Show all \d+ sittings$/ });
     if (await showAll.isVisible()) await showAll.click();
-    // Each zone's paper is a card with its first page; the sitting's examiners' report is on it.
+    // Each zone's paper is a card with its first page; the sitting's examiners' report is a link on its cards.
     const open = `Open EC1002 ZA May 2024 [e2e ${run.tag}]`;
-    const card = sittings
-      .getByRole('listitem', { name: 'May 2024', exact: true })
-      .locator('[data-hub="paper-card"]')
-      .filter({ has: sara.getByRole('link', { name: open }) });
+    const may = sittings.getByRole('listitem', { name: 'May 2024', exact: true });
+    const card = may.locator('[data-hub="paper-card"]').filter({ has: sara.getByRole('link', { name: open }) });
     await expect(
-      card
+      may
         .getByRole('link', { name: /^Report( \d)?$/ })
-        .and(sara.getByTitle(`EC1002 commentary May 2024 [e2e ${run.tag}]`)),
+        .and(sara.getByTitle(`EC1002 commentary May 2024 [e2e ${run.tag}]`))
+        .first(),
     ).toBeVisible();
     await card.getByRole('link', { name: open }).click();
     await expect(sara).toHaveURL(new RegExp(`/library/${paper.slug}$`));

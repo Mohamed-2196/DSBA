@@ -627,6 +627,9 @@ function docx(paragraphs: string[]): Buffer {
 export interface TestFiles {
   dir: string;
   pdf: string;
+  /** two more PDFs, a paper and its examiners' report: the library shows one file per content */
+  paper: string;
+  report: string;
   docx: string;
   ipynb: string;
   csv: string;
@@ -636,7 +639,8 @@ export interface TestFiles {
   tooBig: string;
 }
 
-/** Writes the run's upload files (real files, plus three wrong ones) and returns their paths. */
+/** Writes the run's upload files (real files, plus three wrong ones) and returns their paths. Each holds the run's
+ * tag: the library lists one file per content, so a file left by an earlier run would hide this run's copy. */
 export function makeFiles(tag: string): TestFiles {
   const dir = path.join(env.stateDir, `files-${tag}`);
   fs.mkdirSync(dir, { recursive: true });
@@ -644,6 +648,8 @@ export function makeFiles(tag: string): TestFiles {
   const files: TestFiles = {
     dir,
     pdf: p(`ST2133 MGF summary ${tag}.pdf`),
+    paper: p(`EC1002 May 2024 paper ${tag}.pdf`),
+    report: p(`EC1002 commentary ${tag}.pdf`),
     docx: p(`EC1002 elasticity notes ${tag}.docx`),
     ipynb: p(`ST2195 pandas practice ${tag}.ipynb`),
     csv: p(`ST2187 sales data ${tag}.csv`),
@@ -663,9 +669,13 @@ export function makeFiles(tag: string): TestFiles {
       ]),
     );
     fs.writeFileSync(
+      files.report,
+      pdf([`EC1002 examiners' commentary (${tag})`, 'Question 3: most candidates did well.']),
+    );
+    fs.writeFileSync(
       files.docx,
       docx([
-        'EC1002 Price elasticity of demand',
+        `EC1002 Price elasticity of demand (${tag})`,
         'PED = % change in quantity / % change in price.',
         'Use the midpoint formula and show it.',
       ]),
@@ -674,7 +684,7 @@ export function makeFiles(tag: string): TestFiles {
       files.ipynb,
       JSON.stringify({
         cells: [
-          { cell_type: 'markdown', metadata: {}, source: ['# ST2195 pandas practice'] },
+          { cell_type: 'markdown', metadata: {}, source: [`# ST2195 pandas practice (${tag})`] },
           {
             cell_type: 'code',
             execution_count: 1,

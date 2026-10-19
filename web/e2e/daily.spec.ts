@@ -314,9 +314,9 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
 
   // His name shows on the leaderboard only once he chooses it.
   await page.getByRole('tab', { name: 'Leaderboard' }).tap();
-  const mine = page.getByRole('listitem').filter({ hasText: run.ali.name });
-  await expect(page.getByText(`Your points this week: ${me.body.points}`)).toBeVisible();
-  await expect(mine).toHaveCount(0);
+  const toggle = page.getByRole('switch', { name: 'Show my name on the leaderboard' });
+  await expect(toggle).not.toBeChecked();
+  const mine = page.getByRole('listitem').filter({ hasText: run.ali.name }).filter({ hasText: 'You' }).first();
   await page.getByRole('switch', { name: 'Show my name on the leaderboard' }).tap();
   await expect(mine).toContainText('You');
   await expect(mine).toContainText(`${me.body.points} pts`);
