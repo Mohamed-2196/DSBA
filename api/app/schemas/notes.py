@@ -78,15 +78,25 @@ class NotebookList(ApiModel):
 # ── ink ──────────────────────────────────────────────────────────────────────────────────────
 
 
+class InkAnchor(ApiModel):
+    """The typed text a stroke on paper goes with: `block` is a block of the text (its `blockId`; None: below the end of
+    the text), and `dy` how far the middle of the stroke is below that block's top (or the text's end), in units. When
+    text or a picture is added above it, the web app moves the stroke down with its block."""
+
+    block: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_-]{1,32}$")
+    dy: float = Field(ge=-100_000, le=100_000)
+
+
 class Stroke(ApiModel):
     """One line drawn with the pen or the highlighter. `points` is x, y, pressure (0-1), x, y, pressure, … in sheet
-    units, the sheet's top left at 0, 0."""
+    units, the sheet's top left at 0, 0. A stroke on paper has an `anchor`; one on a PDF's page keeps its place."""
 
     id: str = Field(pattern=r"^[A-Za-z0-9_-]{1,32}$")
     tool: Tool
     color: Color
     width: float = Field(ge=0.5, le=64)
     points: list[float] = Field(min_length=3, max_length=MAX_POINTS * 3)
+    anchor: InkAnchor | None = None
 
     @field_validator("points")
     @classmethod
@@ -123,33 +133,30 @@ class InkInfo(ApiModel):
 
 class NoteFields(ApiModel):
     """What a student writes: a title, the typed text and its pictures, in the text or free on the pages (a ProseMirror
-    document: services/note_doc.py lists what it may hold), the paper, how many paper sheets, and the lesson it is about
-    (in the notebook's module)."""
+    document: services/note_doc.py lists what it may hold), the paper, how many paper sheets, and the module and
+    lesson it is about."""
 
     title: Title = ""
     doc: dict[str, Any] = Field(default_factory=lambda: {"type": "doc", "content": []})
     paper: Paper = "lined"
     sheets: int = Field(default=1, ge=0, le=MAX_SHEETS)
+    module_id: str | None = Field(default=None, max_length=64)
     lesson_id: LessonId | None = None
 
 
 class NoteCreate(NoteFields):
-    """A new note: in `notebookId`, or in the module's notebook (made when it isn't there yet), or in the student's
-    first notebook of their own. `pdfUploadId` writes it over a PDF the student uploaded (purpose note_file)."""
+    """A new note: in `notebookId`, or else in its module's notebook (made when it isn't there yet), or else in the
+    student's first notebook of their own. A note in a module's notebook is about that module. `pdfUploadId` writes it
+    over a PDF the student uploaded (purpose note_file)."""
 
     notebook_id: UUID | None = None
-    module_id: str | None = Field(default=None, max_length=64)
     pdf_upload_id: UUID | None = None
-
-    @model_validator(mode="after")
-    def _one_place(self) -> NoteCreate:
-        if self.notebook_id is not None and self.module_id is not None:
-            raise ValueError("Choose a notebook or a module, not both.")
-        return self
 
 
 class NoteUpdate(NoteFields):
-    """The whole note as it is now, the notebook it is in, and the version it was loaded at."""
+    """The whole note as it is now, the notebook it is in, and the version it was loaded at. A note given another
+    module while in a module's notebook goes to the new module's notebook (or, with no module, the student's own):
+    the saved note says where."""
 
     notebook_id: UUID
     version: int = Field(ge=1)
@@ -193,7 +200,7 @@ class NoteSummary(ApiModel):
     notebook_id: UUID
     title: str
     excerpt: str  # the start of the typed text
-    module_id: str | None  # the notebook's
+    module_id: str | None
     lesson_id: str | None
     on_pdf: bool  # written over a PDF
     version: int

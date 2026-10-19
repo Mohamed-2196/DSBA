@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import tracemalloc
+import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from datetime import timedelta
@@ -47,7 +48,7 @@ def new_note(c: TestClient, *lines: str, **fields: Any) -> dict[str, Any]:
 
 
 def save(c: TestClient, note: dict[str, Any], **changes: Any) -> Any:
-    keys = ("title", "doc", "paper", "sheets", "lessonId", "notebookId", "version")
+    keys = ("title", "doc", "paper", "sheets", "moduleId", "lessonId", "notebookId", "version")
     return c.put(f"{API}/notes/{note['id']}", json={k: note[k] for k in keys} | changes)
 
 
@@ -101,17 +102,129 @@ def test_own_notebooks_rename_move_and_delete(
     assert renamed.json()["title"] == "Finals"
 
     on_lesson = new_note(c, moduleId=module.id, lessonId=lesson_id(module, 0, 0))
-    moved = save(c, on_lesson, notebookId=book["id"])  # another notebook: the lesson is let go of
+    moved = save(c, on_lesson, notebookId=book["id"])  # a notebook of the student's own: still about the lesson
     assert moved.status_code == 200, moved.text
-    assert (moved.json()["notebookId"], moved.json()["lessonId"], moved.json()["moduleId"]) == (book["id"], None, None)
-    r = save(c, moved.json(), lessonId=lesson_id(module, 0, 0))
-    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["lessonId"])
+    got = moved.json()
+    assert (got["notebookId"], got["moduleId"], got["lessonId"]) == (book["id"], module.id, lesson_id(module, 0, 0))
 
     assert c.delete(f"{API}/notebooks/{book['id']}").status_code == 204
     assert c.get(f"{API}/notes/{note['id']}").status_code == 404
     assert c.get(f"{API}/notes/{moved.json()['id']}").status_code == 404
     db.expire_all()
     assert db.get(Notebook, book["id"]) is None
+
+
+def other_module(db: Session, *, hidden: bool = False) -> Module:
+    m = Module(
+        id=f"notes-other-{uuid.uuid4().hex[:6]}",
+        unit_code="TS2000",
+        name="Other module",
+        short_name="Other",
+        year=2,
+        description="",
+        hidden=hidden,
+    )
+    db.add(m)
+    db.commit()
+    return m
+
+
+def test_a_note_knows_its_module_in_any_notebook(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    """IDEA-41: a note in a notebook of the student's own can be about a module (and its lessons), and a module's notes
+    are listed from every notebook."""
+    c = client_for(make_user())
+    book = c.post(f"{API}/notebooks", json={"title": "Exam revision"}).json()
+    note = new_note(c, notebookId=book["id"], moduleId=module.id, lessonId=lesson_id(module, 1, 0))
+    assert (note["notebookId"], note["moduleId"], note["lessonId"]) == (book["id"], module.id, lesson_id(module, 1, 0))
+    in_module_book = new_note(c, moduleId=module.id)
+    loose = new_note(c, notebookId=book["id"])
+    listed = [n["id"] for n in c.get(f"{API}/notes", params={"module_id": module.id}).json()["items"]]
+    assert set(listed) == {note["id"], in_module_book["id"]}
+    assert loose["moduleId"] is None
+    # a module's notebook holds that module's notes, whatever was asked
+    other = other_module(db)
+    there = new_note(c, notebookId=in_module_book["notebookId"], moduleId=other.id)
+    assert there["moduleId"] == module.id
+
+
+def test_a_notes_module_changes_and_its_notebook_follows(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    c = client_for(make_user())
+    other = other_module(db)
+    note = new_note(c, moduleId=module.id, lessonId=lesson_id(module, 0, 0))
+    # another module, from the module's notebook: to the other module's notebook, without the lesson
+    r = save(c, note, moduleId=other.id)
+    assert r.status_code == 200, r.text
+    moved = r.json()
+    other_book = next(b for b in c.get(f"{API}/notebooks").json()["items"] if b["moduleId"] == other.id)
+    assert (moved["moduleId"], moved["notebookId"], moved["lessonId"]) == (other.id, other_book["id"], None)
+    # no module: to the student's own notebook
+    loose = save(c, moved, moduleId=None).json()
+    own = next(b for b in c.get(f"{API}/notebooks").json()["items"] if b["moduleId"] is None)
+    assert (loose["moduleId"], loose["notebookId"]) == (None, own["id"])
+    # in the student's own notebook, the module changes and the note stays
+    kept = save(c, loose, moduleId=module.id).json()
+    assert (kept["moduleId"], kept["notebookId"]) == (module.id, own["id"])
+    # moved into a module's notebook: about that module
+    into = save(c, kept, notebookId=other_book["id"]).json()
+    assert (into["moduleId"], into["notebookId"]) == (other.id, other_book["id"])
+
+
+def test_a_note_takes_only_a_module_students_see(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    c = client_for(make_user())
+    hidden = other_module(db, hidden=True)
+    note = new_note(c)
+    r = save(c, note, moduleId=hidden.id)
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["moduleId"])
+    r = save(c, note, lessonId=lesson_id(module, 0, 0))  # a lesson needs the note's module
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["lessonId"])
+    about = save(c, note, moduleId=module.id).json()
+    db.execute(update(Module).where(Module.id == module.id).values(hidden=True))
+    db.commit()
+    assert save(c, about, title="Kept").status_code == 200  # a module hidden since stays
+
+
+def test_empty_notes_are_not_listed_and_go_an_hour_on(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    """ST-37: "New note" makes a note at once. Left empty, it isn't listed or counted, and goes when the student starts
+    another an hour on."""
+    c = client_for(make_user())
+    empty = c.post(f"{API}/notes", json={"moduleId": module.id}).json()
+    written = new_note(c, moduleId=module.id)
+    drawn = c.post(f"{API}/notes", json={"moduleId": module.id}).json()
+    assert ink(c, drawn, PAPER_SHEETS_FROM, [stroke()], 0).status_code == 200
+    titled = c.post(f"{API}/notes", json={"title": "Just a title"}).json()
+    listed = {n["id"] for n in c.get(f"{API}/notes").json()["items"]}
+    assert listed == {written["id"], drawn["id"], titled["id"]}
+    book = next(b for b in c.get(f"{API}/notebooks").json()["items"] if b["moduleId"] == module.id)
+    assert book["noteCount"] == 2
+    assert c.get(f"{API}/notes/{empty['id']}").status_code == 200  # still there to write in
+
+    db.execute(update(Note).where(Note.id == empty["id"]).values(updated_at=utcnow() - timedelta(hours=2)))
+    db.commit()
+    new_note(c)
+    assert c.get(f"{API}/notes/{empty['id']}").status_code == 404
+    assert c.get(f"{API}/notes/{drawn['id']}").status_code == 200
+
+
+def test_ink_on_paper_keeps_its_anchor(client_for: ClientFor, make_user: MakeUser) -> None:
+    """ST-38: a stroke on paper goes with a block of the text (or the text's end): the web app moves it with it."""
+    c = client_for(make_user())
+    note = new_note(c)
+    anchored = stroke("a") | {"anchor": {"block": "b-1x", "dy": 12.5}}
+    at_end = stroke("b") | {"anchor": {"block": None, "dy": 40}}
+    r = ink(c, note, PAPER_SHEETS_FROM, [anchored, at_end, stroke("c")], 0)
+    assert r.status_code == 200, r.text
+    got = c.get(f"{API}/notes/{note['id']}/ink/{PAPER_SHEETS_FROM}").json()["strokes"]
+    assert [s["anchor"] for s in got] == [{"block": "b-1x", "dy": 12.5}, {"block": None, "dy": 40}, None]
+    bad = stroke("d") | {"anchor": {"block": "not an id", "dy": 0}}
+    assert ink(c, note, PAPER_SHEETS_FROM, [bad], 1).status_code == 422
 
 
 def test_how_many_notebooks(client_for: ClientFor, make_user: MakeUser, monkeypatch: pytest.MonkeyPatch) -> None:

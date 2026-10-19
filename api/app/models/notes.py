@@ -1,7 +1,8 @@
 """A student's private notebook: notebooks (one per module by default), the notes in them, and each note's ink.
 
-A note mixes typed rich text and the pictures free on its pages (`doc`, a ProseMirror document; `text` is its plain
-text for search), handwriting (`NoteInk`, vector strokes per sheet), pictures and files (the student's uploads it
+A note may be about a module (`module_id`) and one of its lessons. It mixes typed rich text and the pictures free on
+its pages (`doc`, a ProseMirror document; `text` is its plain text for search), handwriting (`NoteInk`, vector strokes
+per sheet, each on paper anchored to the block of text it goes with), pictures and files (the student's uploads it
 lists in `uploads`), and optionally a PDF it is written over: a library file (`library_item_id`) or one the student
 imported (`pdf_upload_id`).
 
@@ -67,6 +68,8 @@ class Note(Base):
         Index("ix_notes_user_updated", "user_id", "updated_at"),  # the student's notes: newest first
         Index("ix_notes_notebook_updated", "notebook_id", "updated_at"),  # a notebook's notes
         Index("ix_notes_user_lesson", "user_id", "lesson_id"),  # a lesson's notes
+        Index("ix_notes_user_module", "user_id", "module_id"),  # a module's notes
+        Index("ix_notes_module", "module_id"),  # a module deleted (SET NULL)
         Index("ix_notes_lesson", "lesson_id"),  # removing a lesson (RESTRICT)
         # one note per library file per student: "Annotate in my notebook" reopens it
         Index(
@@ -90,7 +93,10 @@ class Note(Base):
     text: Mapped[str] = mapped_column(Text, default="", server_default="")  # doc as plain text, for search
     paper: Mapped[str] = mapped_column(String(8), default="lined", server_default="lined")
     sheets: Mapped[int] = mapped_column(Integer, default=1, server_default="1")  # paper sheets after any PDF pages
-    # The lesson the note is about (in the notebook's module). A lesson with notes can't be removed.
+    # The module the note is about: set from where it was started (a module, a lesson, a paper), changeable. A module's
+    # notebook holds only that module's notes; the student's own notebooks hold notes on any module, or none.
+    module_id: Mapped[str | None] = mapped_column(ForeignKey("modules.id", ondelete="SET NULL"))
+    # The lesson the note is about (in its module). A lesson with notes can't be removed.
     lesson_id: Mapped[str | None] = mapped_column(ForeignKey("lessons.id", ondelete="RESTRICT"))
     library_item_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("library_items.id", ondelete="SET NULL"))
     pdf_upload_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("uploads.id", ondelete="SET NULL"))

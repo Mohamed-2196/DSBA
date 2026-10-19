@@ -37382,6 +37382,34 @@
         ],
         "title": "ImportRow"
       },
+      "InkAnchor": {
+        "properties": {
+          "block": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{1,32}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block"
+          },
+          "dy": {
+            "type": "number",
+            "maximum": 100000.0,
+            "minimum": -100000.0,
+            "title": "Dy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dy"
+        ],
+        "title": "InkAnchor",
+        "description": "The typed text a stroke on paper goes with: `block` is a block of the text (its `blockId`; None: below the end of\nthe text), and `dy` how far the middle of the stroke is below that block's top (or the text's end), in units. When\ntext or a picture is added above it, the web app moves the stroke down with its block."
+      },
       "InkInfo": {
         "properties": {
           "sheet": {
@@ -41850,6 +41878,18 @@
             "title": "Sheets",
             "default": 1
           },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
           "lessonId": {
             "anyOf": [
               {
@@ -41874,18 +41914,6 @@
             ],
             "title": "Notebookid"
           },
-          "moduleId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 64
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Moduleid"
-          },
           "pdfUploadId": {
             "anyOf": [
               {
@@ -41901,7 +41929,7 @@
         },
         "type": "object",
         "title": "NoteCreate",
-        "description": "A new note: in `notebookId`, or in the module's notebook (made when it isn't there yet), or in the student's\nfirst notebook of their own. `pdfUploadId` writes it over a PDF the student uploaded (purpose note_file)."
+        "description": "A new note: in `notebookId`, or else in its module's notebook (made when it isn't there yet), or else in the\nstudent's first notebook of their own. A note in a module's notebook is about that module. `pdfUploadId` writes it\nover a PDF the student uploaded (purpose note_file)."
       },
       "NoteCredit": {
         "properties": {
@@ -42135,6 +42163,18 @@
             "title": "Sheets",
             "default": 1
           },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
           "lessonId": {
             "anyOf": [
               {
@@ -42164,7 +42204,7 @@
           "version"
         ],
         "title": "NoteUpdate",
-        "description": "The whole note as it is now, the notebook it is in, and the version it was loaded at."
+        "description": "The whole note as it is now, the notebook it is in, and the version it was loaded at. A note given another\nmodule while in a module's notebook goes to the new module's notebook (or, with no module, the student's own):\nthe saved note says where."
       },
       "Notebook": {
         "properties": {
@@ -47585,6 +47625,16 @@
             "maxItems": 12000,
             "minItems": 3,
             "title": "Points"
+          },
+          "anchor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InkAnchor"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -47596,7 +47646,7 @@
           "points"
         ],
         "title": "Stroke",
-        "description": "One line drawn with the pen or the highlighter. `points` is x, y, pressure (0-1), x, y, pressure, \u2026 in sheet\nunits, the sheet's top left at 0, 0."
+        "description": "One line drawn with the pen or the highlighter. `points` is x, y, pressure (0-1), x, y, pressure, \u2026 in sheet\nunits, the sheet's top left at 0, 0. A stroke on paper has an `anchor`; one on a PDF's page keeps its place."
       },
       "SudokuView": {
         "properties": {

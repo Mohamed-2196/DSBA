@@ -1,6 +1,10 @@
 """A student's private notebook. Only their writer ever reads a notebook, a note or its files: anyone else gets 404.
 
 - Notebooks: the student's own, and one per module (a module's notes go to it, made when the first one is written).
+- A note may be about a module (set from where it was started, changeable) and one of its lessons. A module's notebook
+  holds only that module's notes: a note given another module there moves to that module's notebook.
+- A note with nothing in it (no title, text, files, PDF or ink) isn't listed or counted, and is deleted an hour on:
+  "New note" makes one at once, and a student who leaves it empty never sees it again.
 - A note saves its typed text with the version it was loaded at, and each sheet's ink with that sheet's version. A
   save over something saved since (another tab, another device) answers 409 note_changed or ink_changed, and the
   writer chooses: load the newer one, or save theirs over it.
@@ -21,7 +25,7 @@ import uuid
 from collections.abc import Iterable
 from datetime import timedelta
 
-from sqlalchemy import ColumnElement, case, cast, delete, func, or_, select, update
+from sqlalchemy import ColumnElement, and_, case, cast, delete, exists, func, or_, select, update
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
@@ -54,7 +58,6 @@ from app.schemas.notes import (
     NotebookCreate,
     NotebookList,
     NoteCreate,
-    NoteFields,
     NotePage,
     NotePdf,
     NoteSummary,
@@ -80,6 +83,8 @@ SAVE_WINDOW = timedelta(minutes=1)
 SEARCH_MAX = 100
 MAX_SHEET_INDEX = PAPER_SHEETS_FROM + MAX_SHEETS
 OWN_NOTEBOOK = "My notebook"
+# A note left empty this long is deleted when the student starts another.
+EMPTY_KEPT = timedelta(hours=1)
 # A note file that is still there: uploaded and not placed yet, in a note, or released and not swept yet (a save that
 # shows it again, after an undo, takes it back).
 KEPT_UPLOADS = (UploadStatus.uploaded, UploadStatus.attached, UploadStatus.released)
@@ -227,7 +232,7 @@ def list_notebooks(db: Session, user: User) -> NotebookList:
     """The student's notebooks, the one changed last first, with how many notes each holds."""
     stats = (
         select(Note.notebook_id, func.count().label("n"), func.max(Note.updated_at).label("last"))
-        .where(Note.user_id == user.id)
+        .where(Note.user_id == user.id, ~_empty())
         .group_by(Note.notebook_id)
         .subquery()
     )
@@ -252,7 +257,9 @@ def list_notebooks(db: Session, user: User) -> NotebookList:
 
 
 def notebook_out(db: Session, nb: Notebook) -> NotebookOut:
-    n, last = db.execute(select(func.count(), func.max(Note.updated_at)).where(Note.notebook_id == nb.id)).one()
+    n, last = db.execute(
+        select(func.count(), func.max(Note.updated_at)).where(Note.notebook_id == nb.id, ~_empty())
+    ).one()
     return NotebookOut(
         id=nb.id,
         title=nb.title,
@@ -325,6 +332,18 @@ def delete_notebook(db: Session, user: User, notebook_id: uuid.UUID) -> None:
 # ── notes: reading ───────────────────────────────────────────────────────────────────────────
 
 
+def _empty() -> ColumnElement[bool]:
+    """A note with nothing in it: no title, typed text, files or PDF, and no ink."""
+    return and_(
+        Note.title == "",
+        Note.text == "",
+        func.cardinality(Note.uploads) == 0,
+        Note.library_item_id.is_(None),
+        Note.pdf_upload_id.is_(None),
+        ~exists().where(NoteInk.note_id == Note.id),
+    )
+
+
 def _pdf_of(db: Session, note: Note) -> NotePdf | None:
     if note.library_item_id is not None:
         item = db.get(LibraryItem, note.library_item_id)
@@ -354,7 +373,6 @@ def _on_pdf(note: Note) -> bool:
 
 
 def to_out(db: Session, note: Note) -> NoteOut:
-    nb = db.get(Notebook, note.notebook_id)
     ink = db.execute(
         select(NoteInk.sheet, NoteInk.version).where(NoteInk.note_id == note.id).order_by(NoteInk.sheet)
     ).all()
@@ -364,7 +382,7 @@ def to_out(db: Session, note: Note) -> NoteOut:
             "notebook_id": note.notebook_id,
             "title": note.title,
             "excerpt": note.text[:EXCERPT_LENGTH],
-            "module_id": nb.module_id if nb else None,
+            "module_id": note.module_id,
             "lesson_id": note.lesson_id,
             "on_pdf": _on_pdf(note),
             "version": note.version,
@@ -391,9 +409,9 @@ def list_notes(
     limit: int = 20,
     offset: int = 0,
 ) -> NotePage:
-    """The student's notes, last edited first. `q` matches the title or the typed text (any part, any case);
-    `notebook_id` keeps one notebook's notes, `module_id` the module's notebook's, and `lesson_id` one lesson's."""
-    where: list[ColumnElement[bool]] = [Note.user_id == user.id]
+    """The student's notes with something in them, last edited first. `q` matches the title or the typed text (any
+    part, any case); `notebook_id` keeps one notebook's notes, `module_id` one module's, `lesson_id` one lesson's."""
+    where: list[ColumnElement[bool]] = [Note.user_id == user.id, ~_empty()]
     text = (q or "").strip()[:SEARCH_MAX]
     if text:
         pattern = _like(text)
@@ -401,10 +419,10 @@ def list_notes(
     if notebook_id is not None:
         where.append(Note.notebook_id == notebook_id)
     if module_id is not None:
-        where.append(Notebook.module_id == module_id)
+        where.append(Note.module_id == module_id)
     if lesson_id is not None:
         where.append(Note.lesson_id == lesson_id)
-    base = select(Note).join(Notebook, Notebook.id == Note.notebook_id).where(*where)
+    base = select(Note).where(*where)
     total = db.scalar(select(func.count()).select_from(base.subquery())) or 0
     rows = db.execute(
         select(
@@ -412,14 +430,13 @@ def list_notes(
             Note.notebook_id,
             Note.title,
             func.left(Note.text, EXCERPT_LENGTH).label("excerpt"),
-            Notebook.module_id,
+            Note.module_id,
             Note.lesson_id,
             (Note.library_item_id.is_not(None) | Note.pdf_upload_id.is_not(None)).label("on_pdf"),
             Note.version,
             Note.created_at,
             Note.updated_at,
         )
-        .join(Notebook, Notebook.id == Note.notebook_id)
         .where(*where)
         .order_by(Note.updated_at.desc(), Note.id)
         .limit(limit)
@@ -444,15 +461,24 @@ def get_note(db: Session, user: User, note_id: uuid.UUID) -> Note:
 # ── notes: writing ───────────────────────────────────────────────────────────────────────────
 
 
-def _check_lesson(db: Session, nb: Notebook, fields: NoteFields, note: Note | None = None) -> None:
-    """The lesson is one students see, in the notebook's module (a note may keep a lesson hidden since)."""
-    if fields.lesson_id is None:
+def _check_module(db: Session, module_id: str | None, note: Note | None = None) -> None:
+    """The module is one students see (a note may keep a module hidden since)."""
+    if module_id is None or (note is not None and module_id == note.module_id):
         return
-    if nb.module_id is None:
-        raise invalid("lessonId", "Only a module's notebook keeps notes about its lessons.")
+    module = db.get(Module, module_id)
+    if module is None or module.hidden:
+        raise invalid("moduleId", "This module doesn't exist.")
+
+
+def _check_lesson(db: Session, module_id: str | None, lesson_id: str | None, note: Note | None = None) -> None:
+    """The lesson is one students see, in the note's module (a note may keep a lesson hidden since)."""
+    if lesson_id is None:
+        return
+    if module_id is None:
+        raise invalid("lessonId", "Choose the note's module before its lesson.")
     current = note.lesson_id if note is not None else None
-    lesson = db.get(Lesson, fields.lesson_id) if fields.lesson_id == current else student_lesson(db, fields.lesson_id)
-    if lesson is None or lesson.module_id != nb.module_id:
+    lesson = db.get(Lesson, lesson_id) if lesson_id == current else student_lesson(db, lesson_id)
+    if lesson is None or lesson.module_id != module_id:
         raise invalid("lessonId", "This lesson doesn't exist.")
 
 
@@ -515,6 +541,15 @@ def _pdf_upload(db: Session, user: User, upload_id: uuid.UUID) -> Upload:
     return up
 
 
+def _purge_empty(db: Session, user: User) -> None:
+    """The student's notes left empty for EMPTY_KEPT: they were started and never written in."""
+    db.execute(
+        delete(Note)
+        .where(Note.user_id == user.id, Note.updated_at < utcnow() - EMPTY_KEPT, _empty())
+        .execution_options(synchronize_session=False)
+    )
+
+
 def create_note(db: Session, user: User, body: NoteCreate) -> Note:
     if body.notebook_id is not None:
         nb = _own_notebook(db, user, body.notebook_id)
@@ -522,10 +557,13 @@ def create_note(db: Session, user: User, body: NoteCreate) -> Note:
         nb = module_notebook(db, user, body.module_id)
     else:
         nb = own_notebook(db, user)
-    _check_lesson(db, nb, body)
+    module_id = nb.module_id if nb.module_id is not None else body.module_id
+    _check_module(db, module_id)
+    _check_lesson(db, module_id, body.lesson_id)
     pdf = _pdf_upload(db, user, body.pdf_upload_id) if body.pdf_upload_id is not None else None
     sheets = body.sheets if pdf is not None else max(1, body.sheets)
     checked = note_doc.check(body.doc, sheets=sheets)
+    _purge_empty(db, user)
     _creating(db, user)
     check_writing(db, user, _json_bytes(body.doc))
     now = utcnow()
@@ -537,6 +575,7 @@ def create_note(db: Session, user: User, body: NoteCreate) -> Note:
         text=checked.text,
         paper=body.paper,
         sheets=sheets,
+        module_id=module_id,
         lesson_id=body.lesson_id,
         pdf_upload_id=pdf.id if pdf is not None else None,
         saves_since=now,
@@ -561,7 +600,8 @@ def annotate(db: Session, user: User, item_id: uuid.UUID) -> tuple[Note, bool]:
     if found is not None:
         return found, False
     module = db.get(Module, item.module_id) if item.module_id else None
-    nb = module_notebook(db, user, module.id) if module is not None and not module.hidden else own_notebook(db, user)
+    shown = module is not None and not module.hidden
+    nb = module_notebook(db, user, module.id) if module is not None and shown else own_notebook(db, user)
     _creating(db, user)
     now = utcnow()
     note = Note(
@@ -572,6 +612,7 @@ def annotate(db: Session, user: User, item_id: uuid.UUID) -> tuple[Note, bool]:
         text="",
         paper="lined",
         sheets=0,
+        module_id=module.id if module is not None and shown else None,
         library_item_id=item.id,
         saves_since=now,
         created_at=now,
@@ -603,24 +644,36 @@ def _count_save(db: Session, user: User, note: Note) -> None:
 
 def update_note(db: Session, user: User, note_id: uuid.UUID, body: NoteUpdate) -> Note:
     """Saves the note as sent, if it is still at `body.version` (409 note_changed otherwise). The row is locked, so of
-    two saves of the same version, the second gets 409. Sending what is already saved changes nothing. Moving it to
-    a notebook of another module lets go of its lesson."""
+    two saves of the same version, the second gets 409. Sending what is already saved changes nothing.
+
+    A module's notebook holds that module's notes: a note moved into one is about its module, and a note there given
+    another module (or none) goes to that module's notebook (or the student's own). A note about another module lets
+    go of its lesson."""
     note = _own(db, user, note_id, lock=True)
     if note.version != body.version:
         raise conflict("note_changed", "This note was changed in another tab or on another device.")
     nb = _own_notebook(db, user, body.notebook_id)
-    if nb.id != note.notebook_id and body.lesson_id is not None:
-        before = db.get(Notebook, note.notebook_id)
-        if before is None or before.module_id != nb.module_id:
-            body = body.model_copy(update={"lesson_id": None})
-    _check_lesson(db, nb, body, note)
+    module_id = body.module_id
+    if nb.module_id is not None and module_id != nb.module_id:
+        if nb.id == note.notebook_id:
+            nb = module_notebook(db, user, module_id) if module_id is not None else own_notebook(db, user)
+        else:
+            module_id = nb.module_id
+    _check_module(db, module_id, note)
+    lesson_id = body.lesson_id
+    if lesson_id is not None and module_id != note.module_id:
+        lesson = db.get(Lesson, lesson_id)
+        if lesson is None or lesson.module_id != module_id:
+            lesson_id = None
+    _check_lesson(db, module_id, lesson_id, note)
     sheets = body.sheets if _on_pdf(note) else max(1, body.sheets)
     fields = {
         "title": body.title,
         "doc": body.doc,
         "paper": body.paper,
         "sheets": sheets,
-        "lesson_id": body.lesson_id,
+        "module_id": module_id,
+        "lesson_id": lesson_id,
         "notebook_id": nb.id,
     }
     if all(getattr(note, k) == v for k, v in fields.items()):
@@ -728,7 +781,7 @@ def save_ink(db: Session, user: User, note_id: uuid.UUID, sheet: int, body: InkS
     row = db.get(NoteInk, (note.id, sheet))
     if (row.version if row is not None else 0) != body.version:
         raise conflict("ink_changed", "This page was written on in another tab or on another device.")
-    strokes = [s.model_dump(mode="json") for s in body.strokes]
+    strokes = [s.model_dump(mode="json", exclude_none=True) for s in body.strokes]
     size = _json_bytes(strokes) if strokes else 0
     if size > SHEET_MAX_BYTES:
         raise invalid("strokes", "This page holds too much handwriting. Go on writing on a new page.")

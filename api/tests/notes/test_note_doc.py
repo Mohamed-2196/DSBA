@@ -186,3 +186,27 @@ def test_a_note_holds_a_limited_number_of_pictures(monkeypatch: pytest.MonkeyPat
     note_doc.check(with_free(*pictures, content=[inline()]), sheets=1)
     assert "up to 3 pictures" in refused(with_free(*pictures, content=[inline(), inline()]))
     assert "up to 3 pictures" in refused(with_free(*[free(id=f"p{i}") for i in range(4)]))
+
+
+def time_in(seconds: Any) -> dict[str, Any]:
+    return {"type": "videoTime", "attrs": {"seconds": seconds}}
+
+
+def test_a_time_in_the_lessons_video_reads_as_a_clock() -> None:
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "attrs": {"blockId": "b1"},
+                "content": [time_in(245), {"type": "text", "text": " MGF"}],
+            },
+            {"type": "paragraph", "content": [time_in(3725)]},
+        ],
+    }
+    assert note_doc.check(doc, sheets=1).text == "[4:05] MGF\n[1:02:05]"
+
+
+@pytest.mark.parametrize("seconds", [-1, 24 * 3600 + 1, "12", None, True])
+def test_a_time_out_of_range_is_refused(seconds: Any) -> None:
+    refused({"type": "doc", "content": [{"type": "paragraph", "content": [time_in(seconds)]}]})
