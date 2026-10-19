@@ -23,10 +23,10 @@ her threads in the database (fixed, and removed).
 
 | ID | Severity | What |
 |---|---|---|
-| ST-61 | major | The notes list's Module filter does nothing; "Show all notes" leaves the module on; Requests' "Clear filters" clears only "Mine". One cause: two address updates in a row, where the second undoes the first |
-| ST-60 | minor | Saving a practice score (after Time me, or from the paper's More menu) shows no "Saved: 68%": the dialog closes before the save returns, so its toast never runs |
+| ST-61 (**fixed**) | major | The notes list's Module filter does nothing; "Show all notes" leaves the module on; Requests' "Clear filters" clears only "Mine". One cause: two address updates in a row, where the second undoes the first |
+| ST-60 (**fixed**) | minor | Saving a practice score (after Time me, or from the paper's More menu) shows no "Saved: 68%": the dialog closes before the save returns, so its toast never runs |
 | ST-58 | minor (content and product) | Home's Daily question is on by default (ST-50) but shows nothing for most students: it only draws from the next exam's module, and 14 of 16 modules have no tagged questions (ST-48) |
-| ST-59 | nit | A revision plan's paper card is titled "ST2134 past paper · October 2024" but links the paper by its file name, "ST2134 Exam paper - October 2024" |
+| ST-59 (**fixed**) | nit | A revision plan's paper card is titled "ST2134 past paper · October 2024" but links the paper by its file name, "ST2134 Exam paper - October 2024" |
 
 #### ST-61 (major) The notes list's Module filter does nothing
 
@@ -53,6 +53,12 @@ her threads in the database (fixed, and removed).
 - e2e: `notebook.spec.ts` "the notes list's Module filter shows only that module's notes" (`test.fail`, ST-61).
   The round 14 builders' own test passed only because the note it looked for was listed anyway; it now opens
   `?module=` directly.
+- **Fixed** (`round14/bugs`): `useSetQueryParams()` in `state/useQueryParam.ts` sets several params in one address
+  update (`withQueryParams`, unit-tested), and `useQueryParam`'s setter is built on it. Used by the notes list's
+  Module filter and "Show all notes", Requests' "Clear filters", the calendar's two save handlers (month and event
+  together) and Career's reset (which had its own copy). Checked at 390×844 and 1440×900: picking ST2134 gives
+  `/notes?module=advanced-stats-inferential`; "Show all notes" and "Clear filters" leave a bare address. The e2e
+  test is a normal test again.
 
 #### ST-60 (minor) Saving a score doesn't say so
 
@@ -68,6 +74,9 @@ her threads in the database (fixed, and removed).
   the toast into `useSaveScore`'s own `onSuccess`, or keep the dialog mounted until the save returns.
 - e2e: `study-core.spec.ts` "saving a score from the paper's More menu says it was saved" (`test.fail`, ST-60).
   Without the toast check it passes.
+- **Fixed** (`round14/bugs`): the toast is in `useSaveScore`'s own `onSuccess`, so it shows after the dialog has
+  closed, and on the board too. "Saved: 68%" seen from the paper's More menu at both sizes. The e2e test is a normal
+  test again.
 
 #### ST-58 (minor) Home's Daily question is on, and still not there
 
@@ -88,6 +97,10 @@ her threads in the database (fixed, and removed).
 - `/modules/st2134` → **Plan my revision** → **Make the plan** (four days out: 4 papers and 8 lessons, 19 left out).
   Card: "ST2134 past paper · October 2024", and under it the link "ST2134 Exam paper - October 2024" (the file
   name). The link should use `examTitle()` like everything else since UX-67 ("ST2134 · October 2024").
+- **Fixed** (`round14/bugs`): the API names a card's library link with `library.exam_title()`
+  (`services/board/common.py`), so it reads "ST2134 · October 2024" everywhere a link shows (the card, its drawer,
+  a card added from a paper). `BoardLink` carries no exam year or zone, so the web app couldn't name it itself.
+  Tested in `tests/board/test_plans.py`.
 
 ### The suite: specs out of date after deliberate changes (fixed)
 
@@ -231,7 +244,7 @@ newsletter editor on a phone.
 | ST-53 | nit | Year 2 | Modules page isn't in exam order (ST2133 first, ST2134 sooner); Home is | seconds |
 | ST-54 | nit | Year 2 | Search has no spelling tolerance ("hypothisis": nothing) (**fixed**) | a retype |
 | ST-55 | nit | Year 2 | Calendar's "This week" leaves out Friday's ST2134 exam (only the hero card shows it) | a moment of doubt |
-| ST-56 | nit | Year 2 | Paper page: "Examiners’ report Examiners’ report"; "About this file: In VLE and older exams."; "Esc Back to the library" goes to the module | seconds |
+| ST-56 (**fixed**) | nit | Year 2 | Paper page: "Examiners’ report Examiners’ report"; "About this file: In VLE and older exams."; "Esc Back to the library" goes to the module | seconds |
 | ST-57 | nit | Year 2 | ST2134 counts: "16 sittings" beside "1 of 14 sittings done"; 42, 40 and 38 files (ST-34 again) | doubt about what's missing |
 
 #### ST-40 (major) The revision plan in exam week is all videos
@@ -387,6 +400,10 @@ newsletter editor on a phone.
 - ST-56: the paper page's sitting panel reads "Examiners’ report  Examiners’ report" and "Solutions  Solutions";
   "About this file: In VLE and older exams." (the Drive folder's name); the shortcut hint says "Esc Back to the
   library" but Esc goes back to the module.
+  - **Fixed** (`round14/bugs`): the sitting panel shows each link once ("Examiners’ report", "Solutions"); the Drive
+    import no longer writes the folder path ("In VLE and older exams.") as a file's description, which is for what
+    people write about it; the hint says "Esc Go back". Files imported before keep their line until the library is
+    imported again or the descriptions are cleared.
 - ST-57: ST2134's Files tab says "Past papers 16 sittings" and "1 of 14 sittings done"; the module says 42 files,
   the Files tab 40, the Past papers button 38 (ST-34).
 
