@@ -137,7 +137,8 @@ export function CommandPalette({ opening }: { opening: string }) {
   const flat = useMemo(() => groups.flatMap((g) => g.items), [groups]);
   const activeIndex = flat.length ? Math.min(active, flat.length - 1) : -1;
   const activeItem = activeIndex >= 0 ? flat[activeIndex] : undefined;
-  const tokens = useMemo(() => tokenize(text), [text]);
+  // Corrected words ("hypothesis" for "hypothisis") are what the results contain: they are what is marked.
+  const tokens = useMemo(() => tokenize(results.corrected ?? text), [results.corrected, text]);
   const optionId = (i: number) => `cmdk${uid}-o${i}`;
 
   // Keep the active row in view and slide the selection indicator onto it.
@@ -362,6 +363,10 @@ export function CommandPalette({ opening }: { opening: string }) {
               </p>
             </div>
           </div>
+        ) : results.corrected && !searching ? (
+          <p className="cmdk-corrected" role="status" data-hub="cmdk-corrected">
+            Nothing matched “{query.trim()}”. Showing results for “{results.corrected}”.
+          </p>
         ) : null}
         {groups.map((g) => (
           <div key={g.id} role="group" aria-labelledby={`cmdk${uid}-g-${g.id}`} className="cmdk-group">

@@ -2,9 +2,8 @@
 import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { nextOffset } from '../../api/paging';
+import { NOTIFICATIONS_KEY } from '../../api/keys';
 import type { NotificationOut, NotificationPage } from '../../api/types';
-
-export const NOTIFICATIONS_KEY = ['notifications'] as const;
 const PAGE_SIZE = 20;
 const POLL_MS = 60_000;
 

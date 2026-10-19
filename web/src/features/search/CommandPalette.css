@@ -432,6 +432,14 @@
   font-size: var(--fs-14);
 }
 
+/* The words typed found nothing and were corrected: say what the results are for. */
+.cmdk-corrected {
+  margin: 6px 12px 2px;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+
 /* ── Footer ────────────────────────────────────────────────────────── */
 .cmdk-foot {
   flex: 0 0 auto;
