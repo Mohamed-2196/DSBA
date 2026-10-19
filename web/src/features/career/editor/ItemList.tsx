@@ -3,7 +3,7 @@
 // or a keyboard.
 import { ArrowDown, ArrowUp, CaretDown, Eye, EyeSlash, Plus, Trash } from '@phosphor-icons/react';
 import { useState, type ReactNode } from 'react';
-import { Badge, Button, ConfirmDialog, IconButton, cx } from '../../../ui';
+import { Badge, Button, ConfirmDialog, IconButton, Modal, cx } from '../../../ui';
 import { savedIdsOf, type EditorSection } from './doc';
 import { openKey, useEditor } from './state';
 
@@ -173,14 +173,19 @@ export function ItemList<T>({
         }}
         onClose={() => setRemoving(null)}
       />
-      <ConfirmDialog
+      <Modal
         open={blocked !== null}
-        title="Not yet"
-        body={blocked}
-        confirmLabel="OK"
-        onConfirm={() => setBlocked(null)}
+        title={`You can’t remove this ${noun} yet`}
+        size="sm"
         onClose={() => setBlocked(null)}
-      />
+        footer={
+          <Button onClick={() => setBlocked(null)} data-autofocus>
+            Got it
+          </Button>
+        }
+      >
+        <p>{blocked}</p>
+      </Modal>
     </div>
   );
 }
