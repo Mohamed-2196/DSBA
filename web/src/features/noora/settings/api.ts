@@ -1,20 +1,22 @@
 // Manage → Mini Noora (admins): her prompt and script (GET and PUT /mini-noora/settings), and the prompt her AI
 // would read with a draft (POST /mini-noora/settings/preview). A save refreshes her script for everyone.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../../api/client';
 import type { NooraEditable, NooraPrompt, NooraSave } from '../../../api/types';
 import { SCRIPT_KEY } from '../script';
 
 export const EDIT_NOORA_KEY = ['mini-noora', 'settings'] as const;
 
+const editNooraQuery = queryOptions({
+  queryKey: EDIT_NOORA_KEY,
+  queryFn: ({ signal }) => call(api.GET('/api/v1/mini-noora/settings', { signal })),
+  // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+});
+
 export function useNooraSettings() {
-  return useQuery({
-    queryKey: EDIT_NOORA_KEY,
-    queryFn: ({ signal }) => call(api.GET('/api/v1/mini-noora/settings', { signal })),
-    // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  });
+  return useQuery(editNooraQuery);
 }
 
 export function useSaveNooraSettings() {
@@ -28,10 +30,10 @@ export function useSaveNooraSettings() {
   });
 }
 
-/** Loads the settings again, as someone else saved them: the editor starts over from there. */
+/** Loads the settings again, as someone else saved them: the editor starts over from the copy it returns. */
 export function useReloadNooraSettings() {
   const qc = useQueryClient();
-  return () => qc.refetchQueries({ queryKey: EDIT_NOORA_KEY, exact: true });
+  return () => qc.fetchQuery({ ...editNooraQuery, staleTime: 0 });
 }
 
 /** The prompt her AI would read with a draft of her instructions and facts (a POST that saves nothing), for the

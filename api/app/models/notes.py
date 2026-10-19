@@ -1,8 +1,9 @@
 """A student's private notebook: notebooks (one per module by default), the notes in them, and each note's ink.
 
-A note mixes typed rich text (`doc`, a ProseMirror document; `text` is its plain text for search), handwriting
-(`NoteInk`, vector strokes per sheet), pictures and files (uploads with `note_id`), and optionally a PDF it is
-written over: a library file (`library_item_id`) or one the student imported (`pdf_upload_id`)."""
+A note mixes typed rich text and the pictures free on its pages (`doc`, a ProseMirror document; `text` is its plain
+text for search), handwriting (`NoteInk`, vector strokes per sheet), pictures and files (the student's uploads it
+lists in `uploads`), and optionally a PDF it is written over: a library file (`library_item_id`) or one the student
+imported (`pdf_upload_id`)."""
 
 from __future__ import annotations
 
@@ -10,12 +11,14 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ForeignKey, Index, Integer, String, Text, text
+from sqlalchemy import ForeignKey, Index, Integer, String, Text, Uuid, text
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, check_in, created_ts, uuid_pk
 
 PAPERS = ("blank", "lined", "grid", "dotted")
+NO_UPLOADS = text("'{}'")  # (inside Note, `text` is the column)
 
 
 class Notebook(Base):
@@ -58,6 +61,7 @@ class Note(Base):
         ),
         Index("ix_notes_library_item", "library_item_id"),  # a library item deleted (SET NULL)
         Index("ix_notes_pdf_upload", "pdf_upload_id"),  # an upload deleted (SET NULL)
+        Index("ix_notes_uploads", "uploads", postgresql_using="gin"),  # the notes that show a file
         check_in("paper", PAPERS),
     )
 
@@ -73,6 +77,9 @@ class Note(Base):
     lesson_id: Mapped[str | None] = mapped_column(ForeignKey("lessons.id", ondelete="RESTRICT"))
     library_item_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("library_items.id", ondelete="SET NULL"))
     pdf_upload_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("uploads.id", ondelete="SET NULL"))
+    # The student's files it shows: the pictures and files in its text and on its pages, and its PDF. A file stays in
+    # use while any of the student's notes lists it (services/notes.py).
+    uploads: Mapped[list[uuid.UUID]] = mapped_column(ARRAY(Uuid), default=list, server_default=NO_UPLOADS)
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")  # one more on every text save
     # Saves in the current minute (text and ink), for the rate limit on saving (services/notes.py).
     saves_since: Mapped[datetime] = created_ts()

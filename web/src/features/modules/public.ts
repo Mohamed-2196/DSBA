@@ -11,10 +11,12 @@
 //                                   chapters and lessons
 //   <SuggestionsQueue />            Manage → Suggested videos (content.edit): accept students' suggestions as
 //                                   lessons, or decline them
+import { lazy } from 'react';
 export { ContinueLearning } from './ContinueLearning';
 export { findLesson, useModuleProgress } from './progress';
 export { useTracking } from './tracking';
 export { lessonHref } from './lessons';
 export { moduleDetailQuery } from './api';
-export { ModulesEditor } from './editor/ModulesEditor';
+// Manage's editor loads with Manage (inside its Suspense), so no other page carries it.
+export const ModulesEditor = lazy(() => import('./editor/ModulesEditor').then((m) => ({ default: m.ModulesEditor })));
 export { SuggestionsQueue } from './suggestions/SuggestionsQueue';

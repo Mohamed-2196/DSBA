@@ -78,20 +78,29 @@ Railway dev site (done by the lead); a "fix today's puzzle" button; Correlations
 asks about notification emails; practice scores saved to the account; To-do shows dated cards only; Site settings and
 the grade rules need no fresh code.
 
-Merged so far (checks green: 1,584 API and 906 web tests):
+Merged (checks green: 1,668 API and 982 web tests):
 - `round13/quality`: CQ-47 to CQ-82; ARCHITECTURE, DEPLOYMENT and README current.
-- `round13/squash`: baseline 0033 plus 0034; zones and sittings named once; two races. Its follow-ups (CQ-50, 51,
-  52, 54, 58, 63, 74) are still running on the same branch.
+- `round13/squash`: baseline 0033 plus 0034; then CQ-50/51/52/54/58/63/74, board templates (0039, "revision"
+  becomes "study"), the index drift check, guarded module deletion.
 - `round13/repeats`: fortnightly and monthly repeats (0036), feeds in Bahrain time, sign-up's email question.
-- `round13/dailyfix` (first part): fix today's puzzle (0035), groups of four to eight, every win scores, CQ-49, 54,
-  64, 80. It keeps going with the reviews' Daily findings.
+- `round13/uiux`: UX-44 to UX-65 with screenshots; UX-28 to UX-43 re-checked.
+- `round13/pictures`: free pictures anywhere on a page (0037), formulas from a paste (UX-58), the storage meter
+  only near the limit and a notebook picker on phones (UX-57), CQ-47/48/59/61/71.
+- `round13/dailyfix`: fix today's puzzle (0035), groups of four to eight, one hub of six tiles (UX-45), result
+  pictures (UX-55), game colours that pass contrast with a live table in the style guide (UX-48), the guess list
+  topped up to the shipped one (UX-47), the hub's game names in Manage (UX-64), Daily's prose and labels (UX-59/60).
+- `round13/fixweb`: one leave guard in Manage (CQ-60), fields that show their errors (CQ-62), practice scores in
+  the account (0038), the first download down from 239 to 101 kB gzip (CQ-61), Home, boards and Mini Noora
+  (CQ-65/66/67), the year prompt off the Daily games, UX-50/51/52/54/56/57/59/60/63.
 
-Also running: `round13/fixweb` (Manage's leave guard and field errors, Home, boards, Mini Noora's chat switch, the
-first download's size, practice scores on the account) and `round13/pictures`. Migrations taken: 0037 notebook, 0038
-practice scores, 0039 board templates; the lead chains them in merge order. The local `dsba` database moves on when
-the tester's e2e run ends (`scripts/e2e.sh --restore` restarts the API on the main checkout, which migrates).
+Migration chain: 0033 → 0034 → 0035 → 0036 → 0039 → 0037 → 0038 (one head).
 
-Next in the round: builders fix what the three reviews find, Daily first.
+Still running: `round13/e2e` (tester), `round13/uxfix` (UX-44 paper toolbar first, then focus, chips and the "New"
+badges, which stay until a student first opens the section), `round13/errors` (plain sentences for the API's
+validation errors instead of Pydantic's wording).
+
+Daily game art: six prompts in `docs/design/asset-prompts-round3.md`, matched to the module icons' style; the drawn
+shapes stay until Mohamed's images arrive.
 
 ## Operating notes
 
@@ -145,7 +154,7 @@ Next in the round: builders fix what the three reviews find, Daily first.
 - **Product calls:**
   - Noora's programme facts start with one: add more in Manage → Mini Noora (her starter cards come in fours).
   - The notebook: is 25 MB of text and handwriting per student enough?
-  - Calendar repeats: fortnightly or monthly needs a migration. Boards: no hourly cap on card saves yet.
+  - Boards: no hourly cap on card saves yet.
   - Bug reports (defaults chosen 2026-10-18): deleted with the reporter's account rather than kept anonymised;
     screenshots kept 90 days after a report closes. Names that spell a staff word across spaces or dots ("A. D.
     Minhas") are refused.

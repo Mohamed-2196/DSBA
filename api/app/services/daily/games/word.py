@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import conflict
 from app.models import DailyGuessWord
-from app.schemas.daily import GuessMove, LetterMark, Move, WordRow, WordView
+from app.schemas.daily import GuessMove, LetterMark, Move, Picture, WordRow, WordView
 from app.services.daily import content
 from app.services.daily.content import Entry, Uses
 from app.services.daily.games.base import ContentGame, Status, bad_move, unknown_word
@@ -132,3 +132,6 @@ class WordGame(ContentGame[Puzzle, WordState]):
         tries = str(len(state.rows)) if status == "won" else "X"
         grid = "\n".join("".join(SQUARES[m] for m in row.marks) for row in state.rows)
         return f"{self.title} {tries}/{MAX_GUESSES}\n{grid}".rstrip()
+
+    def picture(self, puzzle: Puzzle, state: WordState) -> Picture:
+        return [list(row.marks) for row in state.rows]

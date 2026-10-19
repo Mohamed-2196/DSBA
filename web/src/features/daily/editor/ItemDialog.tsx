@@ -8,7 +8,7 @@ import { Check, Plus, WarningCircle, X } from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ItemOut, QuizData, ThemeOut, TodayFixOut } from '../../../api/types';
-import { useToast } from '../../../state';
+import { useToast, useUnsavedChanges } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { Button, IconButton, Modal, Select, Switch, TextArea, TextField } from '../../../ui';
 import {
@@ -62,6 +62,8 @@ export function ItemDialog({ game, item, themes, defaultTheme, fixToday = false,
   const info = gameInfo(game);
   const [theme, setTheme] = useState(item?.theme ?? (defaultTheme || themes[0]?.id || ''));
   const [data, setData] = useState<ItemData>(item?.data ?? blankData(game));
+  const [opened] = useState(() => JSON.stringify({ theme, data }));
+  useUnsavedChanges(JSON.stringify({ theme, data }) !== opened, `the ${info.noun}`);
   const create = useCreateItem();
   const save = useSaveItem();
   const fixer = useFixToday();
@@ -182,7 +184,7 @@ export function ItemDialog({ game, item, themes, defaultTheme, fixToday = false,
         fixing
           ? 'Your fix reaches today’s puzzle and the days to come. You’ll see today’s puzzle with it before it’s applied.'
           : item && item.uses > 0
-            ? `It ran on ${item.uses} ${item.uses === 1 ? 'day' : 'days'}, which keep it as it was. Your changes reach the days to come.`
+            ? `It ran on ${item.uses === 1 ? '1 day, which keeps' : `${item.uses} days, which keep`} it as it was. Your changes reach the days to come.`
             : undefined
       }
       footer={

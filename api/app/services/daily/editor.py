@@ -84,6 +84,7 @@ from app.schemas.daily_content import (
     WeekSave,
     WordData,
 )
+from app.seed.loader import SHORT_GUESS_LIST, guess_list_size
 from app.services.content import record
 from app.services.daily import content, rules
 from app.services.daily.content import Entry, NoThemeError, NotReadyError, Schedule
@@ -136,24 +137,26 @@ def _listed(parts: Sequence[str]) -> str:
 
 
 def problem_of(game: str, pool: Sequence[Entry]) -> str:
-    """What a theme's items lack for a game."""
+    """What a theme's items lack for a game, which it names as the hub does."""
     if game == "groups":
+        name = groups_game.GroupsGame.title
         missing = [str(n) for n in range(1, groups_game.GROUPS + 1) if not any(e.data["level"] == n for e in pool)]
         if missing:
-            return f"Groups needs a group at level {_listed(missing)}."
-        return "Groups needs four groups, one a level, that each keep four words the other three don't have."
+            return f"{name} needs a group at level {_listed(missing)}."
+        return f"{name} needs four groups, one a level, that each keep four words the other three don't have."
     if game == "search":
+        name = search_game.SearchGame.title
         if len(pool) >= search_game.WORDS:
             return (
-                f"Word search needs {search_game.WORDS} words that fit together: none inside another, "
+                f"{name} needs {search_game.WORDS} words that fit together: none inside another, "
                 f"{search_game.MAX_HIDDEN} letters at most."
             )
-        return f"Word search needs at least {search_game.WORDS} words."
+        return f"{name} needs at least {search_game.WORDS} words."
     if game == "quiz":
-        return f"The quiz needs at least {quiz_game.FROM_THEME} questions."
+        return f"{quiz_game.QuizGame.title} needs at least {quiz_game.FROM_THEME} questions."
     if game == "nearest":
-        return "Nearest neighbour needs at least one secret word."
-    return "The word needs at least one answer word."
+        return f"{nearest_game.NearestGame.title} needs at least one secret word."
+    return f"{word_game.WordGame.title} needs at least one answer word."
 
 
 def theme_problems(db: Session, theme: str, day: dt.date) -> list[str]:
@@ -416,10 +419,8 @@ def delete_item(db: Session, user: User, item_id: uuid.UUID, version: int, ip: s
     check_version(item, version)
     ran = db.scalar(select(func.count()).where(DailySetItem.item_id == item.id)) or 0
     if ran:
-        days = "day" if ran == 1 else "days"
-        raise conflict(
-            "content_in_use", f"It ran on {ran} {days}, which keep it. Retire it instead, so it doesn't run again."
-        )
+        days = "1 day, which keeps" if ran == 1 else f"{ran} days, which keep"
+        raise conflict("content_in_use", f"It ran on {days} it. Retire it instead, so it doesn't run again.")
     lock_themes(db, item.theme_id)
     before = _snapshot(item)
     with db.begin_nested():  # undone if it leaves a theme short
@@ -676,6 +677,7 @@ def overview(db: Session) -> DailyContentOverview:
     }
     themes = sorted(db.scalars(select(DailyTheme)), key=lambda t: (not t.in_rotation, t.position, t.id))
     tags = sorted({tag for row in db.scalars(select(DailyNearestWord.tags)) for tag in row})
+    guesses = guess_list_size(db)
     return DailyContentOverview(
         today=today,
         first_day=content.FIRST_DAY,
@@ -694,7 +696,8 @@ def overview(db: Session) -> DailyContentOverview:
             for t in themes
         ],
         weeks=_weeks(plan, today),
-        guess_words=db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0,
+        guess_words=guesses,
+        guess_list_short=guesses < SHORT_GUESS_LIST,
         vocabulary_words=db.scalar(select(func.count()).select_from(DailyNearestWord)) or 0,
         tags=tags,
     )

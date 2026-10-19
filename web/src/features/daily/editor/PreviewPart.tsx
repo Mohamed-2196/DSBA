@@ -112,7 +112,7 @@ function Changed({ on, children }: { on: boolean; children: ReactNode }) {
 
 /**
  * A day's puzzle with its answers. Given `before` (today's puzzle as it is), it marks what a fix changes: a new answer
- * or secret word, a group's new words or name, a new word in the word search, a question that reads differently.
+ * or secret word, a group's new words or name, a new word in Data Mine, a question that reads differently.
  */
 export function PuzzleView({ puzzle, before }: { puzzle: PreviewPuzzle; before?: PreviewPuzzle }) {
   switch (puzzle.game) {

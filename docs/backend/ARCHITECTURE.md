@@ -69,7 +69,7 @@ api/                          Python backend
                               documents (the documents edited whole in Manage) site grades
                               notes note_doc board/ (boards, cards, plans, files, reminders, export, common)
                               noora/ (ask, prompt, paper, settings)
-                              daily/ (plays, content, editor, bundle, streaks, badges, sudoku_engine, games/)
+                              daily/ (plays, today, rules, content, editor, bundle, streaks, badges, sudoku_engine, games/)
   app/seed/                   the seed loader and the starting content (data/*.json; data/daily: the Daily themes
                               and the word game's guess list)
   app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, weekly-summary,
@@ -255,15 +255,24 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   server keeps.
 - **Browser storage** holds device settings (the theme, Mini Noora's place, a guest's cohort and lesson progress,
   imported on sign-in) and a person's own unsent or private things: drafts, recent searches, the grades calculator's
-  marks, practice scores on past papers, Mini Noora's chats, Daily's pencil marks. Every key of the second kind starts
-  with `hub.mine.`, so signing out removes it from localStorage and sessionStorage (`auth/queries.ts`,
-  `clearPersonalStorage`): lab and library computers are shared.
+  marks, Mini Noora's chats, Daily's pencil marks. Every key of the second kind starts with `hub.mine.`, so signing out
+  removes it from localStorage and sessionStorage (`auth/queries.ts`, `clearPersonalStorage`): lab and library
+  computers are shared. Practice scores on past papers are kept in the account (`/paper-scores`), private to the
+  student.
 - **Routing** is a data router at `/`: `createBrowserRouter` in `App.tsx`, the page table in `routes.tsx` (each page
-  lazy), React Router 7 (`react-router-dom`; v6 had open-redirect advisories). The newsletter's issue editor blocks
-  navigation away from unsaved edits with `useLeaveGuard` (`useBlocker`) and reloads with `beforeunload`; Manage's
-  other editors only warn on a reload so far (`docs/reviews/code-quality.md`, CQ-60). React Router allows one blocker
-  at a time. Pages are read by slug (`/forum/:threadId`, `/library/:fileId`, `/newsletter/:slug` take the slug the API
-  gives). Links from user content go through `ui/safeHref.ts`.
+  lazy), React Router 7 (`react-router-dom`; v6 had open-redirect advisories). `useLeaveGuard` (`src/state`, on
+  `useBlocker`) asks before a navigation leaves unsaved edits behind, and `beforeunload` covers a reload. React Router
+  allows one blocker at a time: the newsletter's issue editor has its own, and Manage has one for all its editors,
+  which report their unsaved changes to it (`useUnsavedChanges`, `state/unsaved.ts`). Switching Manage's tabs keeps
+  every draft; another page, or a module's form closing, asks first. Pages are read by slug (`/forum/:threadId`,
+  `/library/:fileId`, `/newsletter/:slug` take the slug the API gives). Links from user content go through
+  `ui/safeHref.ts`.
+- **The first download** is the entry script and `vendor` (React, the router, TanStack Query, the API client; a chunk of
+  its own in `vite.config.ts`, so a deploy leaves it cached). Every page is lazy (`routes.tsx`); Manage's editors are
+  exported lazily from their features' `public.ts` and load inside Manage's `Suspense`; the ⌘K palette loads when it is
+  first opened (`search/PaletteHost.tsx`); the notebook's text editor is the `editor` chunk. Only those editors import
+  `ui/docEditor`, never through the `ui` barrel. Vite's 500 kB warning stays on as the alarm: no chunk should set it
+  off.
 - **Analytics** (PostHog) load only in a build with `VITE_POSTHOG_KEY` (`src/lib/analytics.ts`): page views only,
   anonymous. Never call `identify()` or send anything a student typed.
 - **Keep the design.** Reuse `src/ui` and the CSS tokens; new UI (sign-in, upload, moderation queues) must

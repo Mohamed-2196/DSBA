@@ -200,6 +200,7 @@ def test_admins_flip_switches(client_for: ClientFor, make_user: MakeUser, boss: 
     assert entry is not None
     assert entry.data == {
         "feature": "calendar",
+        "label": "Calendar",
         "from": "everyone",
         "to": "roles",
         "roles": ["Rep"],

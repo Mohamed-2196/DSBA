@@ -42,6 +42,7 @@ import { Composer, Seen } from '../Composer';
 import { Face } from '../Face';
 import { MessageList } from '../Messages';
 import { NOORA_PATH, pageOpening } from '../open';
+import { pageSuggestions } from '../suggestions';
 import { messageAsText } from '../refs';
 import { copyText, appUrl } from '../../../lib/share';
 import type { SavedChat } from '../saved';
@@ -113,7 +114,7 @@ export default function NooraPage() {
 function NooraScreen({ script }: { script: NooraScript }) {
   const { year } = useYear();
   const { modules } = useModules();
-  const { me, status: auth, requireAuth } = useAuth();
+  const { me, status: auth, requireAuth, featureOn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const calm = useMediaQuery('(prefers-reduced-motion: reduce)');
@@ -288,6 +289,15 @@ function NooraScreen({ script }: { script: NooraScript }) {
   const left = questionsLeftLine(status.data);
   const pausedText = why ? pausedLine(why, status.data) : null;
   const cards = useMemo(() => starters(script.starters, modules, year), [script.starters, modules, year]);
+  // From her script she answers where things are, what a module holds and when exams are: those questions, not the
+  // cards, which need her AI.
+  const scriptQuestions = useMemo(
+    () =>
+      usingAi
+        ? null
+        : pageSuggestions({ pathname: NOORA_PATH, year, modules, isOn: featureOn, pages: script.pageChips }),
+    [usingAi, year, modules, featureOn, script.pageChips],
+  );
   const shortcut = modKeyLabel() === '⌘' ? '⌘' : 'Ctrl';
 
   const model = guest ? (
@@ -451,7 +461,8 @@ function NooraScreen({ script }: { script: NooraScript }) {
             </p>
           </div>
           <div className="np-bar__end">
-            {model}
+            {/* One signal at a time: while the welcome says she answers from her script, the header doesn't. */}
+            {usingAi || messages.length || pending ? model : null}
             <IconButton
               label="New chat"
               icon={NotePencil}
@@ -503,6 +514,8 @@ function NooraScreen({ script }: { script: NooraScript }) {
               lead={script.welcome}
               starters={cards}
               onStart={start}
+              questions={scriptQuestions}
+              onAsk={suggest}
               paused={pausedText}
               onSignIn={guest ? () => requireAuth('Sign in to ask Noora anything') : null}
             />

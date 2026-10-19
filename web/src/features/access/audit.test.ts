@@ -1,4 +1,7 @@
-// UX review UX-15: every Activity line says what happened, and to what.
+// Every Activity line says what happened, and to what, in plain words.
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { AuditOut } from '../../api/types';
 import { auditActor, describeAudit } from './audit';
@@ -14,10 +17,32 @@ const entry = (action: string, data: Record<string, unknown>, targetType: string
     actor: { id: 'a1', displayName: 'Hassan A.' },
   }) as unknown as AuditOut;
 
+/** The actions the API's code records: the first dotted string after `record(` or `audit(`, and each document's
+ *  `action="…"`. Actions made in f-strings (a thread pinned or unpinned) are named in full elsewhere in this file. */
+function recordedActions(): Set<string> {
+  const found = new Set<string>();
+  const walk = (dir: string) => {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) walk(path);
+      else if (name.endsWith('.py')) {
+        const code = readFileSync(path, 'utf8');
+        for (const call of code.matchAll(/(?<!def )\b(?:record|audit)\(/g)) {
+          const action = code.slice(call.index, call.index + 300).match(/(?<!f)"([a-z_]+(?:\.[a-z_]+)+)"/);
+          if (action?.[1]) found.add(action[1]);
+        }
+        for (const kind of code.matchAll(/\baction="([a-z_]+(?:\.[a-z_]+)+)"/g)) if (kind[1]) found.add(kind[1]);
+      }
+    }
+  };
+  walk(fileURLToPath(new URL('../../../../api/app', import.meta.url)));
+  return found;
+}
+
 describe('describeAudit', () => {
   it('describes the Daily puzzles editor’s changes', () => {
     expect(describeAudit(entry('daily.item.retire', { title: 'The word: TREND' }))).toBe(
-      'retired a Daily puzzle: “The word: TREND”',
+      'retired the Daily puzzle “The word: TREND”',
     );
     expect(describeAudit(entry('daily.schedule.update', { title: 'the week of 25 Oct 2026' }))).toBe(
       'changed the Daily theme for the week of 25 Oct 2026',
@@ -46,7 +71,7 @@ describe('describeAudit', () => {
       'published the newsletter issue “The pilot”',
     );
     expect(describeAudit(entry('newsletter.update', { title: 'Week 3' }))).toBe('edited the newsletter issue “Week 3”');
-    expect(describeAudit(entry('newsletter.create', { title: 'Draft' }))).toBe('started a newsletter issue: “Draft”');
+    expect(describeAudit(entry('newsletter.create', { title: 'Draft' }))).toBe('started the newsletter issue “Draft”');
   });
 
   it('says what a report was about and how it ended', () => {
@@ -103,8 +128,10 @@ describe('describeAudit', () => {
       'deleted the role “Events team”',
     );
     expect(
-      describeAudit(entry('feature.switch', { feature: 'calendar', from: 'everyone', to: 'off', roles: [] })),
-    ).toBe('switched calendar off');
+      describeAudit(
+        entry('feature.switch', { feature: 'video_suggestions', label: 'Suggested videos', to: 'off', roles: [] }),
+      ),
+    ).toBe('switched Suggested videos off');
   });
 
   it('sums up a run of the Drive import', () => {
@@ -129,6 +156,44 @@ describe('describeAudit', () => {
       'imported 1,234 files from Google Drive (2 folders it couldn’t open, stopped early)',
     );
     expect(run({})).toBe('imported 0 files from Google Drive');
+  });
+
+  it('says what happened to modules, requests and bug reports, without the action’s name', () => {
+    expect(describeAudit(entry('module.update', { title: 'Introduction to Economics' }))).toBe(
+      'edited the module “Introduction to Economics”',
+    );
+    expect(describeAudit(entry('module.reorder', { title: 'Year 2', year: 2 }))).toBe(
+      'changed the order of Year 2’s modules',
+    );
+    expect(describeAudit(entry('request.status', { title: 'ST2133 2019 paper', from: 'open', to: 'done' }))).toBe(
+      'marked the request “ST2133 2019 paper” done',
+    );
+    expect(
+      describeAudit(entry('request.status', { title: 'Mock dates', from: 'open', to: 'done', via: 'calendar' })),
+    ).toBe('marked the request “Mock dates” done, as its date was confirmed on the calendar');
+    expect(describeAudit(entry('request.found', { title: 'ST2133 2019 paper', item: 'ST2133 2019 Zone A' }))).toBe(
+      'answered the request “ST2133 2019 paper” with “ST2133 2019 Zone A”',
+    );
+    expect(describeAudit(entry('bug_report.status', { status: 'wont_fix', page: '/library' }))).toBe(
+      'closed a bug report without a fix',
+    );
+    expect(describeAudit(entry('noora.limits', { after: { dailyQuestions: 30, monthlyBudgetCents: 2500 } }))).toBe(
+      'set Mini Noora’s limits to 30 questions a day and $25 a month',
+    );
+    expect(describeAudit(entry('site.update', { title: 'Site settings', parts: ['links'] }))).toBe(
+      'edited Site settings',
+    );
+    expect(describeAudit(entry('suggestion.accept', { title: 'MGFs explained' }))).toBe(
+      'added the suggested video “MGFs explained” as a lesson',
+    );
+  });
+
+  it('has words for every action the API records', () => {
+    const actions = recordedActions();
+    expect(actions.size).toBeGreaterThan(40);
+    for (const action of actions) {
+      expect(describeAudit(entry(action, {})), action).not.toBe(action.replace(/[._]+/g, ' '));
+    }
   });
 
   it('still says something for an action it doesn’t know', () => {

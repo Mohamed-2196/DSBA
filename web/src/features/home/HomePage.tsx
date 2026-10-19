@@ -21,7 +21,7 @@ import {
   Skeleton,
   cx,
 } from '../../ui';
-import { BoardTodo } from '../board/public';
+import { BoardTodo, useTodayAgenda } from '../board/public';
 import { useMyCalendarEvents } from '../calendar/public';
 import { HelpBelow } from '../forum/public';
 import { DailyQuestion } from '../library/public';
@@ -93,6 +93,7 @@ export default function HomePage() {
     [calendar.data, activeYear, getModule, today, papers],
   );
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
+  const todo = useTodayAgenda({ enabled: signedIn && featureOn('board') });
 
   // The blocks this person can have: every feature each needs is on, and an account or lesson progress if it needs one.
   const offeredKey = offeredBlocks(featureOn, { signedIn, tracking: tracking.on }).join();
@@ -152,7 +153,8 @@ export default function HomePage() {
           </Block>
         );
       case 'todo':
-        return (
+        // Only while something dated is due (or the list didn't load, to say so): undated cards stay on the boards.
+        return todo.isError || todo.data?.cards.length ? (
           <Block
             key={b}
             id={b}
@@ -164,7 +166,7 @@ export default function HomePage() {
           >
             <BoardTodo n={4} />
           </Block>
-        );
+        ) : null;
       case 'continue':
         return (
           <Block key={b} id={b}>

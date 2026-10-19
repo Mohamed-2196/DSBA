@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import Module
-from app.schemas.daily import AnswerMove, Move, QuizAnswered, QuizQuestion, QuizView
+from app.schemas.daily import AnswerMove, Move, Picture, QuizAnswered, QuizQuestion, QuizView
 from app.services.daily import content
 from app.services.daily.content import Entry, Uses
 from app.services.daily.games.base import ContentGame, Status, bad_move
@@ -211,3 +211,6 @@ class QuizGame(ContentGame[tuple[Question, ...], QuizState]):
     def share(self, puzzle: tuple[Question, ...], state: QuizState, status: Status) -> str:
         marks = "".join("🟩" if a.correct else "🟥" for a in state.answered)
         return f"{self.title} {self._right(state)}/{len(puzzle)}\n{marks}"
+
+    def picture(self, puzzle: tuple[Question, ...], state: QuizState) -> Picture:
+        return [["hit" if a.correct else "wrong" for a in state.answered]]

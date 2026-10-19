@@ -17,10 +17,10 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.errors import conflict
-from app.schemas.daily import GuessMove, HintMove, Move, NearestGuess, NearestView
+from app.schemas.daily import GuessMove, HintMove, Mark, Move, NearestGuess, NearestView, Picture
 from app.services.daily import content
 from app.services.daily.content import Entry, NotReadyError, Uses
-from app.services.daily.games.base import ContentGame, Status, bad_move, unknown_word
+from app.services.daily.games.base import ContentGame, Status, bad_move, rows_of, unknown_word
 
 NEAR_BONUS = 0.5
 FREE_GUESSES = 10  # full points up to here
@@ -28,6 +28,7 @@ GUESS_COST = 2
 HINT_COST = 10
 FLOOR = 20
 CLOSE, WARM = 50, 200  # rank bands for colours and sharing
+PICTURED = 24  # the guesses a result's picture shows: the last ones
 
 Vocabulary = Mapping[str, tuple[Sequence[str], Sequence[str]]]  # word -> (tags, near words)
 
@@ -190,3 +191,10 @@ class NearestGame(ContentGame[Puzzle, NearestState]):
         head = f"{self.title}: {'found' if status == 'won' else 'not found'} in {len(guesses)} guesses"
         head += f", {hints} hint{'s' if hints != 1 else ''}"
         return f"{head}\n🟩 {close}  🟨 {warm}  ⬜ {cold}"
+
+    def picture(self, puzzle: Puzzle, state: NearestState) -> Picture:
+        """The last guesses (not hints) in the order made, close, warm or cold: the way in to the secret word."""
+        marks: list[Mark] = [
+            "hit" if g.rank <= CLOSE else "near" if g.rank <= WARM else "miss" for g in state.guesses if not g.hint
+        ]
+        return rows_of(marks[-PICTURED:], 6)

@@ -1,8 +1,9 @@
-// The writing surface: a note's sheets (its PDF's pages, then paper with the typed text), the ink on each, and
-// everything the pen, the eraser, the lasso and the laser do on them.
+// The writing surface: a note's sheets (its PDF's pages, then paper with the typed text), the pictures free on them,
+// the ink on each, and everything the pen, the eraser, the lasso and the laser do on them.
 //
 // The column is laid out in sheet units and scaled for the zoom as a whole (layout.ts), so the text, the pictures and
-// the ink keep their places at every zoom. Ink lies above the text and the pictures: the pen writes over them.
+// the ink keep their places at every zoom. Ink lies above the text and the pictures: the pen writes over them. The
+// free pictures are picked and edited with the Type tool (pictures/FreePictureLayer.tsx).
 //
 // Input, the way notebook apps on tablets work:
 //   - A stylus always writes, even while typing (it picks the pen). Once one is seen, fingers scroll and zoom
@@ -41,6 +42,7 @@ import {
 import { cx } from '../../../ui';
 import type { Paper } from '../draft';
 import type { LoadedPdf } from '../pdf';
+import { FreePictureLayer, type FreePictureLayerProps } from '../pictures/FreePictureLayer';
 import { inkStep, type SheetChange, type Step } from '../timeline';
 import {
   LINE,
@@ -93,6 +95,8 @@ export interface SurfaceProps {
   scroller: HTMLElement | null;
   /** the typed text's height in units, as it changes */
   onTextHeight: (units: number) => void;
+  /** the pictures free on the pages, and what editing them needs */
+  pictures: Omit<FreePictureLayerProps, 'layout' | 'zoom' | 'scroller'> | null;
 }
 
 type Gesture =
@@ -142,6 +146,7 @@ export function Surface({
   readOnly,
   scroller,
   onTextHeight,
+  pictures,
 }: SurfaceProps) {
   const layout = useMemo(() => layoutSheets(sheets), [sheets]);
   const stack = useRef<HTMLDivElement>(null);
@@ -418,7 +423,7 @@ export function Surface({
         before: entry.before,
         after: entry.now,
       }));
-      if (changes.length) commit({ kind: 'ink', changes });
+      if (changes.length) commit({ kind: 'page', ink: changes });
       setPreview(null);
     } else if (g.kind === 'lasso') {
       const strokes = of(g.sheet.index);
@@ -661,6 +666,7 @@ export function Surface({
               ))}
             </div>
           ) : null}
+          {pictures ? <FreePictureLayer {...pictures} layout={layout} zoom={zoom} scroller={scroller} /> : null}
           <svg
             className="nb-overlay"
             width={SHEET_WIDTH}

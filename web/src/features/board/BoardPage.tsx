@@ -42,15 +42,17 @@ import {
   type MenuItem,
 } from '../../ui';
 import {
-  useAgenda,
   useBoard,
   useBoards,
   useDeleteBoard,
   useDeleteCard,
   useDeletePlan,
   useMoveCard,
+  useTodayAgenda,
+  usePaperScores,
   usePlaceBoard,
   usePlaceColumn,
+  useSaveScore,
   useUpdateBoard,
   useUpdateColumn,
 } from './api';
@@ -69,7 +71,8 @@ import {
   nudge,
   placeCard,
   planPace,
-  storageText,
+  limitsNear,
+  withExistingLabels,
   type CardFilter,
 } from './board';
 import { BoardDialog } from './BoardDialog';
@@ -80,8 +83,8 @@ import { KanbanView, type ColumnActions, type DropPlace } from './KanbanView';
 import { LabelDialog } from './LabelDialog';
 import { ListView } from './ListView';
 import { ScoreDialog } from './ScoreDialog';
-import { usePaperScores } from './scores';
-import { TODAY_DAYS, TodayView } from './TodayView';
+import type { Scores } from './scores';
+import { TodayView } from './TodayView';
 import type { Adding, CardActions, FocusRequest } from './types';
 import { useScrollEdges } from './useScrollEdges';
 import './BoardPage.css';
@@ -91,6 +94,8 @@ const DESCRIPTION = 'Plan study, coursework and everyday tasks. Only you see you
 const pickTablist = (el: HTMLDivElement) => el.querySelector<HTMLElement>('[role="tablist"]');
 
 type View = 'board' | 'list' | 'today';
+
+const NO_SCORES: Scores = {};
 
 export default function BoardPage() {
   const { status, openSignIn } = useAuth();
@@ -129,7 +134,7 @@ function BoardApp() {
   const today = todayKey();
 
   const boardsQuery = useBoards();
-  const agenda = useAgenda({ days: TODAY_DAYS });
+  const agenda = useTodayAgenda();
   const boards = useMemo(() => boardsQuery.data?.boards ?? [], [boardsQuery.data]);
   const active = boards.filter((b) => !b.archived);
   const archived = boards.filter((b) => b.archived);
@@ -149,7 +154,8 @@ function BoardApp() {
   const placeColumn = usePlaceColumn();
   const updateColumn = useUpdateColumn();
   const removePlan = useDeletePlan();
-  const [scores, setScore] = usePaperScores();
+  const scores = usePaperScores().data ?? NO_SCORES;
+  const saveScore = useSaveScore();
   const tabEdges = useScrollEdges<HTMLDivElement>(true, pickTablist);
 
   const [filter, setFilter] = useState<CardFilter>(NO_FILTER);
@@ -232,8 +238,10 @@ function BoardApp() {
   const names = boards.map((b) => b.name);
   const columns = current?.columns ?? [];
   const allCards = detail.data?.cards ?? [];
-  const filtering = isFiltering(filter);
-  const shownCards = allCards.filter((c) => matches(c, filter, today));
+  // A label deleted while it was chosen leaves the filter with it.
+  const activeFilter = withExistingLabels(filter, (id) => id in labelMap);
+  const filtering = isFiltering(activeFilter);
+  const shownCards = allCards.filter((c) => matches(c, activeFilter, today));
   const readOnly = suspended || current?.archived === true;
   const phoneColumn = columns.find((c) => c.id === phoneColumnId)?.id ?? columns[0]?.id ?? null;
   const dueNow = agenda.data ? agenda.data.cards.filter((c) => c.due <= today).length : null;
@@ -475,7 +483,7 @@ function BoardApp() {
   ];
 
   const tabValue = view === 'today' ? 'today' : current && !current.archived ? current.id : null;
-  const usage = boardsQuery.data.usage;
+  const near = limitsNear(boardsQuery.data.usage);
 
   const panel =
     view === 'today' ? (
@@ -734,15 +742,12 @@ function BoardApp() {
         </>
       )}
 
-      {boards.length ? (
+      {/* A limit shows only once it is nearly reached. */}
+      {near.length ? (
         <p className="board-page__usage">
-          <span>
-            {usage.boards} of {usage.maxBoards} boards
-          </span>
-          <span>
-            {usage.cards.toLocaleString('en-GB')} of {usage.maxCards.toLocaleString('en-GB')} cards
-          </span>
-          <span>{storageText(usage.storageBytes, usage.maxStorageBytes)} of files</span>
+          {near.map((line) => (
+            <span key={line}>{line}</span>
+          ))}
         </p>
       ) : null}
 
@@ -812,7 +817,7 @@ function BoardApp() {
           card={scoring}
           score={scoring.link ? (scores[scoring.link.id] ?? null) : null}
           onSave={(score) => {
-            if (scoring.link) setScore(scoring.link.id, score);
+            if (scoring.link) saveScore.mutate({ itemId: scoring.link.id, score });
           }}
           onClose={() => setScoring(null)}
         />

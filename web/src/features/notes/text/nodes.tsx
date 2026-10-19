@@ -1,7 +1,8 @@
-// The note editor's own nodes: formulas set with the hub's KaTeX ($…$ in a line, $$…$$ on their own), and the
-// note's pictures and files (uploads served only to their owner: /notes/files/{id}). The API accepts exactly these
-// names and small scalar attributes (api/app/services/note_doc.py). Every block takes whole lines of the paper, so
-// the text after it stays on the ruled lines.
+// The note editor's own nodes: formulas set with the hub's KaTeX ($…$ in a line, $$…$$ on their own, typed, pasted
+// as text, or copied from a formula the hub shows), and the note's pictures and files (uploads served only to their
+// owner: /notes/files/{id}). The API accepts exactly these names and small scalar attributes
+// (api/app/services/note_doc.py). Every block takes whole lines of the paper, so the text after it stays on the ruled
+// lines.
 import {
   DownloadSimple,
   File as FileIcon,
@@ -14,7 +15,8 @@ import {
   Trash,
   type Icon,
 } from '@phosphor-icons/react';
-import { InputRule, Node, mergeAttributes, nodeInputRule, type CommandProps } from '@tiptap/core';
+import { InputRule, Node, PasteRule, mergeAttributes, nodeInputRule, type CommandProps } from '@tiptap/core';
+import type { NodeType } from '@tiptap/pm/model';
 import { TextSelection } from '@tiptap/pm/state';
 import { NodeViewWrapper, ReactNodeViewRenderer, type ReactNodeViewProps } from '@tiptap/react';
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
@@ -24,6 +26,7 @@ import { TeX, cx } from '../../../ui';
 import { noteFileHref } from '../api';
 import { LINE } from '../surface/layout';
 import { BlockBar, BlockBarButton } from './BlockBar';
+import { BLOCK_MATH, INLINE_MATH } from './mathText';
 import { PictureView } from './PictureView';
 import { useBlockMove } from './useBlockMove';
 
@@ -191,6 +194,41 @@ const mathAttrs = {
   fresh: { default: null, rendered: false },
 };
 
+/** A formula copied from one the hub shows: KaTeX keeps its LaTeX (for screen readers), and it is read from there. */
+const fromKatex = (el: HTMLElement | string) => {
+  const tex = typeof el === 'string' ? null : el.querySelector('annotation[encoding="application/x-tex"]')?.textContent;
+  return tex?.trim() ? { latex: tex.trim() } : false;
+};
+
+/**
+ * Pasted text: each formula `find` finds in it is set as one, and the cursor stays at the end of what was pasted.
+ * A formula on its own line takes its words' line apart (the spaces around it go), and leaves no empty line before
+ * it, nor after it unless the cursor is there to go on writing.
+ */
+function formulaPasteRule(find: RegExp, type: NodeType): PasteRule {
+  return new PasteRule({
+    find,
+    // `state` here is the paste's own: its `tr` is the one transaction every rule adds to
+    handler: ({ state, range, match }) => {
+      const latex = (match[1] ?? '').trim();
+      if (!latex) return;
+      const { tr } = state;
+      let { from, to } = range;
+      const $from = tr.doc.resolve(from);
+      if (type.isBlock && $from.parent.isTextblock && $from.depth > 0) {
+        const [start, end] = [$from.start(), $from.end()];
+        const space = (a: number, b: number) => /^\s$/.test(tr.doc.textBetween(a, b));
+        while (from > start && space(from - 1, from)) from -= 1;
+        while (to < end && space(to, to + 1)) to += 1;
+        const head = tr.selection.head;
+        if (from === start) from = $from.before();
+        if (to === end && (head < start || head > end)) to = $from.after();
+      }
+      tr.replaceWith(from, to, type.create({ latex }));
+    },
+  });
+}
+
 export const InlineMath = Node.create({
   name: 'inlineMath',
   group: 'inline',
@@ -200,6 +238,7 @@ export const InlineMath = Node.create({
   addAttributes: () => mathAttrs,
   parseHTML: () => [
     { tag: 'span[data-math]', getAttrs: (el) => ({ latex: (el as HTMLElement).getAttribute('data-math') ?? '' }) },
+    { tag: 'span.katex', getAttrs: fromKatex },
   ],
   renderHTML: ({ node, HTMLAttributes }) => [
     'span',
@@ -208,6 +247,10 @@ export const InlineMath = Node.create({
   ],
   renderText: ({ node }) => `$${String(node.attrs.latex)}$`,
   addNodeView: () => ReactNodeViewRenderer(MathView),
+  addPasteRules() {
+    // $x^2$ pasted in a line becomes a formula
+    return [formulaPasteRule(INLINE_MATH, this.type)];
+  },
   addInputRules() {
     // $x^2$ typed in a line becomes a formula
     return [
@@ -239,6 +282,7 @@ export const BlockMath = Node.create({
   addAttributes: () => mathAttrs,
   parseHTML: () => [
     { tag: 'div[data-math]', getAttrs: (el) => ({ latex: (el as HTMLElement).getAttribute('data-math') ?? '' }) },
+    { tag: 'span.katex-display', getAttrs: fromKatex },
   ],
   renderHTML: ({ node, HTMLAttributes }) => [
     'div',
@@ -247,6 +291,10 @@ export const BlockMath = Node.create({
   ],
   renderText: ({ node }) => `$$${String(node.attrs.latex)}$$`,
   addNodeView: () => ReactNodeViewRenderer(MathView),
+  addPasteRules() {
+    // $$E[X]$$ pasted becomes a formula on its own line
+    return [formulaPasteRule(BLOCK_MATH, this.type)];
+  },
   addInputRules() {
     // $$ at the start of a line opens a formula on its own line
     return [nodeInputRule({ find: /^\$\$\s$/, type: this.type, getAttributes: () => ({ latex: '', fresh: true }) })];

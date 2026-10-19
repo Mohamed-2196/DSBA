@@ -1,37 +1,41 @@
 // What the documents edited whole in Manage share (Site settings, the guides, the forum's settings, Mini Noora, the
 // grades calculator's rules and the others): the frame with its save bar, the banner for a save someone else made
 // first, and ordered lists of items that open into forms. Each document's own fields are its editor's.
-import { ArrowDown, ArrowSquareOut, ArrowUp, CaretDown, Eye, Plus, Trash } from '@phosphor-icons/react';
-import { useState, type ReactNode } from 'react';
+import { ArrowDown, ArrowSquareOut, ArrowUp, CaretDown, DotsThree, Eye, Plus, Trash } from '@phosphor-icons/react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { BREAKPOINTS, useMediaQuery } from '../../state/useMediaQuery';
+import { useUnsavedChanges } from '../../state/unsaved';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
 import { ConfirmDialog } from '../ConfirmDialog';
 import { IconButton } from '../IconButton';
 import { cx } from '../internal';
+import { Menu, type MenuItem } from '../Menu';
 import { Panel } from '../Panel';
 import { timeAgo } from '../utils';
-import { useWarnBeforeLeaving } from './doc';
 import './kit.css';
 
 export type DocProblem = { kind: 'changed'; what: string } | { kind: 'other'; messages: string[] };
 
 export interface DocFrameProps {
-  /** what the document is called, in the nav's name: 'Site settings' (Manage's panel shows it as the heading) */
+  /** what the document is called, in the nav's name and when leaving would lose changes: 'Site settings' (Manage's
+   *  panel shows it as the heading) */
   title: string;
   savedAt: string | null;
   savedBy: string | null;
   dirty: boolean;
   saving: boolean;
-  /** "Open the page" */
+  /** "Open the page", in a new tab */
   pageTo?: string;
   onPreview?: () => void;
   onUndo: () => void;
   onSave: () => void;
   problem: DocProblem | null;
-  onReload: () => void;
+  /** "Load it again": loads the version someone else saved, and the editor starts over from it */
+  onReload: () => Promise<unknown>;
   /** the sections: chips that pick one (none for a document of one part) */
   nav?: ReactNode;
-  /** the section's title and what it holds */
+  /** the section's title (a heading only without chips: a chip names it) and what it holds */
   section: { title: string; about: string };
   children: ReactNode;
 }
@@ -52,12 +56,45 @@ export function DocFrame({
   section,
   children,
 }: DocFrameProps) {
-  useWarnBeforeLeaving(dirty);
+  useUnsavedChanges(dirty, title);
+  // On a phone the page and the preview wait in a menu, so the first field comes sooner.
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const more: MenuItem[] = [
+    ...(pageTo ? [{ id: 'page', label: 'Open the page', icon: ArrowSquareOut, href: pageTo }] : []),
+    ...(onPreview ? [{ id: 'preview', label: 'Preview', icon: Eye, onSelect: onPreview }] : []),
+  ];
+  // Manage keeps each visited editor mounted (hidden), so every id here is the frame's own.
+  const headingId = useId();
+  const status = useRef<HTMLParagraphElement>(null);
+  const wasSaving = useRef(saving);
+  useEffect(() => {
+    // Saved: the Save button that had the focus is disabled now, so the focus goes to the line saying it saved.
+    if (wasSaving.current && !saving && !dirty) {
+      const at = document.activeElement;
+      if (!at || at === document.body || (at instanceof HTMLButtonElement && at.disabled)) {
+        status.current?.focus({ preventScroll: true });
+      }
+    }
+    wasSaving.current = saving;
+  }, [saving, dirty]);
+  const [reloading, setReloading] = useState(false);
+  const [reloadFailed, setReloadFailed] = useState(false);
+  const reload = () => {
+    setReloading(true);
+    setReloadFailed(false);
+    onReload().then(
+      () => setReloading(false),
+      () => {
+        setReloading(false);
+        setReloadFailed(true);
+      },
+    );
+  };
   return (
     <div className="dedit">
       <div className="dedit__head">
         <div className="dedit__intro">
-          <p className="dedit__note" role="status" tabIndex={-1} data-doc-status>
+          <p className="dedit__note" role="status" tabIndex={-1} ref={status}>
             {savedAt
               ? `Saved ${timeAgo(savedAt)}${savedBy ? ` by ${savedBy}` : ''}. `
               : 'Not changed in the hub yet: this is its starting content. '}
@@ -65,12 +102,12 @@ export function DocFrame({
           </p>
         </div>
         <div className="dedit__actions">
-          {pageTo ? (
-            <Button variant="ghost" to={pageTo} trailingIcon={ArrowSquareOut}>
-              Open the page
+          {pageTo && !phone ? (
+            <Button variant="ghost" to={pageTo} target="_blank" rel="noopener" trailingIcon={ArrowSquareOut}>
+              Open the page<span className="visually-hidden"> (opens in a new tab)</span>
             </Button>
           ) : null}
-          {onPreview ? (
+          {onPreview && !phone ? (
             <Button variant="secondary" leadingIcon={Eye} onClick={onPreview}>
               Preview
             </Button>
@@ -81,6 +118,14 @@ export function DocFrame({
           <Button variant="primary" onClick={onSave} loading={saving} disabled={!dirty} data-hub="doc-save">
             Save
           </Button>
+          {phone && more.length ? (
+            <Menu
+              label={`More for ${title}`}
+              align="end"
+              items={more}
+              trigger={<IconButton label="More" icon={DotsThree} variant="secondary" />}
+            />
+          ) : null}
         </div>
       </div>
 
@@ -92,7 +137,8 @@ export function DocFrame({
                 Someone else saved {problem.what} while you were editing. Load their version, then make your changes
                 again.
               </p>
-              <Button size="sm" onClick={onReload}>
+              {reloadFailed ? <p>Their version didn’t load. Check your connection, then try again.</p> : null}
+              <Button size="sm" onClick={reload} loading={reloading}>
                 Load it again
               </Button>
             </>
@@ -103,20 +149,30 @@ export function DocFrame({
       ) : null}
 
       {nav ? (
-        <nav className="dedit__nav" aria-label={`Parts of ${title}`}>
-          {nav}
-        </nav>
-      ) : null}
-
-      <Panel as="section" padding="md" className="dedit__panel" aria-labelledby="dedit-section-title">
-        <div className="dedit__section-head">
-          <h4 id="dedit-section-title" className="dedit__section">
-            {section.title}
-          </h4>
+        <div className="dedit__parts">
+          <nav className="dedit__nav" aria-label={`Parts of ${title}`}>
+            {nav}
+          </nav>
           <p className="dedit__note">{section.about}</p>
         </div>
-        {children}
-      </Panel>
+      ) : null}
+
+      {nav ? (
+        // The chip names the part: no heading repeats it.
+        <Panel as="section" padding="md" className="dedit__panel" aria-label={section.title}>
+          {children}
+        </Panel>
+      ) : (
+        <Panel as="section" padding="md" className="dedit__panel" aria-labelledby={headingId}>
+          <div className="dedit__section-head">
+            <h4 id={headingId} className="dedit__section">
+              {section.title}
+            </h4>
+            <p className="dedit__note">{section.about}</p>
+          </div>
+          {children}
+        </Panel>
+      )}
 
       <div className={cx('dedit__savebar', dirty && 'is-active')}>
         <span className="dedit__note">
@@ -173,6 +229,7 @@ export function ListEditor<T extends { id: string }>({
 }: ListEditorProps<T>) {
   const [open, setOpen] = useState<string | null>(null);
   const [removing, setRemoving] = useState<{ id: string; title: string } | null>(null);
+  const listId = useId();
   const move = (from: number, by: -1 | 1) => {
     const next = items.slice();
     const [item] = next.splice(from, 1);
@@ -188,7 +245,7 @@ export function ListEditor<T extends { id: string }>({
           {items.map((item, i) => {
             const isOpen = open === item.id;
             const title = titleOf(item) || `New ${noun}`;
-            const formId = `dedit-item-${item.id}`;
+            const formId = `${listId}-${item.id}`;
             const kept = keepReason?.(item) ?? null;
             return (
               <li

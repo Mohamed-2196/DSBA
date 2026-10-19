@@ -10,7 +10,7 @@ import { isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { todayKey } from '../../lib/dates';
 import { useLocalStorage } from '../../state';
-import { withGuestPlays } from './lib/guest';
+import { settledGuestPlay, withGuestPlays } from './lib/guest';
 import {
   NO_GUEST_PLAY,
   clearGuestPlay,
@@ -116,20 +116,6 @@ function replayGuest(day: string, game: GameId, variant: string, kept: GuestPlay
   );
 }
 
-/**
- * A guest's play as the server replayed it. Moves made on a version of today's puzzle that a fix replaced come back
- * finished as they were, or started again on the fixed puzzle: then this device forgets them, and remembers to say
- * why until the next move.
- */
-function settleGuest(day: string, game: GameId, variant: string, kept: GuestPlay, out: PlayOut): PlayOut {
-  if (out.play.restarted) {
-    const fresh: GuestPlay = { revision: out.play.revision, moves: [], restarted: true, status: 'new' };
-    saveGuestPlay(day, game, variant, fresh, todayKey());
-    return out;
-  }
-  return kept.restarted && out.play.status === 'new' ? { ...out, play: { ...out.play, restarted: true } } : out;
-}
-
 async function fetchPlay(day: string, game: GameId, variant: string, guest: boolean): Promise<PlayOut> {
   if (!guest) {
     return call(
@@ -140,7 +126,9 @@ async function fetchPlay(day: string, game: GameId, variant: string, guest: bool
   }
   const kept = guestPlay(day, game, variant);
   try {
-    return settleGuest(day, game, variant, kept, await replayGuest(day, game, variant, kept));
+    const { out, keep } = settledGuestPlay(kept, await replayGuest(day, game, variant, kept));
+    if (keep) saveGuestPlay(day, game, variant, keep, todayKey());
+    return out;
   } catch (e) {
     // Moves the server can't replay: start again rather than stay stuck.
     if (kept.moves.length && isApiError(e) && (e.status === 422 || e.status === 409)) {
@@ -190,7 +178,13 @@ export function useDailyMove(day: string, game: GameId, variant: string) {
       );
       if (guest) {
         const played = { revision: out.play.revision, moves: [...kept.moves, move], restarted: false };
-        saveGuestPlay(day, game, variant, { ...played, status: out.play.status }, todayKey());
+        saveGuestPlay(
+          day,
+          game,
+          variant,
+          { ...played, status: out.play.status, picture: out.play.picture },
+          todayKey(),
+        );
       }
       return out;
     },

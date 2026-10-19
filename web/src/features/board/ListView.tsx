@@ -5,8 +5,8 @@ import { useState, type FormEvent } from 'react';
 import type { BoardCard, BoardLabel, BoardSummary } from '../../api/types';
 import { formatDay } from '../../lib/dates';
 import { Button, EmptyState, TextField, cx } from '../../ui';
-import { isUnsaved, useAddCard } from './api';
-import { checklistProgress, colorVar, doneColumn, dueLabel, dueOf, isOverdue } from './board';
+import { useAddCard } from './api';
+import { checklistProgress, colorVar, doneColumn, dueLabel, dueOf, isOverdue, isUnsaved } from './board';
 import { PriorityBadge } from './CardItem';
 
 export interface ListViewProps {

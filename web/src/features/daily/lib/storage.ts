@@ -3,7 +3,7 @@
 // so the next person at a shared computer starts afresh. Storage can be missing or refused (a private window): every
 // read falls back to nothing and every write is best effort.
 import { writeStored } from '../../../state';
-import type { GameId, Move, PlayStatus } from '../types';
+import type { GameId, Mark, Move, Picture, PlayStatus } from '../types';
 
 const GUEST = 'hub.mine.daily.guest.';
 const NOTES = 'hub.mine.daily.notes.';
@@ -66,14 +66,24 @@ export interface GuestPlay {
   restarted: boolean;
   /** how the play stands, for the hub */
   status: PlayStatus;
+  /** the finished play's picture, for the hub's tile */
+  picture: Picture | null;
 }
 
 /** A day's guest plays, by game and difficulty ('word:default', 'sudoku:hard'). */
 export type GuestPlays = Record<string, GuestPlay>;
 
-export const NO_GUEST_PLAY: GuestPlay = { revision: 0, moves: [], restarted: false, status: 'new' };
+export const NO_GUEST_PLAY: GuestPlay = { revision: 0, moves: [], restarted: false, status: 'new', picture: null };
 
 const STATUSES: readonly PlayStatus[] = ['new', 'playing', 'won', 'lost'];
+const MARKS: readonly Mark[] = ['hit', 'near', 'miss', 'wrong', 'l1', 'l2', 'l3', 'l4'];
+
+function parsePicture(value: unknown): Picture | null {
+  if (!Array.isArray(value)) return null;
+  const rows = value.filter(Array.isArray) as unknown[][];
+  if (rows.length !== value.length || rows.some((row) => !row.every((m) => MARKS.includes(m as Mark)))) return null;
+  return rows as Picture;
+}
 
 /** The key that keeps a day's guest plays (one key a day, so the hub can follow it). */
 export const guestDayKey = (day: string) => `${GUEST}${day}`;
@@ -83,13 +93,14 @@ export const guestSlot = (game: GameId, variant: string) => `${game}:${variant |
 
 function parsePlay(value: unknown): GuestPlay | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  const { revision, moves, restarted, status } = value as Record<string, unknown>;
+  const { revision, moves, restarted, status, picture } = value as Record<string, unknown>;
   if (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 0 || !Array.isArray(moves)) return null;
   return {
     revision,
     moves: moves as Move[],
     restarted: restarted === true,
     status: STATUSES.find((s) => s === status) ?? (moves.length ? 'playing' : 'new'),
+    picture: parsePicture(picture),
   };
 }
 

@@ -359,8 +359,13 @@
   display: inline-block;
   color: var(--ink);
   font-weight: var(--fw-heavy);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+}
+.dg-result__picture {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-16);
+  border-radius: var(--r-panel);
+  background: color-mix(in srgb, var(--g, var(--cobalt)) 10%, var(--surface));
 }
 .dg-result__held {
   margin: 0;

@@ -1,5 +1,5 @@
-"""Boards: each signed-in student's private boards, columns, cards, labels, files on cards, comments to self and
-revision plans. A suspended account reads its boards only."""
+"""Boards: each signed-in student's private boards, columns, cards, labels, files on cards, comments to self,
+revision plans and practice scores on past papers. A suspended account reads its boards only."""
 
 from __future__ import annotations
 
@@ -37,8 +37,10 @@ from app.schemas.board import (
     CommentCreate,
     LabelCreate,
     LabelUpdate,
+    PaperScore,
+    PaperScoreSave,
 )
-from app.services.board import boards, cards, files, plans
+from app.services.board import boards, cards, files, plans, scores
 from app.services.board.common import column_on, get_board, get_card
 
 router = router_for("board", needs_feature(Feature.board))
@@ -293,5 +295,31 @@ def make_plan(body: BoardPlanCreate, user: ActiveUser, db: DB) -> BoardPlanMade:
 def delete_plan(module_id: str, user: ActiveUser, db: DB) -> Response:
     """Removes the module's plan and its cards still to do; cards done stay. Errors: not_found (404)."""
     plans.delete_plan(db, user, module_id)
+    db.commit()
+    return Response(status_code=NO_CONTENT)
+
+
+# ── practice scores ─────────────────────────────────────────────────────────────────────────
+
+
+@router.get("/paper-scores", response_model=list[PaperScore])
+def list_paper_scores(user: CurrentUser, db: DB) -> list[PaperScore]:
+    """The student's own practice scores on past papers, the newest first. Nobody else sees them."""
+    return scores.scores_of(db, user.id)
+
+
+@router.put("/paper-scores/{item_id}", response_model=PaperScore)
+def save_paper_score(item_id: uuid.UUID, body: PaperScoreSave, user: ActiveUser, db: DB) -> PaperScore:
+    """Sets the student's practice score on a past paper, out of 100 with one decimal at most, in place of the one
+    before. Errors: not_found (404) when the past paper isn't in the library, invalid_input on score (422)."""
+    out = scores.save_score(db, user, item_id, body.score)
+    db.commit()
+    return out
+
+
+@router.delete("/paper-scores/{item_id}", status_code=NO_CONTENT)
+def forget_paper_score(item_id: uuid.UUID, user: ActiveUser, db: DB) -> Response:
+    """Removes the student's practice score on a past paper; without one, nothing happens."""
+    scores.forget_score(db, user, item_id)
     db.commit()
     return Response(status_code=NO_CONTENT)

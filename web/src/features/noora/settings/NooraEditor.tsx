@@ -17,26 +17,16 @@ import type {
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
 import { useModules } from '../../../state/modules';
+import { Button, Chip, Drawer, Panel, QueryError, Select, Skeleton, TextArea, TextField, cx } from '../../../ui';
 import {
-  Button,
-  Chip,
   DocFrame,
-  Drawer,
   ListEditor,
-  Panel,
-  QueryError,
   RowsEditor,
-  Select,
-  Skeleton,
-  TextArea,
-  TextField,
-  cx,
   docErrors,
-  focusDocStatus,
   hasErrorUnder,
   newItemId,
   type DocProblem,
-} from '../../../ui';
+} from '../../../ui/docEditor';
 import { STARTER_ICONS } from '../page/starterIcons';
 import { starters } from '../page/starters';
 import { Welcome } from '../page/Welcome';
@@ -145,8 +135,8 @@ const LINES: { key: Line; label: string; hint: string }[] = [
 
 export function NooraEditor() {
   const query = useNooraSettings();
-  // Kept here, so loading someone else's save stays on the same part.
-  const [section, setSection] = useState<Section>('prompt');
+  // Once loaded, the editor keeps its own copy: a refetch in the background never replaces the draft.
+  if (query.data) return <Editor first={query.data} />;
   if (query.isError)
     return (
       <QueryError
@@ -157,28 +147,19 @@ export function NooraEditor() {
         size="sm"
       />
     );
-  if (query.isPending) {
-    return (
-      <Panel padding="md">
-        <Skeleton lines={8} />
-      </Panel>
-    );
-  }
-  // A new version (saved here, or loaded again) starts a new draft.
-  return <Editor key={query.data.version} loaded={query.data} section={section} setSection={setSection} />;
+  return (
+    <Panel padding="md">
+      <Skeleton lines={8} />
+    </Panel>
+  );
 }
 
-function Editor({
-  loaded,
-  section,
-  setSection,
-}: {
-  loaded: NooraEditable;
-  section: Section;
-  setSection: (s: Section) => void;
-}) {
+function Editor({ first }: { first: NooraEditable }) {
+  // The version the draft is edited from: the one first loaded, then each one a save returns or "Load it again" loads.
+  const [loaded, setLoaded] = useState(first);
   const saved = loaded.data;
   const [doc, setDoc] = useState<NooraDoc>(saved);
+  const [section, setSection] = useState<Section>('prompt');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<DocProblem | null>(null);
   const [previewing, setPreviewing] = useState(false);
@@ -192,6 +173,13 @@ function Editor({
   );
   const setScript = (patch: Partial<NooraScript>) => setDoc((d) => ({ ...d, script: { ...d.script, ...patch } }));
   const err: Err = (path) => fields[path];
+  // A new version (as the API keeps it, so even a save that changed nothing leaves nothing unsaved) starts a new draft.
+  const start = (next: NooraEditable) => {
+    setLoaded(next);
+    setDoc(next.data);
+    setFields({});
+    setProblem(null);
+  };
 
   const submit = () => {
     setProblem(null);
@@ -199,22 +187,15 @@ function Editor({
       { version: loaded.version, data: doc },
       {
         onSuccess: (out) => {
-          setDoc(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
-          setFields({});
+          start(out);
           toast({ title: 'Saved. Mini Noora uses the changes from now on.', tone: 'success' });
-          focusDocStatus();
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'noora_changed')
             return setProblem({ kind: 'changed', what: 'Mini Noora’s settings' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, [
-            'prompt.facts',
-            'script.pageChips',
-            'script.starters',
-            'script.greetingChips',
-            'script.tryInstead',
-            'script',
-          ]);
+          const found = docErrors(isApiError(e) ? e.fields : {}, {
+            wholes: ['prompt', 'prompt.facts', 'script', 'script.pageChips', 'script.starters'],
+          });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']
@@ -246,7 +227,7 @@ function Editor({
         }}
         onSave={submit}
         problem={problem}
-        onReload={() => void reload()}
+        onReload={() => reload().then(start)}
         section={{ title: current.label, about: current.about }}
         nav={SECTIONS.map((s) => (
           <Chip
@@ -622,6 +603,8 @@ function NooraPreview({ doc }: { doc: NooraDoc }) {
         lead={doc.script.welcome}
         starters={starters(doc.script.starters, modules, year)}
         onStart={() => undefined}
+        questions={null}
+        onAsk={() => undefined}
         paused={null}
         onSignIn={null}
       />

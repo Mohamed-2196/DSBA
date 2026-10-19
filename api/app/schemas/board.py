@@ -1,5 +1,5 @@
 """Boards: each student's private boards of cards, with their own columns, labels, checklists, files and reminders,
-and revision plans that add study cards."""
+revision plans that add study cards, and practice scores on past papers."""
 
 from __future__ import annotations
 
@@ -39,6 +39,16 @@ def _due(value: dt.date) -> dt.date:
 
 
 DueDate = Annotated[dt.date, AfterValidator(_due)]
+
+
+def _tenths(value: float) -> float:
+    if round(value, 1) != value:
+        raise PydanticCustomError("score", "Give the score with one decimal at most, like 72.5.")
+    return value
+
+
+# A practice score out of 100, as a percentage: 72 or 72.5.
+Score = Annotated[float, Field(ge=0, le=100), AfterValidator(_tenths)]
 
 
 # ── boards and columns ─────────────────────────────────────────────────────────────────────
@@ -319,3 +329,18 @@ class BoardPlanCreate(ApiModel):
 class BoardPlanMade(ApiModel):
     plan: BoardPlan
     added: int  # cards added to the board's first column
+
+
+# ── practice scores ─────────────────────────────────────────────────────────────────────────
+
+
+class PaperScoreSave(ApiModel):
+    score: Score
+
+
+class PaperScore(ApiModel):
+    """The student's own practice score on a past paper (a library item), seen by nobody else."""
+
+    item_id: UUID
+    score: float
+    updated_at: dt.datetime

@@ -5,7 +5,7 @@ import { Check, WarningCircle } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ImportReport, ThemeOut } from '../../../api/types';
-import { useToast } from '../../../state';
+import { useToast, useUnsavedChanges } from '../../../state';
 import { Button, Modal, Select, Switch, TextArea, cx, formatCount } from '../../../ui';
 import { useImportItems } from './api';
 import { gameInfo, type ContentGame } from './lib/items';
@@ -24,6 +24,7 @@ export function ImportDialog({ game, themes, defaultTheme, onClose }: ImportDial
   const [theme, setTheme] = useState(defaultTheme || themes[0]?.id || '');
   const [text, setText] = useState('');
   const [addGuesses, setAddGuesses] = useState(true);
+  useUnsavedChanges(text.trim() !== '', 'the import');
   const check = useImportItems();
   const commit = useImportItems();
   const { push: toast } = useToast();

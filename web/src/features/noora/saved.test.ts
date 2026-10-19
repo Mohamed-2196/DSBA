@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { Message } from './types';
+import type { Message, NooraMessage } from './types';
 import {
   CHATS_KEY,
   CHATS_MAX,
   CURRENT_KEY,
   forStorage,
   groupChats,
+  leaveChat,
   parseChats,
   parseCurrent,
   renameChat,
@@ -13,10 +14,19 @@ import {
   titleOf,
   withChat,
   withoutChat,
+  withReply,
 } from './saved';
 
 const q = (id: number, text: string): Message => ({ id, from: 'me', at: id, text, attachments: [] });
-const a = (id: number, text: string): Message => ({ id, from: 'noora', at: id, mood: 'neutral', text, refs: [] });
+const reply = (id: number, text: string): NooraMessage => ({
+  id,
+  from: 'noora',
+  at: id,
+  mood: 'neutral',
+  text,
+  refs: [],
+});
+const a = (id: number, text: string): Message => reply(id, text);
 
 describe('keys', () => {
   it('are personal, so signing out clears them', () => {
@@ -52,6 +62,13 @@ describe('withChat', () => {
     expect(list).toHaveLength(CHATS_MAX);
   });
 
+  it('keeps the conversations in the order of their newest messages: opening an old one leaves it in place', () => {
+    let list = withChat([], 'old', [q(1, 'old question')]);
+    list = withChat(list, 'new', [q(5, 'new question')]);
+    list = withChat(list, 'old', [q(1, 'old question')]);
+    expect(list.map((c) => c.id)).toEqual(['new', 'old']);
+  });
+
   it('drops a conversation that has been emptied', () => {
     expect(withChat(withChat([], 'a', [q(1, 'x')]), 'a', [])).toEqual([]);
   });
@@ -60,6 +77,22 @@ describe('withChat', () => {
     const named = renameChat(withChat([], 'a', [q(1, 'first')]), 'a', 'Revision plan');
     const later = withChat(named, 'a', [q(1, 'first'), a(2, 'y')]);
     expect(later[0]).toMatchObject({ title: 'Revision plan', named: true });
+  });
+});
+
+describe('leaveChat', () => {
+  it('saves the conversation left with the question just asked and the answer stopped where it was', () => {
+    const asked = [q(1, 'first'), a(2, 'answer'), q(3, 'second')];
+    const stopped = { ...reply(4, 'Half an ans'), notice: 'Stopped.' };
+    const list = leaveChat(withChat([], 'a', asked.slice(0, 2)), 'a', asked, stopped);
+    expect(list[0]?.messages.map((m) => m.text)).toEqual(['first', 'answer', 'second', 'Half an ans']);
+    expect(list[0]?.at).toBe(4);
+  });
+
+  it('puts an answer that was still coming in its place', () => {
+    const coming = [q(1, 'first'), a(2, 'Half')];
+    expect(withReply(coming, reply(2, 'Half an answer')).map((m) => m.text)).toEqual(['first', 'Half an answer']);
+    expect(leaveChat([], 'a', [], null)).toEqual([]);
   });
 });
 

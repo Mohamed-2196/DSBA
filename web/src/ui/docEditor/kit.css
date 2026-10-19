@@ -54,6 +54,10 @@
   flex: 1 1 24ch;
   max-width: var(--measure);
 }
+.dedit__parts {
+  display: grid;
+  gap: var(--sp-8);
+}
 .dedit__nav {
   display: flex;
   flex-wrap: wrap;
@@ -256,7 +260,7 @@
 .dedit-preview__label {
   margin: 0;
   color: var(--ink-2);
-  font-size: var(--fs-12);
+  font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
 }
 

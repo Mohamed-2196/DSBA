@@ -83,4 +83,9 @@
     outline: none !important;
     box-shadow: none !important;
   }
+  /* on paper, the text's pictures and files lie under the ink */
+  .nb-print .nb-picture__box,
+  .nb-print .nb-file__card {
+    z-index: auto !important;
+  }
 }

@@ -13972,13 +13972,127 @@
         }
       }
     },
+    "/api/v1/notes/{note_id}/pages": {
+      "post": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Change Pages",
+        "description": "Add (`insert`), delete or move a page of paper in one go: the handwriting and free pictures of the pages after\nit move with them. Send the `version` you loaded, as for a save (409 note_changed). Errors: invalid_input (422: a\npage or a place the note doesn't have, the last page, more than the most pages), rate_limited (429).",
+        "operationId": "change_pages_api_v1_notes__note_id__pages_post",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/notes/{note_id}/ink/{sheet}": {
       "put": {
         "tags": [
           "notes"
         ],
         "summary": "Save Ink",
-        "description": "Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).\nSend the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:\ninvalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger than\nthat, refused unread), notes_full (409), rate_limited (429).",
+        "description": "Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).\nSend the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:\nnot_found (404: a sheet the note doesn't have: a page of paper past its last, or a PDF's page on a note without\none), invalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger\nthan that, refused unread), notes_full (409), rate_limited (429).",
         "operationId": "save_ink_api_v1_notes__note_id__ink__sheet__put",
         "parameters": [
           {
@@ -20256,6 +20370,311 @@
             "schema": {
               "type": "string",
               "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/paper-scores": {
+      "get": {
+        "tags": [
+          "board"
+        ],
+        "summary": "List Paper Scores",
+        "description": "The student's own practice scores on past papers, the newest first. Nobody else sees them.",
+        "operationId": "list_paper_scores_api_v1_paper_scores_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaperScore"
+                  },
+                  "type": "array",
+                  "title": "Response List Paper Scores Api V1 Paper Scores Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/paper-scores/{item_id}": {
+      "put": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Save Paper Score",
+        "description": "Sets the student's practice score on a past paper, out of 100 with one decimal at most, in place of the one\nbefore. Errors: not_found (404) when the past paper isn't in the library, invalid_input on score (422).",
+        "operationId": "save_paper_score_api_v1_paper_scores__item_id__put",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperScoreSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperScore"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Forget Paper Score",
+        "description": "Removes the student's practice score on a past paper; without one, nothing happens.",
+        "operationId": "forget_paper_score_api_v1_paper_scores__item_id__delete",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
             }
           }
         ],
@@ -26884,6 +27303,13 @@
             "type": "array",
             "title": "Boardplans"
           },
+          "paperScores": {
+            "items": {
+              "$ref": "#/components/schemas/PaperScore"
+            },
+            "type": "array",
+            "title": "Paperscores"
+          },
           "follows": {
             "items": {
               "$ref": "#/components/schemas/ExportFollow"
@@ -26980,6 +27406,7 @@
           "boards",
           "boardLabels",
           "boardPlans",
+          "paperScores",
           "follows",
           "pollVotes",
           "senior",
@@ -32147,6 +32574,10 @@
             "type": "integer",
             "title": "Guesswords"
           },
+          "guessListShort": {
+            "type": "boolean",
+            "title": "Guesslistshort"
+          },
           "vocabularyWords": {
             "type": "integer",
             "title": "Vocabularywords"
@@ -32166,6 +32597,7 @@
           "themes",
           "weeks",
           "guessWords",
+          "guessListShort",
           "vocabularyWords",
           "tags"
         ],
@@ -35386,6 +35818,33 @@
           "scored": {
             "type": "boolean",
             "title": "Scored"
+          },
+          "picture": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "hit",
+                      "near",
+                      "miss",
+                      "wrong",
+                      "l1",
+                      "l2",
+                      "l3",
+                      "l4"
+                    ]
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Picture"
           }
         },
         "type": "object",
@@ -35394,7 +35853,8 @@
           "status",
           "variant",
           "points",
-          "scored"
+          "scored",
+          "picture"
         ],
         "title": "GameDay",
         "description": "A game on the hub: its card, and how far the viewer got."
@@ -41642,6 +42102,51 @@
         ],
         "title": "OtpVerifyRequest"
       },
+      "PageChange": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "delete",
+              "move"
+            ],
+            "title": "Action"
+          },
+          "page": {
+            "type": "integer",
+            "exclusiveMaximum": 300.0,
+            "minimum": 0.0,
+            "title": "Page"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMaximum": 300.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "page",
+          "version"
+        ],
+        "title": "PageChange",
+        "description": "A change to a note's pages of paper, made at once with the version it was loaded at: `insert` a blank page at\n`page` (0 up to the number of pages: that many adds one at the end), `delete` page `page`, or `move` page `page`\nto place `to`. The handwriting and the free pictures go with their pages."
+      },
       "PageLink": {
         "properties": {
           "kind": {
@@ -42003,6 +42508,47 @@
           "coverUrl"
         ],
         "title": "PaperRef"
+      },
+      "PaperScore": {
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Itemid"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "itemId",
+          "score",
+          "updatedAt"
+        ],
+        "title": "PaperScore",
+        "description": "The student's own practice score on a past paper (a library item), seen by nobody else."
+      },
+      "PaperScoreSave": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score"
+        ],
+        "title": "PaperScoreSave"
       },
       "PaperSittings": {
         "properties": {
@@ -42644,6 +43190,33 @@
             ],
             "title": "Share"
           },
+          "picture": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "hit",
+                      "near",
+                      "miss",
+                      "wrong",
+                      "l1",
+                      "l2",
+                      "l3",
+                      "l4"
+                    ]
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Picture"
+          },
           "revision": {
             "type": "integer",
             "title": "Revision"
@@ -42701,6 +43274,7 @@
           "seconds",
           "result",
           "share",
+          "picture",
           "revision",
           "restarted",
           "view"

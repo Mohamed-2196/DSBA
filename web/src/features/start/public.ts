@@ -9,7 +9,9 @@
 //   <GuidesEditor />         Manage → Guides (guides.edit).
 //
 // The pages are /start-here and /results-day (routes.tsx).
+import { lazy } from 'react';
 export { useGuides } from './api';
-export { GuidesEditor } from './editor/GuidesEditor';
+// Manage's editor loads with Manage (inside its Suspense), so no other page carries it.
+export const GuidesEditor = lazy(() => import('./editor/GuidesEditor').then((m) => ({ default: m.GuidesEditor })));
 export { ResultsDayCard } from './ResultsDayCard';
 export { StartHereCard } from './StartHereCard';

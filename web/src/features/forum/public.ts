@@ -16,6 +16,7 @@
 //   <ForumSettingsEditor />               Manage → Forum (forum.moderate): categories, tags, guidelines and tips.
 //
 // Thread links are /forum/<slug>. Searching the forum is GET /api/v1/search (the ⌘K palette).
+import { lazy } from 'react';
 export { HelpBelow } from './HelpBelow';
 export { ModuleThreads } from './ModuleThreads';
 export { useHotThreads } from './api';
@@ -25,4 +26,7 @@ export { ReportsQueue } from './ReportsQueue';
 export { useStartsThreads } from './lib/posting';
 export { MarkdownEditor } from './components/MarkdownEditor';
 export { Prose } from './components/Prose';
-export { ForumSettingsEditor } from './settings/ForumSettingsEditor';
+// Manage's editor loads with Manage (inside its Suspense), so no other page carries it.
+export const ForumSettingsEditor = lazy(() =>
+  import('./settings/ForumSettingsEditor').then((m) => ({ default: m.ForumSettingsEditor })),
+);

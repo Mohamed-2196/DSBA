@@ -4,7 +4,7 @@ import { PencilSimple, Plus, Trash, X } from '@phosphor-icons/react';
 import { useId, useState, type KeyboardEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { VocabularyOut } from '../../../api/types';
-import { useDebouncedValue, useToast } from '../../../state';
+import { useDebouncedValue, useToast, useUnsavedChanges } from '../../../state';
 import {
   Badge,
   Button,
@@ -171,6 +171,8 @@ function WordDialog({
   const [text, setText] = useState(word?.word ?? '');
   const [tags, setTags] = useState<string[]>(word?.tags ?? []);
   const [near, setNear] = useState<string[]>(word?.near ?? []);
+  const [opened] = useState(() => JSON.stringify({ text, tags, near }));
+  useUnsavedChanges(JSON.stringify({ text, tags, near }) !== opened, 'the word');
   const add = useAddVocabulary();
   const save = useSaveVocabulary();
   const { push: toast } = useToast();

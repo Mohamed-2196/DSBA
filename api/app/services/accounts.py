@@ -810,6 +810,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
     ]
     from app.services import bugs
     from app.services.board.export import board_export
+    from app.services.board.scores import scores_of
 
     boards, board_labels, board_plans = board_export(db, uid)
     follows = [
@@ -847,11 +848,17 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
     ink_rows = db.scalars(
         select(NoteInk).where(NoteInk.note_id.in_([n.id for n in note_rows])).order_by(NoteInk.sheet)
     ).all()
-    note_files = db.execute(
-        select(Upload.note_id, Upload.file_name)
-        .where(Upload.user_id == uid, Upload.purpose == UploadPurpose.note_file, Upload.note_id.is_not(None))
-        .order_by(Upload.created_at)
-    ).all()
+    listed = {u for n in note_rows for u in n.uploads}
+    rows = (
+        db.execute(
+            select(Upload.id, Upload.file_name).where(
+                Upload.id.in_(listed), Upload.user_id == uid, Upload.purpose == UploadPurpose.note_file
+            )
+        )
+        .tuples()
+        .all()
+    )
+    file_names: dict[uuid.UUID, str] = dict(rows)
     notes_by_book: dict[uuid.UUID, list[ExportNote]] = {}
     for n in note_rows:
         notes_by_book.setdefault(n.notebook_id, []).append(
@@ -864,7 +871,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
                 sheets=n.sheets,
                 lesson_id=n.lesson_id,
                 library_item_id=n.library_item_id,
-                files=[name for note_id, name in note_files if note_id == n.id],
+                files=[file_names[u] for u in n.uploads if u in file_names],
                 ink=[ExportInk(sheet=i.sheet, strokes=i.strokes) for i in ink_rows if i.note_id == n.id],
                 version=n.version,
                 created_at=n.created_at,
@@ -924,6 +931,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         boards=boards,
         board_labels=board_labels,
         board_plans=board_plans,
+        paper_scores=scores_of(db, uid),
         follows=follows,
         poll_votes=poll_votes,
         senior=senior,
@@ -981,10 +989,11 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     """Deletes the account. Files that never reached the library, forum pictures, notebook files, files on board
     cards and bug report screenshots go (objects first: if the bucket fails, nothing is deleted and the person can
     try again); pending and rejected library items go; published items stay without an uploader; posts stay as
-    'deleted user' (the foreign keys set NULL); everything personal (boards, sessions, notifications, queued emails,
-    progress, notebooks and notes, stars, votes, me-toos, reactions, follows, poll votes, the senior listing, their
-    own calendar, the bug reports they sent) cascades; the sign-in codes stay, anonymised, until the sweep (the rate
-    limits count them). The last active admin can't leave (409 last_admin). The caller commits."""
+    'deleted user' (the foreign keys set NULL); everything personal (boards and practice scores, sessions,
+    notifications, queued emails, progress, notebooks and notes, stars, votes, me-toos, reactions, follows, poll votes,
+    the senior listing, their own calendar, the bug reports they sent) cascades; the sign-in codes stay, anonymised,
+    until the sweep (the rate limits count them). The last active admin can't leave (409 last_admin). The caller
+    commits."""
     if access.is_admin(user):
         access.ensure_admins_remain(db, user)
     uid = user.id

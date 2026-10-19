@@ -14,7 +14,16 @@
 }
 
 .access-grid-wrap {
+  /* Positioned, so the table's visually hidden labels stay inside the scroller instead of widening the page. */
+  position: relative;
   overflow-x: auto;
+  /* A shade at an edge while there is more that way: the covers move with the table, the shades stay put. */
+  background:
+    linear-gradient(to right, var(--surface) 2rem, transparent) left / 3rem 100% no-repeat local,
+    linear-gradient(to left, var(--surface) 2rem, transparent) right / 3rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, var(--scrim), transparent) left / 0.75rem 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, var(--scrim), transparent) right / 0.75rem 100% no-repeat scroll,
+    var(--surface);
 }
 .access-grid {
   border-collapse: collapse;
@@ -45,7 +54,7 @@
   font-weight: var(--fw-semibold);
   vertical-align: bottom;
 }
-.access-grid__area {
+.access-grid .access-grid__area {
   background: var(--surface-2);
   text-align: start;
   font-weight: var(--fw-semibold);
@@ -184,4 +193,9 @@
   .access-feature .access-problem {
     grid-column: 1 / -1;
   }
+}
+
+/* Prose on every tab, hints included, stays a comfortable line long. */
+.access-panel p {
+  max-width: var(--measure);
 }

@@ -14,7 +14,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.errors import conflict
-from app.schemas.daily import FoundGroup, GroupMove, GroupsView, Move
+from app.schemas.daily import FoundGroup, GroupMove, GroupsView, Mark, Move, Picture
 from app.services.daily import content
 from app.services.daily.content import CantFixError, Entry, NotReadyError, Uses
 from app.services.daily.games.base import ContentGame, Status, bad_move
@@ -26,6 +26,7 @@ CHOICES = 20_000  # the most groups choose() weighs for a day before it calls th
 MISTAKE_COST = 20
 POINTS_PER_GROUP_LOST = 10  # a lost play still earns this for each group found
 SQUARES = {1: "🟨", 2: "🟩", 3: "🟦", 4: "🟪"}  # the levels' colours in the web app
+LEVEL_MARKS: dict[int, Mark] = {1: "l1", 2: "l2", 3: "l3", 4: "l4"}
 
 
 @dataclass(frozen=True)
@@ -212,3 +213,6 @@ class GroupsGame(ContentGame[Puzzle, GroupsState]):
         rows = "\n".join("".join(SQUARES[level] for level in levels) for levels in state.levels)
         head = f"{self.title} {len(state.found)}/{GROUPS}, {state.mistakes} mistake{'s' if state.mistakes != 1 else ''}"
         return f"{head}\n{rows}".rstrip()
+
+    def picture(self, puzzle: Puzzle, state: GroupsState) -> Picture:
+        return [[LEVEL_MARKS[level] for level in levels] for levels in state.levels]

@@ -10,9 +10,9 @@ from typing import Any, cast
 
 from sqlalchemy.orm import Session
 
-from app.schemas.daily import HintMove, Move, PlaceMove, SudokuDifficulty, SudokuView
+from app.schemas.daily import HintMove, Mark, Move, Picture, PlaceMove, SudokuDifficulty, SudokuView
 from app.services.daily import content
-from app.services.daily.games.base import Edition, Game, Status, bad_move
+from app.services.daily.games.base import Edition, Game, Status, bad_move, rows_of
 from app.services.daily.sudoku_engine import PEERS, generate
 
 BASE: dict[str, int] = {"easy": 60, "medium": 100, "hard": 150}
@@ -135,3 +135,14 @@ class SudokuGame(Game[Puzzle, SudokuState]):
         mistakes = f"{state.mistakes} mistake{'s' if state.mistakes != 1 else ''}"
         hints = f"{len(state.hinted)} hint{'s' if len(state.hinted) != 1 else ''}"
         return f"{head}\n{mistakes}, {hints}"
+
+    def picture(self, puzzle: Puzzle, state: SudokuState) -> Picture:
+        """The nine boxes: done, done with a hint, or not done."""
+
+        def box(b: int) -> Mark:
+            cells = [(3 * (b // 3) + r) * 9 + 3 * (b % 3) + c for r in range(3) for c in range(3)]
+            if not all(puzzle.givens[i] or i in state.filled for i in cells):
+                return "miss"
+            return "near" if any(i in state.hinted for i in cells) else "hit"
+
+        return rows_of([box(b) for b in range(9)], 3)

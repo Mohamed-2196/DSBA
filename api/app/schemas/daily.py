@@ -15,6 +15,11 @@ PlayStatus = Literal["new", "playing", "won", "lost"]
 SudokuDifficulty = Literal["easy", "medium", "hard"]
 BoardPeriod = Literal["week", "all"]
 LetterMark = Literal["hit", "near", "miss"]  # in the word, right place / elsewhere / not in it
+# A finished play's picture, square by square, in the hub's colours: hit, near and miss as The Word marks letters
+# (Data Mine: found or not; Nearest Neighbour: close, warm or cold; Sudoku: a box done, done with a hint, or not), a
+# wrong answer, and Correlations' four levels. Like the share text, it gives nothing away.
+Mark = Literal["hit", "near", "miss", "wrong", "l1", "l2", "l3", "l4"]
+Picture = list[list[Mark]]
 
 
 # --- moves -------------------------------------------------------------------------------------------------------
@@ -217,6 +222,7 @@ class Play(ApiModel):
     seconds: int | None  # from opening today's puzzle (Sudoku: the first move) to the last move, once it's over
     result: str | None  # what the last move did: 'hit', 'miss', 'one-away', 'found', 'correct', 'wrong', ...
     share: str | None  # a result grid without spoilers, once it's over
+    picture: Picture | None  # the same result in squares, once it's over
     revision: int  # the version of the day's puzzle it's on: an editor's fix to today's puzzle makes a new one
     restarted: bool  # a fix to today's puzzle started this play again; true until its next move
     view: GameView
@@ -242,6 +248,7 @@ class GameDay(ApiModel):
     variant: str  # the play to open: the scored one, else the furthest ("" when none, and for one-variant games)
     points: int
     scored: bool
+    picture: Picture | None  # the finished play's picture (the one `variant` opens)
 
 
 class Streak(ApiModel):

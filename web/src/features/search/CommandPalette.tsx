@@ -1,5 +1,6 @@
-// ⌘K command palette: search everything + quick actions. Mounted once by the shell.
-// Opens on ⌘K / Ctrl+K (toggle), "/" (outside text fields) and openCommandPalette(query).
+// ⌘K command palette: search everything + quick actions. PaletteHost mounts it the first time it is opened, open
+// with what it was opened with; after that it opens on ⌘K / Ctrl+K (toggle), "/" (outside text fields) and
+// openCommandPalette(query).
 // Content comes from GET /api/v1/search (debounced); recent searches stay in this browser.
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -27,9 +28,9 @@ const NO_TOKENS: string[] = [];
 const recentOf = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 5) : [];
 
-export function CommandPalette() {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
+export function CommandPalette({ opening }: { opening: string }) {
+  const [open, setOpen] = useState(true);
+  const [query, setQuery] = useState(opening);
   const [active, setActive] = useState(0);
   const [expanded, setExpanded] = useState<Set<GroupId>>(() => new Set());
   const [stored, setRecent] = useLocalStorage<string[]>(RECENT_KEY, []);

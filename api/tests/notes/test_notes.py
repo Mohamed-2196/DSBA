@@ -7,15 +7,20 @@ from __future__ import annotations
 import json
 import tracemalloc
 from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from datetime import timedelta
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
+from app import cli
+from app.core.time import utcnow
 from app.models import LibraryItem, Module, Note, Notebook, NoteInk, Upload, UploadStatus, User, UserStatus
-from app.schemas.notes import INK_BODY_MAX, MAX_POINTS, MAX_STROKES, SHEET_MAX_BYTES
+from app.schemas.notes import INK_BODY_MAX, MAX_POINTS, MAX_STROKES, PAPER_SHEETS_FROM, SHEET_MAX_BYTES, PageChange
+from app.services import note_doc
 from app.services import notes as svc
 from tests.core.helpers import PDF, PNG, share_pdf, upload
 from tests.lessons import lesson_id
@@ -223,7 +228,7 @@ def test_notes_are_private(client_for: ClientFor, make_user: MakeUser, storage: 
         c = client_for(other)
         assert c.get(f"{API}/notes/{mine['id']}").status_code == 404
         assert save(c, mine, doc=doc("Not yours")).status_code == 404
-        assert ink(c, mine, 0, [stroke()], 0).status_code == 404
+        assert ink(c, mine, PAPER_SHEETS_FROM, [stroke()], 0).status_code == 404
         assert c.delete(f"{API}/notes/{mine['id']}").status_code == 404
         assert c.get(f"{API}/notes").json()["total"] == 0
         assert c.get(f"{API}/notebooks").json()["items"] == []
@@ -302,7 +307,7 @@ def test_how_many_notes_and_how_fast(
 
     monkeypatch.setattr(svc, "SAVES_PER_MINUTE", 2)
     note = save(c, note, doc=doc("Save 1")).json()
-    assert ink(c, note, 0, [stroke()], 0).status_code == 200  # ink saves count too
+    assert ink(c, note, PAPER_SHEETS_FROM, [stroke()], 0).status_code == 200  # ink saves count too
     r = save(c, note, doc=doc("One too many"))
     assert (r.status_code, r.json()["error"]["code"]) == (429, "rate_limited")
     assert r.headers["Retry-After"]
@@ -322,9 +327,9 @@ def test_text_and_ink_are_capped_apart_from_files(
     assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
     assert "text and handwriting" in r.json()["error"]["message"]
     assert save(c, note, title="Renamed").status_code == 200  # the text unchanged: no check
-    r = ink(c, note, 0, [stroke(n=40)], 0)
+    r = ink(c, note, PAPER_SHEETS_FROM, [stroke(n=40)], 0)
     assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
-    assert ink(c, note, 0, [stroke(n=2)], 0).status_code == 200
+    assert ink(c, note, PAPER_SHEETS_FROM, [stroke(n=2)], 0).status_code == 200
     file = {"purpose": "note_file", "fileName": "big.pdf", "contentType": "application/pdf", "sizeBytes": 5000}
     assert c.post(f"{API}/uploads", json=file).status_code == 201  # files have their own room
     monkeypatch.setattr(svc, "FILES_LIMIT", 4000)
@@ -337,7 +342,7 @@ def test_one_sheet_holds_at_most_sheet_max_bytes(client_for: ClientFor, make_use
     """A sheet's ink is capped by the API itself, and a request far over the cap is refused unread."""
     c = client_for(make_user())
     note = new_note(c)
-    sheet = svc.PAPER_SHEETS_FROM
+    sheet = PAPER_SHEETS_FROM
 
     def body(strokes: int, numbers: int) -> bytes:
         drawn = [
@@ -363,7 +368,7 @@ def test_an_ink_save_is_capped_however_it_is_sent(client_for: ClientFor, make_us
     is refused, and a body just under the ceiling goes through."""
     c = client_for(make_user())
     note = new_note(c)
-    url = f"{API}/notes/{note['id']}/ink/{svc.PAPER_SHEETS_FROM}"
+    url = f"{API}/notes/{note['id']}/ink/{PAPER_SHEETS_FROM}"
     sheet = json.dumps({"strokes": [stroke("a")], "version": 0}).encode()
     padded = sheet + b" " * (INK_BODY_MAX - len(sheet))  # JSON with spaces after it: exactly the ceiling
     assert len(padded) == INK_BODY_MAX
@@ -389,11 +394,11 @@ def test_a_note_is_read_without_its_ink_and_each_sheet_on_its_own(
 ) -> None:
     """Reading a note never loads its handwriting: the note lists its sheets, and each sheet is read alone."""
     c = client_for(make_user())
-    note = new_note(c)
+    note = new_note(c, sheets=2)
     points = [12345.67] * 12_000
     big = [{"id": f"s{i}", "tool": "pen", "color": "#1f2933", "width": 2.5, "points": points} for i in range(3)]
     for k in range(2):
-        r = ink(c, note, svc.PAPER_SHEETS_FROM + k, big, 0)
+        r = ink(c, note, PAPER_SHEETS_FROM + k, big, 0)
         assert r.status_code == 200, r.text[:200]
     in_postgres = db.scalar(select(func.sum(NoteInk.size_bytes)).where(NoteInk.note_id == note["id"]))
     assert in_postgres is not None
@@ -420,12 +425,12 @@ def test_saves_are_counted_per_student_too(
 ) -> None:
     """Filling many notes at once is as slow as filling one."""
     c = client_for(make_user())
-    first, second = new_note(c), new_note(c)
+    first, second = new_note(c, sheets=2), new_note(c, sheets=2)
     monkeypatch.setattr(svc, "PERSON_SAVES_PER_MINUTE", 3)
-    assert ink(c, first, 0, [stroke("a")], 0).status_code == 200
-    assert ink(c, second, 0, [stroke("b")], 0).status_code == 200
-    assert ink(c, first, 1, [stroke("c")], 0).status_code == 200
-    r = ink(c, second, 1, [stroke("d")], 0)
+    assert ink(c, first, PAPER_SHEETS_FROM, [stroke("a")], 0).status_code == 200
+    assert ink(c, second, PAPER_SHEETS_FROM, [stroke("b")], 0).status_code == 200
+    assert ink(c, first, PAPER_SHEETS_FROM + 1, [stroke("c")], 0).status_code == 200
+    r = ink(c, second, PAPER_SHEETS_FROM + 1, [stroke("d")], 0)
     assert (r.status_code, r.json()["error"]["code"]) == (429, "rate_limited")
     assert r.headers["Retry-After"]
 
@@ -446,22 +451,23 @@ def test_sizes_are_capped(client_for: ClientFor, make_user: MakeUser, monkeypatc
 def test_ink_saves_per_sheet_with_versions(client_for: ClientFor, make_user: MakeUser) -> None:
     user = make_user()
     tab_one, tab_two = client_for(user), client_for(user)
-    note = new_note(tab_one)
-    r = ink(tab_one, note, 0, [stroke("a"), stroke("b")], 0)
+    note = new_note(tab_one, sheets=3)
+    first, third = PAPER_SHEETS_FROM, PAPER_SHEETS_FROM + 2
+    r = ink(tab_one, note, first, [stroke("a"), stroke("b")], 0)
     assert r.status_code == 200, r.text
     assert (r.json()["version"], [s["id"] for s in r.json()["strokes"]]) == (1, ["a", "b"])
-    assert ink(tab_one, note, 2, [stroke("c")], 0).json()["version"] == 1
-    r = ink(tab_two, note, 0, [stroke("z")], 0)  # written on in the first tab since
+    assert ink(tab_one, note, third, [stroke("c")], 0).json()["version"] == 1
+    r = ink(tab_two, note, first, [stroke("z")], 0)  # written on in the first tab since
     assert (r.status_code, r.json()["error"]["code"]) == (409, "ink_changed")
-    assert ink(tab_two, note, 0, [stroke("a")], 1).json()["version"] == 2
+    assert ink(tab_two, note, first, [stroke("a")], 1).json()["version"] == 2
     loaded = tab_one.get(f"{API}/notes/{note['id']}").json()
-    assert loaded["ink"] == [{"sheet": 0, "version": 2}, {"sheet": 2, "version": 1}]
+    assert loaded["ink"] == [{"sheet": first, "version": 2}, {"sheet": third, "version": 1}]
     sheets = [tab_one.get(f"{API}/notes/{note['id']}/ink/{s['sheet']}").json() for s in loaded["ink"]]
     assert [[x["id"] for x in s["strokes"]] for s in sheets] == [["a"], ["c"]]
     assert loaded["version"] == note["version"]  # ink doesn't change the text's version
-    cleared = ink(tab_one, note, 2, [], 1)  # an empty sheet is removed
-    assert cleared.json() == {"sheet": 2, "strokes": [], "version": 0}
-    assert [s["sheet"] for s in tab_one.get(f"{API}/notes/{note['id']}").json()["ink"]] == [0]
+    cleared = ink(tab_one, note, third, [], 1)  # an empty sheet is removed
+    assert cleared.json() == {"sheet": third, "strokes": [], "version": 0}
+    assert [s["sheet"] for s in tab_one.get(f"{API}/notes/{note['id']}").json()["ink"]] == [first]
 
 
 @pytest.mark.parametrize(
@@ -478,7 +484,7 @@ def test_ink_saves_per_sheet_with_versions(client_for: ClientFor, make_user: Mak
 def test_strokes_are_checked(client_for: ClientFor, make_user: MakeUser, bad: dict[str, Any]) -> None:
     c = client_for(make_user())
     note = new_note(c)
-    assert ink(c, note, 0, [stroke() | bad], 0).status_code == 422
+    assert ink(c, note, PAPER_SHEETS_FROM, [stroke() | bad], 0).status_code == 422
 
 
 def test_ink_sheets_are_bounded(client_for: ClientFor, make_user: MakeUser) -> None:
@@ -486,6 +492,123 @@ def test_ink_sheets_are_bounded(client_for: ClientFor, make_user: MakeUser) -> N
     note = new_note(c)
     assert ink(c, note, svc.MAX_SHEET_INDEX + 1, [stroke()], 0).status_code == 422
     assert ink(c, note, -1, [stroke()], 0).status_code in (404, 422)
+
+
+def test_ink_goes_only_on_the_notes_pages(client_for: ClientFor, make_user: MakeUser) -> None:
+    """A note takes ink on its pages of paper and, when it is written over a PDF, the PDF's pages: not past its last
+    page. Fewer pages take their ink with them."""
+    c = client_for(make_user())
+    note = new_note(c)  # one page of paper, no PDF
+    second = PAPER_SHEETS_FROM + 1
+    assert ink(c, note, second, [stroke()], 0).status_code == 404  # past the last page
+    assert ink(c, note, 0, [stroke()], 0).status_code == 404  # a PDF's page, and there is no PDF
+    assert ink(c, note, PAPER_SHEETS_FROM, [stroke("a")], 0).status_code == 200
+    note = save(c, note, sheets=2).json()
+    assert ink(c, note, second, [stroke("b")], 0).status_code == 200
+    room = c.get(f"{API}/notebooks").json()["storage"]["writingBytes"]
+
+    fewer = save(c, note, sheets=1)
+    assert fewer.status_code == 200, fewer.text
+    assert fewer.json()["ink"] == [{"sheet": PAPER_SHEETS_FROM, "version": 1}]
+    assert c.get(f"{API}/notes/{note['id']}/ink/{second}").json()["strokes"] == []
+    assert c.get(f"{API}/notebooks").json()["storage"]["writingBytes"] < room
+
+
+def pages(c: TestClient, note: dict[str, Any], action: str, page: int, to: int | None = None) -> Any:
+    body: dict[str, Any] = {"action": action, "page": page, "version": note["version"]}
+    if to is not None:
+        body["to"] = to
+    return c.post(f"{API}/notes/{note['id']}/pages", json=body)
+
+
+def test_a_page_is_added_deleted_or_moved_in_one_call(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session
+) -> None:
+    """A page's handwriting and free pictures go with it, and so do the pages after it, in one request."""
+    c = client_for(make_user())
+    first, second, third = PAPER_SHEETS_FROM, PAPER_SHEETS_FROM + 1, PAPER_SHEETS_FROM + 2
+    on_second = upload(c, storage, purpose="note_file", name="two.png", content_type="image/png", body=PNG)
+    on_third = upload(c, storage, purpose="note_file", name="three.png", content_type="image/png", body=PNG)
+    body = doc("Three pages")
+    body["attrs"] = {
+        "pictures": [
+            free_picture(on_second, id="p2", sheet=second, caption="On page two"),
+            free_picture(on_third, id="p3", sheet=third, caption="On page three"),
+        ]
+    }
+    note = new_note(c, doc=body, sheets=3)
+    for sheet, sid in ((first, "a"), (second, "b"), (third, "c")):
+        assert ink(c, note, sheet, [stroke(sid)], 0).status_code == 200
+    assert ink(c, note, third, [stroke("c2")], 1).json()["version"] == 2
+
+    def strokes_on(n: dict[str, Any]) -> dict[int, list[str]]:
+        sheets = [c.get(f"{API}/notes/{n['id']}/ink/{i['sheet']}").json() for i in n["ink"]]
+        return {s["sheet"]: [x["id"] for x in s["strokes"]] for s in sheets}
+
+    deleted = pages(c, note, "delete", 1)
+    assert deleted.status_code == 200, deleted.text
+    note = deleted.json()
+    assert (note["sheets"], note["version"]) == (2, 2)
+    assert strokes_on(note) == {first: ["a"], second: ["c2"]}
+    assert note["ink"] == [{"sheet": first, "version": 1}, {"sheet": second, "version": 2}]  # versions go along
+    assert [(p["id"], p["sheet"]) for p in note["doc"]["attrs"]["pictures"]] == [("p3", second)]
+    assert note["text"] == "Three pages\nOn page three\nNormal curve"
+    assert statuses(db, on_second, on_third) == [UploadStatus.released, UploadStatus.attached]
+
+    note = pages(c, note, "insert", 0).json()  # a blank page first
+    assert note["sheets"] == 3
+    assert strokes_on(note) == {second: ["a"], third: ["c2"]}
+    assert [(p["id"], p["sheet"]) for p in note["doc"]["attrs"]["pictures"]] == [("p3", third)]
+
+    note = pages(c, note, "move", 2, to=0).json()  # the last page first
+    assert strokes_on(note) == {first: ["c2"], third: ["a"]}
+    assert [(p["id"], p["sheet"]) for p in note["doc"]["attrs"]["pictures"]] == [("p3", first)]
+    assert pages(c, note, "insert", 3).json()["sheets"] == 4  # added at the end
+
+    stale = pages(c, note, "delete", 0)  # the version before the last change
+    assert (stale.status_code, stale.json()["error"]["code"]) == (409, "note_changed")
+    assert client_for(make_user()).post(f"{API}/notes/{note['id']}/pages", json={}).status_code == 422
+    other = client_for(make_user(name="Omar Classmate"))
+    assert pages(other, c.get(f"{API}/notes/{note['id']}").json(), "delete", 0).status_code == 404
+
+
+@pytest.mark.parametrize(
+    ("action", "page", "to", "sheets"),
+    [
+        ("delete", 0, None, 1),  # the last page
+        ("delete", 3, None, 3),
+        ("insert", 4, None, 3),
+        ("move", 0, 3, 3),
+        ("move", 3, 0, 3),
+        ("move", 0, None, 3),
+        ("delete", 0, 1, 3),
+    ],
+)
+def test_a_page_change_the_note_cant_take_is_refused(
+    client_for: ClientFor, make_user: MakeUser, action: str, page: int, to: int | None, sheets: int
+) -> None:
+    c = client_for(make_user())
+    note = new_note(c, sheets=sheets)
+    assert pages(c, note, action, page, to).status_code == 422
+
+
+@pytest.mark.parametrize(
+    ("action", "page", "to", "count", "moves"),
+    [
+        ("insert", 1, None, 3, {1: 2, 2: 3}),
+        ("insert", 3, None, 3, {}),
+        ("delete", 0, None, 3, {0: None, 1: 0, 2: 1}),
+        ("delete", 2, None, 3, {2: None}),
+        ("move", 0, 2, 3, {0: 2, 1: 0, 2: 1}),
+        ("move", 2, 0, 3, {2: 0, 0: 1, 1: 2}),
+        ("move", 1, 1, 3, {1: 1}),
+    ],
+)
+def test_where_each_page_goes(action: str, page: int, to: int | None, count: int, moves: dict[int, int | None]) -> None:
+    change = PageChange.model_validate({"action": action, "page": page, "to": to, "version": 1})
+    first = PAPER_SHEETS_FROM
+    expected = {first + k: (None if v is None else first + v) for k, v in moves.items()}
+    assert svc.page_mapping(change, count) == expected
 
 
 # ── files ────────────────────────────────────────────────────────────────────────────────────
@@ -499,7 +622,17 @@ def picture_doc(upload_id: str, file_id: str | None = None, attrs: dict[str, Any
     return {"type": "doc", "content": content}
 
 
-def test_pictures_and_files_belong_to_the_note_that_shows_them(
+def statuses(db: Session, *ids: str) -> list[UploadStatus]:
+    db.expire_all()
+    return [db.get(Upload, i).status for i in ids]  # type: ignore[union-attr]
+
+
+def listed(db: Session, note: dict[str, Any]) -> set[str]:
+    db.expire_all()
+    return {str(u) for u in db.get(Note, note["id"]).uploads}  # type: ignore[union-attr]
+
+
+def test_pictures_and_files_are_kept_while_a_note_shows_them(
     client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session
 ) -> None:
     c = client_for(make_user())
@@ -507,10 +640,9 @@ def test_pictures_and_files_belong_to_the_note_that_shows_them(
     data = upload(c, storage, purpose="note_file", name="data.csv", content_type="text/csv", body=b"a,b\n1,2\n")
     note = new_note(c, doc=picture_doc(picture, data))
     assert note["text"] == "Whiteboard\ndata.csv"
-    rows = {str(u.id): u for u in db.scalars(select(Upload).where(Upload.note_id == note["id"]))}
-    assert set(rows) == {picture, data}
-    assert {u.status for u in rows.values()} == {UploadStatus.attached}
-    assert rows[picture].storage_key.startswith("notes/")
+    assert listed(db, note) == {picture, data}
+    assert statuses(db, picture, data) == [UploadStatus.attached] * 2
+    assert db.get(Upload, picture).storage_key.startswith("notes/")  # type: ignore[union-attr]
 
     shown = c.get(f"{API}/notes/files/{picture}", follow_redirects=False)
     assert shown.status_code == 302
@@ -518,22 +650,69 @@ def test_pictures_and_files_belong_to_the_note_that_shows_them(
     saved = c.get(f"{API}/notes/files/{data}", params={"download": True}, follow_redirects=False)
     assert "attachment" in saved.headers["location"]
 
-    later = save(c, note, doc=picture_doc(picture))  # the file was taken out: the sweep deletes it
+    later = save(c, note, doc=picture_doc(picture))  # the file was taken out: released, for the sweep
     assert later.status_code == 200, later.text
-    db.expire_all()
-    gone = db.get(Upload, data)
-    assert gone is not None
-    assert (gone.note_id, gone.status) == (None, UploadStatus.uploaded)
-    back = save(c, later.json(), doc=picture_doc(picture, data))  # undone before the sweep: attached again
+    assert listed(db, note) == {picture}
+    assert statuses(db, data) == [UploadStatus.released]
+    assert c.get(f"{API}/notes/files/{data}", follow_redirects=False).status_code == 302  # still there to undo
+    back = save(c, later.json(), doc=picture_doc(picture, data))  # undone before the sweep: in use again
     assert back.status_code == 200
-    db.expire_all()
-    assert db.get(Upload, data).note_id is not None  # type: ignore[union-attr]
+    assert statuses(db, data) == [UploadStatus.attached]
 
     assert c.delete(f"{API}/notes/{note['id']}").status_code == 204
+    assert statuses(db, picture, data) == [UploadStatus.released] * 2
+
+
+def test_a_picture_in_two_notes_stays_until_neither_shows_it(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A picture copied into a second note keeps its upload: deleting the first note, or the picture in it, leaves it
+    for the second. Once no note shows it, it stops counting against the room and the sweep deletes it."""
+    c = client_for(make_user())
+    picture = upload(c, storage, purpose="note_file", name="board.png", content_type="image/png", body=PNG)
+    first = new_note(c, doc=picture_doc(picture))
+    second = new_note(c, doc=picture_doc(picture), title="Copied")
+    room = c.get(f"{API}/notebooks").json()["storage"]["filesBytes"]
+    assert room == len(PNG)
+
+    assert save(c, first, doc=doc("No picture any more")).status_code == 200
+    assert statuses(db, picture) == [UploadStatus.attached]
+    assert c.delete(f"{API}/notes/{first['id']}").status_code == 204
+    assert statuses(db, picture) == [UploadStatus.attached]
+    assert c.get(f"{API}/notes/files/{picture}", follow_redirects=False).status_code == 302
+    exported = c.get(f"{API}/me/export").json()
+    files = [n["files"] for b in exported["notebooks"] for n in b["notes"]]
+    assert files == [["board.png"]]
+
+    assert c.delete(f"{API}/notes/{second['id']}").status_code == 204
+    assert statuses(db, picture) == [UploadStatus.released]
+    assert c.get(f"{API}/notebooks").json()["storage"]["filesBytes"] == 0  # the room is free at once
+    db.execute(update(Upload).where(Upload.id == picture).values(created_at=utcnow() - timedelta(days=2)))
+    db.commit()
+
+    @contextmanager
+    def same_session() -> Iterator[Session]:
+        yield db
+
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: same_session)
+    assert cli.sweep().uploads == 1
     db.expire_all()
-    assert {u.status for u in db.scalars(select(Upload).where(Upload.id.in_([picture, data])))} == {
-        UploadStatus.uploaded
-    }
+    assert db.get(Upload, picture) is None
+
+
+def test_a_deleted_notebook_releases_the_files_no_other_note_shows(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session
+) -> None:
+    c = client_for(make_user())
+    shared = upload(c, storage, purpose="note_file", name="shared.png", content_type="image/png", body=PNG)
+    own = upload(c, storage, purpose="note_file", name="own.png", content_type="image/png", body=PNG)
+    book = c.post(f"{API}/notebooks", json={"title": "Scratch"}).json()
+    other = c.post(f"{API}/notebooks", json={"title": "Kept"}).json()
+    new_note(c, doc=picture_doc(shared, attrs={"caption": "in the notebook"}), notebookId=book["id"])
+    new_note(c, doc=picture_doc(own), notebookId=book["id"])
+    new_note(c, doc=picture_doc(shared), notebookId=other["id"])
+    assert c.delete(f"{API}/notebooks/{book['id']}").status_code == 204
+    assert statuses(db, shared, own) == [UploadStatus.attached, UploadStatus.released]
 
 
 def test_a_picture_keeps_its_place_crop_and_caption(client_for: ClientFor, make_user: MakeUser, storage: Any) -> None:
@@ -550,6 +729,85 @@ def test_a_picture_keeps_its_place_crop_and_caption(client_for: ClientFor, make_
     assert [n["id"] for n in found] == [note["id"]]
 
 
+def free_picture(upload_id: str, **changes: Any) -> dict[str, Any]:
+    """A picture free on the first page of paper, as the editor keeps it in the document's own attributes."""
+    picture: dict[str, Any] = {
+        "id": "f1",
+        "upload": upload_id,
+        "sheet": PAPER_SHEETS_FROM,
+        "x": 420,
+        "y": 64,
+        "w": 320,
+        "h": 240,
+        "angle": 12.5,
+        "ratio": 4 / 3,
+        "cropX": 0,
+        "cropY": 0,
+        "cropW": 1,
+        "cropH": 1,
+        "alt": "Normal curve",
+        "caption": "Beside the definition",
+    }
+    return picture | changes
+
+
+def test_free_pictures_keep_their_places_on_the_pages(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session
+) -> None:
+    """A free picture is kept where the editor put it, its words are searched, its file belongs to the note, and it
+    can't be left off its page or on a page the note doesn't have."""
+    c = client_for(make_user())
+    upload_id = upload(c, storage, purpose="note_file", name="curve.png", content_type="image/png", body=PNG)
+    body = doc("The density")
+    body["attrs"] = {"pictures": [free_picture(upload_id)]}
+    note = new_note(c, doc=body, sheets=2)
+    assert note["doc"]["attrs"] == body["attrs"]
+    assert note["text"] == "The density\nBeside the definition\nNormal curve"
+    assert (listed(db, note), statuses(db, upload_id)) == ({upload_id}, [UploadStatus.attached])
+    assert [n["id"] for n in c.get(f"{API}/notes", params={"q": "normal curve"}).json()["items"]] == [note["id"]]
+
+    to_page_two = {"pictures": [free_picture(upload_id, sheet=PAPER_SHEETS_FROM + 1, y=800, angle=0)]}
+    moved = save(c, note, doc=body | {"attrs": to_page_two})
+    assert moved.status_code == 200, moved.text
+    assert c.get(f"{API}/notes/{note['id']}").json()["doc"]["attrs"] == to_page_two
+
+    note = moved.json()
+    off = {"pictures": [free_picture(upload_id, x=700)]}  # its middle past the page's right edge
+    r = save(c, note, doc=body | {"attrs": off})
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["doc"])
+    r = save(c, note, sheets=1)  # the page it is on can't go while it is there
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["doc"])
+
+    gone = save(c, note, doc=doc("The density"), sheets=1)  # deleted with its page: its file is released
+    assert gone.status_code == 200, gone.text
+    assert statuses(db, upload_id) == [UploadStatus.released]
+
+
+def test_free_pictures_on_a_pdf_of_your_own(client_for: ClientFor, make_user: MakeUser, storage: Any) -> None:
+    c = client_for(make_user())
+    pdf = upload(c, storage, purpose="note_file", name="slides.pdf", content_type="application/pdf", body=PDF)
+    picture = upload(c, storage, purpose="note_file", name="graph.png", content_type="image/png", body=PNG)
+    body = {"type": "doc", "attrs": {"pictures": [free_picture(picture, sheet=3, y=2000)]}, "content": []}
+    note = new_note(c, doc=body, sheets=0, pdfUploadId=pdf)
+    assert note["sheets"] == 0
+    assert note["doc"]["attrs"]["pictures"][0]["sheet"] == 3
+
+
+def test_a_note_holds_a_limited_number_of_pictures(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(note_doc, "MAX_PICTURES", 2)
+    c = client_for(make_user())
+    picture = upload(c, storage, purpose="note_file", name="a.png", content_type="image/png", body=PNG)
+    body = picture_doc(picture)
+    body["attrs"] = {"pictures": [free_picture(picture)]}
+    note = new_note(c, doc=body)
+    body["attrs"] = {"pictures": [free_picture(picture), free_picture(picture, id="f2")]}
+    r = save(c, note, doc=body)
+    assert r.status_code == 422
+    assert r.json()["error"]["message"] == "A note holds up to 2 pictures. Put the others in another note."
+
+
 def test_someone_elses_upload_in_a_note_is_left_alone(
     client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session
 ) -> None:
@@ -557,7 +815,7 @@ def test_someone_elses_upload_in_a_note_is_left_alone(
     theirs = upload(other, storage, purpose="note_file", name="x.png", content_type="image/png", body=PNG)
     c = client_for(make_user())
     note = new_note(c, doc=picture_doc(theirs))
-    assert db.get(Upload, theirs).note_id is None  # type: ignore[union-attr]
+    assert (listed(db, note), statuses(db, theirs)) == (set(), [UploadStatus.uploaded])
     assert c.get(f"{API}/notes/files/{theirs}", follow_redirects=False).status_code == 404
     assert note["text"] == "Whiteboard"
 
@@ -641,11 +899,12 @@ def test_a_pdf_of_your_own(client_for: ClientFor, make_user: MakeUser, storage: 
         "available": True,
     }
     assert (note["onPdf"], note["sheets"]) == (True, 0)
-    assert save(c, note, doc=doc("No pictures")).status_code == 200  # the PDF stays attached
-    db.expire_all()
-    assert str(db.get(Upload, pdf).note_id) == note["id"]  # type: ignore[union-attr]
-    r = c.post(f"{API}/notes", json={"pdfUploadId": pdf})
-    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["pdfUploadId"])
+    assert save(c, note, doc=doc("No pictures")).status_code == 200  # the PDF stays in use
+    assert (listed(db, note), statuses(db, pdf)) == ({pdf}, [UploadStatus.attached])
+    again = c.post(f"{API}/notes", json={"title": "Slides again", "sheets": 0, "pdfUploadId": pdf})
+    assert again.status_code == 201, again.text  # a second note on the same PDF keeps it when the first goes
+    assert c.delete(f"{API}/notes/{note['id']}").status_code == 204
+    assert statuses(db, pdf) == [UploadStatus.attached]
 
 
 # ── accounts and switches ────────────────────────────────────────────────────────────────────
@@ -661,7 +920,7 @@ def test_a_suspended_account_reads_but_does_not_write(client_for: ClientFor, mak
     assert c.get(f"{API}/notebooks").status_code == 200
     assert c.get(f"{API}/notes/{note['id']}").status_code == 200
     assert save(c, note, doc=doc("Changed")).status_code == 403
-    assert ink(c, note, 0, [stroke()], 0).status_code == 403
+    assert ink(c, note, PAPER_SHEETS_FROM, [stroke()], 0).status_code == 403
     assert c.post(f"{API}/notes", json={}).status_code == 403
     assert c.post(f"{API}/notebooks", json={"title": "New"}).status_code == 403
     assert c.delete(f"{API}/notes/{note['id']}").status_code == 403
@@ -687,7 +946,7 @@ def test_deleting_the_account_deletes_its_notebook(
     c = client_for(user)
     picture = upload(c, storage, purpose="note_file", name="board.png", content_type="image/png", body=PNG)
     note = new_note(c, doc=picture_doc(picture))
-    ink(c, note, 0, [stroke()], 0)
+    assert ink(c, note, PAPER_SHEETS_FROM, [stroke()], 0).status_code == 200
     keep = new_note(client_for(make_user(name="Omar Classmate")))
     key = db.get(Upload, picture).storage_key  # type: ignore[union-attr]
     r = c.delete(f"{API}/me")

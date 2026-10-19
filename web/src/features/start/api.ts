@@ -1,6 +1,6 @@
 // The guides (GET /guides, for everyone): Start here, Results day and Choosing your Year 3 electives, and their editor
 // (holders of guides.edit). A save refreshes what everyone sees.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import type { GuidesEditable, GuidesSave } from '../../api/types';
 
@@ -16,14 +16,16 @@ export function useGuides() {
   });
 }
 
+const editGuidesQuery = queryOptions({
+  queryKey: EDIT_GUIDES_KEY,
+  queryFn: ({ signal }) => call(api.GET('/api/v1/guides/edit', { signal })),
+  // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+});
+
 export function useGuidesForEditing() {
-  return useQuery({
-    queryKey: EDIT_GUIDES_KEY,
-    queryFn: ({ signal }) => call(api.GET('/api/v1/guides/edit', { signal })),
-    // The editor keeps its own copy: a refetch in the background must not look like someone else's save.
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  });
+  return useQuery(editGuidesQuery);
 }
 
 export function useSaveGuides() {
@@ -37,8 +39,8 @@ export function useSaveGuides() {
   });
 }
 
-/** Loads the guides again, as someone else saved them: the editor starts over from there. */
+/** Loads the guides again, as someone else saved them: the editor starts over from the copy it returns. */
 export function useReloadGuides() {
   const qc = useQueryClient();
-  return () => qc.refetchQueries({ queryKey: EDIT_GUIDES_KEY, exact: true });
+  return () => qc.fetchQuery({ ...editGuidesQuery, staleTime: 0 });
 }

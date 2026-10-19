@@ -202,8 +202,8 @@
 .medit__year-title {
   margin: var(--sp-8) 0 0;
   font-size: var(--fs-14);
-  color: var(--ink-2);
   font-weight: var(--fw-semibold);
+  color: var(--ink-2);
 }
 .medit__list {
   margin: 0;
@@ -400,4 +400,9 @@
   .medit__grip {
     display: none;
   }
+}
+
+/* Add a module: a field scrolled into view (a phone's keyboard opening) keeps its label in sight under the header. */
+.medit-add :is(input, select, textarea) {
+  scroll-margin-top: 2.25rem;
 }

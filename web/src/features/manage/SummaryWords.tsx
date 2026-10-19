@@ -5,18 +5,8 @@ import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../api/errors';
 import type { SummaryEditable, SummaryWords as Words } from '../../api/types';
 import { cohortLabel, useToast, YEARS, type CohortYear } from '../../state';
-import {
-  DocFrame,
-  Drawer,
-  Panel,
-  QueryError,
-  SegmentedControl,
-  Skeleton,
-  TextField,
-  docErrors,
-  focusDocStatus,
-  type DocProblem,
-} from '../../ui';
+import { Drawer, Panel, QueryError, SegmentedControl, Skeleton, TextField } from '../../ui';
+import { DocFrame, docErrors, type DocProblem } from '../../ui/docEditor';
 import { useReloadSummaryWords, useSaveSummaryWords, useSummaryDraft, useSummaryWords } from './api';
 
 const HEADINGS: { key: keyof Words['headings']; label: string; hint: string }[] = [
@@ -28,6 +18,8 @@ const HEADINGS: { key: keyof Words['headings']; label: string; hint: string }[] 
 
 export function SummaryWords({ defaultYear }: { defaultYear: CohortYear | null }) {
   const query = useSummaryWords();
+  // Once loaded, the editor keeps its own copy: a refetch in the background never replaces the draft.
+  if (query.data) return <Editor first={query.data} defaultYear={defaultYear} />;
   if (query.isError)
     return (
       <QueryError
@@ -38,18 +30,16 @@ export function SummaryWords({ defaultYear }: { defaultYear: CohortYear | null }
         size="sm"
       />
     );
-  if (query.isPending) {
-    return (
-      <Panel padding="md">
-        <Skeleton lines={6} />
-      </Panel>
-    );
-  }
-  // A new version (saved here, or loaded again) starts a new draft.
-  return <Editor key={query.data.version} loaded={query.data} defaultYear={defaultYear} />;
+  return (
+    <Panel padding="md">
+      <Skeleton lines={6} />
+    </Panel>
+  );
 }
 
-function Editor({ loaded, defaultYear }: { loaded: SummaryEditable; defaultYear: CohortYear | null }) {
+function Editor({ first, defaultYear }: { first: SummaryEditable; defaultYear: CohortYear | null }) {
+  // The version the draft is edited from: the one first loaded, then each one a save returns or "Load it again" loads.
+  const [loaded, setLoaded] = useState(first);
   const saved = loaded.data;
   const [words, setWords] = useState<Words>(saved);
   const [fields, setFields] = useState<Record<string, string>>({});
@@ -62,6 +52,13 @@ function Editor({ loaded, defaultYear }: { loaded: SummaryEditable; defaultYear:
   const dirty = useMemo(() => JSON.stringify(words) !== JSON.stringify(saved), [words, saved]);
   const draft = useSummaryDraft(year, words, previewing);
   const err = (path: string) => fields[path];
+  // A new version (as the API keeps it, so even a save that changed nothing leaves nothing unsaved) starts a new draft.
+  const start = (next: SummaryEditable) => {
+    setLoaded(next);
+    setWords(next.data);
+    setFields({});
+    setProblem(null);
+  };
 
   const submit = () => {
     setProblem(null);
@@ -69,15 +66,13 @@ function Editor({ loaded, defaultYear }: { loaded: SummaryEditable; defaultYear:
       { version: loaded.version, data: words },
       {
         onSuccess: (out) => {
-          setWords(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
-          setFields({});
+          start(out);
           toast({ title: 'Saved. The next summaries use these words.', tone: 'success' });
-          focusDocStatus();
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'summary_changed')
             return setProblem({ kind: 'changed', what: 'the summary’s words' });
-          const found = docErrors(isApiError(e) ? e.fields : {});
+          const found = docErrors(isApiError(e) ? e.fields : {}, { wholes: ['headings'] });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']
@@ -108,7 +103,7 @@ function Editor({ loaded, defaultYear }: { loaded: SummaryEditable; defaultYear:
         }}
         onSave={submit}
         problem={problem}
-        onReload={() => void reload()}
+        onReload={() => reload().then(start)}
         section={{
           title: 'Its words and when it goes out',
           about: 'Every year’s summary uses them, in its email and in the text reps paste.',
