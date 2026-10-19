@@ -152,7 +152,7 @@ def test_a_finished_answer_settles_to_its_real_cost(
     sara = make_user()
     assert ask_http(client_for(sara)).status_code == 200
     row = usage_row(db, sara)
-    assert row.cost_microusd == 1000 * 1 + 3000 * 0.1 + 200 * 5
+    assert row.cost_microusd == 1000 * 0.1 + 3000 * 0.01 + 200 * 0.5
     assert row.answering_since is None
 
 

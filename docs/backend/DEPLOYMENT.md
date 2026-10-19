@@ -403,9 +403,11 @@ in the `.env` of your checkout. Without the script, the import alone is
 
 **Mini Noora's AI answers** come from Claude. Put `DSBA_ANTHROPIC_API_KEY` in `.env` (compose passes it to the API's
 services, never to the text worker), then turn on `noora.ai` in Access; it arrives off. The model is `DSBA_NOORA_MODEL`
-(`claude-haiku-4-5-20251001` by default). Admins set her daily limit per student and the monthly budget in Manage →
-Numbers; also set a monthly spending limit on the Anthropic workspace as a backstop. Without the key, or with
-`noora.ai` off, she answers from her script, which admins edit in Manage → Mini Noora, and calls nobody.
+(`claude-haiku-5-5` by default; it thinks before it answers, at `DSBA_NOORA_EFFORT`). When Claude's safeguards decline a
+question, the student is told she can't help with that one, and the log keeps the decline's category only. Admins set
+her daily limit per student and the monthly budget in Manage → Numbers; also set a monthly spending limit on the
+Anthropic workspace as a backstop. Without the key, or with `noora.ai` off, she answers from her script, which admins
+edit in Manage → Mini Noora, and calls nobody.
 
 **The Sunday summary** is an email of the week ahead for each year, for students who keep its switch on. Turn on
 `summary` in Access. The `mail` service queues it on Sunday from the time set in Manage → Sunday summary and sends it;
@@ -460,9 +462,11 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_BACKUP_SSE`, `DSBA_BACKUP_KMS_KEY_ID`, `DSBA_BACKUP_KEEP` | `AES256`, none, `14` | encryption at rest, and how many dumps to keep (0: all) |
 | `DSBA_ADMIN_IDENTIFIERS` | none | emails or phone numbers that get Admin when they first sign in |
 | `DSBA_GOOGLE_API_KEY`, `DSBA_GOOGLE_SERVICE_ACCOUNT_FILE` | none | the Drive import only (section 10) |
-| `DSBA_ANTHROPIC_API_KEY`, `DSBA_NOORA_MODEL` | none, `claude-haiku-4-5-20251001` | Mini Noora's AI answers (section 11) |
-| `DSBA_NOORA_INPUT_USD_PER_MTOK`, `DSBA_NOORA_OUTPUT_USD_PER_MTOK` | `1.0`, `5.0` | the model's prices, for the estimated cost the monthly budget is checked against |
-| `DSBA_NOORA_MAX_ANSWER_TOKENS`, `DSBA_NOORA_ANSWERS_AT_ONCE` | `1500`, `8` | the longest answer, and answers streaming at once hub-wide |
+| `DSBA_ANTHROPIC_API_KEY`, `DSBA_NOORA_MODEL` | none, `claude-haiku-5-5` | Mini Noora's AI answers (section 11) |
+| `DSBA_NOORA_EFFORT` | `medium` | how much she thinks before she answers: `low`, `medium` or `high` |
+| `DSBA_NOORA_INPUT_USD_PER_MTOK`, `DSBA_NOORA_OUTPUT_USD_PER_MTOK` | `0.10`, `0.50` | the model's prices, for the estimated cost the monthly budget is checked against |
+| `DSBA_NOORA_LONG_PROMPT_TOKENS`, `DSBA_NOORA_LONG_INPUT_USD_PER_MTOK`, `DSBA_NOORA_LONG_OUTPUT_USD_PER_MTOK` | `100000`, `0.50`, `2.50` | the prices for a prompt over that many tokens |
+| `DSBA_NOORA_MAX_ANSWER_TOKENS`, `DSBA_NOORA_ANSWERS_AT_ONCE` | `8000`, `8` | the longest answer (her thinking included), and answers streaming at once hub-wide |
 | `DSBA_COMMIT_SHA` (or Railway's `RAILWAY_GIT_COMMIT_SHA`) | none | the commit `/api/v1/health` reports |
 
 `compose.prod.yaml` itself reads these from `.env`, besides the ones it passes on: `DSBA_DOMAIN`, `POSTGRES_PASSWORD`,

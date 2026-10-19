@@ -14,7 +14,7 @@ import anyio
 import anyio.lowlevel
 import httpx2
 import pytest
-from anthropic.types import Usage
+from anthropic.types import RefusalStopDetails, Usage
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -30,6 +30,8 @@ class FakeStream:
     pieces: list[str]
     usage: Usage
     fail_after: int | None  # raise a connection error after this many pieces
+    stop_reason: str = "end_turn"
+    refusal_category: str | None = None  # with stop_reason "refusal": the safeguard's category
     started: bool = False  # Claude's first event (with the prompt's tokens) arrived
 
     async def __aenter__(self) -> FakeStream:
@@ -53,7 +55,10 @@ class FakeStream:
             raise anthropic.APIConnectionError(request=httpx2.Request("POST", "https://api.anthropic.com"))
 
     async def get_final_message(self) -> Any:
-        return type("Final", (), {"usage": self.usage})()
+        details = None
+        if self.stop_reason == "refusal":
+            details = RefusalStopDetails.model_validate({"type": "refusal", "category": self.refusal_category})
+        return type("Final", (), {"usage": self.usage, "stop_reason": self.stop_reason, "stop_details": details})()
 
     @property
     def current_message_snapshot(self) -> Any:
@@ -72,11 +77,13 @@ class FakeMessages:
         )
     )
     fail_after: int | None = None
+    stop_reason: str = "end_turn"
+    refusal_category: str | None = None
     calls: list[dict[str, Any]] = field(default_factory=list)
 
     def stream(self, **kwargs: Any) -> FakeStream:
         self.calls.append(kwargs)
-        return FakeStream(list(self.pieces), self.usage, self.fail_after)
+        return FakeStream(list(self.pieces), self.usage, self.fail_after, self.stop_reason, self.refusal_category)
 
 
 @dataclass

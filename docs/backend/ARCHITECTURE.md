@@ -313,7 +313,7 @@ Docker". Either way:
   reminders into notifications. Sign-in codes don't need it; reminders do.
 - **The text worker:** `python -m app.cli text-worker` reads the words and makes the cover of each published PDF and
   Word file, for search inside papers. `extract-texts` does the files already there.
-- **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-4-5-20251001`) power
+- **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-5-5`) power
   rich AI answers when the `noora.ai` feature switch is turned on; without the key or when off, Noora answers in
   script mode.
 - **Drive import pacing:** `python -m app.cli import-drive` imports linked Google Drive folders into S3/MinIO,

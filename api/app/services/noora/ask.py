@@ -13,6 +13,10 @@ settled from Claude's usage; an answer the student dropped keeps at least its re
 answer never settles (the process died) stays counted. A question Claude failed before a word of the answer is given
 back. The answer streams asynchronously, so it holds no worker thread while it waits for Claude.
 
+Claude thinks before it answers (adaptive thinking, at settings.noora_effort); the thinking isn't shown, and the
+student sees the answer's text as it comes. When Claude's safeguards decline a question (stop reason "refusal"), the
+student is told plainly, the decline is logged with its category only, and the question counts as asked.
+
 Nothing a student asks or Noora answers is stored or logged: only the counts in noora_usage."""
 
 from __future__ import annotations
@@ -61,6 +65,7 @@ CACHE_WRITE_FACTOR = 1.25  # a cache write costs 1.25 times an input token
 CACHE_READ_FACTOR = 0.1  # a cache read, a tenth
 MICRO_PER_CENT = 10_000
 CUT_OFF = "My answer was cut off. Try asking again in a minute."
+DECLINED = "I can't help with that one. Try asking it another way, or ask a student rep."
 CHARS_PER_TOKEN = 3  # a cautious estimate of a prompt's tokens from its characters
 ANSWER_STALE = dt.timedelta(minutes=2)  # an answer still marked as streaming after this ended without settling
 LOCK = "noora:answers"
@@ -171,24 +176,35 @@ def set_limits(db: Session, user: User, body: NooraLimitsIn, ip: str | None) -> 
     return lim
 
 
+def prices(prompt_tokens: int, s: Settings) -> tuple[float, float]:
+    """The input and output prices (US dollars per million tokens) for a prompt of this many tokens."""
+    if prompt_tokens > s.noora_long_prompt_tokens:
+        return s.noora_long_input_usd_per_mtok, s.noora_long_output_usd_per_mtok
+    return s.noora_input_usd_per_mtok, s.noora_output_usd_per_mtok
+
+
 def cost_microusd(u: Usage, s: Settings) -> int:
-    """What an answer cost, estimated from its tokens and the model's list prices (per million tokens)."""
-    price_in, price_out = s.noora_input_usd_per_mtok, s.noora_output_usd_per_mtok
+    """What an answer cost, estimated from its tokens and the model's list prices (per million tokens), on the rate
+    card its prompt's length picks."""
+    cache_write, cache_read = u.cache_creation_input_tokens or 0, u.cache_read_input_tokens or 0
+    price_in, price_out = prices(u.input_tokens + cache_write + cache_read, s)
     total = (
         u.input_tokens * price_in
-        + (u.cache_creation_input_tokens or 0) * price_in * CACHE_WRITE_FACTOR
-        + (u.cache_read_input_tokens or 0) * price_in * CACHE_READ_FACTOR
+        + cache_write * price_in * CACHE_WRITE_FACTOR
+        + cache_read * price_in * CACHE_READ_FACTOR
         + u.output_tokens * price_out
     )
     return math.ceil(total)
 
 
 def estimate_microusd(system: list[TextBlockParam], messages: list[MessageParam], max_tokens: int, s: Settings) -> int:
-    """The most an answer can cost: the prompt at the full input price (no cache discount), and a whole answer."""
+    """The most an answer can cost: the prompt at the full input price (no cache discount), and a whole answer (its
+    thinking included), on the rate card the prompt's length picks."""
     chars = sum(len(b["text"]) for b in system)
     chars += sum(len(m["content"]) if isinstance(m["content"], str) else 0 for m in messages)
     tokens_in = math.ceil(chars / CHARS_PER_TOKEN)
-    return math.ceil(tokens_in * s.noora_input_usd_per_mtok + max_tokens * s.noora_output_usd_per_mtok)
+    price_in, price_out = prices(tokens_in, s)
+    return math.ceil(tokens_in * price_in + max_tokens * price_out)
 
 
 def _seconds_to_midnight() -> int:
@@ -240,6 +256,7 @@ class Prepared:
 
     client: MessagesClient
     model: str
+    effort: Literal["low", "medium", "high"]
     max_tokens: int
     system: list[TextBlockParam]
     messages: list[MessageParam]
@@ -288,6 +305,7 @@ def prepare(db: Session, user: User, body: NooraQuestion) -> Prepared:
     return Prepared(
         client=client,
         model=s.noora_model,
+        effort=s.noora_effort,
         max_tokens=s.noora_max_answer_tokens,
         system=system,
         messages=messages,
@@ -356,26 +374,41 @@ def _usage_so_far(stream: AsyncMessageStream[Any]) -> Usage | None:
 
 
 async def answer(db: Session, p: Prepared) -> AsyncGenerator[str]:
-    """The answer as Server-Sent Events: text pieces, then done (or error, after which the student sees what came
-    with a line that it was cut off). The cost is settled on every way out, a dropped connection included."""
+    """The answer as Server-Sent Events: text pieces, then done; or error, after which the student sees what came
+    with a line that it was cut off (noora_unavailable) or that she can't help with it (noora_declined: what came is
+    to be dropped). The cost is settled on every way out, a dropped connection included."""
     said = False
     used: Usage | None = None
     settled = False
     try:
         async with p.client.messages.stream(
-            model=p.model, max_tokens=p.max_tokens, system=p.system, messages=p.messages
+            model=p.model,
+            max_tokens=p.max_tokens,
+            thinking={"type": "adaptive"},  # its text is omitted: the answer's text streams as Claude writes it
+            output_config={"effort": p.effort},
+            system=p.system,
+            messages=p.messages,
         ) as stream:
             try:
                 async for text in stream.text_stream:
                     said = True
                     yield sse(NooraTextEvent(text=text))
-                used = (await stream.get_final_message()).usage
+                final = await stream.get_final_message()
+                used = final.usage
             finally:
                 if used is None:
                     used = _usage_so_far(stream)
         left = await _settled(db, p, used, "done")
         settled = True
-        yield sse(NooraDoneEvent(questions_left=left))
+        if final.stop_reason == "refusal":
+            # A safeguard's decline, not a failure: its category only, never the question or the answer.
+            category = final.stop_details.category if final.stop_details is not None else None
+            log.info("Claude declined a Noora question: category %s", category)
+            yield sse(NooraErrorEvent(code="noora_declined", message=DECLINED))
+        elif not said:  # the whole answer went on thinking (max_tokens), or Claude ended without a word
+            yield sse(NooraErrorEvent(message=CUT_OFF))
+        else:
+            yield sse(NooraDoneEvent(questions_left=left))
     except anthropic.APIError as e:
         # The status and the error's type only: never the question, the note or the answer.
         log.warning("Claude failed for a Noora question: %s %s", type(e).__name__, getattr(e, "status_code", ""))

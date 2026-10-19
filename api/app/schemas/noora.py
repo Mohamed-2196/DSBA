@@ -72,11 +72,12 @@ class NooraDoneEvent(ApiModel):
 
 
 class NooraErrorEvent(ApiModel):
-    """The answer stopped. `code` is noora_unavailable: what came so far may be shown, with a line that it was cut
-    off."""
+    """The answer stopped. With noora_unavailable, what came so far may be shown, with a line that it was cut off.
+    With noora_declined, Claude's safeguards declined the question: what came so far is to be dropped, and the
+    message shown instead."""
 
     type: Literal["error"] = "error"
-    code: Literal["noora_unavailable"] = "noora_unavailable"
+    code: Literal["noora_unavailable", "noora_declined"] = "noora_unavailable"
     message: str
 
 
