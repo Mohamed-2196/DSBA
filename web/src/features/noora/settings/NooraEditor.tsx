@@ -603,6 +603,8 @@ function NooraPreview({ doc }: { doc: NooraDoc }) {
         lead={doc.script.welcome}
         starters={starters(doc.script.starters, modules, year)}
         onStart={() => undefined}
+        questions={null}
+        onAsk={() => undefined}
         paused={null}
         onSignIn={null}
       />
