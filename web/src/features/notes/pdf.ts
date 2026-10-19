@@ -47,13 +47,19 @@ async function sourceOf(pdf: NotePdf): Promise<string> {
 
 async function open(pdf: NotePdf): Promise<LoadedPdf> {
   const [lib, url] = await Promise.all([loadPdfJs(), sourceOf(pdf)]);
-  // XFA forms stay off: the page is only ever drawn (pdf.js 6 has no eval path left to turn off).
+  // XFA forms stay off: the page is only ever drawn (pdf.js 6 has no eval path left to turn off). The worker fetches
+  // the rest as pages need it: the JBIG2 and JPEG 2000 decoders of scanned papers, character maps, the standard fonts.
+  const assets = new URL(__PDFJS_ASSETS__, window.location.origin).href;
   const doc = await lib.getDocument({
     url,
     disableRange: true,
     disableStream: true,
     disableAutoFetch: true,
     enableXfa: false,
+    wasmUrl: `${assets}wasm/`,
+    cMapUrl: `${assets}cmaps/`,
+    standardFontDataUrl: `${assets}standard_fonts/`,
+    iccUrl: `${assets}iccs/`,
   }).promise;
   const pages: PageSize[] = [];
   for (let i = 1; i <= doc.numPages; i++) {

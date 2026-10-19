@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { readdirSync, readFileSync } from 'node:fs';
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 
@@ -70,6 +71,51 @@ function versionMeta(version: string): Plugin {
   };
 }
 
+const PDFJS = 'node_modules/pdfjs-dist';
+const PDFJS_VERSION = (JSON.parse(readFileSync(`${PDFJS}/package.json`, 'utf8')) as { version: string }).version;
+/** pdf.js's own files, fetched by its worker as a page needs them (src/features/notes/pdf.ts). */
+const PDFJS_FILES: Record<string, (name: string) => boolean> = {
+  // The image decoders scanned pages need (JBIG2, JPEG 2000) and colour profiles, as wasm with plain-JS fallbacks.
+  // quickjs-eval is left out: it runs a PDF's own scripts, which the notebook never does.
+  wasm: (name) => /^(jbig2|openjpeg|qcms)/.test(name),
+  cmaps: (name) => name.endsWith('.bcmap'),
+  standard_fonts: (name) => /\.(pfb|ttf)$/.test(name),
+  iccs: (name) => name.endsWith('.icc'),
+};
+const PDFJS_DIR = `assets/pdfjs-${PDFJS_VERSION}/`;
+const CONTENT_TYPES: Record<string, string> = { wasm: 'application/wasm', js: 'text/javascript' };
+
+/**
+ * pdf.js's decoders, character maps, standard fonts and colour profiles at /assets/pdfjs-<version>/: copied into the
+ * build, and served from node_modules by the dev server. The version in the path lets them be cached for good.
+ */
+function pdfjsAssets(base: string): Plugin {
+  const files = Object.entries(PDFJS_FILES).flatMap(([dir, keep]) =>
+    readdirSync(`${PDFJS}/${dir}`)
+      .filter(keep)
+      .map((name) => `${dir}/${name}`),
+  );
+  const prefix = `${base}${PDFJS_DIR}`;
+  return {
+    name: 'dsba-pdfjs-assets',
+    config: () => ({ define: { __PDFJS_ASSETS__: JSON.stringify(prefix) } }),
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const path = req.url?.split('?')[0] ?? '';
+        const file = path.startsWith(prefix) ? path.slice(prefix.length) : '';
+        if (!files.includes(file)) return next();
+        res.setHeader('Content-Type', CONTENT_TYPES[file.split('.').pop() ?? ''] ?? 'application/octet-stream');
+        res.end(readFileSync(`${PDFJS}/${file}`));
+      });
+    },
+    generateBundle() {
+      for (const file of files) {
+        this.emitFile({ type: 'asset', fileName: `${PDFJS_DIR}${file}`, source: readFileSync(`${PDFJS}/${file}`) });
+      }
+    },
+  };
+}
+
 const VENDOR =
   /\/node_modules\/(?:react|react-dom|scheduler|react-router|react-router-dom|@tanstack\/react-query|@tanstack\/query-core|openapi-fetch)\//;
 const EDITOR =
@@ -95,7 +141,7 @@ export default defineConfig(({ mode }) => {
   const version = appVersion(env);
   return {
     base: env.VITE_BASE || '/',
-    plugins: [react(), serviceWorker(), versionMeta(version)],
+    plugins: [react(), serviceWorker(), versionMeta(version), pdfjsAssets(env.VITE_BASE || '/')],
     define: { __APP_VERSION__: JSON.stringify(version) },
     build: { rollupOptions: { output: { manualChunks: libraryChunk } } },
     server: {
