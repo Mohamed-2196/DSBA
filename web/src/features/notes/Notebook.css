@@ -104,10 +104,10 @@ html:has(.nb--full) .noora {
   background: var(--surface-2);
 }
 .nb-title:focus {
-  border-color: var(--cobalt);
+  border-color: var(--accent);
   background: var(--surface);
   outline: none;
-  box-shadow: 0 0 0 3px var(--cobalt-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .nb-header__actions {
   flex: none;
@@ -137,12 +137,12 @@ html:has(.nb--full) .noora {
   font-size: 15px;
 }
 .nb-saved.is-saved > svg {
-  color: var(--signal-strong);
+  color: var(--success);
 }
 .nb-saved.is-offline,
 .nb-saved.is-error,
 .nb-saved.is-conflict {
-  color: var(--alert-strong);
+  color: var(--error);
 }
 .nb-saved__book {
   position: relative;
@@ -160,8 +160,8 @@ html:has(.nb--full) .noora {
   cursor: pointer;
 }
 .nb-saved__book:hover {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .nb-where__chip {
   display: inline-flex;
@@ -180,7 +180,7 @@ html:has(.nb--full) .noora {
   overflow-wrap: anywhere;
 }
 .nb-where__chip a:hover {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .nb-where__module {
   position: relative;
@@ -196,8 +196,8 @@ html:has(.nb--full) .noora {
   cursor: pointer;
 }
 .nb-where__module:hover {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .nb-where__module.is-unset {
   background: transparent;
@@ -304,8 +304,8 @@ html:has(.nb--full) .noora {
   color: var(--ink);
 }
 .nb-tool.is-active {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .nb-tool:disabled {
   opacity: 0.4;
@@ -387,12 +387,12 @@ html:has(.nb--full) .noora {
 }
 .nb-finger.is-active {
   border-color: transparent;
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .nb-toolbar__hint {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-13);
 }
@@ -400,7 +400,7 @@ html:has(.nb--full) .noora {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--cobalt);
+  color: var(--accent);
   font: inherit;
   text-decoration: underline;
   cursor: pointer;
@@ -431,7 +431,7 @@ html:has(.nb--full) .noora {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 .nb-swatch.is-active {
-  border-color: var(--cobalt);
+  border-color: var(--accent);
 }
 .nb-size {
   border-radius: var(--r-control);
@@ -542,11 +542,11 @@ html:has(.nb--full) .noora {
 }
 .nb-notice p {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .nb-notice.is-alert {
-  border-color: var(--alert-strong);
-  background: var(--alert-soft);
+  border-color: var(--error);
+  background: var(--error-soft);
 }
 .nb-notice__actions {
   display: flex;
@@ -699,7 +699,7 @@ html:has(.nb--full) .noora {
   top: 4px;
   right: 14px;
   color: var(--page-ink-3);
-  font: 600 12px/1 var(--font-sans);
+  font: 600 12px/1 var(--font-ui);
 }
 /* The typed text stacks nothing of its own: it lies on the paper (after its page breaks), under the free pictures and
    the ink, and a picture or file picked in it comes above them with its toolbar. */
@@ -711,7 +711,7 @@ html:has(.nb--full) .noora {
 .nb-text {
   min-height: 32px;
   color: var(--page-ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: 17px;
   line-height: 32px;
   white-space: pre-wrap;
@@ -727,7 +727,7 @@ html:has(.nb--full) .noora {
 /* the paper's own colours, in both themes (headings would otherwise take the app's) */
 .nb-text :is(h1, h2, h3) {
   color: var(--page-ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   text-wrap: wrap;
 }
 .nb-text h1 {
@@ -1165,7 +1165,7 @@ html:has(.nb--full) .noora {
   border-radius: 0 0 3px 3px;
   background: var(--page);
   color: var(--page-ink-2);
-  font: 14px/20px var(--font-sans);
+  font: 14px/20px var(--font-ui);
   text-align: center;
   overflow-wrap: anywhere;
 }
@@ -1327,9 +1327,9 @@ html:has(.nb--full) .noora {
   border: 1px solid var(--line-strong);
   border-radius: 12px;
   background: var(--surface);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-float);
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.2;
   white-space: nowrap;
@@ -1424,9 +1424,9 @@ html:has(.nb--full) .noora {
   border: 1px solid var(--line-strong);
   border-radius: 12px;
   background: var(--surface);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-float);
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.2;
   white-space: nowrap;
@@ -1460,18 +1460,18 @@ html:has(.nb--full) .noora {
   background: var(--surface-2);
 }
 .nb-blockbar__button.is-active {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .nb-blockbar__button.is-primary {
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .nb-blockbar__button.is-danger {
-  color: var(--alert-strong);
+  color: var(--error);
 }
 .nb-blockbar__button.is-danger:hover {
-  background: var(--alert-soft);
+  background: var(--error-soft);
 }
 .nb-blockbar__button:disabled {
   opacity: 0.45;
@@ -1495,7 +1495,7 @@ html:has(.nb--full) .noora {
   height: 3px;
   margin-top: -1.5px;
   border-radius: 2px;
-  background: var(--cobalt);
+  background: var(--accent);
   pointer-events: none;
 }
 .nb-details {
@@ -1543,7 +1543,7 @@ html:has(.nb--full) .noora {
   border: 1px solid var(--line-strong);
   border-radius: 12px;
   background: var(--surface);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-float);
 }
 .nb-selbar button {
   display: inline-flex;
@@ -1568,10 +1568,10 @@ html:has(.nb--full) .noora {
   background: var(--surface-2);
 }
 .nb-selbar button.is-danger {
-  color: var(--alert-strong);
+  color: var(--error);
 }
 .nb-selbar button.is-danger:hover {
-  background: var(--alert-soft);
+  background: var(--error-soft);
 }
 @media (pointer: coarse) {
   .nb-selbar button {
@@ -1706,7 +1706,7 @@ html:has(.nb--full) .noora {
   border: 1px solid var(--line-strong);
   border-radius: 12px;
   background: var(--surface);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-float);
   list-style: none;
 }
 .nb-uploads li {
@@ -1731,7 +1731,7 @@ html:has(.nb--full) .noora {
 .nb-uploads__bar span {
   display: block;
   height: 100%;
-  background: var(--cobalt);
+  background: var(--accent);
 }
 .nb-uploads__pct {
   color: var(--ink-2);
@@ -1798,7 +1798,7 @@ html:has(.nb--full) .noora {
 /* prose lines stay readable: about 70 characters at most */
 .nb-reflow .nb-text {
   min-height: 60vh;
-  max-width: 68ch;
+  max-width: var(--measure);
   line-height: 1.65;
 }
 .nb-reflow .nb-text :is(h1, h2, h3) {

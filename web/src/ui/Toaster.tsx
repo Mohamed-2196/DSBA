@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CheckCircle, Info, WarningCircle, X } from '@phosphor-icons/react';
 import { useToastList } from '../state/hooks';
 import type { Toast as ToastData } from '../state/contexts';
+import { Icon } from './Icon';
+import * as glyph from './icons/glyphs';
 import { cx } from './internal';
 import './Toaster.css';
 
-const ICONS = { info: Info, success: CheckCircle, alert: WarningCircle };
+const GLYPHS = { info: glyph.info, success: glyph.success, alert: glyph.error };
 
 function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string) => void }) {
   const [leaving, setLeaving] = useState(false);
@@ -30,9 +31,10 @@ function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string)
     return () => clearTimeout(t);
   }, [leaving, onDismiss, toast.id]);
 
-  const Icon = ICONS[toast.tone] || Info;
   return (
+    // A toast is a dark card in either theme ("ink on light, raised on dark"), so it takes the dark tokens.
     <div
+      data-theme="dark"
       className={cx('ui-toast', `ui-toast--${toast.tone}`, leaving && 'is-leaving')}
       role={toast.tone === 'alert' ? 'alert' : 'status'}
       onMouseEnter={() => setPaused(true)}
@@ -40,7 +42,7 @@ function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string)
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <Icon className="ui-toast__icon" weight="fill" aria-hidden="true" />
+      <Icon glyph={GLYPHS[toast.tone] ?? glyph.info} size={24} className="ui-toast__icon" />
       <div className="ui-toast__text">
         <p className="ui-toast__title">{toast.title}</p>
         {toast.body ? <p className="ui-toast__body">{toast.body}</p> : null}
@@ -63,7 +65,7 @@ function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string)
         aria-label="Dismiss notification"
         onClick={() => setLeaving(true)}
       >
-        <X aria-hidden="true" weight="bold" />
+        <Icon glyph={glyph.close} size={16} />
       </button>
     </div>
   );

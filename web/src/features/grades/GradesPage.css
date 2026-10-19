@@ -5,19 +5,19 @@
    (toward the surface). Validated in light and dark with the dataviz ordinal checks: monotone
    lightness, adjacent ΔL ≥ .06, lightest step ≥ 2:1 on the surface. Fail is a status (alert). */
 .grades-cell--first {
-  background: color-mix(in oklab, var(--cobalt) 58%, var(--ink));
+  background: color-mix(in oklab, var(--accent) 58%, var(--ink));
 }
 .grades-cell--upper {
-  background: var(--cobalt);
+  background: var(--accent);
 }
 .grades-cell--lower {
-  background: color-mix(in oklab, var(--cobalt) 70%, var(--surface));
+  background: color-mix(in oklab, var(--accent) 70%, var(--surface));
 }
 .grades-cell--third {
-  background: color-mix(in oklab, var(--cobalt) 48%, var(--surface));
+  background: color-mix(in oklab, var(--accent) 48%, var(--surface));
 }
 .grades-cell--fail {
-  background: var(--alert);
+  background: var(--error);
 }
 .grades-cell--pending {
   background: transparent;
@@ -45,7 +45,7 @@
   gap: var(--sp-48);
   padding: var(--sp-32);
   border: 1px solid var(--line);
-  border-radius: var(--r-feature);
+  border-radius: var(--r-panel);
   background: var(--surface);
 }
 .grades-hero__main {
@@ -63,14 +63,14 @@
   margin-top: var(--sp-12);
 }
 .grades-hero__big {
-  font-size: var(--fs-76);
+  font-size: var(--fs-44);
   font-weight: var(--fw-heavy);
   line-height: 0.9;
   letter-spacing: -0.04em;
 }
 .grades-hero__name {
   max-width: 24ch;
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-bold);
   line-height: 1.2;
   letter-spacing: -0.02em;
@@ -83,7 +83,7 @@
   font-weight: var(--fw-semibold);
 }
 .grades-hero--resit .grades-hero__big {
-  color: var(--alert-strong);
+  color: var(--error);
 }
 .grades-hero--resit .grades-hero__name {
   max-width: 30ch;
@@ -118,7 +118,7 @@
 .grades-hints {
   display: grid;
   gap: 10px;
-  max-width: 54ch;
+  max-width: var(--measure);
 }
 .grades-hints__line {
   color: var(--ink-2);
@@ -131,7 +131,7 @@
 .grades-plan {
   margin-top: 6px;
   padding: var(--sp-12) var(--sp-16) 6px;
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface-2);
 }
 .grades-plan__title {
@@ -338,7 +338,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .grades-year {
@@ -444,12 +444,12 @@
   outline: none;
 }
 .grades-row__input:focus {
-  border-color: var(--cobalt);
-  box-shadow: 0 0 0 3px var(--cobalt-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .grades-row__input.is-rejected {
-  border-color: var(--alert-strong);
-  box-shadow: 0 0 0 3px var(--alert-soft);
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px var(--error-soft);
 }
 .grades-row__band {
   grid-area: band;
@@ -463,7 +463,7 @@
   white-space: nowrap;
 }
 .grades-row__error {
-  color: var(--alert-strong);
+  color: var(--error);
   font-weight: var(--fw-semibold);
 }
 .grades-row__aim {
@@ -472,8 +472,8 @@
   margin-top: 6px;
   padding: 2px 8px;
   border-radius: var(--r-pill);
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 11px;
   font-weight: var(--fw-semibold);
   white-space: nowrap;
@@ -606,7 +606,7 @@
   border: 1px solid var(--line);
   border-collapse: separate;
   border-spacing: 0;
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
   font-size: var(--fs-14);
   overflow: hidden;
@@ -660,7 +660,7 @@
   line-height: 1.5;
 }
 .grades-how__note a {
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
 }
 
@@ -675,7 +675,7 @@
   align-items: center;
   gap: var(--sp-12);
   padding: 10px var(--sp-16);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--ink);
   color: var(--paper);
   box-shadow: var(--shadow-float);
@@ -733,10 +733,10 @@
 @media (max-width: 699px) {
   .grades-hero {
     padding: var(--sp-24) var(--sp-16);
-    border-radius: var(--r-panel);
+    border-radius: var(--r-card);
   }
   .grades-hero__big {
-    font-size: var(--fs-61);
+    font-size: var(--fs-44);
   }
   .grades-hero__name {
     font-size: var(--fs-20);

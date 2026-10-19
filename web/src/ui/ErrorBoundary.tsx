@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { WarningCircle } from '@phosphor-icons/react';
+import { Icon } from './Icon';
+import * as glyph from './icons/glyphs';
 import './ErrorBoundary.css';
 
 export interface ErrorBoundaryProps {
@@ -52,7 +53,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (fallback !== undefined) return fallback;
     return (
       <div className="ui-boundary" role="alert">
-        <WarningCircle className="ui-boundary__icon" aria-hidden="true" weight="fill" />
+        <Icon glyph={glyph.error} className="ui-boundary__icon" />
         <span>This section didn’t load.</span>
         <button type="button" className="ui-boundary__retry" onClick={this.reset}>
           Try again

@@ -25,7 +25,7 @@
 }
 .mod-cl__row:focus-visible {
   outline-offset: -2px;
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
 }
 .mod-cl__row.is-featured {
   padding-block: var(--sp-16);

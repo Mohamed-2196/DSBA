@@ -64,24 +64,39 @@
   padding: var(--sp-8) 6px var(--sp-16);
 }
 
-/* nav */
+/* nav: each item takes its section's colours (data-section, styles/base.css). Resting: the line in --icon-line and
+   the body in the section's tint. Active: the item sits on the section's pill with a bold label in the section's
+   text colour, and the icon's line darkens while its body takes the section's art colour: three changes, so the state
+   never rests on colour alone. */
 .shell-nav ul,
 .shell-rail__links ul {
   display: grid;
   gap: 2px;
+}
+.shell-nav__group {
+  margin: var(--sp-16) 10px var(--sp-6);
+  padding-top: var(--sp-16);
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-heavy);
+  line-height: 16px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 .shell-nav__item {
   position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 42px;
-  padding: 0 10px;
-  border-radius: var(--r-control);
+  height: 44px;
+  padding: 0 12px;
+  border-radius: var(--r-nav);
   color: var(--ink-2);
-  font-size: 15px;
+  font-size: var(--fs-15);
   font-weight: var(--fw-medium);
-  letter-spacing: -0.005em;
+  line-height: 20px;
   text-decoration: none;
   white-space: nowrap;
   transition:
@@ -89,39 +104,32 @@
     color var(--dur-fast) var(--ease);
 }
 .shell-nav__item:hover {
-  background: color-mix(in srgb, var(--surface-2) 65%, var(--surface));
+  background: var(--surface-2);
   color: var(--ink);
 }
 .shell-nav__item.is-active {
-  background: var(--surface-2);
-  color: var(--ink);
-  font-weight: var(--fw-semibold);
-}
-/* The active page: a plain bar on the item's leading edge. */
-.shell-nav__item.is-active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 9px;
-  bottom: 9px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--cobalt);
+  background: var(--sec-pill);
+  color: var(--sec-text);
+  font-weight: var(--fw-bold);
 }
 .shell-nav__icon {
   position: relative;
   display: grid;
   place-items: center;
   width: 22px;
-  font-size: 21px;
-  color: var(--ink-2);
+  font-size: 20px;
+  color: var(--icon-line);
   transition: color var(--dur-fast) var(--ease);
 }
-.shell-nav__item:hover .shell-nav__icon {
-  color: var(--ink);
-}
 .shell-nav__item.is-active .shell-nav__icon {
-  color: var(--cobalt);
+  color: var(--icon-line-active);
+}
+.shell-nav__face {
+  display: block;
+  box-shadow: 0 0 0 1.5px var(--line);
+}
+.shell-nav__item.is-active .shell-nav__face {
+  box-shadow: 0 0 0 2px var(--noora-ring);
 }
 .shell-nav__label {
   flex: 1 1 auto;
@@ -138,7 +146,7 @@
   width: 9px;
   height: 9px;
   border-radius: 999px;
-  background: var(--highlight);
+  background: var(--warning-fill);
   box-shadow: 0 0 0 2px var(--surface);
 }
 .shell-nav__tip {
@@ -153,7 +161,7 @@
 }
 .shell-nav__item--ext {
   font-size: var(--fs-14);
-  height: 38px;
+  height: 40px;
 }
 .shell-nav__item--ext .shell-nav__icon {
   width: 24px;
@@ -163,11 +171,10 @@
 }
 .shell-nav__out {
   flex: 0 0 auto;
-  font-size: 14px;
   color: var(--ink-3);
 }
 .shell-nav__item--ext:hover .shell-nav__out {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 
 /* foot */
@@ -268,9 +275,11 @@
   width: 48px;
   justify-items: center;
 }
-.shell-rail.is-collapsed .shell-nav__item.is-active::before {
-  top: 10px;
-  bottom: 10px;
+/* The Tools heading is read out but not shown; a rule still separates the two groups. */
+.shell-rail.is-collapsed .shell-nav > ul + .shell-nav__group + ul {
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-8);
+  border-top: 1px solid var(--line);
 }
 .shell-profile--compact {
   width: auto;
@@ -288,7 +297,7 @@
 @media (pointer: coarse) {
   .shell-nav__item,
   .shell-nav__item--ext {
-    height: 44px;
+    height: var(--touch-min);
   }
   .shell-brand {
     min-width: 44px;
@@ -302,5 +311,9 @@
 @media (pointer: fine) and (max-height: 960px) {
   .shell-rail:not(.is-collapsed) .shell-nav__item {
     height: 38px;
+  }
+  .shell-nav__group {
+    margin-top: var(--sp-8);
+    padding-top: var(--sp-8);
   }
 }

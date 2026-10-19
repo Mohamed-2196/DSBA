@@ -10,7 +10,7 @@
   width: min(440px, calc(100vw - 2 * var(--sp-16)));
   padding: var(--sp-16);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
   box-shadow: var(--shadow-float);
   transform: translateX(-50%);
@@ -33,7 +33,7 @@
 }
 .onb-prompt__done {
   font-size: 32px;
-  color: var(--signal-strong);
+  color: var(--success);
 }
 .onb-prompt__text {
   min-width: 0;
@@ -105,7 +105,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--cobalt);
+  color: var(--accent);
   font: inherit;
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
@@ -175,7 +175,7 @@
   min-height: 340px;
   padding: var(--sp-32);
   overflow: hidden;
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface-2);
 }
 .onb-tour__kicker {
@@ -222,15 +222,15 @@
     background-color var(--dur) var(--ease);
 }
 .onb-dot.is-done {
-  background: color-mix(in srgb, var(--cobalt) 45%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 45%, var(--surface));
 }
 .onb-dot.is-on {
   width: 24px;
-  background: var(--cobalt);
+  background: var(--accent);
 }
 .onb-tour__title {
   margin-top: 28px;
-  font-size: var(--fs-31);
+  font-size: var(--fs-28);
   font-weight: var(--fw-heavy);
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -292,7 +292,7 @@
   font-weight: var(--fw-medium);
 }
 .onb-mini__field svg {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 17px;
 }
 .onb-mini__caret {
@@ -300,7 +300,7 @@
   height: 18px;
   margin-left: -7px;
   border-radius: 1px;
-  background: var(--cobalt);
+  background: var(--accent);
 }
 .onb-mini__row {
   display: flex;
@@ -312,7 +312,7 @@
 }
 .onb-mini__row.is-active {
   background: var(--surface-2);
-  box-shadow: inset 3px 0 0 var(--cobalt);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 .onb-mini__tile {
   flex: 0 0 auto;
@@ -328,8 +328,8 @@
   color: var(--y2-strong);
 }
 .onb-mini__tile--lesson {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 9px;
 }
 /* A library file: a small page with a folded corner (the palette's document glyph). */
@@ -370,8 +370,8 @@
   text-align: center;
 }
 .onb-mini__date b {
-  background: var(--alert-strong);
-  color: var(--alert-ink);
+  background: var(--error);
+  color: var(--on-error);
   font-size: 8px;
   line-height: 11px;
 }
@@ -426,7 +426,7 @@
   line-height: 1;
 }
 .onb-page__h {
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
   font-size: var(--fs-14);
   font-weight: 600;
   line-height: 1.3;
@@ -484,7 +484,7 @@
   justify-items: center;
   gap: 1px;
   min-width: 32px;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
@@ -528,7 +528,7 @@
   font-weight: var(--fw-semibold);
 }
 .onb-art__badge svg {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 18px;
 }
 .onb-art__new {
@@ -590,7 +590,7 @@
     padding: var(--sp-16) var(--sp-16) var(--sp-24);
   }
   .onb-tour__title {
-    font-size: var(--fs-25);
+    font-size: var(--fs-22);
   }
   .onb-tour__actions {
     margin-top: var(--sp-24);
@@ -606,7 +606,7 @@
   gap: var(--sp-24);
   padding: var(--sp-16);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .onb-tour--card .onb-tour__art {
@@ -615,7 +615,7 @@
 }
 .onb-tour--card .onb-tour__title {
   margin-top: var(--sp-12);
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
 }
 @media (max-width: 720px) {
   .onb-tour--card {

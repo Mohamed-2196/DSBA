@@ -16,7 +16,7 @@
   --cover-ground: var(--ink);
   --cover-ink: var(--surface);
   --cover-soft: color-mix(in srgb, var(--surface) 70%, var(--ink));
-  --cover-figure: var(--cobalt);
+  --cover-figure: var(--accent);
   --cover-scrim: var(--ink);
   position: absolute;
   inset: 0;
@@ -54,9 +54,8 @@
 
 /* ── Type on every cover ───────────────────────────────────────────────── */
 .nl-cover__nameplate {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  font-variation-settings: 'opsz' 72;
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
   letter-spacing: -0.03em;
   fill: var(--cover-ink);
 }
@@ -73,7 +72,7 @@
 }
 
 .nl-cover__folio {
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: 5.7px;
   font-weight: var(--fw-semibold);
   font-variant-numeric: lining-nums tabular-nums;
@@ -81,23 +80,21 @@
   fill: var(--cover-soft);
 }
 .nl-cover__title {
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
   font-style: italic;
   font-weight: 500;
-  font-variation-settings: 'opsz' 72;
   letter-spacing: -0.022em;
   fill: var(--cover-ink);
 }
 .nl-cover__label {
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-weight: var(--fw-bold);
   letter-spacing: 0.13em;
   fill: var(--cover-soft);
 }
 .nl-cover__line {
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
   font-weight: 400;
-  font-variation-settings: 'opsz' 16;
   letter-spacing: -0.005em;
   fill: var(--cover-ink);
 }
@@ -118,9 +115,8 @@
   fill: none;
 }
 .nl-cover__numeral {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-variation-settings: 'opsz' 72;
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
   font-variant-numeric: lining-nums;
   letter-spacing: 0;
   fill: var(--cover-figure);

@@ -2,7 +2,7 @@
 
 .dn {
   --dn-found: var(--dy-hit);
-  --dn-close: var(--signal);
+  --dn-close: var(--success-fill);
   --dn-warm: var(--y3);
   --dn-cold: var(--ink-3);
   flex: 1 1 auto;
@@ -37,9 +37,9 @@
   font-weight: var(--fw-regular);
 }
 .dn-input:focus {
-  border-color: var(--cobalt);
+  border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 3px var(--cobalt-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 @media (max-width: 420px) {
   .dn-form {
@@ -59,7 +59,7 @@
   align-items: center;
   gap: 2px;
   padding: var(--sp-12) var(--sp-16);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface-2);
   text-align: center;
 }
@@ -72,7 +72,7 @@
   font-weight: var(--fw-semibold);
 }
 .dn-answer__word {
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   letter-spacing: 0.02em;
 }
@@ -182,7 +182,7 @@
 }
 .dn-row.is-found .dn-row__rank,
 .dn-row.is-close .dn-row__rank {
-  color: var(--signal-strong);
+  color: var(--success);
 }
 .dn-row.is-warm .dn-row__rank {
   color: var(--y3-strong);
@@ -226,7 +226,7 @@
 }
 .dg-rules .dn-eg {
   --dn-found: var(--dy-hit);
-  --dn-close: var(--signal);
+  --dn-close: var(--success-fill);
   --dn-warm: var(--y3);
   --dn-cold: var(--ink-3);
 }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { MagnifyingGlass, UploadSimple } from '@phosphor-icons/react';
-import { Button, ErrorBoundary, IconButton, HubLogo, SearchField, cx } from '../ui';
+import { Button, ErrorBoundary, Icon, IconButton, HubLogo, SearchField, cx, glyph } from '../ui';
 import { openCommandPalette } from '../features/search/public';
 import { NotificationsMenu } from '../features/notifications/public';
 import { YearSwitcher } from './YearSwitcher';
@@ -32,7 +31,7 @@ export function TopBar() {
     <header className={cx('shell-topbar', scrolled && 'is-scrolled')} data-hub="topbar">
       <div className="shell-topbar__inner">
         <Link to="/" className="shell-brand shell-topbar__brand" aria-label="DSBA Hub home">
-          <HubLogo variant="lockup" size={28} decorative />
+          <HubLogo variant="lockup" size={30} decorative />
         </Link>
         <SearchField
           asButton
@@ -48,7 +47,7 @@ export function TopBar() {
           <IconButton
             className="shell-topbar__search-icon"
             label="Search"
-            icon={MagnifyingGlass}
+            icon={<Icon glyph={glyph.search} />}
             onClick={() => openCommandPalette()}
           />
           <ErrorBoundary name="NotificationsMenu" fallback={null}>
@@ -57,7 +56,7 @@ export function TopBar() {
           {onLibrary || !uploadShown ? null : (
             <Button
               className="shell-topbar__contribute"
-              leadingIcon={UploadSimple}
+              leadingIcon={<Icon glyph={glyph.upload} />}
               onClick={() => startUpload()}
               data-hub="contribute"
             >

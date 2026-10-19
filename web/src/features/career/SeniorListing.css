@@ -21,7 +21,7 @@
 }
 .senior-form__error {
   margin-top: var(--sp-8);
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
 }
 .senior-form__actions {

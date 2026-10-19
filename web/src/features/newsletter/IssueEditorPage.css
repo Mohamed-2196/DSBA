@@ -28,7 +28,7 @@
   min-width: 0;
   padding: var(--sp-24);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .nl-ed-group--sections {
@@ -80,7 +80,7 @@
   white-space: nowrap;
 }
 .nl-ed-count.is-over {
-  color: var(--alert-strong);
+  color: var(--error);
   font-weight: var(--fw-semibold);
 }
 .nl-ed-note {
@@ -90,7 +90,7 @@
   max-width: var(--measure);
 }
 .nl-ed-error {
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   line-height: 1.4;
@@ -115,8 +115,8 @@
   gap: var(--sp-12) var(--sp-16);
   padding: var(--sp-12) var(--sp-16);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-panel);
-  background: var(--cobalt-soft);
+  border-radius: var(--r-card);
+  background: var(--accent-soft);
 }
 .nl-ed-restore__text {
   display: flex;
@@ -128,7 +128,7 @@
 }
 .nl-ed-restore__text svg {
   flex: 0 0 auto;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 18px;
 }
 .nl-ed-restore__actions {
@@ -215,7 +215,7 @@
   gap: var(--sp-8);
 }
 .nl-ed-pictures.has-error .nl-ed-picture {
-  border-color: var(--alert-strong);
+  border-color: var(--error);
 }
 .nl-ed-pictures__action {
   display: flex;
@@ -246,9 +246,9 @@
   border-color: var(--ink-3);
 }
 .nl-ed-picture:has(.nl-ed-picture__input:checked) {
-  border-color: var(--cobalt);
-  background: var(--cobalt-soft);
-  box-shadow: inset 0 0 0 1px var(--cobalt);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .nl-ed-picture:has(.nl-ed-picture__input:focus-visible) {
   outline: var(--focus-width) solid var(--focus-color);
@@ -294,11 +294,11 @@
 .nl-ed-section {
   min-width: 0;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .nl-ed-section.has-problems {
-  border-color: var(--alert-strong);
+  border-color: var(--error);
 }
 .nl-ed-section__head {
   display: flex;
@@ -347,7 +347,7 @@
 }
 .nl-ed-section__icon {
   flex: 0 0 auto;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 22px;
 }
 .nl-ed-section__names {
@@ -382,7 +382,7 @@
   flex: 0 0 auto;
   align-items: center;
   gap: 4px;
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
   white-space: nowrap;
@@ -455,10 +455,10 @@
   color: var(--ink);
 }
 .nl-ed-icon:has(.nl-ed-icon__input:checked) {
-  border-color: var(--cobalt);
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
-  box-shadow: inset 0 0 0 1px var(--cobalt);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .nl-ed-icon:has(.nl-ed-icon__input:focus-visible) {
   outline: var(--focus-width) solid var(--focus-color);
@@ -533,7 +533,7 @@
   font-weight: var(--fw-semibold);
 }
 .nl-ed-block__type svg {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 18px;
 }
 .nl-ed-switch {
@@ -626,7 +626,7 @@
   gap: var(--sp-8) var(--sp-16);
   padding: var(--sp-12) var(--sp-16);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .nl-ed-bar.is-active {
@@ -645,7 +645,7 @@
   font-weight: var(--fw-semibold);
 }
 .nl-ed-bar__status.is-alert {
-  color: var(--alert-strong);
+  color: var(--error);
 }
 .nl-ed-bar__status svg {
   flex: 0 0 auto;
@@ -667,7 +667,7 @@
   min-width: 0;
   padding: var(--sp-24);
   border: 1px solid var(--line);
-  border-radius: var(--r-feature);
+  border-radius: var(--r-panel);
   background: var(--paper);
 }
 .nl-editor__preview-hero {
@@ -685,7 +685,7 @@
 }
 .nl-editor__preview-title {
   margin-top: 6px;
-  font-size: var(--fs-39);
+  font-size: var(--fs-34);
   overflow-wrap: anywhere;
 }
 .nl-editor__preview-hero .nl-issue__dek {
@@ -751,14 +751,14 @@
   }
   .nl-editor__side {
     padding: var(--sp-16);
-    border-radius: var(--r-panel);
+    border-radius: var(--r-card);
   }
   .nl-editor__preview-hero {
     grid-template-columns: 84px minmax(0, 1fr);
     gap: var(--sp-16);
   }
   .nl-editor__preview-title {
-    font-size: var(--fs-25);
+    font-size: var(--fs-22);
   }
 }
 

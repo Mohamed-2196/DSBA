@@ -28,8 +28,8 @@
   margin-top: var(--sp-16);
 }
 .nl-masthead__tagline {
-  max-width: 54ch;
-  font-family: var(--font-serif);
+  max-width: var(--measure);
+  font-family: var(--font-ui);
   font-size: var(--fs-20);
   font-style: italic;
   line-height: 1.4;
@@ -76,7 +76,7 @@
   aspect-ratio: 3 / 4;
   object-fit: cover;
   border-radius: var(--r-page);
-  box-shadow: var(--shadow-panel);
+  box-shadow: var(--shadow-float);
 }
 .nl-feature__body {
   min-width: 0;
@@ -92,10 +92,9 @@
 }
 .nl-feature__title {
   margin-top: var(--sp-16);
-  font-family: var(--font-serif);
-  font-size: clamp(var(--fs-49), 5.2vw, var(--fs-76));
-  font-weight: 600;
-  font-variation-settings: 'opsz' 72;
+  font-family: var(--font-display);
+  font-size: var(--fs-44);
+  font-weight: var(--fw-display);
   line-height: 1;
   letter-spacing: -0.03em;
 }
@@ -111,8 +110,8 @@
 .nl-feature__dek {
   margin-top: var(--sp-16);
   max-width: 36ch;
-  font-family: var(--font-serif);
-  font-size: var(--fs-25);
+  font-family: var(--font-ui);
+  font-size: var(--fs-22);
   font-style: italic;
   line-height: 1.35;
   color: var(--ink);
@@ -143,14 +142,14 @@
 }
 .nl-feature__contents a {
   display: block;
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
   font-size: var(--fs-20);
   line-height: 1.35;
   color: var(--ink);
   text-decoration: none;
 }
 .nl-feature__contents a:hover {
-  color: var(--cobalt);
+  color: var(--accent);
   text-decoration: underline;
   text-decoration-thickness: 1px;
 }
@@ -193,9 +192,9 @@
   margin-bottom: var(--sp-24);
 }
 .nl-archive__title {
-  font-family: var(--font-serif);
-  font-size: var(--fs-39);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: var(--fs-34);
+  font-weight: var(--fw-display);
   letter-spacing: -0.025em;
   line-height: 1.1;
 }
@@ -231,9 +230,9 @@
   font-variant-numeric: tabular-nums;
 }
 .nl-shelf__title {
-  font-family: var(--font-serif);
-  font-size: var(--fs-25);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-display);
   line-height: 1.15;
   letter-spacing: -0.015em;
   color: var(--ink);
@@ -311,7 +310,7 @@
     margin-top: var(--sp-64);
   }
   .nl-archive__title {
-    font-size: var(--fs-31);
+    font-size: var(--fs-28);
   }
   /* covers become a swipeable shelf */
   .nl-shelf {
@@ -396,7 +395,7 @@
   font-weight: var(--fw-bold);
 }
 .nl-drafts__title svg {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: 22px;
 }
 .nl-drafts__count {
@@ -425,9 +424,10 @@
 .nl-drafts__no {
   flex: 0 0 auto;
   min-width: 44px;
-  font-family: var(--font-serif);
-  font-size: var(--fs-31);
-  font-weight: 600;
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-head);
+  font-size: var(--fs-28);
+  font-weight: var(--fw-display);
   line-height: 1;
   color: var(--ink-2);
 }
@@ -440,9 +440,10 @@
 .nl-drafts__name {
   overflow: hidden;
   color: var(--ink);
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-head);
   font-size: var(--fs-20);
-  font-weight: 600;
+  font-weight: var(--fw-display);
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -487,7 +488,7 @@
   }
   .nl-drafts__no {
     width: auto;
-    font-size: var(--fs-25);
+    font-size: var(--fs-22);
   }
   .nl-drafts__actions {
     width: 100%;
@@ -506,7 +507,7 @@
   grid-column: 1 / -1;
 }
 .nl-form__error {
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
 }

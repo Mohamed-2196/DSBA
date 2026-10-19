@@ -35,7 +35,7 @@
 }
 .cedit__error {
   margin: 0;
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
 }
 .cedit__banner {
@@ -44,9 +44,9 @@
   align-items: center;
   gap: var(--sp-8) var(--sp-12);
   padding: var(--sp-12) var(--sp-16);
-  border: 1px solid var(--alert-strong);
-  border-radius: var(--r-panel);
-  background: var(--alert-soft);
+  border: 1px solid var(--error);
+  border-radius: var(--r-card);
+  background: var(--error-soft);
   color: var(--ink);
 }
 .cedit__banner p {
@@ -64,7 +64,7 @@
   gap: var(--sp-8);
 }
 .cedit__nav-error {
-  box-shadow: inset 0 0 0 2px var(--alert-strong);
+  box-shadow: inset 0 0 0 2px var(--error);
 }
 .cedit__panel {
   display: grid;
@@ -92,7 +92,7 @@
   margin: 0;
   padding: var(--sp-12) var(--sp-16) var(--sp-16);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   min-width: 0;
 }
 .cedit-group__legend {
@@ -125,10 +125,10 @@
   border-style: dashed;
 }
 .cedit-item.is-open {
-  border-color: var(--cobalt);
+  border-color: var(--accent);
 }
 .cedit-item.has-error {
-  border-color: var(--alert-strong);
+  border-color: var(--error);
 }
 .cedit-item__row {
   display: flex;
@@ -158,7 +158,7 @@
   cursor: pointer;
 }
 .cedit-item__open:hover .cedit-item__title {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .cedit-item__title {
   display: flex;
@@ -344,7 +344,7 @@
   display: grid;
   gap: var(--sp-8);
   padding: var(--sp-12);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface-2);
   min-width: 0;
 }

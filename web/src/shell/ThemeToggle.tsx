@@ -1,6 +1,5 @@
-import { CircleHalf, Moon, Sun } from '@phosphor-icons/react';
 import { useTheme, type Theme } from '../state';
-import { IconButton, SegmentedControl, cx } from '../ui';
+import { Icon, IconButton, SegmentedControl, cx, glyph } from '../ui';
 
 /** Light/dark switch. Full: label + segmented sun/moon. Compact: one icon button. */
 export function ThemeToggle({ compact = false, className }: { compact?: boolean; className?: string }) {
@@ -10,7 +9,7 @@ export function ThemeToggle({ compact = false, className }: { compact?: boolean;
       <IconButton
         className={className}
         label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-        icon={theme === 'dark' ? Sun : Moon}
+        icon={<Icon glyph={theme === 'dark' ? glyph.sun : glyph.moon} />}
         onClick={toggleTheme}
         tooltip
         tooltipSide="right"
@@ -20,10 +19,7 @@ export function ThemeToggle({ compact = false, className }: { compact?: boolean;
   }
   return (
     <div className={cx('shell-theme', className)} data-hub="theme-toggle">
-      <span className="shell-theme__label">
-        <CircleHalf aria-hidden="true" />
-        Theme
-      </span>
+      <span className="shell-theme__label">Theme</span>
       <SegmentedControl<Theme>
         size="sm"
         iconOnly
@@ -31,8 +27,8 @@ export function ThemeToggle({ compact = false, className }: { compact?: boolean;
         value={theme}
         onChange={setTheme}
         options={[
-          { value: 'light', label: 'Light', ariaLabel: 'Light theme', icon: Sun },
-          { value: 'dark', label: 'Dark', ariaLabel: 'Dark theme', icon: Moon },
+          { value: 'light', label: 'Light', ariaLabel: 'Light theme', icon: <Icon glyph={glyph.sun} /> },
+          { value: 'dark', label: 'Dark', ariaLabel: 'Dark theme', icon: <Icon glyph={glyph.moon} /> },
         ]}
       />
     </div>

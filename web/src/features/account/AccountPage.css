@@ -13,14 +13,14 @@
   margin-bottom: var(--sp-24);
   padding: var(--sp-12) var(--sp-16);
   border-radius: var(--r-control);
-  background: var(--alert-soft);
+  background: var(--error-soft);
   color: var(--ink);
   font-size: var(--fs-14);
 }
 .acct-banner svg {
   flex: 0 0 auto;
   margin-top: 2px;
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: 18px;
 }
 
@@ -125,7 +125,7 @@
 .acct-data__text {
   display: grid;
   gap: 4px;
-  max-width: 52ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
 }

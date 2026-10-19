@@ -13,7 +13,7 @@
 }
 .mod-index__fact--exam svg {
   margin-right: 6px;
-  color: var(--alert);
+  color: var(--exam);
   font-size: 15px;
 }
 
@@ -58,7 +58,7 @@
   column-gap: var(--sp-32);
   padding: 20px var(--sp-16);
   margin-inline: calc(var(--sp-16) * -1);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   color: var(--ink);
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease);
@@ -93,7 +93,7 @@
   place-items: center;
   width: var(--tile);
   height: var(--tile);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: color-mix(in srgb, var(--mc) 11%, var(--surface));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mc) 22%, transparent);
   color: var(--mc);
@@ -106,7 +106,7 @@
   place-items: center;
   width: var(--tile);
   height: var(--tile);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: color-mix(in srgb, var(--mc) 11%, var(--surface));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mc) 22%, transparent);
   color: var(--mc);
@@ -186,7 +186,7 @@
   width: 8px;
   height: 8px;
   border-radius: var(--r-pill);
-  background: var(--alert);
+  background: var(--exam);
   flex: 0 0 auto;
 }
 .mod-row__exam-date {
@@ -195,7 +195,7 @@
   white-space: nowrap;
 }
 .mod-row__exam.is-soon .mod-row__exam-when {
-  color: var(--alert-strong);
+  color: var(--exam);
 }
 .mod-row__exam.is-none .mod-row__exam-when {
   color: var(--ink-2);
@@ -341,7 +341,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
   text-decoration: none;
 }

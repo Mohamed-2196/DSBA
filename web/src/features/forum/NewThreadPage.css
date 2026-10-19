@@ -18,7 +18,7 @@
   min-width: 0;
   padding: var(--sp-32);
   border: 1px solid var(--line);
-  border-radius: var(--r-feature);
+  border-radius: var(--r-panel);
   background: var(--surface);
 }
 .forum-composer__restored {
@@ -41,7 +41,7 @@
   max-width: var(--measure);
 }
 .forum-composer__link {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
 }
@@ -54,7 +54,7 @@
   font-variant-numeric: tabular-nums;
 }
 .forum-composer__count.is-near {
-  color: var(--alert-strong);
+  color: var(--error);
   font-weight: var(--fw-semibold);
 }
 .forum-composer .ui-control--lg .ui-control__input {
@@ -149,7 +149,7 @@
 }
 .forum-new__ok {
   margin-right: 4px;
-  color: var(--signal);
+  color: var(--success);
   vertical-align: -2px;
 }
 /* Similar threads under the title: only on narrow layouts (the margin shows them on wide ones) */
@@ -210,7 +210,7 @@
 @container forum-page (max-width: 640px) {
   .forum-composer {
     padding: var(--sp-16);
-    border-radius: var(--r-panel);
+    border-radius: var(--r-card);
     gap: var(--sp-16);
   }
   .forum-composer__kbd {

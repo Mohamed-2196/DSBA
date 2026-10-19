@@ -23,6 +23,7 @@
 }
 .ui-tab.is-selected {
   color: var(--ink);
+  font-weight: var(--fw-heavy);
 }
 .ui-tab:disabled {
   opacity: 0.45;
@@ -43,8 +44,8 @@
   font-variant-numeric: tabular-nums;
 }
 .ui-tab.is-selected .ui-tab__count {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--sec-pill, var(--accent-soft));
+  color: var(--sec-text, var(--accent-text));
 }
 
 /* underline */
@@ -64,10 +65,11 @@
   position: absolute;
   left: 0;
   bottom: 0;
-  height: 2px;
+  height: 3px;
   pointer-events: none; /* it sits on the tab's bottom edge: a tap there still reaches the tab */
-  border-radius: 2px;
-  background: var(--cobalt);
+  border-radius: 3px 3px 0 0;
+  /* the section's colour inside a data-section, else the accent */
+  background: var(--sec-art, var(--accent));
   transition:
     transform var(--dur) var(--ease),
     width var(--dur) var(--ease);
@@ -76,7 +78,7 @@
 /* pill */
 .ui-tabs--pill {
   padding: 3px;
-  border-radius: var(--r-control);
+  border-radius: var(--r-tab);
   background: var(--surface-2);
   display: inline-flex;
   max-width: 100%;
@@ -85,7 +87,7 @@
 .ui-tabs--pill .ui-tab {
   height: 34px;
   padding: 0 14px;
-  border-radius: 8px;
+  border-radius: 14px;
 }
 .ui-tabs__pill {
   position: absolute;
@@ -94,7 +96,7 @@
   left: 0;
   z-index: -1;
   pointer-events: none;
-  border-radius: 8px;
+  border-radius: 14px;
   background: var(--thumb-bg);
   box-shadow: var(--thumb-shadow);
   transition:

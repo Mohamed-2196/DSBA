@@ -23,8 +23,8 @@
   width: 8px;
   height: 8px;
   border-radius: var(--r-pill);
-  background: var(--signal);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 22%, transparent);
+  background: var(--success-fill);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-fill) 22%, transparent);
 }
 .forum-live__link {
   color: var(--ink-2);
@@ -164,7 +164,7 @@
   letter-spacing: -0.012em;
 }
 .forum-side__link {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   text-decoration: none;
@@ -295,7 +295,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-14);
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;

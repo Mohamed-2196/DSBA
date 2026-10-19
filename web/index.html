@@ -10,14 +10,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Modules, lessons, files, the newsletter and the forum for DSBA students at BIBF." />
-    <meta name="theme-color" content="#F4F7FC" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#07122B" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F2F5FB" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0B1530" media="(prefers-color-scheme: dark)" />
     <title>DSBA Hub</title>
     <style>
       /* Before the app's code arrives (a slow first load): the frame of the Hub and the shape of a page, in the
          theme's colours, so the screen is never blank. React replaces it on its first render (UX-77). */
-      .boot { --b-paper: #f4f7fc; --b-surface: #ffffff; --b-shade: #e3eaf5; --b-line: #dce5f2; }
-      [data-theme='dark'] .boot { --b-paper: #07122b; --b-surface: #0d1b3b; --b-shade: #182c58; --b-line: #213563; }
+      .boot { --b-paper: #f2f5fb; --b-surface: #ffffff; --b-shade: #e3eaf5; --b-line: #dce4f1; }
+      [data-theme='dark'] .boot { --b-paper: #0b1530; --b-surface: #111e3e; --b-shade: #1a2b54; --b-line: #22355f; }
       html, body { margin: 0; }
       .boot { min-height: 100vh; background: var(--b-paper); }
       .boot__top { height: 64px; border-bottom: 1px solid var(--b-line); background: var(--b-surface); }
@@ -25,17 +25,17 @@
       .boot__bar { height: 14px; margin-bottom: 12px; border-radius: 6px; background: var(--b-shade); }
       .boot__title { width: min(320px, 70%); height: 32px; border-radius: 8px; }
       .boot__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; margin-top: 24px; }
-      .boot__card { height: 200px; border-radius: 16px; background: var(--b-surface); border: 1px solid var(--b-line); }
+      .boot__card { height: 200px; border-radius: 18px; background: var(--b-surface); border: 1px solid var(--b-line); }
       .boot__tabs { display: none; }
       @media (min-width: 700px) {
         .boot { padding-left: 72px; }
       }
       @media (min-width: 1100px) {
-        .boot { padding-left: 264px; }
+        .boot { padding-left: 248px; }
       }
       @media (max-width: 699px) {
         .boot__page { padding: 20px 16px; }
-        .boot__tabs { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 64px; border-top: 1px solid var(--b-line); background: var(--b-surface); }
+        .boot__tabs { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 84px; border-top: 1px solid var(--b-line); background: var(--b-surface); }
       }
     </style>
     <script>

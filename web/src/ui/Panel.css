@@ -1,15 +1,18 @@
+/* An index card: a 1.5px edge and a soft shadow. */
 .ui-panel {
-  border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
   min-width: 0;
 }
 .ui-panel--feature {
-  border-radius: var(--r-feature);
+  border-radius: var(--r-panel);
 }
 .ui-panel--inset {
   background: var(--surface-2);
   border-color: transparent;
+  box-shadow: none;
 }
 .ui-panel--float {
   box-shadow: var(--shadow-float);

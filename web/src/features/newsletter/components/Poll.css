@@ -2,10 +2,10 @@
 .nl-poll {
   display: grid;
   gap: var(--sp-12);
-  max-width: var(--measure-serif);
+  max-width: var(--measure);
   padding: var(--sp-16);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .nl-poll__kicker {
@@ -40,10 +40,10 @@
   overflow-wrap: anywhere;
 }
 .nl-poll__choice:hover:not(:disabled) {
-  border-color: var(--cobalt);
+  border-color: var(--accent);
 }
 .nl-poll__choice:focus-visible {
-  outline: 2px solid var(--cobalt);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 .nl-poll__choice:disabled {
@@ -71,10 +71,10 @@
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
-  background: color-mix(in srgb, var(--cobalt) 18%, transparent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .nl-poll__result.is-mine .nl-poll__bar {
-  background: color-mix(in srgb, var(--cobalt) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 .nl-poll__answer,
 .nl-poll__share {

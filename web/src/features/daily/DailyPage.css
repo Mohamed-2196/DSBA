@@ -9,7 +9,7 @@
 }
 .dh-title {
   margin: 0;
-  font-size: var(--fs-31);
+  font-size: var(--fs-28);
   font-weight: var(--fw-heavy);
   letter-spacing: var(--tracking-head);
   line-height: 1.12;
@@ -64,8 +64,8 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: var(--r-pill);
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
 }
@@ -83,7 +83,7 @@
     margin-bottom: var(--sp-12);
   }
   .dh-title {
-    font-size: var(--fs-25);
+    font-size: var(--fs-22);
   }
   .dh-blurb {
     font-size: var(--fs-14);
@@ -130,19 +130,19 @@
 /* The art takes the top on the game's own tint: its glyph, or the finished play's picture. The state sits in its
    corner; the name and one line follow. */
 .dh-tile {
-  --g: var(--cobalt);
+  --g: var(--accent);
   --art: 96px;
   position: relative;
   display: grid;
   grid-template-rows: auto auto 1fr;
   height: 100%;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
   color: inherit;
   text-decoration: none;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   transition:
     border-color var(--dur-fast) var(--ease),
     box-shadow var(--dur-fast) var(--ease),
@@ -150,7 +150,7 @@
 }
 .dh-tile:hover {
   border-color: color-mix(in srgb, var(--g) 45%, var(--line));
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-float);
 }
 .dh-tile:active {
   transform: translateY(1px);
@@ -207,12 +207,12 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--g) 22%, transparent);
 }
 .dh-tile.is-playing .dh-tile__state {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .dh-tile.is-won .dh-tile__state {
-  background: var(--signal-soft);
-  color: var(--signal-strong);
+  background: var(--success-soft);
+  color: var(--success);
 }
 
 /* Phones: two columns, all six on the first screen. */
@@ -275,7 +275,7 @@
 .dh-cal {
   padding: var(--sp-16);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .dh-cal__head {
@@ -337,14 +337,14 @@
   border-color: var(--line-strong);
 }
 .dh-cal__day.is-today {
-  border-color: var(--cobalt);
+  border-color: var(--accent);
 }
 .dh-cal__day.is-picked {
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .dh-cal__day.is-full:not(.is-picked) {
-  background: var(--signal-soft);
+  background: var(--success-soft);
 }
 .dh-cal__num {
   font-size: var(--fs-15);
@@ -364,7 +364,7 @@
 }
 .dh-cal__dots > .is-on {
   opacity: 1;
-  background: var(--signal-strong);
+  background: var(--success);
 }
 .dh-cal__day.is-picked .dh-cal__dots > .is-on {
   background: currentColor;
@@ -374,7 +374,7 @@
 .dh-day__empty {
   padding: var(--sp-20);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .dh-day__kicker {
@@ -432,12 +432,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-13);
   font-weight: var(--fw-semibold);
 }
 .dh-day__state.is-done {
-  color: var(--signal-strong);
+  color: var(--success);
 }
 
 /* ── Leaderboard ─────────────────────────────────────────────────────────────────────────────────── */
@@ -597,7 +597,7 @@
   gap: 2px;
   padding: var(--sp-14) var(--sp-16);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .dh-stats__tile dt {
@@ -609,7 +609,7 @@
   align-items: center;
   gap: 4px;
   margin: 0;
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   letter-spacing: var(--tracking-head);
 }
@@ -628,7 +628,7 @@
   color: var(--ink-3);
 }
 .dh-stats__freeze.is-ready .dh-stats__freeze-icon {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .dh-stats__freeze-title {
   margin: 0;
@@ -639,7 +639,7 @@
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.45;
-  max-width: 64ch;
+  max-width: var(--measure);
 }
 .dh-stats__head {
   display: flex;
@@ -670,7 +670,7 @@
   gap: var(--sp-12);
   padding: var(--sp-14);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .dh-badge__icon {

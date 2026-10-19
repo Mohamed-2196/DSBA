@@ -28,5 +28,5 @@ span.ui-tex {
   font-size: 1.08em;
 }
 .ui-tex .katex-error {
-  color: var(--alert);
+  color: var(--error);
 }

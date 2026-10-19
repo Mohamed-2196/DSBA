@@ -9,7 +9,7 @@
   color: var(--ink);
 }
 .ui-field__req {
-  color: var(--alert-strong);
+  color: var(--error);
 }
 .ui-field__hint {
   font-size: var(--fs-12);
@@ -22,19 +22,19 @@
   gap: 5px;
   font-size: var(--fs-12);
   font-weight: var(--fw-medium);
-  color: var(--alert-strong);
+  color: var(--error);
 }
 .ui-field__error svg {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .ui-control {
   position: relative;
   display: flex;
   align-items: center;
-  min-height: 40px;
-  border: 1px solid var(--control-border);
-  border-radius: var(--r-control);
+  min-height: 46px;
+  border: 1.5px solid var(--control-border);
+  border-radius: var(--r-input);
   background: var(--surface);
   transition:
     border-color var(--dur-fast) var(--ease),
@@ -47,14 +47,14 @@
   border-color: var(--ink-3);
 }
 .ui-control:focus-within {
-  border-color: var(--cobalt);
-  box-shadow: 0 0 0 3px var(--cobalt-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .has-error .ui-control {
-  border-color: var(--alert-strong);
+  border-color: var(--error);
 }
 .has-error .ui-control:focus-within {
-  box-shadow: 0 0 0 3px var(--alert-soft);
+  box-shadow: 0 0 0 3px var(--error-soft);
 }
 .ui-control__input {
   flex: 1 1 auto;
@@ -62,7 +62,7 @@
   width: 100%;
   height: 100%;
   min-height: inherit;
-  padding: 0 12px;
+  padding: 0 14px;
   border: 0;
   background: transparent;
   color: var(--ink);
@@ -78,12 +78,12 @@
   color: var(--ink-3);
 }
 .ui-control.has-leading .ui-control__input {
-  padding-left: 38px;
+  padding-left: 42px;
 }
 .ui-control__icon {
   position: absolute;
-  left: 12px;
-  font-size: 18px;
+  left: 14px;
+  font-size: 20px;
   color: var(--ink-3);
   pointer-events: none;
 }
@@ -96,7 +96,7 @@
   gap: 6px;
 }
 .ui-control--area .ui-control__input {
-  padding: 10px 12px;
+  padding: 12px 14px;
   min-height: 96px;
   resize: vertical;
 }
@@ -110,8 +110,8 @@
 }
 .ui-control__caret {
   position: absolute;
-  right: 12px;
-  font-size: 14px;
+  right: 14px;
+  font-size: 20px;
   color: var(--ink-2);
   pointer-events: none;
 }
@@ -122,10 +122,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 40px;
-  padding: 0 10px 0 12px;
-  border: 1px solid var(--control-border);
-  border-radius: var(--r-control);
+  height: 46px;
+  padding: 0 12px 0 14px;
+  border: 1.5px solid var(--control-border);
+  border-radius: var(--r-input);
   background: var(--surface);
   color: var(--ink-3);
   transition:
@@ -141,11 +141,11 @@
   border-color: var(--ink-3);
 }
 .ui-search:focus-within {
-  border-color: var(--cobalt);
-  box-shadow: 0 0 0 3px var(--cobalt-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .ui-search__icon {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--ink-2);
 }
 .ui-search__input {
@@ -174,7 +174,7 @@
   height: 24px;
   border-radius: var(--r-pill);
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: 16px;
 }
 .ui-search__clear:hover {
   background: var(--surface-2);
@@ -204,18 +204,12 @@
   font-size: var(--fs-14);
 }
 
-/* Touch screens: 44px fields (UX review UX-11). The search input covers the field's 1px border too, so the whole 44px
-   takes a tap; the clear button is 44px square and reaches the field's right edge. */
+/* Touch screens: fields are 46px already (UX review UX-11). The search input covers the field's border too, so the
+   whole field takes a tap; the clear button is 44px square and reaches the field's right edge. */
 @media (pointer: coarse) {
-  .ui-control:not(.ui-control--lg):not(.ui-control--area) {
-    min-height: 44px;
-  }
-  .ui-search:not(.ui-search--lg) {
-    height: 44px;
-  }
   .ui-search__input {
-    height: calc(100% + 2px);
-    margin-block: -1px;
+    height: calc(100% + 3px);
+    margin-block: -1.5px;
   }
   .ui-search__clear {
     flex: 0 0 auto;

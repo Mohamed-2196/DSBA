@@ -29,7 +29,7 @@
   font-weight: var(--fw-semibold);
 }
 .notif__count.has-unread {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 
 .notif__list {
@@ -108,7 +108,7 @@
   height: 11px;
   border: 2px solid var(--surface);
   border-radius: var(--r-pill);
-  background: var(--cobalt);
+  background: var(--accent);
 }
 .notif-item__link:hover .notif-item__dot {
   border-color: var(--surface-2);
@@ -124,20 +124,20 @@
   font-size: 18px;
 }
 .notif-icon--forum {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .notif-icon--signal {
-  background: var(--signal-soft);
-  color: var(--signal-strong);
+  background: var(--success-soft);
+  color: var(--success);
 }
 .notif-icon--alert {
-  background: var(--alert-soft);
-  color: var(--alert-strong);
+  background: var(--error-soft);
+  color: var(--error);
 }
 .notif-icon--newsletter {
-  background: var(--navy);
-  color: #fff;
+  background: var(--inverse);
+  color: var(--on-inverse);
 }
 .notif-icon--tile {
   display: block;

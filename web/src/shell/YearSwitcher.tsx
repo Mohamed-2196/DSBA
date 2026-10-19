@@ -1,6 +1,5 @@
-import { CaretUpDown } from '@phosphor-icons/react';
 import { COHORTS, YEARS, useYear, type CohortYear } from '../state';
-import { Menu, SegmentedControl, cx } from '../ui';
+import { Icon, Menu, SegmentedControl, cx, glyph } from '../ui';
 import './YearSwitcher.css';
 
 interface YearSwitcherProps {
@@ -45,7 +44,7 @@ export function YearSwitcher({
             data-hub={hookId}
           >
             <span>{year ? COHORTS[year].short : 'Year'}</span>
-            <CaretUpDown aria-hidden="true" weight="bold" className="yr-compact__caret" />
+            <Icon glyph={glyph.sort} size={16} className="yr-compact__caret" />
           </button>
         }
       />

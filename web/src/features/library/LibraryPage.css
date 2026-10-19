@@ -11,7 +11,7 @@
 /* ── New this week ─────────────────────────────────────────────────── */
 .lib-new {
   padding: var(--sp-24) var(--sp-24) var(--sp-16);
-  border-radius: var(--r-feature);
+  border-radius: var(--r-panel);
   background: var(--surface-2);
 }
 .lib-new__head {
@@ -99,7 +99,7 @@
 .lib-yours {
   padding: var(--sp-16) var(--sp-24) var(--sp-8);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .lib-yours + .lib-new {
@@ -190,7 +190,7 @@
   margin: 0 0 0 58px;
   padding: var(--sp-8) var(--sp-12);
   border-radius: var(--r-control);
-  background: var(--alert-soft);
+  background: var(--error-soft);
   color: var(--ink);
   font-size: var(--fs-14);
   line-height: 1.5;
@@ -219,7 +219,7 @@
   gap: var(--sp-12);
   padding: var(--sp-16);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .lib-filters__top {
@@ -262,7 +262,7 @@
 .lib-mhead__title {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   line-height: 1.1;
   letter-spacing: var(--tracking-head);
@@ -285,8 +285,8 @@
   margin-left: var(--sp-6);
   padding: 0 var(--sp-6);
   border-radius: var(--r-pill);
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
@@ -305,9 +305,9 @@
   gap: var(--sp-6);
   min-height: 36px;
   padding: 0 var(--sp-10) 0 var(--sp-12);
-  border: 1px solid var(--cobalt);
+  border: 1px solid var(--accent);
   border-radius: var(--r-pill);
-  background: var(--cobalt-soft);
+  background: var(--accent-soft);
   color: var(--ink);
   font: inherit;
   font-size: var(--fs-14);
@@ -490,7 +490,7 @@
 }
 .lib-star__glyph.is-on,
 .lib-star:hover .lib-star__glyph.is-on {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .lib-star__glyph.is-popping {
   animation: lib-star-pop 300ms var(--ease);
@@ -511,7 +511,7 @@
 .lib-table-wrap {
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .lib-table {
@@ -635,7 +635,7 @@
 
 .lib-empty {
   border: 1px dashed var(--line-strong);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
 }
 .lib-results {
   transition: opacity var(--dur-fast) var(--ease);
@@ -665,12 +665,12 @@
 }
 .lib-more__error {
   margin-top: var(--sp-16);
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
   text-align: center;
 }
 .lib-more__error button {
-  color: var(--cobalt);
+  color: var(--accent);
   font: inherit;
   font-weight: var(--fw-semibold);
   text-decoration: underline;

@@ -3,12 +3,12 @@
 
 .dy {
   /* The Word's marks: in the word in that spot, elsewhere, not in it. */
-  --dy-hit: var(--signal-strong);
-  --dy-on-hit: var(--cobalt-ink);
+  --dy-hit: var(--success);
+  --dy-on-hit: var(--on-accent);
   --dy-near: var(--highlight);
   --dy-on-near: var(--highlight-ink);
   --dy-miss: color-mix(in srgb, var(--ink-3) 80%, var(--ink)); /* a key's letter on it passes 4.5:1 in both themes */
-  --dy-on-miss: var(--cobalt-ink);
+  --dy-on-miss: var(--on-accent);
   /* Correlations' levels, plainest to trickiest: yellow, green, blue, purple. */
   --dy-l1: color-mix(in srgb, var(--highlight) 78%, var(--surface));
   --dy-l2: color-mix(in srgb, var(--mine-green) 42%, var(--surface));
@@ -34,13 +34,13 @@
   --dy-key-edge: color-mix(in srgb, var(--line-strong) 70%, transparent);
   --dy-press: 0 2px 0 var(--dy-key-edge);
   /* Selection: a picked word, cell or letter. */
-  --dy-pick: var(--cobalt);
-  --dy-on-pick: var(--cobalt-ink);
+  --dy-pick: var(--accent);
+  --dy-on-pick: var(--on-accent);
   /* Each game's colour on the hub. */
-  --dy-word: var(--signal);
+  --dy-word: var(--success-fill);
   --dy-groups: var(--mine-violet);
   --dy-search: var(--y3);
-  --dy-quiz: var(--cobalt);
+  --dy-quiz: var(--accent);
   --dy-nearest: var(--mine-rose);
   --dy-sudoku: var(--y1);
 }
@@ -101,14 +101,14 @@
 }
 .dy-glyph .g-digit {
   fill: currentColor;
-  font: 700 9px/1 var(--font-sans);
+  font: 700 9px/1 var(--font-ui);
   text-anchor: middle;
   dominant-baseline: central;
 }
 
 /* A glyph on a tinted square in its game's colour. */
 .dy-tile-glyph {
-  --g: var(--cobalt);
+  --g: var(--accent);
   display: grid;
   place-items: center;
   flex: 0 0 auto;
@@ -137,7 +137,7 @@
   opacity: 0.45;
 }
 .dy-pic .is-wrong {
-  fill: var(--alert);
+  fill: var(--error);
 }
 .dy-pic .is-l1 {
   fill: var(--dy-l1);
@@ -172,20 +172,20 @@
   font-size: 1.1em;
 }
 .dy-chip--won {
-  background: var(--signal-soft);
-  color: var(--signal-strong);
+  background: var(--success-soft);
+  color: var(--success);
 }
 .dy-chip--playing {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .dy-chip--streak {
   background: var(--highlight-soft);
   color: var(--y3-strong);
 }
 .dy-chip--points {
-  background: var(--signal-soft);
-  color: var(--signal-strong);
+  background: var(--success-soft);
+  color: var(--success);
 }
 
 .dy-num {

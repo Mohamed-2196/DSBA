@@ -37,8 +37,8 @@
   background: color-mix(in srgb, var(--surface-2) 50%, var(--surface));
 }
 .forum-report__reason.is-checked {
-  border-color: var(--cobalt);
-  background: var(--cobalt-soft);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .forum-report__reason:has(input:focus-visible) {
   box-shadow: 0 0 0 var(--focus-width, 2px) var(--focus-color);
@@ -47,7 +47,7 @@
   width: 16px;
   height: 16px;
   margin: 2px 0 0;
-  accent-color: var(--cobalt);
+  accent-color: var(--accent);
 }
 .forum-report__reason input:focus-visible {
   outline: none;
@@ -86,8 +86,8 @@
   gap: 8px;
   padding: 10px 12px;
   border-radius: var(--r-control);
-  background: var(--alert-soft);
-  color: var(--alert-strong);
+  background: var(--error-soft);
+  color: var(--error);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
   line-height: 1.45;

@@ -5,7 +5,7 @@
   margin-top: var(--sp-24);
   padding: var(--sp-16) var(--sp-24);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .sugg-panel__head {
@@ -89,7 +89,7 @@
   gap: var(--sp-16);
 }
 .sugg-form__error {
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
 }
 
@@ -117,7 +117,7 @@
   padding: 0;
   list-style: none;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .sugg-card {

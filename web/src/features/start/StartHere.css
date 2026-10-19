@@ -43,14 +43,14 @@
   content: '';
   width: 12px;
   height: 12px;
-  background: var(--cobalt-ink);
+  background: var(--on-accent);
   clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
   transform: scale(0);
   transition: transform var(--dur-fast) var(--ease);
 }
 .start-check__box:checked {
-  background: var(--cobalt);
-  border-color: var(--cobalt);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .start-check__box:checked::after {
   transform: scale(1);
@@ -108,7 +108,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--cobalt);
+  color: var(--accent);
   font: inherit;
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
@@ -156,7 +156,7 @@
   min-width: 0;
 }
 .start-card__title {
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   letter-spacing: var(--tracking-head);
   line-height: var(--lh-heading);
@@ -198,7 +198,7 @@
 }
 .start-page__done {
   margin-top: var(--sp-12);
-  color: var(--signal-strong);
+  color: var(--success);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
 }
@@ -217,7 +217,7 @@
 .start-place {
   padding: var(--sp-16) var(--sp-24);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .start-place__name {
@@ -243,7 +243,7 @@
 
 /* ── Results day ─────────────────────────────────────────────────────────────────────────────── */
 .start-card--results {
-  border-color: color-mix(in srgb, var(--cobalt) 35%, var(--line));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
 }
 .start-page__panel--roomy {
   padding: var(--sp-16) var(--sp-24);

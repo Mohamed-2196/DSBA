@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useRouteError } from 'react-router-dom';
-import { ArrowClockwise, House, WarningCircle } from '@phosphor-icons/react';
-import { Button, EmptyState, HubLogo, Page, Panel } from '../ui';
+import { Button, EmptyState, HubLogo, Page, Panel, Icon, glyph } from '../ui';
 import './AppCrashed.css';
 
 const TITLE_ID = 'app-crashed-title';
@@ -29,18 +28,22 @@ export function AppCrashed() {
         </div>
         <Panel padding="none">
           <EmptyState
-            icon={WarningCircle}
+            icon={<Icon glyph={glyph.error} />}
             title="DSBA Hub hit a problem"
             titleAs="h1"
             titleId={TITLE_ID}
             body="Something went wrong while showing the Hub. Reload the page to carry on, or go to Home if it happens again."
             action={
               <>
-                <Button variant="primary" leadingIcon={ArrowClockwise} onClick={() => window.location.reload()}>
+                <Button
+                  variant="primary"
+                  leadingIcon={<Icon glyph={glyph.refresh} />}
+                  onClick={() => window.location.reload()}
+                >
                   Reload the page
                 </Button>
                 {/* A plain link, so the whole app loads again. */}
-                <Button href={import.meta.env.BASE_URL} variant="ghost" leadingIcon={House}>
+                <Button href={import.meta.env.BASE_URL} variant="ghost" leadingIcon={<Icon glyph={glyph.home} />}>
                   Go to Home
                 </Button>
               </>

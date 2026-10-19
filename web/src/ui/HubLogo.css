@@ -23,7 +23,7 @@
   height: var(--hublogo-size, 32px);
 }
 .ui-hublogo__name {
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: calc(var(--hublogo-size, 32px) * 0.6);
   font-weight: var(--fw-heavy);
   font-style: normal;
@@ -54,7 +54,7 @@ img.ui-hublogo--tile {
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--line-strong);
   color: var(--ink-2);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-style: normal;
   font-weight: var(--fw-bold);
   letter-spacing: 0.01em;

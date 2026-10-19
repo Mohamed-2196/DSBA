@@ -1,12 +1,12 @@
-import { House, Kanban } from '@phosphor-icons/react';
 import { describe, expect, it } from 'vitest';
+import { boards, home } from '../ui/icons/glyphs';
 import type { NavItem } from './nav';
 import { asSeen, markSeen, navAt, withSeen } from './seen';
 
 const ITEMS: NavItem[] = [
-  { id: 'home', label: 'Home', to: '/', icon: House, end: true },
-  { id: 'forum', label: 'Forum', to: '/forum', icon: Kanban, isNew: true },
-  { id: 'daily', label: 'Daily', to: '/daily', icon: Kanban, isNew: true },
+  { id: 'home', label: 'Home', to: '/', icon: home, section: 'home', group: 'main', end: true },
+  { id: 'forum', label: 'Forum', to: '/forum', icon: boards, section: 'tools', group: 'tools', isNew: true },
+  { id: 'daily', label: 'Daily', to: '/daily', icon: boards, section: 'tools', group: 'tools', isNew: true },
 ];
 
 describe('navAt', () => {

@@ -9,9 +9,9 @@
   align-items: center;
   gap: var(--sp-16);
   padding: 14px var(--sp-16);
-  border: 1px solid color-mix(in srgb, var(--signal) 34%, var(--line));
-  border-radius: var(--r-panel);
-  background: color-mix(in srgb, var(--signal-soft) 60%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--success-fill) 34%, var(--line));
+  border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--success-soft) 60%, var(--surface));
 }
 .career-featured__head {
   display: flex;
@@ -33,7 +33,7 @@
   text-decoration: none;
 }
 .career-featured__link:hover {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .career-featured__go {
   font-size: 13px;
@@ -43,7 +43,7 @@
     color var(--dur-fast) var(--ease);
 }
 .career-featured__link:hover .career-featured__go {
-  color: var(--cobalt);
+  color: var(--accent);
   transform: translate(1px, -1px);
 }
 .career-featured__blurb {
@@ -228,8 +228,8 @@
   white-space: nowrap;
 }
 .career-track.is-active {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .career-emp__foot {
@@ -242,12 +242,12 @@
 }
 .career-emp__cta.ui-button--secondary {
   border-color: transparent;
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .career-emp__cta.ui-button--secondary:hover {
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .career-emp__host {
   min-width: 0;
@@ -317,7 +317,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--cobalt-ink);
+  color: var(--on-accent);
   font-weight: var(--fw-semibold);
 }
 @media (hover: hover) and (pointer: fine) {

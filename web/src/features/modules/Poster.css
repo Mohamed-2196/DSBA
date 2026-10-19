@@ -9,7 +9,7 @@
   aspect-ratio: 16 / 9;
   overflow: hidden;
   isolation: isolate;
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: color-mix(in oklab, var(--mc) 15%, var(--paper));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 9%, transparent);
   color: var(--ink);
@@ -180,7 +180,7 @@
   background: color-mix(in srgb, var(--ink) 24%, transparent);
 }
 .mod-poster__tick.is-watched {
-  background: var(--signal);
+  background: var(--success-fill);
 }
 .mod-poster__tick.is-current {
   height: 20px;

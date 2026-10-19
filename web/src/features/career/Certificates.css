@@ -35,8 +35,8 @@
   width: 136px;
   height: 60px;
   border-radius: 12px;
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 28px;
 }
 

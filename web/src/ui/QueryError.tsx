@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { ArrowClockwise, Power, WarningCircle } from '@phosphor-icons/react';
+import { Icon } from './Icon';
+import * as glyph from './icons/glyphs';
 import { isFeatureOff, isNetworkError, loadProblem } from '../api/errors';
 import { Button } from './Button';
 import { EmptyState } from './EmptyState';
@@ -38,20 +39,20 @@ export function QueryError({
   const content = isFeatureOff(error) ? (
     <EmptyState
       size={size}
-      icon={Power}
+      icon={<Icon glyph={glyph.offline} />}
       title="This part of the hub is switched off right now."
       body="Come back later."
     />
   ) : (
     <EmptyState
       size={size}
-      icon={WarningCircle}
+      icon={<Icon glyph={glyph.error} />}
       illustration={isNetworkError(error) ? 'offline' : undefined}
       title={title}
       body={loadProblem(error)}
       action={
         onRetry ? (
-          <Button size="sm" leadingIcon={ArrowClockwise} loading={retrying} onClick={onRetry}>
+          <Button size="sm" leadingIcon={<Icon glyph={glyph.refresh} />} loading={retrying} onClick={onRetry}>
             Try again
           </Button>
         ) : undefined

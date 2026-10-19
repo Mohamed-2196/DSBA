@@ -28,7 +28,7 @@
 }
 .home-head__title {
   margin-top: var(--sp-8);
-  font-size: var(--fs-39);
+  font-size: var(--fs-34);
   font-weight: var(--fw-heavy);
   line-height: 1.08;
   letter-spacing: -0.025em;
@@ -111,20 +111,20 @@
   min-height: 64px;
   padding: var(--sp-8) var(--sp-8) var(--sp-8) var(--sp-16);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
   transition:
     border-color var(--dur-fast) var(--ease),
     box-shadow var(--dur-fast) var(--ease);
 }
 .home-ask:focus-within {
-  border-color: var(--cobalt);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cobalt) 18%, transparent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .home-ask__icon {
   flex: 0 0 auto;
   font-size: 26px;
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .home-ask__input {
   flex: 1 1 auto;
@@ -155,7 +155,7 @@
   gap: var(--sp-16);
   padding: var(--sp-16);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .home-next__count {
@@ -167,12 +167,12 @@
   height: 72px;
   padding: 0 var(--sp-8);
   border-radius: var(--r-control);
-  background: color-mix(in srgb, var(--alert) 10%, var(--surface));
+  background: color-mix(in srgb, var(--error) 10%, var(--surface));
   color: var(--ink);
   line-height: 1;
 }
 .home-next__days {
-  font-size: var(--fs-31);
+  font-size: var(--fs-28);
   font-weight: var(--fw-heavy);
   letter-spacing: -0.02em;
 }
@@ -236,7 +236,7 @@
   display: flex;
   flex-direction: column;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
   overflow: hidden;
 }
@@ -362,7 +362,7 @@
   width: 7px;
   height: 7px;
   border-radius: var(--r-pill);
-  background: var(--alert);
+  background: var(--exam);
 }
 .home-mods__bar {
   position: absolute;
@@ -475,7 +475,7 @@
     margin-bottom: var(--sp-24);
   }
   .home-head__title {
-    font-size: var(--fs-31);
+    font-size: var(--fs-28);
   }
   .home-blocks__grid {
     row-gap: var(--sp-32);
@@ -488,7 +488,7 @@
     height: 60px;
   }
   .home-next__days {
-    font-size: var(--fs-25);
+    font-size: var(--fs-22);
   }
 }
 @media (pointer: coarse) {

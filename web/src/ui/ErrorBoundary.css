@@ -11,10 +11,10 @@
 }
 .ui-boundary__icon {
   font-size: 18px;
-  color: var(--alert);
+  color: var(--error);
 }
 .ui-boundary__retry {
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
   text-decoration: underline;
   text-underline-offset: 0.18em;

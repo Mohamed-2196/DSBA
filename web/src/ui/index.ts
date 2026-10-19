@@ -2,6 +2,9 @@
 // Every primitive is rendered (light + dark) on /styleguide.
 export { Button, type ButtonVariant, type ButtonSize } from './Button';
 export { IconButton } from './IconButton';
+export { Icon } from './Icon';
+export * as glyph from './icons/glyphs';
+export type { Glyph } from './icons/glyph';
 export { Badge, CohortBadge, Count } from './Badge';
 export { Chip } from './Chip';
 export { Avatar } from './Avatar';

@@ -45,6 +45,7 @@ import {
   Panel,
   ProgressRing,
   HubLogo,
+  Icon,
   SearchField,
   SectionHeader,
   SegmentedControl,
@@ -58,10 +59,13 @@ import {
   WholeNumberField,
   Tooltip,
   cx,
+  glyph,
+  type Glyph,
 } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, useCalendarEvents, type EventType } from '../calendar/public';
 import { GameColours } from '../daily/public';
 import { scrollMotion } from '../../lib/motion';
+import { TokenPairs } from './TokenPairs';
 import './StyleGuidePage.css';
 
 // ── Reference data ────────────────────────────────────────────────────────
@@ -72,110 +76,149 @@ const COLOURS: { group: string; items: [string, string, string, string][] }[] = 
   {
     group: 'Surfaces',
     items: [
-      ['--paper', '#F4F7FC', '#07122B', 'App background'],
-      ['--surface', '#FFFFFF', '#0D1B3B', 'Panels and cards'],
-      ['--surface-2', '#EAF0F9', '#14264F', 'Insets, hovers, table stripes'],
-      ['--line', '#DCE5F2', '#213563', 'Borders and dividers'],
-      ['--line-strong', '#C6D3E6', '#2F477E', 'Input and chip borders'],
+      ['--paper', '#F2F5FB', '#0B1530', 'The canvas: cool, never cream'],
+      ['--surface', '#FFFFFF', '#111E3E', 'Cards and panels'],
+      ['--surface-2', '#ECF1F9', '#1A2B54', 'Insets, hovers, table stripes'],
+      ['--raised', '#FFFFFF', '#16244A', 'Menus and popovers'],
+      ['--line', '#DCE4F1', '#22355F', 'Card edges and dividers'],
+      ['--line-strong', '#C5D2E6', '#2F4677', 'Chip borders'],
     ],
   },
   {
     group: 'Ink',
     items: [
-      ['--ink', '#0A1F44', '#ECF2FF', 'Text and headings'],
-      ['--ink-2', '#425372', '#A6B6D8', 'Secondary text'],
-      ['--ink-3', '#7587A6', '#7488B0', 'Icons and placeholders, not small text'],
+      ['--ink', '#0A1F44', '#EAF0FF', 'Text and headings'],
+      ['--ink-2', '#3E4E6E', '#A9B8D9', 'Secondary text'],
+      ['--ink-3', '#5A6A8C', '#8798BE', 'Meta and placeholders, AA on every ground'],
     ],
   },
   {
-    group: 'Brand',
+    group: 'Accent',
     items: [
-      ['--cobalt', '#1558F0', '#6FA2FF', 'Actions, links, focus'],
-      ['--cobalt-ink', '#FFFFFF', '#07122B', 'Text on cobalt'],
-      ['--navy', '#0C2D75', '#0C2D75', 'Logo tile, deep accents'],
+      ['--accent', '#2445C2', '#8DA6FF', 'Primary buttons, links, focus'],
+      ['--accent-edge', '#1F3A93', '#5F7BE0', 'The lip under a primary button'],
+      ['--on-accent', '#FFFFFF', '#0B1530', 'Text on the accent'],
+      ['--inverse', '#0A1F44', '#EAF0FF', 'The one dark pill (Filters)'],
+      ['--logo-blue', '#1F3A93', '#1F3A93', 'The logo’s blue: Noora’s ring, the logo tile'],
       ['--highlight', '#FFE14A', '#FFE14A', 'Highlighter marks only, never text'],
     ],
   },
   {
     group: 'Status',
     items: [
-      ['--signal', '#12B886', '#38D9A9', 'Live, answered, success, watched'],
-      ['--alert', '#F03E5E', '#FF6B81', 'Exams, errors, destructive'],
+      ['--success', '#18794A', '#5BD49A', 'Saved, answered, watched'],
+      ['--warning', '#8F5A00', '#FFC233', 'Warnings'],
+      ['--warning-fill', '#FFC233', '#FFC233', 'Counts and badges, with --on-warning-fill'],
+      ['--error', '#C0262D', '#FF7A7A', 'Errors and destructive actions'],
+      ['--exam', '#C21D5C', '#FF7EB0', 'Exams only'],
     ],
   },
   {
     group: 'Cohorts',
     items: [
-      ['--y1', '#0FA3B1', '#3BC9DB', 'Year 1, lagoon'],
-      ['--y2', '#1F6FEB', '#5E9BFF', 'Year 2, azure'],
-      ['--y3', '#F08C00', '#FFA94D', 'Year 3, amber'],
+      ['--y1', '#3BC9DB', '#3BC9DB', 'Year 1, lagoon'],
+      ['--y2', '#6FA2FF', '#6FA2FF', 'Year 2, sky'],
+      ['--y3', '#FFA94D', '#FFA94D', 'Year 3, amber'],
     ],
   },
 ];
 
 const DERIVED: Row2[] = [
-  ['--cobalt-soft', 'Selected rows, info tints'],
-  ['--cobalt-hover', 'Primary button hover'],
-  ['--alert-strong', 'Alert as small text, danger fill'],
-  ['--alert-soft', 'Exam and error tints'],
-  ['--signal-strong', 'Success as small text'],
-  ['--signal-soft', 'Success tints'],
+  ['--accent-soft', 'Selected rows, info tints'],
+  ['--accent-hover', 'Primary button hover'],
+  ['--accent-text', 'Accent as text on accent-soft'],
+  ['--success-fill', 'Bars, dots and large fills'],
+  ['--success-soft', 'Success tints'],
+  ['--warning-soft', 'Warning tints'],
+  ['--error-soft', 'Error tints'],
+  ['--exam-soft', 'Exam tints'],
   ['--highlight-soft', 'Pale highlighter wash'],
   ['--highlight-ink', 'Text on a highlighter mark'],
   ['--y1-strong', 'Year 1 as small text'],
   ['--y2-strong', 'Year 2 as small text'],
   ['--y3-strong', 'Year 3 as small text'],
+  ['--y2-soft', 'Year 2 tint; same for y1 and y3'],
   ['--on-y2', 'Text on a solid Year 2 fill; same for y1 and y3'],
 ];
 
+/** The sections (tokens.css --sec-*): a nav item, a section header or a pill sets data-section to take them. */
+const SECTION_COLOURS: [string, string, string][] = [
+  ['home', 'Home', 'Lumen'],
+  ['library', 'Library', 'Stacks'],
+  ['modules', 'Modules', 'Binder'],
+  ['notebook', 'Notebook', 'Jot'],
+  ['forum', 'Forum', 'Pip and Pod'],
+  ['calendar', 'Calendar', 'Blink'],
+  ['search', 'Search', 'Loupe'],
+  ['tools', 'Tools', 'Boards, Grades, Career Navigator, Newsletter, Daily'],
+];
+
+const GLYPHS = Object.entries(glyph);
+const NAV_GLYPH: Record<string, Glyph> = {
+  home: glyph.home,
+  library: glyph.library,
+  modules: glyph.modules,
+  notebook: glyph.notebook,
+  forum: glyph.forum,
+  calendar: glyph.calendar,
+  search: glyph.search,
+  tools: glyph.boards,
+};
+
 const TYPE_SCALE: [number, string, string, string, string][] = [
-  [76, '--fs-76', 'Display, the module code on its page', 'ST2133', 'code'],
-  [61, '--fs-61', 'Display', 'Exam season', 'display'],
-  [49, '--fs-49', 'Hero headline', 'Your week at a glance', 'display'],
-  [39, '--fs-39', 'Page title (h1)', 'Distribution theory', 'heading'],
-  [31, '--fs-31', 'Page title on mobile', 'Hypothesis tests', 'heading'],
-  [25, '--fs-25', 'Section title (h2)', 'Coming up this week', 'heading'],
-  [20, '--fs-20', 'Subsection, section header (h3)', 'Students’ notes', 'heading'],
+  [44, '--fs-44', 'Display XL: the module code on its page', 'ST2133', 'code'],
+  [44, '--fs-44', 'Display XL', 'Exam season', 'display'],
+  [34, '--fs-34', 'Display: the page title (h1)', 'Distribution theory', 'display'],
+  [28, '--fs-28', 'Title: the page title on a phone', 'Hypothesis tests', 'display'],
+  [22, '--fs-22', 'Heading: a section title (h2)', 'Coming up this week', 'display'],
+  [20, '--fs-20', 'Subsection (h3)', 'Students’ notes', 'display'],
+  [17, '--fs-17', 'Subhead, in the interface face', 'Pick up where you left off', 'heading'],
   [16, '--fs-16', 'Body', 'Notes for chapter 2 were added by Mohamed A. and checked against the guide.', 'body'],
-  [14, '--fs-14', 'UI text, secondary text', 'Updated 2h ago by Ali H.', 'body'],
-  [12, '--fs-12', 'Meta and captions', '22 lessons, 2 chapters', 'body'],
+  [14, '--fs-14', 'Body small, secondary text', 'Updated 2h ago by Ali H.', 'body'],
+  [12, '--fs-12', 'Meta, tab labels, overlines', '22 lessons, 2 chapters', 'body'],
 ];
 
 const SPACE = [4, 8, 12, 16, 24, 32, 48, 64, 96];
 
 const RADII: Row3[] = [
   ['--r-pill', '999px', 'Chips, pills, badges'],
-  ['--r-control', '10px', 'Inputs and buttons'],
-  ['--r-panel', '16px', 'Panels, menus, toasts'],
-  ['--r-feature', '24px', 'Feature panels, modals, drawers'],
+  ['--r-control', '13px', 'Buttons'],
+  ['--r-input', '14px', 'Text fields and selects'],
+  ['--r-nav', '14px', 'Sidebar items'],
+  ['--r-tab', '17px', 'Tab and segment pills'],
+  ['--r-card', '18px', 'Index cards, menus, toasts'],
+  ['--r-panel', '22px', 'Feature panels, dialogs, drawers'],
+  ['--r-sheet', '28px', 'Bottom sheets'],
   ['--r-page', '4px', 'Document pages'],
-  ['--r-xs', '6px', 'Keys, tooltips, swatches'],
+  ['--r-xs', '6px', 'Document thumbnails, keys, tooltips'],
 ];
 
 const LAYOUT_TOKENS: Row3[] = [
-  ['--rail-w', '264px', 'Left rail, desktop'],
+  ['--rail-w', '248px', 'Left rail, desktop'],
   ['--rail-w-collapsed', '72px', 'Icon rail, 700–1099px'],
   ['--topbar-h', '64px', 'Sticky top bar (56px on mobile)'],
-  ['--tabbar-h', '64px', 'Mobile bottom tab bar'],
+  ['--tabbar-h', '84px', 'Mobile bottom tab bar, plus the home indicator'],
+  ['--touch-min', '44px', 'The smallest target on a touch screen'],
   ['--content-max', '1180px', 'Page column (<Page>)'],
   ['--content-max-wide', '1440px', '<Page width="wide">'],
   ['--content-max-narrow', '760px', '<Page width="narrow">, reading'],
   ['--content-pad', '40 / 32 / 16px', 'Page padding by breakpoint'],
-  ['--measure', '58ch', 'Longest line of text: about 75 characters'],
-  ['--measure-serif', '54ch', 'The same for serif text (the newsletter)'],
+  ['--measure', '50ch', 'Longest line of text: under 75 characters in Figtree'],
 ];
 
 const MOTION_TOKENS: Row3[] = [
   ['--ease', 'cubic-bezier(.2,.8,.2,1)', 'Every transition'],
-  ['--dur-fast', '150ms', 'Hovers, menus, tooltips'],
+  ['--ease-bounce', 'cubic-bezier(.34,1.56,.64,1)', 'The happy hop only'],
+  ['--dur-fast', '140ms', 'Hovers, menus, tooltips, presses'],
   ['--dur', '200ms', 'Tabs, toggles, drawers closing'],
-  ['--dur-slow', '250ms', 'Modals and drawers opening, toasts'],
+  ['--dur-slow', '320ms', 'Modals and drawers opening, toasts'],
 ];
 
 const SECTIONS: Row2[] = [
   ['brand', 'Brand'],
   ['colour', 'Colour'],
   ['type', 'Type'],
+  ['icons', 'Icons'],
   ['space', 'Space and shape'],
   ['actions', 'Buttons'],
   ['forms', 'Forms'],
@@ -384,7 +427,7 @@ function ThemeIsland({ theme }: { theme: 'light' | 'dark' }) {
             { value: 'discussion', label: 'Discussion' },
           ]}
         />
-        <Badge tone="alert">Exam</Badge>
+        <Badge tone="exam">Exam</Badge>
         <Badge tone="signal">Answered</Badge>
         <Badge tone="highlight">New</Badge>
       </div>
@@ -476,7 +519,7 @@ export default function StyleGuidePage() {
           <Section
             id="brand"
             title="Brand"
-            description="A bar marks the active page; a plain ring is the loader. The logo is a file (data/brand.ts): the “DSBA Hub” lockup and the “DH” tile. The highlighter marks what is new or important."
+            description="The active page sits on its section’s pill; a plain ring is the loader. The logo is a file (data/brand.ts): the “DSBA Hub” lockup and the “DH” tile. The highlighter marks what is new or important."
           >
             <div className="sg-grid sg-grid--2">
               <Specimen
@@ -537,7 +580,7 @@ export default function StyleGuidePage() {
             >
               <HubLogo variant="lockup" size={48} />
               <HubLogo variant="lockup" size={32} />
-              <span className="sg-lockup sg-lockup--navy" data-theme="dark">
+              <span className="sg-lockup sg-lockup--blue" data-theme="dark">
                 <HubLogo variant="lockup" size={24} />
               </span>
             </Specimen>
@@ -568,6 +611,36 @@ export default function StyleGuidePage() {
                   <Swatch key={token} token={token} use={use} />
                 ))}
               </ul>
+            </div>
+            <div className="sg-colour-group">
+              <h3 className="sg-subhead">Sections</h3>
+              <p className="sg-caption">
+                Each section has four tones: art (drawings, the active icon body; never text), tint (the resting icon
+                body), pill (the active item, section headers) and text (labels and counts). Set{' '}
+                <code>data-section</code> and use <code>--sec-art</code>, <code>--sec-tint</code>,{' '}
+                <code>--sec-pill</code> and <code>--sec-text</code>.
+              </p>
+              <ul role="list" className="sg-sections">
+                {SECTION_COLOURS.map(([id, name, who]) => (
+                  <li key={id} className="sg-tone" data-section={id}>
+                    <span className="sg-tone__swatches" aria-hidden="true">
+                      <span style={{ background: 'var(--sec-art)' }} />
+                      <span style={{ background: 'var(--sec-tint)' }} />
+                      <span style={{ background: 'var(--sec-pill)' }} />
+                    </span>
+                    <span className="sg-tone__pill">{name}</span>
+                    <span className="sg-caption">{who}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="sg-colour-group">
+              <h3 className="sg-subhead">Text on its ground</h3>
+              <p className="sg-caption">
+                Every text pair in the tokens, light theme then dark, with the contrast measured here. Text needs 4.5:1;
+                a dashed ring marks one that falls short.
+              </p>
+              <TokenPairs />
             </div>
             <div className="sg-colour-group">
               <h3 className="sg-subhead">Daily’s game colours</h3>
@@ -604,28 +677,27 @@ export default function StyleGuidePage() {
           <Section
             id="type"
             title="Type"
-            description="Schibsted Grotesk for the interface, Newsreader for long reading, JetBrains Mono for code. Major-third scale on a 16px base."
+            description="Bricolage Grotesque for titles and headings, Figtree for the interface and reading, JetBrains Mono for codes and timers, IBM Plex Sans Arabic for Arabic in every stack."
           >
             <div className="sg-families">
+              <div className="sg-family sg-family--display">
+                <p className="sg-family__glyph">Aa</p>
+                <p className="sg-family__name">Bricolage Grotesque</p>
+                <p className="sg-family__role">
+                  Page titles, greetings and card titles: 750, optical size by the browser, −0.025em. Never body text.
+                </p>
+                <p className="sg-family__sample">Good evening, Sara</p>
+              </div>
               <div className="sg-family">
                 <p className="sg-family__glyph">Aa</p>
-                <p className="sg-family__name">Schibsted Grotesk</p>
-                <p className="sg-family__role">
-                  UI and every non-editorial heading. Headlines 700–800 at −0.02em; UI 400–600.
-                </p>
+                <p className="sg-family__name">Figtree</p>
+                <p className="sg-family__role">Everything else: the interface, body text, labels and the newsletter.</p>
                 <p className="sg-family__weights">
                   <span style={{ fontWeight: 400 }}>Regular</span>
                   <span style={{ fontWeight: 500 }}>Medium</span>
                   <span style={{ fontWeight: 600 }}>Semibold</span>
                   <span style={{ fontWeight: 700 }}>Bold</span>
                   <span style={{ fontWeight: 800 }}>Heavy</span>
-                </p>
-              </div>
-              <div className="sg-family sg-family--serif">
-                <p className="sg-family__glyph">Aa</p>
-                <p className="sg-family__name">Newsreader</p>
-                <p className="sg-family__role">
-                  The newsletter, pull quotes, long reading and document pages. Body line height 1.65.
                 </p>
                 <blockquote className="sg-quote">
                   “Past papers are the closest thing we have to a map of the exam.”
@@ -634,7 +706,7 @@ export default function StyleGuidePage() {
               <div className="sg-family sg-family--mono">
                 <p className="sg-family__glyph">Aa</p>
                 <p className="sg-family__name">JetBrains Mono</p>
-                <p className="sg-family__role">Real code, formulas and keyboard keys only. Never small labels.</p>
+                <p className="sg-family__role">Codes, timers, formulas and keyboard keys. Never small labels.</p>
                 <pre className="sg-mono-sample">
                   <code>{'mean(x)  # R\nVar(X) = E[X²] − (E[X])²'}</code>
                 </pre>
@@ -666,8 +738,8 @@ export default function StyleGuidePage() {
             <div className="sg-grid sg-grid--2">
               <Specimen
                 title="Module code as a typographic object"
-                note="className u-code: Schibsted 800, tabular figures"
-                code={`<span className="u-code" style={{ fontSize: 'var(--fs-76)' }}>{m.unitCode}</span>\n// year 3 modules have no unit code: show the name instead`}
+                note="className u-code: Figtree 800, tabular figures"
+                code={`<span className="u-code" style={{ fontSize: 'var(--fs-44)' }}>{m.unitCode}</span>\n// year 3 modules have no unit code: show the name instead`}
                 stageClassName="sg-stage--column"
               >
                 <div className="sg-unit">
@@ -693,13 +765,13 @@ export default function StyleGuidePage() {
               <Specimen
                 title="Text utilities"
                 note="in styles/base.css"
-                code={`u-tabular  u-serif  u-mono  u-muted\nu-measure  u-code  visually-hidden`}
+                code={`u-tabular  u-display  u-mono  u-muted\nu-measure  u-code  visually-hidden`}
                 stageClassName="sg-stage--column"
               >
                 <p className="u-measure">
                   Body text at 16px with line height 1.55 keeps to the measure, about 75 characters a line.{' '}
                   <a href="#/styleguide" onClick={(e) => e.preventDefault()}>
-                    Links are cobalt
+                    Links are the accent
                   </a>{' '}
                   with a quiet underline that firms up on hover. <strong>Bold</strong> for emphasis,{' '}
                   <code>inline code</code> for code.
@@ -709,9 +781,43 @@ export default function StyleGuidePage() {
                   <span className="u-tabular">22</span> lessons, <span className="u-tabular">2</span> chapters: wrap
                   only the numbers in u-tabular (it widens commas).
                 </p>
-                <p className="u-serif">Serif reading text sits in Newsreader with a little more line height.</p>
+                <p className="u-display">A title set in the display face</p>
               </Specimen>
             </div>
+          </Section>
+
+          {/* ── Icons ─────────────────────────────────────────────────── */}
+          <Section
+            id="icons"
+            title="Icons"
+            description="One hand-drawn two-tone family: the line takes the text colour, the body the section’s tint, paper parts the surface. 24 in the tab and top bars, 20 in the sidebar, buttons and fields, 16 inline with meta. Phosphor stays only where the family has no icon, never in the same row."
+          >
+            <Specimen
+              title="Icon"
+              note="glyph, size 16 | 20 | 24, active, label (names a meaningful icon; otherwise hidden)"
+              code={`import { Icon, glyph } from '../../ui';\n<Icon glyph={glyph.library} size={20} />\n<Icon glyph={glyph.library} size={24} active />   // inside data-section="library"\n<Button leadingIcon={<Icon glyph={glyph.upload} />}>Upload a file</Button>`}
+              stageClassName="sg-stage--column"
+            >
+              <ul role="list" className="sg-icons">
+                {GLYPHS.map(([name, g]) => (
+                  <li key={name} className="sg-icons__item">
+                    <Icon glyph={g} size={24} />
+                    <code className="sg-token">{name}</code>
+                  </li>
+                ))}
+              </ul>
+              <div className="sg-icons__states">
+                {SECTION_COLOURS.map(([id, name]) => (
+                  <span key={id} className="sg-icons__state" data-section={id}>
+                    <Icon glyph={NAV_GLYPH[id]} size={24} />
+                    <span className="sg-icons__pill">
+                      <Icon glyph={NAV_GLYPH[id]} size={24} active />
+                    </span>
+                    <span className="sg-caption">{name}</span>
+                  </span>
+                ))}
+              </div>
+            </Specimen>
           </Section>
 
           {/* ── Space, shape, elevation, motion ─────────────────────────── */}
@@ -761,7 +867,7 @@ export default function StyleGuidePage() {
               </Specimen>
               <Specimen
                 title="Focus"
-                note="2px cobalt ring, 2px offset, keyboard only"
+                note="2px accent ring, 2px offset, keyboard only"
                 stageClassName="sg-stage--column"
               >
                 <div className="sg-focus-row">
@@ -784,7 +890,7 @@ export default function StyleGuidePage() {
             </div>
             <Specimen
               title="Motion"
-              note="150–250ms, one easing, only in answer to an action (plus Home's first load)"
+              note="140–320ms, one easing, only in answer to an action (plus Home's first load)"
               stageClassName="sg-stage--motion"
             >
               <MotionDemo />
@@ -968,7 +1074,7 @@ export default function StyleGuidePage() {
             <Specimen
               title="Chip"
               note="selected, onChange(next), icon, count, color (leading dot), size sm | md"
-              code={`<Chip selected={types.has('exam')} onChange={() => toggle('exam')} color="var(--alert)" count={24}>Exams</Chip>`}
+              code={`<Chip selected={types.has('exam')} onChange={() => toggle('exam')} color="var(--error)" count={24}>Exams</Chip>`}
             >
               {EVENT_ENTRIES.map(([type, t]) => (
                 <Chip
@@ -1073,13 +1179,13 @@ export default function StyleGuidePage() {
             <div className="sg-grid sg-grid--2">
               <Specimen
                 title="Badge"
-                note="tone neutral | cobalt | signal | alert | highlight | navy | outline, size sm | md, icon; a number is a count (Count: tabular digits, '1,234')"
-                code={`<Badge tone="alert">Exam</Badge>  <Badge tone="highlight">New</Badge>  <Badge tone="cobalt">{1234}</Badge>`}
+                note="tone neutral | cobalt | signal | alert | exam | highlight | navy | outline, size sm | md, icon; a number is a count (Count: tabular digits, '1,234')"
+                code={`<Badge tone="exam">Exam</Badge>  <Badge tone="highlight">New</Badge>  <Badge tone="cobalt">{1234}</Badge>`}
               >
                 <Badge>Draft</Badge>
                 <Badge tone="cobalt">Pinned</Badge>
                 <Badge tone="signal">Answered</Badge>
-                <Badge tone="alert">Exam</Badge>
+                <Badge tone="exam">Exam</Badge>
                 <Badge tone="highlight">New</Badge>
                 <Badge tone="navy">Staff pick</Badge>
                 <Badge tone="outline">PDF</Badge>
@@ -1192,7 +1298,7 @@ export default function StyleGuidePage() {
                 <ProgressRing value={0} />
                 <ProgressRing value={35} color={cohortColor(1)} />
                 <ProgressRing value={72} size={48} color={cohortColor(2)} />
-                <ProgressRing value={100} size={56} stroke={5} color="var(--signal)" />
+                <ProgressRing value={100} size={56} stroke={5} color="var(--success-fill)" />
                 <ProgressRing value={60} size={20} stroke={3} />
               </Specimen>
             </div>
@@ -1228,7 +1334,7 @@ export default function StyleGuidePage() {
                   </div>
                 </div>
                 <Skeleton lines={3} />
-                <Skeleton height={96} radius="var(--r-panel)" />
+                <Skeleton height={96} radius="var(--r-card)" />
               </Specimen>
             </div>
             <Specimen
@@ -1332,7 +1438,7 @@ export default function StyleGuidePage() {
                   meta={
                     <>
                       <CohortBadge year={demo.year} />
-                      <Badge tone="alert">Exam 30 Oct</Badge>
+                      <Badge tone="exam">Exam 30 Oct</Badge>
                       <span className="sg-caption">
                         {demo.chapterCount} chapters, {demo.lessonCount} lessons
                       </span>

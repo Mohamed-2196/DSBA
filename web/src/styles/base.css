@@ -9,7 +9,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: 100%;
   line-height: var(--lh-sans);
   color: var(--ink);
@@ -49,12 +49,20 @@ h6 {
   text-wrap: balance;
   color: var(--ink);
 }
+/* Titles and headings in the display face; smaller heads stay in the interface face. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+}
 h1 {
-  font-size: var(--fs-39);
-  font-weight: var(--fw-heavy);
+  font-size: var(--fs-34);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tracking-display);
 }
 h2 {
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
 }
 h3 {
   font-size: var(--fs-20);
@@ -137,7 +145,7 @@ hr {
 }
 
 a {
-  color: var(--cobalt);
+  color: var(--accent);
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.18em;
@@ -199,6 +207,57 @@ b {
   background-color: var(--ink-3);
 }
 
+/* Sections: an element with data-section="library" (or home, modules, notebook, forum, calendar, search, tools) gives
+   everything inside it that section's colours as --sec-art, --sec-tint, --sec-pill and --sec-text (tokens.css). */
+[data-section='home'] {
+  --sec-art: var(--sec-home-art);
+  --sec-tint: var(--sec-home-tint);
+  --sec-pill: var(--sec-home-pill);
+  --sec-text: var(--sec-home-text);
+}
+[data-section='library'] {
+  --sec-art: var(--sec-library-art);
+  --sec-tint: var(--sec-library-tint);
+  --sec-pill: var(--sec-library-pill);
+  --sec-text: var(--sec-library-text);
+}
+[data-section='modules'] {
+  --sec-art: var(--sec-modules-art);
+  --sec-tint: var(--sec-modules-tint);
+  --sec-pill: var(--sec-modules-pill);
+  --sec-text: var(--sec-modules-text);
+}
+[data-section='notebook'] {
+  --sec-art: var(--sec-notebook-art);
+  --sec-tint: var(--sec-notebook-tint);
+  --sec-pill: var(--sec-notebook-pill);
+  --sec-text: var(--sec-notebook-text);
+}
+[data-section='forum'] {
+  --sec-art: var(--sec-forum-art);
+  --sec-tint: var(--sec-forum-tint);
+  --sec-pill: var(--sec-forum-pill);
+  --sec-text: var(--sec-forum-text);
+}
+[data-section='calendar'] {
+  --sec-art: var(--sec-calendar-art);
+  --sec-tint: var(--sec-calendar-tint);
+  --sec-pill: var(--sec-calendar-pill);
+  --sec-text: var(--sec-calendar-text);
+}
+[data-section='search'] {
+  --sec-art: var(--sec-search-art);
+  --sec-tint: var(--sec-search-tint);
+  --sec-pill: var(--sec-search-pill);
+  --sec-text: var(--sec-search-text);
+}
+[data-section='tools'] {
+  --sec-art: var(--sec-tools-art);
+  --sec-tint: var(--sec-tools-tint);
+  --sec-pill: var(--sec-tools-pill);
+  --sec-text: var(--sec-tools-text);
+}
+
 /* Utilities */
 .visually-hidden {
   position: absolute !important;
@@ -214,9 +273,10 @@ b {
 .u-tabular {
   font-variant-numeric: tabular-nums;
 }
-.u-serif {
-  font-family: var(--font-serif);
-  line-height: var(--lh-serif);
+.u-display {
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-display);
 }
 .u-mono {
   font-family: var(--font-mono);
@@ -265,7 +325,7 @@ b {
 
 /* A unit code set as a typographic object (e.g. ST2133). */
 .u-code {
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-weight: var(--fw-heavy);
   font-variant-numeric: tabular-nums lining-nums;
   letter-spacing: -0.01em;

@@ -1,12 +1,12 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-// Self-hosted fonts (no Google Fonts): Schibsted Grotesk (UI), Newsreader (editorial), JetBrains Mono (code/keys).
-import '@fontsource-variable/schibsted-grotesk/wght.css';
-import '@fontsource-variable/schibsted-grotesk/wght-italic.css';
-import '@fontsource-variable/newsreader/opsz.css';
-import '@fontsource-variable/newsreader/opsz-italic.css';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/600.css';
+// Self-hosted fonts (no Google Fonts): Bricolage Grotesque (display, with its optical sizes), Figtree (the interface),
+// JetBrains Mono (codes and timers).
+import '@fontsource-variable/bricolage-grotesque/opsz.css';
+import '@fontsource-variable/figtree/wght.css';
+import '@fontsource-variable/figtree/wght-italic.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/700.css';
 // Arabic only (unicode-range subsets): forum posts written in Arabic
 import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
 import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';

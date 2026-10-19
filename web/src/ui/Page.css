@@ -27,10 +27,11 @@
   min-width: 0;
 }
 .ui-page-header__title {
-  font-size: var(--fs-39);
-  font-weight: var(--fw-heavy);
-  line-height: 1.08;
-  letter-spacing: var(--tracking-head);
+  font-family: var(--font-display);
+  font-size: var(--fs-34);
+  font-weight: var(--fw-display);
+  line-height: 40px;
+  letter-spacing: var(--tracking-display);
 }
 .ui-page-header__desc {
   margin-top: var(--sp-8);
@@ -71,7 +72,8 @@
     flex-basis: auto;
   }
   .ui-page-header__title {
-    font-size: var(--fs-31);
+    font-size: var(--fs-28);
+    line-height: 34px;
   }
   .ui-page-section + .ui-page-section {
     margin-top: var(--sp-32);

@@ -5,7 +5,7 @@
 }
 .forum-thread__header .ui-page-header__title {
   max-width: 30em;
-  font-size: var(--fs-31);
+  font-size: var(--fs-28);
   line-height: 1.16;
   letter-spacing: -0.022em;
 }
@@ -182,7 +182,7 @@
   align-items: center;
   gap: 6px;
   margin-left: auto;
-  color: var(--signal-strong);
+  color: var(--success);
   font-size: var(--fs-14);
   font-weight: var(--fw-bold);
 }
@@ -225,12 +225,12 @@
 /* Your own reply after a student rep hid it (decision D3): sized to its sentence, which keeps a readable length. */
 .forum-reply__note {
   width: fit-content;
-  max-width: var(--forum-measure, 58ch);
+  max-width: var(--forum-measure, var(--measure));
   margin-top: 8px;
   padding: 8px 12px;
   border-radius: var(--r-control);
-  background: var(--alert-soft);
-  color: var(--alert-strong);
+  background: var(--error-soft);
+  color: var(--error);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
   line-height: 1.45;
@@ -238,7 +238,7 @@
 
 /* Moderators see hidden replies, marked and muted; a deleted reply keeps its place for the replies under it. */
 .forum-reply.is-hidden {
-  background: color-mix(in srgb, var(--alert) 5%, var(--surface));
+  background: color-mix(in srgb, var(--error) 5%, var(--surface));
 }
 .forum-reply.is-hidden > .forum-reply__main > .forum-reply__body {
   color: var(--ink-2);
@@ -248,7 +248,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: var(--alert);
+  background: var(--error);
 }
 .forum-reply.is-nested.is-hidden {
   padding-inline: 8px;
@@ -273,8 +273,8 @@
 @keyframes forum-reply-target {
   0%,
   70% {
-    background-color: color-mix(in srgb, var(--cobalt) 9%, var(--surface));
-    box-shadow: inset 0 0 0 2px var(--cobalt);
+    background-color: color-mix(in srgb, var(--accent) 9%, var(--surface));
+    box-shadow: inset 0 0 0 2px var(--accent);
   }
   100% {
     box-shadow: inset 0 0 0 2px transparent;
@@ -282,14 +282,14 @@
 }
 
 .forum-reply.is-accepted {
-  background: color-mix(in srgb, var(--signal) 6%, var(--surface));
+  background: color-mix(in srgb, var(--success-fill) 6%, var(--surface));
 }
 .forum-reply.is-accepted::before {
   content: '';
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: var(--signal);
+  background: var(--success-fill);
 }
 
 /* Nested replies (one level), with a thread line */
@@ -302,7 +302,7 @@
   border-left: 2px solid var(--line);
 }
 .forum-reply.is-accepted .forum-replies__nested {
-  border-left-color: color-mix(in srgb, var(--signal) 28%, var(--line));
+  border-left-color: color-mix(in srgb, var(--success-fill) 28%, var(--line));
 }
 .forum-reply.is-nested {
   grid-template-columns: 24px minmax(0, 1fr);
@@ -336,8 +336,8 @@
   }
   .forum-reply.is-target {
     animation: none;
-    background-color: color-mix(in srgb, var(--cobalt) 9%, var(--surface));
-    box-shadow: inset 0 0 0 2px var(--cobalt);
+    background-color: color-mix(in srgb, var(--accent) 9%, var(--surface));
+    box-shadow: inset 0 0 0 2px var(--accent);
   }
 }
 
@@ -345,7 +345,7 @@
 .forum-thread__compose {
   padding: 20px 24px 20px 20px;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .forum-composer-reply {
@@ -412,12 +412,12 @@
   gap: 6px;
   padding: 20px;
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .forum-tside__code {
   color: var(--forum-c, var(--ink));
-  font-size: var(--fs-49);
+  font-size: var(--fs-44);
   font-weight: var(--fw-heavy);
   font-variant-numeric: tabular-nums lining-nums;
   letter-spacing: -0.03em;
@@ -456,7 +456,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--alert-strong);
+  color: var(--exam);
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
 }
@@ -527,7 +527,7 @@
 }
 @container forum-page (max-width: 640px) {
   .forum-thread__header .ui-page-header__title {
-    font-size: var(--fs-25);
+    font-size: var(--fs-22);
   }
   .forum-op {
     grid-template-columns: auto minmax(0, 1fr);

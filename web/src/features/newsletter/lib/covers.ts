@@ -16,42 +16,44 @@ export const COVER_H = 400;
 export const MARGIN = 20;
 export const MEASURE = COVER_W - 2 * MARGIN;
 
-// Newsreader's display figures (weight 400): every digit is 0.6em wide and 0.725em tall. FIGURE_INK[d] is
-// where the ink of digit d starts and ends inside its 0.6em, measured from the font.
-const FIGURE_ADVANCE = 0.6;
-const FIGURE_INK: readonly (readonly [number, number])[] = [
-  [0.039, 0.561],
-  [0.082, 0.541],
-  [0.042, 0.555],
-  [0.068, 0.523],
-  [0.001, 0.591],
-  [0.062, 0.531],
-  [0.062, 0.555],
-  [0.068, 0.556],
-  [0.048, 0.551],
-  [0.044, 0.539],
+// Bricolage Grotesque's figures at the display weight (750), proportional: FIGURE[d] is digit d's advance and where
+// its ink starts and ends inside it, in em, measured in Chrome from the font. Figures stand 0.674em at most.
+const FIGURE: readonly (readonly [advance: number, inkStart: number, inkEnd: number])[] = [
+  [0.594, 0.028, 0.566],
+  [0.302, 0.02, 0.261],
+  [0.548, 0.018, 0.526],
+  [0.563, 0.011, 0.556],
+  [0.601, 0.015, 0.578],
+  [0.563, 0.023, 0.536],
+  [0.592, 0.028, 0.565],
+  [0.494, 0.012, 0.481],
+  [0.607, 0.023, 0.583],
+  [0.601, 0.027, 0.573],
 ];
-export const FIGURE_HEIGHT = 0.725;
+export const FIGURE_HEIGHT = 0.674;
 const round1 = (n: number): number => Math.round(n * 10) / 10;
-const inkOf = (ch: string | undefined): readonly [number, number] =>
-  FIGURE_INK[Number(ch)] ?? (FIGURE_INK[0] as readonly [number, number]);
+const figureOf = (ch: string | undefined): readonly [number, number, number] =>
+  FIGURE[Number(ch)] ?? (FIGURE[0] as readonly [number, number, number]);
 
 /**
- * Font size and x of an issue numeral whose ink runs from the left margin to the right one ("01" and "00"
- * do), or as far as it gets before the figures grow taller than `maxHeight` (narrow pairs like "11").
+ * Font size and x of an issue numeral whose ink runs from the left margin to the right one, or as far as it gets
+ * before the figures grow taller than `maxHeight` (narrow pairs like "11").
  */
 export function numeralBox(text: string, maxHeight: number): { size: number; x: number } {
-  const first = inkOf(text[0]);
-  const last = inkOf(text[text.length - 1]);
-  const ink = FIGURE_ADVANCE * (text.length - 1) + last[1] - first[0];
+  const digits = [...text];
+  const first = figureOf(digits[0]);
+  const last = figureOf(digits[digits.length - 1]);
+  const before = digits.slice(0, -1).reduce((sum, d) => sum + figureOf(d)[0], 0);
+  const ink = before + last[2] - first[1];
   const size = round1(Math.min(MEASURE / ink, maxHeight / FIGURE_HEIGHT));
-  return { size, x: round1(MARGIN - first[0] * size) };
+  return { size, x: round1(MARGIN - first[1] * size) };
 }
 
-// Average advance of a character, in em: the story labels are tracked capitals in the sans, the story lines
-// are the text serif. Slightly generous, so an estimate never under-reports a width.
+// Average advance of a character, in em: the story labels are tracked capitals, the story lines running text. Slightly generous, so an estimate never under-reports a width.
 const LABEL_EM = 0.77;
 const LINE_EM = 0.48;
+// The cover line: Figtree italic at 500.
+const TITLE_EM = 0.52;
 
 /** The font size (<= size) at which `text` fits in `width`, estimated from its length. */
 export function fitSize(text: string, size: number, width: number, em: number): number {
@@ -60,6 +62,7 @@ export function fitSize(text: string, size: number, width: number, em: number): 
 }
 export const fitLabel = (text: string, size: number, width: number): number => fitSize(text, size, width, LABEL_EM);
 export const fitLine = (text: string, size: number, width: number): number => fitSize(text, size, width, LINE_EM);
+export const fitTitle = (text: string, size: number): number => fitSize(text, size, MEASURE, TITLE_EM);
 
 /** A section id as a label when the section itself is not known yet: 'student-council' → 'Student council'. */
 const labelFromId = (id: string): string => {

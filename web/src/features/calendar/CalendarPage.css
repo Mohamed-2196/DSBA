@@ -15,7 +15,7 @@
   min-width: 0;
   padding: var(--sp-24);
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 .cal-card__head {
@@ -35,7 +35,7 @@
   line-height: 1.3;
 }
 .cal-card__icon {
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: 20px;
 }
 .cal-card__sub {
@@ -64,7 +64,7 @@
 }
 
 .cal-exam {
-  box-shadow: inset 0 3px 0 var(--alert);
+  box-shadow: inset 0 3px 0 var(--exam);
 }
 .cal-exam.is-unconfirmed {
   border-style: dashed;
@@ -80,7 +80,7 @@
   align-items: baseline;
   gap: 4px var(--sp-12);
   margin-top: var(--sp-16);
-  font-size: var(--fs-31);
+  font-size: var(--fs-28);
   font-weight: var(--fw-heavy);
   letter-spacing: -0.025em;
   line-height: 1.15;
@@ -105,7 +105,7 @@
   max-width: var(--measure);
 }
 .cal-exam__code {
-  color: var(--alert-strong);
+  color: var(--exam);
   font-size: var(--fs-20);
   font-weight: var(--fw-heavy);
 }
@@ -219,7 +219,7 @@
   background: var(--surface-2);
 }
 .cal-row.is-selected {
-  background: var(--cobalt-soft);
+  background: var(--accent-soft);
 }
 .cal-row__meta {
   display: flex;
@@ -282,7 +282,7 @@
   gap: var(--sp-12);
 }
 .cal-browse__title {
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -348,7 +348,7 @@
 }
 .cal-list__empty {
   margin-top: var(--sp-12);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface-2);
 }
 
@@ -399,7 +399,7 @@
 /* ── Month grid ──────────────────────────────────────────────────────────────────────────── */
 .cal-grid {
   border: 1px solid var(--line);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
   overflow: hidden;
 }
@@ -471,13 +471,13 @@
   font-weight: var(--fw-regular);
 }
 .cal-day.is-today .cal-day__num {
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
+  background: var(--accent);
+  color: var(--on-accent);
   font-weight: var(--fw-bold);
   opacity: 1;
 }
 .cal-day__today {
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
 }
@@ -506,13 +506,13 @@
   transition: box-shadow var(--dur-fast) var(--ease);
 }
 .cal-chip--exam {
-  --chip-bg: var(--alert-soft);
+  --chip-bg: var(--exam-soft);
 }
 .cal-chip--mock {
-  --chip-bg: var(--cobalt-soft);
+  --chip-bg: var(--accent-soft);
 }
 .cal-chip--revision {
-  --chip-bg: var(--signal-soft);
+  --chip-bg: var(--success-soft);
 }
 .cal-chip--deadline {
   --chip-bg: var(--highlight-soft);
@@ -599,7 +599,7 @@ button.cal-day__num:hover {
   background: var(--surface-2);
 }
 .cal-day.is-today button.cal-day__num:hover {
-  background: var(--cobalt-hover);
+  background: var(--accent-hover);
 }
 button.cal-day__num:focus-visible {
   outline: var(--focus-width) solid var(--focus-color);
@@ -749,11 +749,11 @@ button.cal-day__num:focus-visible {
   align-items: center;
   column-gap: var(--sp-16);
   padding: var(--sp-16) var(--sp-16) var(--sp-16) var(--sp-24);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface-2);
 }
 .cal-drawer__day {
-  font-size: var(--fs-61);
+  font-size: var(--fs-44);
   font-weight: var(--fw-heavy);
   line-height: 0.9;
   letter-spacing: -0.035em;
@@ -784,8 +784,8 @@ button.cal-day__num:focus-visible {
   white-space: nowrap;
 }
 .cal-drawer__countdown.is-soon {
-  background: var(--alert-soft);
-  color: var(--alert-strong);
+  background: var(--error-soft);
+  color: var(--error);
 }
 .cal-drawer__countdown.is-past {
   color: var(--ink-2);
@@ -934,7 +934,7 @@ button.cal-day__num:focus-visible {
     padding: var(--sp-16);
   }
   .cal-exam__date {
-    font-size: var(--fs-25);
+    font-size: var(--fs-22);
   }
   .cal-exam__count {
     font-size: var(--fs-16);
@@ -976,7 +976,7 @@ button.cal-day__num:focus-visible {
     padding-left: var(--sp-16);
   }
   .cal-drawer__day {
-    font-size: var(--fs-49);
+    font-size: var(--fs-44);
   }
 }
 
@@ -1016,7 +1016,7 @@ button.cal-day__num:focus-visible {
   height: 18px;
   margin-top: 2px;
   flex: 0 0 auto;
-  accent-color: var(--cobalt);
+  accent-color: var(--accent);
 }
 .cal-form__check-title {
   display: block;
@@ -1032,7 +1032,7 @@ button.cal-day__num:focus-visible {
   line-height: 1.4;
 }
 .cal-form__error {
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
   line-height: 1.4;
@@ -1213,9 +1213,9 @@ button.cal-day__num:focus-visible {
   cursor: pointer;
 }
 .cal-scope__item.is-picked {
-  border-color: var(--cobalt);
-  box-shadow: inset 0 0 0 1px var(--cobalt);
-  background: color-mix(in srgb, var(--cobalt-soft) 55%, var(--surface));
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--surface));
 }
 .cal-scope__item:has(input:focus-visible) {
   outline: var(--focus-width) solid var(--focus-color);
@@ -1226,7 +1226,7 @@ button.cal-day__num:focus-visible {
   height: 18px;
   margin: 0;
   flex: 0 0 auto;
-  accent-color: var(--cobalt);
+  accent-color: var(--accent);
 }
 .cal-scope__text {
   display: flex;

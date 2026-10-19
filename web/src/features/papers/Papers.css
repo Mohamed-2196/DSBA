@@ -40,7 +40,7 @@
 }
 .papers__error {
   margin: 0;
-  color: var(--alert-strong);
+  color: var(--error);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
 }
@@ -60,14 +60,14 @@
   cursor: pointer;
 }
 .papers-check:has(input:checked) {
-  border-color: var(--cobalt);
+  border-color: var(--accent);
 }
 .papers-check input {
   width: 18px;
   height: 18px;
   margin-top: 2px;
   flex: 0 0 auto;
-  accent-color: var(--cobalt);
+  accent-color: var(--accent);
 }
 .papers-check__title {
   display: block;

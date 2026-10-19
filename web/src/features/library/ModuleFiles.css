@@ -132,7 +132,7 @@
   text-align: center;
 }
 .lib-mf__more a {
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
 }
 

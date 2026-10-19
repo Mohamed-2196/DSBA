@@ -31,7 +31,7 @@
   font-weight: var(--fw-semibold);
 }
 .dsu-stats .has-mistakes {
-  color: var(--alert-strong);
+  color: var(--error);
 }
 @media (prefers-reduced-motion: no-preference) {
   .dsu-stats .has-mistakes {
@@ -100,7 +100,7 @@
   padding: 0;
   border: 0;
   background: var(--surface);
-  color: var(--cobalt);
+  color: var(--accent);
   font: inherit;
   font-size: calc(var(--side) / 9 * 0.56);
   font-weight: var(--fw-semibold);
@@ -113,7 +113,7 @@
   font-weight: var(--fw-heavy);
 }
 .dsu-cell.is-hinted {
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .dsu-cell.is-hinted::after {
   content: '';
@@ -132,12 +132,12 @@
   background: color-mix(in srgb, var(--highlight) 34%, var(--surface));
 }
 .dsu-cell.is-selected {
-  background: color-mix(in srgb, var(--cobalt) 22%, var(--surface));
-  box-shadow: inset 0 0 0 2px var(--cobalt);
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 .dsu-cell.is-wrong {
-  color: var(--alert-strong);
-  background: var(--alert-soft);
+  color: var(--error);
+  background: var(--error-soft);
 }
 .dsu-cell:focus-visible {
   outline: 2px solid var(--focus-color);
@@ -160,7 +160,7 @@
   place-items: center;
 }
 .dsu-notes > .is-same {
-  color: var(--cobalt);
+  color: var(--accent);
   font-weight: var(--fw-heavy);
 }
 
@@ -243,8 +243,8 @@
   cursor: default;
 }
 .dsu-tool.is-on {
-  background: var(--cobalt-soft);
-  color: var(--cobalt);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .dsu-pad {
@@ -261,7 +261,7 @@
   border: 0;
   border-radius: var(--r-sm);
   background: var(--dy-key);
-  color: var(--cobalt);
+  color: var(--accent);
   box-shadow: var(--dy-press);
   font: inherit;
   cursor: pointer;
@@ -277,7 +277,7 @@
   cursor: default;
 }
 .dsu-key__digit {
-  font-size: var(--fs-25);
+  font-size: var(--fs-22);
   font-weight: var(--fw-bold);
   line-height: 1;
 }
@@ -367,7 +367,7 @@
   flex: 0 0 auto;
   margin-top: 2px;
   font-size: 20px;
-  color: var(--cobalt);
+  color: var(--accent);
 }
 .dsu-eg strong {
   color: var(--ink);

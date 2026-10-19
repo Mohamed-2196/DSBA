@@ -2,5 +2,8 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": ["e2e/*.setup.ts", "e2e/*.teardown.ts", "deploy/*.mjs", "src/sw/sw.ts"],
   "project": ["src/**/*.{ts,tsx}", "e2e/**/*.ts", "deploy/**/*.mjs"],
-  "ignoreExportsUsedInFile": true
+  "ignoreExportsUsedInFile": true,
+  "ignoreIssues": {
+    "src/ui/icons/glyphs/*.ts": ["exports", "nsExports"]
+  }
 }

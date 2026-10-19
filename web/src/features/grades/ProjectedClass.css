@@ -33,7 +33,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--cobalt);
+  color: var(--accent);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   text-decoration: none;

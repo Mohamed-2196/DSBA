@@ -24,8 +24,8 @@
   width: 100%;
   max-height: min(86vh, 900px);
   max-height: min(86dvh, 900px);
-  border: 1px solid var(--line);
-  border-radius: var(--r-feature);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-panel);
   background: var(--surface);
   box-shadow: var(--shadow-float);
   outline: none;
@@ -55,15 +55,17 @@
   padding: var(--sp-24) var(--sp-24) 0;
 }
 .ui-modal__title {
-  font-size: var(--fs-20);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.015em;
-  line-height: 1.25;
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
+  line-height: 28px;
 }
 .ui-modal__desc {
-  margin-top: 4px;
+  margin-top: 6px;
+  max-width: var(--measure);
   color: var(--ink-2);
-  font-size: var(--fs-14);
+  font-size: var(--fs-15);
 }
 .ui-modal__close {
   margin: -4px -8px 0 0;
@@ -124,13 +126,13 @@
 .ui-drawer--right .ui-drawer__panel {
   right: 0;
   border-left: 1px solid var(--line);
-  border-radius: var(--r-feature) 0 0 var(--r-feature);
+  border-radius: var(--r-panel) 0 0 var(--r-panel);
   animation: ui-drawer-right var(--dur-slow) var(--ease);
 }
 .ui-drawer--left .ui-drawer__panel {
   left: 0;
   border-right: 1px solid var(--line);
-  border-radius: 0 var(--r-feature) var(--r-feature) 0;
+  border-radius: 0 var(--r-panel) var(--r-panel) 0;
   animation: ui-drawer-left var(--dur-slow) var(--ease);
 }
 .ui-drawer--bottom .ui-drawer__panel {
@@ -139,7 +141,7 @@
   right: 0;
   max-height: 88vh;
   border-top: 1px solid var(--line);
-  border-radius: var(--r-feature) var(--r-feature) 0 0;
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
   padding-bottom: env(safe-area-inset-bottom);
   animation: ui-drawer-bottom var(--dur-slow) var(--ease);
 }

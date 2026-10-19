@@ -11,8 +11,8 @@ import './Opportunities.css';
 
 // The two kinds of programme a student can filter by. The dot repeats the colour of the badge on the cards.
 const TYPE_FILTERS: { id: 'graduate' | 'internship'; color: string }[] = [
-  { id: 'graduate', color: 'var(--cobalt)' },
-  { id: 'internship', color: 'var(--signal)' },
+  { id: 'graduate', color: 'var(--accent)' },
+  { id: 'internship', color: 'var(--success-fill)' },
 ];
 
 /** How many employers a phone shows before "Show all". */

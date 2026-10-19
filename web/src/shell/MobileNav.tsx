@@ -1,7 +1,6 @@
-import { createElement, useState } from 'react';
+import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ArrowUpRight, Bug, DotsThreeOutline, DownloadSimple, Info, UploadSimple } from '@phosphor-icons/react';
-import { BrandLogo, Divider, Drawer, cx } from '../ui';
+import { BrandLogo, Divider, Drawer, Icon, cx, glyph } from '../ui';
 import { openBugReport } from '../features/bugs/public';
 import { NooraFace } from '../features/noora/public';
 import { MOBILE_TAB_IDS, MORE_IDS } from './nav';
@@ -37,16 +36,16 @@ export function MobileNav() {
             end={item.end}
             className={({ isActive }) => cx('shell-tabbar__item', isActive && 'is-active')}
             data-hub={`tab-${item.id}`}
+            data-section={item.section}
           >
             {({ isActive }) => (
               <>
-                <span className="shell-tabbar__mark" aria-hidden="true" />
                 <span className="shell-tabbar__icon">
                   {/* Noora's tab shows her face: on a phone this is where Mini Noora waits. */}
                   {item.id === 'noora' ? (
                     <NooraFace size={26} className="shell-tabbar__face" />
                   ) : (
-                    createElement(item.icon, { weight: isActive ? 'duotone' : 'regular', 'aria-hidden': true })
+                    <Icon glyph={item.icon} size={24} active={isActive} />
                   )}
                   {item.isNew ? <span className="shell-tabbar__newdot" aria-hidden="true" /> : null}
                 </span>
@@ -62,10 +61,10 @@ export function MobileNav() {
           aria-haspopup="dialog"
           aria-expanded={open}
           data-hub="tab-more"
+          data-section="tools"
         >
-          <span className="shell-tabbar__mark" aria-hidden="true" />
           <span className="shell-tabbar__icon">
-            <DotsThreeOutline aria-hidden="true" weight={moreActive ? 'fill' : 'regular'} />
+            <Icon glyph={glyph.moreTab} size={24} active={moreActive} />
           </span>
           <span className="shell-tabbar__label">More</span>
         </button>
@@ -81,9 +80,14 @@ export function MobileNav() {
                   to={item.to}
                   onClick={close}
                   className={({ isActive }) => cx('shell-more__item', isActive && 'is-active')}
+                  data-section={item.section}
                 >
-                  {createElement(item.icon, { 'aria-hidden': true })}
-                  <span>{item.label}</span>
+                  {({ isActive }) => (
+                    <>
+                      <Icon glyph={item.icon} size={20} active={isActive} />
+                      <span>{item.label}</span>
+                    </>
+                  )}
                 </NavLink>
               </li>
             ))}
@@ -98,7 +102,7 @@ export function MobileNav() {
                   }}
                   data-hub="more-upload"
                 >
-                  <UploadSimple aria-hidden="true" />
+                  <Icon glyph={glyph.upload} size={20} />
                   <span>Upload a file</span>
                 </button>
               </li>
@@ -114,7 +118,7 @@ export function MobileNav() {
                   }}
                   data-hub="more-install"
                 >
-                  <DownloadSimple aria-hidden="true" />
+                  <Icon glyph={glyph.download} size={20} />
                   <span>Install the app</span>
                 </button>
               </li>
@@ -129,13 +133,13 @@ export function MobileNav() {
                 }}
                 data-hub="more-bug"
               >
-                <Bug aria-hidden="true" />
+                <Icon glyph={glyph.flag} size={20} />
                 <span>Report a bug</span>
               </button>
             </li>
             <li>
               <Link to="/about" onClick={close} className="shell-more__item">
-                <Info aria-hidden="true" />
+                <Icon glyph={glyph.info} size={20} />
                 <span>About DSBA Hub</span>
               </Link>
             </li>
@@ -150,7 +154,7 @@ export function MobileNav() {
                     {item.label}
                     <span className="visually-hidden"> (opens in a new tab)</span>
                   </span>
-                  <ArrowUpRight className="shell-more__ext" aria-hidden="true" weight="bold" />
+                  <Icon glyph={glyph.external} size={16} className="shell-more__ext" />
                 </a>
               </li>
             ))}

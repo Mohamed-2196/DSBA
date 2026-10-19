@@ -69,7 +69,7 @@
   --pad: clamp(6px, 2cqmin, 12px);
   --cell: calc((min(100cqw, 100cqh, 560px) - 2 * var(--pad)) / var(--size, 10));
   padding: var(--pad);
-  border-radius: var(--r-panel);
+  border-radius: var(--r-card);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--line);
 }
@@ -100,7 +100,7 @@
   stroke: color-mix(in srgb, var(--dy-pick) 30%, transparent);
 }
 .ds-line.is-miss {
-  stroke: color-mix(in srgb, var(--alert) 30%, transparent);
+  stroke: color-mix(in srgb, var(--error) 30%, transparent);
 }
 .ds-line.is-tone-0 {
   stroke: var(--dy-find-0);

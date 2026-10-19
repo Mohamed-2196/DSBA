@@ -146,7 +146,7 @@ function HubSkeleton() {
       <ul className="dh-games">
         {Array.from({ length: 6 }, (_, i) => (
           <li key={i}>
-            <Skeleton className="dh-tile-skeleton" radius="var(--r-panel)" />
+            <Skeleton className="dh-tile-skeleton" radius="var(--r-card)" />
           </li>
         ))}
       </ul>
