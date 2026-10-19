@@ -58,7 +58,7 @@ function NoPreview({ item, problem }: { item: LibraryItem; problem?: boolean }) 
         <div className="lib-nopreview__text">
           <h2 className="lib-nopreview__title">Kept on {place}</h2>
           <p>
-            This one lives on {place}, where it was shared before the Hub had its own library.
+            The Hub links to it and keeps no copy.
             {place === 'Google Drive' ? ' Google may ask you to sign in.' : ''}
           </p>
           <Button variant="primary" href={openLinkHref(item)} trailingIcon={ArrowSquareOut}>

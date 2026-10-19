@@ -77,6 +77,8 @@ describe('labels', () => {
     expect(linkPlace({ url: null })).toBe('another site');
     expect(linkPlace({ url: 'javascript:alert(1)' })).toBe('another site');
     expect(linkPlace({ url: 'https://www.example.com/a' })).toBe('example.com');
+    expect(linkPlace({ url: 'https://drive.google.com/file/d/x/view' })).toBe('Google Drive');
+    expect(linkPlace({ url: 'https://docs.google.com/document/d/x' })).toBe('Google Drive');
   });
 
   it('gives a file’s format and size, and a link’s place', () => {
