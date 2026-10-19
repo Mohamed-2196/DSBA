@@ -57,7 +57,7 @@ test('a student asks, a classmate says me too, a rep answers and the student is 
 });
 
 test('a double tap on "Send request" sends one request', async ({ ali, rep, run }) => {
-  test.fail(true, 'the request dialog has no guard against a second press, so a double tap makes two requests');
+  test.fail(true, 'ST-19: the request dialog has no guard against a second press, so a double tap makes two requests');
   const title = `Double tap [e2e ${run.tag}]`;
   await ali.goto('/requests');
   await ali.getByRole('button', { name: 'New request' }).click();

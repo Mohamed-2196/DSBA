@@ -1,5 +1,182 @@
 # Student test: DSBA Hub through the browser
 
+## Round 14 recheck (19 October 2026): the suite on everything round 14 merged, and the fixes by hand
+
+`round14/e2e` off `feature/backend` d1e61a4a, on the Docker stack in e2e mode (the API migrated the local database
+to head 0042 on restart). The full suite ran twice with `scripts/e2e.sh`; the round 14 findings marked fixed (ST-40 to
+ST-57, UX-66 to UX-79) were rechecked by hand as made-up students from dev-login on a 390×844 phone (touch) and a
+1440×900 laptop in Chrome: **Yousif RC** (Year 2, `yousif.e2e.r14rc@example.com`), **Aisha RC** (Year 1,
+`aisha.e2e.r14rc@example.com`) and **Khalid RC** (rep, `khalid.e2e.r14rc@example.com`). Their threads, notes, plan,
+board and upload were deleted, then the accounts. Daily was out of scope. Screenshots:
+`/private/tmp/claude-501/-Users-mohamed-dsba-hub/5411a11a-0ba5-46f6-8270-b4d416f58375/scratchpad/r14recheck/shots/`.
+
+### Summary
+
+Round 14 holds up: every fix marked done was confirmed on both sizes except ST-50, which is right in the settings
+but students don't see it (ST-58). The new e2e tests found two bugs in the app. The notes list's Module filter
+does nothing at all (ST-61). The same slip leaves Requests' "Clear filters" and "Show all notes" half done.
+Saving a practice score never says it was saved (ST-60). The suite's two failures in the first run were specs out of
+date after deliberate changes. One of them stopped the clean-up, which left the run's Year 2 student account and
+her threads in the database (fixed, and removed).
+
+### New findings
+
+| ID | Severity | What |
+|---|---|---|
+| ST-61 | major | The notes list's Module filter does nothing; "Show all notes" leaves the module on; Requests' "Clear filters" clears only "Mine". One cause: two address updates in a row, where the second undoes the first |
+| ST-60 | minor | Saving a practice score (after Time me, or from the paper's More menu) shows no "Saved: 68%": the dialog closes before the save returns, so its toast never runs |
+| ST-58 | minor (content and product) | Home's Daily question is on by default (ST-50) but shows nothing for most students: it only draws from the next exam's module, and 14 of 16 modules have no tagged questions (ST-48) |
+| ST-59 | nit | A revision plan's paper card is titled "ST2134 past paper · October 2024" but links the paper by its file name, "ST2134 Exam paper - October 2024" |
+
+#### ST-61 (major) The notes list's Module filter does nothing
+
+- Persona, where: Yousif (Year 2), laptop; `/notes` with a note about ST2133.
+- Steps: pick "ST2134 Advanced Statistics: Statistical Inference" in the Module filter (or ST2133, or back to Every
+  module).
+- Expected: the address becomes `/notes?module=advanced-stats-inferential` and only ST2134's notes are listed.
+- Got: nothing changes. The address stays `/notes`, the select jumps back to "Every module", and the ST2133 note
+  is still listed. A module's notes can only be reached through a link that already carries `?module=` (a lesson's
+  or module's "See all").
+- Cause: `pickModule` in `notes/NotesPage.tsx` calls `setModuleId(id)` and then `setLessonId(null)`. Each
+  `useQueryParam` setter (`state/useQueryParam.ts`) builds the new address from the current one, and React
+  Router's `setSearchParams(prev => …)` passes the address of the last render, not the one the first call just
+  set. So the second call puts back the address without the module. The same pattern breaks:
+  - `showAll` ("Show all notes" on a lesson's notes): `/notes?module=economics&lesson=xfm6xyvy` → **Show all
+    notes** → `/notes?module=economics`: the module's notes, not all of them;
+  - Requests' **Clear filters** (`requests/RequestsPage.tsx`):
+    `/requests?kind=module&status=done&mine=1` → `/requests?kind=module&status=done`: only "Mine" is cleared, and
+    the empty state stays;
+  - probably the calendar after saving your own event (`setMonthParam` and then `setEventId`, in
+    `calendar/CalendarPage.tsx`): the month may not follow the event (not reproduced).
+- Fix: one setter that changes several parameters in one `setSearchParams`, such as
+  `useQueryParams().set({ module: id, lesson: null })`, and use it wherever two are set together.
+- e2e: `notebook.spec.ts` "the notes list's Module filter shows only that module's notes" (`test.fail`, ST-61).
+  The round 14 builders' own test passed only because the note it looked for was listed anyway; it now opens
+  `?module=` directly.
+
+#### ST-60 (minor) Saving a score doesn't say so
+
+- Persona, where: Sara (e2e), laptop; a past paper → **Time me** → **Stop the timer** → "How did it go?" → 68 →
+  **Save**; or the paper's **More** → **Save my score**.
+- Expected: the toast "Saved: 68%. It shows on the paper and in its sitting." (`PaperScoreDialog`,
+  `board/ScoreDialog.tsx`).
+- Got: no toast. The score is saved ("Done, 68%" appears on the paper and stays after a reload). On Home or in the
+  notebook, where the floating clock is stopped, nothing on screen changes. A student can't tell whether the score
+  was kept.
+- Cause: `ScoreDialog` calls `onSave` and then `onClose` at once. The caller unmounts `PaperScoreDialog`, and
+  TanStack Query skips the callbacks passed to `mutate()` once the component that called it has unmounted. Move
+  the toast into `useSaveScore`'s own `onSuccess`, or keep the dialog mounted until the save returns.
+- e2e: `study-core.spec.ts` "saving a score from the paper's More menu says it was saved" (`test.fail`, ST-60).
+  Without the toast check it passes.
+
+#### ST-58 (minor) Home's Daily question is on, and still not there
+
+- Persona, where: Yousif (Year 2), phone and laptop; `/`.
+- Steps: a new Year 2 account opens Home; then **Customise Home**.
+- Expected: Customise lists "Daily question" as on (it is, along with Up next, Carry on, To-do, My modules, New files,
+  Forum and Ask Noora; Today's Daily, the Newsletter and Help the year below are off). Home then shows a past exam
+  question before the next exam.
+- Got: the block isn't on Home at all, on either size. `DailyQuestion` (`library/DailyQuestion.tsx`) renders
+  nothing when the next exam's module has no tagged question, and Home asks only for that module
+  (`HomePage.tsx`, `nextExam.module`). The next date was the IS2184 mock, and then an ST2134 exam: neither has
+  tagged questions. Only EC1002 and EC2020 have any. So ST-50's fix reaches Year 2 only in the days before EC2020.
+- Fix: fall back to the student's next exam that has tagged questions, or else to a whole past paper of the next
+  exam's module ("Sit May 2025 with Time me"). Tagging more questions (ST-48) is the content half.
+
+#### ST-59 (nit) Plan cards name the paper twice, differently
+
+- `/modules/st2134` → **Plan my revision** → **Make the plan** (four days out: 4 papers and 8 lessons, 19 left out).
+  Card: "ST2134 past paper · October 2024", and under it the link "ST2134 Exam paper - October 2024" (the file
+  name). The link should use `examTitle()` like everything else since UX-67 ("ST2134 · October 2024").
+
+### The suite: specs out of date after deliberate changes (fixed)
+
+- `notebook.spec.ts` "a note knows its module…": chose `mathematics` (Year 1) in the notes list's Module filter. The
+  filter offers the student's year's modules plus the ones her notes are about (`NotesPage.tsx`, round 14). The test
+  waited for an option that isn't there until it timed out. It now picks ST2134.
+- `cleanup.teardown.ts` "the students … delete their accounts": read the student's threads with
+  `GET /forum/threads?mine=true`, which became `yours=true` with the Yours tab (IDEA-42). The unknown parameter was
+  ignored, so it got everyone's newest threads and expected a classmate's to show "Deleted account". It failed after
+  Ali was deleted and before Sara: her account (`+973…`, Year 2) and her threads stayed in the local database. They
+  were removed by hand afterwards. The teardown now asks for `yours=true` and keeps the threads the student
+  started (Yours also holds threads they replied to or follow).
+- `notebook.spec.ts` "a note knows its module…" also read the list through the Module filter, which doesn't work
+  (ST-61). It passed in run 1 only because the note was listed anyway. It now opens `/notes?module=…` (the address
+  a lesson's "See all" uses), and the filter has a test of its own, marked `test.fail` for ST-61.
+- `requests.spec.ts`: the expected failure now carries its ID (`ST-19: …`).
+- `extras.spec.ts` "Mini Noora answers with the date of an exam…" expected an upcoming EC1002 exam. The run crossed
+  midnight into 20 October, the day after EC1002's exam, and Noora rightly said "There are no upcoming exam dates
+  for EC1002 Economics yet". The test now accepts either answer.
+- `notebook.spec.ts` "handwriting beside a line moves down…" (ST-38) failed in 1 of 4 full runs and 1 of 5 repeats:
+  it pressed Enter in the same instant the mouse was released. ProseMirror takes up a click's place a moment later
+  (a probe: Enter at once, 8 of 8 went in at the old caret; 50 ms later, 5 of 5 right). No person types that fast, so
+  it isn't a finding. The test now waits until the editor's own caret is at the start of the line (6 of 6 repeats
+  passed).
+- `notebook.spec.ts` "a note keeps its text, and a picture…" failed once (run 2) when the browser closed under it,
+  and passed in every other run and repeat: the machine, not the app.
+
+### New e2e coverage (`web/e2e/study-core.spec.ts`)
+
+- Time me → Stop the timer → "How did it go?" → 68 → "Done, 68%" on the paper, also after a reload (ST-47). Then
+  Home's **Carry on** lists the paper ("Past paper · opened …") and leads back to it (ST-43).
+- The paper's More → Save my score (68 already filled in) → 70 → "Done, 70%", and the "Saved" toast (`test.fail`:
+  ST-60).
+- The forum's **Yours** tab lists the thread Sara started and not Ali's; a guest has no Yours tab (IDEA-42).
+- Search corrects a misspelt word: a thread with a made-up word in its title, searched with one letter wrong, shows
+  "Nothing matched “…”. Showing results for “…”." and the thread (ST-54).
+- A note's text view on a 390 phone and a note's module chip were already covered by the round 14 builders in
+  `notebook.spec.ts` ("on a phone a note opens in its text…" and "a note knows its module…"), so they weren't added
+  twice.
+
+### Round 14 fixes rechecked by hand
+
+| ID | Status | What was seen (390 phone / 1440 laptop) |
+|---|---|---|
+| ST-40 | **fixed** | ST2134 four days out: 12 cards, 4 papers (October 2024 to May 2026, one a day) and 8 lessons, "About 3 a day", "19 lessons didn't fit"; "Chapters you find hard" offered. Card names: ST-59 |
+| ST-41 | **fixed** | the clock floats over the notebook ("1:59:57 Back to ST2134 · May 2026") on both sizes; on the phone the PDF is drawn in the Hub (pages after about 5 s on this loaded machine) |
+| ST-42 | **fixed** | ST2134 Files, all 16 sittings, open a paper, Back: scrollY 1,472 → 1,472 (phone) and 946 → 946 (laptop), list still expanded |
+| ST-43 | **fixed** | Carry on on Home: the timed paper with its clock and "Your notes on it"; e2e covers it |
+| ST-44 | **fixed** | phone: Take notes opens a 459 px sheet under the video (video still on screen, top 112 px), cursor in the note, text at 17 px; both lines went into one note |
+| ST-46 | **fixed** | "Statistical Inference 2nd Edition" is in ST2134's files |
+| ST-47 | **fixed** | stopping from the paper and from the floating clock on Home asks "How did it go?"; e2e covers it. The save says nothing: ST-60 |
+| ST-50 | fixed in the settings, **not seen**: ST-58 | the defaults are right, but the Daily question doesn't show |
+| ST-51 | **fixed** | Year 1, Post in Year 1: Module lists the 4 Year 1 modules; "MT1186: …" in the title offers "Your title mentions MT1186, Mathematical Methods. Tag MT1186", which sets it |
+| ST-52 | **fixed** | a reply with `$I = e^x \sin x - …$` reaches the bell as "I = e^x sin x − e^x cos x − I, so 2I = e^x(sin x − cos x)" |
+| ST-54 | **fixed** | "hypothisis" → "Showing results for “hypothesis”" (ST2134's chapter first); "regresion" → "regression" |
+| ST-45, ST-48, ST-49 | open (content) | not code |
+| ST-53, ST-55, ST-56, ST-57 | open | not marked fixed; ST-56 seen again (the sitting panel's "Examiners’ report  Examiners’ report", "In VLE and older exams") |
+| UX-66 | **fixed** | phone: first file at 278 px (Library, Upload, search, Filters and Sort); no sideways scroll |
+| UX-67 | **fixed** | "ST2134 · May 2026" as the paper's heading and in lists |
+| UX-68 | **fixed** | phone: rows of 94 px, 8 sittings before "Show all"; laptop: all 22 ST2133 sittings in a table, rows of 56–59 px; the library's ST2133 + Past papers shows the same table |
+| UX-69 | **fixed** | phone: the tabs at 274 px |
+| UX-70 | **fixed** | the notebook spec (phone text view, ≥ 16 px, no sideways scroll) passes |
+| UX-71 | **fixed** | a rep's students' notes: "Shared by Khalid RC" on the file's page and in the module's rows. Older e2e files show nothing, because their uploaders are deleted (right) |
+| UX-72 | **fixed** | one Download (the toolbar); "Ask about this paper" opens the composer with ST2134 set; the posted thread shows under the paper as "1 thread about this paper" |
+| UX-73 | **fixed** | "exam" opens with the Calendar group (ST2134's exam first) |
+| UX-74 | **fixed** | phone: titles 228–323 px wide, rows of about 155 px; no sideways scroll |
+| UX-75 | **fixed** | Post thread opens `/forum/<the new thread>` |
+| UX-76 | **fixed** | Up next: the headline date isn't repeated, nothing past, NBB EVOLVE listed by its closing day with "Closes" |
+| UX-77 | **fixed** | phone, 600 ms latency and 50 kB/s: the page skeleton and all six tabs (Home, Modules, Noora, Library, Forum, More) at 1.4 s |
+| UX-78, UX-79 | open | not marked fixed |
+
+### For Mohamed
+
+- Leftovers from an earlier run, tagged `[e2e ugmswes]` (files in ST2133, ST2187 and ST2195, threads, the "NBB EVOLVE
+  applications" date), show on Home's New files, Forum and Up next for every local student. They are test data;
+  say if you want them cleared.
+- ST-58 is a product call: which question Home shows when the next exam's module has none.
+- ST-61 is the one to fix first: one shared helper (`useQueryParam`) used twice in a row, in three places.
+
+### Results
+
+- Run 1 (before the fixes, 108 tests): **106 passed, 2 failed, 0 skipped** in 24 min. Both failures were out of
+  date specs (above). One expected failure, ST-19, is counted as passed.
+- Runs 2 to 4 found ST-60, ST-61 and the two flaky notebook tests (above), and a date-bound Noora test after
+  midnight.
+- **Final run** (all fixes, 113 tests: 108 before, plus 4 in `study-core.spec.ts` and 1 in `notebook.spec.ts`):
+  **113 passed, 0 failed, 0 skipped** in 9.4 min. Three of the passes are expected failures for open findings:
+  ST-19 (double tap on "Send request"), ST-60 (no "Saved" toast) and ST-61 (the notes Module filter).
+
 ## Round 14 (19 October 2026): the study core
 
 `round14/coretest` at c4e345de, on the running Docker stack (app :5173, API :8000). Daily is out of scope. The question

@@ -44,7 +44,13 @@ teardown(
         await ctx.close();
         continue;
       }
-      const mine = await api<{ items: { slug: string }[] }>(page, 'GET', '/api/v1/forum/threads?mine=true&limit=50');
+      // Yours holds the threads they replied to or follow as well: keep the ones they started.
+      const yours = await api<{ items: { slug: string; author: { id: string } | null }[] }>(
+        page,
+        'GET',
+        '/api/v1/forum/threads?yours=true&limit=50',
+      );
+      const mine = { body: { items: yours.body.items.filter((t) => t.author?.id === me.body.id) } };
 
       await gotoAccount(page);
       const [download] = await Promise.all([
