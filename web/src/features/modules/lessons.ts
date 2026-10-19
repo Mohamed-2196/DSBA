@@ -104,6 +104,18 @@ export function chapterLessons(chapter: Chapter): LessonInfo[] {
   });
 }
 
+/**
+ * A lesson's name outside its chapter (Home's "Carry on", a board card): the video's own title; 'Point estimation:
+ * class of 17 Sep 2025' for a class recording; 'Point estimation, video 3' for a video without a title.
+ */
+export function lessonName(chapter: Chapter, v: number): string {
+  const video = chapter.videos[v];
+  if (!video) return chapter.title;
+  const info = chapterLessons(chapter)[v];
+  if (video.kind === 'bbb') return info.by ? `${chapter.title}: class of ${info.by}` : `${chapter.title}: class`;
+  return info.real ? info.title : `${chapter.title}, ${info.title.toLowerCase()}`;
+}
+
 /** 'Video 3 of 9' / 'Playlist' / null when the chapter is a single video (nothing to count). */
 export function lessonPosition(video: Video, v: number, count: number): string | null {
   if (video.kind === 'youtube-playlist') return 'Playlist';

@@ -12,3 +12,4 @@ export { LessonNotes } from './LessonNotes';
 export { useOpenNote } from './current';
 export { useAnnotate, useNote, useNotes } from './api';
 export type { OpenNote } from './current';
+export { loadPdfJs } from './pdf';

@@ -1,5 +1,6 @@
 // Home: a greeting, then a grid of equal cards the student can show, hide and reorder (Customise Home): Up next,
-// To-do, Continue, My modules, New files and Forum, with notices and the Ask Noora prompt across the whole width.
+// Carry on, To-do, Continue, My modules, New files and Forum, with notices and the Ask Noora prompt across the whole
+// width.
 // Blocks from other features come from their public.ts, each in its own ErrorBoundary with its own loading, empty and
 // error states; a notice with nothing to say renders nothing.
 import { useMemo, useState, type ReactNode } from 'react';
@@ -30,6 +31,7 @@ import { LatestIssueCard } from '../newsletter/public';
 import { usePapers } from '../papers/public';
 import { ResultsDayCard, StartHereCard } from '../start/public';
 import { DailyCard } from '../daily/public';
+import { CarryOn, useCarryOn } from '../carryon/public';
 import { addDays, dayKey, formatLongDay, parseDay, todayKey } from '../../lib/dates';
 import { AskNoora } from './AskNoora';
 import { ALL_BLOCKS, BLOCKS, offeredBlocks, type HomeBlock } from './blocks';
@@ -94,6 +96,7 @@ export default function HomePage() {
   );
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
   const todo = useTodayAgenda({ enabled: signedIn && featureOn('board') });
+  const carryOn = useCarryOn();
 
   // The blocks this person can have: every feature each needs is on, and an account or lesson progress if it needs one.
   const offeredKey = offeredBlocks(featureOn, { signedIn, tracking: tracking.on }).join();
@@ -165,6 +168,13 @@ export default function HomePage() {
             }
           >
             <BoardTodo n={4} />
+          </Block>
+        ) : null;
+      case 'carry_on':
+        // Only once something was opened: a new student has nothing to pick up yet.
+        return carryOn.any ? (
+          <Block key={b} id={b}>
+            <CarryOn />
           </Block>
         ) : null;
       case 'continue':

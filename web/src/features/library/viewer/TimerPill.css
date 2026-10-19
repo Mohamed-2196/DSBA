@@ -1,0 +1,94 @@
+/* Time me's floating clock. The lane is a zero-height strip stuck to the foot of the window inside the page column,
+   so the pill keeps clear of the sidebar and lines up with the page's own padding. */
+.lib-pill-lane {
+  position: sticky;
+  bottom: calc(var(--sp-16) + env(safe-area-inset-bottom));
+  z-index: var(--z-sticky);
+  height: 0;
+  pointer-events: none;
+}
+.lib-pill {
+  position: absolute;
+  bottom: 0;
+  left: var(--page-pad-left);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  max-width: min(460px, calc(100% - var(--page-pad-left) - var(--page-pad-right)));
+  padding: var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  pointer-events: auto;
+}
+.lib-pill.is-done {
+  border-color: transparent;
+  background: var(--highlight-soft);
+}
+.lib-pill__paper {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  min-height: 36px;
+  padding: 0 var(--sp-8) 0 var(--sp-10);
+  border-radius: var(--r-pill);
+  color: var(--ink);
+  text-decoration: none;
+}
+.lib-pill__paper:hover {
+  background: var(--surface-2);
+}
+.lib-pill__paper:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--focus-color);
+}
+.lib-pill__icon {
+  flex: 0 0 auto;
+  font-size: 20px;
+}
+.lib-pill__clock {
+  flex: 0 0 auto;
+  font-size: var(--fs-15);
+  font-weight: var(--fw-heavy);
+  white-space: nowrap;
+}
+.lib-pill__state {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+}
+.lib-pill__title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lib-pill__go {
+  flex: 0 0 auto;
+  color: var(--ink-2);
+}
+.lib-pill__score {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 699px) {
+  /* Above the tab bar, across the page: a thumb's reach, and clear of Noora's tab. */
+  .lib-pill-lane {
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--sp-8));
+  }
+  .lib-pill {
+    left: var(--sp-16);
+    right: var(--sp-16);
+    max-width: none;
+  }
+}
+@media (pointer: coarse) {
+  .lib-pill__paper {
+    min-height: 44px;
+  }
+}

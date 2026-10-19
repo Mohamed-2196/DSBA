@@ -39,6 +39,12 @@ export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
     features: ['calendar'],
     span: 'card',
   },
+  carry_on: {
+    title: 'Carry on',
+    description: 'The papers, notes and lessons you opened last, and a paper you’re timing.',
+    features: [],
+    span: 'card',
+  },
   todo: {
     title: 'To-do',
     description: 'Cards overdue or due in the next 7 days, from all your boards.',

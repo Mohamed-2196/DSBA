@@ -27,6 +27,10 @@ describe('toolbarLayout', () => {
     expect(l).toMatchObject({ timeMeLabel: false, askLabel: false, primaryLabel: false });
   });
 
+  it('offers Save my score first on a past paper (ST-47)', () => {
+    expect(toolbarLayout(facts({ score: true })).more).toEqual(['score', 'copy', 'annotate', 'report']);
+  });
+
   it('keeps Annotate as a button with a short label on tablets, and Ask Mini Noora as an icon', () => {
     const l = toolbarLayout(facts({ room: 'compact' }));
     expect(l.annotate).toBe('short');

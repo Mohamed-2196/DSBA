@@ -1,11 +1,11 @@
 // What a file's toolbar shows for the room it has. Phones get icons and one More menu; tablets and small laptops
 // keep the labels that matter (Time me, Annotate, Download); wide screens get every label. Copy link, Report, Edit
-// details and Delete always sit in the More menu, so the row never holds more than it can fit.
+// details and Delete always sit in the More menu, with Save my score on a past paper,, so the row never holds more than it can fit.
 
 /** phone: under 700 px; compact: 700 to 1279 px; full: 1280 px and wider */
 export type ToolbarRoom = 'phone' | 'compact' | 'full';
 
-export type MoreAction = 'copy' | 'annotate' | 'report' | 'edit' | 'delete';
+export type MoreAction = 'score' | 'copy' | 'annotate' | 'report' | 'edit' | 'delete';
 
 export interface ToolbarFacts {
   room: ToolbarRoom;
@@ -15,6 +15,8 @@ export interface ToolbarFacts {
   annotate: boolean;
   /** this person may report it (it isn't theirs) */
   report: boolean;
+  /** a past paper, and this person keeps practice scores */
+  score?: boolean;
   edit: boolean;
   delete: boolean;
 }
@@ -39,6 +41,7 @@ export function toolbarRoom(phone: boolean, wide: boolean): ToolbarRoom {
 export function toolbarLayout(f: ToolbarFacts): ToolbarLayout {
   const phone = f.room === 'phone';
   const share: MoreAction[] = [];
+  if (f.score) share.push('score');
   if (f.published) share.push('copy');
   if (f.annotate && phone) share.push('annotate');
   if (f.report) share.push('report');

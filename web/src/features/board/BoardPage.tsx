@@ -814,7 +814,7 @@ function BoardApp() {
       {scoring ? (
         <ScoreDialog
           key={scoring.id}
-          card={scoring}
+          title={scoring.title}
           score={scoring.link ? (scores[scoring.link.id] ?? null) : null}
           onSave={(score) => {
             if (scoring.link) saveScore.mutate({ itemId: scoring.link.id, score });

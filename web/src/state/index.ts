@@ -5,6 +5,7 @@ export { ToastProvider } from './ToastProvider';
 export { useTheme, useYear, useToast, useAccountYearSync } from './hooks';
 export { useLocalStorage, removeStored, writeStored } from './useLocalStorage';
 export { useQueryParam } from './useQueryParam';
+export { useEntryState } from './useEntryState';
 export { useDebouncedValue } from './useDebouncedValue';
 export { useDocumentTitle } from './useDocumentTitle';
 export { useSingleFlight } from './useSingleFlight';

@@ -90,18 +90,20 @@ describe('offeredBlocks', () => {
     expect(guest).not.toContain('continue');
     expect(offeredBlocks(on(), { signedIn: false, tracking: true })).toContain('continue');
   });
-  it('starts with the dashboard first', () => {
+  it('starts with studying first, and leaves the Daily games to be turned on (ST-50)', () => {
     expect(STUDENT_DEFAULT).toEqual([
       'start_here',
       'results_day',
       'coming_up',
+      'carry_on',
       'todo',
       'continue',
       'modules',
       'files',
+      'daily_question',
       'forum',
-      'daily',
       'noora',
     ]);
+    expect(STUDENT_DEFAULT).not.toContain('daily');
   });
 });

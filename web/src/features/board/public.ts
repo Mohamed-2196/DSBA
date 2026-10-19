@@ -10,9 +10,14 @@
 //                                        which opens Today. Signed in, with featureOn('board').
 //   useTodayAgenda({ enabled })          those cards: Home shows the block only while there are some
 //   <SittingsDone papers />              "4 of 12 sittings done" from the board (nothing until one is done)
-//   <PaperDone itemId />                 a "Done" badge, with the private score, for a paper done on the board
+//   <PaperDone itemId />                 a "Done" badge, with the private score, for a paper done on the board or
+//                                        scored
+//   <PaperScoreDialog itemId title onClose />
+//                                        "How did it go?": saves the student's practice score on a past paper
+//                                        (signed in, with featureOn('board'))
 export { AddToBoard } from './AddToBoard';
 export { BoardTodo } from './BoardTodo';
 export { useTodayAgenda } from './api';
 export { PlanRevision } from './PlanDialog';
 export { PaperDone, SittingsDone } from './PaperProgress';
+export { PaperScoreDialog } from './ScoreDialog';
