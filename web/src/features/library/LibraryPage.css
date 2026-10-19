@@ -543,37 +543,6 @@
   margin: -2px -6px -6px 0;
 } /* clear of the card link above: the two never overlap */
 
-/* Star (shared with the viewer): the colours are on the star itself. */
-.lib-star__glyph {
-  color: var(--ink-3);
-  transition: color var(--dur-fast) var(--ease);
-}
-.lib-star:hover .lib-star__glyph {
-  color: var(--ink);
-}
-/* Off, the star is an outline; on, its body takes the section's colour (library yellow) and its line the ink. */
-.lib-star__glyph:not(.is-on) {
-  --icon-tint: transparent;
-}
-.lib-star__glyph.is-on,
-.lib-star:hover .lib-star__glyph.is-on {
-  color: var(--ink);
-}
-.lib-star__glyph.is-popping {
-  animation: lib-star-pop 300ms var(--ease);
-}
-@keyframes lib-star-pop {
-  0% {
-    transform: scale(0.6);
-  }
-  60% {
-    transform: scale(1.25);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
 .lib-empty {
   border: 1px dashed var(--line-strong);
   border-radius: var(--r-card);

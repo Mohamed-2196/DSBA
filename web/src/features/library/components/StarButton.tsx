@@ -1,5 +1,6 @@
 import { useEffect, useState, type MouseEvent } from 'react';
 import { Icon, IconButton, cx, glyph } from '../../../ui';
+import './StarButton.css';
 
 /** Star toggle for a file. Presentational: pass `on` and `onToggle`. Pops when switched on. The star's colours
  *  are set on its own glyph (lib-star__glyph), not by restyling the IconButton (code quality review CQ-13). */
