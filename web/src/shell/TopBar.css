@@ -69,6 +69,14 @@
   }
 }
 
+/* The narrowest phones: the lockup steps down (never under 16px tall) so the year, search, bell and account keep
+   their room and the logo its clear space. */
+@media (max-width: 429px) {
+  .shell-topbar__brand .ui-hublogo {
+    zoom: 0.82;
+  }
+}
+
 @media (pointer: coarse) {
   .shell-topbar__brand {
     align-items: center;

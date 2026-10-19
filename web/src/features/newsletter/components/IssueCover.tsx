@@ -1,6 +1,16 @@
 import type { IssueCover as CoverData, IssueSection } from '../../../api/types';
 import { cx } from '../../../ui';
-import { COVER_H, COVER_W, MARGIN, coverOf, fitLabel, fitLine, numeralBox, type CoverModel } from '../lib/covers';
+import {
+  COVER_H,
+  COVER_W,
+  MARGIN,
+  coverOf,
+  fitLabel,
+  fitLine,
+  fitTitle,
+  numeralBox,
+  type CoverModel,
+} from '../lib/covers';
 import { pictureSrc } from '../../../api/pictures';
 import './IssueCover.css';
 
@@ -115,7 +125,12 @@ function TypeCover({ cover }: { cover: CoverModel }) {
       <text x={numeral.x} y={NUMERAL_Y} className="nl-cover__numeral" style={{ fontSize: numeral.size }}>
         {cover.number}
       </text>
-      <text x={MARGIN} y={NUMERAL_Y + 32.5} className="nl-cover__title" style={{ fontSize: 28.5 }}>
+      <text
+        x={MARGIN}
+        y={NUMERAL_Y + 32.5}
+        className="nl-cover__title"
+        style={{ fontSize: fitTitle(cover.title, 28.5) }}
+      >
         {cover.title}
       </text>
       <path d={`M${MARGIN} ${NUMERAL_Y + 41.5}H${RIGHT}`} className="nl-cover__rule" />
@@ -138,7 +153,7 @@ function ArtCover({ cover }: { cover: CoverModel }) {
     <>
       <Nameplate />
       <Folio number={cover.number} date={cover.date} />
-      <text x={MARGIN} y="344" className="nl-cover__title" style={{ fontSize: 27 }}>
+      <text x={MARGIN} y="344" className="nl-cover__title" style={{ fontSize: fitTitle(cover.title, 27) }}>
         {cover.title}
       </text>
       <Stories rows={cover.rows.slice(0, 3)} top={358.8} pitch={11.9} labelSize={5.7} lineSize={9.2} column={124} />

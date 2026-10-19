@@ -52,6 +52,8 @@ export function numeralBox(text: string, maxHeight: number): { size: number; x: 
 // Average advance of a character, in em: the story labels are tracked capitals, the story lines running text. Slightly generous, so an estimate never under-reports a width.
 const LABEL_EM = 0.77;
 const LINE_EM = 0.48;
+// The cover line: Figtree italic at 500.
+const TITLE_EM = 0.52;
 
 /** The font size (<= size) at which `text` fits in `width`, estimated from its length. */
 export function fitSize(text: string, size: number, width: number, em: number): number {
@@ -60,6 +62,7 @@ export function fitSize(text: string, size: number, width: number, em: number): 
 }
 export const fitLabel = (text: string, size: number, width: number): number => fitSize(text, size, width, LABEL_EM);
 export const fitLine = (text: string, size: number, width: number): number => fitSize(text, size, width, LINE_EM);
+export const fitTitle = (text: string, size: number): number => fitSize(text, size, MEASURE, TITLE_EM);
 
 /** A section id as a label when the section itself is not known yet: 'student-council' → 'Student council'. */
 const labelFromId = (id: string): string => {
