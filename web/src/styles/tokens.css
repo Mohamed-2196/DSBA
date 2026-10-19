@@ -182,6 +182,8 @@
   --thumb-bg: #ffffff; /* sliding thumb of segmented controls / pill tabs */
   --thumb-shadow: 0 1px 2px rgba(10, 31, 68, 0.1), 0 0 0 1px var(--line);
   --tile-stroke: transparent; /* hairline around the navy logo tile (visible in dark) */
+  --key-spent: #5d6f90; /* derived: an on-screen key that's been used up (The Word's ruled-out letters), receding */
+  --key-spent-ink: #ffffff;
   --art-tile: #eef3fc; /* light ground under module illustrations (both themes) */
   --art-tile-stroke: #dce5f2;
   --scrim: rgba(10, 31, 68, 0.42);
@@ -247,6 +249,8 @@
   --thumb-bg: #213563;
   --thumb-shadow: none;
   --tile-stroke: rgba(255, 255, 255, 0.14);
+  --key-spent: #0a1733;
+  --key-spent-ink: #7488b0;
   --art-tile: #dde6f7;
   --art-tile-stroke: transparent;
   --scrim: rgba(2, 8, 20, 0.62);

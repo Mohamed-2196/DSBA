@@ -216,10 +216,11 @@
   background: var(--dy-near);
   color: var(--dy-on-near);
 }
+/* A ruled-out letter recedes in both themes: darker than the unused keys on a dark page. */
 .dw-key.is-miss {
-  background: var(--dy-miss);
-  color: var(--dy-on-miss);
-  opacity: 0.75;
+  background: var(--key-spent);
+  color: var(--key-spent-ink);
+  box-shadow: none;
 }
 
 @media (max-height: 700px) {
