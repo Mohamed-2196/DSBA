@@ -67,10 +67,6 @@ test('a career editor edits Career Navigator, previews it, and students see the 
 });
 
 test('typing an employer’s name and moving on to its initials keeps them', async ({ admin }) => {
-  test.fail(
-    true,
-    'the employer takes a new id from its name when the name loses the focus and is drawn again, so the box the editor moved to loses the focus and what is typed next',
-  );
   await admin.goto('/manage?tab=career');
   await admin.getByRole('button', { name: 'Add an employer' }).click();
   const added = admin.locator('[data-item-id]').filter({ has: admin.locator('button[aria-expanded="true"]') });

@@ -22,6 +22,13 @@ export function IdField({
   const rename = useRenameNew(section, kind);
   const [text, setText] = useState(id);
   const [problem, setProblem] = useState<string | null>(null);
+  // The id also follows the name (its row stays mounted): show the new one.
+  const [shown, setShown] = useState(id);
+  if (shown !== id) {
+    setShown(id);
+    setText(id);
+    setProblem(null);
+  }
   if (isSaved) {
     return (
       <TextField

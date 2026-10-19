@@ -15,6 +15,10 @@ export interface EditorState {
   /** The open item, as `${section}:${id}` (one at a time). */
   open: string | null;
   setOpen: (key: string | null) => void;
+  /** The React key of an item's row: a saved item's id, a new one's key from when it was added. */
+  rowKey: (section: EditorSection, id: string) => string;
+  /** A new item was added, or its id changed: its row keeps one key, so the field being typed in keeps the focus. */
+  keepRow: (section: EditorSection, id: string, from?: string) => void;
 }
 
 export const EditorContext = createContext<EditorState | null>(null);
@@ -26,3 +30,29 @@ export function useEditor(): EditorState {
 }
 
 export const openKey = (section: EditorSection, id: string): string => `${section}:${id}`;
+
+/** New items' row keys, by `${section}:${id}`. */
+export type RowKeys = Readonly<Record<string, string>>;
+
+let added = 0;
+
+/**
+ * The row keys after a new item was added (no `from`: it gets a key of its own, `#<n>`, which no id can be) or its id
+ * changed from `from` to `id` (its key moves with it).
+ */
+export function keepRowKey(keys: RowKeys, section: EditorSection, id: string, from?: string): RowKeys {
+  const next: Record<string, string> = { ...keys };
+  let key: string;
+  if (from === undefined) {
+    added += 1;
+    key = `#${added}`;
+  } else {
+    key = rowKeyOf(keys, section, from);
+    delete next[openKey(section, from)];
+  }
+  next[openKey(section, id)] = key;
+  return next;
+}
+
+export const rowKeyOf = (keys: RowKeys, section: EditorSection, id: string): string =>
+  keys[openKey(section, id)] ?? openKey(section, id);

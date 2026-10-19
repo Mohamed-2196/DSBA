@@ -51,7 +51,7 @@ export function ItemList<T>({
   children,
   hasError,
 }: ItemListProps<T>) {
-  const { open, setOpen, saved } = useEditor();
+  const { open, setOpen, saved, rowKey, keepRow } = useEditor();
   const [removing, setRemoving] = useState<{ id: string; title: string } | null>(null);
   const [blocked, setBlocked] = useState<string | null>(null);
   const savedIds = new Set(savedIdsOf(saved, section));
@@ -73,7 +73,7 @@ export function ItemList<T>({
             };
             return (
               <li
-                key={id}
+                key={rowKey(section, id)}
                 className={cx('cedit-item', isOpen && 'is-open', hidden && 'is-hidden', hasError?.(i) && 'has-error')}
                 data-item-id={id}
               >
@@ -154,7 +154,11 @@ export function ItemList<T>({
       <Button
         variant="secondary"
         leadingIcon={Plus}
-        onClick={() => setOpen(openKey(section, onAdd()))}
+        onClick={() => {
+          const id = onAdd();
+          keepRow(section, id);
+          setOpen(openKey(section, id));
+        }}
         className="cedit-list__add"
       >
         {`Add ${/^[aeiou]/i.test(noun) ? 'an' : 'a'} ${noun}`}
