@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.services.forum.tex import tex_to_text
+from app.services.forum.tex import MAX_LENGTH, tex_to_text
 from app.services.forum.text import excerpt, pictures, to_plain_text
 
 
@@ -42,3 +42,16 @@ def test_formulas_in_posts_read_as_text() -> None:
     assert to_plain_text(block) == "The density: 1/θ e^(−x/θ) for x > 0."
     assert to_plain_text("$$\\int_0^1 x\\,dx$$") == "∫₀¹ x dx"
     assert pictures("$$![x](/api/v1/media/0b5a3f4e-8c1d-4c55-9a51-3d1c1c2b9e10)$$") == []
+
+
+def test_hostile_formulas_read_as_their_literal_text() -> None:
+    """Deep nesting, unclosed groups and very long formulas never fail a preview (security review)."""
+    deep = "{" * 10_000 + "x" + "}" * 10_000
+    assert tex_to_text(deep) == "x"
+    fracs = "\\frac" * 10_000 + "{a}{b}"
+    assert "\\" not in tex_to_text(fracs)
+    assert tex_to_text("{" * 10_000) == ""
+    assert tex_to_text("\\frac{1}{2") == "1/2"
+    long = "x^2 + " * (MAX_LENGTH // 6 + 10)
+    assert tex_to_text(long) == long.strip()  # too long: as typed
+    assert excerpt("$" + "{" * 10_000 + "x$ and more").endswith("and more")

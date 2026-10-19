@@ -160,10 +160,24 @@ _SCRIPTED = set("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱʲᵏᵀᵗ₀�
 _NUMBER = re.compile(r"[\d.]+")
 
 
+MAX_LENGTH = 2_000  # characters of a formula worth reading; a longer one reads as its literal text
+MAX_DEPTH = 50  # groups and arguments inside each other ({{{…}}}, \frac\frac…); deeper reads as literal text
+
+
+class _TooDeepError(Exception):
+    """A formula nested past MAX_DEPTH: tex_to_text gives its literal text instead."""
+
+
 class _Reader:
     def __init__(self, src: str) -> None:
         self.src = src
         self.i = 0
+        self.depth = 0
+
+    def enter(self) -> None:
+        self.depth += 1
+        if self.depth > MAX_DEPTH:
+            raise _TooDeepError
 
     def more(self) -> bool:
         return self.i < len(self.src)
@@ -193,6 +207,13 @@ class _Reader:
 
     def argument(self) -> str:
         """The next argument as plain text: a {group}, a command, or one character."""
+        self.enter()
+        try:
+            return self._argument()
+        finally:
+            self.depth -= 1
+
+    def _argument(self) -> str:
         self.skip_spaces()
         if not self.more():
             return ""
@@ -206,6 +227,13 @@ class _Reader:
 
     def until_close(self) -> str:
         """Plain text up to the matching } (or the end)."""
+        self.enter()
+        try:
+            return self._until_close()
+        finally:
+            self.depth -= 1
+
+    def _until_close(self) -> str:
         out: list[str] = []
         while self.more():
             if self.peek() == "}":
@@ -292,10 +320,21 @@ def _grouped(text: str) -> str:
     return t if simple else f"({t})"
 
 
+def literal(tex: str) -> str:
+    """The formula as typed, without backslashes and braces, on one line: what reads when it can't be converted."""
+    return " ".join(tex.replace("\\", "").replace("{", "").replace("}", "").split())
+
+
 def tex_to_text(tex: str) -> str:
-    """A LaTeX formula (without its $ signs) as readable plain text on one line."""
-    r = _Reader(tex)
-    out: list[str] = []
-    while r.more():
-        out.append(r.token())
-    return " ".join("".join(out).split())
+    """A LaTeX formula (without its $ signs) as readable plain text on one line. Never fails: a formula that is too
+    long, nested too deep or otherwise unreadable comes back as its literal text (literal())."""
+    if len(tex) > MAX_LENGTH:
+        return literal(tex)
+    try:
+        r = _Reader(tex)
+        out: list[str] = []
+        while r.more():
+            out.append(r.token())
+        return " ".join("".join(out).split())
+    except Exception:  # a preview must never fail a post, a notification or an email
+        return literal(tex)
