@@ -5,6 +5,7 @@ completely, and never over what moderators changed since."""
 from __future__ import annotations
 
 import datetime as dt
+import uuid
 from collections.abc import Callable
 from typing import Any, get_args
 
@@ -13,22 +14,34 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models import (
+    BoardCard,
     CalendarEvent,
+    Chapter,
     ContentDoc,
     DailyGuessWord,
     DailyItem,
     DailyTheme,
     DriveFolder,
     IssueStatus,
+    Lesson,
     LibraryItem,
     Module,
     NewsletterIssue,
+    Note,
     User,
 )
 from app.schemas.calendar import EventType
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCover, IssueSection
-from app.seed.loader import daily_guess_words, load_all, load_daily, module_folders, read, seed_issue
+from app.seed.loader import (
+    BROKEN_CHAPTERS,
+    daily_guess_words,
+    load_all,
+    load_daily,
+    module_folders,
+    read,
+    seed_issue,
+)
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -132,6 +145,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
     daily = themes + len(daily_guess_words())
     assert first_load(db) == {
         **files,
+        "broken-chapters": 0,
         "career": 1,
         "drive-folders": folders,
         "daily": daily,
@@ -154,6 +168,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
     db.commit()
     assert again == {
         "modules": 0,
+        "broken-chapters": 0,
         "calendar": 0,
         "newsletter": 0,
         "career": 0,
@@ -258,6 +273,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
     db.commit()
     assert again == {
         "modules": 0,
+        "broken-chapters": 0,
         "calendar": 0,
         "newsletter": 0,
         "career": 0,
@@ -287,3 +303,56 @@ def test_the_seeded_library_is_empty_until_the_import(db: Session, client_for: C
     assert guest.get(f"{API}/library/items", params={"limit": 100}).json()["items"] == []
     assert guest.get(f"{API}/library/facets").json()["total"] == 0
     assert guest.get(f"{API}/newsletter/issues").json() == []  # drafts until a moderator publishes them
+
+
+def test_the_seed_removes_a_broken_chapter_and_moves_students_notes_and_cards_to_its_stand_in(
+    db: Session, client_for: Clients, make_user: Callable[..., User], set_feature: Callable[..., None]
+) -> None:
+    files = read("modules")
+    assert not any(c["id"] in BROKEN_CHAPTERS for m in files for c in m.get("chapters") or [])
+    for m in files:  # no chapter twice in a module, no half-downloaded lesson
+        titles = [c["title"] for c in m.get("chapters") or []]
+        assert len(titles) == len(set(titles)), m["id"]
+        assert not any(".crdownload" in (v.get("title") or "") for c in m.get("chapters") or [] for v in c["videos"])
+    first_load(db)
+
+    # an install seeded before: MN1178's second "International Project Management" is there, with notes and cards
+    module = next(m for m in db.scalars(select(Module)) if m.unit_code == "MN1178")
+    good = db.get(Lesson, "me34n26c")
+    assert good is not None
+    assert good.chapter_id == "p96a6t6q"
+    module.chapters.append(
+        Chapter(
+            id="fjdyedyg",
+            title="International Project Management",
+            position=len(module.chapters),
+            lessons=[Lesson(id="6z8mmrtu", module_id=module.id, kind="youtube", video_id="AQwveBtsuyI", position=0)],
+        )
+    )
+    version = module.version
+    db.commit()
+    set_feature("notes", "everyone")
+    set_feature("board", "everyone")
+    me, them = client_for(make_user()), client_for(make_user())
+    note = me.post(f"{API}/notes", json={"title": "IPM", "moduleId": module.id, "lessonId": "6z8mmrtu"})
+    assert note.status_code == 201, note.text
+    broken = {"link": {"type": "lesson", "id": "6z8mmrtu"}}
+    assert me.post(f"{API}/board-cards", json=broken).status_code == 201
+    assert them.post(f"{API}/board-cards", json={"link": {"type": "lesson", "id": "me34n26c"}}).status_code == 201
+    assert them.post(f"{API}/board-cards", json=broken).status_code == 201  # holds both: this one goes
+
+    assert load_all(db, only="broken-chapters") == {"broken-chapters": 1}
+    db.commit()
+    db.expire_all()
+    assert db.get(Chapter, "fjdyedyg") is None
+    assert db.get(Lesson, "6z8mmrtu") is None
+    saved = db.get(Note, uuid.UUID(note.json()["id"]))
+    assert saved is not None
+    assert saved.lesson_id == "me34n26c"
+    cards = db.scalars(select(BoardCard.lesson_id).where(BoardCard.lesson_id.is_not(None))).all()
+    assert list(cards) == ["me34n26c", "me34n26c"]
+    db.refresh(module)
+    assert [c.position for c in module.chapters] == list(range(len(module.chapters)))
+    assert module.version == version + 1
+    assert [c.title for c in module.chapters].count("International Project Management") == 1
+    assert load_all(db, only="broken-chapters") == {"broken-chapters": 0}  # once

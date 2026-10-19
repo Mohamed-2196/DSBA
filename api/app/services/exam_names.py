@@ -94,6 +94,14 @@ _GLUED_BRACKET = re.compile(r"(?<=[A-Za-z])\((?=[A-Za-z])")
 _UNIT = re.compile(r"\b([A-Za-z]{2}\d{3,4}[A-Za-z]?)\b")
 
 
+_UNIT_CODE = re.compile(r"(?<![A-Za-z0-9])([A-Za-z]{2}\d{4})(?![0-9])")
+
+
+def unit_codes(name: str) -> set[str]:
+    """The unit codes a file's name gives, in capitals: {'MT1186'} of 'MT1186_Commentary_May_2025.pdf'."""
+    return {m.upper() for m in _UNIT_CODE.findall(name.replace("_", " "))}
+
+
 def tidy_title(file_name: str) -> str:
     """A file's title from its name: 'calculus-concepts-and-methods_compress.pdf' -> 'Calculus concepts and methods',
     '1. Function Characteristics - workbook (1).pdf' -> '1. Function Characteristics - workbook'. Drops the extension

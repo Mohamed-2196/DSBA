@@ -12,7 +12,8 @@ students' notes; a link to a single Drive or Docs file counts as a folder holdin
      (exam_names.tidy_title). A file whose bytes are already in the library (the same SHA-256) is skipped. Past
      papers get their exam year, session and zone from their names (exam_names.exam_meta_from_name), examiners'
      reports and solutions their own kinds, and the papers, reports and solutions in a VLE folder the same
-     (exam_kind).
+     (exam_kind). A paper, report, solutions or VLE file whose name gives another module's unit code, and not its
+     folder's, goes to that module (filed_module): ST1215's VLE folder holds MT1186's papers.
 
 Imported files are ordinary library files (source `file`): they are served, previewed, edited, removed and swept like
 uploads. `import_key` ('drive/<module>/<file id>') remembers where each came from, so a rerun skips it whatever became
@@ -37,17 +38,17 @@ import re
 import tempfile
 import unicodedata
 import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass, field
 
 from botocore.exceptions import BotoCoreError, ClientError
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
 from app.core.text import clashes_on, clip
-from app.models import DriveFolder, LibraryItem, Module, UploadPurpose
+from app.models import Chapter, DriveFolder, LibraryItem, Module, PaperQuestion, UploadPurpose
 from app.schemas.library import (
     EXAM_KINDS,
     EXAM_SESSIONS,
@@ -179,6 +180,7 @@ class Planned:
     export: str | None  # a Google file: the type it is exported as
     limit: int  # bytes
     kind: LibraryKind
+    module: Module | None  # the module it is filed under (filed_module): its folder's, unless its name says
     exam_year: int | None = None
     zone: Zone | None = None
     exam_session: ExamSession | None = None
@@ -387,17 +389,18 @@ def make_plan(
     DriveFatalError when the credentials or the Cloud project are wrong."""
     sources, others = find_sources(db, module_id)
     done = {key for key in db.scalars(select(LibraryItem.import_key).where(LibraryItem.import_key.is_not(None))) if key}
+    by_code = modules_by_code(db)
     seen: set[str] = set()
     links: list[LinkPlan] = []
     if sources:
         echo(f"Reading {_plural(len(sources), 'Drive folder')}:")
     for source in sources:
         echo(f"  {source.label}")
-        links.append(_plan_link(drive, source, done, seen))
+        links.append(_plan_link(drive, source, done, seen, by_code))
     return Plan(links, others, limit)
 
 
-def _plan_link(drive: Drive, source: Source, done: set[str], seen: set[str]) -> LinkPlan:
+def _plan_link(drive: Drive, source: Source, done: set[str], seen: set[str], by_code: Mapping[str, Module]) -> LinkPlan:
     plan = LinkPlan(source)
     try:
         root, cred = drive.get(source.folder)
@@ -414,11 +417,11 @@ def _plan_link(drive: Drive, source: Source, done: set[str], seen: set[str]) -> 
         if root.is_shortcut:
             plan.errors.append(Skipped(source, printable(source.title, 120), "the link leads to a shortcut"))
             return plan
-        _plan_file(plan, _Found(root, (), cred), done, seen, upload_limit)
+        _plan_file(plan, _Found(root, (), cred), done, seen, upload_limit, by_code)
         return plan
     plan.folder_name = shown_name(root.name)
     for found in _walk(drive, plan, root.ref, cred):
-        _plan_file(plan, found, done, seen, upload_limit)
+        _plan_file(plan, found, done, seen, upload_limit, by_code)
     return plan
 
 
@@ -494,7 +497,9 @@ def _shortcut_target(
     return _Found(target, folders, target_cred)
 
 
-def _plan_file(plan: LinkPlan, found: _Found, done: set[str], seen: set[str], upload_limit: int) -> None:
+def _plan_file(
+    plan: LinkPlan, found: _Found, done: set[str], seen: set[str], upload_limit: int, by_code: Mapping[str, Module]
+) -> None:
     source, file = plan.source, found.file
     shown = shown_name(file.name)
     where = SEP.join((*found.folders, shown))
@@ -549,11 +554,36 @@ def _plan_file(plan: LinkPlan, found: _Found, done: set[str], seen: set[str], up
             export=export,
             limit=limit,
             kind=exam.kind,
+            module=filed_module(shown, source.kind, source.module, by_code),
             exam_year=exam.exam_year,
             zone=exam.zone,
             exam_session=exam.exam_session,
         )
     )
+
+
+FILED_BY_NAME: tuple[LibraryKind, ...] = (*EXAM_KINDS, "vle-materials")  # folders whose files' names can refile them
+
+
+def modules_by_code(db: Session) -> dict[str, Module]:
+    """The modules by their unit code, in capitals."""
+    modules = db.scalars(select(Module).where(Module.unit_code.is_not(None)))
+    return {m.unit_code.upper(): m for m in modules if m.unit_code}
+
+
+def filed_module(
+    name: str, folder_kind: LibraryKind, folder_module: Module | None, by_code: Mapping[str, Module]
+) -> Module | None:
+    """The module a file of a past-papers or VLE folder belongs to. Its name has the last word: when it gives one
+    other module's unit code and not its folder's, it is that module's ('MT1186 Exam paper - May 2025.pdf' in
+    ST1215's VLE folder is MT1186's). Otherwise, and for every other folder, the folder's module."""
+    if folder_kind not in FILED_BY_NAME:
+        return folder_module
+    codes = exam_names.unit_codes(name)
+    if folder_module is not None and folder_module.unit_code and folder_module.unit_code.upper() in codes:
+        return folder_module
+    named = {by_code[c].id: by_code[c] for c in codes if c in by_code}
+    return next(iter(named.values())) if len(named) == 1 else folder_module
 
 
 @dataclass(frozen=True)
@@ -640,7 +670,7 @@ def run(
         try:
             library.create_imported(
                 db,
-                planned.source.module,
+                planned.module,
                 kind=planned.kind,
                 title=planned.title,
                 storage_key=planned.storage_key,
@@ -800,6 +830,8 @@ def _details(planned: Planned) -> str:
         parts.append(f"{product}, as {extension(planned.file_name).upper()}")
     elif planned.file.size is not None:
         parts.append(_size(planned.file.size))
+    if planned.module is not None and planned.module is not planned.source.module:
+        parts.append(f"filed under {planned.module.unit_code or planned.module.id}")
     if planned.kind != planned.source.kind or planned.exam_year or planned.zone:
         exam = library.kind_label(planned.kind)
         if planned.exam_year:
@@ -909,31 +941,38 @@ class ExamBackfill:
 
 
 def backfill_exam_meta(db: Session, *, dry_run: bool = False) -> ExamBackfill:
-    """Reads again the names of the files the import brought in from past-papers and VLE folders (exam_kind), and
-    fills what an item lacks: its exam year, session and zone, and its kind when it still has its folder's (a past
-    paper that is an examiners' report or solutions, a VLE file that is a sitting's paper). What a rep set stays.
-    The caller commits (nothing changes with `dry_run`). Safe to run again."""
-    folder_kinds: tuple[LibraryKind, ...] = (*EXAM_KINDS, "vle-materials")
+    """Reads again the names of the files the import brought in from past-papers and VLE folders (exam_kind,
+    filed_module), and fills what an item lacks: its exam year, session and zone, and its kind when it still has its
+    folder's (a past paper that is an examiners' report or solutions, a VLE file that is a sitting's paper). A file
+    still in its folder's module whose name gives another module's unit code moves to that module, and its question
+    tags (the old module's chapters) go. What a rep set stays. The caller commits (nothing changes with `dry_run`).
+    Safe to run again."""
     items = db.scalars(
         select(LibraryItem)
         .where(
             LibraryItem.import_key.is_not(None),
             LibraryItem.file_name.is_not(None),
-            LibraryItem.kind.in_(folder_kinds),
+            LibraryItem.kind.in_(FILED_BY_NAME),
         )
         .order_by(LibraryItem.module_id, LibraryItem.title)
     ).all()
+    by_code = modules_by_code(db)
     out = ExamBackfill(checked=len(items))
     for item in items:
         folder: LibraryKind = "vle-materials" if item.kind == "vle-materials" else PAST_PAPER
         exam = exam_kind(item.file_name or "", folder)
-        before = (item.kind, item.exam_year, item.exam_session, item.zone)
+        before = (item.kind, item.exam_year, item.exam_session, item.zone, item.module_id)
         kind = exam.kind if item.kind == folder else item.kind
+        module_id = item.module_id
+        if module_id is not None and _folder_module_id(item) == module_id:  # where the import put it
+            module = filed_module(item.file_name or "", folder, db.get(Module, module_id), by_code)
+            module_id = module.id if module is not None else module_id
         after = (
             kind,
             item.exam_year if item.exam_year is not None else exam.exam_year,
             item.exam_session if item.exam_session is not None else exam.exam_session,
             item.zone if item.zone is not None else exam.zone,
+            module_id,
         )
         if after == before:
             continue
@@ -942,7 +981,31 @@ def backfill_exam_meta(db: Session, *, dry_run: bool = False) -> ExamBackfill:
             what += f", {exam_names.sitting_label(after[1], after[2])}"
         if after[3]:
             what += f", {exam_names.zone_label(after[3])}"
+        if module_id != item.module_id:
+            what += f", moved to {module_id}"
         out.changed.append(f"{item.module_id or 'no module'} · {item.title}: {what}")
         if not dry_run:
-            item.kind, item.exam_year, item.exam_session, item.zone = after
+            item.kind, item.exam_year, item.exam_session, item.zone = after[:4]
+            if module_id != item.module_id and module_id is not None:
+                _move(db, item, module_id)
     return out
+
+
+def _folder_module_id(item: LibraryItem) -> str | None:
+    """The module of the Drive folder an imported item came from ('drive/<module>/<file id>')."""
+    parts = (item.import_key or "").split("/")
+    return parts[1] if len(parts) == 3 and parts[0] == "drive" and parts[1] != NO_MODULE else None
+
+
+def _move(db: Session, item: LibraryItem, module_id: str) -> None:
+    """The item in another module, in that module's year; its question tags, on the old module's chapters, go."""
+    module = db.get(Module, module_id)
+    if module is None:
+        return
+    db.execute(
+        delete(PaperQuestion).where(
+            PaperQuestion.item_id == item.id,
+            PaperQuestion.chapter_id.not_in(select(Chapter.id).where(Chapter.module_id == module.id)),
+        )
+    )
+    item.module_id, item.year = module.id, module.year

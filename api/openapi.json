@@ -34808,6 +34808,17 @@
             "type": "string",
             "title": "Chapterid"
           },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
           "question": {
             "type": "integer",
             "title": "Question"
@@ -34834,6 +34845,7 @@
           "id",
           "itemId",
           "chapterId",
+          "section",
           "question",
           "page",
           "createdAt"
@@ -43082,6 +43094,17 @@
             "type": "string",
             "title": "Chaptertitle"
           },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
           "question": {
             "type": "integer",
             "title": "Question"
@@ -43132,6 +43155,7 @@
           "paper",
           "chapterId",
           "chapterTitle",
+          "section",
           "question",
           "page",
           "flagged",
@@ -43144,6 +43168,18 @@
       },
       "PaperQuestionCreate": {
         "properties": {
+          "section": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
           "question": {
             "type": "integer",
             "maximum": 40.0,

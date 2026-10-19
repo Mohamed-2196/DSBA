@@ -21,6 +21,7 @@
 //                                        the past papers table, one row per sitting (stacked where it's under 700 px
 //                                        wide, as in a card); linkState { from } is where the paper's Back goes
 //   useModuleQuestions(moduleId)       a module's past exam questions tagged by chapter (Noora's full page asks about one)
+//   questionNumber(question)            '3', or 'B1' on a paper that numbers each section from 1
 //   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
 //   useTimeMe()                         the paper being timed with Time me ({ timer, start, pause, resume, stop }),
 //                                        kept in this browser
@@ -34,7 +35,7 @@ import type { CohortYear } from '../../state';
 import { Skeleton } from '../../ui';
 
 export { useRecentFiles } from './api';
-export { useModuleQuestions, usePaperSittings } from './papers';
+export { questionNumber, useModuleQuestions, usePaperSittings } from './papers';
 export { SittingsTable } from './components/SittingsTable';
 export { itemPath as libraryItemPath } from './api';
 export { examTitle as libraryItemTitle } from './display';

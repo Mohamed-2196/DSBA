@@ -13,6 +13,7 @@ from app.services.exam_names import (
     sitting_label,
     sitting_order,
     tidy_title,
+    unit_codes,
     zone_label,
 )
 
@@ -171,3 +172,11 @@ def test_sittings_go_newest_first_a_years_resits_before_its_may_sitting() -> Non
         (2023, "may"),
         (2023, None),
     ]
+
+
+def test_unit_codes_are_read_from_a_name_in_capitals() -> None:
+    assert unit_codes("MT1186_Commentary_May_2025.pdf") == {"MT1186"}
+    assert unit_codes("st1215 and MT1186 formula sheet") == {"ST1215", "MT1186"}
+    assert unit_codes("ST104A - Statistics 1 - 2008 Exam") == set()  # not a unit code of four digits
+    assert unit_codes("Math 1186 - Mock Test 1 (2024-2025)") == set()
+    assert unit_codes("EC20201 notes") == set()

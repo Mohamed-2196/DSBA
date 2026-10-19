@@ -178,9 +178,11 @@ class PaperSittings(ApiModel):
 # ── past questions by chapter ────────────────────────────────────────────────────────────────
 
 QUESTION_MAX, PAGE_MAX = 40, 999
+Section = Annotated[str, StringConstraints(pattern=r"^[A-Z]$")]  # 'B' of "B1"
 
 
 class PaperQuestionCreate(ApiModel):
+    section: Section | None = None  # on a paper that numbers each section from 1
     question: int = Field(ge=1, le=QUESTION_MAX)
     chapter_id: Annotated[str, StringConstraints(min_length=1, max_length=16)]
     page: int | None = Field(default=None, ge=1, le=PAGE_MAX)  # where the question starts in the PDF
@@ -201,6 +203,7 @@ class PaperQuestion(ApiModel):
     paper: PaperRef
     chapter_id: str
     chapter_title: str
+    section: str | None  # 'B' of "B1"; None: the paper numbers right through ("Q3")
     question: int
     page: int | None
     flagged: bool  # by the person asking

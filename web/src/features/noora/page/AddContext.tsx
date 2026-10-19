@@ -9,7 +9,7 @@ import { useAuth } from '../../../auth';
 import { useDebouncedValue } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { Button, Menu, Modal, QueryError, SearchField, Select, Skeleton, cx } from '../../../ui';
-import { useModuleQuestions } from '../../library/public';
+import { questionNumber, useModuleQuestions } from '../../library/public';
 import { moduleDetailQuery } from '../../modules/public';
 import { useNotes } from '../../notes/public';
 
@@ -161,12 +161,12 @@ function PaperPicker({
           : [
               {
                 value: q.id,
-                label: `${q.paper.title} · Question ${q.question} · page ${q.page}`,
+                label: `${q.paper.title} · Question ${questionNumber(q)} · page ${q.page}`,
                 pick: {
                   itemId: q.paper.id,
                   page: q.page,
-                  question: String(q.question),
-                  label: `${q.paper.title}, question ${q.question}`,
+                  question: questionNumber(q),
+                  label: `${q.paper.title}, question ${questionNumber(q)}`,
                 },
               },
             ],

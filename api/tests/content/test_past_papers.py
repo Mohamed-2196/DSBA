@@ -179,6 +179,55 @@ def test_students_tag_questions_chapters_list_them_and_reps_remove_wrong_ones(
     assert guest.get(url).json() == []
 
 
+def test_papers_that_number_each_section_from_one_keep_b1_apart_from_a1(
+    client_for: Clients,
+    student: User,
+    moderator: User,
+    paper: dict[str, Any],
+    set_feature: Callable[..., None],
+    db: Session,
+) -> None:
+    set_feature("library.questions", "everyone")
+    me, rep, guest = client_for(student), client_for(moderator), client_for()
+    first = chapters(db)[0]
+    url = f"{API}/library/items/{paper['id']}/questions"
+
+    b1 = me.post(url, json={"section": "B", "question": 1, "chapterId": first.id})
+    assert b1.status_code == 201, b1.text
+    assert (b1.json()["section"], b1.json()["question"]) == ("B", 1)
+    assert me.post(url, json={"section": "A", "question": 1, "chapterId": first.id}).status_code == 201
+    plain = me.post(url, json={"question": 1, "chapterId": first.id})
+    assert (plain.status_code, plain.json()["section"]) == (201, None)
+
+    again = me.post(url, json={"section": "B", "question": 1, "chapterId": first.id})
+    assert again.status_code == 409
+    assert again.json()["error"]["message"] == f"B1 is already tagged with {first.title}. Pick another chapter."
+    twice = me.post(url, json={"question": 1, "chapterId": first.id})  # no section: still one Q1 a chapter
+    assert (twice.status_code, twice.json()["error"]["message"].split(" is")[0]) == (409, "Q1")
+    for wrong in ("b", "AB", "1", ""):
+        r = me.post(url, json={"section": wrong, "question": 2, "chapterId": first.id})
+        assert r.status_code == 422, wrong
+
+    # the paper's page and the chapter's list: no section first, then A, then B
+    assert [(t["section"], t["question"]) for t in guest.get(url).json()] == [(None, 1), ("A", 1), ("B", 1)]
+    by_module = guest.get(f"{API}/library/questions", params={"module_id": MODULE}).json()
+    assert [(t["section"], t["question"]) for t in by_module] == [(None, 1), ("A", 1), ("B", 1)]
+    assert [(t["section"], t["question"]) for t in me.get(f"{API}/me/export").json()["questionTags"]] == [
+        ("B", 1),
+        ("A", 1),
+        (None, 1),
+    ]
+
+    # kept and removed by a rep: the audit log names B1 and keeps its section
+    assert rep.put(f"{API}/library/questions/{b1.json()['id']}/flag").status_code == 200
+    assert rep.post(f"{API}/library/questions/{b1.json()['id']}/keep").status_code == 200
+    assert rep.delete(f"{API}/library/questions/{b1.json()['id']}").status_code == 204
+    keep = db.scalars(select(AuditEntry).where(AuditEntry.action == "library.question_keep")).one()
+    removed = db.scalars(select(AuditEntry).where(AuditEntry.action == "library.question_remove")).one()
+    assert keep.data["title"] == removed.data["title"] == "B1 of EC1002 ZA May 2024"
+    assert (removed.data["section"], removed.data["question"]) == ("B", 1)
+
+
 def test_flags_count_once_each_and_leave_with_the_account(
     client_for: Clients,
     student: User,
@@ -265,3 +314,64 @@ def test_exam_meta_fills_what_imported_files_lack_and_keeps_what_a_rep_set(
         rtc.title: ("examiners-report", 2026, "may", "RTC"),
     }
     assert backfill_exam_meta(db).changed == []  # safe to run again
+
+
+def test_exam_meta_moves_a_file_named_for_another_module_and_its_tags_go(
+    db: Session,
+    modules: dict[str, Module],
+    student: User,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def in_statistics(file_name: str, kind: str, **exam: Any) -> LibraryItem:
+        item = library.create_imported(
+            db,
+            db.get(Module, "statistics"),
+            kind=kind,  # type: ignore[arg-type]
+            title=file_name.rsplit(".", 1)[0],
+            storage_key=f"library/drive/statistics/{uuid.uuid4().hex}/f.pdf",
+            file_name=file_name,
+            size_bytes=10,
+            import_key=f"drive/statistics/{uuid.uuid4().hex}",
+            **exam,
+        )
+        db.commit()
+        return item
+
+    may = in_statistics("MT1186 Exam paper - May 2025.pdf", "past-paper", exam_year=2025, exam_session="may")
+    sample = in_statistics("MT1186 Sample exam paper and commentary.pdf", "vle-materials")
+    own = in_statistics("ST1215 Exam paper - May 2025.pdf", "past-paper", exam_year=2025, exam_session="may")
+    moved_by_rep = in_statistics(
+        "MT1186 Exam paper - October 2025.pdf", "past-paper", exam_year=2025, exam_session="october"
+    )
+    moved_by_rep.module_id = "economics"  # a rep filed it elsewhere: it stays there
+    stats_chapter = chapters(db, "statistics")[0]
+    db.add(PaperQuestion(item_id=may.id, chapter_id=stats_chapter.id, question=1, tagged_by=student.id))
+    db.commit()
+
+    result = backfill_exam_meta(db, dry_run=True)
+    assert result.changed == [
+        "statistics · MT1186 Exam paper - May 2025: Past paper, May 2025, moved to mathematics",
+        "statistics · MT1186 Sample exam paper and commentary: VLE materials, moved to mathematics",
+    ]
+    db.refresh(may)
+    assert may.module_id == "statistics"  # a dry run changes nothing
+
+    @contextmanager
+    def same_session() -> Iterator[Session]:
+        yield db
+
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: same_session)
+    assert cli.main(["exam-meta"]) == 0
+    assert "Changed 2 of " in capsys.readouterr().out
+    for item in (may, sample, own, moved_by_rep):
+        db.refresh(item)
+    assert [i.module_id for i in (may, sample, own, moved_by_rep)] == [
+        "mathematics",
+        "mathematics",
+        "statistics",
+        "economics",
+    ]
+    assert may.year == modules["mathematics"].year
+    assert db.scalars(select(PaperQuestion).where(PaperQuestion.item_id == may.id)).all() == []
+    assert backfill_exam_meta(db).changed == []  # once
