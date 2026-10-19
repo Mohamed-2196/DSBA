@@ -1,5 +1,20 @@
 .carry {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+}
+/* While there are only a row or two: what fills this card, and where it's kept. */
+.carry__hint {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: var(--sp-16) var(--sp-24);
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  text-align: center;
+  text-wrap: balance;
 }
 .carry__item {
   display: flex;

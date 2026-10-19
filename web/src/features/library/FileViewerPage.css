@@ -828,3 +828,15 @@ button.lib-qtags__q {
   font-size: 48px;
   color: var(--ink-2);
 }
+
+/* Phones and tablets: the page scrolls through the paper, so Time me stays in sight under the top bar. */
+.lib-viewer.is-stacked .lib-timer {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: calc(var(--z-sticky) - 1);
+}
+@media (max-width: 699px) {
+  .lib-viewer.is-stacked .lib-timer {
+    top: 56px;
+  }
+}

@@ -48,6 +48,7 @@ export function CarryOn({
 }) {
   const { timed, timedNote, rows, any } = useCarryOn({ moduleId, n });
   if (!any) return null;
+  const few = rows.length + (timed ? 1 : 0) < 3;
   return (
     <Panel padding="none" className={cx('carry', className)} data-hub="carry-on">
       <ul role="list">
@@ -74,6 +75,11 @@ export function CarryOn({
           <Row key={`${row.visit.kind}:${row.visit.id}`} row={row} />
         ))}
       </ul>
+      {few && !moduleId ? (
+        <p className="carry__hint">
+          The papers, notes and lessons you open show here. They’re kept on this device only.
+        </p>
+      ) : null}
     </Panel>
   );
 }
