@@ -8,8 +8,8 @@
 // put) and the text alone, wrapped to the screen at reading size (UX-70). Phones open a note in the text; picking a
 // pen, or Page, shows the pages. Handwriting goes with the text it was written beside (useInkAnchors), so typing in
 // either view moves it down with its line. The lesson panel (LessonNotePanel) opens notes here too, in the text.
-import { NotePencil, X } from '@phosphor-icons/react';
-import { EditorContent } from '@tiptap/react';
+import { NotePencil, Play, X } from '@phosphor-icons/react';
+import { EditorContent, type Editor } from '@tiptap/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -54,6 +54,8 @@ import { useZoom } from './surface/useZoom';
 import { blockBoxes, dropTarget } from './text/blocks';
 import { startWidth } from './text/picture';
 import { useNoteText, type TextDrop } from './text/useNoteText';
+import { VideoTimesContext, type VideoTimes } from './text/videoTimes';
+import type { LessonVideo } from './LessonNotePanel';
 import type { Step } from './timeline';
 import { Toolbar } from './Toolbar';
 import { unanchored, unanchoredChanges } from './surface/anchors';
@@ -251,12 +253,32 @@ export interface NoteWorkspaceProps {
   panel?: PanelParts;
 }
 
-/** What the lesson panel adds to the editor: its own header actions, and the video's clock. */
+/** What the lesson panel adds to the editor: its own header actions, and the video beside it. */
 export interface PanelParts {
   /** in the header, after the title */
   actions: ReactNode;
-  /** under the toolbar's formatting: put the video's time in the text */
-  stamp: ReactNode;
+  /** the lesson's video: its time goes in the text, and a time tapped there plays it */
+  video: LessonVideo;
+}
+
+/** Puts the video's time at the cursor (the lesson panel). */
+function StampTime({ editor, video }: { editor: Editor; video: LessonVideo }) {
+  return (
+    <button
+      type="button"
+      className="nb-insert"
+      disabled={!video.ready}
+      title={video.ready ? 'Put the video’s time here: tap it later to go back' : 'Play the video first'}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={() => {
+        const t = video.now();
+        if (t !== null) editor.chain().focus().insertVideoTime(t).run();
+      }}
+      data-hub="note-stamp-time"
+    >
+      <Play aria-hidden="true" weight="fill" /> Video time
+    </button>
+  );
 }
 
 /** The note, loaded (from the server or the copy on this device), then the editor on it. */
@@ -343,6 +365,8 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
     setScrollerEl(el);
   }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const inPanel = !!panel;
   const zoom = useZoom(scroller);
 
   const label = noteLabel(doc);
@@ -482,6 +506,8 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing) return;
+      // beside a lesson, the keys are the notes' only from inside them
+      if (inPanel && !(e.target instanceof Node && rootRef.current?.contains(e.target))) return;
       const mod = e.metaKey || e.ctrlKey;
       if (mod && !e.altKey && (e.key === 'z' || e.key === 'Z' || e.key === 'y')) {
         if (isTyping(e.target) || readOnly) return;
@@ -500,7 +526,7 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [history, full, readOnly]);
+  }, [history, full, readOnly, inPanel, setTool]);
 
   // ── the paper grows to hold the typed text ──
   const onTextHeight = useCallback((units: number) => setTextHeight(units), []);
@@ -694,6 +720,7 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
     if (readOnly) return undefined;
     const onPaste = (e: ClipboardEvent) => {
       if (e.defaultPrevented || isTyping(e.target)) return;
+      if (inPanel && !(e.target instanceof Node && rootRef.current?.contains(e.target))) return;
       const files = [...(e.clipboardData?.files ?? [])];
       if (!files.length) return;
       e.preventDefault();
@@ -701,7 +728,7 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
     };
     document.addEventListener('paste', onPaste);
     return () => document.removeEventListener('paste', onPaste);
-  }, [readOnly, addFiles, middleSpot]);
+  }, [readOnly, addFiles, middleSpot, inPanel]);
 
   // Files dragged over the notebook never open in the tab; dropped on the pages, they are added there (the text takes
   // the ones dropped on it: useNoteText).
@@ -809,6 +836,15 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
   const onPrinted = useCallback(() => setPrinting(false), []);
 
   const onPdf = !!editor.note?.pdf;
+  // a time in the text plays the video beside it, or opens the note's lesson there
+  const seek = panel?.video.seek ?? null;
+  const times = useMemo<VideoTimes>(
+    () => ({
+      seek,
+      lesson: doc.moduleId && doc.lessonId ? { moduleId: doc.moduleId, lessonId: doc.lessonId } : null,
+    }),
+    [seek, doc.moduleId, doc.lessonId],
+  );
   // what only the pages show: handwriting on the paper, and pictures free on it
   const onPages =
     free.list.length > 0 ||
@@ -817,6 +853,7 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
 
   return (
     <div
+      ref={rootRef}
       className={cx('nb', full && 'nb--full', panel && 'nb--panel', view === 'text' && 'nb--text')}
       data-hub="notebook-workspace"
       data-view={view}
@@ -881,7 +918,7 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
         readOnly={readOnly}
         view={paperless ? null : view}
         onView={setView}
-        extra={panel?.stamp ?? null}
+        extra={panel && textEditor ? <StampTime editor={textEditor} video={panel.video} /> : null}
       />
 
       <Notices
@@ -922,7 +959,9 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
               ) : null}
               {textEditor ? (
                 <PictureSpaceContext.Provider value={space}>
-                  <EditorContent editor={textEditor} />
+                  <VideoTimesContext.Provider value={times}>
+                    <EditorContent editor={textEditor} />
+                  </VideoTimesContext.Provider>
                 </PictureSpaceContext.Provider>
               ) : null}
             </div>
@@ -950,7 +989,9 @@ function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: Not
               text={
                 textEditor ? (
                   <PictureSpaceContext.Provider value={space}>
-                    <EditorContent editor={textEditor} />
+                    <VideoTimesContext.Provider value={times}>
+                      <EditorContent editor={textEditor} />
+                    </VideoTimesContext.Provider>
                   </PictureSpaceContext.Provider>
                 ) : null
               }

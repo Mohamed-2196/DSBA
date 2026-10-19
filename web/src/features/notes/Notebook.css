@@ -1,8 +1,8 @@
 /* The notebook's editor (/notes/:id, NotePage.tsx): the header, the toolbar, the pages and everything on them. */
 
 /* ── The editor: a frame the window's height under the top bar; only the pages scroll ───────────── */
-.shell:has(.nb) .shell-footer,
-.shell:has(.nb) .shell-main::after {
+.shell:has(.nb:not(.nb--panel)) .shell-footer,
+.shell:has(.nb:not(.nb--panel)) .shell-main::after {
   display: none;
 }
 html:has(.nb--full) {
@@ -493,7 +493,7 @@ html:has(.nb--full) .noora {
     min-height: 44px;
   }
 }
-/* Phones: each row of the toolbar slides sideways inside itself, so the page keeps the room */
+/* Phones and the lesson panel: each row of the toolbar slides sideways inside itself, so the page keeps the room */
 @media (max-width: 699px) {
   .nb-toolbar {
     padding-inline: 8px;
@@ -1831,3 +1831,83 @@ html:has(.nb--full) .noora {
   color: var(--page-accent);
 }
 
+/* ── A time in the lesson's video (text/videoTime.tsx): tapped, the video goes there ── */
+.nb-time {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 1px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(21, 88, 240, 0.1);
+  color: var(--page-accent);
+  font: inherit;
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-semibold);
+  line-height: 1.6;
+  text-decoration: none;
+  vertical-align: baseline;
+  cursor: pointer;
+}
+.nb-time svg {
+  font-size: 0.8em;
+}
+.nb-time:hover {
+  background: rgba(21, 88, 240, 0.18);
+}
+.nb-time.is-plain {
+  cursor: default;
+}
+.nb-time:focus-visible {
+  outline: 2px solid var(--page-accent);
+  outline-offset: 1px;
+}
+
+/* ── In the lesson panel: the text fills the panel's width ── */
+.nb--panel .nb-scroller--text {
+  padding: 0;
+}
+.nb--panel .nb-reflow {
+  max-width: none;
+  padding: 16px 16px 96px;
+  border-radius: 0;
+  box-shadow: none;
+}
+.nb--panel .nb-header__where {
+  font-size: var(--fs-13);
+}
+
+.nb--panel .nb-toolbar__row,
+.nb--panel .nb-tools,
+.nb--panel .nb-format {
+  flex-wrap: nowrap;
+}
+.nb--panel .nb-toolbar__row {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+.nb--panel .nb-toolbar__row > * {
+  flex: none;
+}
+/* a short screen (a phone on its side): the panel keeps its room for the text */
+@media (max-height: 500px) {
+  .nb--panel .nb-header__where {
+    display: none;
+  }
+}
+@media (pointer: coarse) {
+  /* 44 px to tap without a taller line */
+  .nb-time::before,
+  .nb-where__chip a::before {
+    content: '';
+    position: absolute;
+    inset: -10px -2px;
+  }
+  .nb-where__chip a {
+    position: relative;
+  }
+}

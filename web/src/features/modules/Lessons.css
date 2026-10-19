@@ -558,3 +558,43 @@
   flex-wrap: wrap;
   gap: var(--sp-8);
 }
+
+/* ── Notes beside the video (LessonNotePanel): in place of the chapter list; a sheet under the video on phones ──
+   The video stays in sight under the module's tabs while the notes are open. */
+.mod-lessons {
+  --under-tabs: calc(var(--topbar-h) + 48px);
+}
+.mod-lessons.is-noting .mod-lessons__aside {
+  display: none;
+}
+.mod-lessons.is-noting .mod-player {
+  position: sticky;
+  top: var(--under-tabs);
+  z-index: calc(var(--z-sticky) - 2);
+  scroll-margin-top: var(--under-tabs);
+}
+@media (min-width: 700px) {
+  .mod-lessons.is-noting .mod-lessons__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 26rem);
+    gap: var(--sp-24);
+    align-items: start;
+  }
+  .mod-lessons__notes {
+    position: sticky;
+    top: var(--under-tabs);
+    height: calc(100vh - var(--under-tabs) - var(--sp-12));
+    height: calc(100dvh - var(--under-tabs) - var(--sp-12));
+  }
+}
+@media (max-width: 699px) {
+  .mod-lessons__notes {
+    position: fixed;
+    z-index: 30;
+    inset: auto 0 calc(var(--tabbar-h) + env(safe-area-inset-bottom)) 0;
+    top: calc(var(--under-tabs) + (100vw - var(--page-pad-left, 16px) - var(--page-pad-right, 16px)) * 9 / 16 + 8px);
+  }
+  /* the sheet covers the page under the video: room to scroll the lesson's details above it */
+  .mod-lessons.is-noting {
+    padding-bottom: 60vh;
+  }
+}

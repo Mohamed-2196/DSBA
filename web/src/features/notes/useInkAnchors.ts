@@ -10,7 +10,7 @@ import { TEXT_TOP } from './surface/layout';
 import { blockIds } from './text/blockIds';
 import type { InkSync } from './useInkSync';
 
-const SETTLE = 350;
+const SETTLE = 150;
 
 /** How far `el` is below the top of `box` (one of its offset parents), unscaled; null when `box` isn't one. */
 function offsetIn(el: HTMLElement, box: HTMLElement): number | null {

@@ -1,7 +1,7 @@
-import { Schema } from '@tiptap/pm/model';
+import { Schema, Slice } from '@tiptap/pm/model';
 import { EditorState } from '@tiptap/pm/state';
 import { describe, expect, it } from 'vitest';
-import { blockIds, blocksWithoutIds, idsTr, newBlockId } from './blockIds';
+import { blockIds, blocksWithoutIds, idsTr, newBlockId, pastedWithoutIds } from './blockIds';
 
 const schema = new Schema({
   nodes: {
@@ -55,5 +55,25 @@ describe('block ids', () => {
     const state = stateOf(p('one', 'a'), list(p('item', 'b')), p('end', 'c'));
     expect(blockIds(state.doc).map((b) => b.id)).toEqual(['a', 'b', 'c']);
     expect(state.doc.nodeAt(blockIds(state.doc)[1].pos)?.textContent).toBe('item');
+  });
+
+  it('stay with the words when a line is split: Enter at its start adds the empty line above', () => {
+    const state = stateOf(p('', 'x'), p('Second line', 'x'), p('Third', 'y'));
+    expect(blocksWithoutIds(state.doc)).toEqual([0]);
+    const end = stateOf(p('Second line', 'x'), p('', 'x'));
+    expect(blocksWithoutIds(end.doc)).toEqual([end.doc.child(0).nodeSize]);
+    const middle = stateOf(p('Sec', 'x'), p('ond', 'x'));
+    expect(blocksWithoutIds(middle.doc)).toEqual([middle.doc.child(0).nodeSize]);
+  });
+
+  it('are left out of what is pasted', () => {
+    const slice = new Slice(stateOf(p('one', 'a'), list(p('two', 'b'))).doc.content, 0, 0);
+    const pasted = pastedWithoutIds(slice);
+    const ids: unknown[] = [];
+    pasted.content.descendants((n) => {
+      if (n.type.name === 'paragraph') ids.push(n.attrs.blockId);
+    });
+    expect(ids).toEqual([null, null]);
+    expect(pasted.content.textBetween(0, pasted.content.size, ' ')).toBe('one two');
   });
 });

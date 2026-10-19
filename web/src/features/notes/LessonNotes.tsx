@@ -1,5 +1,6 @@
-// "Your notes" on a lesson page: the student's notes about this lesson, a quick add, and a way into the full editor.
-// Shown to signed-in students while notes are on.
+// "Your notes" on a lesson page: the student's notes about this lesson, a quick add, and a way into the full editor:
+// beside the video (the page's panel, LessonNotePanel) when the page has one, else the notebook. Shown to signed-in
+// students while notes are on.
 import { NotePencil, Plus } from '@phosphor-icons/react';
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
@@ -16,9 +17,11 @@ import './LessonNotes.css';
 export interface LessonNotesProps {
   moduleId: string;
   lessonId: string;
+  /** opens the notes beside the video (without it, "Write a longer one" opens the notebook) */
+  onWriteBeside?: () => void;
 }
 
-export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
+export function LessonNotes({ moduleId, lessonId, onWriteBeside }: LessonNotesProps) {
   const { me, featureOn } = useAuth();
   const on = !!me && !me.needsProfile && featureOn('notes');
   const notes = useLessonNotes(moduleId, lessonId, { enabled: on });
@@ -105,14 +108,20 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
             >
               Add note
             </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => startNote.start({ moduleId, lessonId })}
-              loading={startNote.starting}
-            >
-              Write a longer one
-            </Button>
+            {onWriteBeside ? (
+              <Button size="sm" variant="ghost" onClick={onWriteBeside} data-hub="lesson-note-beside">
+                Write beside the video
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => startNote.start({ moduleId, lessonId })}
+                loading={startNote.starting}
+              >
+                Write a longer one
+              </Button>
+            )}
           </div>
         </form>
       )}

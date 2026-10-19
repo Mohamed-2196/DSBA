@@ -69,3 +69,93 @@
     min-height: 0;
   }
 }
+
+/* ── Notes beside the video (LessonNotePanel.tsx) ── */
+.lnp {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  box-shadow: var(--shadow-panel);
+}
+.lnp:focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 2px;
+}
+@media (max-width: 699px) {
+  .lnp {
+    border-width: 1px 0 0;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 24px rgba(10, 31, 68, 0.16);
+  }
+}
+/* the notebook's editor fills the panel instead of the window */
+.lnp .nb {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+.lnp-list {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-12);
+  padding: var(--sp-12) var(--sp-16) var(--sp-16);
+  overflow-y: auto;
+}
+.lnp-list__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8);
+}
+.lnp-list__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  margin: 0;
+  font-size: var(--fs-16);
+}
+.lnp-list__items {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lnp-list__item {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--sp-8) var(--sp-12);
+  border: 0;
+  border-radius: var(--r-control);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.lnp-list__item:hover {
+  background: var(--surface-2);
+}
+.lnp-list__label {
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+.lnp-list__when {
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+}
+.lnp-list__error {
+  margin: 0;
+  color: var(--alert);
+  font-size: var(--fs-14);
+}
+.lnp-list__all {
+  font-size: var(--fs-14);
+}

@@ -78,3 +78,114 @@ test('a note keeps its text, and a picture moved and resized stays put after a r
     await api(sara, 'DELETE', `/api/v1/notes/${id}`);
   }
 });
+
+interface InkSheetOut {
+  strokes: { points: number[]; anchor?: { block: string | null; dy: number } | null }[];
+}
+
+test('handwriting beside a line moves down with it when lines are added above (ST-38)', async ({ sara, run }) => {
+  await sara.goto('/notes');
+  await sara.locator('[data-hub="note-new"]').click();
+  await expect(sara).toHaveURL(/\/notes\/[0-9a-f-]{36}$/);
+  const id = new URL(sara.url()).pathname.split('/').pop() ?? '';
+  const ink = async () => (await api<InkSheetOut>(sara, 'GET', `/api/v1/notes/${id}/ink/1000`)).body.strokes;
+  try {
+    const text = sara.locator('[data-hub="note-text"]');
+    await expect(text).toBeFocused(); // a new note waits with the cursor in its text
+    await sara.keyboard.type(`First line [e2e ${run.tag}]`);
+    await sara.keyboard.press('Enter');
+    await sara.keyboard.type('Second line, with ink beside it');
+    await expect(sara.locator('[data-hub="note-status"]')).toContainText('Saved in');
+
+    // the pen, and a stroke in the margin beside the second line
+    await sara.getByRole('button', { name: 'Pen', exact: true }).click();
+    const line = await text.locator('p').nth(1).boundingBox();
+    if (!line) throw new Error('The second line has no box');
+    const y = line.y + line.height / 2;
+    await sara.mouse.move(line.x + line.width - 60, y);
+    await sara.mouse.down();
+    await sara.mouse.move(line.x + line.width - 10, y + 3, { steps: 8 });
+    await sara.mouse.up();
+    await expect.poll(async () => (await ink())[0]?.anchor?.block ?? null).not.toBeNull();
+    const before = (await ink())[0].points[1];
+
+    // three lines above the second
+    const type = sara.getByRole('button', { name: 'Type', exact: true });
+    await type.click();
+    await expect(type).toHaveAttribute('aria-pressed', 'true');
+    const again = await text.locator('p').nth(1).boundingBox();
+    if (!again) throw new Error('The second line has no box');
+    await sara.mouse.click(again.x + 2, again.y + again.height / 2);
+    for (let i = 0; i < 3; i++) await sara.keyboard.press('Enter');
+    // three lines of 32 units
+    await expect.poll(async () => Math.round((await ink())[0].points[1] - before)).toBe(96);
+
+    await sara.reload();
+    await expect(text).toContainText('Second line');
+    await expect.poll(async () => Math.round((await ink())[0].points[1] - before)).toBe(96);
+  } finally {
+    await api(sara, 'DELETE', `/api/v1/notes/${id}`);
+  }
+});
+
+test('on a phone a note opens in its text, at reading size, and shows its pages on demand (UX-70)', async ({
+  sara,
+  run,
+}) => {
+  await sara.setViewportSize({ width: 390, height: 844 });
+  await sara.goto('/notes');
+  await sara.locator('[data-hub="note-new"]').click();
+  await expect(sara).toHaveURL(/\/notes\/[0-9a-f-]{36}$/);
+  const id = new URL(sara.url()).pathname.split('/').pop() ?? '';
+  try {
+    const workspace = sara.locator('[data-hub="notebook-workspace"]');
+    await expect(workspace).toHaveAttribute('data-view', 'text');
+    const text = sara.locator('[data-hub="note-text"]');
+    await expect(text).toBeFocused();
+    await sara.keyboard.type(`Typed between lectures [e2e ${run.tag}]`);
+    const size = await text
+      .locator('p')
+      .first()
+      .evaluate((p) => {
+        const scale = p.getBoundingClientRect().height / (p as HTMLElement).offsetHeight;
+        return parseFloat(getComputedStyle(p).fontSize) * scale;
+      });
+    expect(size).toBeGreaterThanOrEqual(16);
+    expect(await sara.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(
+      false,
+    );
+    await expect(sara.locator('[data-hub="note-status"]')).toContainText('Saved in');
+
+    await sara.getByRole('radio', { name: 'Pages' }).click();
+    await expect(workspace).toHaveAttribute('data-view', 'page');
+    await expect(sara.locator('[data-hub="note-surface"]')).toBeVisible();
+    await expect(text).toContainText('Typed between lectures');
+  } finally {
+    await api(sara, 'DELETE', `/api/v1/notes/${id}`);
+  }
+});
+
+test('a note knows its module, and the list keeps a module’s notes (IDEA-41)', async ({ sara, run }) => {
+  const title = `About a module [e2e ${run.tag}]`;
+  await sara.goto('/notes');
+  await sara.locator('[data-hub="note-new"]').click();
+  await expect(sara).toHaveURL(/\/notes\/[0-9a-f-]{36}$/);
+  const id = new URL(sara.url()).pathname.split('/').pop() ?? '';
+  try {
+    await sara.locator('[data-hub="note-title"]').fill(title);
+    await sara.locator('[data-hub="note-module"]').click();
+    await sara.getByRole('menuitem', { name: /ST2133/ }).click();
+    await expect(sara.locator('[data-hub="note-module"]')).toContainText('ST2133');
+    await expect
+      .poll(async () => (await api<{ moduleId: string | null }>(sara, 'GET', `/api/v1/notes/${id}`)).body.moduleId)
+      .toBe('advanced-stats-distribution');
+
+    await sara.goto('/notes');
+    await sara.getByRole('combobox', { name: 'Module' }).selectOption('advanced-stats-distribution');
+    await expect(sara.locator('[data-hub="note-row"]', { hasText: title })).toBeVisible();
+    await sara.getByRole('combobox', { name: 'Module' }).selectOption('mathematics');
+    await expect(sara.locator('[data-hub="note-row"]', { hasText: title })).toHaveCount(0);
+  } finally {
+    await api(sara, 'DELETE', `/api/v1/notes/${id}`);
+  }
+});

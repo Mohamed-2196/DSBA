@@ -1,5 +1,7 @@
 // Lessons tab: the player (click-to-load poster, then the embed) with the lesson's details and controls, beside
-// the chapter list. The lesson on screen lives in the URL (/modules/<id>/lessons/<lesson id>).
+// the chapter list. The lesson on screen lives in the URL (/modules/<id>/lessons/<lesson id>; ?t=245 starts its
+// video 245 seconds in). "Take notes" puts the student's notes beside the playing video in place of the chapter list
+// (a sheet under it on a phone): the notes take the video's time and take the video back to a time.
 import {
   ArrowSquareOut,
   CalendarBlank,
@@ -8,16 +10,18 @@ import {
   CheckCircle,
   Circle,
   Headphones,
+  NotePencil,
   Warning,
   WifiSlash,
 } from '@phosphor-icons/react';
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { ModuleDetail, Video } from '../../api/types';
 import { videoThumbnailUrl } from '../../lib/modules';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
 import { Button, ErrorBoundary, Spinner, cx } from '../../ui';
-import { LessonNotes } from '../notes/public';
+import { LessonNotePanel, LessonNotes, lessonVideoStart } from '../notes/public';
 import { AddToBoard } from '../board/public';
 import { ChapterQuestions } from '../library/public';
 import { ChapterList } from './ChapterList';
@@ -37,6 +41,7 @@ import { flatLessons, type FlatLesson, type ProgressApi } from './progress';
 import { ProgressOffer } from './ProgressOffer';
 import { useTracking } from './tracking';
 import { useThumbnail, youtubeLooksBlocked } from './thumbs';
+import { useVideoClock, withClock } from './videoClock';
 import './Lessons.css';
 
 const prefersReducedMotion = () =>
@@ -91,15 +96,28 @@ function LessonUnreachable({ year, video, onTryAnyway }: { year: number; video: 
   );
 }
 
-/** The loaded player: YouTube, YouTube playlists and BigBlueButton class recordings, in an iframe. */
-function LessonFrame({ module: m, c, v }: { module: ModuleDetail; c: number; v: number }) {
+/** The loaded player: YouTube, YouTube playlists and BigBlueButton class recordings, in an iframe. A YouTube player
+ *  tells its time (videoClock.ts), and starts `start` seconds in when given. */
+function LessonFrame({
+  module: m,
+  c,
+  v,
+  frameRef: ref,
+  start,
+}: {
+  module: ModuleDetail;
+  c: number;
+  v: number;
+  frameRef: RefObject<HTMLIFrameElement>;
+  start: number | null;
+}) {
   const chapter = m.chapters[c];
   const video = chapter.videos[v];
   const [loaded, setLoaded] = useState(false);
-  const ref = useRef<HTMLIFrameElement>(null);
   useEffect(() => {
     ref.current?.focus({ preventScroll: true });
-  }, []);
+  }, [ref]);
+  const src = embedSrc(video);
   return (
     <div className="mod-frame" data-theme="dark" style={frameVars(m.year)}>
       {!loaded ? (
@@ -111,7 +129,7 @@ function LessonFrame({ module: m, c, v }: { module: ModuleDetail; c: number; v: 
       <iframe
         ref={ref}
         className={cx('mod-frame__iframe', loaded && 'is-loaded')}
-        src={embedSrc(video) ?? undefined}
+        src={src ? withClock(src, window.location.origin, start) : undefined}
         title={`${m.unitCode || m.name}: ${chapter.title} (${chapterPosition(c, video, v, chapter.videos.length).toLowerCase()})`}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
         allowFullScreen
@@ -140,12 +158,19 @@ export function LessonsTab({
   const video = chapter.videos[v];
   const key = m.chapters[c].videos[v].id;
   const { push } = useToast();
-  const { featureOn } = useAuth();
+  const { me, featureOn } = useAuth();
   const { state, tracking, isWatched, setWatched, markOpened, resetModule, restore } = progress;
   const track = useTracking();
   const watched = isWatched(key);
+  const location = useLocation();
+  // A time from a note (?t=): the video starts there, at once (the student asked for it).
+  const [startAt, setStartAt] = useState<number | null>(() => lessonVideoStart(location.search));
   // Once the student presses play, moving to another lesson keeps playing (they already chose to load it).
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(() => startAt !== null);
+  // The notes beside the video
+  const canNote = !!me && !me.needsProfile && featureOn('notes');
+  const [noting, setNoting] = useState(false);
+  const frameRef = useRef<HTMLIFrameElement>(null);
   // "Try loading it here" holds for the rest of the visit, not just one lesson.
   const [forceLoad, setForceLoad] = useState(false);
   const [waited, setWaited] = useState<string | null>(null);
@@ -166,6 +191,27 @@ export function LessonsTab({
     else if (youtubeLooksBlocked()) stage = 'blocked';
     else stage = 'frame';
   }
+  const clock = useVideoClock(frameRef, stage === 'frame' ? `${key}:${startAt ?? 0}` : null);
+  // A time tapped in a note: the playing video goes there; one not loaded yet loads there.
+  const { ready: clockReady, seek: clockSeek } = clock;
+  const seek = useCallback(
+    (seconds: number) => {
+      if (clockReady) clockSeek(seconds);
+      else {
+        setStartAt(seconds);
+        setPlaying(true);
+      }
+    },
+    [clockReady, clockSeek],
+  );
+  const video4notes = useMemo(() => ({ ready: clock.ready, now: clock.now, seek }), [clock.ready, clock.now, seek]);
+  // Another lesson starts at its beginning.
+  const shownKey = useRef(key);
+  useEffect(() => {
+    if (shownKey.current === key) return;
+    shownKey.current = key;
+    setStartAt(null);
+  }, [key]);
 
   const lessons = useMemo(() => flatLessons(m), [m]);
   const infos = useMemo(() => chapterLessons(chapter), [chapter]);
@@ -193,6 +239,19 @@ export function LessonsTab({
         el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
     });
   }, []);
+
+  // The notes open beside the video, with the video in sight above them.
+  const openNotes = () => {
+    setNoting(true);
+    // The player sticks under the tabs while the notes are open: scroll until it gets there (a sticky element isn't
+    // scrolled into view), at once (the note's cursor taking the focus would stop a smooth scroll half way).
+    requestAnimationFrame(() => {
+      const el = playerRef.current;
+      if (!el) return;
+      const by = el.getBoundingClientRect().top - (parseFloat(getComputedStyle(el).scrollMarginTop) || 0);
+      if (Math.abs(by) > 1) window.scrollBy({ top: by, behavior: 'auto' });
+    });
+  };
 
   const go = (l: FlatLesson | null) => {
     if (!l) return;
@@ -228,7 +287,7 @@ export function LessonsTab({
   const audio = httpsOnly(chapter.audioUrl);
 
   return (
-    <div className="mod-lessons">
+    <div className={cx('mod-lessons', noting && 'is-noting')}>
       <div className="mod-lessons__grid">
         <div className="mod-lessons__main">
           <div className="mod-player" data-hub="lesson-player" ref={playerRef}>
@@ -239,7 +298,9 @@ export function LessonsTab({
             {stage === 'blocked' ? (
               <LessonUnreachable year={m.year} video={video} onTryAnyway={() => setForceLoad(true)} />
             ) : null}
-            {stage === 'frame' ? <LessonFrame key={key} module={m} c={c} v={v} /> : null}
+            {stage === 'frame' ? (
+              <LessonFrame key={`${key}:${startAt ?? 0}`} module={m} c={c} v={v} frameRef={frameRef} start={startAt} />
+            ) : null}
           </div>
 
           <div className="mod-lesson">
@@ -269,6 +330,11 @@ export function LessonsTab({
                     data-hub="lesson-watched"
                   >
                     {watched ? 'Watched' : 'Mark as watched'}
+                  </Button>
+                ) : null}
+                {canNote && !noting ? (
+                  <Button leadingIcon={NotePencil} onClick={openNotes} data-hub="lesson-take-notes">
+                    Take notes
                   </Button>
                 ) : null}
                 {featureOn('board') ? <AddToBoard link={{ type: 'lesson', id: key }} /> : null}
@@ -325,11 +391,24 @@ export function LessonsTab({
             ) : null}
 
             <ErrorBoundary name="LessonNotes" resetKey={key}>
-              <LessonNotes moduleId={m.id} lessonId={key} />
+              <LessonNotes moduleId={m.id} lessonId={key} onWriteBeside={openNotes} />
             </ErrorBoundary>
           </div>
         </div>
 
+        {noting ? (
+          <div className="mod-lessons__notes">
+            <ErrorBoundary name="LessonNotePanel" resetKey={key}>
+              <LessonNotePanel
+                key={key}
+                moduleId={m.id}
+                lessonId={key}
+                video={video4notes}
+                onClose={() => setNoting(false)}
+              />
+            </ErrorBoundary>
+          </div>
+        ) : null}
         <div className="mod-lessons__aside">
           <ChapterList
             module={m}
