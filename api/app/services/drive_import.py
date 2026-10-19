@@ -202,10 +202,6 @@ class Planned:
         """The name as Drive shows it, tidied (exam_names.tidy_title): no extension, no '_compress' or '(1)'."""
         return clip(exam_names.tidy_title(self.file_name), TITLE_MAX)
 
-    @property
-    def description(self) -> str:
-        return f"In {SEP.join((printable(self.source.title, 120), *self.folders))}."
-
 
 @dataclass(frozen=True)
 class Skipped:
@@ -647,7 +643,6 @@ def run(
                 planned.source.module,
                 kind=planned.kind,
                 title=planned.title,
-                description=planned.description,
                 storage_key=planned.storage_key,
                 file_name=planned.file_name,
                 size_bytes=size,

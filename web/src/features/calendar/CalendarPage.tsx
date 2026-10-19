@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { CalendarPlus, Plus, RssSimple, SlidersHorizontal } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
-import { cohortLabel, useQueryParam, useToast, useYear } from '../../state';
+import { cohortLabel, useSetQueryParams, useToast, useYear } from '../../state';
 import { Button, ConfirmDialog, Page, PageHeader, PageSection, QueryError, Skeleton } from '../../ui';
 import { formatLong, formatLongDay, parseDay, todayKey, today as bahrainToday, type DayKey } from '../../lib/dates';
 import { useCalendarEvents, useDeleteEvent, useDeleteMyEvent, useDeleteMyOccurrence } from './api';
@@ -138,8 +138,7 @@ export default function CalendarPage() {
 /** The add/edit dialog for the student's own events, then the page moves to the day saved. */
 function MyEventEditor({ editing, onClose }: { editing: MineEditing; onClose: () => void }) {
   const { push } = useToast();
-  const [, setEventId] = useQueryParam('event');
-  const [, setMonthParam] = useQueryParam('month');
+  const setParams = useSetQueryParams();
   return (
     <MyEventDialog
       key={editing.session}
@@ -149,8 +148,7 @@ function MyEventEditor({ editing, onClose }: { editing: MineEditing; onClose: ()
       onClose={onClose}
       onSaved={(saved, created, day) => {
         onClose();
-        setMonthParam(day.slice(0, 7), { replace: true });
-        setEventId(occurrenceId(saved, day), { replace: true });
+        setParams({ month: day.slice(0, 7), event: occurrenceId(saved, day) }, { replace: true });
         push({
           tone: 'success',
           title: created ? 'Added to your calendar' : 'Changes saved',
@@ -179,8 +177,7 @@ function EventEditor({
   onClose: () => void;
 }) {
   const { push } = useToast();
-  const [, setEventId] = useQueryParam('event');
-  const [, setMonthParam] = useQueryParam('month');
+  const setParams = useSetQueryParams();
   return (
     <EventFormDialog
       open={!!editing}
@@ -189,8 +186,7 @@ function EventEditor({
       onClose={onClose}
       onSaved={(saved, created, told) => {
         onClose();
-        setMonthParam(monthKey(monthOfEvent(saved)), { replace: true });
-        setEventId(saved.id, { replace: true });
+        setParams({ month: monthKey(monthOfEvent(saved)), event: saved.id }, { replace: true });
         push({
           tone: 'success',
           title: created ? 'Date added' : 'Changes saved',

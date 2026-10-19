@@ -1,7 +1,7 @@
 // Round 14's study core, end to end:
 //   - a past paper timed with Time me asks "How did it go?" when the clock stops, and shows "Done, 68%" (ST-47);
 //   - Home's Carry on leads back to the paper she had open (ST-43, IDEA-40);
-//   - saving a score says so (ST-60: it doesn't yet);
+//   - saving a score says so (ST-60);
 //   - the forum's Yours tab lists the threads she started, and nobody else's (IDEA-42);
 //   - search reads a misspelt word as the word the Hub uses (ST-54).
 // A note's text view on a phone (UX-70) and its module (IDEA-41) are in notebook.spec.ts.
@@ -88,9 +88,7 @@ test('Time me asks for the score when it stops, the paper says "Done, 68%", and 
 });
 
 test('saving a score from the paper’s More menu says it was saved', async ({ sara, rep }) => {
-  // ST-60: the score is saved, but "Saved: 70%" never shows. The dialog closes (and unmounts) before the save
-  // returns, so the toast in save.mutate's own onSuccess never runs.
-  test.fail(true, 'ST-60: no "Saved" toast after a score is saved');
+  // ST-60: the dialog closes before the save returns, so the toast lives in useSaveScore itself.
   if (!paper) throw new Error('The first test shares the paper');
   try {
     await sara.goto(`/library/${paper.slug}`);

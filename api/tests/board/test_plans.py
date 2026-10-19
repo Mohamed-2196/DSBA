@@ -78,6 +78,7 @@ def test_a_plan_adds_unwatched_lessons_and_papers_and_spreads_them(
     # the papers on the last two days, the lessons spread before them
     assert [x["planDate"] for x in todo] == [(today + timedelta(days=d)).isoformat() for d in (0, 3, 4, 5)]
     assert todo[2]["link"]["kind"] == "past-paper"
+    assert todo[2]["link"]["title"] == "TS1000 · 2022 · Zone A"  # the sitting, as the library names it (ST-59)
     assert [i["text"] for i in todo[2]["checklist"]] == list(svc.PAPER_STEPS)
     assert todo[0]["checklist"] == []
     assert todo[3]["link"]["id"] == str(new.id)  # the newest sitting is the last paper before the exam

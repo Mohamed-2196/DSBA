@@ -18,7 +18,7 @@ import { errorMessage } from '../../api/errors';
 import type { Notebook, NoteSummary, StorageUse } from '../../api/types';
 import { Gate, useAuth } from '../../auth';
 import { moduleLabel } from '../../lib/modules';
-import { useDebouncedValue, useMediaQuery, useQueryParam, useToast, useYear } from '../../state';
+import { useDebouncedValue, useMediaQuery, useQueryParam, useSetQueryParams, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Badge,
@@ -297,8 +297,8 @@ function NotesList() {
 
   const [q, setQ] = useQueryParam('q');
   const [selectedNotebookId, setSelectedNotebookId] = useQueryParam('notebook');
-  const [moduleId, setModuleId] = useQueryParam('module');
-  const [lessonId, setLessonId] = useQueryParam('lesson');
+  const [moduleId] = useQueryParam('module');
+  const [lessonId] = useQueryParam('lesson');
   const startNote = useStartNote();
   const [text, setText] = useState(q ?? '');
   const search = useDebouncedValue(text.trim(), 250);
@@ -317,14 +317,9 @@ function NotesList() {
   };
   const lessonPlace = useLessonPlace(lesson?.moduleId ?? null, lesson?.lessonId ?? null);
   const lessonModule = lesson ? getModule(lesson.moduleId) : null;
-  const showAll = () => {
-    setModuleId(null, { replace: true });
-    setLessonId(null, { replace: true });
-  };
-  const pickModule = (id: string | null) => {
-    setModuleId(id, { replace: true });
-    setLessonId(null, { replace: true });
-  };
+  const setParams = useSetQueryParams();
+  const showAll = () => setParams({ module: null, lesson: null }, { replace: true });
+  const pickModule = (id: string | null) => setParams({ module: id, lesson: null }, { replace: true });
   const notes = useNotes(filters);
   const readOnly = me?.status === 'suspended';
 

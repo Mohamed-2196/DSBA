@@ -4,7 +4,7 @@ export { YearProvider } from './YearProvider';
 export { ToastProvider } from './ToastProvider';
 export { useTheme, useYear, useToast, useAccountYearSync } from './hooks';
 export { useLocalStorage, removeStored, writeStored } from './useLocalStorage';
-export { useQueryParam } from './useQueryParam';
+export { useQueryParam, useSetQueryParams } from './useQueryParam';
 export { useEntryState } from './useEntryState';
 export { useDebouncedValue } from './useDebouncedValue';
 export { useDocumentTitle } from './useDocumentTitle';

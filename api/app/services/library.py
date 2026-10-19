@@ -686,7 +686,6 @@ def create_imported(
     *,
     kind: LibraryKind,
     title: str,
-    description: str,
     storage_key: str,
     file_name: str,
     size_bytes: int,
@@ -700,12 +699,12 @@ def create_imported(
 ) -> LibraryItem:
     """A file the server put in the bucket itself, after checking it (the Drive import): published at once, without
     an uploader (the import is audited as a whole), in its module's year, dated with the reference material, and served
-    as the allowlist's type for its name. The caller commits."""
+    as the allowlist's type for its name. It has no description: that's for what a student or moderator writes about
+    the file, not where it was in Drive. The caller commits."""
     item = LibraryItem(
         source=ItemSource.file,
         kind=kind,
         title=title,
-        description=description or None,
         module_id=module.id if module else None,
         year=module.year if module else None,
         storage_key=storage_key,
