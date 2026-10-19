@@ -36,7 +36,7 @@ Daily puzzles end to end all work.
 | ST-31 | minor | Correlations, guest loss: the last wrong four stay picked under "The groups", which shows no groups | open |
 | ST-32 | nit | The Daily Query's end: "See your result" and "Result" side by side, two primary buttons | open |
 | ST-33 | nit | A library link added today says it "was shared before the Hub had its own library" | fixed (round13/pdfscan) |
-| ST-34 | nit | A module page counts its files twice, differently (Files 120 / "115 files for EC1002") | open |
+| ST-34 | nit | A module page counts its files twice, differently (Files 120 / "115 files for EC1002") | fixed (round14/library) |
 | ST-35 | nit | Nearest Neighbour's share text: "not found in 1 guesses" | open |
 | ST-36 | nit | Manage → Daily puzzles names the games differently from the Daily (Groups, Word search, Quiz) | open |
 | ST-37 | nit | Opening "New note" and leaving it empty leaves an "Untitled note" behind | open (only when the tab is closed) |
@@ -130,6 +130,9 @@ dropped (7d7d0d7), the 4-second rule (removed).
   The three buttons stay: the toolbar, the preview and the side panel each offer the file's main action, as for files.
 - ST-34: EC1002's header and Files tab say 120 files, the tab's line says "115 files for EC1002" (the API's
   `libraryCount` counts five files no shelf shows). `p-zainab-economics-files.png`.
+  **Fixed** (`round14/library`): one rule, `library.listed()` (published and not a second copy), counts a module's
+  files, its shelves (links included, and an "Other files" shelf), the facets and the lists; a test checks that the
+  count, the shelves and the list agree.
 - ST-35: Nearest Neighbour's share text "not found in 1 guesses" (`services/daily/games/nearest.py`).
 - ST-36: Manage → Daily puzzles' chips say The word, Groups, Word search, Quiz; students see The Word, Correlations,
   Data Mine, The Daily Query. `m-daily-editor.png`.

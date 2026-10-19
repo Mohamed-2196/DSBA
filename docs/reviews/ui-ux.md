@@ -133,13 +133,13 @@ round's scope.
 
 | ID | Severity | Title |
 |---|---|---|
-| UX-66 | major | Library on phones: no file on the first screen |
-| UX-67 | major | Past papers can't be told apart: raw file names, cut off before the year and zone |
-| UX-68 | major | Sittings take a 190 px card each, in a full-width row; the library's paper view doesn't use them at all |
+| UX-66 | major | Library on phones: no file on the first screen: **fixed** (`round14/library`) |
+| UX-67 | major | Past papers can't be told apart: raw file names, cut off before the year and zone: **fixed** (`round14/library`) |
+| UX-68 | major | Sittings take a 190 px card each, in a full-width row; the library's paper view doesn't use them at all: **fixed** (`round14/library`) |
 | UX-69 | minor | Module page on phones: the header fills the first screen, and the Overview sends you elsewhere |
 | UX-70 | major | Notebook on phones: typed text is 7 px, and a new note has no cursor |
-| UX-71 | minor | Students' notes don't say who shared them |
-| UX-72 | minor | A paper's page: Download three times, Questions by topic twice, no way to ask about it |
+| UX-71 | minor | Students' notes don't say who shared them: **fixed** (`round14/library`) |
+| UX-72 | minor | A paper's page: Download three times, Questions by topic twice, no way to ask about it: **mostly fixed** (`round14/library`) |
 | UX-73 | minor | Search ranks other years and prefix matches first |
 | UX-74 | minor | Forum list on phones: the title gets a 150 px column |
 | UX-75 | minor | Posting a thread drops you on the list, not the thread |
@@ -169,6 +169,14 @@ round's scope.
   Drop the intro, the first count and the year segment on phones, since the top bar's switcher sets the year.
   Target: at least three list rows or one row of covers on the first 390×844 screen.
 
+**Fixed** (`round14/library`). On a 390 phone: a one-line header (Library and an Upload icon), search, then
+Filters (with the number on) and Sort; the filters that are on show as removable chips under them. Filters opens a
+bottom sheet: the year, module and type as selects (the year as a segment), Starred, Your uploads, the view and Styled covers, with Clear all and
+"Show N files". The page's year segment is gone on phones (the sheet and the top bar's switcher set the year); Your
+uploads and New this week follow the files, and New this week makes way for any filter. Phones on their side (844×390)
+get the same. The first file now starts at 278 px of 844 (it was 812): two rows of covers or six list rows. Laptops
+keep the filter panel; New this week makes way for a filter there too.
+
 #### UX-67 Past papers can't be told apart: raw file names, cut off before the year and zone (major)
 
 - **Where:** the library grid and list, a paper page's "More from this module" and the ⌘K results; every phone size
@@ -191,6 +199,14 @@ round's scope.
     in "Most downloaded" by newest.
   - This closes UX-36's naming half.
 
+**Fixed** (`round14/library`). `examTitle()` (`library/display.ts`, with `exam_title()` its twin in the API's
+search) names papers, examiners' reports and solutions by their sitting: "ST2133 · May 2019 · Zone A", "ST2133 ·
+October 2023 · Examiners’ report", without the code inside a module's own lists. It is used by the grid, the list,
+More from this module, Home's new files, ⌘K and the paper's heading and tab title; the file name is a detail on the
+paper's page and the hover title elsewhere. GET /library/items takes `sort=sitting` (newest sitting, zone A before B,
+paper before report before solutions), which past papers, reports and solutions open with (as a list), and Most
+downloaded breaks ties the same way, so the newest paper leads when nobody has downloaded any.
+
 #### UX-68 Sittings take a 190 px card each, in a full-width row; the library's paper view doesn't use them at all (major)
 
 - **Where:** a module's Files tab (`/modules/<id>?tab=files`), 390 and 1440. Screenshot: `screens/ux14-sittings-1440.png`.
@@ -208,6 +224,13 @@ round's scope.
   - Thumbnails only from 1024 px, and small (48 px).
   - Target: eight sittings on one 390×844 screen, and all 22 at 1440 without "Show all".
   - In the library, when one module is chosen with Past papers, render the same sittings table instead of the grid.
+
+**Fixed** (`round14/library`). Sittings are a table: one row per sitting with each zone's paper (the student's
+zone filled), the examiners' report, the solutions and Time me, under a header from 700 px; on phones a row stacks
+(the sitting, then its links), about 90 px, so seven sittings fit a 390×844 screen and phones show eight before
+"Show all". Wider screens show every sitting (22 for ST2133 at 1440, about 46 px a row). The zone switch went: both
+zones sit in one row. The library shows the same table when one module and Past papers are chosen. Thumbnails were
+left out of the rows.
 
 #### UX-69 Module page on phones: the header fills the first screen, and the Overview sends you elsewhere (minor)
 
@@ -262,6 +285,9 @@ round's scope.
   the page's details (`library/ModuleFiles.tsx`, `LibraryCard`, `FileViewerPage.tsx`). If showing names is a concern,
   "Shared by a Year 3 student" works with only the uploader's year. Mohamed's call.
 
+**Fixed** (`round14/library`). "Shared by Sara A. · Year 3" (or the badge, or the `authorName` credit, "By
+Mahdi") on students' files' cards, list rows and the Files tab's rows, and a "Shared by" detail on any file's page.
+
 #### UX-72 A paper's page: Download three times, Questions by topic twice, no way to ask about it (minor)
 
 - **Where:** `/library/<paper>` at 390, and the side panel at 1440.
@@ -277,6 +303,13 @@ round's scope.
   - Give Questions by topic one line: "No questions tagged yet. Tag one so it shows on its chapter."
   - Add "Ask about this paper": `/forum/new` with the module set and the paper's link in the details. Under it, the
     module's threads that link this paper, if any.
+
+**Mostly fixed** (`round14/library`). Download is in the toolbar only: the phone's "Download" under "Open the PDF"
+and the side panel's Download card went, and the file name became a detail. Questions by topic says one line when
+empty ("No questions tagged yet. Tag one so it shows on its chapter."). "Ask about this paper" (papers, reports and
+solutions) opens /forum/new with the module set and the details starting "About [ST2133 · May 2019](link):"; the
+composer takes `?body=`. Still open: listing the module's threads that link the paper needs the API to find threads
+by a linked library item.
 
 #### UX-73 Search ranks other years and prefix matches first (minor)
 

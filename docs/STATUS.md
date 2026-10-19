@@ -102,6 +102,15 @@ validation errors instead of Pydantic's wording).
 Daily game art: six prompts in `docs/design/asset-prompts-round3.md`, matched to the module icons' style; the drawn
 shapes stay until Mohamed's images arrive.
 
+## Round 14 (the study core first)
+
+- `round14/library` (web-builder): the library as one piece (UX-66, 67, 68, 71, 72; ST-34). Phones get search,
+  Filters (a sheet) and Sort, so files start at 278 px of 844; papers are named by their sitting ("ST2133 · May
+  2019 · Zone A") everywhere and open at the newest sitting (`sort=sitting`); sittings are a compact table on the
+  Files tab and in the library; notes say who shared them; a paper's page has one Download and "Ask about this
+  paper". One rule counts a module's files, so the count, the shelves (now with links and "Other files") and the list
+  agree. Open from UX-72: the module's threads that link a paper (needs the API).
+
 ## Operating notes
 
 - **New features arrive switched off.** Turn them on in Manage → Access.
@@ -162,6 +171,8 @@ shapes stay until Mohamed's images arrive.
   - Should a rep confirm seniors, beyond the 30-day rule?
   - A "shared computer" sign-in with a shorter session, and sessions that end after some days without use (S-2)?
   - Should an "I'm not a student" mode show all years?
+  - Students' notes now show "Shared by <display name> · Year N" (UX-71, as the forum shows names). The other option
+    was "Shared by a Year 3 student" without the name.
 - **To deploy:** a server, a domain, an S3 bucket with its keys (plus a second key for the text worker), an SMTP account, Twilio for texts, and an Anthropic
   API key for Noora. `docs/backend/DEPLOYMENT.md` has the full list.
 
