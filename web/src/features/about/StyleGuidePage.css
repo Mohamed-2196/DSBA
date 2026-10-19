@@ -1087,3 +1087,19 @@
   background: var(--sec-pill);
   color: var(--icon-line-active);
 }
+
+/* Deskmates: each in idle, happy and sleepy, on its section's pill. */
+.sg-mates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--sp-12);
+}
+.sg-mates__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-8) var(--sp-12);
+  border-radius: var(--r-card);
+  background: var(--sec-pill);
+}

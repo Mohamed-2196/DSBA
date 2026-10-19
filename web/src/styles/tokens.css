@@ -239,6 +239,7 @@
   /* Drawings */
   --art-outline: #14234d;
   --art-halo: transparent; /* the ring round a desk-mate on dark grounds */
+  --art-light-opacity: 0.5; /* Lumen's light cone; stronger on navy so it doesn't turn muddy */
   --noora-frame: #e6e0fa;
   --noora-ring: #1f3a93;
   --noora-online: #18794a;
@@ -352,6 +353,7 @@
   --icon-line: #a9b8d9;
   --icon-line-active: #eaf0ff;
   --art-halo: #eaf0ff;
+  --art-light-opacity: 0.7;
   --noora-frame: #2a2f5e;
   --noora-ring: #8da6ff;
   --noora-online: #5bd49a;
