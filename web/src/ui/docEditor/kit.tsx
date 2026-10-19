@@ -1,7 +1,8 @@
 // What the documents edited whole in Manage share (Site settings, the guides, the forum's settings, Mini Noora, the
 // grades calculator's rules and the others): the frame with its save bar, the banner for a save someone else made
 // first, and ordered lists of items that open into forms. Each document's own fields are its editor's.
-import { ArrowDown, ArrowSquareOut, ArrowUp, CaretDown, DotsThree, Eye, Plus, Trash } from '@phosphor-icons/react';
+import { Icon } from '../Icon';
+import * as glyph from '../icons/glyphs';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { BREAKPOINTS, useMediaQuery } from '../../state/useMediaQuery';
 import { useUnsavedChanges } from '../../state/unsaved';
@@ -60,8 +61,8 @@ export function DocFrame({
   // On a phone the page and the preview wait in a menu, so the first field comes sooner.
   const phone = useMediaQuery(BREAKPOINTS.mobile);
   const more: MenuItem[] = [
-    ...(pageTo ? [{ id: 'page', label: 'Open the page', icon: ArrowSquareOut, href: pageTo }] : []),
-    ...(onPreview ? [{ id: 'preview', label: 'Preview', icon: Eye, onSelect: onPreview }] : []),
+    ...(pageTo ? [{ id: 'page', label: 'Open the page', icon: <Icon glyph={glyph.external} />, href: pageTo }] : []),
+    ...(onPreview ? [{ id: 'preview', label: 'Preview', icon: <Icon glyph={glyph.eye} />, onSelect: onPreview }] : []),
   ];
   // Manage keeps each visited editor mounted (hidden), so every id here is the frame's own.
   const headingId = useId();
@@ -103,12 +104,18 @@ export function DocFrame({
         </div>
         <div className="dedit__actions">
           {pageTo && !phone ? (
-            <Button variant="ghost" to={pageTo} target="_blank" rel="noopener" trailingIcon={ArrowSquareOut}>
+            <Button
+              variant="ghost"
+              to={pageTo}
+              target="_blank"
+              rel="noopener"
+              trailingIcon={<Icon glyph={glyph.external} />}
+            >
               Open the page<span className="visually-hidden"> (opens in a new tab)</span>
             </Button>
           ) : null}
           {onPreview && !phone ? (
-            <Button variant="secondary" leadingIcon={Eye} onClick={onPreview}>
+            <Button variant="secondary" leadingIcon={<Icon glyph={glyph.eye} />} onClick={onPreview}>
               Preview
             </Button>
           ) : null}
@@ -123,7 +130,7 @@ export function DocFrame({
               label={`More for ${title}`}
               align="end"
               items={more}
-              trigger={<IconButton label="More" icon={DotsThree} variant="secondary" />}
+              trigger={<IconButton label="More" icon={<Icon glyph={glyph.more} />} variant="secondary" />}
             />
           ) : null}
         </div>
@@ -270,26 +277,26 @@ export function ListEditor<T extends { id: string }>({
                       ) : null}
                     </span>
                     {metaOf ? <span className="dedit-item__meta">{metaOf(item)}</span> : null}
-                    <CaretDown className="dedit-item__caret" weight="bold" aria-hidden="true" />
+                    <Icon glyph={glyph.chevronDown} className="dedit-item__caret" />
                   </button>
                   <span className="dedit-item__tools">
                     <IconButton
                       size="sm"
-                      icon={ArrowUp}
+                      icon={<Icon glyph={glyph.arrowUp} />}
                       label={`Move ${title} up`}
                       disabled={i === 0}
                       onClick={() => move(i, -1)}
                     />
                     <IconButton
                       size="sm"
-                      icon={ArrowDown}
+                      icon={<Icon glyph={glyph.arrowDown} />}
                       label={`Move ${title} down`}
                       disabled={i === items.length - 1}
                       onClick={() => move(i, 1)}
                     />
                     <IconButton
                       size="sm"
-                      icon={Trash}
+                      icon={<Icon glyph={glyph.trash} />}
                       label={kept ?? `Remove ${title}`}
                       tooltip
                       disabled={items.length <= min || kept !== null}
@@ -312,7 +319,7 @@ export function ListEditor<T extends { id: string }>({
       {canAdd && items.length < max ? (
         <Button
           variant="secondary"
-          leadingIcon={Plus}
+          leadingIcon={<Icon glyph={glyph.plus} />}
           onClick={() => {
             const item = make();
             onChange([...items, item]);
@@ -377,21 +384,21 @@ export function RowsEditor<T>({
               <span className="dedit-row__tools">
                 <IconButton
                   size="sm"
-                  icon={ArrowUp}
+                  icon={<Icon glyph={glyph.arrowUp} />}
                   label={`Move ${noun} ${i + 1} up`}
                   disabled={i === 0}
                   onClick={() => move(i, -1)}
                 />
                 <IconButton
                   size="sm"
-                  icon={ArrowDown}
+                  icon={<Icon glyph={glyph.arrowDown} />}
                   label={`Move ${noun} ${i + 1} down`}
                   disabled={i === items.length - 1}
                   onClick={() => move(i, 1)}
                 />
                 <IconButton
                   size="sm"
-                  icon={Trash}
+                  icon={<Icon glyph={glyph.trash} />}
                   label={`Remove ${noun} ${i + 1}`}
                   disabled={items.length <= min}
                   onClick={() => onChange(items.filter((_, j) => j !== i))}
@@ -402,7 +409,12 @@ export function RowsEditor<T>({
         </ol>
       ) : null}
       {items.length < max ? (
-        <Button variant="secondary" size="sm" leadingIcon={Plus} onClick={() => onChange([...items, make()])}>
+        <Button
+          variant="secondary"
+          size="sm"
+          leadingIcon={<Icon glyph={glyph.plus} />}
+          onClick={() => onChange([...items, make()])}
+        >
           {`Add ${/^[aeiou]/i.test(noun) ? 'an' : 'a'} ${noun}`}
         </Button>
       ) : null}
