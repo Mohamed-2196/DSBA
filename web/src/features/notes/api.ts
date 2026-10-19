@@ -99,7 +99,8 @@ export function useLessonNotes(moduleId: string, lessonId: string, { enabled = t
 }
 
 /** A module's notes, from every notebook (a module page's "Your notes"): the `limit` last edited, and how many there
- *  are. Off for guests and while notes are off: pass `enabled`. */
+ *  are. Off for guests and while notes are off: pass `enabled`.
+ *  @public for the module page's "Your notes" (through notes/public.ts) */
 export function useModuleNotes(
   moduleId: string,
   { limit = 5, enabled = true }: { limit?: number; enabled?: boolean } = {},
