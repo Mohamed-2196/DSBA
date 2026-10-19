@@ -28,6 +28,8 @@ interface ButtonOwnProps {
   as?: ElementType;
   /** internal route → renders <Link> */
   to?: To;
+  /** with `to`: the router state the link carries (where the page was opened from) */
+  state?: unknown;
   /** → <a>; external hrefs open in a new tab */
   href?: string;
   /** open `href` in a new tab (true) or not (false); default: when the URL is absolute */
@@ -53,6 +55,7 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(function Button(
     trailingIcon,
     as,
     to,
+    state,
     href,
     external,
     fullWidth = false,
@@ -88,7 +91,10 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(function Button(
     props.tabIndex = -1;
     props.onClick = (e: MouseEvent) => e.preventDefault();
   }
-  if (to) props.to = to;
+  if (to) {
+    props.to = to;
+    if (state !== undefined) props.state = state;
+  }
   if (href) {
     props.href = href;
     if (external ?? isExternal(href)) {

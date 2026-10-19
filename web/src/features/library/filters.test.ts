@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CLEAR_ALL, activeFilters, defaultSort, defaultView, readSort, type FilterState } from './filters';
+import { CLEAR_ALL, activeFilters, defaultSort, readSort, type FilterState } from './filters';
 
 const none: FilterState = {
   year: 2,
@@ -58,14 +58,5 @@ describe('sorts', () => {
     expect(readSort('sitting', { ...plain, module: true })).toBe('sitting');
     expect(readSort('nonsense', { ...plain, kind: 'past-paper' })).toBe('sitting');
     expect(readSort('relevance', { ...plain, searching: true })).toBe('relevance');
-  });
-});
-
-describe('defaultView', () => {
-  it('lists papers, reports and solutions, and shows covers for the rest', () => {
-    expect(defaultView('past-paper')).toBe('list');
-    expect(defaultView('exam-solutions')).toBe('list');
-    expect(defaultView('notes')).toBe('grid');
-    expect(defaultView(null)).toBe('grid');
   });
 });

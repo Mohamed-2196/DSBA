@@ -1,21 +1,19 @@
 // The past papers table: one row per sitting with each zone's paper (the student's zone first and filled), the
-// examiners' report, the solutions and Time me. Where the table is under 700 px wide (a phone, a card on the module's
-// Overview) a row stacks: the sitting, then its links. PaperSittings shows every sitting; the module Overview the
+// examiners' report, the solutions and Time me, each file drawn as a small document. Where the table is under 540 px
+// wide (a phone, a card on the module's Overview) a row is the sitting, then its files on one wrapping line. PaperSittings shows every sitting; the module Overview the
 // latest few.
-import { Timer } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
-import type { LibraryItem, Sitting, SittingZone } from '../../../api/types';
+import type { Sitting, SittingZone } from '../../../api/types';
 import { sittingLabel } from '../../../lib/exams';
-import { cx } from '../../../ui';
+import { Badge, DocThumb, Icon, cx, glyph } from '../../../ui';
 import { PaperDone } from '../../board/public';
 import { usePapers } from '../../papers/public';
-import { itemPath } from '../api';
+import { itemPath, timeMeHref } from '../api';
+import { isNew } from '../display';
+import { docTone } from '../kinds';
 import { sittingRow, type SittingLink } from '../papers';
 import type { LinkState } from './FileCard';
 import './PaperSittings.css';
-
-/** "?time=1" on a paper's address opens Time me as the paper opens. */
-const timeMeHref = (item: LibraryItem) => `${itemPath(item)}?time=1`;
 
 function FileLink({
   link,
@@ -38,10 +36,18 @@ function FileLink({
       className={cx('pp-link', yours && 'is-yours')}
       title={link.item.title}
     >
-      <span className="visually-hidden">{when} </span>
-      {link.label}
-      {noun ? <span className="visually-hidden"> {noun}</span> : null}
-      {yours ? <span className="visually-hidden">, your zone</span> : null}
+      <DocThumb tone={docTone(link.item)} size="sm" />
+      <span>
+        <span className="visually-hidden">{when} </span>
+        {link.label}
+        {noun ? <span className="visually-hidden"> {noun}</span> : null}
+        {yours ? <span className="visually-hidden">, your zone</span> : null}
+      </span>
+      {isNew(link.item) ? (
+        <Badge tone="highlight" size="sm" className="pp-link__new">
+          New
+        </Badge>
+      ) : null}
     </Link>
   );
 }
@@ -110,7 +116,7 @@ function SittingRowView({
               aria-label={`Time me on the ${when} paper${row.papers.length > 1 ? `, ${row.papers[0].label}` : ''}`}
               title="Time me"
             >
-              <Timer aria-hidden="true" weight="bold" />
+              <Icon glyph={glyph.timer} />
             </Link>
           ) : null}
         </div>

@@ -323,12 +323,28 @@ b {
   }
 }
 
-/* A unit code set as a typographic object (e.g. ST2133). */
+/* A unit code (ST2133), set in JetBrains Mono as the brand asks (BRAND.md §3), a touch smaller than the text round it
+   so it keeps the same visual size. */
 .u-code {
-  font-family: var(--font-ui);
-  font-weight: var(--fw-heavy);
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums lining-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+}
+/* A big number set as an object (a countdown, a grade, the 404): Bricolage at the display-number size. */
+.u-display-num {
+  font-family: var(--font-display);
+  font-size: var(--fs-display-num);
+  font-weight: var(--fw-display);
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+@media (max-width: 699px) {
+  .u-display-num {
+    font-size: var(--fs-display-num-sm);
+  }
 }
 
 /* Reduced motion: animations end at once (their end events still fire). Transitions are off, not just short: a

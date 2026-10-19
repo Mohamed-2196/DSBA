@@ -1,0 +1,126 @@
+/* The library's index cards (docs/design/deskmates/screens/components.svg, "Cards"): radius 18, a 1.5 px line, the
+   card shadow, the drawn document on the left. One column on phones; as many 420 px cards as fit on wider screens. */
+.lib-ixs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
+  gap: var(--sp-12) var(--sp-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lib-ixs > li {
+  display: flex;
+  min-width: 0;
+}
+.lib-ix {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-12);
+  min-width: 0;
+  padding: 14px var(--sp-8) 14px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+.lib-ix:hover {
+  border-color: var(--line-strong);
+}
+.lib-ix:has(.lib-ix__link:focus-visible) {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+.lib-ix__doc {
+  margin-top: 2px;
+}
+.lib-ix__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.lib-ix__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--sp-8);
+  min-width: 0;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-bold);
+  line-height: 1.3;
+}
+.lib-ix__link {
+  min-width: 0;
+  color: var(--ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+/* The whole card opens the file. */
+.lib-ix__link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.lib-ix__link:focus-visible {
+  outline: none;
+}
+.lib-ix__meta,
+.lib-ix__by,
+.lib-ix__match {
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+}
+.lib-ix__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--sp-8);
+}
+.lib-ix__code {
+  color: var(--ink);
+}
+.lib-ix__by {
+  color: var(--ink);
+  font-weight: var(--fw-medium);
+}
+.lib-ix__match {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+/* Buttons and the side tools sit above the card's link. */
+.lib-ix__actions,
+.lib-ix__side {
+  position: relative;
+  z-index: 1;
+}
+.lib-ix__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+  margin-top: var(--sp-8);
+}
+.lib-ix__side {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  margin: -4px 0;
+}
+.lib-ix__original {
+  color: var(--ink-2);
+}
+/* Phones: the star alone; the file downloads from its page. */
+@media (max-width: 699px) {
+  .lib-ix__original {
+    display: none;
+  }
+}

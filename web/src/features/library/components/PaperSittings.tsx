@@ -2,12 +2,11 @@
 // report, the solutions and Time me. On phones a row stacks: the sitting, then its links. Used on the module's Files
 // tab (#papers) and as the library's Past papers view for one module. Papers without an exam year follow as "Other
 // papers".
-import { Exam } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import type { LibraryItem } from '../../../api/types';
 import { RTC_NOTE } from '../../../lib/exams';
 import { BREAKPOINTS, useEntryState, useMediaQuery } from '../../../state';
-import { Button, Panel, Skeleton } from '../../../ui';
+import { Button, DocThumb, Panel, Skeleton } from '../../../ui';
 import { SittingsDone } from '../../board/public';
 import { usePapers } from '../../papers/public';
 import { sittingFiles, usePaperSittings } from '../papers';
@@ -59,7 +58,7 @@ export function PaperSittings({
         <section id="papers" className="lib-mf__group pp" aria-labelledby="lib-mf-sittings" data-hub="paper-sittings">
           <div className="pp__head">
             <H id="lib-mf-sittings" className="lib-mf__h">
-              <Exam aria-hidden="true" weight="duotone" className="pp__icon" />
+              <DocThumb tone="paper" size="sm" className="pp__icon" />
               Past papers
               <span className="lib-mf__count">
                 {sittings.length} {sittings.length === 1 ? 'sitting' : 'sittings'}

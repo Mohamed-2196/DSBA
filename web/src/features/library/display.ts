@@ -107,6 +107,18 @@ export function cardMeta(item: LibraryItem, sort: LibrarySort): string {
   return `Added ${timeAgo(addedAt(item))}`;
 }
 
+/**
+ * The meta line on a file's index card: what it is, its format and size (or the site a link leads to), then what the
+ * sort is about: 'Past paper · PDF, 260 KB · 12 downloads'. The kind is left out where the title already names it.
+ */
+export function rowMeta(item: LibraryItem, sort: LibrarySort): string {
+  const named = hasExamTitle(item) && item.kind !== 'past-paper';
+  const parts = [named ? null : kindLabel(item.kind), sizeLabel(item)];
+  if (sort === 'popular') parts.push(downloadsLabel(item.downloadCount));
+  else if (sort === 'new') parts.push(`added ${timeAgo(addedAt(item))}`);
+  return parts.filter(Boolean).join(' · ');
+}
+
 export interface StatusInfo {
   label: string;
   tone: 'highlight' | 'alert' | 'neutral';

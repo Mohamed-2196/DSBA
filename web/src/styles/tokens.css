@@ -30,6 +30,9 @@
   --fs-28: 1.75rem;
   --fs-34: 2.125rem;
   --fs-44: 2.75rem;
+  /* Big numbers set as objects: countdowns, a module's code on its page, a grade, the 404. 56px, 48px on phones. */
+  --fs-display-num: 3.5rem;
+  --fs-display-num-sm: 3rem;
   --lh-display: 1.1; /* 34 and 44 */
   --lh-heading: 1.22; /* 20–28 */
   --lh-sans: 1.55; /* body: 16 / 25 */

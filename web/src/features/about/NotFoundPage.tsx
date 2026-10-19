@@ -9,7 +9,7 @@ export default function NotFoundPage() {
   return (
     <Page>
       <div className="notfound">
-        <p className="notfound__code u-code" aria-hidden="true">
+        <p className="notfound__code u-display-num" aria-hidden="true">
           404
         </p>
         <h1 className="notfound__title">This page doesn’t exist</h1>

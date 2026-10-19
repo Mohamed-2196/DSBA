@@ -194,6 +194,10 @@ export function itemPath(item: Pick<LibraryItem, 'slug'> & { match?: LibraryItem
   return `/library/${encodeURIComponent(item.slug)}${page ? `?page=${page}` : ''}`;
 }
 
+/** "?time=1" on a paper's address opens Time me as the paper opens. */
+export const timeMeHref = (item: Pick<LibraryItem, 'slug'>): string =>
+  `/library/${encodeURIComponent(item.slug)}?time=1`;
+
 // ── Cache helpers ─────────────────────────────────────────────────────────────
 
 type ListData = LibraryPage | InfiniteData<LibraryPage, number>;

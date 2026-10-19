@@ -14,9 +14,6 @@
 }
 .pp__icon {
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
-  color: var(--ink-2);
 }
 .pp__intro {
   max-width: var(--measure);
@@ -47,31 +44,39 @@
 .pp-table__head,
 .pp-row {
   display: grid;
-  grid-template-columns: 8.5rem minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) 4.5rem;
+  grid-template-columns: 7.5rem minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) 3.5rem;
   align-items: center;
   gap: var(--sp-12);
-  padding: var(--sp-8) var(--sp-16);
+  padding: var(--sp-6) var(--sp-16);
 }
+/* The header: small caps over a rule (components.svg, "The sittings table"). */
 .pp-table__head {
-  padding-block: var(--sp-10);
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-2);
+  padding-block: var(--sp-10) var(--sp-8);
+  border-bottom: 1.5px solid var(--line);
   color: var(--ink-2);
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .pp-table__time {
   text-align: center;
 }
 .pp-row {
-  min-height: 56px;
-  border-bottom: 1px solid var(--line);
+  min-height: 52px;
+  border-radius: var(--r-card);
+  transition: background-color var(--dur-fast) var(--ease);
 }
-.pp-row:last-child {
-  border-bottom: 0;
+.pp-row + .pp-row {
+  box-shadow: 0 -1px 0 var(--line);
 }
+.pp-row:hover,
+.pp-row:hover + .pp-row {
+  box-shadow: none;
+}
+/* The row under the pointer lifts to inset. */
 .pp-row:hover {
-  background: var(--surface-hover);
+  background: var(--surface-2);
 }
 .pp-row__when {
   display: flex;
@@ -95,7 +100,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--sp-6);
+  gap: 2px var(--sp-4);
   min-width: 0;
 }
 .pp-row__time {
@@ -103,8 +108,9 @@
 }
 .pp-row__paper {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--sp-6);
+  gap: 2px var(--sp-4);
 }
 .pp-row__none {
   color: var(--ink-3);
@@ -114,74 +120,80 @@
   font-size: var(--fs-13);
 }
 
-/* A file in the row: a small outlined pill; the student's own zone's paper is filled. */
-.pp-link,
-.pp-time {
+/* A file in the row: its drawn document and a short name. The student's own zone's paper sits on accent-soft. */
+.pp-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--sp-4);
+  gap: var(--sp-8);
   min-height: 36px;
-  padding: 0 var(--sp-12);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--accent);
+  padding: 0 var(--sp-8) 0 var(--sp-6);
+  border-radius: 10px;
+  color: var(--ink);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   white-space: nowrap;
   text-decoration: none;
-  transition:
-    background var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease);
+  transition: background-color var(--dur-fast) var(--ease);
 }
-.pp-link:hover,
+.pp-link:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.pp-link.is-yours {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: var(--fw-bold);
+}
+.pp-link__new {
+  margin-left: -2px;
+}
+/* Time me: a round button with the timer. */
+.pp-time {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 18px;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+  --icon-tint: var(--accent-soft);
+}
 .pp-time:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
 }
-.pp-link.is-yours {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--on-accent);
-}
-.pp-link.is-yours:hover {
-  background: var(--accent-hover);
-}
-.pp-time {
-  width: 36px;
-  padding: 0;
-}
-.pp-time svg {
-  width: 18px;
-  height: 18px;
-}
 
 @media (pointer: coarse) {
-  .pp-link,
-  .pp-time {
+  .pp-link {
     min-height: 44px;
   }
   .pp-time {
     width: 44px;
+    height: 44px;
   }
 }
 
-@container pp-table (max-width: 699px) {
+/* Narrow (a phone, a card on the module's Overview): no header; the sitting, then its files in one wrapping line. */
+@container pp-table (max-width: 539px) {
   .pp-table__head {
     display: none;
   }
   .pp-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--sp-6);
-    padding: var(--sp-10) var(--sp-12);
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: var(--sp-8);
+    padding: var(--sp-6) var(--sp-8) var(--sp-6) var(--sp-12);
   }
   .pp-row__files {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--sp-6);
+    gap: 0 var(--sp-2);
+    min-width: 0;
   }
   .pp-row__cell {
     display: contents;
