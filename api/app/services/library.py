@@ -178,12 +178,14 @@ def find(db: Session, ref: str | uuid.UUID) -> LibraryItem | None:
 
 
 def duplicate() -> ColumnElement[bool]:
-    """The item's file has the same bytes (content_hash) as a published file added before it: the lists, the sittings
-    and search show the first only. Its own page still opens."""
+    """The item's file has the same bytes (content_hash) as a published file added before it in the same module: the
+    lists, the sittings and search show the first only. Its own page still opens. The same file shared in another
+    module (a textbook two modules use) is listed in each."""
     first = aliased(LibraryItem)
     return exists().where(
         LibraryItem.content_hash.is_not(None),
         first.content_hash == LibraryItem.content_hash,
+        first.module_id.is_not_distinct_from(LibraryItem.module_id),
         first.status == ItemStatus.published,
         or_(
             first.created_at < LibraryItem.created_at,

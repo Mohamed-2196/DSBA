@@ -138,3 +138,36 @@ def test_the_module_count_the_shelves_and_the_list_agree(
     assert detail["libraryCount"] == listed["total"] == sum(shelves.values()) == 3
     summary = next(m for m in guest.get(f"{API}/modules").json() if m["id"] == spec["id"])
     assert summary["libraryCount"] == 3
+
+
+def test_the_same_file_in_two_modules_is_listed_in_both(
+    client_for: Clients, modules: dict[str, Module], db: Session
+) -> None:
+    """Student test ST-46: a textbook shared in one module and again in another shows in each module; a second
+    copy counts as a duplicate only within the same module."""
+    first, second = [m for m in read("modules") if m.get("chapters")][:2]
+
+    def book(slug: str, module_id: str) -> LibraryItem:
+        return LibraryItem(
+            slug=slug,
+            source=ItemSource.file,
+            kind="notes",
+            title=slug,
+            module_id=module_id,
+            storage_key=f"library/{slug}.pdf",
+            file_name=f"{slug}.pdf",
+            content_type="application/pdf",
+            size_bytes=10,
+            content_hash="same-bytes",
+            status=ItemStatus.published,
+            published_at=utcnow(),
+        )
+
+    db.add(book("textbook-first", first["id"]))
+    db.commit()
+    db.add_all([book("textbook-second", second["id"]), book("textbook-again", first["id"])])
+    db.commit()
+    guest = client_for()
+    for module, slugs in ((first, {"textbook-first"}), (second, {"textbook-second"})):
+        listed = guest.get(f"{API}/library/items", params={"module_id": module["id"]}).json()
+        assert {i["slug"] for i in listed["items"]} == slugs
