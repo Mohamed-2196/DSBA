@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ChatCircleText, Plus } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import type { Reply, ThreadDetail } from '../../api/types';
 import { appUrl } from '../../lib/share';
 import { useCopyLink } from '../../lib/useCopyLink';
-import { Button, EmptyState, Page, Panel, QueryError, Skeleton } from '../../ui';
+import { Button, EmptyState, Page, Panel, QueryError, Skeleton, Icon, glyph } from '../../ui';
 import { useDocumentTitle } from '../../state';
 import { isNotFound, useThread, useThreadSeen } from './api';
 import { authorName } from './lib/authors';
@@ -46,7 +45,7 @@ export default function ThreadPage() {
       <Page className="forum-page">
         <Panel padding="none">
           <EmptyState
-            icon={ChatCircleText}
+            icon={<Icon glyph={glyph.forum} />}
             title="We couldn't find that thread"
             body="The link may be wrong, or the thread was removed. Browse the forum or start a new thread."
             action={
@@ -55,7 +54,7 @@ export default function ThreadPage() {
                   Browse the forum
                 </Button>
                 {posts ? (
-                  <Button to="/forum/new" leadingIcon={Plus}>
+                  <Button to="/forum/new" leadingIcon={<Icon glyph={glyph.plus} />}>
                     Start a thread
                   </Button>
                 ) : null}

@@ -10,12 +10,18 @@ span.ui-tex {
   overflow-clip-margin: 0.15em;
   vertical-align: baseline;
 }
+/* A display formula sits on an inset block (docs/design/deskmates/screens: forum, Noora, notebook). */
 .ui-tex--display {
   margin: var(--sp-12) 0;
-  padding: 2px 0;
+  padding: 12px 16px;
+  border-radius: var(--r-control);
+  background: var(--surface-2);
   overflow-x: auto;
   overflow-y: hidden;
   text-align: center;
+}
+.ui-tex--display .katex-display {
+  margin: 0;
 }
 .ui-tex--display:focus-visible {
   outline-offset: 2px;

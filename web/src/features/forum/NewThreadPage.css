@@ -120,13 +120,17 @@
 /* Margin */
 .forum-new__side {
   display: grid;
-  gap: var(--sp-24);
+  gap: var(--sp-16);
   align-content: start;
   min-width: 0;
 }
-.forum-new__block + .forum-new__block {
-  padding-top: var(--sp-24);
-  border-top: 1px solid var(--line);
+/* Each block of the margin is a card, as beside the list and a thread. */
+.forum-new__block {
+  padding: 20px 22px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .forum-new__note {
   margin-bottom: 12px;
@@ -189,11 +193,6 @@
 @container forum-page (max-width: 999px) {
   .forum-new__side {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--sp-32);
-  }
-  .forum-new__block + .forum-new__block {
-    padding-top: 0;
-    border-top: 0;
   }
   .forum-new__block--similar {
     display: none;
@@ -221,14 +220,6 @@
   }
   .forum-new__side {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .forum-new__block + .forum-new__block {
-    padding-top: var(--sp-24);
-    border-top: 1px solid var(--line);
-  }
-  .forum-new__block--similar + .forum-new__block {
-    padding-top: 0;
-    border-top: 0;
   }
   .forum-composer__similar:not(.is-empty) {
     margin-top: 0;

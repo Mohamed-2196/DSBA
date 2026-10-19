@@ -1,9 +1,21 @@
 import { useMemo } from 'react';
-import { Plus, X } from '@phosphor-icons/react';
+
 import type { ThreadSummary } from '../../api/types';
 import { remainingCount } from '../../api/paging';
 import { useAuth } from '../../auth';
-import { Button, EmptyState, Page, PageHeader, Panel, QueryError, TabPanel, cx, formatCount } from '../../ui';
+import {
+  Button,
+  EmptyState,
+  Icon,
+  Page,
+  PageHeader,
+  Panel,
+  QueryError,
+  TabPanel,
+  cx,
+  formatCount,
+  glyph,
+} from '../../ui';
 import { useDebouncedValue } from '../../state';
 import { useModules } from '../../state/modules';
 import { flattenPages, useForumStats, useThreadList, useThreadVote } from './api';
@@ -90,7 +102,12 @@ export default function ForumPage() {
         description="Ask your cohort, share what worked and find people to revise with."
         actions={
           posts ? (
-            <Button variant="primary" leadingIcon={Plus} to="/forum/new" data-hub="new-thread-button">
+            <Button
+              variant="primary"
+              leadingIcon={<Icon glyph={glyph.plus} />}
+              to="/forum/new"
+              data-hub="new-thread-button"
+            >
               Start a thread
             </Button>
           ) : undefined
@@ -120,16 +137,16 @@ export default function ForumPage() {
         }
       />
 
-      <ForumFilterBar
-        filters={{ ...filters, cohort }}
-        update={update}
-        stats={stats.data}
-        chips={chips}
-        scope={scope}
-        showYours={!!me}
-      />
-
       <div className="forum-layout">
+        <ForumFilterBar
+          filters={{ ...filters, cohort }}
+          update={update}
+          stats={stats.data}
+          chips={chips}
+          scope={scope}
+          showYours={!!me}
+        />
+
         <TabPanel idBase="forum" id={cohort} value={cohort} className="forum-layout__main">
           <h2 className="visually-hidden">{yours ? 'Your threads' : scope ? `${scope} threads` : 'All threads'}</h2>
           {refined && list.data ? (
@@ -145,19 +162,19 @@ export default function ForumPage() {
                 {q ? <> matching “{q}”</> : null}
                 {scope ? <> in {scope}</> : null}
               </span>
-              <Button variant="ghost" size="sm" leadingIcon={X} onClick={clearFilters}>
+              <Button variant="ghost" size="sm" leadingIcon={<Icon glyph={glyph.close} />} onClick={clearFilters}>
                 Clear filters
               </Button>
             </div>
           ) : null}
 
           {list.isPending ? (
-            <Panel as="div" padding="none" className="forum-list-panel" aria-busy="true">
+            <div className="forum-list-panel" aria-busy="true">
               <ThreadRowSkeletons count={6} />
               <span className="visually-hidden" role="status">
                 Loading threads
               </span>
-            </Panel>
+            </div>
           ) : list.isError && !list.data ? (
             <QueryError
               error={list.error}
@@ -167,12 +184,7 @@ export default function ForumPage() {
             />
           ) : loaded.length ? (
             <>
-              <Panel
-                as="div"
-                padding="none"
-                className={cx('forum-list-panel', searching && 'is-updating')}
-                aria-busy={searching || undefined}
-              >
+              <div className={cx('forum-list-panel', searching && 'is-updating')} aria-busy={searching || undefined}>
                 <ul role="list" className="forum-list">
                   {loaded.map((t) => (
                     <ThreadRow
@@ -184,7 +196,7 @@ export default function ForumPage() {
                     />
                   ))}
                 </ul>
-              </Panel>
+              </div>
               {list.hasNextPage ? (
                 <LoadMore
                   remaining={remainingCount(list.data?.pages)}
@@ -235,7 +247,7 @@ function NoThreadsOfYours({ onBrowse }: { onBrowse: () => void }) {
       action={
         <>
           {posts ? (
-            <Button variant="primary" leadingIcon={Plus} to="/forum/new">
+            <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} to="/forum/new">
               Start a thread
             </Button>
           ) : null}
@@ -270,7 +282,11 @@ function NoThreads({
         action={
           <>
             {posts ? (
-              <Button variant="primary" leadingIcon={Plus} to={`/forum/new?title=${encodeURIComponent(q)}`}>
+              <Button
+                variant="primary"
+                leadingIcon={<Icon glyph={glyph.plus} />}
+                to={`/forum/new?title=${encodeURIComponent(q)}`}
+              >
                 Ask it as a thread
               </Button>
             ) : null}
@@ -294,7 +310,7 @@ function NoThreads({
           {posts ? (
             <Button
               variant="primary"
-              leadingIcon={Plus}
+              leadingIcon={<Icon glyph={glyph.plus} />}
               to={category ? `/forum/new?category=${category}` : '/forum/new'}
             >
               Start a thread

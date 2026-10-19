@@ -156,7 +156,8 @@ test('Ali deletes a reply; Sara reports an off-topic one, and reporting twice is
 
   await sara.goto(`/forum/${slug}`);
   const offTopic = reply(sara, 'WhatsApp group please');
-  await offTopic.locator('[data-hub="report-button"]').click();
+  await offTopic.locator('[data-hub="post-menu"]').click();
+  await sara.getByRole('menuitem', { name: 'Report' }).click();
   const dialog = sara.getByRole('dialog');
   await expect(dialog).toContainText('Report this reply');
   await dialog.getByText('Something else', { exact: true }).click();
@@ -164,7 +165,8 @@ test('Ali deletes a reply; Sara reports an off-topic one, and reporting twice is
   await dialog.locator('[data-hub="report-send"]').click();
   await expect(sara.getByText('Report sent')).toBeVisible();
 
-  await offTopic.locator('[data-hub="report-button"]').click();
+  await offTopic.locator('[data-hub="post-menu"]').click();
+  await sara.getByRole('menuitem', { name: 'Reported' }).click();
   await sara.getByRole('dialog').getByText('Spam', { exact: true }).click();
   await sara.getByRole('dialog').locator('[data-hub="report-send"]').click();
   await expect(

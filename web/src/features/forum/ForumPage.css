@@ -38,17 +38,20 @@
   text-decoration-color: currentColor;
 }
 
-/* ── Filters ─────────────────────────────────────────────────────────────────── */
-/* One grid: tabs + sort on a hairline, then search + chips. Narrow: tabs / search + sort / chips. */
-.forum-filters {
+/* ── Filters and layout ──────────────────────────────────────────────────────── */
+/* One grid (docs/design/deskmates/screens/forum-list-*). Wide: the tabs head the list with the search beside them,
+   over the sidebar; the chips and the sort sit under the tabs. Narrow: tabs, search, chips, list, sidebar. The filter
+   bar's own box steps aside (display: contents) so its parts are the grid's items. */
+.forum-layout {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) auto;
-  grid-template-areas:
-    'tabs tabs sort'
-    'search chips chips';
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'tabs' 'search' 'chips' 'main' 'side';
+  column-gap: var(--sp-24);
   row-gap: var(--sp-16);
-  margin-bottom: var(--sp-24);
+  align-items: start;
+}
+.forum-filters {
+  display: contents;
 }
 .forum-filters__tabs-wrap {
   grid-area: tabs;
@@ -59,30 +62,36 @@
 .forum-filters__tabs.ui-tabs--underline {
   box-shadow: none;
 }
-.forum-filters__sort {
-  grid-area: sort;
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  padding-left: var(--sp-16);
-  box-shadow: inset 0 -1px 0 var(--line);
-}
-/* Yours has no sort (newest activity first): the hairline stays, the control goes. */
-.forum-filters__sort.is-unused > * {
-  visibility: hidden;
-}
 .forum-filters__search {
   grid-area: search;
   min-width: 0;
 }
-.forum-filters__chips {
+.forum-filters__row {
   grid-area: chips;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  min-width: 0;
+}
+.forum-filters__chips {
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   gap: var(--sp-8);
   min-width: 0;
-  margin: -3px -3px -3px 9px;
+  margin: -3px;
   padding: 3px;
+}
+.forum-filters__sort {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+.forum-filters__order {
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
 }
 .forum-filters__sep {
   flex: 0 0 auto;
@@ -95,24 +104,33 @@
   -webkit-mask-image: linear-gradient(to right, transparent, #000 56px, #000 calc(100% - 56px), transparent);
   mask-image: linear-gradient(to right, transparent, #000 56px, #000 calc(100% - 56px), transparent);
 }
-
-/* ── Layout ──────────────────────────────────────────────────────────────────── */
-.forum-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--sp-32);
-  align-items: start;
-}
 .forum-layout__main {
+  grid-area: main;
   min-width: 0;
 }
 .forum-layout__main:focus-visible {
   outline-offset: 6px;
 }
+.forum-layout > .forum-side {
+  grid-area: side;
+}
 @container forum-page (min-width: 1000px) {
   .forum-layout {
-    grid-template-columns: minmax(0, 1fr) 296px;
-    gap: var(--sp-32);
+    grid-template-columns: minmax(0, 1fr) 308px;
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'tabs search'
+      'chips side'
+      'main side';
+  }
+  .forum-filters__search {
+    align-self: end;
+  }
+}
+/* Wide monitors: the list keeps a reading width, and the sidebar takes the room. */
+@container forum-page (min-width: 1500px) {
+  .forum-layout {
+    grid-template-columns: minmax(0, 860px) minmax(308px, 1fr);
   }
 }
 
@@ -136,16 +154,18 @@
 /* ── Sidebar ─────────────────────────────────────────────────────────────────── */
 .forum-side {
   display: grid;
-  gap: var(--sp-24);
+  gap: var(--sp-16);
   align-content: start;
   min-width: 0;
 }
+/* Each block is a card. */
 .forum-side__block {
   min-width: 0;
-}
-.forum-side__block + .forum-side__block {
-  padding-top: var(--sp-24);
-  border-top: 1px solid var(--line);
+  padding: 20px 22px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .forum-side__head {
   display: flex;
@@ -158,10 +178,12 @@
   margin-bottom: 0;
 }
 .forum-side__title {
-  margin-bottom: var(--sp-12);
-  font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.012em;
+  margin-bottom: var(--sp-16);
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
+  line-height: var(--lh-heading);
 }
 .forum-side__link {
   color: var(--accent);
@@ -264,16 +286,9 @@
 }
 .forum-person {
   display: grid;
-  grid-template-columns: 12px 32px minmax(0, 1fr) auto;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
-}
-.forum-person__rank {
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-bold);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+  gap: 12px;
 }
 .forum-person__text {
   min-width: 0;
@@ -294,14 +309,41 @@
 .forum-person__score {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  color: var(--accent);
-  font-size: var(--fs-14);
+  gap: 3px;
+  margin-inline-start: 8px;
+  color: var(--accent-text);
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
+  --icon-tint: var(--accent-soft);
 }
 .forum-person__score svg {
   font-size: 13px;
+}
+
+/* Waiting for a first reply */
+.forum-waiting {
+  display: grid;
+  gap: 12px;
+}
+.forum-waiting li {
+  display: grid;
+  gap: 2px;
+}
+.forum-waiting__link {
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  line-height: 1.35;
+  text-decoration: none;
+  text-wrap: pretty;
+}
+.forum-waiting__link:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+.forum-waiting__meta {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
 }
 
 /* Guidelines */
@@ -327,37 +369,17 @@
 @container forum-page (max-width: 999px) {
   .forum-side {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--sp-32);
-  }
-  .forum-side__block + .forum-side__block {
-    padding-top: 0;
-    border-top: 0;
-  }
-  .forum-side__block {
-    padding-top: var(--sp-24);
-    border-top: 1px solid var(--line);
+    margin-top: var(--sp-16);
   }
 }
-/* Narrow (phones): search gets a row of its own (beside the sort it was too narrow to type in), and the sort leads the
-   row of chips, which scrolls sideways to the screen's edge. */
+/* Narrow (phones): the chips scroll to the screen's edge, and the sort follows them on its own line. */
 @container forum-page (max-width: 640px) {
-  .forum-filters {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      'tabs tabs'
-      'search search'
-      'sort chips';
-    row-gap: var(--sp-12);
-  }
-  .forum-filters__sort {
-    padding-left: 0;
-    box-shadow: none;
-  }
-  .forum-filters__sort.is-unused {
-    display: none;
+  .forum-filters__row {
+    flex-wrap: wrap;
   }
   .forum-filters__chips {
-    margin: -3px calc(-1 * var(--page-pad-right)) -3px 5px;
+    flex-basis: 100%;
+    margin: -3px calc(-1 * var(--page-pad-right)) -3px -3px;
     padding: 3px var(--page-pad-right) 3px 3px;
   }
   .forum-side {

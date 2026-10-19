@@ -1,79 +1,22 @@
 // The module page's Files tab: the module's library items grouped by type, with Upload and a way into the
 // library already filtered to the module.
-import { ArrowSquareOut, DownloadSimple, UploadSimple } from '@phosphor-icons/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { showsUpload, useAuth } from '../../auth';
-import { PaperDone } from '../board/public';
 import { useModules } from '../../state/modules';
-import { Badge, Button, EmptyState, IconButton, Panel, QueryError, Skeleton, formatCount, timeAgo } from '../../ui';
-import { downloadHref, itemPath, openLinkHref, useLibraryList } from './api';
+import { Button, DocThumb, EmptyState, Icon, Panel, QueryError, Skeleton, formatCount, glyph } from '../../ui';
+import { useLibraryList } from './api';
 import type { LinkState } from './components/FileCard';
-import { FileThumb } from './components/FileThumb';
+import { FileRows } from './components/FileRow';
 import { PaperSittings } from './components/PaperSittings';
-import { StarButton } from './components/StarButton';
 import { UploadDialog } from './components/UploadDialog';
-import { addedAt, examTitle, hasExamTitle, isNew, linkPlace, moduleTag, sharedBy, sizeLabel } from './display';
-import { examLabel } from '../../lib/exams';
-import { EXAM_KINDS, KINDS, type LibraryKind } from './kinds';
+import { moduleTag } from './display';
+import { EXAM_KINDS, KINDS, docTone, type LibraryKind } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
 import './ModuleFiles.css';
 
 const LIMIT = 100;
-
-function FileRow({
-  item,
-  linkState,
-  onToggleStar,
-  board,
-}: {
-  item: LibraryItem;
-  linkState: LinkState;
-  onToggleStar: (item: LibraryItem) => void;
-  board: boolean;
-}) {
-  const exam = hasExamTitle(item) ? null : examLabel(item);
-  const by = sharedBy(item);
-  const name = examTitle(item, null);
-  return (
-    <li className="lib-mf__row">
-      <Link to={itemPath(item)} state={linkState} className="lib-mf__link" title={item.title}>
-        <FileThumb item={item} size="list" />
-        <span className="lib-mf__text">
-          <span className="lib-mf__title">
-            <span className="lib-mf__name">{name}</span>
-            {isNew(item) ? (
-              <Badge tone="highlight" size="sm">
-                New
-              </Badge>
-            ) : null}
-            {board && item.kind === 'past-paper' ? <PaperDone itemId={item.id} /> : null}
-          </span>
-          <span className="lib-mf__meta">
-            {exam ? <span>{exam}</span> : null}
-            {by ? <span className="lib-mf__by">{by}</span> : null}
-            <span>{sizeLabel(item)}</span>
-            <span>Added {timeAgo(addedAt(item))}</span>
-          </span>
-        </span>
-      </Link>
-      <span className="lib-mf__actions">
-        <StarButton on={item.starred} onToggle={() => onToggleStar(item)} title={name} />
-        {item.source === 'link' ? (
-          <IconButton
-            label={`Open ${name} on ${linkPlace(item)} (opens in a new tab)`}
-            icon={ArrowSquareOut}
-            href={openLinkHref(item)}
-            size="sm"
-          />
-        ) : (
-          <IconButton label={`Download ${name}`} icon={DownloadSimple} href={downloadHref(item)} size="sm" />
-        )}
-      </span>
-    </li>
-  );
-}
 
 /** Files for one module (published), grouped by type in the library's order. */
 export default function ModuleFiles({ moduleId }: { moduleId: string }) {
@@ -105,13 +48,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
     (f) => f.status === 'published' && f.source === 'file' && EXAM_KINDS.has(f.kind),
   );
   const fileList = (items: LibraryItem[]) => (
-    <Panel as="div" padding="none" className="lib-mf__panel">
-      <ul role="list" className="lib-mf__list">
-        {items.map((f) => (
-          <FileRow key={f.id} item={f} linkState={linkState} onToggleStar={toggleStar} board={board} />
-        ))}
-      </ul>
-    </Panel>
+    <FileRows items={items} sort="title" onToggleStar={toggleStar} linkState={linkState} />
   );
 
   // '#papers' or '#files-<kind>' (from the Overview tab's shelves): scroll there once that part is on screen (the
@@ -138,14 +75,14 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
   let body;
   if (files.isPending) {
     body = (
-      <Panel padding="none" className="lib-mf__panel" aria-hidden="true">
+      <div className="lib-mf__skeletons" aria-hidden="true">
         {[0, 1, 2].map((i) => (
           <div key={i} className="lib-mf__skeleton">
-            <Skeleton width={46} height={65} radius={2} />
+            <Skeleton width={40} height={50} radius={6} />
             <Skeleton lines={2} />
           </div>
         ))}
-      </Panel>
+      </div>
     );
   } else if (files.isError) {
     body = (
@@ -165,7 +102,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
           body="Past papers, notes and guides that students share for this module will show up here."
           action={
             uploadShown ? (
-              <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
+              <Button variant="primary" leadingIcon={<Icon glyph={glyph.upload} />} onClick={startUpload}>
                 Upload the first one
               </Button>
             ) : undefined
@@ -185,6 +122,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
             aria-labelledby={`lib-mf-${kind.id}`}
           >
             <h3 id={`lib-mf-${kind.id}`} className="lib-mf__h">
+              <DocThumb tone={docTone({ kind: kind.id, source: 'file' })} size="sm" />
               {kind.plural}
               <span className="lib-mf__count">{items.length}</span>
             </h3>
@@ -218,7 +156,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
             Open in the library
           </Button>
           {uploadShown ? (
-            <Button size="sm" leadingIcon={UploadSimple} onClick={startUpload}>
+            <Button size="sm" leadingIcon={<Icon glyph={glyph.upload} />} onClick={startUpload}>
               Upload a file
             </Button>
           ) : null}

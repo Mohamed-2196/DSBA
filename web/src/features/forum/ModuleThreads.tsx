@@ -1,9 +1,8 @@
 import { useMemo } from 'react';
-import { Plus } from '@phosphor-icons/react';
 import { remainingCount } from '../../api/paging';
 import type { ThreadSummary } from '../../api/types';
 import { useAuth } from '../../auth';
-import { Button, EmptyState, Panel, QueryError } from '../../ui';
+import { Button, EmptyState, Icon, Panel, QueryError, glyph } from '../../ui';
 import { useModules } from '../../state/modules';
 import { flattenPages, useThreadList, useThreadVote } from './api';
 import { LoadMore } from './components/LoadMore';
@@ -37,12 +36,12 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
 
   if (list.isPending) {
     return (
-      <Panel as="div" padding="none" aria-busy="true">
+      <div aria-busy="true">
         <ThreadRowSkeletons count={3} />
         <span className="visually-hidden" role="status">
           Loading threads
         </span>
-      </Panel>
+      </div>
     );
   }
 
@@ -66,7 +65,7 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
           body="Ask the first question and your classmates will see it here and in the forum."
           action={
             posts ? (
-              <Button variant="primary" leadingIcon={Plus} to={askTo}>
+              <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} to={askTo}>
                 Ask about this module
               </Button>
             ) : undefined
@@ -88,18 +87,16 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
           </p>
         </div>
         {posts ? (
-          <Button variant="primary" leadingIcon={Plus} to={askTo}>
+          <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} to={askTo}>
             Ask about this module
           </Button>
         ) : null}
       </div>
-      <Panel as="div" padding="none">
-        <ul role="list" className="forum-list">
-          {threads.map((t) => (
-            <ThreadRow key={t.id} thread={t} onVote={onVote} showModule={false} />
-          ))}
-        </ul>
-      </Panel>
+      <ul role="list" className="forum-list">
+        {threads.map((t) => (
+          <ThreadRow key={t.id} thread={t} onVote={onVote} showModule={false} />
+        ))}
+      </ul>
       {list.hasNextPage ? (
         <LoadMore
           remaining={remainingCount(list.data?.pages)}

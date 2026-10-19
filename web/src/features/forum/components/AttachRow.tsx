@@ -1,7 +1,6 @@
 import { useRef } from 'react';
-import { ImageSquare } from '@phosphor-icons/react';
 import { UPLOAD_RULES } from '../../../api/uploads';
-import { Button } from '../../../ui';
+import { Button, Icon, glyph } from '../../../ui';
 import type { AttachImages } from '../lib/useAttachImages';
 import { AttachmentList } from './ImageAttachments';
 
@@ -18,7 +17,13 @@ export function AttachRow({ images }: { images: AttachImages }) {
           requestAnimationFrame(() => buttonRef.current?.focus());
         }}
       />
-      <Button ref={buttonRef} size="sm" leadingIcon={ImageSquare} onClick={images.pick} data-hub="attach-image">
+      <Button
+        ref={buttonRef}
+        size="sm"
+        leadingIcon={<Icon glyph={glyph.image} />}
+        onClick={images.pick}
+        data-hub="attach-image"
+      >
         {images.cards.length ? 'Attach another image' : 'Attach image'}
       </Button>
       <span className="forum-composer__attach-note">

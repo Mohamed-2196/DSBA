@@ -1,9 +1,19 @@
 import { useMemo, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarBlank, ChatsCircle, Plus } from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
 import type { ModuleSummary, ThreadDetail } from '../../../api/types';
-import { Button, CohortBadge, ModuleArt, ModuleIcon, Skeleton, formatDate, moduleArtSrc, timeAgo } from '../../../ui';
+import {
+  Button,
+  CohortBadge,
+  ModuleArt,
+  ModuleIcon,
+  Skeleton,
+  formatDate,
+  moduleArtSrc,
+  timeAgo,
+  Icon,
+  glyph,
+} from '../../../ui';
 import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { daysUntil } from '../../../lib/dates';
@@ -50,7 +60,7 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
         <CohortBadge year={module.year} size="sm" />
         {exam && days !== null && days >= 0 ? (
           <span className="forum-tside__exam">
-            <CalendarBlank aria-hidden="true" weight="bold" />
+            <Icon glyph={glyph.calendar} />
             Exam {formatDate(exam.date, { day: 'numeric', month: 'short' })}
             <span className="forum-tside__days">
               {days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`}
@@ -60,7 +70,7 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
       </div>
       <div className="forum-tside__actions is-stacked">
         {posts ? (
-          <Button size="sm" fullWidth to={`/forum/new?module=${module.id}`} leadingIcon={Plus}>
+          <Button size="sm" fullWidth to={`/forum/new?module=${module.id}`} leadingIcon={<Icon glyph={glyph.plus} />}>
             Ask about {module.unitCode || 'this module'}
           </Button>
         ) : null}
@@ -69,7 +79,7 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
           fullWidth
           variant="ghost"
           to={`/modules/${module.id}?tab=discussion`}
-          leadingIcon={ChatsCircle}
+          leadingIcon={<Icon glyph={glyph.forum} />}
         >
           All {module.unitCode || 'module'} threads
         </Button>

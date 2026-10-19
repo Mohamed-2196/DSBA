@@ -1,7 +1,7 @@
 // The margin of "Start a thread": similar threads, tips for a good thread, and the module it is about.
 import { Link } from 'react-router-dom';
-import { CheckCircle } from '@phosphor-icons/react';
 import type { ModuleSummary, ThreadSummary } from '../../../api/types';
+import { Icon, glyph } from '../../../ui';
 import { useModules } from '../../../state/modules';
 import { useTaxonomy } from '../lib/taxonomy';
 import type { SimilarState } from '../lib/useSimilar';
@@ -99,8 +99,7 @@ export function ComposerAside({ similar, module }: { similar: SimilarState; modu
             <ModuleTag module={module} />
           </p>
           <p className="forum-new__note">
-            <CheckCircle aria-hidden="true" weight="fill" className="forum-new__ok" /> It will also show on the module’s
-            Discussion tab.
+            <Icon glyph={glyph.success} className="forum-new__ok" /> It will also show on the module’s Discussion tab.
           </p>
         </section>
       ) : null}

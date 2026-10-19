@@ -26,8 +26,10 @@
   gap: 8px 12px;
   margin-top: var(--sp-12);
 }
-.forum-thread__module {
-  font-size: var(--fs-14);
+.forum-thread__stats {
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
 }
 
 .forum-thread__layout {
@@ -43,27 +45,16 @@
 }
 .forum-thread__main {
   display: grid;
-  gap: var(--sp-32);
+  gap: var(--sp-24);
   min-width: 0;
 }
 
 /* ── Original post ───────────────────────────────────────────────────────────── */
 .forum-op {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  grid-template-areas: 'vote main' 'vote actions';
-  column-gap: 20px;
-  padding: 24px 28px 20px 20px;
-}
-.forum-op__vote {
-  grid-area: vote;
+  padding: 20px 20px 16px;
 }
 .forum-op__main {
-  grid-area: main;
   min-width: 0;
-}
-.forum-op__actions {
-  grid-area: actions;
 }
 .forum-byline {
   display: flex;
@@ -99,8 +90,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-top: 20px;
+  gap: 4px;
+  margin-top: 16px;
+}
+.forum-op__actions > .forum-vote {
+  margin-inline-end: 6px;
 }
 .forum-op__end {
   display: inline-flex;
@@ -129,16 +123,20 @@
   font-size: var(--fs-20);
   letter-spacing: -0.015em;
 }
-.forum-replies__panel {
-  overflow: hidden;
-}
+/* Each reply is a card of its own. */
 .forum-replies__list {
+  display: grid;
+  gap: var(--sp-12);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.forum-replies__item + .forum-replies__item {
-  border-top: 1px solid var(--line);
+.forum-replies__item {
+  overflow: hidden;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .forum-replies__empty {
   padding: var(--sp-16) 0;
@@ -150,18 +148,35 @@
   position: relative;
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr);
-  gap: 14px;
-  padding: 18px 24px 14px 20px;
+  gap: 12px;
+  padding: 18px 20px 14px;
 }
 .forum-reply__main {
   min-width: 0;
 }
+/* A top-level reply: the avatar sits beside the byline, and the body, actions and nested replies take the card's
+   full width under them. */
+.forum-reply:not(.is-nested) > .forum-reply__main {
+  display: contents;
+}
+.forum-reply:not(.is-nested) > .forum-reply__main > :not(.forum-reply__head) {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+/* Name and year on the first line, the time under them; "Accepted answer" at the end of the first line. */
 .forum-reply__head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 10px;
+  gap: 2px 8px;
   min-height: 22px;
+}
+.forum-reply:not(.is-nested) > .forum-reply__main > .forum-reply__head > .forum-reply__time {
+  order: 2;
+  flex-basis: 100%;
+}
+.forum-reply:not(.is-nested) > .forum-reply__main > .forum-reply__head > .forum-reply__edited {
+  order: 3;
 }
 .forum-reply__name {
   color: var(--ink);
@@ -178,19 +193,14 @@
   font-variant-numeric: tabular-nums;
 }
 .forum-reply__accepted {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-  color: var(--success);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-bold);
-}
-.forum-reply__accepted svg {
-  font-size: 18px;
+  order: 1;
+  margin-inline-start: auto;
 }
 .forum-reply__body {
-  margin-top: 6px;
+  margin-top: 0;
+}
+.forum-reply.is-nested .forum-reply__body {
+  margin-top: 2px;
 }
 .forum-reply__actions {
   display: flex;
@@ -281,14 +291,13 @@
   }
 }
 
-.forum-reply.is-accepted {
-  background: color-mix(in srgb, var(--success-fill) 6%, var(--surface));
-}
+/* The accepted answer: the green success rule down its start edge. */
 .forum-reply.is-accepted::before {
   content: '';
   position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 4px;
   background: var(--success-fill);
 }
 
@@ -402,7 +411,7 @@
 /* ── Sidebar ─────────────────────────────────────────────────────────────────── */
 .forum-tside {
   display: grid;
-  gap: var(--sp-24);
+  gap: var(--sp-16);
   align-content: start;
   min-width: 0;
 }
@@ -410,10 +419,11 @@
   display: grid;
   justify-items: start;
   gap: 6px;
-  padding: 20px;
-  border: 1px solid var(--line);
+  padding: 20px 22px;
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .forum-tside__code {
   color: var(--forum-c, var(--ink));
@@ -480,12 +490,11 @@
   margin-top: 14px;
 }
 .forum-tside__block {
-  padding-top: var(--sp-24);
-  border-top: 1px solid var(--line);
-}
-.forum-tside__card + .forum-tside__block {
-  padding-top: 0;
-  border-top: 0;
+  padding: 20px 22px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .forum-tside__people {
   display: flex;
@@ -514,11 +523,6 @@
 @container forum-page (max-width: 999px) {
   .forum-tside {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--sp-32);
-  }
-  .forum-tside__card + .forum-tside__block {
-    padding-top: var(--sp-24);
-    border-top: 1px solid var(--line);
   }
   .forum-tside__card {
     grid-row: span 2;
@@ -530,39 +534,10 @@
     font-size: var(--fs-22);
   }
   .forum-op {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas: 'main main' 'vote actions';
-    column-gap: 8px;
     padding: 16px;
   }
-  .forum-op__vote {
-    align-self: start;
-    margin-top: 16px;
-  }
-  .forum-op__vote .forum-vote {
-    flex-direction: row;
-    width: auto;
-    height: 32px;
-    padding: 0 12px 0 10px;
-    gap: 6px;
-    border-radius: var(--r-pill);
-    font-size: var(--fs-14);
-  }
-  .forum-op__vote .forum-vote__icon {
-    font-size: 15px;
-  }
-  .forum-op__actions {
-    align-self: start;
-    margin-top: 16px;
-  }
   .forum-reply {
-    padding: 16px 16px 12px 14px;
-    gap: 10px;
-    grid-template-columns: 28px minmax(0, 1fr);
-  }
-  .forum-reply__accepted {
-    margin-left: 0;
-    flex-basis: 100%;
+    padding: 16px 16px 12px;
   }
   .forum-replies__nested {
     padding-left: 12px;

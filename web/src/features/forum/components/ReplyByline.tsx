@@ -1,8 +1,7 @@
-import { CheckCircle, EyeSlash } from '@phosphor-icons/react';
 import type { Reply } from '../../../api/types';
-import { Badge, CohortBadge, timeAgo } from '../../../ui';
+import { Badge, CohortBadge, Icon, glyph, timeAgo } from '../../../ui';
 import { postAuthorName, postYear, roleFlair } from '../lib/authors';
-import { AuthorFlair } from './ThreadBits';
+import { AnsweredBadge, AuthorFlair } from './ThreadBits';
 
 export interface ReplyBylineProps {
   reply: Reply;
@@ -29,7 +28,7 @@ export function ReplyByline({ reply, isOp, accepted, fresh, gone }: ReplyBylineP
           {roleFlair(reply.author) ? (
             <AuthorFlair author={reply.author} className="forum-reply__flair" />
           ) : year ? (
-            <CohortBadge year={year} variant="dot" size="sm" className="forum-reply__cohort" />
+            <CohortBadge year={year} size="sm" className="forum-reply__cohort" />
           ) : null}
           {isOp ? (
             <Badge tone="outline" size="sm">
@@ -52,14 +51,13 @@ export function ReplyByline({ reply, isOp, accepted, fresh, gone }: ReplyBylineP
         </Badge>
       ) : null}
       {reply.status === 'hidden' ? (
-        <Badge tone="alert" size="sm" icon={EyeSlash}>
+        <Badge tone="alert" size="sm" icon={<Icon glyph={glyph.eyeOff} />}>
           Hidden
         </Badge>
       ) : null}
       {accepted ? (
         <span className="forum-reply__accepted">
-          <CheckCircle weight="fill" aria-hidden="true" />
-          Accepted answer
+          <AnsweredBadge label="Accepted answer" />
         </span>
       ) : null}
     </header>

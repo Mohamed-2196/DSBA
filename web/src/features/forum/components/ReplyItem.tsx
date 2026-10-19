@@ -1,11 +1,10 @@
 import { useState, type ReactNode } from 'react';
-import { ArrowBendUpLeft, CheckCircle, Eye, EyeSlash, PencilSimple, Trash } from '@phosphor-icons/react';
 import type { Reply, ThreadDetail } from '../../../api/types';
 import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
-import { Button, cx } from '../../../ui';
+import { Button, Icon, cx, glyph } from '../../../ui';
 import { useToast } from '../../../state';
-import { ReportButton } from '../ReportButton';
+import { useReport } from '../useReport';
 import { useAcceptAnswer, useReplyVote } from '../api';
 import { postAuthorName, sameAuthor, unnamed } from '../lib/authors';
 import { mayChange, postMenuActions, readOnlyFor, textDeleted } from '../lib/replies';
@@ -78,7 +77,8 @@ export function ReplyItem({
   const frozen = readOnly || readOnlyFor(thread);
   const moderates = thread.canModerate && !readOnly;
   const actions = postMenuActions(reply.canEdit && !frozen, thread.canModerate, mayTry('forum.post'));
-  const canReport = !reply.isMine && reply.status === 'visible' && !threadHidden && !readOnly;
+  const report = useReport('reply', reply.id);
+  const reportable = report && !reply.isMine && reply.status === 'visible' && !threadHidden && !readOnly;
   // The thread's author (while they may post) or a moderator accepts a top-level reply by someone else.
   const canAccept =
     mayChange(thread.canAccept, thread.canModerate, mayTry('forum.post')) &&
@@ -166,7 +166,6 @@ export function ReplyItem({
           <footer className="forum-reply__actions">
             {gone ? null : (
               <VoteButton
-                layout="inline"
                 count={reply.voteCount}
                 voted={reply.voted}
                 onToggle={toggleVote}
@@ -174,7 +173,12 @@ export function ReplyItem({
               />
             )}
             {onReply && !hidden ? (
-              <Button variant="ghost" size="sm" leadingIcon={ArrowBendUpLeft} onClick={() => onReply(reply)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                leadingIcon={<Icon glyph={glyph.reply} />}
+                onClick={() => onReply(reply)}
+              >
                 Reply
               </Button>
             ) : null}
@@ -182,7 +186,7 @@ export function ReplyItem({
               <Button
                 variant="ghost"
                 size="sm"
-                leadingIcon={Eye}
+                leadingIcon={<Icon glyph={glyph.eye} />}
                 onClick={moderation.unhide}
                 loading={moderation.pending}
               >
@@ -193,7 +197,7 @@ export function ReplyItem({
               <Button
                 variant="ghost"
                 size="sm"
-                leadingIcon={CheckCircle}
+                leadingIcon={<Icon glyph={glyph.success} />}
                 onClick={toggleAccept}
                 loading={accept.isPending}
                 aria-pressed={accepted}
@@ -202,18 +206,28 @@ export function ReplyItem({
               </Button>
             ) : null}
             <span className="forum-reply__end">
-              {canReport ? <ReportButton targetType="reply" targetId={reply.id} /> : null}
               <PostMenu
                 label="More actions for this reply"
                 groups={[
                   [
-                    actions.edit && { id: 'edit', label: 'Edit', icon: PencilSimple, onSelect: () => setEditing(true) },
+                    actions.edit && {
+                      id: 'edit',
+                      label: 'Edit',
+                      icon: <Icon glyph={glyph.edit} />,
+                      onSelect: () => setEditing(true),
+                    },
                     actions.remove && {
                       id: 'delete',
                       label: 'Delete',
-                      icon: Trash,
+                      icon: <Icon glyph={glyph.trash} />,
                       danger: true,
                       onSelect: () => setConfirmDelete(true),
+                    },
+                    reportable && {
+                      id: 'report',
+                      label: report.label,
+                      icon: <Icon glyph={glyph.flag} />,
+                      onSelect: report.open,
                     },
                   ],
                   [
@@ -222,10 +236,15 @@ export function ReplyItem({
                         ? {
                             id: 'unhide',
                             label: gone ? 'Unhide as deleted' : 'Unhide reply',
-                            icon: Eye,
+                            icon: <Icon glyph={glyph.eye} />,
                             onSelect: moderation.unhide,
                           }
-                        : { id: 'hide', label: 'Hide reply', icon: EyeSlash, onSelect: () => setHiding(true) }),
+                        : {
+                            id: 'hide',
+                            label: 'Hide reply',
+                            icon: <Icon glyph={glyph.eyeOff} />,
+                            onSelect: () => setHiding(true),
+                          }),
                   ],
                 ]}
               />
@@ -247,6 +266,7 @@ export function ReplyItem({
           moderation.reset();
         }}
       />
+      {reportable ? report.dialog : null}
       <DeleteReplyDialog
         reply={reply}
         hasReplies={hasReplies}

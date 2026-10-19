@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { CaretRight } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { UserPublic } from '../../api/types';
 import { badgeOf, useAuth } from '../../auth';
-import { Page, PageHeader, QueryError, Skeleton, Switch, TextField, cx } from '../../ui';
+import { Icon, Page, PageHeader, QueryError, Skeleton, Switch, TextField, cx, glyph } from '../../ui';
 import { useSingleFlight, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { useAskedSenior, useCreateThread, useForumMeta } from './api';
@@ -80,8 +79,11 @@ export default function NewThreadPage() {
 function Crumbs() {
   return (
     <nav className="forum-crumbs" aria-label="Breadcrumb">
-      <Link to="/forum">Forum</Link>
-      <CaretRight aria-hidden="true" weight="bold" />
+      <Link to="/forum" className="forum-crumbs__back">
+        <Icon glyph={glyph.chevronLeft} />
+        Forum
+      </Link>
+      <span aria-hidden="true">/</span>
       <span aria-current="page">Start a thread</span>
     </nav>
   );

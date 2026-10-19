@@ -1,8 +1,7 @@
 // Small presentational pieces shared by rows, the thread page and the public widgets.
 import type { CSSProperties, ReactNode } from 'react';
-import { ChatCircle, CheckCircle } from '@phosphor-icons/react';
 import type { ModuleSummary, ThreadSummary, UserPublic } from '../../../api/types';
-import { Badge, CohortBadge, Highlight, cx } from '../../../ui';
+import { Badge, CohortBadge, Highlight, Icon, cx, glyph } from '../../../ui';
 import { cohortTextColor } from '../../../state';
 import { roleFlair } from '../lib/authors';
 import { placeOf, useTaxonomy } from '../lib/taxonomy';
@@ -33,20 +32,58 @@ export function ModuleTag({
   );
 }
 
+/** A module's unit code as a small grey chip in mono (a thread card's meta, the thread's header); its short name
+ *  when it has no code. */
+export function ModuleChip({ module }: { module: ModuleSummary | null | undefined }) {
+  if (!module) return null;
+  return (
+    <span className={cx('forum-chip', module.unitCode && 'u-code')} title={module.name}>
+      {module.unitCode || module.shortName}
+    </span>
+  );
+}
+
 /** Where the thread lives (placeOf): Year 2 in its colour, or Study group with its picture. Nothing until the
- *  categories have loaded. */
-export function PlaceBadge({ thread, size = 'sm' }: { thread: Pick<ThreadSummary, 'category'>; size?: 'sm' | 'md' }) {
+ *  categories have loaded. `chip`: a soft pill (a thread card), not a dot. */
+export function PlaceBadge({
+  thread,
+  size = 'sm',
+  chip = false,
+}: {
+  thread: Pick<ThreadSummary, 'category'>;
+  size?: 'sm' | 'md';
+  chip?: boolean;
+}) {
   const { getCategory } = useTaxonomy();
   const place = placeOf(getCategory(thread.category));
   if (!place) return null;
   if (place.year == null) {
+    if (chip) return <span className="forum-chip">{place.label}</span>;
     return (
       <Badge tone="neutral" size={size} icon={FORUM_ICONS[place.icon].icon} className="forum-place">
         {place.label}
       </Badge>
     );
   }
-  return <CohortBadge year={place.year} label={place.label} variant="dot" size={size} className="forum-place" />;
+  return (
+    <CohortBadge
+      year={place.year}
+      label={place.label}
+      variant={chip ? 'soft' : 'dot'}
+      size={size}
+      className="forum-place"
+    />
+  );
+}
+
+/** "Answered": the thread has an accepted answer. Its tick draws itself in. */
+export function AnsweredBadge({ label = 'Answered' }: { label?: string }) {
+  return (
+    <span className="forum-answered">
+      <Icon glyph={glyph.check} className="forum-answered__tick" />
+      {label}
+    </span>
+  );
 }
 
 /** 'Student rep' (moderators) or 'Admin' as a small neutral pill. It goes where a year badge would go, and replaces it. */
@@ -81,7 +118,7 @@ export function TagBadges({ tags = [], max = 3 }: { tags?: string[]; max?: numbe
   );
 }
 
-/** Reply count; turns green with a check when the thread has an accepted answer. */
+/** Reply count beside the speech bubbles; with `answered`, a green pill with a tick (a compact list). */
 export function ReplyCount({
   count,
   answered = false,
@@ -91,10 +128,9 @@ export function ReplyCount({
   answered?: boolean;
   className?: string;
 }) {
-  const Icon = answered ? CheckCircle : ChatCircle;
   return (
     <span className={cx('forum-count', answered && 'is-answered', !count && 'is-zero', className)}>
-      <Icon weight={answered ? 'fill' : 'bold'} aria-hidden="true" />
+      <Icon glyph={answered ? glyph.success : glyph.forum} />
       <RollingNumber value={count} />
       <span className="visually-hidden">
         {count === 1 ? ' reply' : ' replies'}
