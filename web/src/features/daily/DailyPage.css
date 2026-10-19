@@ -164,7 +164,8 @@
   background: color-mix(in srgb, var(--g) 13%, var(--surface));
   border-bottom: 1px solid color-mix(in srgb, var(--g) 22%, transparent);
 }
-.dh-tile__art > .dy-glyph {
+.dh-tile__art > .dy-glyph,
+.dh-tile__img {
   width: var(--art);
   height: var(--art);
 }

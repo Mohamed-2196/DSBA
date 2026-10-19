@@ -107,6 +107,16 @@ describe('resultOf', () => {
     } as unknown as Play;
     expect(resultOf(play).summary).toBe('Hard, 1 mistake, 2 hints in 1:15');
   });
+
+  it('holds nothing back on a guest’s lost Daily Query: its answers show as they’re given', () => {
+    const play = {
+      ...base,
+      game: 'quiz',
+      status: 'lost',
+      view: { kind: 'quiz', questions: [{}, {}], answered: [{ correct: false }, { correct: true }] },
+    } as unknown as Play;
+    expect(resultOf(play, true)).toMatchObject({ summary: '1 of 2 right', held: false });
+  });
 });
 
 describe('statusOf', () => {

@@ -329,13 +329,19 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
   .dsu-key {
-    height: 42px;
+    height: 44px;
   }
   .dsu-key__digit {
     font-size: var(--fs-20);
   }
+  /* Short, wide keys: the count goes in the corner, clear of the digit. */
+  .dsu-key__left {
+    top: 3px;
+    right: 6px;
+    bottom: auto;
+  }
   .dsu-tool {
-    min-height: 40px;
+    min-height: 44px;
     flex-direction: row;
     gap: 6px;
   }

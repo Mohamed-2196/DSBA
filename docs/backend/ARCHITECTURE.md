@@ -493,3 +493,8 @@ re-chains them at merge.
   note files against the sum of their rooms (`GET /admin/notebook`, admins only). Each student's counts per day
   (`notebook_upload_days`) are in their export and go with the account. A released file shown in a note again counts
   against the room again and must fit (409 `notes_full`).
+- **D17 A guest's Daily plays are kept on sign-in** (round 13, ST-24). The browser sends each play's moves to
+  `POST /daily/{day}/{game}/keep`; the server replays and checks them, refuses a puzzle the account has opened, keeps
+  a play finished before a fix as practice, and limits keeps per account and per address. Trade-off: the history is
+  the browser's word (no signed guest tokens), so a guest could try a puzzle in private windows and keep the best
+  play; the same scouting is open to anyone with a second browser, so the Daily accepts it.

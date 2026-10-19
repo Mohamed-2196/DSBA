@@ -230,14 +230,14 @@ Daily puzzles end to end all work.
 
 | ID | Severity | What | Status |
 |---|---|---|---|
-| ST-24 | major | Daily: "Sign in to keep your points" throws away the guest's game and shows "Not this time" over the profile step | open |
+| ST-24 | major | Daily: "Sign in to keep your points" throws away the guest's game and shows "Not this time" over the profile step | fixed (round13/dailyart; e2e added) |
 | ST-25 | major | Daily: a guest's hub said 0/6 and "Play" on games they had finished | fixed (on `feature/backend`, e2e passes) |
 | ST-27 | major | Notebook: scanned (JBIG2) past papers open blank in "Annotate in my notebook" | fixed (round13/pdfscan) |
-| ST-26 | minor | Daily, guests: "Give up and see the answer" shows no answer; the Query says "Sign in to see the answer" beside every answer | open |
+| ST-26 | minor | Daily, guests: "Give up and see the answer" shows no answer; the Query says "Sign in to see the answer" beside every answer | fixed (round13/dailyart) |
 | ST-28 | minor | Manage → Career Navigator: after typing a name, the next box loses the focus and what is typed next | fixed (round13/pdfscan; the e2e is a normal test) |
-| ST-29 | minor | Sudoku on a phone held sideways: each digit key's count is drawn over the digit | open |
-| ST-30 | minor | The Word in dark mode: ruled-out letters are brighter than the unused ones | open |
-| ST-31 | minor | Correlations, guest loss: the last wrong four stay picked under "The groups", which shows no groups | open |
+| ST-29 | minor | Sudoku on a phone held sideways: each digit key's count is drawn over the digit | fixed (round13/dailyart) |
+| ST-30 | minor | The Word in dark mode: ruled-out letters are brighter than the unused ones | fixed (round13/dailyart) |
+| ST-31 | minor | Correlations, guest loss: the last wrong four stay picked under "The groups", which shows no groups | not reproduced (round13/dailyart) |
 | ST-32 | nit | The Daily Query's end: "See your result" and "Result" side by side, two primary buttons | open |
 | ST-33 | nit | A library link added today says it "was shared before the Hub had its own library" | fixed (round13/pdfscan) |
 | ST-34 | nit | A module page counts its files twice, differently (Files 120 / "115 files for EC1002") | fixed (round14/library) |
@@ -263,6 +263,12 @@ dropped (7d7d0d7), the 4-second rule (removed).
   6"); the guest's moves are never sent. The same card's promise ("keep your points") is untrue for every game.
 - Screenshots: `v-guest-phone-word-won.png`, `d-guest-phone-signin-open.png`, `v-guest-phone-signin-after-code.png`,
   `v-maha-word-after-signup.png`.
+- Fixed (round13/dailyart): signing in now keeps the plays a guest made on the device on the account (`POST
+  /daily/{day}/{game}/keep`, scored as if played signed in: the first play of that game that day counts), then the
+  device forgets them. The result card steps aside for the sign-in sheet and comes back once the kept play has loaded:
+  "Solved in 1 guess · +100 points · 1-day streak". An account that has opened the puzzle keeps its own play, a play
+  finished before an editor's fix is kept as practice, and keeps are rate-limited (D16 in ARCHITECTURE.md).
+  e2e: `daily.spec.ts` "a guest who wins and signs up from the result card keeps the win and its points".
 
 #### ST-25 (major, fixed) A guest's hub ignored what they played
 
@@ -295,6 +301,10 @@ dropped (7d7d0d7), the 4-second rule (removed).
   Daily Query lost as a guest lists every right answer with its explanation, under the same "Sign in to see the
   answer" line. Expected: copy that matches what a guest gets ("Give up", "the answer shows tomorrow").
 - Screenshots: `v-guest-laptop-nearest-gaveup.png`, `v-guest-laptop-quiz-lost.png`.
+- Fixed (round13/dailyart): a guest's menu says "Give up", and the dialog "The puzzle ends now. Its answer shows when
+  you sign in, or tomorrow." That is now true: signing in keeps the play, and the account's play shows the answer.
+  Nearest Neighbour no longer repeats the line in its answer box, and a lost Daily Query (which marks every answer as
+  it's given) doesn't say it at all.
 
 #### ST-28 (minor) Career Navigator's editor drops the next box after a name
 
@@ -310,18 +320,25 @@ dropped (7d7d0d7), the 4-second rule (removed).
 
 - Guest, 844×390 phone. Each digit key is 42 px tall; the "left" count (top 279) overlaps the digit (bottom 287.5).
   Screenshots: `v-guest-land-sudoku-key.png`, `v-guest-land-sudoku.png`.
+- Fixed (round13/dailyart): sideways, the count sits in the key's top-right corner, clear of the digit; the keys and
+  tools are 44 px tall.
 
 #### ST-30 (minor) The Word, dark mode: ruled-out letters stand out
 
 - Guest, phone, dark. Ruled-out keys are rgb(116,136,176) with dark letters; unused keys rgb(20,38,79). The letters
   you can no longer use are the brightest on the keyboard. Expected: dimmed, as in light mode's intent.
   Screenshot: `v-guest-phone-dark-word.png`.
+- Fixed (round13/dailyart): ruled-out keys take a new derived token pair, `--key-spent` and `--key-spent-ink`: in dark,
+  rgb(10,23,51) under rgb(116,136,176) letters, darker than the unused keys; in light, the grey as before.
 
 #### ST-31 (minor) Correlations, guest loss
 
 - After four mistakes, a guest's board keeps the last wrong four highlighted and the line says "The groups", but only
   the groups found are shown (the rest wait for tomorrow), so the blue four read as a group. Screenshot:
   `d-guest-laptop-groups-lost-board.png`.
+- Not reproduced (round13/dailyart): a guest losing with one group found and with none, on a laptop, and again
+  after a reload, leaves nothing picked and says "3 groups not found" or "4 groups not found" over the words left.
+  Nothing stays picked once the play is over (81bae90f). If it comes back, note the steps.
 
 #### ST-32 to ST-39 (nits)
 

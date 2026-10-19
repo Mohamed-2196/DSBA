@@ -23861,6 +23861,137 @@
         }
       }
     },
+    "/api/v1/daily/{day}/{game}/keep": {
+      "post": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Keep Guest Play",
+        "description": "Keeps the play a guest made on this device on the account they've just signed in to, and counts it for points\nwhen it's their first of that game on its own day (a play finished on a version a fix replaced is practice).\nErrors: already_played (409) when the account has opened that puzzle, puzzle_fixed (409) when an unfinished play\nwas on a version a fix replaced, game_over (409) or invalid_input (422) for moves that don't replay, not_out_yet\n(404), rate_limited (429) per account and per address.",
+        "operationId": "keep_guest_play_api_v1_daily__day___game__keep_post",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "game",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "word",
+                "groups",
+                "search",
+                "quiz",
+                "nearest",
+                "sudoku"
+              ],
+              "type": "string",
+              "title": "Game"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestPlayIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/content/daily": {
       "get": {
         "tags": [
@@ -33186,6 +33317,7 @@
               "unknown_word",
               "already_tried",
               "game_over",
+              "already_played",
               "puzzle_fixed",
               "not_out_yet",
               "puzzle_changed",
@@ -36779,6 +36911,72 @@
         ],
         "title": "GuessMove",
         "description": "A word: the word game's guess, or a guess at the secret word in Nearest neighbour."
+      },
+      "GuestPlayIn": {
+        "properties": {
+          "variant": {
+            "type": "string",
+            "maxLength": 12,
+            "title": "Variant",
+            "default": ""
+          },
+          "history": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GuessMove"
+                },
+                {
+                  "$ref": "#/components/schemas/GroupMove"
+                },
+                {
+                  "$ref": "#/components/schemas/FindMove"
+                },
+                {
+                  "$ref": "#/components/schemas/AnswerMove"
+                },
+                {
+                  "$ref": "#/components/schemas/PlaceMove"
+                },
+                {
+                  "$ref": "#/components/schemas/HintMove"
+                },
+                {
+                  "$ref": "#/components/schemas/GiveUpMove"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "kind",
+                "mapping": {
+                  "answer": "#/components/schemas/AnswerMove",
+                  "find": "#/components/schemas/FindMove",
+                  "give-up": "#/components/schemas/GiveUpMove",
+                  "group": "#/components/schemas/GroupMove",
+                  "guess": "#/components/schemas/GuessMove",
+                  "hint": "#/components/schemas/HintMove",
+                  "place": "#/components/schemas/PlaceMove"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 400,
+            "minItems": 1,
+            "title": "History"
+          },
+          "revision": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Revision",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "history"
+        ],
+        "title": "GuestPlayIn",
+        "description": "A guest's play of a day's game, kept on the account they've just signed in to: the moves their browser made\nand the version of the day's puzzle it made them on (Play.revision)."
       },
       "GuidePlace": {
         "properties": {

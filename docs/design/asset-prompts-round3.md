@@ -3,14 +3,14 @@
 Updated: 2026-10-19
 
 **Task.** Six pictures, one per Daily game, for the tiles on `/daily`. Each tile shows its game's art on the game's own
-tint above the name, so a student tells the six games apart at a glance. Until the files arrive, each tile keeps the
+tint above the name, so a student tells the six games apart at a glance. If a file can't load, the tile shows the
 shape drawn in code (`web/src/features/daily/components/GameGlyph.tsx`). A finished play's tile shows the play's own
 squares instead of either.
 
 **Capability gap.** The coding tools can't generate images. Mohamed makes these with an image model and drops them
 in `web/public/brand/incoming/`. A builder then moves them to `web/public/daily/` and wires them into the tile's art slot
-(`GameCard.tsx`, `.dh-tile__art` in `DailyPage.css`). The layout already works without them. None of the six files exist
-yet.
+(`GameCard.tsx`, `.dh-tile__art` in `DailyPage.css`). All six are in: exported at 192×192 WebP (4 to 9 kB each) in
+`web/public/daily/`, and checked on `/daily` at 360, 390, 844 (sideways), 768, 1440 and 2560 px in both themes.
 
 **Earlier rounds.** `asset-prompts.md` (brand, Mini Noora, module icons, empty states) and `asset-prompts-round2.md`.
 
@@ -70,12 +70,12 @@ six. Make **D1 first**, then attach it as a style reference (or reuse its seed) 
 
 | ID | Priority | Screen and role | Planned output | Status |
 | --- | --- | --- | --- | --- |
-| D1 | Required | `/daily` tile, The Word | `web/public/brand/incoming/daily-word.png` | requested |
-| D2 | Required | `/daily` tile, Correlations | `web/public/brand/incoming/daily-groups.png` | requested |
-| D3 | Required | `/daily` tile, Data Mine | `web/public/brand/incoming/daily-search.png` | requested |
-| D4 | Required | `/daily` tile, The Daily Query | `web/public/brand/incoming/daily-quiz.png` | requested |
-| D5 | Required | `/daily` tile, Nearest Neighbour | `web/public/brand/incoming/daily-nearest.png` | requested |
-| D6 | Required | `/daily` tile, Sudoku | `web/public/brand/incoming/daily-sudoku.png` | requested |
+| D1 | Required | `/daily` tile, The Word | `web/public/daily/word.webp` | integrated |
+| D2 | Required | `/daily` tile, Correlations | `web/public/daily/groups.webp` | integrated |
+| D3 | Required | `/daily` tile, Data Mine | `web/public/daily/search.webp` | integrated |
+| D4 | Required | `/daily` tile, The Daily Query | `web/public/daily/quiz.webp` | integrated |
+| D5 | Required | `/daily` tile, Nearest Neighbour | `web/public/daily/nearest.webp` | integrated |
+| D6 | Required | `/daily` tile, Sudoku | `web/public/daily/sudoku.webp` | integrated |
 
 All six requests share the same settings:
 

@@ -5,7 +5,6 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 
 import { Lightbulb } from '@phosphor-icons/react';
 import { Button, cx } from '../../../../ui';
 import { BAND_LABEL, band, bestRank, byCloseness, closeness } from '../../lib/nearest';
-import { HELD } from '../../lib/result';
 import type { NearestGuess } from '../../types';
 import type { GameProps } from '../registry';
 import './NearestGame.css';
@@ -99,18 +98,12 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
             Hint
           </Button>
         </form>
-      ) : (
+      ) : view?.answer ? (
         <div className={cx('dn-answer', state.status === 'won' && 'is-won')}>
-          {view?.answer ? (
-            <>
-              <span className="dn-answer__label">The secret word</span>
-              <strong className="dn-answer__word">{view.answer}</strong>
-            </>
-          ) : (
-            <span className="dn-answer__label">{HELD}</span>
-          )}
+          <span className="dn-answer__label">The secret word</span>
+          <strong className="dn-answer__word">{view.answer}</strong>
         </div>
-      )}
+      ) : null}
 
       {best !== null ? (
         <div className="dn-best" aria-live="polite">

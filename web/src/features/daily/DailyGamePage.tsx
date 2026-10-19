@@ -65,7 +65,7 @@ function GameScreen({ game, dayParam }: { game: GameId; dayParam: string | null 
       today={today.data}
       isToday={isToday}
       signedIn={Boolean(me)}
-      onSignIn={() => openSignIn()}
+      onSignIn={(then) => openSignIn(then ? { reason: 'Sign in to keep your points', onSuccess: then } : undefined)}
       onVariant={(v) => setAsked(v, { replace: true })}
     />
   );
@@ -78,7 +78,8 @@ interface PlayScreenProps {
   today: DailyToday | undefined;
   isToday: boolean;
   signedIn: boolean;
-  onSignIn: () => void;
+  /** opens sign-in; `then` runs once the person is signed in with a profile */
+  onSignIn: (then?: () => void) => void;
   onVariant: (variant: string) => void;
 }
 
@@ -105,7 +106,10 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
   const [menuOpen, setMenuOpen] = useState(false);
   // From the finishing move until its result opens: the game's last animation plays undisturbed.
   const [finishing, setFinishing] = useState(false);
-  const paused = rulesOpen || resultOpen || confirmGiveUp || menuOpen;
+  // The result card shows only a finished play: after signing in from it, the account's play loads in its place.
+  const over = out ? isOver(out.play.status) : false;
+  const showResult = resultOpen && over;
+  const paused = rulesOpen || showResult || confirmGiveUp || menuOpen;
   const resultTimer = useRef<number>();
   // After a dialog, the keyboard goes back to the game (not to whatever the dialog would fall back on).
   const stage = useRef<HTMLElement>(null);
@@ -160,7 +164,6 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
   };
 
   const status = out?.play.status;
-  const over = status ? isOver(status) : false;
   const next = isToday && today ? nextToPlay(today.games, game) : null;
   const scoredVariant =
     isToday && game === 'sudoku' ? today?.games.find((g) => g.info.id === 'sudoku' && g.scored)?.variant : undefined;
@@ -195,7 +198,7 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
             trigger={<IconButton label="More" icon={DotsThreeVertical} disabled={!out} />}
             items={[
               {
-                label: 'Give up and see the answer',
+                label: secret ? 'Give up' : 'Give up and see the answer',
                 icon: Flag,
                 danger: true,
                 disabled: !out || over || status === 'new',
@@ -208,7 +211,13 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
       </header>
 
       {out && !over ? (
-        <Notice out={out} isToday={isToday} signedIn={signedIn} scoredVariant={scoredVariant} onSignIn={onSignIn} />
+        <Notice
+          out={out}
+          isToday={isToday}
+          signedIn={signedIn}
+          scoredVariant={scoredVariant}
+          onSignIn={() => onSignIn()}
+        />
       ) : null}
 
       <section ref={stage} tabIndex={-1} className="dg-stage" aria-label={out?.info.title ?? 'Puzzle'}>
@@ -256,7 +265,7 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
         <>
           <RulesDialog open={rulesOpen} onClose={closeRules} info={out.info} />
           <ResultDialog
-            open={resultOpen}
+            open={showResult}
             onClose={() => {
               setResultOpen(false);
               backToGame();
@@ -266,7 +275,12 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
             secret={secret}
             streak={isToday ? (today?.streak ?? null) : null}
             next={next}
-            onSignIn={onSignIn}
+            onSignIn={() => {
+              // The sign-in sheet takes the card's place; the guest's play is kept on the account, and the card
+              // comes back with it once it's loaded.
+              setResultOpen(false);
+              onSignIn(() => setResultOpen(true));
+            }}
           />
           <ConfirmDialog
             open={confirmGiveUp}
@@ -276,7 +290,11 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
             }}
             onConfirm={() => void giveUp()}
             title="Give up?"
-            body="The puzzle ends now and shows you the answer. You keep the points it has earned."
+            body={
+              secret
+                ? 'The puzzle ends now. Its answer shows when you sign in, or tomorrow.'
+                : 'The puzzle ends now and shows you the answer. You keep the points it has earned.'
+            }
             confirmLabel="Give up"
             tone="danger"
           />
