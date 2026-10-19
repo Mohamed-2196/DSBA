@@ -1,8 +1,8 @@
 import { useEffect, type RefObject } from 'react';
 
 /**
- * Marks a horizontally scrolling row with data-fade-start / data-fade-end while there is more
- * to scroll, so CSS can fade the cut-off edge (tabs and chips on narrow screens).
+ * Marks a horizontally scrolling row with data-fade-start / data-fade-end while there is more to scroll, so its cut
+ * edge fades (the .u-scroll-row class in styles/base.css): tabs and rows of chips on narrow screens.
  * @param ref       element, or a wrapper when `selector` picks the scroller inside it
  * @param selector  optional CSS selector of the scroller inside `ref`
  * @param key       change it when the row's content changes (re-measures)

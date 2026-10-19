@@ -6,6 +6,7 @@ export { Badge, CohortBadge, Count } from './Badge';
 export { Chip } from './Chip';
 export { Avatar } from './Avatar';
 export { Tabs, TabPanel } from './Tabs';
+export { useScrollFade } from './useScrollFade';
 export { Field, TextField, TextArea, Select, SearchField } from './Field';
 export { Modal, Drawer } from './Modal';
 export { ConfirmDialog } from './ConfirmDialog';

@@ -1,14 +1,9 @@
+/* It scrolls sideways when it runs out of room (.u-scroll-row: no scrollbar, a fading edge). */
 .ui-tabs {
-  position: relative;
   display: flex;
   align-items: stretch;
   gap: var(--sp-4);
-  overflow-x: auto;
-  scrollbar-width: none;
   isolation: isolate;
-}
-.ui-tabs::-webkit-scrollbar {
-  display: none;
 }
 .ui-tab {
   display: inline-flex;

@@ -673,23 +673,6 @@
   align-items: center;
   gap: 2px;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.forum-editor__tools::-webkit-scrollbar {
-  display: none;
-}
-.forum-editor__tools[data-fade-end='true'] {
-  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
-  mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
-}
-.forum-editor__tools[data-fade-start='true'] {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 40px);
-  mask-image: linear-gradient(to right, transparent, #000 40px);
-}
-.forum-editor__tools[data-fade-start='true'][data-fade-end='true'] {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
 }
 .forum-editor__tools .ui-iconbutton {
   color: var(--ink-2);

@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChatCircle } from '@phosphor-icons/react';
 import type { ForumStats } from '../../../api/types';
-import { Chip, SearchField, SegmentedControl, Tabs } from '../../../ui';
+import { Chip, SearchField, SegmentedControl, Tabs, useScrollFade } from '../../../ui';
 import type { FilterPatch } from '../lib/filters';
 import type { TagChip } from '../lib/tagChips';
 import { useTaxonomy } from '../lib/taxonomy';
-import { useScrollFade } from '../lib/useScrollFade';
 import type { ForumFilters, ThreadSort } from '../types';
 
 const SORTS: { value: ThreadSort; label: string }[] = [
@@ -48,18 +47,16 @@ export function ForumFilterBar({ filters, update, stats, chips, scope }: ForumFi
     ...shown.map((c) => ({ id: c.id, label: c.label, count: shownCount(stats?.byCategory[c.id]) })),
   ];
 
-  const tabsRef = useRef<HTMLDivElement>(null);
   const chipsRef = useRef<HTMLDivElement>(null);
-  useScrollFade(tabsRef, '[role="tablist"]', cohort);
   useScrollFade(chipsRef, null, `${cohort}|${chips.map((t) => t.id).join()}`);
 
   return (
     <div className="forum-filters" data-hub="forum-filters">
-      <div className="forum-filters__tabs-wrap" ref={tabsRef}>
+      <div className="forum-filters__tabs-wrap">
         <Tabs
           idBase="forum"
           label="Categories"
-          className="forum-filters__tabs"
+          className="forum-filters__tabs u-scroll-row--bleed"
           tabs={tabs}
           value={cohort}
           onChange={(id) => update({ cohort: id, tag: '' })}
@@ -85,7 +82,12 @@ export function ForumFilterBar({ filters, update, stats, chips, scope }: ForumFi
         label="Search threads"
         dir="auto"
       />
-      <div className="forum-filters__chips" role="group" aria-label="Filter threads" ref={chipsRef}>
+      <div
+        className="forum-filters__chips u-scroll-row u-scroll-row--bleed"
+        role="group"
+        aria-label="Filter threads"
+        ref={chipsRef}
+      >
         <Chip
           size="sm"
           icon={ChatCircle}

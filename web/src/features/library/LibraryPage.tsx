@@ -580,7 +580,7 @@ export default function LibraryPage() {
             />
           </div>
           <div className="lib-filters__row" role="group" aria-label="Module">
-            <div className="lib-filters__chips">
+            <div className="lib-filters__chips u-scroll-row">
               <Chip selected={!module} onChange={() => update({ module: null })}>
                 All modules
               </Chip>
@@ -600,7 +600,7 @@ export default function LibraryPage() {
           </div>
           {availableKinds.length ? (
             <div className="lib-filters__row" role="group" aria-label="Type">
-              <div className="lib-filters__chips">
+              <div className="lib-filters__chips u-scroll-row">
                 <Chip selected={!kind} onChange={() => update({ type: null })}>
                   All types
                 </Chip>
