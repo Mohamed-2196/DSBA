@@ -6,6 +6,8 @@
 //   useHotThreads({ n, year, enabled })   UseQueryResult<ThreadSummary[]>: the hottest threads (pinned ones left out) for a
 //                                         cohort plus forum-wide ones; year null → every cohort. Links: /forum/<slug>.
 //   <ReportButton targetType targetId />  "Report" + its dialog for a thread, a reply, a library item ('library_item') or a request.
+//   useReport(targetType, targetId)       the same as an action for a menu: { label, reported, open(), dialog } or null
+//                                         when this account can't report (render `dialog` once).
 //   <ReportsQueue />                      the moderators' list of reports (resolve, dismiss, open the post).
 //   <MarkdownEditor … />                  the forum's Markdown textarea: toolbar, ⌘B / ⌘I, an optional Write / Preview toggle.
 //   <Prose text="…" />                    renders the forum's Markdown (lib/markdown.ts) as React elements, never HTML.
@@ -18,6 +20,7 @@ export { HelpBelow } from './HelpBelow';
 export { ModuleThreads } from './ModuleThreads';
 export { useHotThreads } from './api';
 export { ReportButton } from './ReportButton';
+export { useReport } from './useReport';
 export { ReportsQueue } from './ReportsQueue';
 export { useStartsThreads } from './lib/posting';
 export { MarkdownEditor } from './components/MarkdownEditor';

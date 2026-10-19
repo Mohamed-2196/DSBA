@@ -1,9 +1,12 @@
+/* A button is never narrower than its label: in a row that runs out of room it keeps its size (the row wraps or
+   scrolls), where squeezing it would spill its label over its neighbours. */
 .ui-button {
   --btn-h: 40px;
   --btn-px: 16px;
   --btn-fs: var(--fs-14);
   position: relative;
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -50,6 +53,7 @@
 }
 .ui-button--full {
   display: flex;
+  flex-shrink: 1;
   width: 100%;
 }
 
@@ -96,7 +100,7 @@
   opacity: 0.8;
 }
 
-/* Touch screens: every button is at least 44px tall (UX review UX-11). */
+/* Touch screens: every button is at least 44px tall and wide. */
 @media (pointer: coarse) {
   .ui-button--sm,
   .ui-button--md {

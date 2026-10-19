@@ -110,32 +110,52 @@
   display: flex;
   align-items: center;
   gap: var(--sp-4);
-  min-width: 0;
 }
+/* The facts take the room the actions leave and give way first (the size, never the module code). */
+.lib-tb__info {
+  flex: 1 1000 auto;
+}
+/* The actions fit by design (viewer/toolbar.ts); if they ever don't, the row scrolls rather than overlap or push
+   the page sideways. The padding keeps focus rings inside the scroller. */
 .lib-tb__actions {
+  flex: 0 1 auto;
+  min-width: 0;
   gap: var(--sp-8);
+  margin: calc(-1 * var(--sp-4));
+  padding: var(--sp-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.lib-tb__actions::-webkit-scrollbar {
+  display: none;
 }
 .lib-tb__sep {
+  flex: none;
   width: 1px;
   height: 24px;
   margin: 0 var(--sp-8);
   background: var(--line);
 }
 .lib-tb__facts {
-  display: inline-flex;
+  display: flex;
+  flex: 1 1 auto;
   align-items: baseline;
   gap: var(--sp-8);
-  min-width: 0;
-  overflow: hidden;
   color: var(--ink-2);
   font-size: var(--fs-14);
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
 .lib-tb__facts strong {
+  flex: none;
   color: var(--ink);
   font-weight: var(--fw-heavy);
   font-variant-numeric: tabular-nums lining-nums;
+}
+.lib-tb__facts > span {
+  flex: 1 1 0;
+  width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Review status (uploader and moderators) ────────────────────────── */
@@ -529,6 +549,10 @@
 .lib-viewer.is-stacked .lib-meta__keys {
   display: none;
 }
+/* Phones and tablets: the size is in the details under the file. */
+.lib-viewer.is-stacked .lib-tb__facts > span {
+  display: none;
+}
 
 @media (max-width: 699px) {
   .lib-viewer.is-stacked .lib-viewer__toolbar {
@@ -538,10 +562,6 @@
   }
   .lib-viewer__title {
     font-size: var(--fs-20);
-  }
-  .lib-tb__copy,
-  .lib-tb__facts > span {
-    display: none;
   }
   .lib-tb__actions {
     gap: 2px;
