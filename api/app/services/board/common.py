@@ -25,7 +25,7 @@ from app.models import (
     User,
 )
 from app.schemas.board import BoardLink
-from app.services import access, my_calendar
+from app.services import access, library, my_calendar
 from app.services.modules import lesson_name, lesson_path, student_lessons
 
 MAX_BOARDS = 20
@@ -190,11 +190,17 @@ def resolve_links(db: Session, user: User | None, keys: Iterable[LinkKey]) -> di
         uuids = [u for u in (parse_uuid(i) for i in ids) if u is not None]
         if uuids and access.feature_on(db, user, Feature.library):
             q = select(LibraryItem).where(LibraryItem.id.in_(uuids), LibraryItem.status == ItemStatus.published)
-            for item in db.scalars(q):
+            items = list(db.scalars(q))
+            item_modules = {i.module_id for i in items if i.module_id}
+            tags = {
+                m.id: m.unit_code or m.short_name
+                for m in (db.scalars(select(Module).where(Module.id.in_(item_modules))) if item_modules else ())
+            }
+            for item in items:
                 found["library_item", str(item.id)] = BoardLink(
                     type="library_item",
                     id=str(item.id),
-                    title=item.title,
+                    title=library.exam_title(item, tags.get(item.module_id or "")),
                     url=f"/library/{item.slug}",
                     date=None,
                     kind=item.kind,
