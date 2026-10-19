@@ -1,0 +1,9 @@
+.shell-install__steps {
+  display: grid;
+  gap: var(--sp-8);
+  margin: 0;
+  padding-left: 1.4em;
+  color: var(--ink);
+  font-size: var(--fs-15);
+  line-height: var(--lh-sans);
+}

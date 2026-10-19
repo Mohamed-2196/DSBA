@@ -1,6 +1,6 @@
 import { createElement, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ArrowUpRight, Bug, DotsThreeOutline, Info, UploadSimple } from '@phosphor-icons/react';
+import { ArrowUpRight, Bug, DotsThreeOutline, DownloadSimple, Info, UploadSimple } from '@phosphor-icons/react';
 import { useAuth } from '../auth';
 import { BrandLogo, Divider, Drawer, cx } from '../ui';
 import { openBugReport } from '../features/bugs/public';
@@ -9,6 +9,8 @@ import { MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
 import { usePortalLinks } from './portals';
 import { visibleNav } from './visibility';
 import { YearSwitcher } from './YearSwitcher';
+import { InstallSteps } from './InstallSteps';
+import { useInstallOffer } from './useInstallOffer';
 import { ThemeToggle } from './ThemeToggle';
 import { useStartUpload, useUploadShown } from './upload';
 import './MobileNav.css';
@@ -21,6 +23,7 @@ export function MobileNav() {
   const uploadShown = useUploadShown();
   const { featureOn, me } = useAuth();
   const portals = usePortalLinks();
+  const install = useInstallOffer();
   const nav = visibleNav(NAV, featureOn, !!me);
   const tabs = nav.filter((n) => MOBILE_TAB_IDS.includes(n.id));
   const more = nav.filter((n) => MORE_IDS.includes(n.id));
@@ -102,6 +105,22 @@ export function MobileNav() {
                 </button>
               </li>
             ) : null}
+            {install.way ? (
+              <li>
+                <button
+                  type="button"
+                  className="shell-more__item"
+                  onClick={() => {
+                    close();
+                    install.start();
+                  }}
+                  data-hub="more-install"
+                >
+                  <DownloadSimple aria-hidden="true" />
+                  <span>Install the app</span>
+                </button>
+              </li>
+            ) : null}
             <li>
               <button
                 type="button"
@@ -142,6 +161,7 @@ export function MobileNav() {
           <ThemeToggle />
         </div>
       </Drawer>
+      <InstallSteps offer={install} />
     </>
   );
 }
