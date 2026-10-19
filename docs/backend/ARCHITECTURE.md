@@ -69,7 +69,7 @@ api/                          Python backend
                               documents (the documents edited whole in Manage) site grades
                               notes note_doc board/ (boards, cards, plans, files, reminders, export, common)
                               noora/ (ask, prompt, paper, settings)
-                              daily/ (plays, content, editor, bundle, streaks, badges, sudoku_engine, games/)
+                              daily/ (plays, today, rules, content, editor, bundle, streaks, badges, sudoku_engine, games/)
   app/seed/                   the seed loader and the starting content (data/*.json; data/daily: the Daily themes
                               and the word game's guess list)
   app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, weekly-summary,

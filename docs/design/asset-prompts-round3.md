@@ -1,86 +1,196 @@
 # Asset prompts, round 3: Daily's game art
 
-Six pictures, one per Daily game, for the tiles on `/daily`. Rounds 1 and 2 are `asset-prompts.md` and
-`asset-prompts-round2.md`; their generator settings and palette hold here too. Drop finished files in
-`web/public/brand/incoming/` under the names given; they then move to `web/public/daily/` and take the place of the
-drawn glyph in each tile's art slot (`web/src/features/daily/components/GameCard.tsx`). Until they arrive, the tiles
-keep the shapes drawn in code (`GameGlyph.tsx`). A finished play's tile shows the play's own squares instead of either.
+Updated: 2026-10-19
 
-**Canvas.** 1024×1024 transparent PNG, 1:1, the drawing centred and filling about 80% of the canvas, nothing touching
-the edges. The tile shows it at 56 px on phones and 96 px on laptops, so shapes must read at 56 px: few, large pieces,
-no fine detail. Ask for a **transparent background**; if the model can't, ask for plain white `#FFFFFF` (never a
-checkerboard) and we cut it out.
+**Task.** Six pictures, one per Daily game, for the tiles on `/daily`. Each tile shows its game's art on the game's own
+tint above the name, so a student tells the six games apart at a glance. Until the files arrive, each tile keeps the
+shape drawn in code (`web/src/features/daily/components/GameGlyph.tsx`). A finished play's tile shows the play's own
+squares instead of either.
 
-**Shared style (Mini Noora's).** Clean modern editorial vector, smooth shapes, thin dark-navy `#0A1F44` outlines, flat
-colour with one soft shade tone per colour, no gradients, no texture, no 3D, no gloss or shine. No letters, digits or
-words anywhere (models garble them; the game's name sits under the art). No logos, and nothing that imitates another
-puzzle app's look. Each picture leads with its game's own colour from the hub, so the six tell apart at a glance; the
-tile's tint behind it is that colour at 13%.
+**Capability gap.** The coding tools can't generate images. Mohamed makes these with an image model and drops them
+in `web/public/brand/incoming/`. A builder then moves them to `web/public/daily/` and wires them into the tile's art slot
+(`GameCard.tsx`, `.dh-tile__art` in `DailyPage.css`). The layout already works without them. None of the six files exist
+yet.
 
-Make **6a first**, keep its seed (or attach it as the style reference) and reuse it for the other five.
+**Earlier rounds.** `asset-prompts.md` (brand, Mini Noora, module icons, empty states) and `asset-prompts-round2.md`.
 
-**6a. The Word.** File: `daily-word.png`. Colour: signal green `#12B886`.
+## Shared art direction
+
+**Match the module icons, not Mini Noora.** These are small object icons. The closest finished art in the app is the
+module icons, so their look is the reference:
+
+- chunky rounded shapes with **no outlines**;
+- saturated flat colour with one darker shade tone per colour;
+- a single short white highlight streak on the larger pieces.
+
+Mini Noora is a character with dark outlines and suits people, not icons.
+
+**References to attach** (as style references, never as things to copy into the picture):
+
+| File | Use it for |
+| --- | --- |
+| `web/public/modules/module-st2187.png` | The main reference: shape weight, the highlight streak, no outlines, and how the art reads small. |
+| `web/public/illustrations/empty-search.png` | Palette and finish of the hub's larger illustrations. |
+
+**Palette.** Each picture leads with its game's colour, taken from `web/src/styles/tokens.css`:
+
+| Game | Token | Colour |
+| --- | --- | --- |
+| The Word | `--signal` | green `#12B886` |
+| Correlations | `--mine-violet` | violet `#6741D9` |
+| Data Mine | `--y3` | amber `#F08C00` |
+| The Daily Query | `--cobalt` | cobalt `#1558F0` |
+| Nearest Neighbour | `--mine-rose` | rose `#C2255C` |
+| Sudoku | `--y1` | lagoon `#0FA3B1` |
+
+Supporting colours are cream `#F4F7FC`, yellow `#FFE14A` and navy `#0A1F44`, used only as a fill for small pieces.
+
+**Backgrounds the art must work on.** The tile behind the picture is the game's colour at 13% over the page:
+
+- light theme: near-white over `#FFFFFF`;
+- dark theme: very dark over `#0D1B3B`.
+
+So no piece may rely on a navy or black edge to be seen: on the dark tile it vanishes. Every shape's silhouette must
+come from its fill.
+
+**Size.** The tile shows the art at **96 px** on laptops and **50 px** on phones. Few, large pieces and no fine detail.
+Three to five shapes at most.
+
+**Constraints.**
+- No letters, digits or words anywhere, because models garble them and the game's name sits under the art. A question
+  mark is drawn as a shape, not a typed character.
+- No logos.
+- Nothing that recreates another puzzle app's signature look. In particular: no row of five green, yellow and grey
+  letter tiles, and no four-by-four grid in yellow, green, blue and purple.
+
+**Continuity.** Same light direction (top left), same highlight streak, same shape weight and the same 80% fill in all
+six. Make **D1 first**, then attach it as a style reference (or reuse its seed) for the other five.
+
+## Requests
+
+| ID | Priority | Screen and role | Planned output | Status |
+| --- | --- | --- | --- | --- |
+| D1 | Required | `/daily` tile, The Word | `web/public/brand/incoming/daily-word.png` | requested |
+| D2 | Required | `/daily` tile, Correlations | `web/public/brand/incoming/daily-groups.png` | requested |
+| D3 | Required | `/daily` tile, Data Mine | `web/public/brand/incoming/daily-search.png` | requested |
+| D4 | Required | `/daily` tile, The Daily Query | `web/public/brand/incoming/daily-quiz.png` | requested |
+| D5 | Required | `/daily` tile, Nearest Neighbour | `web/public/brand/incoming/daily-nearest.png` | requested |
+| D6 | Required | `/daily` tile, Sudoku | `web/public/brand/incoming/daily-sudoku.png` | requested |
+
+All six requests share the same settings:
+
+- **Production:** a new image, not an edit of an existing one.
+- **Size:** 1024×1024, square, with the drawing centred and filling about 80% of the canvas and nothing touching the
+  edges.
+- **Background:** real transparent alpha (RGBA). If the model can't do that, use plain white `#FFFFFF`, never a painted
+  checkerboard, and the builder cuts it out.
+- **Text:** none.
+- **Variants:** none. One file works on both themes.
+
+### D1. The Word: guessing one hidden word
+
+Composition: three chunky rounded square tiles standing in a slight arc, blank faces. The front tile is green and
+carries a soft white tick shape. A short pencil leans against the right tile.
 
 ```text
-Flat vector illustration, transparent background, centred, filling 80% of a square canvas. Two rows of five rounded
-square tiles, slightly tilted as if just laid on a table, the upper row with tiles filled in green #12B886, yellow
-#FFE14A and soft grey #8A9BB8, the lower row empty with outlined edges; a small pencil leaning against the right end.
-Clean modern editorial vector, thin dark-navy #0A1F44 outlines, flat colour with one soft shade tone per colour, no
-gradients, no texture, no 3D, no gloss. No letters, no digits, no text, no logos.
-```
-
-**6b. Correlations.** File: `daily-groups.png`. Colour: violet `#6741D9`.
-
-```text
-Flat vector illustration, transparent background, centred, filling 80% of a square canvas. Sixteen small rounded
-cards in a loose four-by-four arrangement; four of them slide together into a neat row and glow softly in violet
-#6741D9, the rest are pale cream #F4F7FC with a hint of yellow #FFE14A, green #12B886 and blue #1F6FEB edges. A thin
-curved arrow shows the four cards joining. Clean modern editorial vector, thin dark-navy #0A1F44 outlines, flat colour
-with one soft shade tone per colour, no gradients, no texture, no 3D, no gloss. No letters, no digits, no text, no
+Chunky rounded vector icon on a transparent background, centred, filling 80% of a square canvas. Three blank rounded
+square tiles standing in a gentle arc, the front tile in green #12B886 with a soft white tick shape on it, the two
+behind it in pale cream #F4F7FC with green shade edges; a short yellow #FFE14A pencil leans against the right tile.
+Style: no outlines, saturated flat colour with one darker shade tone per colour, a single short white highlight streak
+on the larger shapes, light from the top left, few large shapes that read at 50 px. No letters, no digits, no text, no
 logos.
 ```
 
-**6c. Data Mine.** File: `daily-search.png`. Colour: amber `#F08C00`.
+### D2. Correlations: finding the groups that belong together
+
+Composition: four rounded cards snapping into one row, joined by a short violet band. Two loose cards drift outside
+the row. Everything is violet and cream, with no four-colour grid.
 
 ```text
-Flat vector illustration, transparent background, centred, filling 80% of a square canvas. A square grid of small
-round dots, like a field of hidden letters, with one bold amber #F08C00 highlighter stroke running diagonally through
-a line of dots; a small miner's pickaxe rests on the lower right corner of the grid, its head catching the same
-amber. Clean modern editorial vector, thin dark-navy #0A1F44 outlines, flat colour with one soft shade tone per
-colour, no gradients, no texture, no 3D, no gloss. No letters, no digits, no text, no logos.
+Chunky rounded vector icon on a transparent background, centred, filling 80% of a square canvas. Four blank rounded
+cards snapping together into one neat row, joined by a short violet #6741D9 band across their middles, the four cards
+in violet with lighter violet shade edges; two loose pale cream #F4F7FC cards drift just above and below the row,
+slightly tilted. Style: no outlines, saturated flat colour with one darker shade tone per colour, a single short white
+highlight streak on the larger shapes, light from the top left, few large shapes that read at 50 px. No letters, no
+digits, no text, no logos.
 ```
 
-**6d. The Daily Query.** File: `daily-quiz.png`. Colour: cobalt `#1558F0`.
+### D3. Data Mine: hunting words in a grid
+
+Composition: a small square of round stones, a diagonal line of them lit amber. A pickaxe rests at the lower right,
+with an amber head.
 
 ```text
-Flat vector illustration, transparent background, centred, filling 80% of a square canvas. A speech-bubble-shaped
-card in cobalt blue #1558F0 with a large rounded question-mark shape cut out of it (a shape, not a typed character),
-and beneath it three stacked pill-shaped answer buttons, the middle one filled green #12B886 with a white tick. Clean
-modern editorial vector, thin dark-navy #0A1F44 outlines, flat colour with one soft shade tone per colour, no
-gradients, no texture, no 3D, no gloss. No letters, no digits, no text, no logos.
+Chunky rounded vector icon on a transparent background, centred, filling 80% of a square canvas. A small square grid of
+four by four round cream #F4F7FC stones, with one diagonal line of four stones glowing amber #F08C00; a chunky pickaxe
+with an amber head and a navy #0A1F44 handle rests across the lower right corner of the grid. Style: no outlines,
+saturated flat colour with one darker shade tone per colour, a single short white highlight streak on the larger
+shapes, light from the top left, few large shapes that read at 50 px. No letters, no digits, no text, no logos.
 ```
 
-**6e. Nearest Neighbour.** File: `daily-nearest.png`. Colour: rose `#C2255C`.
+### D4. The Daily Query: a short quiz
+
+Composition: a cobalt speech bubble with a question-mark shape cut out. Under it are three answer pills, the middle one
+green with a tick.
 
 ```text
-Flat vector illustration, transparent background, centred, filling 80% of a square canvas. A scatter of small round
-points on a plain field, with dashed rings spreading out from one central point like ripples; the central point is a
-bright yellow #FFE14A target, the nearest point to it is rose #C2255C and joined to it by a short solid line, the
-farther points fade to pale grey-blue. Clean modern editorial vector, thin dark-navy #0A1F44 outlines, flat colour
-with one soft shade tone per colour, no gradients, no texture, no 3D, no gloss. No letters, no digits, no text, no
-logos.
+Chunky rounded vector icon on a transparent background, centred, filling 80% of a square canvas. A cobalt blue #1558F0
+speech bubble with a large rounded question-mark shape cut out of it (a cut-out shape, not a typed character); beneath
+it three stacked pill-shaped answer buttons, the top and bottom in pale cream #F4F7FC, the middle one green #12B886
+with a white tick. Style: no outlines, saturated flat colour with one darker shade tone per colour, a single short
+white highlight streak on the larger shapes, light from the top left, few large shapes that read at 50 px. No letters,
+no digits, no text, no logos.
 ```
 
-**6f. Sudoku.** File: `daily-sudoku.png`. Colour: lagoon `#0FA3B1`.
+### D5. Nearest Neighbour: getting closer to the hidden word
+
+Composition: a yellow target at the centre with two soft rose rings around it. A rose point sits just inside the inner
+ring, and two pale points sit farther out.
 
 ```text
-Flat vector illustration, transparent background, centred, filling 80% of a square canvas. A square board divided into
-a three-by-three grid of boxes with bold lagoon-teal #0FA3B1 borders and thinner inner lines; a few cells filled with
-small solid dots in navy instead of numbers, one cell highlighted in yellow #FFE14A, and a small pencil resting
-diagonally across the lower right corner. Clean modern editorial vector, thin dark-navy #0A1F44 outlines, flat colour
-with one soft shade tone per colour, no gradients, no texture, no 3D, no gloss. No letters, no digits, no text, no
-logos.
+Chunky rounded vector icon on a transparent background, centred, filling 80% of a square canvas. A round yellow #FFE14A
+target point at the centre, with two soft filled rings around it in light rose; one solid rose #C2255C point sits just
+inside the inner ring, close to the target, and two smaller pale cream #F4F7FC points sit farther out. The rings are
+filled soft bands, not thin lines. Style: no outlines, saturated flat colour with one darker shade tone per colour, a
+single short white highlight streak on the larger shapes, light from the top left, few large shapes that read at
+50 px. No letters, no digits, no text, no logos.
 ```
 
-**Checks before they go in.** Real transparency (an RGBA file, no painted checkerboard); readable at 56 px; the six
-side by side look like one set; no text or digits crept in.
+### D6. Sudoku: filling the grid
+
+Composition: a thick lagoon board in three-by-three blocks, a few cells holding navy dots, one cell yellow. A pencil
+lies across the lower right corner.
+
+```text
+Chunky rounded vector icon on a transparent background, centred, filling 80% of a square canvas. A thick rounded square
+board in lagoon teal #0FA3B1, divided into a three-by-three grid of pale cream #F4F7FC blocks by bold teal gaps; four
+blocks hold one solid navy #0A1F44 dot each instead of numbers, and one block is filled yellow #FFE14A; a short pencil
+lies diagonally across the lower right corner. Style: no outlines, saturated flat colour with one darker shade tone
+per colour, a single short white highlight streak on the larger shapes, light from the top left, few large shapes that
+read at 50 px. No letters, no digits, no text, no logos.
+```
+
+## Acceptance, for each file
+
+- The file is a real RGBA PNG at 1024×1024, with a clean edge and no white halo.
+- At 50 px on the light tile and on the dark tile (`#0D1B3B` with 13% of the game's colour), the subject is
+  recognisable and no piece disappears.
+- No letters, digits or text have crept in, and no other app's look is recreated.
+- The six side by side look like one set: the same shape weight, highlight and fill.
+- They also sit comfortably beside `module-st2187.png`.
+
+## Return contract for the image model
+
+Generate each file and look at it before saving. Keep the exact prompt used and any seed. Report each file's path,
+size, and any problem you saw.
+
+Don't approve, wire in or overwrite anything. Mohamed picks, and a builder integrates.
+
+## Integration, once Mohamed picks
+
+- Move the files from `web/public/brand/incoming/` to `web/public/daily/`. Export them at 192×192 (2× the laptop size)
+  as WebP or optimised PNG, aiming for under 20 kB each.
+- In `GameCard.tsx`, render an `<img>` with `alt=""` (the art slot is `aria-hidden`; the game's name follows it) and
+  fixed width and height of `var(--art)`, so nothing shifts. Keep `GameGlyph` for a missing file.
+- `/daily` is the first screen of the hub, so load the images normally, not lazily.
+- Check `/daily` at 360, 390 and 1440 px in light and dark, then mark each request `integrated` here.
