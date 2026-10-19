@@ -10,6 +10,8 @@
 //                                            calendar (their Home); it waits for their settings.
 //
 //   applicationLine(e, today)                a careers date on an employer's card: 'Opens in January', 'Closes 30 November'.
+//   aheadRows(events, today, skip?)          a short "coming up" list: nothing over, windows already open by their closing
+//                                            day ({ event, day, closes }).
 //   eventDate(e) / dayKeyFromToday(n)        an event's day as a local Date; 'YYYY-MM-DD' n days from today (Bahrain).
 //
 // Deep links into the page: /calendar?event=<id> (opens the event; 'mine-<id>' one of the student's own),
@@ -22,5 +24,5 @@ export { EventFormDialog } from './EventFormDialog';
 export { useCalendarEvents, useNextExamForModule } from './api';
 export { useMyCalendarEvents } from './useMyCalendar';
 export { applicationLine, EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
-export { dayKeyFromToday, eventDate } from './queries';
+export { aheadRows, dayKeyFromToday, eventDate, type AheadRow } from './queries';
 export type { CalendarEvent, EventType } from './types';

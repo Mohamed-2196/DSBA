@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { whenAndWhere } from './eventMeta';
 import {
+  aheadRows,
   eventDays,
   filterEvents,
   groupByDay,
@@ -182,5 +183,28 @@ describe('eventDays and groupByDay', () => {
     const byDay = groupByDay([week, exam]);
     expect([...byDay.keys()]).toEqual(['2026-05-29', '2026-05-30', '2026-05-31', '2026-06-01']);
     expect(ids(byDay.get('2026-05-31') ?? [])).toEqual([week.id, exam.id]);
+  });
+});
+
+describe('aheadRows', () => {
+  const today = '2026-10-19';
+  it('places a window that has opened by its closing day and drops what is over', () => {
+    const open = ev('2026-10-13', { endDate: '2026-10-24', type: 'careers' });
+    const over = ev('2026-10-10', { endDate: '2026-10-18', type: 'careers' });
+    const exam = ev('2026-10-23');
+    const later = ev('2026-10-30');
+    const rows = aheadRows([open, over, exam, later], today);
+    expect(rows.map((r) => r.event.id)).toEqual([exam.id, open.id, later.id]);
+    expect(rows.map((r) => r.day)).toEqual(['2026-10-23', '2026-10-24', '2026-10-30']);
+    expect(rows.map((r) => r.closes)).toEqual([false, true, false]);
+  });
+  it('lists a window that opens today by its first day', () => {
+    const w = ev(today, { endDate: '2026-10-25', type: 'deadline' });
+    expect(aheadRows([w], today)).toEqual([{ event: w, day: today, closes: false }]);
+  });
+  it('leaves out the ids it is told to skip', () => {
+    const headline = ev('2026-10-23');
+    const next = ev('2026-10-26');
+    expect(aheadRows([headline, next], today, new Set([headline.id])).map((r) => r.event.id)).toEqual([next.id]);
   });
 });
