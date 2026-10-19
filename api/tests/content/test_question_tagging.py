@@ -634,3 +634,41 @@ def test_a_paper_that_numbers_each_section_from_one_keeps_its_sections_through_t
         ("B", 2, c, qt.MODEL),
         (None, 2, b, qt.MODEL),
     }
+
+
+def test_the_seed_replaces_a_papers_stale_tags_from_claude_and_keeps_the_rest(
+    db: Session, modules: dict[str, Module], student: User
+) -> None:
+    """A paper re-tagged in the file (here, given sections) loses its old tags from Claude on the next seed; a tag
+    that is still in the file keeps its row (and the flags on it), and a student's tag is never touched."""
+    a, b, c = chapter_ids(db)[:3]
+    item = paper(db, "ST2195 ZB May 2024", content=b"two sections again")
+    qt.save_tags(
+        db,
+        item.id,
+        [
+            qt.Tag(section=None, question=1, page=1, chapter_ids=(a,), confidence=1.0),
+            qt.Tag(section=None, question=2, page=2, chapter_ids=(b,), confidence=1.0),
+        ],
+    )
+    db.add(PaperQuestion(item_id=item.id, chapter_id=c, section=None, question=5, tagged_by=student.id))
+    db.commit()
+    kept_id = db.scalar(select(PaperQuestion.id).where(PaperQuestion.item_id == item.id, PaperQuestion.question == 2))
+    entry = {
+        "module": item.module_id,
+        "title": item.title,
+        "importKey": item.import_key,
+        "contentHash": item.content_hash,
+        "model": qt.MODEL,
+        "questions": [
+            {"section": "A", "question": 1, "page": 1, "chapters": [a]},
+            {"question": 2, "page": 2, "chapters": [b]},
+        ],
+    }
+    qt.import_tags(db, [entry])
+    db.commit()
+    assert sectioned(db, item) == {("A", 1, a, qt.MODEL), (None, 2, b, qt.MODEL), (None, 5, c, None)}
+    assert (
+        db.scalar(select(PaperQuestion.id).where(PaperQuestion.item_id == item.id, PaperQuestion.question == 2))
+        == kept_id
+    )

@@ -643,6 +643,20 @@ def _removed(db: Session) -> set[tuple[str, str | None, int, str]]:
     return out
 
 
+def _drop_stale(db: Session, item_id: uuid.UUID, tags: Sequence[Tag]) -> None:
+    """The file is the word on Claude's tags of a paper it lists: those it no longer has go; those it still has keep
+    their rows, and with them any flags on them. A student's tag is never touched."""
+    wanted = {(t.section, t.question, c) for t in tags for c in t.chapter_ids}
+    rows = db.execute(
+        select(PaperQuestion.id, PaperQuestion.section, PaperQuestion.question, PaperQuestion.chapter_id).where(
+            PaperQuestion.item_id == item_id, PaperQuestion.tagged_by_model.is_not(None)
+        )
+    ).tuples()
+    stale = [row_id for row_id, section, question, chapter in rows if (section, question, chapter) not in wanted]
+    if stale:
+        db.execute(delete(PaperQuestion).where(PaperQuestion.id.in_(stale)))
+
+
 def import_tags(db: Session, entries: Sequence[dict[str, Any]]) -> int:
     """The seed's tags, on the papers this environment has: never twice, never one a moderator removed, never on a
     question a student tagged, only with chapters its module has. How many rows it added."""
@@ -669,6 +683,7 @@ def import_tags(db: Session, entries: Sequence[dict[str, Any]]) -> int:
             )
             if kept:
                 tags.append(Tag(section=section, question=question, page=page, chapter_ids=kept, confidence=1.0))
+        _drop_stale(db, item.id, tags)
         added += save_tags(db, item.id, tags, model=str(entry.get("model") or MODEL))
     db.flush()
     return added
