@@ -1,13 +1,12 @@
 import { createElement, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ArrowUpRight, Bug, DotsThreeOutline, DownloadSimple, Info, UploadSimple } from '@phosphor-icons/react';
-import { useAuth } from '../auth';
 import { BrandLogo, Divider, Drawer, cx } from '../ui';
 import { openBugReport } from '../features/bugs/public';
 import { NooraFace } from '../features/noora/public';
-import { MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
+import { MOBILE_TAB_IDS, MORE_IDS } from './nav';
 import { usePortalLinks } from './portals';
-import { visibleNav } from './visibility';
+import { useShownNav } from './useShownNav';
 import { YearSwitcher } from './YearSwitcher';
 import { InstallSteps } from './InstallSteps';
 import { useInstallOffer } from './useInstallOffer';
@@ -21,10 +20,9 @@ export function MobileNav() {
   const { pathname } = useLocation();
   const startUpload = useStartUpload();
   const uploadShown = useUploadShown();
-  const { featureOn, me } = useAuth();
   const portals = usePortalLinks();
   const install = useInstallOffer();
-  const nav = visibleNav(NAV, featureOn, !!me);
+  const nav = useShownNav();
   const tabs = nav.filter((n) => MOBILE_TAB_IDS.includes(n.id));
   const more = nav.filter((n) => MORE_IDS.includes(n.id));
   const moreActive = [...more.map((m) => m.to), '/about', '/styleguide'].some((p) => pathname.startsWith(p));
