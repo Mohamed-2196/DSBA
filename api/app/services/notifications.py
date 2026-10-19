@@ -69,6 +69,21 @@ def mark_read(db: Session, user: User, notification_id: UUID) -> None:
         n.read_at = utcnow()
 
 
+def mark_thread_read(db: Session, user: User, thread_id: UUID) -> int:
+    """Marks `user`'s unread notifications about a forum thread read: they opened it (the caller commits).
+    -> how many."""
+    result = db.execute(
+        update(Notification)
+        .where(
+            Notification.user_id == user.id,
+            Notification.read_at.is_(None),
+            Notification.data["threadId"].astext == str(thread_id),
+        )
+        .values(read_at=utcnow())
+    )
+    return int(getattr(result, "rowcount", 0) or 0)
+
+
 def mark_all_read(db: Session, user: User) -> None:
     """Marks every unread notification of `user`'s read (the caller commits)."""
     db.execute(

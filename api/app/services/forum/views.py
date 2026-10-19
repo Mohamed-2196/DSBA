@@ -14,7 +14,7 @@ from sqlalchemy import ColumnElement, Row, and_, exists, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.links import MEDIA_PATH
-from app.models import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote, Upload, User
+from app.models import ForumReply, ForumThread, Notification, PostStatus, ReplyVote, ThreadVote, Upload, User
 from app.schemas.forum import Reply, ThreadDetail, ThreadSummary
 from app.services import access
 from app.services.accounts import public_user
@@ -61,6 +61,24 @@ def first_pictures(
     return {tid: next((p for p in shown if opens(p)), None) for tid, shown in found.items()}
 
 
+def unread_threads(db: Session, viewer: User | None, thread_ids: Sequence[uuid.UUID]) -> set[uuid.UUID]:
+    """The threads among `thread_ids` that the viewer has unread notifications about (a reply, an answer). One
+    query; none for guests."""
+    if viewer is None or not thread_ids:
+        return set()
+    about = Notification.data["threadId"].astext
+    found = db.scalars(
+        select(about)
+        .where(
+            Notification.user_id == viewer.id,
+            Notification.read_at.is_(None),
+            about.in_([str(i) for i in thread_ids]),
+        )
+        .distinct()
+    )
+    return {uuid.UUID(i) for i in found}
+
+
 def summary_dict(
     t: ForumThread,
     author: User | None,
@@ -68,6 +86,7 @@ def summary_dict(
     voted: bool,
     viewer: User | None,
     image: dict[str, str] | None,
+    unread: bool,
 ) -> dict[str, Any]:
     text = _text(t)
     return {
@@ -93,14 +112,17 @@ def summary_dict(
         "status": t.status.value,
         "image": image,
         "is_mine": viewer is not None and t.author_id == viewer.id,
+        "unread": unread,
     }
 
 
 def summaries(db: Session, rows: Sequence[Row[Any]], viewer: User | None) -> list[ThreadSummary]:
     """Rows of queries.summary_select() as ThreadSummary."""
-    images = first_pictures(db, [row[0] for row in rows], viewer)
+    threads = [row[0] for row in rows]
+    images = first_pictures(db, threads, viewer)
+    unread = unread_threads(db, viewer, [t.id for t in threads])
     return [
-        ThreadSummary.model_validate(summary_dict(t, author, year, bool(voted), viewer, images[t.id]))
+        ThreadSummary.model_validate(summary_dict(t, author, year, bool(voted), viewer, images[t.id], t.id in unread))
         for t, author, year, voted in rows
     ]
 
@@ -178,7 +200,9 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
                 .where(ReplyVote.user_id == viewer.id, ForumReply.thread_id == t.id)
             )
         )
-    data = summary_dict(t, author, thread_year(db, t), voted, viewer, first_pictures(db, [t], viewer)[t.id])
+    image = first_pictures(db, [t], viewer)[t.id]
+    unread = t.id in unread_threads(db, viewer, [t.id])
+    data = summary_dict(t, author, thread_year(db, t), voted, viewer, image, unread)
     data.update(
         body=_text(t),
         edited_at=t.edited_at,

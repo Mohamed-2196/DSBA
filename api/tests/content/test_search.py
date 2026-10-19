@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.text import snippet
-from app.core.time import utcnow
+from app.core.time import bahrain_today, utcnow
 from app.models import (
     CalendarEvent,
     ForumThread,
@@ -200,6 +200,7 @@ def test_module_aliases_prefixes_and_types(content: None, client_for: Clients) -
     assert len(search(guest, "course", types=["library"], limit=2)["library"]) == 2
     assert search(guest, "++") == {
         "query": "++",
+        "corrected": None,
         "threads": [],
         "library": [],
         "issues": [],
@@ -223,7 +224,8 @@ def test_search_takes_the_nicknames_admins_give_modules(
     site["data"]["searchNicknames"] = [n for n in site["data"]["searchNicknames"] if n["word"] != "metrics"]
     assert admin.put(f"{API}/site", json={"version": site["version"], "data": site["data"]}).status_code == 200
     assert titles(search(guest, "probability")["modules"]) == ["Advanced Statistics: Distribution Theory"]
-    assert search(guest, "metrics")["modules"] == []  # that nickname went
+    gone = search(guest, "metrics")  # that nickname went: only spelling tolerance finds the module now
+    assert gone["corrected"] == "econometrics", gone["corrected"]
 
 
 def test_dates_not_confirmed_yet_say_so(content: None, client_for: Clients) -> None:
@@ -292,3 +294,69 @@ def test_search_leaves_out_what_is_switched_off(
     assert found(student) == (0, 0)
     assert found(None) == (0, 0)
     assert found(boss) == (1, 1)  # admins see every feature
+
+
+def test_a_students_own_year_and_whole_words_lead(
+    db: Session, modules: dict[str, Module], student: User, client_for: Clients
+) -> None:
+    """UX-73: a Year 2 student's "exam" leads with Year 2, and a whole word ranks above a prefix ("Exam" before
+    "Example"). A guest gets whole words first too, and otherwise the order everyone gets."""
+    from tests.lessons import chapters
+
+    today, day = bahrain_today(), dt.timedelta(days=1)
+    db.add_all(
+        [
+            *chapters("economics", [{"title": "Examples of utility", "videos": [{"video_id": "a" * 11}]}]),
+            *chapters(ST2133, [{"title": "Example sheet answers", "videos": [{"video_id": "b" * 11}]}]),
+            *chapters(ST2133, [{"title": "Exam technique", "videos": [{"video_id": "c" * 11}]}]),
+            _link("ec1002-exam-guide", "Exam guide", "notes", "economics", 1),
+            _link("st2133-example-sheet", "Example sheet", "notes"),
+            _link("st2133-exam-guide", "Exam guide", "notes"),
+            CalendarEvent(id="ec1002-exam", date=today + day, title="EC1002 exam", type="exam", year=1),
+            CalendarEvent(id="st2133-exam", date=today + 10 * day, title="ST2133 exam", type="exam", year=2),
+        ]
+    )
+    db.commit()
+
+    mine = search(client_for(student), "exam")
+    assert titles(mine["lessons"])[:2] == ["Exam technique", "Example sheet answers"]
+    found = titles(mine["lessons"])
+    assert found.index("Example sheet answers") < found.index("Examples of utility")
+    assert [h["url"].split("/")[-1] for h in mine["library"][:2]] == ["st2133-exam-guide", "st2133-example-sheet"]
+    assert titles(mine["events"])[0] == "ST2133 exam"
+
+    # Papers they chose (another year's module) come before the rest of their year.
+    student.papers = ["economics"]
+    db.commit()
+    chosen = search(client_for(student), "exam")
+    assert titles(chosen["lessons"])[0] == "Examples of utility"
+    assert chosen["library"][0]["url"].endswith("/ec1002-exam-guide")
+
+    guest = search(client_for(), "exam")
+    seen = titles(guest["lessons"])  # whole words first, then the catalogue's order (Year 1 first)
+    assert seen[0] == "Exam technique"
+    assert seen.index("Examples of utility") < seen.index("Example sheet answers")
+    assert titles(guest["events"])[0] == "EC1002 exam"  # soonest first
+
+
+def test_a_misspelt_query_is_corrected_when_it_finds_nothing(
+    db: Session, modules: dict[str, Module], client_for: Clients
+) -> None:
+    """ST-54: "hypothisis" finds the hypothesis notes, and says it searched for "hypothesis"."""
+    db.add_all([_link("st2133-hypothesis-testing", "Hypothesis testing notes", "notes")])
+    db.commit()
+    guest = client_for()
+
+    fixed = search(guest, "Hypothisis testng")
+    assert fixed["query"] == "Hypothisis testng"
+    assert fixed["corrected"] == "hypothesis testing"
+    assert titles(fixed["library"]) == ["Hypothesis testing notes"]
+
+    exact = search(guest, "hypothesis")
+    assert exact["corrected"] is None
+    assert titles(exact["library"]) == ["Hypothesis testing notes"]
+
+    # Nothing close: the empty results stand, uncorrected; codes and short words are never "corrected".
+    for q in ("zqxwvk", "ST9999", "hyp"):
+        nothing = search(guest, q)
+        assert nothing["corrected"] is None, q
