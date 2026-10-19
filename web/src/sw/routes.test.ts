@@ -38,6 +38,8 @@ describe('routeFor', () => {
     expect(routeFor(get('/logos/employers/bbk.png', 'no-cors'), ORIGIN)).toBe('static');
     expect(routeFor(get('/favicon.png', 'no-cors'), ORIGIN)).toBe('static');
     expect(routeFor(get('/illustrations/empty-offline.png', 'no-cors'), ORIGIN)).toBe('static');
+    expect(routeFor(get('/daily/word.webp', 'no-cors'), ORIGIN)).toBe('static');
+    expect(routeFor(get('/daily/word', 'navigate'), ORIGIN)).toBe('shell');
   });
 
   it('leaves the worker and the manifest to the browser', () => {

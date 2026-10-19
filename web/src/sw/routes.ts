@@ -22,7 +22,7 @@ export interface SwRequest {
 }
 
 /** Public folders and files under the app's root that are safe to keep (web/public). */
-const STATIC_PREFIXES = ['/brand/', '/icons/', '/logos/', '/noora/', '/illustrations/', '/demo/'];
+const STATIC_PREFIXES = ['/brand/', '/icons/', '/logos/', '/noora/', '/illustrations/', '/demo/', '/daily/'];
 const STATIC_FILES = new Set(['/favicon.png', '/hub.svg']);
 
 export function routeFor(req: SwRequest, origin: string): SwRoute {

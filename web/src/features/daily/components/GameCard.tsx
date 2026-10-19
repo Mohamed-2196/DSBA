@@ -1,10 +1,11 @@
-// A game's tile on the hub: its art on the game's own tint (the glyph, or the play's picture once it's finished),
-// the name, one line about it, and its state in the corner. The whole tile is the link.
-import type { CSSProperties } from 'react';
+// A game's tile on the hub: its art on the game's own tint (its picture in public/daily, the glyph drawn in code if
+// that file can't load, or the play's own squares once it's finished), the name, one line about it, and its state
+// in the corner. The whole tile is the link.
+import { useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { cx } from '../../../ui';
 import { gameLink, statusOf } from '../lib/status';
-import { hasSquares, isOver, type GameDay } from '../types';
+import { hasSquares, isOver, type GameDay, type GameId } from '../types';
 import { GameGlyph } from './GameGlyph';
 import { PlayPicture } from './PlayPicture';
 
@@ -22,7 +23,7 @@ export function GameCard({ game }: { game: GameDay }) {
         {picture ? (
           <PlayPicture picture={picture} square={12} className="dh-tile__picture" />
         ) : (
-          <GameGlyph game={game.info.id} />
+          <GameArt game={game.info.id} />
         )}
       </span>
       <span className="dh-tile__name">{game.info.title}</span>
@@ -31,5 +32,22 @@ export function GameCard({ game }: { game: GameDay }) {
       </span>
       <span className="dh-tile__line">{game.info.tagline}</span>
     </Link>
+  );
+}
+
+/** The game's picture, decorative (its name follows); the glyph drawn in code stands in when the file can't load. */
+function GameArt({ game }: { game: GameId }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <GameGlyph game={game} />;
+  return (
+    <img
+      className="dh-tile__img"
+      src={`/daily/${game}.webp`}
+      alt=""
+      width={192}
+      height={192}
+      decoding="async"
+      onError={() => setFailed(true)}
+    />
   );
 }
