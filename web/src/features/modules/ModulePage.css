@@ -49,6 +49,8 @@
 /* Touch screens: a 44px target (UX review UX-11); the space under it stays the same. */
 @media (pointer: coarse) {
   .mod-head__back {
+    justify-content: center;
+    min-width: 44px;
     min-height: 44px;
     margin: -10px 0 calc(var(--sp-16) - 10px) -2px;
     padding: 0 var(--sp-8) 0 2px;
@@ -407,52 +409,9 @@ button.mod-row:hover .mod-row__title {
   font-weight: var(--fw-semibold);
 }
 
-/* Latest past papers: a sitting, then its zones' papers. */
-.mod-sitting {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px var(--sp-12);
-  padding: 6px 8px;
-}
-.mod-sitting + .mod-sitting {
-  border-top: 1px solid var(--line);
-}
-.mod-sitting__label {
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  font-variant-numeric: tabular-nums;
-}
-.mod-sitting__zones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-8);
-}
-.mod-sitting__zone {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-pill);
-  color: var(--ink);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  text-decoration: none;
-  transition:
-    background-color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease);
-}
-.mod-sitting__zone:hover {
-  border-color: var(--mc);
-  background: color-mix(in srgb, var(--mcb) 10%, var(--surface));
-}
-@media (pointer: coarse) {
-  .mod-sitting__zone {
-    min-height: 44px;
-    padding: 0 16px;
-  }
+/* Latest past papers: the library's sittings table, its sittings lined up with the block's title. */
+.mod-papers {
+  margin: 0 -12px;
 }
 
 /* The rest of the library: a shelf, what it holds, how many files. */
@@ -695,6 +654,9 @@ button.mod-row:hover .mod-row__title {
 /* Carry on: its rows run to the block's edges. */
 .mod-blk--carry {
   padding-bottom: 0;
+}
+.mod-blk--carry .mod-blk__foot {
+  margin-bottom: 12px;
 }
 .mod-carry {
   margin: 0 -20px;
