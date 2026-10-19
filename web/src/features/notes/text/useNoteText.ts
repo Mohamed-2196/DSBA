@@ -1,6 +1,7 @@
 // The note's typed text: a TipTap editor (ProseMirror) with headings, lists, checklists, formulas, code, quotes,
 // links, pictures and files. Markdown shortcuts work as they are typed: '# ' a heading, '- ' a list, '[ ] ' a
-// checklist, '$x$' a formula, '$$ ' a formula on its own line.
+// checklist, '$x$' a formula, '$$ ' a formula on its own line. The note's document also holds the pictures free on its
+// pages, beside the text (pictures/document.ts): the editor only ever gets and gives the text.
 //
 // Undo and redo go through the note's timeline (useTimeline), so they take back handwriting too: the editor's own
 // shortcuts call it.
@@ -12,17 +13,27 @@ import { useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useEffect, useRef } from 'react';
 import type { RichDoc } from '../draft';
+import { textOf } from '../pictures/document';
+import { joinFormulaLines } from './mathText';
 import { BlockMath, InlineMath, NoteFile, NotePicture } from './nodes';
 
+/** Where files were dropped: on screen, and the place in the text there. */
+export interface TextDrop {
+  x: number;
+  y: number;
+  at: number | null;
+}
+
 export interface NoteTextOptions {
-  /** the note's text when the editor is made (it starts with it), and later the text from elsewhere */
+  /** the note's document when the editor is made (it starts with its text), and later the text from elsewhere (a new
+   *  `content`: what the editor gave stays as it is) */
   doc: RichDoc;
   readOnly: boolean;
   onChange: (doc: RichDoc, text: string) => void;
   /** the text as plain text when the editor opens */
   onReady: (text: string) => void;
-  /** files pasted or dropped into the text, and where they were dropped (null: at the cursor) */
-  onFiles: (files: File[], at: number | null) => void;
+  /** files pasted (`drop` null) or dropped into the text */
+  onFiles: (files: File[], drop: TextDrop | null) => void;
   /** the note's undo and redo (text and handwriting together) */
   onUndo: () => void;
   onRedo: () => void;
@@ -42,8 +53,8 @@ export function useNoteText({
   onUndo,
   onRedo,
 }: NoteTextOptions): Editor | null {
-  // the document the editor holds now: a different one coming in (the other version, after a conflict) replaces it
-  const emitted = useRef<RichDoc>(doc);
+  // the text the editor holds now: a different one coming in (the other version, after a conflict) replaces it
+  const emitted = useRef<unknown>(doc.content);
   const handlers = useRef({ onChange, onReady, onFiles, onUndo, onRedo });
   useEffect(() => {
     handlers.current = { onChange, onReady, onFiles, onUndo, onRedo };
@@ -110,7 +121,7 @@ export function useNoteText({
           },
         }),
       ],
-      content: Array.isArray(doc.content) && doc.content.length ? doc : null,
+      content: Array.isArray(doc.content) && doc.content.length ? textOf(doc) : null,
       editable: !readOnly,
       immediatelyRender: true,
       shouldRerenderOnTransaction: false,
@@ -122,6 +133,8 @@ export function useNoteText({
           spellcheck: 'true',
           dir: 'auto',
         },
+        // a formula pasted over several lines ($$ … $$) is set as one
+        transformPastedText: (text) => joinFormulaLines(text),
         handlePaste: (_view, event) => {
           const files = [...(event.clipboardData?.files ?? [])];
           if (!files.length) return false;
@@ -133,14 +146,14 @@ export function useNoteText({
           if (!files.length) return false;
           event.preventDefault();
           const at = view.posAtCoords({ left: event.clientX, top: event.clientY });
-          handlers.current.onFiles(files, at ? at.pos : null);
+          handlers.current.onFiles(files, { x: event.clientX, y: event.clientY, at: at ? at.pos : null });
           return true;
         },
       },
       onCreate: ({ editor: e }) => handlers.current.onReady(plainOf(e)),
       onUpdate: ({ editor: e }) => {
         const json = e.getJSON() as RichDoc;
-        emitted.current = json;
+        emitted.current = json.content;
         handlers.current.onChange(json, plainOf(e));
       },
     },
@@ -148,11 +161,13 @@ export function useNoteText({
     [],
   );
 
-  // A document from elsewhere (the other version, loaded after a conflict): shown as it is.
+  // A text from elsewhere (the other version, loaded after a conflict): shown as it is.
   useEffect(() => {
-    if (!editor || doc === emitted.current) return;
-    emitted.current = doc;
-    editor.commands.setContent(Array.isArray(doc.content) && doc.content.length ? doc : '', { emitUpdate: false });
+    if (!editor || doc.content === emitted.current) return;
+    emitted.current = doc.content;
+    editor.commands.setContent(Array.isArray(doc.content) && doc.content.length ? textOf(doc) : '', {
+      emitUpdate: false,
+    });
   }, [editor, doc]);
 
   // Only the student's own changes count as an update: switching between reading and writing isn't one.

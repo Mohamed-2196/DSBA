@@ -1,28 +1,48 @@
-// The note's undo and redo (timeline.ts) wired to the text editor and the ink: an ink step is put back sheet by sheet
-// (and the number of pages with it), a text step by the editor's own history. The editor's history is followed too,
-// so an undo that didn't come from here (a tablet keyboard's undo key) keeps the timeline in step.
+// The note's undo and redo (timeline.ts) wired to the text editor and the pages: a page step is put back by `apply`
+// (sheet by sheet, the number of pages and the free pictures with it), a text step by the editor's own history (and
+// `apply` puts back the pictures that changed with it). A change to the pages goes through the server: `apply` answers
+// whether it was made, the timeline waits for it (pressing again meanwhile does nothing), and a change that couldn't
+// be made stays where it was. The editor's history is followed too, so an undo that didn't come from here (a tablet
+// keyboard's undo key) keeps the timeline in step.
 import { redoDepth, undoDepth } from '@tiptap/pm/history';
 import type { Editor } from '@tiptap/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { back, did, emptyTimeline, forward, textMoved, type Step, type Timeline } from './timeline';
+import {
+  back,
+  did,
+  emptyTimeline,
+  forward,
+  restored,
+  textMoved,
+  withPictures,
+  type PictureChange,
+  type Step,
+  type Timeline,
+} from './timeline';
 
 export interface NoteHistory {
   canUndo: boolean;
   canRedo: boolean;
-  /** an ink step was done (a gesture, a page moved or deleted) */
+  /** a page step was done (a gesture, a page moved or deleted, a picture placed) */
   record: (step: Step) => void;
+  /** the text editor's last step changed the free pictures too (a picture put in line or made free) */
+  withPictures: (pictures: PictureChange) => void;
+  /** nothing to undo or redo any more (another version was loaded: undo would write the old one over it) */
+  clear: () => void;
   undo: () => void;
   redo: () => void;
 }
 
-/** `apply` puts an ink step's sheets (and pages) back the way they were ('undo') or done again ('redo'). */
+/** `apply` puts a page step back the way it was ('undo') or does it again ('redo'), and a text step's pictures; for a
+ *  change to the pages it answers (a promise) whether the server made it. */
 export function useTimeline(
   editor: Editor | null,
-  apply: (step: Extract<Step, { kind: 'ink' }>, how: 'undo' | 'redo') => void,
+  apply: (step: Step, how: 'undo' | 'redo') => void | Promise<boolean>,
 ): NoteHistory {
   const [timeline, setTimeline] = useState<Timeline>(emptyTimeline);
   const ref = useRef(timeline);
   const own = useRef(false);
+  const waiting = useRef(false);
   const applyRef = useRef(apply);
   useEffect(() => {
     applyRef.current = apply;
@@ -35,14 +55,19 @@ export function useTimeline(
   useEffect(() => {
     if (!editor) return undefined;
     let depth = { undo: undoDepth(editor.state), redo: redoDepth(editor.state) };
+    const follow = (how: 'undo' | 'redo') => {
+      const r = textMoved(ref.current, how);
+      set(r.timeline);
+      if (r.moved?.kind === 'text' && r.moved.pictures) applyRef.current(r.moved, how);
+    };
     const onTransaction = () => {
       const now = { undo: undoDepth(editor.state), redo: redoDepth(editor.state) };
       const was = depth;
       depth = now;
       if (own.current || (now.undo === was.undo && now.redo === was.redo)) return;
-      if (now.undo === was.undo - 1 && now.redo === was.redo + 1) set(textMoved(ref.current, 'undo'));
-      else if (now.undo === was.undo + 1 && now.redo === was.redo - 1) set(textMoved(ref.current, 'redo'));
-      else if (now.undo > was.undo) set(textMoved(ref.current, 'new'));
+      if (now.undo === was.undo - 1 && now.redo === was.redo + 1) follow('undo');
+      else if (now.undo === was.undo + 1 && now.redo === was.redo - 1) follow('redo');
+      else if (now.undo > was.undo) set(textMoved(ref.current, 'new').timeline);
     };
     editor.on('transaction', onTransaction);
     return () => {
@@ -65,20 +90,39 @@ export function useTimeline(
   );
 
   const record = useCallback((step: Step) => set(did(ref.current, step)), [set]);
-  const undo = useCallback(() => {
-    const r = back(ref.current);
-    if (!r) return;
-    set(r.timeline);
-    if (r.step.kind === 'text') runText('undo');
-    else applyRef.current(r.step, 'undo');
-  }, [set, runText]);
-  const redo = useCallback(() => {
-    const r = forward(ref.current);
-    if (!r) return;
-    set(r.timeline);
-    if (r.step.kind === 'text') runText('redo');
-    else applyRef.current(r.step, 'redo');
-  }, [set, runText]);
+  const joinPictures = useCallback((pictures: PictureChange) => set(withPictures(ref.current, pictures)), [set]);
+  const move = useCallback(
+    (how: 'undo' | 'redo') => {
+      if (waiting.current) return;
+      const r = how === 'undo' ? back(ref.current) : forward(ref.current);
+      if (!r) return;
+      set(r.timeline);
+      if (r.step.kind === 'text') runText(how);
+      if (r.step.kind === 'text' && !r.step.pictures) return;
+      const made = applyRef.current(r.step, how);
+      if (!made) return;
+      waiting.current = true;
+      void made
+        .then((ok) => {
+          if (!ok) set(restored(ref.current, r.step, how));
+        })
+        .finally(() => {
+          waiting.current = false;
+        });
+    },
+    [set, runText],
+  );
+  const undo = useCallback(() => move('undo'), [move]);
+  const redo = useCallback(() => move('redo'), [move]);
+  const clear = useCallback(() => set(emptyTimeline()), [set]);
 
-  return { canUndo: timeline.past.length > 0, canRedo: timeline.future.length > 0, record, undo, redo };
+  return {
+    canUndo: timeline.past.length > 0,
+    canRedo: timeline.future.length > 0,
+    record,
+    withPictures: joinPictures,
+    clear,
+    undo,
+    redo,
+  };
 }

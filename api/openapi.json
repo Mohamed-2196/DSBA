@@ -13972,13 +13972,127 @@
         }
       }
     },
+    "/api/v1/notes/{note_id}/pages": {
+      "post": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Change Pages",
+        "description": "Add (`insert`), delete or move a page of paper in one go: the handwriting and free pictures of the pages after\nit move with them. Send the `version` you loaded, as for a save (409 note_changed). Errors: invalid_input (422: a\npage or a place the note doesn't have, the last page, more than the most pages), rate_limited (429).",
+        "operationId": "change_pages_api_v1_notes__note_id__pages_post",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/notes/{note_id}/ink/{sheet}": {
       "put": {
         "tags": [
           "notes"
         ],
         "summary": "Save Ink",
-        "description": "Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).\nSend the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:\ninvalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger than\nthat, refused unread), notes_full (409), rate_limited (429).",
+        "description": "Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).\nSend the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:\nnot_found (404: a sheet the note doesn't have: a page of paper past its last, or a PDF's page on a note without\none), invalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger\nthan that, refused unread), notes_full (409), rate_limited (429).",
         "operationId": "save_ink_api_v1_notes__note_id__ink__sheet__put",
         "parameters": [
           {
@@ -41641,6 +41755,51 @@
           "code"
         ],
         "title": "OtpVerifyRequest"
+      },
+      "PageChange": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "delete",
+              "move"
+            ],
+            "title": "Action"
+          },
+          "page": {
+            "type": "integer",
+            "exclusiveMaximum": 300.0,
+            "minimum": 0.0,
+            "title": "Page"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMaximum": 300.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "page",
+          "version"
+        ],
+        "title": "PageChange",
+        "description": "A change to a note's pages of paper, made at once with the version it was loaded at: `insert` a blank page at\n`page` (0 up to the number of pages: that many adds one at the end), `delete` page `page`, or `move` page `page`\nto place `to`. The handwriting and the free pictures go with their pages."
       },
       "PageLink": {
         "properties": {

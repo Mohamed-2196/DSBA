@@ -25,6 +25,7 @@ from app.schemas.notes import (
     NoteCreate,
     NotePage,
     NoteUpdate,
+    PageChange,
 )
 from app.services import notes
 
@@ -125,14 +126,25 @@ def save_note(note_id: UUID, body: NoteUpdate, user: ActiveUser, db: DB) -> Note
     return notes.to_out(db, note)
 
 
+@router.post("/notes/{note_id}/pages", response_model=Note)
+def change_pages(note_id: UUID, body: PageChange, user: ActiveUser, db: DB) -> Note:
+    """Add (`insert`), delete or move a page of paper in one go: the handwriting and free pictures of the pages after
+    it move with them. Send the `version` you loaded, as for a save (409 note_changed). Errors: invalid_input (422: a
+    page or a place the note doesn't have, the last page, more than the most pages), rate_limited (429)."""
+    note = notes.change_pages(db, user, note_id, body)
+    db.commit()
+    return notes.to_out(db, note)
+
+
 @router.put("/notes/{note_id}/ink/{sheet}", response_model=InkSheet)
 def save_ink(
     note_id: UUID, body: InkSave, user: ActiveUser, db: DB, sheet: int = Path(ge=0, lt=notes.MAX_SHEET_INDEX)
 ) -> InkSheet:
     """Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).
     Send the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:
-    invalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger than
-    that, refused unread), notes_full (409), rate_limited (429)."""
+    not_found (404: a sheet the note doesn't have: a page of paper past its last, or a PDF's page on a note without
+    one), invalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger
+    than that, refused unread), notes_full (409), rate_limited (429)."""
     out = notes.save_ink(db, user, note_id, sheet, body)
     db.commit()
     return out

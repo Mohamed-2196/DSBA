@@ -847,11 +847,17 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
     ink_rows = db.scalars(
         select(NoteInk).where(NoteInk.note_id.in_([n.id for n in note_rows])).order_by(NoteInk.sheet)
     ).all()
-    note_files = db.execute(
-        select(Upload.note_id, Upload.file_name)
-        .where(Upload.user_id == uid, Upload.purpose == UploadPurpose.note_file, Upload.note_id.is_not(None))
-        .order_by(Upload.created_at)
-    ).all()
+    listed = {u for n in note_rows for u in n.uploads}
+    rows = (
+        db.execute(
+            select(Upload.id, Upload.file_name).where(
+                Upload.id.in_(listed), Upload.user_id == uid, Upload.purpose == UploadPurpose.note_file
+            )
+        )
+        .tuples()
+        .all()
+    )
+    file_names: dict[uuid.UUID, str] = dict(rows)
     notes_by_book: dict[uuid.UUID, list[ExportNote]] = {}
     for n in note_rows:
         notes_by_book.setdefault(n.notebook_id, []).append(
@@ -864,7 +870,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
                 sheets=n.sheets,
                 lesson_id=n.lesson_id,
                 library_item_id=n.library_item_id,
-                files=[name for note_id, name in note_files if note_id == n.id],
+                files=[file_names[u] for u in n.uploads if u in file_names],
                 ink=[ExportInk(sheet=i.sheet, strokes=i.strokes) for i in ink_rows if i.note_id == n.id],
                 version=n.version,
                 created_at=n.created_at,

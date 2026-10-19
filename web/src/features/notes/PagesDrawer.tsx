@@ -1,6 +1,7 @@
-// The note's pages, small: the PDF's pages and the paper, each with its handwriting (and the typed text on paper),
-// to go to one, and to add, move, clear or delete paper pages. Typed text runs from the first page of paper down and
-// keeps the pages it is on: those can't be moved or deleted (handwriting-only pages can).
+// The note's pages, small: the PDF's pages and the paper, each with its free pictures and its handwriting (and the
+// typed text on paper), to go to one, and to add, move, clear or delete paper pages. Typed text runs from the first
+// page of paper down and keeps the pages it is on: those can't be moved or deleted (pages of handwriting and pictures
+// can, and their pictures go with them).
 import { ArrowDown, ArrowUp, DotsThree, Eraser, Plus, Trash, X } from '@phosphor-icons/react';
 import { memo, useEffect, useRef, useState, type RefObject } from 'react';
 import type { Stroke } from '../../api/types';
@@ -8,6 +9,8 @@ import { StrokePaths, type InkStroke } from '../../lib/ink';
 import { Button, ConfirmDialog, IconButton, Menu, cx, type MenuItem } from '../../ui';
 import type { Paper } from './draft';
 import type { LoadedPdf } from './pdf';
+import { FreePictureView } from './pictures/FreePictureView';
+import type { FreePicture } from './pictures/geometry';
 import {
   PAPER_BASE,
   SHEET_HEIGHT,
@@ -103,6 +106,8 @@ interface PagesDrawerProps {
   strokesOf: (sheet: number) => readonly Stroke[];
   /** bumps when any sheet's strokes change */
   revision: number;
+  /** the pictures free on the pages */
+  pictures: readonly FreePicture[];
   /** how many pages of paper the typed text runs onto */
   typedPages: number;
   readOnly: boolean;
@@ -117,6 +122,7 @@ export function PagesDrawer({
   pdf,
   paper,
   strokesOf,
+  pictures,
   typedPages,
   readOnly,
   scrollerRef,
@@ -208,6 +214,11 @@ export function PagesDrawer({
                     style={{ width: SHEET_WIDTH, height: s.height, transform: `scale(${SCALE})` }}
                   >
                     {typed ? <TextSlice text={text} page={k} stamp={stamp} /> : null}
+                    {pictures
+                      .filter((p) => p.sheet === s.index)
+                      .map((p) => (
+                        <FreePictureView key={p.id} p={p} />
+                      ))}
                     <svg
                       className="nb-thumb__ink"
                       width={SHEET_WIDTH}
@@ -245,7 +256,7 @@ export function PagesDrawer({
       <ConfirmDialog
         open={deleting !== null}
         title="Delete this page?"
-        body="Its handwriting is deleted, and the pages after it move up. You can undo this."
+        body="Its handwriting and pictures are deleted, and the pages after it move up. You can undo this."
         confirmLabel="Delete page"
         tone="danger"
         onConfirm={() => {
