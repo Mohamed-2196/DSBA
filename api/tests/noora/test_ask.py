@@ -257,6 +257,25 @@ def test_the_reservation_uses_the_rate_card_too() -> None:
     assert ask_service.estimate_microusd(system, huge, 8000, s) == math.ceil(101_001 * 0.5 + 8000 * 2.5)
 
 
+def test_a_prompt_near_the_long_line_is_reserved_on_the_long_card() -> None:
+    """A count from characters can fall short of the real tokens, so the reservation never prices a prompt that
+    may cross the line on the short card."""
+    s = get_settings()
+    system: list[TextBlockParam] = [{"type": "text", "text": "x" * 3000}]
+    near: list[MessageParam] = [{"role": "user", "content": "y" * 210_000}]
+    assert ask_service.estimate_microusd(system, near, 8000, s) == math.ceil(71_000 * 0.5 + 8000 * 2.5)
+
+
+def test_text_in_blocks_counts_towards_the_reservation() -> None:
+    s = get_settings()
+    system: list[TextBlockParam] = [{"type": "text", "text": "x" * 3000}]
+    as_text: list[MessageParam] = [{"role": "user", "content": "y" * 3000}]
+    as_blocks: list[MessageParam] = [{"role": "user", "content": [{"type": "text", "text": "y" * 3000}]}]
+    assert ask_service.estimate_microusd(system, as_blocks, 8000, s) == ask_service.estimate_microusd(
+        system, as_text, 8000, s
+    )
+
+
 def test_only_active_signed_in_students_ask(
     client_for: ClientFor, make_user: MakeUser, claude: FakeClient, db: Session
 ) -> None:

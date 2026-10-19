@@ -67,6 +67,7 @@ MICRO_PER_CENT = 10_000
 CUT_OFF = "My answer was cut off. Try asking again in a minute."
 DECLINED = "I can't help with that one. Try asking it another way, or ask a student rep."
 CHARS_PER_TOKEN = 3  # a cautious estimate of a prompt's tokens from its characters
+RATE_CARD_MARGIN = 1.5  # how far short of the real tokens a character count may fall
 ANSWER_STALE = dt.timedelta(minutes=2)  # an answer still marked as streaming after this ended without settling
 LOCK = "noora:answers"
 
@@ -199,12 +200,22 @@ def cost_microusd(u: Usage, s: Settings) -> int:
 
 def estimate_microusd(system: list[TextBlockParam], messages: list[MessageParam], max_tokens: int, s: Settings) -> int:
     """The most an answer can cost: the prompt at the full input price (no cache discount), and a whole answer (its
-    thinking included), on the rate card the prompt's length picks."""
+    thinking included). A count from characters can fall short of the real tokens, so a prompt within
+    RATE_CARD_MARGIN of the long-prompt line is reserved on the long rate card."""
     chars = sum(len(b["text"]) for b in system)
-    chars += sum(len(m["content"]) if isinstance(m["content"], str) else 0 for m in messages)
+    chars += sum(_content_chars(m["content"]) for m in messages)
     tokens_in = math.ceil(chars / CHARS_PER_TOKEN)
-    price_in, price_out = prices(tokens_in, s)
+    price_in, price_out = prices(math.ceil(tokens_in * RATE_CARD_MARGIN), s)
     return math.ceil(tokens_in * price_in + max_tokens * price_out)
+
+
+def _content_chars(content: object) -> int:
+    """A message's text length, whether it is a string or a list of blocks."""
+    if isinstance(content, str):
+        return len(content)
+    if isinstance(content, list):
+        return sum(len(b["text"]) for b in content if isinstance(b, dict) and isinstance(b.get("text"), str))
+    return 0
 
 
 def _seconds_to_midnight() -> int:
