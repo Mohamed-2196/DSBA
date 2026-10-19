@@ -68,7 +68,7 @@ def test_an_export_brings_a_new_install_back_with_its_rotation(db: Session) -> N
     assert result.guesses["added"] == 0  # the install has its guess list
     # beta has no quiz questions now: it waits out of the rotation
     assert result.rotation == ["alpha"]
-    assert any("beta" in p and "quiz" in p for p in result.problems)
+    assert any("beta" in p and "The Daily Query" in p for p in result.problems)
     again = bundle.export(db)
     assert sorted(map(str, again["items"])) == sorted(map(str, data["items"]))
     assert content.schedule(db).rotation == ["alpha"]
