@@ -77,6 +77,7 @@ test('Mini Noora can be carried to the other edge, and ⌘/ or Ctrl+/ opens her 
   const page = await ctx.newPage();
   await page.goto('/');
   const her = page.locator('[data-hub="noora-launcher"]');
+  await expect(her).toBeVisible(); // she comes out once the page has loaded
   const start = await her.boundingBox();
   if (!start) throw new Error('Mini Noora is not on the page');
   await page.mouse.move(start.x + 20, start.y + 50);

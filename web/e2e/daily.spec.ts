@@ -165,11 +165,13 @@ test('a guest plays every game to a finish', async ({ guest }) => {
   await expect(result(page)).toContainText('All four groups, 0 mistakes');
 
   await open(page, 'search');
-  for (const { start, end, letters } of a.search) {
+  for (const [i, { start, end, letters }] of a.search.entries()) {
     const cell = (p: Cell, l: string) =>
       page.getByRole('button', { name: `${l}, row ${p.row + 1}, column ${p.col + 1}`, exact: true });
     await cell(start, letters[0]).click();
     await cell(end, letters[1]).click();
+    // The grid takes no taps while a line is being checked: the next word waits for this one.
+    await expect(page.getByText(`${i + 1} of ${a.search.length} found`)).toBeVisible();
   }
   await expect(result(page)).toContainText(`${a.search.length} words, 0 hints`);
 
@@ -205,7 +207,6 @@ test('a guest plays every game to a finish', async ({ guest }) => {
 });
 
 test('a guest’s hub counts the puzzles they finished', async ({ guest }) => {
-  test.fail(true, 'the hub reads only the server, which keeps nothing for guests: it says 0/6 and "Play" after a win');
   const a = known();
   await open(guest, 'word');
   await guest.keyboard.type(a.word);
@@ -213,6 +214,7 @@ test('a guest’s hub counts the puzzles they finished', async ({ guest }) => {
   await expect(result(guest)).toContainText('Solved in 1 guess');
   await guest.goto('/daily');
   await expect(guest.getByRole('region', { name: 'Today so far' })).toContainText('1 of 6 done');
+  await expect(guest.locator('a[data-game="word"]')).toContainText('Solved');
 });
 
 test('Ali plays every game on his phone, his plays count, and he joins the leaderboard', async ({ browser, run }) => {
@@ -250,11 +252,13 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
   await expect(result(page)).toContainText('All four groups');
 
   await open(page, 'search', true);
-  for (const { start, end, letters } of a.search) {
+  for (const [i, { start, end, letters }] of a.search.entries()) {
     const cell = (p: Cell, l: string) =>
       page.getByRole('button', { name: `${l}, row ${p.row + 1}, column ${p.col + 1}`, exact: true });
     await cell(start, letters[0]).tap();
     await cell(end, letters[1]).tap();
+    // The grid takes no taps while a line is being checked: the next word waits for this one.
+    await expect(page.getByText(`${i + 1} of ${a.search.length} found`)).toBeVisible();
   }
   await expect(result(page)).toContainText('Every word found');
 
@@ -266,7 +270,9 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
     await expect(page.getByText(i < 2 ? 'Right' : 'Not quite', { exact: true })).toBeVisible();
     if (i < a.quiz.length - 1) await page.getByRole('button', { name: 'Next question' }).tap();
   }
-  await expect(page.getByRole('contentinfo').filter({ hasText: 'Not this time' })).toContainText('2 of 5 right');
+  await page.getByRole('button', { name: 'See your result' }).first().tap();
+  await expect(result(page)).toContainText('2 of 5 right');
+  await expect(result(page)).toContainText('+40 points');
 
   await open(page, 'nearest', true);
   await page.getByRole('textbox', { name: 'Your guess' }).fill(a.nearest);

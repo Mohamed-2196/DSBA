@@ -42,6 +42,7 @@ test('a Daily puzzles edit shows in the preview of the day and on the Daily', as
   const renamed = `${theme.title.slice(0, 40)} [e2e ${run.tag}]`;
   try {
     await admin.goto('/manage?tab=daily');
+    await admin.getByRole('button', { name: /^Themes and weeks/ }).click();
     await admin.getByRole('button', { name: `Edit ${theme.title}` }).click();
     const dialog = admin.getByRole('dialog', { name: `Edit ${theme.title}` });
     await dialog.getByRole('textbox', { name: 'Title', exact: true }).fill(renamed);

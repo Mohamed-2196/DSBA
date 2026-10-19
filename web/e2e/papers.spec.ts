@@ -53,6 +53,7 @@ test('a paper sits with its report, Sara times herself, tags a question and find
   rep,
   run,
 }) => {
+  test.slow(); // two uploads, then four pages
   const files = makeFiles(run.tag);
   const made: Item[] = [];
   try {
@@ -96,12 +97,14 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     await sara.getByRole('button', { name: 'Stop the timer' }).click();
 
     const tags = sara.locator('[data-hub="question-tags"]');
-    await tags.getByLabel('Question').selectOption('3');
-    await tags.getByLabel('Page').fill('2');
-    await tags.getByLabel('Chapter').selectOption({ index: 1 });
+    await tags.getByRole('button', { name: /^Tag (this|a) question$/ }).click();
+    const tagging = sara.getByRole('dialog', { name: 'Tag this question' });
+    await tagging.getByLabel('Question').selectOption('3');
+    await tagging.getByLabel('Page').fill('2');
+    await tagging.getByLabel('Chapter').selectOption({ index: 1 });
     const chapter =
-      (await tags.getByLabel('Chapter').locator('option:checked').textContent())?.replace(/^\d+\.\s*/, '') ?? '';
-    await tags.getByRole('button', { name: 'Tag the question' }).click();
+      (await tagging.getByLabel('Chapter').locator('option:checked').textContent())?.replace(/^\d+\.\s*/, '') ?? '';
+    await tagging.locator('[data-hub="tag-question-submit"]').click();
     await expect(tags.getByRole('listitem').filter({ hasText: chapter })).toContainText('Q3 (p. 2)');
 
     await sara.goto('/modules/economics?tab=lessons');

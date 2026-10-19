@@ -33,7 +33,7 @@ test('a student adds their own weekly event, sees it on the calendar and Home, e
   await expect(sara.getByText('Added to your calendar')).toBeVisible();
 
   // the drawer opens on it: theirs, with its repeat and reminder
-  const drawer = sara.getByRole('dialog');
+  const drawer = sara.getByRole('dialog', { name: title });
   await expect(drawer.getByText('Your event')).toBeVisible();
   await expect(drawer.getByText('18:00–19:30, Library, room 2')).toBeVisible();
   await expect(drawer.getByText(/Every week for a year/)).toBeVisible();
