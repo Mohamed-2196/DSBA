@@ -188,8 +188,8 @@ function ModuleHeader({
             <div className="mod-head__progress-text">
               {progressReady ? (
                 <p className="mod-head__progress-num">
-                  <b className="u-tabular">{progress.watched}</b> of{' '}
-                  <span className="u-tabular">{progress.total}</span> lessons watched
+                  <b className="u-tabular">{progress.watched}</b> of <span className="u-tabular">{progress.total}</span>{' '}
+                  lessons watched
                 </p>
               ) : (
                 <Skeleton width={180} height={18} />

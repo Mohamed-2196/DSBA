@@ -29,9 +29,7 @@ export function latestSittings(papers: readonly LibraryItem[], n: number): Sitti
   }
   return [...bySitting.entries()]
     .map(([key, group]) => ({ key, group, first: group[0] }))
-    .sort(
-      (a, b) => (b.first.examYear ?? 0) - (a.first.examYear ?? 0) || sessionRank(b.first) - sessionRank(a.first),
-    )
+    .sort((a, b) => (b.first.examYear ?? 0) - (a.first.examYear ?? 0) || sessionRank(b.first) - sessionRank(a.first))
     .slice(0, n)
     .map(({ key, group, first }) => ({
       key,

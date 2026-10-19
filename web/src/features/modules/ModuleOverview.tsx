@@ -325,15 +325,7 @@ function NewestNotes({ moduleId, onTab }: { moduleId: string; onTab: (tab: strin
   );
 }
 
-function NewestThreads({
-  moduleId,
-  name,
-  onTab,
-}: {
-  moduleId: string;
-  name: string;
-  onTab: (tab: string) => void;
-}) {
+function NewestThreads({ moduleId, name, onTab }: { moduleId: string; name: string; onTab: (tab: string) => void }) {
   const q = useModuleLatestThreads(moduleId, { n: ROWS });
   const starts = useStartsThreads();
   const title = 'Discussion';

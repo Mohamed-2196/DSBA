@@ -93,7 +93,11 @@ export function UpcomingEvents({ n = 5, year: forYear, skip = null }: UpcomingEv
   }
 
   const programme = query.data.filter((e) => (!papers || isMine(e, year ?? null, papers)) && !isHidden(e, prefs));
-  const rows = aheadRows<CalendarEvent>(oneRowPerRepeat([...programme, ...own]), dayKey(today), new Set(skip ? [skip] : [])).slice(0, n);
+  const rows = aheadRows<CalendarEvent>(
+    oneRowPerRepeat([...programme, ...own]),
+    dayKey(today),
+    new Set(skip ? [skip] : []),
+  ).slice(0, n);
   const ownFailed = my.loadError ? (
     <QueryError
       error={my.loadError}

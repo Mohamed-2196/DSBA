@@ -27,7 +27,14 @@ export interface PlanRevisionProps {
 
 /** "Plan my revision" (or "Update revision plan" once there is one) and its dialog. Guests sign in first. The
  *  caller gates it with featureOn('board'). */
-export function PlanRevision({ moduleId, moduleName, examDate, size = 'md', short = false, className }: PlanRevisionProps) {
+export function PlanRevision({
+  moduleId,
+  moduleName,
+  examDate,
+  size = 'md',
+  short = false,
+  className,
+}: PlanRevisionProps) {
   const { status, requireAuth } = useAuth();
   const boards = useBoards({ enabled: status === 'signed-in' });
   const [open, setOpen] = useState(false);

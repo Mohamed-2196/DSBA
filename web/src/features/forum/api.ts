@@ -232,7 +232,10 @@ export function flattenPages(data: { pages: ThreadPage[] } | undefined): ThreadS
 }
 
 /** A module's newest threads (the module page's Overview): the first `n` of its "new" list, with the total. */
-export function useModuleLatestThreads(moduleId: string, { n = 3, enabled = true }: { n?: number; enabled?: boolean } = {}) {
+export function useModuleLatestThreads(
+  moduleId: string,
+  { n = 3, enabled = true }: { n?: number; enabled?: boolean } = {},
+) {
   const list = useThreadList({ module_id: moduleId, sort: 'new' }, { pageSize: n, enabled: enabled && !!moduleId });
   const first = list.data?.pages[0];
   return {
