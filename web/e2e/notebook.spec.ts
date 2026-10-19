@@ -211,9 +211,7 @@ test('a note knows its module, and the list keeps a module’s notes (IDEA-41)',
 });
 
 test('the notes list’s Module filter shows only that module’s notes', async ({ sara, run }) => {
-  // ST-61: picking a module in the filter does nothing. pickModule sets ?module= and then clears ?lesson=, and the
-  // second update starts from the address before the first, so the module goes again.
-  test.fail(true, 'ST-61: the Module filter on /notes does nothing');
+  // ST-61: picking a module sets ?module= and clears ?lesson= in one address update.
   const title = `Filtered by module [e2e ${run.tag}]`;
   const note = await api<{ id: string }>(sara, 'POST', '/api/v1/notes', {
     title,

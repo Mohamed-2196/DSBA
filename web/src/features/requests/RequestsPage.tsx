@@ -3,7 +3,7 @@
 // we did" opens the page while no filter is set.
 import { HandWaving, Plus } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
-import { useQueryParam } from '../../state';
+import { useQueryParam, useSetQueryParams } from '../../state';
 import {
   Button,
   Chip,
@@ -36,6 +36,7 @@ export default function RequestsPage() {
   const [sortParam, setSort] = useQueryParam('sort');
   const [mineParam, setMine] = useQueryParam('mine');
   const [newParam, setNew] = useQueryParam('new');
+  const setParams = useSetQueryParams();
   const filters: RequestFilters = {
     kind: parseKind(kindParam),
     status: parseStatus(statusParam),
@@ -79,11 +80,7 @@ export default function RequestsPage() {
         body="Try another kind or status."
         action={
           <Button
-            onClick={() => {
-              setKind(null);
-              setStatus(null);
-              setMine(null);
-            }}
+            onClick={() => setParams({ kind: null, status: null, mine: null })}
           >
             Clear filters
           </Button>

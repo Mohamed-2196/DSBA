@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { CaretDown, CaretUp, MagnifyingGlass } from '@phosphor-icons/react';
 import type { ModuleSummary } from '../../api/types';
-import { BREAKPOINTS, useMediaQuery, useQueryParam } from '../../state';
+import { BREAKPOINTS, useMediaQuery, useQueryParam, useSetQueryParams } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, Chip, EmptyState, PageSection, Panel, cx } from '../../ui';
 import { useCareerData } from './context';
@@ -62,19 +61,10 @@ export function Opportunities() {
     setTouched(true);
     setType(value, { replace: true });
   };
-  // One update for both filters: router param setters do not queue, so two setters in a row would keep only the last.
-  const [, setParams] = useSearchParams();
+  const setParams = useSetQueryParams();
   const reset = () => {
     setTouched(true);
-    setParams(
-      (prev) => {
-        const p = new URLSearchParams(prev);
-        p.delete('track');
-        p.delete('type');
-        return p;
-      },
-      { replace: true },
-    );
+    setParams({ track: null, type: null }, { replace: true });
   };
 
   const closest = active ? active.modules.map((id) => getModule(id)).filter((m): m is ModuleSummary => m !== null) : [];
