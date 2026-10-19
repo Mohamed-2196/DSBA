@@ -85,7 +85,10 @@ describe('describeAudit', () => {
   });
 
   it('uses the staff word for a rejected upload', () => {
-    expect(describeAudit(entry('library.reject', { title: 'Week 3 notes' }))).toBe('rejected “Week 3 notes”');
+    expect(describeAudit(entry('library.reject', { title: 'Week 3 notes' }))).toBe(
+      'rejected the library file “Week 3 notes”',
+    );
+    expect(describeAudit(entry('library.publish', {}))).toBe('published a library file');
   });
 
   it('describes an admin’s change to an account’s sign-in address', () => {
