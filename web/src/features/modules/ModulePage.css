@@ -20,6 +20,14 @@
 .mod-head {
   margin-bottom: var(--sp-32);
 }
+/* The back link and, on phones, "About this module". */
+.mod-head__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--sp-12);
+}
 .mod-head__back {
   display: inline-flex;
   align-items: center;
@@ -261,138 +269,213 @@
 }
 
 /* ── Tabs ──────────────────────────────────────────────────────────────── */
+/* They stay under the top bar as the page scrolls, so another section is always one tap away. */
 .mod-tabs {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: calc(var(--z-sticky) - 1);
   margin-bottom: var(--sp-32);
+  background: var(--paper);
+}
+html:has(.mod-tabs) {
+  scroll-padding-top: calc(var(--topbar-h) + 44px + var(--sp-16));
 }
 .mod-panels {
   container: mod-panels / inline-size;
 }
 
-/* ── Overview ──────────────────────────────────────────────────────────── */
+/* ── Overview: previews of the other tabs, as cards that fill the width ─── */
 .mod-ov {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--sp-32);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
   align-items: start;
+  gap: var(--sp-24);
 }
-@container mod-panels (min-width: 860px) {
-  .mod-ov {
-    grid-template-columns: minmax(0, 1fr) 21rem;
-    gap: var(--sp-32) var(--sp-48);
-  }
-}
-
-/* Resource sheet: a definition list, label left, what it is and where it opens right. */
-.mod-res {
-  overflow: hidden;
-}
-.mod-res__list {
-  container: mod-res / inline-size;
-}
-.mod-res__entry {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--sp-8);
-  padding: 20px var(--sp-24);
-}
-.mod-res__entry + .mod-res__entry {
-  border-top: 1px solid var(--line);
-}
-@container mod-res (min-width: 560px) {
-  .mod-res__entry {
-    grid-template-columns: 13.5rem minmax(0, 1fr);
-    gap: var(--sp-24);
-  }
-}
-.mod-res__label {
+.mod-blk {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  color: var(--ink);
-  font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.01em;
-  line-height: 1.35;
-}
-.mod-res__icon {
-  flex: 0 0 auto;
-  margin-top: -1px;
-  color: var(--mc);
-  font-size: 22px;
-}
-.mod-res__body {
-  display: grid;
-  gap: var(--sp-12);
+  flex-direction: column;
   min-width: 0;
-  margin: 0;
+  padding: 20px 20px 12px;
 }
-.mod-res__desc {
-  max-width: var(--measure);
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-  line-height: 1.5;
-  padding-top: 1px;
-}
-
-/* v1's own note about the exercises, set as a margin annotation. */
-.mod-res__note {
-  margin: 0;
-  padding: 2px 0 2px var(--sp-16);
-  border-left: 3px solid var(--highlight);
-  font-family: var(--font-serif);
-  font-size: var(--fs-20);
-  font-style: italic;
-  line-height: 1.4;
-  color: var(--ink);
-}
-
-.mod-res__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-8);
-}
-
-.mod-res__missing {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-8) var(--sp-16);
-  padding: 12px var(--sp-16) 12px var(--sp-24);
-  border-top: 1px solid var(--line);
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-}
-.mod-res__missing-label {
-  color: var(--ink);
-  font-weight: var(--fw-semibold);
-}
-
-/* Study aside: one panel, sections divided by hairlines. */
-.mod-side__section {
-  padding: 20px;
-}
-.mod-side__section + .mod-side__section {
-  border-top: 1px solid var(--line);
-}
-.mod-side__title {
+.mod-blk__title {
+  margin-bottom: var(--sp-8);
   font-size: var(--fs-16);
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
-.mod-side__text {
-  margin: 6px 0 var(--sp-12);
+.mod-blk__body {
+  display: grid;
+  gap: var(--sp-12);
+  min-width: 0;
+}
+.mod-blk__loading {
+  padding: var(--sp-8) 0 var(--sp-12);
+}
+.mod-blk__note {
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
+/* "All …" and the block's action, lined up with the text above. */
+.mod-blk__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+  margin: var(--sp-8) 0 0 -12px;
+}
 
+/* A block's rows: a title, a line under it, and on the right a count or a badge. */
+.mod-rows {
+  display: grid;
+  gap: 2px;
+  margin: 0 -8px;
+}
+.mod-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  border-radius: var(--r-control);
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+a.mod-row:hover,
+button.mod-row:hover {
+  background: var(--surface-2);
+}
+a.mod-row:hover .mod-row__title,
+button.mod-row:hover .mod-row__title {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+.mod-row__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.mod-row__title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+  overflow-wrap: break-word;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.mod-row__meta {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  line-height: 1.4;
+}
+
+/* Next dates: a type dot, the date, the days left. */
+.mod-date {
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+}
+.mod-date__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-pill);
+  background: var(--ink-3);
+}
+.mod-date--exam .mod-date__dot {
+  background: var(--alert);
+}
+.mod-date--mock .mod-date__dot,
+.mod-date--deadline .mod-date__dot {
+  background: var(--cobalt);
+}
+.mod-date--revision .mod-date__dot {
+  background: var(--signal);
+}
+.mod-date__when {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.mod-date__when.is-soon {
+  color: var(--alert-strong);
+  font-weight: var(--fw-semibold);
+}
+
+/* Latest past papers: a sitting, then its zones' papers. */
+.mod-sitting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px var(--sp-12);
+  padding: 6px 8px;
+}
+.mod-sitting + .mod-sitting {
+  border-top: 1px solid var(--line);
+}
+.mod-sitting__label {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.mod-sitting__zones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
+.mod-sitting__zone {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+.mod-sitting__zone:hover {
+  border-color: var(--mc);
+  background: color-mix(in srgb, var(--mcb) 10%, var(--surface));
+}
+@media (pointer: coarse) {
+  .mod-sitting__zone {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+}
+
+/* The rest of the library: a shelf, what it holds, how many files. */
+.mod-shelf {
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: start;
+}
+.mod-shelf__icon {
+  margin-top: 1px;
+  color: var(--mc);
+  font-size: 22px;
+}
+.mod-shelf__count {
+  padding-top: 1px;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  white-space: nowrap;
+}
+
+/* Your progress: where to pick up, then the chapters. */
 .mod-pick__link {
   display: grid;
   gap: var(--sp-12);
-  margin-top: var(--sp-12);
   border-radius: 12px;
   color: inherit;
   text-decoration: none;
@@ -422,14 +505,6 @@
   color: var(--ink-2);
   font-size: var(--fs-12);
 }
-
-.mod-prog__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-12);
-  margin-bottom: var(--sp-8);
-}
 .mod-prog__sum {
   color: var(--ink-2);
   font-size: var(--fs-14);
@@ -452,6 +527,7 @@
   column-gap: 10px;
   row-gap: 6px;
   width: 100%;
+  min-height: 44px;
   padding: 8px;
   border-radius: var(--r-control);
   text-align: left;
@@ -498,82 +574,6 @@
   border-radius: inherit;
   transition: width var(--dur-slow) var(--ease);
 }
-.mod-prog__all {
-  margin: var(--sp-8) 0 0 -12px;
-}
-
-/* Upcoming dates for the module (from the calendar). */
-.mod-dates__list {
-  display: grid;
-  gap: 2px;
-  margin: var(--sp-8) -8px 0;
-}
-.mod-dates__row {
-  display: grid;
-  grid-template-columns: 10px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 8px;
-  border-radius: var(--r-control);
-  color: inherit;
-  text-decoration: none;
-  transition: background-color var(--dur-fast) var(--ease);
-}
-.mod-dates__row:hover {
-  background: var(--surface-2);
-}
-.mod-dates__row:hover .mod-dates__title {
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
-}
-.mod-dates__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: var(--r-pill);
-  background: var(--ink-3);
-}
-.mod-dates__row--exam .mod-dates__dot {
-  background: var(--alert);
-}
-.mod-dates__row--mock .mod-dates__dot,
-.mod-dates__row--deadline .mod-dates__dot {
-  background: var(--cobalt);
-}
-.mod-dates__row--revision .mod-dates__dot {
-  background: var(--signal);
-}
-.mod-dates__text {
-  display: grid;
-  gap: 1px;
-  min-width: 0;
-}
-.mod-dates__title {
-  display: -webkit-box;
-  overflow: hidden;
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  line-height: 1.35;
-  overflow-wrap: break-word;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-.mod-dates__meta {
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-}
-.mod-dates__when {
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.mod-dates__when.is-soon {
-  color: var(--alert-strong);
-  font-weight: var(--fw-semibold);
-}
-.mod-dates__cal {
-  margin: var(--sp-8) 0 0 -12px;
-}
 
 /* Loading: the panels hold their place while lessons load. */
 .mod-loading {
@@ -591,25 +591,103 @@
     max-width: 30rem;
   }
 }
-@media (max-width: 699px) {
+/* Phones, upright or on their side: the module on one line, its year and exam, one row of actions, then the tabs
+   (UX review UX-69). Keep the query in step with COMPACT_HEADER in ModulePage.tsx. */
+@media (max-width: 699px), (max-height: 499px) {
   .mod-head {
-    margin-bottom: var(--sp-24);
+    margin-bottom: var(--sp-16);
   }
-  .mod-head__side {
-    max-width: none;
-    padding: var(--sp-16);
+  .mod-head__top {
+    margin-bottom: var(--sp-8);
+  }
+  .mod-head__top .mod-head__back {
+    margin: 0 0 0 -2px;
+  }
+  .mod-head__grid {
+    gap: var(--sp-12);
+  }
+  .mod-head__title {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sp-12);
+  }
+  .mod-head__art {
+    --modart-size: 40px;
+  }
+  .mod-head__plate {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-control);
+    font-size: 24px;
+  }
+  .mod-head__heading {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--sp-8);
+  }
+  .mod-head__label {
+    flex: none;
+    font-size: var(--fs-16);
+  }
+  .mod-head__name {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: var(--fs-20);
+    font-weight: var(--fw-bold);
+    line-height: 1.2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .mod-head__desc {
+    margin-top: var(--sp-12);
+    font-size: var(--fs-14);
+  }
+  .mod-head__meta {
+    margin-top: var(--sp-8);
+  }
+  /* One row of up to three: Lessons, Past papers and Plan. */
+  .mod-head__actions {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+  }
+  .mod-head__actions:empty {
+    display: none;
   }
   .mod-tabs {
     margin-bottom: var(--sp-24);
   }
-  .mod-res__entry {
-    padding: var(--sp-16);
+}
+/* The phone top bar is 56px high. */
+@media (max-width: 699px) {
+  .mod-tabs {
+    top: 56px;
   }
-  .mod-res__missing {
-    padding: 12px var(--sp-16);
+  html:has(.mod-tabs) {
+    scroll-padding-top: calc(56px + 44px + var(--sp-16));
   }
-  /* The section header puts its action under the title on phones: line the ghost button up with the text. */
-  .mod-ov__files {
-    margin-left: -12px;
-  }
+}
+
+/* "About this module": the description on phones. */
+.mod-head__about {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-right: -4px;
+  padding: 0 4px;
+  border-radius: var(--r-xs);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.mod-head__about:hover {
+  color: var(--ink);
+}
+.mod-head__about-caret {
+  font-size: 12px;
+  transition: transform var(--dur-fast) var(--ease);
+}
+.mod-head__about[aria-expanded='true'] .mod-head__about-caret {
+  transform: rotate(180deg);
 }

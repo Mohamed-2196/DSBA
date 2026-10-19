@@ -2,10 +2,11 @@
 // (/me/progress…). The catalogue itself is loaded once by state/modules.tsx (useModules()).
 import { queryOptions, useQuery, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
-import type { ModuleDetail, Progress, ProgressImport } from '../../api/types';
+import type { LibraryItem, ModuleDetail, Progress, ProgressImport } from '../../api/types';
 
 export const moduleKeys = {
   detail: (id: string) => ['modules', 'detail', id] as const,
+  files: (id: string, kind: LibraryItem['kind'], limit: number) => ['modules', 'files', id, kind, limit] as const,
 };
 
 /**
@@ -58,4 +59,30 @@ export function importProgress(body: ProgressImport): Promise<Progress> {
 /** Prefetch a module's lessons (hovering a link to it, for instance). */
 export function prefetchModule(qc: QueryClient, id: string) {
   return qc.prefetchQuery(moduleDetailQuery(id));
+}
+
+// ── The Overview's library previews ─────────────────────────────────────────────────────────────
+
+/**
+ * A module's published library files of one kind, newest first (GET /library/items): the Overview's latest papers and
+ * students' notes. A new upload waits for a reviewer first, so a minute's cache is fresh enough.
+ */
+export function useModuleFiles(
+  moduleId: string,
+  kind: LibraryItem['kind'],
+  { limit, enabled = true }: { limit: number; enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: moduleKeys.files(moduleId, kind, limit),
+    queryFn: ({ signal }) =>
+      call(
+        api.GET('/api/v1/library/items', {
+          params: { query: { module_id: moduleId, kind, sort: 'new', limit } },
+          signal,
+        }),
+      ),
+    select: (page) => page.items.filter((item) => item.status === 'published'),
+    staleTime: 60_000,
+    enabled: enabled && !!moduleId,
+  });
 }

@@ -1,10 +1,12 @@
-// /modules/:moduleId: header (code, name, year, next exam, progress and quick actions) and URL-driven tabs:
+// /modules/:moduleId: header (code, name, year, next exam, progress and quick actions; on phones one line and a row
+// of actions, so the tabs are on the first screen) and URL-driven tabs, which stay under the top bar as you scroll:
 // ?tab=overview|lessons|files|discussion. A lesson has its own address, /modules/:moduleId/lessons/:lessonId (the
 // Lessons tab with that lesson on screen); ?tab=lessons opens where the student left off.
 // The header comes from the catalogue at once; chapters, videos and shelves load with GET /modules/{id}.
 import {
   BookOpenText,
   CalendarBlank,
+  CaretDown,
   CaretLeft,
   ChatsCircle,
   Files,
@@ -14,10 +16,10 @@ import {
   PlayCircle,
   UploadSimple,
 } from '@phosphor-icons/react';
-import { useCallback, useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
-import { COHORTS, cohortColor, useDocumentTitle, useYear } from '../../state';
+import { BREAKPOINTS, COHORTS, cohortColor, useDocumentTitle, useMediaQuery, useYear } from '../../state';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import {
@@ -67,6 +69,15 @@ const RESUME_LABEL: Record<ResumeKind, string> = {
   start: 'Start lesson 1',
   done: 'Watch again',
 };
+/** Phones, upright or on their side (ModulePage.css has the same query). */
+const COMPACT_HEADER = `${BREAKPOINTS.mobile}, (max-height: 499px)`;
+/** The resume button's label on a phone's row of three. */
+const RESUME_SHORT: Record<ResumeKind, string> = {
+  resume: 'Resume',
+  next: 'Continue',
+  start: 'Lessons',
+  done: 'Lessons',
+};
 
 function ModuleHeader({
   summary: m,
@@ -89,11 +100,17 @@ function ModuleHeader({
 }) {
   const { year } = useYear();
   const { featureOn } = useAuth();
+  // Phones: one line for the module, the description behind "About this module" and one row of actions, so the
+  // tabs are on the first screen (UX review UX-69).
+  const phone = useMediaQuery(COMPACT_HEADER);
+  const [about, setAbout] = useState(false);
+  const aboutId = useId();
   const plan = featureOn('board') ? (
     <PlanRevision
       moduleId={m.id}
       moduleName={m.unitCode || m.shortName || m.name}
       examDate={exam?.event.date ?? null}
+      short={phone}
       className="mod-head__action"
     />
   ) : null;
@@ -124,18 +141,119 @@ function ModuleHeader({
     m.libraryCount ? `${countOf(m.libraryCount, 'file')} in the library` : null,
   ].filter(Boolean);
 
+  const lessonsAction = m.lessonCount ? (
+    resume ? (
+      <Button
+        variant="primary"
+        leadingIcon={Play}
+        onClick={() => onOpenLesson(resume.c, resume.v)}
+        className="mod-head__action"
+      >
+        {phone ? RESUME_SHORT[resume.kind] : RESUME_LABEL[resume.kind]}
+      </Button>
+    ) : (
+      <Skeleton width={phone ? '100%' : 150} height={phone ? 44 : 40} radius={10} />
+    )
+  ) : studyGuide ? (
+    <Button variant="primary" to={studyGuide} className="mod-head__action">
+      Study guide
+    </Button>
+  ) : null;
+  const actions = (
+    <div className="mod-head__actions">
+      {lessonsAction}
+      {pastPapers ? (
+        <Button to={pastPapers} className="mod-head__action">
+          Past papers
+        </Button>
+      ) : null}
+      {plan}
+    </div>
+  );
+
+  let side: ReactNode;
+  if (phone) side = actions;
+  else if (m.lessonCount) {
+    side = (
+      <Panel as="div" padding="none" className="mod-head__side">
+        {tracking ? (
+          <div className="mod-head__progress">
+            <ProgressRing
+              value={progressReady ? progress.pct : 0}
+              size={64}
+              stroke={6}
+              color={progress.pct === 100 ? 'var(--signal)' : cohortColor(m.year)}
+              label="Lessons watched"
+            />
+            <div className="mod-head__progress-text">
+              {progressReady ? (
+                <p className="mod-head__progress-num">
+                  <b className="u-tabular">{progress.watched}</b> of <span className="u-tabular">{progress.total}</span>{' '}
+                  lessons watched
+                </p>
+              ) : (
+                <Skeleton width={180} height={18} />
+              )}
+              {resumeNote ? <p className="mod-head__progress-note">{resumeNote}</p> : null}
+            </div>
+          </div>
+        ) : (
+          <div className="mod-head__progress">
+            <span className="mod-head__nolessons" aria-hidden="true">
+              <PlayCircle weight="duotone" />
+            </span>
+            <div className="mod-head__progress-text">
+              <p className="mod-head__progress-num">{countOf(m.lessonCount, 'video lesson')}</p>
+              <p className="mod-head__progress-note">Start with chapter 1, or pick any lesson.</p>
+            </div>
+          </div>
+        )}
+        {actions}
+      </Panel>
+    );
+  } else {
+    side = (
+      <Panel as="div" padding="none" className="mod-head__side">
+        <div className="mod-head__progress">
+          <span className="mod-head__nolessons" aria-hidden="true">
+            <BookOpenText weight="duotone" />
+          </span>
+          <div className="mod-head__progress-text">
+            <p className="mod-head__progress-num">Start with the study guide</p>
+            <p className="mod-head__progress-note">There are no video lessons for this module yet.</p>
+          </div>
+        </div>
+        {actions}
+      </Panel>
+    );
+  }
+
   return (
     <header className={`mod-head mod-head--y${m.year}`} data-hub="module-header">
-      <Link to={backTo} className="mod-head__back">
-        <CaretLeft weight="bold" aria-hidden="true" />
-        {COHORTS[m.year].label} modules
-      </Link>
+      <div className="mod-head__top">
+        <Link to={backTo} className="mod-head__back">
+          <CaretLeft weight="bold" aria-hidden="true" />
+          {COHORTS[m.year].label} modules
+        </Link>
+        {phone && m.description ? (
+          <button
+            type="button"
+            className="mod-head__about"
+            aria-expanded={about}
+            aria-controls={aboutId}
+            onClick={() => setAbout((open) => !open)}
+          >
+            About this module
+            <CaretDown weight="bold" aria-hidden="true" className="mod-head__about-caret" />
+          </button>
+        ) : null}
+      </div>
       <div className="mod-head__grid">
         <div className="mod-head__main">
           <h1 className="mod-head__title">
             {hasArt ? (
               <ModuleArt art={m.art} className="mod-head__art" />
-            ) : m.unitCode ? (
+            ) : m.unitCode && !phone ? (
               <span className="mod-head__code u-code">{m.unitCode}</span>
             ) : (
               <span className="mod-head__plate" aria-hidden="true">
@@ -143,12 +261,12 @@ function ModuleHeader({
               </span>
             )}
             <span className="mod-head__heading">
-              {hasArt && m.unitCode ? <span className="mod-head__label u-code">{m.unitCode} </span> : null}
-              <span className="mod-head__name">{m.name}</span>
+              {m.unitCode && (hasArt || phone) ? <span className="mod-head__label u-code">{m.unitCode} </span> : null}
+              <span className="mod-head__name">{phone && m.unitCode ? m.shortName || m.name : m.name}</span>
             </span>
           </h1>
           {m.description ? (
-            <div className="mod-head__desc">
+            <div className="mod-head__desc" id={aboutId} hidden={phone && !about}>
               <Prose text={m.description} />
             </div>
           ) : null}
@@ -159,93 +277,10 @@ function ModuleHeader({
                 Exam {exam.weekdayDate}, {exam.relative}
               </Badge>
             ) : null}
-            {counts.length ? <span className="mod-head__counts">{counts.join(', ')}</span> : null}
+            {counts.length && !phone ? <span className="mod-head__counts">{counts.join(', ')}</span> : null}
           </div>
         </div>
-
-        <Panel as="div" padding="none" className="mod-head__side">
-          {m.lessonCount ? (
-            <>
-              {tracking ? (
-                <div className="mod-head__progress">
-                  <ProgressRing
-                    value={progressReady ? progress.pct : 0}
-                    size={64}
-                    stroke={6}
-                    color={progress.pct === 100 ? 'var(--signal)' : cohortColor(m.year)}
-                    label="Lessons watched"
-                  />
-                  <div className="mod-head__progress-text">
-                    {progressReady ? (
-                      <p className="mod-head__progress-num">
-                        <b className="u-tabular">{progress.watched}</b> of{' '}
-                        <span className="u-tabular">{progress.total}</span> lessons watched
-                      </p>
-                    ) : (
-                      <Skeleton width={180} height={18} />
-                    )}
-                    {resumeNote ? <p className="mod-head__progress-note">{resumeNote}</p> : null}
-                  </div>
-                </div>
-              ) : (
-                <div className="mod-head__progress">
-                  <span className="mod-head__nolessons" aria-hidden="true">
-                    <PlayCircle weight="duotone" />
-                  </span>
-                  <div className="mod-head__progress-text">
-                    <p className="mod-head__progress-num">{countOf(m.lessonCount, 'video lesson')}</p>
-                    <p className="mod-head__progress-note">Start with chapter 1, or pick any lesson.</p>
-                  </div>
-                </div>
-              )}
-              <div className="mod-head__actions">
-                {resume ? (
-                  <Button
-                    variant="primary"
-                    leadingIcon={Play}
-                    onClick={() => onOpenLesson(resume.c, resume.v)}
-                    className="mod-head__action"
-                  >
-                    {RESUME_LABEL[resume.kind]}
-                  </Button>
-                ) : (
-                  <Skeleton width={150} height={40} radius={10} />
-                )}
-                {pastPapers ? (
-                  <Button to={pastPapers} className="mod-head__action">
-                    Past papers
-                  </Button>
-                ) : null}
-                {plan}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="mod-head__progress">
-                <span className="mod-head__nolessons" aria-hidden="true">
-                  <BookOpenText weight="duotone" />
-                </span>
-                <div className="mod-head__progress-text">
-                  <p className="mod-head__progress-num">Start with the study guide</p>
-                  <p className="mod-head__progress-note">There are no video lessons for this module yet.</p>
-                </div>
-              </div>
-              <div className="mod-head__actions">
-                {studyGuide ? (
-                  <Button variant="primary" to={studyGuide} className="mod-head__action">
-                    Study guide
-                  </Button>
-                ) : null}
-                {pastPapers ? (
-                  <Button to={pastPapers} className="mod-head__action">
-                    Past papers
-                  </Button>
-                ) : null}
-                {plan}
-              </div>
-            </>
-          )}
-        </Panel>
+        {side}
       </div>
     </header>
   );

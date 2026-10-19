@@ -1,20 +1,26 @@
-// Overview tab: the module's shelves (books, past papers, notes, ... each opening the Files tab at its part), a way to
-// share a file (decision D6: contributing means uploading), progress, "Pick up where you left off" and the module's
-// upcoming dates from the calendar.
-import { CalendarBlank, CheckCircle, Files, UploadSimple } from '@phosphor-icons/react';
-import { useMemo } from 'react';
+// Overview tab: the module's home. Previews of what the other tabs and the calendar hold, each ending in a link to
+// the whole of it: the next dates, lesson progress (for a student who keeps it and has started), the latest past
+// papers, the newest students' notes, the newest threads with "Ask a question", and the rest of the library (decision
+// D6: contributing means uploading). A block with nothing to show is left out, not shown empty.
+import { CalendarBlank, ChatsCircle, CheckCircle, Files, Plus, UploadSimple } from '@phosphor-icons/react';
+import { useId, useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
 import { useAuth } from '../../auth';
+import { daysUntil, formatDay, todayKey } from '../../lib/dates';
+import { zoneLabel } from '../../lib/exams';
 import { cohortColor } from '../../state';
-import { Badge, Button, Panel, SectionHeader, Skeleton, countOf, cx, formatDate } from '../../ui';
-import { daysUntil } from '../../lib/dates';
-import { typeLabel } from '../calendar/public';
+import { Badge, Button, Panel, QueryError, Skeleton, countOf, cx, timeAgo } from '../../ui';
+import { aheadRows, typeLabel } from '../calendar/public';
+import { useModuleLatestThreads, useStartsThreads } from '../forum/public';
+import { libraryItemPath } from '../library/public';
+import { useModuleFiles } from './api';
 import { useModuleDates } from './exams';
-import { chapterPosition, lastOpenedLabel, lessonHref } from './lessons';
+import { chapterPosition, lastOpenedLabel, lessonHref, moduleTabOn } from './lessons';
+import { latestSittings, sharedBy, showsProgress } from './overview';
 import { MiniPoster } from './Poster';
 import { computeChapterProgress, type ProgressState, type ResumeKind, type ResumePoint } from './progress';
-import { buildShelves, joinAnd, type Shelf } from './resources';
+import { buildShelves, joinAnd } from './resources';
 
 const PICKUP_TITLE: Record<ResumeKind, string> = {
   resume: 'Pick up where you left off',
@@ -29,93 +35,147 @@ const PICKUP_ACTION: Record<ResumeKind, string> = {
   done: 'Watch again',
 };
 const MAX_CHAPTERS = 6;
+const SITTINGS = 3;
+/** Past papers read to find the latest sittings: every zone of the last few years. */
+const PAPERS_READ = 60;
+const ROWS = 3;
 
-function ShelfRow({ shelf, onTab }: { shelf: Shelf; onTab: (tab: string, hash?: string) => void }) {
-  const Icon = shelf.icon;
-  return (
-    <div className={cx('mod-res__entry', `mod-res__entry--${shelf.kind}`)} data-hub="module-shelf">
-      <dt className="mod-res__label">
-        <Icon weight="duotone" className="mod-res__icon" aria-hidden="true" />
-        <span>{shelf.label}</span>
-      </dt>
-      <dd className="mod-res__body">
-        <p className="mod-res__desc">
-          {shelf.beingAdded
-            ? 'Being added: these files are on their way into the Hub. Check back soon.'
-            : shelf.description}
-        </p>
-        <div className="mod-res__actions">
-          {shelf.beingAdded ? (
-            <Badge tone="neutral" size="sm">
-              Being added
-            </Badge>
-          ) : (
-            <Button
-              size="sm"
-              leadingIcon={Files}
-              onClick={() => onTab('files', shelf.hash)}
-              aria-label={`${shelf.label}: ${countOf(shelf.files, 'file')}`}
-            >
-              {shelf.kind === 'past-paper' ? 'See past papers' : `Open ${countOf(shelf.files, 'file')}`}
-            </Button>
-          )}
-        </div>
-      </dd>
-    </div>
-  );
-}
-
-function LibraryRow({
-  count,
-  name,
-  onTab,
-  onUpload,
+/** One preview: a titled card, its rows, and links to the whole of it. */
+function Block({
+  title,
+  className,
+  footer,
+  children,
+  hub,
 }: {
-  count: number | null;
-  name: string;
-  onTab: (tab: string) => void;
-  onUpload: (() => void) | null;
+  title: string;
+  className?: string;
+  footer?: ReactNode;
+  children: ReactNode;
+  hub: string;
 }) {
+  const id = useId();
   return (
-    <div className="mod-res__entry mod-res__entry--library">
-      <dt className="mod-res__label">
-        <Files weight="duotone" className="mod-res__icon" aria-hidden="true" />
-        <span>In the library</span>
-      </dt>
-      <dd className="mod-res__body">
-        <p className="mod-res__desc">
-          {count
-            ? `${count} ${count === 1 ? 'file' : 'files'} for ${name}: past papers, students’ notes and guides you can read here or download.`
-            : `Past papers, students’ notes and guides for ${name} will be here as students share them.`}
-        </p>
-        <div className="mod-res__actions">
-          {count ? (
-            <Button size="sm" leadingIcon={Files} onClick={() => onTab('files')}>
-              See {count} {count === 1 ? 'file' : 'files'}
-            </Button>
-          ) : onUpload ? (
-            <Button size="sm" leadingIcon={UploadSimple} onClick={onUpload}>
-              Upload a file
-            </Button>
-          ) : null}
-        </div>
-      </dd>
-    </div>
+    <Panel padding="none" className={cx('mod-blk', className)} aria-labelledby={id} data-hub={hub}>
+      <h2 id={id} className="mod-blk__title">
+        {title}
+      </h2>
+      <div className="mod-blk__body">{children}</div>
+      {footer ? <div className="mod-blk__foot">{footer}</div> : null}
+    </Panel>
   );
 }
 
-function PickUp({ module: m, resume }: { module: ModuleDetail; resume: ResumePoint }) {
+function BlockLoading({ title }: { title: string }) {
+  return (
+    <Block title={title} hub="module-block-loading">
+      <div className="mod-blk__loading" aria-busy="true">
+        <span className="visually-hidden" role="status">
+          Loading
+        </span>
+        <Skeleton lines={3} />
+      </div>
+    </Block>
+  );
+}
+
+/** The module's next dates on the calendar: exams, mocks, deadlines and VLE windows (an open one by its last day). */
+function NextDates({ module: m }: { module: ModuleDetail }) {
+  const { events, isPending, isError, error, isFetching, refetch } = useModuleDates(m.id, 12);
+  const today = todayKey();
+  const rows = useMemo(() => aheadRows(events, today).slice(0, ROWS), [events, today]);
+  const title = 'Next dates';
+  if (isPending) return <BlockLoading title={title} />;
+  if (isError) {
+    return (
+      <Block title={title} hub="module-dates">
+        <QueryError
+          error={error}
+          title="The calendar didn’t load"
+          size="sm"
+          panel={false}
+          onRetry={() => void refetch()}
+          retrying={isFetching}
+        />
+      </Block>
+    );
+  }
+  if (!rows.length) return null;
+  return (
+    <Block
+      title={title}
+      hub="module-dates"
+      footer={
+        <Button variant="ghost" size="sm" to="/calendar" leadingIcon={CalendarBlank}>
+          Open the calendar
+        </Button>
+      }
+    >
+      <ol className="mod-rows" role="list">
+        {rows.map(({ event: e, day, closes }) => {
+          const days = daysUntil(day, today);
+          const date = formatDay(day, { weekday: 'short', month: 'short', year: false });
+          return (
+            <li key={e.id}>
+              <Link
+                to={`/calendar?event=${encodeURIComponent(e.id)}`}
+                className={cx('mod-row', 'mod-date', `mod-date--${e.type}`)}
+              >
+                <span className="mod-date__dot" aria-hidden="true" />
+                <span className="mod-row__text">
+                  <span className="mod-row__title">{e.title}</span>
+                  <span className="mod-row__meta">
+                    {closes ? `Closes ${date}` : `${typeLabel(e.type)}, ${date}`}
+                    {e.sample ? ', to be confirmed' : ''}
+                  </span>
+                </span>
+                <span className={cx('mod-date__when', days <= 14 && 'is-soon')}>
+                  {days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days} days`}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+    </Block>
+  );
+}
+
+function YourProgress({
+  module: m,
+  state,
+  resume,
+  onOpenLesson,
+  onTab,
+}: {
+  module: ModuleDetail;
+  state: ProgressState;
+  resume: ResumePoint;
+  onOpenLesson: (c: number, v: number) => void;
+  onTab: (tab: string) => void;
+}) {
   const ch = m.chapters[resume.c];
   const video = ch.videos[resume.v];
   const when = resume.kind === 'resume' || resume.kind === 'next' ? lastOpenedLabel(resume.at) : null;
   const whenText = when ? (resume.kind === 'resume' ? `Opened ${when}` : `Last studied ${when}`) : null;
+  const color = cohortColor(m.year);
+  const done = m.chapters.filter((_, c) => {
+    const cp = computeChapterProgress(state, m, c);
+    return cp.total > 0 && cp.watched === cp.total;
+  }).length;
   return (
-    <section className="mod-side__section mod-pick" aria-labelledby="mod-pick-title">
-      <h2 id="mod-pick-title" className="mod-side__title">
-        {PICKUP_TITLE[resume.kind]}
-      </h2>
+    <Block
+      title={PICKUP_TITLE[resume.kind]}
+      className="mod-blk--progress"
+      hub="module-progress"
+      footer={
+        <Button variant="ghost" size="sm" onClick={() => onTab('lessons')}>
+          All {countOf(m.chapters.length, 'chapter')}
+        </Button>
+      }
+    >
       <Link
-        to={lessonHref(m.id, ch.videos[resume.v].id)}
+        to={lessonHref(m.id, video.id)}
         replace
         className="mod-pick__link"
         aria-label={`${PICKUP_ACTION[resume.kind]}: chapter ${resume.c + 1}, ${ch.title}`}
@@ -128,129 +188,277 @@ function PickUp({ module: m, resume }: { module: ModuleDetail; resume: ResumePoi
           {whenText ? <span className="mod-pick__when">{whenText}</span> : null}
         </span>
       </Link>
-    </section>
-  );
-}
-
-function ProgressSection({
-  module: m,
-  state,
-  tracking,
-  onOpenLesson,
-  onTab,
-}: {
-  module: ModuleDetail;
-  state: ProgressState;
-  /** Off: the chapters without what was watched. */
-  tracking: boolean;
-  onOpenLesson: (c: number, v: number) => void;
-  onTab: (tab: string) => void;
-}) {
-  const color = cohortColor(m.year);
-  const shown = m.chapters.slice(0, MAX_CHAPTERS);
-  const done = m.chapters.filter((_, c) => {
-    const cp = computeChapterProgress(state, m, c);
-    return cp.total > 0 && cp.watched === cp.total;
-  }).length;
-  return (
-    <section className="mod-side__section mod-prog" aria-labelledby="mod-prog-title">
-      <div className="mod-prog__head">
-        <h2 id="mod-prog-title" className="mod-side__title">
-          Chapters
-        </h2>
-        {tracking ? (
-          <p className="mod-prog__sum">
-            <b className="u-tabular">{done}</b> of <span className="u-tabular">{m.chapters.length}</span> complete
-          </p>
-        ) : null}
-      </div>
+      <p className="mod-prog__sum">
+        <b className="u-tabular">{done}</b> of <span className="u-tabular">{m.chapters.length}</span> chapters complete
+      </p>
       <ol className="mod-prog__list" role="list">
-        {shown.map((ch, c) => {
+        {m.chapters.slice(0, MAX_CHAPTERS).map((chapter, c) => {
           const cp = computeChapterProgress(state, m, c);
           const complete = cp.total > 0 && cp.watched === cp.total;
-          const firstOpen = ch.videos.findIndex((video) => !state.watched[video.id]);
+          const firstOpen = chapter.videos.findIndex((v) => !state.watched[v.id]);
           return (
-            <li key={c}>
+            <li key={chapter.id}>
               <button
                 type="button"
                 className={cx('mod-prog__ch', complete && 'is-done')}
                 onClick={() => onOpenLesson(c, firstOpen < 0 ? 0 : firstOpen)}
               >
                 <span className="mod-prog__num u-tabular">{c + 1}</span>
-                <span className="mod-prog__name">{ch.title}</span>
-                {tracking ? (
-                  <>
-                    <span className="mod-prog__frac u-tabular">
-                      {complete ? <CheckCircle weight="fill" aria-hidden="true" /> : null}
-                      {cp.watched}/{cp.total}
-                    </span>
-                    <span className="mod-prog__bar" aria-hidden="true">
-                      <span style={{ width: `${cp.pct}%`, background: complete ? 'var(--signal)' : color }} />
-                    </span>
-                  </>
-                ) : (
-                  <span className="mod-prog__frac u-tabular">{countOf(cp.total, 'lesson')}</span>
-                )}
+                <span className="mod-prog__name">{chapter.title}</span>
+                <span className="mod-prog__frac u-tabular">
+                  {complete ? <CheckCircle weight="fill" aria-hidden="true" /> : null}
+                  {cp.watched}/{cp.total}
+                </span>
+                <span className="mod-prog__bar" aria-hidden="true">
+                  <span style={{ width: `${cp.pct}%`, background: complete ? 'var(--signal)' : color }} />
+                </span>
               </button>
             </li>
           );
         })}
       </ol>
-      {m.chapters.length > MAX_CHAPTERS ? (
-        <Button variant="ghost" size="sm" className="mod-prog__all" onClick={() => onTab('lessons')}>
-          See all {m.chapters.length} chapters
-        </Button>
-      ) : null}
-    </section>
+    </Block>
   );
 }
 
-/** The module's next dates on the calendar (exams, mocks, revision sessions, deadlines). */
-function UpcomingDates({ module: m }: { module: ModuleDetail }) {
-  const { events, isPending, isError } = useModuleDates(m.id, 4);
-  const now = new Date();
+/** The last three sittings, each with its zones' papers. Switch to the library's sittings table once it has one. */
+function LatestPapers({ moduleId, onTab }: { moduleId: string; onTab: (tab: string, hash?: string) => void }) {
+  const q = useModuleFiles(moduleId, 'past-paper', { limit: PAPERS_READ });
+  const sittings = useMemo(() => latestSittings(q.data ?? [], SITTINGS), [q.data]);
+  const title = 'Latest past papers';
+  if (q.isPending) return <BlockLoading title={title} />;
+  if (q.isError) {
+    return (
+      <Block title={title} hub="module-papers">
+        <QueryError
+          error={q.error}
+          title="The past papers didn’t load"
+          size="sm"
+          panel={false}
+          onRetry={() => void q.refetch()}
+          retrying={q.isFetching}
+        />
+      </Block>
+    );
+  }
+  if (!sittings.length) return null;
   return (
-    <section className="mod-side__section mod-dates" aria-labelledby="mod-dates-title" data-hub="module-dates">
-      <h2 id="mod-dates-title" className="mod-side__title">
-        Upcoming dates
-      </h2>
-      {isPending ? (
-        <Skeleton lines={2} />
-      ) : isError ? (
-        <p className="mod-side__text">The calendar didn’t load. It’s on the Calendar page too.</p>
-      ) : events.length ? (
-        <ol className="mod-dates__list" role="list">
-          {events.map((e) => {
-            const days = daysUntil(e.date, now);
-            return (
-              <li key={e.id}>
+    <Block
+      title={title}
+      hub="module-papers"
+      footer={
+        <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files', 'papers')}>
+          All past papers
+        </Button>
+      }
+    >
+      <ul className="mod-rows" role="list">
+        {sittings.map((s) => (
+          <li key={s.key} className="mod-sitting">
+            <span className="mod-sitting__label">{s.label}</span>
+            <span className="mod-sitting__zones">
+              {s.papers.map((p) => (
                 <Link
-                  to={`/calendar?event=${encodeURIComponent(e.id)}`}
-                  className={cx('mod-dates__row', `mod-dates__row--${e.type}`)}
+                  key={p.id}
+                  to={libraryItemPath(p)}
+                  className="mod-sitting__zone"
+                  aria-label={`${s.label}, ${p.zone ? zoneLabel(p.zone) : 'paper'}`}
                 >
-                  <span className="mod-dates__dot" aria-hidden="true" />
-                  <span className="mod-dates__text">
-                    <span className="mod-dates__title">{e.title}</span>
-                    <span className="mod-dates__meta">
-                      {typeLabel(e.type)}, {formatDate(e.date, { weekday: 'short', day: 'numeric', month: 'short' })}
-                      {e.sample ? ', to be confirmed' : ''}
-                    </span>
-                  </span>
-                  <span className={cx('mod-dates__when', days <= 14 && 'is-soon')}>
-                    {days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days} days`}
-                  </span>
+                  {p.zone ? zoneLabel(p.zone) : 'Paper'}
                 </Link>
+              ))}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Block>
+  );
+}
+
+function NewestNotes({ moduleId, onTab }: { moduleId: string; onTab: (tab: string, hash?: string) => void }) {
+  const q = useModuleFiles(moduleId, 'notes', { limit: ROWS });
+  const title = 'Students’ notes';
+  if (q.isPending) return <BlockLoading title={title} />;
+  if (q.isError) {
+    return (
+      <Block title={title} hub="module-notes">
+        <QueryError
+          error={q.error}
+          title="The notes didn’t load"
+          size="sm"
+          panel={false}
+          onRetry={() => void q.refetch()}
+          retrying={q.isFetching}
+        />
+      </Block>
+    );
+  }
+  const notes = q.data;
+  if (!notes.length) return null;
+  return (
+    <Block
+      title={title}
+      hub="module-notes"
+      footer={
+        <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files', 'files-notes')}>
+          All notes
+        </Button>
+      }
+    >
+      <ul className="mod-rows" role="list">
+        {notes.map((n) => {
+          const who = sharedBy(n);
+          const when = timeAgo(n.publishedAt ?? n.createdAt);
+          return (
+            <li key={n.id}>
+              <Link to={libraryItemPath(n)} className="mod-row">
+                <span className="mod-row__text">
+                  <span className="mod-row__title">{n.title}</span>
+                  <span className="mod-row__meta">{who ? `Shared by ${who}, ${when}` : `Shared ${when}`}</span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </Block>
+  );
+}
+
+function NewestThreads({ moduleId, name, onTab }: { moduleId: string; name: string; onTab: (tab: string) => void }) {
+  const q = useModuleLatestThreads(moduleId, { n: ROWS });
+  const starts = useStartsThreads();
+  const title = 'Discussion';
+  if (q.isPending) return <BlockLoading title={title} />;
+  if (q.isError) {
+    return (
+      <Block title={title} hub="module-discussion">
+        <QueryError
+          error={q.error}
+          title={`The threads about ${name} didn’t load`}
+          size="sm"
+          panel={false}
+          onRetry={() => void q.refetch()}
+          retrying={q.isFetching}
+        />
+      </Block>
+    );
+  }
+  if (!q.threads.length) return null;
+  return (
+    <Block
+      title={title}
+      hub="module-discussion"
+      footer={
+        <>
+          <Button variant="ghost" size="sm" leadingIcon={ChatsCircle} onClick={() => onTab('discussion')}>
+            {q.total > ROWS ? `All ${q.total} threads` : 'All threads'}
+          </Button>
+          {starts ? (
+            <Button size="sm" leadingIcon={Plus} to={`/forum/new?module=${encodeURIComponent(moduleId)}`}>
+              Ask a question
+            </Button>
+          ) : null}
+        </>
+      }
+    >
+      <ul className="mod-rows" role="list">
+        {q.threads.map((t) => (
+          <li key={t.id}>
+            <Link to={`/forum/${t.slug}`} className="mod-row">
+              <span className="mod-row__text">
+                <span className="mod-row__title">{t.title}</span>
+                <span className="mod-row__meta">
+                  {countOf(t.replyCount, 'reply', 'replies')}
+                  {t.answered ? ', answered' : ''}, {timeAgo(t.lastActivityAt)}
+                </span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Block>
+  );
+}
+
+/** The rest of the module's shelves (books, exercises, VLE material…), and what nobody has shared yet. */
+function MoreInLibrary({
+  module: m,
+  libraryCount,
+  onTab,
+  onUpload,
+}: {
+  module: ModuleDetail;
+  libraryCount: number | null;
+  onTab: (tab: string, hash?: string) => void;
+  onUpload: (() => void) | null;
+}) {
+  const { shelves, missing } = useMemo(() => buildShelves(m), [m]);
+  const name = m.unitCode || m.name;
+  const rest = shelves.filter((s) => s.kind !== 'past-paper' && s.kind !== 'notes');
+  if (!rest.length && !missing.length && !libraryCount) return null;
+  return (
+    <Block
+      title={rest.length ? 'Also in the library' : 'In the library'}
+      hub="module-resources"
+      footer={
+        <>
+          {libraryCount ? (
+            <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files')}>
+              All {countOf(libraryCount, 'file')}
+            </Button>
+          ) : null}
+          {onUpload ? (
+            <Button variant="ghost" size="sm" leadingIcon={UploadSimple} onClick={onUpload}>
+              Upload a file
+            </Button>
+          ) : null}
+        </>
+      }
+    >
+      {rest.length ? (
+        <ul className="mod-rows" role="list">
+          {rest.map((sh) => {
+            const Icon = sh.icon;
+            return (
+              <li key={sh.kind}>
+                {sh.beingAdded ? (
+                  <span className="mod-row mod-shelf" data-hub="module-shelf">
+                    <Icon weight="duotone" className="mod-shelf__icon" aria-hidden="true" />
+                    <span className="mod-row__text">
+                      <span className="mod-row__title">{sh.label}</span>
+                      <span className="mod-row__meta">On their way into the Hub. Check back soon.</span>
+                    </span>
+                    <Badge tone="neutral" size="sm">
+                      Being added
+                    </Badge>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="mod-row mod-shelf"
+                    data-hub="module-shelf"
+                    onClick={() => onTab('files', sh.hash)}
+                  >
+                    <Icon weight="duotone" className="mod-shelf__icon" aria-hidden="true" />
+                    <span className="mod-row__text">
+                      <span className="mod-row__title">{sh.label}</span>
+                      <span className="mod-row__meta">{sh.description}</span>
+                    </span>
+                    <span className="mod-shelf__count u-tabular">{countOf(sh.files, 'file')}</span>
+                  </button>
+                )}
               </li>
             );
           })}
-        </ol>
-      ) : (
-        <p className="mod-side__text">No dates on the calendar for this module yet.</p>
-      )}
-      <Button variant="ghost" size="sm" to="/calendar" leadingIcon={CalendarBlank} className="mod-dates__cal">
-        Open calendar
-      </Button>
-    </section>
+        </ul>
+      ) : null}
+      {missing.length ? (
+        <p className="mod-blk__note">
+          Nobody has shared {joinAnd(missing)} for {name} yet.
+        </p>
+      ) : null}
+    </Block>
   );
 }
 
@@ -277,77 +485,17 @@ export function ModuleOverview({
 }) {
   const { featureOn } = useAuth();
   const libraryOn = featureOn('library');
-  const { shelves, missing } = useMemo(() => buildShelves(m), [m]);
   const name = m.unitCode || m.name;
-
   return (
-    <div className="mod-ov">
-      <section className="mod-ov__main" aria-labelledby="mod-res-title">
-        <SectionHeader
-          id="mod-res-title"
-          title="Resources"
-          description="Everything opens here in the Hub: read it in your browser or download it."
-          action={
-            libraryOn ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                leadingIcon={Files}
-                onClick={() => onTab('files')}
-                className="mod-ov__files"
-              >
-                {libraryCount ? `${libraryCount} ${libraryCount === 1 ? 'file' : 'files'} in the library` : 'Files'}
-              </Button>
-            ) : undefined
-          }
-        />
-        <Panel as="div" padding="none" className="mod-res" data-hub="module-resources">
-          <dl className="mod-res__list">
-            {shelves.map((sh) => (
-              <ShelfRow key={sh.kind} shelf={sh} onTab={onTab} />
-            ))}
-            {libraryOn && !shelves.length ? (
-              <LibraryRow count={libraryCount} name={name} onTab={onTab} onUpload={onUpload} />
-            ) : null}
-          </dl>
-          {libraryOn && missing.length ? (
-            <div className="mod-res__missing">
-              <p>
-                <span className="mod-res__missing-label">Nobody has shared</span> {joinAnd(missing)} for {name} yet.
-              </p>
-              {onUpload ? (
-                <Button size="sm" variant="ghost" leadingIcon={UploadSimple} onClick={onUpload}>
-                  Upload a file
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </Panel>
-      </section>
-
-      <aside className="mod-ov__aside" aria-label="Your study">
-        <Panel as="div" padding="none" className="mod-side">
-          {resume ? (
-            <PickUp module={m} resume={resume} />
-          ) : onUpload ? (
-            <section className="mod-side__section" aria-labelledby="mod-nolessons-title">
-              <h2 id="mod-nolessons-title" className="mod-side__title">
-                Have notes for {name}?
-              </h2>
-              <p className="mod-side__text">
-                Share your notes, a cheat sheet or a past paper. A student rep checks every upload before it appears.
-              </p>
-              <Button size="sm" leadingIcon={UploadSimple} onClick={onUpload}>
-                Upload a file
-              </Button>
-            </section>
-          ) : null}
-          {resume ? (
-            <ProgressSection module={m} state={state} tracking={tracking} onOpenLesson={onOpenLesson} onTab={onTab} />
-          ) : null}
-          {featureOn('calendar') ? <UpcomingDates module={m} /> : null}
-        </Panel>
-      </aside>
+    <div className="mod-ov" data-hub="module-overview">
+      {featureOn('calendar') ? <NextDates module={m} /> : null}
+      {showsProgress(tracking, resume) ? (
+        <YourProgress module={m} state={state} resume={resume} onOpenLesson={onOpenLesson} onTab={onTab} />
+      ) : null}
+      {libraryOn ? <LatestPapers moduleId={m.id} onTab={onTab} /> : null}
+      {libraryOn ? <NewestNotes moduleId={m.id} onTab={onTab} /> : null}
+      {moduleTabOn('discussion', featureOn) ? <NewestThreads moduleId={m.id} name={name} onTab={onTab} /> : null}
+      {libraryOn ? <MoreInLibrary module={m} libraryCount={libraryCount} onTab={onTab} onUpload={onUpload} /> : null}
     </div>
   );
 }

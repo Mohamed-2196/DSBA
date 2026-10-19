@@ -27,15 +27,6 @@ export function countdownShort(days: number): string {
   return `${days} days`;
 }
 
-/**
- * The countdown for a date that may run over several days: before it starts, `countdownShort`; once it has started
- * and until `endDays` (days until its last day) passes, 'Open until 24 Oct' (`endLabel`); after that, 'Past'.
- */
-export function windowCountdown(days: number, endDays: number | null, endLabel: string): string {
-  if (days < 0 && endDays !== null && endDays >= 0) return endDays === 0 ? 'Ends today' : `Open until ${endLabel}`;
-  return countdownShort(days);
-}
-
 // ── Months ──────────────────────────────────────────────────────────────────────────────────────
 
 /** { y, m } (m 0-based) from 'YYYY-MM', or null when malformed. */

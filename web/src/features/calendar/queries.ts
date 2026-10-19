@@ -64,6 +64,37 @@ export function upcomingFrom(events: readonly CalendarEvent[], from: DayKey): Ca
   return listOrder(events.filter((e) => lastDay(e) >= from));
 }
 
+/** A row of a short "coming up" list: the event, the day it is listed under, and whether that is its closing day. */
+export interface AheadRow<T extends CalendarEvent = CalendarEvent> {
+  event: T;
+  day: DayKey;
+  /** It opened before `today` and runs on: listed and counted by its last day ("Closes"). */
+  closes: boolean;
+}
+
+/**
+ * A short "coming up" list from `today`: nothing that is over, nothing in `skip` (ids shown elsewhere, such as
+ * Home's headline exam), and a window that has already opened (applications, a VLE window) placed by its closing
+ * day, so the list never leads with a day in the past. By day, then in list order.
+ */
+export function aheadRows<T extends CalendarEvent>(
+  events: readonly T[],
+  today: DayKey,
+  skip: ReadonlySet<string> = new Set(),
+): AheadRow<T>[] {
+  const rows: AheadRow<T>[] = [];
+  for (const e of listOrder(events)) {
+    const last = lastDay(e);
+    if (skip.has(e.id) || last < today) continue;
+    const closes = e.date < today;
+    rows.push({ event: e, day: closes ? last : e.date, closes });
+  }
+  return rows
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => a.r.day.localeCompare(b.r.day) || a.i - b.i)
+    .map(({ r }) => r);
+}
+
 export interface NextExam {
   /** The first confirmed exam ahead, or the first exam ahead when none is confirmed. */
   exam: CalendarEvent;

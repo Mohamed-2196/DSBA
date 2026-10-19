@@ -7,12 +7,12 @@ import { Button, cx, EmptyState, QueryError, Skeleton } from '../../ui';
 import { isMine, usePapers } from '../papers/public';
 import { useUpcomingEvents } from './api';
 import { DateLeaf } from './DateLeaf';
-import { dayKey, daysUntil, formatDay, formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
+import { dayKey, daysUntil, formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
 import { isHidden, occurrences, oneRowPerRepeat, repeatShort } from './mine';
-import { lastDay, sortEvents } from './queries';
+import { aheadRows, lastDay } from './queries';
 import type { CalendarEvent } from './types';
 import { useMyCalendar } from './useMyCalendar';
-import { windowCountdown } from './dates';
+import { countdownShort } from './dates';
 import { dotClass, kindLabel, leafTone, splitTitle, whenAndWhere } from './eventMeta';
 import './calendar-shared.css';
 import './UpcomingEvents.css';
@@ -22,17 +22,20 @@ export interface UpcomingEventsProps {
   n?: number;
   /** The cohort to list (plus everyone-dates); null for every cohort. Default: the cohort the student browses. */
   year?: CohortYear | null;
+  /** An event shown just above the list (Home's headline exam): left out of it. */
+  skip?: string | null;
 }
 
 /**
  * Compact "coming up" list for Home and the forum sidebar: date leaf (weekday, day, month), type
  * dot, title, countdown. Follows the cohort the student browses (plus everyone-dates); signed in, it leaves out the
  * programme dates they hid and adds their own events (in their own year, or with no year picked), a repeat once, at
- * its next day. Each row opens the event on the calendar (/calendar?event=<id>); hosts add their own "Open calendar"
+ * its next day. Nothing that is over is listed, and a window that has opened (applications, a VLE window) is listed
+ * by its closing day ("Closes"). Each row opens the event on the calendar (/calendar?event=<id>); hosts add their own "Open calendar"
  * link. Adapts to its container's width (container queries).
  * data-hub="upcoming-events".
  */
-export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
+export function UpcomingEvents({ n = 5, year: forYear, skip = null }: UpcomingEventsProps) {
   const { year: browsed } = useYear();
   const year = forYear === undefined ? browsed : forYear;
   const { getModule } = useModules();
@@ -44,7 +47,8 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
   const hides = !!prefs && prefs.hiddenEvents.length + prefs.hiddenModules.length + prefs.hiddenTypes.length > 0;
   // With papers, read more and keep the student's own (another paper's dates drop out); with hidden dates, as many
   // as the API gives, so a hidden type of date never empties the list.
-  const query = useUpcomingEvents({ n: hides ? 60 : papers ? n * 4 : n, year });
+  const ask = n + (skip ? 1 : 0);
+  const query = useUpcomingEvents({ n: hides ? 60 : papers ? ask * 4 : ask, year });
   const showOwn = my.signedIn && (year == null || year === ownYear);
   const own = useMemo(() => {
     if (!showOwn || !my.events.length) return [];
@@ -89,7 +93,11 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
   }
 
   const programme = query.data.filter((e) => (!papers || isMine(e, year ?? null, papers)) && !isHidden(e, prefs));
-  const events = oneRowPerRepeat(sortEvents<CalendarEvent>([...programme, ...own])).slice(0, n);
+  const rows = aheadRows<CalendarEvent>(
+    oneRowPerRepeat([...programme, ...own]),
+    dayKey(today),
+    new Set(skip ? [skip] : []),
+  ).slice(0, n);
   const ownFailed = my.loadError ? (
     <QueryError
       error={my.loadError}
@@ -101,7 +109,7 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
       className="cal-upcoming__error"
     />
   ) : null;
-  if (!events.length) {
+  if (!rows.length) {
     return (
       <div className="cal-upcoming cal-upcoming--empty" data-hub="upcoming-events">
         {ownFailed}
@@ -125,15 +133,10 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
     <div className="cal-upcoming" data-hub="upcoming-events">
       {ownFailed}
       <ol role="list" className="cal-upcoming__list">
-        {events.map((e) => {
-          const date = parseDay(e.date);
+        {rows.map(({ event: e, day, closes }) => {
+          const date = parseDay(day);
           const days = daysUntil(date, today);
-          const end = e.endDate ? parseDay(e.endDate) : null;
-          const count = windowCountdown(
-            days,
-            end ? daysUntil(end, today) : null,
-            end ? formatDay(end, { year: false, month: 'short' }) : '',
-          );
+          const count = closes && days === 0 ? 'Ends today' : countdownShort(days);
           const { code, rest } = splitTitle(e);
           const module = getModule(e.moduleId);
           const name = code && module ? module.name : rest;
@@ -154,6 +157,7 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
                   <span className="cal-upcoming__meta">
                     <span className={cx('cal-dot', dotClass(e))} aria-hidden="true" />
                     <span>{kindLabel(e)}</span>
+                    {closes ? <span className="cal-upcoming__all">Closes</span> : null}
                     {e.mine ? (
                       <>
                         {e.time ? <span className="cal-upcoming__all">{e.time}</span> : null}

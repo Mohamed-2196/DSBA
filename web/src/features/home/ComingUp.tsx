@@ -1,5 +1,5 @@
 // Home's "Coming up": the next exam (or mock, or other date) said plainly, with how many days are left, then the
-// next dates on the calendar for the year (the calendar's own list).
+// next dates on the calendar for the year (the calendar's own list, less the date above it).
 import { Link } from 'react-router-dom';
 import type { CohortYear } from '../../state';
 import { QueryError, Skeleton } from '../../ui';
@@ -103,7 +103,7 @@ export function ComingUp({
   return (
     <div className="home-coming">
       {head}
-      <UpcomingEvents n={3} year={year} />
+      <UpcomingEvents n={3} year={year} skip={session?.next.id ?? null} />
     </div>
   );
 }
