@@ -260,6 +260,29 @@ function PanelSkeleton() {
   );
 }
 
+/**
+ * The header on the Lessons tab: one line (back to the year's modules, then the module's code and name, a link to
+ * its overview), so the video is on a phone's first screen.
+ */
+function LessonsHeader({ summary: m }: { summary: ModuleSummary }) {
+  const { year } = useYear();
+  const backTo = year === m.year ? '/modules' : `/modules?year=${m.year}`;
+  return (
+    <header className={`mod-head mod-head--compact mod-head--y${m.year}`} data-hub="module-header">
+      <Link to={backTo} className="mod-head__back">
+        <CaretLeft weight="bold" aria-hidden="true" />
+        <span className="mod-head__back-label">{COHORTS[m.year].label} modules</span>
+      </Link>
+      <h1 className="mod-head__line">
+        <Link to={`/modules/${m.id}`} className="mod-head__line-link">
+          {m.unitCode ? <span className="mod-head__line-code u-code">{m.unitCode}</span> : null}
+          <span className="mod-head__line-name">{m.unitCode ? m.shortName || m.name : m.name}</span>
+        </Link>
+      </h1>
+    </header>
+  );
+}
+
 function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId: string | null }) {
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -358,16 +381,20 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
 
   return (
     <Page className={`mod-page mod-page--y${m.year}`}>
-      <ModuleHeader
-        summary={m}
-        detail={detail}
-        progress={progress}
-        progressReady={ready}
-        tracking={tracking}
-        resume={resume}
-        exam={exam}
-        onOpenLesson={openLesson}
-      />
+      {tab === 'lessons' ? (
+        <LessonsHeader summary={m} />
+      ) : (
+        <ModuleHeader
+          summary={m}
+          detail={detail}
+          progress={progress}
+          progressReady={ready}
+          tracking={tracking}
+          resume={resume}
+          exam={exam}
+          onOpenLesson={openLesson}
+        />
+      )}
 
       <Tabs
         idBase="module"
