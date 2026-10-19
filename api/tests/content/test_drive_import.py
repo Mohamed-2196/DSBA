@@ -318,6 +318,47 @@ def test_papers_take_their_exam_year_session_zone_and_kind_from_the_name(
     assert f"    + ST2133 solutions - October 2024.pdf ({len(PDF)} bytes; Solutions October 2024, zone B)" in out
 
 
+def test_a_paper_whose_name_gives_another_modules_unit_code_goes_to_that_module(
+    db: Session, fake: FakeDrive, run: Callable[..., int], out: Lines
+) -> None:
+    """ST1215's VLE folder holds MT1186's papers: their names say whose they are. Notes keep their folder's module."""
+    fake.folder("vle1", "ST1215 VLE")
+    names = [
+        "MT1186 Exam paper - May 2025.pdf",
+        "MT1186_Commentary_May_2025.pdf",
+        "MT1186 Sample exam paper and commentary.pdf",
+        "ST1215 Exam paper - May 2025.pdf",
+        "ST1215 and MT1186 formula sheet.pdf",  # its own module's code too: stays
+        "ST3134 Exam - 2019 Zone A.pdf",  # no module's code: stays
+        "Test1 - 2025.pdf",
+    ]
+    for i, name in enumerate(names):
+        fake.file(f"v{i}", name, "vle1")
+    fake.folder("notes1", "Notes")
+    fake.file("n1", "MT1186 summary.pdf", "notes1")
+    link(db, "statistics", "vle1", kind="vle-materials", title="VLE materials")
+    link(db, "statistics", "notes1", kind="notes", title="Notes")
+
+    assert run() == 0
+    items = imported(db)
+    assert {name: i.module_id for name, i in items.items()} == {
+        "MT1186 Exam paper - May 2025.pdf": "mathematics",
+        "MT1186_Commentary_May_2025.pdf": "mathematics",
+        "MT1186 Sample exam paper and commentary.pdf": "mathematics",
+        "ST1215 Exam paper - May 2025.pdf": "statistics",
+        "ST1215 and MT1186 formula sheet.pdf": "statistics",
+        "ST3134 Exam - 2019 Zone A.pdf": "statistics",
+        "Test1 - 2025.pdf": "statistics",
+        "MT1186 summary.pdf": "statistics",
+    }
+    paper = items["MT1186 Exam paper - May 2025.pdf"]
+    assert paper.import_key == "drive/statistics/v0"  # where it came from: a rerun still skips it
+    assert any("MT1186 Exam paper - May 2025.pdf" in line and "filed under MT1186" in line for line in out)
+    out.clear()
+    assert run() == 0
+    assert "Nothing to import." in out
+
+
 def test_a_rerun_skips_what_is_there_even_after_a_rep_moved_or_removed_it(
     db: Session,
     storage: Storage,

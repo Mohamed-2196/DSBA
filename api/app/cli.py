@@ -21,7 +21,8 @@ import-drive       copy the files of the modules' Google Drive folders into the 
                    files; --pace S: seconds between downloads, default 2; --yes: no question). Safe to run again:
                    it tries skipped and failed files again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
 exam-meta          read the exam year, session, zone and kind of the past papers, reports and solutions the Drive
-                   import brought in, from their names, and fill what each lacks (--dry-run: only list them)
+                   import brought in, from their names, and fill what each lacks; a file whose name gives another
+                   module's unit code moves to that module (--dry-run: only list them)
 text-worker        read the words of each newly published PDF and Word file, for search inside papers; runs until
                    stopped. Several can run side by side.
 extract-texts      read the words (and make the covers) of the published files that have none yet, then stop
@@ -430,7 +431,8 @@ def cmd_import_drive(args: argparse.Namespace) -> int:
 
 
 def cmd_exam_meta(args: argparse.Namespace) -> int:
-    """Imported papers, reports and VLE files get the exam details their names give (backfill_exam_meta)."""
+    """Imported papers, reports and VLE files get the exam details and the module their names give
+    (backfill_exam_meta)."""
     from app.services.drive_import import backfill_exam_meta
 
     with get_sessionmaker()() as db:

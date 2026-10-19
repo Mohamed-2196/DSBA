@@ -314,3 +314,64 @@ def test_exam_meta_fills_what_imported_files_lack_and_keeps_what_a_rep_set(
         rtc.title: ("examiners-report", 2026, "may", "RTC"),
     }
     assert backfill_exam_meta(db).changed == []  # safe to run again
+
+
+def test_exam_meta_moves_a_file_named_for_another_module_and_its_tags_go(
+    db: Session,
+    modules: dict[str, Module],
+    student: User,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def in_statistics(file_name: str, kind: str, **exam: Any) -> LibraryItem:
+        item = library.create_imported(
+            db,
+            db.get(Module, "statistics"),
+            kind=kind,  # type: ignore[arg-type]
+            title=file_name.rsplit(".", 1)[0],
+            storage_key=f"library/drive/statistics/{uuid.uuid4().hex}/f.pdf",
+            file_name=file_name,
+            size_bytes=10,
+            import_key=f"drive/statistics/{uuid.uuid4().hex}",
+            **exam,
+        )
+        db.commit()
+        return item
+
+    may = in_statistics("MT1186 Exam paper - May 2025.pdf", "past-paper", exam_year=2025, exam_session="may")
+    sample = in_statistics("MT1186 Sample exam paper and commentary.pdf", "vle-materials")
+    own = in_statistics("ST1215 Exam paper - May 2025.pdf", "past-paper", exam_year=2025, exam_session="may")
+    moved_by_rep = in_statistics(
+        "MT1186 Exam paper - October 2025.pdf", "past-paper", exam_year=2025, exam_session="october"
+    )
+    moved_by_rep.module_id = "economics"  # a rep filed it elsewhere: it stays there
+    stats_chapter = chapters(db, "statistics")[0]
+    db.add(PaperQuestion(item_id=may.id, chapter_id=stats_chapter.id, question=1, tagged_by=student.id))
+    db.commit()
+
+    result = backfill_exam_meta(db, dry_run=True)
+    assert result.changed == [
+        "statistics · MT1186 Exam paper - May 2025: Past paper, May 2025, moved to mathematics",
+        "statistics · MT1186 Sample exam paper and commentary: VLE materials, moved to mathematics",
+    ]
+    db.refresh(may)
+    assert may.module_id == "statistics"  # a dry run changes nothing
+
+    @contextmanager
+    def same_session() -> Iterator[Session]:
+        yield db
+
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: same_session)
+    assert cli.main(["exam-meta"]) == 0
+    assert "Changed 2 of " in capsys.readouterr().out
+    for item in (may, sample, own, moved_by_rep):
+        db.refresh(item)
+    assert [i.module_id for i in (may, sample, own, moved_by_rep)] == [
+        "mathematics",
+        "mathematics",
+        "statistics",
+        "economics",
+    ]
+    assert may.year == modules["mathematics"].year
+    assert db.scalars(select(PaperQuestion).where(PaperQuestion.item_id == may.id)).all() == []
+    assert backfill_exam_meta(db).changed == []  # once
