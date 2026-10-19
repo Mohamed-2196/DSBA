@@ -1,0 +1,45 @@
+/* Brand icons (docs/design/deskmates/brand/BRAND.md §5). The line is currentColor, so an icon takes the colour of
+   the text it sits in. A section (shell nav, section headers) sets --sec-tint, --sec-art and --sec-pill; a use can set
+   --icon-tint and --icon-paper directly (a primary button does). */
+.ui-icon {
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -0.125em;
+}
+.ui-icon.is-active {
+  stroke-width: 1.85;
+}
+.ui-icon__t {
+  fill: var(--icon-tint, var(--sec-tint, var(--sec-home-tint)));
+}
+.ui-icon.is-active .ui-icon__t {
+  fill: var(--icon-tint, var(--sec-art, var(--sec-home-art)));
+}
+.ui-icon__p {
+  fill: var(--icon-paper, var(--surface));
+}
+.ui-icon.is-active .ui-icon__p {
+  fill: var(--icon-paper, var(--sec-pill, var(--sec-home-pill)));
+}
+.ui-icon__f {
+  fill: currentColor;
+  stroke: none;
+}
+.ui-icon__h {
+  stroke-width: 2.75;
+}
+.ui-icon.is-active .ui-icon__h {
+  stroke-width: 2.85;
+}
+
+/* Forced colours: two tones become one, and the body keeps its outline. */
+@media (forced-colors: active) {
+  .ui-icon__t,
+  .ui-icon__p {
+    fill: Canvas;
+  }
+}
