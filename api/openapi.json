@@ -41224,7 +41224,10 @@
           },
           "code": {
             "type": "string",
-            "const": "noora_unavailable",
+            "enum": [
+              "noora_unavailable",
+              "noora_declined"
+            ],
             "title": "Code",
             "default": "noora_unavailable"
           },
@@ -41238,7 +41241,7 @@
           "message"
         ],
         "title": "NooraErrorEvent",
-        "description": "The answer stopped. `code` is noora_unavailable: what came so far may be shown, with a line that it was cut\noff."
+        "description": "The answer stopped. With noora_unavailable, what came so far may be shown, with a line that it was cut off.\nWith noora_declined, Claude's safeguards declined the question: what came so far is to be dropped, and the\nmessage shown instead."
       },
       "NooraFact": {
         "properties": {

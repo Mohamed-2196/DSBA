@@ -8845,8 +8845,9 @@ export interface components {
         };
         /**
          * NooraErrorEvent
-         * @description The answer stopped. `code` is noora_unavailable: what came so far may be shown, with a line that it was cut
-         *     off.
+         * @description The answer stopped. With noora_unavailable, what came so far may be shown, with a line that it was cut off.
+         *     With noora_declined, Claude's safeguards declined the question: what came so far is to be dropped, and the
+         *     message shown instead.
          */
         NooraErrorEvent: {
             /**
@@ -8857,9 +8858,9 @@ export interface components {
             /**
              * Code
              * @default noora_unavailable
-             * @constant
+             * @enum {string}
              */
-            code: "noora_unavailable";
+            code: "noora_unavailable" | "noora_declined";
             /** Message */
             message: string;
         };

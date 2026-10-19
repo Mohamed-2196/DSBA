@@ -156,12 +156,19 @@ class Settings(BaseSettings):
 
     # Mini Noora's AI answers (the noora.ai feature), through Claude. Without a key she answers from her script only.
     # The prices (US dollars per million tokens) are the model's list prices: they turn the tokens each answer uses
-    # into the estimated cost that the monthly budget (set by admins in the app) is checked against.
+    # into the estimated cost that the monthly budget (set by admins in the app) is checked against. Claude Haiku 5.5
+    # has two rate cards: a prompt (input, cache reads and cache writes together) over noora_long_prompt_tokens is
+    # billed at the long prices. Effort sets how much she thinks before she answers; her thinking counts towards
+    # noora_max_answer_tokens.
     anthropic_api_key: SecretStr | None = None
-    noora_model: str = "claude-haiku-4-5-20251001"
-    noora_input_usd_per_mtok: float = Field(default=1.0, ge=0)
-    noora_output_usd_per_mtok: float = Field(default=5.0, ge=0)
-    noora_max_answer_tokens: int = Field(default=1500, ge=100, le=4000)
+    noora_model: str = "claude-haiku-5-5"
+    noora_effort: Literal["low", "medium", "high"] = "medium"
+    noora_input_usd_per_mtok: float = Field(default=0.10, ge=0)
+    noora_output_usd_per_mtok: float = Field(default=0.50, ge=0)
+    noora_long_prompt_tokens: int = Field(default=100_000, ge=1)
+    noora_long_input_usd_per_mtok: float = Field(default=0.50, ge=0)
+    noora_long_output_usd_per_mtok: float = Field(default=2.50, ge=0)
+    noora_max_answer_tokens: int = Field(default=8000, ge=1000, le=32000)
     noora_answers_at_once: int = Field(default=8, ge=1, le=100)  # answers streaming hub-wide (one per student)
 
     # The commit this API runs (`commit`), which /health reports so a deploy can be checked against the push that made
