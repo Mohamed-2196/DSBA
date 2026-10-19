@@ -139,12 +139,12 @@ round's scope.
 | UX-69 | minor | Module page on phones: the header fills the first screen, and the Overview sends you elsewhere: **fixed** (`round14/modulehome`) |
 | UX-70 | major | Notebook on phones: typed text is 7 px, and a new note has no cursor: **fixed** (`round14/notebook`) |
 | UX-71 | minor | Students' notes don't say who shared them: **fixed** (`round14/library`) |
-| UX-72 | minor | A paper's page: Download three times, Questions by topic twice, no way to ask about it: **mostly fixed** (`round14/library`) |
-| UX-73 | minor | Search ranks other years and prefix matches first |
-| UX-74 | minor | Forum list on phones: the title gets a 150 px column |
-| UX-75 | minor | Posting a thread drops you on the list, not the thread |
+| UX-72 | minor | A paper's page: Download three times, Questions by topic twice, no way to ask about it: **mostly fixed** (`round14/library`); the API and component for the paper's threads in `round14/forum` |
+| UX-73 | minor | Search ranks other years and prefix matches first (**fixed**) |
+| UX-74 | minor | Forum list on phones: the title gets a 150 px column (**fixed**) |
+| UX-75 | minor | Posting a thread drops you on the list, not the thread (**fixed**) |
 | UX-76 | minor | Home's Up next repeats the exam and starts with a past date (**fixed**) |
-| UX-77 | minor | Cold loads: a blank spinner, and the tab bar grows from 3 items to 6 |
+| UX-77 | minor | Cold loads: a blank spinner, and the tab bar grows from 3 items to 6: **fixed** (`round14/carryon`) |
 | UX-78 | minor | Notebook list: four create buttons when empty, and rows without content |
 | UX-79 | nit | Small leftovers |
 
@@ -329,6 +329,11 @@ solutions) opens /forum/new with the module set and the details starting "About 
 composer takes `?body=`. Still open: listing the module's threads that link the paper needs the API to find threads
 by a linked library item.
 
+**Remainder fixed in the forum** (`round14/forum`): `GET /forum/threads?paper=<slug>` finds the threads whose post or
+a visible reply links `/library/<slug>` (with or without the site's address, a page or an anchor), and
+`<PaperThreads slug />` in `forum/public.ts` lists them newest first, and renders nothing while there are none. It
+still has to be placed on the paper's page, under "Ask about this paper".
+
 #### UX-73 Search ranks other years and prefix matches first (minor)
 
 - **Where:** ⌘K and the phone's search, as a Year 2 student.
@@ -343,6 +348,13 @@ by a linked library item.
   - Put the Calendar group first when the query is a date word ("exam", "deadline", "results").
   - This closes UX-36's ranking half.
 
+**Fixed** (`round14/forum`). Every search group puts a signed-in student's own papers first, then their year (a
+date for every year counts as theirs), then whole words above prefixes ("Exam technique" before "Example sheet").
+Guests get whole words first and otherwise the same order as before. A query that starts with a date word ("exam",
+"deadline", "results", "resit", "due", "when") opens with the Calendar group. Also ST-54: a query that finds
+nothing is tried again with its misspelt words corrected (pg_trgm), and the palette says "Showing results for
+“hypothesis”".
+
 #### UX-74 Forum list on phones: the title gets a 150 px column (minor)
 
 - **Where:** `/forum` at 360 to 430. Screenshot: `screens/ux14-forum-row-360.png`.
@@ -356,6 +368,10 @@ by a linked library item.
 
   Target: three threads per 390×844 screen.
 
+**Fixed** (`round14/forum`). Below 560 px of list the title takes the row's whole width (294 px at 360, 324 at
+390, was about 150), clamped to three lines. The vote is a pill at the foot beside the replies and the time (44 px
+tall on touch screens), and a picture is an icon there. Rows are about 155 px tall at 390, so five fit a screen.
+
 #### UX-75 Posting a thread drops you on the list, not the thread (minor)
 
 - **Where:** `/forum/new` → Post thread, any size.
@@ -364,6 +380,8 @@ by a linked library item.
   toast also covers the second row of the list.
 - **Fix:** navigate to the new thread (`/forum/<slug>`), with the toast "Thread posted. Your cohort can see it now."
   shown there.
+
+**Fixed** (`round14/forum`): Post thread opens the new thread, with the toast there.
 
 #### UX-76 Home's Up next repeats the exam and starts with a past date (minor)
 
@@ -395,6 +413,8 @@ sidebar list and the module Overview use too).
     `/me` arrives.
   - Skeletons for the shapes that are known: the library's rows, a module header, the forum list.
   - Showing the last-seen lists while they refresh is in IDEA-43.
+
+- **Fixed** (`round14/carryon`): `index.html` draws the Hub's frame and a page skeleton before the code arrives; lazy pages wait on a page skeleton instead of a spinner; the nav shows the entries it showed last time while `/me` loads (every entry that needs no account on a first visit), so the tab bar has its six slots from the first frame. Checked at 390 with 600 ms latency and 50 kB/s: skeleton at 0.7 s, six tabs throughout.
 
 #### UX-78 Notebook list: four create buttons when empty, and rows without content (minor)
 

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChatCircleText, Plus } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
@@ -7,7 +7,7 @@ import { appUrl } from '../../lib/share';
 import { useCopyLink } from '../../lib/useCopyLink';
 import { Button, EmptyState, Page, Panel, QueryError, Skeleton } from '../../ui';
 import { useDocumentTitle } from '../../state';
-import { isNotFound, useThread } from './api';
+import { isNotFound, useThread, useThreadSeen } from './api';
 import { authorName } from './lib/authors';
 import { scrollBehavior } from './lib/motion';
 import { shownReplyIds } from './lib/replies';
@@ -31,6 +31,12 @@ export default function ThreadPage() {
   const { refetch } = query;
   const reload = useCallback(() => refetch(), [refetch]);
   const posts = useAuth().mayTry('forum.post');
+  // Opening a thread with notifications you haven't read reads them: its dot goes from Yours, and the bell's count.
+  const { mutate: markSeen } = useThreadSeen();
+  const unreadId = query.data?.unread ? query.data.id : null;
+  useEffect(() => {
+    if (unreadId) markSeen(unreadId);
+  }, [unreadId, markSeen]);
 
   // A thread on screen that is gone when it is read again (hidden or deleted meanwhile) stays, read-only, with a note.
   if (query.data) return <ThreadView key={query.data.id} thread={query.data} reload={reload} unavailable={notFound} />;

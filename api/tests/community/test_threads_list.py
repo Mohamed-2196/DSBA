@@ -12,8 +12,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
-from app.models import PostStatus, Upload, User
-from tests.community.helpers import API, ids, make_upload, new_reply, new_thread, set_thread
+from app.models import ForumReply, PostStatus, Upload, User
+from tests.community.helpers import API, ids, make_upload, new_reply, new_thread, notifications_for, set_thread
 
 Client = Callable[..., TestClient]
 
@@ -125,8 +125,7 @@ def test_filters(client_for: Client, student: User, classmate: User, modules: di
     assert ids(listing(guest, tag="exam-prep")["items"]) == [stats]
     assert listing(guest, tag="unknown")["items"] == []
     assert set(ids(listing(guest, unanswered="true")["items"])) == {stats, general}
-    assert ids(listing(s, mine="true")["items"]) == [stats]
-    r = guest.get(f"{API}/forum/threads", params={"mine": "true"})
+    r = guest.get(f"{API}/forum/threads", params={"yours": "true"})
     assert r.status_code == 401
     assert guest.get(f"{API}/forum/threads", params={"category": "year-9"}).status_code == 422
 
@@ -283,3 +282,63 @@ def test_control_characters_in_parameters(client_for: Client, student: User) -> 
     r = client_for(student).post(f"{API}/forum/threads", json={"title": "Valid title", "moduleId": "x\x00"})
     assert r.status_code == 422
     assert r.json()["error"]["code"] == "invalid_input"
+
+
+def test_yours_lists_what_you_started_replied_to_or_follow_newest_activity_first(
+    client_for: Client,
+    student: User,
+    classmate: User,
+    make_user: Callable[..., User],
+    set_feature: Callable[..., None],
+    db: Session,
+) -> None:
+    """IDEA-42: the "Yours" tab. Unread: a notification about the thread you haven't read; opening the thread
+    (POST …/seen) reads them."""
+    set_feature("forum.follow", "everyone")
+    third = make_user(name="Layla F.", year=2)
+    s, c, t = client_for(student), client_for(classmate), client_for(third)
+    started = new_thread(s, title="Started by me")["id"]
+    replied = new_thread(c, title="I replied here")["id"]
+    followed = new_thread(c, title="I follow this one")["id"]
+    switched_off = new_thread(c, title="I stopped following this one")["id"]
+    deleted_reply = new_thread(c, title="My reply here was deleted")["id"]
+    new_thread(c, title="Nothing to do with me")
+    new_reply(s, replied, "Here is what I think")
+    assert s.put(f"{API}/forum/threads/{followed}/follow", json={"level": "replies"}).status_code == 200
+    assert s.put(f"{API}/forum/threads/{switched_off}/follow", json={"level": "off"}).status_code == 200
+    gone = new_reply(s, deleted_reply, "Never mind")
+    assert s.delete(f"{API}/forum/replies/{gone['id']}").status_code == 204
+    # replying started a follow: switched off, only the deleted reply is left, and that doesn't count
+    assert s.put(f"{API}/forum/threads/{deleted_reply}/follow", json={"level": "off"}).status_code == 200
+
+    new_reply(t, started, "An answer to your thread")  # newest activity, and a notification for the student
+    yours = listing(s, yours="true", sort="top")
+    assert ids(yours["items"]) == [started, replied, followed]  # newest activity first, whatever the sort
+    assert [row["unread"] for row in yours["items"]] == [True, False, False]
+    assert all(not row["unread"] for row in listing(client_for())["items"])  # guests: never
+
+    assert s.post(f"{API}/forum/threads/{started}/seen").status_code == 204
+    assert not listing(s, yours="true")["items"][0]["unread"]
+    assert all(n.read_at is not None for n in notifications_for(db, student))
+    assert s.post(f"{API}/forum/threads/{started}/seen").status_code == 204  # nothing left to mark: fine
+    assert client_for().post(f"{API}/forum/threads/{started}/seen").status_code == 401
+    assert s.post(f"{API}/forum/threads/{uuid.uuid4()}/seen").status_code == 404
+
+
+def test_threads_that_link_a_paper(client_for: Client, student: User, classmate: User, db: Session) -> None:
+    """UX-72: a paper's page lists the threads whose post or a visible reply links to it."""
+    s, c = client_for(student), client_for(classmate)
+    asked = new_thread(s, title="Q3(b) of May 2019", body="About [ST2133 · May 2019](/library/st2133-may-2019):")
+    absolute = new_thread(c, title="Zone B", body="See https://hub.example.com/library/st2133-may-2019?page=3 too")
+    in_reply = new_thread(c, title="Where are the 2019 papers?")
+    new_reply(s, in_reply["id"], "Here: [the paper](/library/st2133-may-2019#q3)")
+    hidden_reply = new_thread(c, title="Hidden reply links it")
+    reply = new_reply(s, hidden_reply["id"], "[paper](/library/st2133-may-2019)")
+    db.get(ForumReply, uuid.UUID(reply["id"])).status = PostStatus.hidden  # type: ignore[union-attr]
+    db.commit()
+    new_thread(c, title="Another sitting", body="[May 2019 zone B](/library/st2133-may-2019-zone-b)")
+
+    found = ids(listing(client_for(), paper="st2133-may-2019", sort="new")["items"])
+    assert found == [in_reply["id"], absolute["id"], asked["id"]]
+    assert listing(client_for(), paper="nothing-links-here")["items"] == []
+    assert client_for().get(f"{API}/forum/threads", params={"paper": "../etc"}).status_code == 422

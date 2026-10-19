@@ -40,3 +40,10 @@ export function threadFieldErrors(e: unknown): ThreadErrors | null {
 export function remainingNote(length: number, max: number): string | null {
   return length >= max * 0.8 ? `${length}/${max}` : null;
 }
+
+/** The first module code a title mentions ("MT1186: domain of ln", "help with st 2133 q3"), upper-cased without a
+ *  space ("MT1186"), or null. Codes are two letters and four digits. */
+export function moduleCodeIn(title: string): string | null {
+  const m = /(?:^|[^A-Za-z0-9])([A-Za-z]{2})\s?(\d{4})(?![0-9])/.exec(title);
+  return m ? `${m[1].toUpperCase()}${m[2]}` : null;
+}

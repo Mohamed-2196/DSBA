@@ -12,7 +12,7 @@ import type { LinkState } from '../components/FileCard';
 import { FileThumb } from '../components/FileThumb';
 import { addedAt, askAboutHref, examTitle, hasExamTitle, linkPlace, moduleTag, sizeLabel } from '../display';
 import { appUrl } from '../../../lib/share';
-import { useStartsThreads } from '../../forum/public';
+import { PaperThreads, useStartsThreads } from '../../forum/public';
 import { examLabel } from '../../../lib/exams';
 import { EXAM_KINDS, formatOf, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
@@ -159,6 +159,8 @@ export function MetaPanel({
           >
             Ask about this paper
           </Button>
+          {/* The module's threads that already link this paper (UX-72). */}
+          <PaperThreads slug={item.slug} headingLevel={3} />
         </section>
       ) : null}
       {tagging ? <QuestionTags item={item} onPage={onPage} /> : null}

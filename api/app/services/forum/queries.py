@@ -18,7 +18,18 @@ from app.core.time import (
     BAHRAIN,  # "today" is a day in Bahrain: one definition (code quality review CQ-6)
     utcnow,
 )
-from app.models import ForumCategory, ForumReply, ForumThread, Module, PostStatus, ReplyVote, ThreadVote, User
+from app.models import (
+    FollowLevel,
+    ForumCategory,
+    ForumReply,
+    ForumThread,
+    Module,
+    PostStatus,
+    ReplyVote,
+    ThreadFollow,
+    ThreadVote,
+    User,
+)
 from app.schemas.forum import Contributor, ForumStats, ThreadPage, ThreadSummary
 from app.services import access
 from app.services.accounts import public_user
@@ -50,6 +61,37 @@ def year_condition(year: int) -> ColumnElement[bool]:
         and_(
             ForumThread.category.in_(select(ForumCategory.id).where(ForumCategory.year.is_(None))),
             ForumThread.module_id.is_(None),
+        ),
+    )
+
+
+def yours_condition(user_id: uuid.UUID) -> ColumnElement[bool]:
+    """Threads the person started, replied to (a reply of theirs that wasn't deleted) or follows."""
+    return or_(
+        ForumThread.author_id == user_id,
+        exists().where(
+            ForumReply.thread_id == ForumThread.id,
+            ForumReply.author_id == user_id,
+            ForumReply.status != PostStatus.deleted,
+        ),
+        exists().where(
+            ThreadFollow.thread_id == ForumThread.id,
+            ThreadFollow.user_id == user_id,
+            ThreadFollow.level != FollowLevel.off.value,
+        ),
+    )
+
+
+def links_to_paper(slug: str) -> ColumnElement[bool]:
+    """Threads whose post or a visible reply links to the library item `slug` (/library/<slug>, with or without the
+    site's address, a page or an anchor). `slug` is a slug: letters, digits and hyphens only."""
+    pattern = f"/library/{slug}([^a-z0-9-]|$)"
+    return or_(
+        and_(ForumThread.status == PostStatus.visible, ForumThread.body.op("~")(pattern)),
+        exists().where(
+            ForumReply.thread_id == ForumThread.id,
+            ForumReply.status == PostStatus.visible,
+            ForumReply.body.op("~")(pattern),
         ),
     )
 
@@ -98,7 +140,8 @@ class ThreadFilters:
     tag: str | None = None
     year: int | None = None
     unanswered: bool = False  # no visible replies yet
-    author_id: uuid.UUID | None = None  # "mine"
+    yours: uuid.UUID | None = None  # this person's threads: started, replied to or followed
+    paper: str | None = None  # a library item's slug: the threads that link to it
 
 
 def list_threads(db: Session, viewer: User | None, f: ThreadFilters, sort: Sort, limit: int, offset: int) -> ThreadPage:
@@ -119,15 +162,21 @@ def list_threads(db: Session, viewer: User | None, f: ThreadFilters, sort: Sort,
         conds.append(year_condition(f.year))
     if f.unanswered:
         conds.append(ForumThread.reply_count == 0)
-    if f.author_id is not None:
-        conds.append(ForumThread.author_id == f.author_id)
+    if f.yours is not None:
+        conds.append(yours_condition(f.yours))
+    if f.paper:
+        conds.append(links_to_paper(f.paper))
     total = db.scalar(
         select(func.count())
         .select_from(ForumThread)
         .outerjoin(Module, Module.id == ForumThread.module_id)
         .where(*conds)
     )
-    order = order_by(sort, utcnow(), pinned_first=search is None)
+    order = (
+        [ForumThread.last_activity_at.desc(), ForumThread.id.desc()]
+        if f.yours is not None
+        else order_by(sort, utcnow(), pinned_first=search is None)
+    )
     rows = db.execute(summary_select(viewer).where(*conds).order_by(*order).limit(limit).offset(offset)).all()
     access.prefetch(db, [row[1] for row in rows])
     return ThreadPage(items=summaries(db, rows, viewer), total=total or 0, limit=limit, offset=offset)

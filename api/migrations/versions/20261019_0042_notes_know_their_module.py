@@ -1,7 +1,7 @@
 """notes know their module
 
 Revision ID: 0042
-Revises: 0041
+Revises: 0043
 Create Date: 2026-10-19 21:00:00
 
 - `notes.module_id`: the module a note is about, set from where it was started and changeable (IDEA-41). A note in a
@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0042"
-down_revision: str | None = "0041"
+down_revision: str | None = "0043"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

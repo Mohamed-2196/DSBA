@@ -20,7 +20,7 @@ test('Ali asks without his name; Sara follows and hears about the answer', async
   await ali.locator('[data-hub="composer-title"]').fill(title);
   await ali.locator('[data-hub="composer-anonymous"]').check();
   await ali.locator('[data-hub="composer"]').getByRole('button', { name: 'Post thread' }).click();
-  await expect(ali).toHaveURL(/\/forum$/);
+  await expect(ali).toHaveURL(/\/forum\/(?!new$)[a-z0-9-]+$/); // the new thread itself (UX-75)
   const list = await api<{ items: { id: string; slug: string; author: unknown; anonymous: boolean }[] }>(
     sara,
     'GET',

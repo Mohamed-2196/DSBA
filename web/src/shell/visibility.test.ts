@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { House } from '@phosphor-icons/react';
 import type { NavItem } from './nav';
-import { visibleNav } from './visibility';
+import { loadingNav, rememberedNav, visibleNav } from './visibility';
 
 const item = (id: string, feature?: NavItem['feature']): NavItem => ({
   id,
@@ -22,5 +22,28 @@ describe('visibleNav', () => {
     expect(visibleNav(nav, () => true).map((n) => n.id)).toEqual(['home']);
     expect(visibleNav(nav, () => true, true).map((n) => n.id)).toEqual(['home', 'notes']);
     expect(visibleNav(nav, () => false, true).map((n) => n.id)).toEqual(['home']);
+  });
+});
+
+describe('while the account loads (UX-77)', () => {
+  const nav: NavItem[] = [
+    item('home'),
+    item('noora', 'noora'),
+    item('forum', 'forum'),
+    { ...item('notes'), signedIn: true },
+  ];
+
+  it('shows what was shown last time', () => {
+    expect(loadingNav(nav, ['home', 'forum']).map((n) => n.id)).toEqual(['home', 'forum']);
+  });
+
+  it('shows every entry that needs no account on a first visit', () => {
+    expect(loadingNav(nav, null).map((n) => n.id)).toEqual(['home', 'noora', 'forum']);
+  });
+
+  it('reads back only a list of ids', () => {
+    expect(rememberedNav(['home'])).toEqual(['home']);
+    expect(rememberedNav('home')).toBeNull();
+    expect(rememberedNav([1])).toBeNull();
   });
 });

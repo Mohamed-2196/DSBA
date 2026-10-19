@@ -775,3 +775,68 @@ button.lib-qtags__q {
     min-height: 44px;
   }
 }
+
+/* A PDF the Hub draws itself (phones): the pages at the screen's width, one under the other. */
+.lib-pdf {
+  display: grid;
+  gap: var(--sp-8);
+  padding: var(--sp-8) 0 var(--sp-16);
+}
+.lib-pdf__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8);
+  padding: 0 var(--sp-8) 0 var(--sp-16);
+}
+.lib-pdf__count {
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+}
+.lib-pdf__pages {
+  display: grid;
+  gap: var(--sp-8);
+  padding: 0 var(--sp-8);
+}
+.lib-pdf__page {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.lib-pdf__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.lib-pdf__pageno {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #6b7280;
+  font-size: var(--fs-14);
+}
+.lib-pdf__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
+.lib-pdf__erricon {
+  font-size: 48px;
+  color: var(--ink-2);
+}
+
+/* Phones and tablets: the page scrolls through the paper, so Time me stays in sight under the top bar. */
+.lib-viewer.is-stacked .lib-timer {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: calc(var(--z-sticky) - 1);
+}
+@media (max-width: 699px) {
+  .lib-viewer.is-stacked .lib-timer {
+    top: 56px;
+  }
+}

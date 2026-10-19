@@ -31,3 +31,4 @@ export { useOpenNote } from './current';
 export { useAnnotate, useModuleNotes, useNote, useNotes } from './api';
 export { useStartNote } from './useStartNote';
 export type { OpenNote } from './current';
+export { loadPdfJs } from './pdf';

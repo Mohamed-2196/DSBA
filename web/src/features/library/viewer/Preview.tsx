@@ -1,10 +1,4 @@
-import {
-  ArrowSquareOut,
-  DownloadSimple,
-  FilePdf,
-  MagnifyingGlassMinus,
-  MagnifyingGlassPlus,
-} from '@phosphor-icons/react';
+import { ArrowSquareOut, DownloadSimple, MagnifyingGlassMinus, MagnifyingGlassPlus } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { isApiError } from '../../../api/errors';
 import { formatSize } from '../../../api/uploads';
@@ -15,6 +9,7 @@ import { FileThumb } from '../components/FileThumb';
 import { linkPlace } from '../display';
 import { formatOf, previewKind } from '../kinds';
 import type { LibraryItem } from '../types';
+import { PdfPages } from './PdfPages';
 
 /** Which app opens a format, for "Download it to open it in …". */
 function opensIn(tag: string | undefined): string {
@@ -123,7 +118,7 @@ function ImagePreview({ item, src }: { item: LibraryItem; src: string }) {
 
 /**
  * The file itself: PDFs in the browser's PDF viewer and images as they are, both from a short-lived link
- * (GET /library/items/{id}/file); on phones a PDF opens in a new tab instead. Other formats and links show
+ * (GET /library/items/{id}/file); on phones the Hub draws a PDF's pages itself (PdfPages). Other formats and links show
  * a card with Download or Open. `page` opens a PDF at that page (where a search found its words, or a tagged question starts).
  */
 export function Preview({ item, compact, page = null }: { item: LibraryItem; compact: boolean; page?: number | null }) {
@@ -171,25 +166,19 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
     }
     return <NoPreview item={item} problem />;
   }
-  if (!src) return <Loading label={kind === 'pdf' ? 'Loading the PDF' : 'Loading the image'} />;
+  if (!src) {
+    // Offline the link waits for the connection (files aren't kept for offline reading): say so, not "Loading".
+    const waiting = link.isPaused ? 'You’re offline. The file shows once you’re back online.' : null;
+    return <Loading label={waiting ?? (kind === 'pdf' ? 'Loading the PDF' : 'Loading the image')} />;
+  }
 
   if (kind === 'image') return <ImagePreview item={item} src={src} />;
   const at = page ? `#page=${page}` : '';
 
   if (compact) {
-    // Phone browsers show one page of a PDF in a frame, or nothing: open it in their own viewer instead.
-    return (
-      <div className="lib-nopreview" data-hub="file-nopreview">
-        <FileThumb item={item} size="strip" />
-        <div className="lib-nopreview__text">
-          <h2 className="lib-nopreview__title">Read the PDF</h2>
-          <p>It opens in your phone’s PDF viewer, in a new tab.{page ? ` It opens at page ${page}.` : ''}</p>
-          <Button variant="primary" href={(link.data?.url ?? src) + at} external leadingIcon={FilePdf}>
-            Open the PDF
-          </Button>
-        </div>
-      </div>
-    );
+    // Phone browsers show one page of a PDF in a frame, or nothing: the Hub draws it instead, so the paper stays here
+    // beside Time me.
+    return <PdfPages src={src} href={(link.data?.url ?? src) + at} title={item.title} page={page} />;
   }
 
   return (

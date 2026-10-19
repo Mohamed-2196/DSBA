@@ -1,13 +1,16 @@
-// "Plan my revision" on a module: spreads the lessons not watched yet, and a past paper every few days, over the
-// days left to the exam, as cards on the board. No reminders: the plan only lives on the board.
+// "Plan my revision" on a module: past papers (one every few days, and one a day in the last week) and the lessons not
+// watched yet, as many as fit the days left to the exam, as cards on the board. When not every lesson fits, the
+// chapters the student finds hard come first. No reminders: the plan only lives on the board.
 import { CalendarCheck } from '@phosphor-icons/react';
+import { useQuery } from '@tanstack/react-query';
 import { useId, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { errorMessage, isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { addDaysToKey, isDayKey, todayKey, type DayKey } from '../../lib/dates';
 import { useToast } from '../../state';
-import { Button, Modal, Select, TextField, type ButtonSize } from '../../ui';
+import { Button, Chip, Modal, Select, TextField, type ButtonSize } from '../../ui';
+import { moduleDetailQuery } from '../modules/public';
 import { useBoards, useMakePlan } from './api';
 import './BoardDialog.css';
 
@@ -69,6 +72,15 @@ export function PlanRevision({
   );
 }
 
+/** What the toast says under "Added 12 cards": the lessons that didn't fit, or that nothing was left to add. */
+function planNote(added: number, leftOut: number): string | undefined {
+  const out = leftOut
+    ? `${leftOut} lesson${leftOut === 1 ? '' : 's'} didn’t fit before the exam: past papers come first now.`
+    : undefined;
+  if (added) return out;
+  return out ?? 'Everything left is already on your board.';
+}
+
 interface PlanDialogProps {
   moduleId: string;
   moduleName: string;
@@ -90,6 +102,15 @@ function PlanDialog({ moduleId, moduleName, examDate, paperEvery, boardId: initi
   const [every, setEvery] = useState(String(paperEvery));
   const [boardId, setBoardId] = useState(initialBoardId ?? activeBoards[0]?.id ?? '');
   const [error, setError] = useState<string | undefined>();
+  const chapters = useQuery(moduleDetailQuery(moduleId)).data?.chapters ?? [];
+  const [hard, setHard] = useState<ReadonlySet<string>>(new Set());
+  const toggleHard = (id: string, on: boolean) =>
+    setHard((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -99,13 +120,19 @@ function PlanDialog({ moduleId, moduleName, examDate, paperEvery, boardId: initi
     }
     setError(undefined);
     make.mutate(
-      { moduleId, examDate: date, paperEvery: Number(every), boardId: boardId || undefined },
       {
-        onSuccess: ({ added, plan }) => {
+        moduleId,
+        examDate: date,
+        paperEvery: Number(every),
+        boardId: boardId || undefined,
+        focusChapters: [...hard],
+      },
+      {
+        onSuccess: ({ added, plan, leftOut }) => {
           toast.push({
             tone: 'success',
             title: added ? `Added ${added} card${added === 1 ? '' : 's'} to your board` : 'Your plan is up to date',
-            body: added ? undefined : 'Everything left is already on your board.',
+            body: planNote(added, leftOut),
             action: { label: 'Open board', onClick: () => void navigate(`/board?board=${plan.boardId}`) },
           });
           onClose();
@@ -123,7 +150,7 @@ function PlanDialog({ moduleId, moduleName, examDate, paperEvery, boardId: initi
       open
       onClose={onClose}
       title={`Plan your ${moduleName} revision`}
-      description="Lessons you haven’t watched and some past papers go on your board, spread over the days to the exam. Fall behind and the rest spread again."
+      description="Past papers and the lessons you haven’t watched go on your board, as much as fits the days to the exam: a paper a day in the last week, and a few hours’ work a day at most. Fall behind and the rest spread again."
       size="sm"
       footer={
         <>
@@ -166,8 +193,23 @@ function PlanDialog({ moduleId, moduleName, examDate, paperEvery, boardId: initi
           value={every}
           onChange={(e) => setEvery(e.target.value)}
           options={PAPER_EVERY.map((n) => ({ value: String(n), label: `${n} days` }))}
-          hint="Only papers in the library count."
+          hint="In the last week before the exam, it’s a paper a day. Papers you’ve scored are left out."
         />
+        {chapters.length > 1 ? (
+          <fieldset className="board-form__chips">
+            <legend className="board-form__legend">Chapters you find hard</legend>
+            <p className="board-form__hint" id={`board-plan-hard-${uid}`}>
+              Optional. Their lessons come first when not every lesson fits before the exam.
+            </p>
+            <div className="board-form__chiprow" aria-describedby={`board-plan-hard-${uid}`}>
+              {chapters.map((c) => (
+                <Chip key={c.id} size="sm" selected={hard.has(c.id)} onChange={(on) => toggleHard(c.id, on)}>
+                  {c.title}
+                </Chip>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
       </form>
     </Modal>
   );

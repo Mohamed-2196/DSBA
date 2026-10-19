@@ -110,6 +110,8 @@ export interface Results {
   count: number;
   /** A query that found nothing (the fallback group is shown). */
   empty: boolean;
+  /** What the API searched for instead when the words typed found nothing ("hypothesis" for "hypothisis"). */
+  corrected: string | null;
 }
 
 export const GROUPS: Record<GroupId, { label: string; cap?: number; noun?: string }> = {
@@ -129,6 +131,29 @@ export const GROUPS: Record<GroupId, { label: string; cap?: number; noun?: strin
 };
 
 const CONTENT_ORDER: readonly GroupId[] = ['modules', 'lessons', 'files', 'threads', 'issues', 'events'];
+
+/** Words that ask "when": a query starting with one puts the calendar first ("exam", "deadline st2133"). */
+const DATE_WORDS: ReadonlySet<string> = new Set([
+  'exam',
+  'exams',
+  'deadline',
+  'deadlines',
+  'due',
+  'results',
+  'resit',
+  'resits',
+  'mock',
+  'mocks',
+  'registration',
+  'when',
+]);
+
+/** The order of the content groups for a query's words: the calendar first when the first word asks "when". */
+export function contentOrder(tokens: readonly string[]): GroupId[] {
+  if (tokens.length && DATE_WORDS.has(tokens[0].toLowerCase()))
+    return ['events', ...CONTENT_ORDER.filter((id) => id !== 'events')];
+  return [...CONTENT_ORDER];
+}
 
 /** Pages (also the "Go to" list on an empty query); runSearch leaves out those of a switched-off feature. */
 export const PAGE_ENTRIES: Item[] = (
@@ -487,8 +512,13 @@ export interface SearchInput {
   now?: Date;
 }
 
-function finish(groups: Omit<Group, 'label'>[], count: number, empty = false): Results {
-  return { groups: groups.map((g) => ({ ...g, label: GROUPS[g.id].label })), count, empty };
+function finish(
+  groups: Omit<Group, 'label'>[],
+  count: number,
+  empty = false,
+  corrected: string | null = null,
+): Results {
+  return { groups: groups.map((g) => ({ ...g, label: GROUPS[g.id].label })), count, empty, corrected };
 }
 
 const moduleItem = (m: ModuleSummary): Item => ({
@@ -643,7 +673,7 @@ export function runSearch({
 
   // Content first, in the usual order. Actions and pages lead only when they match outright ("dark",
   // "grades") and come last otherwise.
-  const order: GroupId[] = [...CONTENT_ORDER];
+  const order: GroupId[] = contentOrder(tokens);
   const local: GroupId[] = (['actions', 'pages'] as const).filter((id) => content[id].length);
   if (localBest >= 100) order.unshift(...local);
   else order.push(...local);
@@ -711,5 +741,5 @@ export function runSearch({
     });
     return finish(groups, 0, true);
   }
-  return finish(groups, count);
+  return finish(groups, count, false, results?.corrected ?? null);
 }

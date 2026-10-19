@@ -35,6 +35,7 @@ from app.schemas.forum import (
     ThreadUpdate,
     VoteResult,
 )
+from app.services import notifications
 from app.services.forum import follows, queries, replies, settings, taxonomy, threads, views, visibility, votes
 
 router = router_for("forum", needs_feature(Feature.forum))
@@ -89,15 +90,25 @@ def list_threads(
     year: YearParam | None = None,
     sort: Sort = "hot",
     unanswered: bool = Query(default=False, description="Only threads without a visible reply yet"),
-    mine: bool = Query(default=False, description="Only the signed-in user's threads (needs a session)"),
+    yours: bool = Query(
+        default=False,
+        description="Only threads the signed-in user started, replied to or follows, newest activity first (needs a "
+        "session)",
+    ),
+    paper: str | None = Query(
+        default=None,
+        pattern=r"^[a-z0-9-]{1,120}$",
+        description="A library item's slug: only threads whose post or a reply links to it (/library/<slug>)",
+    ),
     limit: Limit = 20,
     offset: Offset = 0,
 ) -> ThreadPage:
     """Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);
     deleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its
     category, or a module of that year) plus forum-wide ones (a category for every year, without a module).
-    `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5."""
-    if mine and user is None:
+    `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5. `yours` ignores `sort`: newest activity first, without
+    pinning. Signed in, `unread` marks a thread with notifications about it the person hasn't read."""
+    if yours and user is None:
         raise unauthenticated("Sign in to see your threads.")
     filters = queries.ThreadFilters(
         q=q,
@@ -106,7 +117,8 @@ def list_threads(
         tag=tag,
         year=year,
         unanswered=unanswered,
-        author_id=user.id if mine and user is not None else None,
+        yours=user.id if yours and user is not None else None,
+        paper=paper,
     )
     return queries.list_threads(db, user, filters, sort, limit, offset)
 
@@ -181,6 +193,15 @@ def follow_thread(thread_id: UUID, body: FollowRequest, user: ActiveUser, db: DB
     level = follows.set_level(db, user, t, body.level)
     db.commit()
     return FollowResult(following=level)
+
+
+@router.post("/forum/threads/{thread_id}/seen", status_code=status.HTTP_204_NO_CONTENT)
+def thread_seen(thread_id: UUID, user: CurrentUser, db: DB) -> Response:
+    """The signed-in user opened the thread: their unread notifications about it (replies, an answer) are marked
+    read, and it stops being `unread` in their lists. For a thread they can open; nothing to mark is fine."""
+    notifications.mark_thread_read(db, user, visibility.thread_to_read(db, thread_id, user).id)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.put("/forum/threads/{thread_id}/vote", response_model=VoteResult)

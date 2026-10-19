@@ -6,6 +6,7 @@ import {
   CaretLeft,
   DotsThree,
   DownloadSimple,
+  Exam,
   FileMagnifyingGlass,
   Flag,
   Info,
@@ -37,9 +38,10 @@ import {
   type MenuItem,
 } from '../../ui';
 import { useAuth } from '../../auth';
-import { AddToBoard, PaperDone } from '../board/public';
+import { AddToBoard, PaperDone, PaperScoreDialog } from '../board/public';
 import { useReport } from '../forum/public';
 import { useAnnotate } from '../notes/public';
+import { useRecordVisit } from '../carryon/public';
 import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, libraryKeys, openLinkHref, useLibraryItem } from './api';
 import { DeleteItemDialog, EditItemDialog } from './components/EditItemDialog';
@@ -52,7 +54,7 @@ import type { LibraryItem } from './types';
 import { useStar } from './useStar';
 import { paperContext, usePaperSittings } from './papers';
 import { AskNoora } from './viewer/AskNoora';
-import { ExamTimer, TimeMeButton, TimeMeDialog, useExamClock } from './viewer/ExamTimer';
+import { ExamTimer, TimeMeButton, TimeMeDialog, timedPaper, useFinishPaper, useTimeMe } from './viewer/ExamTimer';
 import { MetaPanel } from './viewer/MetaPanel';
 import { Preview } from './viewer/Preview';
 import { toolbarLayout, toolbarRoom, type MoreAction } from './viewer/toolbar';
@@ -186,7 +188,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const { push } = useToast();
   const copy = useCopyLink();
   const { suspended, moderator: managesLibrary } = useLibraryAccess();
-  const { featureOn, requireAuth } = useAuth();
+  const { featureOn, requireAuth, status: authStatus } = useAuth();
   const { getModule } = useModules();
   const toggleStar = useStar();
   const isDesktop = useMediaQuery(BREAKPOINTS.desktop);
@@ -197,7 +199,10 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const [params, setParams] = useSearchParams();
   const [timeMeOpen, setTimeMeOpen] = useState(false);
   const isPaper = item.kind === 'past-paper' && item.source === 'file' && item.status === 'published';
-  const { clock, start, pause, resume, stop } = useExamClock(item.id);
+  const { timer, start, pause, resume, stop } = useTimeMe();
+  const timing = timer?.paper.id === item.id ? timer : null;
+  const { finish, dialog: scoreDialog } = useFinishPaper(stop);
+  const [scoring, setScoring] = useState(false);
   const sittings = usePaperSittings(item.moduleId, { enabled: isPaper && item.examYear !== null });
   const report = paperContext(sittings.data?.sittings, item.id)?.reports[0] ?? null;
 
@@ -277,16 +282,32 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const copyLink = () => copy(appUrl(itemPath(item)), 'Anyone can open this file with it.');
 
   const published = item.status === 'published';
+  // "Carry on" on Home and the module page: the files opened last.
+  useRecordVisit(
+    published
+      ? {
+          kind: item.kind === 'past-paper' ? 'paper' : 'file',
+          id: item.id,
+          path: itemPath(item),
+          title: name,
+          moduleId: item.moduleId ?? null,
+          onItem: null,
+        }
+      : null,
+  );
   const reporting = useReport('library_item', item.id);
+  const keepsScores = isPaper && authStatus === 'signed-in' && featureOn('board');
   const layout = toolbarLayout({
     room: toolbarRoom(isMobile, wide),
     published,
+    score: keepsScores,
     annotate: featureOn('notes') && fmt?.tag === 'PDF' && published,
     report: published && !item.isMine && reporting !== null,
     edit: canManage && item.canEdit,
     delete: canManage && (item.isMine || managesLibrary) && item.status !== 'removed',
   });
   const moreAction: Record<MoreAction, MenuItem> = {
+    score: { id: 'score', label: 'Save my score', icon: Exam, onSelect: () => setScoring(true) },
     copy: { id: 'copy', label: 'Copy link', icon: LinkSimple, onSelect: () => void copyLink() },
     annotate: {
       id: 'annotate',
@@ -437,8 +458,14 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
         </div>
       </div>
 
-      {clock ? (
-        <ExamTimer item={item} clock={clock} report={report} onPause={pause} onResume={resume} onStop={stop} />
+      {timing ? (
+        <ExamTimer
+          timer={timing}
+          report={report}
+          onPause={pause}
+          onResume={resume}
+          onFinish={() => finish(timing.paper)}
+        />
       ) : null}
       {status ? (
         <StatusBanner item={item} onEdit={() => setDialog('edit')} onDelete={() => setDialog('delete')} />
@@ -459,7 +486,16 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
         ) : null}
       </div>
 
-      {timeMeOpen ? <TimeMeDialog open onClose={() => setTimeMeOpen(false)} onStart={start} /> : null}
+      {timeMeOpen ? (
+        <TimeMeDialog
+          open
+          onClose={() => setTimeMeOpen(false)}
+          onStart={(ms) => start(timedPaper(item, name), ms)}
+          replacing={timer && !timing ? timer.paper.title : null}
+        />
+      ) : null}
+      {scoreDialog}
+      {scoring ? <PaperScoreDialog itemId={item.id} title={name} onClose={() => setScoring(false)} /> : null}
       {reporting?.dialog}
 
       {dialog === 'edit' ? <EditItemDialog item={item} open onClose={() => setDialog(null)} /> : null}

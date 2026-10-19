@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SearchResults } from '../../api/types';
-import { runSearch, type SearchInput } from './search';
+import { contentOrder, runSearch, type SearchInput } from './search';
 
 const base: SearchInput = {
   query: '',
@@ -40,6 +40,7 @@ const file = {
 } as const;
 const results = (over: Partial<SearchResults> = {}): SearchResults => ({
   query: 'mgf',
+  corrected: null,
   threads: [],
   library: [],
   issues: [],
@@ -169,5 +170,33 @@ describe('runSearch', () => {
   it('offers only the fallbacks of features that are on', () => {
     const r = ids(runSearch({ ...base, query: 'zzzz', isOn: (f) => f !== 'forum', results: results() }));
     expect(r).toEqual(['fallback:library']);
+  });
+
+  it('puts the calendar first when the query asks "when"', () => {
+    const event = {
+      type: 'event',
+      id: 'e1',
+      title: 'ST2133 exam',
+      snippet: null,
+      url: '/calendar?date=2026-10-30&event=e1',
+      meta: 'Exam · Year 2',
+      date: '2026-10-30T00:00:00+03:00',
+      page: null,
+    } as const;
+    const both = results({ library: [file], events: [event] });
+    const groupsOf = (query: string) => runSearch({ ...base, query, results: both }).groups.map((g) => g.id);
+    expect(groupsOf('exam st2133')).toEqual(['events', 'files']);
+    expect(groupsOf('st2133 exam')).toEqual(['files', 'events']);
+    expect(contentOrder(['Deadline'])[0]).toBe('events');
+  });
+
+  it('says what it searched for when the words typed were corrected', () => {
+    const r = runSearch({
+      ...base,
+      query: 'hypothisis',
+      results: results({ query: 'hypothisis', corrected: 'hypothesis', library: [file] }),
+    });
+    expect(r.corrected).toBe('hypothesis');
+    expect(runSearch({ ...base, query: 'mgf', results: results({ library: [file] }) }).corrected).toBeNull();
   });
 });

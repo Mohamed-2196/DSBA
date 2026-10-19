@@ -1,18 +1,21 @@
 import { useId, useState, type FormEvent } from 'react';
-import type { BoardCard } from '../../api/types';
+import { useToast } from '../../state';
 import { Button, Modal, TextField } from '../../ui';
+import { usePaperScores, useSaveScore } from './api';
 import { parseScore } from './board';
 import './BoardDialog.css';
 
 export interface ScoreDialogProps {
-  card: BoardCard;
+  /** what was sat: the card's or the paper's title */
+  title: string;
   score: number | null;
   onSave: (score: number | null) => void;
   onClose: () => void;
 }
 
-/** "How did it go?" after a past paper reaches Done. The score is kept in the student's account, for them alone. */
-export function ScoreDialog({ card, score, onSave, onClose }: ScoreDialogProps) {
+/** "How did it go?" after a past paper: its card reached Done, or Time me stopped. The score is kept in the student's
+ *  account, for them alone. */
+export function ScoreDialog({ title, score, onSave, onClose }: ScoreDialogProps) {
   const uid = useId().replace(/:/g, '');
   const [raw, setRaw] = useState(score == null ? '' : String(score));
   const [error, setError] = useState<string | undefined>();
@@ -33,7 +36,7 @@ export function ScoreDialog({ card, score, onSave, onClose }: ScoreDialogProps) 
       open
       onClose={onClose}
       title="How did it go?"
-      description={`${card.title}. Only you see your score.`}
+      description={`${title}. Only you see your score.`}
       size="sm"
       footer={
         <>
@@ -59,5 +62,34 @@ export function ScoreDialog({ card, score, onSave, onClose }: ScoreDialogProps) 
         />
       </form>
     </Modal>
+  );
+}
+
+/** "How did it go?" for a past paper outside the board (Time me stopped, or the paper's page): reads the score there
+ *  is and saves the new one. Render it signed in, with the board on (the scores live there). */
+export function PaperScoreDialog({ itemId, title, onClose }: { itemId: string; title: string; onClose: () => void }) {
+  const scores = usePaperScores();
+  const save = useSaveScore();
+  const toast = useToast();
+  if (scores.isPending) return null;
+  return (
+    <ScoreDialog
+      title={title}
+      score={scores.data?.[itemId] ?? null}
+      onSave={(score) =>
+        save.mutate(
+          { itemId, score },
+          {
+            onSuccess: () =>
+              toast.push({
+                tone: 'success',
+                title: score === null ? 'Score removed' : `Saved: ${score}%`,
+                body: score === null ? undefined : 'It shows on the paper and in its sitting.',
+              }),
+          },
+        )
+      }
+      onClose={onClose}
+    />
   );
 }
