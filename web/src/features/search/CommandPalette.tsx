@@ -6,10 +6,9 @@ import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState, type Ke
 import { useNavigate } from 'react-router-dom';
 import { loadProblem } from '../../api/errors';
 import { showsUpload, useAuth } from '../../auth';
-import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Count, Deskmate, Kbd, Spinner, Modal, cx } from '../../ui';
+import { Count, Deskmate, Icon, IconButton, Kbd, Spinner, Modal, cx, glyph } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { openBugReport } from '../bugs/public';
 import { askNoora, hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
@@ -282,46 +281,58 @@ export function CommandPalette({ opening }: { opening: string }) {
       data-hub="cmdk"
     >
       <div className="cmdk-field">
-        <MagnifyingGlass className="cmdk-field__icon" aria-hidden="true" />
-        <input
-          ref={inputRef}
-          className="cmdk-input"
-          dir="auto"
-          type="text"
-          role="combobox"
-          aria-expanded="true"
-          aria-controls={`cmdk${uid}-list`}
-          aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
-          aria-autocomplete="list"
-          aria-label="Search modules, files, threads, The DSBA Newsletter and dates"
-          placeholder="Search modules, files, threads, dates…"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          enterKeyHint="go"
-          maxLength={200}
-          value={query}
-          onChange={(e) => reset(e.target.value)}
-          onKeyDown={onKeyDown}
-          data-hub="cmdk-input"
+        <IconButton
+          label="Close search"
+          icon={<Icon glyph={glyph.chevronLeft} />}
+          variant="ghost"
+          className="cmdk-field__back"
+          onClick={close}
         />
-        {waiting ? <Spinner size={16} className="cmdk-field__loading" /> : null}
-        {query ? (
-          <button
-            type="button"
-            className="cmdk-field__clear"
-            aria-label="Clear search"
-            tabIndex={-1}
-            onClick={() => {
-              reset('');
-              inputRef.current?.focus();
-            }}
-          >
-            <X weight="bold" aria-hidden="true" />
-          </button>
-        ) : null}
+        {/* Loupe, beside the query: "you're searching" (phones: the field's own glass) */}
+        <Deskmate mate="loupe" size={44} className="cmdk-field__mate" />
+        <span className="cmdk-field__box">
+          <Icon glyph={glyph.search} className="cmdk-field__icon" />
+          <input
+            ref={inputRef}
+            className="cmdk-input"
+            dir="auto"
+            type="text"
+            role="combobox"
+            aria-expanded="true"
+            aria-controls={`cmdk${uid}-list`}
+            aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
+            aria-autocomplete="list"
+            aria-label="Search modules, files, threads, The DSBA Newsletter and dates"
+            placeholder="Search modules, files, threads, dates…"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="go"
+            maxLength={200}
+            value={query}
+            onChange={(e) => reset(e.target.value)}
+            onKeyDown={onKeyDown}
+            data-hub="cmdk-input"
+          />
+          {waiting ? <Spinner size={16} className="cmdk-field__loading" /> : null}
+          {query ? (
+            <button
+              type="button"
+              className="cmdk-field__clear"
+              aria-label="Clear search"
+              tabIndex={-1}
+              onClick={() => {
+                reset('');
+                inputRef.current?.focus();
+              }}
+            >
+              <Icon glyph={glyph.close} />
+            </button>
+          ) : null}
+        </span>
         <button type="button" className="cmdk-field__esc" onClick={close} tabIndex={-1} aria-label="Close search">
           <Kbd>Esc</Kbd>
+          <span className="cmdk-field__esc-word">to {query ? 'clear' : 'close'}</span>
         </button>
       </div>
 
@@ -358,9 +369,12 @@ export function CommandPalette({ opening }: { opening: string }) {
             </div>
           </div>
         ) : results.corrected && !searching ? (
-          <p className="cmdk-corrected" role="status" data-hub="cmdk-corrected">
-            Nothing matched “{query.trim()}”. Showing results for “{results.corrected}”.
-          </p>
+          <div className="cmdk-corrected" data-hub="cmdk-corrected">
+            <Deskmate mate="loupe" size={48} className="cmdk-corrected__mate" />
+            <p role="status">
+              Nothing matched “{query.trim()}”. Showing results for <strong>“{results.corrected}”</strong>.
+            </p>
+          </div>
         ) : null}
         {groups.map((g) => (
           <div key={g.id} role="group" aria-labelledby={`cmdk${uid}-g-${g.id}`} className="cmdk-group">
@@ -434,7 +448,7 @@ export function CommandPalette({ opening }: { opening: string }) {
                         inputRef.current?.focus();
                       }}
                     >
-                      <X weight="bold" aria-hidden="true" />
+                      <Icon glyph={glyph.close} />
                     </button>
                   ) : (
                     <Trailing item={item} tokens={tokens} active={isActive} />
