@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { Lightbulb } from '@phosphor-icons/react';
 import { Button, cx } from '../../../../ui';
-import { cellAt, findTone, lineCells, pointIn, posKey, samePos, snapEnd, type Pos } from '../../lib/search';
+import { cellAt, cellTones, findTone, lineCells, pointIn, posKey, samePos, snapEnd, type Pos } from '../../lib/search';
 import type { SearchFound } from '../../types';
 import type { GameProps } from '../registry';
 import './SearchGame.css';
@@ -25,6 +25,7 @@ export function SearchGame({ out, busy, play, flash, paused }: GameProps) {
   const found = view?.found ?? [];
   const foundWords = new Set(found.map((f) => f.word));
   const hints = new Set((view?.hints ?? []).map(posKey));
+  const tones = cellTones(found);
 
   const gridRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -140,11 +141,11 @@ export function SearchGame({ out, busy, play, flash, paused }: GameProps) {
               key={w}
               className={cx(
                 'ds-word',
-                f && !f.revealed && 'is-found',
+                f && !f.revealed && `is-found is-tone-${findTone(found.indexOf(f))}`,
                 f?.revealed && 'is-revealed',
                 fresh === w && 'is-fresh',
               )}
-              style={f ? ({ '--tone': `var(--ds-tone-${findTone(found.indexOf(f))})` } as CSSProperties) : undefined}
+              style={f ? ({ '--tone': `var(--dy-find-${findTone(found.indexOf(f))})` } as CSSProperties) : undefined}
             >
               {w}
               {f ? <span className="visually-hidden">{f.revealed ? ' (not found)' : ' (found)'}</span> : null}
@@ -192,6 +193,7 @@ export function SearchGame({ out, busy, play, flash, paused }: GameProps) {
                     tabIndex={samePos(focus, pos) ? 0 : -1}
                     className={cx(
                       'ds-cell',
+                      tones.has(key) && `is-tone-${tones.get(key)}`,
                       samePos(anchor, pos) && 'is-anchor',
                       liveCells.has(key) && 'is-live',
                       hints.has(key) && !over && 'is-hint',
@@ -276,7 +278,7 @@ export function SearchExample() {
         </svg>
         {rows.map((row, r) =>
           [...row].map((l, c) => (
-            <span key={`${r}${c}`} className="ds-cell">
+            <span key={`${r}${c}`} className={cx('ds-cell', r === c && 'is-tone-0')}>
               {l}
             </span>
           )),

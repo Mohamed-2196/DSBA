@@ -7,7 +7,7 @@
   --dy-on-hit: var(--cobalt-ink);
   --dy-near: var(--highlight);
   --dy-on-near: var(--highlight-ink);
-  --dy-miss: var(--ink-3);
+  --dy-miss: color-mix(in srgb, var(--ink-3) 80%, var(--ink)); /* a key's letter on it passes 4.5:1 in both themes */
   --dy-on-miss: var(--cobalt-ink);
   /* Correlations' levels, plainest to trickiest: yellow, green, blue, purple. */
   --dy-l1: color-mix(in srgb, var(--highlight) 78%, var(--surface));
@@ -15,6 +15,18 @@
   --dy-l3: color-mix(in srgb, var(--y2) 36%, var(--surface));
   --dy-l4: color-mix(in srgb, var(--mine-violet) 38%, var(--surface));
   --dy-on-level: var(--ink);
+  --dy-on-l1: var(--highlight-ink); /* the yellow stays light in both themes: dark text on it */
+  /* Data Mine's finds, a colour each in turn (findTone), see-through so the letters show. The yellow takes dark
+     text, the others the page's ink. */
+  --dy-find-0: color-mix(in srgb, var(--highlight) 78%, transparent);
+  --dy-find-1: color-mix(in srgb, var(--mine-teal) 46%, transparent);
+  --dy-find-2: color-mix(in srgb, var(--mine-rose) 40%, transparent);
+  --dy-find-3: color-mix(in srgb, var(--mine-green) 44%, transparent);
+  --dy-find-4: color-mix(in srgb, var(--y2) 40%, transparent);
+  --dy-find-5: color-mix(in srgb, var(--mine-orange) 46%, transparent);
+  --dy-find-6: color-mix(in srgb, var(--mine-violet) 40%, transparent);
+  --dy-find-7: color-mix(in srgb, var(--y1) 46%, transparent);
+  --dy-on-find-0: var(--highlight-ink);
   /* A tile or key: raised a little off the page. */
   --dy-tile: var(--surface);
   --dy-tile-edge: var(--line-strong);
@@ -109,6 +121,37 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g) 22%, transparent);
 }
 
+/* A finished play in squares (PlayPicture), in the colours its game uses. */
+.dy-pic {
+  display: block;
+  max-width: 100%;
+}
+.dy-pic .is-hit {
+  fill: var(--dy-hit);
+}
+.dy-pic .is-near {
+  fill: var(--dy-near);
+}
+.dy-pic .is-miss {
+  fill: var(--dy-miss);
+  opacity: 0.45;
+}
+.dy-pic .is-wrong {
+  fill: var(--alert);
+}
+.dy-pic .is-l1 {
+  fill: var(--dy-l1);
+}
+.dy-pic .is-l2 {
+  fill: var(--dy-l2);
+}
+.dy-pic .is-l3 {
+  fill: var(--dy-l3);
+}
+.dy-pic .is-l4 {
+  fill: var(--dy-l4);
+}
+
 /* ── Small parts ─────────────────────────────────────────────────────────────────────────────────── */
 .dy-chip {
   display: inline-flex;
@@ -149,22 +192,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The share card: what the result looks like when it's shared. */
-.dy-share-card {
-  margin: 0;
-  padding: var(--sp-14) var(--sp-16);
-  border-radius: var(--r-panel);
-  background: var(--surface-2);
-  color: var(--ink);
-  font-family: var(--font-sans);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  text-align: center;
-}
-
 @media (prefers-reduced-motion: no-preference) {
   .dy-rise {
     animation: dy-rise 320ms var(--ease) both;
@@ -175,4 +202,41 @@
     opacity: 0;
     transform: translateY(6px);
   }
+}
+
+/* The style guide's table of these colours (GameColours). */
+.dy-colours {
+  display: grid;
+  gap: var(--sp-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dy-colours__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8) var(--sp-12);
+}
+.dy-colours__island {
+  display: inline-flex;
+  padding: 6px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.dy-colours__sample {
+  min-width: 92px;
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+}
+.dy-colours__text {
+  display: grid;
+  min-width: 0;
+  font-size: var(--fs-13);
+}
+.dy-colours__use {
+  color: var(--ink-2);
 }

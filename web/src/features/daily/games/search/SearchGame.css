@@ -1,14 +1,6 @@
 /* Data Mine: the words to find, the letter grid as big as fits, found words marked by a line of their own colour. */
 
 .ds {
-  --ds-tone-0: color-mix(in srgb, var(--highlight) 78%, transparent);
-  --ds-tone-1: color-mix(in srgb, var(--mine-teal) 46%, transparent);
-  --ds-tone-2: color-mix(in srgb, var(--mine-rose) 40%, transparent);
-  --ds-tone-3: color-mix(in srgb, var(--mine-green) 44%, transparent);
-  --ds-tone-4: color-mix(in srgb, var(--y2) 40%, transparent);
-  --ds-tone-5: color-mix(in srgb, var(--mine-orange) 46%, transparent);
-  --ds-tone-6: color-mix(in srgb, var(--mine-violet) 40%, transparent);
-  --ds-tone-7: color-mix(in srgb, var(--y1) 46%, transparent);
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -111,28 +103,28 @@
   stroke: color-mix(in srgb, var(--alert) 30%, transparent);
 }
 .ds-line.is-tone-0 {
-  stroke: var(--ds-tone-0);
+  stroke: var(--dy-find-0);
 }
 .ds-line.is-tone-1 {
-  stroke: var(--ds-tone-1);
+  stroke: var(--dy-find-1);
 }
 .ds-line.is-tone-2 {
-  stroke: var(--ds-tone-2);
+  stroke: var(--dy-find-2);
 }
 .ds-line.is-tone-3 {
-  stroke: var(--ds-tone-3);
+  stroke: var(--dy-find-3);
 }
 .ds-line.is-tone-4 {
-  stroke: var(--ds-tone-4);
+  stroke: var(--dy-find-4);
 }
 .ds-line.is-tone-5 {
-  stroke: var(--ds-tone-5);
+  stroke: var(--dy-find-5);
 }
 .ds-line.is-tone-6 {
-  stroke: var(--ds-tone-6);
+  stroke: var(--dy-find-6);
 }
 .ds-line.is-tone-7 {
-  stroke: var(--ds-tone-7);
+  stroke: var(--dy-find-7);
 }
 /* A word the player didn't find, shown at the end: an outline, not a find. */
 .ds-line.is-revealed {
@@ -184,6 +176,11 @@
 .ds-cell:disabled {
   cursor: default;
   color: var(--ink);
+}
+/* The yellow stays light in both themes: dark text on its chip and on the letters its line crosses. */
+.ds-word.is-found.is-tone-0,
+.ds-cell.is-tone-0 {
+  color: var(--dy-on-find-0);
 }
 .ds-cell.is-live {
   color: var(--dy-pick);
@@ -268,10 +265,4 @@
   grid-template-columns: repeat(4, var(--cell));
   grid-auto-rows: var(--cell);
   width: max-content;
-}
-.ds-eg .ds-line {
-  stroke: var(--ds-tone-0, color-mix(in srgb, var(--highlight) 78%, transparent));
-}
-.dg-rules .ds-eg {
-  --ds-tone-0: color-mix(in srgb, var(--highlight) 78%, transparent);
 }

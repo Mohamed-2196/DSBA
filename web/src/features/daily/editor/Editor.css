@@ -8,7 +8,7 @@
 .dcms__lede,
 .dcms__note {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
   color: var(--ink-2);
 }
 .dcms__note {
@@ -52,7 +52,7 @@
   border-radius: var(--r-panel);
   background: var(--alert-soft);
   color: var(--ink);
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .dcms__count {
   margin: 0;
@@ -135,7 +135,7 @@
 .dcms-theme__blurb {
   margin: 0;
   color: var(--ink-2);
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .dcms-theme__counts {
   margin: 0;
@@ -343,13 +343,13 @@
 }
 .dcms-item__text {
   overflow-wrap: anywhere;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .dcms-item__detail {
   color: var(--ink);
   font-size: var(--fs-14);
   overflow-wrap: anywhere;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .dcms-item__meta {
   color: var(--ink-2);
@@ -737,7 +737,7 @@
 .dcms-today__title {
   margin: 0;
   overflow-wrap: anywhere;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .dcms-today__row.is-made .dcms-today__title {
   color: var(--ink-2);
@@ -747,7 +747,7 @@
   color: var(--ink-2);
   font-size: var(--fs-14);
   overflow-wrap: anywhere;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .dcms-today__words {
   color: var(--ink);
@@ -792,7 +792,7 @@
   padding-inline-start: var(--sp-20);
   display: grid;
   gap: var(--sp-4);
-  max-width: 75ch;
+  max-width: var(--measure);
   overflow-wrap: anywhere;
 }
 .dcms-fix__puzzle {

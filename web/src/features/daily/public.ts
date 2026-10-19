@@ -7,3 +7,6 @@ export { useDailyToday } from './api';
 // Manage → Daily puzzles (holders of content.edit): themes and weeks, each game's items, the guess list, the
 // vocabulary and a preview of any day.
 export { DailyContentEditor } from './editor/DailyContentEditor';
+
+// The style guide's contrast table of the games' colours.
+export { GameColours } from './components/GameColours';
