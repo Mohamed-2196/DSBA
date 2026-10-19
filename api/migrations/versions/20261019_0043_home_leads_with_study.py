@@ -1,7 +1,7 @@
 """Home's default leads with studying: Carry on and the Daily question in, Today's Daily out
 
 Revision ID: 0043
-Revises: 0041
+Revises: 0044
 Create Date: 2026-10-19 21:30:00
 
 Site settings saved before (content_docs 'site') keep their own Home default, so the seed's new one (app/seed/data/
@@ -19,7 +19,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0043"
-down_revision: str | None = "0041"
+down_revision: str | None = "0044"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
