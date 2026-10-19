@@ -177,3 +177,30 @@
     height: 44px;
   }
 }
+
+/* The plan's "Chapters you find hard": toggles that wrap. */
+.board-form__chips {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.board-form__legend {
+  padding: 0;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.board-form__hint {
+  margin: 2px 0 var(--sp-8);
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+}
+.board-form__chiprow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-6);
+}
+.board-form__chiprow > * {
+  max-width: 100%;
+}
