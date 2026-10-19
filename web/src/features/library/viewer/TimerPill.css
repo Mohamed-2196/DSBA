@@ -98,7 +98,23 @@
     min-height: 44px;
   }
 }
-/* A phone on its side: the clock alone, to cover less of a short screen. */
+/* A phone on its side: folded, the clock alone as a chip; unfolded, without the paper's title. */
+.lib-pill--chip {
+  right: auto;
+  gap: var(--sp-6);
+  min-height: 44px;
+  padding: 0 var(--sp-12) 0 var(--sp-10);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.lib-pill--chip:hover {
+  background: var(--surface-2);
+}
+.lib-pill--chip:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
 @media (max-height: 500px) {
   .lib-pill__title,
   .lib-pill__go {

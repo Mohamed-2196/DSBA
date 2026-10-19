@@ -94,6 +94,15 @@
   color: var(--cobalt);
   font-weight: var(--fw-semibold);
 }
+/* Touch screens: the link in the sentence is a 44px target; the line around it keeps its height. */
+@media (pointer: coarse) {
+  .lib-chq__empty a {
+    display: inline-block;
+    min-width: 44px;
+    margin-block: -12px;
+    padding-block: 12px;
+  }
+}
 
 @media (pointer: coarse) {
   .lib-chq__card {
