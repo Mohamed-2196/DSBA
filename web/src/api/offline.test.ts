@@ -31,9 +31,9 @@ afterEach(() => {
   onlineManager.setOnline(true);
 });
 
-async function start(store: SnapshotStore) {
+async function start(store: SnapshotStore, now?: () => number) {
   const qc = new QueryClient();
-  running = await startOfflineCache(qc, store, { delay: 60_000 });
+  running = await startOfflineCache(qc, store, { delay: 60_000, now });
   return { qc, cache: running };
 }
 
@@ -92,6 +92,17 @@ describe('startOfflineCache', () => {
     const { qc, cache } = await start(store);
     qc.setQueryData(['me'], ME);
     qc.setQueryData(['calendar', 'mine', 'events'], [{ id: 'e1' }]);
+    await cache.flush();
+    qc.setQueryData(['me'], { ...ME, id: 'u2' });
+    await cache.flush();
+    expect(store.value()?.owner).toBe('u2');
+    expect(keys(store.value())).toEqual(['["me"]']);
+  });
+
+  it("keeps the new account's own answer when the clock ticks while the account changes", async () => {
+    const store = memoryStore();
+    const { qc, cache } = await start(store, () => Date.now() + 5); // the switch is noted a few ms after the answer
+    qc.setQueryData(['me'], ME);
     await cache.flush();
     qc.setQueryData(['me'], { ...ME, id: 'u2' });
     await cache.flush();

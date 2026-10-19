@@ -168,8 +168,9 @@ export async function startOfflineCache(
     timer ??= setTimeout(() => void write(), delay);
   };
 
-  /** Someone else is here: forget what was the previous account's, keep the shared module pages. */
-  const noteOwner = (next: string) => {
+  /** Someone else is here (as of `since`, when the session said so): forget what was the previous account's, keep
+   *  the shared module pages. */
+  const noteOwner = (next: string, since: number) => {
     if (owner === next) return;
     const hadOwner = owner !== null;
     owner = next;
@@ -177,7 +178,7 @@ export async function startOfflineCache(
       schedule(); // the first answer since the page opened: whatever is in memory was read for them
       return;
     }
-    ownerSince = now();
+    ownerSince = since;
     for (const [hash, e] of entries) if (offlineScope(e.key) !== 'shared') entries.delete(hash);
     writing = writing.then(() => store.clear().catch(() => undefined));
     schedule();
@@ -199,7 +200,7 @@ export async function startOfflineCache(
   /** A query that answered: kept, if it is kept at all and was read for the person here now. */
   const note = (query: Query) => {
     const { queryKey, state } = query;
-    if (queryKey.length === 1 && queryKey[0] === 'me') noteOwner(ownerOf(state.data));
+    if (queryKey.length === 1 && queryKey[0] === 'me') noteOwner(ownerOf(state.data), state.dataUpdatedAt);
     const scope = offlineScope(queryKey);
     if (!scope || (scope === 'owner' && state.dataUpdatedAt < ownerSince)) return;
     const entry = entryFor(query.queryHash, queryKey, state.data, state.dataUpdatedAt);
