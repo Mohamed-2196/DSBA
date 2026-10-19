@@ -12,7 +12,7 @@ D11). Admin holds every box. Last checked 2026-10-18 (round 12).
 | Chapters and lessons (YouTube videos and playlists, class recordings), their order and hiding | Manage → Modules → a module | `content.edit` | `modules.json` |
 | Videos students suggest for a chapter | Manage → Suggested videos (accept or decline) | `content.edit` | students |
 | Library files, their details, removing them; links to resources kept on other sites (with a past paper's sitting) | the library: uploads wait in Manage → Uploads; a manager edits an item with "Edit details" on its page, and adds a link with "Add a link" (never Google Drive or Docs) | `library.manage` (students upload with `library.upload`) | uploads, and the Drive import (`python -m app.cli import-drive`) |
-| Past questions tagged by chapter | a paper's viewer; flagged tags wait in Manage → Uploads | signed-in students tag; `library.manage` keeps or removes flagged ones | students |
+| Past questions tagged by chapter | a paper's viewer; flagged tags wait in Manage → Uploads | signed-in students tag; `library.manage` keeps or removes flagged ones | students, and Claude's tags in `api/app/seed/data/paper_questions.json` (below) |
 | The newsletter: issues, sections, cover and pictures with descriptions, polls, publishing, edits after publishing | Manage → Newsletter (every issue, New issue) and each issue's editor, `/newsletter/<slug>/edit` | `newsletter.manage` | `api/app/seed/data/newsletter.json` (two drafts) |
 | Programme dates: exams, deadlines, careers dates, term dates, with time, place, rules, source and "not confirmed" | the calendar, "Programme date" and each event's Edit | `calendar.manage` | `api/app/seed/data/calendar.json` |
 | The forum's categories (name, short name, its year or every year, the line under it, its picture, retired) and tags (name, retired), in order; where a thread goes when no year fits it; the guidelines (with their pictures) and the posting tips | Manage → Forum | `forum.moderate` | categories and tags: the `forum_categories` and `forum_tags` tables, filled by migration 0033 with the forum's first ones; the rest: `api/app/seed/data/forum.json`, until the first save |
@@ -98,6 +98,32 @@ puzzle (a typo in a question, a wrong word in a group, a wrong answer) is fixed 
 Correlations groups hold four to eight words. Each day shows four words of each of its four groups, picked from the
 day's seed, so a group's words change from day to day; a word may be in two groups of a theme, and a day with both
 groups shows neither of them that word.
+
+### Past questions: Claude's tags
+
+Claude Haiku tags each past paper's questions with its module's chapters once, and the tags ship in the seed, so
+every environment has the same ones. Claude's tags have no tagger (`tagged_by`) and name the model instead
+(`paper_questions.tagged_by_model`): students flag them, and `library.manage` keeps or removes them like a student's.
+
+- **Tagging** (needs `DSBA_ANTHROPIC_API_KEY`; in Docker, `docker compose exec api python -m app.cli ...`):
+  - `tag-questions --dry-run`: the papers it would send, the ones it passes by and why, and the estimate (tokens
+    from the characters, at Claude Haiku 5.5's price, half for a batch). Nothing is sent.
+  - `tag-questions --sample 5`: five papers one by one, each paper's tags printed (question, page, chapters,
+    confidence) and saved. Look at a few in the app before the full run.
+  - `tag-questions`: every paper not tagged yet as one Message Batch. It prints the estimate, asks, sends, waits
+    (most batches end within an hour) and saves the results. If it stops, `tag-questions --batch <id>` collects
+    the same batch. `--module EC1002` (or the module's id), `--limit N`, `--redo` (tag again papers Claude tagged
+    before, replacing its tags) and `--yes` work with each.
+  - Which papers: published past papers (not reports or solutions) whose text was read, one copy of each file.
+    A paper with too little text (a scan) or too much for one request is passed by. One paper's error is logged
+    and the run goes on; the next run sends it again.
+  - What is kept: one or two chapters a question, with a confidence of 0.6 or more, questions 1 to 40. A question a
+    student tagged keeps the student's tags only.
+- **Shipping:** `export-question-tags` writes Claude's tags to `api/app/seed/data/paper_questions.json`; commit it.
+  Each paper is named by its Drive import key and the SHA-256 of its file, which are the same on every install
+  (item ids aren't: production imports afresh). `python -m app.cli seed` loads the tags onto the papers the install
+  has, so run it again after the Drive import (`scripts/seed-real.sh` does). Loading never adds a tag twice, a tag
+  a moderator removed, or a tag on a question a student tagged.
 
 ## Still in the code
 

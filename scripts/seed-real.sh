@@ -3,7 +3,9 @@
 #   1. the migrations (alembic upgrade head);
 #   2. the reference content: modules, calendar, newsletter, career and the library's links (python -m app.cli seed);
 #   3. the files in the library's Google Drive folders (python -m app.cli import-drive): it prints its plan and asks
-#      before it imports anything.
+#      before it imports anything;
+#   4. the past questions Claude tagged, on the papers the import brought (python -m app.cli seed --only
+#      paper-questions; docs/backend/CMS.md).
 #
 #   scripts/seed-real.sh                 # the local stack (compose.yaml): the files go to MinIO
 #   scripts/seed-real.sh --prod          # the server (compose.prod.yaml): the files go to the S3 bucket
@@ -66,9 +68,11 @@ if [[ -n "$key_file" ]]; then
     -e DSBA_GOOGLE_SERVICE_ACCOUNT_FILE=/run/secrets/google-service-account.json)
 fi
 
-echo "== 1/3 Migrations"
+echo "== 1/4 Migrations"
 "${compose[@]}" run --rm api alembic upgrade head
-echo "== 2/3 Reference content"
+echo "== 2/4 Reference content"
 "${compose[@]}" run --rm api python -m app.cli seed
-echo "== 3/3 Library files from Google Drive"
+echo "== 3/4 Library files from Google Drive"
 "${compose[@]}" run --rm "${import_env[@]}" api python -m app.cli import-drive ${import_args[@]+"${import_args[@]}"}
+echo "== 4/4 Past questions tagged by Claude"
+"${compose[@]}" run --rm api python -m app.cli seed --only paper-questions
