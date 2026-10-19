@@ -81,8 +81,10 @@ import { useStar } from './useStar';
 import { AskLink } from '../requests/public';
 import './LibraryPage.css';
 
-/** Phones, upright or on their side: search, Filters and Sort in place of the filter panel, so files come first. */
-const COMPACT = '(max-width: 699px), (max-height: 500px) and (pointer: coarse)';
+/** Phones, upright or on their side, and touch tablets: search, Filters and Sort in place of the filter panel, so
+ *  files come first. */
+const COMPACT =
+  '(max-width: 699px), (pointer: coarse) and (max-width: 1099px), (pointer: coarse) and (max-height: 500px)';
 
 const SORTS: Record<LibrarySort, string> = {
   relevance: 'Best match',
