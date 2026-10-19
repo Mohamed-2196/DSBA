@@ -1,6 +1,6 @@
 // The module page's Files tab: the module's library items grouped by type, with Upload and a way into the
 // library already filtered to the module.
-import { ArrowSquareOut, Books, DownloadSimple, UploadSimple } from '@phosphor-icons/react';
+import { ArrowSquareOut, DownloadSimple, UploadSimple } from '@phosphor-icons/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { showsUpload, useAuth } from '../../auth';
@@ -160,7 +160,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
     body = (
       <Panel padding="none">
         <EmptyState
-          icon={Books}
+          mate="stacks"
           title={`No files for ${name} yet`}
           body="Past papers, notes and guides that students share for this module will show up here."
           action={

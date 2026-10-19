@@ -119,7 +119,7 @@ function SittingRowView({
   );
 }
 
-/** Sittings as the table's rows, under its header. `board`: the study board is on, so each paper says whether it's
+/** Sittings as the table's rows, under its header. `board`: boards are on, so each paper says whether it's
  *  done. */
 export function SittingsTable({
   sittings,

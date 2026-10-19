@@ -61,6 +61,8 @@ import {
   cx,
   glyph,
   type Glyph,
+  Deskmate,
+  SECTION_MATE,
 } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, useCalendarEvents, type EventType } from '../calendar/public';
 import { GameColours } from '../daily/public';
@@ -219,6 +221,7 @@ const SECTIONS: Row2[] = [
   ['colour', 'Colour'],
   ['type', 'Type'],
   ['icons', 'Icons'],
+  ['deskmates', 'Deskmates'],
   ['space', 'Space and shape'],
   ['actions', 'Buttons'],
   ['forms', 'Forms'],
@@ -820,6 +823,34 @@ export default function StyleGuidePage() {
             </Specimen>
           </Section>
 
+          {/* ── Deskmates ─────────────────────────────────────────────── */}
+          <Section
+            id="deskmates"
+            title="Deskmates"
+            description="Each core section's study object come to life: idle in its section header, asleep in an empty list, happy on a success that matters. One per view, never below 32 px, never on a failure."
+          >
+            <Specimen
+              title="Deskmate"
+              note="mate, state idle | happy | sleepy (and wave, countdown, searching), size, label (decorative without), cover"
+              code={`import { Deskmate } from '../../ui';
+<PageHeader section="library" title="Library" />            // the band and its deskmate
+<EmptyState mate="jot" title="No notes yet" />              // asleep
+push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
+              stageClassName="sg-stage--column"
+            >
+              <ul role="list" className="sg-mates">
+                {Object.entries(SECTION_MATE).map(([section, mate]) => (
+                  <li key={mate} className="sg-mates__row" data-section={section}>
+                    <Deskmate mate={mate} size={72} />
+                    <Deskmate mate={mate} state="happy" size={72} />
+                    <Deskmate mate={mate} state="sleepy" size={72} />
+                    <code className="sg-token">{mate}</code>
+                  </li>
+                ))}
+              </ul>
+            </Specimen>
+          </Section>
+
           {/* ── Space, shape, elevation, motion ─────────────────────────── */}
           <Section
             id="space"
@@ -1261,7 +1292,7 @@ export default function StyleGuidePage() {
               <Specimen
                 title="Toast"
                 note="useToast().push({ title, body?, tone, duration?, action? })"
-                code={`const { push } = useToast();\npush({ title: 'Thread posted', body: 'Your cohort can see it now.', tone: 'success' });`}
+                code={`const { push } = useToast();\npush({ title: 'Thread posted', body: 'Your cohort can see it now.', tone: 'success', mate: 'pip-pod' });`}
               >
                 <Button onClick={() => push({ title: 'Saved to your library', body: 'Find it under Saved files.' })}>
                   Info toast
@@ -1272,6 +1303,7 @@ export default function StyleGuidePage() {
                       title: 'Thread posted',
                       body: 'Your cohort can see it now.',
                       tone: 'success',
+                      mate: 'pip-pod',
                       action: { label: 'View thread', onClick: () => {} },
                     })
                   }

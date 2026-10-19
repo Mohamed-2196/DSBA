@@ -15,7 +15,7 @@ import {
 } from '../../../api/uploads';
 import { useAuth } from '../../../auth';
 import { useModules } from '../../../state/modules';
-import { Button, IconButton, Modal, cx } from '../../../ui';
+import { Button, Deskmate, IconButton, Modal, cx } from '../../../ui';
 import { useLibraryAccess } from '../access';
 import { itemPath, useCreateItem, useLibraryList } from '../api';
 import {
@@ -318,7 +318,11 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
   } else if (phase === 'done' && created) {
     body = (
       <div className="lib-upload__done" role="status">
-        <CheckCircle className="lib-upload__done-icon" weight="duotone" aria-hidden="true" />
+        {published ? (
+          <Deskmate mate="stacks" state="happy" size={96} className="lib-upload__done-mate" />
+        ) : (
+          <CheckCircle className="lib-upload__done-icon" weight="duotone" aria-hidden="true" />
+        )}
         <h3 ref={doneRef} tabIndex={-1} className="lib-upload__done-title">
           {published ? 'Published' : 'Sent for review'}
         </h3>

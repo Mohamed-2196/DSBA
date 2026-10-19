@@ -94,7 +94,7 @@ export default function CalendarPage() {
 
   return (
     <Page className="cal-page">
-      <PageHeader title="Calendar" description={description} actions={actions} />
+      <PageHeader section="calendar" title="Calendar" description={description} actions={actions} />
       {query.isPending ? (
         <CalendarSkeleton />
       ) : query.isError ? (
@@ -151,6 +151,7 @@ function MyEventEditor({ editing, onClose }: { editing: MineEditing; onClose: ()
         setParams({ month: day.slice(0, 7), event: occurrenceId(saved, day) }, { replace: true });
         push({
           tone: 'success',
+          ...(created ? { mate: 'blink' as const } : {}),
           title: created ? 'Added to your calendar' : 'Changes saved',
           body: `${saved.title}, ${formatLong(parseDay(day))}. Only you see it.`,
         });

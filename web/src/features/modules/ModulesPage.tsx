@@ -220,6 +220,7 @@ export default function ModulesPage() {
   return (
     <Page className="mod-index">
       <PageHeader
+        section="modules"
         title="Modules"
         description={`Books, past papers, students’ notes and video lessons for every ${COHORTS[viewYear].label} module.`}
         actions={

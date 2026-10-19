@@ -57,7 +57,7 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
   if (!sections.length) {
     return (
       <EmptyState
-        illustration="nothing-due"
+        mate="blink"
         title={`Nothing due in the next ${TODAY_DAYS} days`}
         body="Cards with a due date show here from all your boards, overdue ones first."
       />

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ChatsCircle, Plus } from '@phosphor-icons/react';
+import { Plus } from '@phosphor-icons/react';
 import { remainingCount } from '../../api/paging';
 import type { ThreadSummary } from '../../api/types';
 import { useAuth } from '../../auth';
@@ -61,7 +61,7 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
     return (
       <Panel padding="none">
         <EmptyState
-          icon={ChatsCircle}
+          mate="pip-pod"
           title={`No threads about ${name} yet`}
           body="Ask the first question and your classmates will see it here and in the forum."
           action={

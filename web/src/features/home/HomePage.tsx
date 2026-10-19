@@ -3,14 +3,15 @@
 // width.
 // Blocks from other features come from their public.ts, each in its own ErrorBoundary with its own loading, empty and
 // error states; a notice with nothing to say renders nothing.
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { SignIn, SlidersHorizontal, SquaresFour } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
-import { COHORTS, YEARS, useYear } from '../../state';
+import { COHORTS, YEARS, useOnline, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Button,
   CohortBadge,
+  Deskmate,
   EmptyState,
   ErrorBoundary,
   Menu,
@@ -41,7 +42,7 @@ import { useHomeLayout } from './layout';
 import { HomeForum } from './HomeForum';
 import { NewFiles } from './NewFiles';
 import { getExamSession } from './session';
-import { greetingFor } from './time';
+import { greetingFor, lumenPose } from './time';
 import { YourModules } from './YourModules';
 import './HomePage.css';
 
@@ -74,6 +75,8 @@ function Notice({ id, children }: { id: HomeBlock; children: ReactNode }) {
   );
 }
 
+const WAVED_KEY = 'hub.lumenWaved';
+
 export default function HomePage() {
   const { year, setYear, activeYear } = useYear();
   const { me, status, openSignIn, featureOn } = useAuth();
@@ -81,6 +84,22 @@ export default function HomePage() {
   const { getModule } = useModules();
   const { papers } = usePapers();
   const [customizing, setCustomizing] = useState(false);
+  const online = useOnline();
+  // Lumen waves on the first Home of a visit (this tab's session), then rests.
+  const [waved] = useState(() => {
+    try {
+      return window.sessionStorage.getItem(WAVED_KEY) === '1';
+    } catch {
+      return true;
+    }
+  });
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem(WAVED_KEY, '1');
+    } catch {
+      // storage blocked: Lumen just waves again next time
+    }
+  }, []);
   const signedIn = status === 'signed-in';
   const calendarOn = featureOn('calendar');
   const forumOn = featureOn('forum');
@@ -263,11 +282,15 @@ export default function HomePage() {
   };
 
   const name = signedIn ? firstNameOf(me?.displayName) : null;
+  const lumen = lumenPose(now, online, waved);
   const blocks = layout.shown.map(render).filter(Boolean);
 
   return (
     <Page className="home">
-      <header className="home-head" data-hub="home-greeting">
+      <header className="home-head" data-section="home" data-hub="home-greeting">
+        <div className="home-head__mate">
+          <Deskmate mate="lumen" state={lumen} size={100} />
+        </div>
         <div className="home-head__text">
           <p className="home-head__meta">
             <time dateTime={todayIs}>{formatLongDay(today)}</time>
@@ -305,8 +328,8 @@ export default function HomePage() {
             <p className="home-head__guest" data-hub="home-signin">
               <span>
                 {forumOn
-                  ? 'Sign in for a study board, your Home on every device, and the forum.'
-                  : 'Sign in for a study board and your Home on every device.'}
+                  ? 'Sign in for boards, your Home on every device, and the forum.'
+                  : 'Sign in for boards and your Home on every device.'}
               </span>
               <Button size="sm" variant="ghost" leadingIcon={SignIn} onClick={() => openSignIn()}>
                 Sign in

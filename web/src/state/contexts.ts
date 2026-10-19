@@ -1,4 +1,5 @@
 import { createContext, type ReactNode } from 'react';
+import type { MateName } from '../ui/deskmates/types';
 import type { CohortYear } from './cohort';
 
 export type Theme = 'light' | 'dark';
@@ -31,6 +32,11 @@ export interface ToastInput {
   /** ms; 0 = stays until dismissed (default 5000) */
   duration?: number;
   action?: { label: string; onClick?: () => void };
+  /**
+   * A happy deskmate on a success that matters (a file published, a thread posted, a plan made). Never on a
+   * failure, and not on every toast.
+   */
+  mate?: MateName;
 }
 
 export interface Toast extends ToastInput {

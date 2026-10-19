@@ -13,3 +13,13 @@ const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eig
 export function numberWord(n: number): string {
   return WORDS[n] ?? String(n);
 }
+
+/**
+ * Lumen's pose in Home's greeting: asleep when the lamp is off (late at night, 23:00 to 5:00, or offline), waving
+ * the first time Home opens in a visit, and idle after that.
+ */
+export function lumenPose(date: Date, online: boolean, wavedThisVisit: boolean): 'sleepy' | 'wave' | 'idle' {
+  const h = date.getHours();
+  if (!online || h >= 23 || h < 5) return 'sleepy';
+  return wavedThisVisit ? 'idle' : 'wave';
+}

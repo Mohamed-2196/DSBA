@@ -106,6 +106,7 @@ export function ReplyItem({
                   title: 'Answer accepted',
                   body: 'It now sits at the top, so the next person finds it.',
                   tone: 'success',
+                  mate: 'pip-pod',
                 },
           ),
         onError: (e) => push({ title: "That didn't work", body: errorMessage(e), tone: 'alert' }),

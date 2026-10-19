@@ -412,14 +412,21 @@
   align-items: center;
   gap: 12px;
 }
-.cmdk-empty__art {
+.cmdk-empty__mate {
   flex: 0 0 auto;
-  width: 88px;
-  height: auto;
 }
 @media (max-width: 480px) {
-  .cmdk-empty__art {
-    width: 64px;
+  .cmdk-empty__mate {
+    --mate-size: 64px;
+  }
+}
+/* Loupe looks only when a search takes a while, so quick results don't flash it. */
+.cmdk-empty__mate--late {
+  animation: cmdk-late 120ms var(--ease) 300ms both;
+}
+@keyframes cmdk-late {
+  from {
+    opacity: 0;
   }
 }
 .cmdk-empty__title {

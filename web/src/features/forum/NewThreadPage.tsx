@@ -214,7 +214,7 @@ function Composer() {
           images.reset();
           // Straight to the new thread: to check it, share its link or follow it (UX-75).
           navigate(`/forum/${thread.slug}`);
-          push({ title: 'Thread posted', body: 'Your cohort can see it now.', tone: 'success' });
+          push({ title: 'Thread posted', body: 'Your cohort can see it now.', tone: 'success', mate: 'pip-pod' });
         },
         onError: (e) => {
           // A field the API turned down ("Pick a module from the list.", too many tags…) says so under that field.

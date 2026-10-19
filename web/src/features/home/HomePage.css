@@ -1,16 +1,37 @@
 /* Home: greeting, then the blocks (Customise Home sets which, and their order). */
 
 /* ── Greeting ──────────────────────────────────────────────────────── */
+/* The greeting: a band in Home's colour with Lumen at the end (the band is ::before, so on phones Customise Home can
+   sit under it). */
 .home-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--sp-16) var(--sp-24);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: 'text custom mate';
+  align-items: center;
+  gap: 0 var(--sp-24);
   margin-bottom: var(--sp-32);
 }
+.home-head::before {
+  content: '';
+  grid-row: 1;
+  grid-column: 1 / -1;
+  align-self: stretch;
+  border-radius: var(--r-panel);
+  background: var(--sec-pill);
+}
 .home-head__text {
+  grid-area: text;
   min-width: 0;
+  padding: var(--sp-24) 0 var(--sp-24) var(--sp-32);
+}
+.home-head__mate {
+  grid-area: mate;
+  align-self: end;
+  padding: var(--sp-12) var(--sp-24) 6px 0;
+  --mate-size: 100px;
+}
+.home-head__mate > .ui-mate {
+  display: block;
 }
 .home-head__meta {
   display: flex;
@@ -48,7 +69,7 @@
   margin-left: -6px;
 }
 .home-head__custom {
-  flex: 0 0 auto;
+  grid-area: custom;
 }
 
 /* ── Blocks: equal cards in a grid; one column, two from 680px of room, three from 1120px (container query: the
@@ -472,7 +493,20 @@
 
 @media (max-width: 699px) {
   .home-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'text mate' 'custom custom';
+    gap: var(--sp-12) var(--sp-8);
     margin-bottom: var(--sp-24);
+  }
+  .home-head__text {
+    padding: var(--sp-16) 0 var(--sp-16) var(--sp-20);
+  }
+  .home-head__mate {
+    padding: var(--sp-8) var(--sp-16) 4px 0;
+    --mate-size: 72px;
+  }
+  .home-head__custom {
+    justify-self: start;
   }
   .home-head__title {
     font-size: var(--fs-28);
@@ -495,5 +529,15 @@
   .home-next__name {
     min-height: 44px;
     align-items: center;
+  }
+}
+/* Short screens (a phone on its side): a slimmer greeting. */
+@media (max-height: 499px) and (min-width: 700px) {
+  .home-head__text {
+    padding: var(--sp-12) 0 var(--sp-12) var(--sp-24);
+  }
+  .home-head__mate {
+    padding: var(--sp-8) var(--sp-16) 4px 0;
+    --mate-size: 72px;
   }
 }

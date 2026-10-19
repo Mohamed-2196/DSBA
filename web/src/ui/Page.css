@@ -57,6 +57,45 @@
   margin-top: var(--sp-48);
 }
 
+/* A core section's header: a band in the section's pill colour with its deskmate at the end. The band is the
+   header's ::before, laid in the grid's first row, so on phones the actions can sit under it. */
+.ui-page-header--band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: 'main actions mate';
+  align-items: center;
+  gap: 0 var(--sp-24);
+}
+.ui-page-header--band::before {
+  content: '';
+  grid-row: 1;
+  grid-column: 1 / -1;
+  align-self: stretch;
+  border-radius: var(--r-panel);
+  background: var(--sec-pill);
+}
+.ui-page-header--band > .ui-page-header__main {
+  grid-area: main;
+  align-self: center;
+  padding: var(--sp-24) 0 var(--sp-24) var(--sp-32);
+}
+.ui-page-header--band > .ui-page-header__actions {
+  grid-area: actions;
+  justify-content: flex-end;
+}
+.ui-page-header--band .ui-page-header__desc {
+  color: var(--ink);
+}
+.ui-page-header__mate {
+  grid-area: mate;
+  align-self: end;
+  padding: var(--sp-12) var(--sp-24) 6px 0;
+  --mate-size: 100px;
+}
+.ui-page-header__mate > .ui-mate {
+  display: block;
+}
+
 @media (max-width: 699px) {
   .ui-page {
     padding-top: var(--sp-24);
@@ -77,5 +116,68 @@
   }
   .ui-page-section + .ui-page-section {
     margin-top: var(--sp-32);
+  }
+  /* Phones: the title shares a row with the deskmate, and the description and meta take the band's full width
+     under it, so the band stays short. */
+  .ui-page-header--band {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'title mate' 'desc desc' 'meta meta' 'more more' 'pad pad' 'actions actions';
+    gap: 0 var(--sp-8);
+  }
+  .ui-page-header--band::before {
+    grid-row: 1 / 6;
+  }
+  .ui-page-header--band::after {
+    content: '';
+    grid-area: pad;
+    height: var(--sp-16);
+  }
+  .ui-page-header--band > .ui-page-header__main {
+    display: contents;
+  }
+  .ui-page-header--band .ui-page-header__main > * {
+    grid-area: more;
+    margin-inline: var(--sp-20);
+  }
+  .ui-page-header--band .ui-page-header__main > .ui-page-header__title {
+    grid-area: title;
+    align-self: center;
+    margin: var(--sp-12) 0 0 var(--sp-20);
+  }
+  .ui-page-header--band .ui-page-header__main > .ui-page-header__desc {
+    grid-area: desc;
+    margin-top: var(--sp-4);
+  }
+  .ui-page-header--band .ui-page-header__main > .ui-page-header__meta {
+    grid-area: meta;
+    margin-top: var(--sp-12);
+  }
+  .ui-page-header--band > .ui-page-header__actions {
+    margin-top: var(--sp-16);
+    justify-content: flex-start;
+  }
+  .ui-page-header__mate {
+    padding: var(--sp-8) var(--sp-16) 0 0;
+    --mate-size: 72px;
+  }
+}
+/* A narrow phone keeps the title's room: the deskmate steps down. */
+@media (max-width: 374px) {
+  .ui-page-header__mate {
+    --mate-size: 60px;
+  }
+}
+/* Short screens (a phone on its side): a slimmer band, so the content starts on the first screen. */
+@media (max-height: 499px) and (min-width: 700px) {
+  .ui-page-header--band > .ui-page-header__main {
+    padding: var(--sp-12) 0 var(--sp-12) var(--sp-24);
+  }
+  .ui-page-header--band .ui-page-header__title {
+    font-size: var(--fs-28);
+    line-height: 34px;
+  }
+  .ui-page-header__mate {
+    padding: var(--sp-8) var(--sp-16) 4px 0;
+    --mate-size: 72px;
   }
 }

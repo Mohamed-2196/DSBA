@@ -222,7 +222,7 @@ export function NoteHeader({
         {panel ? null : (
           <Link to="/notes" className="nb-back" onClick={onBack} aria-label="All notes" title="All notes">
             <ArrowLeft aria-hidden="true" />
-            <span>Notes</span>
+            <span>Notebook</span>
           </Link>
         )}
         <input

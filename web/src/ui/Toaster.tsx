@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useToastList } from '../state/hooks';
 import type { Toast as ToastData } from '../state/contexts';
+import { Deskmate } from './deskmates/Deskmate';
 import { Icon } from './Icon';
 import * as glyph from './icons/glyphs';
 import { cx } from './internal';
@@ -42,7 +43,11 @@ function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string)
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <Icon glyph={GLYPHS[toast.tone] ?? glyph.info} size={24} className="ui-toast__icon" />
+      {toast.mate && toast.tone === 'success' ? (
+        <Deskmate mate={toast.mate} state="happy" size={40} className="ui-toast__mate" />
+      ) : (
+        <Icon glyph={GLYPHS[toast.tone] ?? glyph.info} size={24} className="ui-toast__icon" />
+      )}
       <div className="ui-toast__text">
         <p className="ui-toast__title">{toast.title}</p>
         {toast.body ? <p className="ui-toast__body">{toast.body}</p> : null}

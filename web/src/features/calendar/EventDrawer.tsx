@@ -188,7 +188,7 @@ interface DrawerContentProps {
   onHide?: (e: CalendarEvent, kind: HiddenKind, value: string) => void;
 }
 
-// The dates a student works towards: these can go on the study board.
+// The dates a student works towards: these can go on a board.
 const BOARD_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock', 'deadline']);
 
 function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide }: DrawerContentProps) {
