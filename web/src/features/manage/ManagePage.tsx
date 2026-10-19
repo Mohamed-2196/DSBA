@@ -57,6 +57,7 @@ import { GuidesEditor } from '../start/public';
 import { useAdminStats } from './api';
 import { Gaps } from './Gaps';
 import { NooraNumbers } from './NooraNumbers';
+import { NotebookNumbers } from './NotebookNumbers';
 import { SundaySummary } from './SundaySummary';
 import { SummaryWords } from './SummaryWords';
 import { BugReports } from '../bugs/public';
@@ -104,6 +105,7 @@ function Numbers() {
     <div className="manage-stack">
       <HubNumbers />
       {featureOn('noora.ai') ? <NooraNumbers canEdit={isAdmin} /> : null}
+      {isAdmin ? <NotebookNumbers /> : null}
     </div>
   );
 }

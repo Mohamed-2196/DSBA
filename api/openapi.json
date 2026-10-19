@@ -7192,7 +7192,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who\nmanage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB; board\n(a file on a board card): the library's types and GIF, up to DSBA_MAX_UPLOAD_MB; note_file: the library's types\nand GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room; career_logo: PNG, JPEG, WebP up to\nDSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r, `application/octet-stream` is\naccepted too). POST `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads\nper hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),\nforbidden (403: no library.upload, no forum.post for a forum picture, no newsletter.manage for a newsletter\npicture, no career.edit for a logo), feature_off (404: the library, its uploads, the forum, the newsletter,\nthe boards, the notebook or Career Navigator are switched off).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who\nmanage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB; board\n(a file on a board card): the library's types and GIF, up to DSBA_MAX_UPLOAD_MB; note_file: the library's types\nand GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room; career_logo: PNG, JPEG, WebP up to\nDSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r, `application/octet-stream` is\naccepted too). POST `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads\nper hour; note files apart, with the hourly limit admins set (60 to start).\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),\nforbidden (403: no library.upload, no forum.post for a forum picture, no newsletter.manage for a newsletter\npicture, no career.edit for a logo), feature_off (404: the library, its uploads, the forum, the newsletter,\nthe boards, the notebook or Career Navigator are switched off).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -14427,6 +14427,198 @@
               }
             },
             "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/notebook": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Notebook Numbers",
+        "description": "The notebook's upload limit and its numbers: uploads in the last hour, 24 hours and 7 days, students refused\nat the limit, the top uploaders by count and by bytes (display names only), and everyone's note files against\nthe sum of their rooms. Admins only.",
+        "operationId": "notebook_numbers_api_v1_admin_notebook_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotebookUploadsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Set Notebook Limits",
+        "description": "Set the pictures, files and PDFs each student may upload to their notes in an hour (1-1000). Admins only.\nAudited (`notebook.limits`).",
+        "operationId": "set_notebook_limits_api_v1_admin_notebook_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotebookLimitsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotebookUploadsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -27348,6 +27540,13 @@
             "type": "array",
             "title": "Noorausage"
           },
+          "notebookUploads": {
+            "items": {
+              "$ref": "#/components/schemas/ExportNotebookUploadDay"
+            },
+            "type": "array",
+            "title": "Notebookuploads"
+          },
           "videoSuggestions": {
             "items": {
               "$ref": "#/components/schemas/ExportSuggestion"
@@ -27412,6 +27611,7 @@
           "senior",
           "notebooks",
           "nooraUsage",
+          "notebookUploads",
           "videoSuggestions",
           "calendarEvents",
           "calendarSettings",
@@ -34176,6 +34376,36 @@
           "notes"
         ],
         "title": "ExportNotebook"
+      },
+      "ExportNotebookUploadDay": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "uploads": {
+            "type": "integer",
+            "title": "Uploads"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "title": "Sizebytes"
+          },
+          "capped": {
+            "type": "integer",
+            "title": "Capped"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "uploads",
+          "sizeBytes",
+          "capped"
+        ],
+        "title": "ExportNotebookUploadDay",
+        "description": "The notebook's uploads on one day: only counts (the files are in `notebooks`)."
       },
       "ExportNotification": {
         "properties": {
@@ -41809,6 +42039,21 @@
         "title": "NotebookCreate",
         "description": "A notebook of the student's own, or a module's (one per module: asking again answers the one there is)."
       },
+      "NotebookLimitsIn": {
+        "properties": {
+          "uploadsPerHour": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Uploadsperhour"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uploadsPerHour"
+        ],
+        "title": "NotebookLimitsIn"
+      },
       "NotebookList": {
         "properties": {
           "items": {
@@ -41843,6 +42088,136 @@
           "title"
         ],
         "title": "NotebookUpdate"
+      },
+      "NotebookUploader": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "displayName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Displayname"
+          },
+          "uploads": {
+            "type": "integer",
+            "title": "Uploads"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "title": "Sizebytes"
+          },
+          "capped": {
+            "type": "integer",
+            "title": "Capped"
+          }
+        },
+        "type": "object",
+        "required": [
+          "userId",
+          "displayName",
+          "uploads",
+          "sizeBytes",
+          "capped"
+        ],
+        "title": "NotebookUploader",
+        "description": "One student's notebook uploads in the last 7 days, by display name (no email or phone)."
+      },
+      "NotebookUploadsOut": {
+        "properties": {
+          "uploadsPerHour": {
+            "type": "integer",
+            "title": "Uploadsperhour"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "uploadsLastHour": {
+            "type": "integer",
+            "title": "Uploadslasthour"
+          },
+          "uploadsLastDay": {
+            "type": "integer",
+            "title": "Uploadslastday"
+          },
+          "uploadsLastWeek": {
+            "type": "integer",
+            "title": "Uploadslastweek"
+          },
+          "cappedStudents": {
+            "type": "integer",
+            "title": "Cappedstudents"
+          },
+          "cappedUploads": {
+            "type": "integer",
+            "title": "Cappeduploads"
+          },
+          "topByCount": {
+            "items": {
+              "$ref": "#/components/schemas/NotebookUploader"
+            },
+            "type": "array",
+            "title": "Topbycount"
+          },
+          "topByBytes": {
+            "items": {
+              "$ref": "#/components/schemas/NotebookUploader"
+            },
+            "type": "array",
+            "title": "Topbybytes"
+          },
+          "students": {
+            "type": "integer",
+            "title": "Students"
+          },
+          "filesBytes": {
+            "type": "integer",
+            "title": "Filesbytes"
+          },
+          "filesLimitBytes": {
+            "type": "integer",
+            "title": "Fileslimitbytes"
+          },
+          "budgetBytes": {
+            "type": "integer",
+            "title": "Budgetbytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uploadsPerHour",
+          "updatedAt",
+          "uploadsLastHour",
+          "uploadsLastDay",
+          "uploadsLastWeek",
+          "cappedStudents",
+          "cappedUploads",
+          "topByCount",
+          "topByBytes",
+          "students",
+          "filesBytes",
+          "filesLimitBytes",
+          "budgetBytes"
+        ],
+        "title": "NotebookUploadsOut",
+        "description": "The notebook's upload limit and its numbers, for admins in Manage. \"Last 7 days\" is today and the 6 days\nbefore, in Bahrain."
       },
       "NotificationOut": {
         "properties": {

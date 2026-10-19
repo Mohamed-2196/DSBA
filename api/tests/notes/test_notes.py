@@ -715,6 +715,44 @@ def test_a_deleted_notebook_releases_the_files_no_other_note_shows(
     assert statuses(db, shared, own) == [UploadStatus.attached, UploadStatus.released]
 
 
+def pictures_doc(*upload_ids: str) -> dict[str, Any]:
+    return {"type": "doc", "content": [{"type": "image", "attrs": {"upload": u, "alt": "Board"}} for u in upload_ids]}
+
+
+def test_released_files_shown_again_must_fit_the_room(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Released files stop counting, so showing them again must fit: fill the room, delete the note (its files are
+    released), fill the room again with new files, then save a note naming the released ones: 409 notes_full, and
+    the released files stay released. An undo that fits still takes a file back, and a save that lets go of one
+    file while it takes back another of the same size fits."""
+    monkeypatch.setattr(svc, "FILES_LIMIT", 2 * len(PNG))
+    c = client_for(make_user())
+
+    def picture(name: str) -> str:
+        return upload(c, storage, purpose="note_file", name=name, content_type="image/png", body=PNG)
+
+    old = [picture("a.png"), picture("b.png")]
+    full = new_note(c, doc=pictures_doc(*old))
+    assert c.get(f"{API}/notebooks").json()["storage"]["filesBytes"] == 2 * len(PNG)
+    assert c.delete(f"{API}/notes/{full['id']}").status_code == 204
+    assert statuses(db, *old) == [UploadStatus.released] * 2
+    fresh = [picture("c.png"), picture("d.png")]
+    kept = new_note(c, doc=pictures_doc(*fresh))
+
+    r = c.post(f"{API}/notes", json={"title": "Over", "doc": pictures_doc(*old)})
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
+    r = save(c, kept, doc=pictures_doc(*fresh, *old))
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
+    assert statuses(db, *old) == [UploadStatus.released] * 2
+    assert c.get(f"{API}/notebooks").json()["storage"]["filesBytes"] == 2 * len(PNG)
+
+    swapped = save(c, kept, doc=pictures_doc(fresh[0], old[0]))  # d goes, a comes back: the same room
+    assert swapped.status_code == 200, swapped.text
+    assert statuses(db, old[0], fresh[1]) == [UploadStatus.attached, UploadStatus.released]
+    assert c.get(f"{API}/notebooks").json()["storage"]["filesBytes"] == 2 * len(PNG)
+
+
 def test_a_picture_keeps_its_place_crop_and_caption(client_for: ClientFor, make_user: MakeUser, storage: Any) -> None:
     """A picture's size, place, turn and crop are kept as the editor sends them, and its caption and description are
     searched with the note's text."""

@@ -212,3 +212,41 @@ class Note(NoteSummary):
 
 class NotePage(Page[NoteSummary]):
     pass
+
+
+# ── Manage: the notebook's uploads ──
+
+UPLOADS_PER_HOUR_MAX = 1000
+
+
+class NotebookLimitsIn(ApiModel):
+    uploads_per_hour: int = Field(ge=1, le=UPLOADS_PER_HOUR_MAX)  # pictures, files and PDFs per student per hour
+
+
+class NotebookUploader(ApiModel):
+    """One student's notebook uploads in the last 7 days, by display name (no email or phone)."""
+
+    user_id: UUID
+    display_name: str | None  # None: the account has no profile yet
+    uploads: int
+    size_bytes: int
+    capped: int  # uploads refused at the hourly limit
+
+
+class NotebookUploadsOut(ApiModel):
+    """The notebook's upload limit and its numbers, for admins in Manage. "Last 7 days" is today and the 6 days
+    before, in Bahrain."""
+
+    uploads_per_hour: int
+    updated_at: datetime | None
+    uploads_last_hour: int
+    uploads_last_day: int  # the last 24 hours
+    uploads_last_week: int
+    capped_students: int  # students refused at the hourly limit in the last 7 days
+    capped_uploads: int
+    top_by_count: list[NotebookUploader]
+    top_by_bytes: list[NotebookUploader]
+    students: int  # students with a notebook
+    files_bytes: int  # the pictures, files and PDFs in everyone's notes (released files don't count)
+    files_limit_bytes: int  # each student's room for them
+    budget_bytes: int  # students times files_limit_bytes

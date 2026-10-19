@@ -1247,7 +1247,7 @@ export interface paths {
          *     and GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room; career_logo: PNG, JPEG, WebP up to
          *     DSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r, `application/octet-stream` is
          *     accepted too). POST `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads
-         *     per hour.
+         *     per hour; note files apart, with the hourly limit admins set (60 to start).
          *
          *     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
          *     for review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),
@@ -2296,6 +2296,33 @@ export interface paths {
          */
         get: operations["note_file_api_v1_notes_files__upload_id__get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/notebook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Notebook Numbers
+         * @description The notebook's upload limit and its numbers: uploads in the last hour, 24 hours and 7 days, students refused
+         *     at the limit, the top uploaders by count and by bytes (display names only), and everyone's note files against
+         *     the sum of their rooms. Admins only.
+         */
+        get: operations["notebook_numbers_api_v1_admin_notebook_get"];
+        /**
+         * Set Notebook Limits
+         * @description Set the pictures, files and PDFs each student may upload to their notes in an hour (1-1000). Admins only.
+         *     Audited (`notebook.limits`).
+         */
+        put: operations["set_notebook_limits_api_v1_admin_notebook_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -4369,6 +4396,8 @@ export interface components {
             notebooks: components["schemas"]["ExportNotebook"][];
             /** Noorausage */
             nooraUsage: components["schemas"]["ExportNooraDay"][];
+            /** Notebookuploads */
+            notebookUploads: components["schemas"]["ExportNotebookUploadDay"][];
             /** Videosuggestions */
             videoSuggestions: components["schemas"]["ExportSuggestion"][];
             /** Calendarevents */
@@ -6634,6 +6663,23 @@ export interface components {
             createdAt: string;
             /** Notes */
             notes: components["schemas"]["ExportNote"][];
+        };
+        /**
+         * ExportNotebookUploadDay
+         * @description The notebook's uploads on one day: only counts (the files are in `notebooks`).
+         */
+        ExportNotebookUploadDay: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Uploads */
+            uploads: number;
+            /** Sizebytes */
+            sizeBytes: number;
+            /** Capped */
+            capped: number;
         };
         /** ExportNotification */
         ExportNotification: {
@@ -9207,6 +9253,11 @@ export interface components {
             /** Moduleid */
             moduleId?: string | null;
         };
+        /** NotebookLimitsIn */
+        NotebookLimitsIn: {
+            /** Uploadsperhour */
+            uploadsPerHour: number;
+        };
         /** NotebookList */
         NotebookList: {
             /** Items */
@@ -9217,6 +9268,58 @@ export interface components {
         NotebookUpdate: {
             /** Title */
             title: string;
+        };
+        /**
+         * NotebookUploader
+         * @description One student's notebook uploads in the last 7 days, by display name (no email or phone).
+         */
+        NotebookUploader: {
+            /**
+             * Userid
+             * Format: uuid
+             */
+            userId: string;
+            /** Displayname */
+            displayName: string | null;
+            /** Uploads */
+            uploads: number;
+            /** Sizebytes */
+            sizeBytes: number;
+            /** Capped */
+            capped: number;
+        };
+        /**
+         * NotebookUploadsOut
+         * @description The notebook's upload limit and its numbers, for admins in Manage. "Last 7 days" is today and the 6 days
+         *     before, in Bahrain.
+         */
+        NotebookUploadsOut: {
+            /** Uploadsperhour */
+            uploadsPerHour: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            /** Uploadslasthour */
+            uploadsLastHour: number;
+            /** Uploadslastday */
+            uploadsLastDay: number;
+            /** Uploadslastweek */
+            uploadsLastWeek: number;
+            /** Cappedstudents */
+            cappedStudents: number;
+            /** Cappeduploads */
+            cappedUploads: number;
+            /** Topbycount */
+            topByCount: components["schemas"]["NotebookUploader"][];
+            /** Topbybytes */
+            topByBytes: components["schemas"]["NotebookUploader"][];
+            /** Students */
+            students: number;
+            /** Filesbytes */
+            filesBytes: number;
+            /** Fileslimitbytes */
+            filesLimitBytes: number;
+            /** Budgetbytes */
+            budgetBytes: number;
         };
         /** NotificationOut */
         NotificationOut: {
@@ -11885,6 +11988,7 @@ export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
 export type ExportNooraDay = components['schemas']['ExportNooraDay'];
 export type ExportNote = components['schemas']['ExportNote'];
 export type ExportNotebook = components['schemas']['ExportNotebook'];
+export type ExportNotebookUploadDay = components['schemas']['ExportNotebookUploadDay'];
 export type ExportNotification = components['schemas']['ExportNotification'];
 export type ExportPollVote = components['schemas']['ExportPollVote'];
 export type ExportQuestionTag = components['schemas']['ExportQuestionTag'];
@@ -12030,8 +12134,11 @@ export type NoteSummary = components['schemas']['NoteSummary'];
 export type NoteUpdate = components['schemas']['NoteUpdate'];
 export type Notebook = components['schemas']['Notebook'];
 export type NotebookCreate = components['schemas']['NotebookCreate'];
+export type NotebookLimitsIn = components['schemas']['NotebookLimitsIn'];
 export type NotebookList = components['schemas']['NotebookList'];
 export type NotebookUpdate = components['schemas']['NotebookUpdate'];
+export type NotebookUploader = components['schemas']['NotebookUploader'];
+export type NotebookUploadsOut = components['schemas']['NotebookUploadsOut'];
 export type NotificationOut = components['schemas']['NotificationOut'];
 export type NotificationPage = components['schemas']['NotificationPage'];
 export type OfferTypeLabel = components['schemas']['OfferTypeLabel'];
@@ -23537,6 +23644,176 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    notebook_numbers_api_v1_admin_notebook_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotebookUploadsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_notebook_limits_api_v1_admin_notebook_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotebookLimitsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotebookUploadsOut"];
+                };
             };
             /** @description Bad Request */
             400: {

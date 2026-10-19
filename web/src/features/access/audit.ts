@@ -93,6 +93,14 @@ const nooraLimits = (d: Record<string, unknown>): string => {
   return parts.length ? `set Mini Noora’s limits to ${parts.join(' and ')}` : 'changed Mini Noora’s limits';
 };
 
+const notebookLimits = (d: Record<string, unknown>): string => {
+  const after = typeof d.after === 'object' && d.after !== null ? (d.after as Record<string, unknown>) : {};
+  const n = count(after.uploadsPerHour);
+  return n
+    ? `set the notebook’s uploads to ${formatCount(n)} an hour per student`
+    : 'changed the notebook’s upload limit';
+};
+
 /** An admin's identifier change (account recovery): data.from and data.to are masked ("s•••@example.com"). */
 const IDENTIFIER_NOUN: Record<string, string> = { email: 'email address', phone: 'phone number' };
 
@@ -186,6 +194,7 @@ const ACTIONS: Record<string, Describe> = {
   'request.found': (d) => `answered the request${quoted(d.title)} with${quoted(d.item) || ' a library file'}`,
   'bug_report.status': (d) => BUG_STATUS[str(d.status) ?? ''] ?? 'changed a bug report',
   'noora.limits': nooraLimits,
+  'notebook.limits': notebookLimits,
   'noora.update': () => 'edited Mini Noora’s instructions and script',
   'site.update': () => 'edited Site settings',
   'guides.update': () => 'edited the guides',

@@ -4,10 +4,11 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ADMIN_STATS_KEY } from '../../api/keys';
-import type { NooraLimitsIn, SummaryEditable, SummarySave, SummaryWords } from '../../api/types';
+import type { NooraLimitsIn, NotebookLimitsIn, SummaryEditable, SummarySave, SummaryWords } from '../../api/types';
 import type { CohortYear } from '../../state';
 
 const NOORA_USAGE_KEY = ['admin', 'noora'] as const;
+const NOTEBOOK_UPLOADS_KEY = ['admin', 'notebook'] as const;
 
 export function useAdminStats(enabled: boolean) {
   return useQuery({
@@ -34,6 +35,25 @@ export function useSetNooraLimits() {
   return useMutation({
     mutationFn: (body: NooraLimitsIn) => call(api.PUT('/api/v1/admin/noora', { body })),
     onSuccess: (out) => qc.setQueryData(NOORA_USAGE_KEY, out),
+  });
+}
+
+/** The notebook's uploads (admins): the hourly limit, the counts, the top uploaders and the storage used. */
+export function useNotebookUploads(enabled: boolean) {
+  return useQuery({
+    queryKey: NOTEBOOK_UPLOADS_KEY,
+    queryFn: () => call(api.GET('/api/v1/admin/notebook')),
+    refetchInterval: 60_000,
+    enabled,
+  });
+}
+
+/** Admins set the pictures, files and PDFs a student may upload to their notes in an hour. */
+export function useSetNotebookLimits() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: NotebookLimitsIn) => call(api.PUT('/api/v1/admin/notebook', { body })),
+    onSuccess: (out) => qc.setQueryData(NOTEBOOK_UPLOADS_KEY, out),
   });
 }
 

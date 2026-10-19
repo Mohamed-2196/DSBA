@@ -348,7 +348,8 @@ the lists are `app/core/access.py` (`BOXES`, `FEATURES`), which the screen shows
 
 Admin holds every box. These powers belong to Admin and are no box: roles and what each may do, giving roles, the
 switches, account recovery, who reported something, suspending an admin, Site settings, the grades calculator's
-rules, Mini Noora's words and her limits (Manage → Numbers), bug reports (Manage → Bugs) and loading a Daily content
+rules, Mini Noora's words and her limits (Manage → Numbers), the notebook's upload limit and numbers (Manage →
+Numbers), bug reports (Manage → Bugs) and loading a Daily content
 file. Roles, people's roles, the switches, account recovery, Mini Noora's words and her limits also need a recent
 confirmation: a session more than ten minutes old is asked for a step-up code (`SteppedUpAdmin` in
 `routers/_base.py`, `sessions.require_step_up()`).
@@ -484,3 +485,11 @@ re-chains them at merge.
   - Personal events repeat weekly, every two weeks or monthly.
   - Sign-up asks whether to email replies, mentions and date changes; nothing is emailed until it's answered.
   - Practice scores for past papers are saved to the account; Home's To-do lists dated cards only.
+- **D16 The notebook's upload limit is an admin setting** (Mohamed, 2026-10-19). Pictures, files and PDFs for notes
+  are limited per student per hour by `notebook_limits.uploads_per_hour` (60 to start; 1-1000), counted apart from
+  other uploads, which keep 20 an hour. Admins set it in Manage → Numbers on a normal session (as D14), audited as
+  `notebook.limits`, beside the notebook's numbers: uploads in the last hour, 24 hours and 7 days, students refused
+  at the limit, the top uploaders by count and by bytes (display names only, never an email or phone), and everyone's
+  note files against the sum of their rooms (`GET /admin/notebook`, admins only). Each student's counts per day
+  (`notebook_upload_days`) are in their export and go with the account. A released file shown in a note again counts
+  against the room again and must fit (409 `notes_full`).

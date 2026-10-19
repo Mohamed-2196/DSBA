@@ -183,6 +183,9 @@ describe('describeAudit', () => {
     expect(describeAudit(entry('noora.limits', { after: { dailyQuestions: 30, monthlyBudgetCents: 2500 } }))).toBe(
       'set Mini Noora’s limits to 30 questions a day and $25 a month',
     );
+    expect(describeAudit(entry('notebook.limits', { after: { uploadsPerHour: 60 } }))).toBe(
+      'set the notebook’s uploads to 60 an hour per student',
+    );
     expect(describeAudit(entry('site.update', { title: 'Site settings', parts: ['links'] }))).toBe(
       'edited Site settings',
     );
