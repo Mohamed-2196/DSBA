@@ -3,7 +3,7 @@
 // has started keeps its theme.
 import { ArrowDown, ArrowUp, PencilSimple, Plus, Trash, WarningCircle } from '@phosphor-icons/react';
 import { useState, type ReactNode } from 'react';
-import { errorMessage, isApiError } from '../../../api/errors';
+import { errorMessage, isApiError, placeFieldErrors, unplacedMessage } from '../../../api/errors';
 import type { DailyContentOverview, ThemeOut, WeekOut } from '../../../api/types';
 import { formatDay } from '../../../lib/dates';
 import { useToast, useUnsavedChanges } from '../../../state';
@@ -189,9 +189,10 @@ function ThemeDialog({ theme, onClose }: { theme: ThemeOut | null; onClose: () =
   useUnsavedChanges(idTouched || JSON.stringify({ title, blurb, inRotation }) !== opened, 'the theme');
   const pending = create.isPending || save.isPending;
   const error = create.error ?? save.error;
-  const fields = isApiError(error) ? error.fields : {};
+  const placed = placeFieldErrors(isApiError(error) ? error.fields : {}, ['title', 'blurb', 'inRotation', 'id']);
+  const fields = placed.fields;
   const shownId = idTouched ? id : themeIdFrom(title);
-  const general = error && !Object.keys(fields).length ? errorMessage(error) : null;
+  const general = unplacedMessage(error, placed);
 
   const submit = () => {
     const done = (message: string) => {

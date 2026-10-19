@@ -13,7 +13,7 @@ import {
   UserCircle,
   WarningCircle,
 } from '@phosphor-icons/react';
-import { ApiError, errorMessage } from '../../api/errors';
+import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../../api/errors';
 import type { Me, SessionInfo } from '../../api/types';
 import { useAuth, useUpdatePreferences, type Feature } from '../../auth';
 import { CohortPicker, type CohortChoice } from '../../auth/CohortPicker';
@@ -91,8 +91,11 @@ function ProfileSection({ me }: { me: Me }) {
       {
         onSuccess: () => push({ tone: 'success', title: 'Profile saved' }),
         onError: (err) => {
-          if (err instanceof ApiError && err.fields.displayName) setNameError(err.fields.displayName);
-          else push({ tone: 'alert', title: 'Your profile wasn’t saved', body: errorMessage(err) });
+          const placed = placeFieldErrors(err instanceof ApiError ? err.fields : {}, ['displayName', 'year']);
+          setNameError(placed.fields.displayName ?? null);
+          setCohortError(placed.fields.year ?? null);
+          const other = unplacedMessage(err, placed);
+          if (other) push({ tone: 'alert', title: 'Your profile wasn’t saved', body: other });
         },
       },
     );

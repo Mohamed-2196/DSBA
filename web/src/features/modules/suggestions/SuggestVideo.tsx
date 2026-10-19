@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, YoutubeLogo } from '@phosphor-icons/react';
-import { ApiError, errorMessage } from '../../../api/errors';
+import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../../../api/errors';
 import type { ModuleDetail, SuggestionOut } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
@@ -16,6 +16,8 @@ import './Suggestions.css';
 
 const TITLE_MAX = 200;
 const REASON_MAX = 300;
+/** The fields the API names in its errors: the module has no field, so its message shows above the buttons. */
+const SUGGESTION_FIELDS = ['url', 'title', 'chapterId', 'reason', 'moduleId'] as const;
 
 function SuggestDialog({ module: m, open, onClose }: { module: ModuleDetail; open: boolean; onClose: () => void }) {
   const [chapterId, setChapterId] = useState('');
@@ -56,8 +58,11 @@ function SuggestDialog({ module: m, open, onClose }: { module: ModuleDetail; ope
           });
         },
         onError: (e) => {
-          if (e instanceof ApiError && Object.keys(e.fields).length) setErrors(e.fields);
-          else setErrors({ form: errorMessage(e, 'Your suggestion wasn’t sent. Try again.') });
+          if (e instanceof ApiError && Object.keys(e.fields).length) {
+            const placed = placeFieldErrors(e.fields, SUGGESTION_FIELDS);
+            const form = unplacedMessage(e, placed);
+            setErrors(form ? { ...placed.fields, form } : placed.fields);
+          } else setErrors({ form: errorMessage(e, 'Your suggestion wasn’t sent. Try again.') });
         },
       },
     );
