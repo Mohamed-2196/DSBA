@@ -17,12 +17,13 @@ browser sends the version its moves were made on: a finished history stands, an 
 from __future__ import annotations
 
 import datetime as dt
+import typing
 from dataclasses import dataclass
 from typing import Any
 
 from pydantic import TypeAdapter
 from sqlalchemy import Integer, and_, cast, func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import InstrumentedAttribute, Session
 
 from app.core.errors import ApiError, conflict, invalid
 from app.core.time import BAHRAIN, bahrain_today, utcnow
@@ -155,7 +156,7 @@ def _counts(db: Session, user: User | None, day: dt.date, game: GameId, row: Dai
 
 def _seconds(row: DailyPlay | None) -> int | None:
     """How long a finished play took. A guest's play kept on sign-in has no clock: it starts and finishes at once."""
-    if row is None or row.finished_at is None or row.finished_at == row.started_at:
+    if row is None or row.finished_at is None or row.finished_at == row.kept_at:
         return None
     return int((row.finished_at - row.started_at).total_seconds())
 
@@ -299,12 +300,24 @@ def make_move(db: Session, user: User | None, day: dt.date, game_id: GameId, bod
     return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, secret, revision)
 
 
-def keep_guest_play(db: Session, user: User, day: dt.date, game_id: GameId, body: GuestPlayIn) -> PlayOut:
+KEEPS_PER_HOUR = 20  # an account's: a day's six games and Sudoku's difficulties, with room for a second device
+KEEPS_PER_HOUR_PER_IP = 150  # a lab or a phone network signs many students in through one address
+KEEPS_WINDOW = dt.timedelta(hours=1)
+TOO_MANY_KEEPS = "That's a lot of games to keep at once. Try again in {}."
+
+
+def keep_guest_play(
+    db: Session, user: User, day: dt.date, game_id: GameId, body: GuestPlayIn, ip: str | None
+) -> PlayOut:
     """A guest's play, kept on the account they've just signed in to, as if they'd played it signed in: it counts
     for points when it's their first of that game on its own day. Its moves are replayed and checked like any
-    guest's. A history that finished on a version a fix replaced stands on that version; an unfinished one doesn't
-    carry over (the fix started it again). Nothing changes when the account has already made moves on the puzzle.
-    The play has no clock: it starts and finishes when it's kept."""
+    guest's; the history itself is the browser's word (docs/backend/ARCHITECTURE.md, D16).
+
+    - An account that has opened the puzzle (it has a play of it, even without moves) keeps its own: 409.
+    - A history that finished on a version a fix replaced stands on that version, as practice (no points, no
+      streak); an unfinished one doesn't carry over (the fix started it again): 409.
+    - The play has no clock: it starts and finishes when it's kept.
+    - Rate-limited per account and per address."""
     check_day(day)
     game = game_of(game_id)
     variant = check_variant(game, body.variant)
@@ -314,16 +327,42 @@ def keep_guest_play(db: Session, user: User, day: dt.date, game_id: GameId, body
     replay = _replay(game, puzzle, moves)
     if body.revision != edition.revision and game.status(puzzle, replay.state) not in FINISHED:
         raise _fixed()
+    _limit_keeps(db, user, ip)
     ratelimit.lock(db, f"daily:{user.id}")
-    row = _row(db, user, day, game_id, variant)
-    if row is not None and row.moves:
-        raise conflict("already_played", "You've already played this puzzle on your account, so that play stands.")
-    if row is None:
-        row = _open(db, user, game, day, variant, body.revision)
+    if _row(db, user, day, game_id, variant) is not None:
+        raise conflict("already_played", "You've already opened this puzzle on your account, so that play stands.")
+    row = _open(db, user, game, day, variant, body.revision)
     now = utcnow()
-    row.revision, row.restarted, row.started_at = body.revision, False, now
+    row.started_at, row.kept_at, row.kept_ip = now, now, ip
+    if body.revision != edition.revision:
+        row.scored = False  # finished on a version a fix replaced: practice
     row = _keep(db, user, game, day, variant, puzzle, replay, moves, row, body.revision, now)
+    if not row.scored:
+        row.points = 0
     return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, row.scored, False, body.revision)
+
+
+def _limit_keeps(db: Session, user: User, ip: str | None) -> None:
+    kept = DailyPlay.kept_at.is_not(None)
+    kept_at = typing.cast("InstrumentedAttribute[dt.datetime]", DailyPlay.kept_at)  # counted only where it's set
+    ratelimit.enforce(
+        db,
+        f"daily-keeps:{user.id}",
+        kept_at,
+        [kept, DailyPlay.user_id == user.id],
+        limit=KEEPS_PER_HOUR,
+        window=KEEPS_WINDOW,
+        message=TOO_MANY_KEEPS,
+    )
+    ratelimit.enforce(
+        db,
+        f"daily-keeps:ip:{ratelimit.ip_bucket(ip)}",
+        kept_at,
+        [kept, ratelimit.in_ip_bucket(DailyPlay.kept_ip, ip)],
+        limit=KEEPS_PER_HOUR_PER_IP,
+        window=KEEPS_WINDOW,
+        message=TOO_MANY_KEEPS,
+    )
 
 
 def _guest_on_earlier(

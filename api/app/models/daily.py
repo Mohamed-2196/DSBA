@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Any, get_args
 
 from sqlalchemy import Boolean, Date, ForeignKey, Index, SmallInteger, String, UniqueConstraint, text
+from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, check_in, created_ts, uuid_pk
@@ -30,6 +31,7 @@ class DailyPlay(Base):
             "uq_daily_plays_scored", "user_id", "day", "game", unique=True, postgresql_where=text("scored")
         ),  # one scored play per game per day
         Index("ix_daily_plays_day_scored", "day", postgresql_where=text("scored")),  # leaderboards
+        Index("ix_daily_plays_kept", "kept_at", postgresql_where=text("kept_at IS NOT NULL")),  # keeps' rate limits
         check_in("game", get_args(GameId)),
         check_in("status", get_args(PlayStatus)),
     )
@@ -50,6 +52,9 @@ class DailyPlay(Base):
     started_at: Mapped[datetime] = created_ts()  # the clock: today's puzzle first opened (Sudoku: the first move)
     updated_at: Mapped[datetime] = created_ts()  # the last move
     finished_at: Mapped[datetime | None]
+    # A guest's play kept on the account at sign-in: when, and from which address (for the keeps' rate limits).
+    kept_at: Mapped[datetime | None]
+    kept_ip: Mapped[str | None] = mapped_column(INET)
 
 
 class DailyProfile(Base):

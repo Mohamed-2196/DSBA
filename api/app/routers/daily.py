@@ -6,10 +6,18 @@ from __future__ import annotations
 import datetime as dt
 from typing import Annotated
 
-from fastapi import Query
+from fastapi import Query, Request
 
 from app.core.access import Feature
-from app.core.security import DB, ActiveUser, CurrentUser, OptionalUser, get_active_user, needs_feature
+from app.core.security import (
+    DB,
+    ActiveUser,
+    CurrentUser,
+    OptionalUser,
+    client_ip,
+    get_active_user,
+    needs_feature,
+)
 from app.routers._base import router_for
 from app.schemas.daily import (
     BoardPeriod,
@@ -85,11 +93,14 @@ def make_move(day: dt.date, game: GameId, body: MoveIn, db: DB, user: OptionalUs
 
 
 @router.post("/daily/{day}/{game}/keep", response_model=PlayOut)
-def keep_guest_play(day: dt.date, game: GameId, body: GuestPlayIn, db: DB, user: ActiveUser) -> PlayOut:
+def keep_guest_play(
+    day: dt.date, game: GameId, body: GuestPlayIn, request: Request, db: DB, user: ActiveUser
+) -> PlayOut:
     """Keeps the play a guest made on this device on the account they've just signed in to, and counts it for points
-    when it's their first of that game on its own day. Errors: already_played (409) when the account has made moves
-    on that puzzle, puzzle_fixed (409) when an unfinished play was on a version a fix replaced, game_over (409) or
-    invalid_input (422) for moves that don't replay, not_out_yet (404)."""
-    out = svc.keep_guest_play(db, user, day, game, body)
+    when it's their first of that game on its own day (a play finished on a version a fix replaced is practice).
+    Errors: already_played (409) when the account has opened that puzzle, puzzle_fixed (409) when an unfinished play
+    was on a version a fix replaced, game_over (409) or invalid_input (422) for moves that don't replay, not_out_yet
+    (404), rate_limited (429) per account and per address."""
+    out = svc.keep_guest_play(db, user, day, game, body, client_ip(request))
     db.commit()
     return out

@@ -484,3 +484,8 @@ re-chains them at merge.
   - Personal events repeat weekly, every two weeks or monthly.
   - Sign-up asks whether to email replies, mentions and date changes; nothing is emailed until it's answered.
   - Practice scores for past papers are saved to the account; Home's To-do lists dated cards only.
+- **D16 A guest's Daily plays are kept on sign-in** (round 13, ST-24). The browser sends each play's moves to
+  `POST /daily/{day}/{game}/keep`; the server replays and checks them, refuses a puzzle the account has opened, keeps
+  a play finished before a fix as practice, and limits keeps per account and per address. Trade-off: the history is
+  the browser's word (no signed guest tokens), so a guest could try a puzzle in private windows and keep the best
+  play; the same scouting is open to anyone with a second browser, so the Daily accepts it.

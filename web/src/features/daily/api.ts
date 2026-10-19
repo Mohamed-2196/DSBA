@@ -55,7 +55,7 @@ let keeping: Promise<boolean> | null = null;
 
 /**
  * Keeps the guest plays this device holds on the account just signed in to, then forgets them; resolves true when
- * any was kept. A play the account can't take (it has played that puzzle, a fix started it again, its moves no
+ * any was kept. A play the account can't take (it has opened that puzzle, a fix started it again, its moves no
  * longer replay) is forgotten too; one that fails for another reason (offline, the server) waits for next time.
  * Calls made while it runs share it.
  */

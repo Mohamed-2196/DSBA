@@ -3769,9 +3769,10 @@ export interface paths {
         /**
          * Keep Guest Play
          * @description Keeps the play a guest made on this device on the account they've just signed in to, and counts it for points
-         *     when it's their first of that game on its own day. Errors: already_played (409) when the account has made moves
-         *     on that puzzle, puzzle_fixed (409) when an unfinished play was on a version a fix replaced, game_over (409) or
-         *     invalid_input (422) for moves that don't replay, not_out_yet (404).
+         *     when it's their first of that game on its own day (a play finished on a version a fix replaced is practice).
+         *     Errors: already_played (409) when the account has opened that puzzle, puzzle_fixed (409) when an unfinished play
+         *     was on a version a fix replaced, game_over (409) or invalid_input (422) for moves that don't replay, not_out_yet
+         *     (404), rate_limited (429) per account and per address.
          */
         post: operations["keep_guest_play_api_v1_daily__day___game__keep_post"];
         delete?: never;

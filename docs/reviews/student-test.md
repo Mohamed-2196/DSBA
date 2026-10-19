@@ -62,7 +62,8 @@ dropped (7d7d0d7), the 4-second rule (removed).
 - Fixed (round13/dailyart): signing in now keeps the plays a guest made on the device on the account (`POST
   /daily/{day}/{game}/keep`, scored as if played signed in: the first play of that game that day counts), then the
   device forgets them. The result card steps aside for the sign-in sheet and comes back once the kept play has loaded:
-  "Solved in 1 guess · +100 points · 1-day streak". An account that has already played the puzzle keeps its own play.
+  "Solved in 1 guess · +100 points · 1-day streak". An account that has opened the puzzle keeps its own play, a play
+  finished before an editor's fix is kept as practice, and keeps are rate-limited (D16 in ARCHITECTURE.md).
   e2e: `daily.spec.ts` "a guest who wins and signs up from the result card keeps the win and its points".
 
 #### ST-25 (major, fixed) A guest's hub ignored what they played
