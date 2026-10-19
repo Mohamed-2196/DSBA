@@ -16,6 +16,7 @@ export interface PaperThreadsProps {
 /**
  * A paper's page: the threads that link to it (UX-72), newest first, as a compact list of titles with their replies
  * and age. Renders nothing while there are none, so it can sit under "Ask about this paper" without an empty box.
+ * @public for the library's paper page (through forum/public.ts)
  */
 export function PaperThreads({ slug, n = 5, headingLevel = 3 }: PaperThreadsProps) {
   const { threads, total, isPending, isError, error, isFetching, refetch } = usePaperThreads(slug, { n });
