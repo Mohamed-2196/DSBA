@@ -47,6 +47,7 @@ const sampleDoc = (over: Partial<NoteDoc> = {}): NoteDoc => ({
   doc: docFromText('E[X] is the mean'),
   paper: 'lined',
   sheets: 1,
+  moduleId: 'ST2133',
   lessonId: null,
   notebookId: 'book-1',
   ...over,
@@ -112,6 +113,7 @@ describe('asDraft', () => {
     expect(asDraft(null)).toBeNull();
     expect(asDraft({ doc: { title: 1 }, base: 2, at: 5 })).toBeNull();
     expect(asDraft({ doc: { ...sampleDoc(), lessonId: 3 }, base: 2, at: 5 })).toBeNull();
+    expect(asDraft({ doc: { ...sampleDoc(), moduleId: 7 }, base: 2, at: 5 })).toBeNull();
     expect(asDraft({ doc: sampleDoc(), base: '2', at: 5 })).toBeNull();
   });
 });
@@ -120,6 +122,7 @@ describe('docs', () => {
   it('compares every field', () => {
     expect(sameDoc(sampleDoc(), sampleDoc())).toBe(true);
     expect(sameDoc(sampleDoc(), sampleDoc({ lessonId: 'abc' }))).toBe(false);
+    expect(sameDoc(sampleDoc(), sampleDoc({ moduleId: null }))).toBe(false);
     expect(sameDoc(sampleDoc(), sampleDoc({ paper: 'grid' }))).toBe(false);
     expect(sameDoc(sampleDoc(), sampleDoc({ sheets: 2 }))).toBe(false);
     expect(sameDoc(sampleDoc(), null)).toBe(false);

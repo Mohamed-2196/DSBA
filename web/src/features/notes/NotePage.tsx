@@ -3,10 +3,15 @@
 // toolbar holds the tools; the pages scroll and zoom under them, the app's rail and bar can make way (full screen).
 // Pictures dropped or pasted onto the pages land free where they are dropped (or in the middle of the view); the
 // toolbar's Picture puts one in the text, at the cursor.
+//
+// Two views of the same note: the pages (the text laid on A4 paper with the handwriting and pictures where they were
+// put) and the text alone, wrapped to the screen at reading size (UX-70). Phones open a note in the text; picking a
+// pen, or Page, shows the pages. Handwriting goes with the text it was written beside (useInkAnchors), so typing in
+// either view moves it down with its line. The lesson panel (LessonNotePanel) opens notes here too, in the text.
 import { NotePencil, X } from '@phosphor-icons/react';
 import { EditorContent } from '@tiptap/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import { UPLOAD_RULES } from '../../api/uploads';
@@ -44,13 +49,15 @@ import {
   textSheets,
 } from './surface/layout';
 import { Surface } from './surface/Surface';
-import { DEFAULT_PENS, PENS_KEY, TOOL_KEYS, asPens, type PenSettings, type Tool } from './surface/tools';
+import { DEFAULT_PENS, PENS_KEY, TOOL_KEYS, asPens, type NoteView, type PenSettings, type Tool } from './surface/tools';
 import { useZoom } from './surface/useZoom';
 import { blockBoxes, dropTarget } from './text/blocks';
 import { startWidth } from './text/picture';
 import { useNoteText, type TextDrop } from './text/useNoteText';
 import type { Step } from './timeline';
 import { Toolbar } from './Toolbar';
+import { unanchored, unanchoredChanges } from './surface/anchors';
+import { useInkAnchors } from './useInkAnchors';
 import { useInkSync, type InkSync } from './useInkSync';
 import { useNoteEditor, type NoteEditor } from './useNoteEditor';
 import { isPicture, useNoteUploads, type Uploaded } from './useNoteUploads';
@@ -58,6 +65,11 @@ import { useTimeline } from './useTimeline';
 import './Notebook.css';
 
 const STYLUS_KEY = 'hub.mine.notes.stylus';
+/** Narrower than this, the pages fitted to the screen make typed text too small to read: notes open in the text. */
+export const READING_WIDTH = '(max-width: 719px)';
+/** The paper sheets a note may have (api/app/schemas/notes.py MAX_SHEETS). */
+const MAX_SHEETS = 300;
+
 /** Whether resizing a free picture keeps its shape (each student's own choice, kept on this device). */
 const KEEP_SHAPE_KEY = 'hub.mine.notes.keep-shape';
 /** How far apart pictures dropped together land (units). */
@@ -230,8 +242,25 @@ function MissingNote() {
   );
 }
 
+export interface NoteWorkspaceProps {
+  noteId: string;
+  readOnly: boolean;
+  /** just made: an empty note is deleted when the student leaves it, and the cursor waits in the text */
+  fresh: boolean;
+  /** beside a lesson's video: the text view, no full screen, and what the panel adds */
+  panel?: PanelParts;
+}
+
+/** What the lesson panel adds to the editor: its own header actions, and the video's clock. */
+export interface PanelParts {
+  /** in the header, after the title */
+  actions: ReactNode;
+  /** under the toolbar's formatting: put the video's time in the text */
+  stamp: ReactNode;
+}
+
 /** The note, loaded (from the server or the copy on this device), then the editor on it. */
-function NoteWorkspace({ noteId, readOnly, fresh }: { noteId: string; readOnly: boolean; fresh: boolean }) {
+export function NoteWorkspace({ noteId, readOnly, fresh, panel }: NoteWorkspaceProps) {
   const editor = useNoteEditor(noteId, { readOnly });
   const ink = useInkSync(noteId, editor.note, { readOnly });
   const pdf = usePdf(editor.note?.pdf);
@@ -249,7 +278,16 @@ function NoteWorkspace({ noteId, readOnly, fresh }: { noteId: string; readOnly: 
     );
   }
   return (
-    <NoteDesk noteId={noteId} readOnly={readOnly} fresh={fresh} editor={editor} doc={editor.doc} ink={ink} pdf={pdf} />
+    <NoteDesk
+      noteId={noteId}
+      readOnly={readOnly}
+      fresh={fresh}
+      panel={panel ?? null}
+      editor={editor}
+      doc={editor.doc}
+      ink={ink}
+      pdf={pdf}
+    />
   );
 }
 
@@ -257,6 +295,7 @@ interface NoteDeskProps {
   noteId: string;
   readOnly: boolean;
   fresh: boolean;
+  panel: PanelParts | null;
   editor: NoteEditor;
   doc: NoteDoc;
   ink: InkSync;
@@ -264,7 +303,7 @@ interface NoteDeskProps {
 }
 
 /** The editor, made once the note's document is in hand: the text starts with it, so nothing empty is ever saved. */
-function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskProps) {
+function NoteDesk({ noteId, readOnly, fresh, panel, editor, doc, ink, pdf }: NoteDeskProps) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const remove = useDeleteNote();
@@ -275,7 +314,22 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
   const [full, setFull] = useState(false);
   const [pagesShown, setPagesShown] = useState(false);
   const [printing, setPrinting] = useState(false);
-  const [tool, setTool] = useState<Tool>('type');
+  const [tool, setToolRaw] = useState<Tool>('type');
+  const narrow = useMediaQuery(READING_WIDTH);
+  const [chosenView, setChosenView] = useState<NoteView | null>(null);
+  // the text alone is typed in: the ink tools go with the pages
+  const setView = useCallback((v: NoteView) => {
+    setChosenView(v);
+    if (v === 'text') setToolRaw('type');
+  }, []);
+  // a note on a PDF without paper has no text to read; elsewhere phones and the lesson panel open in the text
+  const paperless = doc.sheets === 0;
+  const view: NoteView = paperless ? 'page' : (chosenView ?? (narrow || panel ? 'text' : 'page'));
+  // the ink tools write on the pages
+  const setTool = useCallback((t: Tool) => {
+    setToolRaw(t);
+    if (t !== 'type') setChosenView('page');
+  }, []);
   const [storedPens, setStoredPens] = useLocalStorage<unknown>(PENS_KEY, DEFAULT_PENS);
   const pens = useMemo(() => asPens(storedPens), [storedPens]);
   const [stylusSeen, setStylusSeen] = useLocalStorage<boolean>(STYLUS_KEY, false);
@@ -350,6 +404,12 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
             const note = await changePages(noteId, { ...move, version: base() });
             const map = pageMapping(move, before);
             ink.renumber(map);
+            // a page that moved keeps its handwriting on it: the text doesn't move with pages
+            for (const [from, to] of map) {
+              if (to === null || to === from) continue;
+              const strokes = ink.strokesOf(to);
+              if (strokes.some((st) => st.anchor)) ink.setSheet(to, strokes.map(unanchored));
+            }
             adopt(note, (d) => ({
               sheets: note.sheets,
               doc: withFreePictures(d.doc, repaged(picturesOfDoc(d.doc), map)),
@@ -393,8 +453,13 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
     timelineRef.current = { undo: history.undo, redo: history.redo };
   }, [history.undo, history.redo]);
   const onInk = useCallback(
-    (step: Step) => {
-      if (step.kind !== 'page') return;
+    (given: Step) => {
+      if (given.kind !== 'page') return;
+      // what the student drew, moved or changed is anchored again where it is now (useInkAnchors)
+      const step: Step = {
+        ...given,
+        ink: given.ink.map((c) => ({ ...c, after: unanchoredChanges(c.before, c.after) })),
+      };
       history.record(step);
       for (const c of step.ink) ink.setSheet(c.sheet, c.after);
       if (step.paper) change({ sheets: step.paper.after });
@@ -461,6 +526,33 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
     [textEditor, readOnly, textHeight],
   );
 
+  // ── handwriting goes with the text it was written beside ──
+  useInkAnchors({
+    editor: textEditor,
+    ink,
+    pages: doc.sheets,
+    textBox: () => scrollerRef.current?.querySelector<HTMLElement>('.nb-paper__text') ?? null,
+    enabled:
+      view === 'page' &&
+      !readOnly &&
+      ink.load === 'ready' &&
+      !ink.conflicts.length &&
+      editor.state !== 'conflict' &&
+      !pagesBusy,
+    textHeight,
+    onPages: (n) => editor.change({ sheets: Math.min(MAX_SHEETS, n) }),
+  });
+
+  // ── a new note opens with the cursor in its text, ready to type (on a phone, the keyboard opens) ──
+  const focused = useRef(false);
+  useEffect(() => {
+    if (focused.current || !fresh || readOnly || !textEditor || paperless) return;
+    focused.current = true;
+    requestAnimationFrame(() => {
+      if (!textEditor.isDestroyed) textEditor.commands.focus('end');
+    });
+  }, [fresh, readOnly, textEditor, paperless]);
+
   // ── a new note left empty is deleted when the student leaves it ──
   const leftEmpty = useRef<() => boolean>(() => false);
   useEffect(() => {
@@ -503,7 +595,6 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
     return sheetsOf(pages, doc.sheets);
   }, [pdf.state, doc.sheets]);
   const layout = useMemo(() => layoutSheets(sheets), [sheets]);
-  const paperless = doc.sheets === 0;
 
   // ── pictures and files added: dropped or pasted pictures land free, the others go in the text ──
   /** The spot on the pages under a point on screen (the nearest sheet, the nearest point on it). */
@@ -718,10 +809,20 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
   const onPrinted = useCallback(() => setPrinting(false), []);
 
   const onPdf = !!editor.note?.pdf;
+  // what only the pages show: handwriting on the paper, and pictures free on it
+  const onPages =
+    free.list.length > 0 ||
+    Array.from({ length: doc.sheets }, (_, k) => PAPER_BASE + k).some((n) => ink.strokesOf(n).length > 0);
   const pdfLoading = onPdf && pdf.state.status === 'loading';
 
   return (
-    <div className={cx('nb', full && 'nb--full')} data-hub="notebook-workspace" onDragOver={onDragOver} onDrop={onDrop}>
+    <div
+      className={cx('nb', full && 'nb--full', panel && 'nb--panel', view === 'text' && 'nb--text')}
+      data-hub="notebook-workspace"
+      data-view={view}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
       <input
         type="file"
         ref={fileInputRef}
@@ -743,13 +844,17 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         readOnly={readOnly}
         onChange={editor.change}
         onBack={editor.flush}
-        pagesShown={pagesShown}
-        onPages={() => setPagesShown((v) => !v)}
+        pagesShown={pagesShown && view === 'page'}
+        onPages={() => {
+          setView('page');
+          setPagesShown((v) => view === 'text' || !v);
+        }}
         onExport={() => setPrinting(true)}
         exporting={printing}
         full={full}
         onFull={() => setFull((v) => !v)}
         onDelete={() => setConfirming(true)}
+        panel={panel?.actions ?? null}
       />
 
       <Toolbar
@@ -774,6 +879,9 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
         onZoomStep={zoom.step}
         onFit={zoom.fit}
         readOnly={readOnly}
+        view={paperless ? null : view}
+        onView={setView}
+        extra={panel?.stamp ?? null}
       />
 
       <Notices
@@ -786,7 +894,7 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
       />
 
       <div className="nb-body">
-        {pagesShown ? (
+        {pagesShown && view === 'page' ? (
           <PagesDrawer
             sheets={sheets}
             pdf={pdf.state.status === 'ready' ? pdf.state.pdf : null}
@@ -801,58 +909,78 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
             onClose={() => setPagesShown(false)}
           />
         ) : null}
-        <div ref={setScroller} className="nb-scroller" data-hub="notebook-scroller">
-          {pdfLoading ? <p className="nb-scroller__note">Opening the PDF…</p> : null}
-          <Surface
-            sheets={sheets}
-            paper={doc.paper}
-            zoom={zoom.zoom}
-            onZoom={zoom.zoomTo}
-            tool={tool}
-            onTool={setTool}
-            pens={pens}
-            fingerDraws={fingerDraws}
-            onStylus={() => {
-              if (!stylusSeen) setStylusSeen(true);
-              setFingerDraws(false);
-            }}
-            strokesOf={ink.strokesOf}
-            revision={ink.revision}
-            onInk={onInk}
-            pdf={pdf.state.status === 'ready' ? pdf.state.pdf : null}
-            text={
-              textEditor ? (
+        {view === 'text' ? (
+          <div ref={setScroller} className="nb-scroller nb-scroller--text" data-hub="notebook-scroller">
+            <div className="nb-reflow" data-hub="note-reflow">
+              {onPages ? (
+                <p className="nb-reflow__note" data-hub="note-reflow-pages">
+                  This note has handwriting or pictures on its pages.{' '}
+                  <button type="button" className="nb-linkbutton" onClick={() => setView('page')}>
+                    See the pages
+                  </button>
+                </p>
+              ) : null}
+              {textEditor ? (
                 <PictureSpaceContext.Provider value={space}>
                   <EditorContent editor={textEditor} />
                 </PictureSpaceContext.Provider>
-              ) : null
-            }
-            onPaperPress={onPaperPress}
-            footer={
-              readOnly ? null : (
-                <Button variant="secondary" onClick={() => onPage({ kind: 'add' })} data-hub="add-page">
-                  Add a page
-                </Button>
-              )
-            }
-            readOnly={inkReadOnly || pagesBusy}
-            scroller={scroller}
-            onTextHeight={onTextHeight}
-            pictures={
-              textEditor
-                ? {
-                    free,
-                    active: tool === 'type' && !readOnly && !pagesBusy,
-                    keepShape,
-                    onKeepShape: setKeepShape,
-                    inlineOff,
-                    onInline,
-                    onLeave: onPictureLeave,
-                  }
-                : null
-            }
-          />
-        </div>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <div ref={setScroller} className="nb-scroller" data-hub="notebook-scroller">
+            {pdfLoading ? <p className="nb-scroller__note">Opening the PDF…</p> : null}
+            <Surface
+              sheets={sheets}
+              paper={doc.paper}
+              zoom={zoom.zoom}
+              onZoom={zoom.zoomTo}
+              tool={tool}
+              onTool={setTool}
+              pens={pens}
+              fingerDraws={fingerDraws}
+              onStylus={() => {
+                if (!stylusSeen) setStylusSeen(true);
+                setFingerDraws(false);
+              }}
+              strokesOf={ink.strokesOf}
+              revision={ink.revision}
+              onInk={onInk}
+              pdf={pdf.state.status === 'ready' ? pdf.state.pdf : null}
+              text={
+                textEditor ? (
+                  <PictureSpaceContext.Provider value={space}>
+                    <EditorContent editor={textEditor} />
+                  </PictureSpaceContext.Provider>
+                ) : null
+              }
+              onPaperPress={onPaperPress}
+              footer={
+                readOnly ? null : (
+                  <Button variant="secondary" onClick={() => onPage({ kind: 'add' })} data-hub="add-page">
+                    Add a page
+                  </Button>
+                )
+              }
+              readOnly={inkReadOnly || pagesBusy}
+              scroller={scroller}
+              onTextHeight={onTextHeight}
+              pictures={
+                textEditor
+                  ? {
+                      free,
+                      active: tool === 'type' && !readOnly && !pagesBusy,
+                      keepShape,
+                      onKeepShape: setKeepShape,
+                      inlineOff,
+                      onInline,
+                      onLeave: onPictureLeave,
+                    }
+                  : null
+              }
+            />
+          </div>
+        )}
         <UploadTray uploads={uploads.pending} />
       </div>
 

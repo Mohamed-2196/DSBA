@@ -1,5 +1,5 @@
-// /notes: the student's notebooks and notes, last edited first, with search, a notebook or one lesson's notes
-// (?notebook=, or ?module=&lesson= from a lesson page), and creation.
+// /notes: the student's notebooks and notes, last edited first, with search, a notebook, a module's notes (from every
+// notebook) or one lesson's (?notebook=, ?module=, or ?module=&lesson= from a lesson page), and creation.
 import {
   Book,
   DotsThree,
@@ -18,7 +18,7 @@ import { errorMessage } from '../../api/errors';
 import type { Notebook, NoteSummary, StorageUse } from '../../api/types';
 import { Gate, useAuth } from '../../auth';
 import { moduleLabel } from '../../lib/modules';
-import { useDebouncedValue, useMediaQuery, useQueryParam, useToast } from '../../state';
+import { useDebouncedValue, useMediaQuery, useQueryParam, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Badge,
@@ -290,13 +290,14 @@ function RenameDialog({ notebook, onClose }: { notebook: Notebook; onClose: () =
 
 function NotesList() {
   const { me } = useAuth();
-  const { getModule } = useModules();
+  const { getModule, getModulesForYear } = useModules();
+  const { year } = useYear();
   const notebooksQuery = useNotebooks();
   const deleteBook = useDeleteNotebook();
 
   const [q, setQ] = useQueryParam('q');
   const [selectedNotebookId, setSelectedNotebookId] = useQueryParam('notebook');
-  const [lessonModuleId, setLessonModuleId] = useQueryParam('module');
+  const [moduleId, setModuleId] = useQueryParam('module');
   const [lessonId, setLessonId] = useQueryParam('lesson');
   const startNote = useStartNote();
   const [text, setText] = useState(q ?? '');
@@ -306,13 +307,22 @@ function NotesList() {
   const [renamingBook, setRenamingBook] = useState<Notebook | null>(null);
   const [deletingBook, setDeletingBook] = useState<Notebook | null>(null);
 
-  // one lesson's notes (from a lesson page's "See all"), or one notebook's
-  const lesson = lessonModuleId && lessonId ? { moduleId: lessonModuleId, lessonId } : null;
-  const filters = { q: search, notebookId: selectedNotebookId || null, ...lesson };
+  // one lesson's notes (from a lesson page's "See all"), a module's, or one notebook's
+  const lesson = moduleId && lessonId ? { moduleId, lessonId } : null;
+  const filters = {
+    q: search,
+    notebookId: selectedNotebookId || null,
+    moduleId: moduleId || null,
+    lessonId: lesson?.lessonId ?? null,
+  };
   const lessonPlace = useLessonPlace(lesson?.moduleId ?? null, lesson?.lessonId ?? null);
   const lessonModule = lesson ? getModule(lesson.moduleId) : null;
   const showAll = () => {
-    setLessonModuleId(null, { replace: true });
+    setModuleId(null, { replace: true });
+    setLessonId(null, { replace: true });
+  };
+  const pickModule = (id: string | null) => {
+    setModuleId(id, { replace: true });
     setLessonId(null, { replace: true });
   };
   const notes = useNotes(filters);
@@ -321,7 +331,7 @@ function NotesList() {
   const [unsent] = useState(() => new Set(draftIds()));
   const items = notes.data?.pages.flatMap((p) => p.items) ?? [];
   const total = notes.data?.pages[0]?.total ?? 0;
-  const filtered = !!search || !!selectedNotebookId || !!lesson;
+  const filtered = !!search || !!selectedNotebookId || !!moduleId;
   const more = remainingCount(notes.data?.pages);
 
   const onSearch = (value: string) => {
@@ -356,6 +366,13 @@ function NotesList() {
     />
   ) : null;
   const selectedBook = notebooks.find((b) => b.id === selectedNotebookId) ?? null;
+  // the modules to filter by: the student's year's, and any other their notebooks are for
+  const filterModules = [...getModulesForYear(year)];
+  for (const id of [moduleId, ...notebooks.map((b) => b.moduleId)]) {
+    const m = getModule(id);
+    if (m && !filterModules.some((x) => x.id === m.id)) filterModules.push(m);
+  }
+  const moduleOptions = filterModules.map((m) => ({ value: m.id, label: moduleLabel(m) }));
   const selectedOptions = selectedBook ? bookOptions(selectedBook) : [];
 
   return (
@@ -373,7 +390,9 @@ function NotesList() {
               <Button
                 variant="primary"
                 leadingIcon={Plus}
-                onClick={() => startNote.start(lesson ?? { notebookId: selectedNotebookId })}
+                onClick={() =>
+                  startNote.start(lesson ?? { notebookId: selectedNotebookId, moduleId: moduleId ?? undefined })
+                }
                 loading={startNote.starting}
                 data-hub="note-new"
               >
@@ -492,6 +511,17 @@ function NotesList() {
               onValueChange={onSearch}
               onClear={() => onSearch('')}
             />
+            {lesson ? null : (
+              <Select
+                className="notes-filters__module"
+                label="Module"
+                hideLabel
+                value={moduleId ?? ''}
+                onChange={(e) => pickModule(e.target.value || null)}
+                options={[{ value: '', label: 'Every module' }, ...moduleOptions]}
+                data-hub="notes-module-filter"
+              />
+            )}
           </div>
 
           {notes.isPending ? (

@@ -98,6 +98,20 @@ export function useLessonNotes(moduleId: string, lessonId: string, { enabled = t
   return useQuery({ queryKey: [...noteKeys.list(filters), 'first'], queryFn: () => listQuery(filters, 5, 0), enabled });
 }
 
+/** A module's notes, from every notebook (a module page's "Your notes"): the `limit` last edited, and how many there
+ *  are. Off for guests and while notes are off: pass `enabled`. */
+export function useModuleNotes(
+  moduleId: string,
+  { limit = 5, enabled = true }: { limit?: number; enabled?: boolean } = {},
+) {
+  const filters = { moduleId };
+  return useQuery({
+    queryKey: [...noteKeys.list(filters), 'first', limit],
+    queryFn: () => listQuery(filters, limit, 0),
+    enabled,
+  });
+}
+
 export const fetchNote = (id: string): Promise<Note> =>
   call(api.GET('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
 export const createNote = (body: NoteCreate): Promise<Note> => call(api.POST('/api/v1/notes', { body }));

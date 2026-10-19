@@ -69,6 +69,14 @@ export interface NoteEditor {
   setPlainText: (text: string) => void;
 }
 
+/** `doc` in the notebook and with the lesson the server saved `sent` with (the same object when they're the same). Only
+ *  a doc still in `sent`'s notebook and module follows: one changed again since says where it goes itself. */
+function placedBy(doc: NoteDoc, note: Note, sent: NoteDoc = doc): NoteDoc {
+  if (note.notebookId === sent.notebookId && note.lessonId === sent.lessonId) return doc;
+  if (doc.notebookId !== sent.notebookId || doc.moduleId !== sent.moduleId) return doc;
+  return { ...doc, notebookId: note.notebookId, lessonId: note.lessonId };
+}
+
 export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean }): NoteEditor {
   const qc = useQueryClient();
   const query = useNote(noteId);
@@ -122,10 +130,14 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
         const note = await saveNote(noteId, { ...sent, version: baseRef.current ?? 1 });
         noteSaved(qc, note, { quietly: true });
         baseRef.current = note.version;
-        savedRef.current = sent; // what was sent: the server tidies the title, and sending it again changes nothing
+        // what was sent (the server tidies the title, and sending it again changes nothing), in the notebook the
+        // server keeps it in: a note given another module leaves a module's notebook for that module's
+        const placed = placedBy(sent, note);
+        savedRef.current = placed;
+        if (placed !== sent && docRef.current) show(placedBy(docRef.current, note, sent));
         setError(null);
         setSavedAt(Date.now());
-        if (sameDoc(docRef.current, sent)) {
+        if (sameDoc(docRef.current, placed)) {
           dropDraft(noteId);
           setState('saved');
         } else {
@@ -251,9 +263,10 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
 
   const publish = useCallback(() => {
     const d = docRef.current;
-    const module = query.data?.moduleId ?? null;
-    setOpenNote(d ? { id: noteId, title: d.title, body: plain.current, moduleId: module, lessonId: d.lessonId } : null);
-  }, [noteId, query.data?.moduleId]);
+    setOpenNote(
+      d ? { id: noteId, title: d.title, body: plain.current, moduleId: d.moduleId, lessonId: d.lessonId } : null,
+    );
+  }, [noteId]);
 
   // What other parts of the app see as the open note (Mini Noora reads it when the student asks about it).
   useEffect(() => publish(), [doc, publish]);

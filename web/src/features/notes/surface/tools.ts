@@ -83,3 +83,7 @@ export const TOOL_KEYS: Record<string, Tool> = {
   l: 'lasso',
   k: 'laser',
 };
+
+/** How a note is shown: its pages (the text laid on paper, with the handwriting), or its text alone, wrapped to the
+ *  screen at reading size. */
+export type NoteView = 'text' | 'page';

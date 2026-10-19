@@ -1,6 +1,7 @@
 // The editor's header: back to the notes, the note's title, and one line that says exactly where the note is kept
-// and whether it is saved there ("Saved in ST2133 Statistics"), what it is about (a lesson) and what it is written
-// on (a library PDF, with a way back to it). The notebook's name is a menu that moves the note to another one.
+// and whether it is saved there ("Saved in ST2133 Statistics"), what it is about (a module and a lesson) and what it
+// is written on (a library PDF, with a way back to it). The notebook's name is a menu that moves the note to another
+// one; the module is a menu that sets it (a note in a module's notebook goes to the new module's: the server says).
 // On the right: the pages, export, full screen, and the rest in a menu (paper, delete).
 import {
   ArrowLeft,
@@ -12,6 +13,7 @@ import {
   CloudSlash,
   DotsThree,
   FilePdf,
+  GraduationCap,
   Notebook as NotebookIcon,
   PlayCircle,
   Printer,
@@ -23,6 +25,9 @@ import {
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Note } from '../../api/types';
+import { moduleLabel } from '../../lib/modules';
+import { useYear } from '../../state';
+import { useModules } from '../../state/modules';
 import { IconButton, Menu, Spinner, cx, type MenuItem } from '../../ui';
 import { lessonHref } from '../modules/public';
 import { noteFileHref, useNotebooks } from './api';
@@ -56,6 +61,8 @@ interface NoteHeaderProps {
   full: boolean;
   onFull: () => void;
   onDelete: () => void;
+  /** in the lesson panel: its own actions instead of the way back, the pages and full screen */
+  panel: ReactNode | null;
 }
 
 function SavedWhere({
@@ -118,14 +125,23 @@ export function NoteHeader({
   full,
   onFull,
   onDelete,
+  panel,
 }: NoteHeaderProps) {
   const notebooks = useNotebooks();
   const books = notebooks.data?.items ?? [];
   const book = books.find((b) => b.id === doc.notebookId);
   const bookName = book ? book.title : 'your notebook';
-  const place = useLessonPlace(book?.moduleId ?? null, doc.lessonId);
+  const place = useLessonPlace(doc.moduleId, doc.lessonId);
   const pdf = note?.pdf ?? null;
+  const { getModule, getModulesForYear } = useModules();
+  const { year } = useYear();
+  const module = getModule(doc.moduleId);
 
+  /** The note about `moduleId`: its lesson stays only while the module does. */
+  const about = (moduleId: string | null): Partial<NoteDoc> => ({
+    moduleId,
+    lessonId: moduleId === doc.moduleId ? doc.lessonId : null,
+  });
   const notebookItems: MenuItem[] = [
     { heading: 'Move it to' },
     ...books.map((b) => ({
@@ -134,9 +150,32 @@ export function NoteHeader({
       icon: NotebookIcon,
       hint: b.id === doc.notebookId ? 'Here now' : undefined,
       disabled: b.id === doc.notebookId,
-      onSelect: () => onChange({ notebookId: b.id, lessonId: null }),
+      // a module's notebook holds that module's notes
+      onSelect: () => onChange({ notebookId: b.id, ...about(b.moduleId ?? doc.moduleId) }),
     })),
   ];
+  // the student's year's modules (and the note's own, when it is another year's)
+  const choices = [...getModulesForYear(year)];
+  if (module && !choices.some((m) => m.id === module.id)) choices.unshift(module);
+  const moduleItems: MenuItem[] = [
+    { heading: 'What it’s about' },
+    ...choices.map(
+      (m): MenuItem => ({
+        id: `module-${m.id}`,
+        label: moduleLabel(m),
+        hint: m.id === doc.moduleId ? 'Chosen' : undefined,
+        onSelect: () => onChange(about(m.id)),
+      }),
+    ),
+    { divider: true },
+    {
+      id: 'module-none',
+      label: 'No module',
+      hint: doc.moduleId ? undefined : 'Chosen',
+      onSelect: () => onChange(about(null)),
+    },
+  ];
+  const moduleName = module ? (module.unitCode ?? module.shortName) : 'No module';
   const notebook = readOnly ? (
     <strong>{bookName}</strong>
   ) : (
@@ -180,10 +219,12 @@ export function NoteHeader({
   return (
     <header className="nb-header" data-hub="notebook-header">
       <div className="nb-header__row">
-        <Link to="/notes" className="nb-back" onClick={onBack} aria-label="All notes" title="All notes">
-          <ArrowLeft aria-hidden="true" />
-          <span>Notes</span>
-        </Link>
+        {panel ? null : (
+          <Link to="/notes" className="nb-back" onClick={onBack} aria-label="All notes" title="All notes">
+            <ArrowLeft aria-hidden="true" />
+            <span>Notes</span>
+          </Link>
+        )}
         <input
           className="nb-title"
           aria-label="Title"
@@ -196,45 +237,84 @@ export function NoteHeader({
           data-hub="note-title"
         />
         <div className="nb-header__actions">
-          <IconButton
-            icon={SquaresFour}
-            label={pagesShown ? 'Hide pages' : 'Pages'}
-            toggle
-            active={pagesShown}
-            onClick={onPages}
-            tooltip
-            data-hub="note-pages"
-          />
-          <IconButton
-            icon={Printer}
-            label="Print or save as PDF"
-            onClick={onExport}
-            tooltip
-            disabled={exporting}
-            className="nb-header__wide"
-            data-hub="note-export"
-          />
-          <IconButton
-            icon={full ? ArrowsIn : ArrowsOut}
-            label={full ? 'Leave full screen' : 'Full screen'}
-            onClick={onFull}
-            tooltip
-            data-hub="note-full"
-          />
-          <Menu
-            align="end"
-            label="Note"
-            items={moreItems}
-            trigger={<IconButton icon={DotsThree} label="More" tooltip data-hub="note-more" />}
-          />
+          {panel ? (
+            <Menu
+              align="end"
+              label="Note"
+              items={moreItems}
+              trigger={<IconButton icon={DotsThree} label="More" tooltip data-hub="note-more" />}
+            />
+          ) : null}
+          {panel ?? (
+            <>
+              <IconButton
+                icon={SquaresFour}
+                label={pagesShown ? 'Hide pages' : 'Pages'}
+                toggle
+                active={pagesShown}
+                onClick={onPages}
+                tooltip
+                data-hub="note-pages"
+              />
+              <IconButton
+                icon={Printer}
+                label="Print or save as PDF"
+                onClick={onExport}
+                tooltip
+                disabled={exporting}
+                className="nb-header__wide"
+                data-hub="note-export"
+              />
+              <IconButton
+                icon={full ? ArrowsIn : ArrowsOut}
+                label={full ? 'Leave full screen' : 'Full screen'}
+                onClick={onFull}
+                tooltip
+                data-hub="note-full"
+              />
+              <Menu
+                align="end"
+                label="Note"
+                items={moreItems}
+                trigger={<IconButton icon={DotsThree} label="More" tooltip data-hub="note-more" />}
+              />
+            </>
+          )}
         </div>
       </div>
       <div className="nb-header__where">
         <SavedWhere state={state} opening={opening} readOnly={readOnly} notebook={notebook} />
-        {doc.lessonId && book?.moduleId ? (
+        {readOnly ? (
+          module ? (
+            <span className="nb-where__chip">
+              <GraduationCap aria-hidden="true" />
+              {moduleName}
+            </span>
+          ) : null
+        ) : (
+          <Menu
+            label="Module"
+            items={moduleItems}
+            trigger={
+              <button
+                type="button"
+                className={cx('nb-where__chip nb-where__module', !module && 'is-unset')}
+                aria-label={
+                  module ? `Module: ${moduleLabel(module)}. Change it` : 'Choose the module this note is about'
+                }
+                data-hub="note-module"
+              >
+                <GraduationCap aria-hidden="true" />
+                {module ? moduleName : 'Add a module'}
+                <CaretDown aria-hidden="true" />
+              </button>
+            }
+          />
+        )}
+        {doc.lessonId && doc.moduleId ? (
           <span className="nb-where__chip">
             <PlayCircle aria-hidden="true" />
-            <Link to={lessonHref(book.moduleId, doc.lessonId)}>About {lowerFirst(lessonLabel(place))}</Link>
+            <Link to={lessonHref(doc.moduleId, doc.lessonId)}>About {lowerFirst(lessonLabel(place))}</Link>
             {readOnly ? null : (
               <button
                 type="button"

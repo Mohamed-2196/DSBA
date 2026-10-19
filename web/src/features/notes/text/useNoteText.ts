@@ -14,6 +14,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { useEffect, useRef } from 'react';
 import type { RichDoc } from '../draft';
 import { textOf } from '../pictures/document';
+import { BlockIds, idsTr } from './blockIds';
 import { joinFormulaLines } from './mathText';
 import { BlockMath, InlineMath, NoteFile, NotePicture } from './nodes';
 
@@ -81,6 +82,7 @@ export function useNoteText({
         BlockMath,
         NotePicture,
         NoteFile,
+        BlockIds,
         Extension.create({
           name: 'noteHistoryKeys',
           priority: 1000,
@@ -150,7 +152,12 @@ export function useNoteText({
           return true;
         },
       },
-      onCreate: ({ editor: e }) => handlers.current.onReady(plainOf(e)),
+      onCreate: ({ editor: e }) => {
+        // a text written before blocks had ids gets them now (and is saved with them): not a step to undo
+        const ids = idsTr(e.state);
+        if (ids && e.isEditable) e.view.dispatch(ids.setMeta('addToHistory', false));
+        handlers.current.onReady(plainOf(e));
+      },
       onUpdate: ({ editor: e }) => {
         const json = e.getJSON() as RichDoc;
         emitted.current = json.content;

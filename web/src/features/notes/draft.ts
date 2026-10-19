@@ -17,6 +17,8 @@ export interface NoteDoc {
   doc: RichDoc;
   paper: Paper;
   sheets: number;
+  /** the module the note is about, and one of its lessons */
+  moduleId: string | null;
   lessonId: string | null;
   notebookId: string;
 }
@@ -54,6 +56,7 @@ export const docOf = (note: Note): NoteDoc => ({
   doc: note.doc,
   paper: note.paper,
   sheets: note.sheets,
+  moduleId: note.moduleId,
   lessonId: note.lessonId,
   notebookId: note.notebookId,
 });
@@ -77,6 +80,7 @@ export const sameDoc = (a: NoteDoc | null | undefined, b: NoteDoc | null | undef
   a.title === b.title &&
   a.paper === b.paper &&
   a.sheets === b.sheets &&
+  a.moduleId === b.moduleId &&
   a.lessonId === b.lessonId &&
   a.notebookId === b.notebookId &&
   sameJson(a.doc, b.doc);
@@ -88,11 +92,16 @@ export function asDraft(value: unknown): Draft | null {
   if (!isRecord(value)) return null;
   const { doc, base, at } = value;
   if (!isRecord(doc) || typeof base !== 'number' || !Number.isInteger(base) || typeof at !== 'number') return null;
-  const { title, paper, sheets, lessonId, notebookId } = doc;
+  const { title, paper, sheets, moduleId, lessonId, notebookId } = doc;
   if (typeof title !== 'string' || !isRecord(doc.doc) || doc.doc.type !== 'doc') return null;
   if (!PAPERS.includes(paper as Paper) || typeof sheets !== 'number' || typeof notebookId !== 'string') return null;
+  if (!(moduleId === null || typeof moduleId === 'string')) return null;
   if (!(lessonId === null || typeof lessonId === 'string')) return null;
-  return { doc: { title, doc: doc.doc as RichDoc, paper: paper as Paper, sheets, lessonId, notebookId }, base, at };
+  return {
+    doc: { title, doc: doc.doc as RichDoc, paper: paper as Paper, sheets, moduleId, lessonId, notebookId },
+    base,
+    at,
+  };
 }
 
 export const readDraft = (id: string): Draft | null => asDraft(readStored<unknown>(draftKey(id), () => null));
