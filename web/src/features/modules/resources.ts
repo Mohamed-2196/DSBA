@@ -1,7 +1,16 @@
 // A module's shelves (GET /modules/{id} `shelves`), as the Overview tab lists them: what the Hub holds for the module,
 // each opening the Files tab at its part. Every file is served by the Hub; a shelf whose files are still being
 // copied in says so.
-import { BookOpenText, Exam, Monitor, Notebook, Notepad, PencilSimpleLine, type Icon } from '@phosphor-icons/react';
+import {
+  BookOpenText,
+  Exam,
+  Files,
+  Monitor,
+  Notebook,
+  Notepad,
+  PencilSimpleLine,
+  type Icon,
+} from '@phosphor-icons/react';
 import type { ModuleDetail, ModuleShelf } from '../../api/types';
 
 type ShelfKind = ModuleShelf['kind'];
@@ -56,6 +65,12 @@ const SHELF_INFO: Record<ShelfKind, ShelfInfo> = {
     name: 'notes',
     icon: Notebook,
     description: 'Notes students made for their own revision and shared.',
+  },
+  other: {
+    label: 'Other files',
+    name: 'other files',
+    icon: Files,
+    description: 'Anything else shared for this module.',
   },
 };
 

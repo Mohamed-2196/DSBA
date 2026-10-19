@@ -4904,14 +4904,15 @@
                 "new",
                 "popular",
                 "title",
-                "relevance"
+                "relevance",
+                "sitting"
               ],
               "type": "string",
-              "description": "relevance: best match first (with q)",
+              "description": "relevance: best match first (with q). sitting: the newest exam sitting first, by zone, then the paper, its report and its solutions; files without an exam year after them, newest first",
               "default": "new",
               "title": "Sort"
             },
-            "description": "relevance: best match first (with q)"
+            "description": "relevance: best match first (with q). sitting: the newest exam sitting first, by zone, then the paper, its report and its solutions; files without an exam year after them, newest first"
           },
           {
             "name": "exam_year",
@@ -40228,7 +40229,8 @@
               "past-paper",
               "vle-materials",
               "cheat-sheet",
-              "notes"
+              "notes",
+              "other"
             ],
             "title": "Kind"
           },
@@ -40248,7 +40250,7 @@
           "beingAdded"
         ],
         "title": "ModuleShelf",
-        "description": "A kind of file the module has in the library (services/library.py SHELVES: 'past-paper' counts the papers,\nexaminers' reports and solutions together). `files`: published files of that kind. `being_added`: the module has\na Drive folder of that kind the import hasn't brought in yet."
+        "description": "A kind of file the module has in the library (services/library.py SHELVES: 'past-paper' counts the papers,\nexaminers' reports and solutions together). `files`: the files and links of that kind the library lists.\n`being_added`: the module has a Drive folder of that kind the import hasn't brought in yet."
       },
       "ModuleSummary": {
         "properties": {

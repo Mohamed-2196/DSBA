@@ -428,6 +428,53 @@ def test_filters_sorts_search_and_facets(
     assert (mods["advanced-stats-distribution"], mods["economics"], mods["statistics"]) == (2, 1, 0)
 
 
+def test_newest_sitting_first(
+    client_for: Clients, moderator: User, modules: dict[str, Module], share_file: Share
+) -> None:
+    """sort=sitting: the newest sitting first (May after October of the year before), zone A before B, the paper
+    before its report and solutions; files without an exam year last, newest first. Most downloaded breaks its ties
+    the same way."""
+    rep, guest = client_for(moderator), client_for()
+    mod = "advanced-stats-distribution"
+
+    def share(title: str, kind: str = "past-paper", **exam: Any) -> str:
+        item: dict[str, Any] = share_file(rep, title=title, kind=kind, module_id=mod, **exam)
+        return str(item["id"])
+
+    old_a = share("2019 A", examYear=2019, examSession="may", zone="A")
+    notes = share("Notes", kind="notes")
+    new_b = share("2024 B", examYear=2024, examSession="may", zone="B")
+    report = share("2024 report", kind="examiners-report", examYear=2024, examSession="may", zone="B")
+    new_a = share("2024 A", examYear=2024, examSession="may", zone="A")
+    resit = share("2023 Oct A", examYear=2023, examSession="october", zone="A")
+    mock = share("Mock")
+
+    def ids(**params: Any) -> list[str]:
+        r = guest.get(f"{API}/library/items", params={"module_id": mod, **params})
+        assert r.status_code == 200, r.text
+        return [i["id"] for i in r.json()["items"]]
+
+    assert ids(sort="sitting") == [new_a, new_b, report, resit, old_a, mock, notes]
+    assert ids(sort="popular") == [new_a, new_b, report, resit, old_a, mock, notes]  # nobody downloaded any
+
+
+def test_exam_title_names_a_file_by_its_sitting() -> None:
+    def item(kind: str, **exam: Any) -> LibraryItem:
+        return LibraryItem(title="ST2133 - Advanced Statistics - 2019 Exam - Zone-A", kind=kind, **exam)
+
+    assert library.exam_title(item("past-paper", exam_year=2019, exam_session="may", zone="A"), "ST2133") == (
+        "ST2133 \u00b7 May 2019 \u00b7 Zone A"
+    )
+    assert library.exam_title(item("examiners-report", exam_year=2023, exam_session="october"), "ST2133") == (
+        "ST2133 \u00b7 October 2023 \u00b7 Examiners\u2019 report"
+    )
+    solutions = item("exam-solutions", exam_year=2021, zone="RTC")
+    assert library.exam_title(solutions, None) == "2021 \u00b7 RTC \u00b7 Solutions"
+    raw = "ST2133 - Advanced Statistics - 2019 Exam - Zone-A"
+    assert library.exam_title(item("past-paper"), "ST2133") == raw
+    assert library.exam_title(item("notes", exam_year=2019), "ST2133") == raw
+
+
 def test_items_are_read_by_slug_or_by_id(client_for: Clients, moderator: User, share_file: Share) -> None:
     item = share_file(client_for(moderator), title="Week 1 slides")
     guest = client_for()

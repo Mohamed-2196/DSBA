@@ -7,11 +7,11 @@ import secrets
 from collections.abc import Iterable
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import invalid, not_found
-from app.models import Chapter, ItemStatus, Lesson, LibraryItem, Module
+from app.models import Chapter, Lesson, Module
 from app.schemas.modules import Chapter as ChapterOut
 from app.schemas.modules import ModuleDetail, ModuleSummary, Video
 
@@ -120,18 +120,6 @@ def chapters_out(m: Module) -> list[ChapterOut]:
     ]
 
 
-def published_counts(db: Session, module_id: str | None = None) -> dict[str, int]:
-    """Published library items per module."""
-    q = (
-        select(LibraryItem.module_id, func.count())
-        .where(LibraryItem.status == ItemStatus.published, LibraryItem.module_id.is_not(None))
-        .group_by(LibraryItem.module_id)
-    )
-    if module_id is not None:
-        q = q.where(LibraryItem.module_id == module_id)
-    return {str(mid): int(n) for mid, n in db.execute(q).all()}
-
-
 def _summary(m: Module, library_count: int | None) -> dict[str, Any]:
     chapters = visible_chapters(m)
     return {
@@ -154,7 +142,9 @@ def list_modules(db: Session, year: int | None, *, library: bool) -> list[Module
     q = select(Module).where(Module.hidden.is_(False)).order_by(Module.position, Module.id)
     if year is not None:
         q = q.where(Module.year == year)
-    counts = published_counts(db) if library else {}
+    from app.services.library import module_counts  # library -> modules (require_module)
+
+    counts = module_counts(db) if library else {}
     return [ModuleSummary.model_validate(_summary(m, counts.get(m.id, 0) if library else None)) for m in db.scalars(q)]
 
 
@@ -163,8 +153,8 @@ def module_detail(db: Session, module_id: str, *, library: bool) -> ModuleDetail
     m = db.get(Module, module_id)
     if m is None or m.hidden:
         raise not_found("This module doesn't exist.")
-    from app.services.library import module_shelves  # library -> modules (require_module)
+    from app.services.library import module_counts, module_shelves  # library -> modules (require_module)
 
-    count = published_counts(db, m.id).get(m.id, 0) if library else None
+    count = module_counts(db, m.id).get(m.id, 0) if library else None
     shelves = module_shelves(db, m.id) if library else []
     return ModuleDetail.model_validate({**_summary(m, count), "shelves": shelves, "chapters": chapters_out(m)})

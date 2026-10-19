@@ -52,8 +52,10 @@ def list_items(
     year: YearParam | None = None,
     kind: LibraryKind | None = None,
     source: Literal["file", "link"] | None = None,
-    sort: Literal["new", "popular", "title", "relevance"] = Query(
-        default="new", description="relevance: best match first (with q)"
+    sort: Literal["new", "popular", "title", "relevance", "sitting"] = Query(
+        default="new",
+        description="relevance: best match first (with q). sitting: the newest exam sitting first, by zone, then "
+        "the paper, its report and its solutions; files without an exam year after them, newest first",
     ),
     exam_year: int | None = Query(default=None, ge=EXAM_YEAR_MIN, le=EXAM_YEAR_MAX),
     zone: Zone | None = None,

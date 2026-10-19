@@ -59,7 +59,7 @@ from app.schemas.notifications import NotificationKind
 from app.services import access, paper_text, ratelimit
 from app.services.accounts import public_user
 from app.services.content import apply_patch, record
-from app.services.exam_names import SittingKey, sitting_key, sitting_order
+from app.services.exam_names import SittingKey, newest_sitting_first, sitting_key, sitting_label, sitting_order
 from app.services.modules import require_module
 from app.services.notify import notify
 from app.services.paper_text import COVER_TYPE, Match
@@ -121,7 +121,7 @@ FORMATS: dict[str, str] = {
     "webp": "WEBP",
     "gif": "GIF",
 }
-Sort = Literal["new", "popular", "title", "relevance"]
+Sort = Literal["new", "popular", "title", "relevance", "sitting"]
 LINK_MAX = 2000
 
 
@@ -368,8 +368,16 @@ def list_items(
 
     total = db.scalar(select(func.count()).select_from(q.order_by(None).subquery())) or 0
     newest = func.coalesce(LibraryItem.published_at, LibraryItem.created_at)
-    if sort == "popular":
-        order: list[Any] = [LibraryItem.download_count.desc(), newest.desc()]
+    by_sitting = [
+        *newest_sitting_first(LibraryItem.exam_year, LibraryItem.exam_session),
+        _zone_order(),
+        _exam_kind_order(),
+        newest.desc(),
+    ]
+    if sort == "popular":  # ties (most often none downloaded yet): the newest sitting first, as with "sitting"
+        order: list[Any] = [LibraryItem.download_count.desc(), *by_sitting]
+    elif sort == "sitting":
+        order = by_sitting
     elif sort == "title":
         order = [func.lower(LibraryItem.title).asc()]
     elif sort == "relevance" and rank:
@@ -389,8 +397,50 @@ def your_year_first(user: User | None) -> list[ColumnElement[Any]]:
     return [(LibraryItem.year == user.year).is_(True).desc()]
 
 
+def _zone_order() -> ColumnElement[int]:
+    """Zone A, zone B, RTC, then papers for every zone (the sittings' order)."""
+    return case({z: n for n, z in enumerate(ZONES)}, value=LibraryItem.zone, else_=len(ZONES))
+
+
+def _exam_kind_order() -> ColumnElement[int]:
+    """Within a sitting's zone: the paper, its examiners' report, its solutions, then anything else."""
+    return case({k: n for n, k in enumerate(EXAM_KINDS)}, value=LibraryItem.kind, else_=len(EXAM_KINDS))
+
+
+def listed() -> ColumnElement[bool]:
+    """What the library lists and counts: published, and not a second copy of a file (duplicate()). The module
+    counts, the module's shelves, the facets and the lists all use it, so their numbers agree."""
+    return and_(LibraryItem.status == ItemStatus.published, ~duplicate())
+
+
+def module_counts(db: Session, module_id: str | None = None) -> dict[str, int]:
+    """Listed items (files and links) per module: a module's `libraryCount`."""
+    q = (
+        select(LibraryItem.module_id, func.count())
+        .where(listed(), LibraryItem.module_id.is_not(None))
+        .group_by(LibraryItem.module_id)
+    )
+    if module_id is not None:
+        q = q.where(LibraryItem.module_id == module_id)
+    return {str(mid): int(n) for mid, n in db.execute(q).all()}
+
+
+def exam_title(item: LibraryItem, module: str | None) -> str:
+    """The name a file of a sitting goes by in lists, built from its exam year, session and zone: 'ST2133 · May
+    2019 · Zone A', 'ST2133 · May 2019 · Examiners report'. Other files, and those without an exam year, keep
+    their title. The web app's twin is examTitle() in features/library/display.ts."""
+    if item.exam_year is None or item.kind not in EXAM_KINDS:
+        return item.title
+    parts = [module or "", sitting_label(item.exam_year, item.exam_session)]
+    if item.zone:
+        parts.append("RTC" if item.zone == "RTC" else f"Zone {item.zone}")
+    if item.kind != "past-paper":
+        parts.append(kind_label(item.kind))
+    return " · ".join(p for p in parts if p)
+
+
 def facets(db: Session) -> LibraryFacets:
-    published = and_(LibraryItem.status == ItemStatus.published, ~duplicate())
+    published = listed()
 
     def counts(col: Any) -> dict[str, int]:
         rows = db.execute(select(col, func.count()).where(published, col.is_not(None)).group_by(col)).all()
@@ -415,20 +465,17 @@ SHELVES: dict[ShelfKind, tuple[LibraryKind, ...]] = {
     "vle-materials": ("vle-materials",),
     "cheat-sheet": ("cheat-sheet",),
     "notes": ("notes",),
+    "other": ("other",),
 }
 
 
 def module_shelves(db: Session, module_id: str) -> list[ModuleShelf]:
-    """The module's shelves that have files, or a Drive folder the import hasn't brought in yet, in SHELVES order."""
+    """The module's shelves that have files or links, or a Drive folder the import hasn't brought in yet, in SHELVES
+    order. They count what module_counts() counts, so the shelves add up to the module's `libraryCount`."""
     counts = dict(
         db.execute(
             select(LibraryItem.kind, func.count())
-            .where(
-                LibraryItem.module_id == module_id,
-                LibraryItem.source == ItemSource.file,
-                LibraryItem.status == ItemStatus.published,
-                ~duplicate(),
-            )
+            .where(LibraryItem.module_id == module_id, listed())
             .group_by(LibraryItem.kind)
         )
         .tuples()

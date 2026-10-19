@@ -8538,15 +8538,15 @@ export interface components {
         /**
          * ModuleShelf
          * @description A kind of file the module has in the library (services/library.py SHELVES: 'past-paper' counts the papers,
-         *     examiners' reports and solutions together). `files`: published files of that kind. `being_added`: the module has
-         *     a Drive folder of that kind the import hasn't brought in yet.
+         *     examiners' reports and solutions together). `files`: the files and links of that kind the library lists.
+         *     `being_added`: the module has a Drive folder of that kind the import hasn't brought in yet.
          */
         ModuleShelf: {
             /**
              * Kind
              * @enum {string}
              */
-            kind: "course-materials" | "exercises" | "past-paper" | "vle-materials" | "cheat-sheet" | "notes";
+            kind: "course-materials" | "exercises" | "past-paper" | "vle-materials" | "cheat-sheet" | "notes" | "other";
             /** Files */
             files: number;
             /** Beingadded */
@@ -16285,8 +16285,8 @@ export interface operations {
                 year?: number | null;
                 kind?: ("past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
                 source?: ("file" | "link") | null;
-                /** @description relevance: best match first (with q) */
-                sort?: "new" | "popular" | "title" | "relevance";
+                /** @description relevance: best match first (with q). sitting: the newest exam sitting first, by zone, then the paper, its report and its solutions; files without an exam year after them, newest first */
+                sort?: "new" | "popular" | "title" | "relevance" | "sitting";
                 exam_year?: number | null;
                 zone?: ("A" | "B" | "RTC") | null;
                 starred?: boolean;

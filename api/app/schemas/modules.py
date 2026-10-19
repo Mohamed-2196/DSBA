@@ -33,13 +33,13 @@ class Chapter(ApiModel):
     videos: list[Video]
 
 
-ShelfKind = Literal["course-materials", "exercises", "past-paper", "vle-materials", "cheat-sheet", "notes"]
+ShelfKind = Literal["course-materials", "exercises", "past-paper", "vle-materials", "cheat-sheet", "notes", "other"]
 
 
 class ModuleShelf(ApiModel):
     """A kind of file the module has in the library (services/library.py SHELVES: 'past-paper' counts the papers,
-    examiners' reports and solutions together). `files`: published files of that kind. `being_added`: the module has
-    a Drive folder of that kind the import hasn't brought in yet."""
+    examiners' reports and solutions together). `files`: the files and links of that kind the library lists.
+    `being_added`: the module has a Drive folder of that kind the import hasn't brought in yet."""
 
     kind: ShelfKind
     files: int
