@@ -1,7 +1,7 @@
 """practice scores on past papers
 
 Revision ID: 0038
-Revises: 0039
+Revises: 0037
 Create Date: 2026-10-18 13:35:56
 
 - `paper_scores`: each student's practice score on a past paper, out of 100, which the board asks for when a paper is
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0038"
-down_revision: str | None = "0039"
+down_revision: str | None = "0037"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
