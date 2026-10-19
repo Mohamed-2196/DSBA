@@ -6,7 +6,8 @@ import { useToast } from '../../state';
 import { useCreateNote } from './api';
 import { EMPTY_DOC } from './draft';
 
-/** Where a new note goes: a notebook, or a module's notebook (about one of its lessons), or the student's own. */
+/** Where a new note goes and what it is about: a notebook (or else the module's notebook, or else the student's own),
+ *  and a module and one of its lessons. */
 export interface NotePlace {
   notebookId?: string | null;
   moduleId?: string;
@@ -25,9 +26,9 @@ export function useStartNote() {
         doc: EMPTY_DOC,
         paper: 'lined',
         sheets: 1,
-        ...(place.notebookId
-          ? { notebookId: place.notebookId }
-          : { moduleId: place.moduleId ?? null, lessonId: place.lessonId ?? null }),
+        notebookId: place.notebookId ?? null,
+        moduleId: place.moduleId ?? null,
+        lessonId: place.lessonId ?? null,
       },
       {
         onSuccess: (note) => navigate(`/notes/${note.id}`, { state: { fresh: true } }),

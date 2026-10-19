@@ -1,6 +1,7 @@
-// The notebook's toolbar: the tools (type, pen, highlighter, eraser, lasso, laser) on one row a thumb reaches on a
-// tablet, with undo, redo and the zoom; the chosen tool's options on the row below (colours and widths, the eraser's
-// mode, or the text's formatting and Insert). Every control is 44 px on a touch screen.
+// The notebook's toolbar: the view (the text alone, or the pages), then the tools (type, pen, highlighter, eraser,
+// lasso, laser) on one row a thumb reaches on a tablet, with undo, redo and the zoom; the chosen tool's options on the
+// row below (colours and widths, the eraser's mode, or the text's formatting and Insert). In the text alone there are
+// no ink tools and no zoom: picking Page brings them. Every control is 44 px on a touch screen.
 import {
   ArrowClockwise,
   ArrowCounterClockwise,
@@ -36,6 +37,7 @@ import {
   HIGHLIGHTER_WIDTHS,
   PEN_COLORS,
   PEN_WIDTHS,
+  type NoteView,
   type PenSettings,
   type Tool,
 } from './surface/tools';
@@ -292,6 +294,11 @@ export interface ToolbarProps {
   onZoomStep: (direction: 1 | -1) => void;
   onFit: () => void;
   readOnly: boolean;
+  /** the view shown (null: only the pages, a note on a PDF without paper) */
+  view: NoteView | null;
+  onView: (view: NoteView) => void;
+  /** more for the text, after Insert (the lesson panel's video time) */
+  extra: ReactNode;
 }
 
 export function Toolbar(props: ToolbarProps) {
@@ -317,8 +324,12 @@ export function Toolbar(props: ToolbarProps) {
     onZoomStep,
     onFit,
     readOnly,
+    view,
+    onView,
+    extra,
   } = props;
-  const visible = readOnly ? TOOLS.filter((t) => t.id === 'laser') : TOOLS;
+  const text = view === 'text';
+  const visible = text ? [] : readOnly ? TOOLS.filter((t) => t.id === 'laser') : TOOLS;
   let options: ReactNode = null;
   if (tool === 'pen') {
     options = (
@@ -385,7 +396,17 @@ export function Toolbar(props: ToolbarProps) {
       <p className="nb-toolbar__hint">Point at the page to show what you mean. The trail fades and is never saved.</p>
     );
   } else if (tool === 'type' && editor && canType) {
-    options = <TextOptions editor={editor} onPicture={onPicture} onFile={onFile} />;
+    options = (
+      <>
+        <TextOptions editor={editor} onPicture={onPicture} onFile={onFile} />
+        {extra ? (
+          <>
+            <span className="nb-toolbar__sep" aria-hidden="true" />
+            {extra}
+          </>
+        ) : null}
+      </>
+    );
   } else if (tool === 'type') {
     options = (
       <p className="nb-toolbar__hint">
@@ -401,18 +422,31 @@ export function Toolbar(props: ToolbarProps) {
   return (
     <div className="nb-toolbar" data-hub="note-toolbar">
       <div className="nb-toolbar__row" role="toolbar" aria-label="Tools">
-        <div className="nb-tools" role="group" aria-label="Tool">
-          {visible.map((t) => (
-            <ToolButton
-              key={t.id}
-              label={t.label}
-              icon={t.icon}
-              hint={t.key}
-              active={tool === t.id}
-              onClick={() => onTool(t.id)}
-            />
-          ))}
-        </div>
+        {view ? (
+          <Choice
+            label="Show"
+            options={[
+              { value: 'text', label: 'Text' },
+              { value: 'page', label: 'Pages' },
+            ]}
+            value={view}
+            onChange={onView}
+          />
+        ) : null}
+        {visible.length ? (
+          <div className="nb-tools" role="group" aria-label="Tool">
+            {visible.map((t) => (
+              <ToolButton
+                key={t.id}
+                label={t.label}
+                icon={t.icon}
+                hint={t.key}
+                active={tool === t.id}
+                onClick={() => onTool(t.id)}
+              />
+            ))}
+          </div>
+        ) : null}
         {readOnly ? null : (
           <div className="nb-tools" role="group" aria-label="History">
             <ToolButton
@@ -433,35 +467,37 @@ export function Toolbar(props: ToolbarProps) {
             />
           </div>
         )}
-        <div className="nb-tools nb-tools--end" role="group" aria-label="Zoom">
-          {touch && inkTool && !readOnly ? (
+        {text ? null : (
+          <div className="nb-tools nb-tools--end" role="group" aria-label="Zoom">
+            {touch && inkTool && !readOnly ? (
+              <button
+                type="button"
+                className={cx('nb-finger', fingerDraws && 'is-active')}
+                aria-pressed={fingerDraws}
+                onClick={() => onFingerDraws(!fingerDraws)}
+                title={
+                  fingerDraws
+                    ? 'Your finger draws. Turn off to scroll with it'
+                    : 'Your finger scrolls. Turn on to draw with it'
+                }
+              >
+                <Hand aria-hidden="true" weight={fingerDraws ? 'fill' : 'regular'} />
+                <span>Draw with finger</span>
+              </button>
+            ) : null}
+            <ToolButton label="Zoom out" icon={MagnifyingGlassMinus} onClick={() => onZoomStep(-1)} toggle={false} />
             <button
               type="button"
-              className={cx('nb-finger', fingerDraws && 'is-active')}
-              aria-pressed={fingerDraws}
-              onClick={() => onFingerDraws(!fingerDraws)}
-              title={
-                fingerDraws
-                  ? 'Your finger draws. Turn off to scroll with it'
-                  : 'Your finger scrolls. Turn on to draw with it'
-              }
+              className={cx('nb-zoom', fitted && 'is-fitted')}
+              onClick={onFit}
+              title="Fit the page to the window"
+              aria-label={`Zoom ${Math.round(zoom * 100)}%. Fit the page to the window`}
             >
-              <Hand aria-hidden="true" weight={fingerDraws ? 'fill' : 'regular'} />
-              <span>Draw with finger</span>
+              {Math.round(zoom * 100)}%
             </button>
-          ) : null}
-          <ToolButton label="Zoom out" icon={MagnifyingGlassMinus} onClick={() => onZoomStep(-1)} toggle={false} />
-          <button
-            type="button"
-            className={cx('nb-zoom', fitted && 'is-fitted')}
-            onClick={onFit}
-            title="Fit the page to the window"
-            aria-label={`Zoom ${Math.round(zoom * 100)}%. Fit the page to the window`}
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <ToolButton label="Zoom in" icon={MagnifyingGlassPlus} onClick={() => onZoomStep(1)} toggle={false} />
-        </div>
+            <ToolButton label="Zoom in" icon={MagnifyingGlassPlus} onClick={() => onZoomStep(1)} toggle={false} />
+          </div>
+        )}
       </div>
       {options && !readOnly ? (
         <div

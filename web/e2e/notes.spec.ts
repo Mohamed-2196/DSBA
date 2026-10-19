@@ -57,6 +57,42 @@ test('a lesson keeps its own notes', async ({ sara, run }) => {
   for (const n of notes.body.items) expect((await api(sara, 'DELETE', `/api/v1/notes/${n.id}`)).status).toBe(204);
 });
 
+test('notes beside the lesson’s video, about the lesson, and no empty note left behind (ST-44, ST-37)', async ({
+  sara,
+  run,
+}) => {
+  const lesson = '/api/v1/notes?module_id=economics&lesson_id=xfm6xyvy';
+  const clear = async () => {
+    const notes = await api<{ items: { id: string }[] }>(sara, 'GET', lesson);
+    for (const n of notes.body.items) await api(sara, 'DELETE', `/api/v1/notes/${n.id}`);
+  };
+  await clear();
+  try {
+    await sara.goto('/modules/economics/lessons/xfm6xyvy');
+    await sara.locator('[data-hub="lesson-take-notes"]').click();
+    const panel = sara.locator('[data-hub="lesson-note-panel"]');
+    // a lesson without notes opens a new one, ready to type, beside the video
+    const text = panel.locator('[data-hub="note-text"]');
+    await expect(text).toBeFocused();
+    await expect(sara.locator('[data-hub="lesson-player"]')).toBeInViewport();
+    await sara.keyboard.type(`Beside the video [e2e ${run.tag}]`);
+    await expect(panel.locator('[data-hub="note-status"]')).toContainText('Saved in');
+    await expect(panel.locator('[data-hub="note-stamp-time"]')).toBeVisible();
+    const saved = await api<{ items: { id: string; moduleId: string; lessonId: string }[] }>(sara, 'GET', lesson);
+    expect(saved.body.items.map((n) => [n.moduleId, n.lessonId])).toEqual([['economics', 'xfm6xyvy']]);
+
+    // back to the lesson's notes, a new one left empty, and closed: only the written one is kept
+    await panel.locator('[data-hub="lesson-note-list"]').click();
+    await panel.locator('[data-hub="lesson-note-new"]').click();
+    await expect(panel.locator('[data-hub="note-text"]')).toBeFocused();
+    await panel.locator('[data-hub="lesson-note-close"]').click();
+    await expect(panel).toHaveCount(0);
+    await expect.poll(async () => (await api<{ items: unknown[] }>(sara, 'GET', lesson)).body.items.length).toBe(1);
+  } finally {
+    await clear();
+  }
+});
+
 test('a guest is asked to sign in', async ({ guest }) => {
   await guest.goto('/notes');
   await expect(guest.getByText('Sign in to see this page')).toBeVisible();

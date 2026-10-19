@@ -4,8 +4,8 @@
 a note can show: in the text (`image` nodes: a share of the text's width, turned in quarter turns) and free on its
 pages (the document's own `pictures` attribute: a box on a sheet, in sheet units, turned by any angle; the web app's
 features/notes/pictures). It answers the document's plain text (for search, excerpts and Mini Noora: a picture's
-caption and description, a file's name) and the uploads its pictures and files use. The web app renders the document
-through the editor's schema, never as HTML."""
+caption and description, a file's name, a time in the lesson's video as [4:05]) and the uploads its pictures and
+files use. The web app renders the document through the editor's schema, never as HTML."""
 
 from __future__ import annotations
 
@@ -37,7 +37,8 @@ BLOCKS = frozenset(
         "attachment",
     }
 )
-INLINES = frozenset({"text", "hardBreak", "inlineMath"})
+INLINES = frozenset({"text", "hardBreak", "inlineMath", "videoTime"})
+VIDEO_TIME_MAX = 24 * 3600  # a time in a lesson's video, in seconds
 MARKS = frozenset({"bold", "italic", "underline", "strike", "code", "link", "highlight"})
 # Nodes that refer to a file of the note's (an upload with purpose note_file).
 FILE_NODES = frozenset({"image", "attachment"})
@@ -119,6 +120,13 @@ def _number(value: object, low: float, high: float) -> float:
     if not low <= value <= high:
         raise _bad()
     return float(value)
+
+
+def _clock(seconds: int) -> str:
+    """A time in a video as it is read: 4:05, or 1:02:05."""
+    h, rest = divmod(seconds, 3600)
+    m, sec = divmod(rest, 60)
+    return f"{h}:{m:02d}:{sec:02d}" if h else f"{m}:{sec:02d}"
 
 
 def _words(attrs: dict[str, Any], key: str, limit: int) -> str:
@@ -271,6 +279,9 @@ def check(doc: dict[str, Any], *, sheets: int) -> Checked:
             return
         if kind == "inlineMath":
             line.append(f"${attrs.get('latex') or ''}$")
+            return
+        if kind == "videoTime":
+            line.append(f"[{_clock(int(_number(attrs.get('seconds'), 0, VIDEO_TIME_MAX)))}]")
             return
         if kind in FILE_NODES:
             out.uploads.add(_upload_id(attrs))

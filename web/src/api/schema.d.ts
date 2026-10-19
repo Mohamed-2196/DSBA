@@ -7746,6 +7746,18 @@ export interface components {
             problem: string | null;
         };
         /**
+         * InkAnchor
+         * @description The typed text a stroke on paper goes with: `block` is a block of the text (its `blockId`; None: below the end of
+         *     the text), and `dy` how far the middle of the stroke is below that block's top (or the text's end), in units. When
+         *     text or a picture is added above it, the web app moves the stroke down with its block.
+         */
+        InkAnchor: {
+            /** Block */
+            block?: string | null;
+            /** Dy */
+            dy: number;
+        };
+        /**
          * InkInfo
          * @description A sheet that has ink, without the ink: read it with GET /notes/{id}/ink/{sheet}.
          */
@@ -9140,8 +9152,9 @@ export interface components {
         };
         /**
          * NoteCreate
-         * @description A new note: in `notebookId`, or in the module's notebook (made when it isn't there yet), or in the student's
-         *     first notebook of their own. `pdfUploadId` writes it over a PDF the student uploaded (purpose note_file).
+         * @description A new note: in `notebookId`, or else in its module's notebook (made when it isn't there yet), or else in the
+         *     student's first notebook of their own. A note in a module's notebook is about that module. `pdfUploadId` writes it
+         *     over a PDF the student uploaded (purpose note_file).
          */
         NoteCreate: {
             /**
@@ -9164,12 +9177,12 @@ export interface components {
              * @default 1
              */
             sheets: number;
+            /** Moduleid */
+            moduleId?: string | null;
             /** Lessonid */
             lessonId?: string | null;
             /** Notebookid */
             notebookId?: string | null;
-            /** Moduleid */
-            moduleId?: string | null;
             /** Pdfuploadid */
             pdfUploadId?: string | null;
         };
@@ -9252,7 +9265,9 @@ export interface components {
         };
         /**
          * NoteUpdate
-         * @description The whole note as it is now, the notebook it is in, and the version it was loaded at.
+         * @description The whole note as it is now, the notebook it is in, and the version it was loaded at. A note given another
+         *     module while in a module's notebook goes to the new module's notebook (or, with no module, the student's own):
+         *     the saved note says where.
          */
         NoteUpdate: {
             /**
@@ -9275,6 +9290,8 @@ export interface components {
              * @default 1
              */
             sheets: number;
+            /** Moduleid */
+            moduleId?: string | null;
             /** Lessonid */
             lessonId?: string | null;
             /**
@@ -11121,7 +11138,7 @@ export interface components {
         /**
          * Stroke
          * @description One line drawn with the pen or the highlighter. `points` is x, y, pressure (0-1), x, y, pressure, … in sheet
-         *     units, the sheet's top left at 0, 0.
+         *     units, the sheet's top left at 0, 0. A stroke on paper has an `anchor`; one on a PDF's page keeps its place.
          */
         Stroke: {
             /** Id */
@@ -11137,6 +11154,7 @@ export interface components {
             width: number;
             /** Points */
             points: number[];
+            anchor?: components["schemas"]["InkAnchor"] | null;
         };
         /** SudokuView */
         SudokuView: {
@@ -12127,6 +12145,7 @@ export type HintMove = components['schemas']['HintMove'];
 export type ImportIn = components['schemas']['ImportIn'];
 export type ImportReport = components['schemas']['ImportReport'];
 export type ImportRow = components['schemas']['ImportRow'];
+export type InkAnchor = components['schemas']['InkAnchor'];
 export type InkInfo = components['schemas']['InkInfo'];
 export type InkSave = components['schemas']['InkSave'];
 export type InkSheet = components['schemas']['InkSheet'];

@@ -272,3 +272,7 @@
     transition: none;
   }
 }
+.notes-filters__module {
+  flex: 0 1 16rem;
+  min-width: 0;
+}

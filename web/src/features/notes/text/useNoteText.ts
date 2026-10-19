@@ -14,8 +14,10 @@ import StarterKit from '@tiptap/starter-kit';
 import { useEffect, useRef } from 'react';
 import type { RichDoc } from '../draft';
 import { textOf } from '../pictures/document';
+import { BlockIds, idsTr, pastedWithoutIds } from './blockIds';
 import { joinFormulaLines } from './mathText';
 import { BlockMath, InlineMath, NoteFile, NotePicture } from './nodes';
+import { VideoTime } from './videoTime';
 
 /** Where files were dropped: on screen, and the place in the text there. */
 export interface TextDrop {
@@ -81,6 +83,8 @@ export function useNoteText({
         BlockMath,
         NotePicture,
         NoteFile,
+        VideoTime,
+        BlockIds,
         Extension.create({
           name: 'noteHistoryKeys',
           priority: 1000,
@@ -135,6 +139,7 @@ export function useNoteText({
         },
         // a formula pasted over several lines ($$ … $$) is set as one
         transformPastedText: (text) => joinFormulaLines(text),
+        transformPasted: (slice) => pastedWithoutIds(slice),
         handlePaste: (_view, event) => {
           const files = [...(event.clipboardData?.files ?? [])];
           if (!files.length) return false;
@@ -150,7 +155,12 @@ export function useNoteText({
           return true;
         },
       },
-      onCreate: ({ editor: e }) => handlers.current.onReady(plainOf(e)),
+      onCreate: ({ editor: e }) => {
+        // a text written before blocks had ids gets them now (and is saved with them): not a step to undo
+        const ids = idsTr(e.state);
+        if (ids && e.isEditable) e.view.dispatch(ids.setMeta('addToHistory', false));
+        handlers.current.onReady(plainOf(e));
+      },
       onUpdate: ({ editor: e }) => {
         const json = e.getJSON() as RichDoc;
         emitted.current = json.content;

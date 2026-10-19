@@ -137,7 +137,7 @@ round's scope.
 | UX-67 | major | Past papers can't be told apart: raw file names, cut off before the year and zone: **fixed** (`round14/library`) |
 | UX-68 | major | Sittings take a 190 px card each, in a full-width row; the library's paper view doesn't use them at all: **fixed** (`round14/library`) |
 | UX-69 | minor | Module page on phones: the header fills the first screen, and the Overview sends you elsewhere: **fixed** (`round14/modulehome`) |
-| UX-70 | major | Notebook on phones: typed text is 7 px, and a new note has no cursor |
+| UX-70 | major | Notebook on phones: typed text is 7 px, and a new note has no cursor: **fixed** (`round14/notebook`) |
 | UX-71 | minor | Students' notes don't say who shared them: **fixed** (`round14/library`) |
 | UX-72 | minor | A paper's page: Download three times, Questions by topic twice, no way to ask about it: **mostly fixed** (`round14/library`); the API and component for the paper's threads in `round14/forum` |
 | UX-73 | minor | Search ranks other years and prefix matches first (**fixed**) |
@@ -285,6 +285,11 @@ left out of the rows.
   - Either way, body text should never render under 14 px.
   - Put the caret on the first line after New note, so the phone keyboard opens.
   - This touches round 12's "one scaled page layout", so it is Mohamed's call which of the two.
+- **Fixed** (`round14/notebook`, Mohamed chose reflow): a note has two views, its text alone and its pages. Under
+  720 px (and in the lesson panel) it opens in the text: wrapped to the screen at 17 px, at most about 70 characters
+  a line, on the same light paper. Pages (or picking a pen) shows the A4 pages with the handwriting and pictures where
+  they were put; ink moves with its line in both (ST-38). A new note opens with the cursor in its text. Tablets fit
+  the page with a narrower margin, so typed text stays at 14 px or more (768 px: 14.3 px).
 
 #### UX-71 Students' notes don't say who shared them (minor)
 

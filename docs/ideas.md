@@ -788,7 +788,9 @@ a note with your module), which they would sit well beside.
 - **Costs and risks:** another field students may ignore. Setting it automatically from where the note was started
   covers most cases.
 - **How we'd know it worked:** the share of notes with a module, and notes opened from a module or paper page.
-- **Status:** proposed.
+- **Status:** built (`round14/notebook`): `notes.module_id` (0042), set from where a note is started and changed
+  from the note's header; the notes list filters by module; `useModuleNotes` in `notes/public.ts` for the module
+  page (not wired there yet).
 
 ### IDEA-42. Your threads: following and mine · quick win
 
