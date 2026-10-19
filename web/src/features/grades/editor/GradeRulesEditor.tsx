@@ -3,29 +3,14 @@
 // (grades_changed when someone else saved first); every save goes to the activity log, before and after. The worked
 // example under the form runs the calculator's own classification on an example record with the draft, beside the
 // saved rules, so a change shows what it does before it's saved. Students' marks never reach the server.
-import { useMemo, useState, type ComponentProps } from 'react';
+import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { GradeBand, GradeOption, GradeRules, GradeRulesEditable, GradeSubject } from '../../../api/types';
 import { moduleLabel } from '../../../lib/modules';
 import { useToast } from '../../../state';
 import { useModules } from '../../../state/modules';
-import {
-  Badge,
-  Chip,
-  DocFrame,
-  ListEditor,
-  Panel,
-  QueryError,
-  Select,
-  Skeleton,
-  TextField,
-  cx,
-  docErrors,
-  focusDocStatus,
-  hasErrorUnder,
-  newItemId,
-  type DocProblem,
-} from '../../../ui';
+import { Badge, Chip, Panel, QueryError, Select, Skeleton, TextField, WholeNumberField, cx } from '../../../ui';
+import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../../ui/docEditor';
 import { useGradeRulesForEditing, useReloadGradeRules, useSaveGradeRules } from '../api';
 import { bandsOf, CLASS_NAME } from '../bands';
 import { classify, subjectsOf, totalMarks, type ChoiceSlot } from '../classify';
@@ -75,42 +60,10 @@ const BAND_KEYS = ['first', 'upper', 'lower', 'third'] as const;
 
 const countsOf = (v: string): GradeSubject['counts'] => (v === '1' ? 1 : v === '2' ? 2 : v === '3' ? 3 : 'average');
 
-type WholeFieldProps = Omit<ComponentProps<typeof TextField>, 'value' | 'onChange' | 'type' | 'min' | 'max'> & {
-  value: number;
-  min: number;
-  max: number;
-  onValue: (n: number) => void;
-};
-
-/** A whole number from `min` to `max`. It can be cleared and retyped: the rules take each whole number typed (kept in
- *  range), and the field shows the rules' number again when it loses focus. */
-function WholeField({ value, min, max, onValue, onBlur, ...rest }: WholeFieldProps) {
-  const [draft, setDraft] = useState<string | null>(null);
-  return (
-    <TextField
-      {...rest}
-      type="number"
-      inputMode="numeric"
-      min={min}
-      max={max}
-      value={draft ?? String(value)}
-      onChange={(e) => {
-        const text = e.target.value;
-        setDraft(text);
-        const n = Number(text);
-        if (text.trim() !== '' && Number.isInteger(n)) onValue(Math.max(min, Math.min(max, n)));
-      }}
-      onBlur={(e) => {
-        setDraft(null);
-        onBlur?.(e);
-      }}
-    />
-  );
-}
-
 export function GradeRulesEditor() {
   const query = useGradeRulesForEditing();
-  const [section, setSection] = useState<Section>('subjects');
+  // Once loaded, the editor keeps its own copy: a refetch in the background never replaces the draft.
+  if (query.data) return <Editor first={query.data} />;
   if (query.isError)
     return (
       <QueryError
@@ -121,28 +74,19 @@ export function GradeRulesEditor() {
         size="sm"
       />
     );
-  if (query.isPending) {
-    return (
-      <Panel padding="md">
-        <Skeleton lines={8} />
-      </Panel>
-    );
-  }
-  // A new version (saved here, or loaded again) starts a new draft.
-  return <Editor key={query.data.version} loaded={query.data} section={section} setSection={setSection} />;
+  return (
+    <Panel padding="md">
+      <Skeleton lines={8} />
+    </Panel>
+  );
 }
 
-function Editor({
-  loaded,
-  section,
-  setSection,
-}: {
-  loaded: GradeRulesEditable;
-  section: Section;
-  setSection: (s: Section) => void;
-}) {
+function Editor({ first }: { first: GradeRulesEditable }) {
+  // The version the draft is edited from: the one first loaded, then each one a save returns or "Load it again" loads.
+  const [loaded, setLoaded] = useState(first);
   const saved = loaded.data;
   const [rules, setRules] = useState<GradeRules>(saved);
+  const [section, setSection] = useState<Section>('subjects');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<DocProblem | null>(null);
   const save = useSaveGradeRules();
@@ -160,6 +104,13 @@ function Editor({
   );
   const set = (patch: Partial<GradeRules>) => setRules((r) => ({ ...r, ...patch }));
   const err: Err = (path) => fields[path];
+  // A new version (as the API keeps it, so even a save that changed nothing leaves nothing unsaved) starts a new draft.
+  const start = (next: GradeRulesEditable) => {
+    setLoaded(next);
+    setRules(next.data);
+    setFields({});
+    setProblem(null);
+  };
 
   const submit = () => {
     setProblem(null);
@@ -167,21 +118,15 @@ function Editor({
       { version: loaded.version, data: rules },
       {
         onSuccess: (out) => {
-          setRules(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
-          setFields({});
+          start(out);
           toast({ title: 'Saved. The calculator uses the new rules now.', tone: 'success' });
-          focusDocStatus();
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'grades_changed')
             return setProblem({ kind: 'changed', what: 'the calculator’s rules' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, [
-            'subjects',
-            'year2Options',
-            'electives',
-            'bands',
-            'averages',
-          ]);
+          const found = docErrors(isApiError(e) ? e.fields : {}, {
+            wholes: ['subjects', 'year2Options', 'electives', 'bands', 'averages'],
+          });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']
@@ -212,7 +157,7 @@ function Editor({
         }}
         onSave={submit}
         problem={problem}
-        onReload={() => void reload()}
+        onReload={() => reload().then(start)}
         section={{ title: current.label, about: current.about }}
         nav={SECTIONS.map((s) => (
           <Chip
@@ -335,7 +280,7 @@ function SubjectsPart({
         )}
       </ListEditor>
       {averaged ? (
-        <WholeField
+        <WholeNumberField
           label="The averaged subjects’ average counts as"
           hint="Classification marks, like 2 for Year 1."
           min={1}
@@ -362,7 +307,7 @@ function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<
             const meta = bandsOf(rules).find((b) => b.id === key);
             return (
               <div key={key} className="grades-set__band">
-                <WholeField
+                <WholeNumberField
                   label={`${meta?.label ?? key} from`}
                   min={1}
                   max={100}
@@ -386,7 +331,7 @@ function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<
       <fieldset className="dedit-group">
         <legend className="dedit-group__legend">What a class needs</legend>
         <div className="dedit-grid">
-          <WholeField
+          <WholeNumberField
             label="Marks in its band or better"
             hint={`Of the ${total} classification marks.`}
             min={1}
@@ -395,7 +340,7 @@ function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<
             onValue={(needed) => set({ needed })}
             error={err('needed')}
           />
-          <WholeField
+          <WholeNumberField
             label="Or this many, with a high enough average"
             min={1}
             max={60}
@@ -404,7 +349,7 @@ function ClassesPart({ rules, set, err }: { rules: GradeRules; set: (p: Partial<
             error={err('fewer')}
           />
           {(['first', 'upper', 'lower'] as const).map((k) => (
-            <WholeField
+            <WholeNumberField
               key={k}
               label={`Average for ${CLASS_NAME[k]}`}
               min={1}

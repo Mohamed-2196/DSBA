@@ -256,7 +256,8 @@ function KanbanColumn({
       onDrop={(e) => drop(e, { last: true })}
     >
       <header className="board-col__head">
-        <h2 className="board-col__name" id={headingId}>
+        {/* On a phone the column's tab names it: the heading stays for screen readers. */}
+        <h2 className={cx('board-col__name', single && 'visually-hidden')} id={headingId}>
           <span className="board-col__title">{column.name}</span>
           <span className="board-col__count">
             {cards.length}

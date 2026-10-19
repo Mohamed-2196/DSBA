@@ -13,6 +13,9 @@ import {
   dueOf,
   isOverdue,
   isPastPaper,
+  isUnsaved,
+  lastIn,
+  limitsNear,
   matches,
   moveItem,
   neighbourColumn,
@@ -28,9 +31,10 @@ import {
   startName,
   storageText,
   TEMPLATES,
+  withExistingLabels,
   type Paper,
 } from './board';
-import { cleanScores } from './scores';
+import { scoresById, withScore } from './scores';
 
 const card = (id: string, columnId: string, extra: Partial<BoardCard> = {}): BoardCard => ({
   id,
@@ -101,6 +105,14 @@ describe('positions from the screen', () => {
     expect(afterIdBefore(board, 'c', 'todo', 'a')).toBeNull();
     expect(afterIdBefore(board, 'a', 'todo', 'b')).toBeNull(); // without the moving card, b is first
     expect(afterIdBefore(board, 'd', 'todo', 'c')).toBe('b');
+  });
+  it('never names a card the API hasn’t answered for yet as the one to go after', () => {
+    const adding = [card('a', 'todo'), card('b', 'todo'), card('new-1', 'todo'), card('d', 'doing')];
+    expect(isUnsaved(card('new-1', 'todo'))).toBe(true);
+    expect(afterIdBefore(adding, 'd', 'todo', 'new-1')).toBe('b');
+    expect(lastIn(adding, 'todo', 'd')).toBe('b');
+    expect(nudge(adding, 'a', 1)).toBe('b');
+    expect(nudge(adding, 'b', 1)).toBeUndefined();
   });
   it('moves up and down within the column, and not past its ends', () => {
     expect(nudge(board, 'b', -1)).toBeNull();
@@ -189,6 +201,12 @@ describe('filters and agenda', () => {
     expect(matches(c2, { labels: ['l2'], due: 'any' }, '2026-10-14')).toBe(false);
     expect(matches(c2, { labels: [], due: 'week' }, '2026-10-14')).toBe(true);
   });
+  it('drops a label that is gone from the filter', () => {
+    const f = { labels: ['l1', 'gone'], due: 'any' as const };
+    expect(withExistingLabels(f, (id) => id !== 'gone')).toEqual({ labels: ['l1'], due: 'any' });
+    const kept = { labels: ['l1'], due: 'today' as const };
+    expect(withExistingLabels(kept, () => true)).toBe(kept);
+  });
   it('groups agenda into sections', () => {
     const ac = (id: string, due: string): AgendaCard => ({
       ...card(id, 'todo'),
@@ -263,10 +281,28 @@ describe('past papers', () => {
     expect(parseScore('-3')).toBeUndefined();
     expect(parseScore('abc')).toBeUndefined();
   });
-  it('keeps only sane stored scores', () => {
-    expect(cleanScores({ a: 50, b: 'x', c: 140, d: 0 })).toEqual({ a: 50, d: 0 });
-    expect(cleanScores([1, 2])).toEqual({});
-    expect(cleanScores(null)).toEqual({});
+  it('sets, replaces and removes a paper’s score, the newest first', () => {
+    const at = '2026-10-18T10:00:00Z';
+    let list = withScore([], 'p1', 64, at);
+    list = withScore(list, 'p2', 71.5, at);
+    list = withScore(list, 'p1', 80, at);
+    expect(scoresById(list)).toEqual({ p1: 80, p2: 71.5 });
+    expect(list.map((s) => s.itemId)).toEqual(['p1', 'p2']);
+    expect(scoresById(withScore(list, 'p2', null, at))).toEqual({ p1: 80 });
+  });
+  it('names only the limits past 80%', () => {
+    const mb = 1024 * 1024;
+    const usage = {
+      boards: 17,
+      maxBoards: 20,
+      cards: 120,
+      maxCards: 1000,
+      storageBytes: 190 * mb,
+      maxStorageBytes: 200 * mb,
+    };
+    expect(limitsNear(usage)).toEqual(['17 of 20 boards', '190 MB of 200 MB of files']);
+    expect(limitsNear({ ...usage, boards: 1, storageBytes: 0 })).toEqual([]);
+    expect(limitsNear({ ...usage, boards: 1, cards: 800, storageBytes: 0 })).toEqual(['800 of 1,000 cards']);
   });
   it('formats storage text', () => {
     expect(storageText(3.5 * 1024 * 1024, 200 * 1024 * 1024)).toBe('3.5 MB of 200 MB');

@@ -550,7 +550,12 @@ def cmd_enable_features(_: argparse.Namespace) -> int:
             if state is not None and state.mode == "everyone":
                 continue
             access.store_switch(db, feature, "everyone", (), by=None)
-            change = {"feature": feature.value, "from": state.mode if state else "off", "to": "everyone"}
+            change = {
+                "feature": feature.value,
+                "label": FEATURES[feature].label,
+                "from": state.mode if state else "off",
+                "to": "everyone",
+            }
             record(db, None, "feature.switch", "feature", feature.value, change)
             turned_on.append(feature.value)
         db.commit()

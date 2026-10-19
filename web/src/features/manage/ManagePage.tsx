@@ -24,11 +24,12 @@ import {
   YoutubeLogo,
   type Icon,
 } from '@phosphor-icons/react';
-import { useId, useState, type ReactNode } from 'react';
+import { Suspense, useId, useMemo, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
-import { normalizeYear, useQueryParam } from '../../state';
+import { normalizeYear, UnsavedProvider, useLeaveGuard, useQueryParam, useUnsavedRegistry } from '../../state';
 import {
   Button,
+  ConfirmDialog,
   EmptyState,
   ErrorBoundary,
   Count,
@@ -215,12 +216,21 @@ const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set([
   'newsletter',
   'summary',
   'career',
+  'content',
   'guides',
   'forum',
   'noora',
   'grades',
   'site',
 ]);
+
+const andList = new Intl.ListFormat('en-GB', { type: 'conjunction' });
+
+const LOADING = (
+  <Panel padding="md">
+    <Skeleton lines={8} />
+  </Panel>
+);
 
 const HEADER = (
   <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />
@@ -320,6 +330,10 @@ function ManageScreen() {
   const current = sections.find((id) => id === tab) ?? sections[0];
   // An editor keeps its unsaved draft while another tab is open: once visited, its panel stays mounted (hidden).
   const [visited, setVisited] = useState<ReadonlySet<SectionId>>(() => new Set(current ? [current] : []));
+  // The editors report their unsaved changes; leaving Manage (or the screen an editor is on) asks first.
+  const unsaved = useUnsavedRegistry();
+  const guard = useLeaveGuard(unsaved.names.length > 0, unsaved.loses);
+  const registry = useMemo(() => ({ report: unsaved.report, bypass: guard.bypass }), [unsaved.report, guard.bypass]);
   if (!current) {
     return (
       <Page className="manage">
@@ -337,27 +351,42 @@ function ManageScreen() {
   return (
     <Page className="manage">
       {HEADER}
-      <div className="manage-layout">
-        <ManageNav
-          sections={sections}
-          current={current}
-          counts={counts}
-          onPick={(id) => {
-            setVisited((v) => new Set([...v, current, id]));
-            setTab(id, { replace: true });
-          }}
-        />
-        {sections.map((id) => {
-          const active = id === current;
-          if (!active && !(KEEP_DRAFTS.has(id) && visited.has(id))) return null;
-          return (
-            <section key={id} className="manage-panel" aria-label={SECTIONS[id].label} hidden={!active}>
-              <h2 className="manage-panel__title">{SECTIONS[id].label}</h2>
-              <ErrorBoundary name={`Manage:${id}`}>{BODIES[id]()}</ErrorBoundary>
-            </section>
-          );
-        })}
-      </div>
+      <UnsavedProvider value={registry}>
+        <div className="manage-layout">
+          <ManageNav
+            sections={sections}
+            current={current}
+            counts={counts}
+            onPick={(id) => {
+              setVisited((v) => new Set([...v, current, id]));
+              setTab(id, { replace: true });
+            }}
+          />
+          {sections.map((id) => {
+            const active = id === current;
+            if (!active && !(KEEP_DRAFTS.has(id) && visited.has(id))) return null;
+            return (
+              <section key={id} className="manage-panel" aria-label={SECTIONS[id].label} hidden={!active}>
+                {/* The list and the picker already name the section on screen. */}
+                <h2 className="visually-hidden">{SECTIONS[id].label}</h2>
+                <ErrorBoundary name={`Manage:${id}`}>
+                  {/* The editors load on first use (each feature's public.ts exports them lazily). */}
+                  <Suspense fallback={LOADING}>{BODIES[id]()}</Suspense>
+                </ErrorBoundary>
+              </section>
+            );
+          })}
+        </div>
+      </UnsavedProvider>
+      <ConfirmDialog
+        open={guard.asking}
+        title="Leave without saving?"
+        body={<p>{`Your changes to ${andList.format(unsaved.names)} aren’t saved. If you leave, they’re lost.`}</p>}
+        confirmLabel="Leave without saving"
+        tone="danger"
+        onConfirm={guard.leave}
+        onClose={guard.stay}
+      />
     </Page>
   );
 }

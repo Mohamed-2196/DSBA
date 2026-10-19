@@ -11,7 +11,7 @@ export interface ScoreDialogProps {
   onClose: () => void;
 }
 
-/** "How did it go?" after a past paper reaches Done. The score stays in this browser. */
+/** "How did it go?" after a past paper reaches Done. The score is kept in the student's account, for them alone. */
 export function ScoreDialog({ card, score, onSave, onClose }: ScoreDialogProps) {
   const uid = useId().replace(/:/g, '');
   const [raw, setRaw] = useState(score == null ? '' : String(score));
@@ -33,7 +33,7 @@ export function ScoreDialog({ card, score, onSave, onClose }: ScoreDialogProps) 
       open
       onClose={onClose}
       title="How did it go?"
-      description={`${card.title}. Your score stays on this device, and only you see it. Signing out clears it.`}
+      description={`${card.title}. Only you see your score.`}
       size="sm"
       footer={
         <>

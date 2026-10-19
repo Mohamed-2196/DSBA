@@ -227,8 +227,8 @@ export default function ChatPanel({
   const left = questionsLeftLine(status.data);
   const subline = busy
     ? 'Answering…'
-    : why
-      ? 'Script answers only'
+    : why && messages.length
+      ? 'Script answers only' // before then, her hello says so
       : usingAi
         ? (left ?? 'Knows your modules and this page')
         : 'Knows your modules';

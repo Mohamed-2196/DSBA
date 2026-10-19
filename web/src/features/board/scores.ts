@@ -1,35 +1,16 @@
-// Practice scores for past papers on the board. They stay in this browser, like the grades calculator's marks, and
-// go on sign-out with every other 'hub.mine.' key (shared lab computers).
-import { useCallback } from 'react';
-import { useLocalStorage } from '../../state';
+// Practice scores on past papers, as the board shows them. They are kept in the student's account (GET and PUT
+// /paper-scores, api.ts), where only they see them.
+import type { PaperScore } from '../../api/types';
 
-const KEY = 'hub.mine.paperScores';
+/** Scores by library item id. */
+export type Scores = Readonly<Record<string, number>>;
 
-export type Scores = Record<string, number>;
+/** The scores by library item id. */
+export const scoresById = (list: readonly PaperScore[]): Scores =>
+  Object.fromEntries(list.map((s) => [s.itemId, s.score]));
 
-/** The stored map, keeping only library item ids with a score from 0 to 100. */
-export function cleanScores(raw: unknown): Scores {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
-  const out: Scores = {};
-  for (const [id, v] of Object.entries(raw)) {
-    if (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100) out[id] = v;
-  }
-  return out;
-}
-
-/** Scores by library item id, and a setter (null forgets one). */
-export function usePaperScores(): [Scores, (itemId: string, score: number | null) => void] {
-  const [raw, setRaw] = useLocalStorage<unknown>(KEY, {});
-  const scores = cleanScores(raw);
-  const setScore = useCallback(
-    (itemId: string, score: number | null) =>
-      setRaw((prev: unknown) => {
-        const next = { ...cleanScores(prev) };
-        if (score == null) delete next[itemId];
-        else next[itemId] = score;
-        return next;
-      }),
-    [setRaw],
-  );
-  return [scores, setScore];
+/** The list with one paper's score set (null: removed), the newest first, as the API keeps it. */
+export function withScore(list: readonly PaperScore[], itemId: string, score: number | null, at: string): PaperScore[] {
+  const others = list.filter((s) => s.itemId !== itemId);
+  return score === null ? others : [{ itemId, score, updatedAt: at }, ...others];
 }

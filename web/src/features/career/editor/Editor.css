@@ -54,6 +54,10 @@
   flex: 1 1 24ch;
   max-width: 75ch;
 }
+.cedit__parts {
+  display: grid;
+  gap: var(--sp-8);
+}
 .cedit__nav {
   display: flex;
   flex-wrap: wrap;
@@ -66,14 +70,6 @@
   display: grid;
   gap: var(--sp-16);
   min-width: 0;
-}
-.cedit__section-head {
-  display: grid;
-  gap: var(--sp-4);
-}
-.cedit__section {
-  margin: 0;
-  font-size: var(--fs-16);
 }
 
 .cedit-form {
@@ -355,9 +351,8 @@
 .cedit-preview__title {
   margin: 0;
   font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
   color: var(--ink-2);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .cedit-preview__cards {
   margin: 0;

@@ -7,7 +7,7 @@ from uuid import UUID
 from pydantic import Field, StringConstraints, WithJsonSchema
 
 from app.schemas.access import BoxKey, FeatureKey, RoleSummary
-from app.schemas.board import BoardLinkType, ChecklistItem, Priority
+from app.schemas.board import BoardLinkType, ChecklistItem, PaperScore, Priority
 from app.schemas.bugs import ExportBugReport
 from app.schemas.calendar import EventType, PersonalEventOut
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
@@ -479,6 +479,7 @@ class AccountExport(ApiModel):
     boards: list[ExportBoard]  # boards, their columns and cards
     board_labels: list[str]
     board_plans: list[ExportBoardPlan]  # revision plans on the boards
+    paper_scores: list[PaperScore]  # practice scores on past papers
     follows: list[ExportFollow]  # forum threads this person follows
     poll_votes: list[ExportPollVote]  # newsletter poll answers
     senior: ExportSenior | None  # the "Ask a senior" listing

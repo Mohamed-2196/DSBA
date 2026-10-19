@@ -283,6 +283,7 @@ def set_switch(db: Session, admin: User, feature: Feature, body: SwitchUpdate, i
     access.store_switch(db, feature, body.mode, wanted, by=admin)
     change = {
         "feature": feature.value,
+        "label": FEATURES[feature].label,  # the activity log names it as the Access screen does
         "from": state.mode if state else "off",
         "to": body.mode,
         "roles": sorted(r.name for r in roles),

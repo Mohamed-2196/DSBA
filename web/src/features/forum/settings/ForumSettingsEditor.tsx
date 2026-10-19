@@ -6,26 +6,8 @@ import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ForumSettings, ForumSettingsEditable } from '../../../api/types';
 import { useToast } from '../../../state';
-import {
-  Badge,
-  Chip,
-  DocFrame,
-  Drawer,
-  ListEditor,
-  Panel,
-  QueryError,
-  Select,
-  Skeleton,
-  Switch,
-  TextArea,
-  TextField,
-  cx,
-  docErrors,
-  focusDocStatus,
-  hasErrorUnder,
-  newItemId,
-  type DocProblem,
-} from '../../../ui';
+import { Badge, Chip, Drawer, Panel, QueryError, Select, Skeleton, Switch, TextArea, TextField, cx } from '../../../ui';
+import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../../ui/docEditor';
 import { FORUM_ICONS } from '../components/forumIcons';
 import { CategoryMark } from '../components/ForumSidebar';
 import type { ForumCategoryOut, ForumGuideline, ForumTagOut, ForumTip } from '../../../api/types';
@@ -74,8 +56,8 @@ const threads = (n: number) => `${n} ${n === 1 ? 'thread' : 'threads'}`;
 
 export function ForumSettingsEditor() {
   const query = useForumSettings();
-  // Kept here, so loading someone else's save stays on the same part.
-  const [section, setSection] = useState<Section>('categories');
+  // Once loaded, the editor keeps its own copy: a refetch in the background never replaces the draft.
+  if (query.data) return <Editor first={query.data} />;
   if (query.isError)
     return (
       <QueryError
@@ -86,28 +68,19 @@ export function ForumSettingsEditor() {
         size="sm"
       />
     );
-  if (query.isPending) {
-    return (
-      <Panel padding="md">
-        <Skeleton lines={8} />
-      </Panel>
-    );
-  }
-  // A new version (saved here, or loaded again) starts a new draft.
-  return <Editor key={query.data.version} loaded={query.data} section={section} setSection={setSection} />;
+  return (
+    <Panel padding="md">
+      <Skeleton lines={8} />
+    </Panel>
+  );
 }
 
-function Editor({
-  loaded,
-  section,
-  setSection,
-}: {
-  loaded: ForumSettingsEditable;
-  section: Section;
-  setSection: (s: Section) => void;
-}) {
+function Editor({ first }: { first: ForumSettingsEditable }) {
+  // The version the draft is edited from: the one first loaded, then each one a save returns or "Load it again" loads.
+  const [loaded, setLoaded] = useState(first);
   const saved = loaded.data;
   const [doc, setDoc] = useState<ForumSettings>(saved);
+  const [section, setSection] = useState<Section>('categories');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<DocProblem | null>(null);
   const [previewing, setPreviewing] = useState(false);
@@ -126,6 +99,13 @@ function Editor({
   const err = (path: string) => fields[path];
   const usedBy = (id: string) => loaded.threadsByCategory[id] ?? 0;
   const taggedBy = (id: string) => loaded.threadsByTag[id] ?? 0;
+  // A new version (as the API keeps it, so even a save that changed nothing leaves nothing unsaved) starts a new draft.
+  const start = (next: ForumSettingsEditable) => {
+    setLoaded(next);
+    setDoc(next.data);
+    setFields({});
+    setProblem(null);
+  };
 
   const submit = () => {
     setProblem(null);
@@ -138,15 +118,15 @@ function Editor({
       { version: loaded.version, data: { ...doc, categories, tags, defaultCategory } },
       {
         onSuccess: (out) => {
-          setDoc(out.data); // as the API keeps it: even a save that changed nothing leaves nothing unsaved
-          setFields({});
+          start(out);
           toast({ title: 'Saved. The forum shows the changes now.', tone: 'success' });
-          focusDocStatus();
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'forum_changed')
             return setProblem({ kind: 'changed', what: 'the forum’s settings' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, ['categories', 'tags', 'guidelines', 'tips']);
+          const found = docErrors(isApiError(e) ? e.fields : {}, {
+            wholes: ['categories', 'tags', 'guidelines', 'tips'],
+          });
           setFields(found.fields);
           const marked = Object.keys(found.fields).length
             ? ['Some fields need a look before saving. They’re marked below.']
@@ -182,7 +162,7 @@ function Editor({
         }}
         onSave={submit}
         problem={problem}
-        onReload={() => void reload()}
+        onReload={() => reload().then(start)}
         section={{ title: current.label, about: current.about }}
         nav={SECTIONS.map((s) => (
           <Chip

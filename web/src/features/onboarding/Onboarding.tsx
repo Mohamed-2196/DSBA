@@ -1,15 +1,18 @@
 // First visit (decision D7): the page a link leads to always shows. While no year is
 // chosen, a small prompt in the corner asks for one, with "I'm not a student" and "Sign in" beside it (YearPrompt);
 // the three-step tour of what's new opens only when asked for (Tour). The year is saved the moment it is picked
-// (in this browser, and on the account of a signed-in student without one).
+// (in this browser, and on the account of a signed-in student without one). A page that keeps the screen to itself
+// (a daily game, Noora's own page: noora's restsAway) has no prompt over it: it waits for the next page.
 //
 // It tells the rest of the app what is up on <html data-onboarding>: 'prompt' while the prompt shows, 'open'
 // while the tour does (Home holds its load animation for the tour; Mini Noora keeps her hint back for both), with
 // a 'hub:onboarding' event on every change.
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { errorMessage } from '../../api/errors';
 import { useToast, useYear, type CohortYear } from '../../state';
+import { restsAway } from '../noora/public';
 import { useSaveCohort } from './api';
 import { Tour } from './Tour';
 import { YearPrompt, type PromptStage } from './YearPrompt';
@@ -51,7 +54,8 @@ export function Onboarding() {
   const signedIn = status === 'signed-in' && !!me;
   const stage: PromptStage | null =
     status === 'loading' ? null : picked ? 'set' : year == null && !notStudent && !later ? 'year' : null;
-  const showPrompt = stage !== null && !touring;
+  const { pathname } = useLocation();
+  const showPrompt = stage !== null && !touring && !restsAway(pathname);
   const signal = touring ? 'open' : showPrompt ? 'prompt' : null;
 
   useEffect(() => {

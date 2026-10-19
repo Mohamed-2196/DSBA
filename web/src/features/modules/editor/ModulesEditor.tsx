@@ -1,10 +1,10 @@
 // Manage → Modules (content.edit): every module by year, in programme order, hidden ones too. Reorder a year by
 // dragging or with the up and down buttons, add a module with its picture, or open one in the editor (?module=<id>).
 import { ArrowDown, ArrowUp, DotsSixVertical, EyeSlash, Plus } from '@phosphor-icons/react';
-import { useState, type DragEvent, type FormEvent } from 'react';
+import { useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ModuleEditSummary } from '../../../api/types';
-import { useQueryParam, useToast, YEARS } from '../../../state';
+import { useMediaQuery, useQueryParam, useToast, YEARS } from '../../../state';
 import {
   Badge,
   Button,
@@ -201,6 +201,12 @@ function AddModule({ onClose, onMade }: { onClose: () => void; onMade: (id: stri
   const [icon, setIcon] = useState('');
   const [problems, setProblems] = useState<Record<string, string>>({});
   const address = idTouched ? id : slugOf(name);
+  const form = useRef<HTMLFormElement>(null);
+  // Typing starts at once with a mouse; on a touch screen the keyboard waits for a tap, so it never covers the form.
+  const finePointer = useMediaQuery('(pointer: fine)');
+  /** After a refused submit the first field that needs a look gets the focus (its error is read with it). */
+  const focusFirstProblem = () =>
+    requestAnimationFrame(() => form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -212,7 +218,10 @@ function AddModule({ onClose, onMade }: { onClose: () => void; onMade: (id: stri
     if (!SLUG.test(address) || address.length < 2)
       found.id = 'Use lowercase letters, digits and dashes, like data-ethics.';
     setProblems(found);
-    if (Object.keys(found).length) return;
+    if (Object.keys(found).length) {
+      focusFirstProblem();
+      return;
+    }
     create.mutate(
       {
         id: address,
@@ -229,7 +238,10 @@ function AddModule({ onClose, onMade }: { onClose: () => void; onMade: (id: stri
           onClose();
           onMade(m.id);
         },
-        onError: (err) => setProblems({ ...(isApiError(err) ? err.fields : {}), other: errorMessage(err) }),
+        onError: (err) => {
+          setProblems({ ...(isApiError(err) ? err.fields : {}), other: errorMessage(err) });
+          focusFirstProblem();
+        },
       },
     );
   };
@@ -251,7 +263,7 @@ function AddModule({ onClose, onMade }: { onClose: () => void; onMade: (id: stri
         </>
       }
     >
-      <form id="medit-add" className="medit-form__grid" onSubmit={submit} noValidate>
+      <form id="medit-add" ref={form} className="medit-form__grid medit-add" onSubmit={submit} noValidate>
         <TextField
           label="Name"
           value={name}
@@ -259,7 +271,7 @@ function AddModule({ onClose, onMade }: { onClose: () => void; onMade: (id: stri
           error={problems.name}
           required
           maxLength={120}
-          data-autofocus
+          data-autofocus={finePointer || undefined}
         />
         <TextField
           label="Short name"

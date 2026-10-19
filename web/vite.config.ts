@@ -70,6 +70,23 @@ function versionMeta(version: string): Plugin {
   };
 }
 
+const VENDOR =
+  /\/node_modules\/(?:react|react-dom|scheduler|react-router|react-router-dom|@tanstack\/react-query|@tanstack\/query-core|openapi-fetch)\//;
+const EDITOR =
+  /\/node_modules\/(?:@tiptap\/[^/]+|prosemirror-[^/]+|linkifyjs|orderedmap|rope-sequence|w3c-keyname|fast-equals)\//;
+
+/**
+ * Two chunks of libraries, apart from the app's code: what every page runs on (React, the router, TanStack Query, the
+ * API client), and the notebook's text editor (Tiptap and ProseMirror, only the notebook loads it). They change only
+ * when the libraries are updated, so a deploy leaves them in the browser's cache. Every other chunk stays under
+ * Vite's 500 kB warning, which is kept as the alarm.
+ */
+function libraryChunk(id: string): string | undefined {
+  if (VENDOR.test(id)) return 'vendor';
+  if (EDITOR.test(id)) return 'editor';
+  return undefined;
+}
+
 // The app is served from the same origin as the API: in development Vite proxies /api to the backend,
 // in production a reverse proxy does (see compose.yaml and docs/backend/DEPLOYMENT.md).
 export default defineConfig(({ mode }) => {
@@ -80,6 +97,7 @@ export default defineConfig(({ mode }) => {
     base: env.VITE_BASE || '/',
     plugins: [react(), serviceWorker(), versionMeta(version)],
     define: { __APP_VERSION__: JSON.stringify(version) },
+    build: { rollupOptions: { output: { manualChunks: libraryChunk } } },
     server: {
       host: env.VITE_DEV_HOST || '127.0.0.1',
       port: 5173,

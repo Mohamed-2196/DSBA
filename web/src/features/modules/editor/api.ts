@@ -1,6 +1,6 @@
 // The module editor's data (content managers): every module with its version, one module as the editor has it, and
 // the writes. A write also refreshes what students see: the catalogue and the module's lessons.
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../../api/client';
 import type { ModuleCreate, ModuleEdit, ModuleOrder, ModuleSave } from '../../../api/types';
 import { MODULES_KEY } from '../../../state/modules';
@@ -22,8 +22,8 @@ export function useModulesForEditing() {
   });
 }
 
-export function useModuleForEditing(id: string) {
-  return useQuery({
+const editModuleQuery = (id: string) =>
+  queryOptions({
     queryKey: editKey(id),
     queryFn: ({ signal }) =>
       call(api.GET('/api/v1/content/modules/{module_id}', { params: { path: { module_id: id } }, signal })),
@@ -31,6 +31,9 @@ export function useModuleForEditing(id: string) {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
+
+export function useModuleForEditing(id: string) {
+  return useQuery(editModuleQuery(id));
 }
 
 export function useCreateModule() {
@@ -56,10 +59,10 @@ export function useSaveModule(id: string) {
   });
 }
 
-/** Loads the module again, as someone else saved it: the editor starts over from there. */
+/** Loads the module again, as someone else saved it: the editor starts over from the copy it returns. */
 export function useReloadModule(id: string) {
   const qc = useQueryClient();
-  return () => qc.refetchQueries({ queryKey: editKey(id), exact: true });
+  return () => qc.fetchQuery({ ...editModuleQuery(id), staleTime: 0 });
 }
 
 export function useReorderModules() {

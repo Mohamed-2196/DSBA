@@ -26,7 +26,7 @@ import type { BoardCard, BoardColumn, BoardLabel, BoardLink } from '../../api/ty
 import { formatDay } from '../../lib/dates';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
 import { Badge, IconButton, Menu, cx, safeInternalPath, type MenuItem } from '../../ui';
-import { apiFileSrc, isUnsaved } from './api';
+import { apiFileSrc } from './api';
 import {
   checklistProgress,
   colorVar,
@@ -34,6 +34,7 @@ import {
   dueOf,
   isOverdue,
   isPastPaper,
+  isUnsaved,
   plainText,
   PRIORITIES,
   type Priority,
