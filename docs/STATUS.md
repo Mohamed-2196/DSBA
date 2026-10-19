@@ -1,7 +1,7 @@
 # Status
 
 This is the handoff between sessions: where the work stands, what's next and what Mohamed still has to decide.
-Update it whenever you finish or start something. Last updated 2026-10-19, when round 14's study-core work merged.
+Update it whenever you finish or start something. Last updated 2026-10-20, during round 15 (the Deskmates look).
 
 ## Where things stand
 
@@ -122,8 +122,35 @@ Merged (checks green: 1,776 API and 1,141 web tests):
 Migration chain: 0033 → 0034 → 0035 → 0036 → 0039 → 0037 → 0038 → 0040 → 0041 → 0044 → 0043 → 0042 (one head).
 Art handoff for the core: `docs/design/asset-prompts-round4.md` (C1 no lessons, C2 sign in, C3 not found, F1 forum).
 
-Next in round 14: the full e2e run on everything above; the module page shows the student's own notes
-(`useModuleNotes`) and the library's sittings table; the content gaps below.
+Round 14 finished: the module page shows the student's notes and the sittings table; the e2e recheck passed 113 of
+113 (ST-58 to ST-61 found, ST-59 to ST-61 fixed with ST-56); ST-46 (a file in two modules shows in both).
+
+## Round 15 (the Deskmates look; Questions by topic filled): 2026-10-19 to 2026-10-20
+
+Mohamed picked direction B, "Deskmates", from three (comparison and v2 are Artifacts), asked for the existing DSBA Hub
+logo, new colours and better sidebar icons, and approved v2. The package is `docs/design/deskmates/` (README has the
+build order and open items; `brand/BRAND.md` maps the tokens); the Design System Artifact holds the same.
+
+Merged:
+- `round15/skin` (phase 1): v2 tokens with the renames, Bricolage Grotesque and Figtree, the `Icon` family (82),
+  the sidebar and tab bar, shared components re-skinned.
+- `round15/deskmates` (phase 2): the `Deskmate` component, section headers, sleepy empty states, happy toasts;
+  "Notebook" and "Boards" in the copy (routes unchanged).
+- `round15/noora`: Mini Noora on `claude-haiku-5-5` (adaptive thinking, medium effort, `noora_declined`), both
+  price tiers in the budget; the reservation is conservative near the long-prompt line (security review).
+- `round15/tagging`, `round15/sections`: Claude tags past-paper questions by chapter (0045), with sections such as
+  B1 (0046); `paper_questions.json` is seed data (1,446 questions on 229 papers, tagged by Haiku agents), and the
+  seed replaces a paper's stale machine tags. The broken MN1178 chapter is removed by the seed; `exam-meta` files
+  MT1186 papers found in ST1215's folder under MT1186 (run on local and Railway dev).
+- `round14/bugs`: several query params in one update (ST-61), the score toast (ST-60), ST-56, ST-59.
+
+Data cleared (Mohamed's calls): local `[e2e …]` rows (201 files, 130 threads, 5 events); the import's "In <folder>."
+descriptions, local and Railway dev (694 each).
+
+Migration chain ends … → 0042 → 0045 → 0046.
+
+Running: `round15/screens1` (phase 3a: library, module page, Home to the mockups). Next: phase 3b (notebook, forum,
+calendar, search, Noora's panel), then the UI/UX review and a full e2e run of the new look.
 
 ## Operating notes
 
@@ -169,7 +196,9 @@ Next in round 14: the full e2e run on everything above; the module page shows th
 
 ## Waiting on Mohamed
 
-- **Art picks:** C1, C2, C3 and F1 in `docs/design/asset-prompts-round4.md` (F1 is generated and waiting).
+- **Anthropic key:** `DSBA_ANTHROPIC_API_KEY` in the local `.env` and on Railway dev's api service, for Mini Noora's
+  AI answers (tagging no longer needs it).
+- **Year 3 chapters:** 44 Year 3 papers can't be tagged until those modules have chapters.
 - **Content gaps** (round 14 test, ST-45/48/49): tagged past questions exist only for EC1002 and EC2020; solutions
   for 0-2 sittings per module; an exam's "What to bring" opens an empty forum tag; the six Year 3 modules have no
   unit codes; none of the 10 October exams has a time or place; each VLE MCQ window is two one-day events; IS2184 and every Year 3 module have no lessons.
