@@ -94,7 +94,13 @@ export function FileThumb({
           )}
         </span>
       </span>
-      {formatTag && photo && fmt ? <span className="lib-thumb__fmt">{fmt.tag}</span> : null}
+      {/* Real first pages of exam papers look alike at this size: the tag names the sitting and the zone too. */}
+      {formatTag && photo && fmt ? (
+        <span className="lib-thumb__fmt">
+          {fmt.tag}
+          {item.examYear ? ` · ${item.examYear}${item.zone ? ` · ${zoneLabel(item.zone)}` : ''}` : ''}
+        </span>
+      ) : null}
       {newTag && isNew(item) ? (
         <Badge tone="highlight" size="sm" className="lib-thumb__new">
           New

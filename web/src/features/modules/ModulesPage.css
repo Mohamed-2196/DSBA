@@ -11,13 +11,6 @@
   color: var(--ink);
   font-weight: var(--fw-bold);
 }
-.mod-index__fact + .mod-index__fact::before {
-  content: '';
-  width: 1px;
-  height: 14px;
-  margin-right: 6px;
-  background: var(--line-strong);
-}
 .mod-index__fact--exam svg {
   margin-right: 6px;
   color: var(--alert);
@@ -363,4 +356,9 @@
   .mod-electives__link {
     min-height: 44px;
   }
+}
+
+/* The facts are told apart by space alone: a separator would start a wrapped line. */
+.mod-index .ui-page-header__meta {
+  column-gap: var(--sp-16);
 }

@@ -56,6 +56,7 @@
 }
 .shell-footer__people li {
   display: grid;
+  align-content: start;
   gap: 2px;
 }
 .shell-footer__name {
@@ -93,10 +94,10 @@ a.shell-footer__name:hover {
   }
   .shell-footer__links a,
   .shell-footer__brand,
-  a.shell-footer__name {
+  /* Every name gets the same 44px row, linked or not, so the names and their roles line up. */
+  .shell-footer__name {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     min-width: 44px;
     min-height: 44px;
   }

@@ -17,6 +17,7 @@ import { subjectDisplay, withPaperPicks } from './subjects';
 import { ResultHero } from './ResultHero';
 import { blankIndexes, improvementPlan } from './whatif';
 import './GradesPage.css';
+import { scrollMotion } from '../../lib/motion';
 
 const hasMarks = (rec: GradesRecord): boolean => rec.marks.some((m) => m !== '');
 
@@ -345,7 +346,9 @@ function StickyResult({ marks, result, rules }: { marks: string[]; result: Class
       type="button"
       className="grades-sticky"
       onClick={() =>
-        document.querySelector('[data-hub="grades-result"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        document
+          .querySelector('[data-hub="grades-result"]')
+          ?.scrollIntoView({ behavior: scrollMotion(), block: 'start' })
       }
     >
       <span className="grades-sticky__big">{kind ? CLASS_SHORT[kind] : `${count - blanks}/${count}`}</span>

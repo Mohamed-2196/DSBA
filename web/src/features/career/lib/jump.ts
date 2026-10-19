@@ -1,7 +1,6 @@
 // Career Navigator: scroll to a part of the page (buttons, not #hash links).
 
-const reducedMotion = (): boolean =>
-  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+import { scrollMotion } from '../../../lib/motion';
 
 /**
  * Scroll an element into view by id and, with `flash`, ring it for a moment so the eye finds it.
@@ -13,7 +12,7 @@ export function jumpTo(
 ): boolean {
   const el = typeof document === 'undefined' ? null : document.getElementById(id);
   if (!el) return false;
-  el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block });
+  el.scrollIntoView({ behavior: scrollMotion(), block });
   if (flash) {
     el.classList.remove('career-flash');
     // Force a reflow so the animation restarts when the same target is chosen twice.

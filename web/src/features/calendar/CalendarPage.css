@@ -465,10 +465,10 @@
   color: var(--ink-2);
   font-weight: var(--fw-medium);
 }
+/* Days of the next or last month: quieter, but still readable (--ink-2 passes AA where a faded one didn't). */
 .cal-day.is-outside .cal-day__num {
   color: var(--ink-2);
   font-weight: var(--fw-regular);
-  opacity: 0.7;
 }
 .cal-day.is-today .cal-day__num {
   background: var(--cobalt);
@@ -567,11 +567,12 @@
   font-weight: var(--fw-bold);
   line-height: 1;
 }
+/* One line, ending in an ellipsis: a word wider than the chip would otherwise be cut mid-letter. */
 .cal-chip__line {
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   padding-left: 14px;
   color: var(--ink-2);
   font-size: var(--fs-12);

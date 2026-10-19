@@ -447,6 +447,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+@media (pointer: coarse) {
+  .nl-drafts__name {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
 .nl-drafts__name:hover {
   text-decoration: underline;
   text-decoration-thickness: 1px;

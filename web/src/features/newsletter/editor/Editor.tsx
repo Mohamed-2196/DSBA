@@ -512,7 +512,8 @@ export function Editor({ detail }: { detail: IssueDetail }) {
         <div className="nl-editor__layout">
           {sideBySide || pane === 'edit' ? form : null}
           {sideBySide || pane === 'preview' ? (
-            <div className="nl-editor__side">
+            // It scrolls on its own: a keyboard can reach it to scroll it.
+            <div className="nl-editor__side" tabIndex={0} role="region" aria-label="Preview">
               <Preview draft={draft} detail={detail} />
             </div>
           ) : null}
@@ -528,6 +529,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
             </p>
           }
           confirmLabel="Leave without saving"
+          cancelLabel="Keep editing"
           tone="danger"
           onConfirm={guard.leave}
           onClose={guard.stay}
@@ -537,6 +539,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
           title="Discard your changes?"
           body={<p>The form goes back to issue {no} as it was last saved. This can’t be undone.</p>}
           confirmLabel="Discard changes"
+          cancelLabel="Keep editing"
           tone="danger"
           onConfirm={discard}
           onClose={() => setDiscarding(false)}
