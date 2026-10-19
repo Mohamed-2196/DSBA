@@ -1,9 +1,12 @@
 // Revision plans and past papers on a board. With boards on, a student plans a module's revision from the module
-// page, finds the plan on its board, and removes it. The switch goes back off.
+// page, finds the plan on its board, and removes it. The switch ends as it was.
 import { expect, test } from './fixtures';
-import { api, personaContext, setSwitch } from './support';
+import { api, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
+
+test.beforeAll(async ({ browser }) => switchOn(browser, 'board-plans', ['board']));
+test.afterAll(async ({ browser }) => switchBack(browser, 'board-plans'));
 
 interface Boards {
   plans: { moduleId: string; boardId: string; left: number }[];
@@ -13,8 +16,7 @@ interface BoardDetail {
   cards: { columnId: string; planModuleId: string | null; planDate: string | null }[];
 }
 
-test('a student plans a module’s revision to the exam date and removes the plan', async ({ sara, admin }) => {
-  await setSwitch(admin, 'board', 'everyone');
+test('a student plans a module’s revision to the exam date and removes the plan', async ({ sara }) => {
   await sara.goto('/modules/economics');
   await sara.locator('[data-hub="board-plan"]').click();
   const dialog = sara.getByRole('dialog');
@@ -40,10 +42,4 @@ test('a student plans a module’s revision to the exam date and removes the pla
   await row.getByRole('button', { name: 'Remove plan' }).click();
   await sara.getByRole('dialog').getByRole('button', { name: 'Remove plan' }).click();
   await expect.poll(async () => (await plan()) === undefined).toBe(true);
-});
-
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'board', 'off');
-  await ctx.close();
 });

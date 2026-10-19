@@ -1,7 +1,8 @@
 // Alerts: a rep moves a Year 2 mock with "Tell Year 2" ticked and Sara (Year 2) gets a notification; the Sunday
-// summary (switched off at first) shows reps this week's text on Manage, and Sara turns its email on.
+// summary (switched on for it, and back as it was after) shows reps this week's text on Manage, and Sara turns its
+// email on.
 import { expect, test } from './fixtures';
-import { api, gotoAccount, personaContext, remember, setSwitch } from './support';
+import { api, gotoAccount, remember, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -46,9 +47,8 @@ test('a rep moves a Year 2 mock and Year 2 is told', async ({ rep, sara, run }) 
   expect(told?.url).toContain(`event=${id}`);
 });
 
-test('reps see the Sunday summary to paste, and a student turns its email on', async ({ admin, rep, sara }) => {
-  await setSwitch(admin, 'summary', 'everyone');
-
+test('reps see the Sunday summary to paste, and a student turns its email on', async ({ browser, rep, sara }) => {
+  await switchOn(browser, 'alerts', ['summary']);
   await rep.goto('/manage?tab=summary');
   const panel = rep.locator('[data-hub="sunday-summary"]');
   await expect(panel.getByRole('heading', { name: 'Sunday summary' })).toBeVisible();
@@ -69,9 +69,4 @@ test('reps see the Sunday summary to paste, and a student turns its email on', a
   await toggle.click(); // back off: the summary is opt-in
 });
 
-test.afterAll(async ({ browser }) => {
-  // Switched back off for the rest of the run: the summary arrives off.
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'summary', 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'alerts'));

@@ -1,18 +1,13 @@
 // Boxes and switches, end to end: a newsletter manager publishes but can't moderate; a switched-off calendar is gone
 // for a student and a guest, and marked for an admin; a guest sees only what's on for everyone.
 import { expect, test } from './fixtures';
-import { api, personaContext, remember, roleIdBySlug, setSwitch } from './support';
+import { api, remember, roleIdBySlug, setSwitch, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-// Whatever happens, the calendar and grades end on for everyone.
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const page = await ctx.newPage();
-  await setSwitch(page, 'calendar', 'everyone');
-  await setSwitch(page, 'grades', 'everyone');
-  await ctx.close();
-});
+// Whatever happens, the calendar and grades end as they were.
+test.beforeAll(async ({ browser }) => switchOn(browser, 'access', ['calendar', 'grades']));
+test.afterAll(async ({ browser }) => switchBack(browser, 'access'));
 
 test('a newsletter manager can publish but not moderate', async ({ admin, sara, run }) => {
   const me = await api<{ id: string }>(sara, 'GET', '/api/v1/me');

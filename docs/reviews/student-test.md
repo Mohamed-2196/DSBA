@@ -1,5 +1,210 @@
 # Student test: DSBA Hub through the browser
 
+## Round 13 (18–19 October 2026): rounds 11 and 12 by hand, Daily first, and the suite brought up to date
+
+`feature/backend` from 25234ed to the merge of a83ba95 (the squash, Daily's fix, repeats, the sign-up email question),
+on the Docker stack in e2e mode. Made-up people only: a guest (laptop, phone, phone on its side, tablet in dark mode);
+**Hamad R13** (Year 1, `hamad.e2e.r13@example.com`, laptop); **زينب R13** (Year 2, a random +973 3641 number, phone);
+**Maha R13** (a guest who signed up from a Daily result card, +973 3655 number); a rep and an admin from dev-login
+(`fatima.e2e.r13@example.com`, `maryam.e2e.r13@example.com`). Screenshots: `/private/tmp/claude-501/-Users-mohamed-dsba-hub/5411a11a-0ba5-46f6-8270-b4d416f58375/scratchpad/r13-e2e/shots/` (names below).
+
+The machine was heavily loaded for most of the day (load average 25 to 125 from other agents' checks and Spotlight),
+so the first runs took 1.5 hours and some failures were timeouts; the reruns on a quieter machine are the ones counted.
+
+### Summary
+
+No blockers. **Three majors:** a guest who taps "Sign in to keep your points" loses the game they just won and is shown
+"Not this time" over the profile step (ST-24); scanned past papers open as blank pages in "Annotate in my notebook"
+(ST-27); and the guest's Daily hub ignored their games (ST-25, found here and fixed on `feature/backend` during the
+round). The rest are minor or nits. Every Daily game was played to a win and to a loss as a guest and signed in, on a
+phone (touch, portrait and landscape), a tablet in dark mode and a laptop; the notebook (text, Arabic, ink, a picture
+moved, resized, cropped and turned, a PDF annotated, printing), the library (covers, preview, Time me, a link), the
+calendar (a fortnightly event, one day skipped), boards, /noora, a bug report, and Manage's Guides, Site settings and
+Daily puzzles end to end all work.
+
+### Findings, ranked
+
+| ID | Severity | What | Status |
+|---|---|---|---|
+| ST-24 | major | Daily: "Sign in to keep your points" throws away the guest's game and shows "Not this time" over the profile step | open |
+| ST-25 | major | Daily: a guest's hub said 0/6 and "Play" on games they had finished | fixed (on `feature/backend`, e2e passes) |
+| ST-27 | major | Notebook: scanned (JBIG2) past papers open blank in "Annotate in my notebook" | open |
+| ST-26 | minor | Daily, guests: "Give up and see the answer" shows no answer; the Query says "Sign in to see the answer" beside every answer | open |
+| ST-28 | minor | Manage → Career Navigator: after typing a name, the next box loses the focus and what is typed next | open (e2e `test.fail`) |
+| ST-29 | minor | Sudoku on a phone held sideways: each digit key's count is drawn over the digit | open |
+| ST-30 | minor | The Word in dark mode: ruled-out letters are brighter than the unused ones | open |
+| ST-31 | minor | Correlations, guest loss: the last wrong four stay picked under "The groups", which shows no groups | open |
+| ST-32 | nit | The Daily Query's end: "See your result" and "Result" side by side, two primary buttons | open |
+| ST-33 | nit | A library link added today says it "was shared before the Hub had its own library" | open |
+| ST-34 | nit | A module page counts its files twice, differently (Files 120 / "115 files for EC1002") | open |
+| ST-35 | nit | Nearest Neighbour's share text: "not found in 1 guesses" | open |
+| ST-36 | nit | Manage → Daily puzzles names the games differently from the Daily (Groups, Word search, Quiz) | open |
+| ST-37 | nit | Opening "New note" and leaving it empty leaves an "Untitled note" behind | open |
+| ST-38 | minor, product | Notebook: a picture put in below handwriting slides under the ink | open (product call) |
+| ST-39 | nit | Correlations takes no picks for a moment after a group is found; Data Mine ignores taps while a line is checked | open |
+
+Also found and already fixed on `feature/backend` before this report: an Enter pressed while The Word's tiles turn was
+dropped (7d7d0d7), the 4-second rule (removed).
+
+#### ST-24 (major) "Sign in to keep your points" throws the guest's game away
+
+- Who, where: a guest on a 390×844 phone, The Word (`/daily/word`). Checked again on the merged code.
+- Steps: as a guest, win The Word (TABLE, WHILE). On the result card tap **Sign in to keep your points**, sign up
+  with a phone number, enter the code.
+- Expected: the win and its points kept on the new account (or the card saying plainly that a guest's game isn't
+  carried over).
+- Got: the sign-in sheet opens on top of the result card; after the code, the card underneath re-renders with the new
+  account's empty play, "**Not this time** · The Word #18 · Out of guesses · Next: Correlations", and sits over the
+  "Set up your profile" sheet. After closing it and saving the profile, The Word is an empty board ("Guesses: 0 of
+  6"); the guest's moves are never sent. The same card's promise ("keep your points") is untrue for every game.
+- Screenshots: `v-guest-phone-word-won.png`, `d-guest-phone-signin-open.png`, `v-guest-phone-signin-after-code.png`,
+  `v-maha-word-after-signup.png`.
+
+#### ST-25 (major, fixed) A guest's hub ignored what they played
+
+- Guest on a laptop finished all six; `/daily` still said "0/6 · Six new puzzles", every card "Play", and Sudoku's
+  result offered "Next: The Word". Fixed by round13/dailyfix (107516f); re-checked: "1 of 6 done", the card says
+  "Solved · See result". e2e: `daily.spec.ts` "a guest’s hub counts the puzzles they finished". Screenshot:
+  `d-guest-laptop-hub-after.png` (before), `v-guest-phone-hub-after-win.png` (after).
+
+#### ST-27 (major) Scanned past papers open blank in the notebook
+
+- Who, where: Year 2 student, laptop; `/library/ec1002-introduction-to-economics-2003-exam-zone-a` → **Annotate in my
+  notebook**.
+- Expected: the paper's pages to write on, as the library's viewer shows them.
+- Got: white pages. The console says pdf.js can't decode the scans: "Ensure that the `wasmUrl` API parameter is
+  provided … Unable to decode image "img_p0_1": Jbig2Error: JBig2 failed to initialize". `features/notes/pdf.ts` calls
+  `getDocument` without pdf.js's wasm, so every JBIG2 image (the usual compression of scanned papers) is dropped; a
+  newer paper (EC2020 May 2026) shows its text but loses its images too. Printing such a note prints blank pages.
+- Screenshots: `l-2003-paper.png` (library viewer, fine), `n-2003-annotate.png` (notebook, blank).
+
+#### ST-26 (minor) Guests: "Give up and see the answer" shows no answer
+
+- Guest, laptop. Nearest Neighbour → a guess → More → **Give up and see the answer**; the dialog says "The puzzle
+  ends now and shows you the answer." Got: "Not this time · Not found · Sign in to see the answer, or come back
+  tomorrow." — three times on one screen (answer box, card, strip). Signing in doesn't show it either (ST-24). The
+  Daily Query lost as a guest lists every right answer with its explanation, under the same "Sign in to see the
+  answer" line. Expected: copy that matches what a guest gets ("Give up", "the answer shows tomorrow").
+- Screenshots: `v-guest-laptop-nearest-gaveup.png`, `v-guest-laptop-quiz-lost.png`.
+
+#### ST-28 (minor) Career Navigator's editor drops the next box after a name
+
+- Admin, laptop. Manage → Career Navigator → Add an employer → type a name → Tab → type initials. The employer takes
+  its id from the name when the name loses the focus and is drawn again: the focus lands on the page, the initials go
+  nowhere, and Save says "Some fields need a look before saving". Same for a new track. e2e: `career.spec.ts`
+  "typing an employer’s name and moving on to its initials keeps them" (`test.fail`). Screenshot:
+  `m-career-tab-after-name.png`.
+
+#### ST-29 (minor) Sudoku sideways: the counts sit on the digits
+
+- Guest, 844×390 phone. Each digit key is 42 px tall; the "left" count (top 279) overlaps the digit (bottom 287.5).
+  Screenshots: `v-guest-land-sudoku-key.png`, `v-guest-land-sudoku.png`.
+
+#### ST-30 (minor) The Word, dark mode: ruled-out letters stand out
+
+- Guest, phone, dark. Ruled-out keys are rgb(116,136,176) with dark letters; unused keys rgb(20,38,79). The letters
+  you can no longer use are the brightest on the keyboard. Expected: dimmed, as in light mode's intent.
+  Screenshot: `v-guest-phone-dark-word.png`.
+
+#### ST-31 (minor) Correlations, guest loss
+
+- After four mistakes, a guest's board keeps the last wrong four highlighted and the line says "The groups", but only
+  the groups found are shown (the rest wait for tomorrow), so the blue four read as a group. Screenshot:
+  `d-guest-laptop-groups-lost-board.png`.
+
+#### ST-32 to ST-39 (nits)
+
+- ST-32: The Daily Query's end shows "See your result" and the strip's "Result" (same card) plus "Share result"; two
+  primary buttons. `d-zainab-phone-quiz-end.png`.
+- ST-33: a rep's new link page says "This one lives on example.com, where it was shared before the Hub had its own
+  library", shows "example.com (example.com)" and three "Open in example.com" buttons. `l-link-page.png`.
+- ST-34: EC1002's header and Files tab say 120 files, the tab's line says "115 files for EC1002" (the API's
+  `libraryCount` counts five files no shelf shows). `p-zainab-economics-files.png`.
+- ST-35: Nearest Neighbour's share text "not found in 1 guesses" (`services/daily/games/nearest.py`).
+- ST-36: Manage → Daily puzzles' chips say The word, Groups, Word search, Quiz; students see The Word, Correlations,
+  Data Mine, The Daily Query. `m-daily-editor.png`.
+- ST-37: "New note" makes a note at once; leaving it empty leaves "Untitled note" in the list. `n-notes-list.png`.
+- ST-38 (product): ink keeps its place on the page, so a picture added below handwriting slides under it.
+  `n-note-picture-selected.png`. Related to the open question about free-floating pictures.
+- ST-39: Correlations ignores picks for 300 ms after a group is found and Data Mine ignores taps while a line is
+  checked, silently; a quick player's taps are lost (the e2e waits for both).
+
+### By hand
+
+| Who | What | Result |
+|---|---|---|
+| Guest, laptop | All six games to a win (Word, Correlations, Data Mine by drag and by keys, Query, Nearest, Sudoku by keys) and to a loss or give-up | work; ST-26, ST-31 |
+| Guest, phone | The Word by taps, result card, sign-up from it | ST-24 |
+| Guest, phone sideways | Every game's first screen | fit, no scroll; ST-29 |
+| Guest, tablet dark | Hub and every game | fit, no scroll |
+| زينب (Y2, phone) | All six signed in, one mistake each where possible; streak, points, leaderboard opt-in, Year filter, stats, past days | work |
+| Hamad (Y1, laptop) | Losses signed in: The Word shows "The word was WHILE", Correlations shows all four groups | work |
+| زينب | Notebook: heading, Arabic and English in one line, a list, ink, reload; a picture inserted, cropped from a corner, turned, reload | work; ST-37, ST-38 |
+| زينب | Annotate a 2026 paper (highlight, circle, reload, print) and a 2003 scan | 2026 works; 2003 blank (ST-27) |
+| Rep | Add a library link (Drive refused with a clear line), its page, remove it | works; ST-33 |
+| زينب (phone) | Fortnightly study group with an Arabic title, delete only its first day | works: 3 Nov is next |
+| Hamad (phone) | A board from the Study template, a card with Arabic | works |
+| زينب (phone) | /noora in English and Arabic; Report a bug with a screenshot, Send tapped twice | one report; admin closes it |
+| Admin | Manage's content tabs load cleanly; Guides line changed, seen on Start here, put back; Site settings and Daily theme (e2e) | work; ST-28, ST-36 |
+
+### Earlier findings
+
+| ID | Status | How I know |
+|---|---|---|
+| ST-1, 2, 4, 13, 14 | fixed | their e2e tests pass |
+| ST-3, 5–12, 16, 17 | fixed | unchanged since round 10 |
+| ST-15 (nit) | **open** | `services/library.py` still maps doc, xls, ppt to DOCX, XLSX, PPTX |
+| ST-18 (nit) | **open** | ٧٢ in the grades calculator still leaves the box empty |
+| ST-19 (minor) | **open** | e2e "a double tap on "Send request" sends one request" still fails as expected |
+| ST-20 (minor) | fixed | Time me keeps counting after a reload (0:59:59 → 0:59:57) |
+| ST-21 (minor, data) | **open** | Year 3 modules still have no unit codes |
+| ST-22 (nit) | fixed | reopening Sign in for the same address opens on the code step |
+| ST-23 (major) | fixed | `/account` loads directly; the suite's retry around it is removed |
+
+### The suite
+
+Changed because the app changed on purpose: the personal event's Day field (an "All day" switch now matches "Day");
+Career Navigator's editor (heading level, the new employer's fields and page link, the preview's folded list, headings
+instead of text); Home's "Up next" (was Coming up); the daily question added from Customise Home (not on Home by
+default); the option picked from Home (the calendar has no Papers button since 05e6d43); Mini Noora's lane beside the
+sidebar, her script notice, waiting until she is on the page, and her shortcut on a note (she stays out of sight
+there); /noora's chat list hooks; past paper cards and the "Show all sittings" fold; Time me's dialog; the question
+tag dialog; any Year 2 file for Starred (no links left after the Drive import); Daily puzzles' Today part.
+
+Changed because the suite was wrong: switches are written down before a spec changes them and put back as found
+(`switchOn`/`switchBack`), and the teardown restores what a stopped spec left instead of switching every feature on
+(the shared stack had all features on, and specs left nine off for an hour); feature names come from the API's types
+(CQ-68), not a list by hand; the admin's session is renewed before the Access screen; the retry around `/account` is
+gone; drawers and dialogs are found by name; the guest phone test and the papers test get more time; titles carry no
+review numbers.
+
+New specs: `daily.spec.ts` (every game to a finish as a guest; a guest's hub; Ali plays all six on a phone, his
+plays count and he joins the leaderboard), `notebook.spec.ts` (text and a resized, moved picture survive a reload),
+`manage-content.spec.ts` (Site settings and a Daily theme, seen on the site and put back), `forum-categories.spec.ts`.
+
+**Runs** (`scripts/e2e.sh`, Google Chrome, one worker):
+
+| Run | Code | Passed | Failed | Did not run | Time |
+|---|---|---|---|---|---|
+| 1 | 25234ed, specs as found | 65 | 16 | 11 | 1.5 h (machine at load 25–125) |
+| 2 | merged 96a58ba…ac4647e, spec fixes | 94 | 5 | 2 | 23.3 min |
+| 3–5 | merges a83ba95 and 710eba7, reruns | 94–100 | 1–4 | 0–4 | 13–24 min |
+| 6 | **710eba7 merged, final** | **103** | **0** | **0** | **7.3 min** |
+
+Two of the 103 are expected failures (`test.fail`) that still fail as expected: Career Navigator's editor losing the
+focus (ST-28) and a double tap on "Send request" (ST-19). Run 6 includes uxfix's two new specs (paper-toolbar,
+menus-reduced-motion). Failures in runs 3 to 5 that were the suite's: the run's upload files were byte-identical across
+runs and within a run, so the library hid them as duplicates of a leftover (each file now holds the run's tag, and the
+papers spec has its own paper and report); copy and layout that the round's merges changed on purpose (Daily hub
+status list, guest card, notes made from the list, question cards).
+
+Left for later: teardown deleted the run's students but not every library file in runs 2 and 3 (I removed 32 leftover
+`[e2e …]` files and this round's 13 made-up accounts by hand); the 18 October screenshots were lost when a session
+restart cleared the scratch folder, so the paths above name what each shot showed and can be retaken from the steps.
+
+**Final: 103 passed, 0 failed, 0 skipped (7.3 min).**
+
+
 Tester: student tester. Status: **done** (10 October 2026). Stack under test: the shared dev API `:8000`, my web dev
 server `:5178`, the freshly seeded dev database (shared with the other reviewers while I tested).
 

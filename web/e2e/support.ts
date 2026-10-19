@@ -25,6 +25,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import zlib from 'node:zlib';
+import type { components } from '../src/api/schema';
 import {
   expect,
   request as playwrightRequest,
@@ -260,8 +261,9 @@ export async function csrf(ctx: BrowserContext, request: APIRequestContext): Pro
 
 /** A rep's or admin's dev-login session is renewed when it is past the step-up window (10 minutes, decision D2):
  * switching features, roles and suspensions need a fresh session, and the run's dev-login sessions are made in the
- * setup project, long before the later specs. Students' sessions are never renewed (their step-up is tested). */
-async function renewStaffSession(ctx: BrowserContext): Promise<boolean> {
+ * setup project, long before the later specs. api() renews by itself; a test that changes roles through the screens
+ * renews first, or "Confirm it’s you" stops it. Students' sessions are never renewed (their step-up is tested). */
+export async function renewStaffSession(ctx: BrowserContext): Promise<boolean> {
   const current = (await ctx.cookies()).find((c) => c.name === 'dsba_session')?.value;
   if (!current) return false;
   const run = readRun();
@@ -281,6 +283,13 @@ async function renewStaffSession(ctx: BrowserContext): Promise<boolean> {
     return true;
   }
   return false;
+}
+
+/** For a test that changes roles, switches or suspensions through the screens: renews the rep's or admin's session
+ * when it is near the step-up window, so "Confirm it’s you" doesn't stop the test half way. */
+export async function freshStaffSession(page: Page, who: 'rep' | 'admin'): Promise<void> {
+  const age = Date.now() - fs.statSync(statePath(who)).mtimeMs;
+  if (age > 8 * 60_000) await renewStaffSession(page.context());
 }
 
 export async function api<T>(
@@ -337,43 +346,88 @@ export async function roleIdBySlug(admin: Page, slug: string): Promise<string> {
   return role.id;
 }
 
-/** Every feature with a switch. */
-export const FEATURES = [
-  'forum',
-  'forum.anonymous',
-  'forum.follow',
-  'forum.help-below',
-  'library',
-  'library.uploads',
-  'library.questions',
-  'library.daily-question',
-  'newsletter',
-  'newsletter.polls',
-  'calendar',
-  'career',
-  'career.seniors',
-  'grades',
-  'noora',
-  'noora.ai',
-  'notes',
-  'board',
-  'requests',
-  'requests.autoclose',
-  'requests.done',
-  'summary',
-  'modules.video-suggestions',
-] as const;
+/** A feature with a switch, as the API names them (GET /api/v1/admin/features lists them all). */
+export type Feature = components['schemas']['FeaturesOut']['features'][number];
+type SwitchMode = 'off' | 'roles' | 'everyone';
 
-/** Sets a feature's switch (admins only). Every spec that switches something off puts it back in afterAll. */
+/** Sets a feature's switch (admins only). A spec that changes a switch writes it down first (switchOn) and puts it
+ * back in afterAll (switchBack). */
 export async function setSwitch(
   admin: Page,
-  feature: (typeof FEATURES)[number],
-  mode: 'off' | 'roles' | 'everyone',
+  feature: Feature,
+  mode: SwitchMode,
   roleIds: string[] = [],
 ): Promise<void> {
   const r = await api(admin, 'PUT', `/api/v1/admin/features/${feature}`, { mode, roleIds });
   if (r.status === 429) return switchAsSpare(feature, mode, roleIds);
   expect(r.status, `switch ${feature} ${mode}`).toBe(200);
+}
+
+interface SwitchState {
+  feature: Feature;
+  mode: SwitchMode;
+  roleIds: string[];
+}
+
+async function switchStates(admin: Page): Promise<SwitchState[]> {
+  const r = await api<SwitchState[]>(admin, 'GET', '/api/v1/admin/features');
+  expect(r.status, 'read the switches').toBe(200);
+  return r.body;
+}
+
+const sameSwitch = (a: SwitchState | undefined, b: SwitchState) =>
+  a?.mode === b.mode && [...a.roleIds].sort().join() === [...b.roleIds].sort().join();
+
+const savedSwitches = (key: string) => path.join(env.stateDir, `switches-${key}.json`);
+
+/** For a spec's beforeAll: switches `features` on for everyone, after writing down how each one was (under `key`, in
+ * the state folder, so a worker that restarts after a failure keeps the first record). The stack may be someone's
+ * working copy, so switchBack puts each switch back as it was found, on or off. A switch already on isn't touched:
+ * every change counts towards the admin's limit. */
+export async function switchOn(browser: Browser, key: string, features: readonly Feature[]): Promise<void> {
+  const ctx = await personaContext(browser, 'admin');
+  try {
+    const admin = await ctx.newPage();
+    const now = await switchStates(admin);
+    const file = savedSwitches(key);
+    if (!fs.existsSync(file)) fs.writeFileSync(file, JSON.stringify(now.filter((s) => features.includes(s.feature))));
+    for (const feature of features)
+      if (now.find((s) => s.feature === feature)?.mode !== 'everyone') await setSwitch(admin, feature, 'everyone');
+  } finally {
+    await ctx.close();
+  }
+}
+
+/** For the spec's afterAll, and the teardown for a run that stopped half way: puts back each switch `switchOn` wrote
+ * down under `key`, the last first. */
+export async function switchBack(browser: Browser, key: string): Promise<void> {
+  const file = savedSwitches(key);
+  if (!fs.existsSync(file)) return;
+  const saved = JSON.parse(fs.readFileSync(file, 'utf8')) as SwitchState[];
+  const ctx = await personaContext(browser, 'admin');
+  try {
+    const admin = await ctx.newPage();
+    const now = await switchStates(admin);
+    for (const s of [...saved].reverse())
+      if (
+        !sameSwitch(
+          now.find((x) => x.feature === s.feature),
+          s,
+        )
+      )
+        await setSwitch(admin, s.feature, s.mode, s.roleIds);
+    fs.rmSync(file);
+  } finally {
+    await ctx.close();
+  }
+}
+
+/** The keys of the switches written down and not put back yet: a spec that stopped before its afterAll. */
+export function switchesLeft(): string[] {
+  return fs
+    .readdirSync(env.stateDir)
+    .filter((f) => /^switches-.+\.json$/.test(f))
+    .map((f) => f.slice('switches-'.length, -'.json'.length));
 }
 
 /** An admin allows 60 changes to roles and switches in 10 minutes (services/roles.py), and the whole suite makes
@@ -431,16 +485,10 @@ async function switchAsSpare(feature: string, mode: string, roleIds: string[]): 
   throw new Error(`switch ${feature} ${mode}: no spare admin could make the change`);
 }
 
-/** Navigates to /account. Recovers if ST-23 (useModules outside ModulesGate race) hits the error boundary. */
+/** Opens /account and waits for its heading. */
 export async function gotoAccount(page: Page): Promise<void> {
   await page.goto('/account');
-  const tryAgain = page.getByRole('button', { name: 'Try again' });
-  const h1 = page.getByRole('heading', { name: 'Your account', exact: true });
-  await expect(h1.or(tryAgain)).toBeVisible();
-  if (await tryAgain.isVisible()) {
-    await tryAgain.click();
-    await expect(h1).toBeVisible();
-  }
+  await expect(page.getByRole('heading', { name: 'Your account', exact: true })).toBeVisible();
 }
 
 // ── small, real test files (made at run time: nothing binary is kept in the repo) ─────────────
@@ -579,6 +627,9 @@ function docx(paragraphs: string[]): Buffer {
 export interface TestFiles {
   dir: string;
   pdf: string;
+  /** two more PDFs, a paper and its examiners' report: the library shows one file per content */
+  paper: string;
+  report: string;
   docx: string;
   ipynb: string;
   csv: string;
@@ -588,7 +639,8 @@ export interface TestFiles {
   tooBig: string;
 }
 
-/** Writes the run's upload files (real files, plus three wrong ones) and returns their paths. */
+/** Writes the run's upload files (real files, plus three wrong ones) and returns their paths. Each holds the run's
+ * tag: the library lists one file per content, so a file left by an earlier run would hide this run's copy. */
 export function makeFiles(tag: string): TestFiles {
   const dir = path.join(env.stateDir, `files-${tag}`);
   fs.mkdirSync(dir, { recursive: true });
@@ -596,6 +648,8 @@ export function makeFiles(tag: string): TestFiles {
   const files: TestFiles = {
     dir,
     pdf: p(`ST2133 MGF summary ${tag}.pdf`),
+    paper: p(`EC1002 May 2024 paper ${tag}.pdf`),
+    report: p(`EC1002 commentary ${tag}.pdf`),
     docx: p(`EC1002 elasticity notes ${tag}.docx`),
     ipynb: p(`ST2195 pandas practice ${tag}.ipynb`),
     csv: p(`ST2187 sales data ${tag}.csv`),
@@ -615,9 +669,17 @@ export function makeFiles(tag: string): TestFiles {
       ]),
     );
     fs.writeFileSync(
+      files.paper,
+      pdf([`EC1002 Introduction to Economics, May 2024, Zone A (${tag})`, 'Answer FOUR questions.']),
+    );
+    fs.writeFileSync(
+      files.report,
+      pdf([`EC1002 examiners' commentary (${tag})`, 'Question 3: most candidates did well.']),
+    );
+    fs.writeFileSync(
       files.docx,
       docx([
-        'EC1002 Price elasticity of demand',
+        `EC1002 Price elasticity of demand (${tag})`,
         'PED = % change in quantity / % change in price.',
         'Use the midpoint formula and show it.',
       ]),
@@ -626,7 +688,7 @@ export function makeFiles(tag: string): TestFiles {
       files.ipynb,
       JSON.stringify({
         cells: [
-          { cell_type: 'markdown', metadata: {}, source: ['# ST2195 pandas practice'] },
+          { cell_type: 'markdown', metadata: {}, source: [`# ST2195 pandas practice (${tag})`] },
           {
             cell_type: 'code',
             execution_count: 1,

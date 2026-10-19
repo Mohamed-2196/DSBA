@@ -1,21 +1,13 @@
 // Requests, end to end: Sara asks for a past paper from the library's "Ask for it", Ali says "me too", the rep
 // plans it from Manage, and Sara is told. Requests arrive switched off, so the spec switches them on and back off.
 import { expect, test } from './fixtures';
-import { api, personaContext, setSwitch } from './support';
+import { api, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'requests', 'everyone');
-  await ctx.close();
-});
+test.beforeAll(async ({ browser }) => switchOn(browser, 'requests', ['requests']));
 
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'requests', 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'requests'));
 
 test('a student asks, a classmate says me too, a rep answers and the student is told', async ({
   sara,
@@ -64,8 +56,8 @@ test('a student asks, a classmate says me too, a rep answers and the student is 
   }
 });
 
-test('ST-19: a double tap on "Send request" sends one request', async ({ ali, rep, run }) => {
-  test.fail(true, 'ST-19: the request dialog has no guard against a second press, so a double tap makes two requests');
+test('a double tap on "Send request" sends one request', async ({ ali, rep, run }) => {
+  test.fail(true, 'the request dialog has no guard against a second press, so a double tap makes two requests');
   const title = `Double tap [e2e ${run.tag}]`;
   await ali.goto('/requests');
   await ali.getByRole('button', { name: 'New request' }).click();

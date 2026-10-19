@@ -2,25 +2,13 @@
 // and it leads "You asked, we did" on /requests; the rep's Gaps tab lists what's missing. requests and
 // requests.done arrive off, so the spec switches them on and back off.
 import { expect, test } from './fixtures';
-import { api, personaContext, setSwitch } from './support';
+import { api, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const page = await ctx.newPage();
-  await setSwitch(page, 'requests', 'everyone');
-  await setSwitch(page, 'requests.done', 'everyone');
-  await ctx.close();
-});
+test.beforeAll(async ({ browser }) => switchOn(browser, 'requests-done', ['requests', 'requests.done']));
 
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  const page = await ctx.newPage();
-  await setSwitch(page, 'requests.done', 'off');
-  await setSwitch(page, 'requests', 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'requests-done'));
 
 test('a request a rep marks done shows under "You asked, we did"', async ({ sara, rep, run }) => {
   const title = `A fix for the calendar [e2e ${run.tag}]`;

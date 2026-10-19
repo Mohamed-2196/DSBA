@@ -122,7 +122,7 @@ test('Ali answers and votes; Sara replies to his answer, accepts it and edits he
   expect(kinds).toContain('reply_reply');
 });
 
-test('ST-13: a double click on "Post reply" posts one reply', async ({ ali, run }) => {
+test('a double click on "Post reply" posts one reply', async ({ ali, run }) => {
   await ali.goto(`/forum/${slug}`);
   const text = `Same answer, sent with a double tap (${run.tag}).`;
   await ali.locator('[data-hub="reply-input"]').fill(text);

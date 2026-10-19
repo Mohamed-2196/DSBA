@@ -22,7 +22,7 @@ test('a student adds their own weekly event, sees it on the calendar and Home, e
   await sara.locator('[data-hub="calendar-mine-add"]').click();
   const form = sara.getByRole('dialog');
   await form.getByLabel('Title').fill(title);
-  await form.getByLabel('Day').fill(inDays(1));
+  await form.getByRole('textbox', { name: 'Day', exact: true }).fill(inDays(1));
   await form.getByLabel('Starts').fill('18:00');
   await form.getByLabel('Ends').fill('19:30');
   await form.getByLabel('Repeat').selectOption('weekly');
@@ -33,7 +33,7 @@ test('a student adds their own weekly event, sees it on the calendar and Home, e
   await expect(sara.getByText('Added to your calendar')).toBeVisible();
 
   // the drawer opens on it: theirs, with its repeat and reminder
-  const drawer = sara.getByRole('dialog');
+  const drawer = sara.getByRole('dialog', { name: title });
   await expect(drawer.getByText('Your event')).toBeVisible();
   await expect(drawer.getByText('18:00–19:30, Library, room 2')).toBeVisible();
   await expect(drawer.getByText(/Every week for a year/)).toBeVisible();

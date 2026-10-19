@@ -1,24 +1,29 @@
-// Runs after every spec (project "cleanup", the setup project's teardown). Every feature is switched back on for
-// everyone, so an interrupted run never leaves one off. The run's two students download their data and delete their
-// accounts (their posts stay, as from a deleted account); then the rep removes what the run created. Nothing the run
-// didn't create is touched. E2E_KEEP=1 leaves the accounts and posts in place.
+// Runs after every spec (project "cleanup", the setup project's teardown). A spec that stopped before its afterAll
+// has its switches put back as it found them, so an interrupted run never leaves a feature off (or on). The run's
+// two students download their data and delete their accounts (their posts stay, as from a deleted account); then the
+// rep removes what the run created. Nothing the run didn't create is touched. E2E_KEEP=1 leaves the accounts and
+// posts in place.
 import fs from 'node:fs';
 import { test as teardown, expect } from '@playwright/test';
-import { api, env, FEATURES, gotoAccount, personaContext, readRun, setSwitch, statePath, waitForCode } from './support';
+import {
+  api,
+  env,
+  gotoAccount,
+  personaContext,
+  readRun,
+  statePath,
+  switchBack,
+  switchesLeft,
+  waitForCode,
+} from './support';
 
 // In order (one worker), but not serial: a failed step must not skip the clean-up after it.
 teardown.describe.configure({ mode: 'default' });
 
-teardown('every feature is switched back on for everyone', async ({ browser }) => {
+teardown('every switch a spec changed is back as it found it', async ({ browser }) => {
   if (!fs.existsSync(statePath('admin'))) return;
-  const ctx = await personaContext(browser, 'admin');
-  const page = await ctx.newPage();
-  // Only the ones that aren't on: every switch counts towards the admin's 60 changes in 10 minutes.
-  const now = await api<{ feature: string; mode: string }[]>(page, 'GET', '/api/v1/admin/features');
-  expect(now.status).toBe(200);
-  const on = new Set(now.body.filter((f) => f.mode === 'everyone').map((f) => f.feature));
-  for (const feature of FEATURES.filter((f) => !on.has(f))) await setSwitch(page, feature, 'everyone');
-  await ctx.close();
+  for (const key of switchesLeft()) await switchBack(browser, key);
+  expect(switchesLeft()).toEqual([]);
 });
 
 teardown(

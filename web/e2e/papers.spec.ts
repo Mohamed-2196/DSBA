@@ -1,9 +1,9 @@
-// Past papers, end to end: a rep shares a May 2024 zone A paper and its examiners' report; Sara finds them side by
-// side on the module's Files tab, times herself, tags question 3 with a chapter, and finds it on the Lessons tab.
-// Tagging arrives switched off, so the spec switches it on and back off.
+// Past papers, end to end: a rep shares a May 2024 zone A paper and its examiners' report; Sara finds them together
+// on the module's Files tab, times herself, tags question 3 with a chapter, and finds it on the Lessons tab. The spec
+// switches tagging on and puts it back as it was.
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { api, makeFiles, personaContext, remember, setSwitch } from './support';
+import { api, makeFiles, remember, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -13,17 +13,9 @@ interface Item {
   status: string;
 }
 
-test.beforeAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'library.questions', 'everyone');
-  await ctx.close();
-});
+test.beforeAll(async ({ browser }) => switchOn(browser, 'papers', ['library.questions']));
 
-test.afterAll(async ({ browser }) => {
-  const ctx = await personaContext(browser, 'admin');
-  await setSwitch(await ctx.newPage(), 'library.questions', 'off');
-  await ctx.close();
-});
+test.afterAll(async ({ browser }) => switchBack(browser, 'papers'));
 
 async function share(
   page: Page,
@@ -61,25 +53,31 @@ test('a paper sits with its report, Sara times herself, tags a question and find
   rep,
   run,
 }) => {
+  test.slow(); // two uploads, then four pages
   const files = makeFiles(run.tag);
   const made: Item[] = [];
   try {
-    const paper = await share(rep, files.pdf, `EC1002 ZA May 2024 [e2e ${run.tag}]`, 'past-paper', 'A');
+    const paper = await share(rep, files.paper, `EC1002 ZA May 2024 [e2e ${run.tag}]`, 'past-paper', 'A');
     made.push(paper);
-    made.push(await share(rep, files.pdf, `EC1002 commentary May 2024 [e2e ${run.tag}]`, 'examiners-report', ''));
+    made.push(await share(rep, files.report, `EC1002 commentary May 2024 [e2e ${run.tag}]`, 'examiners-report', ''));
 
     await sara.goto('/modules/economics?tab=files');
     const sittings = sara.locator('[data-hub="paper-sittings"]');
-    // Imported papers may share the sitting, so a label can carry a number ("Paper 2").
-    const may = sittings.getByRole('listitem').filter({ has: sara.getByRole('heading', { name: 'May 2024' }) });
+    await expect(sittings).toBeVisible();
+    // Newest first: an older sitting may be past the first few.
+    const showAll = sittings.getByRole('button', { name: /^Show all \d+ sittings$/ });
+    if (await showAll.isVisible()) await showAll.click();
+    // Each zone's paper is a card with its first page; the sitting's examiners' report is a link on its cards.
+    const open = `Open EC1002 ZA May 2024 [e2e ${run.tag}]`;
+    const may = sittings.getByRole('listitem', { name: 'May 2024', exact: true });
+    const card = may.locator('[data-hub="paper-card"]').filter({ has: sara.getByRole('link', { name: open }) });
     await expect(
-      may.getByRole('link', {
-        name: new RegExp(`^Examiners’ report( \\d)?: EC1002 commentary May 2024 \\[e2e ${run.tag}\\]$`),
-      }),
+      may
+        .getByRole('link', { name: /^Report( \d)?$/ })
+        .and(sara.getByTitle(`EC1002 commentary May 2024 [e2e ${run.tag}]`))
+        .first(),
     ).toBeVisible();
-    await may
-      .getByRole('link', { name: new RegExp(`^Paper( \\d)?: EC1002 ZA May 2024 \\[e2e ${run.tag}\\]$`) })
-      .click();
+    await card.getByRole('link', { name: open }).click();
     await expect(sara).toHaveURL(new RegExp(`/library/${paper.slug}$`));
 
     const sitting = sara.locator('[data-hub="file-sitting"]');
@@ -91,23 +89,31 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     ).toBeVisible();
 
     await sara.getByRole('button', { name: 'Time me' }).click();
-    await sara.getByRole('menuitem', { name: '1 hour' }).click();
+    const timeMe = sara.getByRole('dialog', { name: 'Time me' });
+    await timeMe.getByRole('radio', { name: '1 hour' }).click();
+    await timeMe.getByRole('button', { name: 'Start 1 hour' }).click();
     await expect(sara.locator('[data-hub="exam-timer"]')).toContainText(/0:59:\d\d left/);
     await sara.getByRole('button', { name: 'Stop the timer' }).click();
 
     const tags = sara.locator('[data-hub="question-tags"]');
-    await tags.getByLabel('Question').selectOption('3');
-    await tags.getByLabel('Page').fill('2');
-    await tags.getByLabel('Chapter').selectOption({ index: 1 });
+    await tags.getByRole('button', { name: /^Tag (this|a) question$/ }).click();
+    const tagging = sara.getByRole('dialog', { name: 'Tag this question' });
+    await tagging.getByLabel('Question').selectOption('3');
+    await tagging.getByLabel('Page').fill('2');
+    await tagging.getByLabel('Chapter').selectOption({ index: 1 });
     const chapter =
-      (await tags.getByLabel('Chapter').locator('option:checked').textContent())?.replace(/^\d+\.\s*/, '') ?? '';
-    await tags.getByRole('button', { name: 'Tag the question' }).click();
+      (await tagging.getByLabel('Chapter').locator('option:checked').textContent())?.replace(/^\d+\.\s*/, '') ?? '';
+    await tagging.locator('[data-hub="tag-question-submit"]').click();
     await expect(tags.getByRole('listitem').filter({ hasText: chapter })).toContainText('Q3 (p. 2)');
 
     await sara.goto('/modules/economics?tab=lessons');
     const past = sara.locator('[data-hub="chapter-questions"]');
     await expect(past.getByRole('heading', { name: 'Past exam questions on this chapter' })).toBeVisible();
-    await past.getByRole('link', { name: /May 2024, Zone A\s*Q3 \(p\. 2\)/ }).click();
+    await past
+      .getByRole('link')
+      .filter({ hasText: 'Q3 (p. 2)' })
+      .and(sara.getByTitle(`EC1002 ZA May 2024 [e2e ${run.tag}]`))
+      .click();
     await expect(sara).toHaveURL(new RegExp(`/library/${paper.slug}\\?page=2$`));
   } finally {
     for (const item of made) await api(rep, 'DELETE', `/api/v1/library/items/${item.id}`);
