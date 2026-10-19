@@ -1,5 +1,209 @@
 # Student test: DSBA Hub through the browser
 
+## Round 14 (19 October 2026): the study core
+
+`round14/coretest` at c4e345de, on the running Docker stack (app :5173, API :8000). Daily is out of scope. The question
+this round: how well do the sections students spend most of their time in serve studying? Each journey was done as
+the persona it belongs to, on a 390×844 phone (touch) and a 1440×900 laptop, in Chrome, on the term as the data has
+it: Monday 19 October, ST2134 four days away. Made-up people only, from dev-login: **Aisha R14** (Year 1,
+`aisha.e2e.r14@example.com`), **Yousif R14** (Year 2, `yousif.e2e.r14@example.com`), **Noor R14** (Year 3,
+`noor.e2e.r14@example.com`), **Khalid R14** (rep, `khalid.e2e.r14@example.com`) and a guest. Screenshots:
+`/private/tmp/claude-501/-Users-mohamed-dsba-hub/5411a11a-0ba5-46f6-8270-b4d416f58375/scratchpad/r14-coretest/shots/`.
+The accounts, the thread, the upload, the issue, the event, the notes and the boards were removed afterwards.
+
+Timings are clicks inside the app (the stack runs Vite's dev server on a machine at load average 45 to 50, so full
+page loads of 1 to 4 s, or 8 to 22 s on a throttled 4G profile, say nothing about production and aren't findings).
+In-app steps took 0.1 to 2 s: switching tabs 0.2 to 0.9 s, opening a paper in the notebook 1.7 to 2.9 s, posting
+a reply 1.5 s, publishing an upload 1.2 s.
+
+### Summary
+
+No blockers, and every button in the five journeys works. What costs students time is how the pieces join up. A
+student sitting a past paper loses the clock as soon as they write on it (ST-41). Going back to the sittings list
+collapses it and scrolls to the top, every time (ST-42). Home never says "carry on with the paper or note you had
+open" (ST-43). Writing a proper note during a lesson stops the video (ST-44). The revision plan built four days before
+an exam is 27 videos and one past paper (ST-40). Two content gaps send students back to the VLE and WhatsApp: no exam
+times anywhere, and an "Exam rules" link that opens an empty forum list (ST-45). ST2134 also can't see its own
+textbook (ST-46).
+
+Worked well, and worth keeping as it is: the sittings list (newest first, zones, report and solutions beside each
+paper, "Done, 68%" once scored); Time me surviving a reload; the notebook reopening the same annotated paper the next
+day; the notebook typing offline and saving itself when the connection came back; search reaching inside papers to
+the page ("maximum likelihood" opens the May 2026 paper at page 3); the forum from question to accepted answer in
+under a minute, with formulas and Arabic; the calendar's weekly event with an end date, its reminder and the .ics
+with a reminder the day before; the upload checks (wrong type, 51 MB) with plain errors; the rep's review queue and
+newsletter editor on a phone.
+
+### Findings, ranked by the student time they cost
+
+| ID | Severity | Persona | What | Time it costs |
+|---|---|---|---|---|
+| ST-40 | major | Year 2 | "Plan my revision" four days out: 27 videos at 7 a day and one past paper, on the last day | the plan is unusable in exam week; ~10 min to rebuild by hand, or no plan |
+| ST-41 | major | Year 2 | Time me is only on the library page: annotating the paper in the notebook hides the clock; on a phone the paper opens in another tab | every timed paper; students time themselves on their phone's clock instead |
+| ST-42 | major | Year 2 | Back from a paper collapses "Show all 16 sittings" and scrolls to the top | 10–15 s per paper or report opened; several minutes per revision session |
+| ST-43 | major | all | Nothing on Home picks up where you left off: the paper, the note, a running timer, the lesson | ~1 min to find the place again, every session |
+| ST-44 | major | Year 1 | "Write a longer one" leaves the lesson and stops the video; the quick note box is below the fold | every lecture watched; notes go back to paper or a phone app |
+| ST-45 | major (content) | Year 2 | Every October exam says "Time not set yet" 4 days out; "What to bring" opens an empty forum list | a trip to the VLE or WhatsApp for every exam |
+| ST-46 | minor | Year 2 | ST2134's textbook (Statistical Inference 2nd ed.) and a notes file are hidden from ST2134 as copies of other modules' files | the core book can't be found from its module |
+| ST-47 | minor | Year 2 | Saving a practice score takes five steps on two screens; stopping Time me doesn't ask | ~40 s per paper; most scores won't be saved |
+| ST-48 | minor (content) | Years 1–3 | "Past questions by topic" is empty in 14 of 16 modules; solutions exist for 1–2 sittings per module; ST2134 chapter 4 has one video | the topic-revision path is a dead end in most modules |
+| ST-49 | minor | Year 3 | Year 3 modules have no unit codes, no lessons, and an empty module that promises a study guide and offers a revision plan | Year 3 finds little and stops looking |
+| ST-50 | minor | all | Home's defaults show Today's Daily but hide the Daily question (a past exam question before your next exam) | the one study block on Home is off unless found in Customise |
+| ST-51 | minor | Year 1 | New thread: Module lists all 16 modules whatever "Post in" says, and isn't taken from the code in the title | wrong module tagged, wrong exam shown beside the thread |
+| ST-52 | nit | Year 1 | Reply notifications show raw formulas (`$x^2 - 4 > 0$`) | seconds |
+| ST-53 | nit | Year 2 | Modules page isn't in exam order (ST2133 first, ST2134 sooner); Home is | seconds |
+| ST-54 | nit | Year 2 | Search has no spelling tolerance ("hypothisis": nothing) | a retype |
+| ST-55 | nit | Year 2 | Calendar's "This week" leaves out Friday's ST2134 exam (only the hero card shows it) | a moment of doubt |
+| ST-56 | nit | Year 2 | Paper page: "Examiners’ report Examiners’ report"; "About this file: In VLE and older exams."; "Esc Back to the library" goes to the module | seconds |
+| ST-57 | nit | Year 2 | ST2134 counts: "16 sittings" beside "1 of 14 sittings done"; 42, 40 and 38 files (ST-34 again) | doubt about what's missing |
+
+#### ST-40 (major) The revision plan in exam week is all videos
+
+- Persona, where: Yousif (Year 2), phone and laptop; `/modules/st2134` → **Plan my revision**, exam date 23 Oct
+  (prefilled), "A past paper every 3 days" (default) → **Make the plan**.
+- Expected: four days before an exam, a plan built on past papers: a paper a day, the examiners' report after each,
+  and the lessons of the weakest chapters only; papers already done (May 2025, scored 68%) left out.
+- Got: a "Statistical inference revision" board of 28 cards: all 27 lessons ("Statistical inference: Point
+  Estimation, lesson 4", no video title), 7 a day starting today, and one paper (May 2026) due the day before the
+  exam. "About 7 a day until the exam" is 7 videos a day in exam week.
+- Time: the plan isn't followable; rebuilding it card by card is ~10 minutes, so most students will delete it.
+- Screenshots: `j1-phone-plan.png`, `j1-phone-board-plan.png`.
+
+#### ST-41 (major) Time me and the notebook don't meet
+
+- Persona, where: Yousif, laptop and phone; `/library/st2134-exam-paper-may-2025` → **Time me** → Start 2 hours →
+  **Annotate in my notebook**.
+- Expected: the clock with the paper wherever the paper is: in the notebook while writing answers on it, and with the
+  PDF on a phone.
+- Got: the notebook (`/notes/…`, "Written on ST2134 Exam paper - May 2025") has no clock; it's still running back on
+  the library page. On a phone the paper page shows "Read the PDF: it opens in your phone’s PDF viewer, in a new tab",
+  so the yellow timer bar and the paper are in different tabs. Time me's dialog also says "Most papers are 2 or 3
+  hours: the front page says how long yours is" when the Hub knows the module. The notebook already draws PDFs
+  itself (pdf.js), so a phone could show the paper in the Hub.
+- Time: every timed paper; on a phone it's flipping tabs for two hours.
+- Screenshots: `j1-laptop-timer-running.png`, `j1-laptop-annotate2.png`, `j1-phone-timer-running.png`.
+
+#### ST-42 (major) Back from a paper loses your place in the sittings
+
+- Persona, where: Yousif, phone and laptop; `/modules/st2134?tab=files` → **Show all 16 sittings** → scroll to 2014
+  (scrollY 4,500 on the phone) → open the paper → browser back (or Esc on the laptop).
+- Expected: the list as it was, at the sitting just opened.
+- Got: the Files tab at the top (scrollY 0) with only four sittings and "Show all 16 sittings" again.
+- Time: 10–15 s each time; working through old papers with their reports is dozens of round trips.
+- Screenshots: `x-phone-after-back.png`, `x-laptop-after-back.png`.
+
+#### ST-43 (major) Home doesn't pick up where you left off
+
+- Persona, where: Yousif, phone; the day after starting the May 2025 paper (timer running, notebook annotations,
+  paper on the board), open `/`.
+- Expected: a "Carry on" line: the paper with its timer, the annotated note, the last lesson.
+- Got: Home shows Up next, To-do (dated cards only), My modules, New files, Forum, Today's Daily. The paper, the
+  note and the running timer appear nowhere; lesson progress is off until turned on. Getting back is Library or Notes
+  → find it → open (about a minute).
+- Screenshot: `j1-phone-home-nextday.png`.
+
+#### ST-44 (major) Notes during a lesson stop the lesson
+
+- Persona, where: Aisha (Year 1), laptop and phone; `/modules/mathematics/lessons/w9t3t8rp`, video playing.
+- Expected: write notes beside (laptop) or under (phone) the playing video.
+- Got: the quick note box is a single line below "Past exam questions on this chapter", off the first screen on the
+  laptop. **Write a longer one** opens `/notes/…` ("About chapter 1, video 2"): the video stops and isn't on the
+  page. Quick notes don't record the video time. Each "Write a longer one" left an empty "Untitled note" in the
+  lesson's notes when nothing was typed (ST-37 again).
+- Time: every lecture; the note-taking students will keep doing it on paper.
+- Screenshots: `j2-laptop-playing.png`, `j2-laptop-quicknote.png`, `j2-laptop-longer.png`.
+
+#### ST-45 (major, content) No exam times, and "What to bring" is an empty list
+
+- Persona, where: Yousif, phone; `/calendar` → Your next exam → **Details**.
+- Expected: four days before the exam, its time and place (the UoL timetable is out), and what to bring.
+- Got: "Time and place: Time not set yet" on all six Year 2 October exams (and Year 1's EC1002, today). "What to
+  bring and which calculators: ask in the forum’s Exam rules threads" opens `/forum?tag=exams`: "0 threads, No
+  threads match these filters". The .ics says "exam times and venues are not included".
+- Time: one trip to the VLE or WhatsApp per exam: the thing students most need that week.
+- Screenshots: `j4-phone-calendar.png`, `j4-phone-exam-details.png`, `j4-phone-examrules.png`.
+
+#### ST-46 (minor) ST2134's textbook is hidden from ST2134
+
+- Persona, where: Yousif, laptop; `/modules/st2134` and `/library?module=advanced-stats-inferential`.
+- Expected: "Statistical Inference 2nd Edition" (the ST2134 textbook) under Books, and the students' notes file.
+- Got: Books lists 2 files without it; "Nobody has shared notes for ST2134 yet". Both are published in ST2134 but have
+  the same bytes as earlier copies in ST2133 and ST1215, and the library's duplicate rule (`duplicate()` in
+  `app/services/library.py`) hides the later copy everywhere, across modules. The book only shows under ST2133.
+  Eight files are hidden this way; the other six are MT1186 files misfiled under ST1215, where hiding is right.
+- Screenshot: `j1-laptop-papers.png`.
+
+#### ST-47 (minor) Saving a practice score is five steps
+
+- Persona, where: Yousif, laptop; after timing May 2025.
+- Got: **Stop the timer** closes the clock with no question. To keep a score: **Add to my board** → Open board →
+  card menu → Move to Done → "How did it go?" → 68 → Save. The score then shows well ("Done, 68%" in the sittings and
+  on the paper).
+- Expected: "How did it go?" when the timer is stopped or runs out, and on the paper page.
+- Screenshots: `j1-laptop-card-menu.png`, `j1-laptop-score-dialog.png`.
+
+#### ST-48 (minor, content) Topic revision is mostly empty
+
+- Counted in the database: tagged past questions exist only for EC1002 (13) and EC2020 (120); 14 modules have none,
+  so every lesson's "Past exam questions on this chapter" says "No questions tagged with this chapter yet". Solutions
+  exist for 0 to 2 sittings per module. ST2134 chapter 4, Hypothesis Testing, has one video. The rep's Gaps screen
+  lists sittings missing a report but not missing solutions, untagged modules or thin chapters.
+- Screenshot: `j2-phone-lesson.png`, `j5-rep-gaps.png`.
+
+#### ST-49 (minor) Year 3 is thin, and one module promises what it hasn't got
+
+- Persona, where: Noor (Year 3), laptop; `/modules`.
+- Got: Year 3 modules have no unit codes (Machine Learning, not ST3189: the library's files say ST3189, the upload
+  and forum pickers don't), no lessons and no exam dates. "Further Mathematics for Economists" says "Study guide and
+  past papers" on its card with no files; its page says "Start with the study guide" (there's none) and offers
+  "Plan my revision" with nothing to plan.
+- Screenshots: `j-y3-modules.png`, `j-y3-ml.png`.
+
+#### ST-50 (minor) Home's defaults put the game before the past question
+
+- Customise Home (Year 2): "Today’s Daily" is on by default, "Daily question: A past exam question before your next
+  exam" and "Help the year below" are off. For a hub whose value is studying, the defaults (Manage → Home
+  defaults) should be the other way round.
+
+#### ST-51 (minor) A new thread's module isn't tied to its year or its title
+
+- Persona, where: Aisha, phone; `/forum/new`, "Post in: Year 1".
+- Got: Module lists all 16 modules (Year 2 and 3 too) and stays "No specific module" though the title starts
+  "MT1186:". A slip picked EC1002, and the thread's side panel then said "EC1002, Exam 19 Oct today". A question
+  about a past paper can't point at the paper or question number except by pasting a link.
+- Screenshot: `j3-phone-preview.png`.
+
+#### ST-52 to ST-57 (nits)
+
+- ST-52: the bell's preview of a reply shows its formulas as typed: "ln needs a positive argument … $x^2 - 4 > 0$, so
+  $|x| > 2$" (`j3-phone-y1-bell.png`).
+- ST-53: `/modules` (Year 2) lists ST2133 (exam in 11 days) before ST2134 (4 days); Home's My modules is in exam
+  order.
+- ST-54: "hypothisis" finds nothing, and "integration by parts" ranks EC2020 and ST2134 reports above the MT1186
+  workbook (`j2-laptop-search-*.png`).
+- ST-55: `/calendar` "This week" shows Friday 23 Oct with only the ST2187 mock; ST2134's exam that day is only in
+  the "Your next exam" card above.
+- ST-56: the paper page's sitting panel reads "Examiners’ report  Examiners’ report" and "Solutions  Solutions";
+  "About this file: In VLE and older exams." (the Drive folder's name); the shortcut hint says "Esc Back to the
+  library" but Esc goes back to the module.
+- ST-57: ST2134's Files tab says "Past papers 16 sittings" and "1 of 14 sittings done"; the module says 42 files,
+  the Files tab 40, the Past papers button 38 (ST-34).
+
+### Earlier findings re-checked
+
+| ID | Status |
+|---|---|
+| ST-27 | still open: the EC1002 2003 paper opens as blank pages in "Annotate in my notebook" (`j1-laptop-annotate.png` is the May 2025 paper, fine; the 2003 one is white) |
+| ST-33 | still open (the link card's copy is unchanged in `Preview.tsx`) |
+| ST-34 | still open (ST-57) |
+| ST-37 | still open, now reached from a lesson's "Write a longer one" (ST-44) |
+| ST-24 to ST-26, ST-28 to ST-32, ST-35, ST-36, ST-38, ST-39 | not re-checked: Daily and Manage, out of this round's scope |
+
+### Results
+
+The suite wasn't run this round (the brief said not to, while other agents use the stack); round 13's count stands:
+103 passed. No specs were added or changed.
+
 ## Round 13 (18–19 October 2026): rounds 11 and 12 by hand, Daily first, and the suite brought up to date
 
 `feature/backend` from 25234ed to the merge of a83ba95 (the squash, Daily's fix, repeats, the sign-up email question),
