@@ -41,7 +41,7 @@
   text-decoration: underline;
 }
 .shell-footer__affil {
-  max-width: 62ch;
+  max-width: var(--measure);
   padding: var(--sp-16) 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);

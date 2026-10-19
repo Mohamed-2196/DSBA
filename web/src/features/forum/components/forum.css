@@ -121,6 +121,7 @@
 }
 
 .forum-row__title {
+  max-width: var(--measure);
   margin: 0;
   font-size: var(--fs-16);
   font-weight: var(--fw-semibold);
@@ -158,6 +159,7 @@
 }
 
 .forum-row__excerpt {
+  max-width: var(--measure);
   margin-top: 4px;
   overflow: hidden;
   display: -webkit-box;

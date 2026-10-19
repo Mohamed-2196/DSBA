@@ -38,7 +38,7 @@
   background: var(--surface-2);
   color: var(--ink-2);
   font-size: var(--fs-14);
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .forum-composer__link {
   color: var(--cobalt);
@@ -79,6 +79,7 @@
   min-width: 0;
   color: var(--ink-2);
   font-size: var(--fs-12);
+  max-width: var(--measure);
 }
 
 .forum-composer__footer {

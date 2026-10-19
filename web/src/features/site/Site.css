@@ -39,7 +39,7 @@
 }
 .site-footer-preview p {
   margin: 0;
-  max-width: 75ch;
+  max-width: var(--measure);
 }
 .site-footer-preview__people {
   margin: 0;

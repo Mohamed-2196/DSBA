@@ -343,7 +343,7 @@
 /* Where a search found its words inside the file. */
 .lib-card__match {
   display: -webkit-box;
-  max-width: 75ch;
+  max-width: var(--measure);
   overflow: hidden;
   color: var(--ink-2);
   font-size: var(--fs-12);

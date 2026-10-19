@@ -83,7 +83,7 @@
   display: none;
 }
 .start-step__hint {
-  max-width: 64ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.5;
@@ -95,7 +95,7 @@
   gap: var(--sp-4) var(--sp-16);
 }
 .start-step__note {
-  max-width: 64ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.45;
@@ -233,8 +233,6 @@
   color: var(--ink-2);
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 .start-place__what {
   margin-top: var(--sp-8);
