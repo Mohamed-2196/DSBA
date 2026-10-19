@@ -15,6 +15,11 @@
 //   <DailyQuestion moduleId moduleName examDays day className />
 //                                        Home's past question a day before the next exam; it gates itself (switches,
 //                                        six weeks, enough tags) and renders nothing otherwise
+//   usePaperSittings(moduleId)          a module's past papers, reports and solutions by sitting, newest first
+//                                        ({ sittings, other })
+//   <SittingsTable sittings linkState board className? />
+//                                        the past papers table, one row per sitting (stacked where it's under 700 px
+//                                        wide, as in a card); linkState { from } is where the paper's Back goes
 //   useModuleQuestions(moduleId)       a module's past exam questions tagged by chapter (Noora's full page asks about one)
 //   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
 //   useTimeMe()                         the paper being timed with Time me ({ timer, start, pause, resume, stop }),
@@ -29,7 +34,8 @@ import type { CohortYear } from '../../state';
 import { Skeleton } from '../../ui';
 
 export { useRecentFiles } from './api';
-export { useModuleQuestions } from './papers';
+export { useModuleQuestions, usePaperSittings } from './papers';
+export { SittingsTable } from './components/SittingsTable';
 export { itemPath as libraryItemPath } from './api';
 export { examTitle as libraryItemTitle } from './display';
 export { EXAM_KINDS as LIBRARY_EXAM_KINDS, KINDS as LIBRARY_KINDS, kindLabel as libraryKindLabel } from './kinds';

@@ -4,12 +4,12 @@
 // included. The clock runs on timestamps, so it keeps time while the tab is hidden, the phone sleeps or the page
 // reloads; when time is up it says so in the page and the tab's title, vibrates, plays a short tone and, if allowed,
 // shows a notification. Stopping it, or time running out, asks "How did it go?" and keeps the score.
-import { ArrowRight, Pause, Play, Timer, X } from '@phosphor-icons/react';
+import { ArrowRight, CaretLeft, Pause, Play, Timer, X } from '@phosphor-icons/react';
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { LibraryItem } from '../../../api/types';
 import { useAuth } from '../../../auth';
-import { useLocalStorage } from '../../../state';
+import { useLocalStorage, useMediaQuery } from '../../../state';
 import { Button, IconButton, Modal, SegmentedControl, TextField, cx } from '../../../ui';
 import { PaperScoreDialog } from '../../board/public';
 import { itemPath } from '../api';
@@ -395,9 +395,50 @@ export function TimerPill() {
   );
 }
 
+/** A phone on its side: the clock folds to a chip, so it covers as little of a short screen as it can. */
+const SHORT_SCREEN = '(max-height: 500px)';
+
 function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
   const { left, done, paused } = useClock(timer);
   const scores = useKeepsScores();
+  const short = useMediaQuery(SHORT_SCREEN);
+  const [unfolded, setUnfolded] = useState(false);
+  // Folding swaps the button pressed for another: keep the keyboard's place on the one that takes its place.
+  const toggled = useRef(false);
+  const toggle = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!toggled.current) return;
+    toggled.current = false;
+    toggle.current?.focus();
+  }, [unfolded]);
+  const fold = (open: boolean) => {
+    toggled.current = true;
+    setUnfolded(open);
+  };
+  // Time's up is an alert with its own action: it never hides in the chip.
+  if (short && !unfolded && !done) {
+    return (
+      <div className="lib-pill-lane">
+        <button
+          type="button"
+          className={cx('lib-pill', 'lib-pill--chip', paused && 'is-paused')}
+          aria-expanded={false}
+          aria-label={`Time me, ${clockLabel(left)} ${paused ? 'left, paused' : 'left'}. Show the timer`}
+          ref={(el) => {
+            toggle.current = el;
+          }}
+          onClick={() => fold(true)}
+          data-hub="timer-pill-toggle"
+        >
+          <Timer aria-hidden="true" weight="duotone" className="lib-pill__icon" />
+          <span className="lib-pill__clock u-tabular" aria-hidden="true">
+            {clockLabel(left)}
+            {paused ? <span className="lib-pill__state"> paused</span> : null}
+          </span>
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="lib-pill-lane">
       <div
@@ -435,6 +476,17 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
           onClick={onFinish}
           data-hub="timer-pill-stop"
         />
+        {short && !done ? (
+          <IconButton
+            label="Fold the timer"
+            icon={CaretLeft}
+            size="sm"
+            aria-expanded
+            ref={toggle}
+            onClick={() => fold(false)}
+            data-hub="timer-pill-toggle"
+          />
+        ) : null}
       </div>
     </div>
   );

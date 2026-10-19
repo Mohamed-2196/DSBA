@@ -1,25 +1,27 @@
 // Overview tab: the module's home. What to carry on with (the papers, notes and lessons opened last), then previews
 // of what the other tabs and the calendar hold, each ending in a link to the whole of it: the next dates, lesson
-// progress (for a student who keeps it and has started), the latest past papers, the newest students' notes, the
-// newest threads with "Ask a question", and the rest of the library (decision D6: contributing means uploading). A
-// block with nothing to show is left out, not shown empty.
-import { CalendarBlank, ChatsCircle, CheckCircle, Files, Plus, UploadSimple } from '@phosphor-icons/react';
+// progress (for a student who keeps it and has started), the student's own notes about the module, the latest
+// sittings of past papers, the newest students' notes, the newest threads with "Ask a question", and the rest of the
+// library (decision D6: contributing means uploading). A block with nothing to show is left out, not shown empty: a
+// student with no notes about the module gets "New note" on the lesson progress or Carry on block instead (or, with
+// neither, a one-line Your notes block).
+import { CalendarBlank, ChatsCircle, CheckCircle, Files, NotePencil, Plus, UploadSimple } from '@phosphor-icons/react';
 import { useId, useMemo, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
 import { useAuth } from '../../auth';
 import { daysUntil, formatDay, todayKey } from '../../lib/dates';
-import { zoneLabel } from '../../lib/exams';
 import { cohortColor } from '../../state';
 import { Badge, Button, Panel, QueryError, Skeleton, countOf, cx, timeAgo } from '../../ui';
 import { aheadRows, typeLabel } from '../calendar/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
 import { useModuleLatestThreads, useStartsThreads } from '../forum/public';
-import { libraryItemPath } from '../library/public';
+import { SittingsTable, libraryItemPath, usePaperSittings } from '../library/public';
+import { NoteName, useModuleNotes, useStartNote } from '../notes/public';
 import { useModuleFiles } from './api';
 import { useModuleDates } from './exams';
 import { chapterPosition, lastOpenedLabel, lessonHref, moduleTabOn } from './lessons';
-import { latestSittings, sharedBy, showsProgress } from './overview';
+import { sharedBy, showsProgress } from './overview';
 import { MiniPoster } from './Poster';
 import { computeChapterProgress, type ProgressState, type ResumeKind, type ResumePoint } from './progress';
 import { buildShelves, joinAnd } from './resources';
@@ -38,8 +40,6 @@ const PICKUP_ACTION: Record<ResumeKind, string> = {
 };
 const MAX_CHAPTERS = 6;
 const SITTINGS = 3;
-/** Past papers read to find the latest sittings: every zone of the last few years. */
-const PAPERS_READ = 60;
 const ROWS = 3;
 
 /** One preview: a titled card, its rows, and links to the whole of it. */
@@ -149,12 +149,15 @@ function YourProgress({
   resume,
   onOpenLesson,
   onTab,
+  extra,
 }: {
   module: ModuleDetail;
   state: ProgressState;
   resume: ResumePoint;
   onOpenLesson: (c: number, v: number) => void;
   onTab: (tab: string) => void;
+  /** one more action in the footer ("New note") */
+  extra?: ReactNode;
 }) {
   const ch = m.chapters[resume.c];
   const video = ch.videos[resume.v];
@@ -171,9 +174,12 @@ function YourProgress({
       className="mod-blk--progress"
       hub="module-progress"
       footer={
-        <Button variant="ghost" size="sm" onClick={() => onTab('lessons')}>
-          All {countOf(m.chapters.length, 'chapter')}
-        </Button>
+        <>
+          <Button variant="ghost" size="sm" onClick={() => onTab('lessons')}>
+            All {countOf(m.chapters.length, 'chapter')}
+          </Button>
+          {extra}
+        </>
       }
     >
       <Link
@@ -223,10 +229,12 @@ function YourProgress({
   );
 }
 
-/** The last three sittings, each with its zones' papers. Switch to the library's sittings table once it has one. */
+/** The latest sittings in the library's past papers table, the Files tab for all of them. */
 function LatestPapers({ moduleId, onTab }: { moduleId: string; onTab: (tab: string, hash?: string) => void }) {
-  const q = useModuleFiles(moduleId, 'past-paper', { limit: PAPERS_READ });
-  const sittings = useMemo(() => latestSittings(q.data ?? [], SITTINGS), [q.data]);
+  const q = usePaperSittings(moduleId);
+  const { featureOn } = useAuth();
+  const location = useLocation();
+  const linkState = useMemo(() => ({ from: `${location.pathname}${location.search}` }), [location]);
   const title = 'Latest past papers';
   if (q.isPending) return <BlockLoading title={title} />;
   if (q.isError) {
@@ -243,6 +251,7 @@ function LatestPapers({ moduleId, onTab }: { moduleId: string; onTab: (tab: stri
       </Block>
     );
   }
+  const { sittings } = q.data;
   if (!sittings.length) return null;
   return (
     <Block
@@ -250,29 +259,88 @@ function LatestPapers({ moduleId, onTab }: { moduleId: string; onTab: (tab: stri
       hub="module-papers"
       footer={
         <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files', 'papers')}>
-          All past papers
+          {sittings.length > SITTINGS ? `All ${sittings.length} sittings` : 'All past papers'}
         </Button>
       }
     >
+      <SittingsTable
+        sittings={sittings.slice(0, SITTINGS)}
+        linkState={linkState}
+        board={featureOn('board')}
+        className="mod-papers"
+      />
+    </Block>
+  );
+}
+
+/** The student's own notes about the module, last edited first. Shown only once there is one (see ModuleOverview). */
+function YourNotes({
+  moduleId,
+  notes,
+  newNote,
+}: {
+  moduleId: string;
+  notes: ReturnType<typeof useModuleNotes>;
+  newNote: ReactNode;
+}) {
+  const title = 'Your notes';
+  if (notes.isPending) return <BlockLoading title={title} />;
+  if (notes.isError) {
+    return (
+      <Block title={title} hub="module-your-notes">
+        <QueryError
+          error={notes.error}
+          title="Your notes didn’t load"
+          size="sm"
+          panel={false}
+          onRetry={() => void notes.refetch()}
+          retrying={notes.isFetching}
+        />
+      </Block>
+    );
+  }
+  const { items, total } = notes.data;
+  return (
+    <Block
+      title={title}
+      hub="module-your-notes"
+      footer={
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            leadingIcon={NotePencil}
+            to={`/notes?module=${encodeURIComponent(moduleId)}`}
+          >
+            {total > items.length ? `All ${total} notes` : 'All your notes'}
+          </Button>
+          {newNote}
+        </>
+      }
+    >
       <ul className="mod-rows" role="list">
-        {sittings.map((s) => (
-          <li key={s.key} className="mod-sitting">
-            <span className="mod-sitting__label">{s.label}</span>
-            <span className="mod-sitting__zones">
-              {s.papers.map((p) => (
-                <Link
-                  key={p.id}
-                  to={libraryItemPath(p)}
-                  className="mod-sitting__zone"
-                  aria-label={`${s.label}, ${p.zone ? zoneLabel(p.zone) : 'paper'}`}
-                >
-                  {p.zone ? zoneLabel(p.zone) : 'Paper'}
-                </Link>
-              ))}
-            </span>
+        {items.map((n) => (
+          <li key={n.id}>
+            <Link to={`/notes/${n.id}`} className="mod-row">
+              <span className="mod-row__text">
+                <span className="mod-row__title" dir="auto">
+                  <NoteName note={n} />
+                </span>
+                <span className="mod-row__meta">Edited {timeAgo(n.updatedAt)}</span>
+              </span>
+            </Link>
           </li>
         ))}
       </ul>
+    </Block>
+  );
+}
+
+/** "New note" with no notes yet and nowhere else to put it: one line about notes, and the button. */
+function NoNotes({ name, newNote }: { name: string; newNote: ReactNode }) {
+  return (
+    <Block title="Your notes" hub="module-your-notes" footer={newNote}>
+      <p className="mod-blk__note">Write notes about {name} here. Only you see them.</p>
     </Block>
   );
 }
@@ -465,11 +533,11 @@ function MoreInLibrary({
 }
 
 /** Carry on with this module: the paper being timed, and its papers, notes and lessons opened last. */
-function CarryOnHere({ moduleId }: { moduleId: string }) {
+function CarryOnHere({ moduleId, extra }: { moduleId: string; extra?: ReactNode }) {
   const { any } = useCarryOn({ moduleId, n: 3 });
   if (!any) return null;
   return (
-    <Block title="Carry on" hub="module-carry-on" className="mod-blk--carry">
+    <Block title="Carry on" hub="module-carry-on" className="mod-blk--carry" footer={extra}>
       <CarryOn moduleId={moduleId} n={3} className="mod-carry" />
     </Block>
   );
@@ -496,16 +564,49 @@ export function ModuleOverview({
   /** Open the library's upload dialog for this module (guests sign in first); null while uploading isn't offered. */
   onUpload: (() => void) | null;
 }) {
-  const { featureOn } = useAuth();
+  const { me, featureOn } = useAuth();
   const libraryOn = featureOn('library');
   const name = m.unitCode || m.name;
+  const notesOn = !!me && !me.needsProfile && featureOn('notes');
+  const notes = useModuleNotes(m.id, { limit: ROWS, enabled: notesOn });
+  const startNote = useStartNote();
+  const carrying = useCarryOn({ moduleId: m.id, n: 3 }).any;
+  const progressShown = showsProgress(tracking, resume);
+  const newNote =
+    notesOn && me?.status !== 'suspended' ? (
+      <Button
+        variant="ghost"
+        size="sm"
+        leadingIcon={Plus}
+        loading={startNote.starting}
+        onClick={() => startNote.start({ moduleId: m.id })}
+        data-hub="module-new-note"
+      >
+        New note
+      </Button>
+    ) : null;
+  const hasNotes = notesOn && (notes.isPending || notes.isError || notes.data.items.length > 0);
+  // With no notes yet, "New note" goes on the lesson progress block, else on Carry on, else in a block of its own.
+  const looseNote = notesOn && !hasNotes ? newNote : null;
+  const noteOnProgress = progressShown ? looseNote : null;
+  const noteOnCarry = !progressShown && carrying ? looseNote : null;
+  const noteAlone = !progressShown && !carrying ? looseNote : null;
   return (
     <div className="mod-ov" data-hub="module-overview">
-      <CarryOnHere moduleId={m.id} />
+      <CarryOnHere moduleId={m.id} extra={noteOnCarry} />
       {featureOn('calendar') ? <NextDates module={m} /> : null}
-      {showsProgress(tracking, resume) ? (
-        <YourProgress module={m} state={state} resume={resume} onOpenLesson={onOpenLesson} onTab={onTab} />
+      {progressShown ? (
+        <YourProgress
+          module={m}
+          state={state}
+          resume={resume}
+          onOpenLesson={onOpenLesson}
+          onTab={onTab}
+          extra={noteOnProgress}
+        />
       ) : null}
+      {hasNotes ? <YourNotes moduleId={m.id} notes={notes} newNote={newNote} /> : null}
+      {noteAlone ? <NoNotes name={name} newNote={noteAlone} /> : null}
       {libraryOn ? <LatestPapers moduleId={m.id} onTab={onTab} /> : null}
       {libraryOn ? <NewestNotes moduleId={m.id} onTab={onTab} /> : null}
       {moduleTabOn('discussion', featureOn) ? <NewestThreads moduleId={m.id} name={name} onTab={onTab} /> : null}

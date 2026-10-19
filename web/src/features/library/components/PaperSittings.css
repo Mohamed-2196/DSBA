@@ -1,5 +1,6 @@
 /* Past papers as a table: one row per sitting (the sitting, each zone's paper, the examiners' report, solutions and
-   Time me). From 700 px the row is a grid under a header; on phones it stacks: the sitting, then its links. */
+   Time me). From 700 px of table the row is a grid under a header; narrower (a phone, a card on the module's
+   Overview) it stacks: the sitting, then its links. */
 .pp__head {
   display: flex;
   flex-wrap: wrap;
@@ -33,6 +34,9 @@
 .pp__more {
   display: flex;
   justify-content: center;
+}
+.pp-table {
+  container: pp-table / inline-size;
 }
 .pp__sittings {
   margin: 0;
@@ -163,7 +167,7 @@
   }
 }
 
-@media (max-width: 699px) {
+@container pp-table (max-width: 699px) {
   .pp-table__head {
     display: none;
   }

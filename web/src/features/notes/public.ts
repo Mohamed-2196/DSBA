@@ -18,6 +18,11 @@
 //                                            total }): a module page's "Your notes" (enable it for signed-in students
 //                                            while notes are on; each links to /notes/:id, "All" to
 //                                            /notes?module=<id>)
+//   usePdfAt(src)                            { state, retry }: the PDF at `src` opened with pdf.js as the notebook
+//                                            opens its own (the decoders, fonts and options live in pdf.ts); the
+//                                            library's phone viewer draws its pages
+//   <NoteName note />                        a note's name in a list ({ title, excerpt }): its title, else its first
+//                                            line with formulas set, else "Untitled note"
 //   useStartNote()                           { start({ moduleId, lessonId }), starting }: a new note about a module
 //                                            (or lesson), opened in the editor
 //
@@ -30,5 +35,6 @@ export type { LessonVideo } from './LessonNotePanel';
 export { useOpenNote } from './current';
 export { useAnnotate, useModuleNotes, useNote, useNotes } from './api';
 export { useStartNote } from './useStartNote';
+export { NoteName } from './NoteName';
 export type { OpenNote } from './current';
-export { loadPdfJs } from './pdf';
+export { usePdfAt } from './pdf';
