@@ -4,7 +4,7 @@ to paste into their year's group.
 - What it holds, for one year and one week (Sunday to Saturday, in Bahrain): the exams, mocks and deadlines of the
   week, files published in the year's modules over the last seven days, questions of the year nobody has answered
   yet, and the newsletter issue of the last seven days. A section whose feature is off for the reader is left out.
-- Who gets it: accounts with an email address and a year that switched "Sunday summary" on, among those the summary
+- Who gets it: accounts with a year that switched "Sunday summary" on, among those the summary
   feature is on for. It is opt-in.
 - When: the mail worker calls send_due() every few minutes; it queues the week's emails on Sunday from the words'
   send time (Bahrain). `python -m app.cli weekly-summary` does the same on any day. A person gets at most one a week
@@ -249,13 +249,7 @@ def _recipients(db: Session, year: int) -> list[User]:
     audience = access.audience(db, Feature.summary)
     if audience is None:
         return []
-    return list(
-        db.scalars(
-            select(User)
-            .where(User.year == year, User.email.is_not(None), wanted_by(SWITCH), audience)
-            .order_by(User.id)
-        )
-    )
+    return list(db.scalars(select(User).where(User.year == year, wanted_by(SWITCH), audience).order_by(User.id)))
 
 
 def send_week(db: Session, today: dt.date) -> int:
@@ -266,7 +260,7 @@ def send_week(db: Session, today: dt.date) -> int:
     queued = 0
     for year in (1, 2, 3):
         for user in _recipients(db, year):
-            if user.email is None or inbox_full(db, user.id):
+            if inbox_full(db, user.id):
                 continue
             s = build(db, year, sunday, _features_for(db, user), said)
             if s.empty:

@@ -60,17 +60,15 @@ ErrorCode = Literal[
     "internal",  # 500
     "error",  # any other status
     # accounts and sign-in
-    "invalid_identifier",  # 422: not an email address or a phone number
-    "sms_unavailable",  # 422: a number we don't text; 429: texts paused
-    "delivery_failed",  # 503: the code could not be sent
-    "invalid_code",  # 422: wrong code (tries left in the message)
-    "code_expired",  # 410: expired, used, retired or unknown
-    "too_many_attempts",  # 429: five wrong tries for this code
+    "invalid_email",  # 422: not an email address
+    "weak_password",  # 422: too short, too common, or the email address itself
+    "invalid_credentials",  # 422: this email and password don't match (the same for an unknown address)
+    "wrong_password",  # 422: the current password is wrong (signed in: changing it, confirming it's you)
+    "email_taken",  # 409: an account already uses this email address
+    "reset_link_invalid",  # 410: the reset link expired, was used, or never existed
+    "account_not_confirmed",  # 409: staff roles need an email address Google confirmed
     "invalid_display_name",  # 422
-    "identifier_taken",  # 409: another account uses this address
-    "identifier_unchanged",  # 409: already this account's
-    "last_identifier",  # 409: an account keeps at least one way to sign in
-    "step_up_required",  # 403: confirm it's you first (POST /me/step-up)
+    "step_up_required",  # 403: confirm it's you first (POST /me/step-up, or Google again)
     "cannot_change_self",  # 409: an admin changing their own account
     "storage_unavailable",  # 503: files could not be deleted; nothing changed
     "progress_off",  # 409: lesson progress is kept only once the person turns it on

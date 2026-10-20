@@ -1,4 +1,4 @@
-"""Accounts: what /me shows, profile rules, sign-in bookkeeping, lesson progress, the export and deletion."""
+"""Accounts: what /me shows, profile rules, lesson progress, the export and deletion."""
 
 from __future__ import annotations
 
@@ -6,17 +6,15 @@ import logging
 import re
 import unicodedata
 import uuid
-from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Literal, get_args
+from typing import Any, get_args
 
 from botocore.exceptions import BotoCoreError, ClientError
 from sqlalchemy import delete, false, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, object_session
 
-from app.core.access import ADMIN, REP, STUDENT
+from app.core.access import ADMIN, REP
 from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
@@ -98,9 +96,7 @@ from app.schemas.calendar import PersonalEventOut
 from app.schemas.common import UserPublic
 from app.schemas.modules import Progress, ProgressImport
 from app.schemas.notifications import NotificationKind
-from app.services import access, otp, sessions
-from app.services.audit import record
-from app.services.identifiers import Kind, admin_identifiers, destination_hint
+from app.services import access, sessions
 from app.services.modules import link_of, student_lesson, student_lessons
 from app.services.outbox import ACCOUNT_NOTICE, ANSWER, answer_of, wants
 from app.services.storage import Storage
@@ -220,7 +216,9 @@ def me_out(user: User) -> Me:
             else [],
             "status": user.status.value,
             "email": user.email,
-            "phone": user.phone,
+            "email_confirmed": user.email_confirmed_at is not None,
+            "has_password": user.password_hash is not None,
+            "google_linked": user.google_sub is not None,
             "needs_profile": user.display_name is None,
             "created_at": user.created_at,
             "preferences": preferences_of(user),
@@ -235,7 +233,7 @@ UNNAMED = "Student"  # an account without a display name yet (it can't post unti
 
 def public_user(user: User | None) -> UserPublic | None:
     """How a person appears next to what they did, everywhere in the Hub: name, cohort and badge, never their email
-    or phone number. A suspended account shows no badge. None for a deleted account ("deleted user"). The one
+    address. A suspended account shows no badge. None for a deleted account ("deleted user"). The one
     serialiser for UserPublic (code quality review CQ-6): areas import this rather than writing their own."""
     if user is None:
         return None
@@ -404,134 +402,6 @@ def reads_as_staff(text: str) -> bool:
         return True
     words = [word for word in WORD_BREAKS.split(seen) if word]
     return any(_pairs_read_as_one("".join(words[i:])).startswith(STAFF_WORDS_SPELT_OUT) for i in range(len(words)))
-
-
-# ── signing in ──────────────────────────────────────────────────────────────────────────────
-
-
-def find_user(db: Session, kind: Kind, identifier: str) -> User | None:
-    column = User.email if kind == "email" else User.phone
-    return db.scalar(select(User).where(column == identifier))
-
-
-def _bootstraps_admin(db: Session, user: User) -> bool:
-    """DSBA_ADMIN_IDENTIFIERS gives Admin to a listed account only while the hub has no active admin at all: it starts
-    the hub, and never gives Admin back to someone it was taken from, even through a new account (SEC-54)."""
-    if not {user.email, user.phone} & admin_identifiers() or access.access_of(user, db).admin:
-        return False
-    return not access.has_active_admin(db)
-
-
-def user_for_sign_in(db: Session, kind: Kind, identifier: str, ip: str | None) -> tuple[User, bool]:
-    """The account for a verified identifier, created when there is none. -> (user, created)."""
-    now = utcnow()
-    user = find_user(db, kind, identifier)
-    created = False
-    if user is None:
-        candidate = User(
-            id=uuid.uuid4(),
-            email=identifier if kind == "email" else None,
-            phone=identifier if kind == "phone" else None,
-            preferences={},
-            created_at=now,
-        )
-        try:
-            with db.begin_nested():
-                db.add(candidate)
-        except IntegrityError:  # a parallel sign-in created it a moment ago
-            user = find_user(db, kind, identifier)
-            if user is None:
-                raise
-        else:
-            user, created = candidate, True
-            access.give(db, user, STUDENT)
-    if _bootstraps_admin(db, user):
-        # a new account has no name yet: the activity log shows its masked address instead (UX-15)
-        name = user.display_name or destination_hint(kind, identifier)
-        before = access.role_names(user)
-        access.give(db, user, ADMIN)
-        change = {"from": before, "to": access.role_names(user), "via": "bootstrap", "targetName": name}
-        record(db, None, "user.roles", "user", user.id, change, ip)
-    user.last_seen_at = now
-    return user, created
-
-
-# ── identifiers: step-up, changes and their notices ───────────────────────────────────────────
-
-LABELS: dict[Kind, str] = {"email": "email address", "phone": "phone number"}
-
-
-def step_up_target(user: User, via: Literal["email", "phone"] | None) -> tuple[Kind, str]:
-    """Where a step-up code goes: the identifier `via` names, by default the email address, else the phone number.
-    Raises invalid_input (422) when the account has no such identifier."""
-    if via == "phone" or (via is None and user.email is None):
-        if user.phone is None:
-            raise invalid("via", "Your account has no phone number. Use your email address.")
-        return "phone", user.phone
-    if user.email is None:
-        raise invalid("via", "Your account has no email address. Use your phone number.")
-    return "email", user.email
-
-
-@dataclass(frozen=True)
-class IdentifierChange:
-    kind: Kind
-    before: str | None  # what the account had (None: an addition)
-    after: str | None  # what it has now (None: a removal)
-    other: str | None  # the account's identifier of the other kind
-
-
-def set_identifier(user: User, kind: Kind, value: str | None) -> IdentifierChange:
-    """Puts `value` on the account as its email address or phone number (None removes it). The caller flushes."""
-    before, other = (user.email, user.phone) if kind == "email" else (user.phone, user.email)
-    if kind == "email":
-        user.email = value
-    else:
-        user.phone = value
-    return IdentifierChange(kind=kind, before=before, after=value, other=other)
-
-
-def identifier_taken(kind: Kind) -> ApiError:
-    return ApiError(409, "identifier_taken", f"Another account already uses this {LABELS[kind]}.")
-
-
-def change_identifier(
-    db: Session, user: User, sess: UserSession | None, kind: Kind, value: str | None
-) -> tuple[str, str] | None:
-    """Puts `value` on the account as its email address or phone number (None removes it), signs out the account's
-    other sessions and queues the security notice (the caller commits). 409 identifier_taken when another account
-    took `value` a moment ago. -> (phone number, text) when the notice is a text, to send once committed."""
-    change = set_identifier(user, kind, value)
-    try:
-        with db.begin_nested():
-            db.flush()
-    except IntegrityError:  # taken a moment ago by a parallel request
-        raise identifier_taken(kind) from None
-    sessions.revoke_others(db, user.id, keep=sess)
-    return queue_identifier_notice(db, user, change)
-
-
-def queue_identifier_notice(db: Session, user: User, change: IdentifierChange) -> tuple[str, str] | None:
-    """The security notice for a change of identifier (security design finding 15): to the address that was
-    replaced or removed, or, for an addition, to the account's other identifier. An email goes through the outbox
-    in the caller's transaction. -> (phone number, text) when it is a text, to send once the change is committed."""
-    label = LABELS[change.kind]
-    hint = destination_hint(change.kind, change.after) if change.after else ""
-    to_kind: Kind
-    if change.before is not None and change.before != change.after:
-        to_kind, to = change.kind, change.before
-        text = (
-            f"The {label} on your DSBA Hub account was changed to {hint}."
-            if change.after
-            else f"This {label} was removed from your DSBA Hub account."
-        )
-    elif change.before is None and change.other is not None:
-        to_kind, to = ("phone" if change.kind == "email" else "email"), change.other
-        article = "An" if change.kind == "email" else "A"
-        text = f"{article} {label} ({hint}) was added to your DSBA Hub account."
-    else:
-        return None
-    return (to, text) if otp.queue_notice(db, to_kind, to, text, user.id) else None
 
 
 # ── lesson progress ──────────────────────────────────────────────────────────────────────────
@@ -1057,8 +927,8 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     try again); pending and rejected library items go; published items stay without an uploader; posts stay as
     'deleted user' (the foreign keys set NULL); everything personal (boards and practice scores, sessions,
     notifications, queued emails, progress, notebooks and notes, stars, votes, me-toos, reactions, follows, poll votes,
-    the senior listing, their own calendar, the bug reports they sent) cascades; the sign-in codes stay, anonymised,
-    until the sweep (the rate limits count them). The last active admin can't leave (409 last_admin). The caller
+    the senior listing, their own calendar, the bug reports they sent, reset links) cascades; the sign-in limits' rows
+    hold no address and stay until the sweep. The last active admin can't leave (409 last_admin). The caller
     commits."""
     if access.is_admin(user):
         access.ensure_admins_remain(db, user)
@@ -1123,7 +993,4 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     from app.services import bugs
 
     bugs.unquote(db, uid)
-    # The sign-in rows stay, without the addresses, for the rate limits (student test: deleting the account and
-    # signing up again must refill nothing).
-    otp.anonymise(db, user)
     db.execute(delete(User).where(User.id == uid))

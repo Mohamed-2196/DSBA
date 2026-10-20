@@ -3,7 +3,7 @@ every account at once (a new newsletter issue).
 
 The notification in the Hub always comes: no email switch can silence it (decision D1). For the kinds that also
 come by email (outbox.EMAIL_SWITCHES: replies, accepted answers, upload reviews, new issues, date changes), an email
-is queued in the same transaction when the person has an email address, has that switch on (outbox.wants(): never
+is queued in the same transaction when the person has that switch on (outbox.wants(): never
 before they answer the question about emails at sign-up) and hasn't had EMAIL_MAX_PER_HOUR of them in the last
 hour; the mail worker sends it (app/services/outbox.py). The emails are plain text: what happened, a link to it,
 and a link to the switches. Text that other people wrote is quoted with its links taken out, so nobody can send a
@@ -134,7 +134,7 @@ def notify(
     switch = EMAIL_SWITCHES.get(kind)
     if switch is not None:
         person = db.get(User, user_id)
-        if person is not None and person.email and wants(person, switch) and not inbox_full(db, user_id):
+        if person is not None and wants(person, switch) and not inbox_full(db, user_id):
             db.flush()  # the notification's row first: the email refers to it
             text = email_text(title, body, path, switch)
             queue(
@@ -204,7 +204,6 @@ def notify_all(
     recipients = conn.execute(
         select(User.id, User.email).where(
             User.id.in_(list(by_user)),
-            User.email.is_not(None),
             wanted_by(switch),
             User.id.not_in(_full_inboxes()),
         )

@@ -20,12 +20,11 @@ from app.schemas.requests import RequestKind, RequestStatus
 from app.schemas.seniors import SeniorTopic
 from app.schemas.suggestions import SuggestionStatus
 
-Identifier = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
-# A 6-digit code, or the long one sent instead once wrong codes were tried for an address: 10 letters and digits,
-# written 'ABCDE-FGH23' (any case; the dash, or a space, may be left out).
-Code = Annotated[
-    str, StringConstraints(strip_whitespace=True, pattern=r"^(?:\d{6}|[A-Za-z0-9]{5}[- ]?[A-Za-z0-9]{5})$")
-]
+Email = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
+PASSWORD_MIN, PASSWORD_MAX = 10, 256
+# A password as sent. Its rules (PASSWORD_MIN characters or more, not one of the most common passwords, not the email
+# address) are checked by services/passwords.py, so a weak one answers 422 weak_password with a sentence saying why.
+Password = Annotated[str, StringConstraints(min_length=1, max_length=PASSWORD_MAX)]
 # 2-40 characters after trimming: letters (any script), digits, spaces and . ' -. The documented schema says so;
 # the rule itself is applied by PATCH /me, so that every bad name answers 422 invalid_display_name.
 DisplayName = Annotated[str, WithJsonSchema({"type": "string", "maxLength": 40, "minLength": 2})]
@@ -34,26 +33,69 @@ PaperId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9][a-z0-9-]{0,63}$")
 MAX_PAPERS = 20
 
 
-class OtpStartRequest(ApiModel):
-    """An email address or a phone number (local Bahraini numbers need no country code)."""
+class SignUpRequest(ApiModel):
+    """A new account with an email address and a password. The address isn't checked by email: it counts as confirmed
+    only once its owner signs in with Google."""
 
-    identifier: Identifier
-
-
-class OtpChallengeOut(ApiModel):
-    challenge_id: UUID
-    channel: Literal["email", "sms"]
-    destination_hint: str  # 'm•••@gmail.com' / '+973 •••• ••12'
-    expires_in: int  # seconds
-    resend_after: int  # seconds until another code can be requested for this address
-    # 'digits': 6 digits. 'long': 10 letters and digits ('ABCDE-FGH23'), sent instead after wrong codes were tried
-    # for this address (nobody can guess it); typed in any case, with or without the dash.
-    code_format: Literal["digits", "long"] = "digits"
+    email: Email
+    password: Password
 
 
-class OtpVerifyRequest(ApiModel):
-    challenge_id: UUID
-    code: Code
+class SignInRequest(ApiModel):
+    email: Email
+    password: Password
+
+
+class PasswordChange(ApiModel):
+    """A new password from Your account. `currentPassword` is needed when the account has one; an account without one
+    (it signs in with Google) adds one within ten minutes of signing in, or after confirming it's you."""
+
+    current_password: Password | None = None
+    new_password: Password
+
+
+class StepUpRequest(ApiModel):
+    """Confirm it's you with the account's password (an account with Google only signs in with Google again)."""
+
+    password: Password
+
+
+class PasswordResetRequest(ApiModel):
+    """A new password through a reset link an admin made (the token is the part after #token= in the link)."""
+
+    token: Annotated[str, StringConstraints(min_length=20, max_length=100)]
+    new_password: Password
+
+
+class ResetLinkOut(ApiModel):
+    """A one-time link to set a new password, for the admin to pass on. It works once, until `expiresAt`."""
+
+    url: str
+    expires_at: datetime
+
+
+# Where "Continue with Google" ends when it doesn't sign in: the app's page comes back with ?authError=<one of these>.
+GoogleError = Literal[
+    "google_off",  # not set up on this hub
+    "google_cancelled",  # the person stopped at Google
+    "google_failed",  # the link expired or was used, another browser started it, or Google's answer didn't check out
+    "google_unverified",  # Google hasn't verified this Google account's email address
+    "google_taken",  # linking: this Google account already signs in to another account
+    "email_taken",  # another account has this Google account's address (linking), or another Google account does
+]
+
+
+class GoogleStart(ApiModel):
+    """Where to come back to afterwards: a path in the app ('/forum'); anything else goes back to '/'."""
+
+    return_to: Annotated[str, StringConstraints(max_length=512)] | None = None
+
+
+class GoogleRedirect(ApiModel):
+    """Send the browser here (Google's sign-in page). It comes back to `returnTo`, with ?authError=<GoogleError> when
+    it didn't work."""
+
+    url: str
 
 
 # Home's blocks, in the order a student first sees them. Each one renders only when it has something to show.
@@ -119,8 +161,10 @@ class Me(ApiModel):
     boxes: list[BoxKey]  # what the person may do now: none while the account is suspended
     features: list[FeatureKey]  # the features on for this person (admins: every feature)
     status: UserStatus
-    email: str | None
-    phone: str | None
+    email: str
+    email_confirmed: bool  # Google vouched for the address (only then may the account hold a staff role)
+    has_password: bool
+    google_linked: bool  # signs in with Google too
     needs_profile: bool  # True until a display name is set: the web app asks for it right after sign-in
     created_at: datetime
     preferences: Preferences
@@ -139,6 +183,7 @@ class SessionState(ApiModel):
     """GET /auth/session: the signed-in user, or null for a guest. Never 401."""
 
     me: Me | None
+    google_sign_in: bool  # "Continue with Google" is set up on this hub
 
 
 class MeUpdate(ApiModel):
@@ -155,15 +200,9 @@ class MeUpdate(ApiModel):
     zone: Zone | None = None  # null clears it
 
 
-class StepUpStart(ApiModel):
-    """Which of the account's own identifiers gets the code: by default the email address, else the phone number."""
-
-    via: Literal["email", "phone"] | None = None
-
-
 class StepUpResult(ApiModel):
-    """The browser's session was renewed: changing or removing an identifier and deleting the account work without
-    another code for `expires_in` seconds."""
+    """The browser's session was renewed: adding a password and deleting the account work without confirming again for
+    `expires_in` seconds."""
 
     expires_in: int
 
@@ -472,7 +511,7 @@ class ExportNotification(ApiModel):
 
 
 class ExportEmail(ApiModel):
-    """An email the Hub sent you, or will send (notifications and account notices; sign-in codes are not kept)."""
+    """An email the Hub sent you, or will send (notifications and account notices)."""
 
     kind: NotificationKind | Literal["account_notice"]
     to_address: str

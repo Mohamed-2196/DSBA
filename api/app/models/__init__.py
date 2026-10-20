@@ -70,10 +70,20 @@ from app.models.notes import Note, Notebook, NotebookLimits, NotebookUploadDay, 
 from app.models.outbox import EmailOutbox, OutboxStatus, WeeklySummarySent
 from app.models.requests import RequestMeToo, RequestStatus, StudentRequest
 from app.models.seniors import SeniorProfile
-from app.models.user import Channel, OtpChallenge, OtpPurpose, User, UserSession, UserStatus
+from app.models.user import (
+    AttemptKind,
+    GoogleIntent,
+    GoogleLogin,
+    PasswordReset,
+    SignInAttempt,
+    User,
+    UserSession,
+    UserStatus,
+)
 
 __all__ = [
     "AccessRole",
+    "AttemptKind",
     "AuditEntry",
     "Base",
     "Board",
@@ -87,7 +97,6 @@ __all__ = [
     "BugStatus",
     "CalendarEvent",
     "CalendarPrefs",
-    "Channel",
     "Chapter",
     "ContentDoc",
     "DailyGuessWord",
@@ -110,6 +119,8 @@ __all__ = [
     "ForumReply",
     "ForumTag",
     "ForumThread",
+    "GoogleIntent",
+    "GoogleLogin",
     "IssueStatus",
     "ItemSource",
     "ItemStatus",
@@ -132,12 +143,11 @@ __all__ = [
     "NotebookLimits",
     "NotebookUploadDay",
     "Notification",
-    "OtpChallenge",
-    "OtpPurpose",
     "OutboxStatus",
     "PaperQuestion",
     "PaperQuestionFlag",
     "PaperScore",
+    "PasswordReset",
     "PersonalEvent",
     "PollVote",
     "PostStatus",
@@ -151,6 +161,7 @@ __all__ = [
     "RoleGrant",
     "SeniorProfile",
     "SharedNote",
+    "SignInAttempt",
     "StudentRequest",
     "SuggestionStatus",
     "TextStatus",

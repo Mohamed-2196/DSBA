@@ -58,8 +58,8 @@ class ReportResolve(ApiModel):
 class AdminUser(ApiModel):
     id: UUID
     display_name: str | None
-    email: str | None
-    phone: str | None
+    email: str | None  # admins only
+    email_confirmed: bool  # Google vouched for the address: only then may the account hold a role beyond Student
     roles: list[RoleSummary]
     status: UserStatus
     year: Year | None
@@ -72,14 +72,9 @@ class AdminUserPage(Page[AdminUser]):
 
 
 class AdminUserUpdate(ApiModel):
-    """Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`
-    and `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's
-    address (`null` removes it; one must stay), end every session of the account, send a notice to the address that
-    was replaced or removed, and are audited (`user.identifier`)."""
+    """`status` needs people.suspend; only admins suspend or restore an admin."""
 
     status: UserStatus | None = None
-    email: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)] | None = None
-    phone: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)] | None = None
 
 
 class AuditOut(ApiModel):

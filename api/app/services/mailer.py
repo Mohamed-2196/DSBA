@@ -1,10 +1,10 @@
-"""Sending email (one-time codes, account notices). DSBA_EMAIL_BACKEND picks the backend:
+"""Sending email (notifications, account notices). DSBA_EMAIL_BACKEND picks the backend:
 
   smtp     an SMTP server (Mailpit locally, the provider's relay in production); 10 s timeout
   file     one .eml per message in DSBA_EMAIL_FILE_DIR
-  console  a log line; in development it includes the message so a developer can read the code
+  console  a log line; in development it includes the message so a developer can read it
 
-Nothing here logs a code outside development, and addresses only appear masked."""
+Nothing here logs a message outside development, and addresses only appear masked."""
 
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ def _send_smtp(msg: EmailMessage, to: str) -> None:
         smtp_code = getattr(e, "smtp_code", None)
         log.warning(
             "email to %s was not sent: %s%s",
-            destination_hint("email", to),
+            destination_hint(to),
             type(e).__name__,
             f" ({smtp_code})" if smtp_code else "",
         )
@@ -104,6 +104,6 @@ def _log(to: str, subject: str, text: str) -> None:
     if s.env == "development":
         log.info("email (console backend) to %s\nSubject: %s\n\n%s", to, subject, text)
         return
-    log.info("email (console backend, not delivered) to %s", destination_hint("email", to))
+    log.info("email (console backend, not delivered) to %s", destination_hint(to))
     if s.is_production:
         log.warning("DSBA_EMAIL_BACKEND is 'console' in production: emails are not delivered")

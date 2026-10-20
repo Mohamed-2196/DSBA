@@ -26,21 +26,15 @@ HOST_PREFIX = "__Host-"  # a cookie only its own host can set: Secure, Path=/ an
 MIN_SECRET_LENGTH = 32
 MAX_SESSION_DAYS = 30
 SMTPS_PORT = 465  # SMTP with TLS from the start (no STARTTLS)
-OTP_MAX_ATTEMPTS = 5  # wrong tries per code; production refuses more
 # Limits production keeps at their defaults or lower, unless DSBA_ALLOW_RAISED_LIMITS says otherwise.
 # What `private_ranges` means in DSBA_TRUSTED_PROXIES: Caddy's own list for the same word.
 PRIVATE_RANGES = ("192.168.0.0/16", "172.16.0.0/12", "10.0.0.0/8", "127.0.0.0/8", "fd00::/8", "::1/128")
 RAISABLE_LIMITS = (
-    "otp_max_per_identifier_per_hour",
-    "otp_max_per_identifier_per_day",
-    "otp_max_per_ip_per_hour",
-    "otp_max_per_ipv6_site_per_hour",
-    "sms_max_per_hour",
-    "sms_max_per_day",
-    "email_max_per_hour",
-    "email_max_per_day",
-    "email_signups_max_per_hour",
-    "email_signups_max_per_day",
+    "sign_in_failures_per_address_network_per_hour",
+    "sign_in_failures_per_address_per_hour",
+    "sign_ins_per_network_per_hour",
+    "sign_ups_per_network_per_hour",
+    "sign_ups_per_network_per_day",
 )
 
 
@@ -62,14 +56,15 @@ class Settings(BaseSettings):
     # only those for them: backup, the database and its backup bucket; sweep, the database and the bucket. The API
     # refuses to start as a job.
     role: Literal["api", "backup", "sweep"] = "api"
-    # Signs OTP codes, CSRF tokens and anything else that needs a server secret. Required in production.
+    # Signs CSRF tokens, the sign-in limits' keys and anything else that needs a server secret. Required in production.
     secret_key: SecretStr = SecretStr(DEV_SECRET)
     database_url: str = "postgresql+psycopg://dsba:dsba@127.0.0.1:5432/dsba"
     # Origin(s) the web app is served from; CORS is only needed when the app and the API are on different origins.
     web_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://127.0.0.1:5173", "http://localhost:5173"]
     )
-    # Public base URL of the web app, used in emails ("open the Hub").
+    # Public base URL of the web app: links in emails, password reset links, and Google's redirect URI
+    # (<web_base_url>/api/v1/auth/google/callback, which must reach the API on the app's own origin).
     web_base_url: str = "http://127.0.0.1:5173"
 
     # Sessions. In production the cookies default to __Host-dsba_session and __Host-dsba_csrf, and Secure. The web
@@ -85,19 +80,23 @@ class Settings(BaseSettings):
     # the Docker network). Empty (the default): the peer is the client.
     trusted_proxies: Annotated[list[IPNetwork], NoDecode] = Field(default_factory=list)
 
-    # One-time codes
-    otp_ttl_seconds: int = 600
-    otp_max_attempts: int = OTP_MAX_ATTEMPTS
-    otp_resend_seconds: int = 30
-    otp_max_per_identifier_per_hour: int = 5
-    otp_max_per_identifier_per_day: int = 10
-    otp_max_per_ip_per_hour: int = 30
-    # An IPv6 network counts by its /64; its /48 together gets this looser limit, so rotating /64s doesn't multiply it.
-    otp_max_per_ipv6_site_per_hour: int = 120
-    # Phone numbers without a country code are read as numbers in this region.
-    default_phone_region: str = "BH"
+    # Signing in with a password (services/passwords.py). A network is an IPv4 address or an IPv6 /64. Wrong passwords
+    # for an address from one network lock that pair out for the hour; from everywhere together they only slow the
+    # address down (decision D4). Every limit answers 429 with the wait.
+    sign_in_failures_per_address_network_per_hour: int = 10
+    sign_in_failures_per_address_per_hour: int = 50
+    sign_ins_per_network_per_hour: int = 60  # attempts, right or wrong
+    sign_ups_per_network_per_hour: int = 10
+    sign_ups_per_network_per_day: int = 30
+    # Production refuses limits above the defaults (the e2e suite raises them) unless this says it is on purpose.
+    allow_raised_limits: bool = False
 
-    # Email (one-time codes, notifications). backend: smtp | file | console
+    # "Continue with Google" (OpenID Connect). Both set, or the button doesn't show. The OAuth client's authorised
+    # redirect URI is <web_base_url>/api/v1/auth/google/callback (docs/backend/DEPLOYMENT.md, section 13).
+    google_client_id: str | None = None
+    google_client_secret: SecretStr | None = None
+
+    # Email (notifications and account notices). backend: smtp | file | console
     email_backend: Literal["smtp", "file", "console"] = "console"
     email_from: str = DEV_EMAIL_FROM
     smtp_host: str = "127.0.0.1"
@@ -106,27 +105,6 @@ class Settings(BaseSettings):
     smtp_password: SecretStr | None = None
     smtp_starttls: bool = False
     email_file_dir: str = "var/mail"
-    # Sign-in emails the whole site may send (SEC-52). Codes for addresses no account has (sign-ups) have their own,
-    # smaller budget, so made-up addresses can't stop existing students signing in; every email together has the
-    # higher ceiling. Choose a mail provider whose daily quota is well above email_max_per_day.
-    email_signups_max_per_hour: int = 100
-    email_signups_max_per_day: int = 500
-    email_max_per_hour: int = 600
-    email_max_per_day: int = 3000
-
-    # SMS (one-time codes). backend: console | file | twilio
-    sms_backend: Literal["console", "file", "twilio"] = "console"
-    sms_file_dir: str = "var/sms"
-    twilio_account_sid: str | None = None
-    twilio_auth_token: SecretStr | None = None
-    twilio_from: str | None = None  # a phone number or a Messaging Service SID
-    # Countries (ISO codes, comma-separated) whose mobile numbers get codes by text. Empty: no texts at all.
-    sms_allowed_regions: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["BH"])
-    # Texts the whole site may send (SMS pumping, finding 3). Over budget, codes by text pause; email keeps working.
-    sms_max_per_hour: int = 50
-    sms_max_per_day: int = 300
-    # Production refuses limits above the defaults (the e2e suite raises them) unless this says it is on purpose.
-    allow_raised_limits: bool = False
 
     # Object storage (S3 API: AWS S3 or MinIO; see docs/backend/DEPLOYMENT.md about Cloudflare R2)
     s3_endpoint_url: str | None = "http://127.0.0.1:9000"  # None = AWS
@@ -176,7 +154,7 @@ class Settings(BaseSettings):
         default_factory=lambda: ["bibf.edu.bh", "bibf.com", "london.ac.uk"], min_length=1
     )
 
-    # Comma-separated emails / phone numbers that become admins when they sign in (bootstrap).
+    # Comma-separated email addresses that get Admin when they sign in with Google while the hub has no active admin.
     admin_identifiers: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
     # The Drive import (`python -m app.cli import-drive`, scripts/seed-real.sh). An API key restricted to the Drive API
@@ -223,6 +201,8 @@ class Settings(BaseSettings):
         "google_service_account_file",
         "anthropic_api_key",
         "texts_db_password",
+        "google_client_id",
+        "google_client_secret",
         mode="before",
     )
     @classmethod
@@ -236,7 +216,7 @@ class Settings(BaseSettings):
             return v.strip().lower()
         return None
 
-    @field_validator("web_origins", "admin_identifiers", "sms_allowed_regions", "portal_hosts", mode="before")
+    @field_validator("web_origins", "admin_identifiers", "portal_hosts", mode="before")
     @classmethod
     def _split_csv(cls, v: object) -> object:
         return _csv(v)
@@ -257,11 +237,6 @@ class Settings(BaseSettings):
         if bad:
             raise ValueError(f"DSBA_PORTAL_HOSTS takes host names like bibf.edu.bh, not {', '.join(bad)}")
         return hosts
-
-    @field_validator("sms_allowed_regions")
-    @classmethod
-    def _upper_regions(cls, v: list[str]) -> list[str]:
-        return [r.upper() for r in v]
 
     @field_validator("trusted_proxies", mode="before")
     @classmethod
@@ -301,6 +276,11 @@ class Settings(BaseSettings):
         return self.env == "production"
 
     @property
+    def google_enabled(self) -> bool:
+        """Whether "Continue with Google" is set up (both the client id and its secret)."""
+        return bool(self.google_client_id) and self.google_client_secret is not None
+
+    @property
     def commit(self) -> str | None:
         return self.commit_sha or self.railway_git_commit_sha
 
@@ -308,6 +288,8 @@ class Settings(BaseSettings):
         """What stops these settings from working in their environment, one plain sentence per problem.
         (Raised from here rather than from a validator: a ValidationError would print the input, secrets included.)"""
         problems: list[str] = []
+        if (self.google_client_id is None) != (self.google_client_secret is None):
+            problems.append("DSBA_GOOGLE_CLIENT_ID and DSBA_GOOGLE_CLIENT_SECRET are set together, or not at all.")
         if (self.backup_access_key_id is None) != (self.backup_secret_access_key is None):
             problems.append(
                 "DSBA_BACKUP_ACCESS_KEY_ID and DSBA_BACKUP_SECRET_ACCESS_KEY are set together, or not at all."
@@ -317,7 +299,7 @@ class Settings(BaseSettings):
         return problems
 
     def job_problems(self) -> list[str]:
-        """What makes these settings unfit for a daily job in production (`role`): it holds no secret key, mail, texts
+        """What makes these settings unfit for a daily job in production (`role`): it holds no secret key, mail
         or AI keys, so only what it uses is checked."""
         if self.role == "sweep":
             return [*self._database_problems(), *self._storage_problems()]
@@ -359,7 +341,7 @@ class Settings(BaseSettings):
             if not _is_https_url(origin):
                 add(f"DSBA_WEB_ORIGINS has {origin!r}: every origin must be https://.")
         if not _is_https_url(self.web_base_url):
-            add("DSBA_WEB_BASE_URL must be the app's https:// address (emails and texts link to it).")
+            add("DSBA_WEB_BASE_URL must be the app's https:// address (emails, reset links and Google link to it).")
         if not self.trusted_proxies:
             add(
                 "DSBA_TRUSTED_PROXIES is empty: list the reverse proxy's address, or 127.0.0.1/32 if there is no "
@@ -369,8 +351,6 @@ class Settings(BaseSettings):
             add("DSBA_TRUSTED_PROXIES trusts every address: list only the reverse proxy's address or network.")
 
         # Rate limits
-        if self.otp_max_attempts > OTP_MAX_ATTEMPTS:
-            add(f"DSBA_OTP_MAX_ATTEMPTS must be at most {OTP_MAX_ATTEMPTS}: more lets codes be guessed.")
         if not self.allow_raised_limits:
             for name in RAISABLE_LIMITS:
                 default = type(self).model_fields[name].default
@@ -385,11 +365,11 @@ class Settings(BaseSettings):
         if self.s3_create_bucket:
             add("DSBA_S3_CREATE_BUCKET must be false: set the bucket up once with `python -m app.cli setup-bucket`.")
 
-        # Email and texts
+        # Email
         if self.email_backend != "smtp":
             add(
                 f"DSBA_EMAIL_BACKEND must be smtp (it is {self.email_backend!r}): the console and file backends "
-                "don't deliver sign-in codes."
+                "don't deliver notifications."
             )
         elif "smtp_host" not in given:
             add(
@@ -397,19 +377,11 @@ class Settings(BaseSettings):
             )
         if self.email_backend == "smtp" and not self.smtp_starttls and self.smtp_port != SMTPS_PORT:
             add(
-                f"DSBA_SMTP_STARTTLS must be true, or DSBA_SMTP_PORT {SMTPS_PORT} (TLS from the start): codes and the "
-                "SMTP password must never travel in clear."
+                f"DSBA_SMTP_STARTTLS must be true, or DSBA_SMTP_PORT {SMTPS_PORT} (TLS from the start): emails and "
+                "the SMTP password must never travel in clear."
             )
         if self.email_from == DEV_EMAIL_FROM:
             add("DSBA_EMAIL_FROM must be an address on your own domain, like 'DSBA Hub <no-reply@example.com>'.")
-        if self.sms_allowed_regions:
-            if self.sms_backend != "twilio":
-                add(
-                    f"DSBA_SMS_BACKEND must be twilio (it is {self.sms_backend!r}), or set DSBA_SMS_ALLOWED_REGIONS "
-                    "to nothing to turn codes by text off."
-                )
-            elif not (self.twilio_account_sid and self.twilio_auth_token and self.twilio_from):
-                add("DSBA_TWILIO_ACCOUNT_SID, DSBA_TWILIO_AUTH_TOKEN and DSBA_TWILIO_FROM must be set for texts.")
         return problems
 
     def texts_problems(self) -> list[str]:

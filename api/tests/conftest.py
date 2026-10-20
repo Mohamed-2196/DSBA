@@ -69,7 +69,8 @@ def settings_env(database_url: str) -> Iterator[None]:
         "DSBA_S3_SECRET_ACCESS_KEY": "testing",
         "DSBA_S3_CREATE_BUCKET": "false",  # made once for the run (bucket below), not by every client's start-up
         "DSBA_EMAIL_BACKEND": "console",
-        "DSBA_SMS_BACKEND": "console",
+        "DSBA_GOOGLE_CLIENT_ID": "",  # "Continue with Google" is off unless a test sets it up
+        "DSBA_GOOGLE_CLIENT_SECRET": "",
         "DSBA_COMMIT_SHA": "",  # the commit /health reports: unknown, whatever the shell running the tests says
         "RAILWAY_GIT_COMMIT_SHA": "",
         "AWS_DEFAULT_REGION": "us-east-1",
@@ -162,28 +163,38 @@ def storage(bucket: None):  # type: ignore[no-untyped-def]
 
 @pytest.fixture
 def make_user(db: Session) -> Callable[..., User]:
-    """make_user(email=, phone=, name=, roles=, year=, tracks=, emails=) -> a User holding these roles (slugs; Student
-    by default), committed. An email address is made up if neither identifier is given. tracks=True: they keep their
+    """make_user(email=, name=, roles=, year=, tracks=, emails=, confirmed=, password=) -> a User holding these roles
+    (slugs; Student by default), committed. An email address is made up if none is given. tracks=True: they keep their
     lesson progress. emails: their answer to the question about emails at sign-up (yes by default; None: not
-    answered, so nothing is emailed to them)."""
-    from app.services import access
+    answered, so nothing is emailed to them). confirmed: Google vouched for the address (yes by default, as staff
+    roles need it; False: an address typed at sign-up). password: the account's password (none by default)."""
+    from app.core.time import utcnow
+    from app.services import access, passwords
 
     def _make(
         *,
         email: str | None = None,
-        phone: str | None = None,
         name: str | None = "Test Student",
         roles: Sequence[str] = ("student",),
         year: int | None = 2,
         tracks: bool = False,
         emails: bool | None = True,
+        confirmed: bool = True,
+        password: str | None = None,
     ) -> User:
-        if email is None and phone is None:
+        if email is None:
             email = f"student-{uuid.uuid4().hex[:8]}@example.com"
         prefs: dict[str, bool] = {} if emails is None else {"notification_emails": emails}
         if tracks:
             prefs["track_progress"] = True
-        u = User(email=email, phone=phone, display_name=name, year=year, preferences=prefs)
+        u = User(
+            email=email,
+            display_name=name,
+            year=year,
+            preferences=prefs,
+            email_confirmed_at=utcnow() if confirmed else None,
+            password_hash=passwords.hash_password(password) if password is not None else None,
+        )
         db.add(u)
         db.commit()
         access.give(db, u, *roles)

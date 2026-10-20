@@ -83,16 +83,6 @@ def test_a_switch_turns_off_the_email_never_the_notification(
     assert deliver() == 0
 
 
-def test_no_email_without_an_email_address(
-    client_for: ClientFor, make_user: MakeUser, outbox: Outbox, deliver: Deliver, db: Session
-) -> None:
-    author = make_user(phone="+97333123490")
-    thread = new_thread(client_for(author), "Phone-only students get the notification in the Hub.")
-    new_reply(client_for(make_user()), thread["id"], "An answer.")
-    assert _queued(db, author) == []
-    assert len(_notifications(db, author)) == 1
-
-
 @pytest.mark.parametrize(
     ("kind", "switch"),
     [
@@ -133,7 +123,7 @@ def test_a_new_issue_tells_everyone_and_emails_those_who_want_it(
     wants = make_user(email="wants@example.com")
     declined = make_user(email="declined@example.com")
     declined.preferences = {**declined.preferences, "email_new_issues": False}
-    phone_only = make_user(phone="+97333123491")
+    undecided = make_user(email="undecided@example.com", emails=None)
     db.commit()
     count = notify_all(
         db,
@@ -145,12 +135,12 @@ def test_a_new_issue_tells_everyone_and_emails_those_who_want_it(
     )
     db.commit()
     assert count >= 3
-    for person in (wants, declined, phone_only):
+    for person in (wants, declined, undecided):
         assert [n.kind for n in _notifications(db, person)] == ["new_issue"]
     assert _notifications(db, editor) == []
     assert [r.to_address for r in _queued(db, wants)] == ["wants@example.com"]
     assert _queued(db, declined) == []
-    assert _queued(db, phone_only) == []
+    assert _queued(db, undecided) == []
     deliver()
     [mail] = outbox.to("wants@example.com")
     assert "/newsletter/october" in mail.text
@@ -212,9 +202,7 @@ def test_account_notices_ignore_the_switches(
     c = client_for(user)
     off = {"emailReplies": False, "emailAnswerAccepted": False, "emailUploadReviews": False, "emailNewIssues": False}
     c.patch(f"{API}/me", json={"preferences": off})
-    r = c.post(f"{API}/me/identifiers/otp", json={"identifier": "+97333123492"})
-    code = outbox.to("+97333123492")[-1].code
-    r = c.post(f"{API}/me/identifiers/verify", json={"challengeId": r.json()["challengeId"], "code": code})
+    r = c.put(f"{API}/me/password", json={"newPassword": "correct horse battery"})
     assert r.status_code == 200, r.text
     deliver()
     [notice] = outbox.to("notices@example.com")

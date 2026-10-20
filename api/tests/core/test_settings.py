@@ -35,10 +35,6 @@ GOOD: dict[str, Any] = {
     "smtp_port": 587,
     "smtp_starttls": True,
     "email_from": "DSBA Hub <no-reply@example.com>",
-    "sms_backend": "twilio",
-    "twilio_account_sid": "AC0123456789",
-    "twilio_auth_token": "a-twilio-token",
-    "twilio_from": "MG0123456789",
 }
 
 
@@ -79,17 +75,19 @@ def test_good_production_settings_start() -> None:
         ({"web_base_url": "http://hub.example.com"}, "DSBA_WEB_BASE_URL must be the app's https://"),
         ({"trusted_proxies": "0.0.0.0/0"}, "DSBA_TRUSTED_PROXIES trusts every address"),
         ({"trusted_proxies": ""}, "DSBA_TRUSTED_PROXIES is empty"),
-        ({"otp_max_attempts": 6}, "DSBA_OTP_MAX_ATTEMPTS must be at most 5"),
-        ({"otp_max_per_ip_per_hour": 1000}, "DSBA_OTP_MAX_PER_IP_PER_HOUR is above its default (30)"),
-        ({"otp_max_per_identifier_per_hour": 6}, "DSBA_OTP_MAX_PER_IDENTIFIER_PER_HOUR is above its default"),
-        ({"otp_max_per_identifier_per_day": 11}, "DSBA_OTP_MAX_PER_IDENTIFIER_PER_DAY is above its default"),
-        ({"sms_max_per_hour": 1000}, "DSBA_SMS_MAX_PER_HOUR is above its default (50)"),
-        ({"sms_max_per_day": 10000}, "DSBA_SMS_MAX_PER_DAY is above its default (300)"),
+        ({"sign_ins_per_network_per_hour": 1000}, "DSBA_SIGN_INS_PER_NETWORK_PER_HOUR is above its default (60)"),
+        ({"sign_ups_per_network_per_hour": 11}, "DSBA_SIGN_UPS_PER_NETWORK_PER_HOUR is above its default (10)"),
+        ({"sign_ups_per_network_per_day": 31}, "DSBA_SIGN_UPS_PER_NETWORK_PER_DAY is above its default (30)"),
+        (
+            {"sign_in_failures_per_address_network_per_hour": 11},
+            "DSBA_SIGN_IN_FAILURES_PER_ADDRESS_NETWORK_PER_HOUR is above its default (10)",
+        ),
+        (
+            {"sign_in_failures_per_address_per_hour": 51},
+            "DSBA_SIGN_IN_FAILURES_PER_ADDRESS_PER_HOUR is above its default (50)",
+        ),
         ({"smtp_starttls": False}, "DSBA_SMTP_STARTTLS must be true"),
         ({"session_days": 90}, "DSBA_SESSION_DAYS must be from 1 to 30"),
-        ({"email_max_per_day": 10000}, "DSBA_EMAIL_MAX_PER_DAY is above its default (3000)"),
-        ({"email_signups_max_per_hour": 1000}, "DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR is above its default (100)"),
-        ({"otp_max_per_ipv6_site_per_hour": 1000}, "DSBA_OTP_MAX_PER_IPV6_SITE_PER_HOUR is above its default (120)"),
         ({"s3_bucket": ""}, "DSBA_S3_BUCKET is empty"),
         ({"s3_access_key_id": "dsba"}, "DSBA_S3_ACCESS_KEY_ID and DSBA_S3_SECRET_ACCESS_KEY must be set"),
         ({"s3_secret_access_key": "dsba-dev-secret"}, "DSBA_S3_ACCESS_KEY_ID and DSBA_S3_SECRET_ACCESS_KEY"),
@@ -100,9 +98,8 @@ def test_good_production_settings_start() -> None:
         ({"email_backend": "file"}, "DSBA_EMAIL_BACKEND must be smtp (it is 'file')"),
         ({"smtp_host": REMOVE}, "DSBA_SMTP_HOST must be your mail provider's"),
         ({"email_from": REMOVE}, "DSBA_EMAIL_FROM must be an address on your own domain"),
-        ({"sms_backend": "console"}, "DSBA_SMS_BACKEND must be twilio (it is 'console')"),
-        ({"sms_backend": "file"}, "DSBA_SMS_BACKEND must be twilio (it is 'file')"),
-        ({"twilio_auth_token": REMOVE}, "DSBA_TWILIO_ACCOUNT_SID, DSBA_TWILIO_AUTH_TOKEN and DSBA_TWILIO_FROM"),
+        ({"google_client_id": "id.apps.googleusercontent.com"}, "DSBA_GOOGLE_CLIENT_ID and DSBA_GOOGLE_CLIENT_SECRET"),
+        ({"google_client_secret": "a-secret"}, "DSBA_GOOGLE_CLIENT_ID and DSBA_GOOGLE_CLIENT_SECRET"),
         ({"backup_access_key_id": "only-half"}, "DSBA_BACKUP_ACCESS_KEY_ID and DSBA_BACKUP_SECRET_ACCESS_KEY"),
     ],
 )
@@ -117,23 +114,28 @@ def test_each_unsafe_setting_is_named(changes: dict[str, Any], problem: str) -> 
     assert problem in str(e.value)
 
 
-def test_minio_behind_https_and_texts_turned_off_are_fine() -> None:
-    s = production(
-        s3_endpoint_url="http://minio:9000",
-        s3_public_endpoint_url="https://files.example.com",
-        sms_backend="console",
-        sms_allowed_regions="",
-    )
+def test_minio_behind_https_is_fine() -> None:
+    s = production(s3_endpoint_url="http://minio:9000", s3_public_endpoint_url="https://files.example.com")
     assert s.problems() == []
 
 
+def test_google_is_optional_and_on_with_both_settings() -> None:
+    assert production().google_enabled is False
+    on = production(google_client_id="id.apps.googleusercontent.com", google_client_secret="a-secret")
+    assert on.problems() == []
+    assert on.google_enabled is True
+    assert production(google_client_id="", google_client_secret="").google_enabled is False
+
+
 def test_raised_limits_pass_only_on_purpose_and_lower_ones_always() -> None:
-    raised = {"otp_max_per_ip_per_hour": 1000, "sms_max_per_hour": 1000, "sms_max_per_day": 10000}
+    raised = {
+        "sign_ins_per_network_per_hour": 1000,
+        "sign_ups_per_network_per_hour": 1000,
+        "sign_ups_per_network_per_day": 10000,
+    }
     assert len(production(**raised).problems()) == 3
     assert production(**raised, allow_raised_limits=True).problems() == []
-    assert production(otp_max_per_ip_per_hour=10, sms_max_per_day=50, otp_max_attempts=3).problems() == []
-    # on purpose or not, more wrong tries per code make codes guessable
-    assert len(production(otp_max_attempts=1000, allow_raised_limits=True).problems()) == 1
+    assert production(sign_ins_per_network_per_hour=10, sign_ups_per_network_per_day=5).problems() == []
 
 
 def test_nothing_set_names_every_problem_at_once() -> None:
@@ -144,7 +146,6 @@ def test_nothing_set_names_every_problem_at_once() -> None:
     for name in ("DSBA_SECRET_KEY", "DSBA_DATABASE_URL", "DSBA_WEB_ORIGINS", "DSBA_S3_ENDPOINT_URL"):
         assert name in message
     assert "DSBA_EMAIL_BACKEND" in message
-    assert "DSBA_SMS_BACKEND" in message
     assert len(e.value.problems) >= 8
 
 

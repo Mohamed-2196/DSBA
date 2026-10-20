@@ -191,7 +191,7 @@ def send_one(db: Session, now: datetime | None = None) -> bool:
             log.warning(
                 "gave up on a %s email to %s after %d tries",
                 row.kind,
-                destination_hint("email", row.to_address),
+                destination_hint(row.to_address),
                 row.attempts,
             )
         else:

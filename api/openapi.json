@@ -188,7 +188,7 @@
           "auth"
         ],
         "summary": "Session State",
-        "description": "Who is signed in: `{\"me\": Me}`, or `{\"me\": null}` for a guest. Never 401, so a guest's page load logs no\nerror (student test ST-10); GET /me still answers 401 when signed out.",
+        "description": "Who is signed in: `{\"me\": Me}`, or `{\"me\": null}` for a guest, and whether \"Continue with Google\" is set up.\nNever 401, so a guest's page load logs no error (student test ST-10); GET /me still answers 401 when signed out.",
         "operationId": "session_state_api_v1_auth_session_get",
         "responses": {
           "200": {
@@ -274,31 +274,31 @@
         }
       }
     },
-    "/api/v1/auth/otp": {
+    "/api/v1/auth/sign-up": {
       "post": {
         "tags": [
           "auth"
         ],
-        "summary": "Start Sign In",
-        "description": "Send a code to an email address or phone number. The same answer whether or not an account exists.\n\nThe code is 6 digits; after many wrong codes for an address it is 10 letters and digits instead\n(`codeFormat: \"long\"`, written 'ABCDE-FGH23'), which nobody can guess.\n\nErrors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited\n(429, with retryAfter), delivery_failed (503, texts only: try again or use the other method). Emails go out just\nafter the answer.",
-        "operationId": "start_sign_in_api_v1_auth_otp_post",
+        "summary": "Sign Up",
+        "description": "A new account with an email address and a password (10 characters or more, not a common one); this browser is\nsigned in to it (with a CSRF cookie bound to the new session: read it again before the next request). The address\nisn't checked by email.\n\nErrors: invalid_email, weak_password (422), email_taken (409), rate_limited (429: new accounts from this\nnetwork).",
+        "operationId": "sign_up_api_v1_auth_sign_up_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OtpStartRequest"
+                "$ref": "#/components/schemas/SignUpRequest"
               }
             }
           },
           "required": true
         },
         "responses": {
-          "202": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OtpChallengeOut"
+                  "$ref": "#/components/schemas/SignInResult"
                 }
               }
             }
@@ -372,9 +372,101 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/sign-in": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sign In",
+        "description": "Sign in with an email address and a password. A wrong password and an address without an account (or without a\npassword) answer the same: invalid_credentials (422). This browser's previous session ends; read the CSRF cookie\nagain afterwards.\n\nErrors: invalid_email, invalid_credentials (422), rate_limited (429, with retryAfter).",
+        "operationId": "sign_in_api_v1_auth_sign_in_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInRequest"
+              }
+            }
           },
-          "503": {
-            "description": "Service Unavailable",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/json": {
                 "schema": {
@@ -386,19 +478,256 @@
         }
       }
     },
-    "/api/v1/auth/otp/verify": {
+    "/api/v1/auth/google": {
       "post": {
         "tags": [
           "auth"
         ],
-        "summary": "Verify Sign In",
-        "description": "Check the code; on success the account is created if needed and the session cookie is set (with a CSRF\ncookie bound to it: read it again before the next request).\n\nErrors: invalid_code (422, with attempts left in the message), code_expired (410), too_many_attempts (429).",
-        "operationId": "verify_sign_in_api_v1_auth_otp_verify_post",
+        "summary": "Start Google",
+        "description": "Start \"Continue with Google\": send the browser to `url`. Google brings it back to /auth/google/callback, which\nsigns it in (creating the account, or taking over an unconfirmed one with the address) and returns to `returnTo`.\n\nErrors: not_found (404: not set up on this hub), rate_limited (429).",
+        "operationId": "start_google_api_v1_auth_google_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OtpVerifyRequest"
+                "$ref": "#/components/schemas/GoogleStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleRedirect"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/callback": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Google Callback",
+        "description": "Where Google sends the browser back (the OAuth client's redirect URI). Not for the web app to call.",
+        "operationId": "google_callback_api_v1_auth_google_callback_get",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Code"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Back to the app: the page it started from, with ?authError=<code> on failure"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Reset Password",
+        "description": "Set a new password with a reset link an admin made. The link is used up, every session of the account ends,\nand this browser is signed in.\n\nErrors: reset_link_invalid (410), weak_password (422), rate_limited (429).",
+        "operationId": "reset_password_api_v1_auth_password_reset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequest"
               }
             }
           },
@@ -706,7 +1035,7 @@
             }
           },
           "403": {
-            "description": "step_up_required: confirm it's you first (POST /me/step-up)",
+            "description": "step_up_required: confirm it's you first (POST /me/step-up, or Google)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1158,126 +1487,14 @@
         "tags": [
           "me"
         ],
-        "summary": "Start Step Up",
-        "description": "Send a code to one of the account's own identifiers: `via` \"email\" or \"phone\" (by default the email\naddress, else the phone number). Check it with POST /me/step-up/verify.\n\nErrors: invalid_input (422: the account has no such identifier), sms_unavailable, rate_limited,\ndelivery_failed, as for POST /auth/otp.",
-        "operationId": "start_step_up_api_v1_me_step_up_post",
+        "summary": "Step Up",
+        "description": "Confirm it's you with your password. This browser gets a new session (and a new CSRF cookie: read it again),\nwith which the changes that need a recent confirmation work for `expiresIn` seconds. An account without a password\nconfirms by continuing with Google again (POST /auth/google), which signs this browser in afresh.\n\nErrors: wrong_password (422), rate_limited (429), forbidden (403: the account has no password).",
+        "operationId": "step_up_api_v1_me_step_up_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StepUpStart"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "202": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OtpChallengeOut"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too Many Requests",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Service Unavailable",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/step-up/verify": {
-      "post": {
-        "tags": [
-          "me"
-        ],
-        "summary": "Verify Step Up",
-        "description": "Check the code sent by POST /me/step-up. On success this browser gets a new session (and a new CSRF cookie:\nread it again), with which changing identifiers and deleting the account work for `expiresIn` seconds.\n\nErrors: invalid_code (422), code_expired (410), too_many_attempts (429).",
-        "operationId": "verify_step_up_api_v1_me_step_up_verify_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OtpVerifyRequest"
+                "$ref": "#/components/schemas/StepUpRequest"
               }
             }
           },
@@ -1363,45 +1580,35 @@
                 }
               }
             }
-          },
-          "410": {
-            "description": "Gone",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
           }
         }
       }
     },
-    "/api/v1/me/identifiers/otp": {
-      "post": {
+    "/api/v1/me/password": {
+      "put": {
         "tags": [
           "me"
         ],
-        "summary": "Start Add Identifier",
-        "description": "Add the other kind of identifier (a phone number to an email account, or the reverse), or change one: a code\ngoes to the new address.\n\nThe answer is the same whether or not another account uses the identifier: if one does, the address gets a\nmessage saying so instead of a code (so nobody can test which addresses have accounts), and\n/me/identifiers/verify answers identifier_taken. Errors: identifier_unchanged (409) when it is already this\naccount's, step_up_required (403), plus those of POST /auth/otp.",
-        "operationId": "start_add_identifier_api_v1_me_identifiers_otp_post",
+        "summary": "Set Password",
+        "description": "Change your password (with `currentPassword`), or add one to an account that signs in with Google (within ten\nminutes of signing in, else step_up_required). Every other browser signed in to the account is signed out.\n\nErrors: wrong_password (422 on currentPassword), weak_password (422 on newPassword), step_up_required (403),\nrate_limited (429).",
+        "operationId": "set_password_api_v1_me_password_put",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OtpStartRequest"
+                "$ref": "#/components/schemas/PasswordChange"
               }
             }
           },
           "required": true
         },
         "responses": {
-          "202": {
+          "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OtpChallengeOut"
+                  "$ref": "#/components/schemas/Me"
                 }
               }
             }
@@ -1427,7 +1634,7 @@
             }
           },
           "403": {
-            "description": "step_up_required: confirm it's you first (POST /me/step-up)",
+            "description": "step_up_required: confirm it's you first (POST /me/step-up, or Google)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1475,33 +1682,23 @@
                 }
               }
             }
-          },
-          "503": {
-            "description": "Service Unavailable",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
           }
         }
       }
     },
-    "/api/v1/me/identifiers/verify": {
+    "/api/v1/me/google": {
       "post": {
         "tags": [
           "me"
         ],
-        "summary": "Verify Add Identifier",
-        "description": "Check the code sent by POST /me/identifiers/otp and put the identifier on the account. The account's other\nsessions are signed out, and the identifier it replaces (or, for an addition, the other one) gets a notice.\n\nErrors: invalid_code (422), code_expired (410), too_many_attempts (429), identifier_taken (409).",
-        "operationId": "verify_add_identifier_api_v1_me_identifiers_verify_post",
+        "summary": "Link Google",
+        "description": "Add \"Continue with Google\" to your account: send the browser to `url`. When Google brings it back, the account\nsigns in with Google from now on and its email address becomes the Google account's, confirmed; other browsers are\nsigned out. It comes back to `returnTo` (with ?authError=google_taken or email_taken when another account has that\nGoogle account or its address).\n\nErrors: step_up_required (403), not_found (404: Google isn't set up on this hub), rate_limited (429).",
+        "operationId": "link_google_api_v1_me_google_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OtpVerifyRequest"
+                "$ref": "#/components/schemas/GoogleStart"
               }
             }
           },
@@ -1513,7 +1710,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Me"
+                  "$ref": "#/components/schemas/GoogleRedirect"
                 }
               }
             }
@@ -1539,7 +1736,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "step_up_required: confirm it's you first (POST /me/step-up, or Google)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1587,123 +1784,6 @@
                 }
               }
             }
-          },
-          "410": {
-            "description": "Gone",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/identifiers/{kind}": {
-      "delete": {
-        "tags": [
-          "me"
-        ],
-        "summary": "Remove Identifier",
-        "description": "Remove the email address or the phone number; the account must keep at least one (last_identifier, 409).\nThe account's other sessions are signed out and the removed identifier gets a notice.\n\nErrors: step_up_required (403), last_identifier (409).",
-        "operationId": "remove_identifier_api_v1_me_identifiers__kind__delete",
-        "parameters": [
-          {
-            "name": "kind",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "enum": [
-                "email",
-                "phone"
-              ],
-              "type": "string",
-              "title": "Kind"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Me"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "step_up_required: confirm it's you first (POST /me/step-up)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unprocessable Entity"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Too Many Requests"
           }
         }
       }
@@ -2716,7 +2796,7 @@
           "admin"
         ],
         "summary": "List Users",
-        "description": "Search by name (case-insensitive, any part), newest accounts first. `role`: a role's slug. Only admins search\nand see email addresses and phone numbers (a phone number may be typed with spaces).\n\nErrors: invalid (422: no role with this slug).",
+        "description": "Search by name (case-insensitive, any part), newest accounts first. `role`: a role's slug. Only admins search\nand see email addresses.\n\nErrors: invalid (422: no role with this slug).",
         "operationId": "list_users_api_v1_admin_users_get",
         "parameters": [
           {
@@ -2870,7 +2950,7 @@
           "admin"
         ],
         "summary": "Update User",
-        "description": "Suspend or restore an account, or recover one: replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\nRecovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding\nAdmin (security review AD-1).\n\nErrors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,\nand so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,\nor suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422).",
+        "description": "Suspend or restore an account. Audited, and the person gets a notification. Suspending or restoring an admin is\nfor admins, with a recent step-up (security review AD-1).\n\nErrors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: suspending or restoring\nan admin), step_up_required (403: suspending or restoring an admin).",
         "operationId": "update_user_api_v1_admin_users__user_id__patch",
         "parameters": [
           {
@@ -2901,6 +2981,110 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminUser"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{user_id}/reset-link": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Make Reset Link",
+        "description": "A one-time link for someone who forgot their password, for you to pass on (the Hub sends no email). It works\nonce, within an hour; a newer link retires older ones. Audited, and the person is told.\n\nErrors: step_up_required (403), forbidden (403: an account holding Admin), cannot_change_self (409).",
+        "operationId": "make_reset_link_api_v1_admin_users__user_id__reset_link_post",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetLinkOut"
                 }
               }
             }
@@ -30617,16 +30801,9 @@
             ],
             "title": "Email"
           },
-          "phone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone"
+          "emailConfirmed": {
+            "type": "boolean",
+            "title": "Emailconfirmed"
           },
           "roles": {
             "items": {
@@ -30682,7 +30859,7 @@
           "id",
           "displayName",
           "email",
-          "phone",
+          "emailConfirmed",
           "roles",
           "status",
           "year",
@@ -30738,37 +30915,11 @@
               }
             ],
             "title": "Status"
-          },
-          "email": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 254,
-                "minLength": 3
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Email"
-          },
-          "phone": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 254,
-                "minLength": 3
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone"
           }
         },
         "type": "object",
         "title": "AdminUserUpdate",
-        "description": "Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`\nand `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's\naddress (`null` removes it; one must stay), end every session of the account, send a notice to the address that\nwas replaced or removed, and are audited (`user.identifier`)."
+        "description": "`status` needs people.suspend; only admins suspend or restore an admin."
       },
       "AfterId": {
         "properties": {
@@ -36025,16 +36176,14 @@
               "retry",
               "internal",
               "error",
-              "invalid_identifier",
-              "sms_unavailable",
-              "delivery_failed",
-              "invalid_code",
-              "code_expired",
-              "too_many_attempts",
+              "invalid_email",
+              "weak_password",
+              "invalid_credentials",
+              "wrong_password",
+              "email_taken",
+              "reset_link_invalid",
+              "account_not_confirmed",
               "invalid_display_name",
-              "identifier_taken",
-              "identifier_unchanged",
-              "last_identifier",
               "step_up_required",
               "cannot_change_self",
               "storage_unavailable",
@@ -36910,7 +37059,7 @@
           "sentAt"
         ],
         "title": "ExportEmail",
-        "description": "An email the Hub sent you, or will send (notifications and account notices; sign-in codes are not kept)."
+        "description": "An email the Hub sent you, or will send (notifications and account notices)."
       },
       "ExportFollow": {
         "properties": {
@@ -39386,6 +39535,39 @@
         ],
         "title": "GiveUpMove",
         "description": "Ends the play as lost and shows the answer."
+      },
+      "GoogleRedirect": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "GoogleRedirect",
+        "description": "Send the browser here (Google's sign-in page). It comes back to `returnTo`, with ?authError=<GoogleError> when\nit didn't work."
+      },
+      "GoogleStart": {
+        "properties": {
+          "returnTo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returnto"
+          }
+        },
+        "type": "object",
+        "title": "GoogleStart",
+        "description": "Where to come back to afterwards: a path in the app ('/forum'); anything else goes back to '/'."
       },
       "GradeBand": {
         "properties": {
@@ -42885,26 +43067,20 @@
             "title": "Status"
           },
           "email": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Email"
           },
-          "phone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone"
+          "emailConfirmed": {
+            "type": "boolean",
+            "title": "Emailconfirmed"
+          },
+          "hasPassword": {
+            "type": "boolean",
+            "title": "Haspassword"
+          },
+          "googleLinked": {
+            "type": "boolean",
+            "title": "Googlelinked"
           },
           "needsProfile": {
             "type": "boolean",
@@ -42952,7 +43128,9 @@
           "features",
           "status",
           "email",
-          "phone",
+          "emailConfirmed",
+          "hasPassword",
+          "googleLinked",
           "needsProfile",
           "createdAt",
           "preferences",
@@ -45605,7 +45783,7 @@
           "capped"
         ],
         "title": "NotebookUploader",
-        "description": "One student's notebook uploads in the last 7 days, by display name (no email or phone)."
+        "description": "One student's notebook uploads in the last 7 days, by display name (no email address)."
       },
       "NotebookUploadsOut": {
         "properties": {
@@ -45869,89 +46047,6 @@
           "careers"
         ],
         "title": "OfferTypeLabels"
-      },
-      "OtpChallengeOut": {
-        "properties": {
-          "challengeId": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Challengeid"
-          },
-          "channel": {
-            "type": "string",
-            "enum": [
-              "email",
-              "sms"
-            ],
-            "title": "Channel"
-          },
-          "destinationHint": {
-            "type": "string",
-            "title": "Destinationhint"
-          },
-          "expiresIn": {
-            "type": "integer",
-            "title": "Expiresin"
-          },
-          "resendAfter": {
-            "type": "integer",
-            "title": "Resendafter"
-          },
-          "codeFormat": {
-            "type": "string",
-            "enum": [
-              "digits",
-              "long"
-            ],
-            "title": "Codeformat",
-            "default": "digits"
-          }
-        },
-        "type": "object",
-        "required": [
-          "challengeId",
-          "channel",
-          "destinationHint",
-          "expiresIn",
-          "resendAfter"
-        ],
-        "title": "OtpChallengeOut"
-      },
-      "OtpStartRequest": {
-        "properties": {
-          "identifier": {
-            "type": "string",
-            "maxLength": 254,
-            "minLength": 3,
-            "title": "Identifier"
-          }
-        },
-        "type": "object",
-        "required": [
-          "identifier"
-        ],
-        "title": "OtpStartRequest",
-        "description": "An email address or a phone number (local Bahraini numbers need no country code)."
-      },
-      "OtpVerifyRequest": {
-        "properties": {
-          "challengeId": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Challengeid"
-          },
-          "code": {
-            "type": "string",
-            "pattern": "^(?:\\d{6}|[A-Za-z0-9]{5}[- ]?[A-Za-z0-9]{5})$",
-            "title": "Code"
-          }
-        },
-        "type": "object",
-        "required": [
-          "challengeId",
-          "code"
-        ],
-        "title": "OtpVerifyRequest"
       },
       "PageChange": {
         "properties": {
@@ -46489,6 +46584,58 @@
           "text"
         ],
         "title": "ParagraphBlock"
+      },
+      "PasswordChange": {
+        "properties": {
+          "currentPassword": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentpassword"
+          },
+          "newPassword": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Newpassword"
+          }
+        },
+        "type": "object",
+        "required": [
+          "newPassword"
+        ],
+        "title": "PasswordChange",
+        "description": "A new password from Your account. `currentPassword` is needed when the account has one; an account without one\n(it signs in with Google) adds one within ten minutes of signing in, or after confirming it's you."
+      },
+      "PasswordResetRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 20,
+            "title": "Token"
+          },
+          "newPassword": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Newpassword"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "newPassword"
+        ],
+        "title": "PasswordResetRequest",
+        "description": "A new password through a reset link an admin made (the token is the part after #token= in the link)."
       },
       "PersonalEventCreate": {
         "properties": {
@@ -49267,6 +49414,26 @@
         ],
         "title": "RequestPage"
       },
+      "ResetLinkOut": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "expiresAt"
+        ],
+        "title": "ResetLinkOut",
+        "description": "A one-time link to set a new password, for the admin to pass on. It works once, until `expiresAt`."
+      },
       "ResultsDay": {
         "properties": {
           "title": {
@@ -50175,11 +50342,16 @@
                 "type": "null"
               }
             ]
+          },
+          "googleSignIn": {
+            "type": "boolean",
+            "title": "Googlesignin"
           }
         },
         "type": "object",
         "required": [
-          "me"
+          "me",
+          "googleSignIn"
         ],
         "title": "SessionState",
         "description": "GET /auth/session: the signed-in user, or null for a guest. Never 401."
@@ -50416,6 +50588,28 @@
         "title": "SharedNoteSummary",
         "description": "A note shared with a module, in the module's list. `author` is None when it was shared without a name (or the\naccount has no profile). `mine`: the viewer shared it. `hidden`: a student rep hid it (only its writer and\nmoderators see it)."
       },
+      "SignInRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "SignInRequest"
+      },
       "SignInResult": {
         "properties": {
           "user": {
@@ -50432,6 +50626,29 @@
           "isNewUser"
         ],
         "title": "SignInResult"
+      },
+      "SignUpRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "SignUpRequest",
+        "description": "A new account with an email address and a password. The address isn't checked by email: it counts as confirmed\nonly once its owner signs in with Google."
       },
       "SignoffBlock": {
         "properties": {
@@ -51143,6 +51360,22 @@
         "title": "StatsAside",
         "description": "A few numbers beside the copy."
       },
+      "StepUpRequest": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "StepUpRequest",
+        "description": "Confirm it's you with the account's password (an account with Google only signs in with Google again)."
+      },
       "StepUpResult": {
         "properties": {
           "expiresIn": {
@@ -51155,29 +51388,7 @@
           "expiresIn"
         ],
         "title": "StepUpResult",
-        "description": "The browser's session was renewed: changing or removing an identifier and deleting the account work without\nanother code for `expires_in` seconds."
-      },
-      "StepUpStart": {
-        "properties": {
-          "via": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "email",
-                  "phone"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Via"
-          }
-        },
-        "type": "object",
-        "title": "StepUpStart",
-        "description": "Which of the account's own identifiers gets the code: by default the email address, else the phone number."
+        "description": "The browser's session was renewed: adding a password and deleting the account work without confirming again for\n`expires_in` seconds."
       },
       "StorageUse": {
         "properties": {

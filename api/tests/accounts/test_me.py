@@ -1,4 +1,4 @@
-"""The signed-in user's account: profile, sessions, identifiers, export and deletion."""
+"""The signed-in user's account: profile, sessions, export and deletion."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_token
 from app.core.time import utcnow
 from app.models import (
+    AttemptKind,
     AuditEntry,
     ForumReply,
     ForumThread,
@@ -34,10 +35,10 @@ from app.models import (
     Notebook,
     NoteInk,
     Notification,
-    OtpChallenge,
-    OtpPurpose,
+    PasswordReset,
     ReplyVote,
     Report,
+    SignInAttempt,
     ThreadVote,
     Upload,
     UploadPurpose,
@@ -47,9 +48,9 @@ from app.models import (
     UserStatus,
 )
 from app.schemas.auth import MAX_HOME_BLOCKS
-from app.services.identifiers import anon_identifier
+from app.services.identifiers import account_key
 from app.services.storage import Storage
-from tests.accounts.conftest import API, Deliver, Outbox, SignIn, start, wrong
+from tests.accounts.conftest import API
 from tests.lessons import lesson_id
 
 ClientFor = Callable[..., TestClient]
@@ -81,16 +82,18 @@ def test_guests_get_401_everywhere(client: TestClient) -> None:
         ("GET", "/me/export"),
         ("GET", "/me/sessions"),
         ("DELETE", f"/me/sessions/{uuid.uuid4()}"),
-        ("POST", "/me/identifiers/otp"),
-        ("POST", "/me/identifiers/verify"),
-        ("DELETE", "/me/identifiers/phone"),
+        ("POST", "/me/step-up"),
+        ("PUT", "/me/password"),
+        ("POST", "/me/google"),
     ]
+    bodies: dict[str, dict[str, object]] = {
+        "/me": {"year": 1},
+        "/me/step-up": {"password": "correct horse battery"},
+        "/me/password": {"newPassword": "correct horse battery"},
+        "/me/google": {},
+    }
     for method, path in calls:
-        body: dict[str, object] | None = {"identifier": "a@b.com"} if path.endswith("/otp") else None
-        if path.endswith("/verify"):
-            body = {"challengeId": str(uuid.uuid4()), "code": "123456"}
-        if method == "PATCH":
-            body = {"year": 1}
+        body = bodies.get(path) if method != "DELETE" else None
         r = client.request(method, f"{API}{path}", json=body)
         assert r.status_code == 401, (method, path, r.text)
         assert r.json()["error"]["code"] == "unauthenticated"
@@ -100,7 +103,7 @@ def test_session_state_never_answers_401(client_for: ClientFor, make_user: MakeU
     """Student test ST-10: GET /auth/session is 200 for guests too, so a guest's page load logs no error."""
     r = client_for().get(f"{API}/auth/session")
     assert r.status_code == 200
-    assert r.json() == {"me": None}
+    assert r.json() == {"me": None, "googleSignIn": False}
     user = make_user(email="session@example.com", name="Noor Session")
     c = client_for(user)
     r = c.get(f"{API}/auth/session")
@@ -122,7 +125,9 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
         "features": ["forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora"],
         "status": "active",
         "email": "me@example.com",
-        "phone": None,
+        "emailConfirmed": True,
+        "hasPassword": False,
+        "googleLinked": False,
         "needsProfile": False,
         "createdAt": r.json()["createdAt"],
         "preferences": {
@@ -537,153 +542,6 @@ def test_cannot_revoke_someone_elses_session(client_for: ClientFor, make_user: M
     assert owner.get(f"{API}/me").status_code == 200
 
 
-# ── adding, changing and removing identifiers ───────────────────────────────────────────────
-
-
-def test_add_a_phone_number(client_for: ClientFor, make_user: MakeUser, outbox: Outbox, deliver: Deliver) -> None:
-    user = make_user(email="adds@example.com")
-    c = client_for(user)
-    r = c.post(f"{API}/me/identifiers/otp", json={"identifier": "3312 3459"})
-    assert r.status_code == 202, r.text
-    assert r.json()["channel"] == "sms"
-    assert r.json()["destinationHint"] == "+973 •••• ••59"
-    text = outbox.to("+97333123459")[0]
-    r = c.post(f"{API}/me/identifiers/verify", json={"challengeId": r.json()["challengeId"], "code": text.code})
-    assert r.status_code == 200, r.text
-    assert r.json()["phone"] == "+97333123459"
-    assert r.json()["email"] == "adds@example.com"
-    assert outbox.to("adds@example.com") == []  # an email notice goes through the outbox
-    assert deliver() == 1
-    [notice] = outbox.to("adds@example.com")
-    assert "A phone number (+973 •••• ••59) was added" in notice.text
-    assert "If this wasn't you" in notice.text
-
-
-def test_change_the_email_address(
-    client_for: ClientFor,
-    make_user: MakeUser,
-    outbox: Outbox,
-    sign_in: SignIn,
-    age: Callable[..., None],
-    deliver: Deliver,
-) -> None:
-    user = make_user(email="old@example.com", phone="+97333123460")
-    c = client_for(user)
-    r = c.post(f"{API}/me/identifiers/otp", json={"identifier": "New@Example.com"})
-    assert r.status_code == 202
-    mail = outbox.to("new@example.com")[0]
-    assert "add this email address to your account" in mail.text
-    r = c.post(f"{API}/me/identifiers/verify", json={"challengeId": r.json()["challengeId"], "code": mail.code})
-    assert r.status_code == 200
-    assert r.json()["email"] == "new@example.com"
-    deliver()
-    [notice] = outbox.to("old@example.com")  # sent although the account no longer has that address
-    assert "changed to n•••@example.com" in notice.text
-    age(31)
-    assert sign_in("new@example.com")[1]["user"]["id"] == str(user.id)
-    assert sign_in("old@example.com")[1]["isNewUser"] is True  # the old address is free again
-
-
-def test_an_identifier_in_use_gets_a_notice_and_the_same_answer(
-    client_for: ClientFor, make_user: MakeUser, outbox: Outbox, db: Session
-) -> None:
-    make_user(email="taken@example.com")
-    c = client_for(make_user(phone="+97333123461"))
-    taken = c.post(f"{API}/me/identifiers/otp", json={"identifier": "taken@example.com"})
-    free = c.post(f"{API}/me/identifiers/otp", json={"identifier": "free@example.com"})
-    assert taken.status_code == free.status_code == 202
-    a, b = taken.json(), free.json()
-    assert a.keys() == b.keys()
-    assert (a["channel"], a["expiresIn"], a["resendAfter"]) == (b["channel"], b["expiresIn"], b["resendAfter"])
-    [notice] = outbox.to("taken@example.com")
-    assert notice.subject == "This email address already has a DSBA Hub account"
-    assert "sign in with this email address instead" in notice.text
-    assert not any(ch.isdigit() for ch in notice.text.split("DSBA Hub\n")[0])  # no code in it
-    # the request still counts: the cooldown applies to both alike
-    assert c.post(f"{API}/me/identifiers/otp", json={"identifier": "taken@example.com"}).status_code == 429
-    assert c.post(f"{API}/me/identifiers/otp", json={"identifier": "free@example.com"}).status_code == 429
-    r = c.post(f"{API}/me/identifiers/verify", json={"challengeId": a["challengeId"], "code": "000000"})
-    assert r.status_code in (409, 422)
-
-
-def test_identifier_taken_while_the_code_was_on_its_way(
-    client_for: ClientFor, make_user: MakeUser, outbox: Outbox, db: Session
-) -> None:
-    user = make_user(email="slow@example.com")
-    c = client_for(user)
-    r = c.post(f"{API}/me/identifiers/otp", json={"identifier": "33123462"})
-    make_user(phone="+97333123462")
-    r = c.post(f"{API}/me/identifiers/verify", json={"challengeId": r.json()["challengeId"], "code": outbox[-1].code})
-    assert r.status_code == 409
-    assert r.json()["error"]["code"] == "identifier_taken"
-    assert _fresh(db, User, user.id).phone is None
-
-
-def test_identifier_unchanged(client_for: ClientFor, make_user: MakeUser, outbox: Outbox) -> None:
-    c = client_for(make_user(email="same@example.com"))
-    r = c.post(f"{API}/me/identifiers/otp", json={"identifier": "SAME@example.com"})
-    assert r.status_code == 409
-    assert r.json()["error"]["code"] == "identifier_unchanged"
-    assert outbox == []
-
-
-def test_codes_are_bound_to_their_user_and_purpose(client_for: ClientFor, make_user: MakeUser, outbox: Outbox) -> None:
-    mine = client_for(make_user())
-    r = mine.post(f"{API}/me/identifiers/otp", json={"identifier": "33123463"})
-    cid, code = r.json()["challengeId"], outbox[-1].code
-    thief = client_for(make_user())
-    r = thief.post(f"{API}/me/identifiers/verify", json={"challengeId": cid, "code": code})
-    assert r.status_code == 410
-    sign_in_challenge = start(client_for(), "33123464").json()["challengeId"]
-    r = mine.post(f"{API}/me/identifiers/verify", json={"challengeId": sign_in_challenge, "code": outbox[-1].code})
-    assert r.status_code == 410
-    r = mine.post(f"{API}/me/identifiers/verify", json={"challengeId": cid, "code": wrong(code)})
-    assert r.status_code == 422
-    assert r.json()["error"]["code"] == "invalid_code"
-    assert mine.post(f"{API}/me/identifiers/verify", json={"challengeId": cid, "code": code}).status_code == 200
-
-
-def test_codes_per_user_for_new_identifiers(
-    client_for: ClientFor, make_user: MakeUser, outbox: Outbox, set_option: Callable[[str, Any], None]
-) -> None:
-    set_option("otp_max_per_identifier_per_hour", 2)
-    c = client_for(make_user())
-    assert c.post(f"{API}/me/identifiers/otp", json={"identifier": "33123465"}).status_code == 202
-    assert c.post(f"{API}/me/identifiers/otp", json={"identifier": "33123466"}).status_code == 202
-    r = c.post(f"{API}/me/identifiers/otp", json={"identifier": "33123467"})
-    assert r.status_code == 429
-    assert r.json()["error"]["code"] == "rate_limited"
-    assert "too many codes" in r.json()["error"]["message"]
-
-
-def test_changing_identifiers_signs_out_other_browsers(
-    client_for: ClientFor, make_user: MakeUser, outbox: Outbox
-) -> None:
-    user = make_user(email="careful@example.com")
-    here, there = client_for(user), client_for(user)
-    r = here.post(f"{API}/me/identifiers/otp", json={"identifier": "33123468"})
-    here.post(f"{API}/me/identifiers/verify", json={"challengeId": r.json()["challengeId"], "code": outbox[-1].code})
-    assert here.get(f"{API}/me").status_code == 200
-    assert there.get(f"{API}/me").status_code == 401
-
-
-def test_remove_an_identifier(client_for: ClientFor, make_user: MakeUser, outbox: Outbox) -> None:
-    user = make_user(email="both@example.com", phone="+97333123469")
-    here, there = client_for(user), client_for(user)
-    r = here.delete(f"{API}/me/identifiers/phone")
-    assert r.status_code == 200
-    assert r.json()["phone"] is None
-    assert r.json()["email"] == "both@example.com"
-    [notice] = outbox.to("+97333123469")
-    assert "This phone number was removed from your DSBA Hub account." in notice.text
-    assert there.get(f"{API}/me").status_code == 401
-    r = here.delete(f"{API}/me/identifiers/email")
-    assert r.status_code == 409
-    assert r.json()["error"]["code"] == "last_identifier"
-    assert here.delete(f"{API}/me/identifiers/phone").status_code == 200  # nothing to remove
-    assert here.delete(f"{API}/me/identifiers/name").status_code == 422
-
-
 # ── export ──────────────────────────────────────────────────────────────────────────────────
 
 
@@ -701,8 +559,8 @@ STROKE = {"id": "s1", "tool": "pen", "color": "#1f2933", "width": 2.0, "points":
 
 
 def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module: Module) -> None:
-    user = make_user(email="export@example.com", phone="+97333123470")
-    other = make_user(email="someone-else@example.com", phone="+97333123471", name="Other Person")
+    user = make_user(email="export@example.com")
+    other = make_user(email="someone-else@example.com", name="Other Person")
     mine = _thread(db, user)
     theirs = _thread(db, other)
     reply = ForumReply(thread_id=theirs.id, author_id=user.id, body="My answer")
@@ -819,7 +677,7 @@ def _object(storage: Storage, key: str) -> str:
 def test_delete_the_account(
     client_for: ClientFor, make_user: MakeUser, db: Session, storage: Storage, module: Module
 ) -> None:
-    user = make_user(email="bye@example.com", phone="+97333123472")
+    user = make_user(email="bye@example.com")
     other = make_user(name="Stays Here")
     c = client_for(user)
     mine = _thread(db, user)
@@ -874,19 +732,15 @@ def test_delete_the_account(
     report = Report(reporter_id=user.id, target_type="thread", target_id=theirs.id, reason="spam")
     sent = Notification(user_id=other.id, kind="thread_reply", title="A reply", actor_id=user.id)
     entry = AuditEntry(actor_id=user.id, action="library.publish")
-    challenge = OtpChallenge(
-        purpose=OtpPurpose.sign_in,
-        channel="email",
-        identifier="bye@example.com",
-        code_hash="x" * 64,
-        expires_at=utcnow() + timedelta(minutes=5),
-    )
+    reset = PasswordReset(user_id=user.id, token_hash="x" * 64, expires_at=utcnow() + timedelta(minutes=5))
+    attempt = SignInAttempt(kind=AttemptKind.sign_in_failed, account_key=account_key("bye@example.com"))
     db.add_all(
         [
             report,
             sent,
             entry,
-            challenge,
+            reset,
+            attempt,
             LibraryStar(user_id=user.id, item_id=published.id),
             NewsletterReaction(user_id=user.id, issue_id=issue.id, section_id="s", reaction="useful"),
             LessonView(user_id=user.id, lesson_id=lesson_id(module, 0, 0)),
@@ -901,6 +755,8 @@ def test_delete_the_account(
         "loose": loose.id,
         "picture": picture.id,
         "pending_upload": pending_upload.id,
+        "reset": reset.id,
+        "attempt": attempt.id,
     }
 
     r = c.delete(f"{API}/me")
@@ -936,13 +792,9 @@ def test_delete_the_account(
     assert _row(db, Notification, sent.id).actor_id is None
     assert _row(db, Report, report.id).reporter_id is None
     assert _row(db, AuditEntry, entry.id).actor_id is None
-    # the sign-in code stays for the rate limits, without the address and unusable (student test, security note)
-    kept = db.get(OtpChallenge, challenge.id)
-    assert kept is not None
-    assert kept.identifier == anon_identifier("email", "bye@example.com")
-    assert "bye" not in kept.identifier
-    assert kept.user_id is None
-    assert kept.expires_at <= utcnow()
+    assert db.get(PasswordReset, ids["reset"]) is None
+    # the sign-in limits keep counting the address (deleting the account and signing up again refills nothing)
+    assert db.get(SignInAttempt, ids["attempt"]) is not None
     assert db.get(User, other.id) is not None
 
 

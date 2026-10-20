@@ -11,7 +11,8 @@ from app.core.access import Box
 from app.core.errors import ApiError
 from app.models import RoleBox, User, UserStatus
 from app.schemas.access import BoxKey, FeatureKey
-from app.services import access, accounts
+from app.services import access, accounts, signin
+from app.services.google import GoogleIdentity
 from tests.core.conftest import SetOption
 
 MakeUser = Callable[..., User]
@@ -74,8 +75,8 @@ def test_keys_the_code_does_not_know_are_ignored(make_user: MakeUser, db: Sessio
 
 def test_new_accounts_hold_student_and_admin_identifiers_also_hold_admin(db: Session, set_option: SetOption) -> None:
     set_option("admin_identifiers", ["boss@example.com"])
-    plain, _ = accounts.user_for_sign_in(db, "email", "plain@example.com", None)
-    boss, _ = accounts.user_for_sign_in(db, "email", "boss@example.com", None)
+    plain, _ = signin.google_sign_in(db, GoogleIdentity(sub="plain", email="plain@example.com"), None)
+    boss, _ = signin.google_sign_in(db, GoogleIdentity(sub="boss", email="boss@example.com"), None)
     db.commit()
     assert slugs(plain) == ("student",)
     assert slugs(boss) == ("admin", "student")
