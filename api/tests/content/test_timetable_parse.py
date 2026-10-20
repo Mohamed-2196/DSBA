@@ -183,4 +183,6 @@ def test_long_runs_of_space_read_fast() -> None:
     assert find_time("10" + " " * 100_000 + "x") is None
     assert find_time("1 " * 50_000) is None
     assert find_date("13 " + " " * 100_000 + "x", TODAY) is None
-    assert time.perf_counter() - start < 0.5
+    # Linear work takes a fraction of a second even on a busy machine; the backtracking this guards against took
+    # minutes, so a generous limit never flakes and still catches it.
+    assert time.perf_counter() - start < 2.0
