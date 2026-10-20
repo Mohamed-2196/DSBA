@@ -110,6 +110,16 @@
     "forum",
     "noora"
   ],
+  "examWeek": {
+    "on": true,
+    "daysBefore": 7,
+    "lead": [
+      "countdown",
+      "practice",
+      "papers",
+      "dates"
+    ]
+  },
   "tour": [
     {
       "id": "search",

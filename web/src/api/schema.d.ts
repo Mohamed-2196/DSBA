@@ -5916,6 +5916,8 @@ export interface components {
             hidden: boolean;
             /** Id */
             id?: string | null;
+            /** Keywords */
+            keywords?: string[];
             /** Lessons */
             lessons?: components["schemas"]["LessonIn"][];
         };
@@ -5927,6 +5929,8 @@ export interface components {
             title: string;
             /** Hidden */
             hidden: boolean;
+            /** Keywords */
+            keywords: string[];
             /** Lessons */
             lessons: components["schemas"]["LessonOut"][];
         };
@@ -6323,6 +6327,21 @@ export interface components {
             noTime: boolean;
             /** Noplace */
             noPlace: boolean;
+        };
+        /**
+         * ExamWeek
+         * @description In the days before a student's exam, Home on a phone leads with that exam instead of the desk shelf. `lead` is
+         *     what it shows, in order: `countdown` (the exam's day, time and place, and the days left), `papers` (the module's
+         *     latest past papers by sitting), `practice` (the newest paper to practise, its worked answers and report, and the
+         *     chapter with the most past questions) and `dates` (the module's next dates).
+         */
+        ExamWeek: {
+            /** On */
+            on: boolean;
+            /** Daysbefore */
+            daysBefore: number;
+            /** Lead */
+            lead: ("countdown" | "papers" | "practice" | "dates")[];
         };
         /** ExportBoard */
         ExportBoard: {
@@ -10938,6 +10957,7 @@ export interface components {
             launchYear: number;
             /** Homeblocks */
             homeBlocks: ("start_here" | "results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[];
+            examWeek: components["schemas"]["ExamWeek"];
             /** Tour */
             tour: components["schemas"]["TourStep"][];
             /** Searchnicknames */
@@ -12072,6 +12092,7 @@ export type Electives = components['schemas']['Electives'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type ErrorResponse = components['schemas']['ErrorResponse'];
 export type EventGap = components['schemas']['EventGap'];
+export type ExamWeek = components['schemas']['ExamWeek'];
 export type ExportBoard = components['schemas']['ExportBoard'];
 export type ExportBoardCard = components['schemas']['ExportBoardCard'];
 export type ExportBoardColumn = components['schemas']['ExportBoardColumn'];
@@ -18791,6 +18812,8 @@ export interface operations {
                 sort?: "hot" | "new" | "top";
                 /** @description Only threads without a visible reply yet */
                 unanswered?: boolean;
+                /** @description Only threads with an accepted answer */
+                answered?: boolean;
                 /** @description Only threads the signed-in user started, replied to or follows, newest activity first (needs a session) */
                 yours?: boolean;
                 /** @description A library item's slug: only threads whose post or a reply links to it (/library/<slug>) */

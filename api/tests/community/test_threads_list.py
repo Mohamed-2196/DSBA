@@ -342,3 +342,16 @@ def test_threads_that_link_a_paper(client_for: Client, student: User, classmate:
     assert found == [in_reply["id"], absolute["id"], asked["id"]]
     assert listing(client_for(), paper="nothing-links-here")["items"] == []
     assert client_for().get(f"{API}/forum/threads", params={"paper": "../etc"}).status_code == 422
+
+
+def test_answered_threads_only(client_for: Client, ranked: dict[str, str], student: User, db: Session) -> None:
+    """IDEA-49: `answered` keeps the threads with an accepted answer (a module page's "Asked before"), most voted first
+    with sort=top."""
+    c = client_for(student)
+    for key in ("a", "c"):
+        reply = new_reply(c, ranked[key])
+        set_thread(db, ranked[key], accepted_reply_id=uuid.UUID(reply["id"]))
+    answered = listing(client_for(), answered="true", sort="top")
+    assert ids(answered["items"]) == [ranked["c"], ranked["a"]]
+    assert answered["total"] == 2
+    assert all(t["answered"] for t in answered["items"])

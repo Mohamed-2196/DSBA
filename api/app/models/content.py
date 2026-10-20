@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Any, get_args
 
 from sqlalchemy import (
+    ARRAY,
     Boolean,
     CheckConstraint,
     Date,
@@ -70,6 +71,8 @@ class Chapter(Base):
     title: Mapped[str] = mapped_column(String(160))
     audio_url: Mapped[str | None] = mapped_column(String(500))
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    # Other words search finds it by, lower case ('mle', 'cramer rao'): schemas/modules.py Keyword.
+    keywords: Mapped[list[str]] = mapped_column(ARRAY(String(40)), default=list, server_default="{}")
 
     module: Mapped[Module] = relationship(back_populates="chapters")
     lessons: Mapped[list[Lesson]] = relationship(

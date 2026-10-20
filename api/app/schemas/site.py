@@ -1,7 +1,8 @@
 """Site settings: the hub's own words and links, in one document that admins save as a whole (PUT /site). The links to
 BIBF's and the University's sites, the About page, the footer, the people who made the hub and the students who shared
-their notes, Home's blocks for a student who hasn't arranged their own, the steps of the tour, and search's nicknames
-for modules and its suggested searches. Its starting content is app/seed/data/site.json.
+their notes, Home's blocks for a student who hasn't arranged their own, what leads Home on a phone in the days before
+a student's exam, the steps of the tour, and search's nicknames for modules and its suggested searches. Its starting
+content is app/seed/data/site.json.
 
 Links to other sites are https://. The modules a student shared notes for are module ids, and must exist."""
 
@@ -91,6 +92,26 @@ class SearchNickname(ApiModel):
     ]
 
 
+ExamWeekPart = Literal["countdown", "papers", "practice", "dates"]
+
+
+class ExamWeek(ApiModel):
+    """In the days before a student's exam, Home on a phone leads with that exam instead of the desk shelf. `lead` is
+    what it shows, in order: `countdown` (the exam's day, time and place, and the days left), `papers` (the module's
+    latest past papers by sitting), `practice` (the newest paper to practise, its worked answers and report, and the
+    chapter with the most past questions) and `dates` (the module's next dates)."""
+
+    on: bool
+    days_before: int = Field(ge=1, le=28)  # it starts this many days before the exam (7: from a week before)
+    lead: list[ExamWeekPart] = Field(min_length=1, max_length=4)
+
+    @model_validator(mode="after")
+    def _once_each(self) -> ExamWeek:
+        if len(set(self.lead)) != len(self.lead):
+            raise PydanticCustomError("duplicate", "A part of the exam week lead is listed twice.")
+        return self
+
+
 def _unique(ids: Iterable[str], what: str) -> None:
     seen: set[str] = set()
     for i in ids:
@@ -111,6 +132,7 @@ class SiteDoc(ApiModel):
     copyright_holder: Name
     launch_year: int = Field(ge=2000, le=2100)  # the footer's © runs from this year to this one
     home_blocks: list[HomeBlock] = Field(min_length=1, max_length=MAX_HOME_BLOCKS)  # Home before a student arranges it
+    exam_week: ExamWeek
     tour: list[TourStep] = Field(min_length=1, max_length=5)
     search_nicknames: list[SearchNickname] = Field(max_length=40)
     search_suggestions: list[Label] = Field(min_length=1, max_length=6)  # in search before anything is typed

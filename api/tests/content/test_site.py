@@ -81,6 +81,19 @@ def test_admins_save_the_site_and_it_is_audited(
     assert entry.data["after"]["contributors"] == {"items": [data["contributors"][-1]]}
 
 
+def test_admins_set_what_leads_home_in_exam_week(client_for: Clients, admin: User, modules: dict[str, Module]) -> None:
+    """IDEA-48: exam week is a setting, not code: on or off, how many days before an exam, and what leads."""
+    assert client_for().get(SITE).json()["examWeek"] == {
+        "on": True,
+        "daysBefore": 7,
+        "lead": ["countdown", "practice", "papers", "dates"],
+    }
+    data = seed("site")
+    data["examWeek"] = {"on": False, "daysBefore": 3, "lead": ["papers", "countdown"]}
+    assert client_for(admin).put(SITE, json={"version": 0, "data": data}).status_code == 200
+    assert client_for().get(SITE).json()["examWeek"] == data["examWeek"]
+
+
 def test_a_stale_site_save_is_refused(
     client_for: Clients, admin: User, make_user: Callable[..., User], modules: dict[str, Module]
 ) -> None:
@@ -155,6 +168,11 @@ def test_of_two_first_saves_the_second_is_refused(db: Session, admin: User, monk
         (lambda d: d["searchNicknames"][0].update(word="big data"), "data.searchNicknames.0.word"),
         (lambda d: d["searchNicknames"][0].update(finds="stat.*"), "data.searchNicknames.0.finds"),
         (lambda d: d.update(searchSuggestions=[]), "data.searchSuggestions"),
+        (lambda d: d["examWeek"].update(daysBefore=0), "data.examWeek.daysBefore"),
+        (lambda d: d["examWeek"].update(daysBefore=29), "data.examWeek.daysBefore"),
+        (lambda d: d["examWeek"].update(lead=[]), "data.examWeek.lead"),
+        (lambda d: d["examWeek"].update(lead=["countdown", "countdown"]), "data.examWeek"),
+        (lambda d: d["examWeek"].update(lead=["weather"]), "data.examWeek.lead.0"),
     ],
 )
 def test_the_site_is_checked(

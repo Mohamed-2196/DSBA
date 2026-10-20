@@ -62,6 +62,7 @@ def load_modules(db: Session) -> int:
                 position=ci,
                 title=c["title"],
                 audio_url=c.get("audioUrl"),
+                keywords=list(c.get("keywords") or []),
                 lessons=[
                     Lesson(
                         id=v["id"],
@@ -129,6 +130,21 @@ def remove_broken_chapters(db: Session) -> int:
         module.version += 1
         db.flush()
         n += 1
+    return n
+
+
+def load_chapter_words(db: Session) -> int:
+    """The seed's words for search on chapters that have none yet (a catalogue loaded before they were written): a
+    chapter a content manager gave words keeps them."""
+    n = 0
+    for m in read("modules"):
+        for c in m.get("chapters") or []:
+            words = c.get("keywords") or []
+            chapter = db.get(Chapter, c["id"]) if words else None
+            if chapter is not None and not chapter.keywords:
+                chapter.keywords = list(words)
+                n += 1
+    db.flush()
     return n
 
 
@@ -359,6 +375,7 @@ def load_paper_questions(db: Session) -> int:
 SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
     "broken-chapters": remove_broken_chapters,
+    "chapter-words": load_chapter_words,
     "calendar": load_calendar,
     "newsletter": load_newsletter,
     "career": load_career,

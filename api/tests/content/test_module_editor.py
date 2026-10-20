@@ -462,3 +462,20 @@ def test_a_module_the_documents_name_is_kept(
     )
     assert made.status_code == 201, made.text
     assert c.delete(f"{API}/content/modules/unnamed-one", params={"version": made.json()["version"]}).status_code == 204
+
+
+def test_chapters_take_words_for_search(client_for: Clients, manager: User, module: Module) -> None:
+    """IDEA-50: a content manager gives a chapter the other words students search for; they are kept in the form
+    search compares (lower case, no accents or hyphens, once each) and only editors see them."""
+    c = client_for(manager)
+    m = load(c, module.id)
+    assert m["chapters"][0]["keywords"] == []
+    one = {**m["chapters"][0], "keywords": ["MLE", "Cramér-Rao", " mle ", "Fisher  information"]}
+    saved = save(c, module.id, {**m, "chapters": [one, m["chapters"][1]]})
+    assert saved["chapters"][0]["keywords"] == ["mle", "cramer rao", "fisher information"]
+    assert "keywords" not in c.get(f"{API}/modules/{module.id}").json()["chapters"][0]
+
+    m = load(c, module.id)
+    for bad in (["--"], [f"w{i}" for i in range(13)], ["x" * 41]):
+        r = c.put(f"{API}/content/modules/{module.id}", json={**m, "chapters": [{**m["chapters"][0], "keywords": bad}]})
+        assert r.status_code == 422, bad

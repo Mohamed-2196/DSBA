@@ -7992,6 +7992,18 @@
             "description": "Only threads without a visible reply yet"
           },
           {
+            "name": "answered",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only threads with an accepted answer",
+              "default": false,
+              "title": "Answered"
+            },
+            "description": "Only threads with an accepted answer"
+          },
+          {
             "name": "yours",
             "in": "query",
             "required": false,
@@ -32455,6 +32467,16 @@
             ],
             "title": "Id"
           },
+          "keywords": {
+            "items": {
+              "type": "string",
+              "maxLength": 40,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Keywords"
+          },
           "lessons": {
             "items": {
               "$ref": "#/components/schemas/LessonIn"
@@ -32484,6 +32506,13 @@
             "type": "boolean",
             "title": "Hidden"
           },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keywords"
+          },
           "lessons": {
             "items": {
               "$ref": "#/components/schemas/LessonOut"
@@ -32497,6 +32526,7 @@
           "id",
           "title",
           "hidden",
+          "keywords",
           "lessons"
         ],
         "title": "ChapterOut"
@@ -33555,6 +33585,43 @@
           "noPlace"
         ],
         "title": "EventGap"
+      },
+      "ExamWeek": {
+        "properties": {
+          "on": {
+            "type": "boolean",
+            "title": "On"
+          },
+          "daysBefore": {
+            "type": "integer",
+            "maximum": 28.0,
+            "minimum": 1.0,
+            "title": "Daysbefore"
+          },
+          "lead": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "countdown",
+                "papers",
+                "practice",
+                "dates"
+              ]
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Lead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "on",
+          "daysBefore",
+          "lead"
+        ],
+        "title": "ExamWeek",
+        "description": "In the days before a student's exam, Home on a phone leads with that exam instead of the desk shelf. `lead` is\nwhat it shows, in order: `countdown` (the exam's day, time and place, and the days left), `papers` (the module's\nlatest past papers by sitting), `practice` (the newest paper to practise, its worked answers and report, and the\nchapter with the most past questions) and `dates` (the module's next dates)."
       },
       "ExportBoard": {
         "properties": {
@@ -47188,6 +47255,9 @@
             "minItems": 1,
             "title": "Homeblocks"
           },
+          "examWeek": {
+            "$ref": "#/components/schemas/ExamWeek"
+          },
           "tour": {
             "items": {
               "$ref": "#/components/schemas/TourStep"
@@ -47230,6 +47300,7 @@
           "copyrightHolder",
           "launchYear",
           "homeBlocks",
+          "examWeek",
           "tour",
           "searchNicknames",
           "searchSuggestions"

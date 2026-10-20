@@ -90,6 +90,7 @@ def list_threads(
     year: YearParam | None = None,
     sort: Sort = "hot",
     unanswered: bool = Query(default=False, description="Only threads without a visible reply yet"),
+    answered: bool = Query(default=False, description="Only threads with an accepted answer"),
     yours: bool = Query(
         default=False,
         description="Only threads the signed-in user started, replied to or follows, newest activity first (needs a "
@@ -117,6 +118,7 @@ def list_threads(
         tag=tag,
         year=year,
         unanswered=unanswered,
+        answered=answered,
         yours=user.id if yours and user is not None else None,
         paper=paper,
     )

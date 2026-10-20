@@ -1,9 +1,10 @@
 """Spelling tolerance for search: when a query finds nothing, each word the hub has never used is read as the
 closest word it has ("hypothisis" as "hypothesis"), by trigram similarity (the pg_trgm extension, migration 0044).
 
-The words the hub knows are those of what students can find: module names, chapter and video titles, published
-library titles, visible thread titles, calendar titles and published newsletter titles. They are read from those
-tables when a correction is needed (a query that found nothing), so nothing has to be kept in step with them."""
+The words the hub knows are those of what students can find: module names, chapter and video titles, chapters' words
+for search, published library titles, visible thread titles, calendar titles and published newsletter titles. They are
+read from those tables when a correction is needed (a query that found nothing), so nothing has to be kept in step
+with them."""
 
 from __future__ import annotations
 
@@ -44,6 +45,7 @@ def _vocabulary() -> Any:
         words_of(Module.name, Module.hidden.is_(False)),
         words_of(Module.short_name, Module.hidden.is_(False)),
         words_of(Chapter.title, Chapter.hidden.is_(False)),
+        words_of(func.array_to_string(Chapter.keywords, " "), Chapter.hidden.is_(False)),
         words_of(Lesson.title, Lesson.hidden.is_(False)),
         words_of(LibraryItem.title, LibraryItem.status == ItemStatus.published),
         words_of(ForumThread.title, ForumThread.status == PostStatus.visible),
