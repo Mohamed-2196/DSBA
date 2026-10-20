@@ -30040,6 +30040,130 @@
           }
         }
       }
+    },
+    "/api/v1/home": {
+      "get": {
+        "tags": [
+          "home"
+        ],
+        "summary": "Home",
+        "description": "Home's first screen for the year shown: the site settings, the papers' choices, a guide while its card is due,\nthe student's dates and next exam with the day's past question for it, and the desk shelf's numbers. Each part\nfollows its feature's switch. `picks`: a guest's papers, as their browser keeps them (an account's own count\ninstead). Errors: invalid_input (422: a year other than 1 to 3, or picks that aren't module ids).",
+        "operationId": "home_api_v1_home_get",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Cohort: 1, 2 or 3",
+              "title": "Year"
+            },
+            "description": "Cohort: 1, 2 or 3"
+          },
+          {
+            "name": "picks",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}(,[a-z0-9][a-z0-9-]{0,63}){0,19}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Picks"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -40135,6 +40259,116 @@
         ],
         "title": "HintMove",
         "description": "A hint, for a few points: Sudoku fills `cell` (or a cell it picks), the word search shows where a word\nstarts, Nearest neighbour reveals a closer word."
+      },
+      "HomeOut": {
+        "properties": {
+          "site": {
+            "$ref": "#/components/schemas/SiteDoc"
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/PaperChoice"
+            },
+            "type": "array",
+            "title": "Choices"
+          },
+          "guides": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidesDoc"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resultsDay": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resultsday"
+          },
+          "dates": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventOut"
+            },
+            "type": "array",
+            "title": "Dates"
+          },
+          "nextExam": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalendarEventOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dailyQuestion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaperQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shelf": {
+            "$ref": "#/components/schemas/HomeShelf"
+          }
+        },
+        "type": "object",
+        "required": [
+          "site",
+          "choices",
+          "guides",
+          "resultsDay",
+          "dates",
+          "nextExam",
+          "dailyQuestion",
+          "shelf"
+        ],
+        "title": "HomeOut"
+      },
+      "HomeShelf": {
+        "properties": {
+          "newFiles": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newfiles"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "newFiles",
+          "notes"
+        ],
+        "title": "HomeShelf",
+        "description": "The desk shelf's numbers."
       },
       "ImportIn": {
         "properties": {

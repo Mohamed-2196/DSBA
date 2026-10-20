@@ -17,6 +17,7 @@ from app.routers import (
     forum,
     grades,
     health,
+    home,
     lesson_topics,
     library,
     me,
@@ -71,5 +72,6 @@ for module in (
     daily_content,
     site,
     grades,
+    home,
 ):
     api_router.include_router(module.router)

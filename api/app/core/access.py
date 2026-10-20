@@ -59,7 +59,7 @@ class Feature(enum.StrEnum):
     library = "library"
     library_uploads = "library.uploads"  # uploads only: the library stays readable
     library_questions = "library.questions"  # past papers' questions tagged with chapters
-    library_daily_question = "library.daily-question"  # Home's past question a day: nothing in the API
+    library_daily_question = "library.daily-question"  # Home's past question a day (GET /home)
     library_practice = "library.practice"  # practising a chapter's past questions, with marks kept per student
     newsletter = "newsletter"
     newsletter_polls = "newsletter.polls"  # polls in issues: the issue reads without them

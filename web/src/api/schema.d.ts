@@ -4798,6 +4798,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Home
+         * @description Home's first screen for the year shown: the site settings, the papers' choices, a guide while its card is due,
+         *     the student's dates and next exam with the day's past question for it, and the desk shelf's numbers. Each part
+         *     follows its feature's switch. `picks`: a guest's papers, as their browser keeps them (an account's own count
+         *     instead). Errors: invalid_input (422: a year other than 1 to 3, or picks that aren't module ids).
+         */
+        get: operations["home_api_v1_home_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -8238,6 +8261,30 @@ export interface components {
             kind: "hint";
             /** Cell */
             cell?: number | null;
+        };
+        /** HomeOut */
+        HomeOut: {
+            site: components["schemas"]["SiteDoc"];
+            /** Choices */
+            choices: components["schemas"]["PaperChoice"][];
+            guides: components["schemas"]["GuidesDoc"] | null;
+            /** Resultsday */
+            resultsDay: string | null;
+            /** Dates */
+            dates: components["schemas"]["CalendarEventOut"][];
+            nextExam: components["schemas"]["CalendarEventOut"] | null;
+            dailyQuestion: components["schemas"]["PaperQuestion"] | null;
+            shelf: components["schemas"]["HomeShelf"];
+        };
+        /**
+         * HomeShelf
+         * @description The desk shelf's numbers.
+         */
+        HomeShelf: {
+            /** Newfiles */
+            newFiles: number | null;
+            /** Notes */
+            notes: number | null;
         };
         /**
          * ImportIn
@@ -13160,6 +13207,8 @@ export type GuidesSave = components['schemas']['GuidesSave'];
 export type Health = components['schemas']['Health'];
 export type HideRequest = components['schemas']['HideRequest'];
 export type HintMove = components['schemas']['HintMove'];
+export type HomeOut = components['schemas']['HomeOut'];
+export type HomeShelf = components['schemas']['HomeShelf'];
 export type ImportIn = components['schemas']['ImportIn'];
 export type ImportReport = components['schemas']['ImportReport'];
 export type ImportRow = components['schemas']['ImportRow'];
@@ -37276,6 +37325,93 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GradeRulesEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    home_api_v1_home_get: {
+        parameters: {
+            query: {
+                /** @description Cohort: 1, 2 or 3 */
+                year: number;
+                picks?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeOut"];
                 };
             };
             /** @description Bad Request */

@@ -443,6 +443,11 @@ def _same_as(db: Session, note: Note, share: SharedNote) -> bool:
     return [{"sheet": sheet, "strokes": strokes} for sheet, strokes in rows if strokes] == share.ink
 
 
+def count_notes(db: Session, user: User) -> int:
+    """The student's notes with something in them (what list_notes counts with no filter)."""
+    return db.scalar(select(func.count()).select_from(Note).where(Note.user_id == user.id, ~_empty())) or 0
+
+
 def list_notes(
     db: Session,
     user: User,

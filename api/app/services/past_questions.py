@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
-from datetime import timedelta
+from datetime import date, timedelta
+from typing import TypeVar
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import Select, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -28,6 +29,8 @@ from app.services.modules import require_module
 from app.services.ratelimit import enforce
 
 TAGS_PER_HOUR = 60
+EPOCH = date(1970, 1, 1)
+T = TypeVar("T")
 
 
 def label(section: str | None, question: int) -> str:
@@ -114,6 +117,21 @@ def for_paper(db: Session, item_id: uuid.UUID, user: User | None) -> list[PaperQ
     return to_out(db, tags, user)
 
 
+def _tags(q: Select[tuple[T]], module_id: str | None, *, staff: bool) -> Select[tuple[T]]:
+    """`q` over the tags on published papers (of `module_id`, when given). Hidden modules and chapters don't exist
+    for anyone but `staff` (SEC-55)."""
+    q = (
+        q.join(LibraryItem, LibraryItem.id == PaperQuestion.item_id)
+        .join(Chapter, Chapter.id == PaperQuestion.chapter_id)
+        .where(LibraryItem.status == ItemStatus.published)
+    )
+    if not staff:
+        q = q.where(Chapter.hidden.is_(False), ~in_hidden_module())
+    if module_id is not None:
+        q = q.where(LibraryItem.module_id == module_id)
+    return q
+
+
 def for_module(
     db: Session, module_id: str | None, user: User | None, *, flagged: bool = False
 ) -> list[PaperQuestionOut]:
@@ -123,16 +141,7 @@ def for_module(
         raise invalid("moduleId", "Choose a module.")
     staff = sees_hidden_modules(user)
     require_module(db, module_id, visible=not staff)
-    q = (
-        select(PaperQuestion)
-        .join(LibraryItem, LibraryItem.id == PaperQuestion.item_id)
-        .join(Chapter, Chapter.id == PaperQuestion.chapter_id)
-        .where(LibraryItem.status == ItemStatus.published)
-    )
-    if not staff:  # hidden modules and chapters don't exist for students (SEC-55)
-        q = q.where(Chapter.hidden.is_(False), ~in_hidden_module())
-    if module_id is not None:
-        q = q.where(LibraryItem.module_id == module_id)
+    q = _tags(select(PaperQuestion), module_id, staff=staff)
     if flagged:
         if not manages(user):
             raise forbidden("Only people who manage the library can see flagged tags.")
@@ -253,3 +262,19 @@ def set_flag(db: Session, user: User, row: PaperQuestion, on: bool) -> None:
                 .values(flag_count=func.greatest(PaperQuestion.flag_count - 1, 0))
             )
     db.refresh(row)
+
+
+# ── a past question a day ────────────────────────────────────────────────────────────────────
+
+# Fewer tags than this and Home shows no daily question: the same handful would come round too often.
+DAILY_MIN_TAGS = 10
+
+
+def daily(db: Session, module_id: str, user: User | None, day: date) -> PaperQuestionOut | None:
+    """The module's past question for `day`: the same for everyone that day and a different one the next, going
+    round the module's tags in the order of their ids. None below DAILY_MIN_TAGS tags."""
+    ids = sorted(db.scalars(_tags(select(PaperQuestion.id), module_id, staff=sees_hidden_modules(user))).all(), key=str)
+    if len(ids) < DAILY_MIN_TAGS:
+        return None
+    picked = db.get(PaperQuestion, ids[(day - EPOCH).days % len(ids)])
+    return to_out(db, [picked], user)[0] if picked is not None else None
