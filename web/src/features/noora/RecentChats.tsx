@@ -1,7 +1,6 @@
 // The conversations saved in this browser (saved.ts), in the chat card: open one to carry on with it, go to the full
 // page to search, rename or delete them one by one, or delete them all.
 import { useEffect, useRef } from 'react';
-import { ArrowsOutSimple } from '@phosphor-icons/react';
 import { formatClock, formatDayMonth, todayKey } from '../../lib/dates';
 import { Button, IconButton, Icon, glyph } from '../../ui';
 import type { SavedChat } from './saved';
@@ -77,7 +76,7 @@ export function RecentChats({ chats, current, onOpen, onBack, onDeleteAll, onOpe
         <Button
           variant="ghost"
           size="sm"
-          leadingIcon={ArrowsOutSimple}
+          leadingIcon={<Icon glyph={glyph.expand} />}
           onClick={onOpenPage}
           data-hub="noora-recent-page"
         >

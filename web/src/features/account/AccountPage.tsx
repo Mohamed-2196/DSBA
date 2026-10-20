@@ -1,7 +1,5 @@
 // /account: profile, sign-in methods, emails, signed-in devices, data export and account deletion.
 import { useEffect, useState, type FormEvent } from 'react';
-// Phone and the device kinds have no brand icon, so the two lists of rows keep Phosphor for every row.
-import { DeviceMobile, DeviceTablet, EnvelopeSimple, Monitor, Phone } from '@phosphor-icons/react';
 import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../../api/errors';
 import type { Me, SessionInfo } from '../../api/types';
 import { useAuth, useUpdatePreferences, type Feature } from '../../auth';
@@ -145,11 +143,11 @@ function SignInMethods({ me }: { me: Me }) {
 
   const row = (kind: IdentifierKind) => {
     const v = value(kind);
-    const KindIcon = kind === 'email' ? EnvelopeSimple : Phone;
+    const kindGlyph = kind === 'email' ? glyph.mail : glyph.phone;
     return (
       <li key={kind} className="acct-row">
         <span className="acct-row__icon" aria-hidden="true">
-          <KindIcon />
+          <Icon glyph={kindGlyph} />
         </span>
         <span className="acct-row__text">
           <span className="acct-row__label">{KIND_LABEL[kind]}</span>
@@ -354,11 +352,11 @@ function LessonProgress() {
 
 // ── Devices ──────────────────────────────────────────────────────────────────────────────────
 
-const DEVICE_ICON = { desktop: Monitor, phone: DeviceMobile, tablet: DeviceTablet };
+const DEVICE_ICON = { desktop: glyph.monitor, phone: glyph.mobile, tablet: glyph.tablet };
 
 function SessionRow({ s, onSignOut, busy }: { s: SessionInfo; onSignOut: () => void; busy: boolean }) {
   const device = describeDevice(s.userAgent);
-  const DeviceIcon = DEVICE_ICON[device.kind];
+  const deviceGlyph = DEVICE_ICON[device.kind];
   const seen = s.current
     ? 'Active now'
     : s.lastSeenAt
@@ -367,7 +365,7 @@ function SessionRow({ s, onSignOut, busy }: { s: SessionInfo; onSignOut: () => v
   return (
     <li className="acct-row">
       <span className="acct-row__icon" aria-hidden="true">
-        <DeviceIcon />
+        <Icon glyph={deviceGlyph} />
       </span>
       <span className="acct-row__text">
         <span className="acct-row__label">
@@ -456,7 +454,12 @@ function Sessions() {
             panel={false}
           />
         ) : list.length === 0 ? (
-          <EmptyState size="sm" icon={Monitor} title="No devices" body="Devices you sign in on show up here." />
+          <EmptyState
+            size="sm"
+            icon={<Icon glyph={glyph.monitor} />}
+            title="No devices"
+            body="Devices you sign in on show up here."
+          />
         ) : (
           <ul role="list" className="acct-list">
             {list.map((s) => (

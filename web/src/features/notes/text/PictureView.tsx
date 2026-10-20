@@ -2,19 +2,6 @@
 // (up or down the text, across it, or lower down the page), pull a corner to resize it (its shape stays), crop it,
 // turn it, make it free to put it anywhere on the page, give it a caption and a description, open it full size, or
 // delete it. Its controls keep their size at any zoom.
-import {
-  ArrowClockwise,
-  ArrowSquareOut,
-  Check,
-  Crop,
-  ImageBroken,
-  TextAlignCenter,
-  TextAlignLeft,
-  TextAlignRight,
-  TextT,
-  Trash,
-  X,
-} from '@phosphor-icons/react';
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react';
 import {
   useCallback,
@@ -26,7 +13,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useMediaQuery } from '../../../state';
-import { cx, type MenuItem } from '../../../ui';
+import { cx, type MenuItem, glyph, Icon } from '../../../ui';
 import { noteFileHref } from '../api';
 import { DetailsDialog } from '../pictures/DetailsDialog';
 import { usePictureSpace } from '../pictures/space';
@@ -249,9 +236,9 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
     space.makeFree(pos, p, el.getBoundingClientRect());
   };
   const places = [
-    { x: 0, label: 'To the left', icon: TextAlignLeft },
-    { x: 0.5, label: 'In the middle', icon: TextAlignCenter },
-    { x: 1, label: 'To the right', icon: TextAlignRight },
+    { x: 0, label: 'To the left', icon: glyph.alignLeft },
+    { x: 0.5, label: 'In the middle', icon: glyph.alignCenter },
+    { x: 1, label: 'To the right', icon: glyph.alignRight },
   ];
   const more: MenuItem[] = [
     ...(narrow
@@ -266,8 +253,8 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
           { divider: true as const },
         ]
       : []),
-    { id: 'details', label: 'Caption and description', icon: TextT, onSelect: () => setDetails(true) },
-    { id: 'open', label: 'Open full size', icon: ArrowSquareOut, href: noteFileHref(p.upload) },
+    { id: 'details', label: 'Caption and description', icon: glyph.text, onSelect: () => setDetails(true) },
+    { id: 'open', label: 'Open full size', icon: glyph.external, href: noteFileHref(p.upload) },
   ];
 
   const boxStyle: CSSProperties = {
@@ -286,7 +273,7 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
         <div className="nb-picture__box" style={boxStyle} contentEditable={false}>
           {broken ? (
             <div className="nb-picture__broken" style={{ height }}>
-              <ImageBroken aria-hidden="true" /> This picture isn’t available any more.
+              <Icon glyph={glyph.imageBroken} aria-hidden="true" /> This picture isn’t available any more.
             </div>
           ) : (
             <div
@@ -335,9 +322,9 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
           {editable && selected && !move ? (
             cropping ? (
               <BlockBar label="Crop">
-                <BlockBarButton icon={Check} label="Done" text onClick={keepCrop} primary />
-                <BlockBarButton icon={Crop} label="Whole picture" text onClick={() => setCrop(FULL)} />
-                <BlockBarButton icon={X} label="Cancel" onClick={() => setCrop(null)} />
+                <BlockBarButton icon={glyph.check} label="Done" text onClick={keepCrop} primary />
+                <BlockBarButton icon={glyph.crop} label="Whole picture" text onClick={() => setCrop(FULL)} />
+                <BlockBarButton icon={glyph.close} label="Cancel" onClick={() => setCrop(null)} />
               </BlockBar>
             ) : (
               <BlockBar label="Picture">
@@ -348,13 +335,13 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
                   </>
                 ) : null}
                 <BlockBarButton
-                  icon={Crop}
+                  icon={glyph.crop}
                   label="Crop"
                   onClick={() => setCrop(toShown(p.crop, p.rotate))}
                   disabled={broken}
                 />
                 <BlockBarButton
-                  icon={ArrowClockwise}
+                  icon={glyph.refresh}
                   label="Turn a quarter"
                   onClick={() => updateAttributes({ rotate: nextTurn(p.rotate) })}
                   disabled={broken}
@@ -375,7 +362,7 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
                 )}
                 <span className="nb-blockbar__sep" aria-hidden="true" />
                 <BarMenu label="More for this picture" items={more} />
-                <BlockBarButton icon={Trash} label="Delete picture" danger onClick={deleteNode} />
+                <BlockBarButton icon={glyph.trash} label="Delete picture" danger onClick={deleteNode} />
               </BlockBar>
             )
           ) : null}

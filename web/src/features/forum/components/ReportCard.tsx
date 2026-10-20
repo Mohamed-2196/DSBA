@@ -1,18 +1,8 @@
 // One report in the moderators' queue (ReportsQueue.tsx): what was reported, why, by whom (admins only), what the
 // post is now, and Resolve / Dismiss while it is open.
 import { Link } from 'react-router-dom';
-import {
-  ArrowBendUpLeft,
-  ArrowSquareOut,
-  ChatCircleText,
-  CheckCircle,
-  FileText,
-  Flag,
-  HandWaving,
-  XCircle,
-} from '@phosphor-icons/react';
 import type { ReportOut } from '../../../api/types';
-import { Badge, Button, timeAgo } from '../../../ui';
+import { Badge, Button, timeAgo, glyph, Icon, type Glyph } from '../../../ui';
 import { authorName } from '../lib/authors';
 import { safeLink } from '../lib/links';
 import { reasonLabel } from '../lib/reports';
@@ -20,11 +10,11 @@ import type { ReportTargetStatus, ReportTargetType } from '../types';
 
 export type Decision = 'resolved' | 'dismissed';
 
-const TARGET: Record<ReportTargetType, { label: string; icon: typeof ChatCircleText }> = {
-  thread: { label: 'Thread', icon: ChatCircleText },
-  reply: { label: 'Reply', icon: ArrowBendUpLeft },
-  library_item: { label: 'Library file', icon: FileText },
-  request: { label: 'Request', icon: HandWaving },
+const TARGET: Record<ReportTargetType, { label: string; icon: Glyph }> = {
+  thread: { label: 'Thread', icon: glyph.chat },
+  reply: { label: 'Reply', icon: glyph.reply },
+  library_item: { label: 'Library file', icon: glyph.page },
+  request: { label: 'Request', icon: glyph.hand },
 };
 
 const STATUS_BADGE: Partial<Record<ReportTargetStatus, { label: string; tone: 'alert' | 'neutral' | 'outline' }>> = {
@@ -52,7 +42,7 @@ function TargetLink({ report }: { report: ReportOut }) {
       <Link to={link.to} className="forum-reports__target" dir="auto">
         {report.targetType === 'reply' ? <span className="forum-reports__in">Reply in </span> : null}
         {title}
-        <ArrowSquareOut aria-hidden="true" className="forum-reports__go" />
+        <Icon glyph={glyph.external} aria-hidden="true" className="forum-reports__go" />
       </Link>
     );
   }
@@ -71,12 +61,12 @@ export function ReportCard({
   onDecide: (r: ReportOut, status: Decision) => void;
 }) {
   const target = TARGET[report.targetType];
-  const Icon = target.icon;
+  const targetGlyph = target.icon;
   const now = report.targetStatus ? STATUS_BADGE[report.targetStatus] : undefined;
   return (
     <li className="forum-reports__item" data-hub="report">
       <div className="forum-reports__icon" aria-hidden="true">
-        <Icon weight="duotone" />
+        <Icon glyph={targetGlyph} />
       </div>
       <div className="forum-reports__main">
         <p className="forum-reports__kind">
@@ -92,7 +82,11 @@ export function ReportCard({
           </p>
         ) : null}
         <div className="forum-reports__meta">
-          <Badge tone={report.reason === 'harassment' ? 'alert' : 'neutral'} size="sm" icon={Flag}>
+          <Badge
+            tone={report.reason === 'harassment' ? 'alert' : 'neutral'}
+            size="sm"
+            icon={<Icon glyph={glyph.flag} />}
+          >
             {reasonLabel(report.reason)}
           </Badge>
           {now ? (
@@ -111,9 +105,9 @@ export function ReportCard({
         {report.status !== 'open' ? (
           <p className="forum-reports__outcome">
             {report.status === 'resolved' ? (
-              <CheckCircle weight="fill" aria-hidden="true" className="is-resolved" />
+              <Icon glyph={glyph.success} active aria-hidden="true" className="is-resolved" />
             ) : (
-              <XCircle weight="fill" aria-hidden="true" className="is-dismissed" />
+              <Icon glyph={glyph.close} active aria-hidden="true" className="is-dismissed" />
             )}
             <span>
               {report.status === 'resolved' ? 'Resolved' : 'Dismissed'}
@@ -130,7 +124,12 @@ export function ReportCard({
       </div>
       {report.status === 'open' ? (
         <div className="forum-reports__actions">
-          <Button size="sm" variant="primary" leadingIcon={CheckCircle} onClick={() => onDecide(report, 'resolved')}>
+          <Button
+            size="sm"
+            variant="primary"
+            leadingIcon={<Icon glyph={glyph.success} />}
+            onClick={() => onDecide(report, 'resolved')}
+          >
             Resolve
           </Button>
           <Button size="sm" variant="ghost" onClick={() => onDecide(report, 'dismissed')}>

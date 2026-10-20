@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import { Heart, Lightbulb, Smiley, type Icon } from '@phosphor-icons/react';
 import type { ReactionCounts } from '../../../api/types';
 import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
-import { Count, Tooltip, cx } from '../../../ui';
+import { Count, Tooltip, cx, glyph, Icon, type Glyph } from '../../../ui';
 import { useReact } from '../api';
 import type { Reaction } from '../types';
 import './Reactions.css';
 
-const KINDS: { id: Reaction; label: string; icon: Icon }[] = [
-  { id: 'useful', label: 'Useful', icon: Lightbulb },
-  { id: 'love', label: 'Love this', icon: Heart },
-  { id: 'laugh', label: 'Made me laugh', icon: Smiley },
+const KINDS: { id: Reaction; label: string; icon: Glyph }[] = [
+  { id: 'useful', label: 'Useful', icon: glyph.bulb },
+  { id: 'love', label: 'Love this', icon: glyph.heart },
+  { id: 'laugh', label: 'Made me laugh', icon: glyph.smiley },
 ];
 
 export interface ReactionsProps {
@@ -63,7 +62,7 @@ export function Reactions({ issueId, issueSlug, sectionId, counts, label, readOn
       aria-label={label ? `React to ${label}` : 'Reactions'}
       data-hub="reactions"
     >
-      {KINDS.map(({ id, label: name, icon: Glyph }) => {
+      {KINDS.map(({ id, label: name, icon }) => {
         const on = mine.includes(id);
         const count = counts?.[id] ?? 0;
         return (
@@ -83,7 +82,7 @@ export function Reactions({ issueId, issueSlug, sectionId, counts, label, readOn
               onClick={() => toggle(id)}
               onAnimationEnd={() => setPopped(null)}
             >
-              <Glyph className="nl-reaction__icon" weight={on ? 'fill' : 'regular'} aria-hidden="true" />
+              <Icon glyph={icon} className="nl-reaction__icon" active={on} />
               <span className="nl-reaction__count">
                 <Count value={count} />
               </span>

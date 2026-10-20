@@ -1,4 +1,3 @@
-import { Database } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import type { CareerCert, ModuleSummary } from '../../api/types';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
@@ -50,7 +49,7 @@ export function CertCard({ cert }: { cert: CareerCert }) {
         ) : (
           // Self-study has no issuer and so no logo: a generic icon keeps the same box.
           <span className="career-cert__icon" aria-hidden="true">
-            <Database weight="duotone" />
+            <Icon glyph={glyph.database} />
           </span>
         )}
         <Effort level={cert.effort} />

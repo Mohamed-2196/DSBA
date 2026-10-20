@@ -89,11 +89,11 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
 }
 
 function CategoryCard({ category }: { category: ForumCategoryOut }) {
-  const Icon = FORUM_ICONS[category.icon ?? 'chat'].icon;
+  const mark = FORUM_ICONS[category.icon ?? 'chat'].icon;
   return (
     <section className="forum-tside__card" aria-label="Category">
       <span className="forum-tside__icon" aria-hidden="true">
-        <Icon />
+        <Icon glyph={mark} />
       </span>
       <p className="forum-tside__name">{category.label}</p>
       <p className="forum-tside__blurb">{category.blurb}.</p>

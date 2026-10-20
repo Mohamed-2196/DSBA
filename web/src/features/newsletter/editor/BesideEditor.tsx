@@ -2,7 +2,6 @@
 // uploaded for the issue, with its description and caption), a typographic card, or a few numbers. One at a time, as
 // the reader shows it.
 import { useId, useRef, useState } from 'react';
-import { TextAa } from '@phosphor-icons/react';
 import { Button, cx, glyph, Icon, SegmentedControl, Switch } from '../../../ui';
 import {
   UPLOAD_RULES,
@@ -100,7 +99,7 @@ export function PicturePicker({ name, label, choices, value, onChoose, none, id,
               aria-invalid={error ? true : undefined}
             />
             <span className="nl-ed-picture__thumb" aria-hidden="true">
-              <TextAa weight="duotone" />
+              <Icon glyph={glyph.text} />
             </span>
             <span className="nl-ed-picture__label">{none}</span>
           </label>

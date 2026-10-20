@@ -1,17 +1,16 @@
 // Lesson helpers for the modules feature: labels, embed URLs, URL params and dates. Titles and channels come with the module's videos from the API.
-import { ChalkboardTeacher, Playlist, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import type { Chapter, Video } from '../../api/types';
 import type { Feature } from '../../auth';
 import { VIDEO_KIND_LABEL, videoEmbedUrl, videoSourceUrl } from '../../lib/modules';
-import { formatDate } from '../../ui';
+import { formatDate, glyph, type Glyph } from '../../ui';
 
 type VideoKind = Video['kind'];
 
 // ── Video kinds ───────────────────────────────────────────────────────────
-export const KIND_ICON: Record<VideoKind, Icon> = {
-  youtube: YoutubeLogo,
-  'youtube-playlist': Playlist,
-  bbb: ChalkboardTeacher,
+export const KIND_ICON: Record<VideoKind, Glyph> = {
+  youtube: glyph.video,
+  'youtube-playlist': glyph.playlist,
+  bbb: glyph.teacher,
 };
 /** Where the player loads from (said on the poster before anything is loaded). */
 export const KIND_SOURCE: Record<VideoKind, string> = {

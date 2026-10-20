@@ -4,7 +4,6 @@
 // copies and her scripted "brain" with it.
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { matchPath, useLocation } from 'react-router-dom';
-import { ArrowsOutSimple } from '@phosphor-icons/react';
 import type { NooraScript } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useOpenNote } from '../notes/public';
@@ -260,7 +259,7 @@ export default function ChatPanel({
         </div>
         <IconButton
           label="Open full chat"
-          icon={ArrowsOutSimple}
+          icon={<Icon glyph={glyph.expand} />}
           size="sm"
           tooltip
           onClick={openPage}

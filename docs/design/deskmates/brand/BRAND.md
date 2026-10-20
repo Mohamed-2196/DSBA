@@ -190,33 +190,33 @@ Running text stops at about 75 characters (`tokens.json` says 68ch; re-measure i
 **Nav icons (13):** home (desk lamp), modules (ring binder), library (papers on booklets), notebook, forum,
 calendar, boards, grades, career (compass), newsletter, daily (puzzle grid), search (magnifier) and more.
 
-**UI icons (69), and the Phosphor names they replace:**
+**UI icons (169).** `tools/icondata.py` draws them and `python3 tools/build.py` writes `icons/ui/` and
+`tools/_icon-sheet.html` (rendered as `icon-sheet.png` and `icon-sheet@2x.png`). The web app's glyph modules come from
+`web/scripts/icons.mjs`. Every icon in the app is from this family; there is no second icon library.
 
-| Deskmates | Replaces (Phosphor) |
+| Group | Icons |
 | --- | --- |
-| plus, close, check | Plus · X, XCircle · Check |
-| edit, pen, highlighter, eraser | PencilSimple, NotePencil, PencilLine · PenNib · Highlighter · Eraser |
-| trash, copy, link, external, share | Trash · Copy · LinkSimple · ArrowSquareOut, ArrowUpRight · ShareNetwork |
-| upload, download | UploadSimple, FileArrowUp, CloudArrowUp · DownloadSimple, TrayArrowDown |
-| refresh, undo, send, attach | ArrowClockwise, ArrowsClockwise · ArrowCounterClockwise · PaperPlaneRight, PaperPlaneTilt · Paperclip |
-| filter, sort | Funnel, SlidersHorizontal · CaretUpDown, ArrowsDownUp |
-| more, more-vertical, drag | DotsThree, DotsThreeOutline · DotsThreeVertical · DotsSixVertical |
-| back, forward, arrow-up, arrow-down | ArrowLeft · ArrowRight · ArrowUp · ArrowDown |
-| chevron-left/right/up/down | CaretLeft · CaretRight · CaretUp · CaretDown |
-| bookmark, star | BookmarkSimple · Star |
-| timer, clock, deadline | Timer · Clock, ClockCounterClockwise · HourglassMedium, Alarm |
-| exam, calendar-add | Exam · CalendarPlus |
-| page, folder | File, FileText, Files · Folder, FolderSimple |
-| pin, image, video, play, pause | PushPin · Image, ImageSquare · PlayCircle, YoutubeLogo · Play · Pause |
-| list, sidebar | ListBullets · SidebarSimple |
-| reply, vote, thumbs-up, flag | ArrowBendUpLeft · ArrowFatUp · ThumbsUp · Flag |
-| bell, mail, user, sign-in, sign-out, settings | Bell, BellSimple · EnvelopeSimple · User, UserCircle · SignIn · SignOut, Power · GearSix |
-| sun, moon, eye, eye-off, lock, sparkle | Sun · Moon · Eye · EyeSlash · Lock, LockSimple · Sparkle |
-| success, info, warning, error, question, offline | CheckCircle · Info · Warning · WarningCircle · Question · CloudSlash, WifiSlash |
-| nav set | House · Books · Notebook · ChatsCircle · CalendarBlank · Kanban, SquaresFour · Calculator · Compass · Newspaper · PuzzlePiece, GridNine · MagnifyingGlass |
+| Actions | plus, close, check, edit, trash, copy, link, external, share, upload, download, refresh, undo, send, attach, filter, sort, more, more-vertical, drag |
+| Direction | back, forward, arrow-up, arrow-down, chevron-left/right/up/down, swap |
+| Study | bookmark, star, timer, clock, deadline, exam, calendar-add, calendar-check, page, folder, pen, highlighter, eraser, pin, unpin, image, image-broken, video, play, pause, stop, playlist, headphones, list, sidebar, book, teacher, cap, notepad |
+| Forum and account | reply, vote, thumbs-up, flag, bell, bell-off, mail, phone, user, people, chat, tag, heart, smiley, bulb, mic, rocket, megaphone, sign-in, sign-out, power, settings, sun, moon, eye, eye-off, lock, unlock, key, blocked, shield-check, shield-alert, sparkle |
+| Daily and badges | flame, snowflake, trophy, crown, medal, bolt, backspace, grid-view, rows |
+| Charts and data | chart-bar, chart-line, chart-pie, chart-scatter, trend-up, database, presentation, formula, sigma, math, wave, terminal, brain, chip, target, coins |
+| Career | briefcase, bank, building, tower, cloud, card, factory, handshake, scales, vault, flask, shop |
+| Devices | mobile, tablet, monitor, keyboard, bug |
+| Notebook and editors | hand, pointer, laser, lasso, signature, code, list-numbers, checklist, quote, bold, italic, underline, text, align-left/center/right, zoom-in, zoom-out, expand, collapse, crop, layer-up, layer-down, print, fill, swatches |
+| File types | file-pdf, file-sheet, file-slides, file-image (a written file is `page`) |
+| Status | success, info, warning, error, question, offline |
 
-The rest of the 243 Phosphor names the app imports can stay Phosphor (Regular weight) for now: charts, file types,
-text formatting, devices and admin tools. Swap a whole surface at once, and never put both families in one row.
+- **Letters without `<text>`:** bold, italic, underline, text, sigma and formula are drawn as paths. Bold uses the
+  heavy line.
+- **File types:** no letters. The mark on the page says the kind: a block (PDF), a grid (sheet), bars (slides), a
+  picture (image).
+- **Layers:** layer-up puts the tinted square on top of the paper one; layer-down puts it underneath.
+- **Third-party logos are never drawn.** Share to WhatsApp uses `chat` with the words "WhatsApp" beside it; YouTube
+  videos use `video`.
+- **16 px check:** chart-bar has wide bars and no baseline; brain, teacher, coins, lasso, handshake, swatches and
+  list-numbers use few, large parts so they stay apart at 16 px.
 
 ## 6. The desk-mates
 

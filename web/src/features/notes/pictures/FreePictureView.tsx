@@ -1,12 +1,12 @@
 // A free picture as it shows on its page: its kept part filling its box (stretched when its shape was changed),
 // turned about its middle, with its caption under it. The same view is on the pages, in the pages drawer and in the
 // export, so a picture is in the same place in all three.
-import { ImageBroken } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { noteFileHref } from '../api';
 import type { Rect } from '../text/picture';
 import type { FreePicture } from './geometry';
 import { boxStyle } from './style';
+import { Icon, glyph } from '../../../ui';
 
 /** The part of a picture kept (`crop`), filling a box `w` × `h` units. */
 export function Cropped({
@@ -26,7 +26,7 @@ export function Cropped({
   if (broken) {
     return (
       <span className="nb-free__frame nb-free__broken" role="img" aria-label="This picture isn’t available any more">
-        <ImageBroken aria-hidden="true" />
+        <Icon glyph={glyph.imageBroken} aria-hidden="true" />
       </span>
     );
   }

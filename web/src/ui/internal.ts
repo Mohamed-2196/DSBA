@@ -8,7 +8,6 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type ComponentType,
   type MutableRefObject,
   type ReactElement,
   type ReactNode,
@@ -16,11 +15,12 @@ import {
   type RefCallback,
   type RefObject,
 } from 'react';
-import type { IconProps } from '@phosphor-icons/react';
+import { Icon } from './Icon';
+import type { Glyph } from './icons/glyph';
 import { shieldPageTaps } from './tapShield';
 
-/** An icon: a Phosphor component (`Plus`) or an element (`<Plus weight="bold" />`, `<span className="dot" />`). */
-export type IconSource = ComponentType<IconProps> | ReactElement;
+/** An icon: a brand glyph (`glyph.plus`) or an element (`<Icon glyph={glyph.plus} active />`, `<span className="dot" />`). */
+export type IconSource = Glyph | ReactElement;
 
 type ClassValue = string | false | null | undefined | 0;
 
@@ -31,21 +31,20 @@ export function cx(...args: ClassValue[]): string {
 
 interface IconRenderProps {
   className?: string;
-  weight?: IconProps['weight'];
 }
 
 type ElementProps = { className?: string } & Record<string, unknown>;
 
-/** Render an icon given as a component (Phosphor `Plus`) or an element (`<Plus weight="bold" />`). */
+/** Render an icon given as a brand glyph (`glyph.plus`) or an element (`<Icon glyph={glyph.plus} active />`). */
 export function renderIcon(
   icon: IconSource | null | undefined | false,
-  { className, ...props }: IconRenderProps = {},
+  { className }: IconRenderProps = {},
 ): ReactNode {
   if (!icon) return null;
   if (isValidElement<ElementProps>(icon)) {
-    return cloneElement(icon, { 'aria-hidden': true, ...props, className: cx(icon.props.className, className) });
+    return cloneElement(icon, { 'aria-hidden': true, className: cx(icon.props.className, className) });
   }
-  return createElement(icon as ComponentType<IconProps>, { 'aria-hidden': true, className, ...props });
+  return createElement(Icon, { glyph: icon as Glyph, className });
 }
 
 /** Assign one value to many refs. */

@@ -1,34 +1,19 @@
 // Your stats: what you've played, your streak and its weekly freeze, and the badges, earned and still to earn.
-import {
-  CalendarCheck,
-  Crown,
-  Flame,
-  GridNine,
-  Lightning,
-  Lock,
-  Medal,
-  Snowflake,
-  Sparkle,
-  SquaresFour,
-  Star,
-  Trophy,
-  type Icon,
-} from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
-import { Button, Panel, QueryError, Skeleton, cx } from '../../../ui';
+import { Button, Panel, QueryError, Skeleton, cx, glyph, Icon, type Glyph } from '../../../ui';
 import { useDailyMe } from '../api';
 
-const BADGE_ICONS: Record<string, Icon> = {
-  first: Star,
-  'full-set': SquaresFour,
-  'streak-7': Flame,
-  'streak-30': Crown,
-  'word-3': Lightning,
-  'groups-clean': Sparkle,
-  'quiz-5': CalendarCheck,
-  'sudoku-hard': GridNine,
-  'points-1000': Trophy,
-  'played-50': Medal,
+const BADGE_ICONS: Record<string, Glyph> = {
+  first: glyph.star,
+  'full-set': glyph.gridView,
+  'streak-7': glyph.flame,
+  'streak-30': glyph.crown,
+  'word-3': glyph.bolt,
+  'groups-clean': glyph.sparkle,
+  'quiz-5': glyph.calendarCheck,
+  'sudoku-hard': glyph.daily,
+  'points-1000': glyph.trophy,
+  'played-50': glyph.medal,
 };
 
 export function StatsView() {
@@ -69,18 +54,14 @@ export function StatsView() {
       <dl className="dh-stats__tiles">
         <Tile label="Played" value={stats.played} />
         <Tile label="Solved" value={`${solvedShare}%`} />
-        <Tile label="Current streak" value={streak.current} icon={Flame} />
+        <Tile label="Current streak" value={streak.current} icon={glyph.flame} />
         <Tile label="Best streak" value={streak.best} />
         <Tile label="Points this week" value={stats.weekPoints} />
         <Tile label="Points in all" value={stats.points} />
       </dl>
 
       <Panel padding="md" className={cx('dh-stats__freeze', streak.freezeReady && 'is-ready')}>
-        <Snowflake
-          className="dh-stats__freeze-icon"
-          weight={streak.freezeReady ? 'fill' : 'regular'}
-          aria-hidden="true"
-        />
+        <Icon glyph={glyph.snowflake} className="dh-stats__freeze-icon" active={streak.freezeReady} />
         <div>
           <p className="dh-stats__freeze-title">
             {streak.freezeReady ? 'This week’s freeze is ready' : 'This week’s freeze is used'}
@@ -100,12 +81,12 @@ export function StatsView() {
         </h2>
         <ul className="dh-stats__badges">
           {badges.map((b) => {
-            const BadgeIcon = BADGE_ICONS[b.id] ?? Medal;
+            const badgeGlyph = BADGE_ICONS[b.id] ?? glyph.medal;
             return (
               <li key={b.id} className={cx('dh-badge', b.earned ? 'is-earned' : 'is-locked')}>
                 <span className="dh-badge__icon" aria-hidden="true">
-                  <BadgeIcon weight={b.earned ? 'fill' : 'regular'} />
-                  {!b.earned ? <Lock className="dh-badge__lock" weight="fill" /> : null}
+                  <Icon glyph={badgeGlyph} active={b.earned} />
+                  {!b.earned ? <Icon glyph={glyph.lock} className="dh-badge__lock" active /> : null}
                 </span>
                 <span className="dh-badge__text">
                   <span className="dh-badge__title">
@@ -123,12 +104,12 @@ export function StatsView() {
   );
 }
 
-function Tile({ label, value, icon: TileIcon }: { label: string; value: number | string; icon?: Icon }) {
+function Tile({ label, value, icon }: { label: string; value: number | string; icon?: Glyph }) {
   return (
     <div className="dh-stats__tile">
       <dt>{label}</dt>
       <dd className="dy-num">
-        {TileIcon ? <TileIcon weight="fill" aria-hidden="true" className="dh-stats__tile-icon" /> : null}
+        {icon ? <Icon glyph={icon} active className="dh-stats__tile-icon" /> : null}
         {value}
       </dd>
     </div>

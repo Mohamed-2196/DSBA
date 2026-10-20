@@ -1,12 +1,11 @@
 // A poll in an issue (newsletter.polls): a question to the cohort with two to five answers. Each student votes once
 // and sees the counts after voting; nobody sees who voted. A guest is asked to sign in first.
 import { useId } from 'react';
-import { ChartBar } from '@phosphor-icons/react';
 import type { PollBlock, PollResult } from '../../../api/types';
 import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
-import { cx } from '../../../ui';
+import { cx, glyph, Icon } from '../../../ui';
 import { useVote } from '../api';
 import { plainText } from '../lib/text';
 import './Poll.css';
@@ -46,7 +45,7 @@ export function Poll({ block, issue }: { block: PollBlock; issue: PollIssue }) {
   return (
     <section className="nl-poll" aria-labelledby={headId} data-hub="poll" data-poll-id={block.id}>
       <p className="nl-poll__kicker">
-        <ChartBar aria-hidden="true" weight="duotone" />
+        <Icon glyph={glyph.chartBar} aria-hidden="true" />
         Poll
       </p>
       <h3 id={headId} className="nl-poll__question">

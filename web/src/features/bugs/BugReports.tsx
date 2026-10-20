@@ -1,12 +1,22 @@
 // Manage's Bugs section (admins): the reports, open first, each marked fixed or won't fix, or opened again.
-import { Bug } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import { remainingCount } from '../../api/paging';
 import type { BugReportOut } from '../../api/types';
 import { useToast } from '../../state';
-import { Button, EmptyState, Panel, QueryError, SegmentedControl, Skeleton, safeInternalPath, timeAgo } from '../../ui';
+import {
+  Button,
+  EmptyState,
+  Panel,
+  QueryError,
+  SegmentedControl,
+  Skeleton,
+  safeInternalPath,
+  timeAgo,
+  glyph,
+  Icon,
+} from '../../ui';
 import { useBugReports, useSetBugStatus, type BugStatus } from './api';
 import './BugReport.css';
 
@@ -117,7 +127,7 @@ export function BugReports() {
         <Panel padding="none">
           <EmptyState
             size="sm"
-            icon={Bug}
+            icon={<Icon glyph={glyph.bug} />}
             title={status === 'open' ? 'No open bugs' : `Nothing ${STATUS_LABEL[status].toLowerCase()}`}
             body={EMPTY[status]}
           />

@@ -1,6 +1,5 @@
 // The parts of a palette row: the leading tile or glyph, the title with the query marked, and what trails it.
 import type { ReactNode } from 'react';
-import { ArrowsLeftRight, Bank, Bug } from '@phosphor-icons/react';
 import { Icon, Kbd, ModuleArt, cx, glyph, moduleArtSrc, type Glyph, type MateSection } from '../../ui';
 import { formatMonthShort } from '../../lib/dates';
 import { matchRanges } from './match';
@@ -31,9 +30,9 @@ const BRAND: Partial<Record<IconName, Glyph>> = {
   UploadSimple: glyph.upload,
 };
 const OTHER: Partial<Record<IconName, ReactNode>> = {
-  ArrowsLeftRight: <ArrowsLeftRight />,
-  Bank: <Bank />,
-  Bug: <Bug />,
+  ArrowsLeftRight: <Icon glyph={glyph.swap} />,
+  Bank: <Icon glyph={glyph.bank} />,
+  Bug: <Icon glyph={glyph.bug} />,
 };
 
 function EntryIcon({ name }: { name: IconName }) {

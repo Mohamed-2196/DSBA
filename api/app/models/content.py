@@ -43,7 +43,7 @@ class Module(Base):
     short_name: Mapped[str] = mapped_column(String(60))
     year: Mapped[int] = mapped_column(SmallInteger)
     description: Mapped[str] = mapped_column(Text, default="")
-    icon: Mapped[str | None] = mapped_column(String(40))  # a Phosphor icon name, shown while there is no art
+    icon: Mapped[str | None] = mapped_column(String(40))  # a catalogue icon name, shown while there is no art
     # Its logo or illustration: a picture of the web app ('modules/module-ec1002.png') or an uploaded image
     # ('/api/v1/media/<id>', purpose module_art).
     art: Mapped[str | None] = mapped_column(String(500))

@@ -11,33 +11,32 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 import {
-  Code,
-  ImageSquare,
-  LinkSimple,
-  ListBullets,
-  ListNumbers,
-  Quotes,
-  TextB,
-  TextItalic,
-  type Icon,
-} from '@phosphor-icons/react';
-import { Field, IconButton, SegmentedControl, cx, modKeyLabel, useScrollFade } from '../../../ui';
+  Field,
+  IconButton,
+  SegmentedControl,
+  cx,
+  modKeyLabel,
+  useScrollFade,
+  glyph,
+  Icon,
+  type Glyph,
+} from '../../../ui';
 import { bold, bulletList, code, italic, link, numberedList, quote, type EditFn } from '../lib/editing';
 import { Prose } from './Prose';
 import './forum.css';
 
-type Tool = { id: string; label: string; key?: string; icon: Icon; fn: EditFn } | { sep: string };
+type Tool = { id: string; label: string; key?: string; icon: Glyph; fn: EditFn } | { sep: string };
 
 const ALL_TOOLS: Tool[] = [
-  { id: 'bold', label: 'Bold', key: 'B', icon: TextB, fn: bold },
-  { id: 'italic', label: 'Italic', key: 'I', icon: TextItalic, fn: italic },
-  { id: 'code', label: 'Formula or code', icon: Code, fn: code },
+  { id: 'bold', label: 'Bold', key: 'B', icon: glyph.bold, fn: bold },
+  { id: 'italic', label: 'Italic', key: 'I', icon: glyph.italic, fn: italic },
+  { id: 'code', label: 'Formula or code', icon: glyph.code, fn: code },
   { sep: 'a' },
-  { id: 'ul', label: 'Bulleted list', icon: ListBullets, fn: bulletList },
-  { id: 'ol', label: 'Numbered list', icon: ListNumbers, fn: numberedList },
-  { id: 'quote', label: 'Quote', icon: Quotes, fn: quote },
+  { id: 'ul', label: 'Bulleted list', icon: glyph.list, fn: bulletList },
+  { id: 'ol', label: 'Numbered list', icon: glyph.listNumbers, fn: numberedList },
+  { id: 'quote', label: 'Quote', icon: glyph.quote, fn: quote },
   { sep: 'b' },
-  { id: 'link', label: 'Link', icon: LinkSimple, fn: link },
+  { id: 'link', label: 'Link', icon: glyph.link, fn: link },
 ];
 const BASIC_IDS = new Set(['bold', 'italic', 'code', 'ul', 'link']);
 
@@ -194,7 +193,7 @@ export function MarkdownEditor({
                   <span className="forum-editor__sep" aria-hidden="true" />
                   <IconButton
                     size="sm"
-                    icon={ImageSquare}
+                    icon={<Icon glyph={glyph.image} />}
                     label="Attach image"
                     tooltip
                     tooltipSide="top"

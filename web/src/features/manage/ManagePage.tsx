@@ -1,6 +1,5 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { Power } from '@phosphor-icons/react';
 import { Suspense, useId, useMemo, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, UnsavedProvider, useLeaveGuard, useQueryParam, useUnsavedRegistry } from '../../state';
@@ -327,7 +326,7 @@ function ManageScreen() {
         {HEADER}
         <Panel padding="none">
           <EmptyState
-            icon={Power}
+            icon={<Icon glyph={glyph.power} />}
             title="Your tools are switched off right now."
             body="The parts of the hub you manage are off. They’re back here when they’re switched on."
           />

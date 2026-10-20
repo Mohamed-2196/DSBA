@@ -1,6 +1,5 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { GraduationCap } from '@phosphor-icons/react';
 import type { CareerChecklistItem } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useLocalStorage } from '../../state';
@@ -150,7 +149,7 @@ export function AfterDsba() {
         </div>
         {study ? (
           <Panel tone="inset" padding="none" className="career-study" data-hub="career-study">
-            <GraduationCap className="career-study__icon" weight="duotone" aria-hidden="true" />
+            <Icon glyph={glyph.cap} className="career-study__icon" aria-hidden="true" />
             <p className="career-study__text">
               <strong>{study.title}</strong> {study.body}
             </p>

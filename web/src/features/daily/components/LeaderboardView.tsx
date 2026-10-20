@@ -1,7 +1,6 @@
 // The leaderboard: the players who chose to show their name, by points this week (from Sunday) or of all time, for
 // every year or one. Showing your name is your choice, and off until you turn it on.
 import { useState } from 'react';
-import { Trophy } from '@phosphor-icons/react';
 import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
@@ -16,6 +15,8 @@ import {
   Skeleton,
   Switch,
   cx,
+  glyph,
+  Icon,
 } from '../../../ui';
 import { useDailyLeaderboard, useDailyMe, useShowOnBoard } from '../api';
 import type { BoardPeriod, BoardRow } from '../types';
@@ -98,7 +99,7 @@ export function LeaderboardView() {
       ) : board.data.rows.length === 0 ? (
         <Panel padding="none">
           <EmptyState
-            icon={Trophy}
+            icon={<Icon glyph={glyph.trophy} />}
             title={period === 'week' ? 'No one on the board this week yet' : 'No one on the board yet'}
             body={
               me && !shown

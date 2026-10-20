@@ -8,19 +8,6 @@
 // From the keyboard the arrow keys move it (with Shift, a ruled line at a time), Delete deletes it, Escape lets go of it
 // and Tab goes to its toolbar. Its handles and toolbar keep their size at any zoom; 44 px on a touch screen.
 import {
-  ArrowClockwise,
-  ArrowSquareOut,
-  Check,
-  Crop,
-  LockSimple,
-  LockSimpleOpen,
-  SelectionBackground,
-  SelectionForeground,
-  TextT,
-  Trash,
-  X,
-} from '@phosphor-icons/react';
-import {
   useCallback,
   useEffect,
   useId,
@@ -36,7 +23,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useMediaQuery } from '../../../state';
-import { cx, type MenuItem } from '../../../ui';
+import { cx, type MenuItem, glyph, Icon } from '../../../ui';
 import { noteFileHref } from '../api';
 import { SHEET_WIDTH, type Layout } from '../surface/layout';
 import { BarMenu, BlockBarButton, PlacementSwitch } from '../text/BlockBar';
@@ -567,14 +554,14 @@ export function FreePictureLayer({
     {
       id: 'forward',
       label: 'Bring forward',
-      icon: SelectionForeground,
+      icon: glyph.layerUp,
       disabled: !forward,
       onSelect: () => forward && reorder(forward),
     },
     {
       id: 'backward',
       label: 'Send back',
-      icon: SelectionBackground,
+      icon: glyph.layerDown,
       disabled: !backward,
       onSelect: () => backward && reorder(backward),
     },
@@ -586,11 +573,11 @@ export function FreePictureLayer({
           id: 'shape',
           label: 'Keep its shape',
           hint: keepShape ? 'On' : 'Off',
-          icon: keepShape ? LockSimple : LockSimpleOpen,
+          icon: keepShape ? glyph.lock : glyph.unlock,
           onSelect: () => onKeepShape(!keepShape),
         },
-        { id: 'details', label: 'Caption and description', icon: TextT, onSelect: () => setDetails(true) },
-        { id: 'open', label: 'Open full size', icon: ArrowSquareOut, href: noteFileHref(sel.upload) },
+        { id: 'details', label: 'Caption and description', icon: glyph.text, onSelect: () => setDetails(true) },
+        { id: 'open', label: 'Open full size', icon: glyph.external, href: noteFileHref(sel.upload) },
       ]
     : [];
 
@@ -683,7 +670,7 @@ export function FreePictureLayer({
             <>
               <span className="nb-free-chrome__stem" />
               <span className="nb-free-chrome__turn" onPointerDown={onTurnHandle} title="Turn">
-                <ArrowClockwise weight="bold" />
+                <Icon glyph={glyph.refresh} />
               </span>
               {CORNERS.map((c) => (
                 <span key={c} className={cx('nb-free-chrome__corner', `is-${c}`)} onPointerDown={onCorner(c)} />
@@ -703,33 +690,33 @@ export function FreePictureLayer({
             >
               {cropping ? (
                 <>
-                  <BlockBarButton icon={Check} label="Done" text onClick={keepCrop} primary />
-                  <BlockBarButton icon={Crop} label="Whole picture" text onClick={() => setCropping(FULL)} />
-                  <BlockBarButton icon={X} label="Cancel" onClick={() => setCropping(null)} />
+                  <BlockBarButton icon={glyph.check} label="Done" text onClick={keepCrop} primary />
+                  <BlockBarButton icon={glyph.crop} label="Whole picture" text onClick={() => setCropping(FULL)} />
+                  <BlockBarButton icon={glyph.close} label="Cancel" onClick={() => setCropping(null)} />
                 </>
               ) : (
                 <>
                   <PlacementSwitch free onInline={toInline} inlineOff={inlineOff ?? undefined} />
                   <span className="nb-blockbar__sep" aria-hidden="true" />
                   <BlockBarButton
-                    icon={Crop}
+                    icon={glyph.crop}
                     label="Crop"
                     onClick={() => {
                       saveNudge();
                       setCropping(sel.crop);
                     }}
                   />
-                  <BlockBarButton icon={ArrowClockwise} label="Turn a quarter" onClick={turnQuarter} />
+                  <BlockBarButton icon={glyph.refresh} label="Turn a quarter" onClick={turnQuarter} />
                   {narrow ? null : (
                     <>
                       <BlockBarButton
-                        icon={SelectionForeground}
+                        icon={glyph.layerUp}
                         label="Bring forward"
                         onClick={() => forward && reorder(forward)}
                         disabled={!forward}
                       />
                       <BlockBarButton
-                        icon={SelectionBackground}
+                        icon={glyph.layerDown}
                         label="Send back"
                         onClick={() => backward && reorder(backward)}
                         disabled={!backward}
@@ -738,7 +725,7 @@ export function FreePictureLayer({
                   )}
                   <span className="nb-blockbar__sep" aria-hidden="true" />
                   <BarMenu label="More for this picture" items={more} />
-                  <BlockBarButton icon={Trash} label="Delete picture" danger onClick={remove} />
+                  <BlockBarButton icon={glyph.trash} label="Delete picture" danger onClick={remove} />
                 </>
               )}
             </PictureBar>,

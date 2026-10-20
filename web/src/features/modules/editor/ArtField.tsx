@@ -59,7 +59,7 @@ export function ArtField({ art, icon, unitCode, onArt, onIcon, error }: ArtField
             {unitCode.trim() ? (
               <span className="u-code">{unitCode.trim().toUpperCase()}</span>
             ) : (
-              <ModuleIcon name={icon || null} weight="duotone" />
+              <ModuleIcon name={icon || null} />
             )}
           </span>
         )}

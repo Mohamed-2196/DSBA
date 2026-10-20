@@ -2,11 +2,10 @@
 // its own: the video's real thumbnail when it loads (class recordings and playlists have none) with only the source
 // and a play button on it, since the thumbnail carries its own title; otherwise a plain tile in the module's cohort
 // colour with the module, the lesson's title, "Video n of m" and where it loads from.
-import { Play } from '@phosphor-icons/react';
 import { useMemo, type CSSProperties } from 'react';
 import type { ModuleDetail, ModuleSummary, Video } from '../../api/types';
 import { videoThumbnailUrl } from '../../lib/modules';
-import { cx, moduleArtSrc } from '../../ui';
+import { cx, moduleArtSrc, glyph, Icon } from '../../ui';
 import { KIND_ICON, KIND_SOURCE, chapterLessons, kindLabel, lessonPosition } from './lessons';
 import { useThumbnail } from './thumbs';
 import './Poster.css';
@@ -32,7 +31,7 @@ export function LessonPoster({
   const count = chapter.videos.length;
   const thumb = videoThumbnailUrl(video);
   const thumbOk = useThumbnail(thumb) === 'ok';
-  const KindIcon = KIND_ICON[video.kind];
+  const kindGlyph = KIND_ICON[video.kind];
   const position = lessonPosition(video, v, count);
   const source = KIND_SOURCE[video.kind] ?? 'the original site';
   const info = useMemo(() => chapterLessons(chapter)[v], [chapter, v]);
@@ -65,7 +64,7 @@ export function LessonPoster({
           </span>
         )}
         <span className="mod-poster__kind">
-          <KindIcon weight="fill" aria-hidden="true" />
+          <Icon glyph={kindGlyph} active />
           {kindLabel(video)}
         </span>
       </span>
@@ -81,7 +80,7 @@ export function LessonPoster({
       )}
 
       <span className="mod-poster__play" aria-hidden="true">
-        <Play weight="fill" />
+        <Icon glyph={glyph.play} active />
       </span>
 
       <span className="mod-poster__foot" aria-hidden="true">
@@ -141,7 +140,7 @@ export function MiniPoster({
         <span className="mod-mini__code">{m.unitCode || m.shortName}</span>
       )}
       <span className="mod-mini__play">
-        <Play weight="fill" />
+        <Icon glyph={glyph.play} active />
       </span>
     </span>
   );

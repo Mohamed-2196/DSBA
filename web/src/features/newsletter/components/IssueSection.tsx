@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import type { IssueSection as SectionData, LiveFallback, PollResult, ReactionCounts } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { addDaysToKey } from '../../../lib/dates';
-import { ErrorBoundary, cx } from '../../../ui';
+import { ErrorBoundary, Icon, cx } from '../../../ui';
 import { useCalendarEvents } from '../../calendar/public';
 import { useHotThreads } from '../../forum/public';
 import { useRecentFiles } from '../../library/public';
@@ -54,7 +54,7 @@ function SectionFrame({
   body,
   aside,
 }: FrameProps) {
-  const Icon = sectionIcon(section.icon);
+  const sectionGlyph = sectionIcon(section.icon);
   const headId = `${sectionDomId(section.id)}-title`;
   const label = plainText(sectionLabel(section));
   // A picture (or a wide card) takes a column beside the copy; on a phone it moves above it.
@@ -73,7 +73,7 @@ function SectionFrame({
     >
       <header className="nl-section__head">
         <p className="nl-section__label">
-          <Icon weight="duotone" aria-hidden="true" />
+          <Icon glyph={sectionGlyph} />
           {label}
         </p>
         <h2 id={headId} className="nl-section__title" tabIndex={-1}>

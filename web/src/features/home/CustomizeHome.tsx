@@ -1,8 +1,7 @@
 // "Customise Home": show or hide each block and move it up or down, with buttons (no dragging needed). Every change
 // shows on Home at once and is saved (to the account, or this browser for a guest).
-import { ArrowDown, ArrowUp } from '@phosphor-icons/react';
 import { useRef, useState } from 'react';
-import { Button, Divider, IconButton, Modal, Switch } from '../../ui';
+import { Button, Divider, IconButton, Modal, Switch, glyph, Icon } from '../../ui';
 import type { useTracking } from '../modules/public';
 import { BLOCKS, moveBlock, showBlock, type HomeBlock } from './blocks';
 import type { HomeLayout } from './layout';
@@ -82,7 +81,7 @@ export function CustomizeHome({
               <span className="home-custom__move">
                 <IconButton
                   label={`Move ${BLOCKS[b].title} up`}
-                  icon={ArrowUp}
+                  icon={<Icon glyph={glyph.arrowUp} />}
                   size="sm"
                   disabled={!on || i === 0}
                   onClick={() => move(b, -1)}
@@ -91,7 +90,7 @@ export function CustomizeHome({
                 />
                 <IconButton
                   label={`Move ${BLOCKS[b].title} down`}
-                  icon={ArrowDown}
+                  icon={<Icon glyph={glyph.arrowDown} />}
                   size="sm"
                   disabled={!on || i === shown.length - 1}
                   onClick={() => move(b, 1)}

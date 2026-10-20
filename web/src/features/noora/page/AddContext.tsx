@@ -3,12 +3,23 @@
 // a note's words are read here and sent with the question. One of each at most (a lesson stands for its module).
 import { useMemo, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpenText, Exam, NotePencil, Plus, SquaresFour, type Icon } from '@phosphor-icons/react';
 import type { ModuleSummary } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { useDebouncedValue } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Button, Menu, Modal, QueryError, SearchField, Select, Skeleton, cx } from '../../../ui';
+import {
+  Button,
+  Menu,
+  Modal,
+  QueryError,
+  SearchField,
+  Select,
+  Skeleton,
+  cx,
+  glyph,
+  Icon,
+  type Glyph,
+} from '../../../ui';
 import { questionNumber, useModuleQuestions } from '../../library/public';
 import { moduleDetailQuery } from '../../modules/public';
 import { useNotes } from '../../notes/public';
@@ -340,7 +351,7 @@ export function AddContext({ added, onChange, year, onDone }: AddContextProps) {
     setKind(null);
     onDone();
   };
-  const entry = (id: Kind, label: string, icon: Icon, disabled = false) => ({
+  const entry = (id: Kind, label: string, icon: Glyph, disabled = false) => ({
     id,
     label,
     icon,
@@ -348,10 +359,12 @@ export function AddContext({ added, onChange, year, onDone }: AddContextProps) {
     onSelect: () => setKind(id),
   });
   const items = [
-    entry('module', 'A module', SquaresFour),
-    entry('lesson', 'A lesson', BookOpenText),
-    ...(featureOn('library') && featureOn('library.questions') ? [entry('paper', 'A past paper question', Exam)] : []),
-    ...(featureOn('notes') && me ? [entry('note', 'One of your notes', NotePencil)] : []),
+    entry('module', 'A module', glyph.gridView),
+    entry('lesson', 'A lesson', glyph.book),
+    ...(featureOn('library') && featureOn('library.questions')
+      ? [entry('paper', 'A past paper question', glyph.exam)]
+      : []),
+    ...(featureOn('notes') && me ? [entry('note', 'One of your notes', glyph.notepad)] : []),
   ];
   const setSubject = (subject: Subject) => {
     onChange({ ...added, subject });
@@ -369,7 +382,7 @@ export function AddContext({ added, onChange, year, onDone }: AddContextProps) {
             aria-haspopup="menu"
             data-hub="noora-add-context"
           >
-            <Plus aria-hidden="true" weight="bold" />
+            <Icon glyph={glyph.plus} aria-hidden="true" />
             <span>Add context</span>
           </button>
         }

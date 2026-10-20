@@ -1,36 +1,21 @@
 // The sectors an employer card names, each with a generic icon (never a brand mark). The editor offers these names;
 // another sector shows with a plain building.
-import {
-  Bank,
-  Briefcase,
-  Buildings,
-  CellTower,
-  ChartLineUp,
-  Cloud,
-  CreditCard,
-  Factory,
-  Handshake,
-  Lightning,
-  Scales,
-  TrendUp,
-  Vault,
-  type Icon,
-} from '@phosphor-icons/react';
+import { glyph, type Glyph } from '../../../ui';
 
-export const SECTOR_ICONS: Readonly<Record<string, Icon>> = {
-  Bank,
-  Investment: ChartLineUp,
-  Regulator: Scales,
-  'Sovereign fund': Vault,
-  'Public body': Buildings,
-  Exchange: TrendUp,
-  'Audit & consulting': Briefcase,
-  Consulting: Handshake,
-  Telecom: CellTower,
-  Technology: Cloud,
-  Fintech: CreditCard,
-  Energy: Lightning,
-  Industry: Factory,
+export const SECTOR_ICONS: Readonly<Record<string, Glyph>> = {
+  Bank: glyph.bank,
+  Investment: glyph.chartLine,
+  Regulator: glyph.scales,
+  'Sovereign fund': glyph.vault,
+  'Public body': glyph.building,
+  Exchange: glyph.trendUp,
+  'Audit & consulting': glyph.briefcase,
+  Consulting: glyph.handshake,
+  Telecom: glyph.tower,
+  Technology: glyph.cloud,
+  Fintech: glyph.card,
+  Energy: glyph.bolt,
+  Industry: glyph.factory,
 };
 
 export const SECTORS: readonly string[] = Object.keys(SECTOR_ICONS);

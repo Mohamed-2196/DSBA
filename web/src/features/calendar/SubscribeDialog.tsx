@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Key } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import { cohortLabel, normalizeYear, useToast, YEARS, type CohortYear } from '../../state';
 import { Button, ConfirmDialog, Modal, SegmentedControl, TextField, Icon, glyph } from '../../ui';
@@ -121,7 +120,7 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
         ) : (
           <Button
             variant="primary"
-            leadingIcon={Key}
+            leadingIcon={<Icon glyph={glyph.key} />}
             loading={feed.isPending}
             onClick={() => feed.mutate('new')}
             data-hub="calendar-feed-new"
