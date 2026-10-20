@@ -97,3 +97,26 @@ test('mascot quick launcher carries the current chat over to /noora', async ({ b
 
   await ctx.close();
 });
+
+test('/noora on a phone without a Claude key still says, after a question, that she answers from her script', async ({
+  browser,
+}) => {
+  test.fail(
+    true,
+    'ST-69: on a phone the notice that her AI is off shows only before the first question (the header’s "Script answers" pill is hidden on a 390 phone), and her answer to a question the script cannot answer does not say so either',
+  );
+  const ctx = await personaContext(browser, 'sara', { noora: true, mobile: true });
+  const page = await ctx.newPage();
+  await page.goto('/noora');
+  await expect(page.getByText('My AI answers aren’t available right now')).toBeVisible();
+  const box = page.getByRole('textbox', { name: 'Message Noora' });
+  await box.fill('Explain the Neyman-Pearson lemma for ST2134 with an example');
+  await box.press('Enter');
+  await expect(page.locator('[data-hub="noora-message"][data-from="noora"]').last()).toBeVisible();
+  // The laptop's header pill ("Script answers"), or the welcome's notice again.
+  await expect(page.getByText(/Script answers|AI answers aren’t available/).filter({ visible: true })).not.toHaveCount(
+    0,
+    { timeout: 5_000 },
+  );
+  await ctx.close();
+});

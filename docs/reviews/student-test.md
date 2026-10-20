@@ -1,5 +1,217 @@
 # Student test: DSBA Hub through the browser
 
+## Round 16: the hub in its new look (20 October 2026)
+
+`round16/test16` off `feature/backend` 13d51404, on the Docker stack (app :5173, API :8000) in e2e mode. The full
+suite ran once with `scripts/e2e.sh` first, then every feature was done by hand in Chrome as six made-up people,
+each on a 390×844 phone (touch) and a 1440×900 laptop, with spot checks at 768×1024 (tablet), 844×390 (phone
+landscape) and 360×740, and in dark mode:
+
+| Persona | Who (all made up, all deleted afterwards) | How they signed in |
+|---|---|---|
+| Guest | nobody signed in | – |
+| Huda | Year 1, `huda.e2e.r16@example.com` | dev-login |
+| Yusuf | Year 2, `yusuf.e2e.r16@example.com` | dev-login |
+| Maryam | Year 3, `maryam.e2e.r16@example.com` | dev-login |
+| Rashid | student rep, `rashid.e2e.r16@example.com` | dev-login |
+| Amal | admin, `amal.e2e.r16@example.com` | dev-login |
+| ليلى أحمد | Year 1, a random +973 3376 number, then a second one by `layla.e2e.r16…@example.com` | real codes, in the UI |
+
+Mini Noora has no API key here, so only her script answers. Another agent browsed the stack at the same time.
+Screenshots: `/private/tmp/claude-501/-Users-mohamed-dsba-hub/5411a11a-0ba5-46f6-8270-b4d416f58375/scratchpad/r16/shots/`
+(named below by file).
+
+### Summary
+
+The new look holds up. Every journey works at every size, nothing scrolls sideways on any screen (18 routes × 6
+sizes and personas measured), the console stayed clean, and the Deskmates read well in both themes. Double taps
+are guarded almost everywhere: Send code, Post thread, Post reply, Send for review, Add event, Make the plan and
+reactions each sent one request. ST-62, ST-64, ST-65 and ST-66 hold.
+
+What costs students most, in order:
+
+1. **ST-67 (major):** one tap on the timer pill's ✕ ends a 2-hour mock, with no way back.
+2. **ST-69 (minor):** with the AI off, Noora on a phone answers "explain the Neyman–Pearson lemma" with a module
+   blurb and nothing says the AI is off.
+3. **ST-71 (minor):** a phone in landscape shows 3 of 13 sections in the rail and no forum thread on the first
+   screen.
+4. **ST-70 (minor):** offline, a page not opened before says "Something went wrong", not "You're offline".
+5. **ST-73 (minor):** search puts ten library files before the exam date; "when is my exam" finds no date.
+6. **ST-68 (minor):** two newsletter issues can share a number; a rep published a second "Issue 99".
+7. **ST-72 (minor):** the forum band's "1 question is waiting for a first reply" breaks apart on every phone.
+
+ST-19 (a double tap on Send request makes two requests) is still open.
+
+### New findings
+
+| ID | Severity | Persona, size | What |
+|---|---|---|---|
+| ST-67 | major | Yusuf, phone | One tap on the timer pill's ✕ ("Stop the timer") ends the clock; Skip, Escape or closing "How did it go?" doesn't bring it back |
+| ST-68 | minor | Rashid, laptop | Issue numbers can repeat: a new draft took 99 (a published issue's number) and published as a second "Issue 99" |
+| ST-69 | minor | Yusuf, phone | With the AI off, after the first question nothing on a phone says Noora answers from her script, and a question she can't answer gets a module summary |
+| ST-70 | minor | Yusuf, phone | Offline, a page whose code wasn't loaded yet (a thread, Career) shows "Something went wrong while showing this page" |
+| ST-71 | minor | Maryam, 844×390 | Landscape phone: the rail shows Home, Modules and Library, the rest hidden under the theme and profile footer; the forum's first thread starts at 444 px of 390 |
+| ST-72 | minor | Yusuf, 390 and 360 | The forum band's "1 question is waiting for a first reply" breaks: the number alone on the left, the text centred over two lines |
+| ST-73 | minor | Yusuf, laptop | Search: "ST2134 exam" lists 10 library files before its Calendar group; "when is my exam" finds no date at all |
+| ST-74 | nit | Huda, phone | Deleting a newsletter issue leaves its notifications, which open "We couldn't find that issue" |
+| ST-75 | nit | Rashid, laptop | An issue with no sections can be published, and "Publish and notify everyone" doesn't warn |
+| ST-76 | nit | Huda, 768 tablet | The tablet rail is 13 icons with no labels; Boards, Grades, Career, Newsletter, Daily and Requests are hard to tell apart |
+| ST-77 | nit | all | Copy slips: straight apostrophes ("That code isn't right", "We couldn't find that thread", Daily's "week's", "We'll", "you're"); a bad request link says "Request isn't a valid id. Reload the page"; the note 404 says "See all notes"; Access's first column is headed "Box"; "Start a Assignment board" (label); the account menu shows "+97333760536" |
+| ST-78 | nit | Yusuf, Maryam, phone | The note header's "Saved in [notebook]" wraps into three ragged lines (check mark, label, picker), in the notebook and in the sheet beside a video |
+| ST-79 | nit | Maryam, phone | The notebook list stacks two look-alike pickers, "All notes" and "Every module", with no labels |
+| ST-80 | nit | Maryam, laptop | A note made by Annotate is titled with the file name, "ST2133 Exam paper - May 2024"; the library calls it "ST2133 · May 2024" |
+| ST-81 | nit | Yusuf, phone | Carry on starts 1,240 px down a 390 phone's Home, under Up next's large countdown card |
+| ST-82 | nit | Yusuf, phone | The not-found screens (file, thread, module, note) have no heading of level 1 |
+
+#### ST-67 (major) One tap on the timer's ✕ ends a mock
+
+- Persona, where: Yusuf (Year 2), 390×844 phone; `/library/st2133-exam-paper-may-2024`.
+- Steps: **Time me** → **Start 2 hours** → go anywhere: the pill floats above the tab bar ("1:59:57 ST2133 · May
+  2024", pause, ✕). Tap **✕** ("Stop the timer").
+- Expected: a student 90 minutes into a mock who brushes the ✕ (it sits just above the tab bar, in the thumb zone)
+  can carry on: "Stop the timer? You're 1:30 in" with Keep going, or an Undo on the toast.
+- Got: the clock is gone at once and "How did it go?" opens. Skip, Escape and closing the dialog all leave no timer
+  (`Stop the timer` count 0 afterwards). Pause sits beside it at the same size.
+- Screenshot: `time-phone-3-pill-elsewhere.png`, `score-phone-1.png`.
+
+#### ST-68 (minor) Two issues can share a number
+
+- Persona, where: Rashid (rep), laptop; Manage → Newsletter.
+- Steps: **New issue** (it suggests 100) → type **99** (issue 99 is published) → **Create draft** → add nothing →
+  **Publish** → **Publish and notify everyone**.
+- Expected: "Issue 99 is taken. The next free number is 100." The same for two drafts.
+- Got: both go through. `/newsletter` listed "Issue 99 · 20 Oct" and "Issue 99 · 14 Oct" side by side. Two old
+  drafts in the local data already share numbers with published issues (98, 99), and `newsletter.spec.ts` always
+  makes number 99. The API takes two drafts with one number (two 201s).
+- Test: `newsletter-numbers.spec.ts`, marked `test.fail` (ST-68).
+- Screenshot: `news-phone-3-two99.png`. The test issue was deleted.
+
+#### ST-69 (minor) With the AI off, Noora on a phone stops saying so
+
+- Persona, where: Yusuf, phone; `/noora`.
+- Steps: the welcome says "My AI answers aren't available right now. I answer from my script…". Ask "Explain the
+  Neyman-Pearson lemma for ST2134 with an example".
+- Expected: the answer says plainly that she can't explain topics while her AI is off, then where to look.
+- Got: "ST2134 Advanced Statistics: Statistical Inference is a Year 2 module… It has 4 chapters and 27 lessons" and
+  four chapter links. The notice is gone once the chat starts. On a laptop the header keeps a small "Script
+  answers" pill, but on a 390 phone it is hidden. A Year 2 student reads it as Noora misunderstanding the question.
+- Test: `noora-page.spec.ts` "/noora on a phone without a Claude key still says…", marked `test.fail` (ST-69).
+- Screenshot: `noora-phone-2-answer.png`.
+
+#### ST-70 (minor) Offline, an unopened page says "Something went wrong"
+
+- Persona, where: Yusuf, phone. Library, Forum and Modules opened in the session, then the connection off.
+- Steps: tap Library, Forum and Modules (each reads fine offline: IDEA-43 works), then open a thread or Career.
+- Expected: "You're offline. This page opens once you're back online", like the offline note in the notebook.
+- Got: "This page didn't load. Something went wrong while showing this page. The rest of DSBA Hub still works, so
+  try again…". The page's code couldn't be fetched (`Failed to fetch dynamically imported module`). Seen on the
+  Vite dev server; a production build has the same split, so a page never opened has the same problem.
+- Screenshot: `offline-phone-thread.png`.
+
+#### ST-71 (minor) A phone in landscape
+
+- Persona, where: Maryam (Year 3), 844×390, touch.
+- The rail lists 13 sections, but the footer (theme and profile) covers it below Library: Notebook (268 px) and
+  Forum (314 px) sit under the footer, and Calendar, Noora and every tool are below the screen. Nothing shows that
+  the rail scrolls.
+- The pages: Home shows only the greeting and the shelf. The forum's band, tabs and search fill the screen, and the
+  first thread starts at 444 px.
+- Expected: every section reachable (the phone's tab bar and More, or a scroll cue), and content on the first screen.
+- Screenshot: `y3-land-_.png`, `y3-land-_forum.png`.
+
+#### ST-72 (minor) The forum band's "waiting" line breaks on phones
+
+- Persona, where: Yusuf and Huda, 390 and 360, both themes.
+- The second stat in the pink band is one link. On a phone its number sits alone on the left, and the words wrap
+  centred over two lines ("question is waiting for a first / reply"), each underlined. On a laptop it is one line.
+- Screenshot: `y2-phone-_forum.png`, `y1-small-_forum.png`, `dark-phone-_forum.png`.
+
+#### ST-73 (minor) Search puts files before dates
+
+- Persona, where: Yusuf, laptop, ⌘K.
+- "ST2134 exam": Library (10) comes first, then Calendar (3). "when is my exam" and "exam date": library pages
+  only. The night before an exam, a student types the module and "exam" for its date and time.
+- Good: "regresion" is read as "regression", "الانحدار" finds the Arabic thread, "integration by parts" finds the
+  lessons, the workbook and the thread, and Enter opens the first result.
+- Screenshot: `search-laptop-1.png`.
+
+#### ST-74 to ST-82 (nits)
+
+- **ST-74:** the e2e run's issues and the hand test's issue were deleted, but Huda's panel still listed "New issue
+  of The DSBA Newsletter: …" for each, opening "We couldn't find that issue" (`notif-phone-2-deleted-issue.png`).
+  The forum takes notifications back when a reply is hidden; issues could do the same.
+- **ST-75:** `newsrep-laptop-7-publishdlg.png`: "Publish issue 99?" for an issue with no sections.
+- **ST-76:** `y1-tablet-_.png`.
+- **ST-77:** `signin-phone-sms-3-wrong.png`, `404-_requests_nope.png`, `404-_notes_…png`,
+  `admin-laptop-_admin_access.png`, `signout-phone-1-menu.png`.
+- **ST-78:** `nb-phone-2-note.png`, `lesson-phone-2-notes.png`.
+- **ST-79:** `nb-phone-1-list.png`.
+- **ST-80:** `annot-laptop-2-ink.png`.
+- **ST-81:** `carry-phone-2.png` (Carry on works: a lesson and a paper, "opened just now").
+- **ST-82:** `404-_library_st2134-exam-paper-may-2024.png` and the others.
+
+### By hand: every feature
+
+| Feature | Result |
+|---|---|
+| Sign in by phone | ليلى, a new account, on a phone: the number shows as "+973 3376 0536"; a double tap on Send code sent one; a wrong code: "That code isn't right. 4 tries left."; Back during the code step kept the dialog; the right code → profile (Arabic name, "No, thanks" to emails) → "Welcome to DSBA Hub, ليلى". Sign out from the account menu cleared the session |
+| Sign in by email | The same on a laptop: "Check your email… Not there? Check your spam folder." |
+| Home | Guest: the year sheet over the shelf; a student: greeting, the shelf (3 + 2 on a phone, 5 in a row on a laptop), Up next, Carry on (ST-81), To-do with the revision plan's cards, My modules. Calendar tile "Exam Fri" in red |
+| Modules and lessons | The module page with Next dates, Latest past papers, Your notes, Discussion; a lesson plays inline (YouTube); **Take notes** opens the note beside the video on a laptop and as a sheet under it on a phone; English and Arabic typed in one note saved |
+| Library | Search, the sittings newest first (ST-66 holds), the paper page with the PDF (under 1 s), sitting's report, Ask about this paper, Questions by topic (Q1… for ST2133; A1–A8, B1, B2 for EC1002 2023 Zone A); tapping "A1 (p. 2)" scrolls the viewer to page 2 |
+| Time me and score | Start 2 hours; the pill floats on every page; a double tap on Start stays on the paper (ST-62 holds); stopping asks "How did it go?" (ST-67) |
+| Upload | A `.exe`: "This type of file can't be added to the library…"; 60 MB: "That file is 60 MB, over the 50 MB limit. Compress it or split it into parts."; a PDF: the title from the file name, a double tap on Send for review made one upload, "Waiting for review". Rashid published it from Manage → Uploads on a phone (the "Show" picker) and Huda was told |
+| Notebook | Annotate on a laptop opens the paper in a note (4 s); the pen draws over it; the same note on a phone opens in the text tools with the PDF below |
+| Forum | A thread with an Arabic and English title and a formula, posted with a double tap (one thread); Yusuf replied (double click, one reply) and voted; Huda's bell had "Yusuf Y2 replied…", which opened the reply; she accepted it; Maryam reported it from the "…" menu ("Report sent"); Rashid saw it in Manage, hid the reply and locked the thread |
+| Calendar | A weekly event (Arabic title): "The end has to be after the start." for 16:00–15:00; then one event and its drawer; Month view on a phone fits; Subscribe explains Google, Outlook and Apple; the exam's **Add to calendar** downloads `2026-10-23-advanced-stats-inferential-exam.ics` (all-day, right summary) |
+| Boards and plan | A Study board, a card with Arabic; **Plan** on ST2134 prefilled the exam date; a double tap made one plan of 9 cards over three days, shown in Home's To-do |
+| Grades | Letters can't be typed, 101 is refused with "0 to 100", 55.5 is taken; the bands add up. Arabic digits still ignored (ST-18) |
+| Career Navigator | Where to apply (26), the electives guide |
+| Newsletter | Reading on a phone; reactions are 44 px and a double tap leaves one reaction on; the rep's editor, publish and the confirm (ST-68, ST-75) |
+| Daily | Six tiles, every game fits a 390 phone, Correlations' sixteen words |
+| Requests | A double tap on Send request still made two (ST-19); both deleted |
+| Notifications | Reply, upload published, newsletter issues; links open the right reply |
+| Account | Profile, sign-in methods, lesson progress, six email switches, devices, download, delete |
+| Offline | Lists read offline after a visit (ST-70 for the rest) |
+| Noora | Guest: "Sign in to get full answers from my AI"; student: the AI-off notice, the next exam from the script (ST-69) |
+| Manage and Access | Rep: Reports, Uploads, Requests, Newsletter, Calendar, Sunday summary, Guides, Forum, Gaps, Numbers. Admin: Roles as a table on a laptop and cards on a phone, People, Features, Activity |
+| Dark mode | Home, a paper, the forum, the calendar, Daily, Manage, the notebook: all readable; the deskmates keep their rims |
+
+Nothing scrolled sideways at 360, 390, 768, 844×390 or 1440. Touch targets on stable pages were 44 px or more
+(header, shelf, reactions, notebook header chips, the paper's toolbar).
+
+### Earlier findings rechecked
+
+| ID | Status |
+|---|---|
+| ST-19 | **still open**: a double tap on Send request made two requests (also the suite's `test.fail`) |
+| ST-18 | **still open**: ٧٢ typed in Grades leaves the box empty |
+| ST-53 | **still open**: Modules lists ST2133 before ST2134, though ST2134's exam is sooner |
+| ST-55 | **still open**: Calendar's "This week" lists Friday's mock but not Friday's ST2134 exam (only the hero card has it) |
+| ST-62 | fixed, holds: a double tap on Start 2 hours stays on the paper |
+| ST-63 | fixed, holds: the notebook's header chips measure 44 px on touch |
+| ST-64 | fixed, holds on 390 portrait (forum's first thread at about 425 px); landscape is ST-71 |
+| ST-65 | fixed, holds: the back link reads "Notebook" |
+| ST-66 | fixed, holds: "ST2133 past paper" lists May 2026, October 2025, May 2025, October 2024, May 2024 |
+
+### Data left behind, and cleaned
+
+- Deleted by the hand test: the thread (and its reply), the upload, two requests, the newsletter issue and two
+  numbering drafts, then all seven accounts (each "Your account is deleted", `/me` 401). Notes, boards, events and
+  the plan went with the accounts. The removed thread, file and requests stay as removed rows, as the app keeps them.
+- Not mine, still there: newsletter issues 98 and 99 "[e2e ugmswes]" (published) and drafts 98 "Newsletter manager
+  test [e2e ugmswes]" and 99 "sdfa" from a run on 14 October; 19 people hold the admin role locally. They are the
+  only published issues, so the local newsletter shows test issues.
+
+### The suite
+
+- **Full run before the hand test** (`scripts/e2e.sh`, 14.8 min): **117 passed, 0 failed, 0 skipped**; one of the
+  117 is the expected failure for ST-19. No spec needed updating for the new look.
+- **Added:** `newsletter-numbers.spec.ts` (ST-68) and a phone test in `noora-page.spec.ts` (ST-69), both marked
+  `test.fail` with their IDs. Run on their own with the setup and clean-up: 10 passed (both expected failures,
+  each failing on its assertion, not on set-up).
+- The suite now has **119 tests**. `scripts/e2e.sh --restore` put the stack back on Mailpit afterwards.
+
 ## Round 15 recheck (20 October 2026): the suite on the Deskmates look, and the study journeys by hand
 
 `round15/e2e` off `feature/backend` 39680d20, on the Docker stack in e2e mode. The full suite ran with
