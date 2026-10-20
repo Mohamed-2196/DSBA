@@ -1,5 +1,152 @@
 # Student test: DSBA Hub through the browser
 
+## Round 15 recheck (20 October 2026): the suite on the Deskmates look, and the study journeys by hand
+
+`round15/e2e` off `feature/backend` 39680d20, on the Docker stack in e2e mode. The full suite ran with
+`scripts/e2e.sh` for the first time since round 14. The study journeys were then done by hand as **Noor RC**, a
+made-up Year 2 student (`noor.e2e.r15@example.com`, dev-login), on a 390×844 phone (touch) and a 1440×900 laptop
+in Chrome. The journeys were: find a paper, Time me, score, annotate in the notebook, ask in the forum and check the
+calendar. Her thread, note and score were deleted, then the account. Mini Noora has no API key locally, so only her
+script mode was seen. Screenshots:
+`/private/tmp/claude-501/-Users-mohamed-dsba-hub/5411a11a-0ba5-46f6-8270-b4d416f58375/scratchpad/r15hand/shots/`.
+
+### Summary
+
+The new look didn't break a journey: every study step works on both sizes, nothing scrolls sideways, and the
+console stayed clean. The suite's failures were all specs written for the old screens (below). The new look does
+cost phone users screen space. The section bands, action rows and chip rows push the forum's first thread and the
+calendar's month to the bottom of a 390 phone screen, and the Home shelf hides Calendar, the tile with the exam
+news (ST-64). One real slip: a double tap on Time me's "Start" lands the student in Noora (ST-62). Three notebook
+header controls are below 44 px on touch (ST-63).
+
+### New findings
+
+| ID | Severity | What |
+|---|---|---|
+| ST-62 | minor | On a phone, a double tap on Time me's "Start 2 hours" starts the clock and opens Noora: the sheet closes on the first tap, and the second lands on the tab bar under it |
+| ST-63 | minor | The notebook's header on a phone: "Saved in your notebook" (24 px), the module chip (25 px) and "Written on ST2134 May 2024" (20 px) are under the 44 px touch target |
+| ST-64 | minor | On a 390 phone the bands push content down: the forum's first thread at 657 px of 844, the calendar's month grid at about 610 px; Home's shelf scrolls sideways and hides Forum and Calendar ("Exam Fri") |
+| ST-65 | nit | The notebook's back link says "Notes" ("All notes"); the section is now called Notebook everywhere else |
+| ST-66 | nit | Library search "ST2134 past paper" lists the sittings out of date order: May 2024, May 2025, October 2024, October 2025, May 2026, then May 2010 |
+
+#### ST-62 (minor) A double tap on Time me's Start opens Noora
+
+- Persona, where: Noor (Year 2), 390×844 phone with touch; `/library/st2134-exam-paper-may-2026`.
+- Steps: tap **Time me** (the stopwatch in the paper's bar) → in the sheet, double tap **Start 2 hours**.
+- Expected: the clock starts and the student stays on the paper.
+- Got: the clock starts (it is in `hub.mine.timeMe` and floats on every page afterwards), but the page is `/noora`.
+  The sheet's Start button (x 213 to 365, y 779 to 823) sits over the tab bar's Forum and Noora tabs. The first tap
+  closes the sheet, and the second lands on the tab under it. On the laptop the same double click stays on the paper.
+- Fix: keep the tab bar from taking a tap for a moment after a sheet closes. Another way is to close the sheet when
+  the pointer lifts, not on the first click. Both cover every bottom sheet with its main button over the tab bar.
+
+#### ST-63 (minor) The notebook's header has three small touch targets
+
+- Persona, where: Noor, phone; a note made with **Annotate in my notebook** on ST2134 May 2024.
+- Measured in the header (`[data-hub="notebook-header"]`): "Saved in your notebook" is 114×24, the module chip "ST2134"
+  is 83×25 and "Written on ST2134 May 2024" is 170×20. The back link, Pages, Full screen and More are 44 px.
+- Expected: 44 px on touch screens (CLAUDE.md).
+
+#### ST-64 (minor) On a phone the new bands push the content down
+
+- Persona, where: Noor, 390×844 phone.
+- **Forum:** the pink band (title, intro, "2 replies today", "2 questions are waiting…") is about 233 px tall. Then come
+  "Start a thread", the year tabs, the search box, the "No replies yet" and "Exam prep" chips, and Hot, New and Top.
+  The first thread's title starts at 657 px, so a phone shows one thread's title at most.
+- **Calendar:** the band (title and a four-line intro) is followed by Customise, Subscribe, New event, List and
+  Month, the years, the month arrows and the type chips. In Month view the grid starts at about 610 px.
+- **Home:** the desk shelf's tiles are 96 to 110 px wide in a row that scrolls sideways. On a 390 phone Library,
+  Modules and Notebook show, Forum is cut off and Calendar is off screen. Calendar is the tile with the exam news
+  ("Exam Fri", in red).
+- Expected: the content of each page within the first screen on a phone. The bands could shrink on phones (a one-line
+  intro, the deskmate smaller), and the shelf could put the tile with news first or wrap to two rows.
+- Not broken: on the 1440 laptop all three pages show their content in the first screen.
+
+#### ST-65 (nit) "Notes" in the notebook
+
+- `notes/NoteHeader.tsx` line 209: the back link reads "Notes" (label "All notes"). The sidebar, the shelf and the
+  More menu say Notebook. Suggest "Notebook".
+
+#### ST-66 (nit) Search lists a module's sittings out of order
+
+- Library → search "ST2134 past paper": ST2134 · May 2024, May 2025, October 2024, October 2025, May 2026, May 2010.
+  A student the night before the exam wants the newest first. When every result scores the same, sort by sitting,
+  newest first.
+
+### By hand: the study journeys (390 phone / 1440 laptop)
+
+| Journey | Result |
+|---|---|
+| Home | Greeting band, desk shelf (Library "Papers and notes", Modules "6 modules", Notebook "Start a note", Forum "Ask a question", Calendar "Exam Fri"), Up next. Shelf tiles 96–112 px wide, 100–108 px tall. Phone: ST-64 |
+| Find a paper | Library search "ST2134 past paper" finds the six sittings (order: ST-66); the paper page opens with the PDF, Time me, Annotate in my notebook (laptop) or the ⋯ menu (phone), Download, the sitting's report and Questions by topic |
+| Questions by topic | EC1002 2023 Zone A lists A1 (p. 2) to A8 (p. 3), then B1 (p. 4) twice (The Firm, Pure Monopoly) and B2 (p. 5): sections read right |
+| Time me | 1 h / 2 h / 3 h / Other; the clock shows on the paper ("0:59:59 left of 1 hour") and floats on Home, Noora, the notebook, the forum composer and the calendar; Home's band says "Your ST2134 · May 2026 timer is still running." Double tap: ST-62 |
+| Score | Stop the timer on Home → "How did it go?" → 68 → Save → "Saved: 68%" toast (ST-60 holds) |
+| Annotate | Opens the paper in a note ("ST2134 May 2024", saved in ST2134, "Written on ST2134 May 2024"); a second press opens the same note. A pen stroke saved (`PUT …/ink/0` 200) and was there after a reload. Phone header: ST-63, ST-65 |
+| Ask in the forum | A 165-character title (Arabic and English) is cut to 120 by the field; a double click on Post thread made one thread (one 201) and opened it; Arabic body reads right to left; the "…" menu has Copy link (phone), Edit and Delete for her own post |
+| Calendar | Laptop opens on October's month, phone on the list; Show as switches both ways; an event opens with "Add to calendar" (`.ics`), "Open module", the module's other dates and Hide. Phone: ST-64 |
+
+Nothing scrolled sideways on any of these pages at either size, and the console had no errors.
+
+### The suite: specs out of date after deliberate changes (fixed)
+
+- `daily-question.spec.ts`: expected Home's "A past question a day" to show its own uploaded paper ("May 2024,
+  Zone A"). The seed now tags Econometrics papers too (round 15 tagging), so the day's question can come from any
+  of them. The test now checks the card names the module and its exam ("Elements of Econometrics · exam tomorrow")
+  and a question. It also checks that **Open the question** opens a paper page with its Questions by topic.
+- `forum-categories.spec.ts` and `study-core.spec.ts` (Yours tab): looked for the thread's link anywhere in
+  `main`. The forum's new band lists "waiting for a first reply" threads from every category, so the link was there
+  twice (strict mode) and would be there under the wrong tab too. Both now look in the thread list
+  (`[data-hub="thread-row"]`).
+- `papers.spec.ts` "a paper sits with its report…": the sitting row's report link is named "May 2024 Report 2 New".
+  The "New" badge on a file shared this week is inside the link. The name pattern now allows " New".
+- `forum.spec.ts` "the rep hides the reply, resolves the report…": took the first open report whose card held
+  "WhatsApp group please". A run stopped halfway (run 3, below) left its report open, and the queue lists the
+  oldest first. Run 4 resolved that old report, and Sara never heard back. The test now also matches the run's tag
+  (the card names the thread). The stale report was dismissed by hand.
+- The new calendar test first expected `?view=month` after switching back on a laptop. The month is a laptop's
+  default, so the address leaves it out (as designed). The test now expects no `view=` there.
+
+### New e2e coverage
+
+- `papers.spec.ts` "a sectioned paper names its questions by section": finds a seeded EC1002 question tagged B1
+  (`GET /library/questions?module_id=economics`), opens its paper and checks that Questions by topic lists "B1
+  (p. 4)" under its chapter and no "Q…" labels. It skips when the stack has no seeded B1 question.
+- `home.spec.ts` "the desk shelf opens each section": for Sara and a guest, each of the five tiles (Library,
+  Modules, Notebook, Forum, Calendar) opens its page. A student's Notebook tile reads "Notebook, N notes" or
+  "Notebook, Start a note".
+- `calendar.spec.ts` "the calendar opens on the month on a laptop and the list on a phone": the month by default at
+  1366 px, List → `?view=list` and kept after a reload, back to Month (the default, so no `view=`), and at 390 px
+  the list by default and Month → `?view=month`.
+- `forum.spec.ts` "Ali reports the question from its "…" menu": the original post's menu → Report → "Report this
+  thread" → Something else with a note → "Report sent"; the menu then says "Reported"; the rep finds the report
+  by the thread's title and dismisses it.
+
+### Earlier findings
+
+ST-58 (Daily question for modules without tags) is mostly settled by the round 15 tagging: 1,446 seeded questions
+on 229 papers. In run 1, Sara's Home showed a seeded EC2020 question ("Question 5, October 2025 (p. 3), on Time series"). ST-19, ST-45, ST-48, ST-49, ST-53, ST-55, ST-56,
+ST-57 and UX-78, UX-79 were not marked fixed and weren't rechecked. ST-60 and ST-61 hold (the score toast showed;
+the e2e tests pass).
+
+### Results
+
+- Run 1 (113 tests, before any spec change): **108 passed, 4 failed, 1 did not run** in 20 min. All four failures
+  were specs out of date (`daily-question`, `forum-categories`, `papers`, `study-core` Yours). The one that didn't
+  run was the new sectioned-paper test, in the same serial file as the failed `papers` test.
+- Runs 2 and 3 were spoiled by the machine, not the app. The load average was 16 to 18 with other agents' work,
+  and the Mac slept during run 3. Setup timed out waiting for "Send a new code", one test took 15 minutes, and run 3
+  hung at test 49 and was stopped. Its accounts were removed by running the cleanup project on its own. One real
+  spec slip came out of this: the calendar test's `view=month` on a laptop (fixed). Daily's "a guest who wins and
+  signs up" timed out under that load and passed in runs 4 and 5.
+- Run 4 (117 tests): **114 passed, 1 failed, 2 did not run** in 10.3 min. The failure was the forum's report test
+  picking run 3's leftover report (fixed, above).
+- **Final run** (run 5, 117 tests: 113 from round 14 plus 4 new): **117 passed, 0 failed, 0 skipped** in 8.6 min.
+  One of the passes is the expected failure for ST-19 (double tap on "Send request"). No new `test.fail`: none of
+  this round's findings is covered by a spec.
+- Leftovers: none from these runs. No visible `[e2e …]` threads, files or dates. Noor RC and the stray Sara E2E from
+  a failed setup (`+973…`, Year 2) were deleted with their thread, note and score.
+
 ## Round 14 recheck (19 October 2026): the suite on everything round 14 merged, and the fixes by hand
 
 `round14/e2e` off `feature/backend` d1e61a4a, on the Docker stack in e2e mode (the API migrated the local database

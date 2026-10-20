@@ -19,13 +19,15 @@ test('a thread posted in a category is listed under it, and its page leads back 
   expect(thread.category).toBe('study-groups');
 
   await sara.goto('/forum');
+  // The thread list, not the band's "waiting for a first reply", which lists threads from every category.
+  const listed = sara.locator('[data-hub="thread-row"]').getByRole('link', { name: title });
   const categories = sara.getByRole('tablist', { name: 'Categories' });
   await categories.getByRole('tab', { name: /^Study groups/ }).click();
   await expect(sara).toHaveURL(/cohort=study-groups/);
-  await expect(sara.locator('main').getByRole('link', { name: title })).toBeVisible();
+  await expect(listed).toBeVisible();
   await categories.getByRole('tab', { name: /^Year 2/ }).click();
   await expect(sara).toHaveURL(/cohort=year-2/);
-  await expect(sara.locator('main').getByRole('link', { name: title })).toHaveCount(0);
+  await expect(listed).toHaveCount(0);
 
   await sara.goto(`/forum/${thread.slug}`);
   await sara.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Study groups' }).click();

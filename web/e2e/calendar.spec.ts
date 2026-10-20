@@ -140,3 +140,36 @@ test('an event for a Year 2 module added with the default cohort is a Year 2 eve
   await api(rep, 'DELETE', `/api/v1/calendar/events/${encodeURIComponent(id)}`);
   expect(ev?.year).toBe(2);
 });
+
+test('the calendar opens on the month on a laptop and the list on a phone; Show as switches and is kept', async ({
+  sara,
+}) => {
+  await sara.goto('/calendar');
+  const showAs = sara.getByRole('radiogroup', { name: 'Show as' });
+  await expect(showAs.getByRole('radio', { name: 'Month' })).toBeChecked();
+  await expect(sara.locator('[data-hub="calendar-month"]')).toBeVisible();
+
+  await showAs.getByRole('radio', { name: 'List' }).click();
+  await expect(sara).toHaveURL(/view=list/);
+  await expect(sara.locator('[data-hub="calendar-list"]')).toBeVisible();
+  await expect(sara.locator('[data-hub="calendar-month"]')).toHaveCount(0);
+  await sara.reload();
+  await expect(showAs.getByRole('radio', { name: 'List' })).toBeChecked();
+  await expect(sara.locator('[data-hub="calendar-list"]')).toBeVisible();
+  await showAs.getByRole('radio', { name: 'Month' }).click();
+  await expect(sara).not.toHaveURL(/view=/); // the month is a laptop's default, so the address doesn't say it
+  await expect(showAs.getByRole('radio', { name: 'Month' })).toBeChecked();
+  await expect(sara.locator('[data-hub="calendar-month"]')).toBeVisible();
+
+  await sara.setViewportSize({ width: 390, height: 844 });
+  try {
+    await sara.goto('/calendar');
+    await expect(showAs.getByRole('radio', { name: 'List' })).toBeChecked();
+    await expect(sara.locator('[data-hub="calendar-list"]')).toBeVisible();
+    await showAs.getByRole('radio', { name: 'Month' }).click();
+    await expect(sara).toHaveURL(/view=month/);
+    await expect(sara.locator('[data-hub="calendar-month"]')).toBeVisible();
+  } finally {
+    await sara.setViewportSize({ width: 1366, height: 900 });
+  }
+});

@@ -71,7 +71,7 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     const may = sittings.getByRole('listitem', { name: 'May 2024', exact: true });
     await expect(
       may
-        .getByRole('link', { name: /^May 2024 (Zone [AB] )?[Rr]eport( \d)?$/ })
+        .getByRole('link', { name: /^May 2024 (Zone [AB] )?[Rr]eport( \d)?( New)?$/ }) // New: shared this week
         .and(sara.getByTitle(`EC1002 commentary May 2024 [e2e ${run.tag}]`))
         .first(),
     ).toBeVisible();
@@ -131,4 +131,28 @@ test('a paper sits with its report, Sara times herself, tags a question and find
   } finally {
     for (const item of made) await api(rep, 'DELETE', `/api/v1/library/items/${item.id}`);
   }
+});
+
+test('a sectioned paper names its questions by section: B1 under Questions by topic', async ({ sara }) => {
+  // The seed tags EC1002's 2023 papers by section (A1 to A8, then B1 and on).
+  const { body: tagged } = await api<
+    Array<{
+      section: string | null;
+      question: number;
+      page: number | null;
+      chapterTitle: string;
+      paper: { slug: string };
+    }>
+  >(sara, 'GET', '/api/v1/library/questions?module_id=economics');
+  const b1 = tagged.find((q) => q.section === 'B' && q.question === 1);
+  test.skip(!b1, 'no B1 question in the seed on this stack');
+  if (!b1) return;
+  const label = b1.page ? `B1 (p. ${b1.page})` : 'B1';
+
+  await sara.goto(`/library/${b1.paper.slug}`);
+  const tags = sara.locator('[data-hub="question-tags"]');
+  await expect(
+    tags.getByRole('listitem').filter({ hasText: b1.chapterTitle }).filter({ hasText: label }),
+  ).toBeVisible();
+  await expect(tags.getByRole('listitem').filter({ hasText: /^Q\d/ })).toHaveCount(0); // no "Q9" for B1
 });
