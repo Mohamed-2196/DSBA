@@ -330,8 +330,8 @@ the lists are `app/core/access.py` (`BOXES`, `FEATURES`), which the screen shows
 
 | Box | What it allows | Held from the start by |
 |---|---|---|
-| `forum.post` | start threads, reply, vote, accept answers, edit your own posts | Student |
-| `library.upload` | upload files for review | Student |
+| `forum.post` | start threads, reply, vote, accept answers, edit your own posts; ask for files and dates (requests, "me too"); suggest videos | Student |
+| `library.upload` | upload files for review; tag and flag past papers' questions | Student |
 | `newsletter.react` | react to issues and vote in their polls | Student |
 | `reports.create` | report a post or a file | Student |
 | `forum.moderate` | hide, lock and remove threads and replies, forum reports; Manage → Forum (categories, tags, guidelines, tips) | Rep |

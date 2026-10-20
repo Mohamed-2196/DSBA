@@ -90,6 +90,39 @@ def test_each_guarded_route_needs_its_box(
     assert client_for(owner).request(method, f"{API}{path}", json=body).status_code == 403
 
 
+# Student writes in features that arrive switched off (SEC-63): the boxes govern them too.
+GUARDED_WHEN_ON: list[tuple[str, str, Box, str]] = [
+    ("POST", f"/library/items/{NOTHING}/questions", Box.library_upload, "library.questions"),
+    ("PUT", f"/library/questions/{NOTHING}/flag", Box.library_upload, "library.questions"),
+    ("DELETE", f"/library/questions/{NOTHING}/flag", Box.library_upload, "library.questions"),
+    ("POST", "/requests", Box.forum_post, "requests"),
+    ("PUT", f"/requests/{NOTHING}/me-too", Box.forum_post, "requests"),
+    ("DELETE", f"/requests/{NOTHING}/me-too", Box.forum_post, "requests"),
+    ("POST", "/video-suggestions", Box.forum_post, "modules.video-suggestions"),
+]
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "box", "feature"), GUARDED_WHEN_ON, ids=[f"{m} {p}" for m, p, _, _ in GUARDED_WHEN_ON]
+)
+def test_tags_flags_requests_and_suggestions_need_their_box(
+    method: str,
+    path: str,
+    box: Box,
+    feature: str,
+    client_for: ClientFor,
+    holder: Holder,
+    set_feature: Callable[..., None],
+) -> None:
+    set_feature(feature, "everyone")
+    body: dict[str, Any] | None = {} if method in ("POST", "PUT", "PATCH") else None
+    others = client_for(holder(frozenset(Box) - {box})).request(method, f"{API}{path}", json=body)
+    assert others.status_code == 403, others.text
+    assert others.json()["error"]["message"] == BOXES[box].refusal
+    allowed = client_for(holder(frozenset({box}))).request(method, f"{API}{path}", json=body)
+    assert allowed.status_code not in (401, 403), allowed.text
+
+
 def test_the_reports_queue_follows_the_boxes(
     client_for: ClientFor, holder: Holder, make_user: Callable[..., User], storage: Any
 ) -> None:

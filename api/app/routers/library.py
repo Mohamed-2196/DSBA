@@ -233,7 +233,7 @@ def paper_questions(item_id: UUID, db: DB, user: OptionalUser) -> list[PaperQues
     status_code=status.HTTP_201_CREATED,
     dependencies=QUESTIONS,
 )
-def tag_question(item_id: UUID, body: PaperQuestionCreate, user: ActiveUser, db: DB) -> PaperQuestion:
+def tag_question(item_id: UUID, body: PaperQuestionCreate, user: Uploader, db: DB) -> PaperQuestion:
     """Tag a question of a published past paper with one of its module's chapters, and the page it starts on.
 
     Errors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter),
@@ -261,7 +261,7 @@ def keep_question(question_id: UUID, request: Request, user: LibraryManager, db:
 
 
 @router.put("/library/questions/{question_id}/flag", response_model=PaperQuestion, dependencies=QUESTIONS)
-def flag_question(question_id: UUID, user: ActiveUser, db: DB) -> PaperQuestion:
+def flag_question(question_id: UUID, user: Uploader, db: DB) -> PaperQuestion:
     """Say a tag is wrong: the library's managers see it. Saying it twice changes nothing."""
     row = past_questions.get(db, question_id)
     past_questions.set_flag(db, user, row, True)
@@ -270,7 +270,7 @@ def flag_question(question_id: UUID, user: ActiveUser, db: DB) -> PaperQuestion:
 
 
 @router.delete("/library/questions/{question_id}/flag", response_model=PaperQuestion, dependencies=QUESTIONS)
-def unflag_question(question_id: UUID, user: ActiveUser, db: DB) -> PaperQuestion:
+def unflag_question(question_id: UUID, user: Uploader, db: DB) -> PaperQuestion:
     """Take a flag back."""
     row = past_questions.get(db, question_id)
     past_questions.set_flag(db, user, row, False)
