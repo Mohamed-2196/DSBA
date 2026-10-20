@@ -1,3 +1,525 @@
+# Pre-launch audit (round 16)
+
+Reviewer: security. Scope: the whole hub on `feature/backend` at `13d51404` (round 15 merged), with weight on what
+rounds 11 to 15 added since the last full audit:
+- notebook uploads and their admin limit and statistics (D16);
+- the offline copy of queries in IndexedDB, the service worker, and the Deskmates web changes (tap shield);
+- Mini Noora on `claude-haiku-5-5` and her budget;
+- question tagging, sections and the seed's `paper_questions.json`;
+- Daily guest-play keeping (D17) and the Daily content import;
+- the CSP with `'wasm-unsafe-eval'`, the Railway dev bucket and its presigned URLs.
+
+Sign-in, sessions, CSRF, access on every router, uploads, rate limits, headers, secrets, personal data, the audit log,
+dependencies and the production configuration were all checked again. No application code was changed.
+
+How it was checked:
+- **Reading:** every router and its service, the web app's storage, rendering and service worker, `compose.prod.yaml`,
+  the Caddyfile, both Dockerfiles, `.env.example`, the CI workflows and DEPLOYMENT.md.
+- **Tests:** the full API suite passes. The backup test needs `pg_dump` 17 on PATH (`/opt/homebrew/opt/libpq/bin`).
+- **Proof tests:** 7 in the API and 1 in Vitest. All of them pass, which means each problem is real:
+  - `api/tests/core/test_sec_review_r16_uploads.py` (SEC-49);
+  - `api/tests/noora/test_sec_review_r16_noora.py` (SEC-51);
+  - `api/tests/accounts/test_sec_review_r16_auth.py` (SEC-52, SEC-54, SEC-59);
+  - `api/tests/content/test_sec_review_r16_access.py` (SEC-55, two tests);
+  - `web/src/api/secReviewR16.test.ts` (SEC-53).
+- **Live probes against the local stack:** made-up accounts only, `sec16*@example.com`.
+  - CSRF with no header, with a planted cookie and with the bound token.
+  - Every `/admin/*`, `/content/*` and editor GET as a student.
+  - Another student's note and event, read and written.
+  - A crawl of all 63 parameter-free GETs, as a guest and as a student, looking for emails and phone numbers.
+  - The MinIO POST policy: too large, swapped type, swapped key, extra fields.
+  - Eight parallel completes of one upload (SEC-49).
+- **Read-only probes of the Railway dev site:** headers, health, an anonymous bucket list and a foreign CORS
+  preflight. Nobody signed in there.
+- **Dependencies:**
+  - `pip-audit` on `api/requirements.txt` (hash-pinned) found no known vulnerabilities.
+  - `npm audit --omit=dev` found 0. With dev tools there are 4 highs, all under `knip` (SEC-65).
+- **Secrets:** a `git log --all -p` scan for key patterns finds only the tests' fakes and the old PostHog project key
+  (SEC-8: analytics must use a new PostHog project, DEPLOYMENT.md section 9). The repository is **public** (`Mohamed-2196/DSBA`), so this matters.
+
+## Summary (round 16)
+
+**No hole that hands one student another's data.** Ownership holds on every object; hidden, pending and removed
+things answer 404; suspended holders have no powers; no public response carries an email or phone; CSRF is bound to
+the session; the only `dangerouslySetInnerHTML` is KaTeX with `trust: false`. What stands between the hub and launch is
+abuse by volume (storage, mail, Noora's budget) and the production deployment itself.
+
+| ID | Severity | Owner | Title |
+|---|---|---|---|
+| SEC-49 | **major** | uploads (`services/uploads.py:372`) | Parallel `/complete` calls each copy the file; the extra copies belong to nothing and are never deleted |
+| SEC-50 | **major** (blocker if production runs on Railway; unverified there) | deployment (`web/deploy/Caddyfile:31`) | Behind Railway's edge every student shares a few addresses: the per-network limits stop sign-in for everyone |
+| SEC-51 | minor | Noora (`services/noora/ask.py:343`) | Fresh accounts can spend Noora's whole monthly budget by dropping answers |
+| SEC-52 | **major** with a small-quota mail provider, minor otherwise | sign-in (`services/otp.py:261`) | No site-wide budget for sign-in emails: one network sends 720 a day |
+| SEC-53 | minor | web (`web/src/api/offline.ts:121`) | The offline copy still shows a student's events and anonymous questions after their session ended elsewhere |
+| SEC-54 | minor | accounts (`services/accounts.py:436`) | `DSBA_ADMIN_IDENTIFIERS` gives Admin back at every sign-in |
+| SEC-55 | minor | library (`services/past_questions.py:151`) | Past questions show hidden chapters and hidden modules, and hidden chapters take tags |
+| SEC-56 | minor | deployment (`docs/backend/DEPLOYMENT.md`) | Twilio's own protections (Bahrain only, pumping protection, spend cap) aren't in the deployment steps |
+| SEC-57 | minor | deployment (`compose.prod.yaml`) | Production has no monitoring, backups fail silently, and the containers have no memory or log limits |
+| SEC-58 | nit (unverified) | library (`services/library.py:611`) | Two parallel item creations on one upload share a file the sweep can then delete |
+| SEC-59 | nit | Daily, accounts (`models/daily.py:57`) | A kept Daily play keeps the client's IP address for good, and the export leaves it out |
+| SEC-60 | nit | config (`config.py:272`) | Production accepts SMTP without TLS and a session of any length |
+| SEC-61 | nit (unverified) | Noora (`ask.py:69`) | The reservation counts characters, so a crafted prompt can cost more than reserved |
+| SEC-62 | nit (unverified) | web (`offline.ts:146`) | A second open tab can write the offline snapshot back after a sign-out |
+| SEC-63 | nit | access (`routers/library.py:235`, `suggestions.py:31`, `requests.py:81`) | Tagging, flagging, suggestions and requests need no box |
+| SEC-64 | nit (D14 trade-off) | site (`routers/site.py:38`) | A stolen admin session can repoint the sidebar's MyClass and UoL links without a step-up |
+| SEC-65 | nit | web, deployment | Dev-only npm advisories, a wide `media-src`, no `Permissions-Policy`, base images by tag |
+| SEC-14 | minor | Mohamed | **still open, and worse**: no site-wide upload budget; D16 raised the ceiling to about 3 GB an hour per account |
+| SEC-34 | nit | Noora | still open: a paper's text goes in the system prompt (fenced) |
+
+## Launch blockers
+
+Fix or decide these before real students' addresses go in:
+
+1. **SEC-49.** Lock the upload row in `complete_upload`. It is a one-line fix, and without it one account can fill the
+   bucket for good.
+2. **SEC-50.** Decide where production runs. On Railway, make Caddy trust Railway's edge and prove the real client
+   address reaches the API. On a server with `compose.prod.yaml` it holds as documented.
+3. **SEC-52 and SEC-56.** Add a site-wide hourly and daily cap on sign-in emails. Choose an SMTP provider whose daily
+   quota is far above that cap. Lock the Twilio account to Bahrain with a spend cap.
+4. **SEC-54.** Make the admin bootstrap one-time, or empty `DSBA_ADMIN_IDENTIFIERS` after the first sign-in.
+5. **SEC-14 (decision).** Set a hub-wide daily upload budget, or accept the risk in writing.
+
+## Before go-live (Mohamed must do or approve)
+
+**Where and how it runs**
+- [ ] Choose the production host: a server with `compose.prod.yaml`, or Railway prod. On Railway, `compose.prod.yaml`
+  doesn't apply, so set every value in section 2 of DEPLOYMENT.md by hand, and handle SEC-50.
+- [ ] Run the API in production mode (`DSBA_ENV=production`; the image's default). It must start, which proves
+  `Settings.production_problems` is empty. The public Railway dev site stays development-only, with made-up accounts
+  (SEC-43); never point real students at it.
+- [ ] Confirm `/api/v1/docs` answers 404 and `dev-login` refuses on production.
+- [ ] Use a domain you control, with HSTS working. Don't submit the domain to the HSTS preload list yet.
+
+**Secrets (in `.env` on the server or in Railway's variables, never in the repository or the chat)**
+- [ ] `DSBA_SECRET_KEY`: new and random (48 bytes). Never reuse the dev site's key: it signs codes, CSRF tokens and feed
+  addresses.
+- [ ] `POSTGRES_PASSWORD` and `DSBA_TEXTS_DB_PASSWORD`: long and random (`.env.example`'s `dsba` is for development).
+- [ ] Bucket keys: one for the API, one for the text worker (`library/*` read, `covers/*` write), and one write-only key
+  for backups, each with its own IAM user (DEPLOYMENT.md, sections 3 and 7). Use a new bucket, not the dev one.
+- [ ] SMTP credentials, Twilio SID and token, the Anthropic key, and the Google key if importing. Keep a list of where
+  each lives and who can rotate it. Set a monthly spending limit on the Anthropic workspace (SEC-51).
+- [ ] `DSBA_ADMIN_IDENTIFIERS`: only your own address. Empty it after your first sign-in until SEC-54 is fixed.
+- [ ] Keep `DSBA_ALLOW_RAISED_LIMITS` unset (false).
+
+**Mail and texts**
+- [ ] SPF, DKIM and DMARC for the sending domain, plus bounce handling (SEC-52).
+- [ ] Twilio: Geo Permissions set to Bahrain only, SMS Pumping Protection on, and a usage trigger or spend cap
+  (SEC-56). As built, anyone can make the hub send up to 300 texts a day, about $15 to $30.
+
+**Storage**
+- [ ] Run `setup-bucket` (CORS for the production origin only, and the 1-day `incoming/` expiry).
+- [ ] Turn on versioning on the files bucket and the backup bucket, plus Object Lock or a lifecycle rule on backups.
+- [ ] Set `DSBA_BUCKET_ORIGIN` to the bucket's own host, never a subdomain of the app.
+- [ ] Block public access on both buckets (the dev bucket is private; keep production the same).
+
+**Backups**
+- [ ] Watch the first nightly backup land, then **restore it into a scratch database** (DEPLOYMENT.md, section 7).
+- [ ] Get told when a backup fails (SEC-57). Today it only writes "backup failed" to a log nobody reads.
+- [ ] Decide how long backups keep deleted accounts. The default of 14 days of dumps is fine; say so in the privacy
+  notice.
+
+**Monitoring (SEC-57)**
+- [ ] An uptime check on `/api/v1/health` from outside, alerting you by email or text.
+- [ ] Alerts on: the backup failing, the mail worker stopping (notifications, reminders and
+  Sunday summaries stop), Noora's budget passing 50% in a month, and disk use on the database volume.
+- [ ] Log rotation for Docker (`json-file` with `max-size`), and a memory limit on `api`.
+
+**People and data**
+- [ ] A short privacy notice. It should say what the hub keeps (emails, phone numbers, notes, notebook files, Daily
+  plays, the addresses on sessions and in the audit log), who processes it (AWS, the mail provider, Twilio, and
+  Anthropic for Noora's answers), how to export and delete (Your account), and how long backups keep it. Bahrain's
+  PDPL expects one.
+- [ ] Decide the open product calls that touch security: SEC-14 (the upload budget), shorter sessions on shared
+  computers (S-2), and whether a rep confirms seniors.
+- [ ] Clear the local `sec16*@example.com` test accounts if you copy the local database anywhere. They aren't in the
+  production plan. Fork C's 7 orphaned objects from the SEC-49 proof are in the local MinIO only, under `notes/`.
+
+---
+
+## New findings (round 16)
+
+### SEC-49. Parallel `/complete` calls each copy the file; the extra copies belong to nothing and are never deleted (major)
+
+- **Owner:** uploads. **Where:**
+  - `api/app/services/uploads.py:372`: `complete_upload` loads the row with `db.get(Upload, upload_id)`, with no row
+    lock and no lock per upload. Every concurrent call still sees `pending`, takes its own `_final_key` (a fresh
+    uuid4) and copies the file there. The last writer's key goes on the row.
+  - `api/app/routers/uploads.py:47` has no rate limit.
+- **What an attacker does:**
+  - They upload a file once, then send N `POST /uploads/{id}/complete` calls at once. N-1 objects are made that no row
+    points to.
+  - The sweep (`cli.py:279`) deletes by `storage_key`, so it never finds them. Neither does deleting the note or the
+    account. No quota counts them: not the notebook's 250 MB room, the board's room or the library's pending cap.
+  - This works for every purpose. With 50 MB files, 60 note uploads and 20 others an hour, and tens of parallel
+    completes each (a large copy widens the window), one free account adds hundreds of GB an hour, paid for by the
+    bucket's owner and never cleaned up.
+- **Proof:**
+  - Live on the local stack: `sec16c-race@example.com`, a 2 MB PNG as `note_file`, and 8 parallel completes. All 8
+    answered 200, and the MinIO `notes/` prefix grew from 72 to 80 objects. The row holds one key; the other 7 are
+    orphans (upload `fd168627-…`).
+  - `test_sec_r16_parallel_completes_each_copy_the_file_and_only_one_copy_is_ever_tracked`: one upload, two stored
+    files, one of them in no row.
+- **Fix:**
+  - Load the row with `db.get(Upload, upload_id, with_for_update=True)` (as `bugs._screenshot` and
+    `newsletter_images` already do), and check `status == pending` again under the lock. A second caller then waits and
+    gets the stored result.
+  - Also make the final key deterministic (`f"{prefix}/{up.id}/{safe name}"`), so even a race overwrites one object.
+  - Rate-limit `/complete` per person.
+  - Delete the 7 local orphans once fixed.
+
+### SEC-50. Behind Railway's edge every student shares a few addresses: the per-network limits stop sign-in for everyone (major; blocker if production runs on Railway; unverified there)
+
+- **Owner:** deployment. **Where:**
+  - `web/deploy/Caddyfile:31`: `reverse_proxy` with no `trusted_proxies` in the global options.
+  - `api/app/core/security.py:83` (`client_ip`), and `DSBA_TRUSTED_PROXIES`.
+- **What happens:**
+  - DEPLOYMENT.md assumes a server where Caddy is the edge, so the peer Caddy sees is the student.
+  - On Railway, Caddy's peer is Railway's edge proxy. Caddy ignores an incoming `X-Forwarded-For` from a peer it
+    doesn't trust, and writes the edge's address instead (its documented behaviour since 2.5). With
+    `DSBA_TRUSTED_PROXIES` set to Caddy's address, the API then sees every student as one of a few edge addresses.
+    Unset, as on the dev site today, it sees them all as Caddy.
+  - The limits keyed on the network then become site-wide:
+    - 30 codes an hour for the whole hub (`DSBA_OTP_MAX_PER_IP_PER_HOUR`), so launch day's sign-ups stop after 30;
+    - the wrong-code lockout of the pair of address and network (D4) becomes a lockout of the address for everyone,
+      so anyone can lock any student out for a day, which is SEC-2 back;
+    - Daily keeps (150 an hour) and the other per-network limits;
+    - the addresses on sessions and in the audit log are meaningless.
+- **Proof:** none on Railway. Signing in there needs a real code, and Railway's settings aren't to be touched without
+  Mohamed. The reasoning follows Caddy's documentation and the code; memory notes mention a Railway prod environment.
+- **Fix:**
+  - On Railway, add Railway's edge ranges to Caddy's global `servers { trusted_proxies static … }` (or read
+    `X-Real-IP` with `client_ip_headers`), and set `DSBA_TRUSTED_PROXIES` to Caddy's private address.
+  - Check it once: sign in, open Your account → sessions, and confirm the address shown is your own.
+  - On a server with `compose.prod.yaml`, nothing changes. Either way, write the chosen host into DEPLOYMENT.md.
+
+### SEC-51. Fresh accounts can spend Noora's whole monthly budget by dropping answers (minor)
+
+- **Owner:** Noora. **Where:**
+  - `api/app/services/noora/ask.py:343`: a dropped answer is charged at least its full reservation.
+  - `ask.py:305` and `:209`: the reservation is the prompt at full price plus all 8,000 answer tokens.
+  - `ask.py:227-247`: the only limits are per account (30 a day, a 3 s gap).
+  - `models/noora.py:15-16`: the defaults are $25 a month and 30 questions a day.
+  - Sign-up takes any email address.
+- **What an attacker does:**
+  - They sign up fresh accounts, 30 an hour per network (catch-all domain).
+  - Each account asks 30 maximum-size questions (2,000-character question, a 20,000-character note, 8 earlier turns)
+    and closes every stream after the first words.
+  - Each question is charged its worst case, about $0.006, while Claude bills about $0.0001.
+  - 140 accounts, 4.7 hours of sign-ups from one address, spend $25. Every student then gets `noora_budget_reached`
+    until the month turns.
+  - The money stays capped at the budget: it is a denial of service, not a bill. Eight accounts holding long answers
+    open also fill `DSBA_NOORA_ANSWERS_AT_ONCE` (unverified).
+- **Proof:** `test_sec_r16_fresh_accounts_spend_the_whole_monthly_budget_by_dropping_answers`. 30 dropped questions
+  from one new account charge 178,650 µ$, more than 20 times what Claude reported; a new student is then refused.
+- **Fix:**
+  - Cap questions per network per hour, and the whole hub's per hour (about 1/200 of the month's budget).
+  - Give accounts younger than 7 days a smaller daily allowance (for example 5).
+  - Settle a dropped stream at the reported usage plus the tokens already sent, not the worst case.
+  - Lower `noora_max_answer_tokens` to about 3,000 for chat.
+  - Tell admins when a quarter of the budget goes in one day.
+
+### SEC-52. No site-wide budget for sign-in emails: one network sends 720 a day (major with a small-quota mail provider, minor otherwise)
+
+- **Owner:** sign-in. **Where:** `api/app/services/otp.py:261-297` (`_check_limits`). Texts have a site budget
+  (`sms_max_per_hour` 50, `sms_max_per_day` 300); emails have only per-address (5 an hour) and per-network (30 an hour)
+  limits. An IPv6 network is a /64, so one /48 holds 65,536 of them.
+- **What an attacker does:**
+  - With no account, one IPv4 address makes the hub email 30 strangers an hour, 720 a day; each further network or
+    /64 adds as many.
+  - That uses up the mail provider's daily quota (Gmail's SMTP allows about 500), after which no student gets a code:
+    sign-in is codes only, so the hub is closed.
+  - Bounces from made-up addresses can get the sending account suspended, and real people get mail-bombed (5 an hour
+    each).
+- **Proof:** `test_sec16_no_site_wide_email_budget_one_network_mails_30_strangers_an_hour`. 30 emails from one
+  address with the 31st refused, then 150 more from five /64s of one /48, with no site-wide cap.
+- **Fix:**
+  - Add `email_max_per_hour` and `email_max_per_day` (in `RAISABLE_LIMITS`), checked like the text budget under an
+    `otp:email` lock, with a warning in the log when reached.
+  - Count IPv6 per /48 as well as per /64.
+  - Choose a transactional mail provider whose quota is far above the cap, with SPF, DKIM, DMARC and bounce handling
+    (Before go-live).
+
+### SEC-53. The offline copy still shows a student's events and anonymous questions after their session ended elsewhere (minor)
+
+- **Owner:** web. **Where:**
+  - `web/src/api/offline.ts:121-187` (`startOfflineCache`, `fill`, `noteOwner`).
+  - What is kept, for 7 days, is set in `web/src/api/offlineCache.ts:30-63`: `me` (without email or phone), the
+    student's own calendar events, the forum's Yours list, progress, and the threads they opened.
+- **What happens:**
+  - Student A uses a lab computer and doesn't sign out. Later A does what the copy suggests and signs out other devices
+    from a phone, or the 30-day session simply expires.
+  - The snapshot in IndexedDB (`dsba-hub-offline`) is dropped only when the app next hears from `GET /auth/session`
+    while online.
+  - The next person at that computer turns the network off (DevTools → Offline, or Wi-Fi) and loads the Hub. They see
+    A's name, A's own events and A's Yours list, including A's **anonymous** questions, which says who asked them.
+    Opening Application → IndexedDB shows the same.
+  - Signing out in that browser clears it all (checked); this is only about sessions that ended somewhere else.
+- **Proof:** `web/src/api/secReviewR16.test.ts`: a snapshot owned by `student-a`, loaded offline, fills `me`, the own
+  events and the Yours list with anonymous threads.
+- **Fix:**
+  - Don't keep the most private families offline: own events, forum lists with `yours` or `mine`, and threads the
+    student asked anonymously.
+  - Show owner data offline only if this browser session saw a live session for that owner recently (a timestamp in
+    sessionStorage, which a new browser session lacks). Lower owner entries' age to about a day.
+  - Say on "Sign out other devices" that a computer's offline copy goes only when someone signs out there or opens it
+    online.
+
+### SEC-54. `DSBA_ADMIN_IDENTIFIERS` gives Admin back at every sign-in (minor)
+
+- **Owner:** accounts. **Where:** `api/app/services/accounts.py:436-442` (`user_for_sign_in`). Any account whose email
+  or phone is listed and isn't an admin gets Admin, on every sign-in, not just the first.
+- **What happens:**
+  - Admin is taken from a listed person: a rep who stood down, or an account the other admins demoted because it was
+    taken over.
+  - At their next sign-in, Admin comes back with every power. Only suspension holds, because a suspended account has
+    no boxes. DEPLOYMENT.md says it gives Admin "when they first sign in", which isn't what the code does.
+- **Proof:** `test_sec16_admin_identifiers_give_admin_back_at_every_sign_in`: after `set_roles` to Student only, the
+  next sign-in has `admin, student`.
+- **Fix:** give the bootstrap only when the account is created (or only while no active admin exists). Until then,
+  empty `DSBA_ADMIN_IDENTIFIERS` after the first sign-in.
+
+### SEC-55. Past questions show hidden chapters and hidden modules, and hidden chapters take tags (minor)
+
+- **Owner:** library. **Where:**
+  - `api/app/services/past_questions.py:151`: `tag()` checks only that the chapter belongs to the item's module,
+    never `chapter.hidden`.
+  - `past_questions.py:93` (`for_paper`) and `:108` (`for_module`) list tags with `chapter_title` and don't filter
+    hidden chapters.
+  - `:116`: `for_module` calls `require_module(db, module_id)` without `visible=True`.
+- **What happens:**
+  - Anyone, guests included, calls `GET /library/questions?module_id=…` and reads the titles of chapters a content
+    editor hid. Hiding is how unreleased material is kept back.
+  - A hidden module's tags list too, while the module itself answers 404.
+  - A student can tag a question with a hidden chapter, which then shows to everyone.
+- **Proof:**
+  - `test_r16_hidden_chapters_take_tags_and_their_titles_show_to_guests`: the module page leaves the chapter out, the
+    tag POST answers 201, and a guest sees "Unreleased chapter title".
+  - `test_r16_a_hidden_modules_questions_list_for_guests`: the module answers 404, and its tags answer 200.
+- **Fix:**
+  - Refuse hidden chapters in `tag()` (422 on `chapterId`).
+  - Filter `Chapter.hidden` and `Module.hidden` in both lists for anyone who can't edit content.
+  - Call `require_module(..., visible=True)` for anyone who isn't an editor.
+  - Related, for Mohamed: library items in hidden modules are still listed in the library (`services/library.py` has
+    no hidden-module filter). Decide whether hiding a module should hide its files too.
+
+### SEC-56. Twilio's own protections aren't in the deployment steps (minor)
+
+- **Owner:** deployment. **Where:** `docs/backend/DEPLOYMENT.md`, sections 1, 2, 11 and 12, and `.env.example`.
+  Nothing mentions Geo Permissions, SMS Pumping Protection or a spend limit. The design review asked for them.
+- **What happens:**
+  - The app's own defences are the region check (`DSBA_SMS_ALLOWED_REGIONS=BH`) and the site budget (50 an hour,
+    300 a day). As built, anyone can make the hub text up to 300 Bahraini numbers a day, about $15 to $30.
+  - A setting change, or a leaked Twilio token, reaches premium destinations with nothing on Twilio's side to stop it.
+- **Proof:** a grep of DEPLOYMENT.md and `.env.example` for "geo", "pumping" and "spend" finds nothing.
+- **Fix:** add to section 11:
+  - Twilio Geo Permissions set to Bahrain only;
+  - SMS Pumping Protection on;
+  - a usage trigger and a spend cap on the account;
+  - a Messaging Service, not a bare number, so the sender can be changed without a deploy.
+
+### SEC-57. Production has no monitoring, backups fail silently, and the containers have no memory or log limits (minor)
+
+- **Owner:** deployment. **Where:** `compose.prod.yaml`.
+  - The `backup` and `sweep` loops (`:121`, `:147`) only `echo 'backup failed' >&2`.
+  - No service has `mem_limit` or a logging driver with `max-size`. SEC-36's fix asked for a memory limit on `api`.
+  - `backup`, `sweep` and `mail` take the whole `*api-env`, so each holds the secret key, SMTP, Twilio and Anthropic
+    credentials it doesn't use. Backup needs the database and its own bucket key; sweep needs the database and the
+    bucket.
+  - No uptime check, error tracking or alerting exists anywhere: a grep finds no Sentry and nothing that alerts.
+- **What happens:**
+  - A backup that fails every night for a month looks the same as one that works.
+  - The mail worker dying stops every notification, reminder and Sunday summary silently (sign-in codes are sent by
+    the API and keep working).
+  - A memory spike takes the whole server rather than restarting `api`.
+  - Docker's default `json-file` logs grow until the disk is full, and then the database stops.
+  - A flaw in the sweep or backup code reaches secrets it never needed.
+- **Proof:** read from `compose.prod.yaml` (no runtime proof needed).
+- **Fix:**
+  - Add a `logging:` block (`json-file`, `max-size: 10m`, `max-file: 5`) to every service, and `mem_limit` on `api`
+    (for example 1g) and `texts`.
+  - Give `backup` and `sweep` their own environment blocks with only what they use.
+  - Make a failed backup or sweep send an email to the admins (the outbox already exists), or ping a dead-man's switch
+    such as healthchecks.io on success.
+  - Add an external uptime check on `/api/v1/health`.
+
+### SEC-58. Two parallel item creations on one upload share a file the sweep can then delete (nit, unverified)
+
+- **Owner:** library. **Where:** `api/app/services/library.py:611-646`. The upload row is read without
+  `with_for_update`; the person's lock is taken later, in `check_pending_room`.
+- **What happens:** two `POST /library/items` with the same `uploadId` both see `uploaded`, and two items share one
+  `storage_key`. Removing one lets `sweep_files` delete the object the other still serves.
+- **Fix:** `db.get(Upload, id, with_for_update=True)`, as bug screenshots and newsletter pictures already do. It is
+  the same fix as SEC-49.
+
+### SEC-59. A kept Daily play keeps the client's IP address for good, and the export leaves it out (nit)
+
+- **Owner:** Daily, accounts. **Where:**
+  - `api/app/models/daily.py:57` (`kept_ip`), set at `services/daily/plays.py:336`.
+  - Its only reader is the one-hour per-network limit (`plays.py:357-365`).
+  - `schemas/auth.py:458-467` (`ExportDailyPlay`) has no `keptIp`, `keptAt`, `mistakes` or `hints`, and the export
+    leaves out `weekly_summaries` too.
+  - Deletion removes them all (cascade).
+- **Proof:** `test_sec16_the_export_leaves_out_the_address_a_daily_play_was_kept_from`.
+- **Fix:**
+  - The sweep sets `kept_ip = NULL` after a day, as it does for bug reports.
+  - Add the missing fields and the summary weeks to the export.
+
+### SEC-60. Production accepts SMTP without TLS and a session of any length (nit)
+
+- **Owner:** config. **Where:** `api/app/config.py:272-346` (`production_problems`).
+- **What happens:**
+  - `DSBA_SMTP_STARTTLS=false` on port 587 passes, and codes and the SMTP password then travel in clear.
+    `compose.prod.yaml` defaults it to true, but a Railway production doesn't use that file.
+  - `DSBA_SESSION_DAYS` has no upper bound.
+- **Fix:** in production, refuse `smtp_starttls=false` unless the port is 465 (implicit TLS), and cap
+  `session_days` (30).
+
+### SEC-61. The reservation counts characters, so a crafted prompt can cost more than reserved (nit, unverified)
+
+- **Owner:** Noora. **Where:** `ask.py:69` and `:207` (`CHARS_PER_TOKEN = 3`).
+- **What happens:** about 56,000 characters of rare symbols can tokenize at several tokens each and pass the 100K
+  long-prompt line: about $0.13 for a question that reserved $0.006. Settlement uses Claude's real usage, so the
+  overspend shows on the next question, and it is bounded to about $1 by the 8 answers at once.
+- **Fix:** reserve on `max(chars / 3, utf8_bytes / 2)`, or call `messages.count_tokens` first.
+
+### SEC-62. A second open tab can write the offline snapshot back after a sign-out (nit, unverified)
+
+- **Owner:** web. **Where:** `web/src/api/offline.ts:146-152` (`writeNow` on `pagehide`).
+- **What happens:** a tab still open holds A's entries in memory with `owner = A`. If it has a pending write when it
+  closes, it can put A's snapshot back after another tab's sign-out cleared it.
+- **Fix:** broadcast "signed out" (a `BroadcastChannel` or a `storage` event) and drop personal entries and the timer
+  in every tab.
+
+### SEC-63. Tagging, flagging, suggestions and requests need no box (nit)
+
+- **Owner:** access. **Where:** `routers/library.py:235` (`tag_question`), `:263` (`flag_question`),
+  `routers/suggestions.py:31` and `routers/requests.py:81` take any `ActiveUser`.
+- **What happens:** an admin who takes `library.upload` or `forum.post` from a role to quiet a group can't stop these
+  writes short of suspending the accounts. Each is rate-limited (tags: 60 an hour).
+- **Fix:** gate tagging and flagging behind `library.upload` (or a new `library.tag` box held by Student), and
+  suggestions and requests behind a student box, so D11's "boxes govern student writes" covers them.
+
+### SEC-64. A stolen admin session can repoint the sidebar's MyClass and UoL links without a step-up (nit; D14 trade-off)
+
+- **Owner:** site. **Where:** `PUT /site` (`routers/site.py:38`) needs `requires_admin()` with no step-up (D14), and
+  `SiteUrl` takes any https URL. `PUT /guides` needs `guides.edit`, which reps hold.
+- **What happens:** whoever holds an admin session can send every student's "MyClass" or "UoL portal" link to a
+  look-alike sign-in page. The change is audited, but students would type university passwords into it.
+- **Fix (Mohamed's call):** pin `myclass` and `uol_portal` to an allowlist of hosts (`*.bibf.com`, `*.london.ac.uk`),
+  or ask for a step-up only when Site settings' links change.
+
+### SEC-65. Dev-only npm advisories, a wide `media-src`, no `Permissions-Policy`, base images by tag (nit)
+
+- **Owner:** web, deployment.
+- **What:**
+  - `npm audit` (with dev dependencies): 4 highs, through `knip` → `fast-glob` → `micromatch` → `braces`. These are
+    a denial of service in a lint tool, never shipped; `--omit=dev` finds 0.
+  - The CSP's `media-src 'self' https:` allows audio and video from any https host.
+  - Neither Caddy nor the API sends `Permissions-Policy`.
+  - `postgres:17-alpine`, `caddy:2.10-alpine`, `python:3.12-slim-trixie` and `node:22-alpine` are pulled by tag.
+- **Versions:** katex 0.19.0, pdfjs-dist 6.4.299, react-router 7.18.4, vite 7.3.7, @tiptap 3.32.0, react 18.3.1;
+  Python is hash-pinned with no known advisories.
+- **Fix:**
+  - Update `knip`.
+  - Narrow `media-src` to `'self' {$DSBA_BUCKET_ORIGIN}` if no lesson plays media from elsewhere.
+  - Add `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()` in Caddy.
+  - Pin the base images by digest, with Dependabot to bump them.
+
+## Earlier findings, re-checked (round 16)
+
+Re-proven this round:
+- **SEC-2 (fixed, still).** Wrong codes lock the pair of address and network only, with long codes after 15 failures
+  (`otp.py:301-322`). Behind a misconfigured proxy that pair becomes everyone's: see SEC-50.
+- **SEC-3 (fixed, still).** `safeHref` refuses whitespace, control and zero-width characters, backslashes and `//`.
+- **SEC-7 (fixed for the local stack).** Live MinIO refused a too-large file (400), a swapped type, a swapped key and
+  extra fields (403). Production is AWS S3. Whether Railway's bucket enforces POST policies is unverified; the copy's
+  first-bytes check holds either way.
+- **SEC-9 (fixed, still).** Changing an identifier or deleting the account needs a session less than ten minutes old
+  or a step-up code; recovery signs the account out everywhere.
+- **SEC-14 (open, worse).** Still no hub-wide upload budget. D16 lets a student upload 60 note files an hour, and a
+  deleted note frees its room at once while the objects stay until the sweep a day later. That is about 3 GB an hour,
+  72 GB a day, per free account. With SEC-49 the objects never go. Mohamed's call: a hub-wide daily byte budget on
+  `uploads.size_bytes`, or keep released bytes on the room until the sweep.
+- **SEC-20 (fixed, still).** Production refuses an empty or catch-all `DSBA_TRUSTED_PROXIES` and raised limits.
+- **SEC-22, SEC-23, SEC-25, SEC-26 (fixed, still).** Every way out of an answer settles its cost under a shielded
+  scope. Route and reps' text are fenced. Noora's limits need a step-up and are audited. Answers stream
+  asynchronously, at most 8 at once and one per student.
+- **SEC-31 (fixed, still).** Sign-out and deletion clear every `hub.mine.` key. The exam timer is now
+  `hub.mine.timeMe`, which closes round 11's note about `hub.timeMe`.
+- **SEC-33 (fixed, still).** `texts` holds only its database role and bucket key in `compose.prod.yaml`.
+- **SEC-34 (open, nit).** `ask.py:303` still appends the paper's block to the system prompt. It is fenced, can't close
+  its own tag, and only published past papers are read.
+- **SEC-37 (fixed, still).** The access-log filter redacts the feed's secret. No other secret travels in a URL.
+- **SEC-43 (accepted).** The Railway dev site still runs in development mode with made-up accounts. Its bucket is
+  private: an anonymous list and a foreign CORS preflight both answer 403.
+
+Not re-proven by hand, still fixed as recorded: SEC-1, SEC-4 to SEC-6, SEC-8, SEC-10 to SEC-13, SEC-15 to SEC-19,
+SEC-21, SEC-24, SEC-27 to SEC-30, SEC-32, SEC-35, SEC-36, SEC-38 to SEC-42, SEC-44 to SEC-48. Their tests are in the
+full suite, which passes, and the code around them is unchanged since round 12 except where noted above.
+
+## What rounds 11 to 15 added: checked and sound
+
+- **Sign-in and sessions.** 6-digit codes from `secrets`, HMACed and compared in constant time; each try counted first;
+  one flow per code; the same answer whether or not an account exists. Session cookie HttpOnly and SameSite=Lax,
+  `__Host-` and Secure in production, renewed at sign-in. Live CSRF probes: no header 403, planted cookie 403, bound
+  token 200.
+- **Access.** Every `/admin/*`, `/content/*` and editor GET answers 403 to a student. Another student's note and event
+  answer 404 for reads and writes. No code checks a role's name except choosing which admins to notify about a bug.
+  Every router declares its feature. The step-ups match D11; D14 and D16 settings save on a normal admin session and
+  are audited.
+- **Admin notebook statistics.** `GET /admin/notebook` needs Admin and returns display names and counts only.
+  `GET /admin/noora` needs `stats.view` and returns totals only.
+- **Question tagging and sections.** Claude's tagging runs from the CLI only; no route reaches it or its cost. Its
+  output is limited to the module's chapter ids. The seed matches published papers by key or hash, checks numbers,
+  pages and chapters, and never re-adds tags a moderator removed. `taggedBy` is never returned.
+- **Noora on Haiku 5.5.** The prices match the published list ($0.10 / $0.50 per million tokens, $0.50 / $2.50 above
+  100K), thinking counts as output, and the request uses adaptive thinking with an explicit effort. No name, email,
+  phone or user id is sent to Anthropic, hidden modules are left out, and a decline logs its category only. Admin text
+  can't open `<hub_data>` or `<student_note>`.
+- **Daily keep (D17) and content.** Keeps are 20 an hour per account and 150 per network, replayed on the server under
+  the account's lock; an opened puzzle answers 409. Content import is `content.edit` (500 rows, dry run) or Admin
+  (1 MB file), audited, add-only.
+- **Uploads and storage.** Per-purpose allowlists, SVG and HTML refused, the policy pinning type, key and size, the
+  `incoming/` copy checked by first bytes, size and ETag. Inline only for PDF and pictures, safe file names, 300 s
+  links with `private, max-age=240`. `/media` follows the owning object's visibility. Quotas are checked under the
+  upload lock. The text worker reads at most 60 MB in a non-dumpable child with 60 s and 1 GB.
+- **Web.** The service worker serves only same-origin GETs, never `/api` or the bucket, and pages are network-first.
+  The offline cache leaves out settings, the feed address, sessions, notifications, signed links and admin screens,
+  stores `me` without email or phone, and is cleared by sign-out (SEC-53 is the gap). The only
+  `dangerouslySetInnerHTML` is KaTeX with `trust: false`. Links go through `safeHref` or `safeInternalPath`, and every
+  external `_blank` has `noopener noreferrer`. The one `message` listener checks the YouTube origin. pdf.js runs with
+  no XFA, annotations or scripting, and its WebAssembly comes from the app's own origin. The tap shield only swallows
+  taps.
+- **CSP.** `script-src 'self' 'wasm-unsafe-eval'` plus the theme script's hash: WebAssembly only, never `eval`.
+  Also `object-src 'none'`, `base-uri 'self'`, `form-action 'self'` and `frame-ancestors 'none'`, with `frame-src`
+  limited to YouTube, vc.bibf.com and the bucket. The Railway dev site sends exactly this.
+- **Personal data.** A crawl of 63 GETs as a guest and as a student found no email or phone but the caller's own.
+  Deletion cascades or nulls everything tied to a user. Logs mask addresses and never hold codes outside development's
+  console.
+- **Secrets and CI.** No real key in the repository or its history. Actions are pinned by commit; `railway.yml` has
+  `permissions: {}`. `private/` (the Daily answers) is git-ignored.
+
+## Top three things to do (round 16)
+
+1. **Close the volume holes before launch.**
+   - Lock the upload row in `complete_upload` (SEC-49, SEC-58).
+   - Add a site-wide sign-in email budget (SEC-52).
+   - Decide the hub-wide upload budget (SEC-14).
+   - Cap Noora per network and for new accounts (SEC-51).
+2. **Make the production deployment real and watched.**
+   - Pick the host and prove client addresses through the proxy (SEC-50).
+   - Add monitoring, backup alerts, log rotation and a memory limit, and trim each job's secrets (SEC-57).
+   - Lock Twilio to Bahrain with a spend cap (SEC-56).
+   - Make the admin bootstrap one-time (SEC-54).
+   - Work through the "Before go-live" list, restore drill included.
+3. **Tighten what leaks quietly.**
+   - Keep the most private families out of the offline copy (SEC-53, SEC-62).
+   - Filter hidden chapters and modules from past questions (SEC-55).
+   - Forget the Daily keep's address after a day (SEC-59).
+   - Write a short privacy notice that names Anthropic, AWS, the mail provider and Twilio.
+
+---
+
 # Security review: round 11
 
 Reviewer: security. Scope: `feature/backend` from `e73f70e` to `c25b735`: everything round 11 merged, about 86,000
