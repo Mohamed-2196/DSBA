@@ -163,6 +163,13 @@ account device icons).
 
 ## Operating notes
 
+- **Railway dev region (2026-10-20):** Postgres, api and web run in `southeast-asia` (moved from Amsterdam with
+  Mohamed's OK), because Railway routes Bahrain through its Singapore edge. The `dsba-files` bucket is still in
+  Amsterdam (ams). Measured after the move and round16/perf, cold browser: Library/Modules/Forum/Calendar LCP
+  0.5-1.0 s (was 1.3-1.7 s); warm Home 0.3-0.5 s; the first load in a fresh browser adds ~1-1.5 s of connection setup.
+- **After merging a branch with migrations,** run `docker compose exec api alembic upgrade head` locally: the API
+  container reloads code on change but does not migrate, and pages 500 until it does.
+
 - **New features arrive switched off.** Turn them on in Manage → Access.
 - **The Docker stack** runs from the main checkout (compose project `dsba-hub`). `scripts/e2e.sh` switches it to
   e2e mode and `--restore` switches it back. Nobody runs `docker compose down`: the API's pytest uses its Postgres.
