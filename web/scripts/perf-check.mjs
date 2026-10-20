@@ -19,7 +19,11 @@ const ROUTES = ['/', '/library', '/modules', '/forum', '/calendar'];
 const browser = await chromium.launch({ channel: 'chrome' });
 
 async function measure(route, signedIn) {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block' });
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    serviceWorkers: 'block',
+    ignoreHTTPSErrors: true, // a local HTTP/2 server has its own certificate
+  });
   if (signedIn) {
     const { hostname } = new URL(BASE);
     await context.addCookies([{ name: 'dsba_session', value: SESSION, domain: hostname, path: '/', httpOnly: true }]);
