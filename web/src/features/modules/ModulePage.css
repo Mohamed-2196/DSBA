@@ -136,7 +136,7 @@
 .mod-head__mate {
   flex: none;
   margin-bottom: calc(var(--sp-24) * -1 + 6px);
-  --mate-size: 112px;
+  --mate-size: 104px;
 }
 .mod-head__mate > .ui-mate {
   display: block;

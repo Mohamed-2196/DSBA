@@ -4,7 +4,7 @@ import type { ModuleSummary } from '../../api/types';
 import { useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, ModuleArt, ModuleIcon, cx, moduleArtSrc } from '../../ui';
+import { Button, cx } from '../../ui';
 import { useMyCalendarEvents } from '../calendar/public';
 import { useModuleProgress } from '../modules/public';
 import { PapersDialog, modulesFor, papersNote, usePapers } from '../papers/public';
@@ -24,25 +24,23 @@ function metaFor(m: ModuleSummary, watched: number): string {
   return 'Study guide and resources';
 }
 
-function ModuleCard({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
+/** The binders' colours (home-screen.png), one per card in turn: the sections' art tones. */
+const BINDERS = ['home', 'modules', 'library', 'notebook', 'forum', 'calendar'] as const;
+
+function ModuleCard({ m, exam, index }: { m: ModuleSummary; exam: NextExam | null; index: number }) {
   const progress = useModuleProgress(m.id);
-  const hasArt = moduleArtSrc(m.art) != null;
   const pct = progress.total > 0 ? Math.round((progress.watched / progress.total) * 100) : 0;
+  const binder = `var(--sec-${BINDERS[index % BINDERS.length]}-art)`;
   return (
     <li>
       <Link
         to={`/modules/${m.id}`}
         className="home-mod"
+        style={{ '--mod-c': binder } as CSSProperties}
         aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, exam ${formatLongDay(exam.date)}` : ''}`}
       >
         <span className="home-mod__top" aria-hidden="true">
-          {hasArt ? (
-            <ModuleArt art={m.art} className="home-mod__art" />
-          ) : (
-            <span className="home-mod__icon">
-              <ModuleIcon moduleId={m.id} />
-            </span>
-          )}
+          <span className="home-mod__binder" />
           {exam ? (
             <span className="home-mod__exam" title={`Exam ${inDays(exam.days)}`}>
               <span className="home-mod__examdot" />
@@ -82,7 +80,7 @@ function ModulesNote() {
   );
 }
 
-/** "My modules": the year's modules (your papers, once picked) as cards (illustration, name, code in mono, progress
+/** "My modules": the year's modules (your papers, once picked) as cards (a coloured binder, name, code in mono, progress
  *  while tracked, next exam), and, once the student has a year, what it lists and how to change it. */
 export function YourModules({ year, today, mine }: { year: CohortYear; today: Date; mine: boolean }) {
   const { modules: catalogue } = useModules();
@@ -105,8 +103,8 @@ export function YourModules({ year, today, mine }: { year: CohortYear; today: Da
   return (
     <div className={cx('home-mods', `home-mods--y${year}`)}>
       <ul role="list" className="home-mods__list" data-hub="home-modules">
-        {modules.map(({ m, exam }) => (
-          <ModuleCard key={m.id} m={m} exam={exam} />
+        {modules.map(({ m, exam }, index) => (
+          <ModuleCard key={m.id} m={m} exam={exam} index={index} />
         ))}
       </ul>
       {mine ? <ModulesNote /> : null}

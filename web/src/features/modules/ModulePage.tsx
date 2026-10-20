@@ -178,7 +178,7 @@ function ModuleHeader({
           {phone ? null : actions}
         </div>
         <span className="mod-head__mate">
-          <Deskmate mate="binder" size={112} cover={`var(--y${m.year})`} />
+          <Deskmate mate="binder" size={104} cover={`var(--y${m.year})`} />
         </span>
       </div>
       {phone ? actions : null}

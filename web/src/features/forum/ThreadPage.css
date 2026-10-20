@@ -196,6 +196,21 @@
   order: 1;
   margin-inline-start: auto;
 }
+/* A phone: the first line has no room for "Accepted answer", so it follows the time on the second line. */
+@media (max-width: 699px) {
+  .forum-reply:not(.is-nested) > .forum-reply__main > .forum-reply__head::before {
+    content: '';
+    order: 2;
+    flex-basis: 100%;
+  }
+  .forum-reply:not(.is-nested) > .forum-reply__main > .forum-reply__head > .forum-reply__time {
+    flex-basis: auto;
+  }
+  .forum-reply:not(.is-nested) > .forum-reply__main > .forum-reply__head > .forum-reply__accepted {
+    order: 2;
+    margin-inline-start: 0;
+  }
+}
 .forum-reply__body {
   margin-top: 0;
 }
