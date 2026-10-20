@@ -65,6 +65,8 @@ ST-19 (a double tap on Send request makes two requests) is still open.
 
 #### ST-67 (major) One tap on the timer's ✕ ends a mock
 
+- **Fixed** (`round16/fix16`): ✕ asks "End this attempt?" with the time so far (Keep going is the default). Ending stops the clock where it is; skipping or closing "How did it go?" keeps it, ended and resumable, until the score is saved or the timer is closed. On phones the floating timer has no end control: the paper's bar, at the top of its page, ends it. Vitest: `timeMe.test.ts`; e2e: `study-core.spec.ts`, `papers.spec.ts`.
+
 - Persona, where: Yusuf (Year 2), 390×844 phone; `/library/st2133-exam-paper-may-2024`.
 - Steps: **Time me** → **Start 2 hours** → go anywhere: the pill floats above the tab bar ("1:59:57 ST2133 · May
   2024", pause, ✕). Tap **✕** ("Stop the timer").
@@ -75,6 +77,8 @@ ST-19 (a double tap on Send request makes two requests) is still open.
 - Screenshot: `time-phone-3-pill-elsewhere.png`, `score-phone-1.png`.
 
 #### ST-68 (minor) Two issues can share a number
+
+- **Fixed** (`round16/fix16`): one published issue per number (migration 0052, a partial unique index). A draft can't take a published number: 409 `number_taken`, "Issue 99 is already out. The next free number is 100." Drafts may share a number until one is published; publishing the second is refused. `newsletter-numbers.spec.ts` passes without `test.fail`; the specs that made issues 98 and 99 take fresh numbers.
 
 - Persona, where: Rashid (rep), laptop; Manage → Newsletter.
 - Steps: **New issue** (it suggests 100) → type **99** (issue 99 is published) → **Create draft** → add nothing →
@@ -88,6 +92,8 @@ ST-19 (a double tap on Send request makes two requests) is still open.
 
 #### ST-69 (minor) With the AI off, Noora on a phone stops saying so
 
+- **Fixed** (`round16/fix16`): the "Script answers" pill stays on phones, and a question her script can't answer says so ("My AI answers are off right now, and from my script I can't explain topics…"; for a guest, sign in) with the module's page and what she can do, never the module's summary. `noora-page.spec.ts` passes without `test.fail`.
+
 - Persona, where: Yusuf, phone; `/noora`.
 - Steps: the welcome says "My AI answers aren't available right now. I answer from my script…". Ask "Explain the
   Neyman-Pearson lemma for ST2134 with an example".
@@ -100,6 +106,8 @@ ST-19 (a double tap on Send request makes two requests) is still open.
 
 #### ST-70 (minor) Offline, an unopened page says "Something went wrong"
 
+- **Fixed** (`round16/fix16`): offline, the page says "You're offline. This page opens once you're back online. Pages you've opened before on this device… still show what they had", and opens by itself once the connection is back. Online, a page whose code can't be fetched says so and offers Reload.
+
 - Persona, where: Yusuf, phone. Library, Forum and Modules opened in the session, then the connection off.
 - Steps: tap Library, Forum and Modules (each reads fine offline: IDEA-43 works), then open a thread or Career.
 - Expected: "You're offline. This page opens once you're back online", like the offline note in the notebook.
@@ -109,6 +117,8 @@ ST-19 (a double tap on Send request makes two requests) is still open.
 - Screenshot: `offline-phone-thread.png`.
 
 #### ST-71 (minor) A phone in landscape
+
+- **Fixed** (`round16/fix16`): on short screens the whole rail scrolls as one, the theme and account after the last section, with fades. The forum's tabs and search share a row and the page starts higher: the first thread starts at about 330 px of 390.
 
 - Persona, where: Maryam (Year 3), 844×390, touch.
 - The rail lists 13 sections, but the footer (theme and profile) covers it below Library: Notebook (268 px) and
@@ -121,12 +131,16 @@ ST-19 (a double tap on Send request makes two requests) is still open.
 
 #### ST-72 (minor) The forum band's "waiting" line breaks on phones
 
+- **Fixed** (`round16/fix16`): the number and the words are one run of text, left-aligned.
+
 - Persona, where: Yusuf and Huda, 390 and 360, both themes.
 - The second stat in the pink band is one link. On a phone its number sits alone on the left, and the words wrap
   centred over two lines ("question is waiting for a first / reply"), each underlined. On a laptop it is one line.
 - Screenshot: `y2-phone-_forum.png`, `y1-small-_forum.png`, `dark-phone-_forum.png`.
 
 #### ST-73 (minor) Search puts files before dates
+
+- Open: `round16/home16`.
 
 - Persona, where: Yusuf, laptop, ⌘K.
 - "ST2134 exam": Library (10) comes first, then Calendar (3). "when is my exam" and "exam date": library pages
@@ -136,6 +150,21 @@ ST-19 (a double tap on Send request makes two requests) is still open.
 - Screenshot: `search-laptop-1.png`.
 
 #### ST-74 to ST-82 (nits)
+
+Fixed in `round16/fix16`:
+
+- **ST-74:** deleting an issue deletes its notifications and cancels their unsent emails.
+- **ST-75:** an issue with no stories can't be published (409 `empty_issue`); the Publish dialog says so and offers
+  the editor.
+- **ST-76:** the tablet's icon rail names each section under its icon (Career, Daily for the long ones).
+- **ST-77:** the API's messages show with curly apostrophes, and the app's own slips are fixed; a bad id in an address
+  (`/requests/nope`) answers 404, so the page says it couldn't find it; Access's first column is "What they can do";
+  "Start an Assignment board"; the account menu writes "+973 3376 0536"; the note 404 offers "Open your notebook".
+- **ST-78:** "Saved in [notebook]" stays one line; a long notebook name ends in an ellipsis.
+- **ST-79:** on phones the pickers are labelled Notebook ("All notebooks") and Module ("All modules").
+- **ST-80:** Annotate names the note as the library names the paper ("ST2133 · May 2024 · Zone A").
+- **ST-81:** Home's default puts Carry on before Up next (on a 390 phone it starts at about 600 px, was 1,240).
+- **ST-82:** the file, thread, module and note not-found screens have an h1.
 
 - **ST-74:** the e2e run's issues and the hand test's issue were deleted, but Huda's panel still listed "New issue
   of The DSBA Newsletter: …" for each, opening "We couldn't find that issue" (`notif-phone-2-deleted-issue.png`).
