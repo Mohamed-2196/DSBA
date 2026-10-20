@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import Request, Response, status
+from fastapi import BackgroundTasks, Request, Response, status
 
 from app.core.security import DB, CurrentSession, OptionalUser, clear_session_cookie, client_ip
 from app.routers._base import router_for
@@ -32,16 +32,19 @@ def session_state(user: OptionalUser) -> SessionState:
     status_code=status.HTTP_202_ACCEPTED,
     responses={503: {"model": ErrorResponse}},
 )
-def start_sign_in(body: OtpStartRequest, request: Request, db: DB) -> OtpChallengeOut:
+def start_sign_in(body: OtpStartRequest, request: Request, db: DB, background: BackgroundTasks) -> OtpChallengeOut:
     """Send a code to an email address or phone number. The same answer whether or not an account exists.
 
     The code is 6 digits; after many wrong codes for an address it is 10 letters and digits instead
     (`codeFormat: "long"`, written 'ABCDE-FGH23'), which nobody can guess.
 
     Errors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited
-    (429, with retryAfter), delivery_failed (503: try again or use the other method)."""
+    (429, with retryAfter), delivery_failed (503, texts only: try again or use the other method). Emails go out just
+    after the answer."""
     kind, identifier = otp.prepare(body.identifier)
-    return otp.start(db, kind=kind, identifier=identifier, flow="sign_in", ip=client_ip(request))
+    return otp.start(
+        db, kind=kind, identifier=identifier, flow="sign_in", ip=client_ip(request), defer=background.add_task
+    )
 
 
 @router.post("/auth/otp/verify", response_model=SignInResult, responses={410: {"model": ErrorResponse}})

@@ -18,7 +18,7 @@ from app.core.security import hash_token
 from app.core.time import utcnow
 from app.models import AuditEntry, OtpChallenge, OtpPurpose, User, UserSession
 from app.routers import auth as auth_router
-from app.services import access, accounts, mailer
+from app.services import access, accounts, mailer, otp, sms
 from app.services.mailer import DeliveryError
 from tests.accounts.conftest import API, Outbox, SignIn, logout, start, verify, wrong
 
@@ -518,47 +518,77 @@ def test_spent_sign_up_budget_answers_alike_for_known_and_unknown_addresses(
     outbox: Outbox,
     set_option: Callable[[str, Any], None],
     make_user: Callable[..., User],
+    monkeypatch: pytest.MonkeyPatch,
     db: Session,
 ) -> None:
-    """Over the sign-up budget, a new address gets the same answer as an existing account's (never saying whether an
-    account exists), and its code is quietly not sent and can't be used."""
+    """Over the sign-up budget, a new address gets exactly the answers an existing account's gets, twice in a row
+    (the second waits for the resend in both), and nothing says whether an account exists. Its code is not sent,
+    and even the right code never verifies (SEC-52)."""
     make_user(email="member@example.com")
     set_option("email_signups_max_per_hour", 1)
     assert start(client_for(), "first-new@example.com").status_code == 202
-    known = start(client_for(), "member@example.com")
-    unknown = start(client_for(), "second-new@example.com")
-    assert known.status_code == unknown.status_code == 202
-    k, u = known.json(), unknown.json()
-    assert k.pop("challengeId") != u.pop("challengeId")
-    assert k.pop("destinationHint") != u.pop("destinationHint")  # each names its own address
-    assert k == u
+
+    def twice(address: str) -> list[tuple[int, dict[str, Any]]]:
+        c = client_for()
+        out = []
+        for _ in range(2):
+            r = start(c, address)
+            body = r.json()
+            body.pop("challengeId", None)
+            body.pop("destinationHint", None)  # each names its own address
+            out.append((r.status_code, body))
+        return out
+
+    monkeypatch.setattr(otp, "new_code", lambda: "424242")
+    known, unknown = twice("member@example.com"), twice("second-new@example.com")
+    assert known == unknown
+    assert [status for status, _ in known] == [202, 429]
     assert [m.to for m in outbox if m.channel == "email"] == ["first-new@example.com", "member@example.com"]
+
     skipped = db.scalar(select(OtpChallenge).where(OtpChallenge.identifier == "second-new@example.com"))
     assert skipped is not None
-    assert skipped.expires_at == skipped.created_at  # never usable
+    assert skipped.suppressed
+    r = verify(client_for(), str(skipped.id), "424242")
+    assert r.status_code == 422
+    assert r.json()["error"]["code"] == "invalid_code"
 
 
-def test_delivery_failure(client_for: ClientFor, outbox: Outbox, monkeypatch: pytest.MonkeyPatch, db: Session) -> None:
-    working = mailer.send_email
-    lost: list[str] = []
+def test_a_failed_sign_in_email_is_logged_after_the_answer(
+    client_for: ClientFor, outbox: Outbox, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Sign-in emails go out after the answer (the same time whether or not one is sent), so a relay that's down is
+    logged, and the student asks again after the resend wait."""
 
     def broken(to: str, subject: str, text: str, html: str | None = None) -> None:
-        lost.append(text)
         raise DeliveryError("the relay is down")
 
     monkeypatch.setattr(mailer, "send_email", broken)
+    r = start(client_for(), "unlucky@example.com")
+    assert r.status_code == 202
+    assert "A sign-in email could not be sent" in caplog.text
+
+
+def test_a_failed_text(client_for: ClientFor, outbox: Outbox, monkeypatch: pytest.MonkeyPatch, db: Session) -> None:
+    working = sms.send_sms
+    lost: list[str] = []
+
+    def broken(to: str, text: str) -> None:
+        lost.append(text)
+        raise DeliveryError("the gateway is down")
+
+    monkeypatch.setattr(sms, "send_sms", broken)
     c = client_for()
-    r = start(c, "unlucky@example.com")
+    r = start(c, "33100009")
     assert r.status_code == 503
     assert r.json()["error"]["code"] == "delivery_failed"
-    assert "phone number" in r.json()["error"]["message"]
-    failed = db.scalar(select(OtpChallenge).where(OtpChallenge.identifier == "unlucky@example.com"))
+    assert "email address" in r.json()["error"]["message"]
+    failed = db.scalar(select(OtpChallenge).where(OtpChallenge.identifier == "+97333100009"))
     assert failed is not None
     code = next(t for t in lost[0].split() if t.rstrip(".").isdigit()).rstrip(".")
     assert verify(c, str(failed.id), code).status_code == 410  # never usable
 
-    monkeypatch.setattr(mailer, "send_email", working)
-    assert start(c, "unlucky@example.com").status_code == 202  # no cooldown after a failure
+    monkeypatch.setattr(sms, "send_sms", working)
+    assert start(c, "33100009").status_code == 202  # no cooldown after a failure
 
 
 # ── accounts and sessions ───────────────────────────────────────────────────────────────────

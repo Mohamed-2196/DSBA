@@ -447,7 +447,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_EMAIL_BACKEND` | `console` | `smtp`, `file` (into `DSBA_EMAIL_FILE_DIR`, default `var/mail`) or `console` |
 | `DSBA_EMAIL_FROM` | `DSBA Hub <no-reply@dsba-hub.local>` | the sender |
 | `DSBA_SMTP_HOST`, `_PORT`, `_USERNAME`, `_PASSWORD`, `_STARTTLS` | `127.0.0.1`, `1025`, none, none, false | the mail relay |
-| `DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR`, `DSBA_EMAIL_SIGNUPS_MAX_PER_DAY` | `100`, `500` | sign-in emails the whole site may send to addresses no account has (sign-ups). Over it, the answer stays the same (it never says whether an account exists) but the code for a new address isn't sent, and the log says so; students with an account still get codes |
+| `DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR`, `DSBA_EMAIL_SIGNUPS_MAX_PER_DAY` | `100`, `500` | sign-in emails the whole site may send to addresses no account has (sign-ups). Over it, the answer and the per-address limits stay the same (they never say whether an account exists) but the code for a new address isn't sent (marked `suppressed`, it never verifies), and the log says so; students with an account still get codes. Sign-in emails go out just after the answer, so a failed send shows only in the log |
 | `DSBA_EMAIL_MAX_PER_HOUR`, `DSBA_EMAIL_MAX_PER_DAY` | `600`, `3000` | every sign-in email together; over it, codes by email pause (the mail provider's daily quota must be well above the daily figure) |
 | `DSBA_SMS_BACKEND` | `console` | `twilio`, `file` (into `DSBA_SMS_FILE_DIR`, default `var/sms`) or `console` |
 | `DSBA_TWILIO_ACCOUNT_SID`, `_AUTH_TOKEN`, `_FROM` | none | Twilio; `_FROM` is a number or a Messaging Service SID |

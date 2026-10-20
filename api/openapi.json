@@ -280,7 +280,7 @@
           "auth"
         ],
         "summary": "Start Sign In",
-        "description": "Send a code to an email address or phone number. The same answer whether or not an account exists.\n\nThe code is 6 digits; after many wrong codes for an address it is 10 letters and digits instead\n(`codeFormat: \"long\"`, written 'ABCDE-FGH23'), which nobody can guess.\n\nErrors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited\n(429, with retryAfter), delivery_failed (503: try again or use the other method).",
+        "description": "Send a code to an email address or phone number. The same answer whether or not an account exists.\n\nThe code is 6 digits; after many wrong codes for an address it is 10 letters and digits instead\n(`codeFormat: \"long\"`, written 'ABCDE-FGH23'), which nobody can guess.\n\nErrors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited\n(429, with retryAfter), delivery_failed (503, texts only: try again or use the other method). Emails go out just\nafter the answer.",
         "operationId": "start_sign_in_api_v1_auth_otp_post",
         "requestBody": {
           "content": {

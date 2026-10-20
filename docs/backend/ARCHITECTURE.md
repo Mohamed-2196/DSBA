@@ -195,7 +195,8 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   notifies an actor about their own action. The in-app notification always comes; for the kinds in
   `outbox.EMAIL_SWITCHES` an email is queued in the same transaction when the person has an email address and
   keeps that switch on (decision D1). The mail worker (`python -m app.cli mail-worker`) sends queued emails with
-  retries; never send mail inside a request, except sign-in codes. **Audit** every moderation and admin action
+  retries; never send mail inside a request, except sign-in codes (step-up codes in the request; sign-in emails just after
+  the answer, as a background task, so the answer takes the same time whether or not a code is sent). **Audit** every moderation and admin action
   with `app.services.audit.record(...)`; actions on an account carry its name (`targetName`).
 - **Shared rules:** slugs and ids from titles with `core.text.insert_with_unique_slug()`
   (a free one, retried on a race; a title without Latin letters gets a short id, decision D8), link and picture

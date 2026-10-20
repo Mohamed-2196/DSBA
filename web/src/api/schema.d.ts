@@ -83,7 +83,8 @@ export interface paths {
          *     (`codeFormat: "long"`, written 'ABCDE-FGH23'), which nobody can guess.
          *
          *     Errors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited
-         *     (429, with retryAfter), delivery_failed (503: try again or use the other method).
+         *     (429, with retryAfter), delivery_failed (503, texts only: try again or use the other method). Emails go out just
+         *     after the answer.
          */
         post: operations["start_sign_in_api_v1_auth_otp_post"];
         delete?: never;

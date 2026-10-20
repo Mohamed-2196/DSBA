@@ -160,10 +160,15 @@ def start(
     ip: str | None,
     user: User | None = None,
     taken: Callable[[], bool] | None = None,
+    defer: Callable[[Callable[[], None]], None] | None = None,
 ) -> OtpChallengeOut:
     """Checks the limits, stores a challenge and sends its code. `user` is the signed-in account (step-up, adding an
     identifier). When `taken()` says that another account uses the identifier, the address gets a notice instead
-    of a code; everything else (the row, the limits, the answer) is the same."""
+    of a code; everything else (the row, the limits, the answer) is the same.
+
+    `defer` (sign-in) sends emails after the answer, off the request path, so the answer takes the same time whether
+    the code is sent or suppressed (over the sign-up budget); a failed deferred email is logged, and the student asks
+    again after the resend wait."""
     if flow != "sign_in" and user is None:
         raise ValueError(f"the {flow} flow needs the signed-in user")
     s = get_settings()
@@ -173,32 +178,37 @@ def start(
     in_use = taken() if taken is not None else False
     db.execute(delete(OtpChallenge).where(OtpChallenge.created_at < now - KEEP_CHALLENGES))
     challenge, code = _add_challenge(db, _purpose(flow), channel, identifier, ip, user, now, long_code=long_code)
-    if not send:  # over the sign-up budget: answered as usual, never sent, never usable, and not counted as sent
-        challenge.expires_at = challenge.created_at
-        db.commit()
-        log.info("A sign-in code for a new address was not sent: the sign-up email budget is spent")
+    challenge.suppressed = not send
+    db.commit()  # the row exists before the code can arrive
+
+    def deliver() -> None:
+        if in_use:
+            _deliver_in_use_notice(kind, identifier)
+        else:
+            _deliver(kind, identifier, code, flow)
+
+    if not send:
+        log.info("A sign-in code for a new address was suppressed: the sign-up email budget is spent")
+    elif defer is not None and channel == Channel.email:
+        defer(lambda: _deliver_later(deliver))
     else:
-        db.commit()  # the row exists before the code can arrive
         try:
-            if in_use:
-                _deliver_in_use_notice(kind, identifier)
-            else:
-                _deliver(kind, identifier, code, flow)
+            deliver()
         except DeliveryError:
             challenge.expires_at = challenge.created_at  # never usable, and the next try needs no cooldown
             db.commit()
             other = "your phone number" if kind == "email" else "your email address"
             raise ApiError(503, "delivery_failed", f"We couldn't send the code. Try again, or use {other}.") from None
-        db.execute(
-            update(OtpChallenge)
-            .where(
-                OtpChallenge.identifier == identifier,
-                OtpChallenge.id != challenge.id,
-                OtpChallenge.consumed_at.is_(None),
-                OtpChallenge.expires_at > now,
-            )
-            .values(expires_at=now)
+    db.execute(
+        update(OtpChallenge)
+        .where(
+            OtpChallenge.identifier == identifier,
+            OtpChallenge.id != challenge.id,
+            OtpChallenge.consumed_at.is_(None),
+            OtpChallenge.expires_at > now,
         )
+        .values(expires_at=now)
+    )
     db.commit()
     return OtpChallengeOut(
         challenge_id=challenge.id,
@@ -208,6 +218,15 @@ def start(
         resend_after=s.otp_resend_seconds,
         code_format="long" if long_code else "digits",
     )
+
+
+def _deliver_later(deliver: Callable[[], None]) -> None:
+    """A deferred sign-in email: sent after the answer went out. A failure can't reach the student any more, so it is
+    logged loudly; the code simply never arrives, and they ask again."""
+    try:
+        deliver()
+    except DeliveryError:
+        log.exception("A sign-in email could not be sent")
 
 
 def _add_challenge(
@@ -327,11 +346,16 @@ def _check_email_budget(db: Session, *, known: bool, now: datetime) -> bool:
     Every email together has a ceiling that keeps the mail provider's quota safe: over it, everyone is asked to wait
     (429 rate_limited), whether or not the address has an account. Codes for addresses no account has (sign-ups)
     also have a smaller budget of their own, so made-up addresses can use up only that and a student whose account
-    exists still gets a code. Over the sign-up budget the answer stays exactly what it would have been (it must never
-    say whether an account exists); the code just isn't sent, and the challenge can't be used."""
+    exists still gets a code. Over the sign-up budget the answer and the per-address limits stay exactly what they
+    would have been (they must never say whether an account exists); the code just isn't sent, and the challenge is
+    marked suppressed: it never verifies and doesn't count against these budgets."""
     s = get_settings()
     created = OtpChallenge.created_at
-    emails = [OtpChallenge.channel == Channel.email, OtpChallenge.expires_at > OtpChallenge.created_at]
+    emails = [
+        OtpChallenge.channel == Channel.email,
+        OtpChallenge.expires_at > OtpChallenge.created_at,
+        OtpChallenge.suppressed.is_(False),
+    ]
     for limit, window in ((s.email_max_per_hour, HOUR), (s.email_max_per_day, DAY)):
         wait = window_wait(db, created, emails, limit=limit, window=window, now=now)
         if wait:
@@ -426,6 +450,7 @@ def verify(
                 OtpChallenge.identifier,
                 OtpChallenge.channel,
                 OtpChallenge.ip,
+                OtpChallenge.suppressed,
             )
         )
         .tuples()
@@ -434,9 +459,10 @@ def verify(
     db.commit()  # the try counts even when what follows fails
     if row is None:
         raise _unusable(db, challenge_id, flow, user_id, now)
-    attempts, stored_hash, identifier, channel, ip = row
+    attempts, stored_hash, identifier, channel, ip, suppressed = row
     kind = kind_for(Channel(channel))
-    if not hmac.compare_digest(stored_hash, code_hash(challenge_id, canonical_code(code))):
+    right = hmac.compare_digest(stored_hash, code_hash(challenge_id, canonical_code(code)))
+    if suppressed or not right:  # a suppressed code was never sent: no code is right, as for a wrong guess
         _alarms(db, kind, identifier, str(ip) if ip is not None else None, now)
         left = s.otp_max_attempts - attempts
         if left <= 0:
