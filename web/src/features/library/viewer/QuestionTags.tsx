@@ -1,15 +1,25 @@
 // The paper page's "Questions by topic": tag a question with one of the module's chapters, see the tags, flag a
 // wrong one, remove your own (people who manage the library remove any).
 import { useQuery } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { LibraryItem, PaperQuestion } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
-import { Button, Icon, IconButton, Modal, Select, Skeleton, TextField, glyph } from '../../../ui';
+import { Link, useLocation } from 'react-router-dom';
+import { appUrl } from '../../../lib/share';
+import { useModules } from '../../../state/modules';
+import { Button, Icon, IconButton, Modal, Select, Skeleton, TextField, cx, glyph } from '../../../ui';
+import { PaperThreads, useQuestionThreads, useStartsThreads } from '../../forum/public';
+import { WorkedAnswerLink } from '../components/QuestionExtras';
+import { askAboutHref, examTitle, moduleTag } from '../display';
+import { threadCounts, threadKey } from '../questionThreads';
 import { moduleDetailQuery } from '../../modules/public';
 import {
+  questionAnchor,
   questionLabel,
+  questionLink,
+  questionName,
   questionNumber,
   useFlagQuestion,
   usePaperQuestions,
@@ -21,12 +31,29 @@ const QUESTIONS = Array.from({ length: 20 }, (_, i) => i + 1);
 /** Sections a paper numbers from 1 each (Section A: 1 to 4, Section B: 1 to 3). */
 const SECTIONS = ['A', 'B', 'C', 'D'] as const;
 
-function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) => void }) {
+function TagRow({
+  tag,
+  onPage,
+  askHref,
+  threads,
+  target,
+}: {
+  tag: PaperQuestion;
+  onPage: (page: number) => void;
+  /** "Ask about Q3": a new thread linking the paper at the question; null while the person can't post */
+  askHref: string | null;
+  /** threads that link this question */
+  threads: number;
+  /** the question the page's address points at (#q3) */
+  target: boolean;
+}) {
   const { requireAuth, me } = useAuth();
   const { push } = useToast();
   const flag = useFlagQuestion();
   const remove = useRemoveQuestion();
+  const [showThreads, setShowThreads] = useState(false);
   const number = questionNumber(tag);
+  const name = questionName(tag);
   const toggleFlag = () => {
     const run = () =>
       flag.mutate(
@@ -40,7 +67,11 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
     if (requireAuth('Sign in to flag a tag', run)) run();
   };
   return (
-    <li className="lib-qtags__row">
+    <li
+      className={cx('lib-qtags__row', target && 'is-target')}
+      id={target ? questionAnchor(tag) : undefined}
+      data-hub="question-row"
+    >
       {tag.page ? (
         <button
           type="button"
@@ -82,6 +113,34 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
           />
         ) : null}
       </span>
+      {tag.answer || askHref || threads ? (
+        <div className="lib-qx lib-qtags__extras">
+          <WorkedAnswerLink question={tag} />
+          {threads ? (
+            <button
+              type="button"
+              className="lib-qx__link lib-qx__threads"
+              aria-expanded={showThreads}
+              onClick={() => setShowThreads((v) => !v)}
+              data-hub="question-threads"
+            >
+              <Icon glyph={glyph.forum} />
+              <span className="u-tabular">{threads === 1 ? '1 thread' : `${threads} threads`}</span>
+            </button>
+          ) : null}
+          {askHref ? (
+            <Link to={askHref} className="lib-qx__link" data-hub="ask-about-question">
+              <Icon glyph={glyph.reply} />
+              <span>Ask about {name}</span>
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+      {showThreads ? (
+        <div className="lib-qtags__threads">
+          <PaperThreads slug={tag.paper.slug} question={questionAnchor(tag)} about={name} headingLevel={3} />
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -208,8 +267,22 @@ export function TagQuestionDialog({
 
 /** Shown on a module's published past paper while the feature is on. `onPage` opens the PDF at a page. */
 export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (page: number) => void }) {
-  const { requireAuth, me } = useAuth();
+  const { requireAuth, me, featureOn } = useAuth();
   const tags = usePaperQuestions(item.id);
+  const { getModule } = useModules();
+  const starts = useStartsThreads();
+  const threads = useQuestionThreads({ paper: item.slug }, { enabled: featureOn('forum') });
+  const counts = threadCounts(threads.data);
+  const { hash } = useLocation();
+  const paperName = examTitle(item, moduleTag(getModule(item.moduleId)));
+  const loaded = !!tags.data?.length;
+  // A link to one question (/library/<slug>#q3, from a thread or a chapter's list): bring its row into view.
+  useEffect(() => {
+    if (!loaded || !hash) return;
+    document.getElementById(hash.slice(1).toLowerCase())?.scrollIntoView({ block: 'nearest' });
+  }, [loaded, hash]);
+  const askHref = (t: PaperQuestion) =>
+    starts ? askAboutHref(item, `${questionName(t)} of ${paperName}`, appUrl(questionLink(t))) : null;
   const module = useQuery({ ...moduleDetailQuery(item.moduleId ?? ''), enabled: !!item.moduleId });
   const [dialogOpen, setDialogOpen] = useState(false);
   const chapters = module.data?.chapters ?? [];
@@ -241,7 +314,14 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
       ) : tags.data?.length ? (
         <ul role="list" className="lib-qtags__list">
           {tags.data.map((t) => (
-            <TagRow key={t.id} tag={t} onPage={onPage} />
+            <TagRow
+              key={t.id}
+              tag={t}
+              onPage={onPage}
+              askHref={askHref(t)}
+              threads={counts.get(threadKey(t)) ?? 0}
+              target={hash.toLowerCase() === `#${questionAnchor(t)}`}
+            />
           ))}
         </ul>
       ) : (

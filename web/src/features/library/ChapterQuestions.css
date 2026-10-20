@@ -4,6 +4,33 @@
   gap: var(--sp-12);
   max-width: var(--measure);
 }
+.lib-chq__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8) var(--sp-16);
+}
+.lib-chq__titles {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.lib-chq__progress {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+}
+.lib-chq__item {
+  display: grid;
+  gap: var(--sp-2);
+  align-content: start;
+  min-width: 0;
+}
+.lib-chq__extras {
+  padding-left: var(--sp-4);
+}
 .lib-chq__h {
   margin: 0;
   color: var(--ink);

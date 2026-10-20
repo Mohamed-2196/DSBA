@@ -713,6 +713,34 @@
 .lib-qtags__row:last-child {
   border-bottom: 0;
 }
+/* The question a link pointed at (#q3). */
+.lib-qtags__row.is-target {
+  margin-inline: calc(-1 * var(--sp-8));
+  padding-inline: var(--sp-8);
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+.lib-qtags__extras {
+  flex: 1 0 100%;
+  margin-left: calc(-1 * var(--sp-4));
+}
+.lib-qtags__extras button.lib-qx__link {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+.lib-qtags__extras button.lib-qx__link:hover,
+.lib-qtags__extras button.lib-qx__link[aria-expanded='true'] {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.lib-qtags__threads {
+  flex: 1 0 100%;
+  padding-bottom: var(--sp-4);
+}
 .lib-qtags__q {
   flex: 0 0 auto;
   padding: 0;

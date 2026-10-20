@@ -9,6 +9,7 @@ import type {
   PaperSittings,
   Sitting,
   SittingZone,
+  WorkedAnswer,
 } from '../../api/types';
 import { zoneLabel } from '../../lib/exams';
 
@@ -178,6 +179,32 @@ export function questionHref(q: Pick<PaperQuestion, 'paper' | 'page'>): string {
   return q.page ? `${base}?page=${q.page}` : base;
 }
 
+/** The question's anchor on its paper's page, which forum threads link to: 'q3', or 'b1' where the paper has
+ *  sections. */
+export function questionAnchor(q: Numbered): string {
+  return questionName(q).toLowerCase();
+}
+
+/** The paper at the question, with its anchor: '/library/<slug>?page=4#q3'. What "Ask about Q3" links to. */
+export function questionLink(q: Numbered & Pick<PaperQuestion, 'paper' | 'page'>): string {
+  return `${questionHref(q)}#${questionAnchor(q)}`;
+}
+
+/** The examiners' report open at the question's commentary. */
+export function answerHref(answer: WorkedAnswer): string {
+  return `/library/${encodeURIComponent(answer.slug)}?page=${answer.page}`;
+}
+
+/** 'Worked answer, report p. 7'. */
+export function answerLabel(answer: WorkedAnswer): string {
+  return `Worked answer, report p. ${answer.page}`;
+}
+
+/** A question's key among a paper's questions, across chapters: '<paper id>/B1'. */
+export function questionKey(q: { itemId: string } & Numbered): string {
+  return `${q.itemId}/${questionName(q)}`;
+}
+
 /** Group a module's tags by chapter, keeping the API's order. */
 export function byChapter(questions: PaperQuestion[]): Map<string, PaperQuestion[]> {
   const out = new Map<string, PaperQuestion[]>();
@@ -268,6 +295,8 @@ export interface SittingRow {
   papers: (SittingLink & { zone: SittingZone['zone']; yours: boolean })[];
   reports: SittingLink[];
   solutions: SittingLink[];
+  /** No solutions, but a report that works through the questions: the Solutions cell links it instead. */
+  worked: SittingLink | null;
   timeMe: LibraryItem | null;
 }
 
@@ -284,6 +313,9 @@ function labelled(zones: readonly SittingZone[], key: 'reports' | 'solutions', w
   return out;
 }
 
+/** What the Solutions cell says when the sitting's report works through the questions. */
+export const WORKED_LABEL = 'Worked answers in the report';
+
 /** A sitting as one row of the past papers table, the student's zone first. */
 export function sittingRow(sitting: Sitting, yours: SittingZone['zone']): SittingRow {
   const zones = yourZoneFirst(sitting.zones, yours);
@@ -293,10 +325,14 @@ export function sittingRow(sitting: Sitting, yours: SittingZone['zone']): Sittin
       return { item, zone: z.zone, yours: !!yours && z.zone === yours, label: i ? `${base} (${i + 1})` : base };
     }),
   );
+  const reports = labelled(zones, 'reports', 'Report');
+  const solutions = labelled(zones, 'solutions', 'Solutions');
+  const worked = solutions.length ? undefined : reports.find((r) => r.item.workedAnswers);
   return {
     papers,
-    reports: labelled(zones, 'reports', 'Report'),
-    solutions: labelled(zones, 'solutions', 'Solutions'),
+    reports,
+    solutions,
+    worked: worked ? { item: worked.item, label: WORKED_LABEL } : null,
     timeMe: papers[0]?.item ?? null,
   };
 }

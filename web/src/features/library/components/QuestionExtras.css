@@ -1,0 +1,43 @@
+/* A past question's extras: its worked answer in the report, the threads that link it. */
+.lib-qx {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-8);
+}
+.lib-qx__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  min-height: 32px;
+  padding: 0 var(--sp-8) 0 var(--sp-4);
+  border-radius: 10px;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+.lib-qx__link:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.lib-qx__page {
+  color: var(--ink-3);
+  font-weight: var(--fw-medium);
+}
+.lib-qx__link:hover .lib-qx__page {
+  color: inherit;
+}
+.lib-qx__threads {
+  font-size: var(--fs-13);
+  --icon-tint: var(--accent-soft);
+}
+@media (pointer: coarse) {
+  .lib-qx__link {
+    min-height: 44px;
+  }
+}

@@ -146,6 +146,13 @@
 .pp-link__new {
   margin-left: -2px;
 }
+/* A report that works through the questions, in the Solutions column: its words may wrap there. */
+.pp-link--worked {
+  color: var(--ink-2);
+  font-weight: var(--fw-medium);
+  line-height: 1.25;
+  white-space: normal;
+}
 /* Time me: a round button with the timer. */
 .pp-time {
   display: inline-grid;
@@ -177,8 +184,21 @@
   }
 }
 
+/* Said only where the row is narrow: the Solutions cell says it otherwise. */
+.pp-link__worked {
+  display: none;
+  color: var(--ink-2);
+  font-weight: var(--fw-medium);
+}
+
 /* Narrow (a phone, a card on the module's Overview): no header; the sitting, then its files in one wrapping line. */
 @container pp-table (max-width: 539px) {
+  .pp-link--worked {
+    display: none;
+  }
+  .pp-link__worked {
+    display: inline;
+  }
   .pp-table__head {
     display: none;
   }

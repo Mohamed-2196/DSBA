@@ -2,11 +2,11 @@
 // module, the same for everyone that day, opening its paper at the question's page.
 import { useAuth } from '../../auth';
 import { inDays, type DayKey } from '../../lib/dates';
-import { Button, Icon, PageSection, Panel, SectionHeader, glyph } from '../../ui';
+import { Button, DocThumb, Icon, PageSection, Panel, SectionHeader, glyph } from '../../ui';
 import { AddToBoard } from '../board/public';
 import { DAILY_WINDOW_DAYS, dailyQuestion } from './daily';
 import { paperLabel } from '../../lib/exams';
-import { questionHref, questionNumber, useModuleQuestions } from './papers';
+import { answerHref, questionHref, questionNumber, useModuleQuestions } from './papers';
 import './DailyQuestion.css';
 
 export interface DailyQuestionProps {
@@ -58,6 +58,17 @@ export function DailyQuestion({ moduleId, moduleName, examDays, day, className }
           >
             Open the question
           </Button>
+          {q.answer ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              to={answerHref(q.answer)}
+              leadingIcon={<DocThumb tone="report" size="sm" />}
+              data-hub="daily-answer"
+            >
+              Worked answer
+            </Button>
+          ) : null}
           {featureOn('board') ? <AddToBoard link={{ type: 'library_item', id: p.id }} /> : null}
         </div>
       </Panel>
