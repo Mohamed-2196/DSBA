@@ -23,7 +23,7 @@
 //   useModuleQuestions(moduleId)       a module's past exam questions tagged by chapter (Noora's full page asks about one)
 //   questionNumber(question)            '3', or 'B1' on a paper that numbers each section from 1
 //   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
-//   useTimeMe()                         the paper being timed with Time me ({ timer, start, pause, resume, stop }),
+//   useTimeMe()                         the paper being timed with Time me ({ timer, start, pause, resume, end, stop }),
 //                                        kept in this browser
 //   <TimerPill />                       the floating Time me clock, on every page but the paper's own (the shell
 //                                        mounts it once)

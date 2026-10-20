@@ -287,7 +287,7 @@ export default function HomePage() {
   const name = signedIn ? firstNameOf(me?.displayName) : null;
   const lede = greetingLede(
     nextExam ? { days: nextExam.days, name: nextExam.unitCode || nextExam.module?.unitCode || nextExam.title } : null,
-    timeMe.timer ? timeMe.timer.paper.title : null,
+    timeMe.timer && !timeMe.timer.ended ? timeMe.timer.paper.title : null,
   );
   const lumen = lumenPose(now, online, waved);
   const blocks = layout.shown.map(render).filter(Boolean);

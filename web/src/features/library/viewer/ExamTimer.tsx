@@ -3,26 +3,31 @@
 // a bar under the paper's toolbar on its page, and a small floating timer everywhere else in the Hub, the notebook
 // included. The clock runs on timestamps, so it keeps time while the tab is hidden, the phone sleeps or the page
 // reloads; when time is up it says so in the page and the tab's title, vibrates, plays a short tone and, if allowed,
-// shows a notification. Stopping it, or time running out, asks "How did it go?" and keeps the score.
+// shows a notification. Ending an attempt is deliberate (ST-67): it asks "End this attempt?" first, then "How did it
+// go?" to keep the score; skipping the score keeps the stopped clock, which Resume carries on. On a phone the floating
+// timer has no end control at all, so a thumb reaching for the tab bar can't end a mock: it ends on the paper's page.
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { LibraryItem } from '../../../api/types';
 import { useAuth } from '../../../auth';
-import { useLocalStorage, useMediaQuery } from '../../../state';
-import { Button, Icon, IconButton, Modal, SegmentedControl, TextField, cx, glyph } from '../../../ui';
+import { BREAKPOINTS, useLocalStorage, useMediaQuery } from '../../../state';
+import { Button, ConfirmDialog, Icon, IconButton, Modal, SegmentedControl, TextField, cx, glyph } from '../../../ui';
 import { PaperScoreDialog } from '../../board/public';
 import { itemPath } from '../api';
+import { clockLabel, clockLeft, clockStart, durationLabel, parseDuration } from '../papers';
 import {
-  clockLabel,
-  clockLeft,
-  clockPause,
-  clockResume,
-  clockStart,
-  durationLabel,
-  parseDuration,
-  type ExamClock,
-} from '../papers';
-import { cleanTimer, TIME_ME_KEY, timedPaperPath, type RunningTimer, type TimedPaper } from '../timeMe';
+  cleanTimer,
+  closeAsksFirst,
+  elapsedLabel,
+  endTimer,
+  pauseTimer,
+  resumeTimer,
+  TIME_ME_KEY,
+  timedPaperPath,
+  timerPhase,
+  type RunningTimer,
+  type TimedPaper,
+} from '../timeMe';
 import './TimerPill.css';
 
 const PRESETS = [1, 2, 3] as const;
@@ -34,21 +39,23 @@ export function useTimeMe() {
   const [raw, setRaw] = useLocalStorage<unknown>(TIME_ME_KEY, null);
   const timer = cleanTimer(raw, Date.now());
   const update = useCallback(
-    (change: (c: ExamClock, now: number) => ExamClock) =>
+    (change: (t: RunningTimer, now: number) => RunningTimer) =>
       setRaw((prev: unknown) => {
         const t = cleanTimer(prev, Date.now());
-        return t ? { ...t, clock: change(t.clock, Date.now()) } : undefined;
+        return t ? change(t, Date.now()) : undefined;
       }),
     [setRaw],
   );
   const start = useCallback(
-    (paper: TimedPaper, total: number) => setRaw({ paper, clock: clockStart(total, Date.now()) }),
+    (paper: TimedPaper, total: number) =>
+      setRaw({ paper, clock: clockStart(total, Date.now()), ended: false } satisfies RunningTimer),
     [setRaw],
   );
-  const pause = useCallback(() => update(clockPause), [update]);
-  const resume = useCallback(() => update(clockResume), [update]);
+  const pause = useCallback(() => update(pauseTimer), [update]);
+  const resume = useCallback(() => update(resumeTimer), [update]);
+  const end = useCallback(() => update(endTimer), [update]);
   const stop = useCallback(() => setRaw(undefined), [setRaw]);
-  return { timer, start, pause, resume, stop };
+  return { timer, start, pause, resume, end, stop };
 }
 
 /** The paper as the timer keeps it. */
@@ -215,11 +222,14 @@ function announce(title: string) {
  * end when the tab comes back (timers sleep in hidden tabs). Rings once when time runs out, and shows the clock in
  * the tab's title (only one clock is ever on screen: the paper's bar, or the floating timer elsewhere).
  */
-function useClock({ clock, paper }: RunningTimer) {
+function useClock(timer: RunningTimer) {
+  const { clock, paper } = timer;
   const [now, setNow] = useState(() => Date.now());
   const left = clockLeft(clock, now);
-  const done = left <= 0;
-  const paused = clock.endsAt === null && !done;
+  const phase = timerPhase(timer, now);
+  const done = phase === 'done';
+  const ended = phase === 'ended';
+  const paused = phase === 'paused' || ended;
   const announced = useRef(false);
 
   useEffect(() => {
@@ -251,8 +261,8 @@ function useClock({ clock, paper }: RunningTimer) {
   useEffect(() => {
     document.title = done
       ? `Time’s up · ${paper.title}`
-      : `${clockLabel(left)}${paused ? ' paused' : ''} · ${paper.title}`;
-  }, [done, left, paused, paper.title]);
+      : `${clockLabel(left)}${ended ? ' ended' : paused ? ' paused' : ''} · ${paper.title}`;
+  }, [done, ended, left, paused, paper.title]);
 
   useEffect(() => {
     if (!done || announced.current) return;
@@ -261,7 +271,7 @@ function useClock({ clock, paper }: RunningTimer) {
     if (clock.endsAt !== null && Date.now() - clock.endsAt < 60_000) announce(paper.title);
   }, [done, clock.endsAt, paper.title]);
 
-  return { left, done, paused };
+  return { left, done, paused, ended };
 }
 
 /** Whether "How did it go?" can keep a score: signed in, with the board on (practice scores live there). */
@@ -271,32 +281,79 @@ function useKeepsScores(): boolean {
 }
 
 /**
- * Finishing a paper: the clock stops and, when scores can be kept, "How did it go?" opens to keep the score.
- * Render `dialog`.
+ * Ending an attempt, deliberately (ST-67). `close` asks "End this attempt?" while the clock is still on, and just
+ * closes an attempt already ended or out of time. Ending keeps the stopped clock and, when scores can be kept, asks
+ * "How did it go?": saving the score closes the timer, and skipping it leaves the clock to resume. Render `dialog`.
  */
 // eslint-disable-next-line react-refresh/only-export-components
-export function useFinishPaper(stop: () => void): { finish: (paper: TimedPaper) => void; dialog: ReactNode } {
+export function useEndAttempt({ end, stop }: { end: () => void; stop: () => void }): {
+  close: (timer: RunningTimer) => void;
+  score: (paper: TimedPaper) => void;
+  dialog: ReactNode;
+} {
   const scores = useKeepsScores();
+  const [confirming, setConfirming] = useState<{ timer: RunningTimer; elapsed: string } | null>(null);
   const [asking, setAsking] = useState<TimedPaper | null>(null);
-  const finish = useCallback(
-    (paper: TimedPaper) => {
-      stop();
-      if (scores) setAsking(paper);
+  const close = useCallback(
+    (timer: RunningTimer) => {
+      const now = Date.now();
+      if (closeAsksFirst(timerPhase(timer, now))) setConfirming({ timer, elapsed: elapsedLabel(timer.clock, now) });
+      else stop();
     },
-    [stop, scores],
+    [stop],
   );
-  const dialog = asking ? (
-    <PaperScoreDialog key={asking.id} itemId={asking.id} title={asking.title} onClose={() => setAsking(null)} />
-  ) : null;
-  return { finish, dialog };
+  const confirmEnd = () => {
+    if (!confirming) return;
+    if (scores) {
+      end();
+      setAsking(confirming.timer.paper);
+    } else {
+      stop();
+    }
+    setConfirming(null);
+  };
+  const dialog = (
+    <>
+      <ConfirmDialog
+        open={confirming !== null}
+        title="End this attempt?"
+        body={
+          confirming
+            ? `You’re ${confirming.elapsed} into ${durationLabel(confirming.timer.clock.total)} on ${confirming.timer.paper.title}. ${
+                scores
+                  ? 'The clock stops, and you can save your score. Skip it to keep the clock: Resume carries on.'
+                  : 'The clock stops and closes.'
+              }`
+            : null
+        }
+        confirmLabel="End attempt"
+        cancelLabel="Keep going"
+        tone="danger"
+        onConfirm={confirmEnd}
+        onClose={() => setConfirming(null)}
+      />
+      {asking ? (
+        <PaperScoreDialog
+          key={asking.id}
+          itemId={asking.id}
+          title={asking.title}
+          onSaved={stop}
+          onClose={() => setAsking(null)}
+        />
+      ) : null}
+    </>
+  );
+  return { close, score: setAsking, dialog };
 }
 
 interface ClockProps {
   timer: RunningTimer;
   onPause: () => void;
   onResume: () => void;
-  /** stop the clock, asking for the score */
-  onFinish: () => void;
+  /** close the timer: "End this attempt?" first while it is still on */
+  onClose: () => void;
+  /** "How did it go?", once ended or out of time */
+  onScore: () => void;
 }
 
 function PauseResume({
@@ -340,10 +397,19 @@ function PauseResume({
   );
 }
 
-/** The countdown under the paper's toolbar: pause and resume, stop, and the report once time is up. */
-export function ExamTimer({ timer, report, onPause, onResume, onFinish }: ClockProps & { report: LibraryItem | null }) {
-  const { left, done, paused } = useClock(timer);
+/** The countdown under the paper's toolbar: pause and resume, end the attempt, and the score once ended or out of
+ *  time. */
+export function ExamTimer({
+  timer,
+  report,
+  onPause,
+  onResume,
+  onClose,
+  onScore,
+}: ClockProps & { report: LibraryItem | null }) {
+  const { left, done, paused, ended } = useClock(timer);
   const scores = useKeepsScores();
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
   return (
     <div
       className={done ? 'lib-timer is-done' : 'lib-timer'}
@@ -369,24 +435,23 @@ export function ExamTimer({ timer, report, onPause, onResume, onFinish }: ClockP
             {clockLabel(left)}
           </strong>{' '}
           <span className="lib-timer__of">
-            {paused ? 'paused' : 'left'} of {durationLabel(timer.clock.total)}
+            {ended ? 'left, ended' : `${paused ? 'paused' : 'left'} of ${durationLabel(timer.clock.total)}`}
           </span>
         </p>
       )}
-      {done ? (
-        scores ? (
-          <Button size="sm" variant="primary" onClick={onFinish} data-hub="time-me-score">
-            Save my score
-          </Button>
-        ) : null
-      ) : (
-        <PauseResume paused={paused} onPause={onPause} onResume={onResume} compact={false} />
-      )}
+      {!done ? (
+        <PauseResume paused={paused} onPause={onPause} onResume={onResume} compact={phone && ended && scores} />
+      ) : null}
+      {(done || ended) && scores ? (
+        <Button size="sm" variant="primary" onClick={onScore} data-hub="time-me-score">
+          Save my score
+        </Button>
+      ) : null}
       <IconButton
-        label={done ? 'Close' : 'Stop the timer'}
+        label={done || ended ? 'Close the timer' : 'End this attempt'}
         icon={<Icon glyph={glyph.close} />}
         size="sm"
-        onClick={onFinish}
+        onClick={onClose}
         data-hub="time-me-stop"
       />
     </div>
@@ -398,9 +463,9 @@ export function ExamTimer({ timer, report, onPause, onResume, onFinish }: ClockP
  * bar), with the way back to the paper. The shell mounts it once.
  */
 export function TimerPill() {
-  const { timer, pause, resume, stop } = useTimeMe();
+  const { timer, pause, resume, end, stop } = useTimeMe();
   const { pathname } = useLocation();
-  const { finish, dialog } = useFinishPaper(stop);
+  const { close, score, dialog } = useEndAttempt({ end, stop });
   const onPaper = timer ? pathname === timedPaperPath(timer.paper) : false;
   return (
     <>
@@ -410,7 +475,8 @@ export function TimerPill() {
           timer={timer}
           onPause={pause}
           onResume={resume}
-          onFinish={() => finish(timer.paper)}
+          onClose={() => close(timer)}
+          onScore={() => score(timer.paper)}
         />
       ) : null}
       {dialog}
@@ -421,10 +487,13 @@ export function TimerPill() {
 /** A phone on its side: the clock folds to a chip, so it covers as little of a short screen as it can. */
 const SHORT_SCREEN = '(max-height: 500px)';
 
-function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
-  const { left, done, paused } = useClock(timer);
+function PillClock({ timer, onPause, onResume, onClose, onScore }: ClockProps) {
+  const { left, done, paused, ended } = useClock(timer);
   const scores = useKeepsScores();
   const short = useMediaQuery(SHORT_SCREEN);
+  // Phones: the pill sits just above the tab bar, in the thumb's path, so it has no way to end a running attempt
+  // (ST-67). The paper's own bar, at the top of its page, does.
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
   const [unfolded, setUnfolded] = useState(false);
   // Folding swaps the button pressed for another: keep the keyboard's place on the one that takes its place.
   const toggled = useRef(false);
@@ -438,6 +507,7 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
     toggled.current = true;
     setUnfolded(open);
   };
+  const state = ended ? ' ended' : paused ? ' paused' : '';
   // Time's up is an alert with its own action: it never hides in the chip.
   if (short && !unfolded && !done) {
     return (
@@ -446,7 +516,7 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
           type="button"
           className={cx('lib-pill', 'lib-pill--chip', paused && 'is-paused')}
           aria-expanded={false}
-          aria-label={`Time me, ${clockLabel(left)} ${paused ? 'left, paused' : 'left'}. Show the timer`}
+          aria-label={`Time me, ${clockLabel(left)} left${state ? `,${state}` : ''}. Show the timer`}
           ref={(el) => {
             toggle.current = el;
           }}
@@ -456,12 +526,13 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
           <Icon glyph={glyph.timer} className="lib-pill__icon" />
           <span className="lib-pill__clock u-tabular" aria-hidden="true">
             {clockLabel(left)}
-            {paused ? <span className="lib-pill__state"> paused</span> : null}
+            {state ? <span className="lib-pill__state">{state}</span> : null}
           </span>
         </button>
       </div>
     );
   }
+  const finished = done || ended;
   return (
     <div className="lib-pill-lane">
       <div
@@ -475,7 +546,7 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
           <Icon glyph={glyph.timer} className="lib-pill__icon" />
           <span className="lib-pill__clock u-tabular">
             {done ? 'Time’s up' : clockLabel(left)}
-            {paused ? <span className="lib-pill__state"> paused</span> : null}
+            {state ? <span className="lib-pill__state">{state}</span> : null}
           </span>
           <span className="lib-pill__title">
             <span className="visually-hidden">Back to </span>
@@ -483,22 +554,27 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
           </span>
           <Icon glyph={glyph.forward} className="lib-pill__go" />
         </Link>
-        {done ? (
-          scores ? (
-            <Button size="sm" variant="primary" onClick={onFinish} className="lib-pill__score">
-              Save my score
-            </Button>
-          ) : null
-        ) : (
-          <PauseResume paused={paused} onPause={onPause} onResume={onResume} compact />
-        )}
-        <IconButton
-          label={done ? 'Close the timer' : 'Stop the timer'}
-          icon={<Icon glyph={glyph.close} />}
-          size="sm"
-          onClick={onFinish}
-          data-hub="timer-pill-stop"
-        />
+        {!done ? <PauseResume paused={paused} onPause={onPause} onResume={onResume} compact /> : null}
+        {finished && scores ? (
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={onScore}
+            className="lib-pill__score"
+            aria-label={done ? undefined : 'Save my score'}
+          >
+            {done ? 'Save my score' : 'Score'}
+          </Button>
+        ) : null}
+        {finished || !phone ? (
+          <IconButton
+            label={finished ? 'Close the timer' : 'End this attempt'}
+            icon={<Icon glyph={glyph.close} />}
+            size="sm"
+            onClick={onClose}
+            data-hub="timer-pill-stop"
+          />
+        ) : null}
         {short && !done ? (
           <IconButton
             label="Fold the timer"
@@ -515,9 +591,10 @@ function PillClock({ timer, onPause, onResume, onFinish }: ClockProps) {
   );
 }
 
-/** '1:23:45 left', '1:23:45 left, paused' or 'Time’s up', ticking: for a list that shows the paper being timed. */
+/** '1:23:45 left', '1:23:45 left, paused', '1:23:45 left, ended' or 'Time’s up', ticking: for a list that shows the
+ *  paper being timed. */
 export function ClockText({ timer }: { timer: RunningTimer }) {
-  const { clock } = timer;
+  const { clock, ended } = timer;
   const [now, setNow] = useState(() => Date.now());
   const left = clockLeft(clock, now);
   const running = clock.endsAt !== null && left > 0;
@@ -530,7 +607,7 @@ export function ClockText({ timer }: { timer: RunningTimer }) {
   if (left <= 0) return <>Time’s up</>;
   return (
     <span className="u-tabular">
-      {clockLabel(left)} left{clock.endsAt === null ? ', paused' : ''}
+      {clockLabel(left)} left{ended ? ', ended' : clock.endsAt === null ? ', paused' : ''}
     </span>
   );
 }

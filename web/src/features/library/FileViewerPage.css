@@ -673,6 +673,10 @@
   color: var(--accent);
   font-weight: var(--fw-semibold);
 }
+.lib-timer__clock,
+.lib-timer__of {
+  white-space: nowrap;
+}
 .lib-timer__clock {
   font-size: var(--fs-16);
   font-weight: var(--fw-heavy);

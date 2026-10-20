@@ -94,8 +94,10 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     await timeMe.getByRole('radio', { name: '1 hour' }).click();
     await timeMe.getByRole('button', { name: 'Start 1 hour' }).click();
     await expect(sara.locator('[data-hub="exam-timer"]')).toContainText(/0:59:\d\d left/);
-    await sara.getByRole('button', { name: 'Stop the timer' }).click();
-    // Stopping asks for the score there and then while boards (where scores live) are on (ST-47); she skips it.
+    await sara.getByRole('button', { name: 'End this attempt' }).click();
+    await sara.getByRole('dialog', { name: 'End this attempt?' }).getByRole('button', { name: 'End attempt' }).click();
+    // Ending asks for the score there and then while boards (where scores live) are on (ST-47); she skips it, which
+    // keeps the stopped clock (ST-67), then closes the timer.
     const score = sara.getByRole('dialog', { name: 'How did it go?' });
     if (
       await score.waitFor({ timeout: 3000 }).then(
@@ -105,6 +107,7 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     ) {
       await score.getByRole('button', { name: 'Skip', exact: true }).click();
       await expect(score).toBeHidden();
+      await sara.locator('[data-hub="exam-timer"]').getByRole('button', { name: 'Close the timer' }).click();
     }
     await expect(sara.locator('[data-hub="exam-timer"]')).toBeHidden();
 
