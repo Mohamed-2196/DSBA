@@ -198,8 +198,8 @@ def update_event(
     if before.sample and not event.sample:  # confirmed: the requests asking about it close themselves
         from app.services import requests as student_requests  # requests -> search -> calendar
 
-        when = _when(event.date, event.end_date, event.time, event.place)
-        closed = student_requests.close_for_date(db, user, event, f"Confirmed: {when}.", ip)
+        now = when(event.date, event.end_date, event.time, event.place)
+        closed = student_requests.close_for_date(db, user, event, f"Confirmed: {now}.", ip)
     if changed:
         extra: dict[str, int] = {"told": notice.told} if notice.status == "sent" else {}
         if closed:
@@ -230,7 +230,7 @@ def _day(d: dt.date) -> str:
     return f"{d:%A} {d.day} {d:%B}"
 
 
-def _when(date: dt.date, end_date: dt.date | None, time: str | None, place: str | None) -> str:
+def when(date: dt.date, end_date: dt.date | None, time: str | None, place: str | None) -> str:
     days = _day(date) if end_date is None or end_date == date else f"{_day(date)} to {_day(end_date)}"
     return ", ".join(p for p in (days, time, place) if p)
 
@@ -242,8 +242,8 @@ def change_message(e: CalendarEvent, before: Before) -> tuple[str, str] | None:
     moved = (e.date, e.end_date) != (before.date, before.end_date)
     retimed, replaced = e.time != before.time, e.place != before.place
     confirmed = before.sample and not e.sample
-    now = _when(e.date, e.end_date, e.time, e.place)
-    was = _when(before.date, before.end_date, before.time, before.place)
+    now = when(e.date, e.end_date, e.time, e.place)
+    was = when(before.date, before.end_date, before.time, before.place)
     if moved:
         return f"{name} moved to {_day(e.date)}", f"Now: {now}. It was {was}."
     if retimed or replaced:

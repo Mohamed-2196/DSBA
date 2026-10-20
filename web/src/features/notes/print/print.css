@@ -89,3 +89,27 @@
     z-index: auto !important;
   }
 }
+
+@media print {
+  /* a module's notes printed together: which note a page starts, in its top margin */
+  .nb-print__label {
+    position: absolute;
+    top: 14px;
+    margin: 0;
+    overflow: hidden;
+    color: #5a6a8c;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    line-height: 18px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* a module's notes printed together (PrintModule.tsx): each note's text laid out off screen, then copied onto paper */
+.nb-print-sources {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  pointer-events: none;
+}

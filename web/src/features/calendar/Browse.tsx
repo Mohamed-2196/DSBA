@@ -157,7 +157,7 @@ export function Browse({ view, today, calendarEmpty, onAddDate, onAddMine }: Bro
 }
 
 function Filters({ view }: { view: CalendarView }) {
-  const { signedIn, types, toggleType, clearTypes } = view;
+  const { signedIn, showsPlan, types, toggleType, clearTypes } = view;
   return (
     <div className="cal-filters">
       <div className="cal-filters__types" role="group" aria-label="Event types (also the colour key)">
@@ -185,6 +185,18 @@ function Filters({ view }: { view: CalendarView }) {
             Your events
           </Chip>
         ) : null}
+        {showsPlan ? (
+          <Chip
+            size="sm"
+            selected={types.has('plan')}
+            onChange={() => toggleType('plan')}
+            className="cal-typechip cal-typechip--plan"
+            data-hub="calendar-filter-plan"
+          >
+            <span className="cal-swatch cal-swatch--plan" aria-hidden="true" />
+            Your plan
+          </Chip>
+        ) : null}
         {types.size ? (
           <Button size="sm" variant="ghost" onClick={clearTypes}>
             Show every type
@@ -203,7 +215,15 @@ function UpcomingList({ view, today, calendarEmpty, onAddDate, onAddMine }: Brow
     let title = 'Nothing else on the calendar yet';
     let body = 'New dates show up here as soon as they’re announced.';
     let action = null;
-    if (types.size === 1 && types.has('mine')) {
+    if (types.size === 1 && types.has('plan')) {
+      title = 'Nothing planned ahead';
+      body = 'Give the cards on your boards a due date, or plan a module’s revision, and they show here.';
+      action = (
+        <Button size="sm" variant="primary" to="/board">
+          Open your boards
+        </Button>
+      );
+    } else if (types.size === 1 && types.has('mine')) {
       title = 'None of your own events ahead';
       body = 'Add the things you plan around: study groups, deadlines of your own, appointments.';
       action = (

@@ -3,10 +3,19 @@ import { useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import { calendarKeys, fetchEvents, mineKeys, STALE, useCalendarPrefs, useMyEvents, useUpdatePrefs } from './api';
+import {
+  calendarKeys,
+  fetchEvents,
+  mineKeys,
+  STALE,
+  useCalendarPrefs,
+  useMyEvents,
+  useMyPlan,
+  useUpdatePrefs,
+} from './api';
 import { isEventType } from './eventMeta';
 import { isHidden } from './mine';
-import type { CalendarEvent, CalendarPrefs, EventFilters, PersonalEvent } from './types';
+import type { CalendarEvent, CalendarPrefs, EventFilters, PersonalEvent, PlanCard } from './types';
 
 export type HiddenKind = 'hiddenEvents' | 'hiddenModules' | 'hiddenTypes';
 
@@ -15,6 +24,12 @@ export interface MyCalendar {
   signedIn: boolean;
   events: PersonalEvent[];
   prefs: CalendarPrefs | null;
+  /** their plan (their boards' dated cards): read while they show it on their calendar */
+  plan: PlanCard[];
+  /** whether boards are on for them: the plan comes from their boards */
+  hasBoards: boolean;
+  /** show their plan on their calendar and private link, or not; saved at once */
+  setShowPlan: (show: boolean) => void;
   /** their events and settings are still loading */
   loading: boolean;
   /** their events or settings didn't load: the programme dates show alone until `retry` works */
@@ -33,10 +48,21 @@ export function useMyCalendar(): MyCalendar {
   const { push } = useToast();
   const qc = useQueryClient();
   const signedIn = !!me && featureOn('calendar');
+  const hasBoards = signedIn && featureOn('board');
   const events = useMyEvents({ enabled: signedIn });
   const prefs = useCalendarPrefs({ enabled: signedIn });
+  const plan = useMyPlan({ enabled: hasBoards && !!prefs.data?.showPlan });
   const update = useUpdatePrefs();
   const { mutate } = update;
+  const notSaved = useCallback(
+    () =>
+      push({
+        tone: 'alert',
+        title: 'That change wasn’t saved',
+        body: 'Your calendar shows what was kept. Check your connection and try again.',
+      }),
+    [push],
+  );
   const setHidden = useCallback(
     (kind: HiddenKind, value: string, hidden: boolean) => {
       // from what the cache holds now, earlier changes still on their way included
@@ -45,16 +71,13 @@ export function useMyCalendar(): MyCalendar {
       const list: string[] = current[kind];
       const next = hidden ? (list.includes(value) ? list : [...list, value]) : list.filter((v) => v !== value);
       const body = kind === 'hiddenTypes' ? { hiddenTypes: next.filter(isEventType) } : { [kind]: next };
-      mutate(body, {
-        onError: () =>
-          push({
-            tone: 'alert',
-            title: 'That change wasn’t saved',
-            body: 'Your calendar shows what was kept. Check your connection and try again.',
-          }),
-      });
+      mutate(body, { onError: notSaved });
     },
-    [qc, mutate, push],
+    [qc, mutate, notSaved],
+  );
+  const setShowPlan = useCallback(
+    (show: boolean) => mutate({ showPlan: show }, { onError: notSaved }),
+    [mutate, notSaved],
   );
   const { refetch: refetchEvents } = events;
   const { refetch: refetchPrefs } = prefs;
@@ -66,6 +89,9 @@ export function useMyCalendar(): MyCalendar {
     signedIn,
     events: events.data ?? [],
     prefs: prefs.data ?? null,
+    plan: hasBoards ? (plan.data ?? []) : [],
+    hasBoards,
+    setShowPlan,
     loading: signedIn && (events.isPending || prefs.isPending),
     loadError: signedIn ? (events.error ?? prefs.error) : null,
     retry,

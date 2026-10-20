@@ -355,7 +355,13 @@ def test_the_feed_and_the_file_leave_skipped_days_out(
 
 def test_hide_programme_dates_and_show_them_again(client_for: Clients, make_user: MakeUser) -> None:
     c = client_for(make_user())
-    assert c.get(SETTINGS).json() == {"hiddenEvents": [], "hiddenModules": [], "hiddenTypes": [], "feedPath": None}
+    assert c.get(SETTINGS).json() == {
+        "hiddenEvents": [],
+        "hiddenModules": [],
+        "hiddenTypes": [],
+        "showPlan": False,
+        "feedPath": None,
+    }
     r = c.patch(SETTINGS, json={"hiddenEvents": ["y2-exam", "y2-exam", "x"], "hiddenTypes": ["break"]})
     assert r.status_code == 200, r.text
     assert (r.json()["hiddenEvents"], r.json()["hiddenTypes"]) == (["y2-exam", "x"], ["break"])

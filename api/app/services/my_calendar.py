@@ -31,6 +31,7 @@ from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.text import slugify
 from app.core.time import BAHRAIN, utcnow
 from app.models import CalendarEvent, CalendarPrefs, Module, PersonalEvent, User
+from app.schemas.board import AgendaCard
 from app.schemas.calendar import (
     CalendarPrefsOut,
     CalendarPrefsUpdate,
@@ -348,7 +349,7 @@ def get_prefs(db: Session, user: User) -> CalendarPrefs | None:
 def _prefs_for_update(db: Session, user: User) -> CalendarPrefs:
     prefs = db.get(CalendarPrefs, user.id, with_for_update=True)
     if prefs is None:
-        prefs = CalendarPrefs(user_id=user.id, hidden_events=[], hidden_modules=[], hidden_types=[])
+        prefs = CalendarPrefs(user_id=user.id, hidden_events=[], hidden_modules=[], hidden_types=[], show_plan=False)
         db.add(prefs)
     return prefs
 
@@ -372,12 +373,13 @@ def feed_path(user_id: uuid.UUID, salt: str) -> str:
 
 def prefs_out(user: User, prefs: CalendarPrefs | None) -> CalendarPrefsOut:
     if prefs is None:
-        return CalendarPrefsOut(hidden_events=[], hidden_modules=[], hidden_types=[], feed_path=None)
+        return CalendarPrefsOut(hidden_events=[], hidden_modules=[], hidden_types=[], show_plan=False, feed_path=None)
     return CalendarPrefsOut.model_validate(
         {
             "hidden_events": list(prefs.hidden_events),
             "hidden_modules": list(prefs.hidden_modules),
             "hidden_types": list(prefs.hidden_types),
+            "show_plan": prefs.show_plan,
             "feed_path": feed_path(user.id, prefs.feed_salt) if prefs.feed_salt else None,
         }
     )
@@ -392,6 +394,8 @@ def update_prefs(db: Session, user: User, body: CalendarPrefsUpdate) -> Calendar
         prefs.hidden_modules = list(dict.fromkeys(body.hidden_modules))
     if body.hidden_types is not None:
         prefs.hidden_types = list(dict.fromkeys(body.hidden_types))
+    if body.show_plan is not None:
+        prefs.show_plan = body.show_plan
     prefs.updated_at = utcnow()
     return prefs
 
@@ -541,9 +545,42 @@ def personal_vevent(e: PersonalEvent, now: datetime, base_url: str) -> list[str]
     return lines
 
 
+def plan_vevent(card: AgendaCard, now: datetime, base_url: str) -> list[str]:
+    """A card of the student's plan as a VEVENT: all day, or for an hour from its time."""
+    lines = ["BEGIN:VEVENT", f"UID:{card.id}@dsba-hub-plan", f"DTSTAMP:{programme.utc_stamp(now)}"]
+    if card.due_time is None:
+        lines += [
+            f"DTSTART;VALUE=DATE:{programme.date_value(card.due)}",
+            f"DTEND;VALUE=DATE:{programme.date_value(card.due + timedelta(days=1))}",
+        ]
+    else:
+        start = datetime.combine(card.due, card.due_time, tzinfo=BAHRAIN)
+        end = start + DEFAULT_LENGTH
+        lines += [
+            f"DTSTART;TZID={ZONE}:{_local(start.date(), start.time())}",
+            f"DTEND;TZID={ZONE}:{_local(end.date(), end.time())}",
+        ]
+    return [
+        *lines,
+        f"SUMMARY:{programme.ics_text(card.title)}",
+        f"DESCRIPTION:{programme.ics_text(f'On your board {card.board_name}.')}",
+        "CLASS:PRIVATE",
+        "TRANSP:TRANSPARENT",
+        f"URL:{base_url.rstrip('/')}/board?board={card.board_id}&card={card.id}",
+        "END:VEVENT",
+    ]
+
+
+def plan_of(db: Session, user: User) -> list[AgendaCard]:
+    """The student's plan on their calendar (board cards with a day of their own), while boards are on for them."""
+    from app.services.board import cards  # board -> common -> my_calendar
+
+    return cards.calendar_plan(db, user) if access.feature_on(db, user, Feature.board) else []
+
+
 def private_feed(db: Session, token: str) -> str:
-    """The private feed: the student's programme dates (their year and papers, less what they hid) and their own
-    events. 404 not_found for an address that doesn't work."""
+    """The private feed: the student's programme dates (their year and papers, less what they hid), their own
+    events, and their plan when they show it on their calendar. 404 not_found for an address that doesn't work."""
     user, prefs = _owner_of_feed(db, token)
     catalogue = db.scalars(select(Module)).all()
     papers = papers_of(user, catalogue, grades.choice_ids(db))
@@ -552,6 +589,8 @@ def private_feed(db: Session, token: str) -> str:
     now, base = utcnow(), get_settings().web_base_url
     vevents = [programme.vevent(e, modules.get(e.module_id) if e.module_id else None, now, base) for e in dates]
     vevents += [personal_vevent(e, now, base) for e in list_events(db, user)]
+    if prefs.show_plan:
+        vevents += [plan_vevent(card, now, base) for card in plan_of(db, user)]
     return programme.ics_document([BAHRAIN_ZONE, *vevents], name="DSBA Hub: my calendar")
 
 

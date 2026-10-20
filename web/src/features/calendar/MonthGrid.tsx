@@ -20,7 +20,7 @@ const BAR_LINE = 26;
 /** A chip's one line: 'ST2134 Exam 9:00', 'ST2134 Revision session', 'Event: Careers fair', 'Study group 18:00'. */
 function chipLabel(ev: CalendarEvent, code: string | null, line: string): string {
   const time = ev.mine?.startTime?.slice(0, 5) ?? ev.time ?? null;
-  if (ev.mine) return time ? `${ev.title} ${time}` : ev.title;
+  if (ev.mine || ev.plan) return time ? `${ev.title} ${time}` : ev.title;
   if (ev.type === 'exam') return [code, 'Exam', time].filter(Boolean).join(' ');
   if (ev.type === 'event') return `Event: ${code ? `${code} ${line}` : line}`;
   return code ? `${code} ${line}` : line;
@@ -248,7 +248,7 @@ export function MonthGrid({
                             data-event-id={ev.id}
                             aria-label={eventSummary(ev)}
                           >
-                            {ev.type === 'exam' && !ev.mine ? (
+                            {ev.type === 'exam' && !ev.mine && !ev.plan ? (
                               <Icon glyph={glyph.calendar} className="cal-chip__icon" />
                             ) : null}
                             <span className="cal-chip__title">{chipLabel(ev, code, line)}</span>

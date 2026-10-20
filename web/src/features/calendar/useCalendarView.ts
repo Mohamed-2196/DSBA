@@ -25,8 +25,8 @@ export const monthOfEvent = (e: CalendarEvent): MonthRef => monthOfDate(eventDat
 
 export type CalendarMode = 'list' | 'month';
 
-const FILTER_ORDER: readonly EventFilter[] = ['mine', ...TYPE_ORDER];
-const isFilter = (value: string): value is EventFilter => value === 'mine' || isEventType(value);
+const FILTER_ORDER: readonly EventFilter[] = ['mine', 'plan', ...TYPE_ORDER];
+const isFilter = (value: string): value is EventFilter => value === 'mine' || value === 'plan' || isEventType(value);
 
 export interface CalendarView {
   /** today in Bahrain, as a day key */
@@ -44,6 +44,8 @@ export interface CalendarView {
   setAllYears: (all: boolean) => void;
   /** the student has a calendar of their own (signed in): the filters offer it */
   signedIn: boolean;
+  /** their plan is on their calendar: the filters offer it */
+  showsPlan: boolean;
   /** the types picked, and 'mine' for their own events (none: everything) */
   types: ReadonlySet<EventFilter>;
   toggleType: (type: EventFilter) => void;
@@ -78,6 +80,7 @@ export function useCalendarView(
   signedIn = false,
   /** the view without ?view=: the month on laptops and wider, the list on phones and tablets */
   defaultMode: CalendarMode = 'list',
+  showsPlan = false,
 ): CalendarView {
   const { year, papers } = usePapers();
   const [monthParam, setMonthParam] = useQueryParam('month');
@@ -181,6 +184,7 @@ export function useCalendarView(
     cohortYear,
     setAllYears,
     signedIn,
+    showsPlan,
     types,
     toggleType,
     clearTypes,

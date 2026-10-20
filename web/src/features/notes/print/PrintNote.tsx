@@ -9,6 +9,7 @@ import { StrokePaths, type InkStroke } from '../../../lib/ink';
 import { Button, Modal, cx } from '../../../ui';
 import type { Paper } from '../draft';
 import type { LoadedPdf } from '../pdf';
+import { drawPage } from './drawPage';
 import { FreePictureView } from '../pictures/FreePictureView';
 import type { FreePicture } from '../pictures/geometry';
 import {
@@ -22,8 +23,6 @@ import {
 } from '../surface/layout';
 import './print.css';
 
-/** A PDF page is drawn this many pixels wide for paper (about 190 dots an inch on A4). */
-const PRINT_WIDTH = 1600;
 /** A4 is 210 mm wide: 793.7 CSS pixels, so a sheet's 800 units print at this scale. */
 const A4_SCALE = 793.7 / SHEET_WIDTH;
 /** A4's height in units at that scale: a taller page is scaled down to fit. */
@@ -78,19 +77,61 @@ function PrintText({ source, page }: { source: HTMLElement | null; page: number 
   );
 }
 
-async function drawPage(pdf: LoadedPdf, page: number): Promise<string> {
-  const p = await pdf.doc.getPage(page);
-  const base = p.getViewport({ scale: 1 });
-  const viewport = p.getViewport({ scale: PRINT_WIDTH / base.width });
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.floor(viewport.width);
-  canvas.height = Math.floor(viewport.height);
-  await p.render({ canvas, viewport }).promise;
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
-  canvas.width = 0;
-  canvas.height = 0;
-  if (!blob) throw new Error('The page could not be drawn.');
-  return URL.createObjectURL(blob);
+export interface PrintSheetsProps {
+  sheets: readonly SheetSpec[];
+  paper: Paper;
+  /** each PDF page drawn for paper, by its sheet's index */
+  images: Readonly<Record<number, string>>;
+  /** the note's typed text (the editor's `.nb-text`), copied onto its paper pages */
+  text: HTMLElement | null;
+  strokesOf: (sheet: number) => readonly Stroke[];
+  pictures: readonly FreePicture[];
+  /** the last note printed: its last page doesn't break onto a blank one */
+  last: boolean;
+  /** a line at the top of the note's first page (a module's notes printed together: which note it is) */
+  label?: string;
+}
+
+/** One note's sheets, a page each, as they print. */
+export function PrintSheets({ sheets, paper, images, text, strokesOf, pictures, last, label }: PrintSheetsProps) {
+  return sheets.map((s, i) => {
+    const fit = Math.min(1, A4_UNITS / s.height);
+    return (
+      <section key={s.index} className={cx('nb-print__page', last && i === sheets.length - 1 && 'is-last')}>
+        <div
+          className={cx('nb-print__sheet', s.kind === 'paper' && `is-${paper}`)}
+          style={{
+            width: SHEET_WIDTH,
+            height: s.height,
+            transform: `scale(${A4_SCALE * fit})`,
+            marginLeft: (SHEET_WIDTH * A4_SCALE * (1 - fit)) / 2,
+          }}
+        >
+          {s.kind === 'pdf' && images[s.index] ? <img className="nb-print__pdf" src={images[s.index]} alt="" /> : null}
+          {s.kind === 'paper' ? <PaperRules paper={paper} height={s.height} /> : null}
+          {s.kind === 'paper' ? <PrintText source={text} page={s.index - PAPER_BASE} /> : null}
+          {pictures
+            .filter((p) => p.sheet === s.index)
+            .map((p) => (
+              <FreePictureView key={p.id} p={p} />
+            ))}
+          <svg
+            className="nb-print__ink"
+            width={SHEET_WIDTH}
+            height={s.height}
+            viewBox={`0 0 ${SHEET_WIDTH} ${s.height}`}
+          >
+            <StrokePaths strokes={strokesOf(s.index) as readonly InkStroke[]} />
+          </svg>
+          {label && i === 0 ? (
+            <p className="nb-print__label" style={{ left: TEXT_SIDE, width: TEXT_WIDTH }}>
+              {label}
+            </p>
+          ) : null}
+        </div>
+      </section>
+    );
+  });
 }
 
 export function PrintNote({ title, sheets, paper, pdf, strokesOf, pictures, textSource, onDone }: PrintNoteProps) {
@@ -168,38 +209,15 @@ export function PrintNote({ title, sheets, paper, pdf, strokesOf, pictures, text
       </Modal>
       {createPortal(
         <div ref={root} className="nb-print" aria-hidden="true">
-          {sheets.map((s, i) => (
-            <section key={s.index} className={cx('nb-print__page', i === sheets.length - 1 && 'is-last')}>
-              <div
-                className={cx('nb-print__sheet', s.kind === 'paper' && `is-${paper}`)}
-                style={{
-                  width: SHEET_WIDTH,
-                  height: s.height,
-                  transform: `scale(${A4_SCALE * Math.min(1, A4_UNITS / s.height)})`,
-                  marginLeft: (SHEET_WIDTH * A4_SCALE * (1 - Math.min(1, A4_UNITS / s.height))) / 2,
-                }}
-              >
-                {s.kind === 'pdf' && images[s.index] ? (
-                  <img className="nb-print__pdf" src={images[s.index]} alt="" />
-                ) : null}
-                {s.kind === 'paper' ? <PaperRules paper={paper} height={s.height} /> : null}
-                {s.kind === 'paper' ? <PrintText source={text} page={s.index - PAPER_BASE} /> : null}
-                {pictures
-                  .filter((p) => p.sheet === s.index)
-                  .map((p) => (
-                    <FreePictureView key={p.id} p={p} />
-                  ))}
-                <svg
-                  className="nb-print__ink"
-                  width={SHEET_WIDTH}
-                  height={s.height}
-                  viewBox={`0 0 ${SHEET_WIDTH} ${s.height}`}
-                >
-                  <StrokePaths strokes={strokesOf(s.index) as readonly InkStroke[]} />
-                </svg>
-              </div>
-            </section>
-          ))}
+          <PrintSheets
+            sheets={sheets}
+            paper={paper}
+            images={images}
+            text={text}
+            strokesOf={strokesOf}
+            pictures={pictures}
+            last
+          />
         </div>,
         document.body,
       )}

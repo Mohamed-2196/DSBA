@@ -205,3 +205,17 @@
   --tone-soft: color-mix(in srgb, var(--mine) 12%, var(--surface));
   --tone-text: var(--mine);
 }
+
+/* The student's plan (their boards' dated cards): a hollow square dot and a dotted edge, in the plan's own colour, so
+   it reads as neither a programme type nor an event of their own. */
+.cal-dot--plan {
+  border-radius: 2px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--plan);
+}
+.cal-tone--plan {
+  --tone: var(--plan);
+  --tone-on: var(--surface);
+  --tone-soft: color-mix(in srgb, var(--plan) 12%, var(--surface));
+  --tone-text: var(--plan);
+}

@@ -28,7 +28,8 @@ export function DayList({ days, today, selectedId, showCohort, onOpen, className
       {days.map((day) => {
         const n = daysUntil(day.date, today);
         const first = day.events[0];
-        const tone = first && day.events.every((e) => !e.mine && e.type === first.type) ? leafTone(first) : 'neutral';
+        const tone =
+          first && day.events.every((e) => !e.mine && !e.plan && e.type === first.type) ? leafTone(first) : 'neutral';
         return (
           <li key={day.key} className={cx('cal-days__day', n === 0 && 'is-today')}>
             <DateLeaf date={day.date} tone={n === 0 ? 'today' : tone} solid={n === 0} className="cal-days__leaf" />
@@ -89,6 +90,8 @@ function EventRow({ event: e, day, days, today, selected, showCohort, onOpen }: 
           e.mine.repeat !== 'none' ? (
             <span className="cal-row__all">{repeatLabel(e.mine)}</span>
           ) : null
+        ) : e.plan ? (
+          <span className="cal-row__all">{e.plan.boardName}</span>
         ) : showCohort ? (
           <CohortBadge year={e.year} variant="dot" size="sm" short />
         ) : e.year == null ? (

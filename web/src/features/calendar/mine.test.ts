@@ -9,6 +9,8 @@ import {
   monthlyRule,
   myCalendar,
   occurrenceDays,
+  planCardUrl,
+  planEvent,
   occurrences,
   oneRowPerRepeat,
   reminderLabel,
@@ -19,7 +21,7 @@ import {
   timeRange,
 } from './mine';
 import { filterEvents } from './queries';
-import type { CalendarEvent, CalendarPrefs, PersonalEvent } from './types';
+import type { CalendarEvent, CalendarPrefs, PersonalEvent, PlanCard } from './types';
 
 const ID = '3f1c2b9e-1111-4222-8333-944455556666';
 const own = (over: Partial<PersonalEvent> = {}): PersonalEvent => ({
@@ -64,7 +66,34 @@ const prefs = (over: Partial<CalendarPrefs> = {}): CalendarPrefs => ({
   hiddenEvents: [],
   hiddenModules: [],
   hiddenTypes: [],
+  showPlan: false,
   feedPath: null,
+  ...over,
+});
+const card = (id: string, due: string, over: Partial<PlanCard> = {}): PlanCard => ({
+  id,
+  boardId: 'board-1',
+  columnId: 'col-1',
+  title: `Card ${id}`,
+  description: null,
+  dueDate: due,
+  dueTime: null,
+  remindBefore: null,
+  priority: 'none',
+  labelIds: [],
+  checklist: [],
+  link: null,
+  planModuleId: null,
+  planDate: null,
+  coverUrl: null,
+  attachmentCount: 0,
+  commentCount: 0,
+  createdAt: '2026-10-01T09:00:00Z',
+  doneAt: null,
+  boardName: 'Study',
+  boardEmoji: null,
+  boardColor: 'cobalt',
+  due,
   ...over,
 });
 
@@ -357,5 +386,43 @@ describe('the student’s calendar', () => {
     expect(filterEvents(all, { year: 2 }).map((e) => e.id)).toEqual([`mine-${ID}`, 'y2']);
     expect(filterEvents(all, { year: 2, types: new Set(['mine']) }).map((e) => e.id)).toEqual([`mine-${ID}`]);
     expect(filterEvents(all, { year: 2, types: new Set(['exam']) }).map((e) => e.id)).toEqual(['y2']);
+  });
+
+  it('adds their plan only while they show it, alone with the "plan" filter', () => {
+    const cards = [card('c2', '2026-10-24', { dueTime: '18:30:00' }), card('c1', '2026-10-22')];
+    const exam = programme('y2', { date: '2026-10-23' });
+    expect(myCalendar([exam], [], prefs(), cards).map((e) => e.id)).toEqual(['y2']);
+    const all = myCalendar([exam], [], prefs({ showPlan: true }), cards);
+    expect(all.map((e) => e.id)).toEqual(['plan-c1', 'y2', 'plan-c2']);
+    expect(filterEvents(all, { year: 1 }).map((e) => e.id)).toEqual(['plan-c1', 'plan-c2']);
+    expect(filterEvents(all, { year: 2, types: new Set(['plan']) }).map((e) => e.id)).toEqual(['plan-c1', 'plan-c2']);
+    expect(filterEvents(all, { year: 2, types: new Set(['exam']) }).map((e) => e.id)).toEqual(['y2']);
+    expect(isHidden(all[0], prefs({ hiddenTypes: ['event'] }))).toBe(false);
+  });
+
+  it('lays a card out on its day, with its time, and links it to its board', () => {
+    const e = planEvent(card('c2', '2026-10-24', { dueTime: '18:30:00', planModuleId: 'statistics' }));
+    expect([e.date, e.time, e.endDate, e.moduleId, e.plan?.boardName]).toEqual([
+      '2026-10-24',
+      '18:30',
+      null,
+      null,
+      'Study',
+    ]);
+    expect(planCardUrl({ id: 'c2', boardId: 'b 1' })).toBe('/board?board=b%201&card=c2');
+  });
+
+  it('puts the plan after their own events on a busy day', () => {
+    const day = '2026-10-24';
+    const order = dayOrder(
+      [
+        programme('rev', { type: 'revision', date: day }),
+        planEvent(card('c1', day)),
+        ...occurrences([own({ date: day })]),
+        programme('ex', { date: day }),
+      ],
+      day,
+    );
+    expect(order.map((e) => e.id)).toEqual(['ex', `mine-${ID}`, 'plan-c1', 'rev']);
   });
 });

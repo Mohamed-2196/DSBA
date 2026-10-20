@@ -70,7 +70,12 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
           <h3 id="cal-cust-types" className="cal-customise__h">
             Types of date you keep
           </h3>
-          <p className="cal-customise__line">Turn a type off to hide all its dates.</p>
+          <p className="cal-customise__line">
+            Turn a type off to hide all its dates.
+            {my.hasBoards
+              ? ' Your plan is the cards on your boards that have a day: off until you turn it on, and only you see it.'
+              : ''}
+          </p>
           <div className="cal-customise__types" role="group" aria-label="Types of date on your calendar">
             {TYPE_ORDER.map((type) => (
               <Chip
@@ -85,6 +90,19 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
                 {typeLabel(type)}
               </Chip>
             ))}
+            {my.hasBoards ? (
+              <Chip
+                size="sm"
+                selected={!!prefs?.showPlan}
+                onChange={my.setShowPlan}
+                color="var(--plan)"
+                className="cal-typechip cal-typechip--plan"
+                disabled={!prefs}
+                data-hub="calendar-show-plan"
+              >
+                Your plan
+              </Chip>
+            ) : null}
           </div>
         </section>
 

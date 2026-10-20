@@ -86,7 +86,7 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
       : undefined;
 
   const hint = isMine
-    ? 'Your year’s and papers’ dates, less what you hid, and your own events with their reminders. Anyone with this link sees them: keep it to yourself.'
+    ? `Your year’s and papers’ dates, less what you hid, and your own events with their reminders${my?.prefs?.showPlan ? ', and your plan' : ''}. Anyone with this link sees them: keep it to yourself.`
     : papersHere
       ? `Your papers’ dates, ${cohortLabel(chosen)}’s other dates and the dates for everyone. The link doesn’t say who you are.`
       : chosen

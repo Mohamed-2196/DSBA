@@ -9,7 +9,7 @@ import { api, apiUrl, call } from '../../api/client';
 import { appUrl } from '../../lib/share';
 import type { CohortYear } from '../../state';
 import { dayKeyFromToday, sortEvents } from './queries';
-import type { CalendarPrefsUpdate } from '../../api/types';
+import type { CalendarPrefsUpdate, TimetablePreviewIn, TimetableSave } from '../../api/types';
 import type { DayKey } from '../../lib/dates';
 import type {
   CalendarEvent,
@@ -160,6 +160,7 @@ export function useDeleteEvent() {
 export const mineKeys = {
   events: [...CALENDAR_KEY, 'mine', 'events'] as const,
   settings: [...CALENDAR_KEY, 'mine', 'settings'] as const,
+  plan: [...CALENDAR_KEY, 'mine', 'plan'] as const,
 };
 
 /** Saves of what a student hides: each sends whole lists, so they go one at a time, in the order they were made. */
@@ -176,6 +177,17 @@ export function useMyEvents({ enabled }: { enabled: boolean }) {
 }
 
 /** What the student keeps off their calendar, and their private feed. */
+/** The signed-in student's plan: their boards' cards with a day of their own. Read while it shows (`enabled`), and
+ *  again each time the calendar opens: the board changes it. */
+export function useMyPlan({ enabled }: { enabled: boolean }) {
+  return useQuery({
+    queryKey: mineKeys.plan,
+    queryFn: () => call(api.GET('/api/v1/calendar/mine/plan')),
+    enabled,
+    staleTime: 0,
+  });
+}
+
 export function useCalendarPrefs({ enabled }: { enabled: boolean }) {
   return useQuery({
     queryKey: mineKeys.settings,
@@ -260,6 +272,7 @@ export function useUpdatePrefs() {
               hiddenEvents: body.hiddenEvents ?? before.hiddenEvents,
               hiddenModules: body.hiddenModules ?? before.hiddenModules,
               hiddenTypes: body.hiddenTypes ?? before.hiddenTypes,
+              showPlan: body.showPlan ?? before.showPlan,
             }
           : before,
       );
@@ -292,3 +305,19 @@ export const privateFeedUrl = (path: string): string =>
 /** One of the student's events as an .ics file to import. */
 export const myEventIcsUrl = (id: string): string =>
   apiUrl(`/api/v1/calendar/mine/events/${encodeURIComponent(id)}.ics`);
+
+/** The exam timetable as pasted, or its fixed rows: what saving each row will do (reps). Changes nothing. */
+export function useTimetablePreview() {
+  return useMutation({
+    mutationFn: (body: TimetablePreviewIn) => call(api.POST('/api/v1/calendar/timetable/preview', { body })),
+  });
+}
+
+/** Saves the timetable's rows at once (reps); the calendar is read again. */
+export function useSaveTimetable() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: TimetableSave) => call(api.POST('/api/v1/calendar/timetable', { body })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: CALENDAR_KEY }),
+  });
+}

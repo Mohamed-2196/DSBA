@@ -66,8 +66,8 @@ export default function CalendarPage() {
     session: 0,
   }));
   const events = useMemo(
-    () => (query.data ? myCalendar(query.data, my.events, my.prefs) : []),
-    [query.data, my.events, my.prefs],
+    () => (query.data ? myCalendar(query.data, my.events, my.prefs, my.plan) : []),
+    [query.data, my.events, my.prefs, my.plan],
   );
 
   const whose = year ? (papers ? 'your papers' : cohortLabel(year)) : 'all three years';
@@ -333,7 +333,7 @@ function CalendarBody({
   // Today in Bahrain, read once per visit: relative dates stay the same while the page is open.
   const [today] = useState(() => bahrainToday());
   const wide = useMediaQuery(BREAKPOINTS.desktop);
-  const view = useCalendarView(events, today, my.signedIn, wide ? 'month' : 'list');
+  const view = useCalendarView(events, today, my.signedIn, wide ? 'month' : 'list', !!my.prefs?.showPlan);
   const { eventId, open, close } = view;
   const [deleting, setDeleting] = useState<CalendarEvent | null>(null);
   const [deletingMine, setDeletingMine] = useState<{ event: CalendarEvent; scope: ChangeScope } | null>(null);

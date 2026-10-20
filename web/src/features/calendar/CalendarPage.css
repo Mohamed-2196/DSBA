@@ -408,6 +408,10 @@
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--line-strong);
 }
+.cal-swatch--plan {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--plan);
+}
 .cal-swatch--mine {
   background: var(--surface);
   box-shadow: none;
@@ -1212,6 +1216,21 @@ button.cal-day__num:focus-visible {
 }
 .cal-chip--mine.is-past {
   outline-color: color-mix(in srgb, var(--mine) 55%, var(--surface));
+}
+.cal-row.cal-tone--plan {
+  box-shadow: inset 4px 0 0 var(--plan);
+}
+.cal-chip--plan {
+  --chip-bg: var(--surface);
+  --chip-ink: var(--ink);
+  outline: 1.5px dotted var(--plan);
+  outline-offset: -1.5px;
+}
+.cal-chip--plan.is-past {
+  outline-color: color-mix(in srgb, var(--plan) 55%, var(--surface));
+}
+.cal-plan-badge {
+  --mine: var(--plan);
 }
 .cal-mine-badge {
   display: inline-flex;
