@@ -84,6 +84,8 @@ def load(db: Session, user: User, asked: NooraPaper) -> AskedQuestion:
         raise not_found("This past paper doesn't exist or isn't public.")
     body = _text(db, paper.id)
     report = report_for(db, paper)
+    if report is not None and library.hidden_from(db, report, user):  # a hidden module's report stays out (SEC-55)
+        report = None
     return AskedQuestion(
         paper=paper,
         question=asked.question,

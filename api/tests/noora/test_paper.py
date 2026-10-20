@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
 from app.models import ItemSource, ItemStatus, LibraryItem, LibraryText, Module, NooraUsage, TextStatus, User
+from app.schemas.noora import NooraPaper
 from app.services.noora import paper
 from tests.noora.conftest import FakeClient
 
@@ -227,3 +228,22 @@ def test_report_part() -> None:
     assert paper.report_part(body, "12").startswith("Question 12 hard")
     assert paper.report_part(body, "9").startswith("Intro")
     assert len(paper.report_part("x" * 20_000, "1")) == paper.REPORT_CHARS
+
+
+def test_a_hidden_modules_report_stays_out_of_the_prompt(make_user: MakeUser, db: Session, module: Module) -> None:
+    """A student's own paper in a hidden module still opens for them, but the module's examiners' report, which they
+    may not see, never reaches Noora (SEC-55)."""
+    sara = make_user()
+    pp = _file(db, module, text=["p1", "p2"])
+    pp.uploaded_by = sara.id
+    report = _file(db, module, kind="examiners-report", text=["The examiners' secret"])
+    module.hidden = True
+    db.commit()
+    asked = paper.load(db, sara, NooraPaper.model_validate({"itemId": str(pp.id), "page": 2, "question": "2(b)"}))
+    assert asked.report is None
+    assert asked.report_text is None
+    rep = make_user(roles=("student", "rep"))
+    assert (
+        paper.load(db, rep, NooraPaper.model_validate({"itemId": str(pp.id), "page": 2, "question": "2"})).report
+        == report
+    )
