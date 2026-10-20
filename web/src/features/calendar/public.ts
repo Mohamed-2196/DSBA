@@ -7,8 +7,6 @@ import { lazy } from 'react';
 //                                            `year` overrides the browsed cohort (Home passes the year its other panels show).
 //   useNextExamForModule(moduleId, { enabled }) UseQueryResult<CalendarEvent | null>: the module's next exam, null when none.
 //   useCalendarEvents({ from, to, year, moduleId, type })   UseQueryResult<CalendarEvent[]>, oldest first.
-//   useMyCalendarEvents(filters, { enabled })  the same, less the dates the signed-in student hid from their own
-//                                            calendar (their Home); it waits for their settings.
 //
 //   applicationLine(e, today)                a careers date on an employer's card: 'Opens in January', 'Closes 30 November'.
 //   aheadRows(events, today, skip?)          a short "coming up" list: nothing over, windows already open by their closing
@@ -28,7 +26,6 @@ export const TimetablePaste = lazy(() =>
 //                                            `preset` fills a new one (Career Navigator's editor: a careers date).
 export { EventFormDialog } from './EventFormDialog';
 export { useCalendarEvents, useNextExamForModule } from './api';
-export { useMyCalendarEvents } from './useMyCalendar';
 export { applicationLine, EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
 export { aheadRows, dayKeyFromToday, eventDate, type AheadRow } from './queries';
 export type { CalendarEvent, EventType } from './types';

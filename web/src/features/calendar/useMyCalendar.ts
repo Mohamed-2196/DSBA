@@ -1,21 +1,11 @@
 // The signed-in student's own layer on the calendar: their events and the programme dates they keep off it.
 import { useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import {
-  calendarKeys,
-  fetchEvents,
-  mineKeys,
-  STALE,
-  useCalendarPrefs,
-  useMyEvents,
-  useMyPlan,
-  useUpdatePrefs,
-} from './api';
+import { mineKeys, useCalendarPrefs, useMyEvents, useMyPlan, useUpdatePrefs } from './api';
 import { isEventType } from './eventMeta';
-import { isHidden } from './mine';
-import type { CalendarEvent, CalendarPrefs, EventFilters, PersonalEvent, PlanCard } from './types';
+import type { CalendarPrefs, PersonalEvent, PlanCard } from './types';
 
 export type HiddenKind = 'hiddenEvents' | 'hiddenModules' | 'hiddenTypes';
 
@@ -100,28 +90,4 @@ export function useMyCalendar(): MyCalendar {
     saving: update.isPending,
     saveError: update.error,
   };
-}
-
-/**
- * Programme dates on the signed-in student's own calendar: `useCalendarEvents` less the dates, modules and types
- * they hid (a guest's: every date). It waits for their settings, so a hidden date never shows for a moment; when
- * the settings don't load, every date shows.
- */
-export function useMyCalendarEvents(filters: EventFilters = {}, { enabled = true }: { enabled?: boolean } = {}) {
-  const { me, featureOn } = useAuth();
-  const signedIn = !!me && featureOn('calendar');
-  const prefs = useCalendarPrefs({ enabled: signedIn && enabled });
-  const hidden = prefs.data ?? null;
-  const settled = !signedIn || prefs.isSuccess || prefs.isError;
-  const select = useCallback(
-    (events: CalendarEvent[]) => (hidden ? events.filter((e) => !isHidden(e, hidden)) : events),
-    [hidden],
-  );
-  return useQuery({
-    queryKey: calendarKeys.events(filters),
-    queryFn: () => fetchEvents(filters),
-    staleTime: STALE,
-    enabled: enabled && settled,
-    select,
-  });
 }

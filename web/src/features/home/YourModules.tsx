@@ -1,14 +1,13 @@
 import { useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleSummary } from '../../api/types';
-import { useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, cx } from '../../ui';
-import { useMyCalendarEvents } from '../calendar/public';
+import type { CalendarEvent } from '../calendar/public';
 import { useModuleProgress } from '../modules/public';
 import { PapersDialog, modulesFor, papersNote, usePapers } from '../papers/public';
-import { dayKey, daysBetween, formatDayMonth, formatLongDay, inDays, parseDay } from '../../lib/dates';
+import { daysBetween, formatDayMonth, formatLongDay, inDays, parseDay } from '../../lib/dates';
 
 interface NextExam {
   date: Date;
@@ -82,13 +81,22 @@ function ModulesNote() {
 
 /** "My modules": the year's modules (your papers, once picked) as cards (a coloured binder, name, code in mono, progress
  *  while tracked, next exam), and, once the student has a year, what it lists and how to change it. */
-export function YourModules({ year, today, mine }: { year: CohortYear; today: Date; mine: boolean }) {
+export function YourModules({
+  year,
+  today,
+  mine,
+  dates,
+}: {
+  year: CohortYear;
+  today: Date;
+  mine: boolean;
+  /** the student's dates from today (Home's answer): the ones Up next reads */
+  dates: readonly CalendarEvent[];
+}) {
   const { modules: catalogue } = useModules();
   const { papers } = usePapers();
-  // Less the dates the student hid from their calendar: the dates Up next reads (HomePage), so Home asks once.
-  const dates = useMyCalendarEvents({ from: dayKey(today) }, { enabled: useAuth().featureOn('calendar') });
   const nextExam = (moduleId: string): NextExam | null => {
-    const e = (dates.data ?? []).find((ev) => ev.type === 'exam' && ev.moduleId === moduleId && !ev.sample);
+    const e = dates.find((ev) => ev.type === 'exam' && ev.moduleId === moduleId && !ev.sample);
     if (!e) return null;
     const date = parseDay(e.date);
     return { date, days: daysBetween(today, date) };

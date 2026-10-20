@@ -342,13 +342,22 @@ def test_the_daily_question_changes_with_the_day(
 def test_results_day_comes_with_its_date_for_the_guides_weeks(
     client_for: Clients, db: Session, modules: dict[str, Module], monkeypatch: Any
 ) -> None:
-    db.add(CalendarEvent(id="results", date=day(-3), title="UoL results released", type="event"))
+    db.add_all(
+        [
+            CalendarEvent(id="results", date=day(-3), title="UoL Results Released", type="event"),
+            CalendarEvent(id="older", date=day(-5), title="UoL results released", type="event"),
+            CalendarEvent(id="next", date=day(80), title="UoL results released", type="event"),
+            CalendarEvent(id="other", date=day(-1), title="Careers fair", type="event"),
+        ]
+    )
     db.commit()
     home = get_home(client_for(), 2)
-    assert home["resultsDay"] == "results"
+    assert home["resultsDay"] == "results"  # the latest one up to today, whatever the case of its title
     assert home["guides"]["resultsDay"]["title"]
 
-    monkeypatch.setattr(home_service, "bahrain_today", lambda: TODAY + timedelta(days=12))  # two weeks on
+    monkeypatch.setattr(home_service, "bahrain_today", lambda: TODAY + timedelta(days=10))  # its last day of two weeks
+    assert get_home(client_for(), 2)["resultsDay"] == "results"
+    monkeypatch.setattr(home_service, "bahrain_today", lambda: TODAY + timedelta(days=11))
     home = get_home(client_for(), 2)
     assert home["resultsDay"] is None
     assert home["guides"] is None

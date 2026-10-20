@@ -2,9 +2,9 @@
 // what everyone sees: the footer, About, the sidebar's links, search and the grades calculator.
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
+import { SITE_KEY } from '../../api/keys';
 import type { SiteEditable, SiteSave } from '../../api/types';
 
-export const SITE_KEY = ['site'] as const;
 export const EDIT_SITE_KEY = ['site', 'edit'] as const;
 
 /** The hub's words and links. They change rarely: one load per visit is plenty. */

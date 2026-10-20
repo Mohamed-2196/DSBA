@@ -2,8 +2,7 @@
 // to pick, as the grades calculator's rules have them. Served whether or not the calculator is on.
 import { useQuery } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
-
-export const PAPER_CHOICES_KEY = ['papers', 'choices'] as const;
+import { PAPER_CHOICES_KEY } from '../../api/keys';
 
 /** The rules change a few times a year at most; saving them refreshes this (grades/api.ts). */
 export function usePaperChoices() {

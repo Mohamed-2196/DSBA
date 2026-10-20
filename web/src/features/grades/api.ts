@@ -3,7 +3,7 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import type { GradeRulesEditable, GradeRulesSave } from '../../api/types';
-import { PAPER_CHOICES_KEY } from '../papers/public';
+import { PAPER_CHOICES_KEY } from '../../api/keys';
 
 export const GRADE_RULES_KEY = ['grades', 'rules'] as const;
 

@@ -1,14 +1,10 @@
 // Home's "Results day" card: for a few weeks from each results date on the calendar (the Results day guide), until
-// it is hidden.
-import { useAuth } from '../../auth';
+// it is hidden. Home's answer (GET /home) says which results date it is for, if any.
 import type { ResultsDay } from '../../api/types';
-import { addDaysToKey, todayKey } from '../../lib/dates';
 import { useLocalStorage } from '../../state';
 import { Badge, Button, glyph, Icon, IconButton, Panel } from '../../ui';
-import { useCalendarEvents } from '../calendar/public';
 import { useGuides } from './api';
 import { GuideSteps } from './GuideSteps';
-import { latestWithin } from './startHere';
 import { useResultsTicks } from './useGuideTicks';
 import './StartHere.css';
 
@@ -58,16 +54,8 @@ function Card({ guide, eventId }: { guide: ResultsDay; eventId: string }) {
   );
 }
 
-export function ResultsDayCard() {
-  const { featureOn } = useAuth();
+/** `eventId`: the results date the card is for. */
+export function ResultsDayCard({ eventId }: { eventId: string }) {
   const guide = useGuides().data?.resultsDay;
-  return featureOn('calendar') && guide ? <WhenResultsAreOut guide={guide} /> : null;
-}
-
-function WhenResultsAreOut({ guide }: { guide: ResultsDay }) {
-  const today = todayKey();
-  const events = useCalendarEvents({ from: addDaysToKey(today, -(guide.weeks * 7 - 1)), to: today, type: 'event' });
-  if (!events.data) return null;
-  const event = latestWithin(events.data, guide.eventTitle, today, guide.weeks);
-  return event ? <Card guide={guide} eventId={event.id} /> : null;
+  return guide ? <Card guide={guide} eventId={eventId} /> : null;
 }

@@ -1,21 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AccountYearContext, YearContext, type YearValue } from './contexts';
 import { normalizeYear, type CohortYear } from './cohort';
+import { local, readYear, session, VISIT_YEAR_KEY, YEAR_KEY } from './storedYear';
 
 // The cohort whose content is shown ("browsed year"):
 //   guest, or signed in without a cohort  the year chosen in this browser (localStorage)
 //   signed in with a cohort               that cohort; switching to another year lasts for this visit (sessionStorage)
-const KEY = 'selectedYear'; // raw '1' | '2' | '3' (not JSON)
-const VISIT_KEY = 'hub.browseYear';
-
-function read(storage: () => Storage, key: string): CohortYear | null {
-  try {
-    return normalizeYear(storage().getItem(key));
-  } catch {
-    return null;
-  }
-}
-
 function write(storage: () => Storage, key: string, year: CohortYear | null): void {
   try {
     if (year) storage().setItem(key, String(year));
@@ -25,18 +15,15 @@ function write(storage: () => Storage, key: string, year: CohortYear | null): vo
   }
 }
 
-const local = () => window.localStorage;
-const session = () => window.sessionStorage;
-
 export function YearProvider({ children }: { children?: ReactNode }) {
-  const [stored, setStored] = useState<CohortYear | null>(() => read(local, KEY));
+  const [stored, setStored] = useState<CohortYear | null>(() => readYear(local, YEAR_KEY));
   const [account, setAccount] = useState<CohortYear | null>(null);
-  const [visit, setVisit] = useState<CohortYear | null>(() => read(session, VISIT_KEY));
+  const [visit, setVisit] = useState<CohortYear | null>(() => readYear(session, VISIT_YEAR_KEY));
   const accountRef = useRef<CohortYear | null>(null);
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === KEY) setStored(normalizeYear(e.newValue));
+      if (e.key === YEAR_KEY) setStored(normalizeYear(e.newValue));
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -56,11 +43,11 @@ export function YearProvider({ children }: { children?: ReactNode }) {
       // A student's own cohort is the default: another year is a detour for this visit.
       const detour = y === own ? null : y;
       setVisit(detour);
-      write(session, VISIT_KEY, detour);
+      write(session, VISIT_YEAR_KEY, detour);
       return;
     }
     setStored(y);
-    write(local, KEY, y);
+    write(local, YEAR_KEY, y);
   }, []);
 
   const syncAccount = useCallback((next: CohortYear | null) => {
@@ -70,12 +57,12 @@ export function YearProvider({ children }: { children?: ReactNode }) {
     // Signing out or changing cohort ends a detour (a reload keeps it: the cohort only goes from unknown to known).
     if (prev !== null && prev !== next) {
       setVisit(null);
-      write(session, VISIT_KEY, null);
+      write(session, VISIT_YEAR_KEY, null);
     }
     if (next) {
       // Signed out later, this browser keeps showing the same cohort.
       setStored(next);
-      write(local, KEY, next);
+      write(local, YEAR_KEY, next);
     }
   }, []);
 

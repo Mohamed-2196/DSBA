@@ -2,7 +2,7 @@
 student's dates and next exam, the day's past question for it, and the desk shelf's numbers. Each part follows the
 same rules as the endpoint it stands in for (switches, hidden modules, years); what is personal is the asker's own.
 
-The web app works out the same things for the pages it has (getExamSession, startWindow, latestWithin, papersFor in
+The web app works some of them out too, for its own pages (getExamSession, startWindow and papersFor in
 web/src/features): keep the two in step."""
 
 from __future__ import annotations
@@ -116,7 +116,7 @@ def start_open(today: dt.date, guides: GuidesDoc) -> bool:
 
 def results_event(db: Session, today: dt.date, guides: GuidesDoc) -> str | None:
     """The latest results date (an event whose title holds the guide's words) in the guide's weeks up to today: the
-    one Results day's card is for (the web app's latestWithin)."""
+    one Results day's card is for."""
     guide = guides.results_day
     want = guide.event_title.strip().lower()
     if not want:

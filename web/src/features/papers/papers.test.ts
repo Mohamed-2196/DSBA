@@ -1,16 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ModuleSummary, PaperChoice } from '../../api/types';
-import {
-  choicesFrom,
-  cleanPicks,
-  isMine,
-  modulesFor,
-  papersFor,
-  papersNote,
-  pickOnly,
-  picksSummary,
-  togglePick,
-} from './papers';
+import { choicesFrom, isMine, modulesFor, papersFor, papersNote, pickOnly, picksSummary, togglePick } from './papers';
 
 const mod = (id: string, year: 1 | 2 | 3): ModuleSummary => ({
   id,
@@ -140,11 +130,6 @@ it('togglePick keeps a choice to its size', () => {
   expect(togglePick(['econometrics'], 'information-systems', CHOICES[2])).toEqual(['information-systems']);
   expect(togglePick(['econometrics'], 'econometrics', CHOICES[2])).toEqual([]);
   expect(togglePick(['econometrics'], 'statistics')).toEqual(['econometrics', 'statistics']);
-});
-
-it('cleanPicks trusts nothing stored', () => {
-  expect(cleanPicks(null)).toEqual([]);
-  expect(cleanPicks(['a', 'a', 3, 'Bad Id', 'b'])).toEqual(['a', 'b']);
 });
 
 it('picksSummary', () => {

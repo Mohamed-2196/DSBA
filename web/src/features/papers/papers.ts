@@ -35,13 +35,6 @@ export function choicesFrom(served: readonly PaperChoice[] | undefined): Choices
   return out;
 }
 
-/** Picks as stored in a browser, or anything else: only well-formed ids, once each, at most 20. */
-export function cleanPicks(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return [];
-  const ids = raw.filter((x): x is string => typeof x === 'string' && /^[a-z0-9][a-z0-9-]{0,63}$/.test(x));
-  return [...new Set(ids)].slice(0, 20);
-}
-
 /**
  * The module ids a student sits while looking at `year`, or null when that is every module of the year (no pick
  * changes it). Picks from other years count only in the student's own year (`home`).
