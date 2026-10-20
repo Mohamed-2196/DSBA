@@ -1,7 +1,7 @@
 """chapters' study-guide topics, and the topics each tagged past question tests
 
 Revision ID: 0057
-Revises: 0055
+Revises: 0054
 Create Date: 2026-10-21 10:00:00
 
 - `chapter_topics`: a chapter's topics as its module's study guide lists them, from the seed
@@ -18,7 +18,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0057"
-down_revision: str | None = "0055"
+down_revision: str | None = "0054"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
