@@ -708,6 +708,7 @@ button.mod-row:hover .mod-row__title {
   .mod-prac__row {
     min-height: 44px;
   }
+}
 
 /* The Files tab's notes shared from students' notebooks (SharedNotes.tsx), above the library's files. */
 .mod-shared {

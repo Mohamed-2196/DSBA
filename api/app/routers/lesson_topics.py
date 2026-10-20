@@ -27,10 +27,11 @@ from app.services import lesson_topics as svc
 
 router = router_for("lesson-topics", needs_feature(Feature.modules_time_stamps))
 Editor = Annotated[User, requires(Box.content_edit)]
+Poster = Annotated[User, requires(Box.forum_post)]  # a student's write: the posting box governs it (D11)
 
 
 @router.post("/lesson-topics", response_model=TopicOut, status_code=status.HTTP_201_CREATED)
-def suggest_topic(body: TopicCreate, user: ActiveUser, db: DB) -> TopicOut:
+def suggest_topic(body: TopicCreate, user: Poster, db: DB) -> TopicOut:
     """Suggest what a lesson's video covers at a time (`seconds` from its start). It shows beside the player once a
     content manager accepts it.
 

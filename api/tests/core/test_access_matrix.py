@@ -99,6 +99,8 @@ GUARDED_WHEN_ON: list[tuple[str, str, Box, str]] = [
     ("PUT", f"/requests/{NOTHING}/me-too", Box.forum_post, "requests"),
     ("DELETE", f"/requests/{NOTHING}/me-too", Box.forum_post, "requests"),
     ("POST", "/video-suggestions", Box.forum_post, "modules.video-suggestions"),
+    ("PUT", f"/notes/{NOTHING}/share", Box.forum_post, "notes,notes.share"),
+    ("POST", "/lesson-topics", Box.forum_post, "modules.time-stamps"),
 ]
 
 
@@ -114,7 +116,8 @@ def test_tags_flags_requests_and_suggestions_need_their_box(
     holder: Holder,
     set_feature: Callable[..., None],
 ) -> None:
-    set_feature(feature, "everyone")
+    for name in feature.split(","):  # a feature inside another needs both on
+        set_feature(name, "everyone")
     body: dict[str, Any] | None = {} if method in ("POST", "PUT", "PATCH") else None
     others = client_for(holder(frozenset(Box) - {box})).request(method, f"{API}{path}", json=body)
     assert others.status_code == 403, others.text

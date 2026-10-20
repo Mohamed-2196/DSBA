@@ -20,6 +20,7 @@ from app.services import shared_notes as svc
 
 router = router_for("shared-notes", needs_feature(Feature.notes_share))
 Moderator = Annotated[User, requires(Box.library_manage)]
+Poster = Annotated[User, requires(Box.forum_post)]  # a student's write: the posting box governs it (D11)
 
 # The presigned link lives download_url_ttl_seconds (300 s by default): the browser may reuse the redirect for less.
 FILE_CACHE = "private, max-age=240"
@@ -30,7 +31,7 @@ FILE_CACHE = "private, max-age=240"
     response_model=SharedNote,
     dependencies=[needs_feature(Feature.notes)],
 )
-def share_note(note_id: UUID, body: ShareRequest, user: ActiveUser, db: DB) -> SharedNote:
+def share_note(note_id: UUID, body: ShareRequest, user: Poster, db: DB) -> SharedNote:
     """Share a copy of your note with its module's students, or copy it again over the one shared. The note stays
     private: they see the copy, as it is now, with your name and year unless `credited` is false.
 
