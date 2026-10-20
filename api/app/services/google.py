@@ -22,7 +22,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 import httpx
 import jwt
@@ -54,6 +54,7 @@ JWKS_TTL_SECONDS = 3600
 LEEWAY_SECONDS = 60  # clock skew allowed on exp and iat
 TIMEOUT_SECONDS = 10
 RETURN_MAX = 512
+SECRET_PARAMS = frozenset({"token", "reset", "code", "state", "autherror"})
 
 
 class GoogleFlowError(Exception):
@@ -104,7 +105,8 @@ def clear_state_cookie(response: Response) -> None:
 def safe_return(raw: str | None) -> str:
     """A path in the app to go back to: only a same-origin relative path ('/forum?x=1'), never another site
     ('//evil.example', '/\\evil.example', 'https://...'), the API, or anything with control characters ('/'
-    instead)."""
+    instead). The fragment and any secret-looking parameter (SECRET_PARAMS: a reset link's token, OAuth's code and
+    state) are dropped, so nothing one-time travels to Google and back."""
     if not raw or len(raw) > RETURN_MAX or not raw.startswith("/") or raw.startswith(("//", "/\\")):
         return "/"
     if any(ord(ch) < 0x20 or ch in "\\\x7f" for ch in raw):
@@ -112,7 +114,8 @@ def safe_return(raw: str | None) -> str:
     parts = urlsplit(raw)
     if parts.scheme or parts.netloc or parts.path.startswith("/api/"):
         return "/"
-    return raw
+    kept = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k.lower() not in SECRET_PARAMS]
+    return f"{parts.path}?{urlencode(kept)}" if kept else parts.path
 
 
 def with_error(return_to: str, code: GoogleError) -> str:

@@ -24,9 +24,21 @@ export function takeGoogleTrip(): GoogleTrip | null {
   }
 }
 
-/** The current page, to come back to from Google. */
+/** Query parameters that must never travel to Google and back: secrets and one-time values. */
+const SECRET_PARAMS = ['token', 'reset', 'code', 'state', 'authError'];
+
+/** A page to come back to from Google: its path and query, never its fragment (a reset link keeps its token there),
+ *  and without any secret-looking parameter. */
+export function returnPath(pathname: string, search: string): string {
+  const params = new URLSearchParams(search);
+  for (const name of SECRET_PARAMS) params.delete(name);
+  const rest = params.toString();
+  return `${pathname}${rest ? `?${rest}` : ''}`;
+}
+
+/** The current page, to come back to from Google (returnPath()). */
 export function hereNow(): string {
-  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  return returnPath(window.location.pathname, window.location.search);
 }
 
 /** The ?authError=… Google's return carries, and the address without it (null when there is none). */

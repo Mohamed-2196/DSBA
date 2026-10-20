@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { markGoogleTrip, readAuthError, takeGoogleTrip } from './googleTrip';
+import { markGoogleTrip, readAuthError, returnPath, takeGoogleTrip } from './googleTrip';
 
 describe('readAuthError', () => {
   it('takes the code and leaves the rest of the address', () => {
@@ -35,5 +35,16 @@ describe('the trip to Google', () => {
   it('ignores anything else stored there', () => {
     window.sessionStorage.setItem('hub.google', 'other');
     expect(takeGoogleTrip()).toBeNull();
+  });
+});
+
+describe('returnPath', () => {
+  it('keeps the path and the ordinary query', () => {
+    expect(returnPath('/forum', '?tab=new')).toBe('/forum?tab=new');
+    expect(returnPath('/library', '')).toBe('/library');
+  });
+  it('never carries a token or other one-time values', () => {
+    expect(returnPath('/reset-password', '?token=abc&x=1')).toBe('/reset-password?x=1');
+    expect(returnPath('/forum', '?code=1&state=2&authError=google_failed')).toBe('/forum');
   });
 });

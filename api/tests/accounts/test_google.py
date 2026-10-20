@@ -119,7 +119,11 @@ def test_the_session_rotates(google_sign_in: GoogleSignIn, make_user: MakeUser, 
     ("raw", "safe"),
     [
         ("/forum", "/forum"),
-        ("/library/abc?x=1#top", "/library/abc?x=1#top"),
+        ("/library/abc?x=1#top", "/library/abc?x=1"),  # never a fragment
+        ("/reset-password#token=secret-token-here", "/reset-password"),
+        ("/reset-password?token=secret&x=1", "/reset-password?x=1"),
+        ("/forum?code=c&state=s&authError=google_failed&tab=new", "/forum?tab=new"),
+        ("/forum?Token=secret", "/forum"),
         ("//evil.example/x", "/"),
         ("/\\evil.example", "/"),
         ("https://evil.example", "/"),
@@ -132,6 +136,13 @@ def test_the_session_rotates(google_sign_in: GoogleSignIn, make_user: MakeUser, 
 )
 def test_only_same_origin_paths_to_go_back_to(raw: str | None, safe: str) -> None:
     assert google.safe_return(raw) == safe
+
+
+def test_a_token_never_makes_the_round_trip(fake_google: FakeGoogle, client: TestClient, db: Session) -> None:
+    query = google_start(client, "/reset-password?token=one-time-secret#token=another-secret")
+    login = db.scalar(select(GoogleLogin).where(GoogleLogin.state_hash == hash_token(query["state"])))
+    assert login is not None
+    assert login.return_to == "/reset-password"
 
 
 def test_another_site_to_go_back_to_becomes_home(google_sign_in: GoogleSignIn, client_for: ClientFor) -> None:
