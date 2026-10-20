@@ -67,6 +67,9 @@ export function offlineScope(key: readonly unknown[]): OfflineScope {
     case 'guides':
     case 'site':
       return key.length === 1 ? 'owner' : null;
+    case 'home':
+      // Home's first screen: the student's dates and counts, nothing private beyond them
+      return key.length === 2 ? 'owner' : null;
     default:
       return null;
   }

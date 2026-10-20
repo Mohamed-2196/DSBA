@@ -1,39 +1,27 @@
 // Home's "A past question a day": in the six weeks before your next exam, one tagged past question from that
-// module, the same for everyone that day, opening its paper at the question's page.
+// module, the same for everyone that day, opening its paper at the question's page. The API picks it (GET /home): it
+// comes only while the switches are on, in those six weeks, and once the module has enough tagged questions.
+import type { PaperQuestion } from '../../api/types';
 import { useAuth } from '../../auth';
-import { inDays, type DayKey } from '../../lib/dates';
+import { inDays } from '../../lib/dates';
 import { Button, DocThumb, Icon, PageSection, Panel, SectionHeader, glyph } from '../../ui';
 import { AddToBoard } from '../board/public';
-import { DAILY_WINDOW_DAYS, dailyQuestion } from './daily';
 import { paperLabel } from '../../lib/exams';
-import { answerHref, questionHref, questionNumber, useModuleQuestions } from './papers';
+import { answerHref, questionHref, questionNumber } from './papers';
 import './DailyQuestion.css';
 
 export interface DailyQuestionProps {
-  moduleId: string;
+  /** the day's question */
+  question: PaperQuestion;
+  /** the module of the exam it is for */
   moduleName: string;
-  /** days until the module's exam */
+  /** days until that exam */
   examDays: number;
-  /** today in Bahrain */
-  day: DayKey;
   className?: string;
 }
 
-/**
- * Nothing at all outside the six weeks, while the switches are off, while it loads, when it fails or while the module
- * has too few tagged questions: it's an extra, not a feed.
- */
-export function DailyQuestion({ moduleId, moduleName, examDays, day, className }: DailyQuestionProps) {
+export function DailyQuestion({ question: q, moduleName, examDays, className }: DailyQuestionProps) {
   const { featureOn } = useAuth();
-  const on =
-    featureOn('library') &&
-    featureOn('library.questions') &&
-    featureOn('library.daily-question') &&
-    examDays >= 0 &&
-    examDays <= DAILY_WINDOW_DAYS;
-  const questions = useModuleQuestions(moduleId, { enabled: on });
-  const q = on && questions.data ? dailyQuestion(questions.data, day) : null;
-  if (!q) return null;
   const p = q.paper;
   const sitting = paperLabel(p);
   return (

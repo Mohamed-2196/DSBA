@@ -3,8 +3,8 @@
 //
 //   <StartHereCard year />   Home: the checklist for Year 1 in the first weeks of the academic year, until hidden.
 //                            Renders nothing for other years, outside those weeks or once hidden.
-//   <ResultsDayCard />       Home: the results day checklist for a few weeks from each results date on the calendar,
-//                            until hidden. Renders nothing at other times or while the calendar is switched off.
+//   <ResultsDayCard eventId />  Home: the results day checklist for a few weeks from each results date on the calendar
+//                            (`eventId`, from GET /home), until hidden.
 //   useGuides()              UseQueryResult<GuidesDoc>: every guide (GET /guides); Electives reads its words here.
 //   <GuidesEditor />         Manage → Guides (guides.edit).
 //

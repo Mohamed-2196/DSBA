@@ -35,6 +35,7 @@ describe('offlineScope: what is kept for reading offline', () => {
     [['newsletter', 'list', { drafts: false }], 'owner'],
     [['guides'], 'owner'],
     [['site'], 'owner'],
+    [['home', { year: 2, picks: '' }], 'owner'],
     [['me'], 'owner'],
   ])('keeps %j (%s)', (key, scope) => {
     expect(offlineScope(key)).toBe(scope);

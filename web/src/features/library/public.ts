@@ -13,9 +13,8 @@
 //                                        or without the code when moduleTag is null), anything else by its title
 //   <ChapterQuestions moduleId chapterId />  the Lessons tab's past exam questions tagged with a chapter
 //                                        (render it only while the library.questions feature is on)
-//   <DailyQuestion moduleId moduleName examDays day className />
-//                                        Home's past question a day before the next exam; it gates itself (switches,
-//                                        six weeks, enough tags) and renders nothing otherwise
+//   <DailyQuestion question moduleName examDays className />
+//                                        Home's past question a day before the next exam (GET /home picks it)
 //   usePaperSittings(moduleId)          a module's past papers, reports and solutions by sitting, newest first
 //                                        ({ sittings, other })
 //   <SittingsTable sittings linkState board className? />

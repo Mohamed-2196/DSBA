@@ -1,8 +1,11 @@
 // Every page of the app: its URL, its default tab title and its lazy chunk. App.tsx puts them in the router under
 // the shell (one layout route). Each page is lazy-loaded and wrapped in its own error boundary and Suspense
 // (shell/RouteFrame.tsx), so one broken feature can't take down the rest of the app.
+import type { QueryClient } from '@tanstack/react-query';
 import { matchRoutes, type RouteObject } from 'react-router-dom';
+import { queryClient } from './api/queryClient';
 import { Gate, MANAGER_BOXES } from './auth';
+import { prefetchHome } from './features/home/public';
 import { lazyPage } from './shell/lazyPage';
 import { RouteFrame, type AppRoute } from './shell/RouteFrame';
 
@@ -247,10 +250,13 @@ export const pageRoutes: RouteObject[] = pages.map((route) => ({
   element: <RouteFrame route={route} />,
 }));
 
+/** What a page's first screen reads, asked for with its code: Home's one request. */
+const pageData: Partial<Record<string, (qc: QueryClient) => void>> = { home: prefetchHome };
+
 /**
- * Starts fetching the code of the page at this address, so it downloads alongside the session and the module
- * catalogue rather than after them (main.tsx calls it before the first render). A chunk that fails is fetched again
- * when the page renders, and its error shows there.
+ * Starts fetching the code of the page at this address, and the data its first screen reads, so they download
+ * alongside the session and the module catalogue rather than after them (main.tsx calls it before the first render).
+ * A chunk that fails is fetched again when the page renders, and its error shows there; so is a request.
  */
 export function preloadPage(location: { pathname: string }): void {
   const id = matchRoutes(pageRoutes, location, import.meta.env.BASE_URL)?.at(-1)?.route.id;
@@ -258,9 +264,11 @@ export function preloadPage(location: { pathname: string }): void {
     .find((p) => p.id === id)
     ?.Page.preload()
     .catch(() => undefined);
+  if (id) pageData[id]?.(queryClient);
 }
 
-/** Props for a link to one of the pages: its code starts downloading when the link is pointed at or focused. */
+/** Props for a link to one of the pages: its code (and its data) start downloading when the link is pointed at or
+ *  focused. */
 export function preloadOnIntent(to: string): { onPointerEnter: () => void; onFocus: () => void } {
   const preload = () => preloadPage({ pathname: to });
   return { onPointerEnter: preload, onFocus: preload };

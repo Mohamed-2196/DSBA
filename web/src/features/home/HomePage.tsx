@@ -1,6 +1,7 @@
 // Home: a greeting, then a grid of equal cards the student can show, hide and reorder (Customise Home): Up next,
 // Carry on, To-do, Continue, My modules, New files and Forum, with notices and the Ask Noora prompt across the whole
-// width.
+// width. What the first screen reads before it can draw comes in one request (GET /home, api.ts): the student's dates
+// and next exam, the day's past question, whether a guide's card is due, and the shelf's numbers.
 // In exam week, on a phone, the student's next exam leads instead of the desk shelf (ExamWeekLead.tsx; Site settings say
 // whether, from how many days before, and what leads).
 // Blocks from other features come from their public.ts, each in its own ErrorBoundary with its own loading, empty and
@@ -27,7 +28,6 @@ import {
   glyph,
 } from '../../ui';
 import { BoardTodo, useTodayAgenda } from '../board/public';
-import { useMyCalendarEvents } from '../calendar/public';
 import { HelpBelow } from '../forum/public';
 import { DailyQuestion, useTimeMe } from '../library/public';
 import { ContinueLearning, useTracking } from '../modules/public';
@@ -37,7 +37,8 @@ import { ResultsDayCard, StartHereCard } from '../start/public';
 import { DailyCard } from '../daily/public';
 import { useSite } from '../site/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
-import { formatLongDay, parseDay, todayKey } from '../../lib/dates';
+import { daysBetween, formatLongDay, parseDay, todayKey } from '../../lib/dates';
+import { useHome } from './api';
 import { AskNoora } from './AskNoora';
 import { ALL_BLOCKS, BLOCKS, offeredBlocks, type HomeBlock } from './blocks';
 import { ComingUp } from './ComingUp';
@@ -110,19 +111,18 @@ export default function HomePage() {
     }
   }, []);
   const signedIn = status === 'signed-in';
-  const calendarOn = featureOn('calendar');
   const forumOn = featureOn('forum');
 
   const now = new Date();
   // Today in Bahrain, as the API counts it; a new object only when the day changes.
   const todayIs = todayKey(now);
   const today = useMemo(() => parseDay(todayIs), [todayIs]);
-  // Every date from today: Up next reads its exam session from them, and My modules each module's next exam (the same
-  // query, so Home asks once).
-  const calendar = useMyCalendarEvents({ from: todayIs }, { enabled: calendarOn });
+  const home = useHome(activeYear);
+  // The student's dates from today: Up next reads its exam session from them, and My modules each module's next exam.
+  const dates = home.data?.dates;
   const session = useMemo(
-    () => getExamSession(calendar.data ?? [], activeYear, getModule, today, { papers }),
-    [calendar.data, activeYear, getModule, today, papers],
+    () => getExamSession(dates ?? [], activeYear, getModule, today, { papers }),
+    [dates, activeYear, getModule, today, papers],
   );
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
   const phone = useMediaQuery(PHONE);
@@ -140,28 +140,31 @@ export default function HomePage() {
   const render = (b: HomeBlock): ReactNode => {
     switch (b) {
       case 'start_here':
-        return (
+        // The guides come with Home's answer only while a card is due.
+        return home.data?.guides ? (
           <Notice key={b} id={b}>
             <StartHereCard year={activeYear} />
           </Notice>
-        );
+        ) : null;
       case 'results_day':
-        return (
+        return home.data?.resultsDay ? (
           <Notice key={b} id={b}>
-            <ResultsDayCard />
+            <ResultsDayCard eventId={home.data.resultsDay} />
           </Notice>
-        );
-      case 'daily_question':
-        return nextExam?.module ? (
+        ) : null;
+      case 'daily_question': {
+        const exam = home.data?.nextExam;
+        const question = home.data?.dailyQuestion;
+        return exam && question ? (
           <Notice key={b} id={b}>
             <DailyQuestion
-              moduleId={nextExam.module.id}
-              moduleName={nextExam.module.name}
-              examDays={nextExam.days}
-              day={todayIs}
+              question={question}
+              moduleName={getModule(exam.moduleId)?.name ?? exam.title}
+              examDays={daysBetween(today, parseDay(exam.date))}
             />
           </Notice>
         ) : null;
+      }
       case 'help_below':
         return (
           <Notice key={b} id={b}>
@@ -182,10 +185,10 @@ export default function HomePage() {
             <ComingUp
               session={session}
               year={activeYear}
-              loading={calendar.isPending}
-              error={calendar.isError ? calendar.error : null}
-              onRetry={() => void calendar.refetch()}
-              retrying={calendar.isFetching}
+              loading={home.isPending}
+              error={home.isError ? home.error : null}
+              onRetry={() => void home.refetch()}
+              retrying={home.isFetching}
             />
           </Block>
         );
@@ -228,7 +231,7 @@ export default function HomePage() {
               </Button>
             }
           >
-            <YourModules year={activeYear} today={today} mine={year !== null} />
+            <YourModules year={activeYear} today={today} mine={year !== null} dates={dates ?? []} />
           </Block>
         );
       case 'files':
@@ -376,14 +379,18 @@ export default function HomePage() {
             </div>
           </div>
           {examWeekLeads ? null : (
-            <HomeShelf year={activeYear} exam={nextExam ? { days: nextExam.days, date: nextExam.when } : null} />
+            <HomeShelf
+              year={activeYear}
+              exam={nextExam ? { days: nextExam.days, date: nextExam.when } : null}
+              counts={home.data?.shelf ?? null}
+            />
           )}
         </div>
       </header>
 
       {examWeekLeads && examWeek ? (
         <ErrorBoundary name="Home exam week">
-          <ExamWeekLead exam={examWeekLeads} lead={examWeek.lead} events={calendar.data ?? []} todayIs={todayIs} />
+          <ExamWeekLead exam={examWeekLeads} lead={examWeek.lead} events={dates ?? []} todayIs={todayIs} />
         </ErrorBoundary>
       ) : null}
 

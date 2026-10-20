@@ -420,18 +420,29 @@ def stop_feed(db: Session, user: User) -> CalendarPrefs:
 
 
 def papers_of(user: User, catalogue: Sequence[Module], choices: Mapping[int, frozenset[str]]) -> set[str] | None:
-    """The module ids `user` sits in their year, or None when that is every module of it (their papers: the
-    web app's papersFor). `choices`: what each year's choice picks from (grades.choice_ids); a module of the choice
-    they didn't pick isn't theirs."""
-    year, picks = user.year, set(user.papers or [])
-    if year is None or not picks:
+    """The module ids `user` sits in their year, or None when that is every module of it (their papers)."""
+    return papers_for(user.year, user.year, user.papers or [], catalogue, choices)
+
+
+def papers_for(
+    year: int | None,
+    home: int | None,
+    picks: Collection[str],
+    catalogue: Sequence[Module],
+    choices: Mapping[int, frozenset[str]],
+) -> set[str] | None:
+    """The module ids a student sits while looking at `year`, or None when that is every module of it (the web app's
+    papersFor). `home`: their own year, the only one their picks from other years count in. `choices`: what each
+    year's choice picks from (grades.choice_ids); a module of the choice they didn't pick isn't theirs."""
+    picked = set(picks)
+    if year is None or not picked:
         return None
     choice = choices.get(year, frozenset())
-    chose = bool(choice & picks)
-    others = [m for m in catalogue if m.year != year and m.id in picks]
+    chose = bool(choice & picked)
+    others = [m for m in catalogue if m.year != year and m.id in picked] if year == home else []
     if not chose and not others:
         return None
-    own = [m for m in catalogue if m.year == year and (not chose or m.id not in choice or m.id in picks)]
+    own = [m for m in catalogue if m.year == year and (not chose or m.id not in choice or m.id in picked)]
     return {m.id for m in [*own, *others]}
 
 

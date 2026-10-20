@@ -2,14 +2,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { api, call } from '../../api/client';
+import { HOME_KEY } from '../../api/keys';
 import { ME_KEY, useAuth } from '../../auth';
 import { normalizeYear, useLocalStorage, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { isZone, type Zone } from '../../lib/exams';
+import { cleanPicks, GUEST_PAPERS_KEY } from '../../lib/guestPapers';
 import { usePaperChoices } from './api';
-import { choicesFrom, cleanPicks, papersFor, type Choices } from './papers';
-
-const GUEST_KEY = 'hub.papers';
+import { choicesFrom, papersFor, type Choices } from './papers';
 
 interface Stored {
   papers: string[];
@@ -41,10 +41,13 @@ export function usePapers(): PapersValue {
   const served = usePaperChoices().data;
   const choices = useMemo(() => choicesFrom(served), [served]);
   const qc = useQueryClient();
-  const [stored, setStored] = useLocalStorage<unknown>(GUEST_KEY, null);
+  const [stored, setStored] = useLocalStorage<unknown>(GUEST_PAPERS_KEY, null);
   const update = useMutation({
     mutationFn: (body: Stored) => call(api.PATCH('/api/v1/me', { body })),
-    onSuccess: (next) => qc.setQueryData(ME_KEY, next),
+    onSuccess: (next) => {
+      qc.setQueryData(ME_KEY, next);
+      void qc.invalidateQueries({ queryKey: HOME_KEY }); // Home's dates follow the student's papers
+    },
   });
 
   const guest = stored && typeof stored === 'object' ? (stored as Record<string, unknown>) : {};

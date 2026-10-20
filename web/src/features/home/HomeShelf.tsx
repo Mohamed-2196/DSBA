@@ -1,14 +1,13 @@
 // The desk shelf in Home's greeting band (home-screen.png): a tile per core section with its deskmate and a live line,
-// each opening its section. The numbers come from queries Home already makes (new files, notifications), plus the
-// student's notes count.
+// each opening its section. New files and the notes count come with Home's first answer (GET /home), unread replies
+// from the bell's own query.
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import type { HomeShelf as ShelfCounts } from '../../api/types';
 import { useAuth, type Feature } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Deskmate, SECTION_MATE, Skeleton } from '../../ui';
-import { isNewLibraryItem, useRecentFiles } from '../library/public';
-import { useNotes } from '../notes/public';
 import { useNotifications } from '../notifications/public';
 import { modulesFor, usePapers } from '../papers/public';
 import { unreadReplies } from './replies';
@@ -22,22 +21,27 @@ const FEATURE: Record<ShelfSection, Feature | null> = {
   calendar: 'calendar',
 };
 
-export function HomeShelf({ year, exam }: { year: CohortYear; exam: { days: number; date: Date } | null }) {
+export function HomeShelf({
+  year,
+  exam,
+  counts,
+}: {
+  year: CohortYear;
+  exam: { days: number; date: Date } | null;
+  /** null while Home's answer is on its way */
+  counts: ShelfCounts | null;
+}) {
   const { status, featureOn } = useAuth();
   const signedIn = status === 'signed-in';
   const { modules: catalogue } = useModules();
   const { papers } = usePapers();
-  const libraryOn = featureOn('library');
-  // The same query as New files (n 30, the year): one request for both.
-  const files = useRecentFiles({ n: 30, year, enabled: libraryOn });
-  const notes = useNotes({}, { enabled: signedIn && featureOn('notes') });
   const notifications = useNotifications(signedIn);
   const notified = useMemo(() => notifications.data?.pages.flatMap((p) => p.items) ?? [], [notifications.data]);
 
   const tiles = shelfTiles({
-    newFiles: files.data ? files.data.filter((f) => isNewLibraryItem(f)).length : null,
+    newFiles: counts?.newFiles ?? null,
     modules: modulesFor(year, papers, catalogue).length,
-    notes: notes.data?.pages[0]?.total ?? null,
+    notes: counts?.notes ?? null,
     signedIn,
     replies: unreadReplies(notified),
     exam,

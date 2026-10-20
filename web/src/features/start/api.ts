@@ -2,9 +2,9 @@
 // (holders of guides.edit). A save refreshes what everyone sees.
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
+import { GUIDES_KEY } from '../../api/keys';
 import type { GuidesEditable, GuidesSave } from '../../api/types';
 
-export const GUIDES_KEY = ['guides'] as const;
 export const EDIT_GUIDES_KEY = ['guides', 'edit'] as const;
 
 /** Every guide. They change a few times a year: one load per visit is plenty. */

@@ -23,3 +23,13 @@ export const progressKey = (userId: string) => [...PROGRESS_KEY, userId] as cons
 
 /** GET /notifications: the bell. The forum reads it again after a thread's notifications are marked read. */
 export const NOTIFICATIONS_KEY = ['notifications'] as const;
+
+/** GET /site, GET /guides and GET /modules/choices: Home's first answer (GET /home) carries them too and fills these, so
+ *  Home's blocks don't ask again. */
+export const SITE_KEY = ['site'] as const;
+export const GUIDES_KEY = ['guides'] as const;
+export const PAPER_CHOICES_KEY = ['papers', 'choices'] as const;
+
+/** GET /home: Home's first screen, by the year shown and a guest's papers. Read again after anything that changes the
+ *  student's dates on it (their papers, the dates they hide). */
+export const HOME_KEY = ['home'] as const;

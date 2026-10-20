@@ -6,6 +6,7 @@
 //   POST/PATCH/DELETE /api/v1/calendar/events[/id]   moderators only
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiUrl, call } from '../../api/client';
+import { HOME_KEY } from '../../api/keys';
 import { appUrl } from '../../lib/share';
 import type { CohortYear } from '../../state';
 import { dayKeyFromToday, sortEvents } from './queries';
@@ -281,6 +282,7 @@ export function useUpdatePrefs() {
     onSuccess: (saved) => {
       // a later save still on its way keeps what it shows until it answers
       if (qc.isMutating({ mutationKey: PREFS_SAVE }) <= 1) qc.setQueryData(mineKeys.settings, saved);
+      void qc.invalidateQueries({ queryKey: HOME_KEY }); // Home leaves out what the student hides
     },
   });
 }
