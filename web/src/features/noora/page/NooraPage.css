@@ -630,8 +630,12 @@ html:has(.np--full) {
   }
 }
 @media (max-width: 420px) {
-  .np-model {
+  /* Claude's name goes on a small phone; "Script answers" stays, so a student knows her AI is off (ST-69). */
+  .np-model:not(.is-off) {
     display: none;
+  }
+  .np-model.is-off {
+    padding: 0 8px;
   }
   .np-starters {
     gap: 8px;
