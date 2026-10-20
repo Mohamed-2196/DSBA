@@ -261,15 +261,16 @@ class SweepReport:
     files: int = 0  # files of rejected or removed library items
     bug_report_ips: int = 0  # guests' addresses on bug reports, forgotten once the rate limit no longer counts them
     bug_screenshots: int = 0  # screenshots of bug reports closed long ago
+    kept_play_ips: int = 0  # addresses guests' Daily plays were kept from, forgotten after a day
 
 
 def sweep() -> SweepReport:
     """Deletes uploads never attached to anything, note files no note shows any more (released) and board files off
-    their card (objects first, then rows), old
-    sign-in codes, sessions that ended long ago, the files of library items rejected or removed a week ago, the
-    addresses kept on bug reports and the screenshots of reports closed long ago. Safe to run at any time and to
-    run again."""
+    their card (objects first, then rows), old sign-in codes, sessions that ended long ago, the files of library items
+    rejected or removed a week ago, the addresses kept on bug reports and on kept Daily plays, and the screenshots of
+    reports closed long ago. Safe to run at any time and to run again."""
     from app.services.bugs import clear_old_ips, sweep_screenshots
+    from app.services.daily.plays import clear_old_kept_ips
     from app.services.library import sweep_files
     from app.services.otp import KEEP_CHALLENGES
 
@@ -292,6 +293,7 @@ def sweep() -> SweepReport:
         sessions = cast(CursorResult[Any], db.execute(dead)).rowcount
         bug_report_ips = clear_old_ips(db)
         bug_screenshots = sweep_screenshots(db, storage, now)
+        kept_play_ips = clear_old_kept_ips(db)
         db.commit()
     return SweepReport(
         uploads=len(stale),
@@ -300,6 +302,7 @@ def sweep() -> SweepReport:
         files=files,
         bug_report_ips=bug_report_ips,
         bug_screenshots=bug_screenshots,
+        kept_play_ips=kept_play_ips,
     )
 
 

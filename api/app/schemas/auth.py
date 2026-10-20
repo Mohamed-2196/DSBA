@@ -463,8 +463,12 @@ class ExportDailyPlay(ApiModel):
     scored: bool
     points: int
     moves: list[Any]
+    mistakes: int
+    hints: int
     started_at: datetime
     finished_at: datetime | None
+    kept_at: datetime | None  # a guest's play kept on sign-in
+    kept_ip: str | None  # the address it was kept from, for a day (the sweep forgets it)
 
 
 class AccountExport(ApiModel):
@@ -502,3 +506,4 @@ class AccountExport(ApiModel):
     calendar_settings: ExportCalendarSettings | None  # the programme dates they hide, and their private feed
     daily_plays: list[ExportDailyPlay]  # daily puzzles played, with their moves
     daily_show_on_board: bool  # the name shows on Daily's leaderboard
+    weekly_summaries: list[date]  # the weeks (their Sunday) a Sunday summary was queued for

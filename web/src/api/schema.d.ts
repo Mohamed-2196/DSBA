@@ -4453,6 +4453,8 @@ export interface components {
             dailyPlays: components["schemas"]["ExportDailyPlay"][];
             /** Dailyshowonboard */
             dailyShowOnBoard: boolean;
+            /** Weeklysummaries */
+            weeklySummaries: string[];
         };
         /**
          * AdminStats
@@ -6519,6 +6521,10 @@ export interface components {
             points: number;
             /** Moves */
             moves: unknown[];
+            /** Mistakes */
+            mistakes: number;
+            /** Hints */
+            hints: number;
             /**
              * Startedat
              * Format: date-time
@@ -6526,6 +6532,10 @@ export interface components {
             startedAt: string;
             /** Finishedat */
             finishedAt: string | null;
+            /** Keptat */
+            keptAt: string | null;
+            /** Keptip */
+            keptIp: string | null;
         };
         /**
          * ExportEmail

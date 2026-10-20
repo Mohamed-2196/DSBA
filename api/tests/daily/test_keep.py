@@ -149,3 +149,28 @@ def test_keeps_are_rate_limited_per_account_and_per_address(
     monkeypatch.setattr(plays, "KEEPS_PER_HOUR_PER_IP", 1)
     r = keep(client_for(make_user()), "word", won)  # another account, the same address
     assert (r.status_code, r.json()["error"]["code"]) == (429, "rate_limited")
+
+
+def test_the_export_carries_a_kept_play_and_the_sweep_forgets_its_address(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    """The export has a kept play's address, when it was kept, its mistakes and hints; a day later the sweep forgets
+    the address (SEC-59)."""
+    answer = word_of(db)
+    c = client_for(make_user())
+    assert keep(c, "word", [*wrong_words(answer, 1), {"kind": "guess", "word": answer}]).status_code == 200
+    row = db.scalars(select(DailyPlay)).one()
+    row.kept_ip = "203.0.113.9"
+    db.commit()
+    exported = c.get(f"{API}/me/export").json()["dailyPlays"][0]
+    assert exported["keptIp"] == "203.0.113.9"
+    assert exported["keptAt"] is not None
+    assert (exported["mistakes"], exported["hints"]) == (row.mistakes, row.hints)
+
+    assert plays.clear_old_kept_ips(db) == 0  # within the day: the keeps' limit may still count it
+    assert row.kept_at is not None
+    row.kept_at -= plays.KEEP_IP + dt.timedelta(minutes=1)
+    db.commit()
+    assert plays.clear_old_kept_ips(db) == 1
+    db.refresh(row)
+    assert row.kept_ip is None

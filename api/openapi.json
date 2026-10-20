@@ -27829,6 +27829,14 @@
           "dailyShowOnBoard": {
             "type": "boolean",
             "title": "Dailyshowonboard"
+          },
+          "weeklySummaries": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Weeklysummaries"
           }
         },
         "type": "object",
@@ -27864,7 +27872,8 @@
           "calendarEvents",
           "calendarSettings",
           "dailyPlays",
-          "dailyShowOnBoard"
+          "dailyShowOnBoard",
+          "weeklySummaries"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
@@ -34074,6 +34083,14 @@
             "type": "array",
             "title": "Moves"
           },
+          "mistakes": {
+            "type": "integer",
+            "title": "Mistakes"
+          },
+          "hints": {
+            "type": "integer",
+            "title": "Hints"
+          },
           "startedAt": {
             "type": "string",
             "format": "date-time",
@@ -34090,6 +34107,29 @@
               }
             ],
             "title": "Finishedat"
+          },
+          "keptAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keptat"
+          },
+          "keptIp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keptip"
           }
         },
         "type": "object",
@@ -34101,8 +34141,12 @@
           "scored",
           "points",
           "moves",
+          "mistakes",
+          "hints",
           "startedAt",
-          "finishedAt"
+          "finishedAt",
+          "keptAt",
+          "keptIp"
         ],
         "title": "ExportDailyPlay"
       },

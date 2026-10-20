@@ -58,6 +58,7 @@ from app.models import (
     UserSession,
     UserStatus,
     VideoSuggestion,
+    WeeklySummarySent,
 )
 from app.schemas.access import RoleSummary
 from app.schemas.auth import (
@@ -987,6 +988,13 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
             )
         ],
         daily_show_on_board=bool(db.scalar(select(DailyProfile.show_on_board).where(DailyProfile.user_id == uid))),
+        weekly_summaries=list(
+            db.scalars(
+                select(WeeklySummarySent.week_of)
+                .where(WeeklySummarySent.user_id == uid)
+                .order_by(WeeklySummarySent.week_of)
+            )
+        ),
     )
 
 
