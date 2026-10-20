@@ -235,6 +235,7 @@ function MissingNote() {
     <div className="nb nb--message">
       <EmptyState
         icon={<Icon glyph={glyph.edit} />}
+        titleAs="h1"
         title="This note doesn’t exist"
         body="It may have been deleted."
         action={<Button to="/notes">Open your notebook</Button>}

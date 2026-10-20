@@ -1,4 +1,5 @@
 // How to play: the API's rules and scoring, the game's worked example, and its keyboard shortcuts.
+import { typeset } from '../../../api/errors';
 import { Button, Kbd, Modal } from '../../../ui';
 import { GAMES } from '../games/registry';
 import type { GameInfo } from '../types';
@@ -10,7 +11,7 @@ export function RulesDialog({ open, onClose, info }: { open: boolean; onClose: (
       open={open}
       onClose={onClose}
       title={`How to play ${info.title}`}
-      description={info.tagline}
+      description={typeset(info.tagline)}
       size="sm"
       className="dy dg-rules"
       footer={
@@ -22,7 +23,7 @@ export function RulesDialog({ open, onClose, info }: { open: boolean; onClose: (
       <div className="dg-rules__body">
         <ol className="dg-rules__list">
           {info.howTo.map((rule) => (
-            <li key={rule}>{rule}</li>
+            <li key={rule}>{typeset(rule)}</li>
           ))}
         </ol>
         <section className="dg-rules__example" aria-label="Example">

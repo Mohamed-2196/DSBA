@@ -392,6 +392,7 @@ export default function ModulePage() {
         <Panel padding="none">
           <EmptyState
             icon={<Icon glyph={glyph.search} />}
+            titleAs="h1"
             title="We couldn’t find that module"
             body="It may have been renamed. Pick it from the module list instead."
             action={

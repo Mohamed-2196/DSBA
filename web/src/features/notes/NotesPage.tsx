@@ -516,11 +516,10 @@ function NotesList() {
                 <Select
                   className="notes-picker__select"
                   label="Notebook"
-                  hideLabel
                   value={selectedBook?.id ?? ''}
                   onChange={(e) => setSelectedNotebookId(e.target.value || null, { replace: true })}
                   options={[
-                    { value: '', label: 'All notes' },
+                    { value: '', label: 'All notebooks' },
                     ...notebooks.map((b) => ({ value: b.id, label: `${bookName(b)} (${b.noteCount})` })),
                   ]}
                 />
@@ -564,10 +563,11 @@ function NotesList() {
                 <Select
                   className="notes-filters__module"
                   label="Module"
-                  hideLabel
+                  // On a phone the two pickers stack: each says what it picks (ST-79).
+                  hideLabel={!narrow}
                   value={moduleId ?? ''}
                   onChange={(e) => pickModule(e.target.value || null)}
-                  options={[{ value: '', label: 'Every module' }, ...moduleOptions]}
+                  options={[{ value: '', label: 'All modules' }, ...moduleOptions]}
                   data-hub="notes-module-filter"
                 />
               )}

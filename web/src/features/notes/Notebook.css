@@ -187,6 +187,33 @@ html:has(.nb--full) .noora {
   font-weight: var(--fw-semibold);
   cursor: pointer;
 }
+/* "Saved in [notebook]" stays one line (ST-78): a long notebook name shortens with an ellipsis rather than wrapping
+   the check, the words and the picker onto three lines. The longer messages (offline, not saved) wrap as prose. */
+.nb-saved {
+  max-width: 100%;
+}
+.nb-saved:is(.is-saved, .is-saving, .is-unsaved) .nb-saved__words {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.nb-saved__words > * {
+  min-width: 0;
+}
+.nb-saved__book {
+  max-width: 100%;
+}
+.nb-saved__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nb-saved__book > svg {
+  flex: none;
+}
 .nb-saved__book:hover {
   background: var(--accent-soft);
   color: var(--accent);

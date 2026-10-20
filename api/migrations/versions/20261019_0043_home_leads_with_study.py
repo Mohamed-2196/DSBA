@@ -5,9 +5,9 @@ Revises: 0044
 Create Date: 2026-10-19 21:30:00
 
 Site settings saved before (content_docs 'site') keep their own Home default, so the seed's new one (app/seed/data/
-site.json) wouldn't reach them: this applies the same change to a saved one. "carry_on" goes after "coming_up",
-"daily_question" before "forum" (or at the end), and "daily" leaves the default; a student who wants it turns it on in
-Customise Home. Students' own layouts are theirs and stay as they are.
+site.json) wouldn't reach them: this applies the same change to a saved one. "carry_on" goes before "coming_up" (a
+phone reaches it before Up next's countdown), "daily_question" before "forum" (or at the end), and "daily" leaves the
+default; a student who wants it turns it on in Customise Home. Students' own layouts are theirs and stay as they are.
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ def _change(change: Callable[[list[str]], None]) -> None:
 
 
 def _study_first(blocks: list[str]) -> None:
-    _insert(blocks, "carry_on", after="coming_up")
+    _insert(blocks, "carry_on", before="coming_up")
     _insert(blocks, "daily_question", before="forum")
     if "daily" in blocks and len(blocks) > 1:
         blocks.remove("daily")

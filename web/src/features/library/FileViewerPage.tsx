@@ -88,6 +88,7 @@ export default function FileViewerPage() {
           <Panel padding="none">
             <EmptyState
               icon={<Icon glyph={glyph.search} />}
+              titleAs="h1"
               title="We couldn’t find that file"
               body="It may have been removed, or it isn’t published yet. Search the library for it instead."
               action={
