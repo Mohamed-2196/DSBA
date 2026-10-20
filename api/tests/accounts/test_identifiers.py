@@ -110,5 +110,5 @@ def test_human_wait(seconds: int, text: str) -> None:
 
 def test_ip_bucket() -> None:
     assert ratelimit.ip_bucket("203.0.113.9") == "203.0.113.9"
-    assert ratelimit.ip_bucket("2001:db8:1:2:3:4:5:6") == "2001:db8:1:2::/64"
+    assert ratelimit.ip_bucket("2001:db8:1:2:3:4:5:6") == "2001:db8:1::/48"
     assert ratelimit.ip_bucket(None) is None

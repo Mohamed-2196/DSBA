@@ -22,11 +22,11 @@ from sqlalchemy.orm import InstrumentedAttribute, Session
 from app.core.errors import rate_limited
 from app.core.time import utcnow
 
-IPV6_BUCKET_PREFIX = 64  # one IPv6 client usually holds a whole /64
+IPV6_BUCKET_PREFIX = 48  # one IPv6 site (a home, an office) may hold a whole /48, so it counts as one network
 
 
 def ip_bucket(ip: str | None) -> str | None:
-    """What a per-IP limit counts: an IPv4 address as it is, an IPv6 address by its /64."""
+    """What a per-IP limit counts: an IPv4 address as it is, an IPv6 address by its /48."""
     if ip is None:
         return None
     addr = ipaddress.ip_address(ip)

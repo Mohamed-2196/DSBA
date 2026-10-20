@@ -34,6 +34,8 @@ RAISABLE_LIMITS = (
     "sms_max_per_day",
     "email_max_per_hour",
     "email_max_per_day",
+    "email_signups_max_per_hour",
+    "email_signups_max_per_day",
 )
 
 
@@ -93,10 +95,13 @@ class Settings(BaseSettings):
     smtp_password: SecretStr | None = None
     smtp_starttls: bool = False
     email_file_dir: str = "var/mail"
-    # Sign-in emails the whole site may send (SEC-52), so nobody can spend the mail provider's daily quota and close
-    # sign-in for everyone. Choose a provider whose quota is well above the daily figure.
-    email_max_per_hour: int = 200
-    email_max_per_day: int = 1000
+    # Sign-in emails the whole site may send (SEC-52). Codes for addresses no account has (sign-ups) have their own,
+    # smaller budget, so made-up addresses can't stop existing students signing in; every email together has the
+    # higher ceiling. Choose a mail provider whose daily quota is well above email_max_per_day.
+    email_signups_max_per_hour: int = 100
+    email_signups_max_per_day: int = 500
+    email_max_per_hour: int = 600
+    email_max_per_day: int = 3000
 
     # SMS (one-time codes). backend: console | file | twilio
     sms_backend: Literal["console", "file", "twilio"] = "console"

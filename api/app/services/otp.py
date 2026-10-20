@@ -294,17 +294,52 @@ def _check_limits(
                 log.warning("SMS budget reached (%d per %s): codes by text are paused", limit, window)
                 raise ApiError(429, "sms_unavailable", "We can't send texts right now. Use your email address instead.")
     else:
-        emails = [OtpChallenge.channel == Channel.email, delivered]
-        for limit, window in ((s.email_max_per_hour, HOUR), (s.email_max_per_day, DAY)):
-            wait = window_wait(db, created, emails, limit=limit, window=window, now=now)
-            if wait:
-                log.warning("Sign-in email budget reached (%d per %s): codes by email are paused", limit, window)
-                raise rate_limited(
-                    wait,
-                    f"The Hub has sent too many sign-in emails for now. Try again in {human_wait(wait)}, "
-                    "or use your phone number.",
-                )
+        _check_email_budget(db, known=user is not None or _has_account(db, kind, identifier), now=now)
     return _wrong_codes(db, [address], now) >= LONG_CODES_AFTER
+
+
+def _has_account(db: Session, kind: Kind, identifier: str) -> bool:
+    column = User.email if kind == "email" else User.phone
+    return db.scalar(select(User.id).where(column == identifier).limit(1)) is not None
+
+
+def _check_email_budget(db: Session, *, known: bool, now: datetime) -> None:
+    """The site-wide budgets for sign-in emails (SEC-52), counted under the otp:email lock.
+
+    Codes for addresses no account has (sign-ups) have a budget of their own, so made-up addresses can use up only
+    that: a student whose account exists still gets a code. Every email together has a much higher ceiling, which
+    keeps the mail provider's quota safe. Trade-off: while the sign-up budget is spent, the answer differs for
+    addresses without an account."""
+    s = get_settings()
+    created = OtpChallenge.created_at
+    emails = [OtpChallenge.channel == Channel.email, OtpChallenge.expires_at > OtpChallenge.created_at]
+    budgets: list[tuple[list[ColumnElement[bool]], int, timedelta, str]] = [
+        (emails, s.email_max_per_hour, HOUR, "all"),
+        (emails, s.email_max_per_day, DAY, "all"),
+    ]
+    if not known:
+        signups = [
+            *emails,
+            OtpChallenge.user_id.is_(None),
+            ~select(User.id).where(User.email == OtpChallenge.identifier).exists(),
+        ]
+        budgets += [
+            (signups, s.email_signups_max_per_hour, HOUR, "sign-up"),
+            (signups, s.email_signups_max_per_day, DAY, "sign-up"),
+        ]
+    for where, limit, window, which in budgets:
+        wait = window_wait(db, created, where, limit=limit, window=window, now=now)
+        if not wait:
+            continue
+        log.warning("The %s email budget is reached (%d per %s): those codes by email are paused", which, limit, window)
+        if which == "sign-up":
+            message = f"Lots of new accounts are being made right now. Try again in {human_wait(wait)}."
+        else:
+            message = (
+                f"The Hub has sent too many sign-in emails for now. Try again in {human_wait(wait)}, "
+                "or use your phone number."
+            )
+        raise rate_limited(wait, message)
 
 
 def _failures(db: Session, where: Sequence[ColumnElement[bool]], now: datetime) -> list[tuple[datetime, int]]:

@@ -18,7 +18,7 @@ from app.core.security import hash_token
 from app.core.time import utcnow
 from app.models import AuditEntry, OtpChallenge, OtpPurpose, User, UserSession
 from app.routers import auth as auth_router
-from app.services import access, mailer
+from app.services import access, accounts, mailer
 from app.services.mailer import DeliveryError
 from tests.accounts.conftest import API, Outbox, SignIn, logout, start, verify, wrong
 
@@ -342,12 +342,13 @@ def test_codes_per_ip_per_hour(
     assert c.post(f"{API}/auth/otp", json={"identifier": "ip9@example.com"}, headers=elsewhere).status_code == 202
 
 
-def test_ipv6_clients_are_counted_by_their_64(
+def test_ipv6_clients_are_counted_by_their_48(
     client_for: ClientFor,
     outbox: Outbox,
     set_option: Callable[[str, Any], None],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """One IPv6 site may hold a whole /48: its /64s count as one network (SEC-52)."""
     monkeypatch.setattr(auth_router, "client_ip", lambda request: request.headers.get("x-test-ip"))
     set_option("otp_max_per_ip_per_hour", 2)
     c = client_for()
@@ -357,9 +358,9 @@ def test_ipv6_clients_are_counted_by_their_64(
         return int(r.status_code)
 
     assert from_ip("2001:db8:1:2::1", 1) == 202
-    assert from_ip("2001:db8:1:2:aaaa::9", 2) == 202
-    assert from_ip("2001:db8:1:2:ffff:ffff:ffff:ffff", 3) == 429  # same /64
-    assert from_ip("2001:db8:1:3::1", 4) == 202  # the next /64
+    assert from_ip("2001:db8:1:3::9", 2) == 202  # another /64 of the same /48
+    assert from_ip("2001:db8:1:ffff:ffff:ffff:ffff:ffff", 3) == 429  # same /48
+    assert from_ip("2001:db8:2::1", 4) == 202  # the next /48
 
 
 def test_requests_without_an_ip_share_one_bucket(
@@ -445,7 +446,7 @@ def test_text_budget(client_for: ClientFor, outbox: Outbox, set_option: Callable
 
 
 def test_email_budget(client_for: ClientFor, outbox: Outbox, set_option: Callable[[str, Any], None]) -> None:
-    """The whole site sends at most email_max_per_hour sign-in emails, from every network together (SEC-52)."""
+    """Every sign-in email together has a site-wide ceiling (SEC-52)."""
     set_option("email_max_per_hour", 2)
     assert start(client_for(), "budget1@example.com").status_code == 202
     assert start(client_for(), "budget2@example.com").status_code == 202
@@ -464,6 +465,33 @@ def test_email_budget_per_day(client_for: ClientFor, outbox: Outbox, set_option:
     assert start(client_for(), "daily1@example.com").status_code == 202
     assert start(client_for(), "daily2@example.com").status_code == 429
     assert len([m for m in outbox if m.channel == "email"]) == 1
+
+
+def test_spent_sign_up_budget_never_stops_an_existing_student(
+    client_for: ClientFor,
+    outbox: Outbox,
+    set_option: Callable[[str, Any], None],
+    make_user: Callable[..., User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Made-up addresses from many networks spend the sign-up budget; new sign-ups then wait, and a student whose
+    account exists still gets a code (SEC-52)."""
+    monkeypatch.setattr(auth_router, "client_ip", lambda request: request.headers.get("x-test-ip"))
+    make_user(email="known@example.com")
+    set_option("email_signups_max_per_hour", 3)
+    c = client_for()
+    for n in range(3):
+        r = c.post(
+            f"{API}/auth/otp", json={"identifier": f"made-up{n}@example.com"}, headers={"x-test-ip": f"198.51.100.{n}"}
+        )
+        assert r.status_code == 202, r.text
+    r = c.post(f"{API}/auth/otp", json={"identifier": "newcomer@example.com"}, headers={"x-test-ip": "192.0.2.50"})
+    assert r.status_code == 429
+    assert r.json()["error"]["code"] == "rate_limited"
+    assert "Try again in" in r.json()["error"]["message"]
+    r = c.post(f"{API}/auth/otp", json={"identifier": "known@example.com"}, headers={"x-test-ip": "192.0.2.50"})
+    assert r.status_code == 202, r.text
+    assert [m.to for m in outbox if m.channel == "email"][-1] == "known@example.com"
 
 
 def test_delivery_failure(client_for: ClientFor, outbox: Outbox, monkeypatch: pytest.MonkeyPatch, db: Session) -> None:
@@ -506,8 +534,7 @@ def test_admin_identifiers_become_admins(
         return [r["slug"] for r in sign_in(identifier)[1]["user"]["roles"]]
 
     assert slugs("rep@example.com") == ["admin", "student"]  # an existing account, while the hub has no admin
-    assert slugs("boss@example.com") == ["admin", "student"]  # new accounts
-    assert slugs("+97333999999") == ["admin", "student"]
+    assert slugs("boss@example.com") == ["student"]  # listed, but the hub has an admin now
     assert slugs("plain@example.com") == ["student"]
     entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "user.roles", AuditEntry.target_id == str(rep.id)))
     assert entry is not None
@@ -539,6 +566,36 @@ def test_admin_identifiers_never_give_admin_back(
     access.set_roles(db, founder, [student])
     db.commit()
     _, again = sign_in("founder@example.com")
+    assert [r["slug"] for r in again["user"]["roles"]] == ["student"]
+
+
+def test_admin_identifiers_take_phone_numbers(sign_in: SignIn, set_option: Callable[[str, Any], None]) -> None:
+    set_option("admin_identifiers", ["3399 9999"])
+    assert [r["slug"] for r in sign_in("+97333999999")[1]["user"]["roles"]] == ["admin", "student"]
+
+
+def test_admin_identifiers_ignore_a_deleted_and_remade_account(
+    sign_in: SignIn, set_option: Callable[[str, Any], None], db: Session, storage: Any
+) -> None:
+    """A demoted admin who deletes their account and signs up again with the listed address stays a student while
+    another admin runs the hub (SEC-54)."""
+    set_option("admin_identifiers", ["founder@example.com"])
+    set_option("otp_resend_seconds", 0)
+    _, result = sign_in("founder@example.com")
+    sign_in("other-admin@example.com")
+    other = db.scalar(select(User).where(User.email == "other-admin@example.com"))
+    founder = db.get(User, uuid.UUID(result["user"]["id"]))
+    assert other is not None
+    assert founder is not None
+    access.give(db, other, "admin")
+    student = access.role_by_slug(db, "student")
+    assert student is not None
+    access.set_roles(db, founder, [student])
+    db.commit()
+    accounts.delete_account(db, founder, storage)
+    db.commit()
+    _, again = sign_in("founder@example.com")
+    assert again["user"]["id"] != result["user"]["id"]
     assert [r["slug"] for r in again["user"]["roles"]] == ["student"]
 
 
