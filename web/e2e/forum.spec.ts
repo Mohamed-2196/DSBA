@@ -174,13 +174,44 @@ test('Ali deletes a reply; Sara reports an off-topic one, and reporting twice is
   ).toBeVisible();
 });
 
+test('Ali reports the question from its "…" menu, and the rep dismisses it', async ({ ali, rep, run }) => {
+  await ali.goto(`/forum/${slug}`);
+  const op = ali.locator('[data-hub="thread-op"]');
+  await op.locator('[data-hub="post-menu"]').click();
+  await ali.getByRole('menuitem', { name: 'Report' }).click();
+  const dialog = ali.getByRole('dialog', { name: 'Report this thread' });
+  await dialog.getByText('Something else', { exact: true }).click();
+  await dialog.getByLabel('Add a note').fill('Checking the question can be reported from its menu.');
+  await dialog.locator('[data-hub="report-send"]').click();
+  await expect(ali.getByText('Report sent')).toBeVisible();
+  await op.locator('[data-hub="post-menu"]').click();
+  await expect(ali.getByRole('menuitem', { name: 'Reported' })).toBeVisible();
+  await ali.keyboard.press('Escape');
+
+  await rep.goto('/manage?tab=reports');
+  const report = rep
+    .locator('[data-hub="report"]')
+    .filter({ hasText: run.tag })
+    .filter({ hasText: 'Checking the question can be reported' });
+  await expect(report).toHaveCount(1);
+  await report.getByRole('button', { name: 'Dismiss' }).click();
+  await rep.getByRole('dialog').locator('[data-hub="report-decide"]').click();
+  await expect(rep.getByText('Report dismissed')).toBeVisible();
+});
+
 test('the rep hides the reply, resolves the report and locks the thread; students see it locked', async ({
   rep,
   sara,
   ali,
+  run,
 }) => {
   await rep.goto('/manage?tab=reports');
-  const report = rep.locator('[data-hub="report"]').filter({ hasText: 'WhatsApp group please' }).first();
+  // This run's report (its card names the thread, with the run's tag): a stopped run can leave an older one open.
+  const report = rep
+    .locator('[data-hub="report"]')
+    .filter({ hasText: run.tag })
+    .filter({ hasText: 'WhatsApp group please' })
+    .first();
   await expect(report).toContainText('Something else');
 
   await rep.goto(`/forum/${slug}`);

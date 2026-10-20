@@ -132,8 +132,10 @@ test('the forum’s Yours tab lists the threads she started, and not a classmate
   await sara.goto('/forum');
   await sara.getByRole('tab', { name: 'Yours' }).click();
   await expect(sara).toHaveURL(/cohort=yours/);
-  await expect(sara.getByRole('link', { name: /is the MLE of a uniform's upper end biased/ })).toBeVisible();
-  await expect(sara.getByRole('link', { name: /does a price floor always cause a surplus/ })).toHaveCount(0);
+  // The thread list, not the band's "waiting for a first reply", which lists threads whoever started them.
+  const rows = sara.locator('[data-hub="thread-row"]');
+  await expect(rows.getByRole('link', { name: /is the MLE of a uniform's upper end biased/ })).toBeVisible();
+  await expect(rows.getByRole('link', { name: /does a price floor always cause a surplus/ })).toHaveCount(0);
 
   // A guest has no Yours tab.
   await guest.goto('/forum');

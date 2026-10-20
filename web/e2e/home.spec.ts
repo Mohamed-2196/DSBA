@@ -52,3 +52,28 @@ test('a guest’s Home layout stays in the browser', async ({ guest }) => {
   await expect(guest.locator('.home-blocks [data-block="modules"]')).toHaveCount(0);
   expect(await guest.evaluate(() => window.localStorage.getItem('hub.homeBlocks'))).not.toContain('modules');
 });
+
+test('the desk shelf opens each section, for a student and a guest', async ({ sara, guest }) => {
+  const sections: Array<[string, RegExp]> = [
+    ['Library', /\/library$/],
+    ['Modules', /\/modules$/],
+    ['Notebook', /\/notes$/],
+    ['Forum', /\/forum$/],
+    ['Calendar', /\/calendar$/],
+  ];
+  for (const page of [sara, guest]) {
+    for (const [label, url] of sections) {
+      await page.goto('/');
+      const shelf = page.getByRole('navigation', { name: 'Your desk' });
+      // Each tile is named by its section and its live line ("Library, 12 new").
+      const tile = shelf.getByRole('link', { name: new RegExp(`^${label}(,|$)`) });
+      await expect(tile).toBeVisible();
+      await tile.click();
+      await expect(page).toHaveURL(url);
+    }
+  }
+  await sara.goto('/');
+  await expect(
+    sara.getByRole('navigation', { name: 'Your desk' }).getByRole('link', { name: /^Notebook, / }),
+  ).toHaveAccessibleName(/^Notebook, (\d+ notes?|Start a note)$/);
+});
