@@ -1,13 +1,12 @@
 // Home widget: the 1–3 modules the student is working through, most recent first, each linking straight to the
 // lesson to pick up (resume the last one opened, or the next unwatched one).
-import { CaretRight, PlayCircle } from '@phosphor-icons/react';
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
 import { cohortColor } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, EmptyState, Panel, ProgressRing, QueryError, Skeleton, cx } from '../../ui';
+import { Button, EmptyState, Panel, ProgressRing, QueryError, Skeleton, cx, glyph, Icon } from '../../ui';
 import { moduleDetailQuery } from './api';
 import { chapterPosition, lastOpenedLabel, lessonHref } from './lessons';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
@@ -50,7 +49,7 @@ function ContinueRow({ item, featured }: { item: Item; featured: boolean }) {
       <span className="mod-cl__progress" aria-hidden="true">
         <ProgressRing value={progress.pct} size={featured ? 48 : 40} stroke={4} color={cohortColor(m.year)} />
       </span>
-      <CaretRight className="mod-cl__go" aria-hidden="true" />
+      <Icon glyph={glyph.chevronRight} className="mod-cl__go" aria-hidden="true" />
     </Link>
   );
 }
@@ -125,7 +124,7 @@ export function ContinueLearning() {
       <Panel padding="none" data-hub="continue-learning">
         <EmptyState
           size="sm"
-          icon={PlayCircle}
+          icon={<Icon glyph={glyph.video} />}
           title="Nothing in progress"
           body="Start a lesson in any module and it will wait for you here."
           action={

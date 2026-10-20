@@ -21,7 +21,7 @@ interface ButtonOwnProps {
   variant?: ButtonVariant;
   /** 32 / 40 / 48px tall (default 'md') */
   size?: ButtonSize;
-  /** Phosphor component or element */
+  /** a brand glyph or element */
   leadingIcon?: IconSource | null;
   trailingIcon?: IconSource | null;
   /** any component/element type to render instead */

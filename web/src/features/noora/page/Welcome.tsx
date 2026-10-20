@@ -69,7 +69,7 @@ export function Welcome({ name, lead, starters, onStart, questions, onAsk, pause
       ) : (
         <ul role="list" className="np-starters" aria-label="Ways to start">
           {starters.map((s) => {
-            const StarterIcon = STARTER_ICONS[s.icon].icon;
+            const starterGlyph = STARTER_ICONS[s.icon].icon;
             return (
               <li key={s.id}>
                 <button
@@ -79,7 +79,7 @@ export function Welcome({ name, lead, starters, onStart, questions, onAsk, pause
                   data-hub="noora-starter"
                   data-starter={s.id}
                 >
-                  <StarterIcon className="np-starter__icon" aria-hidden="true" weight="duotone" />
+                  <Icon glyph={starterGlyph} className="np-starter__icon" />
                   <span className="np-starter__text">
                     <span className="np-starter__title">{s.title}</span>
                     <span className="np-starter__example">{s.example}</span>

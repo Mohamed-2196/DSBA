@@ -1,5 +1,4 @@
 import { useLayoutEffect, type ReactNode, type RefObject } from 'react';
-import { Stop } from '@phosphor-icons/react';
 import { Icon, IconButton, Tooltip, cx, glyph, type Glyph } from '../../ui';
 import { FileChip } from './Attachment';
 import type { Attachment } from './files';
@@ -323,7 +322,7 @@ export function Composer(props: ComposerProps) {
               <IconButton
                 type="submit"
                 label="Stop answering"
-                icon={<Stop weight="fill" />}
+                icon={<Icon glyph={glyph.stop} active />}
                 variant="secondary"
                 size="sm"
                 className="nc-send"

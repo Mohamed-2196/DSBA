@@ -1,4 +1,3 @@
-import { Rows, SquaresFour, Swatches } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { showsUpload, useAuth } from '../../auth';
@@ -591,8 +590,8 @@ export default function LibraryPage() {
       value={view}
       onChange={(v) => update({ view: v === openingView ? null : v })}
       options={[
-        { value: 'grid' as const, label: 'Grid', icon: SquaresFour },
-        { value: 'list' as const, label: 'List', icon: Rows },
+        { value: 'grid' as const, label: 'Grid', icon: glyph.gridView },
+        { value: 'list' as const, label: 'List', icon: glyph.rows },
       ]}
     />
   );
@@ -834,7 +833,7 @@ export default function LibraryPage() {
                   <Chip
                     selected={coverStyle === 'styled'}
                     onChange={(on) => setCoverStyle(on ? 'styled' : 'original')}
-                    icon={Swatches}
+                    icon={<Icon glyph={glyph.swatches} />}
                     title="Switch between original file covers and generated title covers"
                   >
                     Styled covers

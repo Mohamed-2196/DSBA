@@ -3,7 +3,6 @@
 // phone. Open: what it is, its label, icon, headline and link name, the copy, the live list's settings and what
 // sits beside the text.
 import { memo, useState } from 'react';
-import { CaretDown, WarningCircle } from '@phosphor-icons/react';
 import { Badge, Button, cx, glyph, Icon, Select } from '../../../ui';
 import {
   LIMITS,
@@ -90,7 +89,7 @@ function IconPicker({
       <legend className="ui-field__label">Icon</legend>
       <div className="nl-ed-icons__grid">
         {ICONS.map((icon) => {
-          const Glyph = SECTION_ICONS[icon];
+          const iconGlyph = SECTION_ICONS[icon];
           return (
             <label key={icon} className="nl-ed-icon" title={ICON_NAMES[icon]}>
               <input
@@ -101,7 +100,7 @@ function IconPicker({
                 onChange={() => onChange(icon)}
                 className="nl-ed-icon__input"
               />
-              <Glyph weight="duotone" aria-hidden="true" />
+              <Icon glyph={iconGlyph} />
               <span className="visually-hidden">{ICON_NAMES[icon]}</span>
             </label>
           );
@@ -147,7 +146,7 @@ function SectionCardImpl({
   const change = (fn: (x: SectionDraft) => SectionDraft) => onChange(s.key, fn);
   const path = (field: string) => fieldPath.section(s.key, field);
   const problems = Object.keys(errors).filter((p) => sectionOfPath(p) === s.key).length;
-  const SectionGlyph = sectionIcon(s.icon);
+  const sectionGlyph = sectionIcon(s.icon);
   const label = plainText(s.label.trim() || s.title.trim()) || 'New section';
   const headline = plainText(s.title.trim());
   const bodyId = `nl-ed-sec-${s.key}`;
@@ -173,7 +172,7 @@ function SectionCardImpl({
             <span className="nl-ed-section__no u-tabular" aria-hidden="true">
               {index + 1}
             </span>
-            <SectionGlyph className="nl-ed-section__icon" weight="duotone" aria-hidden="true" />
+            <Icon glyph={sectionGlyph} className="nl-ed-section__icon" />
             <span className="nl-ed-section__names">
               <span className="nl-ed-section__label">
                 {label}
@@ -187,12 +186,12 @@ function SectionCardImpl({
             </span>
             {problems > 0 ? (
               <span className="nl-ed-section__problems">
-                <WarningCircle weight="fill" aria-hidden="true" />
+                <Icon glyph={glyph.error} active aria-hidden="true" />
                 {problems === 1 ? '1 problem' : `${problems} problems`}
               </span>
             ) : null}
             <span className="visually-hidden">{open ? ', open' : ', closed'}</span>
-            <CaretDown className="nl-ed-section__caret" weight="bold" aria-hidden="true" />
+            <Icon glyph={glyph.chevronDown} className="nl-ed-section__caret" aria-hidden="true" />
           </button>
         </h3>
         <ItemTools

@@ -8,7 +8,7 @@ import './EmptyState.css';
 export type EmptyIllustration = 'offline';
 
 export interface EmptyStateProps {
-  /** Phosphor component, e.g. ChatsCircle (duotone weight is applied) */
+  /** a brand glyph (`glyph.forum`) or an element */
   icon?: IconSource | null;
   /** the section's deskmate, asleep, shown in place of the icon: jot (no notes), blink (nothing due), binder (no
    *  lessons or modules), loupe (no results), pip-pod (no threads), stacks (no files) */
@@ -54,7 +54,7 @@ export function EmptyState({
           <img src={`/illustrations/empty-${illustration}.png`} alt="" width={800} height={600} decoding="async" />
         </div>
       ) : icon ? (
-        <div className="ui-empty__icon">{renderIcon(icon, { weight: 'duotone' })}</div>
+        <div className="ui-empty__icon">{renderIcon(icon)}</div>
       ) : null}
       {title ? (
         <Title className="ui-empty__title" id={titleId} tabIndex={Title === 'p' ? undefined : -1}>

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LockSimpleOpen, PushPinSlash } from '@phosphor-icons/react';
 import type { ThreadDetail } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { Badge, Button, CohortBadge, Icon, Panel, glyph, timeAgo } from '../../../ui';
@@ -167,7 +166,7 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
                       ? [
                           { heading: 'Moderate' },
                           thread.pinned
-                            ? { id: 'unpin', label: 'Unpin', icon: PushPinSlash, onSelect: () => moderation.pin(false) }
+                            ? { id: 'unpin', label: 'Unpin', icon: glyph.unpin, onSelect: () => moderation.pin(false) }
                             : {
                                 id: 'pin',
                                 label: 'Pin to the top',
@@ -178,7 +177,7 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
                             ? {
                                 id: 'unlock',
                                 label: 'Unlock replies',
-                                icon: LockSimpleOpen,
+                                icon: glyph.unlock,
                                 onSelect: () => moderation.lock(false),
                               }
                             : {

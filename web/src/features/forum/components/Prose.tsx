@@ -1,6 +1,5 @@
 import { Fragment, useMemo, useState, type HTMLAttributes, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ImageBroken } from '@phosphor-icons/react';
 import { API_ORIGIN } from '../../../api/client';
 import { TeX, cx, Icon, glyph } from '../../../ui';
 import { mediaSrc, safeLink } from '../lib/links';
@@ -77,7 +76,7 @@ function Picture({ src, alt }: { src: string; alt: string }) {
   if (broken) {
     return (
       <p className="forum-figure is-broken" role="note">
-        <ImageBroken aria-hidden="true" />
+        <Icon glyph={glyph.imageBroken} aria-hidden="true" />
         <span>This picture isn’t available{alt ? `: ${alt}` : ''}.</span>
       </p>
     );

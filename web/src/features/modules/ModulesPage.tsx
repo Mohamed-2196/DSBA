@@ -88,7 +88,7 @@ function ModuleRow({
             <span className="mod-row__code u-code">{m.unitCode}</span>
           ) : (
             <span className="mod-row__plate">
-              <ModuleIcon moduleId={m.id} weight="duotone" className="mod-row__icon" />
+              <ModuleIcon moduleId={m.id} className="mod-row__icon" />
               <span className="visually-hidden">{COHORTS[m.year].label} module:</span>
             </span>
           )}

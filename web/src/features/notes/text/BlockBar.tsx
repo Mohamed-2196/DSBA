@@ -3,9 +3,8 @@
 // narrow screen, it moves across to stay in view. Pressing it never takes the text's selection away, and it can be
 // reached with Tab from the text. Its buttons, the In line / Free switch and the menu of less used choices are shared
 // with the toolbar of a free picture (pictures/FreePictureLayer.tsx).
-import { DotsThree, type Icon } from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { Menu, cx, type MenuItem } from '../../../ui';
+import { Menu, cx, type MenuItem, glyph, Icon, type Glyph } from '../../../ui';
 
 /** Pixels the toolbar keeps from the sides of the view of the pages. */
 const ROOM = 8;
@@ -54,7 +53,7 @@ export function BlockBar({ label, children }: { label: string; children: ReactNo
 }
 
 interface BlockBarButtonProps {
-  icon: Icon;
+  icon: Glyph;
   label: string;
   /** show the label beside the icon */
   text?: boolean;
@@ -88,7 +87,7 @@ export function BlockBarButton({
   if (href) {
     return (
       <a className={className} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
-        <I aria-hidden="true" />
+        <Icon glyph={I} />
         {text ? <span>{label}</span> : null}
       </a>
     );
@@ -103,7 +102,7 @@ export function BlockBarButton({
       onClick={onClick}
       disabled={disabled}
     >
-      <I aria-hidden="true" weight={pressed ? 'fill' : 'regular'} />
+      <Icon glyph={I} active={pressed} />
       {text ? <span>{label}</span> : null}
     </button>
   );
@@ -158,7 +157,7 @@ export function BarMenu({ label, items }: { label: string; items: MenuItem[] }) 
       items={items}
       trigger={
         <button type="button" className="nb-blockbar__button" aria-label={label} title={label}>
-          <DotsThree aria-hidden="true" weight="bold" />
+          <Icon glyph={glyph.more} aria-hidden="true" />
         </button>
       }
     />

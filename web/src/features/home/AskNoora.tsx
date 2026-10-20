@@ -1,8 +1,7 @@
 // Home's "Ask Noora anything…": one line that opens Noora's own page and asks the question there at once, in a new
 // chat; with nothing typed, it just opens the page.
-import { ArrowRight, ChatCircleDots } from '@phosphor-icons/react';
 import { useId, useState, type FormEvent } from 'react';
-import { IconButton } from '../../ui';
+import { IconButton, glyph, Icon } from '../../ui';
 import { openNoora } from '../noora/public';
 
 export function AskNoora() {
@@ -14,7 +13,7 @@ export function AskNoora() {
   };
   return (
     <form className="home-ask" onSubmit={submit} role="search" aria-label="Ask Noora" data-hub="home-ask-noora">
-      <ChatCircleDots className="home-ask__icon" weight="duotone" aria-hidden="true" />
+      <Icon glyph={glyph.chat} className="home-ask__icon" aria-hidden="true" />
       <label htmlFor={id} className="visually-hidden">
         Ask Noora anything
       </label>
@@ -33,7 +32,7 @@ export function AskNoora() {
         type="submit"
         variant="primary"
         label={text.trim() ? 'Ask Noora' : 'Open Noora'}
-        icon={ArrowRight}
+        icon={<Icon glyph={glyph.forward} />}
         className="home-ask__go"
       />
     </form>

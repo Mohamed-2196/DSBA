@@ -1,9 +1,8 @@
-import { ArrowSquareOut, DownloadSimple, MagnifyingGlassMinus, MagnifyingGlassPlus } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { isApiError } from '../../../api/errors';
 import { formatSize } from '../../../api/uploads';
 import { hostOf } from '../../../lib/share';
-import { Button, Spinner, cx } from '../../../ui';
+import { Button, Spinner, cx, glyph, Icon } from '../../../ui';
 import { downloadHref, openLinkHref, useFileLink } from '../api';
 import { FileThumb } from '../components/FileThumb';
 import { linkPlace } from '../display';
@@ -56,12 +55,12 @@ function NoPreview({ item, problem }: { item: LibraryItem; problem?: boolean }) 
             The Hub links to it and keeps no copy.
             {place === 'Google Drive' ? ' Google may ask you to sign in.' : ''}
           </p>
-          <Button variant="primary" href={openLinkHref(item)} trailingIcon={ArrowSquareOut}>
+          <Button variant="primary" href={openLinkHref(item)} trailingIcon={<Icon glyph={glyph.external} />}>
             Open in {place}
           </Button>
           {host ? (
             <p className="lib-nopreview__note">
-              <ArrowSquareOut aria-hidden="true" /> Opens {host} in a new tab
+              <Icon glyph={glyph.external} aria-hidden="true" /> Opens {host} in a new tab
             </p>
           ) : null}
         </div>
@@ -76,7 +75,7 @@ function NoPreview({ item, problem }: { item: LibraryItem; problem?: boolean }) 
           {problem ? 'The preview didn’t load' : `No preview for ${fmt ? `${fmt.name}s` : 'this file'}`}
         </h2>
         <p>{problem ? 'You can still download the file.' : `Download it to open it in ${opensIn(fmt?.tag)}.`}</p>
-        <Button variant="primary" href={downloadHref(item)} leadingIcon={DownloadSimple}>
+        <Button variant="primary" href={downloadHref(item)} leadingIcon={<Icon glyph={glyph.download} />}>
           Download{item.sizeBytes ? ` (${[fmt?.tag, formatSize(item.sizeBytes)].filter(Boolean).join(', ')})` : ''}
         </Button>
       </div>
@@ -108,7 +107,7 @@ function ImagePreview({ item, src }: { item: LibraryItem; src: string }) {
       </button>
       {loaded ? (
         <span className="lib-preview__zoomhint" aria-hidden="true">
-          {actual ? <MagnifyingGlassMinus /> : <MagnifyingGlassPlus />}
+          {actual ? <Icon glyph={glyph.zoomOut} /> : <Icon glyph={glyph.zoomIn} />}
           {actual ? 'Fit to the window' : 'See it full size'}
         </span>
       ) : null}

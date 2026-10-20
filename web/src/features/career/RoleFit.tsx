@@ -1,16 +1,4 @@
 import { useMemo, useState } from 'react';
-import {
-  Briefcase,
-  ChartBar,
-  ChartPieSlice,
-  Cpu,
-  Flask,
-  Handshake,
-  ShieldWarning,
-  Target,
-  TrendUp,
-  type Icon,
-} from '@phosphor-icons/react';
 import type { CareerRole } from '../../api/types';
 import { BREAKPOINTS, cohortColor, cohortLabel, useMediaQuery, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
@@ -37,16 +25,16 @@ import { askLink } from './lib/links';
 import { SkillRow } from './SkillRow';
 import './RoleFit.css';
 
-const ROLE_ICONS: Record<string, Icon> = {
-  'data-analyst': ChartBar,
-  'data-scientist': Flask,
-  'business-analyst': Briefcase,
-  'bi-developer': ChartPieSlice,
-  'risk-analyst': ShieldWarning,
-  'financial-analyst': TrendUp,
-  'ml-engineer': Cpu,
-  'product-analyst': Target,
-  consultant: Handshake,
+const ROLE_ICONS: Record<string, Glyph> = {
+  'data-analyst': glyph.chartBar,
+  'data-scientist': glyph.flask,
+  'business-analyst': glyph.briefcase,
+  'bi-developer': glyph.chartPie,
+  'risk-analyst': glyph.shieldAlert,
+  'financial-analyst': glyph.trendUp,
+  'ml-engineer': glyph.chip,
+  'product-analyst': glyph.target,
+  consultant: glyph.handshake,
 };
 
 const GROUPS: {
@@ -95,7 +83,7 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
   const [skillsOpen, setSkillsOpen] = useState(false);
   const n = fit.covered.length;
   const cohort = cohortLabel(year);
-  const RoleIcon = ROLE_ICONS[role.id];
+  const roleGlyph = ROLE_ICONS[role.id];
   const fitCerts = useMemo(() => data.certs.filter((c) => c.roles.includes(role.id)), [data.certs, role]);
 
   return (
@@ -159,7 +147,7 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
               </ProgressRing>
               <div className="career-score__text">
                 <h3 id="career-fit-title" className="career-fit__role">
-                  {RoleIcon ? <RoleIcon className="career-fit__role-icon" weight="duotone" aria-hidden="true" /> : null}
+                  {roleGlyph ? <BrandIcon glyph={roleGlyph} className="career-fit__role-icon" /> : null}
                   {role.title}
                 </h3>
                 <p className="career-score__headline">

@@ -1,6 +1,5 @@
 // Follow a thread (forum.follow): hear when it gets an accepted answer, or about every reply. Voting or replying
 // starts following it for answers; switching it off here keeps it off.
-import { BellSlash } from '@phosphor-icons/react';
 import type { ThreadDetail } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { Button, Menu, Icon, glyph } from '../../../ui';
@@ -48,7 +47,7 @@ export function FollowButton({ thread }: { thread: ThreadDetail }) {
           onSelect: () => set('replies'),
         },
         { divider: true },
-        { id: 'off', label: 'Stop following', icon: BellSlash, onSelect: () => set('off') },
+        { id: 'off', label: 'Stop following', icon: glyph.bellOff, onSelect: () => set('off') },
       ]}
       trigger={
         <Button

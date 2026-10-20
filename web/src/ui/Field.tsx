@@ -83,7 +83,7 @@ export function Field({
 export interface TextFieldProps
   extends FieldBaseProps,
     Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | keyof FieldBaseProps> {
-  /** Phosphor icon inside the field */
+  /** brand glyph or icon element inside the field */
   leadingIcon?: IconSource | null;
   /** node inside the field on the right (unit, button) */
   trailing?: ReactNode;

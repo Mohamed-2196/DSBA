@@ -1,6 +1,5 @@
 // /about: what the hub is, who made it, the students who shared notes, and the useful links. Its words and links are
 // Site settings (Manage → Site settings); the hub's own numbers come from the modules and the calendar.
-import { ArrowUpRight, Bank, Bug, GraduationCap, UploadSimple, type Icon } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import type { SiteDoc } from '../../api/types';
 import { showsUpload, useAuth } from '../../auth';
@@ -16,6 +15,9 @@ import {
   SectionHeader,
   Skeleton,
   countOf,
+  glyph,
+  Icon,
+  type Glyph,
 } from '../../ui';
 import { openBugReport } from '../bugs/public';
 import { useCalendarEvents } from '../calendar/public';
@@ -49,9 +51,9 @@ function CoverageLine() {
   );
 }
 
-const LINK_ICONS: { key: 'myclass' | 'uolPortal'; icon: Icon }[] = [
-  { key: 'myclass', icon: GraduationCap },
-  { key: 'uolPortal', icon: Bank },
+const LINK_ICONS: { key: 'myclass' | 'uolPortal'; icon: Glyph }[] = [
+  { key: 'myclass', icon: glyph.cap },
+  { key: 'uolPortal', icon: glyph.bank },
 ];
 
 /** About's main column, from the settings as they are (or as an admin's draft, in the editor's preview). */
@@ -143,18 +145,18 @@ function UsefulLinks({ site }: { site: SiteDoc }) {
     <Panel padding="none">
       <h2 className="about__aside-title about__aside-title--pad">Useful links</h2>
       <ul role="list" className="about__links">
-        {LINK_ICONS.map(({ key, icon: LinkIcon }) => {
+        {LINK_ICONS.map(({ key, icon }) => {
           const l = site.links[key];
           const href = httpsHref(l.url);
           return href ? (
             <li key={key}>
               <a href={href} target="_blank" rel="noopener noreferrer" className="about__link">
-                <LinkIcon className="about__link-icon" aria-hidden="true" />
+                <Icon glyph={icon} className="about__link-icon" />
                 <span className="about__link-text">
                   <span className="about__link-label">{l.label}</span>
                   <span className="about__link-note">{l.note}</span>
                 </span>
-                <ArrowUpRight className="about__link-ext" aria-hidden="true" weight="bold" />
+                <Icon glyph={glyph.external} className="about__link-ext" aria-hidden="true" />
                 <span className="visually-hidden"> (opens in a new tab)</span>
               </a>
             </li>
@@ -199,7 +201,7 @@ export default function AboutPage() {
                 <Button
                   variant="primary"
                   to="/library?upload=1"
-                  leadingIcon={UploadSimple}
+                  leadingIcon={<Icon glyph={glyph.upload} />}
                   fullWidth
                   data-hub="about-upload"
                 >
@@ -210,7 +212,12 @@ export default function AboutPage() {
             <Panel padding="md" className="about__report">
               <h2 className="about__aside-title">Something wrong with the Hub?</h2>
               <p className="about__aside-body">A broken page, a wrong date or a typo: tell the people who build it.</p>
-              <Button onClick={openBugReport} leadingIcon={Bug} fullWidth data-hub="about-report">
+              <Button
+                onClick={openBugReport}
+                leadingIcon={<Icon glyph={glyph.bug} />}
+                fullWidth
+                data-hub="about-report"
+              >
                 Report a bug
               </Button>
             </Panel>

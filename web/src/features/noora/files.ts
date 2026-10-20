@@ -1,6 +1,7 @@
 // Attachments in the chat. Nothing is uploaded: a file never leaves the browser. A picture is shown
 // through an object URL, which is released once the picture is no longer needed.
-import { File as FileIcon, FilePdf, FileText, type Icon } from '@phosphor-icons/react';
+
+import { glyph, type Glyph } from '../../ui';
 
 const MAX_FILES = 4;
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -78,7 +79,7 @@ export function sizeLabel(bytes: number): string {
 }
 
 /** The icon for a file, by its extension: a PDF, something written, or any other file. */
-export function fileIcon(name: string): Icon {
-  if (/\.pdf$/i.test(name)) return FilePdf;
-  return WRITTEN.test(name) ? FileText : FileIcon;
+export function fileIcon(name: string): Glyph {
+  if (/\.pdf$/i.test(name)) return glyph.filePdf;
+  return WRITTEN.test(name) ? glyph.page : glyph.page;
 }

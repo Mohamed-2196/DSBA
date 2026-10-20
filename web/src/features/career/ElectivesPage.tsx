@@ -54,7 +54,7 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
           <ModuleArt art={m.art} className="elective__art" />
         ) : (
           <span className="elective__plate" aria-hidden="true">
-            <ModuleIcon moduleId={m.id} weight="duotone" />
+            <ModuleIcon moduleId={m.id} />
           </span>
         )}
         <h2 id={headingId} className="elective__name">

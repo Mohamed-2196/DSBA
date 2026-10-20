@@ -1,57 +1,58 @@
+import { Icon } from './Icon';
+import type { Glyph } from './icons/glyph';
 import {
-  Brain,
-  Briefcase,
-  ChartBar,
-  ChartLineUp,
-  ChartScatter,
-  Coins,
-  Database,
-  Function as FunctionIcon,
-  ListChecks,
-  Megaphone,
-  PresentationChart,
-  Scales,
-  Sigma,
-  Storefront,
-  TerminalWindow,
-  WaveSine,
-  BookOpenText,
-  type Icon,
-  type IconProps,
-} from '@phosphor-icons/react';
+  book,
+  brain,
+  briefcase,
+  chartBar,
+  chartLine,
+  chartScatter,
+  checklist,
+  coins,
+  database,
+  formula,
+  megaphone,
+  presentation,
+  scales,
+  shop,
+  sigma,
+  terminal,
+  wave,
+} from './icons/glyphs';
 import { useModulesOptional } from '../state/modules';
 
-// Only the icons the module catalogue uses (keeps Phosphor tree-shaken).
-const ICONS: Record<string, Icon> = {
-  Brain,
-  Briefcase,
-  ChartBar,
-  ChartLineUp,
-  ChartScatter,
-  Coins,
-  Database,
-  Function: FunctionIcon,
-  ListChecks,
-  Megaphone,
-  PresentationChart,
-  Scales,
-  Sigma,
-  Storefront,
-  TerminalWindow,
-  WaveSine,
+// The module catalogue's icon names (ModuleSummary.icon) and the brand glyph each one draws.
+const ICONS: Record<string, Glyph> = {
+  Brain: brain,
+  Briefcase: briefcase,
+  ChartBar: chartBar,
+  ChartLineUp: chartLine,
+  ChartScatter: chartScatter,
+  Coins: coins,
+  Database: database,
+  Function: formula,
+  ListChecks: checklist,
+  Megaphone: megaphone,
+  PresentationChart: presentation,
+  Scales: scales,
+  Sigma: sigma,
+  Storefront: shop,
+  TerminalWindow: terminal,
+  WaveSine: wave,
 };
 
-export interface ModuleIconProps extends Omit<IconProps, 'name' | 'ref'> {
+export interface ModuleIconProps {
   /** e.g. 'econometrics': the icon comes from the module catalogue */
   moduleId?: string | null;
-  /** a Phosphor name from ModuleSummary.icon (alternative to moduleId) */
+  /** an icon name from ModuleSummary.icon (alternative to moduleId) */
   name?: string | null;
+  size?: number;
+  className?: string;
 }
 
-/** A module's Phosphor icon by module id (or icon name). Other props (size, weight, color, className) go to the icon. */
-export function ModuleIcon({ moduleId, name, weight = 'regular', ...rest }: ModuleIconProps) {
+/** A module's brand icon by module id (or icon name); a book when the module names none. */
+export function ModuleIcon({ moduleId, name, size, className }: ModuleIconProps) {
   const modules = useModulesOptional();
   const iconName = name || modules?.getModule(moduleId)?.icon;
-  const Glyph = (iconName && ICONS[iconName]) || BookOpenText;
-  return <Glyph weight={weight} aria-hidden="true" {...rest} />;
+  return <Icon glyph={(iconName && ICONS[iconName]) || book} size={size} className={className} />;
 }

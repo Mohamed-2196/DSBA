@@ -2,7 +2,6 @@
 // from its puzzle.
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { Flame } from '@phosphor-icons/react';
 import { cx, glyph, Icon, Panel, QueryError, Skeleton } from '../../ui';
 import { useDailyToday } from './api';
 import { GameTile } from './components/GameGlyph';
@@ -51,7 +50,7 @@ export function DailyCard() {
         <div className="home-daily__stats">
           {streak > 0 ? (
             <span className="dy-chip dy-chip--streak dy-num" title="Days in a row with a puzzle finished">
-              <Flame weight="fill" aria-hidden="true" />
+              <Icon glyph={glyph.flame} active aria-hidden="true" />
               {streak}-day streak
             </span>
           ) : null}

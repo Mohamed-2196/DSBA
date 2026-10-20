@@ -2,25 +2,6 @@
 // lasso, laser) on one row a thumb reaches on a tablet, with undo, redo and the zoom; the chosen tool's options on the
 // row below (colours and widths, the eraser's mode, or the text's formatting and Insert). In the text alone there are
 // no ink tools and no zoom: picking Page brings them. Every control is 44 px on a touch screen.
-import {
-  Code,
-  Function as FunctionIcon,
-  HandPointing,
-  Hand,
-  Lasso,
-  ListBullets,
-  ListChecks,
-  ListNumbers,
-  MagnifyingGlassMinus,
-  MagnifyingGlassPlus,
-  MathOperations,
-  Quotes,
-  TextB,
-  TextItalic,
-  TextT,
-  TextUnderline,
-  type Icon as PhosphorIcon,
-} from '@phosphor-icons/react';
 import { useEditorState, type Editor } from '@tiptap/react';
 import type { ReactNode } from 'react';
 import { Deskmate, Icon, cx, glyph, modKeyLabel, type Glyph } from '../../ui';
@@ -41,23 +22,17 @@ function combo(key: string, shift = false): string {
   return mod === '⌘' ? `${shift ? '⇧' : ''}⌘${key}` : `Ctrl+${shift ? 'Shift+' : ''}${key}`;
 }
 
-/** A tool's picture: a brand icon where the family has one, else a Phosphor drawing. */
-type ToolArt = Glyph | PhosphorIcon;
-const isGlyph = (art: ToolArt): art is Glyph => Array.isArray(art);
-
-const TOOLS: { id: Tool; label: string; icon: ToolArt; key: string }[] = [
-  { id: 'type', label: 'Type', icon: TextT, key: 'T' },
+const TOOLS: { id: Tool; label: string; icon: Glyph; key: string }[] = [
+  { id: 'type', label: 'Type', icon: glyph.text, key: 'T' },
   { id: 'pen', label: 'Pen', icon: glyph.pen, key: 'P' },
   { id: 'highlighter', label: 'Highlighter', icon: glyph.highlighter, key: 'H' },
   { id: 'eraser', label: 'Eraser', icon: glyph.eraser, key: 'E' },
-  { id: 'lasso', label: 'Lasso', icon: Lasso, key: 'L' },
-  { id: 'laser', label: 'Laser pointer', icon: HandPointing, key: 'K' },
+  { id: 'lasso', label: 'Lasso', icon: glyph.lasso, key: 'L' },
+  { id: 'laser', label: 'Laser pointer', icon: glyph.laser, key: 'K' },
 ];
 
-function ToolArtView({ art, active }: { art: ToolArt; active: boolean }) {
-  if (isGlyph(art)) return <Icon glyph={art} active={active} />;
-  const I = art;
-  return <I aria-hidden="true" weight={active ? 'fill' : 'regular'} />;
+function ToolArtView({ art, active }: { art: Glyph; active: boolean }) {
+  return <Icon glyph={art} active={active} />;
 }
 
 function ToolButton({
@@ -71,7 +46,7 @@ function ToolButton({
   toggle = true,
 }: {
   label: string;
-  icon: ToolArt;
+  icon: Glyph;
   active?: boolean;
   onClick: () => void;
   disabled?: boolean;
@@ -216,7 +191,7 @@ function TextOptions({ editor, onPicture, onFile }: { editor: Editor; onPicture:
   const items: {
     label: string;
     keys?: string;
-    icon?: PhosphorIcon;
+    icon?: Glyph;
     glyph?: ReactNode;
     active?: boolean;
     run: () => void;
@@ -233,28 +208,38 @@ function TextOptions({ editor, onPicture, onFile }: { editor: Editor; onPicture:
       active: s.h2,
       run: () => chain().toggleHeading({ level: 2 }).run(),
     },
-    { label: 'Bold', keys: combo('B'), icon: TextB, active: s.bold, run: () => chain().toggleBold().run() },
-    { label: 'Italic', keys: combo('I'), icon: TextItalic, active: s.italic, run: () => chain().toggleItalic().run() },
+    { label: 'Bold', keys: combo('B'), icon: glyph.bold, active: s.bold, run: () => chain().toggleBold().run() },
+    {
+      label: 'Italic',
+      keys: combo('I'),
+      icon: glyph.italic,
+      active: s.italic,
+      run: () => chain().toggleItalic().run(),
+    },
     {
       label: 'Underline',
       keys: combo('U'),
-      icon: TextUnderline,
+      icon: glyph.underline,
       active: s.underline,
       run: () => chain().toggleUnderline().run(),
     },
-    { label: 'Bulleted list', icon: ListBullets, active: s.bullets, run: () => chain().toggleBulletList().run() },
-    { label: 'Numbered list', icon: ListNumbers, active: s.numbers, run: () => chain().toggleOrderedList().run() },
-    { label: 'Checklist', icon: ListChecks, active: s.checks, run: () => chain().toggleTaskList().run() },
-    { label: 'Formula in the line', keys: '$…$', icon: FunctionIcon, run: () => chain().insertInlineMath().run() },
-    { label: 'Formula on its own line', keys: '$$', icon: MathOperations, run: () => chain().insertBlockMath().run() },
-    { label: 'Code', keys: '```', icon: Code, active: s.code, run: () => chain().toggleCodeBlock().run() },
-    { label: 'Quote', keys: '>', icon: Quotes, active: s.quote, run: () => chain().toggleBlockquote().run() },
+    { label: 'Bulleted list', icon: glyph.list, active: s.bullets, run: () => chain().toggleBulletList().run() },
+    {
+      label: 'Numbered list',
+      icon: glyph.listNumbers,
+      active: s.numbers,
+      run: () => chain().toggleOrderedList().run(),
+    },
+    { label: 'Checklist', icon: glyph.checklist, active: s.checks, run: () => chain().toggleTaskList().run() },
+    { label: 'Formula in the line', keys: '$…$', icon: glyph.formula, run: () => chain().insertInlineMath().run() },
+    { label: 'Formula on its own line', keys: '$$', icon: glyph.math, run: () => chain().insertBlockMath().run() },
+    { label: 'Code', keys: '```', icon: glyph.code, active: s.code, run: () => chain().toggleCodeBlock().run() },
+    { label: 'Quote', keys: '>', icon: glyph.quote, active: s.quote, run: () => chain().toggleBlockquote().run() },
   ];
   return (
     <>
       <div className="nb-format" role="group" aria-label="Formatting">
         {items.map((it) => {
-          const IconComp = it.icon;
           return (
             <button
               key={it.label}
@@ -267,7 +252,7 @@ function TextOptions({ editor, onPicture, onFile }: { editor: Editor; onPicture:
               onMouseDown={(e) => e.preventDefault()}
               onClick={it.run}
             >
-              {it.glyph ? it.glyph : IconComp ? <IconComp aria-hidden="true" /> : null}
+              {it.glyph ? it.glyph : it.icon ? <Icon glyph={it.icon} /> : null}
             </button>
           );
         })}
@@ -499,11 +484,11 @@ export function Toolbar(props: ToolbarProps) {
                     : 'Your finger scrolls. Turn on to draw with it'
                 }
               >
-                <Hand aria-hidden="true" weight={fingerDraws ? 'fill' : 'regular'} />
+                <Icon glyph={glyph.hand} active={fingerDraws} />
                 <span>Draw with finger</span>
               </button>
             ) : null}
-            <ToolButton label="Zoom out" icon={MagnifyingGlassMinus} onClick={() => onZoomStep(-1)} toggle={false} />
+            <ToolButton label="Zoom out" icon={glyph.zoomOut} onClick={() => onZoomStep(-1)} toggle={false} />
             <button
               type="button"
               className={cx('nb-zoom', fitted && 'is-fitted')}
@@ -513,7 +498,7 @@ export function Toolbar(props: ToolbarProps) {
             >
               {Math.round(zoom * 100)}%
             </button>
-            <ToolButton label="Zoom in" icon={MagnifyingGlassPlus} onClick={() => onZoomStep(1)} toggle={false} />
+            <ToolButton label="Zoom in" icon={glyph.zoomIn} onClick={() => onZoomStep(1)} toggle={false} />
           </div>
         )}
       </div>

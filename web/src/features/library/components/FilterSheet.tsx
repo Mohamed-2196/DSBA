@@ -1,8 +1,7 @@
 // The library's filters on a phone: a bottom sheet with the year, module, type, Starred and Your uploads, and the
 // view. Each choice applies at once (the list behind it updates); "Show N files" closes it.
-import { Rows, SquaresFour, Star, UploadSimple } from '@phosphor-icons/react';
 import type { ModuleSummary } from '../../../api/types';
-import { Button, Chip, Drawer, SegmentedControl, Select, Switch, formatCount } from '../../../ui';
+import { Button, Chip, Drawer, SegmentedControl, Select, Switch, formatCount, glyph, Icon } from '../../../ui';
 import type { KindInfo, LibraryKind } from '../kinds';
 import type { CohortYear, LibraryView } from '../types';
 
@@ -89,11 +88,11 @@ export function FilterSheet(p: FilterSheetProps) {
         options={[{ value: '', label: 'All types' }, ...p.kinds.map((k) => ({ value: k.id, label: k.plural }))]}
       />
       <div className="lib-sheet__group" role="group" aria-label="Show">
-        <Chip selected={p.starred} onChange={p.onStarred} icon={<Star weight={p.starred ? 'fill' : 'regular'} />}>
+        <Chip selected={p.starred} onChange={p.onStarred} icon={<Icon glyph={glyph.star} active={p.starred} />}>
           Starred
         </Chip>
         {p.mine !== null ? (
-          <Chip selected={p.mine} onChange={p.onMine} icon={UploadSimple}>
+          <Chip selected={p.mine} onChange={p.onMine} icon={<Icon glyph={glyph.upload} />}>
             Your uploads
           </Chip>
         ) : null}
@@ -106,8 +105,8 @@ export function FilterSheet(p: FilterSheetProps) {
             value={p.view}
             onChange={p.onView}
             options={[
-              { value: 'grid' as const, label: 'Covers', icon: SquaresFour },
-              { value: 'list' as const, label: 'List', icon: Rows },
+              { value: 'grid' as const, label: 'Covers', icon: glyph.gridView },
+              { value: 'list' as const, label: 'List', icon: glyph.rows },
             ]}
           />
           {p.view === 'grid' ? (

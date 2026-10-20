@@ -3,18 +3,6 @@
 // owner: /notes/files/{id}). The API accepts exactly these names and small scalar attributes
 // (api/app/services/note_doc.py). Every block takes whole lines of the paper, so the text after it stays on the ruled
 // lines.
-import {
-  DownloadSimple,
-  File as FileIcon,
-  FileCsv,
-  FileDoc,
-  FileImage,
-  FilePdf,
-  FilePpt,
-  FileXls,
-  Trash,
-  type Icon,
-} from '@phosphor-icons/react';
 import { InputRule, Node, PasteRule, mergeAttributes, nodeInputRule, type CommandProps } from '@tiptap/core';
 import type { NodeType } from '@tiptap/pm/model';
 import { TextSelection } from '@tiptap/pm/state';
@@ -22,7 +10,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer, type ReactNodeViewProps } from 
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { fileExtension, formatSize } from '../../../api/uploads';
-import { TeX, cx } from '../../../ui';
+import { TeX, cx, glyph, Icon, type Glyph } from '../../../ui';
 import { noteFileHref } from '../api';
 import { LINE } from '../surface/layout';
 import { BlockBar, BlockBarButton } from './BlockBar';
@@ -351,20 +339,20 @@ export const NotePicture = Node.create({
   },
 });
 
-const FILE_ICONS: Record<string, Icon> = {
-  pdf: FilePdf,
-  doc: FileDoc,
-  docx: FileDoc,
-  xls: FileXls,
-  xlsx: FileXls,
-  csv: FileCsv,
-  ppt: FilePpt,
-  pptx: FilePpt,
-  png: FileImage,
-  jpg: FileImage,
-  jpeg: FileImage,
-  webp: FileImage,
-  gif: FileImage,
+const FILE_ICONS: Record<string, Glyph> = {
+  pdf: glyph.filePdf,
+  doc: glyph.page,
+  docx: glyph.page,
+  xls: glyph.fileSheet,
+  xlsx: glyph.fileSheet,
+  csv: glyph.fileSheet,
+  ppt: glyph.fileSlides,
+  pptx: glyph.fileSlides,
+  png: glyph.fileImage,
+  jpg: glyph.fileImage,
+  jpeg: glyph.fileImage,
+  webp: glyph.fileImage,
+  gif: glyph.fileImage,
 };
 
 /** A file in a note: its name and size, opened in a new tab or downloaded; selected, it can be dragged or deleted. */
@@ -374,7 +362,7 @@ function FileView({ node, deleteNode, editor, selected, getPos }: ReactNodeViewP
   const size = Number(node.attrs.size ?? 0);
   const editable = editor.isEditable;
   const ext = fileExtension(name);
-  const Glyph = (ext && FILE_ICONS[ext]) || FileIcon;
+  const fileGlyph = (ext && FILE_ICONS[ext]) || glyph.page;
   const { move, onPointerDown } = useBlockMove({ editor, getPos, enabled: editable, selected });
   const select = (e: MouseEvent) => {
     const pos = getPos();
@@ -391,7 +379,7 @@ function FileView({ node, deleteNode, editor, selected, getPos }: ReactNodeViewP
         style={move ? { transform: `translate(${move.dx}px, ${move.dy}px)` } : undefined}
       >
         <span className="nb-file__icon" aria-hidden="true">
-          <Glyph />
+          <Icon glyph={fileGlyph} />
         </span>
         <span className="nb-file__text">
           <a
@@ -411,11 +399,11 @@ function FileView({ node, deleteNode, editor, selected, getPos }: ReactNodeViewP
           aria-label={`Download ${name}`}
           title="Download"
         >
-          <DownloadSimple aria-hidden="true" />
+          <Icon glyph={glyph.download} aria-hidden="true" />
         </a>
         {editable && selected && !move ? (
           <BlockBar label="File">
-            <BlockBarButton icon={Trash} label="Delete file" danger onClick={deleteNode} />
+            <BlockBarButton icon={glyph.trash} label="Delete file" danger onClick={deleteNode} />
           </BlockBar>
         ) : null}
       </div>

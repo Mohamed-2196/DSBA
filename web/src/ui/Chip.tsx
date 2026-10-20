@@ -7,7 +7,7 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   selected?: boolean;
   /** called with the next selected state */
   onChange?: (next: boolean) => void;
-  /** leading Phosphor icon */
+  /** leading icon: a brand glyph or element */
   icon?: IconSource | null;
   /** optional count shown after the label */
   count?: number | null;

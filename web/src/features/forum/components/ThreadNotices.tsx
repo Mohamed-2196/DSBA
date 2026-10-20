@@ -2,7 +2,6 @@
 // deleted, locked, or gone while the page was open; a link to a reply that isn't there; and the reply composer when
 // the thread takes replies and the person may post.
 import { useState, type RefObject } from 'react';
-import { Prohibit } from '@phosphor-icons/react';
 import type { Reply, ThreadDetail } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { Button, Icon, glyph } from '../../../ui';
@@ -97,7 +96,7 @@ function whyClosed(thread: ThreadDetail, unavailable: boolean): string {
 export function CantPostNote({ suspended }: { suspended: boolean }) {
   return (
     <p className="forum-notice" role="note" data-hub="cant-post">
-      <Prohibit aria-hidden="true" weight="bold" className="forum-notice__icon" />
+      <Icon glyph={glyph.blocked} aria-hidden="true" className="forum-notice__icon" />
       <span className="forum-notice__text">
         {suspended
           ? 'Your account is suspended, so you can’t post in the forum for now. Contact a student rep.'

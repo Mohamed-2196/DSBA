@@ -1,8 +1,7 @@
-import { Check, X } from '@phosphor-icons/react';
 import { useId, useRef, useState } from 'react';
 import { errorMessage } from '../../../api/errors';
 import { useSingleFlight, useToast } from '../../../state';
-import { Button, TextArea, cx } from '../../../ui';
+import { Button, TextArea, cx, glyph, Icon } from '../../../ui';
 import { useReviewItem } from '../api';
 import type { LibraryItem } from '../types';
 import './ReviewActions.css';
@@ -80,7 +79,7 @@ export function ReviewActions({
             <Button
               variant="danger"
               size="sm"
-              leadingIcon={X}
+              leadingIcon={<Icon glyph={glyph.close} />}
               loading={pending === 'reject'}
               onClick={() => decide('reject')}
             >
@@ -90,13 +89,18 @@ export function ReviewActions({
         </div>
       ) : (
         <div className="lib-review__buttons">
-          <Button size="sm" leadingIcon={X} onClick={() => setRejecting(true)} disabled={!!pending}>
+          <Button
+            size="sm"
+            leadingIcon={<Icon glyph={glyph.close} />}
+            onClick={() => setRejecting(true)}
+            disabled={!!pending}
+          >
             Reject
           </Button>
           <Button
             variant="primary"
             size="sm"
-            leadingIcon={Check}
+            leadingIcon={<Icon glyph={glyph.check} />}
             loading={pending === 'publish'}
             onClick={() => decide('publish')}
           >

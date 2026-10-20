@@ -1,8 +1,7 @@
 // The Word: six tries at the week's five-letter word. Letters go in from the on-screen keyboard or the computer's;
 // each guess flips its tiles one by one to show its marks, and the keyboard takes the colours once they're shown.
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import { Backspace } from '@phosphor-icons/react';
-import { cx } from '../../../../ui';
+import { cx, glyph, Icon } from '../../../../ui';
 import type { GameProps } from '../registry';
 import { KEY_ROWS, MARK_LABEL, keyMarks, praise } from '../../lib/word';
 import type { WordMark, WordRow } from '../../types';
@@ -192,7 +191,13 @@ export function WordGame({ out, busy, play, flash, paused }: GameProps) {
                           : key
                   }
                 >
-                  {key === 'Backspace' ? <Backspace size={22} aria-hidden="true" /> : key === 'Enter' ? 'Enter' : key}
+                  {key === 'Backspace' ? (
+                    <Icon glyph={glyph.backspace} size={22} aria-hidden="true" />
+                  ) : key === 'Enter' ? (
+                    'Enter'
+                  ) : (
+                    key
+                  )}
                 </button>
               );
             })}

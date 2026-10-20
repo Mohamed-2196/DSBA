@@ -5,7 +5,6 @@
 // The same conversation as the chat card: "Open full chat" there carries it over, and the card carries on with it.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Keyboard } from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
 import { useDocumentTitle, useLocalStorage, useMediaQuery, useYear } from '../../../state';
 import { useModules } from '../../../state/modules';
@@ -490,7 +489,12 @@ function NooraScreen({ script }: { script: NooraScript }) {
                   onSelect: () => current && setConfirming({ kind: 'one', chat: current }),
                 },
                 { divider: true, id: 'd' },
-                { id: 'keys', label: 'Keyboard shortcuts', icon: Keyboard, onSelect: () => setShortcutsOpen(true) },
+                {
+                  id: 'keys',
+                  label: 'Keyboard shortcuts',
+                  icon: glyph.keyboard,
+                  onSelect: () => setShortcutsOpen(true),
+                },
               ]}
             />
           </div>

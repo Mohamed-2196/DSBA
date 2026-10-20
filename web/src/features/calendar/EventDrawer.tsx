@@ -295,7 +295,7 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
               <ModuleArt art={module.art} className="cal-drawer__module-art" />
             ) : (
               <span className="cal-drawer__module-icon" aria-hidden="true">
-                <ModuleIcon moduleId={module.id} weight="duotone" />
+                <ModuleIcon moduleId={module.id} />
               </span>
             )}
             <span className="cal-drawer__module-text">

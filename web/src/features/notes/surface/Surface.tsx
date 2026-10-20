@@ -11,7 +11,6 @@
 //   - Two fingers pinch to zoom and move the page; Ctrl or ⌘ with the wheel or trackpad zooms too.
 //   - The line being drawn, the lasso and the laser are drawn straight into an overlay (no React work while the pen
 //     moves); finished strokes go to the sheet's SVG (lib/ink).
-import { PaintBucket } from '@phosphor-icons/react';
 import {
   useCallback,
   useEffect,
@@ -694,7 +693,7 @@ export function Surface({
               <Icon glyph={glyph.copy} /> Duplicate
             </button>
             <button type="button" onClick={recolour} title="Give it the colours the pen and the highlighter have now">
-              <PaintBucket aria-hidden="true" /> Recolour
+              <Icon glyph={glyph.fill} aria-hidden="true" /> Recolour
             </button>
             <button type="button" onClick={removeSelection} className="is-danger">
               <Icon glyph={glyph.trash} /> Delete

@@ -21,10 +21,10 @@ export function CategoryMark({ category }: { category: Pick<ForumCategoryOut, 'y
       </span>
     );
   }
-  const Mark = FORUM_ICONS[category.icon ?? 'chat'].icon;
+  const mark = FORUM_ICONS[category.icon ?? 'chat'].icon;
   return (
     <span className="forum-cat__mark forum-cat__mark--plain" aria-hidden="true">
-      <Mark weight="bold" />
+      <Icon glyph={mark} />
     </span>
   );
 }
@@ -140,10 +140,10 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
           </h2>
           <ul role="list" className="forum-rules">
             {guidelines.map(({ id, icon, text }) => {
-              const Mark = FORUM_ICONS[icon].icon;
+              const mark = FORUM_ICONS[icon].icon;
               return (
                 <li key={id}>
-                  <Mark aria-hidden="true" />
+                  <Icon glyph={mark} />
                   <span>{text}</span>
                 </li>
               );

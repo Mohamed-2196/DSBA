@@ -50,7 +50,7 @@ states in place of today's spot illustrations.
 
 1. **Tokens and fonts.** The new `tokens.css` and fonts, checked in both themes across every screen.
 2. **Icons.** An `Icon` component in `src/ui` serving `brand/icons`, then the shell's sidebar and tab bar, then
-   Phosphor replaced where the family covers it.
+   every icon from the brand family.
 3. **Deskmates.** A `Deskmate` component (name and state, rim on dark, reduced motion), then section headers, empty
    states and success toasts.
 4. **Screens, most used first.** Library, module page, Home, notebook, forum, calendar, search, Noora's panel.

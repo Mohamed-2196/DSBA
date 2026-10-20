@@ -1,15 +1,7 @@
 // The copy of a section in the editor: paragraphs, bulleted lists, the editors' sign-off, buttons and polls (while
 // newsletter.polls is on), each a small form of its own, with Add, Move up/down and Remove.
-import {
-  ChartBar,
-  ListBullets,
-  Signature,
-  TextAlignLeft,
-  CursorClick,
-  type Icon as PhosphorIcon,
-} from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
-import { Button, cx, glyph, Icon, Switch } from '../../../ui';
+import { Button, cx, glyph, Icon, Switch, type Glyph } from '../../../ui';
 import {
   LIMITS,
   blankBlock,
@@ -30,13 +22,13 @@ const BLOCK_KINDS: {
   type: BlockKind;
   label: string;
   add: string;
-  icon: PhosphorIcon;
+  icon: Glyph;
 }[] = [
-  { type: 'p', label: 'Paragraph', add: 'Paragraph', icon: TextAlignLeft },
-  { type: 'list', label: 'Bulleted list', add: 'List', icon: ListBullets },
-  { type: 'signoff', label: 'Sign-off', add: 'Sign-off', icon: Signature },
-  { type: 'cta', label: 'Button', add: 'Button', icon: CursorClick },
-  { type: 'poll', label: 'Poll', add: 'Poll', icon: ChartBar },
+  { type: 'p', label: 'Paragraph', add: 'Paragraph', icon: glyph.alignLeft },
+  { type: 'list', label: 'Bulleted list', add: 'List', icon: glyph.list },
+  { type: 'signoff', label: 'Sign-off', add: 'Sign-off', icon: glyph.signature },
+  { type: 'cta', label: 'Button', add: 'Button', icon: glyph.pointer },
+  { type: 'poll', label: 'Poll', add: 'Poll', icon: glyph.chartBar },
 ];
 
 const kindOf = (type: BlockKind) => BLOCK_KINDS.find((k) => k.type === type) ?? BLOCK_KINDS[0];
@@ -294,12 +286,11 @@ export function BlockList({ sectionKey, title, blocks, max, errors, path, onChan
             const kind = kindOf(block.type);
             const n = (counts[block.type] = (counts[block.type] ?? 0) + 1);
             const name = `${kind.label.toLowerCase()} ${n}`;
-            const Glyph = kind.icon;
             return (
               <li key={block.key} className={cx('nl-ed-block', `nl-ed-block--${block.type}`)} data-hub="editor-block">
                 <div className="nl-ed-block__head">
                   <p className="nl-ed-block__type">
-                    <Glyph aria-hidden="true" weight="duotone" />
+                    <Icon glyph={kind.icon} />
                     {kind.label}
                   </p>
                   <ItemTools

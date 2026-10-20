@@ -6,7 +6,20 @@ import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ForumSettings, ForumSettingsEditable } from '../../../api/types';
 import { useToast } from '../../../state';
-import { Badge, Chip, Drawer, Panel, QueryError, Select, Skeleton, Switch, TextArea, TextField, cx } from '../../../ui';
+import {
+  Badge,
+  Chip,
+  Drawer,
+  Panel,
+  QueryError,
+  Select,
+  Skeleton,
+  Switch,
+  TextArea,
+  TextField,
+  cx,
+  Icon,
+} from '../../../ui';
 import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../../ui/docEditor';
 import { FORUM_ICONS } from '../components/forumIcons';
 import { CategoryMark } from '../components/ForumSidebar';
@@ -442,10 +455,9 @@ function CategoryMeta({ category, threads: n }: { category: ForumCategoryOut; th
 }
 
 function GuidelineIcon({ icon }: { icon: ForumIcon }) {
-  const Icon = FORUM_ICONS[icon].icon;
   return (
     <span className="forum-set__meta">
-      <Icon aria-hidden="true" /> {FORUM_ICONS[icon].label}
+      <Icon glyph={FORUM_ICONS[icon].icon} /> {FORUM_ICONS[icon].label}
     </span>
   );
 }
@@ -477,10 +489,10 @@ function ForumPreview({ doc }: { doc: ForumSettings }) {
           <h2 className="forum-side__title">Guidelines</h2>
           <ul role="list" className="forum-rules">
             {doc.guidelines.map((g) => {
-              const Icon = FORUM_ICONS[g.icon].icon;
+              const mark = FORUM_ICONS[g.icon].icon;
               return (
                 <li key={g.id}>
-                  <Icon aria-hidden="true" />
+                  <Icon glyph={mark} />
                   <span>{g.text}</span>
                 </li>
               );

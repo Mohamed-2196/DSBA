@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { ChatCircle } from '@phosphor-icons/react';
 import type { LibraryItem, LiveFallback, RequestOut, ThreadSummary } from '../../../../api/types';
 import { useStartsThreads } from '../../../forum/public';
 import { libraryItemPath } from '../../../library/public';
@@ -74,7 +73,7 @@ export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fal
                     {tag ? <span className="nl-row__code">{tag}</span> : null}
                     {t.year ? <CohortBadge year={t.year} variant="dot" size="sm" /> : null}
                     <span className="nl-row__stat">
-                      <ChatCircle aria-hidden="true" />
+                      <Icon glyph={glyph.chat} aria-hidden="true" />
                       {countOf(t.replyCount, 'reply', 'replies')}
                     </span>
                     {t.author ? <span>{t.author.displayName}</span> : null}

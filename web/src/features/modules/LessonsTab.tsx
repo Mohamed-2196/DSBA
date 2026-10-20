@@ -2,7 +2,6 @@
 // the chapter list. The lesson on screen lives in the URL (/modules/<id>/lessons/<lesson id>; ?t=245 starts its
 // video 245 seconds in). "Take notes" puts the student's notes beside the playing video in place of the chapter list
 // (a sheet under it on a phone): the notes take the video's time and take the video back to a time.
-import { Headphones } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { ModuleDetail, Video } from '../../api/types';
@@ -369,7 +368,7 @@ export function LessonsTab({
             {audio ? (
               <div className="mod-audio">
                 <span className="mod-audio__label">
-                  <Headphones weight="duotone" aria-hidden="true" />
+                  <Icon glyph={glyph.headphones} aria-hidden="true" />
                   Chapter audio
                 </span>
                 <audio controls preload="none" src={audio} className="mod-audio__player">

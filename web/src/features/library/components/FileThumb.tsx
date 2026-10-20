@@ -1,8 +1,7 @@
-import { LinkSimple } from '@phosphor-icons/react';
 import { useState, type CSSProperties } from 'react';
 import type { ModuleSummary } from '../../../api/types';
 import { useModules } from '../../../state/modules';
-import { Badge, cx } from '../../../ui';
+import { Badge, cx, glyph, Icon } from '../../../ui';
 import { isNew, linkPlace, moduleTag } from '../display';
 import { zoneLabel } from '../../../lib/exams';
 import { formatOf, kindLabel } from '../kinds';
@@ -77,7 +76,7 @@ export function FileThumb({
               <span className="lib-cover__foot">
                 {isLink ? (
                   <span className="lib-cover__place">
-                    <LinkSimple weight="bold" />
+                    <Icon glyph={glyph.link} />
                     {linkPlace(item)}
                   </span>
                 ) : fmt ? (

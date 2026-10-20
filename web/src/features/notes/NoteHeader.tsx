@@ -4,7 +4,6 @@
 // written on (a library PDF, with a way back to it). The notebook's name is a menu that moves the note to another one;
 // the module is a menu that sets it (a note in a module's notebook goes to the new module's: the server says). On the
 // right: the pages, Print or save as PDF, full screen, and the rest in a menu (paper, delete).
-import { ArrowsIn, ArrowsOut, Printer } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Note } from '../../api/types';
@@ -190,7 +189,7 @@ export function NoteHeader({
           { divider: true } as MenuItem,
         ]
       : []),
-    { id: 'export', label: 'Print or save as PDF', icon: Printer, onSelect: onExport },
+    { id: 'export', label: 'Print or save as PDF', icon: glyph.print, onSelect: onExport },
     ...(readOnly
       ? []
       : [
@@ -245,7 +244,7 @@ export function NoteHeader({
                 Print or save as PDF
               </Button>
               <IconButton
-                icon={full ? ArrowsIn : ArrowsOut}
+                icon={full ? glyph.collapse : glyph.expand}
                 label={full ? 'Leave full screen' : 'Full screen'}
                 onClick={onFull}
                 tooltip

@@ -1,6 +1,5 @@
-import { Exam } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
-import { Skeleton } from '../../ui';
+import { Skeleton, glyph, Icon } from '../../ui';
 import { paperLabel } from '../../lib/exams';
 import { questionHref, questionLabel, useModuleQuestions } from './papers';
 import './ChapterQuestions.css';
@@ -25,7 +24,7 @@ export function ChapterQuestions({ moduleId, chapterId }: { moduleId: string; ch
                     <img src={q.paper.coverUrl} alt="" className="lib-chq__cover" loading="lazy" />
                   ) : (
                     <div className="lib-chq__fallback">
-                      <Exam aria-hidden="true" weight="duotone" className="lib-chq__icon" />
+                      <Icon glyph={glyph.exam} aria-hidden="true" className="lib-chq__icon" />
                     </div>
                   )}
                 </div>

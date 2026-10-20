@@ -1,12 +1,13 @@
 import { useState, type ReactNode } from 'react';
+import { Icon } from '../../ui';
 import { fileIcon, sizeLabel, type Attachment } from './files';
 
 /** A file that is not a picture: icon, name, size. `children` go at the end (the tray puts a remove button there). */
 export function FileChip({ file, children }: { file: Attachment; children?: ReactNode }) {
-  const Icon = fileIcon(file.name);
+  const fileGlyph = fileIcon(file.name);
   return (
     <span className="nc-file">
-      <Icon className="nc-file__icon" weight="duotone" aria-hidden="true" />
+      <Icon glyph={fileGlyph} className="nc-file__icon" />
       <span className="nc-file__name" dir="auto">
         {file.name}
       </span>

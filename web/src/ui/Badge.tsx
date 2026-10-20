@@ -20,7 +20,7 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   /** 'highlight' = rough highlighter tag (use for "New"). Default 'neutral'. */
   tone?: BadgeTone;
   size?: BadgeSize;
-  /** leading icon: Phosphor component or element */
+  /** leading icon: a brand glyph or element */
   icon?: IconSource | null;
   children?: ReactNode;
 }

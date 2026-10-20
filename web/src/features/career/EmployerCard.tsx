@@ -1,6 +1,5 @@
 // One employer on the board: its logo slot, what it offers, why it is there, the tracks it suits and one button to
 // its own careers or programme page.
-import { Buildings } from '@phosphor-icons/react';
 import type { CareerEmployer, CareerOffer, CareerTrack } from '../../api/types';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
@@ -60,7 +59,7 @@ export function EmployerCard({
   const programme = programmeLine(employer);
   const url = webUrl(employer.url);
   const host = hostOf(url);
-  const SectorIcon = SECTOR_ICONS[employer.sector] ?? Buildings;
+  const sectorGlyph = SECTOR_ICONS[employer.sector] ?? glyph.building;
   const applications = useApplicationDate(employer.id);
   return (
     <Panel
@@ -86,7 +85,7 @@ export function EmployerCard({
       <div className="career-emp__who">
         <h3 className="career-emp__name">{employer.name}</h3>
         <p className="career-emp__sector">
-          <SectorIcon className="career-emp__sector-icon" aria-hidden="true" />
+          <Icon glyph={sectorGlyph} className="career-emp__sector-icon" />
           {employer.sector}
         </p>
       </div>

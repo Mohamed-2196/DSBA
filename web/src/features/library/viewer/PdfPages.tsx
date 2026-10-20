@@ -1,10 +1,9 @@
 // A PDF drawn by the Hub itself (pdf.js, as the notebook draws it), for phones: their browsers show one page of a
 // PDF in a frame, or nothing. Every page at the width of the screen, one under the other, drawn as it comes near;
 // pinch to zoom. So a paper reads in the Hub, beside Time me, instead of in another tab (ST-41).
-import { ArrowSquareOut, FilePdf } from '@phosphor-icons/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { Button, Spinner } from '../../../ui';
+import { Button, Spinner, glyph, Icon } from '../../../ui';
 import { usePdfAt } from '../../notes/public';
 
 /** One page: a box of the page's shape at once, drawn when it comes within a screen or two. */
@@ -99,7 +98,7 @@ export function PdfPages({
   }, [ready, page, width]);
 
   const openOwn = (
-    <Button variant="ghost" size="sm" href={href} external leadingIcon={ArrowSquareOut}>
+    <Button variant="ghost" size="sm" href={href} external leadingIcon={<Icon glyph={glyph.external} />}>
       Open in your PDF viewer
     </Button>
   );
@@ -107,7 +106,7 @@ export function PdfPages({
   if (state.status === 'error')
     return (
       <div className="lib-nopreview" data-hub="file-nopreview">
-        <FilePdf aria-hidden="true" weight="duotone" className="lib-pdf__erricon" />
+        <Icon glyph={glyph.filePdf} aria-hidden="true" className="lib-pdf__erricon" />
         <div className="lib-nopreview__text">
           <h2 className="lib-nopreview__title">The PDF didn’t open here</h2>
           <p>Check your connection and try again, or open it in your phone’s PDF viewer.</p>

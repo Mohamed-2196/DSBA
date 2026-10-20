@@ -1,9 +1,8 @@
 // "Ask Mini Noora" on a past paper: the student names a question and its page, and her panel opens with
 // it. She reads that page of the paper and the examiners' report for its sitting (the API loads both). Shown only
 // while her AI answers can take a question.
-import { ChatCircleText } from '@phosphor-icons/react';
 import { useRef, useState, type FormEvent } from 'react';
-import { Button, IconButton, Modal, TextField } from '../../../ui';
+import { Button, IconButton, Modal, TextField, glyph, Icon } from '../../../ui';
 import { askAboutPaper, PAPER_PAGE_MAX, questionNumber, useNooraAiReady } from '../../noora/public';
 import type { LibraryItem } from '../types';
 
@@ -22,12 +21,16 @@ export function AskNoora({ item, page, compact }: { item: LibraryItem; page: num
       {compact ? (
         <IconButton
           label="Ask Mini Noora about a question"
-          icon={ChatCircleText}
+          icon={<Icon glyph={glyph.chat} />}
           onClick={(e) => start(e.currentTarget)}
           data-hub="file-ask-noora"
         />
       ) : (
-        <Button leadingIcon={ChatCircleText} onClick={(e) => start(e.currentTarget)} data-hub="file-ask-noora">
+        <Button
+          leadingIcon={<Icon glyph={glyph.chat} />}
+          onClick={(e) => start(e.currentTarget)}
+          data-hub="file-ask-noora"
+        >
           Ask Mini Noora
         </Button>
       )}

@@ -1,4 +1,3 @@
-import { WhatsappLogo } from '@phosphor-icons/react';
 import { appUrl } from '../../../lib/share';
 import { useCopyLink } from '../../../lib/useCopyLink';
 import { Button, cx, glyph, Icon, IconButton, Menu } from '../../../ui';
@@ -52,7 +51,7 @@ export function ShareActions({ route, title, compact = false, className }: Share
           {
             id: 'whatsapp',
             label: 'Share on WhatsApp',
-            icon: WhatsappLogo,
+            icon: glyph.chat,
             href: whatsappUrl(`${title}, from The DSBA Newsletter:`, url),
           },
           {

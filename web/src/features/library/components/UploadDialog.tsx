@@ -1,4 +1,3 @@
-import { CheckCircle, CloudArrowUp, FileText, HourglassMedium, Info, Prohibit, X } from '@phosphor-icons/react';
 import { useEffect, useId, useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isApiError } from '../../../api/errors';
@@ -15,7 +14,7 @@ import {
 } from '../../../api/uploads';
 import { useAuth } from '../../../auth';
 import { useModules } from '../../../state/modules';
-import { Button, Deskmate, IconButton, Modal, cx } from '../../../ui';
+import { Button, Deskmate, IconButton, Modal, cx, glyph, Icon } from '../../../ui';
 import { useLibraryAccess } from '../access';
 import { itemPath, useCreateItem, useLibraryList } from '../api';
 import {
@@ -298,7 +297,7 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
   if (suspended) {
     body = (
       <div className="lib-upload__blocked" role="status" data-hub="upload-blocked">
-        <Prohibit className="lib-upload__blocked-icon" weight="duotone" aria-hidden="true" />
+        <Icon glyph={glyph.blocked} className="lib-upload__blocked-icon" aria-hidden="true" />
         <p>
           <strong>Your account is suspended, so you can’t upload files.</strong> You can still read and download
           everything in the library. Contact a student rep if you think this is a mistake.
@@ -308,7 +307,7 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
   } else if (full) {
     body = (
       <div className="lib-upload__blocked" role="status" data-hub="upload-blocked">
-        <HourglassMedium className="lib-upload__blocked-icon" weight="duotone" aria-hidden="true" />
+        <Icon glyph={glyph.deadline} className="lib-upload__blocked-icon" aria-hidden="true" />
         <p>
           <strong>You have {MAX_PENDING_UPLOADS} files waiting for review.</strong> You can share more once a student
           rep has looked at them. Until then they’re in Your uploads, where you can still edit or delete them.
@@ -321,7 +320,7 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
         {published ? (
           <Deskmate mate="stacks" state="happy" size={96} className="lib-upload__done-mate" />
         ) : (
-          <CheckCircle className="lib-upload__done-icon" weight="duotone" aria-hidden="true" />
+          <Icon glyph={glyph.success} className="lib-upload__done-icon" aria-hidden="true" />
         )}
         <h3 ref={doneRef} tabIndex={-1} className="lib-upload__done-title">
           {published ? 'Published' : 'Sent for review'}
@@ -358,7 +357,7 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
             {busy ? null : (
               <IconButton
                 label="Remove file"
-                icon={X}
+                icon={<Icon glyph={glyph.close} />}
                 size="sm"
                 onClick={() => {
                   setFile(null);
@@ -385,11 +384,16 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
             }}
             onDrop={onDrop}
           >
-            <CloudArrowUp className="lib-upload__icon" weight="duotone" aria-hidden="true" />
+            <Icon glyph={glyph.upload} className="lib-upload__icon" aria-hidden="true" />
             {/* Phones and tablets can't drag a file in: they only get the button (UX review UX-12). */}
             <p className="lib-upload__lead lib-upload__drag">Drag a file here</p>
             <p className="lib-upload__or lib-upload__drag">or</p>
-            <Button size="sm" leadingIcon={FileText} onClick={() => inputRef.current?.click()} data-autofocus>
+            <Button
+              size="sm"
+              leadingIcon={<Icon glyph={glyph.page} />}
+              onClick={() => inputRef.current?.click()}
+              data-autofocus
+            >
               Choose a file
             </Button>
             <p className="lib-upload__hint">{RULES.summary}</p>
@@ -456,7 +460,7 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
         <ItemFields values={values} errors={errors} onChange={change} disabled={busy} />
 
         <p className="lib-upload__rights">
-          <Info aria-hidden="true" weight="bold" />
+          <Icon glyph={glyph.info} aria-hidden="true" />
           <span>
             Only share what you’re allowed to share: your own work, or material the course lets students pass on. Leave
             out anyone’s personal details.

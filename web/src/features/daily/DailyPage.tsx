@@ -1,10 +1,9 @@
 // The Daily (/daily): the day's number and the week's theme, one line of how today stands (done, points, streak, the
 // time to the next set), and the six games as tiles; then past days to practise, the leaderboard and your stats.
 import { useQueryClient } from '@tanstack/react-query';
-import { Flame, Snowflake } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { useQueryParam } from '../../state';
-import { Button, cx, Page, PageHeader, QueryError, Skeleton, TabPanel, Tabs } from '../../ui';
+import { Button, cx, Page, PageHeader, QueryError, Skeleton, TabPanel, Tabs, glyph, Icon } from '../../ui';
 import { newDay, useDailyToday } from './api';
 import { ArchiveView } from './components/ArchiveView';
 import { Countdown } from './components/Countdown';
@@ -93,11 +92,11 @@ function Head({ today }: { today: DailyToday }) {
           {me ? <li className="dy-num">{today.points === 1 ? '1 point' : `${today.points} points`}</li> : null}
           {streak ? (
             <li className={cx('dy-num', streak.current > 0 && 'is-lit')}>
-              {streak.current > 0 ? <Flame weight="fill" aria-hidden="true" /> : null}
+              {streak.current > 0 ? <Icon glyph={glyph.flame} active aria-hidden="true" /> : null}
               {streak.current > 0 ? `${streak.current}-day streak` : 'Start a streak'}
               {streak.freezeReady && streak.current > 0 ? (
                 <span className="dh-status__freeze" title="Miss a day this week and your streak carries on">
-                  <Snowflake weight="fill" aria-hidden="true" />
+                  <Icon glyph={glyph.snowflake} active aria-hidden="true" />
                   <span className="dh-status__freeze-text">Freeze ready</span>
                 </span>
               ) : null}

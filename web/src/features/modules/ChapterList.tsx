@@ -1,7 +1,6 @@
 // Chapter list beside the player: chapters with per-chapter progress, expanding to their videos.
 // Each video is a link to the lesson's address (/modules/<id>/lessons/<lesson id>), so lessons can be opened in a new
 // tab.
-import { CheckCircle, Play } from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Chapter, ModuleDetail, Video } from '../../api/types';
@@ -35,20 +34,20 @@ function chapterContents(ch: Chapter): string {
 function RowThumb({ video, current, seen }: { video: Video; current: boolean; seen: boolean }) {
   const src = videoThumbnailUrl(video);
   const loaded = useThumbnail(src) === 'ok';
-  const KindIcon = KIND_ICON[video.kind];
+  const kindGlyph = KIND_ICON[video.kind];
   return (
     <span className={cx('mod-vid__thumb', loaded && 'has-img')} aria-hidden="true">
       {loaded && src ? (
         <img src={src} alt="" decoding="async" />
       ) : (
-        <KindIcon className="mod-vid__ticon" weight="duotone" />
+        <Icon glyph={kindGlyph} className="mod-vid__ticon" />
       )}
       {current ? (
         <span className="mod-vid__playing">
-          <Play weight="fill" />
+          <Icon glyph={glyph.play} active />
         </span>
       ) : null}
-      {seen ? <CheckCircle className="mod-vid__seen" weight="fill" /> : null}
+      {seen ? <Icon glyph={glyph.success} className="mod-vid__seen" active /> : null}
     </span>
   );
 }

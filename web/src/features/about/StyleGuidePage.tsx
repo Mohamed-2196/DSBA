@@ -1,27 +1,6 @@
 // /styleguide — every token and shared primitive, rendered in the current theme plus a light/dark
 // side-by-side. Feature agents: copy patterns from here (and the code strips under each specimen).
 import { useMemo, useState, type ReactNode } from 'react';
-import {
-  ArrowSquareOut,
-  BookmarkSimple,
-  Books,
-  CaretDown,
-  ChatsCircle,
-  Copy,
-  DownloadSimple,
-  FileText,
-  Funnel,
-  MagnifyingGlass,
-  PencilSimple,
-  Play,
-  Plus,
-  Rows,
-  ShareNetwork,
-  SquaresFour,
-  Trash,
-  User,
-  WarningCircle,
-} from '@phosphor-icons/react';
 import type { ModuleSummary } from '../../api/types';
 import { cohortColor, useToast, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
@@ -358,7 +337,7 @@ function Swatch({ token, light, dark, use }: { token: string; light?: string; da
 
 function Replay({ onClick, label = 'Replay' }: { onClick: () => void; label?: string }) {
   return (
-    <Button size="sm" variant="ghost" onClick={onClick} leadingIcon={Play}>
+    <Button size="sm" variant="ghost" onClick={onClick} leadingIcon={<Icon glyph={glyph.play} />}>
       {label}
     </Button>
   );
@@ -381,7 +360,7 @@ function MotionDemo() {
         <div className="sg-motion__track" aria-hidden="true">
           <span className={cx('sg-motion__dot', on && 'is-on')} />
         </div>
-        <Button size="sm" onClick={() => setOn((v) => !v)} leadingIcon={Play}>
+        <Button size="sm" onClick={() => setOn((v) => !v)} leadingIcon={<Icon glyph={glyph.play} />}>
           Play 250ms
         </Button>
       </div>
@@ -412,11 +391,11 @@ function ThemeIsland({ theme }: { theme: 'light' | 'dark' }) {
         Chapter 2 notes are <Highlight>new this week</Highlight>. Your exam is on 30 Oct.
       </p>
       <div className="sg-island__row">
-        <Button variant="primary" leadingIcon={Play}>
+        <Button variant="primary" leadingIcon={<Icon glyph={glyph.play} />}>
           Resume lesson
         </Button>
-        <Button leadingIcon={FileText}>Open files</Button>
-        <IconButton label="Save module" icon={BookmarkSimple} variant="secondary" />
+        <Button leadingIcon={<Icon glyph={glyph.page} />}>Open files</Button>
+        <IconButton label="Save module" icon={<Icon glyph={glyph.bookmark} />} variant="secondary" />
       </div>
       <div className="sg-island__row">
         <SegmentedControl
@@ -793,7 +772,7 @@ export default function StyleGuidePage() {
           <Section
             id="icons"
             title="Icons"
-            description="One hand-drawn two-tone family: the line takes the text colour, the body the section’s tint, paper parts the surface. 24 in the tab and top bars, 20 in the sidebar, buttons and fields, 16 inline with meta. Phosphor stays only where the family has no icon, never in the same row."
+            description="One hand-drawn two-tone family: the line takes the text colour, the body the section’s tint, paper parts the surface. 24 in the tab and top bars, 20 in the sidebar, buttons and fields, 16 inline with meta. Every icon in the app comes from this family."
           >
             <Specimen
               title="Icon"
@@ -905,7 +884,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                   <Button className="sg-force-focus">Focused button</Button>
                   <IconButton
                     label="Focused icon button"
-                    icon={MagnifyingGlass}
+                    icon={<Icon glyph={glyph.search} />}
                     variant="secondary"
                     className="sg-force-focus"
                   />
@@ -957,16 +936,16 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
             <Specimen
               title="Button"
               note="variant primary | secondary | ghost | danger, size sm | md | lg, leadingIcon, trailingIcon, to, href, as, loading, fullWidth"
-              code={`<Button variant="primary" leadingIcon={Plus} to="/forum/new">Start a thread</Button>\n<Button href={file.sourceUrl} trailingIcon={ArrowSquareOut}>Open original</Button>   // external: new tab\n<Button variant="danger" size="sm" leadingIcon={Trash}>Delete draft</Button>`}
+              code={`<Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} to="/forum/new">Start a thread</Button>\n<Button href={file.sourceUrl} trailingIcon={<Icon glyph={glyph.external} />}>Open original</Button>   // external: new tab\n<Button variant="danger" size="sm" leadingIcon={<Icon glyph={glyph.trash} />}>Delete draft</Button>`}
               stageClassName="sg-stage--column"
             >
               <div className="sg-inline">
-                <Button variant="primary" leadingIcon={Plus}>
+                <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />}>
                   Post thread
                 </Button>
-                <Button leadingIcon={DownloadSimple}>Download .ics</Button>
+                <Button leadingIcon={<Icon glyph={glyph.download} />}>Download .ics</Button>
                 <Button variant="ghost">Cancel</Button>
-                <Button variant="danger" leadingIcon={Trash}>
+                <Button variant="danger" leadingIcon={<Icon glyph={glyph.trash} />}>
                   Delete draft
                 </Button>
               </div>
@@ -984,10 +963,10 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                 <Button size="sm">Open original</Button>
               </div>
               <div className="sg-inline">
-                <Button trailingIcon={ArrowSquareOut} href="https://myclass.bibf.com">
+                <Button trailingIcon={<Icon glyph={glyph.external} />} href="https://myclass.bibf.com">
                   MyClass
                 </Button>
-                <Button to="/modules" variant="ghost" leadingIcon={SquaresFour}>
+                <Button to="/modules" variant="ghost" leadingIcon={<Icon glyph={glyph.gridView} />}>
                   All modules
                 </Button>
                 <Button variant="primary" loading={loading} onClick={fakeLoad}>
@@ -1002,16 +981,22 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
             <Specimen
               title="IconButton"
               note="label (required, becomes aria-label), icon, variant ghost | secondary | primary, size, badge, tooltip, active + toggle"
-              code={`<IconButton label="Share thread" icon={ShareNetwork} tooltip />\n<IconButton label="Notifications" icon={Bell} badge={3} />`}
+              code={`<IconButton label="Share thread" icon={<Icon glyph={glyph.share} />} tooltip />\n<IconButton label="Notifications" icon={glyph.bell} badge={3} />`}
             >
-              <IconButton label="Search" icon={MagnifyingGlass} tooltip />
-              <IconButton label="Edit" icon={PencilSimple} variant="secondary" tooltip />
-              <IconButton label="Add file" icon={Plus} variant="primary" tooltip />
-              <IconButton label="Copy link" icon={Copy} size="sm" tooltip />
-              <IconButton label="Share" icon={ShareNetwork} size="lg" variant="secondary" tooltip />
-              <IconButton label="Messages, unread" icon={ChatsCircle} badge tooltip />
-              <IconButton label="Files, 3 new" icon={Books} badge={3} variant="secondary" tooltip />
-              <IconButton label="Saved" icon={BookmarkSimple} active toggle tooltip />
+              <IconButton label="Search" icon={<Icon glyph={glyph.search} />} tooltip />
+              <IconButton label="Edit" icon={<Icon glyph={glyph.edit} />} variant="secondary" tooltip />
+              <IconButton label="Add file" icon={<Icon glyph={glyph.plus} />} variant="primary" tooltip />
+              <IconButton label="Copy link" icon={<Icon glyph={glyph.copy} />} size="sm" tooltip />
+              <IconButton label="Share" icon={<Icon glyph={glyph.share} />} size="lg" variant="secondary" tooltip />
+              <IconButton label="Messages, unread" icon={<Icon glyph={glyph.forum} />} badge tooltip />
+              <IconButton
+                label="Files, 3 new"
+                icon={<Icon glyph={glyph.library} />}
+                badge={3}
+                variant="secondary"
+                tooltip
+              />
+              <IconButton label="Saved" icon={<Icon glyph={glyph.bookmark} />} active toggle tooltip />
             </Specimen>
           </Section>
 
@@ -1041,7 +1026,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                   inputMode="numeric"
                   trailing="%"
                 />
-                <TextField label="Your name" leadingIcon={User} defaultValue={SAMPLE_NAME} />
+                <TextField label="Your name" leadingIcon={<Icon glyph={glyph.user} />} defaultValue={SAMPLE_NAME} />
                 <WholeNumberField
                   label="For how many weeks"
                   hint="1 to 20. Clear it and type again: it never becomes 0."
@@ -1118,7 +1103,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                   {t.label}
                 </Chip>
               ))}
-              <Chip icon={Funnel} size="sm">
+              <Chip icon={<Icon glyph={glyph.filter} />} size="sm">
                 More filters
               </Chip>
             </Specimen>
@@ -1163,7 +1148,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
               <Specimen
                 title="SegmentedControl"
                 note="options [{ value, label, icon?, color?, onColor? }], value, onChange, label, size, iconOnly, fullWidth"
-                code={`<SegmentedControl label="View" value={view} onChange={setView}\n  options={[{ value: 'table', label: 'Table', icon: Rows }, { value: 'grid', label: 'Grid', icon: SquaresFour }]} />`}
+                code={`<SegmentedControl label="View" value={view} onChange={setView}\n  options={[{ value: 'table', label: 'Table', icon: glyph.rows }, { value: 'grid', label: 'Grid', icon: glyph.gridView }]} />`}
                 stageClassName="sg-stage--column"
               >
                 <SegmentedControl
@@ -1171,8 +1156,8 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                   value={view}
                   onChange={setView}
                   options={[
-                    { value: 'table', label: 'Table', icon: Rows },
-                    { value: 'grid', label: 'Grid', icon: SquaresFour },
+                    { value: 'table', label: 'Table', icon: glyph.rows },
+                    { value: 'grid', label: 'Grid', icon: glyph.gridView },
                   ]}
                 />
                 <SegmentedControl
@@ -1193,8 +1178,8 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                   value={view}
                   onChange={setView}
                   options={[
-                    { value: 'table', label: 'Table', icon: Rows },
-                    { value: 'grid', label: 'Grid', icon: SquaresFour },
+                    { value: 'table', label: 'Table', icon: glyph.rows },
+                    { value: 'grid', label: 'Grid', icon: glyph.gridView },
                   ]}
                 />
               </Specimen>
@@ -1339,14 +1324,14 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                 title="EmptyState"
                 note="icon (duotone), title, body, action, size md | sm"
                 stageClassName="sg-stage--flush"
-                code={`<EmptyState icon={ChatsCircle} title="No threads for ST2133 yet" body="Ask the first question…" action={<Button …>Start a thread</Button>} />`}
+                code={`<EmptyState icon={<Icon glyph={glyph.forum} />} title="No threads for ST2133 yet" body="Ask the first question…" action={<Button …>Start a thread</Button>} />`}
               >
                 <EmptyState
-                  icon={ChatsCircle}
+                  icon={<Icon glyph={glyph.forum} />}
                   title="No threads for ST2133 yet"
                   body="Ask the first question and your classmates will see it here."
                   action={
-                    <Button variant="primary" leadingIcon={Plus}>
+                    <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />}>
                       Start a thread
                     </Button>
                   }
@@ -1375,7 +1360,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
               code={`<ErrorBoundary name="UpcomingEvents"><UpcomingEvents n={5} /></ErrorBoundary>\n<ErrorBoundary name="Overlay" fallback={null}>…</ErrorBoundary>`}
             >
               <div className="ui-boundary" role="note">
-                <WarningCircle className="ui-boundary__icon" aria-hidden="true" weight="fill" />
+                <Icon glyph={glyph.error} className="ui-boundary__icon" aria-hidden="true" active />
                 <span>This section didn’t load.</span>
                 <button type="button" className="ui-boundary__retry">
                   Try again
@@ -1393,7 +1378,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
             <Specimen
               title="Modal, Drawer, Menu, Tooltip"
               note="Modal: open, onClose, title, description, footer, size sm | md | lg | xl. Drawer: side right | left | bottom. Menu: trigger, items or children({ close })."
-              code={`<Modal open={open} onClose={close} title="Delete this draft?" footer={<>…buttons…</>}>…</Modal>\n<Drawer side="right" open={open} onClose={close} title="Filters">…</Drawer>\n<Menu trigger={<Button trailingIcon={CaretDown}>Sort</Button>} items={[{ id, label, icon, onSelect }]} />\n<Tooltip label="Copy link"><button …/></Tooltip>`}
+              code={`<Modal open={open} onClose={close} title="Delete this draft?" footer={<>…buttons…</>}>…</Modal>\n<Drawer side="right" open={open} onClose={close} title="Filters">…</Drawer>\n<Menu trigger={<Button trailingIcon={<Icon glyph={glyph.chevronDown} />}>Sort</Button>} items={[{ id, label, icon, onSelect }]} />\n<Tooltip label="Copy link"><button …/></Tooltip>`}
             >
               <Button variant="primary" onClick={() => setModal(true)}>
                 Open modal
@@ -1402,29 +1387,34 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
               <Button onClick={() => setDrawer('bottom')}>Open bottom sheet</Button>
               <Menu
                 label="Sort threads"
-                trigger={<Button trailingIcon={CaretDown}>Sort by</Button>}
+                trigger={<Button trailingIcon={<Icon glyph={glyph.chevronDown} />}>Sort by</Button>}
                 items={[
                   { heading: 'Sort threads' },
-                  { id: 'hot', label: 'Hot', icon: ChatsCircle, onSelect: () => push({ title: 'Sorted by hot' }) },
+                  { id: 'hot', label: 'Hot', icon: glyph.forum, onSelect: () => push({ title: 'Sorted by hot' }) },
                   {
                     id: 'new',
                     label: 'Newest',
-                    icon: Plus,
+                    icon: glyph.plus,
                     hint: 'N',
                     onSelect: () => push({ title: 'Sorted by newest' }),
                   },
-                  { id: 'open', label: 'Open the library', icon: Books, to: '/library' },
+                  { id: 'open', label: 'Open the library', icon: glyph.library, to: '/library' },
                   { divider: true },
                   {
                     id: 'delete',
                     label: 'Delete draft',
-                    icon: Trash,
+                    icon: glyph.trash,
                     danger: true,
                     onSelect: () => push({ title: 'Draft deleted', tone: 'alert' }),
                   },
                 ]}
               />
-              <Menu label="Share" align="end" width={300} trigger={<Button leadingIcon={ShareNetwork}>Popover</Button>}>
+              <Menu
+                label="Share"
+                align="end"
+                width={300}
+                trigger={<Button leadingIcon={<Icon glyph={glyph.share} />}>Popover</Button>}
+              >
                 {({ close }) => (
                   <div className="sg-popover">
                     <p className="sg-popover__title">Share this file</p>
@@ -1432,7 +1422,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                     <Button
                       size="sm"
                       variant="primary"
-                      leadingIcon={Copy}
+                      leadingIcon={<Icon glyph={glyph.copy} />}
                       onClick={() => {
                         push({ title: 'Link copied', tone: 'success' });
                         close();
@@ -1444,7 +1434,11 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                 )}
               </Menu>
               <Tooltip label="Opens in a new tab">
-                <Button variant="ghost" trailingIcon={ArrowSquareOut} href="https://my.london.ac.uk/group/student">
+                <Button
+                  variant="ghost"
+                  trailingIcon={<Icon glyph={glyph.external} />}
+                  href="https://my.london.ac.uk/group/student"
+                >
                   UoL portal
                 </Button>
               </Tooltip>
@@ -1478,8 +1472,8 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                   }
                   actions={
                     <>
-                      <Button leadingIcon={BookmarkSimple}>Save</Button>
-                      <Button variant="primary" leadingIcon={Play}>
+                      <Button leadingIcon={<Icon glyph={glyph.bookmark} />}>Save</Button>
+                      <Button variant="primary" leadingIcon={<Icon glyph={glyph.play} />}>
                         Resume lesson
                       </Button>
                     </>
@@ -1497,10 +1491,10 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                 <Panel padding="none" className="sg-rows">
                   {SAMPLE_NOTES.map((n, i) => (
                     <div key={i} className="sg-row">
-                      <FileText className="sg-row__icon" aria-hidden="true" />
+                      <Icon glyph={glyph.page} className="sg-row__icon" aria-hidden="true" />
                       <span className="sg-row__name">{n.name}</span>
                       <span className="sg-caption">{n.author || 'Shared notes'}</span>
-                      <Button size="sm" variant="ghost" trailingIcon={ArrowSquareOut}>
+                      <Button size="sm" variant="ghost" trailingIcon={<Icon glyph={glyph.external} />}>
                         Open
                       </Button>
                     </div>
@@ -1546,8 +1540,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
             </div>
             <Specimen title="Build a page" note="the whole recipe" stageClassName="sg-stage--flush">
               <pre className="sg-recipe">
-                <code>{`import { Plus } from '@phosphor-icons/react';
-import { Button, ErrorBoundary, Page, PageHeader, PageSection, SectionHeader } from '../../ui';
+                <code>{`import { Button, ErrorBoundary, glyph, Icon, Page, PageHeader, PageSection, SectionHeader } from '../../ui';
 import { useYear } from '../../state';
 import { UpcomingEvents } from '../calendar/public';   // other features: public.ts only
 import './ForumPage.css';                                   // classes prefixed forum-
@@ -1559,7 +1552,7 @@ export default function ForumPage() {
       <PageHeader
         title="Forum"
         description="Ask questions, share answers and find study partners."
-        actions={<Button variant="primary" leadingIcon={Plus} to="/forum/new">Start a thread</Button>}
+        actions={<Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} to="/forum/new">Start a thread</Button>}
       />
       <PageSection aria-labelledby="forum-hot">             {/* sections sit 48px apart */}
         <SectionHeader id="forum-hot" title="Hot this week" />
@@ -1603,7 +1596,7 @@ export default function ForumPage() {
             </Button>
             <Button
               variant="danger"
-              leadingIcon={Trash}
+              leadingIcon={<Icon glyph={glyph.trash} />}
               onClick={() => {
                 setModal(false);
                 push({ title: 'Draft deleted', tone: 'alert' });
@@ -1656,7 +1649,7 @@ export default function ForumPage() {
           </div>
           <EmptyState
             size="sm"
-            icon={Books}
+            icon={<Icon glyph={glyph.library} />}
             title="Drawers hold secondary tasks"
             body="Filters, details and settings. Keep the page behind them in place."
           />
