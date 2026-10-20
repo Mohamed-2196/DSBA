@@ -70,6 +70,13 @@ CHARS_PER_TOKEN = 3  # a cautious estimate of a prompt's tokens from its charact
 RATE_CARD_MARGIN = 1.5  # how far short of the real tokens a character count may fall
 ANSWER_STALE = dt.timedelta(minutes=2)  # an answer still marked as streaming after this ended without settling
 LOCK = "noora:answers"
+# A new account's allowance (SEC-51): fresh sign-ups are free, so they ask fewer questions a day until they're a week
+# old, and a crowd of them can't spend the month's budget.
+NEW_ACCOUNT_DAYS = 7
+NEW_ACCOUNT_QUESTIONS = 5
+# A dropped answer is charged what Claude reported for the prompt and the words it streamed, plus this much thinking
+# that its usage can't show yet: not the whole answer it reserved (SEC-51).
+DROPPED_THINKING_TOKENS = 1_000
 
 
 class MessagesClient(Protocol):
@@ -129,8 +136,9 @@ def _used_today(db: Session, user: User, today: dt.date) -> int:
 def status(db: Session, user: User) -> NooraStatus:
     lim, today = limits(db), bahrain_today()
     available = get_settings().anthropic_api_key is not None and not _over_budget(db, lim, today)
-    left = max(0, lim.daily_questions - _used_today(db, user, today))
-    return NooraStatus(available=available, daily_questions=lim.daily_questions, questions_left=left)
+    allowed = daily_allowance(user, lim)
+    left = max(0, allowed - _used_today(db, user, today))
+    return NooraStatus(available=available, daily_questions=allowed, questions_left=left)
 
 
 def _totals(db: Session, since: dt.date) -> NooraTotals:
@@ -224,17 +232,25 @@ def _seconds_to_midnight() -> int:
     return max(1, math.ceil((midnight - now).total_seconds()))
 
 
+def daily_allowance(user: User, lim: NooraLimits) -> int:
+    """Questions a day: the limit admins set, or NEW_ACCOUNT_QUESTIONS while the account is under a week old."""
+    if user.created_at is not None and utcnow() - user.created_at < dt.timedelta(days=NEW_ACCOUNT_DAYS):
+        return min(lim.daily_questions, NEW_ACCOUNT_QUESTIONS)
+    return lim.daily_questions
+
+
 def _reserve(db: Session, user: User, lim: NooraLimits, today: dt.date) -> NooraUsage:
     """Counts one question for the student today, under a row lock, or refuses it."""
     db.execute(insert(NooraUsage).values(user_id=user.id, day=today).on_conflict_do_nothing())
     row = db.scalars(
         select(NooraUsage).where(NooraUsage.user_id == user.id, NooraUsage.day == today).with_for_update()
     ).one()
-    if row.questions >= lim.daily_questions:
+    allowed = daily_allowance(user, lim)
+    if row.questions >= allowed:
         raise ApiError(
             429,
             "noora_daily_limit",
-            f"You've asked Mini Noora {lim.daily_questions} questions today. Ask again tomorrow.",
+            f"You've asked Mini Noora {allowed} questions today. Ask again tomorrow.",
             retry_after=_seconds_to_midnight(),
         )
     now = utcnow()
@@ -321,7 +337,7 @@ def prepare(db: Session, user: User, body: NooraQuestion) -> Prepared:
         system=system,
         messages=messages,
         usage_id=row.id,
-        daily_questions=lim.daily_questions,
+        daily_questions=daily_allowance(user, lim),
         reserved=reserved,
     )
 
@@ -335,15 +351,24 @@ def sse(event: NooraTextEvent | NooraDoneEvent | NooraErrorEvent) -> str:
 Ended = Literal["done", "unanswered", "cut"]
 
 
-def _charge(p: Prepared, used: Usage | None, ended: Ended) -> int:
-    """What the answer is counted as costing, in micro-dollars."""
-    known = cost_microusd(used, get_settings()) if used is not None else 0
+def _charge(p: Prepared, used: Usage | None, ended: Ended, streamed_chars: int = 0) -> int:
+    """What the answer is counted as costing, in micro-dollars. A cut answer's usage covers the prompt, but not yet
+    the words Claude wrote before the drop: those are counted from the text streamed, plus DROPPED_THINKING_TOKENS of
+    thinking, up to the whole answer reserved. Cut before Claude reported anything, it costs its reservation."""
+    s = get_settings()
+    known = cost_microusd(used, s) if used is not None else 0
     if ended == "done" or ended == "unanswered":
         return known
-    return max(known, p.reserved)  # a dropped answer's usage covers only what Claude had sent so far
+    if used is None:
+        return p.reserved
+    prompt_tokens = used.input_tokens + (used.cache_creation_input_tokens or 0) + (used.cache_read_input_tokens or 0)
+    _, price_out = prices(prompt_tokens, s)
+    written = min(p.max_tokens, math.ceil(streamed_chars / CHARS_PER_TOKEN) + DROPPED_THINKING_TOKENS)
+    unreported = max(0, written - used.output_tokens)
+    return max(known, min(p.reserved, known + math.ceil(unreported * price_out)))
 
 
-def _settle(db: Session, p: Prepared, used: Usage | None, ended: Ended) -> int:
+def _settle(db: Session, p: Prepared, used: Usage | None, ended: Ended, streamed_chars: int = 0) -> int:
     """Settles the reservation with what the answer cost, adds its tokens, gives the question back if it went
     unanswered, and ends the answer's streaming mark. Returns the questions left today."""
     try:
@@ -359,7 +384,7 @@ def _settle(db: Session, p: Prepared, used: Usage | None, ended: Ended) -> int:
             row.output_tokens += used.output_tokens
             row.cache_read_tokens += used.cache_read_input_tokens or 0
             row.cache_write_tokens += used.cache_creation_input_tokens or 0
-        row.cost_microusd = max(0, row.cost_microusd - p.reserved + _charge(p, used, ended))
+        row.cost_microusd = max(0, row.cost_microusd - p.reserved + _charge(p, used, ended, streamed_chars))
         row.answering_since = None
         left = max(0, p.daily_questions - row.questions)
         db.commit()
@@ -369,10 +394,10 @@ def _settle(db: Session, p: Prepared, used: Usage | None, ended: Ended) -> int:
         raise
 
 
-async def _settled(db: Session, p: Prepared, used: Usage | None, ended: Ended) -> int:
+async def _settled(db: Session, p: Prepared, used: Usage | None, ended: Ended, streamed_chars: int = 0) -> int:
     """_settle() on a worker thread, finished even when the answer's task is being cancelled (a dropped stream)."""
     with anyio.CancelScope(shield=True):
-        return await anyio.to_thread.run_sync(partial(_settle, db, p, used, ended))
+        return await anyio.to_thread.run_sync(partial(_settle, db, p, used, ended, streamed_chars))
     raise AssertionError("unreachable: a shielded scope that isn't cancelled itself swallows nothing")
 
 
@@ -389,6 +414,7 @@ async def answer(db: Session, p: Prepared) -> AsyncGenerator[str]:
     with a line that it was cut off (noora_unavailable) or that she can't help with it (noora_declined: what came is
     to be dropped). The cost is settled on every way out, a dropped connection included."""
     said = False
+    streamed = 0  # characters sent so far: a cut answer is charged for them
     used: Usage | None = None
     settled = False
     try:
@@ -403,6 +429,7 @@ async def answer(db: Session, p: Prepared) -> AsyncGenerator[str]:
             try:
                 async for text in stream.text_stream:
                     said = True
+                    streamed += len(text)
                     yield sse(NooraTextEvent(text=text))
                 final = await stream.get_final_message()
                 used = final.usage
@@ -424,9 +451,9 @@ async def answer(db: Session, p: Prepared) -> AsyncGenerator[str]:
         # The status and the error's type only: never the question, the note or the answer.
         log.warning("Claude failed for a Noora question: %s %s", type(e).__name__, getattr(e, "status_code", ""))
         if not settled:
-            await _settled(db, p, used, "cut" if said else "unanswered")
+            await _settled(db, p, used, "cut" if said else "unanswered", streamed)
             settled = True
         yield sse(NooraErrorEvent(message=CUT_OFF if said else "Mini Noora's AI answers aren't available right now."))
     finally:
-        if not settled:  # the student closed the panel, or something unexpected: the reservation stands
-            await _settled(db, p, used, "cut")
+        if not settled:  # the student closed the panel, or something unexpected
+            await _settled(db, p, used, "cut", streamed)

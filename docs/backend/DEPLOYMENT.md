@@ -422,7 +422,8 @@ in the `.env` of your checkout. Without the script, the import alone is
 services, never to the text worker), then turn on `noora.ai` in Access; it arrives off. The model is `DSBA_NOORA_MODEL`
 (`claude-haiku-5-5` by default; it thinks before it answers, at `DSBA_NOORA_EFFORT`). When Claude's safeguards decline a
 question, the student is told she can't help with that one, and the log keeps the decline's category only. Admins set
-her daily limit per student and the monthly budget in Manage → Numbers; also set a monthly spending limit on the
+her daily limit per student and the monthly budget in Manage → Numbers (an account under a week old asks at most 5
+a day, and an answer the student drops is charged what Claude used, so fresh sign-ups can't spend the month); also set a monthly spending limit on the
 Anthropic workspace as a backstop. Without the key, or with `noora.ai` off, she answers from her script, which admins
 edit in Manage → Mini Noora, and calls nobody.
 

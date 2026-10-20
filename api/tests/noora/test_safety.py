@@ -5,6 +5,7 @@ only as one of the app's routes, and answers streaming at once are bounded per s
 from __future__ import annotations
 
 import datetime as dt
+import math
 import re
 import uuid
 from collections.abc import Callable, Iterator
@@ -13,6 +14,7 @@ from typing import Any
 
 import anyio
 import pytest
+from anthropic.types import Usage
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 from sqlalchemy import select
@@ -51,6 +53,16 @@ def one_at_a_time(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 def usage_row(db: Session, user: User) -> NooraUsage:
     db.expire_all()
     return db.scalars(select(NooraUsage).where(NooraUsage.user_id == user.id)).one()
+
+
+def dropped_cost(p: ask.Prepared, streamed_chars: int) -> int:
+    """The prompt's reported cost (with the one output token the snapshot shows), plus the words streamed and
+    DROPPED_THINKING_TOKENS of thinking at the output price."""
+    s = get_settings()
+    reported = Usage(input_tokens=1000, output_tokens=1, cache_read_input_tokens=3000, cache_creation_input_tokens=0)
+    _, price_out = ask.prices(4000, s)
+    unreported = math.ceil(streamed_chars / ask.CHARS_PER_TOKEN) + ask.DROPPED_THINKING_TOKENS - 1
+    return ask.cost_microusd(reported, s) + math.ceil(unreported * price_out)
 
 
 def prepared(db: Session, user: User, question: str = "Explain the MGF") -> ask.Prepared:
@@ -123,7 +135,9 @@ def test_a_dropped_answer_keeps_its_question_and_its_reserved_cost(
     row = usage_row(db, sara)
     assert row.questions == 1
     assert row.input_tokens == 1000  # what Claude reported before the first word
-    assert row.cost_microusd == p.reserved  # at least the worst case: the answer's own words are unknown
+    # What Claude reported, plus the words streamed and some thinking its usage can't show yet: not the worst case.
+    assert row.cost_microusd == dropped_cost(p, len("The MGF is "))
+    assert row.cost_microusd < p.reserved
     assert row.answering_since is None
 
 
@@ -142,7 +156,7 @@ def test_a_cancelled_answer_is_costed_too(make_user: MakeUser, claude: FakeClien
 
     anyio.run(cancel)
     row = usage_row(db, sara)
-    assert (row.questions, row.cost_microusd) == (1, p.reserved)
+    assert (row.questions, row.cost_microusd) == (1, dropped_cost(p, len("The MGF is ")))
     assert row.answering_since is None
 
 
