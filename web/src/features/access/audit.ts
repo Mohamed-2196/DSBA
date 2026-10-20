@@ -175,6 +175,7 @@ const ACTIONS: Record<string, Describe> = {
   'library.import': driveImport,
   'library.question_keep': (d) => `confirmed the topic of${quoted(d.title) || ' a question'}`,
   'library.question_remove': (d) => `removed the topic of${quoted(d.title) || ' a question'}`,
+  'library.tagging_run': (d) => `asked Claude to tag${quoted(d.title) || ' a past paper'} again`,
   'calendar.create': (d) => `added the event${quoted(d.title)}`,
   'calendar.update': (d) => `edited the event${quoted(d.title)}`,
   'calendar.delete': (d) => `deleted the event${quoted(d.title)}`,
