@@ -1,5 +1,5 @@
 // Writes src/ui/icons/glyphs/ from the brand's icon files (docs/design/deskmates/brand/icons/{nav,ui}/*.svg): one
-// module per icon, so a page's bundle carries only the icons it uses, and index.ts naming them all:
+// module per icon, and index.ts naming them all (the build puts them in one chunk, see vite.config.ts):
 //
 //   node scripts/icons.mjs
 //
