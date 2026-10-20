@@ -1,7 +1,7 @@
 /* Calendar: the type colours, event-type dots and the date leaf, shared by the calendar page and
    <UpcomingEvents/> (Home, forum sidebar).
-   Colours come from EVENT_TYPES tokens. The deadline yellow (--highlight) is too faint on white, so its
-   dot carries a 1px ink ring. */
+   Colours come from EVENT_TYPES tokens. A deadline is the brand's warning amber (--warning-fill; the highlighter
+   yellow is for marks only); its dot carries a 1px ink ring on white. */
 
 /* One class per event type sets the four colours a type is drawn with, in both themes:
    --tone the solid fill, --tone-on text on that fill (AA), --tone-soft a tint, --tone-text the type
@@ -32,9 +32,9 @@
   --tone-text: var(--success);
 }
 .cal-tone--deadline {
-  --tone: var(--highlight);
-  --tone-on: var(--highlight-ink);
-  --tone-soft: var(--highlight-soft);
+  --tone: var(--warning-fill);
+  --tone-on: var(--on-warning-fill);
+  --tone-soft: var(--warning-soft);
   --tone-text: var(--ink);
 }
 .cal-tone--careers {
@@ -80,7 +80,7 @@
   background: var(--success-fill);
 }
 .cal-dot--deadline {
-  background: var(--highlight);
+  background: var(--warning-fill);
   box-shadow: 0 0 0 1px var(--ink);
 }
 .cal-dot--careers {
@@ -165,9 +165,9 @@
   --leaf-edge: var(--line-strong);
 }
 .cal-leaf--deadline {
-  --leaf-band: var(--highlight-soft);
+  --leaf-band: var(--warning-soft);
   --leaf-band-ink: var(--ink);
-  --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong));
+  --leaf-edge: color-mix(in srgb, var(--warning-fill) 60%, var(--line-strong));
 }
 .cal-leaf--today.is-solid {
   --leaf-band: var(--accent);

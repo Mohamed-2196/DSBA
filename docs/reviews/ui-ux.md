@@ -86,7 +86,7 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
 | UX-35 | minor | **open** | "Type a mark" is still display type at 390. The first mark field is below the fold. |
 | UX-37 | minor | **fixed** | At 390 the paper page shows its pages in place ("4 pages", with Open in your PDF viewer as an option). |
 | UX-62 | minor | **partly fixed** | The library's chips now sit behind Filters on phones. The forum's category tabs still stop mid-label at 360 and 390 ("Year 3", "Study…"). |
-| UX-78 | minor | **open** | An empty Notebook still offers New notebook, Write on a PDF, New note and Write your first note, plus a notebook select, search and module select with nothing to act on. |
+| UX-78 | minor | **fixed** (`round15/polish`) | An empty Notebook is the band and its empty state: Write your first note and Write on a PDF, no filters. |
 | UX-79 (lesson back arrow) | nit | **fixed** | The touch pass found no target under 44 px on the lesson header. |
 | UX-79 (New event) | nit | **open** | Starts is still empty while All day is off. |
 | UX-79 (others) | nit | not re-checked | |
@@ -139,6 +139,9 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
 - **Fix:** `color: var(--accent-text)`. Better, set it as the calendar's deadline line ("Closes Thu 30 Oct · 11 days
   left") in `--warning`, like the calendar's own deadlines.
 
+**Fixed** (phase 3c, checked in `round15/polish`): the window line is `--accent-text` on the card
+(`career/Opportunities.css`), readable in both themes.
+
 #### UX-81 Phones: section bands are desktop headers, and the first item starts 200–270 px lower than in the mockups (minor)
 
 - **Where:** Calendar, Forum, Notebook and Modules at 360 and 390 (and 844×390, where the band fills the screen).
@@ -163,6 +166,20 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
   - The forum's search, chips and sort fold into one Filters button, as the library already does.
   - The Notebook's filters show only when there are notes (UX-78).
 
+**Fixed** (`round15/polish`). Under 700 px, and on short screens, a section band is the title, one stat line and the
+deskmate (`ui/Page.css`); the lede is for laptops. Measured at 390×844 (before → after):
+- Calendar: the next exam 489 → 262 px; the month grid 611 → 314 px (the type chips go under the grid on phones).
+  The band reads "Year 2 · 5 dates ahead this month"; List | Month shares its row with New event and a ⋯ menu
+  (whose dates, Customise, Subscribe, Programme date).
+- Forum: the first thread 591 → 378 px. The search and one Filters button share a row; the chips and the sort are in
+  the Filters sheet.
+- Notebook: an empty Notebook is the band and the empty state (the empty state 565 → 183 px); with notes, New note
+  and a ⋯ menu (Write on a PDF, New notebook).
+- Modules: the band 279 → 154 px ("6 modules · 162 video lessons"; the year and the next exam are on the switch and
+  the rows).
+- Home: the shelf wraps three over two at 360–430 px, every tile in view, Calendar's "Exam Fri" included.
+- 844×390: the bands drop their lede, and the calendar's buttons go on the bar.
+
 #### UX-82 Two deskmates in one view on empty states (minor)
 
 - **Where:** an empty Notebook (`/notes` for a student with no notes) and a library search with no results. Every
@@ -175,6 +192,10 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
   sleepy state and the empty state shows none. One rule in `SectionHeader`/`EmptyState` covers both screens.
 - **Home is fine:** Lumen, the shelf's mates, Blink beside Up next and Pip and Pod beside Replies are all allowed by
   BRAND §6.
+
+**Fixed** (`round15/polish`): when an empty state shows its sleepy deskmate, the band leaves its own out (one rule in
+`ui/Page.css`, `.ui-page:has(.ui-empty__mate)`, which also covers the module page's Binder). An empty Notebook shows
+Jot once, asleep.
 
 #### UX-83 Both icon families in one row on redone screens (minor)
 
@@ -200,6 +221,12 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
 
   Then swap the rest of the lesson panel at once.
 
+**Fixed** (`round15/polish`): Subscribe (`link`), Tag a question (`edit`, with `flag` and `trash` beside it), the
+daily question's Open (`forward`), the Modules index, and the lesson panel and chapter list (`external`,
+`chevron-left/right`, `pen`, `check`/`success`, `calendar`, `warning`, `offline`, `more`, `undo`, `eye-off`) are
+brand icons. Plan my revision and Add to my board already were. Missing from the brand set, so left in Phosphor in a
+row of their own: Headphones (Chapter audio), and the Play and CheckCircle badges drawn on lesson thumbnails.
+
 #### UX-84 ⌘K can't find the Notebook or Daily, and page names differ from the nav (minor)
 
 - **Where:** ⌘K, signed in, any size.
@@ -214,6 +241,11 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
   - Rank a page whose name matches above full-text file hits.
   - Use the nav's names: Grades, The DSBA Newsletter.
 
+**Fixed** (`round15/polish`): ⌘K lists Notebook, Daily puzzles, Noora and Requests, with keywords. Pages take the
+nav's names (Grades, Newsletter, Daily puzzles), so a page whose name matches leads. In the browser, "notebook",
+"daily", "grades", "newsletter" and "requests" each put their page first, above the files. Unit-tested in
+`search.test.ts`.
+
 #### UX-85 Year avatars' initials fail AA in light; avatar classes keep the old token names (minor)
 
 - **Where:** every avatar with a year tone: the forum sidebar (Helpful this week), the profile button, newsletter
@@ -225,6 +257,10 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
   - Use the pairs BRAND §2 already checked: `--y1-strong` on `--y1-soft`, and the same for Years 2 and 3.
   - Rename `.ui-avatar--cobalt`, `--signal` and `--alert` to `--accent`, `--success` and `--error`, to match the
     phase 1 token renames.
+
+**Fixed** (`round15/polish`): each avatar tone is a checked pair (`--y1-strong` on `--y1-soft`, and accent, success
+and error the same way); the classes are `--accent`, `--success` and `--error`. Measured on the forum at 1440: Year 1
+4.90:1, Year 2 4.79:1, Year 3 4.94:1, success 4.73:1, error 5.02:1 in light; 5.3–7.2:1 in dark.
 
 #### UX-86 Calendar: past events fall below AA, and deadlines use the highlighter yellow (minor)
 
@@ -239,6 +275,10 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
   - Map the deadline tone to `--warning-fill` (`calendar-shared.css`, `eventMeta.ts`).
   - Set the next-exam countdown as the mockup does: "Thu 23 Oct, 9:00 · in 4 days" in the exam tone, with no marker.
 
+**Fixed** (`round15/polish`): a past chip dims its fill (45% into the surface) and keeps its words at full strength:
+Event 5.56:1, Revision 5.10:1, Mock exam 9.26:1 in light (6.4–8.1:1 in dark). Deadlines use `--warning-fill` (chips,
+dots, the legend, the leaf, the badge tone `warning`). The next exam's countdown is in the exam tone, with no marker.
+
 #### UX-87 Mini Noora's launcher isn't the mockups' ring, and it's 40 px wide on touch (minor)
 
 - **Where:** tablets, laptops and monitors, and 844×390.
@@ -252,6 +292,11 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
   - **Landscape:** at 844×390 her image runs to 857 px, 13 px past the edge, and is clipped.
 - **Fix:** Mohamed's call. Either build the ring launcher from the renders (64 px, in the same lane), or keep the
   figure and give it a 44 px wide hit area and a 16 px inset in landscape.
+
+**Fixed** (`round15/polish`, Mohamed kept the standing figure): her box is at least 44 px wide (44×84 below 1100 px,
+so the lane is 60 px), and a clip-path trims her sprite's empty canvas at the window's edge (`layout.ts` `edgeClip`,
+unit-tested). At 844×390 nothing is drawn past 844 px. The sprite's image box still reaches 854 px, but that part is
+transparent and clipped.
 
 #### UX-88 Notebook: "New note" opens "New notebook", and the phone editor isn't the mockup's (minor)
 
@@ -272,6 +317,11 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
   - On phones, the save toast shows once and as the mockup's compact pill, "Saved · In ST2134 …", clear of the text.
   - The bottom tool bar is phase 3b's open item.
 
+**Fixed** (`round15/polish`). New note starts a note and opens it (checked at 390 and 1440 with a student with no
+notebook: no dialog). The back link says "Notebook". "Add a module" is in Figtree. The first-save toast is a compact
+pill over the tab bar ("Saved · Your note saves as you write.", 3 s). An empty Notebook offers Write your first note
+and Write on a PDF, with no filters (UX-78). The phone's bottom tool bar stays open (not asked for this round).
+
 #### UX-89 Deskmates are smaller than BRAND's sizes on phones, and larger on the module page (nit)
 
 - **What I measured:**
@@ -283,6 +333,9 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
     23:00 or offline, happy on the save toast, Blink's countdown on Up next.
 - **Fix:** once the phone bands are one-line (UX-81), 64–72 px is the right size there. Write that size into BRAND §6
   rather than grow the mates. Bring Binder to 104 px.
+
+**Fixed** (`round15/polish`): Binder is 104 px on laptops; Home's shelf mates are 56 px on phones; BRAND §6 now gives
+the phone band's mate as 64–72 px (60 under 375 px) and the compact toast's as 32 px.
 
 #### UX-90 Tools pages have no band, so the app changes style halfway down the sidebar (minor)
 
@@ -297,6 +350,9 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
   - Daily's raster tiles and the newsletter's masthead are design calls for Mohamed. The masthead is a deliberate
     editorial look and can stay.
 
+**Partly fixed** (phase 3c): Boards, Grades, Career Navigator and Your account have the tools band in Home's tones.
+The Newsletter, Daily, Manage and Requests are still bare titles.
+
 #### UX-91 Small leftovers (nit)
 
 - **Thread on phones:** "Accepted answer" wraps onto its own line under the name, with the time on a third line. In
@@ -308,6 +364,14 @@ icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no m
   lesson progress.
 - **Phone band text:** the band ledes run as long as the laptop ones (four lines on the calendar at 390). They go
   with UX-81.
+
+**Fixed** (`round15/polish`), except the notebook in dark:
+- "Accepted answer" follows the time on the second line on phones.
+- The nav and ⌘K say "Daily puzzles".
+- Home's My modules are coloured binders with the lesson count and the progress bar.
+- The band ledes are gone on phones (UX-81).
+- **Open:** a typed page in dark stays white. Pens keep the colours they were drawn in (navy and black among them),
+  so a dark page needs an ink colour mapping first: a design call.
 
 ### What works well and should stay
 

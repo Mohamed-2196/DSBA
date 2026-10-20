@@ -133,7 +133,15 @@ export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean 
         const note = await saveNote(noteId, { ...sent, version: baseRef.current ?? 1 });
         noteSaved(qc, note, { quietly: true });
         // A new note's first save is the moment to say it keeps itself; later saves stay quiet.
-        if (first) toast.push({ tone: 'success', mate: 'jot', title: 'Saved', body: 'Your note saves as you write.' });
+        if (first)
+          toast.push({
+            tone: 'success',
+            mate: 'jot',
+            title: 'Saved',
+            body: 'Your note saves as you write.',
+            compact: true,
+            duration: 3000,
+          });
         baseRef.current = note.version;
         // what was sent (the server tidies the title, and sending it again changes nothing), in the notebook the
         // server keeps it in: a note given another module leaves a module's notebook for that module's

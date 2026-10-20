@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Button, cx, Icon, IconButton, glyph } from '../../ui';
 import { dayKey, formatLongDay, parseDay, type DayKey } from '../../lib/dates';
 import { addMonths, monthKey, monthTitle } from './dates';
@@ -17,6 +17,8 @@ export interface MonthPanelProps {
   compact: boolean;
   /** a new event of the student's own on a day */
   onAdd: (day: DayKey) => void;
+  /** phones: what goes between the grid and the picked day (the types, the colour key) */
+  underGrid?: ReactNode;
 }
 
 /** The month's title between its arrows, and Today (the calendar's bar). */
@@ -49,7 +51,7 @@ export function MonthNav({ view }: { view: CalendarView }) {
 }
 
 /** A month on a grid (its arrows and Today are in the bar above, MonthNav). data-hub="calendar-month". */
-export function MonthPanel({ view, today, compact, onAdd }: MonthPanelProps) {
+export function MonthPanel({ view, today, compact, onAdd, underGrid }: MonthPanelProps) {
   const { month, monthEvents, goMonth, eventId, cohortYear, open } = view;
 
   return (
@@ -59,7 +61,7 @@ export function MonthPanel({ view, today, compact, onAdd }: MonthPanelProps) {
       data-hub="calendar-month"
     >
       {compact ? (
-        <CompactMonth view={view} today={today} onAdd={onAdd} key={monthKey(month)} />
+        <CompactMonth view={view} today={today} onAdd={onAdd} underGrid={underGrid} key={monthKey(month)} />
       ) : (
         <MonthGrid
           month={month}
@@ -78,7 +80,17 @@ export function MonthPanel({ view, today, compact, onAdd }: MonthPanelProps) {
 }
 
 /** Phones: the grid with a dot per date, and the picked day's dates under it (today, or the month's first date). */
-function CompactMonth({ view, today, onAdd }: { view: CalendarView; today: Date; onAdd: (day: DayKey) => void }) {
+function CompactMonth({
+  view,
+  today,
+  onAdd,
+  underGrid,
+}: {
+  view: CalendarView;
+  today: Date;
+  onAdd: (day: DayKey) => void;
+  underGrid?: ReactNode;
+}) {
   const { month, monthEvents, goMonth, eventId, cohortYear, open } = view;
   const byDay = useMemo(() => groupByDay(monthEvents), [monthEvents]);
   const inMonth = (key: string) => key.startsWith(monthKey(month));
@@ -103,6 +115,7 @@ function CompactMonth({ view, today, onAdd }: { view: CalendarView; today: Date;
         onOpen={open}
         onNavigate={goMonth}
       />
+      {underGrid}
       <div className="cal-month__day" aria-live="polite">
         {day ? (
           <>

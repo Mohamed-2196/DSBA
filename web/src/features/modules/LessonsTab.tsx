@@ -2,25 +2,14 @@
 // the chapter list. The lesson on screen lives in the URL (/modules/<id>/lessons/<lesson id>; ?t=245 starts its
 // video 245 seconds in). "Take notes" puts the student's notes beside the playing video in place of the chapter list
 // (a sheet under it on a phone): the notes take the video's time and take the video back to a time.
-import {
-  ArrowSquareOut,
-  CalendarBlank,
-  CaretLeft,
-  CaretRight,
-  CheckCircle,
-  Circle,
-  Headphones,
-  NotePencil,
-  Warning,
-  WifiSlash,
-} from '@phosphor-icons/react';
+import { Headphones } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { ModuleDetail, Video } from '../../api/types';
 import { videoThumbnailUrl } from '../../lib/modules';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import { Button, ErrorBoundary, Spinner, cx } from '../../ui';
+import { Button, ErrorBoundary, Icon, Spinner, cx, glyph } from '../../ui';
 import { LessonNotePanel, LessonNotes, lessonVideoStart } from '../notes/public';
 import { AddToBoard } from '../board/public';
 import { ChapterQuestions } from '../library/public';
@@ -71,7 +60,7 @@ function LessonUnreachable({ year, video, onTryAnyway }: { year: number; video: 
   return (
     <div className="mod-frame mod-frame--blocked" data-theme="dark" style={frameVars(year)} role="alert">
       <div className="mod-blocked">
-        <WifiSlash weight="duotone" className="mod-blocked__icon" aria-hidden="true" />
+        <Icon glyph={glyph.offline} className="mod-blocked__icon" />
         <p className="mod-blocked__title">This video can&rsquo;t load here</p>
         <p className="mod-blocked__body">
           YouTube isn&rsquo;t responding on this network. It may be blocked here, or the video may have moved. Open it
@@ -83,7 +72,7 @@ function LessonUnreachable({ year, video, onTryAnyway }: { year: number; video: 
               ref={primaryRef}
               variant="primary"
               href={source}
-              trailingIcon={ArrowSquareOut}
+              trailingIcon={<Icon glyph={glyph.external} />}
               aria-label={`${openOriginalLabel(video)} (opens in a new tab)`}
             >
               {openOriginalLabel(video)}
@@ -313,8 +302,8 @@ export function LessonsTab({
                 <h2 className="mod-lesson__title">{info.real ? info.title : chapter.title}</h2>
                 {info.by ? (
                   <p className={cx('mod-lesson__by', info.byKind === 'unavailable' && 'is-note')}>
-                    {info.byKind === 'date' ? <CalendarBlank aria-hidden="true" /> : null}
-                    {info.byKind === 'unavailable' ? <Warning aria-hidden="true" /> : null}
+                    {info.byKind === 'date' ? <Icon glyph={glyph.calendar} /> : null}
+                    {info.byKind === 'unavailable' ? <Icon glyph={glyph.warning} /> : null}
                     {info.by}
                   </p>
                 ) : null}
@@ -324,7 +313,7 @@ export function LessonsTab({
                   <Button
                     className={cx('mod-watch', watched && 'is-on')}
                     aria-pressed={watched}
-                    leadingIcon={watched ? <CheckCircle weight="fill" size={19} /> : <Circle size={19} />}
+                    leadingIcon={<Icon glyph={watched ? glyph.success : glyph.check} active={watched} />}
                     onClick={() => setWatched(m.id, key, !watched)}
                     disabled={!progress.ready}
                     data-hub="lesson-watched"
@@ -333,7 +322,7 @@ export function LessonsTab({
                   </Button>
                 ) : null}
                 {canNote && !noting ? (
-                  <Button leadingIcon={NotePencil} onClick={openNotes} data-hub="lesson-take-notes">
+                  <Button leadingIcon={<Icon glyph={glyph.pen} />} onClick={openNotes} data-hub="lesson-take-notes">
                     Take notes
                   </Button>
                 ) : null}
@@ -345,12 +334,17 @@ export function LessonsTab({
 
             <div className="mod-lesson__nav">
               <div className="mod-lesson__steps">
-                <Button leadingIcon={CaretLeft} disabled={!prev} onClick={() => go(prev)} className="mod-lesson__step">
+                <Button
+                  leadingIcon={<Icon glyph={glyph.chevronLeft} />}
+                  disabled={!prev}
+                  onClick={() => go(prev)}
+                  className="mod-lesson__step"
+                >
                   Previous
                 </Button>
                 <Button
                   variant="primary"
-                  trailingIcon={CaretRight}
+                  trailingIcon={<Icon glyph={glyph.chevronRight} />}
                   disabled={!next}
                   onClick={() => go(next)}
                   className="mod-lesson__step"
@@ -363,7 +357,7 @@ export function LessonsTab({
                 <Button
                   variant="ghost"
                   href={source}
-                  trailingIcon={ArrowSquareOut}
+                  trailingIcon={<Icon glyph={glyph.external} />}
                   className="mod-lesson__orig"
                   aria-label={`${openOriginalLabel(video)} (opens in a new tab)`}
                 >

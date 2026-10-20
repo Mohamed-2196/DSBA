@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BREAKPOINTS, cohortLabel, useMediaQuery } from '../../state';
-import { Button, Chip, cx, EmptyState, Icon, SegmentedControl, glyph } from '../../ui';
+import { Button, Chip, cx, EmptyState, Icon, IconButton, Menu, SegmentedControl, glyph, type MenuItem } from '../../ui';
 import { formatShort, parseDay, type DayKey } from '../../lib/dates';
 import { monthTitle } from './dates';
 import { DayList } from './DayList';
@@ -22,14 +22,53 @@ export interface BrowseProps {
   onAddMine: (day?: DayKey) => void;
 }
 
+/** On a phone, the band's buttons sit on the bar: New event, and the rest in a ⋯ menu. */
+export interface PhoneTools {
+  /** signed in */
+  onCustomise?: () => void;
+  onSubscribe: () => void;
+  /** reps */
+  onAddDate?: () => void;
+  onAddMine: () => void;
+}
+
 /**
  * The bar under the calendar's band (docs/design/deskmates/screens/calendar-*): List or Month, whose dates (the
- * student's year or every year), and in the month, its arrows and Today.
+ * student's year or every year), and in the month, its arrows and Today. On a phone (`tools`), List | Month shares
+ * its row with New event and a ⋯ menu that holds whose dates, Customise and Subscribe.
  */
-export function CalendarBar({ view }: { view: CalendarView }) {
+export function CalendarBar({ view, tools }: { view: CalendarView; tools?: PhoneTools }) {
   const { year, cohortYear, setAllYears } = view;
+  const more: MenuItem[] = tools
+    ? [
+        ...(year
+          ? [
+              {
+                id: 'cohort',
+                label: cohortYear ? 'Show all years' : `Show only ${cohortLabel(year)}`,
+                icon: <Icon glyph={glyph.calendar} />,
+                onSelect: () => setAllYears(!!cohortYear),
+              },
+            ]
+          : []),
+        ...(tools.onCustomise
+          ? [
+              {
+                id: 'customise',
+                label: 'Customise',
+                icon: <Icon glyph={glyph.settings} />,
+                onSelect: tools.onCustomise,
+              },
+            ]
+          : []),
+        { id: 'subscribe', label: 'Subscribe', icon: <Icon glyph={glyph.link} />, onSelect: tools.onSubscribe },
+        ...(tools.onAddDate
+          ? [{ id: 'date', label: 'Programme date', icon: <Icon glyph={glyph.plus} />, onSelect: tools.onAddDate }]
+          : []),
+      ]
+    : [];
   return (
-    <div className="cal-bar" data-hub="calendar-bar">
+    <div className={cx('cal-bar', tools && 'cal-bar--phone')} data-hub="calendar-bar">
       <SegmentedControl
         label="Show as"
         value={view.mode}
@@ -40,7 +79,7 @@ export function CalendarBar({ view }: { view: CalendarView }) {
         ]}
         className="cal-bar__mode"
       />
-      {year ? (
+      {year && !tools ? (
         <SegmentedControl
           label="Whose dates"
           options={[
@@ -51,6 +90,24 @@ export function CalendarBar({ view }: { view: CalendarView }) {
           onChange={(v) => setAllYears(v === 'all')}
           className="cal-bar__cohort"
         />
+      ) : null}
+      {tools ? (
+        <div className="cal-bar__tools">
+          <Button
+            variant="primary"
+            leadingIcon={<Icon glyph={glyph.plus} />}
+            onClick={tools.onAddMine}
+            data-hub="calendar-mine-add"
+          >
+            New event
+          </Button>
+          <Menu
+            align="end"
+            label="More calendar options"
+            items={more}
+            trigger={<IconButton icon={<Icon glyph={glyph.more} />} label="More" data-hub="calendar-more" />}
+          />
+        </div>
       ) : null}
       {view.mode === 'month' ? <MonthNav view={view} /> : null}
     </div>
@@ -71,7 +128,8 @@ export function Browse({ view, today, calendarEmpty, onAddDate, onAddMine }: Bro
       <h2 id={BROWSE_TITLE_ID} className={view.mode === 'list' ? 'cal-browse__title' : 'visually-hidden'}>
         {view.mode === 'list' ? 'Coming up' : 'Month'}
       </h2>
-      <Filters view={view} />
+      {/* On a phone the month's grid comes first, its colour key and filters under it. */}
+      {phone && view.mode === 'month' ? null : <Filters view={view} />}
       <div className="cal-browse__body">
         {view.mode === 'list' ? (
           <div className="cal-list" data-hub="calendar-list">
@@ -85,7 +143,13 @@ export function Browse({ view, today, calendarEmpty, onAddDate, onAddMine }: Bro
             />
           </div>
         ) : (
-          <MonthPanel view={view} today={today} compact={phone} onAdd={onAddMine} />
+          <MonthPanel
+            view={view}
+            today={today}
+            compact={phone}
+            onAdd={onAddMine}
+            underGrid={phone ? <Filters view={view} /> : undefined}
+          />
         )}
       </div>
     </section>

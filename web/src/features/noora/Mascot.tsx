@@ -1,6 +1,6 @@
 import { forwardRef, useState, type ButtonHTMLAttributes, type CSSProperties } from 'react';
 import { IconButton, modKeyLabel, Icon, glyph } from '../../ui';
-import type { Point, Side } from './layout';
+import { edgeClip, type Point, type Side } from './layout';
 import { POSES, poseUrl, type Figure, type Pose } from './sprites';
 import './Mascot.css';
 
@@ -14,6 +14,8 @@ export interface MascotProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   point: Point;
   /** from figure(): her box and where the sprite canvas sits around it */
   size: Figure;
+  /** the window's width: her sprite's empty margin is trimmed at its edges */
+  windowWidth: number;
   /** the sprite to show */
   pose: Pose;
   /** flip the sprite left to right (so a wave or a gesture points at the chat) */
@@ -41,7 +43,22 @@ export interface MascotProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
  * in are decided by MiniNoora.tsx. Every other prop (pointer, key and focus handlers) goes on the button.
  */
 export const Mascot = forwardRef<HTMLButtonElement, MascotProps>(function Mascot(
-  { point, size, pose, mirrored, state, motion, tilt, open, chatId, hint, onHintClick, onHintClose, ...handlers },
+  {
+    point,
+    size,
+    windowWidth,
+    pose,
+    mirrored,
+    state,
+    motion,
+    tilt,
+    open,
+    chatId,
+    hint,
+    onHintClick,
+    onHintClose,
+    ...handlers
+  },
   ref,
 ) {
   // A pose is shown only once its image has arrived, so she never blinks out while one is still loading.
@@ -49,6 +66,7 @@ export const Mascot = forwardRef<HTMLButtonElement, MascotProps>(function Mascot
   const shown: Pose = arrived.has(pose) ? pose : 'idle';
   const { canvas } = size;
   const shortcut = modKeyLabel() === '⌘' ? '⌘/' : 'Ctrl+/';
+  const clip = edgeClip(point, size, canvas, windowWidth);
 
   return (
     <div
@@ -98,7 +116,7 @@ export const Mascot = forwardRef<HTMLButtonElement, MascotProps>(function Mascot
         {...handlers}
       >
         <span className="noora__ground" aria-hidden="true" />
-        <span className="noora__lift">
+        <span className="noora__lift" style={clip ? { clipPath: clip } : undefined}>
           <span className="noora__figure" data-mirrored={mirrored ? '' : undefined}>
             {POSES.map((name) => (
               <img

@@ -67,6 +67,22 @@ describe('runSearch', () => {
     expect(r).toContain('action:upload');
   });
 
+  it('finds the Notebook, Daily puzzles and Grades by name, ahead of files that mention the word (UX-84)', () => {
+    const papers = (n: number) =>
+      results({ library: Array.from({ length: n }, (_, i) => ({ ...file, id: `f${i}`, title: `Paper ${i}` })) });
+    const first = (query: string) => runSearch({ ...base, query, results: papers(3) }).groups[0]?.items[0]?.id;
+    expect(first('notebook')).toBe('page:/notes');
+    expect(first('daily')).toBe('page:/daily');
+    expect(first('grades')).toBe('page:/grades');
+    expect(first('sudoku')).not.toBe('page:/daily'); // a keyword alone doesn't jump the files
+  });
+
+  it('names pages as the nav does', () => {
+    const titles = runSearch(base).groups.flatMap((g) => g.items.map((i) => i.title));
+    expect(titles).toEqual(expect.arrayContaining(['Grades', 'Newsletter', 'Notebook', 'Daily puzzles']));
+    expect(titles).not.toContain('Grade calculator');
+  });
+
   it('leaves out pages and actions of switched-off features', () => {
     const r = ids(runSearch({ ...base, isOn: (f) => f !== 'calendar' && f !== 'forum' }));
     expect(r).not.toContain('page:/calendar');

@@ -31,9 +31,13 @@ export const bustUrl = (bust: Bust): string => url(`bust-${bust}`);
 const CANVAS = { w: 680, h: 784, feetY: 768, headY: 60, bodyW: 340 };
 /**
  * How tall she stands, head to feet, in CSS pixels: on screens 1100 px and wider, and on narrower ones. Her lane
- * (Mascot.css) is as wide as she is at these heights (54 and 40 px) plus 8 px on each side.
+ * (Mascot.css) is as wide as her box at these heights (54 px, and 44 px for the 40 px figure, so a finger has room)
+ * plus 8 px on each side.
  */
 export const HEIGHT = { desktop: 112, compact: 84 };
+
+/** px: the narrowest her box gets, so she is a full touch target. */
+const MIN_TAP = 44;
 
 export interface Figure {
   w: number;
@@ -47,13 +51,15 @@ export interface Figure {
  */
 export function figure(height: number): Figure {
   const scale = height / (CANVAS.feetY - CANVAS.headY);
+  // Her box is what you press: never narrower than a touch target, with the drawing centred in it.
+  const w = Math.max(MIN_TAP, Math.round(CANVAS.bodyW * scale));
   return {
-    w: Math.round(CANVAS.bodyW * scale),
+    w,
     h: height,
     canvas: {
       width: CANVAS.w * scale,
       height: CANVAS.h * scale,
-      left: ((CANVAS.bodyW - CANVAS.w) / 2) * scale,
+      left: (w - CANVAS.w * scale) / 2,
       top: -CANVAS.headY * scale,
     },
   };

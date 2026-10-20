@@ -1,12 +1,22 @@
 import { useMemo, useState } from 'react';
-import { RssSimple } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { BREAKPOINTS, cohortLabel, useMediaQuery, useSetQueryParams, useToast, useYear } from '../../state';
-import { Button, ConfirmDialog, Icon, Page, PageHeader, PageSection, QueryError, Skeleton, glyph } from '../../ui';
+import {
+  Button,
+  ConfirmDialog,
+  Icon,
+  Page,
+  PageHeader,
+  PageSection,
+  QueryError,
+  Skeleton,
+  formatCount,
+  glyph,
+} from '../../ui';
 import { formatLong, formatLongDay, parseDay, todayKey, today as bahrainToday, type DayKey } from '../../lib/dates';
 import { useCalendarEvents, useDeleteEvent, useDeleteMyEvent, useDeleteMyOccurrence } from './api';
-import { Browse, CalendarBar } from './Browse';
+import { Browse, CalendarBar, type PhoneTools } from './Browse';
 import { CustomiseDialog } from './CustomiseDialog';
 import { monthKey } from './dates';
 import { EventDrawer } from './EventDrawer';
@@ -14,6 +24,7 @@ import { EventFormDialog, type DateNotice } from './EventFormDialog';
 import { typePlural } from './eventMeta';
 import { ForYou } from './ForYou';
 import { myCalendar, occurrenceId, repeats } from './mine';
+import { datesAheadThisMonth } from './queries';
 import { MyEventDialog } from './MyEventDialog';
 import { ScopeChoice } from './ScopeChoice';
 import { useEmployers } from '../career/public';
@@ -24,6 +35,9 @@ import { monthOfEvent, useCalendarView } from './useCalendarView';
 import { useMyCalendar, type HiddenKind, type MyCalendar } from './useMyCalendar';
 import './calendar-shared.css';
 import './CalendarPage.css';
+
+/** A phone, upright or on its side: the band keeps one line and its buttons go on the bar. */
+const PHONE = `${BREAKPOINTS.mobile}, (max-height: 499px)`;
 
 /** The student's own event being added or edited: `day` is the day it opened on; a new `session` mounts a fresh form. */
 interface MineEditing {
@@ -71,6 +85,29 @@ export default function CalendarPage() {
     const own = e.mine;
     if (own) setEditingMine((m) => ({ open: true, event: own, day: e.date, session: m.session + 1 }));
   };
+  const phone = useMediaQuery(PHONE);
+  // The band's one stat line: "Year 2 · 7 dates ahead this month".
+  const ahead = query.data ? datesAheadThisMonth(events, { year, today: todayKey(), papers }) : null;
+  const stat =
+    ahead == null ? null : (
+      <span className="cal-stat">
+        {year ? `${cohortLabel(year)} · ` : ''}
+        {ahead ? (
+          <>
+            <span className="u-tabular">{formatCount(ahead)}</span> {ahead === 1 ? 'date' : 'dates'} ahead this month
+          </>
+        ) : (
+          'Nothing else this month'
+        )}
+      </span>
+    );
+  // On a phone the band keeps one line, and its buttons go on the List | Month row: New event, and the rest under ⋯.
+  const phoneTools: PhoneTools = {
+    onCustomise: my.signedIn ? () => setCustomising(true) : undefined,
+    onSubscribe: () => setSubscribing(true),
+    onAddDate: manages ? () => setEditing({ event: null }) : undefined,
+    onAddMine: () => addMine(),
+  };
   const actions = (
     <>
       {my.signedIn ? (
@@ -82,7 +119,11 @@ export default function CalendarPage() {
           Customise
         </Button>
       ) : null}
-      <Button leadingIcon={RssSimple} onClick={() => setSubscribing(true)} data-hub="calendar-subscribe-open">
+      <Button
+        leadingIcon={<Icon glyph={glyph.link} />}
+        onClick={() => setSubscribing(true)}
+        data-hub="calendar-subscribe-open"
+      >
         Subscribe
       </Button>
       {manages ? (
@@ -107,7 +148,13 @@ export default function CalendarPage() {
 
   return (
     <Page className="cal-page">
-      <PageHeader section="calendar" title="Calendar" description={description} actions={actions} />
+      <PageHeader
+        section="calendar"
+        title="Calendar"
+        description={description}
+        meta={stat}
+        actions={phone ? undefined : actions}
+      />
       {query.isPending ? (
         <CalendarSkeleton />
       ) : query.isError ? (
@@ -126,6 +173,7 @@ export default function CalendarPage() {
           onAddDate={manages ? () => setEditing({ event: null }) : undefined}
           onAddMine={addMine}
           onEditMine={editMine}
+          phoneTools={phone ? phoneTools : undefined}
         />
       )}
       <SubscribeDialog open={subscribing} year={year} papers={papers} my={my} onClose={() => setSubscribing(false)} />
@@ -264,9 +312,20 @@ interface CalendarBodyProps {
   /** a new event of the student's own (on a day) */
   onAddMine: (day?: DayKey) => void;
   onEditMine: (e: CalendarEvent) => void;
+  /** a phone: the band's buttons, on the bar */
+  phoneTools?: PhoneTools;
 }
 
-function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine, onEditMine }: CalendarBodyProps) {
+function CalendarBody({
+  events,
+  calendarEmpty,
+  my,
+  onEdit,
+  onAddDate,
+  onAddMine,
+  onEditMine,
+  phoneTools,
+}: CalendarBodyProps) {
   const { push } = useToast();
   const remove = useDeleteEvent();
   const removeMine = useDeleteMyEvent();
@@ -342,7 +401,7 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine,
           className="cal-mine-error"
         />
       ) : null}
-      <CalendarBar view={view} />
+      <CalendarBar view={view} tools={phoneTools} />
       {view.mode === 'list' ? (
         <PageSection>
           <ForYou

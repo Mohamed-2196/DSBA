@@ -8,7 +8,7 @@ export const EVENT_TYPES: Record<EventType, EventTypeMeta> = {
   exam: { label: 'Exam', plural: 'exams', token: '--exam', color: 'var(--exam)' },
   mock: { label: 'Mock exam', plural: 'mock exams', token: '--accent', color: 'var(--accent)' },
   revision: { label: 'Revision', plural: 'revision sessions', token: '--success-fill', color: 'var(--success-fill)' },
-  deadline: { label: 'Deadline', plural: 'deadlines', token: '--highlight', color: 'var(--highlight)' },
+  deadline: { label: 'Deadline', plural: 'deadlines', token: '--warning-fill', color: 'var(--warning-fill)' },
   // Application windows of Career Navigator's employers.
   careers: { label: 'Careers', plural: 'careers dates', token: '--ink', color: 'var(--ink)' },
   // Programme events (Speech Day, launches, socials). Amber is the one warm token the other types leave free; it is
@@ -32,14 +32,14 @@ export const TYPE_ORDER: readonly EventType[] = [
 
 export const isEventType = (value: unknown): value is EventType => typeof value === 'string' && value in EVENT_TYPES;
 
-export type BadgeTone = 'neutral' | 'cobalt' | 'signal' | 'alert' | 'exam' | 'highlight';
+export type BadgeTone = 'neutral' | 'cobalt' | 'signal' | 'alert' | 'exam' | 'warning';
 
 /** Badge tone per type (ui Badge tones; 'event' is tinted amber by the calendar's own CSS). */
 export const TYPE_BADGE_TONE: Record<EventType, BadgeTone> = {
   exam: 'exam',
   mock: 'cobalt',
   revision: 'signal',
-  deadline: 'highlight',
+  deadline: 'warning',
   careers: 'neutral',
   event: 'neutral',
   break: 'neutral',

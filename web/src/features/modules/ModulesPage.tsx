@@ -2,7 +2,6 @@
 // code where it has none yet, or a plate with its icon for Year 3 modules, which have no code), each row with name,
 // description, counts, next exam and lesson progress. Follows the global year; the segmented control peeks at
 // another year without changing it (?year=3).
-import { ArrowCounterClockwise, ArrowRight, CalendarBlank, CaretRight, Sparkle } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -22,6 +21,7 @@ import { useModules } from '../../state/modules';
 import {
   Button,
   CohortBadge,
+  Icon,
   ModuleArt,
   ModuleIcon,
   Page,
@@ -31,6 +31,7 @@ import {
   Skeleton,
   cx,
   countOf,
+  glyph,
   moduleArtSrc,
 } from '../../ui';
 import { prefetchModule } from './api';
@@ -169,7 +170,7 @@ function ModuleRow({
             )}
           </span>
         ) : (
-          <CaretRight className="mod-row__go" aria-hidden="true" />
+          <Icon glyph={glyph.chevronRight} className="mod-row__go" />
         )}
       </Link>
     </li>
@@ -239,7 +240,9 @@ export default function ModulesPage() {
         }
         meta={
           <>
-            <CohortBadge year={viewYear} />
+            <span className="mod-index__wide">
+              <CohortBadge year={viewYear} />
+            </span>
             <span className="mod-index__fact">{countOf(rows.length, 'module')}</span>
             {hasVideos ? (
               <span className="mod-index__fact">
@@ -259,7 +262,7 @@ export default function ModulesPage() {
             )}
             {nextExam ? (
               <span className="mod-index__fact mod-index__fact--exam">
-                <CalendarBlank aria-hidden="true" weight="bold" />
+                <Icon glyph={glyph.calendar} />
                 Next exam {nextExam.module.unitCode || nextExam.module.shortName}, {nextExam.exam.weekdayDate}
               </span>
             ) : null}
@@ -276,7 +279,7 @@ export default function ModulesPage() {
             <Button
               size="sm"
               variant="ghost"
-              leadingIcon={ArrowCounterClockwise}
+              leadingIcon={<Icon glyph={glyph.undo} />}
               onClick={() => setPeek(null, { replace: true })}
             >
               Back to {COHORTS[year].label}
@@ -309,11 +312,11 @@ export default function ModulesPage() {
       </div>
       {viewYear >= 2 && featureOn('career') ? (
         <p className="mod-electives" data-hub="modules-electives">
-          <Sparkle weight="duotone" aria-hidden="true" className="mod-electives__icon" />
+          <Icon glyph={glyph.sparkle} className="mod-electives__icon" />
           <span>{viewYear === 2 ? 'Picking your Year 3 electives next?' : 'Still choosing your electives?'}</span>
           <Link to="/career/electives" className="mod-electives__link">
             Compare the electives
-            <ArrowRight weight="bold" aria-hidden="true" />
+            <Icon glyph={glyph.forward} />
           </Link>
         </p>
       ) : null}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   avoid,
   clampPoint,
+  edgeClip,
   fromAnchor,
   hintSide,
   homePoint,
@@ -23,9 +24,9 @@ const ultra: View = { w: 2560, h: 1440, ceiling: 64, floor: 1440, left: 544, rig
 const box = { w: 54, h: 112 };
 
 describe('her lane', () => {
-  it('is as wide as the room the pages keep for it (Mascot.css: 70 px wide, 56 px below 1100 px)', () => {
+  it('is as wide as the room the pages keep for it (Mascot.css: 70 px wide, 60 px below 1100 px)', () => {
     expect(laneWidth(figure(HEIGHT.desktop))).toBe(70);
-    expect(laneWidth(figure(HEIGHT.compact))).toBe(56);
+    expect(laneWidth(figure(HEIGHT.compact))).toBe(60);
   });
 
   it('starts her at the bottom of the right lane', () => {
@@ -142,5 +143,18 @@ describe('where the chat goes', () => {
     expect(place.top + place.height).toBe(780);
     const perch = perchOnSheet(place, phone, box);
     expect(perch.y).toBeGreaterThanOrEqual(phone.ceiling);
+  });
+});
+
+describe('her canvas at the window’s edge', () => {
+  const small = figure(HEIGHT.compact);
+  it('trims the empty margin that would run past the right edge (a phone on its side, UX-87)', () => {
+    const at = homePoint({ w: 844, h: 390, ceiling: 56, floor: 390, left: 0, right: 844 }, small);
+    const clip = edgeClip(at, small, small.canvas, 844);
+    expect(clip).toBe(`inset(-100% -${844 - at.x - small.w}px -100% ${Math.round(small.canvas.left)}px)`);
+  });
+
+  it('leaves her alone where the canvas fits', () => {
+    expect(edgeClip({ x: 400, y: 200 }, small, small.canvas, 1440)).toBeNull();
   });
 });

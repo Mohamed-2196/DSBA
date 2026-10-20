@@ -458,6 +458,29 @@ def test_newest_sitting_first(
     assert ids(sort="popular") == [new_a, new_b, report, resit, old_a, mock, notes]  # nobody downloaded any
 
 
+def test_a_search_lists_a_modules_sittings_newest_first(
+    client_for: Clients, moderator: User, modules: dict[str, Module], share_file: Share
+) -> None:
+    """sort=relevance: a module's past papers match "ST2133 past paper" alike, whatever their titles say around
+    it, so they come together and newest sitting first (ST-66), not in the order their ranks happen to fall."""
+    rep, guest = client_for(moderator), client_for()
+    mod = "advanced-stats-distribution"
+
+    def share(title: str, **exam: Any) -> str:
+        item: dict[str, Any] = share_file(rep, title=title, kind="past-paper", module_id=mod, **exam)
+        return str(item["id"])
+
+    may_2024 = share("ST2133 May 2024", examYear=2024, examSession="may", zone="A")
+    may_2026 = share("ST2133 Exam paper, May 2026", examYear=2026, examSession="may", zone="A")
+    oct_2024 = share("ST2133 Exam paper - October 2024", examYear=2024, examSession="october", zone="A")
+    old = share("ST3133 - Advanced Statistics - Distribution Theory - 2016 Exam - Zone-A", examYear=2016)
+    may_2025 = share("ST2133 Exam paper - May 2025", examYear=2025, examSession="may", zone="A")
+
+    r = guest.get(f"{API}/library/items", params={"q": "ST2133 past paper", "sort": "relevance"})
+    assert r.status_code == 200, r.text
+    assert [i["id"] for i in r.json()["items"]] == [may_2026, may_2025, oct_2024, may_2024, old]
+
+
 def test_exam_title_names_a_file_by_its_sitting() -> None:
     def item(kind: str, **exam: Any) -> LibraryItem:
         return LibraryItem(title="ST2133 - Advanced Statistics - 2019 Exam - Zone-A", kind=kind, **exam)

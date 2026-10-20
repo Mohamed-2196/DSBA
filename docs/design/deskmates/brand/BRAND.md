@@ -224,10 +224,11 @@ Lumen (Home), Stacks (Library), Binder (Modules), Jot (Notebook), Pip and Pod (F
 Loupe (Search). The art is in `../v2/sections/`, and the happy and sleepy states are in `../v2/sections/states/`.
 
 **Where they go:**
-- Section headers, at 98–104 px, idle: they show where you are.
-- Empty states, at 160 px, sleepy, with a line that says what to do next.
-- Success toasts, at 40 px, happy, with a 6 px hop.
-- The Home shelf, at 56 px.
+- Section headers, at 98–104 px, idle: they show where you are. On phones the band is one line (the title and one
+  stat line), and its mate is 64–72 px (60 px under 375 px wide).
+- Empty states, at 160 px, sleepy, with a line that says what to do next (112 px in a small empty state).
+- Success toasts, at 40 px, happy, with a 6 px hop (32 px in a compact one-line toast).
+- The Home shelf, at 56 px, phones included: there the shelf wraps to two rows rather than scroll.
 - Blink beside Home's "Up next".
 
 On dark grounds, give them a 2 px `#EAF0FF` halo.

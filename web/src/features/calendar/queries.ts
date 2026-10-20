@@ -137,6 +137,18 @@ export function weekAhead(
   return listOrder(events.filter((e) => isMine(e, year, papers ?? null) && e.date <= end && lastDay(e) >= today));
 }
 
+/**
+ * How many dates a cohort still has this month, from `today` on (the phone band's stat line, "7 dates ahead this
+ * month"): every type, the student's own events included, and a window still open counts.
+ */
+export function datesAheadThisMonth(
+  events: readonly CalendarEvent[],
+  { year, today, papers }: { year: number | null; today: DayKey; papers?: Papers },
+): number {
+  const monthEnd = `${today.slice(0, 7)}-31`;
+  return filterEvents(events, { year, papers }).filter((e) => lastDay(e) >= today && e.date <= monthEnd).length;
+}
+
 export interface DayGroup {
   key: DayKey;
   date: Date;

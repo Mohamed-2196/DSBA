@@ -1,9 +1,8 @@
 // Home's "A past question a day": in the six weeks before your next exam, one tagged past question from that
 // module, the same for everyone that day, opening its paper at the question's page.
-import { ArrowRight } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { inDays, type DayKey } from '../../lib/dates';
-import { Button, PageSection, Panel, SectionHeader } from '../../ui';
+import { Button, Icon, PageSection, Panel, SectionHeader, glyph } from '../../ui';
 import { AddToBoard } from '../board/public';
 import { DAILY_WINDOW_DAYS, dailyQuestion } from './daily';
 import { paperLabel } from '../../lib/exams';
@@ -50,7 +49,13 @@ export function DailyQuestion({ moduleId, moduleName, examDays, day, className }
         </p>
         <p className="lib-daily__chapter">On {q.chapterTitle}. A new one tomorrow.</p>
         <div className="lib-daily__actions">
-          <Button size="sm" variant="primary" to={questionHref(q)} trailingIcon={ArrowRight} data-hub="daily-open">
+          <Button
+            size="sm"
+            variant="primary"
+            to={questionHref(q)}
+            trailingIcon={<Icon glyph={glyph.forward} />}
+            data-hub="daily-open"
+          >
             Open the question
           </Button>
           {featureOn('board') ? <AddToBoard link={{ type: 'library_item', id: p.id }} /> : null}

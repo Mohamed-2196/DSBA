@@ -518,6 +518,7 @@ function Noora({ away }: { away: boolean }) {
           ref={button}
           point={point}
           size={size}
+          windowWidth={view.w}
           pose={pose}
           mirrored={pose === 'talking' && faceLeft}
           state={state}

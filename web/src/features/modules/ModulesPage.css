@@ -362,3 +362,15 @@
 .mod-index .ui-page-header__meta {
   column-gap: var(--sp-16);
 }
+
+/* A phone: the band's stat line is the count and the lessons; the year is on the switch under it, and the next exam
+   on its module's row. */
+@media (max-width: 699px) {
+  .mod-index__wide,
+  .mod-index__fact--exam {
+    display: none;
+  }
+  .mod-index .ui-page-header__meta {
+    gap: 0 var(--sp-8);
+  }
+}

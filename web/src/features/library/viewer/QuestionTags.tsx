@@ -1,13 +1,12 @@
 // The paper page's "Questions by topic": tag a question with one of the module's chapters, see the tags, flag a
 // wrong one, remove your own (people who manage the library remove any).
-import { Flag, Tag, Trash } from '@phosphor-icons/react';
 import { useQuery } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { LibraryItem, PaperQuestion } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
-import { Button, IconButton, Modal, Select, Skeleton, TextField } from '../../../ui';
+import { Button, Icon, IconButton, Modal, Select, Skeleton, TextField, glyph } from '../../../ui';
 import { moduleDetailQuery } from '../../modules/public';
 import {
   questionLabel,
@@ -60,7 +59,7 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
         {!tag.isMine && me?.status !== 'suspended' ? (
           <IconButton
             label={tag.flagged ? `Take back your flag on question ${number}` : `Flag question ${number}: wrong chapter`}
-            icon={Flag}
+            icon={<Icon glyph={glyph.flag} />}
             size="sm"
             toggle
             active={tag.flagged}
@@ -71,7 +70,7 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
         {tag.canRemove ? (
           <IconButton
             label={`Remove the tag on question ${number}`}
-            icon={Trash}
+            icon={<Icon glyph={glyph.trash} />}
             size="sm"
             onClick={() =>
               remove.mutate(
@@ -228,7 +227,7 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
           Questions by topic
         </h2>
         {canTag && tags.data?.length ? (
-          <Button size="sm" variant="secondary" leadingIcon={Tag} onClick={openDialog}>
+          <Button size="sm" variant="secondary" leadingIcon={<Icon glyph={glyph.edit} />} onClick={openDialog}>
             Tag a question
           </Button>
         ) : null}
@@ -249,7 +248,7 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
         <div className="lib-qtags__empty">
           <p>No questions tagged yet. Tag one so it shows on its chapter.</p>
           {canTag ? (
-            <Button size="sm" variant="secondary" leadingIcon={Tag} onClick={openDialog}>
+            <Button size="sm" variant="secondary" leadingIcon={<Icon glyph={glyph.edit} />} onClick={openDialog}>
               Tag this question
             </Button>
           ) : null}

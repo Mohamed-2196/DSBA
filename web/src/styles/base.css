@@ -362,3 +362,12 @@ b {
     scroll-behavior: auto !important;
   }
 }
+
+/* After an overlay closes on a touch screen, a clear layer takes a stray second tap for a moment (tapShield.ts). */
+.ui-tap-shield {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-tooltip);
+  background: transparent;
+  touch-action: none;
+}

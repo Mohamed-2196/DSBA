@@ -4,7 +4,16 @@ import { formatCount } from './utils';
 import { cohortLabel, normalizeYear, COHORTS } from '../state/cohort';
 import './Badge.css';
 
-export type BadgeTone = 'neutral' | 'cobalt' | 'signal' | 'alert' | 'exam' | 'highlight' | 'navy' | 'outline';
+export type BadgeTone =
+  | 'neutral'
+  | 'cobalt'
+  | 'signal'
+  | 'alert'
+  | 'exam'
+  | 'warning'
+  | 'highlight'
+  | 'navy'
+  | 'outline';
 export type BadgeSize = 'sm' | 'md';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
