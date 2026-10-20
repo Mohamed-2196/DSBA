@@ -151,6 +151,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
         "drive-folders": folders,
         "daily": daily,
         "paper-questions": 0,  # the library is empty until the import
+        "report-answers": 0,  # and has no examiners' reports yet
     }
     totals = (count(db, Module), count(db, CalendarEvent), count(db, NewsletterIssue), count(db, ContentDoc))
     assert totals == (files["modules"], files["calendar"], files["newsletter"], 1)
@@ -177,6 +178,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
         "drive-folders": 0,
         "daily": 0,
         "paper-questions": 0,
+        "report-answers": 0,
     }
     assert (count(db, CalendarEvent), count(db, NewsletterIssue), count(db, DriveFolder)) == (
         files["calendar"],
@@ -283,6 +285,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
         "drive-folders": 0,
         "daily": 0,
         "paper-questions": 0,
+        "report-answers": 0,
     }
     edited = db.get(CalendarEvent, edited_event)
     assert edited is not None

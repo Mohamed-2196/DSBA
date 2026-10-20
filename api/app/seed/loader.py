@@ -41,7 +41,7 @@ from app.models import (
 )
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCreate
-from app.services import career, newsletter, question_tagging
+from app.services import career, newsletter, question_tagging, report_answers
 
 DATA = Path(__file__).parent / "data"
 
@@ -371,6 +371,13 @@ def load_paper_questions(db: Session) -> int:
     return question_tagging.import_tags(db, read(question_tagging.SEED_FILE))
 
 
+def load_report_answers(db: Session) -> int:
+    """Whether each examiners' report already read works through its questions, and where each question starts
+    (services/report_answers.py). It reads them all again each time, so a new install or a changed reader is never
+    left with stale pages; how many reports."""
+    return report_answers.backfill(db)[0]
+
+
 # Order matters: Drive folders and calendar events refer to modules, the tags to chapters and papers.
 SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
@@ -382,6 +389,7 @@ SECTIONS: dict[str, Callable[[Session], int]] = {
     "drive-folders": load_drive_folders,
     "daily": load_daily,
     "paper-questions": load_paper_questions,
+    "report-answers": load_report_answers,
 }
 
 
