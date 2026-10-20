@@ -46,7 +46,7 @@ What production refuses (`app/config.py`, `Settings.production_problems`):
 | `DSBA_WEB_ORIGINS`, `DSBA_WEB_BASE_URL` | `https://` only; `*` is refused in every environment |
 | `DSBA_TRUSTED_PROXIES` | set (the reverse proxy's address, or `127.0.0.1/32` with no proxy), never `0.0.0.0/0` or `::/0` |
 | `DSBA_OTP_MAX_ATTEMPTS` | at most 5 |
-| `DSBA_OTP_MAX_PER_*`, `DSBA_SMS_MAX_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
+| `DSBA_OTP_MAX_PER_*`, `DSBA_SMS_MAX_PER_*`, `DSBA_EMAIL_MAX_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
 | `DSBA_S3_*` | bucket and keys set, not the development keys; the endpoint set explicitly (empty for AWS S3); what browsers use (`DSBA_S3_PUBLIC_ENDPOINT_URL`, else `DSBA_S3_ENDPOINT_URL`) is `https://`; `DSBA_S3_CREATE_BUCKET` false (the default in production) |
 | `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain |
 | `DSBA_SMS_BACKEND` | `twilio` with its three settings, or `DSBA_SMS_ALLOWED_REGIONS` empty (no texts at all) |
@@ -443,6 +443,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_EMAIL_BACKEND` | `console` | `smtp`, `file` (into `DSBA_EMAIL_FILE_DIR`, default `var/mail`) or `console` |
 | `DSBA_EMAIL_FROM` | `DSBA Hub <no-reply@dsba-hub.local>` | the sender |
 | `DSBA_SMTP_HOST`, `_PORT`, `_USERNAME`, `_PASSWORD`, `_STARTTLS` | `127.0.0.1`, `1025`, none, none, false | the mail relay |
+| `DSBA_EMAIL_MAX_PER_HOUR`, `DSBA_EMAIL_MAX_PER_DAY` | `200`, `1000` | sign-in emails the whole site may send; over it, codes by email pause (the mail provider's daily quota must be well above the daily figure) |
 | `DSBA_SMS_BACKEND` | `console` | `twilio`, `file` (into `DSBA_SMS_FILE_DIR`, default `var/sms`) or `console` |
 | `DSBA_TWILIO_ACCOUNT_SID`, `_AUTH_TOKEN`, `_FROM` | none | Twilio; `_FROM` is a number or a Messaging Service SID |
 | `DSBA_SMS_ALLOWED_REGIONS` | `BH` | countries whose mobile numbers get codes by text; empty: no texts |

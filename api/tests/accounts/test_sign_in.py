@@ -443,6 +443,28 @@ def test_text_budget(client_for: ClientFor, outbox: Outbox, set_option: Callable
     assert len([m for m in outbox if m.channel == "sms"]) == 2
 
 
+def test_email_budget(client_for: ClientFor, outbox: Outbox, set_option: Callable[[str, Any], None]) -> None:
+    """The whole site sends at most email_max_per_hour sign-in emails, from every network together (SEC-52)."""
+    set_option("email_max_per_hour", 2)
+    assert start(client_for(), "budget1@example.com").status_code == 202
+    assert start(client_for(), "budget2@example.com").status_code == 202
+    r = start(client_for(), "budget3@example.com")
+    assert r.status_code == 429
+    error = r.json()["error"]
+    assert error["code"] == "rate_limited"
+    assert error["retryAfter"] > 0
+    assert "phone number" in error["message"]
+    assert start(client_for(), "33100001").status_code == 202  # texts keep working
+    assert len([m for m in outbox if m.channel == "email"]) == 2
+
+
+def test_email_budget_per_day(client_for: ClientFor, outbox: Outbox, set_option: Callable[[str, Any], None]) -> None:
+    set_option("email_max_per_day", 1)
+    assert start(client_for(), "daily1@example.com").status_code == 202
+    assert start(client_for(), "daily2@example.com").status_code == 429
+    assert len([m for m in outbox if m.channel == "email"]) == 1
+
+
 def test_delivery_failure(client_for: ClientFor, outbox: Outbox, monkeypatch: pytest.MonkeyPatch, db: Session) -> None:
     working = mailer.send_email
     lost: list[str] = []

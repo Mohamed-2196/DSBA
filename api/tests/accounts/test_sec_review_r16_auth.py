@@ -26,36 +26,6 @@ def from_network(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(auth_router, "client_ip", lambda request: request.headers.get("x-test-ip"))
 
 
-def test_sec16_no_site_wide_email_budget_one_network_mails_30_strangers_an_hour(
-    client_for: Callable[..., TestClient], outbox: Outbox, from_network: None, set_option: SetOption
-) -> None:
-    """Texts have a site-wide budget (50 an hour, 300 a day); emails have none. One IPv4 address sends 30 sign-in
-    emails an hour to 30 addresses it doesn't own (720 a day), and each further network (any other /64 of an IPv6
-    /48 it holds) adds 30 more."""
-    set_option("otp_resend_seconds", 0)
-    c = client_for()
-    sent = 0
-    for n in range(30):
-        r = c.post(
-            f"{API}/auth/otp", json={"identifier": f"victim{n}@example.com"}, headers={"x-test-ip": "203.0.113.7"}
-        )
-        assert r.status_code == 202, r.text
-        sent += 1
-    r = c.post(f"{API}/auth/otp", json={"identifier": "victim-x@example.com"}, headers={"x-test-ip": "203.0.113.7"})
-    assert r.status_code == 429  # the per-network hourly cap
-    for net in range(1, 6):  # five /64s of one IPv6 /48
-        for n in range(30):
-            r = c.post(
-                f"{API}/auth/otp",
-                json={"identifier": f"v{net}-{n}@example.com"},
-                headers={"x-test-ip": f"2001:db8:1:{net}::1"},
-            )
-            assert r.status_code == 202, r.text
-            sent += 1
-    assert sent == 180
-    assert len([m for m in outbox if m.channel == "email"]) == 180  # no site-wide cap stopped any of them
-
-
 def test_sec16_admin_identifiers_give_admin_back_at_every_sign_in(
     sign_in: SignIn, set_option: SetOption, db: Session
 ) -> None:

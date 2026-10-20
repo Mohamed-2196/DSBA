@@ -248,13 +248,12 @@ def _check_limits(
 ) -> bool:
     """Raises 429 rate_limited (or sms_unavailable) when a limit is reached. -> True when the code must be long."""
     s = get_settings()
-    # Always in this order (address, IP, user, texts), so concurrent requests cannot deadlock.
+    # Always in this order (address, IP, user, channel), so concurrent requests cannot deadlock.
     lock(db, f"otp:id:{rate_key(kind, identifier)}")
     lock(db, f"otp:ip:{ip_bucket(ip) or '-'}")
     if user is not None:
         lock(db, f"otp:user:{user.id}")
-    if channel == Channel.sms:
-        lock(db, "otp:sms")
+    lock(db, f"otp:{channel.value}")  # the site-wide budget of the channel
 
     delivered = OtpChallenge.expires_at > OtpChallenge.created_at  # failed deliveries don't count here
     address = same_address(kind, identifier)
@@ -294,6 +293,17 @@ def _check_limits(
             if window_wait(db, created, texts, limit=limit, window=window, now=now):
                 log.warning("SMS budget reached (%d per %s): codes by text are paused", limit, window)
                 raise ApiError(429, "sms_unavailable", "We can't send texts right now. Use your email address instead.")
+    else:
+        emails = [OtpChallenge.channel == Channel.email, delivered]
+        for limit, window in ((s.email_max_per_hour, HOUR), (s.email_max_per_day, DAY)):
+            wait = window_wait(db, created, emails, limit=limit, window=window, now=now)
+            if wait:
+                log.warning("Sign-in email budget reached (%d per %s): codes by email are paused", limit, window)
+                raise rate_limited(
+                    wait,
+                    f"The Hub has sent too many sign-in emails for now. Try again in {human_wait(wait)}, "
+                    "or use your phone number.",
+                )
     return _wrong_codes(db, [address], now) >= LONG_CODES_AFTER
 
 
