@@ -1,7 +1,7 @@
 """a student's plan on their calendar
 
 Revision ID: 0050
-Revises: 0046
+Revises: 0049
 Create Date: 2026-10-20 18:00:00
 
 - `calendar_prefs.show_plan`: the dated cards of the student's boards show on their calendar and in their private
@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0050"
-down_revision: str | None = "0046"
+down_revision: str | None = "0049"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
