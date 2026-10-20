@@ -161,6 +161,26 @@ look (UX-90): every screen is now Deskmates. Phosphor remains only where the bra
 snowflake, trophy and backspace; the newsletter's block icons; two Manage empty states; Career's sector and role icons;
 account device icons).
 
+## Round 16 (study core features, launch readiness, speed): merged 2026-10-20
+
+- Reviews: student test (ST-67 to ST-82), ideas (IDEA-44 to IDEA-56; Mohamed approved 13, declined 25/28/34),
+  pre-launch security audit (SEC-49 to SEC-65), icon family finished (Phosphor gone).
+- Built: worked answer per question, practise a chapter, "worked answers in the report", ask about Q3 (IDEA-44 to
+  47); exam week leads Home on phones as an admin setting, Asked before, chapter words in search, your notes in
+  search (48 to 51); timetable in one paste, plan on the calendar, print a module's notes (53 to 55); share a note
+  with your module (shown at once, reportable) and recording time stamps (29, 52); all the student-test fixes.
+- Security: every finding fixed but SEC-64 (a choice for Mohamed) and part of SEC-65; Railway proxy trust, sign-in
+  email budgets without an enumeration oracle, upload budgets in Manage (20 GB hub, 1 GB account a day), hidden
+  modules hide their files, admin bootstrap only, posting box on every student write.
+- Speed (Mohamed: "really slow"): measured locally (the Mac at load 116, out of RAM) and deployed (Bahrain to the
+  sin1 edge to Amsterdam, ~0.5 s a round trip). Dev moved to Singapore; icons and deskmates bundled (Home 102 to
+  38 scripts); `GET /home` gives Home's first screen in one request; Noora's sprites WebP. Deployed LCP now
+  0.5-1.0 s on Library, Modules, Forum, Calendar, warm Home 0.3-0.5 s.
+- Migrations: ... 0046 -> 0049 -> 0050 -> 0048 -> 0047 -> 0053 -> 0051 -> 0052 (one head). The seed also reads the
+  examiners' reports for worked answers on every deploy.
+- Open: the go-live checklist in docs/reviews/security.md (Mohamed); SEC-64; the bucket is still in Amsterdam;
+  overflow bugs Mohamed saw (the sweep found none: needs his pointers).
+
 ## Operating notes
 
 - **Railway dev region (2026-10-20):** Postgres, api and web run in `southeast-asia` (moved from Amsterdam with
