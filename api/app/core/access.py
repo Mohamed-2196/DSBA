@@ -69,12 +69,14 @@ class Feature(enum.StrEnum):
     noora = "noora"  # Mini Noora: her script, and her words in Manage
     noora_ai = "noora.ai"  # her answers from Claude (Mini Noora stays scripted without it)
     notes = "notes"  # each student's private notes
+    notes_share = "notes.share"  # a note shared with its module's students
     board = "board"  # each student's private boards
     requests = "requests"
     requests_autoclose = "requests.autoclose"  # paper and date requests that close themselves
     requests_done = "requests.done"  # the requests done lately, on the requests page and in the newsletter
     summary = "summary"  # the Sunday summary email, and its text for a year's group
     modules_video_suggestions = "modules.video-suggestions"  # videos students suggest for chapters
+    modules_time_stamps = "modules.time-stamps"  # what a lesson's video covers, by time, suggested by students
     daily = "daily"  # the daily puzzles, their scores and leaderboard
 
 
@@ -191,6 +193,10 @@ FEATURES: dict[Feature, FeatureInfo] = {
         "Mini Noora's AI answers", "Her answers from Claude. She answers from her script instead."
     ),
     Feature.notes: FeatureInfo("Notes", "Students' private notes. They're kept, and come back when it's on again."),
+    Feature.notes_share: FeatureInfo(
+        "Sharing notes with a module",
+        "Notes students shared with their module, and sharing more. The shared copies are kept.",
+    ),
     Feature.board: FeatureInfo(
         "Boards", "Each student's boards, cards, files on cards and reminders, and the add-to-board buttons."
     ),
@@ -206,6 +212,10 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.summary: FeatureInfo("Sunday summary", "The Sunday summary email, and its text for reps to share."),
     Feature.modules_video_suggestions: FeatureInfo(
         "Suggested videos", "Suggesting videos for lessons, and the queue of suggestions in Manage."
+    ),
+    Feature.modules_time_stamps: FeatureInfo(
+        "Time stamps in recordings",
+        "What a lesson's video covers, by time, beside the player; suggesting them, and their queue in Manage.",
     ),
     Feature.daily: FeatureInfo("Daily", "The daily puzzles, their points, streaks and leaderboard, and Home's card."),
 }

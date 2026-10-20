@@ -794,6 +794,8 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
         "nooraUsage",
         "notebookUploads",
         "videoSuggestions",
+        "lessonTopics",
+        "sharedNotes",
         "calendarEvents",
         "calendarSettings",
         "dailyPlays",

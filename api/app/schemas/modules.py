@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Annotated, Literal
+from uuid import UUID
 
 from pydantic import Field, StringConstraints
 
@@ -13,9 +14,18 @@ LessonId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]{1,16}$")]  # app
 ChapterId = LessonId
 
 
+class LessonTopic(ApiModel):
+    """A time in a lesson's video and what it covers ("41:20 MLE of a uniform"): suggested by a student, accepted by
+    a content manager."""
+
+    id: UUID
+    seconds: int
+    label: str
+
+
 class Video(ApiModel):
     """A lesson: one video of a chapter. `id` is the lesson's own, for good: its address is
-    /modules/<module id>/lessons/<id>."""
+    /modules/<module id>/lessons/<id>. `topics`: what its video covers, by time, in order."""
 
     id: str
     kind: VideoKind
@@ -24,6 +34,7 @@ class Video(ApiModel):
     title: str | None = None
     channel: str | None = None  # the YouTube channel
     unavailable: bool = False  # removed from YouTube
+    topics: list[LessonTopic] = []
 
 
 class Chapter(ApiModel):

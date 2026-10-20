@@ -784,7 +784,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Module */
+        /**
+         * Get Module
+         * @description The module with its chapters and lessons (each with its time stamps while they are on), and its shelves.
+         */
         get: operations["get_module_api_v1_modules__module_id__get"];
         put?: never;
         post?: never;
@@ -2352,6 +2355,136 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notes/{note_id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Share Note
+         * @description Share a copy of your note with its module's students, or copy it again over the one shared. The note stays
+         *     private: they see the copy, as it is now, with your name and year unless `credited` is false.
+         *
+         *     Errors: not_found (404: not your note), invalid_input (422: no module, a hidden module, written over a PDF,
+         *     nothing in it, too big), rate_limited (429: twenty an hour).
+         */
+        put: operations["share_note_api_v1_notes__note_id__share_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared-notes/{share_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Shared Note
+         * @description A shared note to read. Hidden ones (and those of a hidden module) are 404, except to their writer and
+         *     moderators.
+         */
+        get: operations["get_shared_note_api_v1_shared_notes__share_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Unshare Note
+         * @description Stop sharing your note: the copy goes from the module. Your note stays. Errors: not_found (404: not yours).
+         */
+        delete: operations["unshare_note_api_v1_shared_notes__share_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Module Shared Notes
+         * @description The notes students shared with a module, the newest first. Errors: not_found (404: no such module).
+         */
+        get: operations["module_shared_notes_api_v1_shared_notes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared-notes/{share_id}/files/{upload_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shared Note File
+         * @description A picture or file the shared note shows: 302 to a short-lived link, shown in the browser (pictures and PDFs)
+         *     or, with `download`, saved under its name. 404 to anyone who can't read the note.
+         */
+        get: operations["shared_note_file_api_v1_shared_notes__share_id__files__upload_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared-notes/{share_id}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hide Shared Note
+         * @description Hide it from the module (library.manage). Its writer is told, with `reason`. Audited (`shared_note.hide`).
+         */
+        post: operations["hide_shared_note_api_v1_shared_notes__share_id__hide_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared-notes/{share_id}/show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Show Shared Note
+         * @description Show a hidden one again (library.manage). Its writer is told. Audited (`shared_note.show`).
+         */
+        post: operations["show_shared_note_api_v1_shared_notes__share_id__show_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/calendar/events": {
         parameters: {
             query?: never;
@@ -3610,6 +3743,138 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/lesson-topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suggest Topic
+         * @description Suggest what a lesson's video covers at a time (`seconds` from its start). It shows beside the player once a
+         *     content manager accepts it.
+         *
+         *     Errors: invalid_input (422: a lesson students can't see, a playlist, no words), already_suggested (409: a time
+         *     stamp within ten seconds of it waits or is shown), rate_limited (429: twenty a day).
+         */
+        post: operations["suggest_topic_api_v1_lesson_topics_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lesson-topics/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Topics
+         * @description Your time stamps, newest first (the latest 50), for one lesson or all of them.
+         */
+        get: operations["my_topics_api_v1_lesson_topics_mine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/lesson-topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Topics Queue
+         * @description The review queue: waiting time stamps oldest first, decided ones the latest decision first.
+         */
+        get: operations["topics_queue_api_v1_content_lesson_topics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/lesson-topics/{topic_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Topic
+         * @description Show it beside the player, with the time (`seconds`) or the words (`label`) put right if need be. Tells the
+         *     student. Audited (`topic.accept`).
+         *
+         *     Errors: not_found (404), suggestion_closed (409), already_suggested (409: the video shows a time stamp within ten
+         *     seconds), too_many_topics (409), invalid_input (422).
+         */
+        post: operations["accept_topic_api_v1_content_lesson_topics__topic_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/lesson-topics/{topic_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Topic
+         * @description Decline with a reason the student sees. Tells the student. Audited (`topic.decline`).
+         *
+         *     Errors: not_found (404), suggestion_closed (409), invalid_input (422: no reason).
+         */
+        post: operations["decline_topic_api_v1_content_lesson_topics__topic_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/lesson-topics/{topic_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Topic
+         * @description Take a time stamp off the video. Audited (`topic.remove`).
+         *
+         *     Errors: not_found (404), suggestion_closed (409: it isn't shown).
+         */
+        delete: operations["remove_topic_api_v1_content_lesson_topics__topic_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/bug-reports": {
         parameters: {
             query?: never;
@@ -4446,6 +4711,10 @@ export interface components {
             notebookUploads: components["schemas"]["ExportNotebookUploadDay"][];
             /** Videosuggestions */
             videoSuggestions: components["schemas"]["ExportSuggestion"][];
+            /** Lessontopics */
+            lessonTopics: components["schemas"]["ExportTopic"][];
+            /** Sharednotes */
+            sharedNotes: components["schemas"]["ExportSharedNote"][];
             /** Calendarevents */
             calendarEvents: components["schemas"]["PersonalEventOut"][];
             calendarSettings: components["schemas"]["ExportCalendarSettings"] | null;
@@ -6290,7 +6559,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "already_played" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "too_many_topics" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "already_played" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
             /** Message */
             message: string;
             /** Fields */
@@ -6868,7 +7137,7 @@ export interface components {
              * Targettype
              * @enum {string}
              */
-            targetType: "thread" | "reply" | "library_item" | "request";
+            targetType: "thread" | "reply" | "library_item" | "request" | "shared_note";
             /**
              * Targetid
              * Format: uuid
@@ -6951,6 +7220,46 @@ export interface components {
              */
             createdAt: string;
         };
+        /**
+         * ExportSharedNote
+         * @description A copy of one of your notes shared with its module: what its students read (your note is in `notebooks`).
+         */
+        ExportSharedNote: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Noteid
+             * Format: uuid
+             */
+            noteId: string;
+            /** Moduleid */
+            moduleId: string;
+            /** Credited */
+            credited: boolean;
+            /** Title */
+            title: string;
+            /** Text */
+            text: string;
+            /** Doc */
+            doc: {
+                [key: string]: unknown;
+            };
+            /** Hidden */
+            hidden: boolean;
+            /**
+             * Sharedat
+             * Format: date-time
+             */
+            sharedAt: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
         /** ExportSuggestion */
         ExportSuggestion: {
             /**
@@ -7021,6 +7330,35 @@ export interface components {
             /** Anonymous */
             anonymous: boolean;
         };
+        /**
+         * ExportTopic
+         * @description A time stamp you suggested for a lesson's video.
+         */
+        ExportTopic: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lessonid */
+            lessonId: string;
+            /** Seconds */
+            seconds: number;
+            /** Label */
+            label: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "accepted" | "declined";
+            /** Reply */
+            reply: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
         /** ExportVote */
         ExportVote: {
             /**
@@ -7045,7 +7383,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily";
+            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily";
             /** Label */
             label: string;
             /** Hides */
@@ -7071,7 +7409,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily")[];
         };
         /** FileLink */
         FileLink: {
@@ -7688,6 +8026,17 @@ export interface components {
             commit: string | null;
         };
         /**
+         * HideRequest
+         * @description Why it is hidden: its writer is told.
+         */
+        HideRequest: {
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+        };
+        /**
          * HintMove
          * @description A hint, for a few points: Sudoku fills `cell` (or a cell it picks), the word search shows where a word
          *     starts, Nearest neighbour reveals a closer word.
@@ -7768,6 +8117,16 @@ export interface components {
             sheet: number;
             /** Version */
             version: number;
+        };
+        /**
+         * InkPage
+         * @description The handwriting on one sheet of a shared note.
+         */
+        InkPage: {
+            /** Sheet */
+            sheet: number;
+            /** Strokes */
+            strokes: components["schemas"]["Stroke"][];
         };
         /**
          * InkSave
@@ -8158,6 +8517,22 @@ export interface components {
              */
             kind: "youtube" | "youtube-playlist" | "bbb";
         };
+        /**
+         * LessonTopic
+         * @description A time in a lesson's video and what it covers ("41:20 MLE of a uniform"): suggested by a student, accepted by
+         *     a content manager.
+         */
+        LessonTopic: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Seconds */
+            seconds: number;
+            /** Label */
+            label: string;
+        };
         /** LessonWatchedUpdate */
         LessonWatchedUpdate: {
             /** Watched */
@@ -8400,7 +8775,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily")[];
             /**
              * Status
              * @enum {string}
@@ -9152,6 +9527,7 @@ export interface components {
             pdf: components["schemas"]["NotePdf"] | null;
             /** Ink */
             ink: components["schemas"]["InkInfo"][];
+            share: components["schemas"]["NoteShare"] | null;
         };
         /**
          * NoteCreate
@@ -9230,6 +9606,36 @@ export interface components {
             title: string;
             /** Available */
             available: boolean;
+        };
+        /**
+         * NoteShare
+         * @description The note's copy shared with its module's students (GET /shared-notes/{id}), as its writer sees it from the
+         *     note. `upToDate`: the copy has the note as it is now; otherwise the writer may update it.
+         */
+        NoteShare: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Moduleid */
+            moduleId: string;
+            /** Credited */
+            credited: boolean;
+            /** Hidden */
+            hidden: boolean;
+            /**
+             * Sharedat
+             * Format: date-time
+             */
+            sharedAt: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+            /** Uptodate */
+            upToDate: boolean;
         };
         /** NoteSummary */
         NoteSummary: {
@@ -9537,7 +9943,7 @@ export interface components {
             /** Label */
             label: string;
             /** Feature */
-            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily") | null;
+            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily") | null;
         };
         /** Page[ItemOut] */
         Page_ItemOut_: {
@@ -10323,7 +10729,7 @@ export interface components {
              * Targettype
              * @enum {string}
              */
-            targetType: "thread" | "reply" | "library_item" | "request";
+            targetType: "thread" | "reply" | "library_item" | "request" | "shared_note";
             /**
              * Targetid
              * Format: uuid
@@ -10348,7 +10754,7 @@ export interface components {
              * Targettype
              * @enum {string}
              */
-            targetType: "thread" | "reply" | "library_item" | "request";
+            targetType: "thread" | "reply" | "library_item" | "request" | "shared_note";
             /**
              * Targetid
              * Format: uuid
@@ -10857,6 +11263,118 @@ export interface components {
          */
         SessionState: {
             me: components["schemas"]["Me"] | null;
+        };
+        /**
+         * ShareRequest
+         * @description Share the note with its module's students, or update the copy shared: `credited` shows the writer's name and
+         *     year with it (false: "Shared by a student").
+         */
+        ShareRequest: {
+            /**
+             * Credited
+             * @default true
+             */
+            credited: boolean;
+        };
+        /**
+         * SharedNote
+         * @description A shared note to read: its typed text (a ProseMirror document, as a note's), paper, pages and handwriting.
+         *     Its pictures and files are read with GET /shared-notes/{id}/files/{uploadId}. `canModerate`: the viewer may hide
+         *     it.
+         */
+        SharedNote: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Moduleid */
+            moduleId: string;
+            /** Title */
+            title: string;
+            /** Excerpt */
+            excerpt: string;
+            author: components["schemas"]["UserPublic"] | null;
+            /** Credited */
+            credited: boolean;
+            /** Mine */
+            mine: boolean;
+            /** Hidden */
+            hidden: boolean;
+            /**
+             * Sharedat
+             * Format: date-time
+             */
+            sharedAt: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+            /** Moduletitle */
+            moduleTitle: string;
+            /** Doc */
+            doc: {
+                [key: string]: unknown;
+            };
+            /**
+             * Paper
+             * @enum {string}
+             */
+            paper: "blank" | "lined" | "grid" | "dotted";
+            /** Sheets */
+            sheets: number;
+            /** Ink */
+            ink: components["schemas"]["InkPage"][];
+            /** Canmoderate */
+            canModerate: boolean;
+        };
+        /** SharedNotePage */
+        SharedNotePage: {
+            /** Items */
+            items: components["schemas"]["SharedNoteSummary"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /**
+         * SharedNoteSummary
+         * @description A note shared with a module, in the module's list. `author` is None when it was shared without a name (or the
+         *     account has no profile). `mine`: the viewer shared it. `hidden`: a student rep hid it (only its writer and
+         *     moderators see it).
+         */
+        SharedNoteSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Moduleid */
+            moduleId: string;
+            /** Title */
+            title: string;
+            /** Excerpt */
+            excerpt: string;
+            author: components["schemas"]["UserPublic"] | null;
+            /** Credited */
+            credited: boolean;
+            /** Mine */
+            mine: boolean;
+            /** Hidden */
+            hidden: boolean;
+            /**
+             * Sharedat
+             * Format: date-time
+             */
+            sharedAt: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
         };
         /** SignInResult */
         SignInResult: {
@@ -11736,6 +12254,75 @@ export interface components {
             games: components["schemas"]["TodayGame"][];
         };
         /**
+         * TopicAccept
+         * @description Accept as suggested, or with the time or the words put right.
+         */
+        TopicAccept: {
+            /** Seconds */
+            seconds?: number | null;
+            /** Label */
+            label?: string | null;
+        };
+        /**
+         * TopicCreate
+         * @description A time in the lesson's video (seconds from its start) and what it covers there.
+         */
+        TopicCreate: {
+            /** Lessonid */
+            lessonId: string;
+            /** Seconds */
+            seconds: number;
+            /** Label */
+            label: string;
+        };
+        /** TopicOut */
+        TopicOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Moduleid */
+            moduleId: string;
+            /** Moduletitle */
+            moduleTitle: string;
+            /** Lessonid */
+            lessonId: string;
+            /** Lessontitle */
+            lessonTitle: string;
+            /** Seconds */
+            seconds: number;
+            /** Label */
+            label: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "accepted" | "declined";
+            /** Reply */
+            reply: string | null;
+            author: components["schemas"]["UserPublic"] | null;
+            decidedBy: components["schemas"]["UserPublic"] | null;
+            /** Decidedat */
+            decidedAt: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** TopicPage */
+        TopicPage: {
+            /** Items */
+            items: components["schemas"]["TopicOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /**
          * TourStep
          * @description A step of the tour a new student may take ("Take the tour" in the year prompt). Text between `backticks` shows
          *     as a key to press, and {mod} as the platform's key: ⌘ on a Mac, Ctrl elsewhere.
@@ -11813,7 +12400,7 @@ export interface components {
         /**
          * Video
          * @description A lesson: one video of a chapter. `id` is the lesson's own, for good: its address is
-         *     /modules/<module id>/lessons/<id>.
+         *     /modules/<module id>/lessons/<id>. `topics`: what its video covers, by time, in order.
          */
         Video: {
             /** Id */
@@ -11836,6 +12423,11 @@ export interface components {
              * @default false
              */
             unavailable: boolean;
+            /**
+             * Topics
+             * @default []
+             */
+            topics: components["schemas"]["LessonTopic"][];
         };
         /** VocabularyIn */
         VocabularyIn: {
@@ -12097,8 +12689,10 @@ export type ExportReply = components['schemas']['ExportReply'];
 export type ExportReport = components['schemas']['ExportReport'];
 export type ExportRequest = components['schemas']['ExportRequest'];
 export type ExportSenior = components['schemas']['ExportSenior'];
+export type ExportSharedNote = components['schemas']['ExportSharedNote'];
 export type ExportSuggestion = components['schemas']['ExportSuggestion'];
 export type ExportThread = components['schemas']['ExportThread'];
+export type ExportTopic = components['schemas']['ExportTopic'];
 export type ExportVote = components['schemas']['ExportVote'];
 export type FeatureOut = components['schemas']['FeatureOut'];
 export type FeaturedLogo = components['schemas']['FeaturedLogo'];
@@ -12148,12 +12742,14 @@ export type GuidesDoc = components['schemas']['GuidesDoc'];
 export type GuidesEditable = components['schemas']['GuidesEditable'];
 export type GuidesSave = components['schemas']['GuidesSave'];
 export type Health = components['schemas']['Health'];
+export type HideRequest = components['schemas']['HideRequest'];
 export type HintMove = components['schemas']['HintMove'];
 export type ImportIn = components['schemas']['ImportIn'];
 export type ImportReport = components['schemas']['ImportReport'];
 export type ImportRow = components['schemas']['ImportRow'];
 export type InkAnchor = components['schemas']['InkAnchor'];
 export type InkInfo = components['schemas']['InkInfo'];
+export type InkPage = components['schemas']['InkPage'];
 export type InkSave = components['schemas']['InkSave'];
 export type InkSheet = components['schemas']['InkSheet'];
 export type InstallLink = components['schemas']['InstallLink'];
@@ -12175,6 +12771,7 @@ export type Leaderboard = components['schemas']['Leaderboard'];
 export type LessonGap = components['schemas']['LessonGap'];
 export type LessonIn = components['schemas']['LessonIn'];
 export type LessonOut = components['schemas']['LessonOut'];
+export type LessonTopic = components['schemas']['LessonTopic'];
 export type LessonWatchedUpdate = components['schemas']['LessonWatchedUpdate'];
 export type LibraryFacets = components['schemas']['LibraryFacets'];
 export type LibraryGaps = components['schemas']['LibraryGaps'];
@@ -12232,6 +12829,7 @@ export type NoteCreate = components['schemas']['NoteCreate'];
 export type NoteCredit = components['schemas']['NoteCredit'];
 export type NotePage = components['schemas']['NotePage'];
 export type NotePdf = components['schemas']['NotePdf'];
+export type NoteShare = components['schemas']['NoteShare'];
 export type NoteSummary = components['schemas']['NoteSummary'];
 export type NoteUpdate = components['schemas']['NoteUpdate'];
 export type Notebook = components['schemas']['Notebook'];
@@ -12323,6 +12921,10 @@ export type Senior = components['schemas']['Senior'];
 export type SeniorUpdate = components['schemas']['SeniorUpdate'];
 export type SessionInfo = components['schemas']['SessionInfo'];
 export type SessionState = components['schemas']['SessionState'];
+export type ShareRequest = components['schemas']['ShareRequest'];
+export type SharedNote = components['schemas']['SharedNote'];
+export type SharedNotePage = components['schemas']['SharedNotePage'];
+export type SharedNoteSummary = components['schemas']['SharedNoteSummary'];
 export type SignInResult = components['schemas']['SignInResult'];
 export type SignoffBlock = components['schemas']['SignoffBlock'];
 export type SimilarRequest = components['schemas']['SimilarRequest'];
@@ -12375,6 +12977,10 @@ export type TodayFixIn = components['schemas']['TodayFixIn'];
 export type TodayFixOut = components['schemas']['TodayFixOut'];
 export type TodayGame = components['schemas']['TodayGame'];
 export type TodayPuzzles = components['schemas']['TodayPuzzles'];
+export type TopicAccept = components['schemas']['TopicAccept'];
+export type TopicCreate = components['schemas']['TopicCreate'];
+export type TopicOut = components['schemas']['TopicOut'];
+export type TopicPage = components['schemas']['TopicPage'];
 export type TourStep = components['schemas']['TourStep'];
 export type UploadCreate = components['schemas']['UploadCreate'];
 export type UploadOut = components['schemas']['UploadOut'];
@@ -15526,7 +16132,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily";
+                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily";
             };
             cookie?: never;
         };
@@ -24067,6 +24673,612 @@ export interface operations {
             };
         };
     };
+    share_note_api_v1_notes__note_id__share_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                note_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedNote"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_shared_note_api_v1_shared_notes__share_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedNote"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    unshare_note_api_v1_shared_notes__share_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    module_shared_notes_api_v1_shared_notes_get: {
+        parameters: {
+            query: {
+                moduleId: string;
+                /** @description Page size */
+                limit?: number;
+                /** @description Items to skip */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedNotePage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    shared_note_file_api_v1_shared_notes__share_id__files__upload_id__get: {
+        parameters: {
+            query?: {
+                download?: boolean;
+            };
+            header?: never;
+            path: {
+                share_id: string;
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    hide_shared_note_api_v1_shared_notes__share_id__hide_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HideRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedNote"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    show_shared_note_api_v1_shared_notes__share_id__show_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedNote"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_events_api_v1_calendar_events_get: {
         parameters: {
             query?: {
@@ -30536,6 +31748,528 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuggestionOut"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    suggest_topic_api_v1_lesson_topics_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TopicCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_topics_api_v1_lesson_topics_mine_get: {
+        parameters: {
+            query?: {
+                lessonId?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    topics_queue_api_v1_content_lesson_topics_get: {
+        parameters: {
+            query?: {
+                status?: "pending" | "accepted" | "declined";
+                /** @description Page size */
+                limit?: number;
+                /** @description Items to skip */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicPage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    accept_topic_api_v1_content_lesson_topics__topic_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TopicAccept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    decline_topic_api_v1_content_lesson_topics__topic_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionDecline"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    remove_topic_api_v1_content_lesson_topics__topic_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {

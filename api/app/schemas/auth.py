@@ -422,6 +422,33 @@ class ExportSuggestion(ApiModel):
     created_at: datetime
 
 
+class ExportTopic(ApiModel):
+    """A time stamp you suggested for a lesson's video."""
+
+    id: UUID
+    lesson_id: str
+    seconds: int
+    label: str
+    status: SuggestionStatus
+    reply: str | None
+    created_at: datetime
+
+
+class ExportSharedNote(ApiModel):
+    """A copy of one of your notes shared with its module: what its students read (your note is in `notebooks`)."""
+
+    id: UUID
+    note_id: UUID
+    module_id: str
+    credited: bool
+    title: str
+    text: str
+    doc: dict[str, Any]
+    hidden: bool
+    shared_at: datetime
+    updated_at: datetime
+
+
 class ExportQuestionTag(ApiModel):
     """A past paper's question you tagged with a chapter."""
 
@@ -498,6 +525,8 @@ class AccountExport(ApiModel):
     noora_usage: list[ExportNooraDay]  # Mini Noora's AI questions per day
     notebook_uploads: list[ExportNotebookUploadDay]  # notebook uploads per day
     video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons
+    lesson_topics: list[ExportTopic]  # time stamps this person suggested for lessons' videos
+    shared_notes: list[ExportSharedNote]  # copies of their notes shared with a module
     calendar_events: list[PersonalEventOut]  # events on their own calendar
     calendar_settings: ExportCalendarSettings | None  # the programme dates they hide, and their private feed
     daily_plays: list[ExportDailyPlay]  # daily puzzles played, with their moves

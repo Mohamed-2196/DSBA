@@ -120,8 +120,9 @@ ErrorCode = Literal[
     "grades_changed",  # 409: someone saved the grades calculator's rules since they were loaded
     # suggested videos
     "already_a_lesson",  # 409: the module already has this video as a lesson
-    "already_suggested",  # 409: this video already waits for review for the module
+    "already_suggested",  # 409: this video (or a time stamp at this time) already waits for review, or is there
     "suggestion_closed",  # 409: the suggestion was already accepted or declined
+    "too_many_topics",  # 409: the most time stamps one video may show
     # the notebook
     "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
     "ink_changed",  # 409: the sheet's ink was saved elsewhere since this version: load it, or save over it

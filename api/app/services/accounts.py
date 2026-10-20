@@ -29,6 +29,7 @@ from app.models import (
     ItemStatus,
     Lesson,
     LessonResume,
+    LessonTopic,
     LessonView,
     LibraryItem,
     LibraryStar,
@@ -48,6 +49,7 @@ from app.models import (
     Report,
     RequestMeToo,
     SeniorProfile,
+    SharedNote,
     StudentRequest,
     ThreadFollow,
     ThreadVote,
@@ -80,8 +82,10 @@ from app.schemas.auth import (
     ExportReport,
     ExportRequest,
     ExportSenior,
+    ExportSharedNote,
     ExportSuggestion,
     ExportThread,
+    ExportTopic,
     ExportVote,
     HomeBlock,
     Me,
@@ -962,6 +966,35 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
             for s in db.scalars(
                 select(VideoSuggestion).where(VideoSuggestion.author_id == uid).order_by(VideoSuggestion.created_at)
             )
+        ],
+        lesson_topics=[
+            ExportTopic(
+                id=t.id,
+                lesson_id=t.lesson_id,
+                seconds=t.seconds,
+                label=t.label,
+                status=t.status.value,
+                reply=t.reply,
+                created_at=t.created_at,
+            )
+            for t in db.scalars(
+                select(LessonTopic).where(LessonTopic.author_id == uid).order_by(LessonTopic.created_at)
+            )
+        ],
+        shared_notes=[
+            ExportSharedNote(
+                id=sn.id,
+                note_id=sn.note_id,
+                module_id=sn.module_id,
+                credited=sn.credited,
+                title=sn.title,
+                text=sn.text,
+                doc=sn.doc,
+                hidden=sn.hidden,
+                shared_at=sn.shared_at,
+                updated_at=sn.updated_at,
+            )
+            for sn in db.scalars(select(SharedNote).where(SharedNote.user_id == uid).order_by(SharedNote.shared_at))
         ],
         calendar_events=[
             PersonalEventOut.model_validate(e)

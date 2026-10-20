@@ -9,7 +9,7 @@ from pydantic import StringConstraints
 from app.schemas.access import RoleSummary
 from app.schemas.common import ApiModel, Page, UserPublic, UserStatus, Year
 
-ReportTarget = Literal["thread", "reply", "library_item", "request"]
+ReportTarget = Literal["thread", "reply", "library_item", "request", "shared_note"]
 ReportReason = Literal["spam", "harassment", "inappropriate", "copyright", "other"]
 # What the reported thing is now: a forum post's status, a library item's, or a request's.
 TargetStatus = Literal[
@@ -30,7 +30,9 @@ class ReportOut(ApiModel):
     target_type: ReportTarget
     target_id: UUID
     target_title: str | None  # a reply's thread title for replies; None when the target no longer exists
-    target_url: str | None  # a path in the web app: /forum/<slug>(#reply-<id>), /library/<slug>, /requests/<id>
+    target_url: (
+        str | None
+    )  # a web app path: /forum/<slug>(#reply-<id>), /library/<slug>, /requests/<id>, /notes/shared/<id>
     target_excerpt: str | None = None  # the reported text as plain text (about 200 characters)
     target_status: TargetStatus | None = None  # None when the target no longer exists
     target_author: UserPublic | None = None  # who wrote or uploaded it
@@ -104,5 +106,5 @@ class AdminStats(ApiModel):
     pending_uploads: int | None
     open_reports: int
     open_requests: int | None  # waiting for an answer; None without requests.manage or while requests are off
-    pending_suggestions: int | None  # suggested videos to review; None without content.edit or while they are off
+    pending_suggestions: int | None  # videos and time stamps to review; None without content.edit or while both off
     open_bug_reports: int | None  # bug reports waiting for an admin; None for everyone else

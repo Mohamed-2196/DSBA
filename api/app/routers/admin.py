@@ -9,7 +9,7 @@ from uuid import UUID
 from fastapi import Request
 from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import Session, aliased
 
 from app.core.access import Box, Feature
 from app.core.errors import conflict, forbidden, invalid, not_found
@@ -31,7 +31,19 @@ from app.schemas.access import UserRolesUpdate
 from app.schemas.common import ErrorResponse
 from app.schemas.gaps import Gaps
 from app.schemas.moderation import AdminStats, AdminUser, AdminUserPage, AdminUserUpdate, AuditOut, AuditPage
-from app.services import access, accounts, bugs, documents, gaps, reports, requests, roles, sessions, suggestions
+from app.services import (
+    access,
+    accounts,
+    bugs,
+    documents,
+    gaps,
+    lesson_topics,
+    reports,
+    requests,
+    roles,
+    sessions,
+    suggestions,
+)
 from app.services.accounts import public_user
 from app.services.audit import record
 from app.services.identifiers import Kind, destination_hint, normalize_identifier
@@ -77,6 +89,17 @@ def _like(text: str) -> str:
     return f"%{escaped}%"
 
 
+def _pending_suggestions(db: Session, user: User) -> int | None:
+    """Suggested videos and time stamps waiting for review, for people who edit modules while either is on."""
+    if not access.can(user, Box.content_edit):
+        return None
+    videos = access.feature_on(db, user, Feature.modules_video_suggestions)
+    stamps = access.feature_on(db, user, Feature.modules_time_stamps)
+    if not videos and not stamps:
+        return None
+    return (suggestions.pending_count(db) if videos else 0) + (lesson_topics.pending_count(db) if stamps else 0)
+
+
 @router.get("/admin/stats", response_model=AdminStats)
 def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats:
     """Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
@@ -99,9 +122,7 @@ def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats
         open_requests=requests.open_count(db)
         if access.can(user, Box.requests_manage) and access.feature_on(db, user, Feature.requests)
         else None,
-        pending_suggestions=suggestions.pending_count(db)
-        if access.can(user, Box.content_edit) and access.feature_on(db, user, Feature.modules_video_suggestions)
-        else None,
+        pending_suggestions=_pending_suggestions(db, user),
         open_bug_reports=bugs.open_count(db) if access.is_admin(user) else None,
     )
 

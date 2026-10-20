@@ -43,7 +43,13 @@ def paper_choices(db: DB) -> list[PaperChoice]:
 
 @router.get("/modules/{module_id}", response_model=ModuleDetail)
 def get_module(module_id: str, db: DB, user: OptionalUser) -> ModuleDetail:
-    return svc.module_detail(db, module_id, library=access.feature_on(db, user, Feature.library))
+    """The module with its chapters and lessons (each with its time stamps while they are on), and its shelves."""
+    return svc.module_detail(
+        db,
+        module_id,
+        library=access.feature_on(db, user, Feature.library),
+        topics=access.feature_on(db, user, Feature.modules_time_stamps),
+    )
 
 
 # ── editing (content managers) ───────────────────────────────────────────────────────────────
