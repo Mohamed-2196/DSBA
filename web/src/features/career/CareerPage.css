@@ -9,33 +9,9 @@
 /* Scroll targets land clear of the sticky top bar through the page-wide scroll-padding-top in base.css, so
    nothing is added here (adding a margin as well would drop a section 80px too low). */
 
-/* ── Header: title on the left, the competition on the right. They stack when there is no room for both. ── */
+/* ── Header: the tools band, then the competition as a card under it. ── */
 .career-page > .ui-page-header {
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-16) var(--sp-32);
-  margin-bottom: var(--sp-24);
-}
-.career-page > .ui-page-header > .ui-page-header__main {
-  flex: 1 1 360px;
-}
-.career-page > .ui-page-header > .ui-page-header__actions {
-  flex: 1 1 560px;
-  max-width: 730px;
-}
-.career-page > .ui-page-header .career-featured {
-  flex: 1 1 auto;
-}
-@media (max-width: 699px) {
-  .career-page > .ui-page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .career-page > .ui-page-header > .ui-page-header__main,
-  .career-page > .ui-page-header > .ui-page-header__actions {
-    flex: 0 0 auto;
-    max-width: none;
-  }
+  margin-bottom: var(--sp-16);
 }
 
 /* ── Sections: more air between them than the default, and titles that read from the back of a room. ── */
@@ -49,8 +25,6 @@
 }
 .career-page .ui-page-section > .ui-section-header .ui-section-header__title {
   font-size: var(--fs-22);
-  font-weight: var(--fw-heavy);
-  letter-spacing: var(--tracking-head);
 }
 .career-page .ui-page-section > .ui-section-header .ui-section-header__desc {
   margin-top: 6px;
@@ -80,7 +54,7 @@
   text-decoration: none;
 }
 .career-mod:hover .career-mod__name {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -108,9 +82,9 @@
 }
 .career-mod__tag {
   flex: none;
-  padding: 1px 7px;
+  padding: 1px 8px;
   border-radius: var(--r-pill);
-  box-shadow: inset 0 0 0 1px var(--line-strong);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
   color: var(--ink-2);
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
@@ -163,9 +137,9 @@
   position: sticky;
   top: var(--topbar-h);
   z-index: var(--z-sticky);
-  margin: calc(-1 * var(--sp-8)) 0 var(--sp-32);
+  margin: 0 0 var(--sp-32);
   padding-block: var(--sp-8);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
   background: var(--paper);
 }
 .career-parts__row {
@@ -191,9 +165,11 @@
   background: var(--surface-2);
   color: var(--ink);
 }
+/* The part in view sits on the section's pill, bold and in its text colour: as the active nav item does. */
 .career-parts__link.is-current {
-  background: var(--accent-soft);
-  color: var(--ink);
+  background: var(--sec-pill);
+  color: var(--sec-text);
+  font-weight: var(--fw-bold);
 }
 /* A part scrolled to keeps its heading clear of the top bar and this row. */
 .career-page :is(#career-opportunities, #career-certificates, #career-role-fit, #career-after) {

@@ -1,10 +1,10 @@
 // One employer on the board: its logo slot, what it offers, why it is there, the tracks it suits and one button to
 // its own careers or programme page.
-import { ArrowUpRight, Buildings } from '@phosphor-icons/react';
+import { Buildings } from '@phosphor-icons/react';
 import type { CareerEmployer, CareerOffer, CareerTrack } from '../../api/types';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
-import { Badge, Button, Panel, cx } from '../../ui';
+import { Badge, Button, glyph, Icon, Panel, cx } from '../../ui';
 import { applicationLine, dayKeyFromToday, useCalendarEvents, type CalendarEvent } from '../calendar/public';
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
@@ -116,7 +116,7 @@ export function EmployerCard({
             variant="secondary"
             size="sm"
             href={url}
-            trailingIcon={ArrowUpRight}
+            trailingIcon={<Icon glyph={glyph.external} />}
             className="career-emp__cta"
             data-hub="career-apply"
           >

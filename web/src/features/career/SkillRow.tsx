@@ -1,8 +1,7 @@
 // One skill of a role: the module that teaches it or, for a gap, why it is a gap and the one thing to do about it.
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Certificate, ChatsCircle, FileText, PlayCircle, Trophy, type Icon } from '@phosphor-icons/react';
-import { cx } from '../../ui';
+import { cx, glyph, Icon, type Glyph } from '../../ui';
 import { useModuleDetail } from './api';
 import { useCareerData } from './context';
 import type { SkillFit } from './lib/fit';
@@ -10,24 +9,23 @@ import { jumpTo, jumpToCert } from './lib/jump';
 import { appPath, lessonPath, libraryLink, resolveClose, type CloseStep } from './lib/links';
 import { ModuleLink } from './ModuleLink';
 
-const CLOSE_ICONS: Record<CloseStep['kind'], Icon> = {
-  lesson: PlayCircle,
-  file: FileText,
-  cert: Certificate,
-  forum: ChatsCircle,
-  opps: Trophy,
+const CLOSE_ICONS: Record<CloseStep['kind'], Glyph> = {
+  lesson: glyph.video,
+  file: glyph.page,
+  cert: glyph.exam,
+  forum: glyph.forum,
+  opps: glyph.career,
 };
 
 function CloseBody({ close }: { close: CloseStep }) {
-  const Glyph = CLOSE_ICONS[close.kind];
   return (
     <>
-      <Glyph className="career-close__icon" weight="regular" aria-hidden="true" />
+      <Icon glyph={CLOSE_ICONS[close.kind]} size={16} className="career-close__icon" />
       <span className="career-close__text">
         <span className="visually-hidden">Suggested next step: </span>
         {close.text}
       </span>
-      <ArrowRight className="career-close__go" weight="bold" aria-hidden="true" />
+      <Icon glyph={glyph.forward} size={16} className="career-close__go" />
     </>
   );
 }

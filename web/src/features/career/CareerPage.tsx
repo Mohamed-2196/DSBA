@@ -1,7 +1,6 @@
-import { Compass } from '@phosphor-icons/react';
 import type { CareerDoc } from '../../api/types';
 import { useQueryParam, useYear } from '../../state';
-import { Button, EmptyState, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
+import { Button, EmptyState, glyph, Icon, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
 import { AfterDsba } from './AfterDsba';
 import { useCareer } from './api';
 import { Certificates } from './Certificates';
@@ -28,7 +27,8 @@ export function CareerBody({ data }: { data: CareerDoc }) {
   ];
   return (
     <CareerContext.Provider value={data}>
-      <PageHeader title={TITLE} description={data.intro} actions={data.featured ? <FeaturedCompetition /> : null} />
+      <PageHeader section="tools" title={TITLE} description={data.intro} />
+      {data.featured ? <FeaturedCompetition /> : null}
       <CareerSections parts={parts} />
       <Opportunities />
       <Certificates />
@@ -63,15 +63,15 @@ function CareerSkeleton() {
 export default function CareerPage() {
   const q = useCareer();
   return (
-    <Page width="wide" className="career-page">
+    <Page width="wide" className="career-page" data-section="tools">
       {q.isPending ? (
         <>
-          <PageHeader title={TITLE} />
+          <PageHeader section="tools" title={TITLE} />
           <CareerSkeleton />
         </>
       ) : q.isError ? (
         <>
-          <PageHeader title={TITLE} />
+          <PageHeader section="tools" title={TITLE} />
           <QueryError
             error={q.error}
             title="Career Navigator didn’t load"
@@ -83,10 +83,10 @@ export default function CareerPage() {
         <CareerBody data={q.data} />
       ) : (
         <>
-          <PageHeader title={TITLE} />
+          <PageHeader section="tools" title={TITLE} />
           <Panel padding="none">
             <EmptyState
-              icon={Compass}
+              icon={<Icon glyph={glyph.career} />}
               title="Career Navigator is being set up"
               body="Employers, certificates and the skills behind each role will show here soon."
               action={<Button to="/">Back to Home</Button>}

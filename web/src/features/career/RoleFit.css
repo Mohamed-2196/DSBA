@@ -38,7 +38,7 @@
   flex-direction: column;
   gap: var(--sp-16);
   padding: var(--sp-24);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
   background: color-mix(in srgb, var(--surface-2) 70%, var(--surface));
 }
 .career-fit__skills {
@@ -72,10 +72,11 @@
   position: relative;
   display: inline-flex;
   align-items: baseline;
+  font-family: var(--font-display);
   font-size: var(--fs-28);
-  font-weight: var(--fw-heavy);
+  font-weight: var(--fw-display);
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-display);
   color: var(--ink);
 }
 .career-score__num small {
@@ -93,10 +94,11 @@
   display: flex;
   align-items: center;
   gap: var(--sp-8);
+  font-family: var(--font-display);
   font-size: var(--fs-22);
-  font-weight: var(--fw-heavy);
+  font-weight: var(--fw-display);
   line-height: 1.15;
-  letter-spacing: var(--tracking-head);
+  letter-spacing: -0.015em;
 }
 .career-fit__role-icon {
   flex: none;
@@ -173,7 +175,7 @@
   color: var(--on-accent);
 }
 .career-fitcert__icon {
-  font-size: 15px;
+  flex: none;
 }
 .career-fit__ask {
   align-self: flex-start;
@@ -185,17 +187,18 @@
   display: flex;
   align-items: center;
   gap: var(--sp-8);
-  font-size: var(--fs-16);
+  font-size: var(--fs-17);
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
 }
 .career-group__icon {
   flex: none;
-  font-size: 20px;
-  color: var(--ink-3);
+  color: var(--icon-line);
 }
+/* Covered takes the success icon in the modules tint (BRAND.md §5, status icons). */
 .career-group.is-covered .career-group__icon {
-  color: var(--accent);
+  --icon-tint: var(--sec-modules-tint);
+  color: var(--success);
 }
 .career-group__count {
   display: inline-grid;
@@ -302,9 +305,8 @@
 }
 .career-close__icon {
   flex: none;
-  margin-top: 1px;
-  font-size: 18px;
-  color: var(--accent);
+  margin-top: 2px;
+  color: var(--accent-text);
 }
 .career-close__text {
   min-width: 0;
@@ -312,9 +314,8 @@
 }
 .career-close__go {
   flex: none;
-  margin-top: 3px;
-  font-size: 14px;
-  color: var(--accent);
+  margin-top: 2px;
+  color: var(--accent-text);
   transition: transform var(--dur-fast) var(--ease);
 }
 .career-close:hover .career-close__go {
@@ -341,7 +342,7 @@
   }
   .career-fit__summary {
     padding: var(--sp-32);
-    border-right: 1px solid var(--line);
+    border-right: 1.5px solid var(--line);
     border-bottom: 0;
   }
   .career-fit__skills {
@@ -363,5 +364,5 @@
   display: flex;
   justify-content: center;
   padding: var(--sp-16);
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }

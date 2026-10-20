@@ -9,9 +9,8 @@
 }
 .electives__note svg {
   flex: none;
-  margin-top: 3px;
-  color: var(--ink-2);
-  font-size: 18px;
+  margin-top: 1px;
+  color: var(--icon-line);
 }
 .electives__note p {
   max-width: var(--measure);
@@ -79,8 +78,9 @@
   font-size: 24px;
 }
 .elective__name {
+  font-family: var(--font-display);
   font-size: var(--fs-20);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-display);
   letter-spacing: -0.015em;
   line-height: var(--lh-heading);
 }
@@ -102,7 +102,7 @@
 
 .elective__part {
   padding: var(--sp-16) var(--sp-24);
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .elective__label {
   display: flex;
@@ -114,7 +114,8 @@
   font-weight: var(--fw-semibold);
 }
 .elective__label svg {
-  color: var(--y3);
+  --icon-tint: var(--y3);
+  color: var(--ink-2);
 }
 .elective__skills {
   list-style: none;
@@ -174,7 +175,7 @@
   gap: var(--sp-4) var(--sp-16);
   margin-top: auto;
   padding: var(--sp-12) var(--sp-24) var(--sp-16);
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .elective__link {
   display: inline-flex;
@@ -224,8 +225,8 @@
 }
 .electives-link__icon {
   flex: none;
-  font-size: 28px;
-  color: var(--y3-strong);
+  --icon-tint: var(--y3);
+  color: var(--icon-line);
 }
 .electives-link__text {
   flex: 1 1 320px;

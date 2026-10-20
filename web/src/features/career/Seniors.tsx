@@ -1,6 +1,5 @@
-import { ChatsCircle } from '@phosphor-icons/react';
 import type { Senior as SeniorData } from '../../api/types';
-import { Avatar, Badge, Button, CohortBadge, Panel } from '../../ui';
+import { Avatar, Badge, Button, CohortBadge, glyph, Icon, Panel } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { askSeniorLink, topicLine } from './lib/seniors';
 import './Seniors.css';
@@ -26,7 +25,7 @@ function Senior({ s, ask }: { s: SeniorData; ask: boolean }) {
         <Button
           variant="ghost"
           size="sm"
-          leadingIcon={ChatsCircle}
+          leadingIcon={<Icon glyph={glyph.forum} />}
           to={askSeniorLink(s.user.id)}
           className="career-senior__ask"
         >

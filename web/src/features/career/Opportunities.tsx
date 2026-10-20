@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react';
-import { CaretDown, CaretUp, MagnifyingGlass } from '@phosphor-icons/react';
+import { useMemo, useRef, useState } from 'react';
 import type { ModuleSummary } from '../../api/types';
 import { BREAKPOINTS, useMediaQuery, useQueryParam, useSetQueryParams } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, Chip, EmptyState, PageSection, Panel, cx } from '../../ui';
+import { Button, Chip, EmptyState, glyph, Icon, PageSection, Panel, cx, useScrollFade } from '../../ui';
 import { useCareerData } from './context';
 import { EmployerCard } from './EmployerCard';
 import { ModuleLink } from './ModuleLink';
@@ -67,6 +66,9 @@ export function Opportunities() {
     setParams({ track: null, type: null }, { replace: true });
   };
 
+  const tracksRef = useRef<HTMLDivElement>(null);
+  useScrollFade(tracksRef, null, `${track}-${type}`);
+
   const closest = active ? active.modules.map((id) => getModule(id)).filter((m): m is ModuleSummary => m !== null) : [];
 
   return (
@@ -81,7 +83,12 @@ export function Opportunities() {
       </h2>
 
       <div className="career-opps__filters">
-        <div className="career-opps__tracks" role="group" aria-label="Filter by track">
+        <div
+          className="career-opps__tracks u-scroll-row u-scroll-row--bleed"
+          role="group"
+          aria-label="Filter by track"
+          ref={tracksRef}
+        >
           <Chip
             selected={track === 'all'}
             count={pool.length}
@@ -148,7 +155,7 @@ export function Opportunities() {
       ) : (
         <Panel padding="none" className="career-opps__empty">
           <EmptyState
-            icon={MagnifyingGlass}
+            mate="loupe"
             title={data.employers.length ? 'No employer matches both filters' : 'No employers listed yet'}
             body={
               data.employers.length
@@ -170,7 +177,7 @@ export function Opportunities() {
         <div className="career-opps__more">
           <Button
             variant="secondary"
-            trailingIcon={folded ? CaretDown : CaretUp}
+            trailingIcon={<Icon glyph={folded ? glyph.chevronDown : glyph.chevronUp} />}
             aria-expanded={!folded}
             onClick={() => setAll(folded ? '1' : null, { replace: true })}
             data-hub="career-show-all"
