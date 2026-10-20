@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import Settings
 from app.core.security import client_ip
 from app.models import AuditEntry, OtpChallenge, User
 from tests.core.conftest import BrowserAt, SetOption
@@ -138,3 +139,34 @@ def test_the_scheme_comes_from_a_trusted_proxy_only(browser_at: BrowserAt, set_o
     assert redirect(browser_at("203.0.113.5")).startswith("http://testserver/")  # the client can't say https
     set_option("trusted_proxies", [ipaddress.ip_network(f"{PROXY}/32")])
     assert redirect(browser_at(PROXY)).startswith("https://testserver/")
+
+
+def test_private_ranges_stand_for_the_private_networks() -> None:
+    s = Settings(trusted_proxies="private_ranges, 100.64.0.0/10")
+    assert [str(n) for n in s.trusted_proxies] == [
+        "192.168.0.0/16",
+        "172.16.0.0/12",
+        "10.0.0.0/8",
+        "127.0.0.0/8",
+        "fd00::/8",
+        "::1/128",
+        "100.64.0.0/10",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("peer", "forwarded", "expected"),
+    [
+        # Railway: the browser, then Railway's edge (100.64/10), then Caddy over the private network (fd12::/16),
+        # which keeps the edge's header and adds the edge's address.
+        ("fd12:3456::7", ("198.51.100.7, 100.64.1.9",), "198.51.100.7"),
+        ("fd12:3456::7", ("6.6.6.6, 198.51.100.7, 100.64.1.9",), "198.51.100.7"),  # a client's own XFF is ignored
+        ("203.0.113.5", ("198.51.100.7, 100.64.1.9",), "203.0.113.5"),  # not from the private network
+    ],
+)
+def test_behind_railways_edge_the_client_is_the_browser(
+    set_option: SetOption, peer: str, forwarded: tuple[str, ...], expected: str
+) -> None:
+    """SEC-50: with DSBA_TRUSTED_PROXIES=private_ranges,100.64.0.0/10 the API skips Caddy and Railway's edge."""
+    set_option("trusted_proxies", Settings(trusted_proxies="private_ranges,100.64.0.0/10").trusted_proxies)
+    assert client_ip(_request(peer, *forwarded)) == expected

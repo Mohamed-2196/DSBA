@@ -11,8 +11,16 @@
 #                            more sources for script-src and connect-src. A build with analytics on
 #                            (VITE_POSTHOG_KEY) needs its PostHog host in DSBA_CSP_CONNECT_EXTRA only, e.g.
 #                            https://us.i.posthog.com: it loads no script from PostHog
+#   DSBA_EDGE_PROXIES        the proxies in front of Caddy whose X-Forwarded-For it keeps (it adds their address
+#                            after it). Unset on a server where Caddy is the edge: only loopback, so every client's
+#                            own header is dropped. Behind Railway's edge: "private_ranges 100.64.0.0/10"
+#                            (docs/backend/DEPLOYMENT.md, section 5)
 {
 	admin off
+	servers {
+		trusted_proxies static {$DSBA_EDGE_PROXIES:127.0.0.1/32}
+		trusted_proxies_strict
+	}
 }
 
 {$DSBA_DOMAIN} {
@@ -27,7 +35,8 @@
 		defer
 	}
 
-	# The API. Caddy writes the client's address in X-Forwarded-For (it drops whatever the client sent), and
+	# The API. Caddy writes the client's address in X-Forwarded-For (it drops whatever the client sent; from a proxy in
+	# DSBA_EDGE_PROXIES it keeps that proxy's header and adds the proxy's address), and
 	# no request body is over 1 MB: files go straight to the bucket, never through here.
 	handle /api/* {
 		request_body {

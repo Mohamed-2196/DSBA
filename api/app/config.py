@@ -26,6 +26,8 @@ HOST_PREFIX = "__Host-"  # a cookie only its own host can set: Secure, Path=/ an
 MIN_SECRET_LENGTH = 32
 OTP_MAX_ATTEMPTS = 5  # wrong tries per code; production refuses more
 # Limits production keeps at their defaults or lower, unless DSBA_ALLOW_RAISED_LIMITS says otherwise.
+# What `private_ranges` means in DSBA_TRUSTED_PROXIES: Caddy's own list for the same word.
+PRIVATE_RANGES = ("192.168.0.0/16", "172.16.0.0/12", "10.0.0.0/8", "127.0.0.0/8", "fd00::/8", "::1/128")
 RAISABLE_LIMITS = (
     "otp_max_per_identifier_per_hour",
     "otp_max_per_identifier_per_day",
@@ -239,11 +241,17 @@ class Settings(BaseSettings):
     @field_validator("trusted_proxies", mode="before")
     @classmethod
     def _networks(cls, v: object) -> object:
-        """'10.0.0.5' and '10.0.0.0/24' alike, comma-separated (host bits are fine: '10.0.0.5/24' is its network)."""
+        """'10.0.0.5' and '10.0.0.0/24' alike, comma-separated (host bits are fine: '10.0.0.5/24' is its network).
+        `private_ranges` stands for the private and loopback networks, as in Caddy's trusted_proxies: behind a
+        platform's edge proxy whose addresses aren't published (Railway), where nothing but that edge and the
+        project's own services can reach the container (docs/backend/DEPLOYMENT.md, section 5)."""
         v = _csv(v)
         if isinstance(v, list):
+            expanded: list[object] = []
+            for x in v:
+                expanded.extend(PRIVATE_RANGES if x == "private_ranges" else [x])
             try:
-                return [ipaddress.ip_network(x, strict=False) if isinstance(x, str) else x for x in v]
+                return [ipaddress.ip_network(x, strict=False) if isinstance(x, str) else x for x in expanded]
             except ValueError as e:
                 raise ValueError(f"DSBA_TRUSTED_PROXIES: {e}") from None
         return v

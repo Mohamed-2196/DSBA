@@ -188,9 +188,23 @@ In `compose.prod.yaml`, Caddy has a fixed address on the internal network (`DSBA
 in `DSBA_DOCKER_SUBNET`, default `172.30.0.0/24`; change both if that subnet is taken) and is the only trusted proxy.
 Caddy drops any `X-Forwarded-For` a client sends and writes the client's address. The API publishes no port.
 
-**Behind Cloudflare or another CDN**, Caddy sees the CDN's addresses: add the CDN's ranges to Caddy
-(`servers { trusted_proxies static <ranges> }` in the global options) **and** to `DSBA_TRUSTED_PROXIES`, so both
+**Behind Cloudflare or another CDN**, Caddy sees the CDN's addresses: put the CDN's ranges in Caddy's
+`DSBA_EDGE_PROXIES` (space-separated; the Caddyfile's `trusted_proxies`) **and** in `DSBA_TRUSTED_PROXIES`, so both
 skip them when reading the header.
+
+**On Railway** (production's host, Mohamed's call, SEC-50), Railway's edge proxy ends TLS and is the only way in:
+Caddy sees the edge's address, and the API sees Caddy's address on the project's private network. Railway doesn't
+publish the edge's addresses, but nothing else can reach a service without a TCP proxy, so trust the private ranges:
+- the web service (Caddy): `DSBA_EDGE_PROXIES=private_ranges 100.64.0.0/10`. Caddy then keeps the edge's
+  `X-Forwarded-For` and adds the edge's address, reading it from the right (`trusted_proxies_strict`).
+- the API service: `DSBA_TRUSTED_PROXIES=private_ranges,100.64.0.0/10` (`private_ranges` means Caddy's list:
+  10/8, 172.16/12, 192.168/16, 127/8, fd00::/8 and ::1). The API reads the header from the right, skips Caddy and the
+  edge, and finds the browser; anything a browser wrote in the header itself stays to the left and is ignored.
+- Never give either service a public TCP proxy or a second public domain that skips Caddy.
+- Check it once after deploying: sign in, open Your account → Sessions, and confirm the address shown is your own
+  (compare with any "what is my IP" page). If it shows a 100.64.x.x or fd12:… address, an edge or Caddy address is
+  missing from the lists: add its range to both. If the edge's addresses are public ones, Railway has changed how it
+  connects; ask Railway support for its edge ranges rather than trusting everything.
 
 ## 6. Security headers
 
@@ -473,6 +487,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_NOORA_INPUT_USD_PER_MTOK`, `DSBA_NOORA_OUTPUT_USD_PER_MTOK` | `0.10`, `0.50` | the model's prices, for the estimated cost the monthly budget is checked against |
 | `DSBA_NOORA_LONG_PROMPT_TOKENS`, `DSBA_NOORA_LONG_INPUT_USD_PER_MTOK`, `DSBA_NOORA_LONG_OUTPUT_USD_PER_MTOK` | `100000`, `0.50`, `2.50` | the prices for a prompt over that many tokens |
 | `DSBA_NOORA_MAX_ANSWER_TOKENS`, `DSBA_NOORA_ANSWERS_AT_ONCE` | `8000`, `8` | the longest answer (her thinking included), and answers streaming at once hub-wide |
+| `DSBA_EDGE_PROXIES` (Caddy) | `127.0.0.1/32` | proxies in front of Caddy whose `X-Forwarded-For` it keeps; on Railway `private_ranges 100.64.0.0/10` (section 5) |
 | `DSBA_COMMIT_SHA` (or Railway's `RAILWAY_GIT_COMMIT_SHA`) | none | the commit `/api/v1/health` reports |
 
 `compose.prod.yaml` itself reads these from `.env`, besides the ones it passes on: `DSBA_DOMAIN`, `POSTGRES_PASSWORD`,
