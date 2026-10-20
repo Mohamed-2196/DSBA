@@ -23,7 +23,7 @@ x-api-env: &api-env
   DSBA_SMTP_HOST: mailpit
   DSBA_SMTP_PORT: "1025"
   DSBA_ADMIN_IDENTIFIERS: ${DSBA_ADMIN_IDENTIFIERS:-}
-  # "Continue with Google" (docs/backend/DEPLOYMENT.md, section 13): off while either is empty.
+  # "Continue with Google" (docs/backend/DEPLOYMENT.md, section 14): off while either is empty.
   DSBA_GOOGLE_CLIENT_ID: ${DSBA_GOOGLE_CLIENT_ID:-}
   DSBA_GOOGLE_CLIENT_SECRET: ${DSBA_GOOGLE_CLIENT_SECRET:-}
   DSBA_PORTAL_HOSTS: ${DSBA_PORTAL_HOSTS:-bibf.edu.bh,bibf.com,london.ac.uk}  # Site settings' links (SEC-64)

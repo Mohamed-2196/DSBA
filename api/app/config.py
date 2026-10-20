@@ -92,7 +92,7 @@ class Settings(BaseSettings):
     allow_raised_limits: bool = False
 
     # "Continue with Google" (OpenID Connect). Both set, or the button doesn't show. The OAuth client's authorised
-    # redirect URI is <web_base_url>/api/v1/auth/google/callback (docs/backend/DEPLOYMENT.md, section 13).
+    # redirect URI is <web_base_url>/api/v1/auth/google/callback (docs/backend/DEPLOYMENT.md, section 14).
     google_client_id: str | None = None
     google_client_secret: SecretStr | None = None
 

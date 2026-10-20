@@ -90,9 +90,7 @@ def upgrade() -> None:
         sa.Column("used_at", sa.DateTime(timezone=True)),
         sa.PrimaryKeyConstraint("id", name="pk_password_resets"),
         sa.UniqueConstraint("token_hash", name="uq_password_resets_token_hash"),
-        sa.ForeignKeyConstraint(
-            ["user_id"], ["users.id"], name="fk_password_resets_user_id_users", ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_password_resets_user_id_users", ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
             ["created_by"], ["users.id"], name="fk_password_resets_created_by_users", ondelete="SET NULL"
         ),
