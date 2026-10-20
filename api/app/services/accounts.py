@@ -789,7 +789,9 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
             created_at=t.created_at,
         )
         for t in db.scalars(
-            select(PaperQuestion).where(PaperQuestion.tagged_by == uid).order_by(PaperQuestion.created_at)
+            select(PaperQuestion)
+            .where(PaperQuestion.tagged_by == uid)
+            .order_by(PaperQuestion.created_at, PaperQuestion.id)
         )
     ]
     question_flags = list(

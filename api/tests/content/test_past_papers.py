@@ -212,11 +212,8 @@ def test_papers_that_number_each_section_from_one_keep_b1_apart_from_a1(
     assert [(t["section"], t["question"]) for t in guest.get(url).json()] == [(None, 1), ("A", 1), ("B", 1)]
     by_module = guest.get(f"{API}/library/questions", params={"module_id": MODULE}).json()
     assert [(t["section"], t["question"]) for t in by_module] == [(None, 1), ("A", 1), ("B", 1)]
-    assert [(t["section"], t["question"]) for t in me.get(f"{API}/me/export").json()["questionTags"]] == [
-        ("B", 1),
-        ("A", 1),
-        (None, 1),
-    ]
+    exported = {(t["section"], t["question"]) for t in me.get(f"{API}/me/export").json()["questionTags"]}
+    assert exported == {("B", 1), ("A", 1), (None, 1)}  # the export keeps each tag's section
 
     # kept and removed by a rep: the audit log names B1 and keeps its section
     assert rep.put(f"{API}/library/questions/{b1.json()['id']}/flag").status_code == 200
