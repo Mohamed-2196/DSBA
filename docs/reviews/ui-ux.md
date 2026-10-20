@@ -1,5 +1,213 @@
 # UI/UX review: DSBA Hub on the real API
 
+## Round 16: by eye (20 October 2026)
+
+Reviewer: UI/UX. Build: `feature/backend` at `70c25f5`, on the deployed dev site (https://web-dev-254f.up.railway.app,
+real data, as a guest) and the local stack for signed-in screens (dev-login `ux16-admin@example.com`, admin, Year 2).
+No application code was changed.
+
+**Brief.** Mohamed has seen overflow and small UI bugs on a phone, a laptop and in dark mode that the scripted sweep
+(sideways scroll, elements past the edge, clipped text) didn't catch. This round looked at every screenshot by eye.
+
+**Method.** Playwright driving Chrome, reduced motion on, touch emulated below 1440. 53 states (every main route and
+its key states: module tabs, a lesson, library filters sheet, sittings, a paper with Time me open, practise, notebook
+text and pages views, forum list, Yours, threads, new thread, calendar month, list, event drawer and New event, ⌘K,
+Noora page and panel, boards, grades, career, newsletter list and an issue, Daily and The Word, account, Manage tabs,
+sign-in, 404, Start here) at 360×780 and 1440×900 in light and dark, with the viewport and two to four scrolled
+screens each; then 20 key states at 844×390 and 768×1024 in both themes. Each crop below was checked by eye; a DOM
+probe (text escaping its card, overlapping text, clipped boxes) pointed at places to look.
+
+**Long content I left on the local stack** (to reproduce): three threads (a 125-character title, an Arabic title and
+post, and a title with no spaces: `Supercalifragilisticexpialidocious_regression_coefficients_without_any_spaces_at_all_here`),
+three replies, newsletter issue 07 `ux16-long-issue` with a long title and section, and two notes in Test Admin's
+notebook.
+
+**Why the earlier sweeps missed these.** Most of them need content the seed doesn't have (a long word, a long section
+title, a sitting with a second report), or they sit inside a box that scrolls or clips (a tab strip, a sittings grid
+cell, a pill list), or they are a colour that is legible but wrong (dark mode).
+
+### Ranked by how visible they are
+
+| # | Where | Size | Theme | Severity |
+|---|---|---|---|---|
+| UX-92 | Forum list, sidebar and thread: one long word breaks the layout | all | both | major |
+| UX-93 | Past-paper sittings: file names spill into the next column or off the screen | 360, 768, 844 | both | major |
+| UX-94 | Compact toasts wrap ("Saved" with the dot on its own line): `p { text-wrap }` beats `nowrap` | phones | both | minor |
+| UX-95 | Dark mode: the selected segment is nearly invisible | all | dark | minor |
+| UX-96 | Daily tiles: the Sudoku blurb shows a line after its ellipsis | phones | both | minor |
+| UX-97 | Dark mode: The Word's "not in the word" tile is the brightest tile | all | dark | minor |
+| UX-98 | Modules band at 768: the year switch floats mid-band and crowds the text | 768 | both | minor |
+| UX-99 | Newsletter issue on phones: a long section is a pill wider than the screen | phones | both | nit |
+| UX-100 | Home hero (guest, no year): "Pick your year" is out of line with the date | 1440 | both | nit |
+| UX-101 | Tab strips and tool rows cut the last item mid-word with no fade | 360, 768 | both | nit |
+
+### New findings
+
+#### UX-92 Forum: one long word breaks the list, the sidebar and the thread page (major)
+
+**Where:** `/forum` (All and Yours), `/forum/:slug`. Every size, both themes.
+
+**What a student runs into.** A thread whose title has a long unbroken run (a snake_case variable, a file name, a URL;
+common in a data-science forum):
+- **Laptop/tablet list:** the title runs under the reply count and vote button and overlaps them
+  (`screens/ux16-forum-long-title-1440.png`).
+- **Phone list:** the title is cut at the card edge with no ellipsis (`screens/ux16-forum-long-title-360.png`).
+- **"Waiting for a first reply" card:** the list's grid column grows to that word's width (581 px), so *every* item
+  in the card overflows, including ordinary titles ("ST2134: the kolmobxrmeamgorov test for two…"), and the Arabic
+  title is cut at its start (`screens/ux16-forum-waiting-1440.png`).
+- **The page scrolls sideways:** `/forum` is 621 px wide at 360 (and at 844×390), and the thread page 966 px; the
+  thread's title runs off the right edge at 1440 (`screens/ux16-thread-title-1440.png`).
+
+**Cause.**
+- `.forum-row__title` (`features/forum/components/forum.css`), `.forum-thread__title` / `.ui-page-header__title`
+  (`ui/Page.css`) and `.forum-waiting__link` (`features/forum/ForumPage.css`) have no `overflow-wrap`.
+- `.forum-waiting` is `display: grid` with no column template, so its implicit `auto` column takes the longest
+  word's max-content width.
+
+**Fix.** `overflow-wrap: anywhere` on those three title classes (and on the Home and Manage report rows that show
+thread titles), and `grid-template-columns: minmax(0, 1fr)` on `.forum-waiting`. Add the long-word thread to the seed
+or an e2e fixture so the responsive check sees it.
+
+#### UX-93 Past-paper sittings: names spill into the next column or off the screen (major)
+
+**Where:** a module's Files tab and the library's sittings view (`/modules/business?tab=files`,
+`/library?module=…&type=past-paper`), Home's Exam week sittings. 360, 768 and 844×390; both themes.
+
+**What a student runs into.**
+- **Phone:** "Zone A report 2, worked answers" runs past the right edge of the screen and is cut mid-word
+  (`screens/ux16-sittings-cut-360-dark.png`).
+- **Tablet and landscape:** "Zone A report 2" in the Examiners' report column runs under the Solutions column's icon
+  and text (`screens/ux16-sittings-overlap-768.png`).
+
+**Cause.** `.pp-link` is `white-space: nowrap` (`features/library/components/PaperSittings.css:123-133`) inside
+`minmax(0, …)` grid columns, so a long name can't wrap and isn't clipped. Only `.pp-link--worked` wraps.
+
+**Fix.** Let `.pp-link` wrap (`white-space: normal; overflow-wrap: anywhere`) and keep the "(2)" or the zone with the
+name with a non-breaking space, or give the cell `min-width: 0; overflow: hidden` with an ellipsis and the full name
+in the accessible name. Check May 2024 in MN1178, which has three reports.
+
+#### UX-94 Compact toasts wrap: the global `p { text-wrap: pretty }` overrides `nowrap` (minor)
+
+**Where:** the "Saved · Your note saves as you write." toast on a note's first save; any compact toast. Phones; both
+themes.
+
+**What a student runs into.** The one-line pill is two lines: "Saved" with the dot alone under it, and the message
+wrapped beside it (`screens/ux16-toast-saved-360.png`).
+
+**Cause.** `.ui-toast--compact .ui-toast__text` sets `white-space: nowrap` (`ui/Toaster.css:117-122`), but its
+children are `<p>`s, and `styles/base.css:89-91` sets `p { text-wrap: pretty }`. `text-wrap` is a shorthand that
+also sets `text-wrap-mode: wrap` on the `<p>` itself, which beats the inherited `nowrap` (computed: the `<p>`s are
+`white-space: normal`). The same applies to headings (`text-wrap: balance`, `base.css:49`) inside any `nowrap`
+container.
+
+**Fix.** Put `white-space: nowrap` on `.ui-toast--compact .ui-toast__title, .ui-toast__body` themselves (the body's
+ellipsis then works too), or change the base rules to `text-wrap-style: pretty` / `balance`, which set only the style
+and leave the wrap mode inherited. The second fixes every such case at once.
+
+#### UX-95 Dark mode: the selected segment is nearly invisible (minor)
+
+**Where:** every `SegmentedControl` and pill tab without a colour: library Filters sheet (Covers | List), a thread's
+Top | Oldest, forum Hot | New | Top, notebook Text | Pages, calendar List | Month, Daily's tabs. Dark, all sizes.
+
+**What a student runs into.** Only a slightly bolder label shows which option is on; the thumb is a 1.3:1 shade of the
+track (`screens/ux16-seg-thumb-dark.png`, right: List is selected). Year segments, which have a colour, are fine (left).
+
+**Cause.** Dark `--thumb-bg: #22355f` (`styles/tokens.css:377`) on `--surface-2`.
+
+**Fix.** A lighter dark thumb (about 3:1 against the track, for example the `--line-strong` shade) or a 1px
+`--line-strong` ring on `.ui-seg__thumb` in dark.
+
+#### UX-96 Daily tiles: the Sudoku blurb shows a line after its ellipsis (minor)
+
+**Where:** `/daily`, Today, at 360 and 390; both themes.
+
+**What a student runs into.** "Fill the grid so every row, column and box holds 1… to 9." The clamp adds the
+ellipsis after two lines and then shows the third line anyway, so the tile is taller than its neighbour
+(`screens/ux16-daily-clamp-360.png`).
+
+**Cause.** `.dh-tile__line` (`features/daily/DailyPage.css:216-225`) clamps a `<span>` with `display: -webkit-box`;
+Chrome computes it as `flow-root` and lets this one grow to 52 px (the others are 32 px).
+
+**Fix.** Add `max-height: calc(2 * 1.35em)` to the clamp (or render the line as a block `<p>`), and check with the
+longest tagline.
+
+#### UX-97 Dark mode: The Word's "not in the word" tile is the brightest tile (minor)
+
+**Where:** The Word, "How to play" and the board. Dark, all sizes.
+
+**What a student runs into.** In SLOPE, the P that "isn't in the word" is a pale blue-grey tile with dark text: the
+lightest thing in the row, so it reads as highlighted rather than ruled out (`screens/ux16-word-miss-dark.png`).
+
+**Cause.** `--dy-miss: color-mix(in srgb, var(--ink-3) 80%, var(--ink))` (`features/daily/daily.css:10`): in dark,
+`--ink` is light, so the mix is light. The keys already have a dark override (`WordGame.css:219-220`); the tiles don't.
+
+**Fix.** A dark value for `--dy-miss` that sits below the empty tiles (a mix towards `--surface-2`), with
+`--dy-on-miss` kept at 4.5:1.
+
+#### UX-98 Modules band at 768: the year switch floats mid-band and crowds the text (minor)
+
+**Where:** `/modules` at 768×1024 (and 820 wide); both themes.
+
+**What a student runs into.** The Year 1/2/3 switch sits in the middle of the band, beside the description, which is
+squeezed into a 210 px column of five short lines; "students'" ends 6 px under the switch
+(`screens/ux16-modules-band-768.png`).
+
+**Cause.** The band's `actions` grid area (`ui/Page.css`, `.ui-page-header--band`) stays beside `main` at tablet
+widths, between the text and the deskmate.
+
+**Fix.** Below about 900 px put the band's actions under the text (as on phones), or give `main` a minimum width.
+
+#### UX-99 Newsletter issue on phones: a long section is a pill wider than the screen (nit)
+
+**Where:** `/newsletter/:slug`, "In this issue", at 360 and 390.
+
+**What a student runs into.** A section titled "What changed in the assessment regulations this year and why it
+matters for Year 3" is one pill 560 px wide; it is cut at the screen edge with no ellipsis
+(`screens/ux16-newsletter-toc-360.png`).
+
+**Cause.** `.nl-toc__item { white-space: nowrap }` in the phone rules (`features/newsletter/IssuePage.css:898`).
+
+**Fix.** `max-width: min(80vw, 18rem)` with `overflow: hidden; text-overflow: ellipsis` on the label, or let the
+pill wrap to two lines.
+
+#### UX-100 Home hero (guest, no year yet): "Pick your year" is out of line (nit)
+
+**Where:** Home as a guest who hasn't picked a year, 1440×900; both themes.
+
+**What a student runs into.** The meta row wraps: "Pick your year" lands on the second line, indented by the ghost
+button's padding, so it lines up with neither the date above nor "Customise Home" (`screens/ux16-home-pick-year-1440.png`).
+
+**Cause.** Ghost `sm` buttons in `.home-head__meta` (`features/home/HomePage.tsx:324-360`) keep their inline padding
+when they start a line.
+
+**Fix.** A negative inline-start margin equal to the padding on ghost buttons in that row, or put the two buttons on a
+row of their own.
+
+#### UX-101 Tab strips and tool rows cut the last item mid-word with no fade (nit)
+
+**Where:** module tabs at 360 ("Disc…"), forum cohort tabs ("Year 3" cut), the notebook's pages tools at 360 (the
+lasso is half off), the calendar's type chips. At 768 the notebook toolbar leaves the zoom control alone on its own line.
+
+**What a student runs into.** Nothing shows that the strip scrolls; the cut looks like a bug.
+
+**Fix.** A short fade mask at the scrolling edge (`mask-image: linear-gradient(to right, #000 85%, transparent)`),
+shown only while there is more to scroll.
+
+### Earlier findings (re-checked where this round's screens showed them)
+
+| Finding | Status |
+|---|---|
+| UX-81 bands push content down on phones | Improved: at 360 the calendar's next exam starts at about 270 px and the forum's first thread at about 425 px (were 489 and 641). |
+| UX-85, UX-86 contrast of year avatars and past events | Not re-measured this round. |
+| UX-80, UX-82 to UX-84, UX-87 to UX-91 | Not re-checked this round. |
+
+### What held up by eye
+
+Dialogs and sheets (sign-in, Time me, Filters, New event, the event drawer, How to play) fit 360×780 and 844×390 and
+sit above the tab bar; the toaster sits above the tab bar; Mini Noora stays in her lane at 768 and 1440; Arabic
+posts and replies wrap and align right inside their cards; long module names wrap cleanly in module rows, Manage and
+the calendar; notebook pages are light paper in dark mode by design. Not tested: white flashes between routes.
+
 ## Round 15: the Deskmates look (20 October 2026)
 
 Reviewer: UI/UX. Build: `feature/backend` at `39680d2` (phases 1, 2, 3a and 3b merged), on the shared stack (app
