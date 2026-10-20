@@ -154,11 +154,7 @@ function Calculator({ rules }: { rules: Rules }) {
       <Menu
         label="Examples"
         align="end"
-        trigger={
-          <Button trailingIcon={<Icon glyph={glyph.chevronDown} />}>
-            Try an example
-          </Button>
-        }
+        trigger={<Button trailingIcon={<Icon glyph={glyph.chevronDown} />}>Try an example</Button>}
         items={Object.entries(EXAMPLES).map(([id, ex]) => ({ id, label: ex.label, onSelect: () => loadExample(id) }))}
       />
       <Button variant="ghost" leadingIcon={<Icon glyph={glyph.undo} />} onClick={reset} disabled={!hasMarks(record)}>

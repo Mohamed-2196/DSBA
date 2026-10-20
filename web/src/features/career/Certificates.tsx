@@ -93,7 +93,12 @@ export function CertCard({ cert }: { cert: CareerCert }) {
             </span>
           </>
         ) : cert.file ? (
-          <Button variant="secondary" size="sm" to={libraryLink(cert.file.module)} leadingIcon={<Icon glyph={glyph.page} />}>
+          <Button
+            variant="secondary"
+            size="sm"
+            to={libraryLink(cert.file.module)}
+            leadingIcon={<Icon glyph={glyph.page} />}
+          >
             Find it in the library
           </Button>
         ) : null}

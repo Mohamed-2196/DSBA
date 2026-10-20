@@ -56,10 +56,16 @@ export function PageHeader({
   className,
   children,
 }: PageHeaderProps) {
-  const drawn = section === 'tools' ? mate : section ? (mate ?? <Deskmate mate={SECTION_MATE[section]} size={100} />) : null;
+  const drawn =
+    section === 'tools' ? mate : section ? (mate ?? <Deskmate mate={SECTION_MATE[section]} size={100} />) : null;
   return (
     <header
-      className={cx('ui-page-header', section && 'ui-page-header--band', section && !drawn && 'ui-page-header--bare', className)}
+      className={cx(
+        'ui-page-header',
+        section && 'ui-page-header--band',
+        section && !drawn && 'ui-page-header--bare',
+        className,
+      )}
       data-section={section}
     >
       {drawn ? <div className="ui-page-header__mate">{drawn}</div> : null}
