@@ -1,6 +1,5 @@
-import { ArrowClockwise, ImageSquare, WarningCircle, X } from '@phosphor-icons/react';
 import { formatSize } from '../../../api/uploads';
-import { IconButton, cx } from '../../../ui';
+import { IconButton, cx, Icon, glyph } from '../../../ui';
 import type { ImageUpload } from '../lib/uploads';
 
 export interface AttachmentListProps {
@@ -29,9 +28,9 @@ export function AttachmentList({ uploads, onRemove, onRetry }: AttachmentListPro
             ) : null}
             <figcaption className="forum-attachment__bar">
               {u.phase === 'error' ? (
-                <WarningCircle aria-hidden="true" weight="fill" className="forum-attachment__icon is-error" />
+                <Icon glyph={glyph.warning} className="forum-attachment__icon is-error" />
               ) : (
-                <ImageSquare aria-hidden="true" weight="duotone" className="forum-attachment__icon" />
+                <Icon glyph={glyph.image} className="forum-attachment__icon" />
               )}
               <span className="forum-attachment__name">{u.fileName}</span>
               {/* Announced once per phase (uploading, added, the problem); the percentage is for the eyes only. */}
@@ -50,7 +49,7 @@ export function AttachmentList({ uploads, onRemove, onRetry }: AttachmentListPro
               {u.phase === 'error' && u.retryable ? (
                 <IconButton
                   size="sm"
-                  icon={ArrowClockwise}
+                  icon={<Icon glyph={glyph.refresh} />}
                   label={`Try ${u.fileName} again`}
                   tooltip
                   tooltipSide="top"
@@ -59,7 +58,7 @@ export function AttachmentList({ uploads, onRemove, onRetry }: AttachmentListPro
               ) : null}
               <IconButton
                 size="sm"
-                icon={X}
+                icon={<Icon glyph={glyph.close} />}
                 label={u.phase === 'uploading' ? `Cancel uploading ${u.fileName}` : `Remove ${u.fileName}`}
                 tooltip
                 tooltipSide="top"

@@ -1,5 +1,4 @@
-import { DotsThree } from '@phosphor-icons/react';
-import { IconButton, Menu } from '../../../ui';
+import { IconButton, Menu, Icon, glyph } from '../../../ui';
 import type { MenuItem } from '../../../ui/Menu';
 
 const isDivider = (i: MenuItem) => 'divider' in i && i.divider === true;
@@ -28,7 +27,15 @@ export function PostMenu({
       label={label}
       align="end"
       items={items}
-      trigger={<IconButton size="sm" icon={DotsThree} label={label} className="forum-post-menu" data-hub="post-menu" />}
+      trigger={
+        <IconButton
+          size="sm"
+          icon={<Icon glyph={glyph.more} />}
+          label={label}
+          className="forum-post-menu"
+          data-hub="post-menu"
+        />
+      }
     />
   );
 }

@@ -1,7 +1,6 @@
 // "Report" for a thread, a reply or a request: a quiet button and its dialog, from useReport (useReport.tsx). Both
 // are in features/forum/public.ts.
-import { Flag } from '@phosphor-icons/react';
-import { Button, cx } from '../../ui';
+import { Button, cx, Icon, glyph } from '../../ui';
 import type { ReportTargetType } from './types';
 import { useReport } from './useReport';
 
@@ -22,7 +21,7 @@ export function ReportButton({ targetType, targetId, label = 'Report', className
       <Button
         variant="ghost"
         size="sm"
-        leadingIcon={report.reported ? <Flag weight="fill" /> : Flag}
+        leadingIcon={<Icon glyph={glyph.flag} active={report.reported} />}
         className={cx('forum-report-button', report.reported && 'is-reported', className)}
         onClick={report.open}
         data-hub="report-button"
