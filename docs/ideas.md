@@ -1044,7 +1044,7 @@ Quick wins are marked **quick win** in the heading.
 - **Size:** S, web only.
 - **Costs and risks:** a large PDF on a phone; cap it at about 30 notes and say so.
 - **How we'd know it worked:** exports in the week before exams.
-- **Status:** proposed.
+- **Status:** built in round 16 (`round16/dates16`: "Print all" on the notebook's module filter prints up to 30 notes, oldest first, through the browser's print or save as PDF; no server PDF).
 
 ## Round 16 · Dates
 
@@ -1062,7 +1062,7 @@ Quick wins are marked **quick win** in the heading.
 - **Costs and risks:** a mismatched row puts a wrong room on an exam, so the preview shows every change and rows it
   couldn't match. Year 3's modules need unit codes first.
 - **How we'd know it worked:** exams with a time and place a week before the session; fewer "what time?" messages.
-- **Status:** proposed.
+- **Status:** built in round 16 (`round16/dates16`: Manage → Calendar → Paste the exam timetable; `POST /calendar/timetable/preview` and `POST /calendar/timetable`, one notice per year, audited, ten saves an hour).
 
 ### IDEA-55. Your revision plan on the calendar
 
@@ -1074,7 +1074,7 @@ Quick wins are marked **quick win** in the heading.
 - **Size:** S, web mostly; the feed part touches the API.
 - **Costs and risks:** a busy plan crowds the month view, so it's off until switched on.
 - **How we'd know it worked:** plan cards opened from the calendar; feed subscriptions.
-- **Status:** proposed.
+- **Status:** built in round 16 (`round16/dates16`: "Your plan" in Customise's types, off until turned on; `GET /calendar/mine/plan`, `showPlan` in the calendar settings (migration 0050), carried by the private feed).
 
 ## Round 16 · Offline
 

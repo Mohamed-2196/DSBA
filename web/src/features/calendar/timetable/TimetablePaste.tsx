@@ -1,10 +1,10 @@
 // Manage → Calendar: the exam timetable in one paste (IDEA-54). The rep pastes the rows as they came (the email, a web
 // page, a spreadsheet), checks what each will do (a change to an exam, a new exam, nothing, or something to fix
 // first), fixes rows in place, and saves them all at once; each year whose exams changed gets one notice.
-import { useState, type ComponentProps } from 'react';
+import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import type { TimetableRow, TimetableSaved } from '../../../api/types';
 import { errorMessage, isApiError } from '../../../api/errors';
-import { formatShort, parseDay, today as bahrainToday } from '../../../lib/dates';
+import { today as bahrainToday } from '../../../lib/dates';
 import { cohortLabel, useToast, useUnsavedChanges } from '../../../state';
 import { Badge, Button, cx, glyph, Icon, IconButton, Panel, Switch, TextArea, TextField } from '../../../ui';
 import { useSaveTimetable, useTimetablePreview } from '../api';
@@ -50,6 +50,11 @@ export function TimetablePaste() {
   const [refused, setRefused] = useState<Map<number, string>>(new Map());
   const [source, setSource] = useState(() => defaultSource(bahrainToday()));
   const [notify, setNotify] = useState(true);
+  // after a save the rows go: bring what was saved into view
+  const done = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (stage.at === 'saved') done.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [stage.at]);
   useUnsavedChanges(stage.at === 'check' || (stage.at === 'paste' && !!text.trim()), 'The exam timetable');
 
   const answered = (rows: TimetableRow[]) => {
@@ -207,7 +212,7 @@ export function TimetablePaste() {
       ) : null}
 
       {stage.at === 'saved' ? (
-        <div className="tt__done" data-hub="timetable-saved">
+        <div ref={done} className="tt__done" data-hub="timetable-saved">
           <p className="tt__summary" role="status">
             {savedLine(stage.saved)}
           </p>
@@ -286,7 +291,6 @@ function RowEditor({
           value={draft.date}
           onChange={(e) => onEdit('date', e.target.value)}
           className="tt-row__date"
-          hint={draft.date ? formatShort(parseDay(draft.date)) : undefined}
         />
         <TextField
           label="Time"

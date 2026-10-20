@@ -95,6 +95,7 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
                 size="sm"
                 selected={!!prefs?.showPlan}
                 onChange={my.setShowPlan}
+                color="var(--plan)"
                 className="cal-typechip cal-typechip--plan"
                 disabled={!prefs}
                 data-hub="calendar-show-plan"

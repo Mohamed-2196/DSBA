@@ -109,16 +109,42 @@
 }
 .tt-row__fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 5.75rem) minmax(0, 1fr);
+  align-items: start;
   gap: var(--sp-8) var(--sp-10);
 }
-@media (min-width: 900px) {
+/* phones: the code and the date side by side, the time and the venue each across */
+.tt-row__time,
+.tt-row__place {
+  grid-column: 1 / -1;
+}
+@media (min-width: 600px) {
+  .tt-row__time,
+  .tt-row__place {
+    grid-column: auto;
+  }
   .tt-row__fields {
-    grid-template-columns: 8.5rem 11rem minmax(0, 1fr) minmax(0, 1.4fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .tt-row__fields {
+    grid-template-columns: 7.5rem 10.5rem minmax(0, 1.3fr) minmax(0, 1.2fr);
   }
 }
 .tt-row__fields > * {
   min-width: 0;
+}
+.tt-row__fields input {
+  min-width: 0;
+  width: 100%;
+}
+.tt-row__fields .ui-control {
+  overflow: hidden;
+}
+.tt-row__code input,
+.tt-row__date input {
+  padding-inline: 10px;
 }
 .tt-row__code input {
   font-family: var(--font-mono);
