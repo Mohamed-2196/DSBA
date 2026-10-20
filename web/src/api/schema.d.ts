@@ -2469,6 +2469,52 @@ export interface paths {
         patch: operations["update_event_api_v1_calendar_events__event_id__patch"];
         trace?: never;
     };
+    "/api/v1/calendar/timetable/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Timetable Preview
+         * @description The exam timetable as pasted (`text`: rows with a module code, a date, a time and a venue, as they come from
+         *     the email or the spreadsheet), or its rows after fixing (`rows`): each row matched to its module and exam, with
+         *     what saving it will do (update, new, same) or what to fix first. Changes nothing. Errors: invalid_input (422: no
+         *     rows found, or neither or both of `text` and `rows`).
+         */
+        post: operations["timetable_preview_api_v1_calendar_timetable_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/timetable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Timetable Save
+         * @description Saves every row at once: an exam's new date, time and place, or a new exam, each confirmed with `source` and
+         *     today as its check. With `notify`, each year whose exams changed gets one notice listing them (at most one a year
+         *     a day). Audited. Errors: invalid_input (422, fields 'rows.<n>': nothing is saved while a row needs fixing),
+         *     rate_limited (429: ten saves an hour).
+         */
+        post: operations["timetable_save_api_v1_calendar_timetable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/calendar/mine/events": {
         parameters: {
             query?: never;
@@ -2567,6 +2613,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/calendar/mine/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Plan
+         * @description Your plan on your calendar: the cards not done on your active boards that have a day of their own (a due date,
+         *     or the day your revision plan gives them), by day. Only yours; empty while boards are off for you. The calendar
+         *     shows it while `showPlan` is on in your settings.
+         */
+        get: operations["my_plan_api_v1_calendar_mine_plan_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/calendar/mine/settings": {
         parameters: {
             query?: never;
@@ -2586,7 +2654,8 @@ export interface paths {
         head?: never;
         /**
          * Change My Settings
-         * @description Each list sent (hidden dates, modules, types) replaces the one kept; lists not sent stay.
+         * @description Each list sent (hidden dates, modules, types) replaces the one kept, and `showPlan` turns your plan on your
+         *     calendar and private feed on or off; what is not sent stays.
          */
         patch: operations["change_my_settings_api_v1_calendar_mine_settings_patch"];
         trace?: never;
@@ -5503,12 +5572,14 @@ export interface components {
             hiddenModules: string[];
             /** Hiddentypes */
             hiddenTypes: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term")[];
+            /** Showplan */
+            showPlan: boolean;
             /** Feedpath */
             feedPath: string | null;
         };
         /**
          * CalendarPrefsUpdate
-         * @description Each list sent replaces the one kept (at most 300 entries); lists not sent stay.
+         * @description Each list sent replaces the one kept (at most 300 entries); what is not sent stays.
          */
         CalendarPrefsUpdate: {
             /** Hiddenevents */
@@ -5517,6 +5588,8 @@ export interface components {
             hiddenModules?: string[] | null;
             /** Hiddentypes */
             hiddenTypes?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term")[] | null;
+            /** Showplan */
+            showPlan?: boolean | null;
         };
         /**
          * CardAside
@@ -11651,6 +11724,130 @@ export interface components {
             tags?: string[] | null;
         };
         /**
+         * TimetableNotice
+         * @description What one year was told.
+         */
+        TimetableNotice: {
+            /** Year */
+            year: (1 | 2 | 3) | null;
+            /** Exams */
+            exams: number;
+            /**
+             * Notice
+             * @enum {string}
+             */
+            notice: "sent" | "limit" | "none";
+            /** Told */
+            told: number;
+        };
+        /** TimetablePreview */
+        TimetablePreview: {
+            /** Rows */
+            rows: components["schemas"]["TimetableRow"][];
+        };
+        /**
+         * TimetablePreviewIn
+         * @description The timetable as pasted (`text`), or its rows after the rep fixed them (`rows`): one of the two.
+         */
+        TimetablePreviewIn: {
+            /** Text */
+            text?: string | null;
+            /** Rows */
+            rows?: components["schemas"]["TimetableRowIn"][] | null;
+        };
+        /**
+         * TimetableRow
+         * @description A row of the timetable, matched to its module and, when the calendar has one near its date, to its exam.
+         */
+        TimetableRow: {
+            /** Line */
+            line: number | null;
+            /** Text */
+            text: string | null;
+            /** Unitcode */
+            unitCode: string | null;
+            /** Date */
+            date: string | null;
+            /** Time */
+            time: string | null;
+            /** Place */
+            place: string | null;
+            /** Moduleid */
+            moduleId: string | null;
+            /** Modulename */
+            moduleName: string | null;
+            /** Year */
+            year: (1 | 2 | 3) | null;
+            /** Eventid */
+            eventId: string | null;
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "update" | "new" | "same" | "fix";
+            was: components["schemas"]["TimetableWas"] | null;
+            /** Problems */
+            problems: string[];
+        };
+        /**
+         * TimetableRowIn
+         * @description One exam of the timetable as the rep checked it. A row without a time or a place keeps the exam's own.
+         */
+        TimetableRowIn: {
+            /** Unitcode */
+            unitCode?: string | null;
+            /** Date */
+            date?: string | null;
+            /** Time */
+            time?: string | null;
+            /** Place */
+            place?: string | null;
+        };
+        /**
+         * TimetableSave
+         * @description The rows to save, all at once, with where they come from. With `notify`, each year whose exams changed gets
+         *     one notice listing them.
+         */
+        TimetableSave: {
+            /** Rows */
+            rows: components["schemas"]["TimetableRowIn"][];
+            /** Source */
+            source: string;
+            /**
+             * Notify
+             * @default true
+             */
+            notify: boolean;
+        };
+        /** TimetableSaved */
+        TimetableSaved: {
+            /** Created */
+            created: number;
+            /** Updated */
+            updated: number;
+            /** Unchanged */
+            unchanged: number;
+            /** Notices */
+            notices: components["schemas"]["TimetableNotice"][];
+        };
+        /**
+         * TimetableWas
+         * @description The exam as the calendar has it now.
+         */
+        TimetableWas: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Time */
+            time: string | null;
+            /** Place */
+            place: string | null;
+            /** Sample */
+            sample: boolean;
+        };
+        /**
          * TodayFixIn
          * @description A correction to an item today's puzzle uses: its fields as corrected, for today and the days to come. `day` and
          *     `revision` are today's puzzle as it was loaded and `version` the item's (409 puzzle_changed when one of them changed
@@ -12371,6 +12568,14 @@ export type ThreadModeration = components['schemas']['ThreadModeration'];
 export type ThreadPage = components['schemas']['ThreadPage'];
 export type ThreadSummary = components['schemas']['ThreadSummary'];
 export type ThreadUpdate = components['schemas']['ThreadUpdate'];
+export type TimetableNotice = components['schemas']['TimetableNotice'];
+export type TimetablePreview = components['schemas']['TimetablePreview'];
+export type TimetablePreviewIn = components['schemas']['TimetablePreviewIn'];
+export type TimetableRow = components['schemas']['TimetableRow'];
+export type TimetableRowIn = components['schemas']['TimetableRowIn'];
+export type TimetableSave = components['schemas']['TimetableSave'];
+export type TimetableSaved = components['schemas']['TimetableSaved'];
+export type TimetableWas = components['schemas']['TimetableWas'];
 export type TodayFixIn = components['schemas']['TodayFixIn'];
 export type TodayFixOut = components['schemas']['TodayFixOut'];
 export type TodayGame = components['schemas']['TodayGame'];
@@ -24673,6 +24878,180 @@ export interface operations {
             };
         };
     };
+    timetable_preview_api_v1_calendar_timetable_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetablePreviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetablePreview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    timetable_save_api_v1_calendar_timetable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetableSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableSaved"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     my_events_api_v1_calendar_mine_events_get: {
         parameters: {
             query?: never;
@@ -25211,6 +25590,89 @@ export interface operations {
                 };
                 content: {
                     "text/calendar": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_plan_api_v1_calendar_mine_plan_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgendaCard"][];
                 };
             };
             /** @description Bad Request */

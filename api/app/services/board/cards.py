@@ -485,9 +485,22 @@ def agenda(db: Session, user: User, days: int = AGENDA_DAYS) -> Agenda:
     time (cards without one last that day), then board."""
     today = bahrain_today()
     until = today + timedelta(days=days)
+    return Agenda(today=today, until=until, cards=_dated(db, user, until=until, event_days=True))
+
+
+def calendar_plan(db: Session, user: User) -> list[AgendaCard]:
+    """The student's plan on their calendar: the cards not done on the active boards that have a day of their own (a
+    due date, or the day their revision plan gives them), by day, then time, then board. A card dated only by the
+    calendar event it links to is left out: the calendar shows the event itself."""
+    return _dated(db, user, until=None, event_days=False)
+
+
+def _dated(db: Session, user: User, *, until: dt.date | None, event_days: bool) -> list[AgendaCard]:
+    """The cards not done on the active boards that have a day up to `until` (None: any): their due date, else
+    their plan's day, else (with `event_days`) their event's last day."""
     boards = {b.id: (i, b) for i, b in enumerate(active_boards(db, user.id))}
     if not boards:
-        return Agenda(today=today, until=until, cards=[])
+        return []
     q = (
         select(BoardCard)
         .join(BoardColumn, BoardColumn.id == BoardCard.column_id)
@@ -499,8 +512,8 @@ def agenda(db: Session, user: User, days: int = AGENDA_DAYS) -> Agenda:
     found: list[tuple[tuple[dt.date, dt.time, int], AgendaCard]] = []
     for card in cards:
         out = ctx.out(card)
-        due = out.due_date or out.plan_date or (out.link.date if out.link else None)
-        if due is None or due > until:
+        due = out.due_date or out.plan_date or (out.link.date if event_days and out.link else None)
+        if due is None or (until is not None and due > until):
             continue
         rank, board = boards[card.board_id]
         found.append(
@@ -518,7 +531,7 @@ def agenda(db: Session, user: User, days: int = AGENDA_DAYS) -> Agenda:
             )
         )
     found.sort(key=lambda r: r[0])
-    return Agenda(today=today, until=until, cards=[c for _, c in found])
+    return [c for _, c in found]
 
 
 def overview(db: Session, user: User) -> Boards:

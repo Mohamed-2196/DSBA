@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import get_args
 
-from sqlalchemy import CheckConstraint, Date, ForeignKey, Index, SmallInteger, String, Text, Time, text
+from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, Index, SmallInteger, String, Text, Time, text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -68,6 +68,8 @@ class CalendarPrefs(Base):
     hidden_events: Mapped[list[str]] = mapped_column(ARRAY(String(120)), default=list, server_default="{}")
     hidden_modules: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list, server_default="{}")
     hidden_types: Mapped[list[str]] = mapped_column(ARRAY(String(16)), default=list, server_default="{}")
+    # Their plan (dated cards of their boards) on their calendar and in their private feed: off until switched on.
+    show_plan: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     # The private feed: its address is derived from the salt (services/my_calendar.py feed_token) and found by the
     # address's SHA-256. A new salt is a new address; no salt: the feed is off.
     feed_salt: Mapped[str | None] = mapped_column(String(32))

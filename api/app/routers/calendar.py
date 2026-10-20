@@ -15,6 +15,7 @@ from app.core.security import DB, ActiveUser, CurrentUser, client_ip, needs_feat
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.auth import MAX_PAPERS
+from app.schemas.board import AgendaCard
 from app.schemas.calendar import (
     CalendarEventCreate,
     CalendarEventOut,
@@ -27,9 +28,13 @@ from app.schemas.calendar import (
     PersonalEventCreate,
     PersonalEventOut,
     PersonalEventUpdate,
+    TimetablePreview,
+    TimetablePreviewIn,
+    TimetableSave,
+    TimetableSaved,
 )
 from app.schemas.common import ErrorResponse
-from app.services import access
+from app.services import access, timetable
 from app.services import calendar as svc
 from app.services import my_calendar as mine
 
@@ -149,6 +154,30 @@ def delete_event(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.post("/calendar/timetable/preview", response_model=TimetablePreview)
+def timetable_preview(
+    body: TimetablePreviewIn, user: Annotated[User, requires(Box.calendar_manage)], db: DB
+) -> TimetablePreview:
+    """The exam timetable as pasted (`text`: rows with a module code, a date, a time and a venue, as they come from
+    the email or the spreadsheet), or its rows after fixing (`rows`): each row matched to its module and exam, with
+    what saving it will do (update, new, same) or what to fix first. Changes nothing. Errors: invalid_input (422: no
+    rows found, or neither or both of `text` and `rows`)."""
+    return timetable.preview(db, body)
+
+
+@router.post("/calendar/timetable", response_model=TimetableSaved)
+def timetable_save(
+    body: TimetableSave, request: Request, user: Annotated[User, requires(Box.calendar_manage)], db: DB
+) -> TimetableSaved:
+    """Saves every row at once: an exam's new date, time and place, or a new exam, each confirmed with `source` and
+    today as its check. With `notify`, each year whose exams changed gets one notice listing them (at most one a year
+    a day). Audited. Errors: invalid_input (422, fields 'rows.<n>': nothing is saved while a row needs fixing),
+    rate_limited (429: ten saves an hour)."""
+    saved = timetable.save(db, user, body, client_ip(request))
+    db.commit()
+    return saved
+
+
 # ── your own calendar ────────────────────────────────────────────────────────────────────────
 
 ICS: dict[int | str, dict[str, Any]] = {
@@ -228,6 +257,14 @@ def my_event_ics(event_id: UUID, user: CurrentUser, db: DB) -> Response:
     )
 
 
+@router.get("/calendar/mine/plan", response_model=list[AgendaCard])
+def my_plan(user: CurrentUser, db: DB) -> list[AgendaCard]:
+    """Your plan on your calendar: the cards not done on your active boards that have a day of their own (a due date,
+    or the day your revision plan gives them), by day. Only yours; empty while boards are off for you. The calendar
+    shows it while `showPlan` is on in your settings."""
+    return mine.plan_of(db, user)
+
+
 @router.get("/calendar/mine/settings", response_model=CalendarPrefsOut)
 def my_settings(user: CurrentUser, db: DB) -> CalendarPrefsOut:
     """The programme dates you keep off your calendar, and your private feed's path."""
@@ -236,7 +273,8 @@ def my_settings(user: CurrentUser, db: DB) -> CalendarPrefsOut:
 
 @router.patch("/calendar/mine/settings", response_model=CalendarPrefsOut)
 def change_my_settings(body: CalendarPrefsUpdate, user: ActiveUser, db: DB) -> CalendarPrefsOut:
-    """Each list sent (hidden dates, modules, types) replaces the one kept; lists not sent stay."""
+    """Each list sent (hidden dates, modules, types) replaces the one kept, and `showPlan` turns your plan on your
+    calendar and private feed on or off; what is not sent stays."""
     prefs = mine.update_prefs(db, user, body)
     db.commit()
     return mine.prefs_out(user, prefs)

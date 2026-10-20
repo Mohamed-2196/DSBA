@@ -15629,6 +15629,210 @@
         }
       }
     },
+    "/api/v1/calendar/timetable/preview": {
+      "post": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Timetable Preview",
+        "description": "The exam timetable as pasted (`text`: rows with a module code, a date, a time and a venue, as they come from\nthe email or the spreadsheet), or its rows after fixing (`rows`): each row matched to its module and exam, with\nwhat saving it will do (update, new, same) or what to fix first. Changes nothing. Errors: invalid_input (422: no\nrows found, or neither or both of `text` and `rows`).",
+        "operationId": "timetable_preview_api_v1_calendar_timetable_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetablePreviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetablePreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/timetable": {
+      "post": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Timetable Save",
+        "description": "Saves every row at once: an exam's new date, time and place, or a new exam, each confirmed with `source` and\ntoday as its check. With `notify`, each year whose exams changed gets one notice listing them (at most one a year\na day). Audited. Errors: invalid_input (422, fields 'rows.<n>': nothing is saved while a row needs fixing),\nrate_limited (429: ten saves an hour).",
+        "operationId": "timetable_save_api_v1_calendar_timetable_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableSaved"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/calendar/mine/events": {
       "get": {
         "tags": [
@@ -16395,6 +16599,102 @@
         }
       }
     },
+    "/api/v1/calendar/mine/plan": {
+      "get": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "My Plan",
+        "description": "Your plan on your calendar: the cards not done on your active boards that have a day of their own (a due date,\nor the day your revision plan gives them), by day. Only yours; empty while boards are off for you. The calendar\nshows it while `showPlan` is on in your settings.",
+        "operationId": "my_plan_api_v1_calendar_mine_plan_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AgendaCard"
+                  },
+                  "type": "array",
+                  "title": "Response My Plan Api V1 Calendar Mine Plan Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/calendar/mine/settings": {
       "get": {
         "tags": [
@@ -16491,7 +16791,7 @@
           "calendar"
         ],
         "summary": "Change My Settings",
-        "description": "Each list sent (hidden dates, modules, types) replaces the one kept; lists not sent stay.",
+        "description": "Each list sent (hidden dates, modules, types) replaces the one kept, and `showPlan` turns your plan on your\ncalendar and private feed on or off; what is not sent stays.",
         "operationId": "change_my_settings_api_v1_calendar_mine_settings_patch",
         "requestBody": {
           "content": {
@@ -31179,6 +31479,10 @@
             "type": "array",
             "title": "Hiddentypes"
           },
+          "showPlan": {
+            "type": "boolean",
+            "title": "Showplan"
+          },
           "feedPath": {
             "anyOf": [
               {
@@ -31196,6 +31500,7 @@
           "hiddenEvents",
           "hiddenModules",
           "hiddenTypes",
+          "showPlan",
           "feedPath"
         ],
         "title": "CalendarPrefsOut",
@@ -31260,11 +31565,22 @@
               }
             ],
             "title": "Hiddentypes"
+          },
+          "showPlan": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Showplan"
           }
         },
         "type": "object",
         "title": "CalendarPrefsUpdate",
-        "description": "Each list sent replaces the one kept (at most 300 entries); lists not sent stay."
+        "description": "Each list sent replaces the one kept (at most 300 entries); what is not sent stays."
       },
       "CardAside": {
         "properties": {
@@ -49255,6 +49571,428 @@
         },
         "type": "object",
         "title": "ThreadUpdate"
+      },
+      "TimetableNotice": {
+        "properties": {
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "exams": {
+            "type": "integer",
+            "title": "Exams"
+          },
+          "notice": {
+            "type": "string",
+            "enum": [
+              "sent",
+              "limit",
+              "none"
+            ],
+            "title": "Notice"
+          },
+          "told": {
+            "type": "integer",
+            "title": "Told"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "exams",
+          "notice",
+          "told"
+        ],
+        "title": "TimetableNotice",
+        "description": "What one year was told."
+      },
+      "TimetablePreview": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rows"
+        ],
+        "title": "TimetablePreview"
+      },
+      "TimetablePreviewIn": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "rows": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TimetableRowIn"
+                },
+                "type": "array",
+                "maxItems": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "title": "TimetablePreviewIn",
+        "description": "The timetable as pasted (`text`), or its rows after the rep fixed them (`rows`): one of the two."
+      },
+      "TimetableRow": {
+        "properties": {
+          "line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "moduleName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modulename"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "eventId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eventid"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "update",
+              "new",
+              "same",
+              "fix"
+            ],
+            "title": "Action"
+          },
+          "was": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimetableWas"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Problems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line",
+          "text",
+          "unitCode",
+          "date",
+          "time",
+          "place",
+          "moduleId",
+          "moduleName",
+          "year",
+          "eventId",
+          "action",
+          "was",
+          "problems"
+        ],
+        "title": "TimetableRow",
+        "description": "A row of the timetable, matched to its module and, when the calendar has one near its date, to its exam."
+      },
+      "TimetableRowIn": {
+        "properties": {
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          }
+        },
+        "type": "object",
+        "title": "TimetableRowIn",
+        "description": "One exam of the timetable as the rep checked it. A row without a time or a place keeps the exam's own."
+      },
+      "TimetableSave": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableRowIn"
+            },
+            "type": "array",
+            "maxItems": 80,
+            "minItems": 1,
+            "title": "Rows"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Source"
+          },
+          "notify": {
+            "type": "boolean",
+            "title": "Notify",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "rows",
+          "source"
+        ],
+        "title": "TimetableSave",
+        "description": "The rows to save, all at once, with where they come from. With `notify`, each year whose exams changed gets\none notice listing them."
+      },
+      "TimetableSaved": {
+        "properties": {
+          "created": {
+            "type": "integer",
+            "title": "Created"
+          },
+          "updated": {
+            "type": "integer",
+            "title": "Updated"
+          },
+          "unchanged": {
+            "type": "integer",
+            "title": "Unchanged"
+          },
+          "notices": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableNotice"
+            },
+            "type": "array",
+            "title": "Notices"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created",
+          "updated",
+          "unchanged",
+          "notices"
+        ],
+        "title": "TimetableSaved"
+      },
+      "TimetableWas": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "sample": {
+            "type": "boolean",
+            "title": "Sample"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "time",
+          "place",
+          "sample"
+        ],
+        "title": "TimetableWas",
+        "description": "The exam as the calendar has it now."
       },
       "TodayFixIn": {
         "properties": {
