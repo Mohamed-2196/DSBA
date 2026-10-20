@@ -222,6 +222,8 @@
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    /* Chrome can lay a clamped span out as a block and show a third line after the ellipsis. */
+    max-height: calc(2 * 1.35em);
   }
 }
 .dh-tile-skeleton {

@@ -46,7 +46,7 @@
   width: 22px;
   height: 22px;
   border-radius: var(--r-pill);
-  background: var(--thumb-bg);
+  background: var(--surface);
   box-shadow: 0 1px 2px rgba(10, 31, 68, 0.2);
   transition: transform var(--dur) var(--ease);
 }
