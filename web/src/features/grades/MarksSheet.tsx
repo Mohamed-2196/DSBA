@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { CaretDown } from '@phosphor-icons/react';
 import { cohortColor } from '../../state';
 import { useModules } from '../../state/modules';
-import { cx } from '../../ui';
+import { cx, glyph, Icon } from '../../ui';
 import { bandMeta } from './bands';
 import {
   bandOf,
@@ -187,7 +186,7 @@ export function MarksSheet({ marks, picks, groupAverage, aims, onMark, onPick, r
                               </option>
                             ))}
                           </select>
-                          <CaretDown className="grades-choice__caret" aria-hidden="true" weight="bold" />
+                          <Icon glyph={glyph.chevronDown} size={16} className="grades-choice__caret" />
                         </span>
                       ) : (
                         <label htmlFor={id} className="grades-row__name">

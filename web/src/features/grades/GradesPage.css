@@ -44,17 +44,21 @@
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: var(--sp-48);
   padding: var(--sp-32);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-panel);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .grades-hero__main {
   min-width: 0;
 }
 .grades-hero__kicker {
   color: var(--ink-2);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.1em;
+  line-height: 16px;
+  text-transform: uppercase;
 }
 .grades-hero__title {
   display: flex;
@@ -66,22 +70,26 @@
   font-family: var(--font-display);
   font-size: var(--fs-display-num);
   font-weight: var(--fw-display);
-  line-height: 0.9;
-  letter-spacing: -0.03em;
+  line-height: 0.95;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+.grades-hero--classified .grades-hero__big {
+  color: var(--accent-text);
 }
 .grades-hero__name {
   max-width: 24ch;
+  font-family: var(--font-display);
   font-size: var(--fs-22);
-  font-weight: var(--fw-bold);
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-weight: var(--fw-display);
+  line-height: 28px;
+  letter-spacing: -0.015em;
 }
 .grades-hero--empty .grades-hero__big {
   color: var(--ink-3);
 }
 .grades-hero--empty .grades-hero__name {
   color: var(--ink-2);
-  font-weight: var(--fw-semibold);
 }
 .grades-hero--resit .grades-hero__big {
   color: var(--error);
@@ -92,7 +100,6 @@
 }
 .grades-hero--partial .grades-hero__name {
   color: var(--ink-2);
-  font-weight: var(--fw-semibold);
   font-size: var(--fs-20);
 }
 .grades-hero__avg {
@@ -103,9 +110,11 @@
 .grades-hero__avg strong {
   margin-left: 4px;
   color: var(--ink);
-  font-size: var(--fs-20);
-  font-weight: var(--fw-heavy);
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-display);
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
 }
 .grades-hero__body {
   margin-top: var(--sp-24);
@@ -338,28 +347,31 @@
 .grades-sheet {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .grades-year {
   min-width: 0;
   padding: var(--sp-24) var(--sp-24) var(--sp-16);
 }
 .grades-year + .grades-year {
-  border-left: 1px solid var(--line);
+  border-left: 1.5px solid var(--line);
 }
 .grades-year__head {
   padding-bottom: var(--sp-12);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
 }
 .grades-year__title {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: var(--fs-20);
-  font-weight: var(--fw-heavy);
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-display);
+  line-height: 28px;
+  letter-spacing: -0.015em;
 }
 .grades-year__dot {
   width: 10px;
@@ -383,7 +395,14 @@
   grid-template-areas: 'label input band' 'label aim aim';
   align-items: center;
   column-gap: var(--sp-12);
-  padding: 11px 0;
+  margin-inline: calc(-1 * var(--sp-8));
+  padding: 10px var(--sp-8);
+  border-radius: var(--r-control);
+  transition: background-color var(--dur-fast) var(--ease);
+}
+/* The row being typed in lifts to inset, as a table row does under the pointer. */
+.grades-row:focus-within {
+  background: var(--surface-2);
 }
 .grades-row__label {
   grid-area: label;
@@ -403,12 +422,12 @@
   font-size: var(--fs-12);
 }
 .grades-row__weight {
-  padding: 1px 7px;
+  padding: 1px 8px;
   border-radius: var(--r-pill);
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font-size: 11px;
-  font-weight: var(--fw-semibold);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
   white-space: nowrap;
 }
 .grades-row__name {
@@ -420,10 +439,10 @@
 .grades-row__input {
   grid-area: input;
   width: 68px;
-  height: 44px;
+  height: 46px;
   padding: 0 6px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-control);
+  border: 1.5px solid var(--control-border);
+  border-radius: var(--r-input);
   background: var(--surface);
   color: var(--ink);
   font-size: var(--fs-20);
@@ -439,7 +458,7 @@
   font-weight: var(--fw-regular);
 }
 .grades-row__input:hover {
-  border-color: var(--ink-3);
+  border-color: var(--ink-2);
 }
 .grades-row__input:focus-visible {
   outline: none;
@@ -474,8 +493,8 @@
   padding: 2px 8px;
   border-radius: var(--r-pill);
   background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 11px;
+  color: var(--accent-text);
+  font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
   white-space: nowrap;
 }
@@ -493,11 +512,12 @@
 .grades-choice__select {
   width: 100%;
   min-width: 0;
-  padding: 1px 20px 2px 0;
-  border: 0;
-  border-bottom: 1px solid var(--line-strong);
-  border-radius: 0;
-  background: transparent;
+  min-height: 40px;
+  margin-top: 2px;
+  padding: 0 32px 0 12px;
+  border: 1.5px solid var(--control-border);
+  border-radius: var(--r-input);
+  background: var(--surface);
   color: var(--ink);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
@@ -507,12 +527,11 @@
   cursor: pointer;
 }
 .grades-choice__select:hover {
-  border-bottom-color: var(--ink-2);
+  border-color: var(--ink-2);
 }
 .grades-choice__select:focus-visible {
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;
-  border-radius: 3px;
 }
 .grades-choice__select option {
   background: var(--surface);
@@ -524,9 +543,8 @@
 }
 .grades-choice__caret {
   position: absolute;
-  right: 2px;
+  right: 10px;
   color: var(--ink-2);
-  font-size: 12px;
   pointer-events: none;
 }
 /* Touch screens: a 44px control to tap. */
@@ -543,7 +561,7 @@
   gap: 8px;
   margin-top: 4px;
   padding-top: var(--sp-12);
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
@@ -597,18 +615,19 @@
   width: 24px;
   height: 24px;
   border-radius: var(--r-pill);
-  background: var(--surface-2);
-  color: var(--ink);
+  background: var(--accent-soft);
+  color: var(--accent-text);
   font-size: var(--fs-12);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-heavy);
 }
 .grades-table {
   width: 100%;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-collapse: separate;
   border-spacing: 0;
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
   font-size: var(--fs-14);
   overflow: hidden;
 }
@@ -617,7 +636,7 @@
   caption-side: top;
   text-align: left;
   color: var(--ink);
-  font-size: var(--fs-16);
+  font-size: var(--fs-17);
   font-weight: var(--fw-bold);
 }
 .grades-table th,
@@ -628,12 +647,25 @@
   vertical-align: top;
   line-height: 1.45;
 }
+/* The header: small caps over a rule, as in the library's sittings table. */
 .grades-table thead th {
+  padding-block: 10px 8px;
   border-top: 0;
-  background: var(--surface-2);
+  border-bottom: 1.5px solid var(--line);
   color: var(--ink-2);
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.grades-table thead + tbody tr:first-child > * {
+  border-top: 0;
+}
+.grades-table tbody tr {
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.grades-table tbody tr:hover {
+  background: var(--surface-2);
 }
 .grades-table tbody th {
   width: 34%;
@@ -661,7 +693,7 @@
   line-height: 1.5;
 }
 .grades-how__note a {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: var(--fw-semibold);
 }
 
@@ -684,9 +716,10 @@
   animation: grades-sticky-in var(--dur-slow) var(--ease);
 }
 .grades-sticky__big {
-  font-size: var(--fs-20);
-  font-weight: var(--fw-heavy);
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-display);
+  letter-spacing: -0.015em;
   white-space: nowrap;
 }
 .grades-sticky__text {
@@ -724,7 +757,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .grades-year + .grades-year {
-    border-top: 1px solid var(--line);
+    border-top: 1.5px solid var(--line);
     border-left: 0;
   }
   .grades-year__rule {
@@ -768,7 +801,7 @@
   display: inline-flex;
   align-items: flex-start;
   gap: var(--sp-8);
-  color: var(--ink-2);
+  color: var(--ink);
   font-size: var(--fs-14);
   line-height: 1.45;
   max-width: var(--measure);
@@ -776,7 +809,4 @@
 .grades-privacy__icon {
   flex: 0 0 auto;
   margin-top: 2px;
-  width: 16px;
-  height: 16px;
-  color: var(--ink-3);
 }
