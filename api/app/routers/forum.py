@@ -8,7 +8,7 @@ from uuid import UUID
 from fastapi import Query, Request, Response, status
 
 from app.core.access import Box, Feature
-from app.core.errors import unauthenticated
+from app.core.errors import invalid, unauthenticated
 from app.core.pagination import Limit, Offset, YearParam
 from app.core.security import DB, ActiveUser, CurrentUser, OptionalUser, client_ip, needs_feature, requires
 from app.models import User
@@ -21,6 +21,7 @@ from app.schemas.forum import (
     ForumSettingsEditable,
     ForumSettingsSave,
     ForumStats,
+    QuestionThreads,
     Reply,
     ReplyCreate,
     ReplyModeration,
@@ -35,7 +36,7 @@ from app.schemas.forum import (
     ThreadUpdate,
     VoteResult,
 )
-from app.services import notifications
+from app.services import library, notifications
 from app.services.forum import follows, queries, replies, settings, taxonomy, threads, views, visibility, votes
 
 router = router_for("forum", needs_feature(Feature.forum))
@@ -100,6 +101,12 @@ def list_threads(
         pattern=r"^[a-z0-9-]{1,120}$",
         description="A library item's slug: only threads whose post or a reply links to it (/library/<slug>)",
     ),
+    question: str | None = Query(
+        default=None,
+        pattern=r"^[a-z][0-9]{1,2}$",
+        description="With paper: only threads that link that question of it (/library/<slug>#q3; #b1 on a paper that "
+        "numbers each section from 1)",
+    ),
     limit: Limit = 20,
     offset: Offset = 0,
 ) -> ThreadPage:
@@ -110,6 +117,8 @@ def list_threads(
     pinning. Signed in, `unread` marks a thread with notifications about it the person hasn't read."""
     if yours and user is None:
         raise unauthenticated("Sign in to see your threads.")
+    if question and not paper:
+        raise invalid("question", "Choose the paper the question is on.")
     filters = queries.ThreadFilters(
         q=q,
         category=category,
@@ -119,8 +128,25 @@ def list_threads(
         unanswered=unanswered,
         yours=user.id if yours and user is not None else None,
         paper=paper,
+        question=question,
     )
     return queries.list_threads(db, user, filters, sort, limit, offset)
+
+
+@router.get("/forum/question-threads", response_model=list[QuestionThreads])
+def question_threads(
+    db: DB,
+    paper: str | None = Query(default=None, pattern=r"^[a-z0-9-]{1,120}$", description="A library item's slug"),
+    module_id: str | None = Query(default=None, description="Every published past paper of this module"),
+) -> list[QuestionThreads]:
+    """How many visible threads link each question of a past paper (/library/<slug>#q3, or #b1), from their post or
+    a visible reply: of one paper, or of a module's papers. Errors: invalid_input (422: neither given, or an unknown
+    module)."""
+    if paper:
+        return queries.question_threads(db, {paper})
+    if module_id:
+        return queries.question_threads(db, library.paper_slugs(db, module_id))
+    raise invalid("paper", "Choose a paper or a module.")
 
 
 @router.get("/forum/threads/hot", response_model=list[ThreadSummary])

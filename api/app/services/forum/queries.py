@@ -5,6 +5,7 @@ the query string never get here: core's ControlCharactersMiddleware answers 400 
 
 from __future__ import annotations
 
+import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -30,7 +31,7 @@ from app.models import (
     ThreadVote,
     User,
 )
-from app.schemas.forum import Contributor, ForumStats, ThreadPage, ThreadSummary
+from app.schemas.forum import Contributor, ForumStats, QuestionThreads, ThreadPage, ThreadSummary
 from app.services import access
 from app.services.accounts import public_user
 from app.services.forum.search import has_tag, search_condition
@@ -82,18 +83,58 @@ def yours_condition(user_id: uuid.UUID) -> ColumnElement[bool]:
     )
 
 
-def links_to_paper(slug: str) -> ColumnElement[bool]:
-    """Threads whose post or a visible reply links to the library item `slug` (/library/<slug>, with or without the
-    site's address, a page or an anchor). `slug` is a slug: letters, digits and hyphens only."""
-    pattern = f"/library/{slug}([^a-z0-9-]|$)"
+def _links(pattern: str) -> ColumnElement[bool]:
+    """Threads whose visible post or a visible reply matches `pattern` (a POSIX regex, any case)."""
     return or_(
-        and_(ForumThread.status == PostStatus.visible, ForumThread.body.op("~")(pattern)),
+        and_(ForumThread.status == PostStatus.visible, ForumThread.body.op("~*")(pattern)),
         exists().where(
             ForumReply.thread_id == ForumThread.id,
             ForumReply.status == PostStatus.visible,
-            ForumReply.body.op("~")(pattern),
+            ForumReply.body.op("~*")(pattern),
         ),
     )
+
+
+def links_to_paper(slug: str, question: str | None = None) -> ColumnElement[bool]:
+    """Threads whose post or a visible reply links to the library item `slug` (/library/<slug>, with or without the
+    site's address, a page or an anchor); with `question` ('q3', 'b1'), to that question's anchor
+    (/library/<slug>?page=4#q3). `slug` is a slug: letters, digits and hyphens only."""
+    if question is None:
+        return _links(f"/library/{slug}([^a-z0-9-]|$)")
+    return _links(f"/library/{slug}(\\?[^#[:space:])]*)?#{question}([^a-z0-9]|$)")
+
+
+# A link to a past paper's question in a post: /library/<slug>, maybe ?page=N, then #q3 (or #b1).
+_QUESTION_LINK = re.compile(r"/library/([a-z0-9-]{1,120})(?:\?[^#\s)]*)?#([a-z])(\d{1,2})(?![a-z0-9])", re.IGNORECASE)
+_ANY_QUESTION_LINK = "/library/[a-z0-9-]+(\\?[^#[:space:])]*)?#[a-z][0-9]"
+
+
+def question_threads(db: Session, slugs: set[str] | None) -> list[QuestionThreads]:
+    """For each past paper's question that visible threads link (in their post or a visible reply), how many threads
+    do; only the papers in `slugs` when given. By paper, then question."""
+    linking = select(ForumThread.id).where(_links(_ANY_QUESTION_LINK))
+    posts = db.execute(
+        select(ForumThread.id, ForumThread.body).where(
+            ForumThread.id.in_(linking), ForumThread.status == PostStatus.visible
+        )
+    ).all()
+    replies = db.execute(
+        select(ForumReply.thread_id, ForumReply.body).where(
+            ForumReply.thread_id.in_(linking), ForumReply.status == PostStatus.visible
+        )
+    ).all()
+    seen: dict[tuple[str, str | None, int], set[uuid.UUID]] = {}
+    for thread_id, body in [*posts, *replies]:
+        for slug, letter, number in _QUESTION_LINK.findall(body or ""):
+            slug = slug.lower()
+            if slugs is not None and slug not in slugs:
+                continue
+            section = None if letter.lower() == "q" else letter.upper()
+            seen.setdefault((slug, section, int(number)), set()).add(thread_id)
+    return [
+        QuestionThreads(paper_slug=slug, section=section, question=question, threads=len(ids))
+        for (slug, section, question), ids in sorted(seen.items(), key=lambda kv: (kv[0][0], kv[0][1] or "", kv[0][2]))
+    ]
 
 
 def hot_expr(now: datetime) -> ColumnElement[Any]:
@@ -142,6 +183,7 @@ class ThreadFilters:
     unanswered: bool = False  # no visible replies yet
     yours: uuid.UUID | None = None  # this person's threads: started, replied to or followed
     paper: str | None = None  # a library item's slug: the threads that link to it
+    question: str | None = None  # with `paper`: 'q3' or 'b1', the threads that link that question
 
 
 def list_threads(db: Session, viewer: User | None, f: ThreadFilters, sort: Sort, limit: int, offset: int) -> ThreadPage:
@@ -165,7 +207,7 @@ def list_threads(db: Session, viewer: User | None, f: ThreadFilters, sort: Sort,
     if f.yours is not None:
         conds.append(yours_condition(f.yours))
     if f.paper:
-        conds.append(links_to_paper(f.paper))
+        conds.append(links_to_paper(f.paper, f.question))
     total = db.scalar(
         select(func.count())
         .select_from(ForumThread)

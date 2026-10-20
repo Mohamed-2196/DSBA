@@ -38,6 +38,7 @@ FeatureKey = Literal[
     "library.uploads",
     "library.questions",
     "library.daily-question",
+    "library.practice",
     "newsletter",
     "newsletter.polls",
     "calendar",

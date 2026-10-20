@@ -1228,6 +1228,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/library/question-marks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Question Marks
+         * @description The student's own marks on past questions (done, stuck or skipped), of one module's papers with `module_id`,
+         *     the newest first. Nobody else sees them. Errors: invalid_input (422: an unknown module).
+         */
+        get: operations["list_question_marks_api_v1_library_question_marks_get"];
+        /**
+         * Save Question Mark
+         * @description Marks a tagged past question done, stuck or skipped, in place of the mark before. Errors: not_found (404:
+         *     the question isn't tagged on a published past paper), rate_limited (429: 300 marks an hour).
+         */
+        put: operations["save_question_mark_api_v1_library_question_marks_put"];
+        post?: never;
+        /**
+         * Forget Question Mark
+         * @description Takes the student's mark off a question; without one, nothing happens.
+         */
+        delete: operations["forget_question_mark_api_v1_library_question_marks_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/uploads": {
         parameters: {
             query?: never;
@@ -1412,6 +1442,28 @@ export interface paths {
          *     their feature is off; invalid_input (422: the senior isn't taking questions).
          */
         post: operations["create_thread_api_v1_forum_threads_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forum/question-threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Question Threads
+         * @description How many visible threads link each question of a past paper (/library/<slug>#q3, or #b1), from their post or
+         *     a visible reply: of one paper, or of a module's papers. Errors: invalid_input (422: neither given, or an unknown
+         *     module).
+         */
+        get: operations["question_threads_api_v1_forum_question_threads_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4423,6 +4475,8 @@ export interface components {
             questionTags: components["schemas"]["ExportQuestionTag"][];
             /** Questionflags */
             questionFlags: string[];
+            /** Questionmarks */
+            questionMarks: components["schemas"]["QuestionMark"][];
             /** Emails */
             emails: components["schemas"]["ExportEmail"][];
             /** Boards */
@@ -7045,7 +7099,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily";
+            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily";
             /** Label */
             label: string;
             /** Hides */
@@ -7071,7 +7125,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily")[];
         };
         /** FileLink */
         FileLink: {
@@ -8263,6 +8317,8 @@ export interface components {
             match: components["schemas"]["TextMatch"] | null;
             /** Coverurl */
             coverUrl: string | null;
+            /** Workedanswers */
+            workedAnswers: boolean;
         };
         /**
          * LibraryItemCreate
@@ -8400,7 +8456,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily")[];
             /**
              * Status
              * @enum {string}
@@ -9537,7 +9593,7 @@ export interface components {
             /** Label */
             label: string;
             /** Feature */
-            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily") | null;
+            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily") | null;
         };
         /** Page[ItemOut] */
         Page_ItemOut_: {
@@ -9613,6 +9669,7 @@ export interface components {
              * Format: date-time
              */
             createdAt: string;
+            answer: components["schemas"]["WorkedAnswer"] | null;
         };
         /** PaperQuestionCreate */
         PaperQuestionCreate: {
@@ -10173,6 +10230,63 @@ export interface components {
             };
             /** Emailed */
             emailed: boolean;
+        };
+        /** QuestionMark */
+        QuestionMark: {
+            /**
+             * Itemid
+             * Format: uuid
+             */
+            itemId: string;
+            /** Section */
+            section: string | null;
+            /** Question */
+            question: number;
+            /**
+             * Mark
+             * @enum {string}
+             */
+            mark: "done" | "stuck" | "skipped";
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /**
+         * QuestionMarkSave
+         * @description How a past question went: done, stuck or skipped. The question is its paper, section and number.
+         */
+        QuestionMarkSave: {
+            /**
+             * Itemid
+             * Format: uuid
+             */
+            itemId: string;
+            /** Section */
+            section?: string | null;
+            /** Question */
+            question: number;
+            /**
+             * Mark
+             * @enum {string}
+             */
+            mark: "done" | "stuck" | "skipped";
+        };
+        /**
+         * QuestionThreads
+         * @description How many visible threads link a past paper's question (/library/<slug>#q3, or #b1 on a paper that numbers each
+         *     section from 1) in their post or a visible reply.
+         */
+        QuestionThreads: {
+            /** Paperslug */
+            paperSlug: string;
+            /** Section */
+            section: string | null;
+            /** Question */
+            question: number;
+            /** Threads */
+            threads: number;
         };
         /** QuizAnswered */
         QuizAnswered: {
@@ -11960,6 +12074,21 @@ export interface components {
             /** Answer */
             answer: string | null;
         };
+        /**
+         * WorkedAnswer
+         * @description Where a question's commentary starts in its sitting's examiners' report: the report, and its page.
+         */
+        WorkedAnswer: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Page */
+            page: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -12284,6 +12413,9 @@ export type PreviewWord = components['schemas']['PreviewWord'];
 export type Progress = components['schemas']['Progress'];
 export type ProgressImport = components['schemas']['ProgressImport'];
 export type PublishedIssue = components['schemas']['PublishedIssue'];
+export type QuestionMark = components['schemas']['QuestionMark'];
+export type QuestionMarkSave = components['schemas']['QuestionMarkSave'];
+export type QuestionThreads = components['schemas']['QuestionThreads'];
 export type QuizAnswered = components['schemas']['QuizAnswered'];
 export type QuizData = components['schemas']['QuizData'];
 export type QuizQuestion = components['schemas']['QuizQuestion'];
@@ -12392,6 +12524,7 @@ export type WeekSave = components['schemas']['WeekSave'];
 export type WordData = components['schemas']['WordData'];
 export type WordRow = components['schemas']['WordRow'];
 export type WordView = components['schemas']['WordView'];
+export type WorkedAnswer = components['schemas']['WorkedAnswer'];
 export type $defs = Record<string, never>;
 export interface operations {
     health_api_v1_health_get: {
@@ -15526,7 +15659,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily";
+                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "daily";
             };
             cookie?: never;
         };
@@ -18188,6 +18321,263 @@ export interface operations {
             };
         };
     };
+    list_question_marks_api_v1_library_question_marks_get: {
+        parameters: {
+            query?: {
+                module_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionMark"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_question_mark_api_v1_library_question_marks_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionMarkSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionMark"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    forget_question_mark_api_v1_library_question_marks_delete: {
+        parameters: {
+            query: {
+                item_id: string;
+                question: number;
+                section?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     create_upload_api_v1_uploads_post: {
         parameters: {
             query?: never;
@@ -18795,6 +19185,8 @@ export interface operations {
                 yours?: boolean;
                 /** @description A library item's slug: only threads whose post or a reply links to it (/library/<slug>) */
                 paper?: string | null;
+                /** @description With paper: only threads that link that question of it (/library/<slug>#q3; #b1 on a paper that numbers each section from 1) */
+                question?: string | null;
                 /** @description Page size */
                 limit?: number;
                 /** @description Items to skip */
@@ -18900,6 +19292,94 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThreadDetail"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    question_threads_api_v1_forum_question_threads_get: {
+        parameters: {
+            query?: {
+                /** @description A library item's slug */
+                paper?: string | null;
+                /** @description Every published past paper of this module */
+                module_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionThreads"][];
                 };
             };
             /** @description Bad Request */

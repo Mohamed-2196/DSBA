@@ -28,6 +28,9 @@ text-worker        read the words of each newly published PDF and Word file, for
 extract-texts      read the words (and make the covers) of the published files that have none yet, then stop
                    (--retry: read failed and empty files again too; --limit N files)
                    (text-worker and extract-texts need only the database and the bucket settings)
+report-answers     read every examiners' report's stored text again for its worked answers ("Approaching the
+                   question") and the page where each question's commentary starts; the text worker does it for
+                   reports it reads, so this is for reports read before, and after the reading rules change
 texts-role         create the text worker's database role, or set its password (DSBA_TEXTS_DB_PASSWORD), with only
                    what the worker needs; production runs it after every migration
 daily-content import FILE   add the Daily puzzles' content from a file kept out of the repository (themes, guess
@@ -446,6 +449,17 @@ def cmd_exam_meta(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_report_answers(args: argparse.Namespace) -> int:
+    """Every examiners' report already read: whether it works through its questions, and where each one starts."""
+    from app.services.report_answers import backfill
+
+    with get_sessionmaker()() as db:
+        reports, worked, located = backfill(db)
+        db.commit()
+    print(f"Read {reports} examiners' reports: {worked} with worked answers, {located} with question pages.")
+    return 0
+
+
 def _confirm(question: str) -> bool:
     try:
         answer = input(question)
@@ -708,6 +722,7 @@ def main(argv: list[str] | None = None) -> int:
     et.add_argument("--retry", action="store_true", help="read failed and empty files again too")
     et.add_argument("--limit", metavar="N", type=_positive, default=None, help="read at most N files this run")
     et.set_defaults(fn=cmd_extract_texts)
+    sub.add_parser("report-answers").set_defaults(fn=cmd_report_answers)
     sub.add_parser("texts-role").set_defaults(fn=cmd_texts_role)
     dc = sub.add_parser("daily-content")
     dc.add_argument("action", choices=["import", "export"])

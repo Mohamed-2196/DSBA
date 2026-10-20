@@ -814,6 +814,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
     from app.services import bugs
     from app.services.board.export import board_export
     from app.services.board.scores import scores_of
+    from app.services.question_marks import marks_of
 
     boards, board_labels, board_plans = board_export(db, uid)
     follows = [
@@ -930,6 +931,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         me_toos=me_toos,
         question_tags=question_tags,
         question_flags=question_flags,
+        question_marks=marks_of(db, uid),
         emails=emails,
         boards=boards,
         board_labels=board_labels,

@@ -3733,6 +3733,7 @@
                 "library.uploads",
                 "library.questions",
                 "library.daily-question",
+                "library.practice",
                 "newsletter",
                 "newsletter.polls",
                 "calendar",
@@ -7187,6 +7188,343 @@
         }
       }
     },
+    "/api/v1/library/question-marks": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "List Question Marks",
+        "description": "The student's own marks on past questions (done, stuck or skipped), of one module's papers with `module_id`,\nthe newest first. Nobody else sees them. Errors: invalid_input (422: an unknown module).",
+        "operationId": "list_question_marks_api_v1_library_question_marks_get",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuestionMark"
+                  },
+                  "title": "Response List Question Marks Api V1 Library Question Marks Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Save Question Mark",
+        "description": "Marks a tagged past question done, stuck or skipped, in place of the mark before. Errors: not_found (404:\nthe question isn't tagged on a published past paper), rate_limited (429: 300 marks an hour).",
+        "operationId": "save_question_mark_api_v1_library_question_marks_put",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionMarkSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionMark"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Forget Question Mark",
+        "description": "Takes the student's mark off a question; without one, nothing happens.",
+        "operationId": "forget_question_mark_api_v1_library_question_marks_delete",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          },
+          {
+            "name": "question",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 40,
+              "minimum": 1,
+              "title": "Question"
+            }
+          },
+          {
+            "name": "section",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Z]$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Section"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/uploads": {
       "post": {
         "tags": [
@@ -8023,6 +8361,25 @@
             "description": "A library item's slug: only threads whose post or a reply links to it (/library/<slug>)"
           },
           {
+            "name": "question",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z][0-9]{1,2}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With paper: only threads that link that question of it (/library/<slug>#q3; #b1 on a paper that numbers each section from 1)",
+              "title": "Question"
+            },
+            "description": "With paper: only threads that link that question of it (/library/<slug>#q3; #b1 on a paper that numbers each section from 1)"
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -8158,6 +8515,141 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ThreadDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/forum/question-threads": {
+      "get": {
+        "tags": [
+          "forum"
+        ],
+        "summary": "Question Threads",
+        "description": "How many visible threads link each question of a past paper (/library/<slug>#q3, or #b1), from their post or\na visible reply: of one paper, or of a module's papers. Errors: invalid_input (422: neither given, or an unknown\nmodule).",
+        "operationId": "question_threads_api_v1_forum_question_threads_get",
+        "parameters": [
+          {
+            "name": "paper",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9-]{1,120}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A library item's slug",
+              "title": "Paper"
+            },
+            "description": "A library item's slug"
+          },
+          {
+            "name": "module_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Every published past paper of this module",
+              "title": "Module Id"
+            },
+            "description": "Every published past paper of this module"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuestionThreads"
+                  },
+                  "title": "Response Question Threads Api V1 Forum Question Threads Get"
                 }
               }
             }
@@ -27715,6 +28207,13 @@
             "type": "array",
             "title": "Questionflags"
           },
+          "questionMarks": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionMark"
+            },
+            "type": "array",
+            "title": "Questionmarks"
+          },
           "emails": {
             "items": {
               "$ref": "#/components/schemas/ExportEmail"
@@ -27849,6 +28348,7 @@
           "meToos",
           "questionTags",
           "questionFlags",
+          "questionMarks",
           "emails",
           "boards",
           "boardLabels",
@@ -35476,6 +35976,7 @@
               "library.uploads",
               "library.questions",
               "library.daily-question",
+              "library.practice",
               "newsletter",
               "newsletter.polls",
               "calendar",
@@ -35570,6 +36071,7 @@
                 "library.uploads",
                 "library.questions",
                 "library.daily-question",
+                "library.practice",
                 "newsletter",
                 "newsletter.polls",
                 "calendar",
@@ -39216,6 +39718,10 @@
               }
             ],
             "title": "Coverurl"
+          },
+          "workedAnswers": {
+            "type": "boolean",
+            "title": "Workedanswers"
           }
         },
         "type": "object",
@@ -39247,7 +39753,8 @@
           "isMine",
           "canEdit",
           "match",
-          "coverUrl"
+          "coverUrl",
+          "workedAnswers"
         ],
         "title": "LibraryItem"
       },
@@ -39823,6 +40330,7 @@
                 "library.uploads",
                 "library.questions",
                 "library.daily-question",
+                "library.practice",
                 "newsletter",
                 "newsletter.polls",
                 "calendar",
@@ -42940,6 +43448,7 @@
                   "library.uploads",
                   "library.questions",
                   "library.daily-question",
+                  "library.practice",
                   "newsletter",
                   "newsletter.polls",
                   "calendar",
@@ -43147,6 +43656,16 @@
             "type": "string",
             "format": "date-time",
             "title": "Createdat"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkedAnswer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -43162,7 +43681,8 @@
           "flagCount",
           "isMine",
           "canRemove",
-          "createdAt"
+          "createdAt",
+          "answer"
         ],
         "title": "PaperQuestion"
       },
@@ -44881,6 +45401,133 @@
           "emailed"
         ],
         "title": "PublishedIssue"
+      },
+      "QuestionMark": {
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Itemid"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "question": {
+            "type": "integer",
+            "title": "Question"
+          },
+          "mark": {
+            "type": "string",
+            "enum": [
+              "done",
+              "stuck",
+              "skipped"
+            ],
+            "title": "Mark"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "itemId",
+          "section",
+          "question",
+          "mark",
+          "updatedAt"
+        ],
+        "title": "QuestionMark"
+      },
+      "QuestionMarkSave": {
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Itemid"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "question": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 1.0,
+            "title": "Question"
+          },
+          "mark": {
+            "type": "string",
+            "enum": [
+              "done",
+              "stuck",
+              "skipped"
+            ],
+            "title": "Mark"
+          }
+        },
+        "type": "object",
+        "required": [
+          "itemId",
+          "question",
+          "mark"
+        ],
+        "title": "QuestionMarkSave",
+        "description": "How a past question went: done, stuck or skipped. The question is its paper, section and number."
+      },
+      "QuestionThreads": {
+        "properties": {
+          "paperSlug": {
+            "type": "string",
+            "title": "Paperslug"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "question": {
+            "type": "integer",
+            "title": "Question"
+          },
+          "threads": {
+            "type": "integer",
+            "title": "Threads"
+          }
+        },
+        "type": "object",
+        "required": [
+          "paperSlug",
+          "section",
+          "question",
+          "threads"
+        ],
+        "title": "QuestionThreads",
+        "description": "How many visible threads link a past paper's question (/library/<slug>#q3, or #b1 on a paper that numbers each\nsection from 1) in their post or a visible reply."
       },
       "QuizAnswered": {
         "properties": {
@@ -50159,6 +50806,31 @@
           "answer"
         ],
         "title": "WordView"
+      },
+      "WorkedAnswer": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "page"
+        ],
+        "title": "WorkedAnswer",
+        "description": "Where a question's commentary starts in its sitting's examiners' report: the report, and its page."
       }
     }
   }
