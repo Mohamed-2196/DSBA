@@ -156,6 +156,9 @@ def test_the_preview_needs_text_or_rows(client_for: Clients, moderator: User, mo
     assert r.status_code == 422
     assert r.json()["error"]["message"].startswith("No exams found.")
     assert c.post(PREVIEW, json={"text": "x" * 20_001}).status_code == 422
+    r = c.post(PREVIEW, json={"text": f"ST2134 {slash(day(13))} 10:00" + " " * 600 + "Hall A"})
+    assert r.status_code == 422
+    assert r.json()["error"]["message"] == "A line is longer than 500 characters. Paste one exam a line."
     assert c.post(PREVIEW, json={"rows": [{"unitCode": "ST2134"}] * 81}).status_code == 422
 
 

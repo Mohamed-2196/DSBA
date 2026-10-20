@@ -18,6 +18,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 MAX_PLACE = 120
+# A pasted line is read up to this many characters (services/timetable.py refuses longer ones): the patterns stay
+# linear, and no timetable row is this long.
+MAX_LINE = 500
 MAX_TIME = 40
 # A date without a year falls on or after this many days before today.
 PAST_DAYS = 60
@@ -56,9 +59,10 @@ DATE_FORMS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("month_d", re.compile(rf"\b{_WEEKDAY}{_MONTH}\s+(\d{{1,2}}){_ORD}(?:,?\s+(\d{{4}}))?\b", _I)),
 )
 
-_CLOCK = r"(\d{1,2})(?:[:.](\d{2}))?\s*([ap]\.?m\.?)?"
+# the am/pm group owns the space before it, so only one \s* comes before a range's separator (no backtracking)
+_CLOCK = r"(\d{1,2})(?:[:.](\d{2}))?(?:\s*([ap]\.?m\.?))?"
 TIME_RANGE = re.compile(rf"\b{_CLOCK}\s*(?:-|\u2013|\u2014|to|until)\s*{_CLOCK}(?![\w:])", _I)
-TIME_ONE = re.compile(r"\b(\d{1,2})[:.](\d{2})\s*([ap]\.?m\.?)?(?![\w:])|\b(\d{1,2})\s*([ap]\.?m\.?)(?!\w)", _I)
+TIME_ONE = re.compile(r"\b(\d{1,2})[:.](\d{2})(?:\s*([ap]\.?m\.?))?(?![\w:])|\b(\d{1,2})\s*([ap]\.?m\.?)(?!\w)", _I)
 SESSION = re.compile(r"\b(morning|afternoon|evening|am|pm)\b(?:\s+session)?", _I)
 SESSIONS = {"am": "Morning", "morning": "Morning", "pm": "Afternoon", "afternoon": "Afternoon", "evening": "Evening"}
 
@@ -361,7 +365,7 @@ def parse_timetable(text: str, today: dt.date, titles: Mapping[str, str] | None 
     rows: list[ParsedRow] = []
     columns: dict[str, int] | None = None
     for number, raw in enumerate(text.splitlines(), start=1):
-        line = raw.replace("\u00a0", " ").rstrip()
+        line = raw[:MAX_LINE].replace("\u00a0", " ").rstrip()
         if not line.strip():
             continue
         header = header_columns(line)

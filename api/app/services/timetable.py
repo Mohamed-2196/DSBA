@@ -38,7 +38,7 @@ from app.services import access, ratelimit
 from app.services import calendar as programme
 from app.services.content import record
 from app.services.notify import notify_all
-from app.services.timetable_parse import parse_timetable
+from app.services.timetable_parse import MAX_LINE, parse_timetable
 
 MATCH_DAYS = 60
 SAVES_PER_HOUR = 10
@@ -150,6 +150,9 @@ def preview(db: Session, body: TimetablePreviewIn) -> TimetablePreview:
         raise ApiError(422, "invalid_input", "Paste the timetable, or send its rows.", fields={"text": "Paste it."})
     if body.rows is not None:
         return TimetablePreview(rows=check_rows(db, body.rows))
+    if any(len(line) > MAX_LINE for line in (body.text or "").splitlines()):
+        message = f"A line is longer than {MAX_LINE} characters. Paste one exam a line."
+        raise ApiError(422, "invalid_input", message, fields={"text": message})
     cat = catalogue(db)
     titles = {code: m.name for code, m in cat.modules.items()}
     parsed = parse_timetable(body.text or "", bahrain_today(), titles)

@@ -4,6 +4,7 @@ a spreadsheet. Made-up rows in the University's and BIBF's formats."""
 from __future__ import annotations
 
 import datetime as dt
+import time
 
 import pytest
 
@@ -174,3 +175,12 @@ def test_a_long_venue_is_cut() -> None:
 def test_codes() -> None:
     found = parse_timetable("st2134 13/10/2026\nEC-1002 14/10/2026\nMT 1186 15/10/2026\non 2026 13/10/2026", TODAY)
     assert [r.unit_code for r in found] == ["ST2134", "EC1002", "MT1186", None]
+
+
+def test_long_runs_of_space_read_fast() -> None:
+    start = time.perf_counter()
+    assert parse_timetable("ST2134 10" + " " * 100_000 + "x", TODAY, TITLES)[0].unit_code == "ST2134"
+    assert find_time("10" + " " * 100_000 + "x") is None
+    assert find_time("1 " * 50_000) is None
+    assert find_date("13 " + " " * 100_000 + "x", TODAY) is None
+    assert time.perf_counter() - start < 0.5

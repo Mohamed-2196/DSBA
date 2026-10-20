@@ -2483,7 +2483,7 @@ export interface paths {
          * @description The exam timetable as pasted (`text`: rows with a module code, a date, a time and a venue, as they come from
          *     the email or the spreadsheet), or its rows after fixing (`rows`): each row matched to its module and exam, with
          *     what saving it will do (update, new, same) or what to fix first. Changes nothing. Errors: invalid_input (422: no
-         *     rows found, or neither or both of `text` and `rows`).
+         *     rows found, a line over 500 characters, or neither or both of `text` and `rows`).
          */
         post: operations["timetable_preview_api_v1_calendar_timetable_preview_post"];
         delete?: never;
