@@ -2,11 +2,11 @@
 // button puts the video's time at the cursor; tapping it there takes the video to that time. Anywhere else it is a
 // link to the lesson that starts the video there (/modules/<id>/lessons/<lesson>?t=245). The API keeps it as a
 // `videoTime` node with whole `seconds` (api/app/services/note_doc.py) and reads it as [4:05].
-import { Play } from '@phosphor-icons/react';
 import { Node, mergeAttributes } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type ReactNodeViewProps } from '@tiptap/react';
 import { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { Icon, glyph } from '../../../ui';
 import { VIDEO_TIME_MAX, VideoTimesContext, clockLabel, lessonAt } from './videoTimes';
 
 function TimeView({ node }: ReactNodeViewProps) {
@@ -15,7 +15,7 @@ function TimeView({ node }: ReactNodeViewProps) {
   const label = clockLabel(seconds);
   const inner = (
     <>
-      <Play aria-hidden="true" weight="fill" />
+      <Icon glyph={glyph.play} />
       {label}
     </>
   );

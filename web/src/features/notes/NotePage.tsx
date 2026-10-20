@@ -8,7 +8,6 @@
 // put) and the text alone, wrapped to the screen at reading size (UX-70). Phones open a note in the text; picking a
 // pen, or Page, shows the pages. Handwriting goes with the text it was written beside (useInkAnchors), so typing in
 // either view moves it down with its line. The lesson panel (LessonNotePanel) opens notes here too, in the text.
-import { NotePencil, Play, X } from '@phosphor-icons/react';
 import { EditorContent, type Editor } from '@tiptap/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
@@ -17,7 +16,7 @@ import { errorMessage } from '../../api/errors';
 import { UPLOAD_RULES } from '../../api/uploads';
 import { Gate, useAuth } from '../../auth';
 import { useDocumentTitle, useLocalStorage, useMediaQuery, useToast } from '../../state';
-import { Button, ConfirmDialog, EmptyState, QueryError, Skeleton, cx } from '../../ui';
+import { Button, ConfirmDialog, EmptyState, QueryError, Skeleton, cx, Icon, glyph } from '../../ui';
 import { changePages, deleteNote, discardNote, useDeleteNote } from './api';
 import { noteLabel, type NoteDoc } from './draft';
 import { NoteHeader } from './NoteHeader';
@@ -221,7 +220,7 @@ function UploadTray({ uploads }: { uploads: ReturnType<typeof useNoteUploads>['p
           </span>
           <span className="nb-uploads__pct">{u.percent}%</span>
           <button type="button" onClick={u.cancel} aria-label={`Stop uploading ${u.name}`} title="Stop">
-            <X aria-hidden="true" />
+            <Icon glyph={glyph.close} />
           </button>
         </li>
       ))}
@@ -235,7 +234,7 @@ function MissingNote() {
   return (
     <div className="nb nb--message">
       <EmptyState
-        icon={NotePencil}
+        icon={<Icon glyph={glyph.edit} />}
         title="This note doesn’t exist"
         body="It may have been deleted."
         action={<Button to="/notes">See all notes</Button>}
@@ -276,7 +275,7 @@ function StampTime({ editor, video }: { editor: Editor; video: LessonVideo }) {
       }}
       data-hub="note-stamp-time"
     >
-      <Play aria-hidden="true" weight="fill" /> Video time
+      <Icon glyph={glyph.play} /> Video time
     </button>
   );
 }

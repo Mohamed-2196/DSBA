@@ -3,13 +3,12 @@
 // pages are a tap away), knows its module and lesson, and takes the video's time at the cursor ("▶ 4:05"), which
 // takes the video back there when tapped. A lesson without notes opens a new one at once; a new note left empty is
 // deleted when the student leaves it (NotePage's NoteDesk), and the server never lists one (ST-37).
-import { ArrowLeft, ArrowSquareOut, NotePencil, Plus, X } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
-import { Button, IconButton, QueryError, Skeleton, timeAgo } from '../../ui';
+import { Button, IconButton, QueryError, Skeleton, timeAgo, Icon, glyph } from '../../ui';
 import { notesChanged, useCreateNote, useLessonNotes } from './api';
 import { EMPTY_DOC, labelParts } from './draft';
 import { MathLine } from './MathLine';
@@ -94,7 +93,15 @@ export function LessonNotePanel({ moduleId, lessonId, video, onClose }: LessonNo
     void notes.refetch();
   };
 
-  const close = <IconButton icon={X} label="Close the notes" onClick={onClose} tooltip data-hub="lesson-note-close" />;
+  const close = (
+    <IconButton
+      icon={<Icon glyph={glyph.close} />}
+      label="Close the notes"
+      onClick={onClose}
+      tooltip
+      data-hub="lesson-note-close"
+    />
+  );
 
   let body;
   if (open) {
@@ -110,14 +117,14 @@ export function LessonNotePanel({ moduleId, lessonId, video, onClose }: LessonNo
             actions: (
               <>
                 <IconButton
-                  icon={ArrowLeft}
+                  icon={<Icon glyph={glyph.back} />}
                   label="This lesson’s notes"
                   onClick={back}
                   tooltip
                   data-hub="lesson-note-list"
                 />
                 <IconButton
-                  icon={ArrowSquareOut}
+                  icon={<Icon glyph={glyph.external} />}
                   label="Open in Notebook"
                   to={`/notes/${open.id}`}
                   tooltip
@@ -135,7 +142,7 @@ export function LessonNotePanel({ moduleId, lessonId, video, onClose }: LessonNo
       <div className="lnp-list">
         <div className="lnp-list__head">
           <h2 className="lnp-list__title">
-            <NotePencil aria-hidden="true" />
+            <Icon glyph={glyph.edit} />
             Notes on this lesson
           </h2>
           {close}
@@ -180,7 +187,7 @@ export function LessonNotePanel({ moduleId, lessonId, video, onClose }: LessonNo
             {readOnly ? null : (
               <Button
                 variant="primary"
-                leadingIcon={Plus}
+                leadingIcon={<Icon glyph={glyph.plus} />}
                 onClick={start}
                 loading={create.isPending}
                 data-hub="lesson-note-new"

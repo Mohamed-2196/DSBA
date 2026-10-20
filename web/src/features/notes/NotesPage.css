@@ -186,9 +186,13 @@
 .notes-row + .notes-row {
   border-top: 1px solid var(--line);
 }
+/* A note: its drawn document (a violet band; a paper's yellow when it is written on a PDF), then its title, a line of
+   it and where it belongs. */
 .notes-row__link {
   display: grid;
-  gap: var(--sp-4);
+  grid-template-columns: 32px minmax(0, 1fr);
+  column-gap: var(--sp-12);
+  row-gap: var(--sp-4);
   min-height: 44px;
   padding: var(--sp-12) var(--sp-16);
   color: inherit;
@@ -203,9 +207,24 @@
   outline: 2px solid var(--focus-color);
   outline-offset: -2px;
 }
+.notes-row__doc {
+  grid-row: 1 / span 3;
+  margin-top: 2px;
+}
+.notes-row__link > :not(.notes-row__doc) {
+  grid-column: 2;
+}
 .notes-row__title {
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
+}
+.notes-row__code {
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--sec-notebook-pill);
+  color: var(--sec-notebook-text);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
 }
 .notes-row__excerpt {
   display: -webkit-box;

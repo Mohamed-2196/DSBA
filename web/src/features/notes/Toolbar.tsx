@@ -3,15 +3,10 @@
 // row below (colours and widths, the eraser's mode, or the text's formatting and Insert). In the text alone there are
 // no ink tools and no zoom: picking Page brings them. Every control is 44 px on a touch screen.
 import {
-  ArrowClockwise,
-  ArrowCounterClockwise,
   Code,
-  Eraser,
   Function as FunctionIcon,
   HandPointing,
   Hand,
-  Highlighter,
-  Image as ImageIcon,
   Lasso,
   ListBullets,
   ListChecks,
@@ -19,18 +14,16 @@ import {
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
   MathOperations,
-  Paperclip,
-  PenNib,
   Quotes,
   TextB,
   TextItalic,
   TextT,
   TextUnderline,
-  type Icon,
+  type Icon as PhosphorIcon,
 } from '@phosphor-icons/react';
 import { useEditorState, type Editor } from '@tiptap/react';
 import type { ReactNode } from 'react';
-import { cx, modKeyLabel } from '../../ui';
+import { Deskmate, Icon, cx, glyph, modKeyLabel, type Glyph } from '../../ui';
 import {
   ERASER_SIZES,
   HIGHLIGHTER_COLORS,
@@ -48,18 +41,28 @@ function combo(key: string, shift = false): string {
   return mod === '⌘' ? `${shift ? '⇧' : ''}⌘${key}` : `Ctrl+${shift ? 'Shift+' : ''}${key}`;
 }
 
-const TOOLS: { id: Tool; label: string; icon: Icon; key: string }[] = [
+/** A tool's picture: a brand icon where the family has one, else a Phosphor drawing. */
+type ToolArt = Glyph | PhosphorIcon;
+const isGlyph = (art: ToolArt): art is Glyph => Array.isArray(art);
+
+const TOOLS: { id: Tool; label: string; icon: ToolArt; key: string }[] = [
   { id: 'type', label: 'Type', icon: TextT, key: 'T' },
-  { id: 'pen', label: 'Pen', icon: PenNib, key: 'P' },
-  { id: 'highlighter', label: 'Highlighter', icon: Highlighter, key: 'H' },
-  { id: 'eraser', label: 'Eraser', icon: Eraser, key: 'E' },
+  { id: 'pen', label: 'Pen', icon: glyph.pen, key: 'P' },
+  { id: 'highlighter', label: 'Highlighter', icon: glyph.highlighter, key: 'H' },
+  { id: 'eraser', label: 'Eraser', icon: glyph.eraser, key: 'E' },
   { id: 'lasso', label: 'Lasso', icon: Lasso, key: 'L' },
   { id: 'laser', label: 'Laser pointer', icon: HandPointing, key: 'K' },
 ];
 
+function ToolArtView({ art, active }: { art: ToolArt; active: boolean }) {
+  if (isGlyph(art)) return <Icon glyph={art} active={active} />;
+  const I = art;
+  return <I aria-hidden="true" weight={active ? 'fill' : 'regular'} />;
+}
+
 function ToolButton({
   label,
-  icon: I,
+  icon,
   active,
   onClick,
   disabled,
@@ -68,7 +71,7 @@ function ToolButton({
   toggle = true,
 }: {
   label: string;
-  icon: Icon;
+  icon: ToolArt;
   active?: boolean;
   onClick: () => void;
   disabled?: boolean;
@@ -82,11 +85,16 @@ function ToolButton({
       className={cx('nb-tool', active && 'is-active', className)}
       aria-label={label}
       aria-pressed={toggle ? !!active : undefined}
-      title={hint ? `${label} (${hint})` : label}
+      title={hint && hint.length === 1 ? undefined : hint ? `${label} (${hint})` : label}
       onClick={onClick}
       disabled={disabled}
     >
-      <I aria-hidden="true" weight={active ? 'fill' : 'regular'} />
+      <ToolArtView art={icon} active={!!active} />
+      {hint && hint.length === 1 ? (
+        <span className="nb-tool__tip" aria-hidden="true">
+          {label} <kbd>{hint}</kbd>
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -205,7 +213,14 @@ function TextOptions({ editor, onPicture, onFile }: { editor: Editor; onPicture:
     }),
   });
   const chain = () => editor.chain().focus();
-  const items: { label: string; keys?: string; icon?: Icon; glyph?: ReactNode; active?: boolean; run: () => void }[] = [
+  const items: {
+    label: string;
+    keys?: string;
+    icon?: PhosphorIcon;
+    glyph?: ReactNode;
+    active?: boolean;
+    run: () => void;
+  }[] = [
     {
       label: 'Heading',
       glyph: <span className="nb-tool__glyph">H1</span>,
@@ -260,10 +275,10 @@ function TextOptions({ editor, onPicture, onFile }: { editor: Editor; onPicture:
       <span className="nb-toolbar__sep" aria-hidden="true" />
       <div className="nb-format" role="group" aria-label="Insert">
         <button type="button" className="nb-insert" onClick={onPicture} data-hub="note-insert-picture">
-          <ImageIcon aria-hidden="true" /> Picture
+          <Icon glyph={glyph.image} /> Picture
         </button>
         <button type="button" className="nb-insert" onClick={onFile} data-hub="note-attach-file">
-          <Paperclip aria-hidden="true" /> File
+          <Icon glyph={glyph.attach} /> File
         </button>
       </div>
     </>
@@ -422,6 +437,8 @@ export function Toolbar(props: ToolbarProps) {
   return (
     <div className="nb-toolbar" data-hub="note-toolbar">
       <div className="nb-toolbar__row" role="toolbar" aria-label="Tools">
+        {/* Jot, beside the pen tools: "you're in the notebook" */}
+        <Deskmate mate="jot" size={44} className="nb-toolbar__mate" />
         {view ? (
           <Choice
             label="Show"
@@ -451,7 +468,7 @@ export function Toolbar(props: ToolbarProps) {
           <div className="nb-tools" role="group" aria-label="History">
             <ToolButton
               label="Undo"
-              icon={ArrowCounterClockwise}
+              icon={glyph.undo}
               hint={combo('Z')}
               onClick={onUndo}
               disabled={!canUndo}
@@ -459,7 +476,8 @@ export function Toolbar(props: ToolbarProps) {
             />
             <ToolButton
               label="Redo"
-              icon={ArrowClockwise}
+              icon={glyph.undo}
+              className="nb-tool--redo"
               hint={combo('Z', true)}
               onClick={onRedo}
               disabled={!canRedo}
