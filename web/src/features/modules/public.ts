@@ -6,6 +6,8 @@
 //   lessonHref(moduleId, lessonId)  a lesson's address
 //   lessonName(chapter, v)          a lesson's name outside its chapter ('Point estimation: class of 17 Sep 2025')
 //   findLesson(module, lessonId)    where a lesson is in a module's chapters ({ c, v }), or null
+//   useModuleExam(moduleId)         { next, otherResit, loaded }: the exam that counts down for the student (the main
+//                                   sitting, or a resit that is theirs) and a resit that isn't, as ExamInfo
 //   moduleDetailQuery(id)           a module with its chapters and videos, as query options: the one cache entry
 //                                   for GET /modules/{id} (useQuery(moduleDetailQuery(id)), useQueries, prefetchQuery)
 //   <ModulesEditor />               Manage → Modules (content.edit): add, edit, reorder, hide and remove modules,
@@ -18,6 +20,7 @@ export { findLesson, useModuleProgress } from './progress';
 export { useTracking } from './tracking';
 export { lessonHref, lessonName } from './lessons';
 export { moduleDetailQuery } from './api';
+export { useModuleExam } from './exams';
 // Manage's editor loads with Manage (inside its Suspense), so no other page carries it.
 export const ModulesEditor = lazy(() => import('./editor/ModulesEditor').then((m) => ({ default: m.ModulesEditor })));
 export { SuggestionsQueue } from './suggestions/SuggestionsQueue';

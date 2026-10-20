@@ -4,6 +4,14 @@ import type { TimetableNotice, TimetableRow, TimetableRowIn, TimetableSaved } fr
 import { formatDay, formatShort, parseDay } from '../../../lib/dates';
 import { cohortLabel } from '../../../state';
 
+/** An exam's sitting: the main one (for the module's year) or a resit (for the year after and those resitting). */
+export type Sitting = 'main' | 'resit';
+
+export const SITTING_OPTIONS: { value: Sitting; label: string }[] = [
+  { value: 'main', label: 'Main sitting' },
+  { value: 'resit', label: 'Resit' },
+];
+
 /** A row as the rep edits it: its fields, and a key that stays while rows above it are removed. */
 export interface DraftRow {
   key: string;
@@ -11,6 +19,14 @@ export interface DraftRow {
   date: string;
   time: string;
   place: string;
+  sitting: Sitting;
+}
+
+/** Whose a row's exam is, under its module: 'Year 1', or 'Year 1 resit, for Year 2' (none after the final year). */
+export function rowWhose(row: Pick<TimetableRow, 'year' | 'resit'>): string | null {
+  if (!row.year) return null;
+  if (!row.resit) return cohortLabel(row.year);
+  return row.year < 3 ? `${cohortLabel(row.year)} resit, for Year ${row.year + 1}` : `${cohortLabel(row.year)} resit`;
 }
 
 export const ACTION_LABEL: Record<TimetableRow['action'], string> = {
@@ -28,6 +44,7 @@ export const draftsOf = (rows: readonly TimetableRow[]): DraftRow[] =>
     date: r.date ?? '',
     time: r.time ?? '',
     place: r.place ?? '',
+    sitting: r.resit ? 'resit' : 'main',
   }));
 
 /** A draft as the API takes it: empty fields are left out (a row without a time keeps the exam's). */
@@ -36,6 +53,7 @@ export const rowIn = (d: DraftRow): TimetableRowIn => ({
   date: d.date || null,
   time: d.time.trim() || null,
   place: d.place.trim() || null,
+  resit: d.sitting === 'resit',
 });
 
 /** '14 rows: 9 change an exam, 3 new exams, 1 the same, 1 to fix.' */
@@ -52,12 +70,13 @@ export function summaryLine(rows: readonly Pick<TimetableRow, 'action'>[]): stri
   return said.length ? `${total}: ${said.join(', ')}.` : `${total}.`;
 }
 
-/** What the exam says now, for a row that changes it: 'Now: Tue 12 Oct, time not set, no venue. Not confirmed.' */
+/** What the exam says now, for a row that changes it: 'On the calendar: Tue 12 Oct, time not set, no venue. Not
+ *  confirmed.' */
 export function wasLine(row: Pick<TimetableRow, 'was'>): string | null {
   const was = row.was;
   if (!was) return null;
   const parts = [formatShort(parseDay(was.date)), was.time || 'time not set', was.place || 'no venue'];
-  return `On the calendar: ${parts.join(', ')}.${was.sample ? ' Not confirmed.' : ''}`;
+  return `On the calendar${was.resit ? ' (resit)' : ''}: ${parts.join(', ')}.${was.sample ? ' Not confirmed.' : ''}`;
 }
 
 /** The rows a save refused, by index, from the API's field errors ('rows.3' → 3). */
@@ -70,10 +89,16 @@ export function refusedRows(fields: Readonly<Record<string, string>>): Map<numbe
   return out;
 }
 
-/** What a save told each year: 'Year 2: 3 exams, 41 people told.' */
+/** What a save told each year: 'Year 2: 3 exams, 41 people told.' Final-year resits go to those resitting them. */
 export function noticeLine(n: TimetableNotice): string {
-  const who = cohortLabel(n.year);
-  const exams = n.exams === 1 ? '1 exam' : `${n.exams} exams`;
+  const who = n.resitters ? 'Those resitting' : cohortLabel(n.year);
+  const exams = n.resitters
+    ? n.exams === 1
+      ? '1 resit'
+      : `${n.exams} resits`
+    : n.exams === 1
+      ? '1 exam'
+      : `${n.exams} exams`;
   if (n.notice === 'sent') return `${who}: ${exams}, ${n.told === 1 ? '1 person' : `${n.told} people`} told.`;
   if (n.notice === 'limit') return `${who}: ${exams}. They had a timetable notice today already, so not again.`;
   return `${who}: ${exams}. Nobody was told.`;

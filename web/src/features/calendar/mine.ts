@@ -124,6 +124,7 @@ export function toOccurrence(p: PersonalEvent, day: DayKey): CalendarEvent {
     checkedOn: null,
     employerId: null,
     sample: false,
+    resit: false,
     mine: p,
   };
 }
@@ -149,6 +150,7 @@ export function planEvent(card: PlanCard): CalendarEvent {
     checkedOn: null,
     employerId: null,
     sample: false,
+    resit: false,
     plan: card,
   };
 }

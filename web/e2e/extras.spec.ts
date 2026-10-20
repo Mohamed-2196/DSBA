@@ -51,8 +51,8 @@ test('Mini Noora answers with the date of an exam and where to look', async ({ b
   await expect(chat.locator('[data-hub="noora-suggestion"]').first()).toBeVisible();
   await chat.getByLabel('Message Mini Noora').fill('When is my EC1002 exam?');
   await chat.getByLabel('Message Mini Noora').press('Enter');
-  // The calendar's real dates: EC1002's October exam is the 19th, and after it there is no date until the next
-  // sitting is announced.
+  // The calendar's real dates: EC1002's October sitting is a resit, for Year 2, so a Year 1 student has no date until
+  // the next main sitting is announced (or, once it is, that date).
   await expect(chat).toContainText(
     /The next EC1002 Economics exam is (on|today,|tomorrow,) \w+day \d+ \w+|There are no upcoming exam dates for EC1002 Economics yet/,
   );

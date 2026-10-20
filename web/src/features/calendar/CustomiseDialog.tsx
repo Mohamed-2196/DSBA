@@ -5,7 +5,7 @@ import { useModules } from '../../state/modules';
 import { Button, Chip, cx, Modal } from '../../ui';
 import { formatShortYear, parseDay } from '../../lib/dates';
 import { usePapers } from '../papers/public';
-import { EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
+import { dateLabel, EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
 import type { CalendarEvent } from './types';
 import type { MyCalendar } from './useMyCalendar';
 
@@ -128,7 +128,7 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
                   <span className="cal-customise__what">
                     <span className="cal-customise__name">{e.title}</span>
                     <span className="cal-customise__meta">
-                      {typeLabel(e.type)}, {formatShortYear(parseDay(e.date))}
+                      {dateLabel(e)}, {formatShortYear(parseDay(e.date))}
                     </span>
                   </span>
                   <Button size="sm" variant="ghost" onClick={() => my.setHidden('hiddenEvents', e.id, false)}>

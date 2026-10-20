@@ -108,6 +108,7 @@ export function whenAndWhere(e: Pick<CalendarEvent, 'type' | 'time' | 'place'>):
 export function eventSummary(e: CalendarEvent): string {
   if (e.mine) return `${e.title}, your event${e.time ? `, ${e.time}` : ''}`;
   if (e.plan) return `${e.title}, your plan${e.time ? `, ${e.time}` : ''}`;
+  if (e.resit) return `${e.title}, ${RESIT_LABEL.toLowerCase()}, for students retaking it`;
   return `${e.title}, ${typeLabel(e.type)}${e.year ? `, Year ${e.year}` : ', all years'}`;
 }
 
@@ -146,10 +147,26 @@ export function sourceLine(e: Pick<CalendarEvent, 'source' | 'checkedOn'>): stri
 
 // ── a programme date or one of the student's own events ──────────────────────────────────────
 
-type Kind = Pick<CalendarEvent, 'type' | 'mine' | 'plan'>;
+type Kind = Pick<CalendarEvent, 'type' | 'mine' | 'plan'> & { resit?: boolean };
 
-/** 'Exam', 'Mock exam', … 'Your event' or 'Your plan'. */
-export const kindLabel = (e: Kind): string => (e.mine ? 'Your event' : e.plan ? 'Your plan' : typeLabel(e.type));
+/** What a resit is called wherever a date's type shows. */
+export const RESIT_LABEL = 'Resit';
+
+/** A programme date's type as a list shows it: 'Exam', 'Resit', 'Mock exam', … */
+export const dateLabel = (e: Pick<CalendarEvent, 'type'> & { resit?: boolean }): string =>
+  e.resit ? RESIT_LABEL : typeLabel(e.type);
+
+const FINAL_YEAR = 3;
+
+/** Whom a resit is for, under its date: the year after the module's and anyone resitting it. null for other dates. */
+export function resitNote(e: Pick<CalendarEvent, 'resit' | 'year'>): string | null {
+  if (!e.resit) return null;
+  const next = e.year && e.year < FINAL_YEAR ? `Year ${e.year + 1} and ` : '';
+  return `For students retaking the module: ${next}anyone who ticks “I’m resitting this” on its page.`;
+}
+
+/** 'Exam', 'Resit', 'Mock exam', … 'Your event' or 'Your plan'. */
+export const kindLabel = (e: Kind): string => (e.mine ? 'Your event' : e.plan ? 'Your plan' : dateLabel(e));
 
 /** The class that colours an event's dot: its type's, the colour the student gave their own event, or the plan's. */
 export const dotClass = (e: Kind): string =>

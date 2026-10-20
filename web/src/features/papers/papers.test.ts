@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { ModuleSummary, PaperChoice } from '../../api/types';
-import { choicesFrom, isMine, modulesFor, papersFor, papersNote, pickOnly, picksSummary, togglePick } from './papers';
+import {
+  choicesFrom,
+  isMine,
+  modulesFor,
+  papersFor,
+  papersNote,
+  pickOnly,
+  picksSummary,
+  resitFor,
+  togglePick,
+} from './papers';
 
 const mod = (id: string, year: 1 | 2 | 3): ModuleSummary => ({
   id,
@@ -110,6 +120,29 @@ describe('isMine', () => {
     expect(isMine({ moduleId: null, year: 1 }, 2, papers)).toBe(false);
     expect(isMine({ moduleId: null, year: null }, 2, papers)).toBe(true);
     expect(isMine({ moduleId: 'information-systems', year: 2 }, 2, null)).toBe(true);
+  });
+});
+
+describe('resits', () => {
+  const resit = (year: number, moduleId = 'mathematics') => ({ moduleId, year, resit: true });
+  it('are for the year after the module’s, never the module’s own year', () => {
+    expect(isMine(resit(1), 1, null)).toBe(false);
+    expect(isMine(resit(1), 2, null)).toBe(true);
+    expect(isMine(resit(1), 3, null)).toBe(false);
+    expect(isMine(resit(2, 'econometrics'), 3, null)).toBe(true);
+  });
+  it('are for nobody by default after the final year, and for anyone resitting the module', () => {
+    expect([1, 2, 3].some((y) => isMine(resit(3, 'machine-learning'), y, null))).toBe(false);
+    expect(isMine(resit(3, 'machine-learning'), 3, null, new Set(['machine-learning']))).toBe(true);
+    expect(isMine(resit(1), 1, null, new Set(['mathematics']))).toBe(true);
+    expect(resitFor(resit(1), 3, new Set(['mathematics']))).toBe(true);
+  });
+  it('ignore the papers picked: the year before’s resits stay', () => {
+    expect(isMine(resit(1), 2, new Set(['econometrics']))).toBe(true);
+    expect(isMine(resit(1), 1, new Set(['mathematics']))).toBe(false);
+  });
+  it('show to every year when no year is chosen', () => {
+    expect(isMine(resit(1), null, null)).toBe(true);
   });
 });
 

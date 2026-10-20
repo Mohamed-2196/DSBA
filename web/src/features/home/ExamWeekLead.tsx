@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../auth';
 import { daysUntil, formatDay, formatLongDay, parseDay } from '../../lib/dates';
 import { Button, Deskmate, Icon, QueryError, Skeleton, countOf, cx, glyph } from '../../ui';
-import { typeLabel, type CalendarEvent } from '../calendar/public';
+import { dateLabel, type CalendarEvent } from '../calendar/public';
 import {
   SittingsTable,
   libraryItemPath,
@@ -213,7 +213,7 @@ function Dates({ events, exam, todayIs }: { events: readonly CalendarEvent[]; ex
                 <span className="home-exam__date-text">
                   <span className="home-exam__date-title">{e.title}</span>
                   <span className="home-exam__date-meta">
-                    {typeLabel(e.type)}, {formatDay(day, { weekday: 'short', month: 'short', year: false })}
+                    {dateLabel(e)}, {formatDay(day, { weekday: 'short', month: 'short', year: false })}
                   </span>
                 </span>
                 <span className="home-exam__date-when">
@@ -262,7 +262,8 @@ export function ExamWeekLead({
         <span className="home-exam__eyebrow">
           Exam week<span className="visually-hidden">:</span>
         </span>
-        {code} {examDayWord(exam.days, exam.when)}
+        {code} {exam.resit ? 'resit ' : ''}
+        {examDayWord(exam.days, exam.when)}
       </h2>
       {lead.map(part)}
     </section>

@@ -10,6 +10,7 @@ import type { ModuleDetail, ModuleSummary, NooraScript } from '../../api/types';
 import { daysBetween, formatLongDay, formatShort, today as bahrainToday } from '../../lib/dates';
 import type { Feature } from '../../auth';
 import { eventDate, type CalendarEvent } from '../calendar/public';
+import { isMine, NO_RESITS, resitFor } from '../papers/public';
 // The modules feature owns the address of a lesson. Using its helper means these links cannot drift.
 import { lessonHref } from '../modules/public';
 import {
@@ -78,6 +79,8 @@ export interface Knowledge {
   isOn: (feature: Feature) => boolean;
   /** what she says in her own words */
   script: NooraScript;
+  /** the modules the student is resitting: their resits are theirs whatever their year */
+  resits: ReadonlySet<string>;
 }
 
 function indexModule(m: ModuleSummary, detail: ModuleDetail | undefined): IndexedModule {
@@ -195,9 +198,10 @@ export function buildKnowledge(
   name: string | null,
   isOn: (feature: Feature) => boolean,
   script: NooraScript,
+  resits: ReadonlySet<string> = NO_RESITS,
 ): Knowledge {
   const modules = catalogue.map((m) => indexModule(m, details.get(m.id)));
-  return { modules, topics: topicsOf(modules), events, name, isOn, script };
+  return { modules, topics: topicsOf(modules), events, name, isOn, script, resits };
 }
 
 // What a title word may add to a short query word and still be the same word: 'test' finds 'testing',
@@ -502,12 +506,15 @@ function aboutExams(k: Knowledge, said: string, year: number | null, named: Inde
       refs: [calendar],
     };
   }
-  // A cohort's own dates plus the ones for everyone; a named module's dates whatever its year.
+  // A cohort's own dates plus the ones for everyone; a named module's dates whatever its year. A resit only when it
+  // is the student's: the year after the module's, or a module they are resitting (never the module's own year).
   const ahead = k.events.filter(
     (e) =>
       e.type === what &&
       eventDate(e) >= today &&
-      (named ? e.moduleId === named.id : !year || e.year == null || e.year === year),
+      (named
+        ? e.moduleId === named.id && (!e.resit || resitFor(e, year ?? e.year, k.resits))
+        : isMine(e, year, null, k.resits)),
   );
   const confirmed = ahead.filter((e) => !e.sample);
 
@@ -522,9 +529,10 @@ function aboutExams(k: Knowledge, said: string, year: number | null, named: Inde
   const when = eventDate(next);
   const m = k.modules.find((x) => x.id === next.moduleId);
   const name = m ? m.called : next.title;
+  const sitting = next.resit ? 'resit' : what;
   let text = named
-    ? `The next ${name} ${what} is ${onDay(when, today)}.`
-    : `Your next ${what} is ${name} ${onDay(when, today)}.`;
+    ? `The next ${name} ${sitting} is ${onDay(when, today)}.`
+    : `Your next ${what} is ${name}${next.resit ? ' (resit)' : ''} ${onDay(when, today)}.`;
   const last = later[later.length - 1];
   if (!named && last) {
     const lastDay = formatLongDay(eventDate(last));

@@ -30,7 +30,8 @@ import { PlanRevision } from '../board/public';
 import { ModuleThreads, Prose } from '../forum/public';
 import { ModuleFiles, useLibraryUpload } from '../library/public';
 import { useModule } from './api';
-import { useModuleExam, type ExamInfo } from './exams';
+import { useModuleExam, type ModuleSittings } from './exams';
+import { ResitToggle } from './ResitToggle';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
 import { LessonsTab } from './LessonsTab';
 import { isModuleTab, lessonHref, moduleTabOn, type ModuleTab } from './lessons';
@@ -67,7 +68,7 @@ function ModuleHeader({
   summary: ModuleSummary;
   detail: ModuleDetail | undefined;
   resume: ResumePoint | null;
-  exam: ExamInfo | null;
+  exam: ModuleSittings & { loaded: boolean };
   onOpenLesson: (c: number, v: number) => void;
 }) {
   const { year } = useYear();
@@ -81,7 +82,7 @@ function ModuleHeader({
     <PlanRevision
       moduleId={m.id}
       moduleName={m.unitCode || m.shortName || m.name}
-      examDate={exam?.event.date ?? null}
+      examDate={exam.next?.event.date ?? null}
       short={phone}
       className="mod-head__action"
     />
@@ -169,13 +170,19 @@ function ModuleHeader({
           ) : null}
           <div className="mod-head__meta">
             <CohortBadge year={m.year} />
-            {exam ? (
+            {exam.next ? (
               <Badge tone="exam" icon={<Icon glyph={glyph.calendar} />} className="mod-head__exam">
-                Exam {exam.weekdayDate}, {exam.relative}
+                {exam.next.event.resit ? 'Resit' : 'Exam'} {exam.next.weekdayDate}, {exam.next.relative}
               </Badge>
+            ) : exam.loaded && featureOn('calendar') ? (
+              <span className="mod-head__noexam">No exam date yet</span>
+            ) : null}
+            {exam.otherResit ? (
+              <span className="mod-head__resit">(Resit {exam.otherResit.weekdayDate}, for students retaking)</span>
             ) : null}
             {counts.length && !phone ? <span className="mod-head__counts">{counts.join(', ')}</span> : null}
           </div>
+          {featureOn('calendar') ? <ResitToggle moduleId={m.id} /> : null}
           {phone ? null : actions}
         </div>
         <span className="mod-head__mate">

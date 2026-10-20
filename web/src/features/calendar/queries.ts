@@ -43,21 +43,28 @@ export function listOrder<T extends Pick<CalendarEvent, 'date' | 'sample' | 'typ
 
 /** A student's papers (module ids; null: every module of their year), for the filters below. */
 type Papers = ReadonlySet<string> | null | undefined;
+/** The modules a student is resitting: their resits count for them whatever their year. */
+type Resits = ReadonlySet<string> | undefined;
 
 /**
  * Events that apply to a cohort (year null → all), to a student's papers when given (a module's events only for
- * those modules) and, optionally, a set of filters (empty: everything): programme types, 'mine' for the
+ * those modules), with the resits for them (a module's own year never has its resit) and, optionally, a set of filters (empty: everything): programme types, 'mine' for the
  * student's own events and 'plan' for their plan, which every cohort shows.
  */
 export function filterEvents(
   events: readonly CalendarEvent[],
-  { year, types, papers }: { year?: number | null; types?: ReadonlySet<EventFilter>; papers?: Papers } = {},
+  {
+    year,
+    types,
+    papers,
+    resits,
+  }: { year?: number | null; types?: ReadonlySet<EventFilter>; papers?: Papers; resits?: Resits } = {},
 ): CalendarEvent[] {
   const any = !types || types.size === 0;
   return events.filter((e) => {
     if (e.mine) return any || types.has('mine');
     if (e.plan) return any || types.has('plan');
-    return isMine(e, year ?? null, papers ?? null) && (any || types.has(e.type));
+    return isMine(e, year ?? null, papers ?? null, resits) && (any || types.has(e.type));
   });
 }
 
@@ -113,10 +120,10 @@ export interface NextExam {
  */
 export function nextExamFor(
   events: readonly CalendarEvent[],
-  { year, today, papers }: { year: number | null; today: DayKey; papers?: Papers },
+  { year, today, papers, resits }: { year: number | null; today: DayKey; papers?: Papers; resits?: Resits },
 ): NextExam | null {
   const ahead = listOrder(
-    events.filter((e) => e.type === 'exam' && isMine(e, year, papers ?? null) && e.date >= today),
+    events.filter((e) => e.type === 'exam' && isMine(e, year, papers ?? null, resits) && e.date >= today),
   );
   const i = Math.max(
     0,
@@ -133,10 +140,18 @@ export const weekEnd = (today: DayKey, days = 7): DayKey => addDaysToKey(today, 
 /** What a cohort has on in the week ahead (today and the six days after it), every type, in list order. */
 export function weekAhead(
   events: readonly CalendarEvent[],
-  { year, today, days = 7, papers }: { year: number | null; today: DayKey; days?: number; papers?: Papers },
+  {
+    year,
+    today,
+    days = 7,
+    papers,
+    resits,
+  }: { year: number | null; today: DayKey; days?: number; papers?: Papers; resits?: Resits },
 ): CalendarEvent[] {
   const end = weekEnd(today, days);
-  return listOrder(events.filter((e) => isMine(e, year, papers ?? null) && e.date <= end && lastDay(e) >= today));
+  return listOrder(
+    events.filter((e) => isMine(e, year, papers ?? null, resits) && e.date <= end && lastDay(e) >= today),
+  );
 }
 
 /**
@@ -146,11 +161,12 @@ export function weekAhead(
  */
 export function datesAheadThisMonth(
   events: readonly CalendarEvent[],
-  { year, today, papers }: { year: number | null; today: DayKey; papers?: Papers },
+  { year, today, papers, resits }: { year: number | null; today: DayKey; papers?: Papers; resits?: Resits },
 ): number {
   const monthEnd = `${today.slice(0, 7)}-31`;
-  return filterEvents(events, { year, papers }).filter((e) => !e.plan && lastDay(e) >= today && e.date <= monthEnd)
-    .length;
+  return filterEvents(events, { year, papers, resits }).filter(
+    (e) => !e.plan && lastDay(e) >= today && e.date <= monthEnd,
+  ).length;
 }
 
 export interface DayGroup {

@@ -22,6 +22,13 @@ export function isExamSession(raw: unknown): raw is ExamSession {
   return typeof raw === 'string' && (SESSIONS as readonly string[]).includes(raw);
 }
 
+/** The months of the October resits (September to December): an exam dated in them starts as a resit, as the API's
+ *  exam_names.resit_sitting has it. A rep's mark is what counts. */
+export function resitSitting(day: string): boolean {
+  const month = Number(day.slice(5, 7));
+  return month >= 9 && month <= 12;
+}
+
 /** 'Zone A', or 'RTC' for the paper set for Recognised Teaching Centres. */
 export function zoneLabel(zone: Zone): string {
   return zone === 'RTC' ? 'RTC' : `Zone ${zone}`;

@@ -3,6 +3,7 @@
 import { cohortLabel, useToast, type CohortYear } from '../../state';
 import { Button, IconButton, type ButtonSize, type ButtonVariant, type TooltipSide, Icon, glyph } from '../../ui';
 import { formatLong, parseDay } from '../../lib/dates';
+import { usePapers } from '../papers/public';
 import { eventIcsUrl, examsIcsUrl } from './api';
 import type { CalendarEvent } from './types';
 
@@ -78,11 +79,12 @@ export function AddExamsToCalendar({
   size?: ButtonSize;
 }) {
   const note = useDownloadNote();
+  const { home, resits } = usePapers();
   return (
     <Button
       size={size}
       leadingIcon={<Icon glyph={glyph.download} />}
-      href={examsIcsUrl(year, papers)}
+      href={examsIcsUrl(year, papers, year && year === home ? resits : undefined)}
       download
       external={false}
       onClick={() => note('every exam')}

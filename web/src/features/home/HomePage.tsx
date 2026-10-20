@@ -92,7 +92,7 @@ export default function HomePage() {
   const { me, status, openSignIn, featureOn } = useAuth();
   const tracking = useTracking();
   const { getModule } = useModules();
-  const { papers } = usePapers();
+  const { papers, resits } = usePapers();
   const [customizing, setCustomizing] = useState(false);
   const online = useOnline();
   // Lumen waves on the first Home of a visit (this tab's session), then rests.
@@ -121,8 +121,8 @@ export default function HomePage() {
   // The student's dates from today: Up next reads its exam session from them, and My modules each module's next exam.
   const dates = home.data?.dates;
   const session = useMemo(
-    () => getExamSession(dates ?? [], activeYear, getModule, today, { papers }),
-    [dates, activeYear, getModule, today, papers],
+    () => getExamSession(dates ?? [], activeYear, getModule, today, { papers, resits }),
+    [dates, activeYear, getModule, today, papers, resits],
   );
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
   const phone = useMediaQuery(PHONE);

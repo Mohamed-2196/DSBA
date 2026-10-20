@@ -9,7 +9,7 @@ import { api, apiUrl, call } from '../../api/client';
 import { HOME_KEY } from '../../api/keys';
 import { appUrl } from '../../lib/share';
 import type { CohortYear } from '../../state';
-import { dayKeyFromToday, sortEvents } from './queries';
+import { sortEvents } from './queries';
 import type { CalendarPrefsUpdate, TimetablePreviewIn, TimetableSave } from '../../api/types';
 import type { DayKey } from '../../lib/dates';
 import type {
@@ -32,13 +32,21 @@ const clean = (f: EventFilters): EventFilters => {
   if (f.year) out.year = f.year;
   if (f.moduleId) out.moduleId = f.moduleId;
   if (f.type) out.type = f.type;
+  if (f.resits?.length) out.resits = [...f.resits].sort();
   return out;
+};
+
+/** The modules a student is resitting, as the API's `resits` parameter. */
+const resitParam = (resits: Iterable<string> | undefined): string | undefined => {
+  const ids = [...(resits ?? [])].sort();
+  return ids.length ? ids.join(',') : undefined;
 };
 
 export const calendarKeys = {
   all: CALENDAR_KEY,
   events: (f: EventFilters = {}) => [...CALENDAR_KEY, 'events', clean(f)] as const,
-  upcoming: (n: number, year: CohortYear | null) => [...CALENDAR_KEY, 'upcoming', { n, year }] as const,
+  upcoming: (n: number, year: CohortYear | null, resits: string[] = []) =>
+    [...CALENDAR_KEY, 'upcoming', { n, year, resits }] as const,
 };
 
 // The calendar changes a few times a term: keep what was read for five minutes.
@@ -48,7 +56,16 @@ export async function fetchEvents(filters: EventFilters = {}): Promise<CalendarE
   const f = clean(filters);
   const events = await call(
     api.GET('/api/v1/calendar/events', {
-      params: { query: { from: f.from, to: f.to, year: f.year, module_id: f.moduleId, type: f.type } },
+      params: {
+        query: {
+          from: f.from,
+          to: f.to,
+          year: f.year,
+          module_id: f.moduleId,
+          type: f.type,
+          resits: resitParam(f.resits),
+        },
+      },
     }),
   );
   return sortEvents(events);
@@ -64,41 +81,45 @@ export function useCalendarEvents(filters: EventFilters = {}, { enabled = true }
   });
 }
 
-/** The next `n` dates from today (Bahrain time) for a cohort plus everyone-dates; year null → every cohort. */
-export function useUpcomingEvents({ n = 5, year = null }: { n?: number; year?: CohortYear | null } = {}) {
+/**
+ * The next `n` dates from today (Bahrain time) for a cohort plus everyone-dates; year null → every cohort. A cohort
+ * has its main sittings and the year before's resits; `resits` (module ids) adds those modules' resits.
+ */
+export function useUpcomingEvents({
+  n = 5,
+  year = null,
+  resits,
+}: { n?: number; year?: CohortYear | null; resits?: ReadonlySet<string> } = {}) {
   const size = Math.max(1, Math.min(60, Math.round(n)));
+  const ids = [...(resits ?? [])].sort();
   return useQuery({
-    queryKey: calendarKeys.upcoming(size, year ?? null),
+    queryKey: calendarKeys.upcoming(size, year ?? null, ids),
     queryFn: async () =>
       sortEvents(
         await call(
-          api.GET('/api/v1/calendar/upcoming', { params: { query: { limit: size, year: year ?? undefined } } }),
+          api.GET('/api/v1/calendar/upcoming', {
+            params: { query: { limit: size, year: year ?? undefined, resits: resitParam(ids) } },
+          }),
         ),
       ),
     staleTime: STALE,
   });
 }
 
-/** The next exam (today or later) for a module; data is null when none is on the calendar. */
-export function useNextExamForModule(
-  moduleId: string | null | undefined,
-  { enabled = true }: { enabled?: boolean } = {},
-) {
-  const from = dayKeyFromToday();
-  return useQuery({
-    queryKey: [...calendarKeys.events({ moduleId: moduleId ?? null, type: 'exam', from }), 'next'] as const,
-    queryFn: async () => (await fetchEvents({ moduleId, type: 'exam', from }))[0] ?? null,
-    enabled: enabled && !!moduleId,
-    staleTime: STALE,
-  });
-}
-
-/** The feed's query: a cohort, and a student's papers in it (module ids; nothing in it says who they are). */
-function feedQuery(year: CohortYear | null, papers: ReadonlySet<string> | null | undefined, type?: 'exam'): string {
+/** The feed's query: a cohort, a student's papers in it and the modules they are resitting (module ids; nothing in
+ *  it says who they are). */
+function feedQuery(
+  year: CohortYear | null,
+  papers: ReadonlySet<string> | null | undefined,
+  type?: 'exam',
+  resits?: ReadonlySet<string>,
+): string {
   const q = new URLSearchParams();
   if (type) q.set('type', type);
   if (year) q.set('year', String(year));
   if (year && papers) q.set('modules', [...papers].sort().join(','));
+  const resat = resitParam(resits);
+  if (year && resat) q.set('resits', resat);
   const s = q.toString().replace(/%2C/g, ',');
   return s ? `?${s}` : '';
 }
@@ -107,8 +128,15 @@ function feedQuery(year: CohortYear | null, papers: ReadonlySet<string> | null |
  * The iCalendar feed for a cohort (null: every cohort), as an absolute URL calendar apps can subscribe to. With
  * `papers`, a module's dates only for those papers.
  */
-export function feedUrl(year: CohortYear | null, papers?: ReadonlySet<string> | null): string {
-  return new URL(apiUrl(`/api/v1/calendar/feed.ics${feedQuery(year, papers)}`), window.location.origin).href;
+export function feedUrl(
+  year: CohortYear | null,
+  papers?: ReadonlySet<string> | null,
+  resits?: ReadonlySet<string>,
+): string {
+  return new URL(
+    apiUrl(`/api/v1/calendar/feed.ics${feedQuery(year, papers, undefined, resits)}`),
+    window.location.origin,
+  ).href;
 }
 
 /** The address of a date on the calendar page, to share. */
@@ -119,8 +147,11 @@ export const eventPageUrl = (e: Pick<CalendarEvent, 'id'>): string =>
 export const eventIcsUrl = (id: string): string => apiUrl(`/api/v1/calendar/events/${encodeURIComponent(id)}.ics`);
 
 /** Every exam of a cohort (and the exams for everyone; null: every cohort) as one .ics file. */
-export const examsIcsUrl = (year: CohortYear | null, papers?: ReadonlySet<string> | null): string =>
-  apiUrl(`/api/v1/calendar/feed.ics${feedQuery(year, papers, 'exam')}`);
+export const examsIcsUrl = (
+  year: CohortYear | null,
+  papers?: ReadonlySet<string> | null,
+  resits?: ReadonlySet<string>,
+): string => apiUrl(`/api/v1/calendar/feed.ics${feedQuery(year, papers, 'exam', resits)}`);
 
 // ── Moderators ─────────────────────────────────────────────────────────────────────────────────
 

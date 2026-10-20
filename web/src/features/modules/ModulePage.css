@@ -189,6 +189,28 @@
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
+/* No main sitting on the calendar yet, and a resit that isn't the student's: said, not counted down. */
+.mod-head__noexam,
+.mod-head__resit {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.mod-head__resit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  min-height: 44px;
+  margin-top: var(--sp-8);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  cursor: pointer;
+}
+.mod-head__resit-toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--exam);
+}
 .mod-head__actions {
   display: flex;
   flex-wrap: wrap;

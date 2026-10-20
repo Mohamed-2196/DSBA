@@ -35,6 +35,7 @@ const ev = (date: string, over: Partial<CalendarEvent> = {}): CalendarEvent => {
     checkedOn: null,
     employerId: null,
     sample: false,
+    resit: false,
     ...over,
   };
 };
@@ -222,5 +223,23 @@ describe('datesAheadThisMonth', () => {
     ];
     expect(datesAheadThisMonth(events, { year: 2, today: '2026-10-20' })).toBe(3);
     expect(datesAheadThisMonth(events, { year: null, today: '2026-10-20' })).toBe(4);
+  });
+});
+
+describe('resits', () => {
+  const resit = ev('2026-10-22', { year: 1, moduleId: 'mathematics', resit: true });
+  const main = ev('2027-05-12', { year: 1, moduleId: 'mathematics' });
+  it('never count down for the module’s own year', () => {
+    expect(nextExamFor([resit, main], { year: 1, today: '2026-10-20' })?.exam.id).toBe(main.id);
+    expect(ids(filterEvents([resit, main], { year: 1 }))).toEqual([main.id]);
+    expect(weekAhead([resit], { year: 1, today: '2026-10-20' })).toEqual([]);
+  });
+  it('count down for the next year and for those resitting', () => {
+    expect(nextExamFor([resit, main], { year: 2, today: '2026-10-20' })?.exam.id).toBe(resit.id);
+    const resitting = new Set(['mathematics']);
+    expect(nextExamFor([resit, main], { year: 1, today: '2026-10-20', resits: resitting })?.exam.id).toBe(resit.id);
+    expect(ids(weekAhead([resit], { year: 1, today: '2026-10-20', resits: resitting }))).toEqual([resit.id]);
+    expect(datesAheadThisMonth([resit], { year: 2, today: '2026-10-20' })).toBe(1);
+    expect(datesAheadThisMonth([resit], { year: 1, today: '2026-10-20' })).toBe(0);
   });
 });

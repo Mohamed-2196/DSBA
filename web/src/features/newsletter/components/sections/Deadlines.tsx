@@ -14,6 +14,7 @@ import type { CohortYear } from '../../../../state';
 import { useModules } from '../../../../state/modules';
 import { Button, CohortBadge, cx, glyph, Highlight, Icon, SegmentedControl, Tooltip } from '../../../../ui';
 import type { CalendarEvent } from '../../../calendar/public';
+import { isMine } from '../../../papers/public';
 
 interface SessionDay {
   iso: string;
@@ -115,7 +116,8 @@ export function Deadlines({ issueDate, exams }: { issueDate: string; exams: Cale
   const { getModule } = useModules();
   const [filter, setFilter] = useState('all');
   const years = cohortsOf(exams);
-  const shown = filter === 'all' ? exams : exams.filter((e) => String(e.year) === filter);
+  // A year's exams are its main sittings and the year before's resits (isMine).
+  const shown = filter === 'all' ? exams : exams.filter((e) => isMine(e, Number(filter), null));
   const firstId = exams[0]?.id;
 
   if (!exams.length) {
@@ -165,7 +167,10 @@ export function Deadlines({ issueDate, exams }: { issueDate: string; exams: Cale
               </time>
               <div className="nl-date__what">
                 <span className="nl-date__code">{e.unitCode ?? mod?.shortName}</span>
-                <span className="nl-date__name">{mod?.name ?? e.title}</span>
+                <span className="nl-date__name">
+                  {mod?.name ?? e.title}
+                  {e.resit ? ', resit' : ''}
+                </span>
               </div>
               <div className="nl-date__meta">
                 {e.year ? <CohortBadge year={e.year} size="sm" /> : null}

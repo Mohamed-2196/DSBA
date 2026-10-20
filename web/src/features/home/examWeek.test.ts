@@ -31,6 +31,7 @@ const event = (over: Partial<CalendarEvent>): CalendarEvent => ({
   checkedOn: null,
   employerId: null,
   sample: false,
+  resit: false,
   ...over,
 });
 
