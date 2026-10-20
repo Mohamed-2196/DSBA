@@ -154,7 +154,7 @@ function NextDates({ module: m }: { module: ModuleDetail }) {
         </Button>
       }
     >
-      <ol className="mod-rows" role="list">
+      <ol className="mod-lines" role="list">
         {rows.map(({ event: e, day, closes }) => {
           const days = daysUntil(day, today);
           const date = formatDay(day, { weekday: 'short', month: 'short', year: false });
@@ -162,12 +162,12 @@ function NextDates({ module: m }: { module: ModuleDetail }) {
             <li key={e.id}>
               <Link
                 to={`/calendar?event=${encodeURIComponent(e.id)}`}
-                className={cx('mod-row', 'mod-date', `mod-date--${e.type}`)}
+                className={cx('mod-line', 'mod-date', `mod-date--${e.type}`)}
               >
                 <span className="mod-date__dot" aria-hidden="true" />
-                <span className="mod-row__text">
-                  <span className="mod-row__title">{e.title}</span>
-                  <span className="mod-row__meta">
+                <span className="mod-line__text">
+                  <span className="mod-line__title">{e.title}</span>
+                  <span className="mod-line__meta">
                     {closes ? `Closes ${date}` : `${typeLabel(e.type)}, ${date}`}
                     {e.sample ? ', to be confirmed' : ''}
                   </span>
@@ -412,16 +412,16 @@ function YourNotes({
       }
       footer={newNote}
     >
-      <ul className="mod-rows" role="list">
+      <ul className="mod-lines" role="list">
         {items.map((n) => (
           <li key={n.id}>
-            <Link to={`/notes/${n.id}`} className="mod-row mod-row--doc">
+            <Link to={`/notes/${n.id}`} className="mod-line mod-line--doc">
               <DocThumb tone="note" size="md" />
-              <span className="mod-row__text">
-                <span className="mod-row__title" dir="auto">
+              <span className="mod-line__text">
+                <span className="mod-line__title" dir="auto">
                   <NoteName note={n} />
                 </span>
-                <span className="mod-row__meta">Edited {timeAgo(n.updatedAt)}</span>
+                <span className="mod-line__meta">Edited {timeAgo(n.updatedAt)}</span>
               </span>
             </Link>
           </li>
@@ -521,16 +521,16 @@ function NewestNotes({
         ) : null
       }
     >
-      <ul className="mod-rows" role="list">
+      <ul className="mod-lines" role="list">
         {rows.map((n) => (
           <li key={n.key}>
-            <Link to={n.to} className="mod-row mod-row--doc">
+            <Link to={n.to} className="mod-line mod-line--doc">
               <DocThumb tone="note" size="md" />
-              <span className="mod-row__text">
-                <span className="mod-row__title" dir="auto">
+              <span className="mod-line__text">
+                <span className="mod-line__title" dir="auto">
                   {n.title}
                 </span>
-                <span className="mod-row__meta">{n.meta}</span>
+                <span className="mod-line__meta">{n.meta}</span>
               </span>
             </Link>
           </li>
@@ -582,16 +582,16 @@ function NewestThreads({ moduleId, name, onTab }: { moduleId: string; name: stri
         ) : null
       }
     >
-      <ul className="mod-rows" role="list">
+      <ul className="mod-lines" role="list">
         {q.threads.map((t) => (
           <li key={t.id}>
-            <Link to={`/forum/${t.slug}`} className="mod-row">
-              <span className="mod-row__text">
-                <span className="mod-row__title">{t.title}</span>
-                <span className="mod-row__meta">
+            <Link to={`/forum/${t.slug}`} className="mod-line">
+              <span className="mod-line__text">
+                <span className="mod-line__title">{t.title}</span>
+                <span className="mod-line__meta">
                   {countOf(t.replyCount, 'reply', 'replies')}, {timeAgo(t.lastActivityAt)}
                   {t.answered ? (
-                    <span className="mod-row__answered">
+                    <span className="mod-line__answered">
                       <Icon glyph={glyph.check} /> Answered
                     </span>
                   ) : null}
@@ -628,15 +628,15 @@ function AskedBefore({ moduleId, name }: { moduleId: string; name: string }) {
   if (!q.threads.length) return null;
   return (
     <Block title={title} hub="module-asked-before">
-      <ul className="mod-rows" role="list">
+      <ul className="mod-lines" role="list">
         {q.threads.map((t) => (
           <li key={t.id}>
-            <Link to={`/forum/${t.slug}`} className="mod-row">
-              <span className="mod-row__text">
-                <span className="mod-row__title">{t.title}</span>
-                <span className="mod-row__meta">
+            <Link to={`/forum/${t.slug}`} className="mod-line">
+              <span className="mod-line__text">
+                <span className="mod-line__title">{t.title}</span>
+                <span className="mod-line__meta">
                   {countOf(t.voteCount, 'vote')}, {countOf(t.replyCount, 'reply', 'replies')}
-                  <span className="mod-row__answered">
+                  <span className="mod-line__answered">
                     <Icon glyph={glyph.check} /> Answered
                   </span>
                 </span>
@@ -691,17 +691,17 @@ function MoreInLibrary({
       }
     >
       {rest.length ? (
-        <ul className="mod-rows" role="list">
+        <ul className="mod-lines" role="list">
           {rest.map((sh) => {
             const doc = <DocThumb tone={SHELF_TONE[sh.kind] ?? 'guide'} size="md" className="mod-shelf__icon" />;
             return (
               <li key={sh.kind}>
                 {sh.beingAdded ? (
-                  <span className="mod-row mod-shelf" data-hub="module-shelf">
+                  <span className="mod-line mod-shelf" data-hub="module-shelf">
                     {doc}
-                    <span className="mod-row__text">
-                      <span className="mod-row__title">{sh.label}</span>
-                      <span className="mod-row__meta">On their way into the Hub. Check back soon.</span>
+                    <span className="mod-line__text">
+                      <span className="mod-line__title">{sh.label}</span>
+                      <span className="mod-line__meta">On their way into the Hub. Check back soon.</span>
                     </span>
                     <Badge tone="neutral" size="sm">
                       Being added
@@ -710,14 +710,14 @@ function MoreInLibrary({
                 ) : (
                   <button
                     type="button"
-                    className="mod-row mod-shelf"
+                    className="mod-line mod-shelf"
                     data-hub="module-shelf"
                     onClick={() => onTab('files', sh.hash)}
                   >
                     {doc}
-                    <span className="mod-row__text">
-                      <span className="mod-row__title">{sh.label}</span>
-                      <span className="mod-row__meta">{sh.description}</span>
+                    <span className="mod-line__text">
+                      <span className="mod-line__title">{sh.label}</span>
+                      <span className="mod-line__meta">{sh.description}</span>
                     </span>
                     <span className="mod-shelf__count u-tabular">{countOf(sh.files, 'file')}</span>
                   </button>
