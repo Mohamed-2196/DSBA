@@ -3,8 +3,8 @@
 // phone. Open: what it is, its label, icon, headline and link name, the copy, the live list's settings and what
 // sits beside the text.
 import { memo, useState } from 'react';
-import { CaretDown, PencilSimple, WarningCircle } from '@phosphor-icons/react';
-import { Badge, Button, Select, cx } from '../../../ui';
+import { CaretDown, WarningCircle } from '@phosphor-icons/react';
+import { Badge, Button, cx, glyph, Icon, Select } from '../../../ui';
 import {
   LIMITS,
   controlId,
@@ -147,7 +147,7 @@ function SectionCardImpl({
   const change = (fn: (x: SectionDraft) => SectionDraft) => onChange(s.key, fn);
   const path = (field: string) => fieldPath.section(s.key, field);
   const problems = Object.keys(errors).filter((p) => sectionOfPath(p) === s.key).length;
-  const Icon = sectionIcon(s.icon);
+  const SectionGlyph = sectionIcon(s.icon);
   const label = plainText(s.label.trim() || s.title.trim()) || 'New section';
   const headline = plainText(s.title.trim());
   const bodyId = `nl-ed-sec-${s.key}`;
@@ -173,7 +173,7 @@ function SectionCardImpl({
             <span className="nl-ed-section__no u-tabular" aria-hidden="true">
               {index + 1}
             </span>
-            <Icon className="nl-ed-section__icon" weight="duotone" aria-hidden="true" />
+            <SectionGlyph className="nl-ed-section__icon" weight="duotone" aria-hidden="true" />
             <span className="nl-ed-section__names">
               <span className="nl-ed-section__label">
                 {label}
@@ -263,7 +263,12 @@ function SectionCardImpl({
               <p className="nl-ed-link__line">
                 <span className="nl-ed-link__label">Link</span>
                 <code className="nl-ed-link__id">?section={s.id || '…'}</code>
-                <Button size="sm" variant="ghost" leadingIcon={PencilSimple} onClick={() => setEditingId(true)}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  leadingIcon={<Icon glyph={glyph.edit} />}
+                  onClick={() => setEditingId(true)}
+                >
                   Change
                 </Button>
               </p>

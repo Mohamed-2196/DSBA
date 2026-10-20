@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { CalendarBlank } from '@phosphor-icons/react';
 import {
   addDays,
   dayKey,
@@ -13,7 +12,7 @@ import {
 } from '../../../../lib/dates';
 import type { CohortYear } from '../../../../state';
 import { useModules } from '../../../../state/modules';
-import { Button, CohortBadge, Highlight, SegmentedControl, Tooltip, cx } from '../../../../ui';
+import { Button, CohortBadge, cx, glyph, Highlight, Icon, SegmentedControl, Tooltip } from '../../../../ui';
 import type { CalendarEvent } from '../../../calendar/public';
 
 interface SessionDay {
@@ -124,7 +123,7 @@ export function Deadlines({ issueDate, exams }: { issueDate: string; exams: Cale
       <div className="nl-deadlines" data-hub="deadlines">
         <p className="nl-p">No exams on the calendar for these dates. Check the calendar for anything new.</p>
         <p className="nl-cta">
-          <Button to="/calendar" leadingIcon={CalendarBlank}>
+          <Button to="/calendar" leadingIcon={<Icon glyph={glyph.calendar} />}>
             Open the calendar
           </Button>
         </p>
@@ -179,7 +178,7 @@ export function Deadlines({ issueDate, exams }: { issueDate: string; exams: Cale
         })}
       </ol>
       <p className="nl-deadlines__foot">
-        <Button to="/calendar" leadingIcon={CalendarBlank}>
+        <Button to="/calendar" leadingIcon={<Icon glyph={glyph.calendar} />}>
           Open the calendar
         </Button>
         <span>Countdowns are from {formatDay(issueDate, { year: false })}, the day this issue came out.</span>

@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Clock, Newspaper } from '@phosphor-icons/react';
 import { formatDay } from '../../lib/dates';
-import { Badge, Button, EmptyState, Panel, QueryError, Skeleton } from '../../ui';
+import { Badge, Button, EmptyState, glyph, Icon, Panel, QueryError, Skeleton } from '../../ui';
 import { toCard, useIssueDetail, useLatestIssue } from './api';
 import { IssueCover } from './components/IssueCover';
 import { issueNo } from './lib/text';
@@ -44,7 +43,7 @@ export function LatestIssueCard() {
       <Panel padding="none">
         <EmptyState
           size="sm"
-          icon={Newspaper}
+          icon={<Icon glyph={glyph.newsletter} />}
           title="No issues yet"
           body="The first issue of The DSBA Newsletter will show here when it’s out."
           action={
@@ -75,7 +74,7 @@ export function LatestIssueCard() {
         {issue.summary ? <span className="nl-latest-card__summary">{issue.summary}</span> : null}
         {issue.readMinutes ? (
           <span className="nl-latest-card__meta">
-            <Clock aria-hidden="true" />
+            <Icon glyph={glyph.clock} />
             {issue.readMinutes} min read
           </span>
         ) : null}

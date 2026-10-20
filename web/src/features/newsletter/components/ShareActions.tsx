@@ -1,7 +1,7 @@
-import { EnvelopeSimple, LinkSimple, ShareNetwork, WhatsappLogo } from '@phosphor-icons/react';
+import { WhatsappLogo } from '@phosphor-icons/react';
 import { appUrl } from '../../../lib/share';
 import { useCopyLink } from '../../../lib/useCopyLink';
-import { Button, IconButton, Menu, cx } from '../../../ui';
+import { Button, cx, glyph, Icon, IconButton, Menu } from '../../../ui';
 import { mailUrl, whatsappUrl } from '../lib/links';
 
 export interface ShareActionsProps {
@@ -24,9 +24,15 @@ export function ShareActions({ route, title, compact = false, className }: Share
   return (
     <div className={cx('nl-share', className)}>
       {compact ? (
-        <IconButton label="Copy link" icon={LinkSimple} variant="secondary" tooltip onClick={() => void copy()} />
+        <IconButton
+          label="Copy link"
+          icon={<Icon glyph={glyph.link} />}
+          variant="secondary"
+          tooltip
+          onClick={() => void copy()}
+        />
       ) : (
-        <Button size="sm" leadingIcon={LinkSimple} onClick={() => void copy()}>
+        <Button size="sm" leadingIcon={<Icon glyph={glyph.link} />} onClick={() => void copy()}>
           Copy link
         </Button>
       )}
@@ -34,7 +40,13 @@ export function ShareActions({ route, title, compact = false, className }: Share
         align="end"
         label="Share this issue"
         trigger={
-          <IconButton label="Share" icon={ShareNetwork} variant="secondary" size={compact ? 'md' : 'sm'} tooltip />
+          <IconButton
+            label="Share"
+            icon={<Icon glyph={glyph.share} />}
+            variant="secondary"
+            size={compact ? 'md' : 'sm'}
+            tooltip
+          />
         }
         items={[
           {
@@ -46,11 +58,11 @@ export function ShareActions({ route, title, compact = false, className }: Share
           {
             id: 'email',
             label: 'Share by email',
-            icon: EnvelopeSimple,
+            icon: <Icon glyph={glyph.mail} />,
             href: mailUrl(`${title}, from The DSBA Newsletter`, url),
           },
           { divider: true },
-          { id: 'copy', label: 'Copy link', icon: LinkSimple, onSelect: () => void copy() },
+          { id: 'copy', label: 'Copy link', icon: <Icon glyph={glyph.link} />, onSelect: () => void copy() },
         ]}
       />
     </div>

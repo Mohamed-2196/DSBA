@@ -1,8 +1,7 @@
 // Fields of the issue editor: the design system's text controls, wired to a field path (its id, so a failed save can
 // focus it, and its error), with a character count once the text nears the API's limit.
 import type { HTMLAttributes, ReactNode } from 'react';
-import { ArrowDown, ArrowUp, Trash } from '@phosphor-icons/react';
-import { IconButton, TextArea, TextField, cx } from '../../../ui';
+import { cx, glyph, Icon, IconButton, TextArea, TextField } from '../../../ui';
 import { controlId, type FieldErrors } from '../lib/draft';
 
 const length = (s: string): number => Array.from(s.trim()).length;
@@ -105,7 +104,7 @@ export function ItemTools({ name, first, last, onMove, onRemove, className }: It
     <div className={cx('nl-ed-tools', className)} role="group" aria-label={`Arrange ${name}`}>
       <IconButton
         label={`Move ${name} up`}
-        icon={ArrowUp}
+        icon={<Icon glyph={glyph.arrowUp} />}
         size="sm"
         tooltip
         disabled={first}
@@ -113,13 +112,13 @@ export function ItemTools({ name, first, last, onMove, onRemove, className }: It
       />
       <IconButton
         label={`Move ${name} down`}
-        icon={ArrowDown}
+        icon={<Icon glyph={glyph.arrowDown} />}
         size="sm"
         tooltip
         disabled={last}
         onClick={() => onMove(1)}
       />
-      <IconButton label={`Remove ${name}`} icon={Trash} size="sm" tooltip onClick={onRemove} />
+      <IconButton label={`Remove ${name}`} icon={<Icon glyph={glyph.trash} />} size="sm" tooltip onClick={onRemove} />
     </div>
   );
 }

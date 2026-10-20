@@ -2,8 +2,8 @@
 // uploaded for the issue, with its description and caption), a typographic card, or a few numbers. One at a time, as
 // the reader shows it.
 import { useId, useRef, useState } from 'react';
-import { Plus, TextAa, UploadSimple } from '@phosphor-icons/react';
-import { Button, SegmentedControl, Switch, cx } from '../../../ui';
+import { TextAa } from '@phosphor-icons/react';
+import { Button, cx, glyph, Icon, SegmentedControl, Switch } from '../../../ui';
 import {
   UPLOAD_RULES,
   checkUpload,
@@ -140,7 +140,7 @@ export function PicturePicker({ name, label, choices, value, onChoose, none, id,
         <Button
           size="sm"
           variant="secondary"
-          leadingIcon={UploadSimple}
+          leadingIcon={<Icon glyph={glyph.upload} />}
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
         >
@@ -324,7 +324,7 @@ export function BesideEditor({ section: s, errors, onChange }: BesideEditorProps
           <Button
             size="sm"
             variant="ghost"
-            leadingIcon={Plus}
+            leadingIcon={<Icon glyph={glyph.plus} />}
             disabled={s.stats.items.length >= LIMITS.stats}
             onClick={() => setItems((items) => [...items, blankStat()])}
             className="nl-ed-start"

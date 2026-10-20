@@ -1,20 +1,11 @@
 import { Link } from 'react-router-dom';
-import {
-  ArrowFatUp,
-  Books,
-  ChatCircle,
-  ChatsCircle,
-  CheckCircle,
-  FileText,
-  HandWaving,
-  Plus,
-} from '@phosphor-icons/react';
+import { ChatCircle } from '@phosphor-icons/react';
 import type { LibraryItem, LiveFallback, RequestOut, ThreadSummary } from '../../../../api/types';
 import { useStartsThreads } from '../../../forum/public';
 import { libraryItemPath } from '../../../library/public';
 import { askedBy, requestPath } from '../../../requests/public';
 import { useModules } from '../../../../state/modules';
-import { Badge, Button, CohortBadge, Skeleton, countOf } from '../../../../ui';
+import { Badge, Button, CohortBadge, countOf, glyph, Icon, Skeleton } from '../../../../ui';
 import { RichText } from '../RichText';
 
 const NEW_DAYS = 14;
@@ -53,11 +44,11 @@ export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fal
         ) : null}
         <p className="nl-cta">
           {startsThreads ? (
-            <Button variant="primary" leadingIcon={Plus} to="/forum/new">
+            <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} to="/forum/new">
               Start a thread
             </Button>
           ) : null}
-          <Button variant="ghost" leadingIcon={ChatsCircle} to="/forum">
+          <Button variant="ghost" leadingIcon={<Icon glyph={glyph.forum} />} to="/forum">
             Browse the forum
           </Button>
         </p>
@@ -74,7 +65,7 @@ export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fal
             <li key={t.id}>
               <Link to={`/forum/${encodeURIComponent(t.slug || t.id)}`} className="nl-row">
                 <span className="nl-row__votes" aria-label={countOf(t.voteCount, 'vote')}>
-                  <ArrowFatUp weight="fill" aria-hidden="true" />
+                  <Icon glyph={glyph.vote} />
                   <span className="u-tabular">{t.voteCount}</span>
                 </span>
                 <span className="nl-row__main">
@@ -95,7 +86,7 @@ export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fal
         })}
       </ol>
       <p className="nl-cta">
-        <Button leadingIcon={ChatsCircle} to="/forum">
+        <Button leadingIcon={<Icon glyph={glyph.forum} />} to="/forum">
           Join the conversation
         </Button>
       </p>
@@ -128,7 +119,7 @@ export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallbac
           </p>
         ) : null}
         <p className="nl-cta">
-          <Button leadingIcon={Books} to="/library">
+          <Button leadingIcon={<Icon glyph={glyph.library} />} to="/library">
             Open the library
           </Button>
         </p>
@@ -148,7 +139,7 @@ export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallbac
             <li key={f.id}>
               <Link to={libraryItemPath(f)} className="nl-row">
                 <span className="nl-row__doc" aria-hidden="true">
-                  <FileText weight="duotone" />
+                  <Icon glyph={glyph.page} />
                 </span>
                 <span className="nl-row__main">
                   <span className="nl-row__title">
@@ -171,7 +162,7 @@ export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallbac
         })}
       </ol>
       <p className="nl-cta">
-        <Button leadingIcon={Books} to="/library">
+        <Button leadingIcon={<Icon glyph={glyph.library} />} to="/library">
           Open the library
         </Button>
       </p>
@@ -183,7 +174,7 @@ export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallbac
 export function RequestsList({ requests, fallback }: { requests: RequestOut[]; fallback?: LiveFallback | null }) {
   const cta = (
     <p className="nl-cta">
-      <Button leadingIcon={HandWaving} to="/requests">
+      <Button leadingIcon={<Icon glyph={glyph.question} />} to="/requests">
         {requests.length ? 'See every request' : 'Ask the reps'}
       </Button>
     </p>
@@ -207,7 +198,7 @@ export function RequestsList({ requests, fallback }: { requests: RequestOut[]; f
           <li key={r.id}>
             <Link to={requestPath(r.id)} className="nl-row">
               <span className="nl-row__doc" aria-hidden="true">
-                <CheckCircle weight="duotone" />
+                <Icon glyph={glyph.success} />
               </span>
               <span className="nl-row__main">
                 <span className="nl-row__title" dir="auto">

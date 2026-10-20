@@ -2,11 +2,10 @@
 // editor/Editor.tsx. The Gate waits for the account and turns away everyone else; this page waits for the issue.
 import type { ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
-import { PencilSimple } from '@phosphor-icons/react';
 import { isApiError } from '../../api/errors';
 import { Gate } from '../../auth';
 import { useDocumentTitle } from '../../state';
-import { Button, EmptyState, Page, Panel, QueryError, Skeleton } from '../../ui';
+import { Button, Page, PageHeader, QueryError, Skeleton } from '../../ui';
 import { useIssueDetail } from './api';
 import { Editor } from './editor/Editor';
 import './IssuePage.css';
@@ -31,10 +30,7 @@ function EditorSkeleton() {
 function Notice({ title, body, action }: { title: string; body: string; action: ReactNode }) {
   return (
     <Page>
-      <h1 className="visually-hidden">Edit issue</h1>
-      <Panel padding="none">
-        <EmptyState icon={PencilSimple} title={title} body={body} action={action} />
-      </Panel>
+      <PageHeader section="tools" title={title} description={body} actions={action} />
     </Page>
   );
 }
@@ -55,7 +51,7 @@ function IssueEditor({ slug }: { slug: string | undefined }) {
     }
     return (
       <Page>
-        <h1 className="visually-hidden">Edit issue</h1>
+        <PageHeader section="tools" title="Edit issue" />
         <QueryError
           error={q.error}
           title="The issue didn’t load"
