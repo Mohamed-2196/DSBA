@@ -94,8 +94,8 @@ describe('offeredBlocks', () => {
     expect(STUDENT_DEFAULT).toEqual([
       'start_here',
       'results_day',
+      'carry_on', // before Up next's countdown, so a phone reaches it (ST-81)
       'coming_up',
-      'carry_on',
       'todo',
       'continue',
       'modules',
