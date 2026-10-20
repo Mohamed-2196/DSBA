@@ -114,7 +114,7 @@ export const NAV: NavItem[] = [
   },
   {
     id: 'daily',
-    label: 'Daily',
+    label: 'Daily puzzles',
     to: '/daily',
     icon: glyph.daily,
     section: 'tools',

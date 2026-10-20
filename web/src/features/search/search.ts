@@ -39,6 +39,10 @@ export type IconName =
   | 'Info'
   | 'Moon'
   | 'Newspaper'
+  | 'Notebook'
+  | 'PuzzlePiece'
+  | 'Question'
+  | 'Sparkle'
   | 'PencilSimpleLine'
   | 'SquaresFour'
   | 'Sun'
@@ -121,7 +125,7 @@ export const GROUPS: Record<GroupId, { label: string; cap?: number; noun?: strin
   lessons: { label: 'Lessons', cap: 3, noun: 'lessons' },
   files: { label: 'Library', cap: 3, noun: 'files' },
   threads: { label: 'Forum', cap: 3, noun: 'threads' },
-  issues: { label: 'The DSBA Newsletter', cap: 2, noun: 'issues' },
+  issues: { label: 'Newsletter', cap: 2, noun: 'issues' },
   events: { label: 'Calendar', cap: 3, noun: 'dates' },
   actions: { label: 'Actions', cap: 3, noun: 'actions' },
   pages: { label: 'Pages', cap: 3, noun: 'pages' },
@@ -173,11 +177,18 @@ export const PAGE_ENTRIES: Item[] = (
       keywords: ['files', 'notes', 'past papers', 'exams', 'study guide', 'documents'],
     },
     {
+      path: '/notes',
+      feature: 'notes',
+      title: 'Notebook',
+      icon: 'Notebook',
+      keywords: ['notes', 'my notes', 'handwriting', 'annotate', 'write'],
+    },
+    {
       path: '/newsletter',
       feature: 'newsletter',
-      title: 'The DSBA newsletter',
+      title: 'Newsletter',
       icon: 'Newspaper',
-      keywords: ['newsletter', 'issues', 'news'],
+      keywords: ['the dsba newsletter', 'issues', 'news'],
     },
     {
       path: '/forum',
@@ -185,6 +196,13 @@ export const PAGE_ENTRIES: Item[] = (
       title: 'Forum',
       icon: 'ChatsCircle',
       keywords: ['threads', 'questions', 'discussion', 'ask'],
+    },
+    {
+      path: '/noora',
+      feature: 'noora',
+      title: 'Noora',
+      icon: 'Sparkle',
+      keywords: ['assistant', 'ask noora', 'help', 'chat'],
     },
     {
       path: '/career',
@@ -222,9 +240,23 @@ export const PAGE_ENTRIES: Item[] = (
     {
       path: '/grades',
       feature: 'grades',
-      title: 'Grade calculator',
+      title: 'Grades',
       icon: 'Calculator',
-      keywords: ['grades', 'gpa', 'classification', 'marks', 'degree'],
+      keywords: ['grade calculator', 'gpa', 'classification', 'marks', 'degree'],
+    },
+    {
+      path: '/daily',
+      feature: 'daily',
+      title: 'Daily puzzles',
+      icon: 'PuzzlePiece',
+      keywords: ['games', 'word', 'sudoku', 'quiz', 'nearest', 'groups', 'streak'],
+    },
+    {
+      path: '/requests',
+      feature: 'requests',
+      title: 'Requests',
+      icon: 'Question',
+      keywords: ['ask for a file', 'missing paper', 'request'],
     },
     { path: '/about', title: 'About DSBA Hub', icon: 'Info', keywords: ['contributors', 'disclaimer', 'credits'] },
   ] as const

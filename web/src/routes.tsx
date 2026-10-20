@@ -136,7 +136,7 @@ const pages: AppRoute[] = [
   {
     id: 'daily',
     path: '/daily',
-    title: 'Daily',
+    title: 'Daily puzzles',
     Page: lazy(() => import('./features/daily/DailyPage')),
     feature: 'daily',
   },
