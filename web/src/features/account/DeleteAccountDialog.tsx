@@ -1,11 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash, WarningCircle } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import { ME_KEY, clearPersonalStorage, resetPersonalQueries } from '../../auth';
 import { useToast } from '../../state';
-import { Button, Modal, TextField } from '../../ui';
+import { Button, Icon, Modal, TextField, glyph } from '../../ui';
 import { deleteAccount } from './api';
 
 const WORD = 'DELETE';
@@ -62,7 +61,7 @@ export function DeleteAccountDialog({ open, onClose }: { open: boolean; onClose:
           </Button>
           <Button
             variant="danger"
-            leadingIcon={Trash}
+            leadingIcon={<Icon glyph={glyph.trash} />}
             type="submit"
             form="delete-account-form"
             disabled={!confirmed}
@@ -97,7 +96,7 @@ export function DeleteAccountDialog({ open, onClose }: { open: boolean; onClose:
         />
         {error ? (
           <p className="signin__alert" role="alert">
-            <WarningCircle aria-hidden="true" weight="fill" />
+            <Icon glyph={glyph.error} />
             {error}
           </p>
         ) : null}

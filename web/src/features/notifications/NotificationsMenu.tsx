@@ -1,25 +1,5 @@
 // Bell + dropdown in the top bar: the signed-in person's notifications from the API (hidden for guests).
 import { Link } from 'react-router-dom';
-import {
-  Alarm,
-  Bell,
-  BellRinging,
-  Bug,
-  CalendarDots,
-  ChatsCircle,
-  Check,
-  Checks,
-  FileArrowUp,
-  FileX,
-  HandWaving,
-  Kanban,
-  Newspaper,
-  SealCheck,
-  ShieldCheck,
-  Student,
-  YoutubeLogo,
-  type Icon,
-} from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { NotificationOut } from '../../api/types';
 import { useAuth } from '../../auth';
@@ -28,45 +8,50 @@ import {
   Button,
   EmptyState,
   HubLogo,
+  Icon,
   IconButton,
   Menu,
   QueryError,
   Skeleton,
   Tooltip,
   cx,
+  glyph,
   safeInternalPath,
   timeAgo,
+  type Glyph,
 } from '../../ui';
 import { useMarkAllRead, useMarkRead, useNotifications } from './api';
 import './NotificationsMenu.css';
 
 type Kind = NotificationOut['kind'];
 
-const KIND_ICON: Record<Exclude<Kind, 'system'>, { icon: Icon; tone: string }> = {
-  thread_reply: { icon: ChatsCircle, tone: 'forum' },
-  reply_reply: { icon: ChatsCircle, tone: 'forum' },
-  answer_accepted: { icon: SealCheck, tone: 'signal' },
-  followed_reply: { icon: BellRinging, tone: 'forum' },
-  followed_answer: { icon: SealCheck, tone: 'forum' },
-  senior_question: { icon: Student, tone: 'forum' },
-  upload_published: { icon: FileArrowUp, tone: 'signal' },
-  upload_rejected: { icon: FileX, tone: 'alert' },
-  new_issue: { icon: Newspaper, tone: 'newsletter' },
-  report_resolved: { icon: ShieldCheck, tone: 'forum' },
-  request_update: { icon: HandWaving, tone: 'signal' },
-  date_changed: { icon: CalendarDots, tone: 'alert' },
-  event_reminder: { icon: Alarm, tone: 'signal' },
-  video_suggestion: { icon: YoutubeLogo, tone: 'signal' },
-  bug_report: { icon: Bug, tone: 'alert' },
-  board_reminder: { icon: Kanban, tone: 'signal' },
+/** Each kind's brand icon on its section's pill (BRAND.md §5: status icons take their tone's tint). */
+type Tone = 'home' | 'library' | 'modules' | 'forum' | 'calendar' | 'tools';
+const KIND_ICON: Record<Exclude<Kind, 'system'>, { glyph: Glyph; tone: Tone }> = {
+  thread_reply: { glyph: glyph.reply, tone: 'forum' },
+  reply_reply: { glyph: glyph.reply, tone: 'forum' },
+  answer_accepted: { glyph: glyph.success, tone: 'modules' },
+  followed_reply: { glyph: glyph.bell, tone: 'forum' },
+  followed_answer: { glyph: glyph.success, tone: 'forum' },
+  senior_question: { glyph: glyph.question, tone: 'forum' },
+  upload_published: { glyph: glyph.upload, tone: 'library' },
+  upload_rejected: { glyph: glyph.error, tone: 'calendar' },
+  new_issue: { glyph: glyph.newsletter, tone: 'tools' },
+  report_resolved: { glyph: glyph.flag, tone: 'forum' },
+  request_update: { glyph: glyph.info, tone: 'home' },
+  date_changed: { glyph: glyph.calendar, tone: 'calendar' },
+  event_reminder: { glyph: glyph.deadline, tone: 'calendar' },
+  video_suggestion: { glyph: glyph.video, tone: 'modules' },
+  bug_report: { glyph: glyph.warning, tone: 'library' },
+  board_reminder: { glyph: glyph.boards, tone: 'tools' },
 };
 
 function KindIcon({ kind }: { kind: Kind }) {
   if (kind === 'system') return <HubLogo variant="tile" size={36} decorative className="notif-icon notif-icon--tile" />;
-  const { icon: Glyph, tone } = KIND_ICON[kind] ?? KIND_ICON.thread_reply;
+  const { glyph: drawing, tone } = KIND_ICON[kind] ?? KIND_ICON.thread_reply;
   return (
-    <span className={cx('notif-icon', `notif-icon--${tone}`)} aria-hidden="true">
-      <Glyph weight={tone === 'newsletter' ? 'fill' : 'regular'} />
+    <span className="notif-icon" data-section={tone} aria-hidden="true">
+      <Icon glyph={drawing} size={20} active />
     </span>
   );
 }
@@ -110,7 +95,12 @@ function Row({ n, onOpen, onMarkRead }: { n: NotificationOut; onOpen: () => void
       )}
       {unread ? (
         <Tooltip label="Mark as read" side="left" describe={false} className="notif-item__mark">
-          <IconButton size="sm" label={`Mark “${n.title}” as read`} icon={Check} onClick={onMarkRead} />
+          <IconButton
+            size="sm"
+            label={`Mark “${n.title}” as read`}
+            icon={<Icon glyph={glyph.check} />}
+            onClick={onMarkRead}
+          />
         </Tooltip>
       ) : null}
     </li>
@@ -151,7 +141,7 @@ export function NotificationsMenu() {
       trigger={
         <IconButton
           label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
-          icon={Bell}
+          icon={<Icon glyph={glyph.bell} size={24} />}
           badge={unread || undefined}
           data-hub="notifications"
         />
@@ -189,7 +179,7 @@ export function NotificationsMenu() {
           ) : !items.length ? (
             <EmptyState
               size="sm"
-              icon={Bell}
+              icon={<Icon glyph={glyph.bell} />}
               title="No notifications yet"
               body="Replies to your threads, accepted answers and reviews of your uploads show up here."
             />
@@ -226,7 +216,7 @@ export function NotificationsMenu() {
               <Button
                 variant="ghost"
                 size="sm"
-                leadingIcon={Checks}
+                leadingIcon={<Icon glyph={glyph.check} />}
                 disabled={!unread}
                 loading={markAll.isPending}
                 onClick={readAll}

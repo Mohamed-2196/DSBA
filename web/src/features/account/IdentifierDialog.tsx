@@ -1,7 +1,6 @@
 // Add or change the email address or phone number on the account: the new one gets a code, like sign-in.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { WarningCircle } from '@phosphor-icons/react';
 import { api, call } from '../../api/client';
 import type { OtpChallengeOut } from '../../api/types';
 import { ME_KEY } from '../../auth';
@@ -9,7 +8,7 @@ import { checkIdentifier, displayIdentifier } from '../../auth/identifiers';
 import { CodeEntry } from '../../auth/CodeEntry';
 import { isAddressProblem, otpErrorMessage } from '../../auth/otpErrors';
 import { useToast } from '../../state';
-import { Button, Modal, TextField } from '../../ui';
+import { Button, Icon, Modal, TextField, glyph } from '../../ui';
 import { SESSIONS_KEY, type IdentifierKind } from './api';
 
 interface IdentifierDialogProps {
@@ -142,7 +141,7 @@ export function IdentifierDialog({ kind, current, onClose }: IdentifierDialogPro
             </div>
             {formError ? (
               <p className="signin__alert" role="alert">
-                <WarningCircle aria-hidden="true" weight="fill" />
+                <Icon glyph={glyph.error} />
                 {formError}
               </p>
             ) : null}

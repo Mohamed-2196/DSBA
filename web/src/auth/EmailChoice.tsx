@@ -1,6 +1,5 @@
 import { useId } from 'react';
-import { WarningCircle } from '@phosphor-icons/react';
-import { cx } from '../ui';
+import { Icon, cx, glyph } from '../ui';
 import './SignInDialog.css';
 
 export interface EmailChoiceProps {
@@ -43,7 +42,7 @@ export function EmailChoice({ value, onChange, error, hasEmail }: EmailChoicePro
       {option(false, 'No, thanks')}
       {error ? (
         <p id={errId} className="ui-field__error signin-cohorts__error">
-          <WarningCircle aria-hidden="true" weight="fill" />
+          <Icon glyph={glyph.error} />
           {error}
         </p>
       ) : null}

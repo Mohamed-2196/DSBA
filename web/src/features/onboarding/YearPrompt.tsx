@@ -2,9 +2,8 @@
 // visit on any link shows the page with this card: pick a year, say you're not a student, or sign in. Once a year
 // is picked it offers the tour.
 import { useEffect, useId, useRef, type CSSProperties } from 'react';
-import { CheckCircle, X } from '@phosphor-icons/react';
 import { COHORTS, YEARS, cohortColor, type CohortYear } from '../../state';
-import { Button, HubLogo, IconButton, cx } from '../../ui';
+import { Button, HubLogo, Icon, IconButton, cx, glyph } from '../../ui';
 
 export type PromptStage = 'year' | 'set';
 
@@ -60,7 +59,7 @@ export function YearPrompt({
             </div>
             <IconButton
               label="Not now"
-              icon={X}
+              icon={<Icon glyph={glyph.close} />}
               size="sm"
               tooltip
               tooltipSide="top"
@@ -98,7 +97,7 @@ export function YearPrompt({
       ) : (
         <>
           <div className="onb-prompt__head">
-            <CheckCircle className="onb-prompt__done" weight="fill" aria-hidden="true" />
+            <Icon glyph={glyph.success} className="onb-prompt__done" />
             <div className="onb-prompt__text">
               <h2 id={titleId} className="onb-prompt__title">
                 {year ? `${COHORTS[year].label} is set` : 'Your year is set'}

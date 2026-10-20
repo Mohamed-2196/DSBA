@@ -19,9 +19,10 @@
   background: var(--surface);
 }
 .notif__title {
-  font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
 }
 .notif__count {
   color: var(--ink-2);
@@ -119,25 +120,9 @@
   width: 36px;
   height: 36px;
   border-radius: var(--r-control);
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font-size: 18px;
-}
-.notif-icon--forum {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-.notif-icon--signal {
-  background: var(--success-soft);
-  color: var(--success);
-}
-.notif-icon--alert {
-  background: var(--error-soft);
-  color: var(--error);
-}
-.notif-icon--newsletter {
-  background: var(--inverse);
-  color: var(--on-inverse);
+  background: var(--sec-pill);
+  color: var(--icon-line-active);
+  font-size: 20px;
 }
 .notif-icon--tile {
   display: block;

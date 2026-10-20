@@ -1,7 +1,6 @@
 import { useId } from 'react';
-import { WarningCircle } from '@phosphor-icons/react';
 import { COHORTS, YEARS, type CohortYear } from '../state';
-import { cx } from '../ui';
+import { Icon, cx, glyph } from '../ui';
 import './SignInDialog.css';
 
 /** A cohort, 'none' (not a current student), or null while nothing is chosen. */
@@ -46,7 +45,7 @@ export function CohortPicker({ value, onChange, error, legend = 'Your cohort', h
       {option('none', 'Not a current student', 'signin-cohort--none signin-cohort--wide')}
       {error ? (
         <p id={errId} className="ui-field__error signin-cohorts__error">
-          <WarningCircle aria-hidden="true" weight="fill" />
+          <Icon glyph={glyph.error} />
           {error}
         </p>
       ) : hint ? (
