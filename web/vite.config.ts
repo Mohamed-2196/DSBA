@@ -222,10 +222,11 @@ function chunks(): Rollup.GetManualChunk {
 }
 
 /**
- * Chunks smaller than this (bytes, before minifying) are merged into a chunk that loads with them, so a page fetches a
- * few files rather than dozens of tiny ones, each a round trip on a slow network.
+ * Chunks smaller than this (bytes, before minifying) are merged into a chunk that loads with them, so a page fetches
+ * fewer tiny files. Rollup merges them where they also load code a page doesn't run, so the size is a trade: at 6 kB
+ * Home asks for about 38 scripts and pages read 6-17 kB (gzip) more; at 20 kB, about 24 scripts and up to 36 kB more.
  */
-const MIN_CHUNK = 20_000;
+const MIN_CHUNK = 6_000;
 
 // The app is served from the same origin as the API: in development Vite proxies /api to the backend,
 // in production a reverse proxy does (see compose.yaml and docs/backend/DEPLOYMENT.md).
