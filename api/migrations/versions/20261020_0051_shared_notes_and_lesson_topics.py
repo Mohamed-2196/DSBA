@@ -6,7 +6,8 @@ Create Date: 2026-10-20 15:07:37
 
 - `shared_notes` (IDEA-29): a copy of a student's note shared with its module's students: the note's title, typed
   text, paper, pages, ink and the files it shows, as they were when it was shared. One per note, deleted with it.
-  A moderator may hide it.
+  A moderator may hide it; its writer's unsharing empties it (`withdrawn_at`) but keeps it, so a hidden copy stays
+  hidden when shared again. `note_share_events` counts shares, updates and unshares for the hourly limit.
 - `lesson_topics` (IDEA-52): a time in a lesson's video and what it covers, suggested by a student and accepted or
   declined by a content manager, as suggested videos are.
 - Reports may name a shared note (`reports.target_type` 'shared_note').
@@ -90,6 +91,7 @@ def upgrade() -> None:
         sa.Column("hidden", sa.Boolean(), server_default="false", nullable=False),
         sa.Column("hidden_by", sa.UUID(), nullable=True),
         sa.Column("hidden_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("withdrawn_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("shared_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.CheckConstraint(_in("paper", ("blank", "lined", "grid", "dotted")), name=op.f("ck_shared_notes_paper")),
@@ -112,6 +114,17 @@ def upgrade() -> None:
     op.create_index("ix_shared_notes_note", "shared_notes", ["note_id"], unique=True)
     op.create_index("ix_shared_notes_uploads", "shared_notes", ["uploads"], postgresql_using="gin")
     op.create_index("ix_shared_notes_user", "shared_notes", ["user_id"])
+    op.create_table(
+        "note_share_events",
+        sa.Column("id", sa.UUID(), nullable=False),
+        sa.Column("user_id", sa.UUID(), nullable=False),
+        sa.Column("at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name=op.f("fk_note_share_events_user_id_users"), ondelete="CASCADE"
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_note_share_events")),
+    )
+    op.create_index("ix_note_share_events_user_at", "note_share_events", ["user_id", "at"])
 
     op.drop_constraint(op.f("ck_reports_target_type"), "reports", type_="check")
     op.create_check_constraint(op.f("ck_reports_target_type"), "reports", _in("target_type", (*TARGETS, "shared_note")))
@@ -121,5 +134,6 @@ def downgrade() -> None:
     op.execute("DELETE FROM reports WHERE target_type = 'shared_note'")
     op.drop_constraint(op.f("ck_reports_target_type"), "reports", type_="check")
     op.create_check_constraint(op.f("ck_reports_target_type"), "reports", _in("target_type", TARGETS))
+    op.drop_table("note_share_events")
     op.drop_table("shared_notes")
     op.drop_table("lesson_topics")

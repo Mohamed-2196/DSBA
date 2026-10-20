@@ -167,7 +167,9 @@ class SharedNote(Base):
 
     The copy lists the note files it shows (`uploads`): they stay in use (services/notes.py) while the copy lists them,
     and anyone who may read the copy may read them. A moderator (library.manage) may hide it: hidden, it is 404 to
-    everyone but its author and moderators. Deleting the note, its notebook or the account deletes the copy."""
+    everyone but its author and moderators. Its writer may stop sharing it (`withdrawn_at`): the row stays, emptied, so
+    sharing the note again finds it as a moderator left it (still hidden). Deleting the note, its notebook or the
+    account deletes the copy."""
 
     __tablename__ = "shared_notes"
     __table_args__ = (
@@ -196,5 +198,18 @@ class SharedNote(Base):
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     hidden_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     hidden_at: Mapped[datetime | None]
+    withdrawn_at: Mapped[datetime | None]  # its writer stopped sharing it: emptied, and shown to nobody
     shared_at: Mapped[datetime] = created_ts()
     updated_at: Mapped[datetime] = created_ts()  # when it was last copied from the note
+
+
+class NoteShareEvent(Base):
+    """One share, update or unshare of a copy by its writer: what the hourly limit on sharing counts (deleting a
+    copy never gives one back)."""
+
+    __tablename__ = "note_share_events"
+    __table_args__ = (Index("ix_note_share_events_user_at", "user_id", "at"),)
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    at: Mapped[datetime] = created_ts()

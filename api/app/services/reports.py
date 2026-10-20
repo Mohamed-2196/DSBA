@@ -73,6 +73,7 @@ class _Target:
     status: str
     author_id: uuid.UUID | None
     public: bool  # a guest can see it right now
+    named_to_admins_only: bool = False  # shared without a name: only admins see who wrote it
 
 
 def _targets(db: Session, keys: Iterable[tuple[str, uuid.UUID]]) -> dict[tuple[str, uuid.UUID], _Target]:
@@ -143,7 +144,8 @@ def _targets(db: Session, keys: Iterable[tuple[str, uuid.UUID]]) -> dict[tuple[s
                 excerpt(sn.text) or None,
                 "hidden" if sn.hidden else "visible",
                 sn.user_id,
-                not sn.hidden and not module_hidden,
+                not sn.hidden and not module_hidden and sn.withdrawn_at is None,
+                named_to_admins_only=not sn.credited,
             )
     return out
 
@@ -169,7 +171,7 @@ def _reportable(db: Session, kind: str, target_id: uuid.UUID, user: User) -> boo
     if kind == "shared_note":
         sn = db.get(SharedNote, target_id)
         module = db.get(Module, sn.module_id) if sn is not None else None
-        return sn is not None and module is not None and not sn.hidden and not module.hidden
+        return sn is not None and sn.withdrawn_at is None and module is not None and not sn.hidden and not module.hidden
     item = db.get(LibraryItem, target_id, options=[defer(LibraryItem.search_vector)])
     return item is not None and item.status == ItemStatus.published
 
@@ -257,7 +259,9 @@ def _report_outs(db: Session, reports: Sequence[Report], viewer: User) -> list[R
                     "target_url": target.url if target else None,
                     "target_excerpt": target.excerpt if target else None,
                     "target_status": target.status if target else None,
-                    "target_author": public_user(people.get(target.author_id)) if target and target.author_id else None,
+                    "target_author": public_user(people.get(target.author_id))
+                    if target and target.author_id and (show_reporter or not target.named_to_admins_only)
+                    else None,
                     "reason": r.reason,
                     "note": r.note,
                     "status": r.status.value,

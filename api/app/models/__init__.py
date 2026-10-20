@@ -64,7 +64,7 @@ from app.models.library import (
 from app.models.my_calendar import CalendarPrefs, PersonalEvent
 from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction, PollVote
 from app.models.noora import NooraLimits, NooraUsage
-from app.models.notes import Note, Notebook, NotebookLimits, NotebookUploadDay, NoteInk, SharedNote
+from app.models.notes import Note, Notebook, NotebookLimits, NotebookUploadDay, NoteInk, NoteShareEvent, SharedNote
 from app.models.outbox import EmailOutbox, OutboxStatus, WeeklySummarySent
 from app.models.requests import RequestMeToo, RequestStatus, StudentRequest
 from app.models.seniors import SeniorProfile
@@ -125,6 +125,7 @@ __all__ = [
     "NooraUsage",
     "Note",
     "NoteInk",
+    "NoteShareEvent",
     "Notebook",
     "NotebookLimits",
     "NotebookUploadDay",

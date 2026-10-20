@@ -994,7 +994,11 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
                 shared_at=sn.shared_at,
                 updated_at=sn.updated_at,
             )
-            for sn in db.scalars(select(SharedNote).where(SharedNote.user_id == uid).order_by(SharedNote.shared_at))
+            for sn in db.scalars(
+                select(SharedNote)
+                .where(SharedNote.user_id == uid, SharedNote.withdrawn_at.is_(None))
+                .order_by(SharedNote.shared_at)
+            )
         ],
         calendar_events=[
             PersonalEventOut.model_validate(e)

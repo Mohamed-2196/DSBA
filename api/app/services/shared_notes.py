@@ -5,11 +5,15 @@
   copy") copies it again. Nothing else of the student's notebook is ever shown.
 - A note is shared with the module it is about (one students see), once: one copy per note. A note written over a
   PDF can't be shared (the PDF isn't the student's to share), nor one with nothing in it, nor one bigger than
-  SHARE_MAX_BYTES of text and handwriting. SHARES_PER_HOUR shares and updates per student.
+  SHARE_MAX_BYTES of text and handwriting.
 - Everyone who may read the module reads its shared notes, with the writer's name and year unless they shared it
-  without them. Its pictures and files are served to whoever may read the copy: they stay in use while the copy
-  lists them (services/notes.py release), whatever the note does since.
-- The writer stops sharing it whenever they like; deleting the note, its notebook or the account deletes the copy.
+  without them (then only admins see who wrote it, in a report). Its pictures and files are served to whoever may
+  read the copy: they stay in use while the copy lists them (services/notes.py release), whatever the note does since.
+- The writer stops sharing it whenever they like: the copy is emptied and shown to nobody, but kept, so sharing the
+  note again finds it as a moderator left it (a hidden copy stays hidden). Deleting the note, its notebook or the
+  account deletes the copy.
+- SHARES_PER_HOUR shares, updates and unshares an hour per student, counted as events (`NoteShareEvent`): unsharing
+  never gives one back.
 - Moderation as for other students' content: anyone may report it (reports.py), and people with library.manage hide
   it (the writer is told) or show it again, both audited. A hidden copy, or one of a hidden module, is 404 to everyone
   but its writer (hidden copies only) and moderators.
@@ -28,7 +32,7 @@ from sqlalchemy.orm import Session
 from app.core.access import Box
 from app.core.errors import invalid, not_found
 from app.core.time import utcnow
-from app.models import Module, Note, NoteInk, SharedNote, Upload, UploadPurpose, User
+from app.models import Module, Note, NoteInk, NoteShareEvent, SharedNote, Upload, UploadPurpose, User
 from app.schemas.notes import (
     EXCERPT_LENGTH,
     PAPER_SHEETS_FROM,
@@ -75,7 +79,7 @@ def get_visible(db: Session, user: User | None, share_id: uuid.UUID) -> SharedNo
     """The copy, if this person may read it: anyone while it is shown and its module is open to students; its writer
     while it is hidden; moderators always. 404 otherwise."""
     share = db.get(SharedNote, share_id)
-    if share is None:
+    if share is None or share.withdrawn_at is not None:
         raise not_found(GONE)
     if can_moderate(user):
         return share
@@ -130,7 +134,7 @@ def module_list(db: Session, user: User | None, module_id: str, limit: int, offs
     module = db.get(Module, module_id)
     if module is None or (module.hidden and not can_moderate(user)):
         raise not_found("This module doesn't exist.")
-    where = (SharedNote.module_id == module_id, SharedNote.hidden.is_(False))
+    where = (SharedNote.module_id == module_id, SharedNote.hidden.is_(False), SharedNote.withdrawn_at.is_(None))
     total = db.scalar(select(func.count()).select_from(SharedNote).where(*where)) or 0
     rows = list(
         db.scalars(
@@ -183,9 +187,24 @@ def _ink(db: Session, note: Note) -> list[dict[str, Any]]:
     return [{"sheet": row.sheet, "strokes": row.strokes} for row in rows if row.strokes]
 
 
+def _count_event(db: Session, user: User) -> None:
+    """One more share, update or unshare, or 429 at SHARES_PER_HOUR in the last hour."""
+    enforce(
+        db,
+        f"note-shares:{user.id}",
+        NoteShareEvent.at,
+        [NoteShareEvent.user_id == user.id],
+        limit=SHARES_PER_HOUR,
+        window=timedelta(hours=1),
+        message=f"You've shared or unshared {SHARES_PER_HOUR} notes in the last hour. Try again in {{}}.",
+    )
+    db.add(NoteShareEvent(user_id=user.id, at=utcnow()))
+
+
 def share(db: Session, user: User, note_id: uuid.UUID, body: ShareRequest) -> SharedNote:
     """Shares a copy of the note with its module's students, or copies it again over the copy shared (which keeps
-    its place in the list, and stays hidden if a moderator hid it)."""
+    its place in the list) or the one its writer stopped sharing (back at the top). Either way a copy a moderator hid
+    stays hidden."""
     note = notes.get_note(db, user, note_id, lock=True)
     if note.module_id is None:
         raise invalid("noteId", "Pick the note's module first: a note is shared with its module's students.")
@@ -203,15 +222,7 @@ def share(db: Session, user: User, note_id: uuid.UUID, body: ShareRequest) -> Sh
             f"This note is too big to share: {SHARE_MAX_BYTES // (1024 * 1024)} MB of text and handwriting at most. "
             "Share a shorter note.",
         )
-    enforce(
-        db,
-        f"note-shares:{user.id}",
-        SharedNote.updated_at,
-        [SharedNote.user_id == user.id],
-        limit=SHARES_PER_HOUR,
-        window=timedelta(hours=1),
-        message=f"You've shared {SHARES_PER_HOUR} notes in the last hour. Try again in {{}}.",
-    )
+    _count_event(db, user)
     copy = db.scalar(select(SharedNote).where(SharedNote.note_id == note.id).with_for_update())
     before = set(copy.uploads or []) if copy is not None else set()
     now = utcnow()
@@ -232,6 +243,8 @@ def share(db: Session, user: User, note_id: uuid.UUID, body: ShareRequest) -> Sh
         copy = SharedNote(note_id=note.id, user_id=user.id, shared_at=now, **fields)
         db.add(copy)
     else:
+        if copy.withdrawn_at is not None:
+            fields |= {"withdrawn_at": None, "shared_at": now}
         for key, value in fields.items():
             setattr(copy, key, value)
     db.flush()
@@ -240,13 +253,19 @@ def share(db: Session, user: User, note_id: uuid.UUID, body: ShareRequest) -> Sh
 
 
 def unshare(db: Session, user: User, share_id: uuid.UUID) -> None:
-    """The writer stops sharing it: the copy goes (404 for anyone else's), and the files only it showed are
-    released."""
-    copy = db.scalar(select(SharedNote).where(SharedNote.id == share_id, SharedNote.user_id == user.id))
+    """The writer stops sharing it (404 for anyone else's, or one already stopped): the copy is emptied and shown to
+    nobody, and the files only it showed are released. The row stays with its moderation (hidden or not)."""
+    copy = db.scalar(
+        select(SharedNote)
+        .where(SharedNote.id == share_id, SharedNote.user_id == user.id, SharedNote.withdrawn_at.is_(None))
+        .with_for_update()
+    )
     if copy is None:
         raise not_found(GONE)
+    _count_event(db, user)
     shown = set(copy.uploads or [])
-    db.delete(copy)
+    copy.withdrawn_at = utcnow()
+    copy.doc, copy.text, copy.ink, copy.uploads = {}, "", [], []
     db.flush()
     notes.release(db, user, shown)
 

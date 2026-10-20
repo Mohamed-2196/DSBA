@@ -411,7 +411,7 @@ def to_out(db: Session, note: Note) -> NoteOut:
 def _share_of(db: Session, note: Note) -> NoteShare | None:
     """The note's copy shared with its module (services/shared_notes.py), as its writer sees it from the note."""
     share = db.scalar(select(SharedNote).where(SharedNote.note_id == note.id))
-    if share is None:
+    if share is None or share.withdrawn_at is not None:
         return None
     return NoteShare(
         id=share.id,

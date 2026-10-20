@@ -295,3 +295,57 @@ def test_export_and_deletion(
     assert db.get(SharedNote, shared["id"]) is None
     assert db.get(Upload, picture) is None
     assert client_for().get(f"{API}/shared-notes/{shared['id']}").status_code == 404
+
+
+def test_a_report_never_names_who_shared_without_a_name_except_to_admins(
+    client_for: ClientFor, make_user: MakeUser, module: Module
+) -> None:
+    c = client_for(make_user(name="Shy Writer"))
+    shared = share(c, new_note(c, moduleId=module.id, title="Unnamed"), credited=False)
+    body = {"targetType": "shared_note", "targetId": shared["id"], "reason": "other", "note": "Who wrote this?"}
+    assert client_for(make_user()).post(f"{API}/reports", json=body).status_code == 204
+
+    def author_seen_by(user: User) -> Any:
+        items = client_for(user).get(f"{API}/admin/reports").json()["items"]
+        return next(r for r in items if r["targetId"] == shared["id"])["targetAuthor"]
+
+    assert author_seen_by(make_user(roles=("student", "rep"))) is None
+    assert author_seen_by(make_user(roles=("student", "admin")))["displayName"] == "Shy Writer"
+
+
+def test_unsharing_and_sharing_again_keeps_a_hidden_copy_hidden(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    c = client_for(make_user())
+    note = new_note(c, moduleId=module.id, title="Copied guide")
+    shared = share(c, note)
+    rep = client_for(make_user(roles=("student", "rep")))
+    assert rep.post(f"{API}/shared-notes/{shared['id']}/hide", json={}).status_code == 200
+
+    assert c.delete(f"{API}/shared-notes/{shared['id']}").status_code == 204
+    assert c.get(f"{API}/notes/{note['id']}").json()["share"] is None
+    assert rep.get(f"{API}/shared-notes/{shared['id']}").status_code == 404  # emptied and gone for everyone
+    left = db.get(SharedNote, shared["id"])
+    assert left is not None
+    assert (left.hidden, left.doc, left.uploads) == (True, {}, [])
+
+    again = share(c, note)
+    assert again["id"] == shared["id"]
+    assert again["hidden"] is True  # still hidden: unsharing doesn't undo a moderator
+    assert client_for().get(f"{API}/shared-notes?moduleId={module.id}").json()["items"] == []
+    assert client_for().get(f"{API}/shared-notes/{shared['id']}").status_code == 404
+
+
+def test_unsharing_never_gives_back_a_share(
+    client_for: ClientFor, make_user: MakeUser, module: Module, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(svc, "SHARES_PER_HOUR", 3)
+    c = client_for(make_user())
+    note = new_note(c, moduleId=module.id)
+    shared = share(c, note)  # 1
+    assert c.delete(f"{API}/shared-notes/{shared['id']}").status_code == 204  # 2
+    share(c, note)  # 3
+    r = c.delete(f"{API}/shared-notes/{shared['id']}")
+    assert r.status_code == 429
+    assert r.json()["error"]["code"] == "rate_limited"
+    assert share(c, new_note(c, "another", moduleId=module.id), 429)["error"]["code"] == "rate_limited"
