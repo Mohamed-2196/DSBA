@@ -370,7 +370,13 @@ def list_items(
         # ts_rank come from the words around the match, not from relevance. So they rank together, at the best of
         # them, and the sittings among them read newest first (by_sitting below).
         group_rank = func.max(func.ts_rank(doc, tsquery)).over(partition_by=(LibraryItem.module_id, LibraryItem.kind))
-        rank = [in_doc.desc(), *your_year_first(user), group_rank.desc(), LibraryItem.module_id, LibraryItem.kind]
+        rank = [
+            in_doc.desc(),
+            *your_year_first(user),
+            group_rank.desc(),
+            LibraryItem.module_id.asc(),
+            LibraryItem.kind.asc(),
+        ]
 
     total = db.scalar(select(func.count()).select_from(q.order_by(None).subquery())) or 0
     newest = func.coalesce(LibraryItem.published_at, LibraryItem.created_at)

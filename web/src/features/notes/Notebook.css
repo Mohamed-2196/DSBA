@@ -272,12 +272,16 @@ button.nb-where__module:hover {
   .nb-where__chip a {
     display: inline-flex;
     align-items: center;
+    box-sizing: border-box;
     min-height: 44px;
     margin: 0;
   }
+  /* The chips keep their small look: a clear border above and below makes up the 44 px. */
   .nb-where__module,
   .nb-saved__book {
-    padding-block: 0;
+    padding-block: 2px;
+    border-block: 9px solid transparent;
+    background-clip: padding-box;
   }
   .nb-where__remove::before {
     content: '';

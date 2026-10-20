@@ -471,7 +471,7 @@ def test_a_search_lists_a_modules_sittings_newest_first(
         return str(item["id"])
 
     may_2024 = share("ST2133 May 2024", examYear=2024, examSession="may", zone="A")
-    may_2026 = share("ST2133 Exam paper – May 2026", examYear=2026, examSession="may", zone="A")
+    may_2026 = share("ST2133 Exam paper, May 2026", examYear=2026, examSession="may", zone="A")
     oct_2024 = share("ST2133 Exam paper - October 2024", examYear=2024, examSession="october", zone="A")
     old = share("ST3133 - Advanced Statistics - Distribution Theory - 2016 Exam - Zone-A", examYear=2016)
     may_2025 = share("ST2133 Exam paper - May 2025", examYear=2025, examSession="may", zone="A")
