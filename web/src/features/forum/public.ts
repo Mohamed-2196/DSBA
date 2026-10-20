@@ -7,8 +7,11 @@
 //                                         cohort plus forum-wide ones; year null → every cohort. Links: /forum/<slug>.
 //   useModuleLatestThreads(id, { n })     a module's newest threads: { threads, total, isPending, isError, error, refetch }.
 //   useModuleAnsweredThreads(id, { n })   a module's answered threads, most voted first (the same shape): "Asked before".
-//   <PaperThreads slug="…" n? headingLevel? />  a paper's page: the threads whose post or a reply links /library/<slug>,
-//                                         newest first (nothing while there are none). Place it under "Ask about this paper".
+//   <PaperThreads slug="…" n? headingLevel? question? about? />  a paper's page: the threads whose post or a reply
+//                                         links /library/<slug> (with question 'q3': /library/<slug>#q3), newest first
+//                                         (nothing while there are none). Place it under "Ask about this paper".
+//   useQuestionThreads({ paper } | { module_id })  how many threads link each past question of a paper or a module's
+//                                         papers: QuestionThreads[] ({ paperSlug, section, question, threads }).
 //   <ReportButton targetType targetId />  "Report" + its dialog for a thread, a reply, a library item ('library_item') or a request.
 //   useReport(targetType, targetId)       the same as an action for a menu: { label, reported, open(), dialog } or null
 //                                         when this account can't report (render `dialog` once).
@@ -24,7 +27,7 @@ import { lazy } from 'react';
 export { HelpBelow } from './HelpBelow';
 export { ModuleThreads } from './ModuleThreads';
 export { PaperThreads } from './PaperThreads';
-export { useHotThreads, useModuleAnsweredThreads, useModuleLatestThreads } from './api';
+export { useHotThreads, useModuleAnsweredThreads, useModuleLatestThreads, useQuestionThreads } from './api';
 export { ReportButton } from './ReportButton';
 export { useReport } from './useReport';
 export { ReportsQueue } from './ReportsQueue';

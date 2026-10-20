@@ -20,6 +20,7 @@ from app.core.errors import conflict, forbidden, invalid, not_found
 from app.models import Chapter, ItemStatus, LibraryItem, PaperQuestion, PaperQuestionFlag, User
 from app.schemas.library import PAST_PAPER, PaperQuestionCreate, PaperRef
 from app.schemas.library import PaperQuestion as PaperQuestionOut
+from app.services import report_answers
 from app.services.content import record
 from app.services.exam_names import newest_sitting_first
 from app.services.library import cover_path, covered, manages
@@ -65,6 +66,7 @@ def to_out(db: Session, tags: Sequence[PaperQuestion], user: User | None) -> lis
         )
     moderator = manages(user)
     covers = covered(db, list(items))
+    answers = report_answers.answers_for(db, tags, items)
     out = []
     for t in tags:
         mine = user is not None and t.tagged_by == user.id
@@ -82,6 +84,7 @@ def to_out(db: Session, tags: Sequence[PaperQuestion], user: User | None) -> lis
                 is_mine=mine,
                 can_remove=mine or moderator,
                 created_at=t.created_at,
+                answer=answers.get(t.id),
             )
         )
     return out

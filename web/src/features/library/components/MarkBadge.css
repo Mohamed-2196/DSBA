@@ -1,0 +1,25 @@
+/* A practised question's mark: done (green), stuck (amber), skipped (grey). */
+.lib-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-left: auto;
+  padding: 2px var(--sp-8) 2px var(--sp-6);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+.lib-mark--done {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.lib-mark--stuck {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.lib-mark--skipped {
+  background: var(--surface-2);
+  color: var(--ink-2);
+}

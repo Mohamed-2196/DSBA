@@ -12,7 +12,7 @@ from app.schemas.bugs import ExportBugReport
 from app.schemas.calendar import EventType, PersonalEventOut
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
 from app.schemas.forum import FollowLevel
-from app.schemas.library import ItemStatus, LibraryKind, Zone
+from app.schemas.library import ItemStatus, LibraryKind, QuestionMark, Zone
 from app.schemas.moderation import ReportReason, ReportTarget
 from app.schemas.modules import Progress
 from app.schemas.notifications import NotificationKind
@@ -486,6 +486,7 @@ class AccountExport(ApiModel):
     me_toos: list[UUID]  # requests this person said "me too" to
     question_tags: list[ExportQuestionTag]  # past papers' questions this person tagged with a chapter
     question_flags: list[UUID]  # tags this person said were wrong
+    question_marks: list[QuestionMark]  # past questions this person marked done, stuck or skipped while practising
     emails: list[ExportEmail]
     boards: list[ExportBoard]  # boards, their columns and cards
     board_labels: list[str]

@@ -52,6 +52,7 @@ function item(patch: Partial<LibraryItem> = {}): LibraryItem {
     canEdit: false,
     match: null,
     coverUrl: null,
+    workedAnswers: false,
     ...patch,
   };
 }

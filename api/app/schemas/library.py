@@ -76,6 +76,9 @@ class LibraryItem(ApiModel):
     can_edit: bool
     match: TextMatch | None  # with a search (q) that found the words inside the file, not in its title
     cover_url: str | None  # the first page as a small picture (PDF and Word files), once the text worker made it
+    # An examiners' report that works through the questions ("Approaching the question"): the sittings table says
+    # so where the sitting has no solutions. False for every other file.
+    worked_answers: bool
 
 
 class LibraryPage(Page[LibraryItem]):
@@ -181,6 +184,9 @@ QUESTION_MAX, PAGE_MAX = 40, 999
 Section = Annotated[str, StringConstraints(pattern=r"^[A-Z]$")]  # 'B' of "B1"
 
 
+QuestionMarkKind = Literal["done", "stuck", "skipped"]
+
+
 class PaperQuestionCreate(ApiModel):
     section: Section | None = None  # on a paper that numbers each section from 1
     question: int = Field(ge=1, le=QUESTION_MAX)
@@ -198,6 +204,14 @@ class PaperRef(ApiModel):
     cover_url: str | None  # the paper's first page as a small picture (LibraryItem.cover_url)
 
 
+class WorkedAnswer(ApiModel):
+    """Where a question's commentary starts in its sitting's examiners' report: the report, and its page."""
+
+    id: UUID
+    slug: str
+    page: int
+
+
 class PaperQuestion(ApiModel):
     id: UUID
     paper: PaperRef
@@ -211,3 +225,26 @@ class PaperQuestion(ApiModel):
     is_mine: bool
     can_remove: bool
     created_at: datetime
+    # The examiners' report of the paper's sitting at this question's commentary ("Question 3", or Section B's
+    # "Question 1"), found when the report's text was read; None when the report has no such heading.
+    answer: WorkedAnswer | None
+
+
+# ── practising a chapter ─────────────────────────────────────────────────────────────────────
+
+
+class QuestionMarkSave(ApiModel):
+    """How a past question went: done, stuck or skipped. The question is its paper, section and number."""
+
+    item_id: UUID
+    section: Section | None = None
+    question: int = Field(ge=1, le=QUESTION_MAX)
+    mark: QuestionMarkKind
+
+
+class QuestionMark(ApiModel):
+    item_id: UUID
+    section: str | None
+    question: int
+    mark: QuestionMarkKind
+    updated_at: datetime

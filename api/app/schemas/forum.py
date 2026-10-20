@@ -116,6 +116,16 @@ class ThreadPage(Page[ThreadSummary]):
     pass
 
 
+class QuestionThreads(ApiModel):
+    """How many visible threads link a past paper's question (/library/<slug>#q3, or #b1 on a paper that numbers each
+    section from 1) in their post or a visible reply."""
+
+    paper_slug: str
+    section: str | None  # 'B' of "B1"
+    question: int
+    threads: int
+
+
 class Reply(ApiModel):
     id: UUID
     thread_id: UUID

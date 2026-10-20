@@ -10,8 +10,14 @@ import {
   clockStart,
   durationLabel,
   parseDuration,
+  WORKED_LABEL,
+  answerHref,
+  answerLabel,
   paperContext,
+  questionAnchor,
   questionHref,
+  questionKey,
+  questionLink,
   questionLabel,
   questionName,
   questionNumber,
@@ -50,6 +56,7 @@ function file(id: string, kind: LibraryItem['kind'], zone: LibraryItem['zone']):
     canEdit: false,
     match: null,
     coverUrl: null,
+    workedAnswers: false,
   };
 }
 
@@ -89,6 +96,7 @@ function tag(patch: Partial<PaperQuestion>): PaperQuestion {
     isMine: false,
     canRemove: false,
     createdAt: '2026-10-01T00:00:00Z',
+    answer: null,
     ...patch,
   };
 }
@@ -138,6 +146,17 @@ describe('questions', () => {
     expect(questionHref(tag({ page: 4 }))).toBe('/library/ec1002-za-may-2024?page=4');
   });
 
+  it('anchors a question on its paper for the forum, and opens its worked answer', () => {
+    expect(questionAnchor(tag({}))).toBe('q3');
+    expect(questionAnchor(tag({ section: 'B', question: 1 }))).toBe('b1');
+    expect(questionLink(tag({ page: 4 }))).toBe('/library/ec1002-za-may-2024?page=4#q3');
+    expect(questionLink(tag({ section: 'B', question: 1 }))).toBe('/library/ec1002-za-may-2024#b1');
+    const answer = { id: 'r', slug: 'ec1002-report-may-2024', page: 7 };
+    expect(answerHref(answer)).toBe('/library/ec1002-report-may-2024?page=7');
+    expect(answerLabel(answer)).toBe('Worked answer, report p. 7');
+    expect(questionKey({ itemId: 'za', section: null, question: 3 })).toBe('za/Q3');
+  });
+
   it('groups tags by chapter in the API’s order', () => {
     const grouped = byChapter([tag({ id: 'a' }), tag({ id: 'b', chapterId: 'c2' }), tag({ id: 'c' })]);
     expect([...grouped.keys()]).toEqual(['c1', 'c2']);
@@ -162,6 +181,16 @@ describe('yourZoneFirst', () => {
 });
 
 describe('sittingRow', () => {
+  it('says the report has worked answers where the sitting has no solutions', () => {
+    const worked = { ...report, workedAnswers: true };
+    const zones = MAY_2024.zones.map((z) => (z.zone === null ? { ...z, reports: [worked] } : z));
+    expect(sittingRow({ ...MAY_2024, zones }, 'B').worked).toBeNull(); // zone A's solutions are in the row
+    const noSolutions = zones.map((z) => ({ ...z, solutions: [] }));
+    expect(sittingRow({ ...MAY_2024, zones: noSolutions }, 'B').worked).toEqual({ item: worked, label: WORKED_LABEL });
+    const comments = MAY_2024.zones.map((z) => ({ ...z, solutions: [] }));
+    expect(sittingRow({ ...MAY_2024, zones: comments }, 'B').worked).toBeNull(); // the report comments only
+  });
+
   it('gives a sitting one row: each zone’s paper, your zone first, its report and solutions', () => {
     const row = sittingRow(MAY_2024, 'B');
     expect(row.papers.map((p) => [p.item.id, p.label, p.yours])).toEqual([

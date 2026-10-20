@@ -23,6 +23,7 @@ import { ADMIN_STATS_KEY, NOTIFICATIONS_KEY } from '../../api/keys';
 import { nextOffset } from '../../api/paging';
 import type {
   FollowRequest,
+  QuestionThreads,
   Reply,
   Senior,
   ReplyModeration,
@@ -59,6 +60,7 @@ function cleanParams(p: ThreadListParams): ThreadListParams {
   if (p.answered) out.answered = true;
   if (p.yours) out.yours = true;
   if (p.paper) out.paper = p.paper;
+  if (p.paper && p.question) out.question = p.question;
   return out;
 }
 
@@ -74,7 +76,11 @@ export const forumKeys = {
   threads: [FORUM, 'thread'] as const,
   thread: (slug: string) => [FORUM, 'thread', slug] as const,
   related: (threadId: string, n: number) => [FORUM, 'related', threadId, n] as const,
+  questions: (scope: QuestionScope) => [FORUM, 'questions', scope] as const,
 };
+
+/** Whose questions' thread counts: one paper's (its slug) or a module's. */
+export type QuestionScope = { paper: string } | { module_id: string };
 
 export const reportKeys = {
   all: ['reports'] as const,
@@ -82,7 +88,7 @@ export const reportKeys = {
 };
 
 /** Everything that lists threads or counts them: stale after a write. */
-const LIST_FAMILIES = new Set(['list', 'hot', 'similar', 'related', 'stats']);
+const LIST_FAMILIES = new Set(['list', 'hot', 'similar', 'related', 'stats', 'questions']);
 
 function invalidateLists(qc: QueryClient): Promise<void> {
   return qc.invalidateQueries({ queryKey: forumKeys.all, predicate: (q) => LIST_FAMILIES.has(String(q.queryKey[1])) });
@@ -233,9 +239,27 @@ export function flattenPages(data: { pages: ThreadPage[] } | undefined): ThreadS
   return out;
 }
 
-/** The threads whose post or a reply links to a library item (/library/<slug>), newest first: a paper's page. */
-export function usePaperThreads(slug: string, { n = 5, enabled = true }: { n?: number; enabled?: boolean } = {}) {
-  const list = useThreadList({ paper: slug, sort: 'new' }, { pageSize: n, enabled: enabled && !!slug });
+/** How many threads link each past question (/library/<slug>#q3) of a paper or of a module's papers. */
+export function useQuestionThreads(scope: QuestionScope | null, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: forumKeys.questions(scope ?? { paper: '' }),
+    queryFn: ({ signal }): Promise<QuestionThreads[]> =>
+      call(api.GET('/api/v1/forum/question-threads', { params: { query: scope ?? {} }, signal })),
+    enabled: enabled && !!scope,
+    staleTime: 60_000,
+  });
+}
+
+/** The threads whose post or a reply links to a library item (/library/<slug>), newest first: a paper's page. With
+ *  `question` ('q3', 'b1'), only those that link that question (/library/<slug>#q3). */
+export function usePaperThreads(
+  slug: string,
+  { n = 5, enabled = true, question }: { n?: number; enabled?: boolean; question?: string } = {},
+) {
+  const list = useThreadList(
+    { paper: slug, question: question ?? null, sort: 'new' },
+    { pageSize: n, enabled: enabled && !!slug },
+  );
   const first = list.data?.pages[0];
   return {
     threads: first?.items ?? [],

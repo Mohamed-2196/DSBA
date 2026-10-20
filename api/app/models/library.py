@@ -6,7 +6,7 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
-from typing import get_args
+from typing import Any, get_args
 
 from sqlalchemy import (
     BigInteger,
@@ -18,13 +18,14 @@ from sqlalchemy import (
     SmallInteger,
     String,
     Text,
+    false,
     func,
 )
-from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import SLUG, Base, check_in, created_ts, in_range, str_enum, uuid_pk, year_range
-from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, ZONES, ExamSession, LibraryKind, Zone
+from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, ZONES, ExamSession, LibraryKind, QuestionMarkKind, Zone
 
 
 class ItemSource(enum.StrEnum):
@@ -140,7 +141,10 @@ class TextStatus(enum.StrEnum):
 class LibraryText(Base):
     """The words of a published PDF or Word file, for search (app/services/paper_text.py), and its cover: the first
     page as a small WebP picture in the bucket. `body` holds its pages in order, separated by form feeds, so a match
-    knows its page. A row is made when a text worker takes the file, and stays: a file is read once."""
+    knows its page. A row is made when a text worker takes the file, and stays: a file is read once.
+
+    An examiners' report's text also says whether it works through the questions, and where each question's
+    commentary starts (app/services/report_answers.py)."""
 
     __tablename__ = "library_texts"
     __table_args__ = (Index("ix_library_texts_search", "search_vector", postgresql_using="gin"),)
@@ -151,6 +155,9 @@ class LibraryText(Base):
     pages: Mapped[int | None] = mapped_column(Integer)  # PDFs only
     error: Mapped[str | None] = mapped_column(String(200))  # why it failed, for the logs and the CLI
     cover_key: Mapped[str | None] = mapped_column(Text)  # covers/<item id>.webp; None: no cover could be made
+    worked_answers: Mapped[bool] = mapped_column(default=False, server_default=false())  # "Approaching the question"
+    # [{"zone": 'A' | None, "section": 'B' | None, "question": 3, "page": 7}, ...]: each question's commentary
+    question_pages: Mapped[list[Any] | None] = mapped_column(JSONB(none_as_null=True))
     started_at: Mapped[datetime] = created_ts()
     finished_at: Mapped[datetime | None]
     search_vector: Mapped[str] = mapped_column(
@@ -215,6 +222,38 @@ class PaperQuestionFlag(Base):
     )
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     created_at: Mapped[datetime] = created_ts()
+
+
+class QuestionMark(Base):
+    """How a student got on with a tagged past question while practising a chapter: done, stuck or skipped. Theirs
+    alone, kept by the question itself (its paper, section and number), so a mark stays when the question's tags
+    change and shows in every chapter it is tagged with. Goes with the account or the paper."""
+
+    __tablename__ = "question_marks"
+    __table_args__ = (
+        Index(
+            "ix_question_marks_user_item_section_question",
+            "user_id",
+            "item_id",
+            "section",
+            "question",
+            unique=True,
+            postgresql_nulls_not_distinct=True,
+        ),
+        Index("ix_question_marks_item", "item_id"),  # removing a library item (CASCADE)
+        Index("ix_question_marks_user_updated", "user_id", "updated_at"),  # marks per hour
+        check_in("mark", get_args(QuestionMarkKind)),
+        CheckConstraint("question BETWEEN 1 AND 40", name="question_range"),
+        CheckConstraint("section IS NULL OR section ~ '^[A-Z]$'", name="section_letter"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("library_items.id", ondelete="CASCADE"))
+    section: Mapped[str | None] = mapped_column(String(1))
+    question: Mapped[int] = mapped_column(SmallInteger)
+    mark: Mapped[QuestionMarkKind] = mapped_column(String(8))
+    updated_at: Mapped[datetime] = created_ts()
 
 
 class UploadPurpose(enum.StrEnum):

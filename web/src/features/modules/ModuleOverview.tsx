@@ -2,11 +2,11 @@
 // with a link to the whole of it at its top right. The next dates and the latest sittings of past papers lead, then
 // the student's own notes about the module, lesson progress (for a student who keeps it and has started), the
 // answered threads ("Asked before", most voted first), the newest threads with "Ask a question", what to carry on
-// with (the papers, notes and lessons opened last), the newest students' notes and the rest of the library (decision
-// D6: contributing means uploading). A block with nothing to show is left out, not shown empty: a student with no
-// notes about the module gets "New note" on the lesson progress or Carry on block instead (or, with neither, a
-// one-line Your notes block).
-import { useId, useMemo, type ReactNode } from 'react';
+// with (the papers, notes and lessons opened last), chapter practice progress, the newest students' notes and the
+// rest of the library (decision D6: contributing means uploading). A block with nothing to show is left out, not
+// shown empty: a student with no notes about the module gets "New note" on the lesson progress or Carry on block
+// instead (or, with neither, a one-line Your notes block).
+import { useId, useMemo, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
 import { useAuth } from '../../auth';
@@ -29,7 +29,14 @@ import {
 import { aheadRows, typeLabel } from '../calendar/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
 import { useModuleAnsweredThreads, useModuleLatestThreads, useStartsThreads } from '../forum/public';
-import { SittingsTable, libraryItemPath, usePaperSittings } from '../library/public';
+import {
+  SittingsTable,
+  libraryItemPath,
+  practisePath,
+  progressLabel,
+  useModulePractice,
+  usePaperSittings,
+} from '../library/public';
 import { NoteName, useModuleNotes, useStartNote } from '../notes/public';
 import { useModuleFiles } from './api';
 import { useModuleDates } from './exams';
@@ -295,6 +302,62 @@ function LatestPapers({ moduleId, onTab }: { moduleId: string; onTab: (tab: stri
         board={featureOn('board')}
         className="mod-papers"
       />
+    </Block>
+  );
+}
+
+const PRACTICE_ROWS = 5;
+
+/** The student's practice on the module's past questions: each chapter with tagged questions, how far they are
+ *  through it, and its practise page. Shown while practice is on for them and the module has tagged questions. */
+function YourPractice({ moduleId }: { moduleId: string }) {
+  const practice = useModulePractice(moduleId);
+  const [all, setAll] = useState(false);
+  const title = 'Practise past questions';
+  if (practice.isPending) return <BlockLoading title={title} />;
+  if (!practice.chapters || !practice.total) return null;
+  const total = practice.total;
+  // the chapters under way first, then the rest in the module's order; a few until asked for all
+  const begun = (c: { progress: { done: number; stuck: number; skipped: number } }) =>
+    c.progress.done + c.progress.stuck + c.progress.skipped > 0;
+  const ordered = [...practice.chapters.filter(begun), ...practice.chapters.filter((c) => !begun(c))];
+  const shown = all ? ordered : ordered.slice(0, PRACTICE_ROWS);
+  return (
+    <Block
+      title={title}
+      hub="module-practice"
+      className="mod-blk--practice"
+      footer={
+        ordered.length > PRACTICE_ROWS ? (
+          <Button variant="ghost" size="sm" onClick={() => setAll((v) => !v)} aria-expanded={all}>
+            {all ? 'Fewer chapters' : `All ${ordered.length} chapters`}
+          </Button>
+        ) : undefined
+      }
+    >
+      <p className="mod-prac__total u-tabular">{progressLabel(total)} across the module</p>
+      <ul role="list" className="mod-prac">
+        {shown.map((c) => {
+          const p = c.progress;
+          const pct = (n: number) => (p.total ? `${(n / p.total) * 100}%` : '0%');
+          return (
+            <li key={c.chapterId}>
+              <Link
+                to={practisePath(moduleId, c.chapterId)}
+                className="mod-prac__row"
+                data-hub="module-practice-chapter"
+              >
+                <span className="mod-prac__title">{c.title}</span>
+                <span className="mod-prac__count u-tabular">{progressLabel(p)}</span>
+                <span className="mod-prac__bar" aria-hidden="true">
+                  <span className="mod-prac__done" style={{ width: pct(p.done) }} />
+                  <span className="mod-prac__stuck" style={{ width: pct(p.stuck) }} />
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </Block>
   );
 }
@@ -680,6 +743,7 @@ export function ModuleOverview({
     <div className="mod-ov" data-hub="module-overview">
       {featureOn('calendar') ? <NextDates module={m} /> : null}
       {libraryOn ? <LatestPapers moduleId={m.id} onTab={onTab} /> : null}
+      {libraryOn ? <YourPractice moduleId={m.id} /> : null}
       {hasNotes ? <YourNotes moduleId={m.id} notes={notes} newNote={newNote} /> : null}
       {noteAlone ? <NoNotes name={name} newNote={noteAlone} /> : null}
       {progressShown ? (

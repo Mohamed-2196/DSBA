@@ -40,6 +40,7 @@ from app.schemas.library import (
     EXAM_KINDS,
     EXAM_SOLUTIONS,
     EXAMINERS_REPORT,
+    PAST_PAPER,
     ZONES,
     ExamSession,
     FileLink,
@@ -56,7 +57,7 @@ from app.schemas.library import (
 from app.schemas.library import LibraryItem as LibraryItemOut
 from app.schemas.modules import ModuleShelf, ShelfKind
 from app.schemas.notifications import NotificationKind
-from app.services import access, paper_text, ratelimit
+from app.services import access, paper_text, ratelimit, report_answers
 from app.services.accounts import public_user
 from app.services.content import apply_patch, record
 from app.services.exam_names import SittingKey, newest_sitting_first, sitting_key, sitting_label, sitting_order
@@ -223,6 +224,7 @@ def to_out(
         )
     moderator = manages(user)
     covers = covered(db, [i.id for i in items if i.source == ItemSource.file])
+    worked = report_answers.worked(db, [i.id for i in items if i.kind == EXAMINERS_REPORT])
     out = []
     for i in items:
         mine = user is not None and i.uploaded_by == user.id
@@ -257,6 +259,7 @@ def to_out(
                     "can_edit": can_edit(i, user),
                     "match": vars(found[i.id]) if found and i.id in found else None,
                     "cover_url": cover_path(i.id) if i.id in covers else None,
+                    "worked_answers": i.id in worked,
                 }
             )
         )
@@ -423,6 +426,20 @@ def listed() -> ColumnElement[bool]:
     """What the library lists and counts: published, and not a second copy of a file (duplicate()). The module
     counts, the module's shelves, the facets and the lists all use it, so their numbers agree."""
     return and_(LibraryItem.status == ItemStatus.published, ~duplicate())
+
+
+def paper_slugs(db: Session, module_id: str) -> set[str]:
+    """The slugs of a module's published past papers. Errors: invalid_input (422: an unknown module)."""
+    require_module(db, module_id)
+    return set(
+        db.scalars(
+            select(LibraryItem.slug).where(
+                LibraryItem.module_id == module_id,
+                LibraryItem.status == ItemStatus.published,
+                LibraryItem.kind == PAST_PAPER,
+            )
+        )
+    )
 
 
 def module_counts(db: Session, module_id: str | None = None) -> dict[str, int]:
@@ -754,6 +771,8 @@ def apply_update(db: Session, user: User, item: LibraryItem, body: LibraryItemUp
         if module is not None and "year" not in sent and item.year != module.year:
             item.year = module.year
             changed.append("year")
+    if "kind" in changed:
+        report_answers.refresh(db, item)  # a file that becomes an examiners' report, or stops being one
     if changed and item.uploaded_by != user.id:
         record(db, user, "library.edit", "library_item", item.id, item.title, ip, fields=sorted(changed))
 

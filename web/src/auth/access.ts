@@ -34,6 +34,7 @@ export const FEATURE_KEYS = [
   'library.uploads',
   'library.questions',
   'library.daily-question',
+  'library.practice',
   'newsletter',
   'newsletter.polls',
   'calendar',

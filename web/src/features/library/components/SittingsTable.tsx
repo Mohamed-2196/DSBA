@@ -21,6 +21,8 @@ function FileLink({
   noun,
   linkState,
   yours = false,
+  worked = false,
+  workedNote = false,
 }: {
   link: SittingLink;
   /** the sitting, for screen readers: 'May 2024 Zone A paper' */
@@ -28,19 +30,25 @@ function FileLink({
   noun?: string;
   linkState: LinkState;
   yours?: boolean;
+  /** the report standing in for solutions it doesn't have */
+  worked?: boolean;
+  /** the report works through the questions: said beside it where the row is narrow (the Solutions cell isn't) */
+  workedNote?: boolean;
 }) {
   return (
     <Link
       to={itemPath(link.item)}
       state={linkState}
-      className={cx('pp-link', yours && 'is-yours')}
+      className={cx('pp-link', yours && 'is-yours', worked && 'pp-link--worked')}
       title={link.item.title}
+      data-hub={worked ? 'worked-answers' : undefined}
     >
       <DocThumb tone={docTone(link.item)} size="sm" />
       <span>
         <span className="visually-hidden">{when} </span>
         {link.label}
         {noun ? <span className="visually-hidden"> {noun}</span> : null}
+        {workedNote ? <span className="pp-link__worked">, worked answers</span> : null}
         {yours ? <span className="visually-hidden">, your zone</span> : null}
       </span>
       {isNew(link.item) ? (
@@ -95,7 +103,15 @@ function SittingRowView({
         </div>
         <div className="pp-row__cell pp-row__reports">
           {row.reports.length ? (
-            row.reports.map((l) => <FileLink key={l.item.id} link={l} when={when} linkState={linkState} />)
+            row.reports.map((l) => (
+              <FileLink
+                key={l.item.id}
+                link={l}
+                when={when}
+                linkState={linkState}
+                workedNote={row.worked?.item.id === l.item.id}
+              />
+            ))
           ) : (
             <None text="No examiners’ report yet" />
           )}
@@ -103,6 +119,8 @@ function SittingRowView({
         <div className="pp-row__cell pp-row__solutions">
           {row.solutions.length ? (
             row.solutions.map((l) => <FileLink key={l.item.id} link={l} when={when} linkState={linkState} />)
+          ) : row.worked ? (
+            <FileLink link={row.worked} when={when} linkState={linkState} worked />
           ) : (
             <None text="No solutions yet" />
           )}

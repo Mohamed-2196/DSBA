@@ -1,0 +1,152 @@
+/* Practise a chapter: the progress, then one question at a time. */
+.lib-prac__progress {
+  display: grid;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-16);
+}
+.lib-prac__progress-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8) var(--sp-16);
+}
+.lib-prac__count {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-15);
+  font-weight: var(--fw-bold);
+}
+.lib-prac__hint {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+}
+.lib-prac__bar {
+  display: flex;
+  height: 10px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.lib-prac__bar > span {
+  transition: width var(--dur-fast) var(--ease);
+}
+.lib-prac__bar-done {
+  background: var(--success-fill);
+}
+.lib-prac__bar-stuck {
+  background: var(--warning-fill);
+}
+.lib-prac__bar-skipped {
+  background: var(--line-strong);
+}
+.lib-prac__card {
+  display: grid;
+  gap: var(--sp-16);
+}
+.lib-prac__top {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+}
+.lib-prac__pos {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+}
+.lib-prac__q {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  min-width: 0;
+}
+.lib-prac__qtext {
+  min-width: 0;
+}
+.lib-prac__name {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-28);
+  font-weight: var(--fw-heavy);
+  line-height: 1.1;
+}
+.lib-prac__page {
+  color: var(--ink-3);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+}
+.lib-prac__paper {
+  margin: var(--sp-4) 0 0;
+  color: var(--ink-2);
+  font-size: var(--fs-15);
+  overflow-wrap: anywhere;
+}
+.lib-prac__open {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8) var(--sp-12);
+}
+.lib-prac__marks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-8);
+  padding-top: var(--sp-16);
+  border-top: 1px solid var(--line);
+}
+.lib-prac__mark {
+  justify-content: center;
+}
+.lib-prac__help {
+  display: grid;
+  gap: var(--sp-8);
+  padding: var(--sp-12) var(--sp-16);
+  border-radius: 14px;
+  background: var(--warning-soft);
+}
+.lib-prac__help-h {
+  margin: 0;
+  color: var(--ink);
+  font-weight: var(--fw-bold);
+}
+.lib-prac__help-list {
+  display: grid;
+  gap: var(--sp-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lib-prac__help-list a,
+.lib-prac__help-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: var(--fw-semibold);
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+.lib-prac__help-none {
+  color: var(--ink-2);
+}
+.lib-prac__nav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-8);
+}
+@media (pointer: coarse) {
+  .lib-prac__help-list a,
+  .lib-prac__help-btn {
+    min-height: 44px;
+  }
+}

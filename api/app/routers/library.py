@@ -10,7 +10,7 @@ from fastapi.responses import RedirectResponse
 
 from app.core.access import Box, Feature
 from app.core.pagination import Limit, Offset, YearParam
-from app.core.security import DB, ActiveUser, OptionalUser, client_ip, needs_feature, requires
+from app.core.security import DB, ActiveUser, CurrentUser, OptionalUser, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.library import (
@@ -28,12 +28,15 @@ from app.schemas.library import (
     PaperQuestion,
     PaperQuestionCreate,
     PaperSittings,
+    QuestionMark,
+    QuestionMarkSave,
     ReviewDecision,
+    Section,
     StarResult,
     Zone,
 )
 from app.services import library as svc
-from app.services import past_questions
+from app.services import past_questions, question_marks
 from app.services.search import text_query, words
 
 router = router_for("library", needs_feature(Feature.library))
@@ -41,6 +44,7 @@ COVER_CACHE = "private, max-age=240"  # less than the link lives (download_url_t
 Uploader = Annotated[User, requires(Box.library_upload)]
 LibraryManager = Annotated[User, requires(Box.library_manage)]
 QUESTIONS = [needs_feature(Feature.library_questions)]
+PRACTICE = [*QUESTIONS, needs_feature(Feature.library_practice)]
 
 
 @router.get("/library/items", response_model=LibraryPage)
@@ -276,3 +280,36 @@ def unflag_question(question_id: UUID, user: ActiveUser, db: DB) -> PaperQuestio
     past_questions.set_flag(db, user, row, False)
     db.commit()
     return past_questions.to_out(db, [row], user)[0]
+
+
+# ── practising a chapter ─────────────────────────────────────────────────────────────────────
+
+
+@router.get("/library/question-marks", response_model=list[QuestionMark], dependencies=PRACTICE)
+def list_question_marks(user: CurrentUser, db: DB, module_id: str | None = None) -> list[QuestionMark]:
+    """The student's own marks on past questions (done, stuck or skipped), of one module's papers with `module_id`,
+    the newest first. Nobody else sees them. Errors: invalid_input (422: an unknown module)."""
+    return question_marks.marks_of(db, user.id, module_id)
+
+
+@router.put("/library/question-marks", response_model=QuestionMark, dependencies=PRACTICE)
+def save_question_mark(body: QuestionMarkSave, user: ActiveUser, db: DB) -> QuestionMark:
+    """Marks a tagged past question done, stuck or skipped, in place of the mark before. Errors: not_found (404:
+    the question isn't tagged on a published past paper), rate_limited (429: 300 marks an hour)."""
+    out = question_marks.save(db, user, body)
+    db.commit()
+    return out
+
+
+@router.delete("/library/question-marks", status_code=status.HTTP_204_NO_CONTENT, dependencies=PRACTICE)
+def forget_question_mark(
+    user: ActiveUser,
+    db: DB,
+    item_id: UUID,
+    question: Annotated[int, Query(ge=1, le=40)],
+    section: Section | None = None,
+) -> Response:
+    """Takes the student's mark off a question; without one, nothing happens."""
+    question_marks.forget(db, user, item_id, section, question)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -914,7 +914,10 @@ Quick wins are marked **quick win** in the heading.
   it, as tags are flagged today. Reports without per-question sections (about a quarter) get no link. No personal
   data, no AI cost after the one pass.
 - **How we'd know it worked:** reports opened from a question; reports downloaded nearly as often as papers in May.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/papers16`): each tagged question links its sitting's examiners' report at the
+  page where its commentary starts (`PaperQuestion.answer`), found from the report's text by question heading, zone and
+  section (`report_answers.py`, migration 0048; 1,568 of 1,905 local tags have one). On the paper's Questions by topic,
+  the chapter's past questions, Home's daily question and the practise page. Not built: flagging a wrong page.
 
 ### IDEA-45. Practise a chapter
 
@@ -931,7 +934,10 @@ Quick wins are marked **quick win** in the heading.
   good as the tags; flagged tags already handle that.
 - **How we'd know it worked:** chapters practised in the month before May; questions marked stuck that then got a
   report or forum visit.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/papers16`): "Practise this chapter" walks the chapter's questions newest sitting
+  first with Done, Stuck and Skip, saved to the account (`/library/question-marks`, private, in the export, gone with
+  the account); progress on the chapter's list and the module's Overview; Stuck offers the worked answer, the forum and
+  Mini Noora. Switch: `library.practice` (off at first).
 
 ### IDEA-46. "Solutions" that says the report has them · quick win
 
@@ -945,7 +951,9 @@ Quick wins are marked **quick win** in the heading.
 - **Size:** S, both: one boolean on the sitting's report in the response, set at text time; a word in the table.
 - **Costs and risks:** none. Copy must not promise model answers where a report only comments.
 - **How we'd know it worked:** fewer "solutions for 2023?" requests; report opens from the table.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/papers16`): a sitting with no solutions whose report works through the questions
+  ("Approaching the question") says "Worked answers in the report" in the table and on the paper's page
+  (`LibraryItem.workedAnswers`; 166 of 217 local reports).
 
 ### IDEA-47. Ask about one question · quick win
 
@@ -959,7 +967,9 @@ Quick wins are marked **quick win** in the heading.
 - **Costs and risks:** the forum's live-exam rule stays: papers from a running session can't be picked. Moderation as
   usual.
 - **How we'd know it worked:** threads that name a question; answers on them in exam weeks.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/papers16`): "Ask about Q3" on each tagged question opens a thread linking
+  `/library/<slug>?page=N#q3`; the question shows "2 threads" and lists them (`/forum/threads?paper=&question=`,
+  `/forum/question-threads`).
 
 ## Round 16 · Home and the week
 

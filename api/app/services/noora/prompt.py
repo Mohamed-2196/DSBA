@@ -86,7 +86,7 @@ CALENDAR_DATES = 8  # the next dates she is told about
 # when its path is one of them.
 ROUTE_PATH = re.compile(
     r"/(?:about|account|admin/access|board|calendar|career(?:/electives)?|daily(?:/[\w-]+){0,2}|forum(?:/[\w-]+)?"
-    r"|grades|library(?:/[\w-]+)?|manage|modules(?:/[\w-]+(?:/lessons/[\w-]+)?)?|newsletter(?:/[\w-]+(?:/edit)?)?"
+    r"|grades|library(?:/[\w-]+)?|manage|modules(?:/[\w-]+(?:/(?:lessons|practise)/[\w-]+)?)?|newsletter(?:/[\w-]+(?:/edit)?)?"
     r"|noora|notes(?:/[\w-]+)?|requests(?:/[\w-]+)?|results-day|start-here|styleguide)?/?",
     re.ASCII,
 )

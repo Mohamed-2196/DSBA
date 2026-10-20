@@ -53,6 +53,7 @@ from sqlalchemy.sql.elements import ColumnElement
 from app.core.text import snippet
 from app.core.time import utcnow
 from app.models import ItemSource, ItemStatus, LibraryItem, LibraryText, TextStatus
+from app.services import report_answers
 from app.services.storage import Storage
 
 log = logging.getLogger("dsba.texts")
@@ -245,6 +246,7 @@ class Claimed:
     id: uuid.UUID
     file_name: str | None
     storage_key: str | None
+    kind: str = ""  # an examiners' report's text says where its worked answers are (report_answers.fill)
 
 
 def claim(db: Session) -> Claimed | None:
@@ -263,7 +265,7 @@ def claim(db: Session) -> Claimed | None:
     if item is None:
         db.rollback()
         return None
-    claimed = Claimed(item.id, item.file_name, item.storage_key)
+    claimed = Claimed(item.id, item.file_name, item.storage_key, item.kind)
     now = utcnow()
     db.execute(
         insert(LibraryText)
@@ -304,6 +306,7 @@ def read_item(db: Session, item: Claimed, storage: Storage, *, time_limit: float
         db.add(row)
     row.status, row.body, row.pages, row.error, row.finished_at = status, body, pages, error, utcnow()
     row.cover_key = cover
+    report_answers.fill(row, item.kind)
     return status
 
 

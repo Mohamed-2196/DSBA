@@ -24,6 +24,7 @@ function tag(n: number): PaperQuestion {
     isMine: false,
     canRemove: false,
     createdAt: '2026-10-01T00:00:00Z',
+    answer: null,
   };
 }
 

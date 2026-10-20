@@ -4,7 +4,7 @@ import type { LibraryItem } from '../../../api/types';
 import { itemPath } from '../api';
 import type { LinkState } from '../components/FileCard';
 import { sittingLabel, zoneLabel } from '../../../lib/exams';
-import { paperContext, usePaperSittings } from '../papers';
+import { WORKED_LABEL, paperContext, usePaperSittings } from '../papers';
 
 export function SittingPanel({ item, linkState }: { item: LibraryItem; linkState?: LinkState }) {
   const papers = usePaperSittings(item.moduleId, { enabled: item.examYear !== null && item.source === 'file' });
@@ -13,7 +13,13 @@ export function SittingPanel({ item, linkState }: { item: LibraryItem; linkState
   const links: { item: LibraryItem; label: string }[] = [
     ...ctx.reports.map((f) => ({
       item: f,
-      label: f.zone && f.zone !== item.zone ? `Examiners’ report, ${zoneLabel(f.zone)}` : 'Examiners’ report',
+      label:
+        // no solutions, but this report works through the questions: say so
+        f.workedAnswers && !ctx.solutions.length
+          ? WORKED_LABEL
+          : f.zone && f.zone !== item.zone
+            ? `Examiners’ report, ${zoneLabel(f.zone)}`
+            : 'Examiners’ report',
     })),
     ...ctx.solutions.map((f) => ({ item: f, label: 'Solutions' })),
     ...(item.kind === 'past-paper' ? [] : ctx.zone.papers.map((f) => ({ item: f, label: 'The paper' }))),

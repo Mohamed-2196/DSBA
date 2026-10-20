@@ -22,6 +22,13 @@ const pages: AppRoute[] = [
     Page: lazy(() => import('./features/modules/ModulePage')),
   },
   {
+    id: 'practise',
+    path: '/modules/:moduleId/practise/:chapterId',
+    title: 'Practise',
+    Page: lazy(() => import('./features/library/PractisePage')),
+    feature: 'library.practice',
+  },
+  {
     id: 'noora',
     path: '/noora',
     title: 'Noora',
