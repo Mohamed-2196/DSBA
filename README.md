@@ -4,7 +4,7 @@ The student hub for BIBF's BSc Data Science and Business Analytics (University o
 a library of past papers and notes, a forum, the newsletter, the programme calendar, the Career Navigator, search,
 a grades calculator, Mini Noora (the hub's helper) and the Daily puzzles. Reading is open to everyone. Posting,
 uploading, notifications, synced lesson progress and a student's own notebook, boards and calendar need an account:
-students sign in with a one-time code sent to their email or phone, with no passwords.
+students sign up with an email address and a password, or continue with Google.
 
 ```
 api/            the API: Python 3.11+, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL, S3 (managed with uv)
@@ -21,17 +21,16 @@ docker compose up --build
 ```
 
 Then open http://localhost:5173. The stack runs PostgreSQL, MinIO (the S3 store, console at
-http://localhost:9001), Mailpit (every email the Hub sends, sign-in codes included: http://localhost:8025), the
+http://localhost:9001), Mailpit (every email the Hub sends: http://localhost:8025), the
 API (http://localhost:8000, interactive docs at `/api/v1/docs`), the mail worker (emails, the Sunday summary and
 reminders), the text worker (search inside papers) and the Vite dev server. The API applies the migrations and
 loads the reference content when it starts, and reloads when a file under `api/app` changes. Every feature added
 after the first ones arrives switched off: `docker compose exec api python -m app.cli enable-features` turns them
-all on.
-Codes sent by text appear in the API's log: `docker compose logs -f api`.
+all on. "Continue with Google" needs an OAuth client of your own (docs/backend/DEPLOYMENT.md, section 14).
 
 The defaults need no `.env`; to change them, copy `.env.example` to `.env`. To make yourself an admin, put your
-email in `DSBA_ADMIN_IDENTIFIERS` before you first sign in, or run
-`docker compose exec api python -m app.cli set-role you@example.com student admin` afterwards.
+email in `DSBA_ADMIN_IDENTIFIERS` and continue with Google, or, without Google, use dev-login with `--role admin`
+(below; it counts the address as confirmed). Staff roles need an address Google confirmed.
 
 ## Run it without Docker
 
@@ -59,7 +58,7 @@ npm ci
 npm run dev
 ```
 
-Sign-in codes go to the API's log (`DSBA_EMAIL_BACKEND=console`, the default). To sign in without a code,
+Emails go to the API's log (`DSBA_EMAIL_BACKEND=console`, the default). To sign in without the dialog,
 `uv run --no-sync python -m app.cli dev-login you@example.com --name "Test Student" --year 2 --role admin` prints a
 session token: set it as the `dsba_session` cookie for `127.0.0.1`. `python -m app.cli --help` lists the other
 commands (backups, the daily sweep, roles, the OpenAPI document).
@@ -88,8 +87,8 @@ CI (`.github/workflows/ci.yml`) runs it with `--fail-fast` on every push and on 
   `scripts/check.sh` runs it).
 - **Web unit tests:** `cd web && npm test` (Vitest). Put `name.test.ts` next to the module it checks.
 - **End-to-end:** `scripts/e2e.sh` (about three minutes; `scripts/e2e.sh --restore` afterwards), against the Docker
-  stack. It signs up students with real codes, so it switches the stack to write emails and texts to files
-  (`compose.e2e.yaml`) and reads them there; arguments go on to `npx playwright test` (pick tests with `-g "title"`).
+  stack. It signs students up with passwords, switches the stack to write emails to files and raises the
+  per-network sign-up limits (`compose.e2e.yaml`); arguments go on to `npx playwright test` (pick tests with `-g "title"`).
 
 After changing the API's request or response shapes, regenerate both contract files:
 `cd api && uv run --no-sync python -m app.cli openapi > openapi.json && cd ../web && npm run api:types`.

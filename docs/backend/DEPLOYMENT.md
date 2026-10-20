@@ -10,7 +10,8 @@ browser ──https──▶ web (Caddy: TLS, the built app, /api/* proxied, sec
    └──presigned POST/GET──▶ bucket (AWS S3, or MinIO behind HTTPS)
 mail: the email outbox (in db) ──SMTP──▶ your mail relay
 texts: published library files ──extract text──▶ search index (in db)
-backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily): uploads, codes, sessions, old files
+backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily): uploads, sign-in records, sessions, old files
+sign-in: email and password, or Google ──OpenID Connect──▶ accounts.google.com (section 14)
 ```
 
 ## 1. Before you start
@@ -19,8 +20,9 @@ backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily)
   (`DSBA_DOMAIN`, e.g. `hub.example.com`). Caddy gets and renews the certificate itself.
 - An S3 bucket for files and a second bucket for backups (section 3), with a key for the API, one for the text
   worker that can only read the library's files and write their covers (section 3), and one for backups (section 7).
-- An SMTP account for sign-in codes and notification emails (any provider's relay), and a Twilio account if codes
-  go out by text too.
+- An SMTP account for notification emails and account notices (any provider's relay).
+- For "Continue with Google": an OAuth client in Google Cloud Console (section 14). Without it students sign in with
+  an email address and a password only, and nobody can become an admin through `DSBA_ADMIN_IDENTIFIERS`.
 - An Anthropic API key (`DSBA_ANTHROPIC_API_KEY`) if Mini Noora's AI answers (`noora.ai`) are turned on (section 11).
 
 ## 2. Settings
@@ -32,7 +34,7 @@ for production. It lists every problem in one go, for example:
 ```
 app.config.ConfigError: DSBA Hub won't start in production until these settings are fixed:
   - DSBA_SECRET_KEY must be a random string of at least 32 characters, not the development one (...)
-  - DSBA_EMAIL_BACKEND must be smtp (it is 'console'): the console and file backends don't deliver sign-in codes.
+  - DSBA_EMAIL_BACKEND must be smtp (it is 'console'): the console and file backends don't deliver notifications.
 ```
 
 What production refuses (`app/config.py`, `Settings.production_problems`):
@@ -46,11 +48,10 @@ What production refuses (`app/config.py`, `Settings.production_problems`):
 | `DSBA_SESSION_COOKIE`, `DSBA_CSRF_COOKIE` | start with `__Host-` (the defaults in production are `__Host-dsba_session` and `__Host-dsba_csrf`); `DSBA_COOKIE_DOMAIN` empty |
 | `DSBA_WEB_ORIGINS`, `DSBA_WEB_BASE_URL` | `https://` only; `*` is refused in every environment |
 | `DSBA_TRUSTED_PROXIES` | set (the reverse proxy's address, or `127.0.0.1/32` with no proxy), never `0.0.0.0/0` or `::/0` |
-| `DSBA_OTP_MAX_ATTEMPTS` | at most 5 |
-| `DSBA_OTP_MAX_PER_*`, `DSBA_SMS_MAX_PER_*`, `DSBA_EMAIL_MAX_PER_*`, `DSBA_EMAIL_SIGNUPS_MAX_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
+| `DSBA_SIGN_IN_FAILURES_PER_*`, `DSBA_SIGN_INS_PER_NETWORK_PER_HOUR`, `DSBA_SIGN_UPS_PER_NETWORK_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
+| `DSBA_GOOGLE_CLIENT_ID`, `DSBA_GOOGLE_CLIENT_SECRET` | set together or not at all (in every environment); both empty turns "Continue with Google" off |
 | `DSBA_S3_*` | bucket and keys set, not the development keys; the endpoint set explicitly (empty for AWS S3); what browsers use (`DSBA_S3_PUBLIC_ENDPOINT_URL`, else `DSBA_S3_ENDPOINT_URL`) is `https://`; `DSBA_S3_CREATE_BUCKET` false (the default in production) |
 | `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain; `DSBA_SMTP_STARTTLS` true, unless `DSBA_SMTP_PORT` is 465 (TLS from the start) |
-| `DSBA_SMS_BACKEND` | `twilio` with its three settings, or `DSBA_SMS_ALLOWED_REGIONS` empty (no texts at all) |
 
 Every other setting, the optional ones included, is in section 12.
 
@@ -59,7 +60,7 @@ from `api/openapi.json` in the repository), and `python -m app.cli dev-login` re
 `DSBA_ENV=production` itself, so a container started without settings fails instead of running in development mode.
 
 **The text worker** (`texts`) gets only `DSBA_ENV`, its database URL and the bucket settings, and checks only those
-(`Settings.texts_problems`): it opens files anyone could have uploaded, so it holds no secret key, mail, texts or AI
+(`Settings.texts_problems`): it opens files anyone could have uploaded, so it holds no secret key, mail, Google or AI
 key. Its database URL uses its own role, `dsba_texts`, with the password `DSBA_TEXTS_DB_PASSWORD` (letters, digits,
 `-` and `_`: it goes in the URL as it is). The `migrate` service creates the role after the migrations, or sets its
 password again, with only what the worker needs: reading `library_items` and noting each file's hash, and keeping
@@ -120,17 +121,19 @@ with path-style URLs (MinIO) it is the endpoint's origin, e.g. `https://files.ex
 docker compose -f compose.prod.yaml up -d --build          # migrate runs first, then the API and Caddy
 docker compose -f compose.prod.yaml run --rm api python -m app.cli setup-bucket
 docker compose -f compose.prod.yaml run --rm api python -m app.cli seed
-docker compose -f compose.prod.yaml run --rm api python -m app.cli set-role you@example.com student admin   # after your first sign-in
+docker compose -f compose.prod.yaml run --rm api python -m app.cli set-role you@example.com student admin   # after you continue with Google once
 ```
 
 `scripts/seed-real.sh --prod` does the seed and also brings the files of the library's Google Drive folders into the
 library (section 10).
 
-`DSBA_ADMIN_IDENTIFIERS` gives the Admin role to a listed person only when they sign in while the hub has no active
-admin at all: it starts the hub. Once anyone is an admin it does nothing, so Admin taken from a listed person stays
-taken, even if they delete their account and sign up again. Keep it to your own address; you can empty it once you
-are signed in as admin.
-`set-role` sets exactly the roles you name, and writes an audit entry.
+`DSBA_ADMIN_IDENTIFIERS` gives the Admin role to a listed address only when its owner **continues with Google** while
+the hub has no active admin at all: it starts the hub. A password sign-up with the same address gets nothing (nobody
+checked that address), and Google takes such an account over when its owner arrives. Once anyone is an admin it does
+nothing, so Admin taken from a listed person stays taken, even if they delete their account and sign up again. Keep it
+to your own address; you can empty it once you are signed in as admin.
+`set-role` sets exactly the roles you name, and writes an audit entry. Like Manage, it gives a role beyond Student
+only to an account whose address Google confirmed: the person continues with Google once first.
 
 **Daily puzzles' content.** The seed loads the Daily themes (out of the rotation) and the public guess list (into a
 list under 5,000 words, so a content file loaded first doesn't leave The Word refusing everyday guesses), but no
@@ -154,10 +157,9 @@ migrations before the API starts. Run `seed` again after updates that change the
 overwrites what reps changed).
 
 **Health:** `GET /api/v1/health` (the API image's healthcheck uses it); logs with
-`docker compose -f compose.prod.yaml logs -f api`. Logs carry no sign-in codes, tokens or full phone numbers.
+`docker compose -f compose.prod.yaml logs -f api`. Logs carry no passwords, tokens or full email addresses.
 
-**Emails.** Sign-in codes are sent while the person waits. Everything else (notification emails, account
-notices) goes into the `email_outbox` table with the change it is about, and the `mail` service
+**Emails.** Notification emails and account notices go into the `email_outbox` table with the change it is about, and the `mail` service
 (`python -m app.cli mail-worker`) sends it: a failed send is retried with growing waits (30 s, 1 min, 2 min, ... up
 to 6 hours) and given up after 8 tries, with a warning in its log (`docker compose -f compose.prod.yaml logs -f
 mail`). Several workers may run (`docker compose -f compose.prod.yaml up -d --scale mail=2`): each email is claimed
@@ -179,7 +181,7 @@ extract-texts`, which reads their words and makes their covers (`--retry` reads 
 
 ## 5. Client addresses and the proxy
 
-Per-IP limits (sign-in codes above all), sessions and the audit log use the client's address. The API takes it from
+Per-IP limits (sign-ins and sign-ups above all), sessions and the audit log use the client's address. The API takes it from
 the TCP connection, and reads `X-Forwarded-For` only when the connection comes from one of `DSBA_TRUSTED_PROXIES`
 (addresses or CIDRs; none by default). It then reads the header from the right and takes the first address that
 isn't a trusted proxy, so whatever a client writes in the header itself is ignored; a value that isn't an IP address
@@ -309,7 +311,8 @@ The `sweep` service runs `python -m app.cli sweep` when it starts and every 24 h
 - uploads never attached to anything (a library item, a forum post, a note, a card, a newsletter picture, a module's
   picture, a Career Navigator logo, a bug report) a day after they were made, and board files taken off their card or
   whose card is gone: the object, then the row;
-- sign-in codes older than two days (the longest rate-limit window is a day);
+- sign-in attempts the limits count, older than two days (the longest window is a day), "Continue with Google"
+  sign-ins older than a day, and reset links that ended more than a day ago;
 - sessions that expired or were revoked more than 30 days ago;
 - the files of library items rejected or removed more than a week ago (the item stays, without its file);
 - the addresses kept on bug reports and on guests' Daily plays kept at sign-in after a day, and the screenshots of
@@ -437,17 +440,6 @@ a day, and an answer the student drops is charged what Claude used, so fresh sig
 set a monthly spending limit on the Anthropic workspace as a backstop. Without the key, or with `noora.ai` off, she answers from her script, which admins
 edit in Manage → Mini Noora, and calls nobody.
 
-**Texts (Twilio).** The hub's own guards are the region check (`DSBA_SMS_ALLOWED_REGIONS=BH`) and its text budget
-(`DSBA_SMS_MAX_PER_HOUR` 50, `DSBA_SMS_MAX_PER_DAY` 300): anyone can still make it text up to 300 Bahraini numbers a
-day, about $15 to $30. Set Twilio's own protections too, so a changed setting or a leaked token can't reach further
-(SEC-56):
-- Messaging → Settings → Geo permissions: Bahrain only.
-- SMS Pumping Protection: on.
-- Billing: a usage trigger that emails you at a few dollars a day, and a spend cap on the account (or a sub-account
-  for the hub with its own cap).
-- Send from a Messaging Service (`DSBA_TWILIO_FROM=MG…`), not a bare number, so the sender can change without a
-  deploy.
-
 **The Sunday summary** is an email of the week ahead for each year, for students who keep its switch on. Turn on
 `summary` in Access. The `mail` service queues it on Sunday from the time set in Manage → Sunday summary and sends it;
 nothing else needs scheduling. `python -m app.cli weekly-summary` queues this week's at once (for whoever hasn't had
@@ -468,27 +460,21 @@ add it to the service's `environment` first. The defaults suit development; sect
 | Setting | Default | What it is |
 |---|---|---|
 | `DSBA_ENV` | `development` | `development`, `test` or `production` (the API image sets `production`) |
-| `DSBA_SECRET_KEY` | development value | keys the sign-in codes' and identifiers' hashes, the CSRF tokens and the private calendar feeds' addresses (a new key gives every feed a new address) |
+| `DSBA_SECRET_KEY` | development value | keys the sign-in limits' address hashes, the CSRF tokens and the private calendar feeds' addresses (a new key gives every feed a new address) |
 | `DSBA_DATABASE_URL` | the local `dsba` database | PostgreSQL, `postgresql+psycopg://…` |
 | `DSBA_WEB_ORIGINS` | `http://127.0.0.1:5173,http://localhost:5173` | the app's origins, comma-separated (CORS, CSRF) |
-| `DSBA_WEB_BASE_URL` | `http://127.0.0.1:5173` | the app's address in emails and texts |
+| `DSBA_WEB_BASE_URL` | `http://127.0.0.1:5173` | the app's address: in emails, in reset links, and Google's redirect URI (`<it>/api/v1/auth/google/callback`, section 14) |
 | `DSBA_SESSION_COOKIE`, `DSBA_CSRF_COOKIE` | `dsba_session`, `dsba_csrf` (`__Host-` ones in production) | cookie names; the web app's `VITE_CSRF_COOKIE` must match the second |
 | `DSBA_SESSION_DAYS` | `30` | how long a session lasts at most |
 | `DSBA_COOKIE_SECURE`, `DSBA_COOKIE_DOMAIN` | false (true in production), none | cookies only over HTTPS; a cookie domain (empty in production) |
 | `DSBA_TRUSTED_PROXIES` | none | addresses or CIDRs whose `X-Forwarded-For` is read (section 5) |
-| `DSBA_OTP_TTL_SECONDS`, `DSBA_OTP_MAX_ATTEMPTS`, `DSBA_OTP_RESEND_SECONDS` | `600`, `5`, `30` | sign-in codes: lifetime, tries per code, wait before another |
-| `DSBA_OTP_MAX_PER_IDENTIFIER_PER_HOUR`, `…_PER_DAY`, `DSBA_OTP_MAX_PER_IP_PER_HOUR` | `5`, `10`, `30` | codes per address and per network (an IPv4 address, or an IPv6 /64) |
-| `DSBA_OTP_MAX_PER_IPV6_SITE_PER_HOUR` | `120` | codes per IPv6 /48 together, so one place rotating its /64s can't multiply the per-network limit |
-| `DSBA_DEFAULT_PHONE_REGION` | `BH` | how a phone number without a country code is read |
+| `DSBA_SIGN_IN_FAILURES_PER_ADDRESS_NETWORK_PER_HOUR`, `DSBA_SIGN_IN_FAILURES_PER_ADDRESS_PER_HOUR` | `10`, `50` | wrong passwords for one address from one network (an IPv4 address, or an IPv6 /64), and from everywhere together, before signing in to it waits (decision D4) |
+| `DSBA_SIGN_INS_PER_NETWORK_PER_HOUR` | `60` | password sign-ins from one network, right or wrong |
+| `DSBA_SIGN_UPS_PER_NETWORK_PER_HOUR`, `DSBA_SIGN_UPS_PER_NETWORK_PER_DAY` | `10`, `30` | new accounts (tries included) from one network |
+| `DSBA_GOOGLE_CLIENT_ID`, `DSBA_GOOGLE_CLIENT_SECRET` | none | "Continue with Google" (section 14); off while either is empty |
 | `DSBA_EMAIL_BACKEND` | `console` | `smtp`, `file` (into `DSBA_EMAIL_FILE_DIR`, default `var/mail`) or `console` |
 | `DSBA_EMAIL_FROM` | `DSBA Hub <no-reply@dsba-hub.local>` | the sender |
 | `DSBA_SMTP_HOST`, `_PORT`, `_USERNAME`, `_PASSWORD`, `_STARTTLS` | `127.0.0.1`, `1025`, none, none, false | the mail relay |
-| `DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR`, `DSBA_EMAIL_SIGNUPS_MAX_PER_DAY` | `100`, `500` | sign-in emails the whole site may send to addresses no account has (sign-ups). Over it, the answer and the per-address limits stay the same (they never say whether an account exists) but the code for a new address isn't sent (marked `suppressed`, it never verifies), and the log says so; students with an account still get codes. Sign-in emails go out just after the answer, so a failed send shows only in the log |
-| `DSBA_EMAIL_MAX_PER_HOUR`, `DSBA_EMAIL_MAX_PER_DAY` | `600`, `3000` | every sign-in email together; over it, codes by email pause (the mail provider's daily quota must be well above the daily figure) |
-| `DSBA_SMS_BACKEND` | `console` | `twilio`, `file` (into `DSBA_SMS_FILE_DIR`, default `var/sms`) or `console` |
-| `DSBA_TWILIO_ACCOUNT_SID`, `_AUTH_TOKEN`, `_FROM` | none | Twilio; `_FROM` is a number or a Messaging Service SID |
-| `DSBA_SMS_ALLOWED_REGIONS` | `BH` | countries whose mobile numbers get codes by text; empty: no texts |
-| `DSBA_SMS_MAX_PER_HOUR`, `DSBA_SMS_MAX_PER_DAY` | `50`, `300` | texts the whole site may send |
 | `DSBA_ALLOW_RAISED_LIMITS` | false | lets production run limits above their defaults (the e2e suite raises them) |
 | `DSBA_S3_ENDPOINT_URL` | `http://127.0.0.1:9000` | the store; empty for AWS S3 |
 | `DSBA_S3_PUBLIC_ENDPOINT_URL` | none | the endpoint browsers use, when it differs (Docker) |
@@ -503,7 +489,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_BACKUP_ACCESS_KEY_ID`, `DSBA_BACKUP_SECRET_ACCESS_KEY` | none | the backup key, set together or not at all |
 | `DSBA_BACKUP_SSE`, `DSBA_BACKUP_KMS_KEY_ID`, `DSBA_BACKUP_KEEP` | `AES256`, none, `14` | encryption at rest, and how many dumps to keep (0: all) |
 | `DSBA_PORTAL_HOSTS` | `bibf.edu.bh,bibf.com,london.ac.uk` | the hosts Site settings' links to BIBF and the University (MyClass, the UoL portal, the regulations, exam entry and results) may point at, each with its subdomains; anything else is refused (SEC-64) |
-| `DSBA_ADMIN_IDENTIFIERS` | none | emails or phone numbers that get Admin at sign-in while the hub has no active admin |
+| `DSBA_ADMIN_IDENTIFIERS` | none | email addresses that get Admin when they continue with Google while the hub has no active admin |
 | `DSBA_GOOGLE_API_KEY`, `DSBA_GOOGLE_SERVICE_ACCOUNT_FILE` | none | the Drive import only (section 10) |
 | `DSBA_ANTHROPIC_API_KEY`, `DSBA_NOORA_MODEL` | none, `claude-haiku-5-5` | Mini Noora's AI answers (section 11) |
 | `DSBA_NOORA_EFFORT` | `medium` | how much she thinks before she answers: `low`, `medium` or `high` |
@@ -546,8 +532,7 @@ Nothing in the hub calls you when something breaks, so set these up before stude
   Better Stack), alerting you by email or text. Use a keyword check for `"status":"ok"`: the answer stays 200 with
   `"status":"degraded"` while the database or the bucket is unreachable.
 - **Daily jobs:** `DSBA_BACKUP_PING_URL` and `DSBA_SWEEP_PING_URL` (sections 7 and 8).
-- **The mail worker:** notifications, reminders and Sunday summaries stop silently if it dies (sign-in codes don't
-  need it). `restart: unless-stopped` brings it back after a crash; check `docker compose ps` after each deploy.
+- **The mail worker:** notifications, account notices, reminders and Sunday summaries stop silently if it dies. `restart: unless-stopped` brings it back after a crash; check `docker compose ps` after each deploy.
 - **Noora's spend:** the monthly limit on the Anthropic workspace, with its email alert at half.
 - **Disk:** an alert at 80% on the server's disk (the database volume and Docker's logs share it). Docker's logs
   rotate at 10 MB × 5 files per service (`x-logging` in compose.prod.yaml).
@@ -556,3 +541,55 @@ Nothing in the hub calls you when something breaks, so set these up before stude
 **On Railway** compose.prod.yaml doesn't apply: set each service's memory limit in its settings, keep the default log
 retention, run backup and sweep as cron services with `DSBA_ROLE`, the same image and only the variables listed for
 them in compose.prod.yaml, and point the uptime check at the public domain.
+
+## 14. Continue with Google
+
+"Continue with Google" is OpenID Connect's authorization-code flow with PKCE, run by the API
+(`app/services/google.py`): the browser goes to Google's sign-in page and comes back to
+`<DSBA_WEB_BASE_URL>/api/v1/auth/google/callback`, which the web app's address passes to the API (Vite's proxy
+locally, Caddy in production, the web service on Railway). The callback must be on the app's own address, never
+the API's port, because the session cookie and the one-use state cookie belong to the app's address. Open the app
+at exactly that address too: a sign-in started at `http://127.0.0.1:5173` can't finish at `http://localhost:5173`.
+
+Google only vouches for an address through this flow, so it decides who may hold staff roles, who
+`DSBA_ADMIN_IDENTIFIERS` makes an admin, and who keeps an address that someone typed at sign-up (the Google owner
+takes that account over). Students who don't use Google sign in with a password, and an admin's reset link
+(Manage → Access → People → Reset link) covers a forgotten one.
+
+**Create the OAuth client** (Google Cloud Console, <https://console.cloud.google.com/>, signed in with the account
+that should own it):
+
+1. Choose or create a project, such as "DSBA Hub".
+2. Open **Google Auth Platform** (APIs & Services → OAuth consent screen). On **Branding**: app name `DSBA Hub`, a
+   user support email, the developer contact email, and once there is a production domain, its home page and
+   privacy policy, and the domain under **Authorized domains**.
+3. On **Audience**: user type **External**. While it is in **Testing**, only the Google accounts listed under
+   **Test users** can sign in: add your own and any testers. Choose **Publish app** before students use it; the two
+   scopes below are not sensitive, so no Google review is needed.
+4. On **Data Access**: add the scopes `openid` and `.../auth/userinfo.email`. The hub asks for nothing else.
+5. On **Clients**: **Create client**, application type **Web application**, a name such as `DSBA Hub (dev)`. Under
+   **Authorized redirect URIs** add, exactly (no trailing slash):
+   - `http://localhost:5173/api/v1/auth/google/callback` (the Docker stack: compose.yaml sets
+     `DSBA_WEB_BASE_URL=http://localhost:5173`)
+   - `http://127.0.0.1:5173/api/v1/auth/google/callback` (the API without Docker, whose `DSBA_WEB_BASE_URL` default is
+     `http://127.0.0.1:5173`; Vite on :5173 passes `/api` to the API on :8000)
+   - `https://web-dev-254f.up.railway.app/api/v1/auth/google/callback` (the Railway dev site; its API service's
+     `DSBA_WEB_BASE_URL` must be `https://web-dev-254f.up.railway.app`)
+
+   **Authorized JavaScript origins** can stay empty: the browser never talks to Google from a script. Create a
+   second client for production with only `https://<DSBA_DOMAIN>/api/v1/auth/google/callback`, so the development
+   secret never opens production.
+6. Copy the client's **Client ID** and **Client secret** (shown once; download the JSON if you want a copy, and keep
+   it out of the repository).
+7. Put them where the API reads its settings, never in the repository or a chat:
+   - local Docker: `DSBA_GOOGLE_CLIENT_ID=…` and `DSBA_GOOGLE_CLIENT_SECRET=…` in the repository's `.env`, then
+     `docker compose up -d api`;
+   - without Docker: the same two lines in `api/.env`, then restart the API;
+   - Railway dev: the API service's Variables, then redeploy;
+   - production: the server's `.env` (compose.prod.yaml passes both to the API).
+8. Check: `GET /api/v1/auth/session` answers `"googleSignIn": true`, and the sign-in dialog shows Continue with
+   Google. Sign in once with the address in `DSBA_ADMIN_IDENTIFIERS` to become the first admin.
+
+If Google refuses `web-dev-254f.up.railway.app` (Railway's shared domains can't always be authorized domains), keep
+that client in Testing, where Google is less strict about redirect domains, or give the dev site a domain of your
+own. A secret that leaked: reset it on the client's page (**Reset secret**), put the new one in place, restart.
