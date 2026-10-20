@@ -155,6 +155,26 @@ def can_see(item: LibraryItem, user: User | None) -> bool:
     return item.uploaded_by == user.id and item.status != ItemStatus.removed
 
 
+def sees_hidden_modules(user: User | None) -> bool:
+    """Staff who see a hidden module's files: people who manage the library or edit content. To everyone else a
+    hidden module's files, past questions and chapters don't exist (SEC-55)."""
+    return manages(user) or access.can(user, Box.content_edit)
+
+
+def in_hidden_module() -> ColumnElement[bool]:
+    """The item belongs to a hidden module."""
+    module = aliased(Module)
+    return exists().where(module.id == LibraryItem.module_id, module.hidden.is_(True))
+
+
+def hidden_from(db: Session, item: LibraryItem, user: User | None) -> bool:
+    """A file of a hidden module, to someone who is neither staff (sees_hidden_modules) nor its uploader."""
+    if item.module_id is None or sees_hidden_modules(user) or (user is not None and item.uploaded_by == user.id):
+        return False
+    module = db.get(Module, item.module_id)
+    return module is not None and module.hidden
+
+
 def can_edit(item: LibraryItem, user: User | None) -> bool:
     """PATCH: people who manage the library always; the uploader while the item waits for review, if they may
     upload."""
@@ -196,7 +216,7 @@ def duplicate() -> ColumnElement[bool]:
 
 def get_visible(db: Session, ref: str | uuid.UUID, user: User | None) -> LibraryItem:
     item = find(db, ref)
-    if item is None or not can_see(item, user):
+    if item is None or not can_see(item, user) or hidden_from(db, item, user):
         raise not_found("This file doesn't exist or isn't public yet.")
     return item
 
@@ -343,6 +363,8 @@ def list_items(
     q: Select[tuple[LibraryItem]] = select(LibraryItem).where(LibraryItem.status.in_(statuses))
     if statuses == [ItemStatus.published] and not f.mine:
         q = q.where(~duplicate())
+    if not f.mine and not sees_hidden_modules(user):
+        q = q.where(~in_hidden_module())
     if f.mine and user is not None:
         q = q.where(LibraryItem.uploaded_by == user.id)
     if f.starred and user is not None:
@@ -420,9 +442,9 @@ def _exam_kind_order() -> ColumnElement[int]:
 
 
 def listed() -> ColumnElement[bool]:
-    """What the library lists and counts: published, and not a second copy of a file (duplicate()). The module
-    counts, the module's shelves, the facets and the lists all use it, so their numbers agree."""
-    return and_(LibraryItem.status == ItemStatus.published, ~duplicate())
+    """What the library lists and counts: published, not a second copy of a file (duplicate()) and not in a hidden
+    module. The module counts, the module's shelves, the facets and the lists all use it, so their numbers agree."""
+    return and_(LibraryItem.status == ItemStatus.published, ~duplicate(), ~in_hidden_module())
 
 
 def module_counts(db: Session, module_id: str | None = None) -> dict[str, int]:
@@ -515,8 +537,9 @@ _ZONE_ORDER: dict[str | None, int] = {**{z: n for n, z in enumerate(ZONES)}, Non
 
 def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
     """A module's published papers, reports and solutions, grouped by sitting (exam_names.sitting_key) and zone,
-    newest first; those without an exam year go to `other`. Titles sort each list."""
-    require_module(db, module_id)
+    newest first; those without an exam year go to `other`. Titles sort each list. A hidden module is unknown to
+    anyone but staff (sees_hidden_modules)."""
+    require_module(db, module_id, visible=not sees_hidden_modules(user))
     items = db.scalars(
         select(LibraryItem)
         .where(

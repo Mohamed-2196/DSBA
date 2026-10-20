@@ -190,6 +190,8 @@ def resolve_links(db: Session, user: User | None, keys: Iterable[LinkKey]) -> di
         uuids = [u for u in (parse_uuid(i) for i in ids) if u is not None]
         if uuids and access.feature_on(db, user, Feature.library):
             q = select(LibraryItem).where(LibraryItem.id.in_(uuids), LibraryItem.status == ItemStatus.published)
+            if not library.sees_hidden_modules(user):
+                q = q.where(~library.in_hidden_module())
             items = list(db.scalars(q))
             item_modules = {i.module_id for i in items if i.module_id}
             tags = {

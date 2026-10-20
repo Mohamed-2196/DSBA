@@ -19,7 +19,7 @@ from app.core.errors import not_found
 from app.models import ItemSource, ItemStatus, LibraryItem, LibraryText, TextStatus, User
 from app.schemas.library import EXAMINERS_REPORT, PAST_PAPER
 from app.schemas.noora import NooraPaper
-from app.services import access
+from app.services import access, library
 from app.services.exam_names import sitting_label, zone_label
 from app.services.noora.prompt import data
 from app.services.paper_text import PAGE_BREAK
@@ -79,6 +79,7 @@ def load(db: Session, user: User, asked: NooraPaper) -> AskedQuestion:
         or paper.kind != PAST_PAPER
         or paper.source != ItemSource.file
         or paper.status != ItemStatus.published
+        or library.hidden_from(db, paper, user)
     ):
         raise not_found("This past paper doesn't exist or isn't public.")
     body = _text(db, paper.id)
