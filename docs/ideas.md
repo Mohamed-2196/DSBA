@@ -9,6 +9,14 @@ comes back only if something changes, and it then says what.
 Mohamed's own requests, R-1 to R-10, are in `docs/ROADMAP.md`. Ideas here don't repeat them. An idea that sharpens
 one carries its number, like "R-3".
 
+## Mohamed's decisions (20 October 2026)
+
+- **Approved, round 16:** IDEA-44, IDEA-45, IDEA-46, IDEA-47 (past papers into practice); IDEA-48 (exam week leads
+  Home, as an admin setting, not a code change), IDEA-49, IDEA-50, IDEA-51 (Home and search); IDEA-53, IDEA-54,
+  IDEA-55 (notebook and dates); IDEA-29 (share a note with your module), IDEA-52 (recording time stamps).
+- **Declined:** IDEA-25, IDEA-28, IDEA-34 (covered by what's built).
+- **Waiting:** IDEA-56 (papers kept offline), IDEA-22 (on hold behind R-8).
+
 ## Round 16 ranking of the open ideas (20 October 2026)
 
 Every idea still proposed or on hold, ranked by what it's worth to a DSBA student today, study core first. Sizes are
