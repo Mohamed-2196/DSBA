@@ -1,10 +1,11 @@
 // Overview tab: the module's home (module-laptop.png): previews of what the other tabs and the calendar hold, each
 // with a link to the whole of it at its top right. The next dates and the latest sittings of past papers lead, then
-// the student's own notes about the module, lesson progress (for a student who keeps it and has started), the newest
-// threads with "Ask a question", what to carry on with (the papers, notes and lessons opened last), the newest
-// students' notes and the rest of the library (decision D6: contributing means uploading). A block with nothing to show is left out, not shown empty: a
-// student with no notes about the module gets "New note" on the lesson progress or Carry on block instead (or, with
-// neither, a one-line Your notes block).
+// the student's own notes about the module, lesson progress (for a student who keeps it and has started), the
+// answered threads ("Asked before", most voted first), the newest threads with "Ask a question", what to carry on
+// with (the papers, notes and lessons opened last), the newest students' notes and the rest of the library (decision
+// D6: contributing means uploading). A block with nothing to show is left out, not shown empty: a student with no
+// notes about the module gets "New note" on the lesson progress or Carry on block instead (or, with neither, a
+// one-line Your notes block).
 import { useId, useMemo, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
@@ -27,7 +28,7 @@ import {
 } from '../../ui';
 import { aheadRows, typeLabel } from '../calendar/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
-import { useModuleLatestThreads, useStartsThreads } from '../forum/public';
+import { useModuleAnsweredThreads, useModuleLatestThreads, useStartsThreads } from '../forum/public';
 import { SittingsTable, libraryItemPath, usePaperSittings } from '../library/public';
 import { NoteName, useModuleNotes, useStartNote } from '../notes/public';
 import { useModuleFiles } from './api';
@@ -485,6 +486,66 @@ function NewestThreads({ moduleId, name, onTab }: { moduleId: string; name: stri
   );
 }
 
+/** "Asked before" (IDEA-49): the module's answered threads, most voted first, and "Ask a question" with the module
+ *  filled in. Left out while nothing is answered yet. */
+function AskedBefore({ moduleId, name }: { moduleId: string; name: string }) {
+  const q = useModuleAnsweredThreads(moduleId, { n: ROWS });
+  const starts = useStartsThreads();
+  const title = 'Asked before';
+  if (q.isPending) return <BlockLoading title={title} />;
+  if (q.isError) {
+    return (
+      <Block title={title} hub="module-asked-before">
+        <QueryError
+          error={q.error}
+          title={`The answered questions about ${name} didn’t load`}
+          size="sm"
+          panel={false}
+          onRetry={() => void q.refetch()}
+          retrying={q.isFetching}
+        />
+      </Block>
+    );
+  }
+  if (!q.threads.length) return null;
+  return (
+    <Block
+      title={title}
+      hub="module-asked-before"
+      footer={
+        starts ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            leadingIcon={<Icon glyph={glyph.plus} />}
+            to={`/forum/new?module=${encodeURIComponent(moduleId)}`}
+          >
+            Ask a question
+          </Button>
+        ) : null
+      }
+    >
+      <ul className="mod-rows" role="list">
+        {q.threads.map((t) => (
+          <li key={t.id}>
+            <Link to={`/forum/${t.slug}`} className="mod-row">
+              <span className="mod-row__text">
+                <span className="mod-row__title">{t.title}</span>
+                <span className="mod-row__meta">
+                  {countOf(t.voteCount, 'vote')}, {countOf(t.replyCount, 'reply', 'replies')}
+                  <span className="mod-row__answered">
+                    <Icon glyph={glyph.check} /> Answered
+                  </span>
+                </span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Block>
+  );
+}
+
 /** The rest of the module's shelves (books, exercises, VLE material…), and what nobody has shared yet. */
 function MoreInLibrary({
   module: m,
@@ -647,6 +708,7 @@ export function ModuleOverview({
           extra={noteOnProgress}
         />
       ) : null}
+      {moduleTabOn('discussion', featureOn) ? <AskedBefore moduleId={m.id} name={name} /> : null}
       {moduleTabOn('discussion', featureOn) ? <NewestThreads moduleId={m.id} name={name} onTab={onTab} /> : null}
       <CarryOnHere moduleId={m.id} extra={noteOnCarry} />
       {libraryOn ? <NewestNotes moduleId={m.id} onTab={onTab} /> : null}

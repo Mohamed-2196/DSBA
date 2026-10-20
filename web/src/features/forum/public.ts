@@ -6,6 +6,7 @@
 //   useHotThreads({ n, year, enabled })   UseQueryResult<ThreadSummary[]>: the hottest threads (pinned ones left out) for a
 //                                         cohort plus forum-wide ones; year null → every cohort. Links: /forum/<slug>.
 //   useModuleLatestThreads(id, { n })     a module's newest threads: { threads, total, isPending, isError, error, refetch }.
+//   useModuleAnsweredThreads(id, { n })   a module's answered threads, most voted first (the same shape): "Asked before".
 //   <PaperThreads slug="…" n? headingLevel? />  a paper's page: the threads whose post or a reply links /library/<slug>,
 //                                         newest first (nothing while there are none). Place it under "Ask about this paper".
 //   <ReportButton targetType targetId />  "Report" + its dialog for a thread, a reply, a library item ('library_item') or a request.
@@ -23,7 +24,7 @@ import { lazy } from 'react';
 export { HelpBelow } from './HelpBelow';
 export { ModuleThreads } from './ModuleThreads';
 export { PaperThreads } from './PaperThreads';
-export { useHotThreads, useModuleLatestThreads } from './api';
+export { useHotThreads, useModuleAnsweredThreads, useModuleLatestThreads } from './api';
 export { ReportButton } from './ReportButton';
 export { useReport } from './useReport';
 export { ReportsQueue } from './ReportsQueue';

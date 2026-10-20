@@ -56,6 +56,7 @@ function cleanParams(p: ThreadListParams): ThreadListParams {
   if (p.tag) out.tag = p.tag;
   if (p.year) out.year = p.year;
   if (p.unanswered) out.unanswered = true;
+  if (p.answered) out.answered = true;
   if (p.yours) out.yours = true;
   if (p.paper) out.paper = p.paper;
   return out;
@@ -253,6 +254,27 @@ export function useModuleLatestThreads(
   { n = 3, enabled = true }: { n?: number; enabled?: boolean } = {},
 ) {
   const list = useThreadList({ module_id: moduleId, sort: 'new' }, { pageSize: n, enabled: enabled && !!moduleId });
+  const first = list.data?.pages[0];
+  return {
+    threads: first?.items ?? [],
+    total: first?.total ?? 0,
+    isPending: list.isPending,
+    isError: list.isError,
+    error: list.error,
+    isFetching: list.isFetching,
+    refetch: list.refetch,
+  };
+}
+
+/** A module's answered threads, most voted first (the module page's "Asked before"): the first `n`, with the total. */
+export function useModuleAnsweredThreads(
+  moduleId: string,
+  { n = 3, enabled = true }: { n?: number; enabled?: boolean } = {},
+) {
+  const list = useThreadList(
+    { module_id: moduleId, sort: 'top', answered: true },
+    { pageSize: n, enabled: enabled && !!moduleId },
+  );
   const first = list.data?.pages[0];
   return {
     threads: first?.items ?? [],
