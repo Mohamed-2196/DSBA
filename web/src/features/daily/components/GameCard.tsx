@@ -47,6 +47,7 @@ function GameArt({ game }: { game: GameId }) {
       alt=""
       width={192}
       height={192}
+      loading="lazy"
       decoding="async"
       onError={() => setFailed(true)}
     />

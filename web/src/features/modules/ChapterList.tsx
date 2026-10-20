@@ -40,7 +40,7 @@ function RowThumb({ video, current, seen }: { video: Video; current: boolean; se
   return (
     <span className={cx('mod-vid__thumb', loaded && 'has-img')} aria-hidden="true">
       {loaded && src ? (
-        <img src={src} alt="" decoding="async" />
+        <img src={src} alt="" width={320} height={180} loading="lazy" decoding="async" />
       ) : (
         <Icon glyph={kindGlyph} className="mod-vid__ticon" />
       )}

@@ -1,4 +1,5 @@
-// Mini Noora's artwork: the PNGs in public/noora (described by public/noora/sprites.json).
+// Mini Noora's artwork: the pictures in public/noora (described by public/noora/sprites.json), WebP at about 3x the
+// size they are drawn.
 // The files are final. This module only names them, says where they are and how to size them.
 
 /** Full-body poses. They all share one canvas, so swapping one for another never moves her. */
@@ -22,7 +23,7 @@ export const BUSTS = ['wave', 'neutral', 'thinking', 'winking', 'laughing', 'ang
 export type Bust = (typeof BUSTS)[number];
 
 /** A file under public/noora as a URL the app can load (the app is served from a sub-path). */
-const url = (file: string): string => `${import.meta.env.BASE_URL}noora/${file}.png`;
+const url = (file: string): string => `${import.meta.env.BASE_URL}noora/${file}.webp`;
 export const poseUrl = (pose: Pose): string => url(pose);
 export const bustUrl = (bust: Bust): string => url(`bust-${bust}`);
 
@@ -85,7 +86,8 @@ export function faceCrop(bust: Bust): { width: string; left: string; top: string
   };
 }
 
-// Fetch every sprite once, up front, so a change of pose or expression never has to wait for a download.
+// Fetch every sprite once (MiniNoora.tsx calls this once the page has settled), so a change of pose or expression
+// never has to wait for a download.
 // They are asked for at low priority, so the page's own files go first, and the Image objects are
 // kept so the browser holds on to what it fetched.
 const kept: HTMLImageElement[] = [];

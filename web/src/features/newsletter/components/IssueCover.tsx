@@ -195,7 +195,9 @@ export function IssueCover({
       data-hub="issue-cover"
     >
       <div className="nl-cover__sheet" data-theme="light">
-        {art ? <img className="nl-cover__art" src={art} alt={cover.artAlt ?? ''} decoding="sync" /> : null}
+        {art ? (
+          <img className="nl-cover__art" src={art} alt={cover.artAlt ?? ''} loading="lazy" decoding="sync" />
+        ) : null}
         <svg
           viewBox={`0 0 ${COVER_W} ${COVER_H}`}
           className="nl-cover__svg"

@@ -133,9 +133,18 @@ export function MiniPoster({
       aria-hidden="true"
     >
       {thumbOk && thumb ? (
-        <img className="mod-mini__thumb" src={thumb} alt="" referrerPolicy="no-referrer" decoding="async" />
+        <img
+          className="mod-mini__thumb"
+          src={thumb}
+          alt=""
+          width={320}
+          height={180}
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          decoding="async"
+        />
       ) : art ? (
-        <img className="mod-mini__art" src={art} alt="" width={512} height={512} decoding="async" />
+        <img className="mod-mini__art" src={art} alt="" width={512} height={512} loading="lazy" decoding="async" />
       ) : (
         <span className="mod-mini__code">{m.unitCode || m.shortName}</span>
       )}

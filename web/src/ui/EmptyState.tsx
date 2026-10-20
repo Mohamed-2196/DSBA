@@ -51,7 +51,14 @@ export function EmptyState({
         </div>
       ) : illustration ? (
         <div className="ui-empty__art">
-          <img src={`/illustrations/empty-${illustration}.png`} alt="" width={800} height={600} decoding="async" />
+          <img
+            src={`/illustrations/empty-${illustration}.png`}
+            alt=""
+            width={800}
+            height={600}
+            loading="lazy"
+            decoding="async"
+          />
         </div>
       ) : icon ? (
         <div className="ui-empty__icon">{renderIcon(icon)}</div>
