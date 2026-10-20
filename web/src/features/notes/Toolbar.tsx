@@ -3,8 +3,8 @@
 // row below (colours and widths, the eraser's mode, or the text's formatting and Insert). In the text alone there are
 // no ink tools and no zoom: picking Page brings them. Every control is 44 px on a touch screen.
 import { useEditorState, type Editor } from '@tiptap/react';
-import type { ReactNode } from 'react';
-import { Deskmate, Icon, cx, glyph, modKeyLabel, type Glyph } from '../../ui';
+import { useRef, type ReactNode } from 'react';
+import { Deskmate, Icon, cx, glyph, modKeyLabel, useScrollFade, type Glyph } from '../../ui';
 import {
   ERASER_SIZES,
   HIGHLIGHTER_COLORS,
@@ -329,6 +329,11 @@ export function Toolbar(props: ToolbarProps) {
     extra,
   } = props;
   const text = view === 'text';
+  // On phones and in the lesson panel each row scrolls sideways: its cut edge fades while there is more to see.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const optionsRef = useRef<HTMLDivElement>(null);
+  useScrollFade(rowRef, null, `${view}-${readOnly}-${touch}`);
+  useScrollFade(optionsRef, null, `${tool}-${readOnly}-${Boolean(editor)}`);
   const visible = text ? [] : readOnly ? TOOLS.filter((t) => t.id === 'laser') : TOOLS;
   let options: ReactNode = null;
   if (tool === 'pen') {
@@ -421,7 +426,7 @@ export function Toolbar(props: ToolbarProps) {
   const inkTool = tool !== 'type' && tool !== 'laser';
   return (
     <div className="nb-toolbar" data-hub="note-toolbar">
-      <div className="nb-toolbar__row" role="toolbar" aria-label="Tools">
+      <div ref={rowRef} className="nb-toolbar__row" role="toolbar" aria-label="Tools">
         {/* Jot, beside the pen tools: "you're in the notebook" */}
         <Deskmate mate="jot" size={44} className="nb-toolbar__mate" />
         {view ? (
@@ -449,61 +454,65 @@ export function Toolbar(props: ToolbarProps) {
             ))}
           </div>
         ) : null}
-        {readOnly ? null : (
-          <div className="nb-tools" role="group" aria-label="History">
-            <ToolButton
-              label="Undo"
-              icon={glyph.undo}
-              hint={combo('Z')}
-              onClick={onUndo}
-              disabled={!canUndo}
-              toggle={false}
-            />
-            <ToolButton
-              label="Redo"
-              icon={glyph.undo}
-              className="nb-tool--redo"
-              hint={combo('Z', true)}
-              onClick={onRedo}
-              disabled={!canRedo}
-              toggle={false}
-            />
-          </div>
-        )}
-        {text ? null : (
-          <div className="nb-tools nb-tools--end" role="group" aria-label="Zoom">
-            {touch && inkTool && !readOnly ? (
+        {/* With pages, history and zoom keep together at the row's end, and wrap to a new line together. */}
+        <div className={cx('nb-toolbar__end', !text && 'nb-toolbar__end--zoom')}>
+          {readOnly ? null : (
+            <div className="nb-tools" role="group" aria-label="History">
+              <ToolButton
+                label="Undo"
+                icon={glyph.undo}
+                hint={combo('Z')}
+                onClick={onUndo}
+                disabled={!canUndo}
+                toggle={false}
+              />
+              <ToolButton
+                label="Redo"
+                icon={glyph.undo}
+                className="nb-tool--redo"
+                hint={combo('Z', true)}
+                onClick={onRedo}
+                disabled={!canRedo}
+                toggle={false}
+              />
+            </div>
+          )}
+          {text ? null : (
+            <div className="nb-tools" role="group" aria-label="Zoom">
+              {touch && inkTool && !readOnly ? (
+                <button
+                  type="button"
+                  className={cx('nb-finger', fingerDraws && 'is-active')}
+                  aria-pressed={fingerDraws}
+                  onClick={() => onFingerDraws(!fingerDraws)}
+                  title={
+                    fingerDraws
+                      ? 'Your finger draws. Turn off to scroll with it'
+                      : 'Your finger scrolls. Turn on to draw with it'
+                  }
+                >
+                  <Icon glyph={glyph.hand} active={fingerDraws} />
+                  <span>Draw with finger</span>
+                </button>
+              ) : null}
+              <ToolButton label="Zoom out" icon={glyph.zoomOut} onClick={() => onZoomStep(-1)} toggle={false} />
               <button
                 type="button"
-                className={cx('nb-finger', fingerDraws && 'is-active')}
-                aria-pressed={fingerDraws}
-                onClick={() => onFingerDraws(!fingerDraws)}
-                title={
-                  fingerDraws
-                    ? 'Your finger draws. Turn off to scroll with it'
-                    : 'Your finger scrolls. Turn on to draw with it'
-                }
+                className={cx('nb-zoom', fitted && 'is-fitted')}
+                onClick={onFit}
+                title="Fit the page to the window"
+                aria-label={`Zoom ${Math.round(zoom * 100)}%. Fit the page to the window`}
               >
-                <Icon glyph={glyph.hand} active={fingerDraws} />
-                <span>Draw with finger</span>
+                {Math.round(zoom * 100)}%
               </button>
-            ) : null}
-            <ToolButton label="Zoom out" icon={glyph.zoomOut} onClick={() => onZoomStep(-1)} toggle={false} />
-            <button
-              type="button"
-              className={cx('nb-zoom', fitted && 'is-fitted')}
-              onClick={onFit}
-              title="Fit the page to the window"
-              aria-label={`Zoom ${Math.round(zoom * 100)}%. Fit the page to the window`}
-            >
-              {Math.round(zoom * 100)}%
-            </button>
-            <ToolButton label="Zoom in" icon={glyph.zoomIn} onClick={() => onZoomStep(1)} toggle={false} />
-          </div>
-        )}
+              <ToolButton label="Zoom in" icon={glyph.zoomIn} onClick={() => onZoomStep(1)} toggle={false} />
+            </div>
+          )}
+        </div>
       </div>
       {options && !readOnly ? (
         <div
+          ref={optionsRef}
           className="nb-toolbar__row nb-toolbar__row--options"
           role="group"
           aria-label={`${TOOLS.find((t) => t.id === tool)?.label ?? 'Tool'} options`}

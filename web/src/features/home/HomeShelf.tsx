@@ -1,13 +1,13 @@
 // The desk shelf in Home's greeting band (home-screen.png): a tile per core section with its deskmate and a live line,
 // each opening its section. New files and the notes count come with Home's first answer (GET /home), unread replies
 // from the bell's own query.
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import type { HomeShelf as ShelfCounts } from '../../api/types';
 import { useAuth, type Feature } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Deskmate, SECTION_MATE, Skeleton } from '../../ui';
+import { Deskmate, SECTION_MATE, Skeleton, useScrollFade } from '../../ui';
 import { useNotifications } from '../notifications/public';
 import { modulesFor, usePapers } from '../papers/public';
 import { unreadReplies } from './replies';
@@ -50,10 +50,12 @@ export function HomeShelf({
       return f == null || featureOn(f);
     },
   });
+  const listRef = useRef<HTMLUListElement>(null);
+  useScrollFade(listRef, null, String(tiles.length));
 
   return (
     <nav className="home-shelf" aria-label="Your desk" data-hub="home-shelf">
-      <ul role="list" className="home-shelf__list u-scroll-row">
+      <ul ref={listRef} role="list" className="home-shelf__list u-scroll-row">
         {tiles.map((t) => (
           <li key={t.section}>
             <Link

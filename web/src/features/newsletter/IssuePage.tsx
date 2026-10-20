@@ -17,6 +17,7 @@ import {
   Panel,
   QueryError,
   Skeleton,
+  useScrollFade,
 } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { toCard, useIssue, useIssueDetails, useIssues } from './api';
@@ -59,10 +60,13 @@ function RunningHead({
 }
 
 function Toc({ issue, active, onGo }: { issue: Issue; active: string | undefined; onGo: (id: string) => void }) {
+  // Below 1100px the contents are a strip of pills that scrolls sideways, with the shared fading edge.
+  const listRef = useRef<HTMLOListElement>(null);
+  useScrollFade(listRef, null, String(issue.sections.length));
   return (
     <nav className="nl-toc" aria-label="In this issue">
       <p className="nl-toc__title">In this issue</p>
-      <ol role="list" className="nl-toc__list">
+      <ol ref={listRef} role="list" className="nl-toc__list">
         {issue.sections.map((s) => {
           const on = active === s.id;
           return (

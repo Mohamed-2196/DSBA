@@ -186,6 +186,30 @@
     padding-right: 0;
   }
 }
+/* Tablets: the actions go under the words, inside the band, so the description keeps a readable line. */
+@media (min-width: 700px) and (max-width: 959px) and (min-height: 500px) {
+  .ui-page-header--band:has(> .ui-page-header__actions) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'main mate' 'actions mate';
+  }
+  .ui-page-header--band:has(> .ui-page-header__actions)::before {
+    grid-row: 1 / 3;
+  }
+  .ui-page-header--band:has(> .ui-page-header__actions) > .ui-page-header__main {
+    padding-bottom: var(--sp-16);
+  }
+  .ui-page-header--band > .ui-page-header__actions {
+    justify-content: flex-start;
+    padding: 0 0 var(--sp-24) var(--sp-32);
+  }
+  .ui-page-header--bare:has(> .ui-page-header__actions) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'main' 'actions';
+  }
+  .ui-page-header--bare > .ui-page-header__actions {
+    padding-right: var(--sp-32);
+  }
+}
 /* A narrow phone keeps the title's room: the deskmate steps down. */
 @media (max-width: 374px) {
   .ui-page-header__mate {
