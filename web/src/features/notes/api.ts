@@ -92,6 +92,20 @@ export function useNotes(filters: NoteFilters, { enabled = true }: { enabled?: b
   });
 }
 
+/** The student's own notes matching `q`, the first `limit` (the ⌘K palette's "Your notes"): GET /notes?q=, which
+ *  only ever lists the signed-in student's notes. Off for guests and while notes are off: pass `enabled`.
+ *  @public for the palette (through notes/public.ts) */
+export function useNoteSearch(q: string, { limit = 5, enabled = true }: { limit?: number; enabled?: boolean } = {}) {
+  const filters = { q: q.trim() };
+  return useQuery({
+    queryKey: [...noteKeys.list(filters), 'search', limit],
+    queryFn: () => listQuery(filters, limit, 0),
+    enabled: enabled && filters.q.length > 0,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
+  });
+}
+
 /** One lesson's notes (the lesson page's "Your notes"): the five last edited, and how many there are. */
 export function useLessonNotes(moduleId: string, lessonId: string, { enabled = true }: { enabled?: boolean } = {}) {
   const filters = { moduleId, lessonId };

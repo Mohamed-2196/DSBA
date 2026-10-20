@@ -98,6 +98,8 @@ export function Leading({ item }: { item: Item }) {
       return <SectionTile section="modules" g={item.chapter ? glyph.modules : glyph.video} />;
     case 'file':
       return <SectionTile section="library" g={glyph.library} />;
+    case 'note':
+      return <SectionTile section="notebook" g={glyph.notebook} />;
     case 'thread':
       return <SectionTile section="forum" g={glyph.forum} />;
     case 'issue':

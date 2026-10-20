@@ -11,6 +11,9 @@
 //   useOpenNote()                            the note open in the editor right now ({ id, title, body, moduleId,
 //                                            lessonId }), or null: what Mini Noora may send when the student
 //                                            ticks "Include my note"
+//   useNoteSearch(q, { limit, enabled })    the student's own notes matching q (⌘K's "Your notes"; GET /notes?q=,
+//                                            never anyone else's): enable it for signed-in students while notes are on
+//   noteLabel(note)                          a note's name as plain text: its title, else its first line
 //   useNotes(filters), useNote(id)           the student's notes, a page at a time, and one note with its body
 //                                            (Noora's full page adds a note to a question)
 //   useModuleNotes(moduleId, { limit, enabled })
@@ -33,7 +36,8 @@ export { LessonNotePanel } from './LessonNotePanel';
 export { lessonVideoStart } from './text/videoTimes';
 export type { LessonVideo } from './LessonNotePanel';
 export { useOpenNote } from './current';
-export { useAnnotate, useModuleNotes, useNote, useNotes } from './api';
+export { useAnnotate, useModuleNotes, useNote, useNoteSearch, useNotes } from './api';
+export { noteLabel } from './draft';
 export { useStartNote } from './useStartNote';
 export { NoteName } from './NoteName';
 export type { OpenNote } from './current';
