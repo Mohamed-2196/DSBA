@@ -1866,7 +1866,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) State how to construct a conﬁdence set based on a pivota l function, and why a maximum likelihood estimator may be used",
+    "anchor": "1. (a) State how to construct a conﬁdence set based on a pivota l function, and why a maximum likelihood estimator may",
     "chapters": [
      "kd2j4c7n",
      "dzzxifwd"
@@ -1908,7 +1908,7 @@
    {
     "question": 4,
     "page": 4,
-    "anchor": "4. (a) State the Neyman-Pearson lemma. (7 marks) (b) Let {X1, . . . , Xn} and {Y1, . . . , Yn} be two independent random samples",
+    "anchor": "4. (a) State the Neyman-Pearson lemma. (7 marks) (b) Let {X1, . . . , Xn} and {Y1, . . . , Yn} be two independent",
     "chapters": [
      "ijvkf6pq"
     ],
@@ -1930,7 +1930,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) State and prove the Cram´ er–Rao inequality theorem. (10 marks) (b) The following data show the number of occupants",
+    "anchor": "1. (a) State and prove the Cram´ er–Rao inequality theorem. (10 marks) (b) The following data show the number of",
     "chapters": [
      "dzzxifwd"
     ],
@@ -1992,7 +1992,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) State and prove the Cram´ er–Rao inequality theorem. (10 marks) (b) Let X1 an d X2 be two independent random variables",
+    "anchor": "1. (a) State and prove the Cram´ er–Rao inequality theorem. (10 marks) (b) Let X1 an d X2 be two independent random",
     "chapters": [
      "dzzxifwd"
     ],
@@ -2117,7 +2117,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) State and prove the Cram´ er–Rao inequality theorem. (10 marks) (b) Let X1 and X2 be two independent random variables",
+    "anchor": "1. (a) State and prove the Cram´ er–Rao inequality theorem. (10 marks) (b) Let X1 and X2 be two independent random",
     "chapters": [
      "dzzxifwd",
      "kd2j4c7n"
@@ -2159,7 +2159,7 @@
    {
     "question": 4,
     "page": 5,
-    "anchor": "4. (a) State the Neyman–Pearson lemma. (6 marks) (b) Let X = {X1,X 2,...,X n} and Y = {Y1,Y 2,...,Y n} be two independent",
+    "anchor": "4. (a) State the Neyman–Pearson lemma. (6 marks) (b) Let X = {X1,X 2,...,X n} and Y = {Y1,Y 2,...,Y n} be two",
     "chapters": [
      "ijvkf6pq",
      "dzzxifwd"
@@ -2182,7 +2182,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) Let Y = (Y1,Y 2,...,Y n) be a random sample from a smooth probability density function f(Y∣ ), where is an unknown parameter.",
+    "anchor": "1. (a) Let Y = (Y1,Y 2,...,Y n) be a random sample from a smooth probability density function f(Y∣ ), where is an",
     "chapters": [
      "79s9wx38",
      "dzzxifwd"
@@ -2209,7 +2209,7 @@
    {
     "question": 3,
     "page": 4,
-    "anchor": "3. Let Y1,...,Y n be a random sample from a N(0, ) distribution. For each Yi, i = 1,...,n , the probability density function is",
+    "anchor": "3. Let Y1,...,Y n be a random sample from a N(0, ) distribution. For each Yi, i = 1,...,n , the probability density",
     "chapters": [
      "79s9wx38",
      "dzzxifwd"
@@ -2245,7 +2245,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) Let X ={X1,X 2,...,X n} be a random sample from a smooth probability density function fX(x;θ), where θ is an unknown parameter.",
+    "anchor": "1. (a) Let X ={X1,X 2,...,X n} be a random sample from a smooth probability density function fX(x;θ), where θ is an",
     "chapters": [
      "dzzxifwd",
      "79s9wx38"
@@ -2410,7 +2410,7 @@
    {
     "question": 4,
     "page": 5,
-    "anchor": "4. (a) State the Neyman–Pearson lemma. (5 marks) (b) Let X = {X1, X2, . . . , Xn} be independent exponential random variables",
+    "anchor": "4. (a) State the Neyman–Pearson lemma. (5 marks) (b) Let X = {X1, X2, . . . , Xn} be independent exponential random",
     "chapters": [
      "ijvkf6pq"
     ],
@@ -2473,7 +2473,7 @@
    {
     "question": 4,
     "page": 4,
-    "anchor": "4. (a) State the Rao–Blackwell theorem. (4 marks) (b) Let X = {X1, . . . , Xn} and Y = {Y1, . . . , Ym} be two independent random",
+    "anchor": "4. (a) State the Rao–Blackwell theorem. (4 marks) (b) Let X = {X1, . . . , Xn} and Y = {Y1, . . . , Ym} be two",
     "chapters": [
      "ijvkf6pq",
      "dzzxifwd"
@@ -2522,7 +2522,7 @@
    {
     "question": 3,
     "page": 4,
-    "anchor": "3. (a) Describe how a maximum likelihood estimator may be used to form an approximate pivotal function for large sample sizes.",
+    "anchor": "3. (a) Describe how a maximum likelihood estimator may be used to form an approximate pivotal function for large sample",
     "chapters": [
      "kd2j4c7n",
      "dzzxifwd"
@@ -2536,7 +2536,7 @@
    {
     "question": 4,
     "page": 4,
-    "anchor": "4. (a) State the Neyman-Pearson Lemma. [6 marks] (b) Let Y1,Y 2,...,Y n be a random sample from a distribution with the following",
+    "anchor": "4. (a) State the Neyman-Pearson Lemma. [6 marks] (b) Let Y1,Y 2,...,Y n be a random sample from a distribution with the",
     "chapters": [
      "ijvkf6pq"
     ],
@@ -2558,7 +2558,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) Let X = {X1, X2, . . . , Xn} be a random sample from a continuous probability distribution parameterised by θ with log-likelihood function",
+    "anchor": "1. (a) Let X = {X1, X2, . . . , Xn} be a random sample from a continuous probability distribution parameterised by θ",
     "chapters": [
      "79s9wx38",
      "ijvkf6pq"
@@ -2599,7 +2599,7 @@
    {
     "question": 4,
     "page": 5,
-    "anchor": "4. (a) Explain the rationale behind the likelihood ratio test and why the likelihood ratio test statistic takes values larger than one.",
+    "anchor": "4. (a) Explain the rationale behind the likelihood ratio test and why the likelihood ratio test statistic takes values",
     "chapters": [
      "ijvkf6pq"
     ],
@@ -2662,7 +2662,7 @@
    {
     "question": 4,
     "page": 4,
-    "anchor": "4. (a) Explain the rationale behind the likelihood ratio test and why the likelihood ratio test statistic takes values larger than one.",
+    "anchor": "4. (a) Explain the rationale behind the likelihood ratio test and why the likelihood ratio test statistic takes values",
     "chapters": [
      "ijvkf6pq"
     ],
@@ -2726,7 +2726,7 @@
    {
     "question": 4,
     "page": 4,
-    "anchor": "4. (a) State the Neyman-Pearson lemma. (7 marks) (b) Let {X1, . . . , Xn} and {Y1, . . . , Yn} be two independent random samples",
+    "anchor": "4. (a) State the Neyman-Pearson lemma. (7 marks) (b) Let {X1, . . . , Xn} and {Y1, . . . , Yn} be two independent",
     "chapters": [
      "ijvkf6pq",
      "dzzxifwd"
@@ -5998,7 +5998,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) Explain how a boxplot can be used to visualise the distribution of a company’s monthly sales revenue. Would you expect",
+    "anchor": "1. (a) Explain how a boxplot can be used to visualise the distribution of a company’s monthly sales revenue. Would you",
     "chapters": [
      "ipdnhbeh",
      "kdn8e8rj"
@@ -6011,7 +6011,7 @@
    {
     "question": 2,
     "page": 3,
-    "anchor": "2. A risk-neutral e-commerce company is deciding whether to invest in a cybersecurity upgrade to fully protect its customer database",
+    "anchor": "2. A risk-neutral e-commerce company is deciding whether to invest in a cybersecurity upgrade to fully protect its",
     "chapters": [
      "n8qhje9z"
     ],
@@ -6023,7 +6023,7 @@
    {
     "question": 3,
     "page": 4,
-    "anchor": "3. A business intelligence analyst is developing a predictive model to estimate customer lifetime value (CLTV) in dollars based on",
+    "anchor": "3. A business intelligence analyst is developing a predictive model to estimate customer lifetime value (CLTV) in",
     "chapters": [
      "sra4myeb"
     ],
@@ -6036,7 +6036,7 @@
    {
     "question": 4,
     "page": 5,
-    "anchor": "4. (a) A business analyst wants to construct a confidence interval for the population total sales revenue, T , based on a simple random",
+    "anchor": "4. (a) A business analyst wants to construct a confidence interval for the population total sales revenue, T , based on",
     "chapters": [
      "5z2y7atg",
      "3kfhijnb"
@@ -6050,7 +6050,7 @@
    {
     "question": 5,
     "page": 6,
-    "anchor": "5. (a) Suppose you are a business analyst for an e-commerce company that uses simulation models to estimate future revenue from different",
+    "anchor": "5. (a) Suppose you are a business analyst for an e-commerce company that uses simulation models to estimate future",
     "chapters": [
      "3di898yc"
     ],
@@ -6071,7 +6071,7 @@
    {
     "question": 1,
     "page": 3,
-    "anchor": "1. (a) Consider a modiﬁed version of the Monty Hall problem. In this version, there are 8 boxes, of which 1 box contains the prize",
+    "anchor": "1. (a) Consider a modiﬁed version of the Monty Hall problem. In this version, there are 8 boxes, of which 1 box",
     "chapters": [
      "ngeg4tv9",
      "kdn8e8rj"
@@ -6085,7 +6085,7 @@
    {
     "question": 2,
     "page": 4,
-    "anchor": "2. A landlord is deciding whether to upgrade a building’s heating system and is willing to do so if the cost of the upgraded system",
+    "anchor": "2. A landlord is deciding whether to upgrade a building’s heating system and is willing to do so if the cost of the",
     "chapters": [
      "n8qhje9z"
     ],
@@ -6097,7 +6097,7 @@
    {
     "question": 3,
     "page": 5,
-    "anchor": "3. A company is interested in explaining the variation in annual salaries of its employees, in dollars, using the following variables:",
+    "anchor": "3. A company is interested in explaining the variation in annual salaries of its employees, in dollars, using the",
     "chapters": [
      "sra4myeb",
      "xs3z8vxd"
@@ -6111,7 +6111,7 @@
    {
     "question": 4,
     "page": 7,
-    "anchor": "4. (a) Holt’s method, as an exponential smoothing model, assumes an additive trend. Suppose instead that the model is changed to a multiplicative trend",
+    "anchor": "4. (a) Holt’s method, as an exponential smoothing model, assumes an additive trend. Suppose instead that the model is",
     "chapters": [
      "3kfhijnb",
      "sra4myeb"
@@ -6125,7 +6125,7 @@
    {
     "question": 5,
     "page": 8,
-    "anchor": "5. (a) Suppose you are a ﬁnancial analyst and your company runs many simulation models to estimate the proﬁtability of its projects.",
+    "anchor": "5. (a) Suppose you are a ﬁnancial analyst and your company runs many simulation models to estimate the proﬁtability of",
     "chapters": [
      "3di898yc"
     ],
@@ -6146,7 +6146,7 @@
    {
     "question": 1,
     "page": 4,
-    "anchor": "1. (a) Explain the purpose of the COUNTIF function in Excel and give a business example for which this function would be a useful tool for analysis.",
+    "anchor": "1. (a) Explain the purpose of the COUNTIF function in Excel and give a business example for which this function would",
     "chapters": [
      "kdn8e8rj"
     ],
@@ -6158,7 +6158,7 @@
    {
     "question": 2,
     "page": 5,
-    "anchor": "2. A risk-neutral art gallery is deciding whether to invest in renovating its very old building with ﬁre-resistant materials",
+    "anchor": "2. A risk-neutral art gallery is deciding whether to invest in renovating its very old building with ﬁre-resistant",
     "chapters": [
      "n8qhje9z"
     ],
@@ -6170,7 +6170,7 @@
    {
     "question": 3,
     "page": 6,
-    "anchor": "3. A domestic electricity supplier is trying to explain the variation in monthly sales ﬁgures (in £ millions) over one year, hence n = 12.",
+    "anchor": "3. A domestic electricity supplier is trying to explain the variation in monthly sales ﬁgures (in £ millions) over one",
     "chapters": [
      "sra4myeb"
     ],
@@ -6183,7 +6183,7 @@
    {
     "question": 4,
     "page": 7,
-    "anchor": "4. (a) A business analyst wants to construct a conﬁdence interval for the population total, T , based on a simple random sample of size n = 60",
+    "anchor": "4. (a) A business analyst wants to construct a conﬁdence interval for the population total, T , based on a simple",
     "chapters": [
      "5z2y7atg",
      "3kfhijnb"
@@ -6218,7 +6218,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) i. For a sample of observations x1, x2, . . . , xn on employee incomes, in UK pounds, would you recommend the sample variance",
+    "anchor": "1. (a) i. For a sample of observations x1, x2, . . . , xn on employee incomes, in UK pounds, would you recommend the",
     "chapters": [
      "kdn8e8rj",
      "3eqhr6df"
@@ -6244,7 +6244,7 @@
    {
     "question": 3,
     "page": 4,
-    "anchor": "3. A recruitment agency decided to research the variation in annual salaries of job hunters who are looking for new employment roles.",
+    "anchor": "3. A recruitment agency decided to research the variation in annual salaries of job hunters who are looking for new",
     "chapters": [
      "sra4myeb"
     ],
@@ -6257,7 +6257,7 @@
    {
     "question": 4,
     "page": 5,
-    "anchor": "4. (a) Quarterly data on a time series variable exhibit obvious seasonality, although the seasonal pattern varies from year to year.",
+    "anchor": "4. (a) Quarterly data on a time series variable exhibit obvious seasonality, although the seasonal pattern varies from",
     "chapters": [
      "3kfhijnb"
     ],
@@ -6269,7 +6269,7 @@
    {
     "question": 5,
     "page": 6,
-    "anchor": "5. A retailer is deciding what quantity of a product to order from their wholesaler and has asked you to simulate the problem.",
+    "anchor": "5. A retailer is deciding what quantity of a product to order from their wholesaler and has asked you to simulate the",
     "chapters": [
      "3di898yc"
     ],
@@ -6290,7 +6290,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) An online fashion retailer tracks customer returns across different product categories. For a dataset containing return rates",
+    "anchor": "1. (a) An online fashion retailer tracks customer returns across different product categories. For a dataset containing",
     "chapters": [
      "xs3z8vxd",
      "kdn8e8rj"
@@ -6304,7 +6304,7 @@
    {
     "question": 2,
     "page": 3,
-    "anchor": "2. A pharmaceutical company must decide whether to invest £15 million in developing a new drug. If approved by regulators (60% probability)",
+    "anchor": "2. A pharmaceutical company must decide whether to invest £15 million in developing a new drug. If approved by",
     "chapters": [
      "n8qhje9z"
     ],
@@ -6316,7 +6316,7 @@
    {
     "question": 3,
     "page": 4,
-    "anchor": "3. A logistics company wants to optimise delivery routes to minimise fuel costs. They collected data on 120 delivery routes",
+    "anchor": "3. A logistics company wants to optimise delivery routes to minimise fuel costs. They collected data on 120 delivery",
     "chapters": [
      "sra4myeb"
     ],
@@ -6329,7 +6329,7 @@
    {
     "question": 4,
     "page": 5,
-    "anchor": "4. (a) Suppose that quarterly data on a time series variable exhibit obvious seasonality, although the seasonal pattern varies from year to year.",
+    "anchor": "4. (a) Suppose that quarterly data on a time series variable exhibit obvious seasonality, although the seasonal pattern",
     "chapters": [
      "3kfhijnb"
     ],
@@ -6341,7 +6341,7 @@
    {
     "question": 5,
     "page": 6,
-    "anchor": "5. A cloud computing company sells server capacity to businesses. Each server unit costs £800,000 to purchase and install",
+    "anchor": "5. A cloud computing company sells server capacity to businesses. Each server unit costs £800,000 to purchase and",
     "chapters": [
      "3di898yc"
     ],
@@ -6362,7 +6362,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) For a set of n observationsx1,x 2,...,x n, with sample mean ¯x, explain why it is not sensible to use the following as a measure of dispersion",
+    "anchor": "1. (a) For a set of n observationsx1,x 2,...,x n, with sample mean ¯x, explain why it is not sensible to use the",
     "chapters": [
      "66fcg48k",
      "kdn8e8rj"
@@ -6376,7 +6376,7 @@
    {
     "question": 2,
     "page": 3,
-    "anchor": "2. A risk-neutral media executive is deciding whether to oﬀer a new ‘freemium’ subscription service. If successful, the company will make",
+    "anchor": "2. A risk-neutral media executive is deciding whether to oﬀer a new ‘freemium’ subscription service. If successful, the",
     "chapters": [
      "n8qhje9z"
     ],
@@ -6402,7 +6402,7 @@
    {
     "question": 4,
     "page": 5,
-    "anchor": "4. (a) Explain the role each of the following has in an optimisation model: i. decision variables ii. objective function iii. constraints.",
+    "anchor": "4. (a) Explain the role each of the following has in an optimisation model: i. decision variables ii. objective",
     "chapters": [
      "zaai4t2u"
     ],
@@ -6450,7 +6450,7 @@
    {
     "question": 2,
     "page": 4,
-    "anchor": "2. A risk-neutral gas company is prospecting for new gas reserves. A candidate gas ﬁeld is thought to have a probability π",
+    "anchor": "2. A risk-neutral gas company is prospecting for new gas reserves. A candidate gas ﬁeld is thought to have a",
     "chapters": [
      "n8qhje9z"
     ],
@@ -6463,7 +6463,7 @@
    {
     "question": 3,
     "page": 5,
-    "anchor": "3. (a) A machine ﬁlls empty bottles with orange juice. The amount of orange juice put in a bottle is assumed to follow a N(µ,σ 2) distribution.",
+    "anchor": "3. (a) A machine ﬁlls empty bottles with orange juice. The amount of orange juice put in a bottle is assumed to follow",
     "chapters": [
      "ipdnhbeh",
      "a4cwudiv"
@@ -6476,7 +6476,7 @@
    {
     "question": 4,
     "page": 7,
-    "anchor": "4. (a) When evaluating the predictive performance of a time series model, it is necessary to construct measures of accuracy.",
+    "anchor": "4. (a) When evaluating the predictive performance of a time series model, it is necessary to construct measures of",
     "chapters": [
      "3kfhijnb",
      "zaai4t2u"
@@ -6490,7 +6490,7 @@
    {
     "question": 5,
     "page": 8,
-    "anchor": "5. A pharmaceutical company has developed a vaccine for Covid-19 and has received regulatory approval for its use in a 10-month national vaccination programme",
+    "anchor": "5. A pharmaceutical company has developed a vaccine for Covid-19 and has received regulatory approval for its use in a",
     "chapters": [
      "3di898yc"
     ],
@@ -6511,7 +6511,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) Explain why the standard deviation would likely not be a reliable measure of variability for a distribution of data which includes at least one extreme outlier.",
+    "anchor": "1. (a) Explain why the standard deviation would likely not be a reliable measure of variability for a distribution of",
     "chapters": [
      "xs3z8vxd",
      "kdn8e8rj"
@@ -6525,7 +6525,7 @@
    {
     "question": 2,
     "page": 3,
-    "anchor": "2. An inventor is considering bringing their latest invention to market. The probability that the invention will be a commercial hit,h, is 20%",
+    "anchor": "2. An inventor is considering bringing their latest invention to market. The probability that the invention will be a",
     "chapters": [
      "n8qhje9z"
     ],
@@ -6563,7 +6563,7 @@
    {
     "question": 5,
     "page": 6,
-    "anchor": "5. A company sells a low-cost, high-volume product in a competitive market. Annual unit sales will be low with 35% probability",
+    "anchor": "5. A company sells a low-cost, high-volume product in a competitive market. Annual unit sales will be low with 35%",
     "chapters": [
      "3di898yc"
     ],
@@ -6598,7 +6598,7 @@
    {
     "question": 2,
     "page": 4,
-    "anchor": "2. A risk-neutral oil company is prospecting for new oil reserves. A candidate oil ﬁeld is thought to have a probabilityπ of holding oil",
+    "anchor": "2. A risk-neutral oil company is prospecting for new oil reserves. A candidate oil ﬁeld is thought to have a",
     "chapters": [
      "n8qhje9z"
     ],
@@ -6611,7 +6611,7 @@
    {
     "question": 3,
     "page": 5,
-    "anchor": "3. (a) A machine ﬁlls empty bottles with mineral water. The amount of mineral water put in a bottle is assumed to follow a N(µ,σ 2) distribution.",
+    "anchor": "3. (a) A machine ﬁlls empty bottles with mineral water. The amount of mineral water put in a bottle is assumed to",
     "chapters": [
      "ipdnhbeh",
      "a4cwudiv"
@@ -6624,7 +6624,7 @@
    {
     "question": 4,
     "page": 7,
-    "anchor": "4. (a) When evaluating the predictive performance of a time series model, it is necessary to construct measures of accuracy.",
+    "anchor": "4. (a) When evaluating the predictive performance of a time series model, it is necessary to construct measures of",
     "chapters": [
      "3kfhijnb",
      "zaai4t2u"
@@ -6638,7 +6638,7 @@
    {
     "question": 5,
     "page": 8,
-    "anchor": "5. A pharmaceutical company has developed a vaccine for Covid-19 and has received regulatory approval for its use in a 10-month national vaccination programme in a country with a population of 1,000,000.",
+    "anchor": "5. A pharmaceutical company has developed a vaccine for Covid-19 and has received regulatory approval for its use in a",
     "chapters": [
      "3di898yc"
     ],
@@ -6659,7 +6659,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) Suppose you are analysing a dataset containing two continuous variables, such as weekly revenue and advertising expenditure, with n = 150 observations.",
+    "anchor": "1. (a) Suppose you are analysing a dataset containing two continuous variables, such as weekly revenue and advertising",
     "chapters": [
      "66fcg48k",
      "kdn8e8rj"
@@ -6673,7 +6673,7 @@
    {
     "question": 2,
     "page": 3,
-    "anchor": "2. A subscription-based software company offers cloud storage services to enterprise clients. It purchases server space in bulk",
+    "anchor": "2. A subscription-based software company offers cloud storage services to enterprise clients. It purchases server space",
     "chapters": [
      "n8qhje9z"
     ],
@@ -6698,7 +6698,7 @@
    {
     "question": 4,
     "page": 5,
-    "anchor": "4. (a) In a typical product mix model, a company aims to determine the optimal production quantities for different products to maximise profit.",
+    "anchor": "4. (a) In a typical product mix model, a company aims to determine the optimal production quantities for different",
     "chapters": [
      "zaai4t2u"
     ],
@@ -8510,7 +8510,7 @@
    {
     "question": 2,
     "page": 2,
-    "anchor": "2. Discuss the consequences of measurement error. In your answer consider the following empirical study attempting to estimate the re-",
+    "anchor": "2. Discuss the consequences of measurement error. In your answer consider the following empirical study attempting to",
     "chapters": [
      "kfec5xg7"
     ],
@@ -8521,7 +8521,7 @@
    {
     "question": 3,
     "page": 2,
-    "anchor": "3. Consider the following regression model: Yi = 0 + 1 1 Xi +ui; i = 1;:::;n. We assume that the errors fuigni=1 are independent normal",
+    "anchor": "3. Consider the following regression model: Yi = 0 + 1 1 Xi +ui; i = 1;:::;n. We assume that the errors fuigni=1 are",
     "chapters": [
      "w8jhm9u7"
     ],
@@ -8578,7 +8578,7 @@
    {
     "question": 8,
     "page": 6,
-    "anchor": "8. For the US economy, let gprice denote the monthly growth in the overall price level and let gwage be the monthly growth",
+    "anchor": "8. For the US economy, let gprice denote the monthly growth in the overall price level and let gwage be the monthly",
     "chapters": [
      "s7m9nt7j"
     ],
@@ -8604,7 +8604,7 @@
    {
     "question": 10,
     "page": 8,
-    "anchor": "10. Let us consider an analysis on recidivism (probability of re-arrest) among a group of young men in California who have at least one arrest",
+    "anchor": "10. Let us consider an analysis on recidivism (probability of re-arrest) among a group of young men in California who",
     "chapters": [
      "48isg7ra"
     ],
@@ -8622,7 +8622,7 @@
    {
     "question": 1,
     "page": 3,
-    "anchor": "1. Consider the following multivariate regression to explain housing priceprice, using the total area (totsize), the number of bedrooms",
+    "anchor": "1. Consider the following multivariate regression to explain housing priceprice, using the total area (totsize), the",
     "chapters": [
      "w8jhm9u7"
     ],
@@ -8680,7 +8680,7 @@
    {
     "question": 6,
     "page": 6,
-    "anchor": "6. A logit regression model and a Linear Probability Model (LPM) are used to explain the mortgage denial rates amongst a random sample",
+    "anchor": "6. A logit regression model and a Linear Probability Model (LPM) are used to explain the mortgage denial rates amongst",
     "chapters": [
      "9xtetwaf"
     ],
@@ -8691,7 +8691,7 @@
    {
     "question": 7,
     "page": 7,
-    "anchor": "7. Let us consider the relationship between the natural logarithm of GDP , GDPt, and the lagged long-term interest ratesratet, andratet−1.",
+    "anchor": "7. Let us consider the relationship between the natural logarithm of GDP , GDPt, and the lagged long-term interest",
     "chapters": [
      "s7m9nt7j",
      "9xtetwaf"
@@ -8704,7 +8704,7 @@
    {
     "question": 8,
     "page": 8,
-    "anchor": "8. It is postulated that more open economies have lower inﬂation rates. A proposed model looks at a cross section ofn countries using time averages:",
+    "anchor": "8. It is postulated that more open economies have lower inﬂation rates. A proposed model looks at a cross section ofn",
     "chapters": [
      "kfec5xg7",
      "s7m9nt7j"
@@ -8718,7 +8718,7 @@
    {
     "question": 9,
     "page": 9,
-    "anchor": "9. Let us consider a dataset containing information on government expenditure on education (EducE), gross domestic product (GDP ), population",
+    "anchor": "9. Let us consider a dataset containing information on government expenditure on education (EducE), gross domestic",
     "chapters": [
      "w8jhm9u7"
     ],
@@ -8763,7 +8763,7 @@
    {
     "question": 3,
     "page": 2,
-    "anchor": "3. Consider the following demand curve for public transport in London in year t ln(Qt) = β0 + β1 ln(Pt) + β2 ln(Yt) + ut (3.1)",
+    "anchor": "3. Consider the following demand curve for public transport in London in year t ln(Qt) = β0 + β1 ln(Pt) + β2 ln(Yt) +",
     "chapters": [
      "mtitgdpr",
      "kfec5xg7"
@@ -8826,7 +8826,7 @@
    {
     "question": 8,
     "page": 6,
-    "anchor": "8. We are interested in the relationship between the quarterly price level CP It and the quarterly employment level Empt in the following model:",
+    "anchor": "8. We are interested in the relationship between the quarterly price level CP It and the quarterly employment level",
     "chapters": [
      "s7m9nt7j"
     ],
@@ -8837,7 +8837,7 @@
    {
     "question": 9,
     "page": 7,
-    "anchor": "9. Consider a random sample X1, X2, . . . , Xn drawn from a distribution having the following probability density function with parameter θ:",
+    "anchor": "9. Consider a random sample X1, X2, . . . , Xn drawn from a distribution having the following probability density",
     "chapters": [
      "gazw7qiy"
     ],
@@ -8881,7 +8881,7 @@
    {
     "question": 3,
     "page": 6,
-    "anchor": "3. A researcher considers the following regression model to determine the factors affecting rent rates in the UK, where rent be the average monthly rent",
+    "anchor": "3. A researcher considers the following regression model to determine the factors affecting rent rates in the UK, where",
     "chapters": [
      "9xtetwaf",
      "w8jhm9u7"
@@ -8895,7 +8895,7 @@
    {
     "question": 4,
     "page": 6,
-    "anchor": "4. (a) (5 marks) Consider the following time series model for {yt}Tt=1: yt = yt 1 + \"t + \"t 1, where \"t is i.i.d with mean zero",
+    "anchor": "4. (a) (5 marks) Consider the following time series model for {yt}Tt=1: yt = yt 1 + \"t + \"t 1, where \"t is i.i.d with",
     "chapters": [
      "s7m9nt7j"
     ],
@@ -8906,7 +8906,7 @@
    {
     "question": 5,
     "page": 7,
-    "anchor": "5. Let us consider the following stationary time series model: yt = ↵ + ⇢yt 1 + 1xt + 2xt 1 + \"t, |⇢| < 1, t =2 ,. . . ,T.",
+    "anchor": "5. Let us consider the following stationary time series model: yt = ↵ + ⇢yt 1 + 1xt + 2xt 1 + \"t, |⇢| < 1, t =2 ,. . .",
     "chapters": [
      "s7m9nt7j"
     ],
@@ -8917,7 +8917,7 @@
    {
     "question": 6,
     "page": 8,
-    "anchor": "6. Consider the following OLS estimation of a model to explain the stock prices of a FTSE100 company using 120 observations from 2012m1 to 2021m12",
+    "anchor": "6. Consider the following OLS estimation of a model to explain the stock prices of a FTSE100 company using 120",
     "chapters": [
      "9xtetwaf",
      "48isg7ra"
@@ -8931,7 +8931,7 @@
    {
     "question": 7,
     "page": 9,
-    "anchor": "7. A researcher models the relationship between the expenditure of a company , St in period t and the expected proﬁt, ⇡⇤t+1, in period t +1",
+    "anchor": "7. A researcher models the relationship between the expenditure of a company , St in period t and the expected proﬁt,",
     "chapters": [
      "s7m9nt7j",
      "kfec5xg7"
@@ -9047,7 +9047,7 @@
    {
     "question": 7,
     "page": 4,
-    "anchor": "7. The following estimates were calculated from a s ample of 7,634 women respondents from the General Household Survey 1995.",
+    "anchor": "7. The following estimates were calculated from a s ample of 7,634 women respondents from the General Household Survey",
     "chapters": [
      "9xtetwaf"
     ],
@@ -9059,7 +9059,7 @@
    {
     "question": 8,
     "page": 5,
-    "anchor": "8. Economists have tried to examine the catch-up hy pothesis where it is predicted that poorer countries will grow faster than richer countries",
+    "anchor": "8. Economists have tried to examine the catch-up hy pothesis where it is predicted that poorer countries will grow",
     "chapters": [
      "9xtetwaf",
      "w8jhm9u7"
@@ -9137,7 +9137,7 @@
    {
     "question": 4,
     "page": 3,
-    "anchor": "4. Standard hypothesis testing on a linear regression mo del is achieved by using t tests on the parameter estimates, and an F test",
+    "anchor": "4. Standard hypothesis testing on a linear regression mo del is achieved by using t tests on the parameter estimates,",
     "chapters": [
      "9xtetwaf"
     ],
@@ -9149,7 +9149,7 @@
    {
     "question": 5,
     "page": 3,
-    "anchor": "5. Explain the concept of the likelihood function and henc e the maximum likelihood estimator. Illustrate your answer with an example.",
+    "anchor": "5. Explain the concept of the likelihood function and henc e the maximum likelihood estimator. Illustrate your answer",
     "chapters": [
      "gazw7qiy"
     ],
@@ -9158,7 +9158,7 @@
    {
     "question": 6,
     "page": 4,
-    "anchor": "6. The natural log of expenditure on beer at 1995 price s ( tbeer ) is regressed on the natural log of total household expenditure",
+    "anchor": "6. The natural log of expenditure on beer at 1995 price s ( tbeer ) is regressed on the natural log of total household",
     "chapters": [
      "9xtetwaf",
      "48isg7ra"
@@ -9196,7 +9196,7 @@
    {
     "question": 9,
     "page": 7,
-    "anchor": "9. (a) Consider a model i 1 2 i i Y X u = β + β + ; i 1 ,2,...,n = where iY is a binary variable that takes the value of 1",
+    "anchor": "9. (a) Consider a model i 1 2 i i Y X u = β + β + ; i 1 ,2,...,n = where iY is a binary variable that takes the value",
     "chapters": [
      "w8jhm9u7",
      "9xtetwaf"
@@ -9317,7 +9317,7 @@
    {
     "question": 8,
     "page": 6,
-    "anchor": "8. A regression of operating profits (PROFIT) fo r 50 UK companies on sales (SALES) and number of employees (NEMP) yields",
+    "anchor": "8. A regression of operating profits (PROFIT) fo r 50 UK companies on sales (SALES) and number of employees (NEMP)",
     "chapters": [
      "w8jhm9u7"
     ],
@@ -9380,7 +9380,7 @@
    {
     "question": 5,
     "page": 3,
-    "anchor": "5. Let the regression equation be: 1 2 2 3 3 1 2 t t t t Y β β X β X u ; t , , ,T = + + + = K . (a) Outline briefly, how you would test",
+    "anchor": "5. Let the regression equation be: 1 2 2 3 3 1 2 t t t t Y β β X β X u ; t , , ,T = + + + = K . (a) Outline briefly,",
     "chapters": [
      "9xtetwaf"
     ],
@@ -9439,7 +9439,7 @@
    {
     "question": 10,
     "page": 7,
-    "anchor": "10. The following ordinary least squares (OLS) estimates were obtained of the demand for labour in manufacturing using UK quarterly, seasonally adjusted d ata.",
+    "anchor": "10. The following ordinary least squares (OLS) estimates were obtained of the demand for labour in manufacturing using",
     "chapters": [
      "9xtetwaf",
      "s7m9nt7j"
@@ -9501,7 +9501,7 @@
    {
     "question": 4,
     "page": 4,
-    "anchor": "4. The following estimates were calculated from a sample of 7,634 women respondents from the General Household Survey 1995.",
+    "anchor": "4. The following estimates were calculated from a sample of 7,634 women respondents from the General Household Survey",
     "chapters": [
      "9xtetwaf"
     ],
@@ -9547,7 +9547,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) In the model y t = αxt + ut ; t = 1,..........,T xt is an explanatory variable which can be regarded as fixed in repeated samples.",
+    "anchor": "1. (a) In the model y t = αxt + ut ; t = 1,..........,T xt is an explanatory variable which can be regarded as fixed in",
     "chapters": [
      "mtitgdpr",
      "48isg7ra"
@@ -9586,7 +9586,7 @@
    {
     "question": 4,
     "page": 5,
-    "anchor": "4. The following ordinary least squares (OLS) estimates were obtained of the demand for labour in manufacturing using UK quarterly, seasonally adjusted data.",
+    "anchor": "4. The following ordinary least squares (OLS) estimates were obtained of the demand for labour in manufacturing using",
     "chapters": [
      "s7m9nt7j",
      "9xtetwaf"
@@ -9614,7 +9614,7 @@
    {
     "question": 6,
     "page": 7,
-    "anchor": "6. The following least squares estimates of the relationship between the rate of inflation (dpt) and the rate of unemployment (unt) were made on UK annual data 1982-2004.",
+    "anchor": "6. The following least squares estimates of the relationship between the rate of inflation (dpt) and the rate of",
     "chapters": [
      "9xtetwaf",
      "s7m9nt7j"
@@ -9747,7 +9747,7 @@
    {
     "question": 8,
     "page": 8,
-    "anchor": "8. Let us consider a dataset containing information on government expenditure on education (EducE), gross domestic product (GDP ), population (Pop)",
+    "anchor": "8. Let us consider a dataset containing information on government expenditure on education (EducE), gross domestic",
     "chapters": [
      "w8jhm9u7",
      "9xtetwaf"
@@ -9761,7 +9761,7 @@
    {
     "question": 9,
     "page": 9,
-    "anchor": "9. We are interested in explaining the binary variable vhappy, a dummy variable that denotes whether an individual considers him/herself very happy or not",
+    "anchor": "9. We are interested in explaining the binary variable vhappy, a dummy variable that denotes whether an individual",
     "chapters": [
      "9xtetwaf"
     ],
@@ -9803,7 +9803,7 @@
    {
     "question": 3,
     "page": 2,
-    "anchor": "3. Show that the 2R in the regression of Y on X (with an intercept) is the squared value of the sample correlation between X and Y",
+    "anchor": "3. Show that the 2R in the regression of Y on X (with an intercept) is the squared value of the sample correlation",
     "chapters": [
      "mtitgdpr"
     ],
@@ -9825,7 +9825,7 @@
    {
     "question": 5,
     "page": 2,
-    "anchor": "5. What do you understand by an instrumental variab le (IV)? How you would estimate β in the model t t t y x u = β + , where tx and tu are correlated",
+    "anchor": "5. What do you understand by an instrumental variab le (IV)? How you would estimate β in the model t t t y x u = β + ,",
     "chapters": [
      "kfec5xg7"
     ],
@@ -9836,7 +9836,7 @@
    {
     "question": 6,
     "page": 3,
-    "anchor": "6. A researcher wants to test the hypothesis that d rug companies practice price discrimination against less developed countries.",
+    "anchor": "6. A researcher wants to test the hypothesis that d rug companies practice price discrimination against less developed",
     "chapters": [
      "9xtetwaf",
      "mtitgdpr"
@@ -9850,7 +9850,7 @@
    {
     "question": 7,
     "page": 4,
-    "anchor": "7. The following estimates were calculated from a s ample of 7,634 women respondents from the General Household Survey 1995.",
+    "anchor": "7. The following estimates were calculated from a s ample of 7,634 women respondents from the General Household Survey",
     "chapters": [
      "9xtetwaf"
     ],
@@ -9862,7 +9862,7 @@
    {
     "question": 8,
     "page": 5,
-    "anchor": "8. The relationship between a dependent variable Y and an explanatory variable X is given by the linear model i i i Y X u = α + β + ;",
+    "anchor": "8. The relationship between a dependent variable Y and an explanatory variable X is given by the linear model i i i Y X",
     "chapters": [
      "kfec5xg7"
     ],
@@ -9875,7 +9875,7 @@
    {
     "question": 9,
     "page": 6,
-    "anchor": "9. Answer the following questions: (a) Explain what a trend stationary series and what a difference stationary series are.",
+    "anchor": "9. Answer the following questions: (a) Explain what a trend stationary series and what a difference stationary series",
     "chapters": [
      "s7m9nt7j"
     ],
@@ -9978,7 +9978,7 @@
    {
     "question": 7,
     "page": 5,
-    "anchor": "7. In question 6 we considered the linear regression model to study how workplace smoking bans affect the incidence of smoking.",
+    "anchor": "7. In question 6 we considered the linear regression model to study how workplace smoking bans affect the incidence of",
     "chapters": [
      "9xtetwaf"
     ],
@@ -9989,7 +9989,7 @@
    {
     "question": 8,
     "page": 6,
-    "anchor": "8. An economist is interested in estimating the production function for widgets which is postulated to follow a Cobb-Douglas specification:",
+    "anchor": "8. An economist is interested in estimating the production function for widgets which is postulated to follow a",
     "chapters": [
      "kfec5xg7"
     ],
@@ -10248,7 +10248,7 @@
    {
     "question": 8,
     "page": 7,
-    "anchor": "8. A team of economists are interested in explaining the short-term interest rate in the US before the financial crisis of 2007 -2009.",
+    "anchor": "8. A team of economists are interested in explaining the short-term interest rate in the US before the financial crisis",
     "chapters": [
      "s7m9nt7j"
     ],
@@ -10260,7 +10260,7 @@
    {
     "question": 9,
     "page": 8,
-    "anchor": "9. An economist is interested in the following simultaneous system of equations to describe the demand of supply of hybrid electric in Britain:",
+    "anchor": "9. An economist is interested in the following simultaneous system of equations to describe the demand of supply of",
     "chapters": [
      "kfec5xg7"
     ],
@@ -13862,7 +13862,7 @@
    {
     "question": 5,
     "page": 4,
-    "anchor": "5. Answer THREE of the following questions. (a) In a closed economy where a government is committed to increase its expenditure as",
+    "anchor": "5. Answer THREE of the following questions. (a) In a closed economy where a government is committed to increase its",
     "chapters": [
      "yfigvsjd",
      "8dzevirm"
@@ -14235,7 +14235,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. Answer THREE of the following questions: (a) In an economy there are two goods, x and y, which are produced with capital and labour.",
+    "anchor": "1. Answer THREE of the following questions: (a) In an economy there are two goods, x and y, which are produced with",
     "chapters": [
      "jvnrh7sx",
      "xg9aypby"
@@ -14479,7 +14479,7 @@
    {
     "question": 3,
     "page": 2,
-    "anchor": "3. Assume the required reserve ratio is 10% and the public holds 25% of any new money as cash, and banks hold no excess reserves.",
+    "anchor": "3. Assume the required reserve ratio is 10% and the public holds 25% of any new money as cash, and banks hold no excess",
     "chapters": [
      "tie7ydjt"
     ],
@@ -14502,7 +14502,7 @@
    {
     "question": 5,
     "page": 2,
-    "anchor": "5. Assume two countries have identical Solow production functions without technical progress (all parameters are the same).",
+    "anchor": "5. Assume two countries have identical Solow production functions without technical progress (all parameters are the",
     "chapters": [
      "tvwq6cff"
     ],
@@ -16875,7 +16875,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) The supply and demand functions for a market are qS(p) = p4 − 1 and qD(p) = 11 − 34p. Find the equilibrium price and quantity.",
+    "anchor": "1. (a) The supply and demand functions for a market are qS(p) = p4 − 1 and qD(p) = 11 − 34p. Find the equilibrium price",
     "chapters": [
      "35u3dquu",
      "skkqwgvk"
@@ -16915,7 +16915,7 @@
    {
     "question": 4,
     "page": 3,
-    "anchor": "4. (a) Find and classify the stationary points of the function f(x,y ) = x3 + 3x2y + 2y2 −y + 5. Does this function have a global maximum",
+    "anchor": "4. (a) Find and classify the stationary points of the function f(x,y ) = x3 + 3x2y + 2y2 −y + 5. Does this function",
     "chapters": [
      "hk43786w"
     ],
@@ -16928,7 +16928,7 @@
    {
     "question": 5,
     "page": 3,
-    "anchor": "5. (a) The price, p(t), of a commodity varies continuously with time according to the differential equation dp dt = 2p(t) + e−t.",
+    "anchor": "5. (a) The price, p(t), of a commodity varies continuously with time according to the differential equation dp dt =",
     "chapters": [
      "2uwhnans",
      "d74wxfxt"
@@ -16993,7 +16993,7 @@
    {
     "question": 4,
     "page": 3,
-    "anchor": "4. Consider a circle of radius r centred on the origin whose equation has the form x2 + y2 = r2 and the line with equation 2x + y = 4.",
+    "anchor": "4. Consider a circle of radius r centred on the origin whose equation has the form x2 + y2 = r2 and the line with",
     "chapters": [
      "hk43786w"
     ],
@@ -17005,7 +17005,7 @@
    {
     "question": 5,
     "page": 3,
-    "anchor": "5. (a) Find the eigenvalues of the matrix A = ( 5/3 −2/3 −2/3 2/3 ), and an eigenvector corresponding to each eigenvalue.",
+    "anchor": "5. (a) Find the eigenvalues of the matrix A = ( 5/3 −2/3 −2/3 2/3 ), and an eigenvector corresponding to each",
     "chapters": [
      "hmv8hbuk",
      "2uwhnans"
@@ -17028,7 +17028,7 @@
    {
     "question": 1,
     "page": 3,
-    "anchor": "1. A market has supply and demand functions given by qS(p) = p− 1 and qD(p) = 3−p, respectively. (a) Find the equilibrium price and quantity",
+    "anchor": "1. A market has supply and demand functions given by qS(p) = p− 1 and qD(p) = 3−p, respectively. (a) Find the",
     "chapters": [
      "r8fe2s9j",
      "35u3dquu"
@@ -17041,7 +17041,7 @@
    {
     "question": 2,
     "page": 3,
-    "anchor": "2. A town can accommodate a population of K people and, N(t), the population of the town at time t≥ 0 satisﬁes the diﬀerential equation",
+    "anchor": "2. A town can accommodate a population of K people and, N(t), the population of the town at time t≥ 0 satisﬁes the",
     "chapters": [
      "2uwhnans"
     ],
@@ -17068,7 +17068,7 @@
    {
     "question": 4,
     "page": 4,
-    "anchor": "4. Consider the function g(x,y ) = yx, for x> 0 and the circle with equation ( x− 4)2 +y2 = 4. (a) On the same axes, sketch the circle",
+    "anchor": "4. Consider the function g(x,y ) = yx, for x> 0 and the circle with equation ( x− 4)2 +y2 = 4. (a) On the same axes,",
     "chapters": [
      "hk43786w"
     ],
@@ -17080,7 +17080,7 @@
    {
     "question": 5,
     "page": 4,
-    "anchor": "5. (a) For all values of the constants a and b, use a matrix method to determine the number of solutions to the system of equations",
+    "anchor": "5. (a) For all values of the constants a and b, use a matrix method to determine the number of solutions to the system",
     "chapters": [
      "hmv8hbuk",
      "d74wxfxt"
@@ -17103,7 +17103,7 @@
    {
     "question": 1,
     "page": 3,
-    "anchor": "1. (a) The demand equation for a market is given by q(4 +p2) = 10. Find the elasticity of demand and show that it never exceeds two.",
+    "anchor": "1. (a) The demand equation for a market is given by q(4 +p2) = 10. Find the elasticity of demand and show that it never",
     "chapters": [
      "w8t2b3p7",
      "skkqwgvk"
@@ -17117,7 +17117,7 @@
    {
     "question": 2,
     "page": 3,
-    "anchor": "2. (a) Use row operations to determine the values of k for which the system of equations x +y +z = 2, x + 2y + 2z = 3, 2x + 3y +kz = 5, has a solution.",
+    "anchor": "2. (a) Use row operations to determine the values of k for which the system of equations x +y +z = 2, x + 2y + 2z = 3,",
     "chapters": [
      "hmv8hbuk",
      "skkqwgvk"
@@ -17131,7 +17131,7 @@
    {
     "question": 3,
     "page": 3,
-    "anchor": "3. (a) Minouche invests $1000 at an interest rate of 5% per annum at the start of 2019. She wants to withdraw a fixed amount $I at the end of each year",
+    "anchor": "3. (a) Minouche invests $1000 at an interest rate of 5% per annum at the start of 2019. She wants to withdraw a fixed",
     "chapters": [
      "d74wxfxt",
      "hk43786w"
@@ -17145,7 +17145,7 @@
    {
     "question": 4,
     "page": 4,
-    "anchor": "4. (a) Evaluate the deﬁnite integral ∫ π/8 0 x sin(2x) dx. (b) Two consumers, Anne and Brian, have $10 each to spend on cats and dogs.",
+    "anchor": "4. (a) Evaluate the deﬁnite integral ∫ π/8 0 x sin(2x) dx. (b) Two consumers, Anne and Brian, have $10 each to spend on",
     "chapters": [
      "skkqwgvk",
      "hk43786w"
@@ -17159,7 +17159,7 @@
    {
     "question": 5,
     "page": 4,
-    "anchor": "5. (a) A curve is given by the equation y3 + 3xy + 2x3 = 9. Show that the point (2, −1) is on this curve and find the Cartesian equation of the tangent line",
+    "anchor": "5. (a) A curve is given by the equation y3 + 3xy + 2x3 = 9. Show that the point (2, −1) is on this curve and find the",
     "chapters": [
      "7m3yeibe",
      "2uwhnans"
@@ -17182,7 +17182,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. A market has an equilibrium price of 10 and an equilibrium quantity of 4. (a) If this market’s elasticity of demand is given by",
+    "anchor": "1. A market has an equilibrium price of 10 and an equilibrium quantity of 4. (a) If this market’s elasticity of demand",
     "chapters": [
      "skkqwgvk",
      "35u3dquu"
@@ -17196,7 +17196,7 @@
    {
     "question": 2,
     "page": 2,
-    "anchor": "2. (a) Find and classify the stationary points of the function f (x, y) = 2x3 − 6xy + y2 + 4y. (b) Find the following indefinite integrals.",
+    "anchor": "2. (a) Find and classify the stationary points of the function f (x, y) = 2x3 − 6xy + y2 + 4y. (b) Find the following",
     "chapters": [
      "hk43786w",
      "skkqwgvk"
@@ -17210,7 +17210,7 @@
    {
     "question": 3,
     "page": 2,
-    "anchor": "3. (a) A firm’s production function is given by q(k, l) = k1/4l1/4 where k and l denote the amounts of capital and labour used respectively.",
+    "anchor": "3. (a) A firm’s production function is given by q(k, l) = k1/4l1/4 where k and l denote the amounts of capital and",
     "chapters": [
      "hk43786w"
     ],
@@ -17223,7 +17223,7 @@
    {
     "question": 4,
     "page": 3,
-    "anchor": "4. (a) Find the eigenvalues of the matrix A = ( 3/4 1/4 1/4 3/4 ), and find an eigenvector corresponding to each eigenvalue.",
+    "anchor": "4. (a) Find the eigenvalues of the matrix A = ( 3/4 1/4 1/4 3/4 ), and find an eigenvector corresponding to each",
     "chapters": [
      "hmv8hbuk",
      "d74wxfxt"
@@ -17258,7 +17258,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) A market has inverse supply and demand functions given by pS(q) = 2q + 3 and pD(q) = 6 − q, respectively. Find the equilibrium price and quantity.",
+    "anchor": "1. (a) A market has inverse supply and demand functions given by pS(q) = 2q + 3 and pD(q) = 6 − q, respectively. Find",
     "chapters": [
      "35u3dquu",
      "hmv8hbuk"
@@ -17271,7 +17271,7 @@
    {
     "question": 2,
     "page": 2,
-    "anchor": "2. (a) Find and classify the stationary points of the function f given by f (x, y) = x3 + y3 + 3x2y − 15y. (b) When a consumer has positive quantities",
+    "anchor": "2. (a) Find and classify the stationary points of the function f given by f (x, y) = x3 + y3 + 3x2y − 15y. (b) When a",
     "chapters": [
      "hk43786w"
     ],
@@ -17312,7 +17312,7 @@
    {
     "question": 5,
     "page": 3,
-    "anchor": "5. (a) Consider the differential equation 3xy2 dy dx = x3 + y3 with y(1) = 2. If y(x) = xv(x), find a differential equation for v(x)",
+    "anchor": "5. (a) Consider the differential equation 3xy2 dy dx = x3 + y3 with y(1) = 2. If y(x) = xv(x), find a differential",
     "chapters": [
      "2uwhnans"
     ],
@@ -17333,7 +17333,7 @@
    {
     "question": 1,
     "page": 3,
-    "anchor": "1. The supply and demand sets for a market are S ={(q,p)|p− 3q = 6} and D ={(q,p)|p + 2q = 16}. (a) Find the equilibrium price and quantity",
+    "anchor": "1. The supply and demand sets for a market are S ={(q,p)|p− 3q = 6} and D ={(q,p)|p + 2q = 16}. (a) Find the",
     "chapters": [
      "r8fe2s9j",
      "d74wxfxt"
@@ -17347,7 +17347,7 @@
    {
     "question": 2,
     "page": 3,
-    "anchor": "2. A town can accommodate a population of K people and, N(t), the population of the town at time t≥ 0 satisﬁes the diﬀerential equation",
+    "anchor": "2. A town can accommodate a population of K people and, N(t), the population of the town at time t≥ 0 satisﬁes the",
     "chapters": [
      "2uwhnans"
     ],
@@ -17373,7 +17373,7 @@
    {
     "question": 4,
     "page": 4,
-    "anchor": "4. Consider the function g(x,y ) = yx, for x< 0 and the circle with equation ( x + 4)2 +y2 = 4. (a) On the same axes, sketch the circle",
+    "anchor": "4. Consider the function g(x,y ) = yx, for x< 0 and the circle with equation ( x + 4)2 +y2 = 4. (a) On the same axes,",
     "chapters": [
      "hk43786w"
     ],
@@ -17385,7 +17385,7 @@
    {
     "question": 5,
     "page": 4,
-    "anchor": "5. (a) For all values of the constants a and b, use a matrix method to determine the number of solutions to the system of equations",
+    "anchor": "5. (a) For all values of the constants a and b, use a matrix method to determine the number of solutions to the system",
     "chapters": [
      "hmv8hbuk"
     ],
@@ -17407,7 +17407,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) The supply and demand functions for a market are qS(p) = p2 − 1 and qD(p) = 13 − p2. Find the equilibrium price and quantity.",
+    "anchor": "1. (a) The supply and demand functions for a market are qS(p) = p2 − 1 and qD(p) = 13 − p2. Find the equilibrium price",
     "chapters": [
      "35u3dquu",
      "skkqwgvk"
@@ -17447,7 +17447,7 @@
    {
     "question": 4,
     "page": 3,
-    "anchor": "4. (a) Find and classify the stationary points of the function f(x,y ) = 2x2 −x +y3 + 3xy2 − 7. Does this function have a global maximum",
+    "anchor": "4. (a) Find and classify the stationary points of the function f(x,y ) = 2x2 −x +y3 + 3xy2 − 7. Does this function have",
     "chapters": [
      "hk43786w"
     ],
@@ -17460,7 +17460,7 @@
    {
     "question": 5,
     "page": 3,
-    "anchor": "5. (a) The value, v(t), of an asset varies continuously with time according to the differential equation dv dt =v(t) + e−2t.",
+    "anchor": "5. (a) The value, v(t), of an asset varies continuously with time according to the differential equation dv dt =v(t) +",
     "chapters": [
      "2uwhnans"
     ],
@@ -17481,7 +17481,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) The inverse supply and demand functions for a good are pS(q) = 1 + 2q and pD(q) = 6 − 3q, respectively. Find the equilibrium price and quantity.",
+    "anchor": "1. (a) The inverse supply and demand functions for a good are pS(q) = 1 + 2q and pD(q) = 6 − 3q, respectively. Find the",
     "chapters": [
      "r8fe2s9j",
      "35u3dquu"
@@ -17495,7 +17495,7 @@
    {
     "question": 2,
     "page": 2,
-    "anchor": "2. (a) Find the indefinite integral Z x − 2 x2(x − 1)2 dx. (b) State the compound angle formulae for sin( A + B) and cos( A + B)",
+    "anchor": "2. (a) Find the indefinite integral Z x − 2 x2(x − 1)2 dx. (b) State the compound angle formulae for sin( A + B) and",
     "chapters": [
      "skkqwgvk",
      "r8fe2s9j"
@@ -17509,7 +17509,7 @@
    {
     "question": 3,
     "page": 2,
-    "anchor": "3. (a) The function h(x, y) is given by h(x, y) = x4 + yα xβ + y2γ for some constants α, βand γ. If this function is homogeneous of degree 2",
+    "anchor": "3. (a) The function h(x, y) is given by h(x, y) = x4 + yα xβ + y2γ for some constants α, βand γ. If this function is",
     "chapters": [
      "7m3yeibe",
      "hmv8hbuk"
@@ -17584,7 +17584,7 @@
    {
     "question": 3,
     "page": 3,
-    "anchor": "3. (a) Find the first and second-order partial derivatives of the function f (x, y) = sin(2x + sin(2y)). (b) Find the eigenvalues of the matrix",
+    "anchor": "3. (a) Find the first and second-order partial derivatives of the function f (x, y) = sin(2x + sin(2y)). (b) Find the",
     "chapters": [
      "7m3yeibe",
      "hmv8hbuk"
@@ -17598,7 +17598,7 @@
    {
     "question": 4,
     "page": 3,
-    "anchor": "4. (a) Find and classify the stationary points of the function f (x, y) = x2y + xy2 − xy + y2 + 4y. (b) A consumer’s utility is given by",
+    "anchor": "4. (a) Find and classify the stationary points of the function f (x, y) = x2y + xy2 − xy + y2 + 4y. (b) A consumer’s",
     "chapters": [
      "hk43786w"
     ],
@@ -17611,7 +17611,7 @@
    {
     "question": 5,
     "page": 3,
-    "anchor": "5. (a) Find the solution to the differential equation df dx + 2xf (x) = xe−x2 given that f (0) = 1/2. (b) Find the function g(t)",
+    "anchor": "5. (a) Find the solution to the differential equation df dx + 2xf (x) = xe−x2 given that f (0) = 1/2. (b) Find the",
     "chapters": [
      "2uwhnans"
     ],
@@ -17632,7 +17632,7 @@
    {
     "question": 1,
     "page": 4,
-    "anchor": "1. A market’s supply and demand functions are given by pS(q) = eq and pD(q) = 6e−q + 1 respectively. (a) Find the equilibrium price and quantity",
+    "anchor": "1. A market’s supply and demand functions are given by pS(q) = eq and pD(q) = 6e−q + 1 respectively. (a) Find the",
     "chapters": [
      "r8fe2s9j",
      "w8t2b3p7"
@@ -17645,7 +17645,7 @@
    {
     "question": 2,
     "page": 4,
-    "anchor": "2. Consider the function f(x) = 2x2 − 9x − 18x2 − x − 2 . (a) Sketch the curve y = f(x). (b) Find the area of the region between the curve",
+    "anchor": "2. Consider the function f(x) = 2x2 − 9x − 18x2 − x − 2 . (a) Sketch the curve y = f(x). (b) Find the area of the",
     "chapters": [
      "35u3dquu",
      "skkqwgvk"
@@ -17659,7 +17659,7 @@
    {
     "question": 3,
     "page": 4,
-    "anchor": "3. (a) For what values of the constants a, b and c does the system of equations x + 2y + z = a, x − y + z = −2a, x + 3y + 2z = b,",
+    "anchor": "3. (a) For what values of the constants a, b and c does the system of equations x + 2y + z = a, x − y + z = −2a, x + 3y",
     "chapters": [
      "hmv8hbuk",
      "hk43786w"
@@ -17707,7 +17707,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) The supply and demand equations for a good are p − 2q = 1 and p + 2q = 9, respectively. Find the equilibrium price and quantity.",
+    "anchor": "1. (a) The supply and demand equations for a good are p − 2q = 1 and p + 2q = 9, respectively. Find the equilibrium",
     "chapters": [
      "r8fe2s9j",
      "35u3dquu"
@@ -17721,7 +17721,7 @@
    {
     "question": 2,
     "page": 2,
-    "anchor": "2. Consider the function f (x) = 2x2 + x + 22x2 − x + 2. (a) Sketch the curve y = f (x). (b) Determine the integral ∫ f (x) dx.",
+    "anchor": "2. Consider the function f (x) = 2x2 + x + 22x2 − x + 2. (a) Sketch the curve y = f (x). (b) Determine the integral ∫ f",
     "chapters": [
      "35u3dquu",
      "skkqwgvk"
@@ -17735,7 +17735,7 @@
    {
     "question": 3,
     "page": 2,
-    "anchor": "3. (a) Find and classify the stationary points of the function f (x, y) = x2y + xy2 + xy + 1. (b) Find the following integrals.",
+    "anchor": "3. (a) Find and classify the stationary points of the function f (x, y) = x2y + xy2 + xy + 1. (b) Find the following",
     "chapters": [
      "hk43786w",
      "skkqwgvk"
@@ -17749,7 +17749,7 @@
    {
     "question": 4,
     "page": 3,
-    "anchor": "4. (a) Use a matrix method to determine the value of c for which the system of equations x + 3y − 2z = −2, x + 5y + 6z = 4, x + 4y + 2z = c, has a solution.",
+    "anchor": "4. (a) Use a matrix method to determine the value of c for which the system of equations x + 3y − 2z = −2, x + 5y + 6z",
     "chapters": [
      "hmv8hbuk",
      "hk43786w"
@@ -17763,7 +17763,7 @@
    {
     "question": 5,
     "page": 3,
-    "anchor": "5. (a) Find the function f (x) that satisfies the differential equation df dx − f (x)x + 1 = 1x − 2 and the initial condition f (0) = 0.",
+    "anchor": "5. (a) Find the function f (x) that satisfies the differential equation df dx − f (x)x + 1 = 1x − 2 and the initial",
     "chapters": [
      "2uwhnans",
      "d74wxfxt"
@@ -17786,7 +17786,7 @@
    {
     "question": 1,
     "page": 2,
-    "anchor": "1. (a) Suppose that the inverse supply and demand functions for a market are pS(q) = 165 − q and pD(q) = 5 − q for 0 ≤ q <5. (i) Find the equilibrium quantity and price",
+    "anchor": "1. (a) Suppose that the inverse supply and demand functions for a market are pS(q) = 165 − q and pD(q) = 5 − q for 0 ≤",
     "chapters": [
      "r8fe2s9j",
      "skkqwgvk"
@@ -17800,7 +17800,7 @@
    {
     "question": 2,
     "page": 2,
-    "anchor": "2. For some non-zero number k, the function f (x) = xex x + k is defined for all x ̸= −k. (a) Given that this function has exactly one stationary point",
+    "anchor": "2. For some non-zero number k, the function f (x) = xex x + k is defined for all x ̸= −k. (a) Given that this function",
     "chapters": [
      "35u3dquu"
     ],
@@ -17813,7 +17813,7 @@
    {
     "question": 3,
     "page": 2,
-    "anchor": "3. (a) Use row operationsto find the solution(s) of the system of linear equations x + 2y − z = 3, 2x − 3y + 5z = −1, 3x − y + 4z = 2.",
+    "anchor": "3. (a) Use row operationsto find the solution(s) of the system of linear equations x + 2y − z = 3, 2x − 3y + 5z = −1,",
     "chapters": [
      "hmv8hbuk",
      "2uwhnans"
@@ -17827,7 +17827,7 @@
    {
     "question": 4,
     "page": 3,
-    "anchor": "4. (a) A firm is the only supplier of two goods, X and Y, and their cost function is C(x, y) = 2x2 + 2xy + 3y2 + 10 when they produce quantities x and y.",
+    "anchor": "4. (a) A firm is the only supplier of two goods, X and Y, and their cost function is C(x, y) = 2x2 + 2xy + 3y2 + 10",
     "chapters": [
      "hk43786w"
     ],
@@ -17839,7 +17839,7 @@
    {
     "question": 5,
     "page": 3,
-    "anchor": "5. (a) The supply and demand functions for a certain good are given by qS(p) = 2p − 3 and qD(p) = 5 − p, respectively. What is the equilibrium price?",
+    "anchor": "5. (a) The supply and demand functions for a certain good are given by qS(p) = 2p − 3 and qD(p) = 5 − p, respectively.",
     "chapters": [
      "2uwhnans"
     ],
@@ -19860,7 +19860,7 @@
    {
     "question": 4,
     "page": 7,
-    "anchor": "4. (a) Am e n t a lh e a l t hs t u d yf o c u s e do n3 0 0p a t i e n t sv i s i t i n gt h r e ec o m m u n i t ym e n t a l",
+    "anchor": "4. (a) Am e n t a lh e a l t hs t u d yf o c u s e do n3 0 0p a t i e n t sv i s i t i n gt h r e ec o m m u n i t ym e",
     "chapters": [
      "9dhn7cfg"
     ],
@@ -20308,7 +20308,7 @@
    {
     "question": 3,
     "page": 6,
-    "anchor": "3. Af a r m e rw o u l dl i k et oi n v e s t i g a t et h er e l a t i o n s h i pb e t w e e nt h eo b t a i n e dy i e l do f",
+    "anchor": "3. Af a r m e rw o u l dl i k et oi n v e s t i g a t et h er e l a t i o n s h i pb e t w e e nt h eo b t a i n e dy i",
     "chapters": [
      "6zdqtvng",
      "9dhn7cfg"
@@ -20367,7 +20367,7 @@
    {
     "question": 3,
     "page": 5,
-    "anchor": "3. (a) As u r v e ya s k e dp a r t i c i p a n t sw h e t h e rt h e ys h o po n l i n ea n dr e c o r d e dt h e i ra g e",
+    "anchor": "3. (a) As u r v e ya s k e dp a r t i c i p a n t sw h e t h e rt h e ys h o po n l i n ea n dr e c o r d e dt h e i ra",
     "chapters": [
      "9dhn7cfg"
     ],
@@ -20437,7 +20437,7 @@
    {
     "question": 4,
     "page": 6,
-    "anchor": "4. (a) Al a r g e c o m p a n y i s c h e c k i n g t h e s a l a r i e s o f i t s e m p l o y e e s r e g u l a r l y t o g e t a n",
+    "anchor": "4. (a) Al a r g e c o m p a n y i s c h e c k i n g t h e s a l a r i e s o f i t s e m p l o y e e s r e g u l a r l y",
     "chapters": [
      "9dhn7cfg"
     ],

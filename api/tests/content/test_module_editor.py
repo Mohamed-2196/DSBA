@@ -190,6 +190,7 @@ def test_create_edit_and_audit(client_for: Clients, manager: User, db: Session) 
                     "topics": [],
                 }
             ],
+            "topics": [],
         }
     ]
     actions = [e.action for e in db.scalars(select(AuditEntry).where(AuditEntry.target_id == "data-ethics"))]
