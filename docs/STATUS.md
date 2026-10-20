@@ -178,8 +178,12 @@ account device icons).
   0.5-1.0 s on Library, Modules, Forum, Calendar, warm Home 0.3-0.5 s.
 - Migrations: ... 0046 -> 0049 -> 0050 -> 0048 -> 0047 -> 0053 -> 0051 -> 0052 (one head). The seed also reads the
   examiners' reports for worked answers on every deploy.
-- Open: the go-live checklist in docs/reviews/security.md (Mohamed); SEC-64; the bucket is still in Amsterdam;
-  overflow bugs Mohamed saw (the sweep found none: needs his pointers).
+- Then: SEC-64 (portal links only to BIBF and University of London hosts), the by-eye UI review and fixes (UX-92
+  to UX-101: long words and names never break a layout; `web/scripts/layout-check.mjs` checks it with long content),
+  and the seed reads examiners' reports for worked answers on every deploy (dev now shows them).
+- Open: production waits (Mohamed, 2026-10-20: not yet; no domain yet). The go-live checklist in
+  docs/reviews/security.md lists what he does (secrets, domain, mail with SPF/DKIM/DMARC, Twilio and Anthropic caps,
+  monitoring) and what the lead does once he says go. The bucket is still in Amsterdam.
 
 ## Operating notes
 
