@@ -1,5 +1,326 @@
 # UI/UX review: DSBA Hub on the real API
 
+## Round 15: the Deskmates look (20 October 2026)
+
+Reviewer: UI/UX. Build: `feature/backend` at `39680d2` (phases 1, 2, 3a and 3b merged), on the shared stack (app
+:5173, API :8000). No application code was changed.
+
+**Brief.** Judge the whole app against the approved Deskmates target (`docs/design/deskmates/README.md`,
+`brand/BRAND.md`, `screens/renders/*.png`, `v2/renders/*.png`) and the hub's rules: fidelity, consistency between
+the redone screens and the ones not yet redone, accessibility, responsive layout, copy, and Mini Noora at rest.
+
+**Method.** Playwright 1.56 driving the installed Google Chrome, reduced motion on. Made-up accounts by dev-login:
+`ux15-y2@example.com` (Year 2, the main persona), `ux15-y1@example.com` (Year 1, no notes), `ux15-rep@example.com`
+(rep), and a guest.
+- **Sweep:** 28 screens at 360×780, 390×844, 844×390, 768×1024, 1024×768, 1440×900, 2560×1440 and 3440×1440, in
+  light and dark (448 loads). Each load was checked for sideways scroll, elements past the edge, unlabelled fields,
+  line length, page errors, deskmates (count, size, state) and where Mini Noora sits. Phones were also shot as full
+  pages.
+- **Touch targets:** a separate pass with touch emulated at the five phone and tablet sizes. Full-page screenshots
+  drop Chrome's touch emulation, so the sweep's own target numbers weren't used.
+- **Contrast:** axe-core 4.10 (WCAG 2.1 AA) on 23 screens at 390 and 1440, in both themes. Every hit was checked by
+  eye.
+- **Flows:** ⌘K on phone, landscape and laptop, including a typo and an empty result; the Noora panel; New event;
+  the calendar list and an event's drawer; a new note on a phone; the account menu and bell by keyboard; Tab order and
+  the focus ring; sign-in with a bad address; Upload a file at 390 and 844×390.
+- **Icons:** each screen's SVGs counted by family (Deskmates 24-grid or Phosphor 256-grid), and the rows that mix
+  both were listed.
+- **Screenshots:** looked at directly, side by side with the renders. The full set is in the session's scratchpad
+  (`r15/`). The crops behind findings are in `screens/ux15-*`.
+
+**Test data I left:** one untitled note in Test Y2's "My notebook".
+
+### Summary
+
+**The new look holds together on the screens that were redone.** Library, the module page, the forum and its
+threads, the calendar, ⌘K, Noora's panel and the notebook all use the v2 tokens, Bricolage and Figtree, the
+two-tone icons and their section's colour and deskmate. ⌘K is the closest to its mockup: Loupe sits in the field, and
+a typo gets "Nothing matched 'regresion'. Showing results for 'regression'". Dark mode is consistent everywhere.
+
+**The basics pass.**
+- Nothing scrolls sideways in any of the 448 loads, and there were no page errors.
+- Dialogs fit 844×390: New event, Upload a file, sign-in, ⌘K and Noora.
+- Focus moves into each dialog and comes back to the button that opened it. The account menu works by keyboard, and
+  the focus ring shows.
+- Deskmate motion is wrapped in `prefers-reduced-motion: no-preference`.
+- **Mini Noora never covers content at rest.** Phones have her as a tab-bar item. On tablets and laptops she stands
+  in a lane of her own beside the content, and the lane held at every size.
+
+**What needs work, most important first:**
+1. **Career Navigator hides its application dates** (UX-80). "Closes 30 October" is white on a white card.
+2. **On phones, the redone bands are still desktop headers** (UX-81). The calendar's next exam starts at 489 px and
+   the forum's first thread at 641 px. In the mockups they start at about 300 and 370. The library, at 299 px, shows
+   how it should work.
+3. **Two deskmates in one view** on empty states (UX-82).
+4. **Both icon families in one row** on redone screens (UX-83).
+5. **⌘K can't find the Notebook or Daily** (UX-84).
+6. **Contrast:** year avatars (UX-85), and past events plus the highlighter yellow in the calendar (UX-86).
+
+**Counts:** 1 major, 9 minors and a group of nits (UX-80 to UX-91). Seven earlier findings were re-checked (table
+below).
+
+### Screens still in the old look
+
+These have the new tokens and fonts from phase 1, but not the Deskmates layout. None has a band; all use Phosphor
+icons, not the Deskmates family. BRAND §2 gives the tools Home's tones and no mate.
+
+| Screen | What still looks old |
+|---|---|
+| Boards (`/board`) | Bare title on the canvas. Template cards with coloured dots. 11 Phosphor icons, no Deskmates icon |
+| Grades | "Type a mark / to see your class" as grey display type (UX-35). 7 Phosphor icons |
+| Career Navigator | 73 Phosphor icons. Cards and the green callout from round 13. The dates bug (UX-80) |
+| Newsletter (list, issue, editor) | Its own editorial masthead (the yellow-marked "DSBA", a giant issue number). 6 and 13 Phosphor icons |
+| Daily (hub and games) | Raster illustration tiles from the round 4 art. Phosphor stat icons. Underlined tabs |
+| Manage and Access | Bare title. 11 Phosphor icons. Empty states use a ticked circle |
+| Your account | Bare title. Phosphor icons |
+| Requests, Start here | Phosphor icons. Requests mixes the two families in one row |
+| Sign-in dialog, 404, thread not found | Plain style (right for errors). The icons are Phosphor |
+| Modules index (`/modules`) | The band is new. The list keeps the raster module art and 9 Phosphor icons, with no Deskmates icon |
+| Lesson panel (module Lessons tab and lesson pages) | 16 Phosphor icons: Take notes, Add to my board, Previous, Next video, Open on YouTube |
+| Home's "My modules" cards | Raster module art. The mockup has a coloured binder per module and a lesson progress bar |
+
+### Earlier findings (re-checked)
+
+| ID | Was | Now | Evidence |
+|---|---|---|---|
+| UX-35 | minor | **open** | "Type a mark" is still display type at 390. The first mark field is below the fold. |
+| UX-37 | minor | **fixed** | At 390 the paper page shows its pages in place ("4 pages", with Open in your PDF viewer as an option). |
+| UX-62 | minor | **partly fixed** | The library's chips now sit behind Filters on phones. The forum's category tabs still stop mid-label at 360 and 390 ("Year 3", "Study…"). |
+| UX-78 | minor | **open** | An empty Notebook still offers New notebook, Write on a PDF, New note and Write your first note, plus a notebook select, search and module select with nothing to act on. |
+| UX-79 (lesson back arrow) | nit | **fixed** | The touch pass found no target under 44 px on the lesson header. |
+| UX-79 (New event) | nit | **open** | Starts is still empty while All day is off. |
+| UX-79 (others) | nit | not re-checked | |
+
+### Responsive results
+
+- **Sideways scroll:** none, in 448 loads (28 screens × 8 sizes × 2 themes).
+- **Touch targets** (with touch emulated at 360, 390, 844×390, 768 and 1024×768): pass, with three exceptions:
+  - Mini Noora's launcher is 40×84 on touch tablets and in landscape (UX-87).
+  - Library card titles (21 px) and forum row titles (19 px) are links. Each card also has a 44 px Open, so this is
+    acceptable.
+  - Sign in is 43×44.
+- **Dialogs on short screens:** all fit at 844×390 with their actions in view.
+- **Measure:** prose stays at or under 68ch at every size, including 2560 and 3440.
+  - Pages are capped at 1,430 px (default) and 1,710 px (wide), centred.
+  - Page prose measured 64ch.
+  - The long lines the script reported are list containers, not text.
+- **Landscape phones (844×390):** Mini Noora's figure runs to 857 px, 13 px past the edge. It's clipped, and the page
+  doesn't scroll sideways. The icon rail shows about three items at once in a 149 px scroll area (already accepted in
+  round 10).
+- **Dark:** consistent on every screen at 390 and 1440. Deskmates get their halo.
+
+### New findings
+
+| ID | Severity | Title |
+|---|---|---|
+| UX-80 | major | Career Navigator: application dates are invisible |
+| UX-81 | minor | Phones: section bands are desktop headers, and the first item starts 200–270 px lower than in the mockups |
+| UX-82 | minor | Two deskmates in one view on empty states |
+| UX-83 | minor | Both icon families in one row on redone screens |
+| UX-84 | minor | ⌘K can't find the Notebook or Daily, and page names differ from the nav |
+| UX-85 | minor | Year avatars' initials fail AA in light; avatar classes keep the old token names |
+| UX-86 | minor | Calendar: past events fall below AA, and deadlines use the highlighter yellow |
+| UX-87 | minor | Mini Noora's launcher isn't the mockups' ring, and it's 40 px wide on touch |
+| UX-88 | minor | Notebook: "New note" opens "New notebook", and the phone editor isn't the mockup's |
+| UX-89 | nit | Deskmates are smaller than BRAND's sizes on phones, and larger on the module page |
+| UX-90 | minor | Tools pages have no band, so the app changes style halfway down the sidebar |
+| UX-91 | nit | Small leftovers |
+
+#### UX-80 Career Navigator: application dates are invisible (major)
+
+- **Where:** Career Navigator, the employer cards with an application window from the calendar (for example
+  National Bank of Bahrain). Every size, both themes.
+- **What a student sees:** a blank line between "Bank" and the window's title, where "Closes 30 October" should be.
+  The link is white on a white card in light (1:1) and navy on navy in dark (1.09:1, axe). The one fact a student
+  opens this card for, when applications close, can't be read. It's still a link that can be tabbed to, with no
+  visible text. ![Closes 30 October is invisible](screens/ux15-career-dates.png)
+- **Cause:** `features/career/Opportunities.css`, `.career-emp__dates a { color: var(--on-accent) }`. `--on-accent` is
+  text *on* an accent fill, not text on a card.
+- **Fix:** `color: var(--accent-text)`. Better, set it as the calendar's deadline line ("Closes Thu 30 Oct · 11 days
+  left") in `--warning`, like the calendar's own deadlines.
+
+#### UX-81 Phones: section bands are desktop headers, and the first item starts 200–270 px lower than in the mockups (minor)
+
+- **Where:** Calendar, Forum, Notebook and Modules at 360 and 390 (and 844×390, where the band fills the screen).
+- **What a student sees** (390×844, where the first item starts):
+
+  | Screen | Band | First item | Mockup |
+  |---|---|---|---|
+  | Calendar | 311 px, four lines of lede, then Customise, Subscribe, New event and two segmented controls | next exam at 489 px | about 300 px, with This week visible |
+  | Forum | 293 px, a three-line lede and a stats line, then Start a thread, the tabs, Search threads, two chips and Hot/New/Top | first thread at 641 px | about 370 px |
+  | Notebook | 262 px, then three create buttons and three filters | the empty state at 601 px | at the top, no band |
+  | Modules | 279 px | first module at 384 px | |
+  | Library (the good one) | 75 px band with the count | first file at 299 px | |
+
+  ![Calendar at 390: mockup and app](screens/ux15-phone-band.png)
+- **Why it matters:** students open these between lectures to check one thing (the next exam, a reply). A whole
+  screen of header before it is the round 14 problem (UX-66) again, on the screens that were just redone.
+- **Fix** (to the mockups' phone rule):
+  - Under 600 px a band holds the title, **one** stat line and the deskmate: "Year 2 · 7 dates ahead this month",
+    "14 replies today · 3 questions waiting". The lede is for laptops.
+  - Secondary actions (Customise, Subscribe) go into a "More" menu.
+  - The primary action sits on the view switch's row (List | Month … New event), as in `calendar-phone.png`.
+  - The forum's search, chips and sort fold into one Filters button, as the library already does.
+  - The Notebook's filters show only when there are notes (UX-78).
+
+#### UX-82 Two deskmates in one view on empty states (minor)
+
+- **Where:** an empty Notebook (`/notes` for a student with no notes) and a library search with no results. Every
+  size.
+- **What a student sees:** Jot idle in the band (72 px), and below it Jot asleep in the empty state (116–160 px).
+  Stacks does the same in the library. BRAND §6: "One mate per view. Two mates never compete." The approved
+  `empty-notes-phone.png` has no band mate.
+  ![Empty Notebook at 390](screens/ux15-notebook-two-mates.png)
+- **Fix:** when an `EmptyState` with a `mate` is on screen, the band leaves its deskmate out, or the band takes the
+  sleepy state and the empty state shows none. One rule in `SectionHeader`/`EmptyState` covers both screens.
+- **Home is fine:** Lumen, the shelf's mates, Blink beside Up next and Pip and Pod beside Replies are all allowed by
+  BRAND §6.
+
+#### UX-83 Both icon families in one row on redone screens (minor)
+
+- **Where** (1440, counted by SVG grid):
+  - **Module header:** "Plan my revision" (Phosphor) beside Lessons and Past papers (Deskmates).
+  - **Lesson panel:** 16 Phosphor icons beside the Deskmates tabs.
+  - **Paper page:** "Add to my board" and "Tag a question" beside Deskmates star and download.
+  - **Calendar band:** "Subscribe" (Phosphor) between Customise and New event.
+  - **Home's daily question:** "Open the question" and "Add to my board".
+  - **Forum sidebar:** the guidelines list.
+  - **Library:** the results bar's "Ask for it".
+  - **Requests:** its header row.
+- **What a student sees:** two drawing styles side by side: 1.75 px two-tone icons next to Phosphor's thin
+  single-tone ones. BRAND §5 and §7: "never put both families in one row … swap a whole surface at once".
+- **Fix:** the family already has every one of these:
+  - Add to my board → `boards`
+  - Take notes → `notebook` or `pen`
+  - Subscribe → `link` or `calendar-add`
+  - Previous and Next → `chevron-left` and `chevron-right`
+  - Open on YouTube → `external`
+  - Plan my revision → `calendar-add`
+  - Tag a question → `flag` or `edit`
+
+  Then swap the rest of the lesson panel at once.
+
+#### UX-84 ⌘K can't find the Notebook or Daily, and page names differ from the nav (minor)
+
+- **Where:** ⌘K, signed in, any size.
+- **What a student sees:**
+  - "notebook" returns three past papers that contain the word, and no Notebook page.
+  - "daily" returns three files, and no Daily.
+  - "grades" lists three examiners' reports before "Grade calculator".
+  - The nav says "Grades", the palette says "Grade calculator".
+  - The palette's Go to list says "The DSBA newsletter" while its result group says "The DSBA Newsletter".
+- **Fix** (`features/search/search.ts`, the `pages` list):
+  - Add Notebook, Daily, Noora and Requests, with keywords (notes, puzzles, word, sudoku).
+  - Rank a page whose name matches above full-text file hits.
+  - Use the nav's names: Grades, The DSBA Newsletter.
+
+#### UX-85 Year avatars' initials fail AA in light; avatar classes keep the old token names (minor)
+
+- **Where:** every avatar with a year tone: the forum sidebar (Helpful this week), the profile button, newsletter
+  bylines, notebook and thread bylines. Light theme.
+- **What a student sees:** 12 px initials at 3.62:1 (Year 3), 3.59:1 (Year 1) and 4.19:1 (Year 2). The success tone
+  is 4.2:1 at 9 px. Dark passes.
+- **Cause:** `ui/Avatar.css` mixes 62% of the year *fill* with ink for text on 18% of the fill.
+- **Fix:**
+  - Use the pairs BRAND §2 already checked: `--y1-strong` on `--y1-soft`, and the same for Years 2 and 3.
+  - Rename `.ui-avatar--cobalt`, `--signal` and `--alert` to `--accent`, `--success` and `--error`, to match the
+    phase 1 token renames.
+
+#### UX-86 Calendar: past events fall below AA, and deadlines use the highlighter yellow (minor)
+
+- **Where:** Calendar month, 1440 (and wherever past chips show). Light.
+- **What a student sees:**
+  - Earlier this month, chip titles are 2.96:1 (Event), 2.77:1 (Revision) and 3.91:1 (Mock exam). `.cal-chip.is-past`
+    sets `opacity: .7` on the whole chip.
+  - Deadlines (chips, dots, the legend, "In 3 days" on Your next exam) use `--highlight` (#FFE14A). BRAND keeps that
+    for highlighter marks only; the mockups' deadline is `--warning-fill` #FFC233.
+- **Fix:**
+  - For past chips, keep the fill and set the title in `--ink-3`, without opacity.
+  - Map the deadline tone to `--warning-fill` (`calendar-shared.css`, `eventMeta.ts`).
+  - Set the next-exam countdown as the mockup does: "Thu 23 Oct, 9:00 · in 4 days" in the exam tone, with no marker.
+
+#### UX-87 Mini Noora's launcher isn't the mockups' ring, and it's 40 px wide on touch (minor)
+
+- **Where:** tablets, laptops and monitors, and 844×390.
+- **What a student sees:**
+  - **Placement passes the brief.** Noora never covers content at rest. On phones she's a tab-bar item, which is
+    better than the mockups, where she covers a card (README open item). From 768 up she stands in a lane of her own
+    beside the content.
+  - **But she isn't the approved launcher.** It's the full standing figure (54×112 at 1440). `noora-laptop.png`,
+    `noora-phone.png` and every screen render show a 64 px bust in the logo-blue ring with the online dot.
+  - **Touch:** under touch the hit area is 40×84, under 44 px wide.
+  - **Landscape:** at 844×390 her image runs to 857 px, 13 px past the edge, and is clipped.
+- **Fix:** Mohamed's call. Either build the ring launcher from the renders (64 px, in the same lane), or keep the
+  figure and give it a 44 px wide hit area and a 16 px inset in landscape.
+
+#### UX-88 Notebook: "New note" opens "New notebook", and the phone editor isn't the mockup's (minor)
+
+- **Where:** `/notes` and a note, 390 and 1440.
+- **What a student sees:**
+  - **The action changes name.** With no notebook, **New note** opens a dialog titled **New notebook** ("Notebook
+    title", Create). The note then opens "Saved in My notebook".
+  - **The phone toolbar isn't the mockup's.** It sits at the top, as Text/Pages tabs, undo/redo and a formatting row.
+    `notebook-phone.png` puts the five tools in a bottom bar where thumbs reach, with B and Σ.
+  - **The toast covers the page.** On the first save, "Saved · Your note saves as you write" sits over the lower
+    writing area for several seconds.
+  - **"Add a module" is in JetBrains Mono.** BRAND §3 keeps mono for codes and the timer.
+  - **The back link reads "Notes"** (aria "All notes") in the Notebook section.
+- **Fix:**
+  - New note makes or uses a default "My notebook" silently and opens the note with the cursor in it.
+  - The back link says "‹ Notebook".
+  - "Add a module" goes in Figtree.
+  - On phones, the save toast shows once and as the mockup's compact pill, "Saved · In ST2134 …", clear of the text.
+  - The bottom tool bar is phase 3b's open item.
+
+#### UX-89 Deskmates are smaller than BRAND's sizes on phones, and larger on the module page (nit)
+
+- **What I measured:**
+  - Band deskmates are 60–72 px at 360–390 (Library 64 px, the module's Binder 64 px). BRAND §6 says 98–104, or
+    80 at 360.
+  - The Home shelf's mates are 44 px on phones (BRAND: 56).
+  - Binder is 112 px at 1440 (BRAND: 98–104).
+  - None is under 32 px, and states are used correctly: idle in bands, sleepy only on empty states and on Home after
+    23:00 or offline, happy on the save toast, Blink's countdown on Up next.
+- **Fix:** once the phone bands are one-line (UX-81), 64–72 px is the right size there. Write that size into BRAND §6
+  rather than grow the mates. Bring Binder to 104 px.
+
+#### UX-90 Tools pages have no band, so the app changes style halfway down the sidebar (minor)
+
+- **Where:** Boards, Grades, Career Navigator, Newsletter, Daily, Manage, Account, Requests (list above).
+- **What a student sees:** every section above "Tools" in the sidebar opens on a coloured band with its deskmate.
+  Every tool opens on a bare title on the canvas, with Phosphor icons and the round 13 card styles. Going from the
+  Calendar to Boards feels like a different app.
+- **Fix:**
+  - Give tools the band without a mate, in Home's tones (pill `#E3E9FF`, `#1E2C66` in dark), as BRAND §2's tools row
+    says, with the title, one stat line and the primary action.
+  - Swap their icons to the Deskmates family, a whole page at a time.
+  - Daily's raster tiles and the newsletter's masthead are design calls for Mohamed. The masthead is a deliberate
+    editorial look and can stay.
+
+#### UX-91 Small leftovers (nit)
+
+- **Thread on phones:** "Accepted answer" wraps onto its own line under the name, with the time on a third line. In
+  `forum-thread-phone.png` it sits on the name row. Put it after the time, or let the success rule carry it.
+- **Nav name:** the nav says "Daily", while BRAND and the mockups say "Daily puzzles".
+- **Notebook in dark:** a typed page stays a white lined sheet, which is bright at night. Use the inset surface for
+  typed pages and keep white for PDFs.
+- **Home's "My modules"** use the older raster module art. The Home mockup uses a coloured binder per module with
+  lesson progress.
+- **Phone band text:** the band ledes run as long as the laptop ones (four lines on the calendar at 390). They go
+  with UX-81.
+
+### What works well and should stay
+
+- **⌘K:** the whole palette, Loupe in the field, typo correction, grouped results with counts, "Search somewhere
+  else", and focus that goes in and comes back.
+- **Library on phones:** a one-line band, the search, one Filters button and the first file at 299 px.
+- **Forum threads:** the cards, the accepted answer's success rule and one reply box. Close to the mockups.
+- **Mini Noora at rest:** a tab-bar item on phones and her own lane from 768 up. She never covers content.
+- **Dark mode:** the section tones, the halos and the exam raspberry all read well.
+- **Calendar dialogs:** the event drawer and New event fit 844×390 and return focus to the button that opened them.
+- **Accessibility:** no unlabelled fields on any screen. Reduced motion stops every deskmate animation.
+
+
 ## Round 14: the study core (19 October 2026)
 
 Reviewer: UI/UX. Build: `feature/backend` at `c4e345d`, on the shared stack (app :5173, API :8000). No application
