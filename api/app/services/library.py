@@ -366,7 +366,11 @@ def list_items(
         q = q.outerjoin(Module, Module.id == LibraryItem.module_id).where(
             or_(in_doc, paper_text.content_match(tsquery))
         )
-        rank = [in_doc.desc(), *your_year_first(user), func.ts_rank(doc, tsquery).desc()]
+        # A module's files of one kind match a search alike ("ST2134 past paper"): their small differences in
+        # ts_rank come from the words around the match, not from relevance. So they rank together, at the best of
+        # them, and the sittings among them read newest first (by_sitting below).
+        group_rank = func.max(func.ts_rank(doc, tsquery)).over(partition_by=(LibraryItem.module_id, LibraryItem.kind))
+        rank = [in_doc.desc(), *your_year_first(user), group_rank.desc(), LibraryItem.module_id, LibraryItem.kind]
 
     total = db.scalar(select(func.count()).select_from(q.order_by(None).subquery())) or 0
     newest = func.coalesce(LibraryItem.published_at, LibraryItem.created_at)
@@ -383,7 +387,7 @@ def list_items(
     elif sort == "title":
         order = [func.lower(LibraryItem.title).asc()]
     elif sort == "relevance" and rank:
-        order = [*rank, newest.desc()]
+        order = [*rank, *by_sitting]
     else:
         order = [newest.desc()]
     q = q.order_by(*order, LibraryItem.title.asc(), LibraryItem.id.asc()).limit(limit).offset(offset)
