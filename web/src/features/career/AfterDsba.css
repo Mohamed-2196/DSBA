@@ -119,6 +119,8 @@
   max-width: var(--measure);
 }
 .career-check__title {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--ink);
   font-size: var(--fs-16);
   font-weight: var(--fw-semibold);

@@ -116,7 +116,7 @@
   font-weight: var(--fw-heavy);
   line-height: 1.06;
   letter-spacing: -0.025em;
-  text-wrap: balance;
+  text-wrap-style: balance;
 }
 .mod-poster__pos {
   margin-top: 0.4cqi;

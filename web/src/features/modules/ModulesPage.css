@@ -142,13 +142,17 @@
   letter-spacing: 0.01em;
 }
 .mod-row__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: var(--fs-20);
   font-weight: var(--fw-bold);
   letter-spacing: -0.015em;
   line-height: var(--lh-heading);
-  text-wrap: balance;
+  text-wrap-style: balance;
 }
 .mod-row__desc {
+  min-width: 0;
+  overflow-wrap: anywhere;
   max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);

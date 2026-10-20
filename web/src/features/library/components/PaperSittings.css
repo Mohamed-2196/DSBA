@@ -119,18 +119,21 @@
   font-size: var(--fs-13);
 }
 
-/* A file in the row: its drawn document and a short name. The student's own zone's paper sits on accent-soft. */
+/* A file in the row: its drawn document and a short name. The student's own zone's paper sits on accent-soft. A long
+   name wraps between words inside its column (the zone and the last word each stay in one piece). */
 .pp-link {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-8);
+  max-width: 100%;
   min-height: 36px;
   padding: 0 var(--sp-8) 0 var(--sp-6);
   border-radius: 10px;
   color: var(--ink);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: break-word;
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease);
 }
@@ -146,12 +149,13 @@
 .pp-link__new {
   margin-left: -2px;
 }
-/* A report that works through the questions, in the Solutions column: its words may wrap there. */
+/* A report that works through the questions, in the Solutions column. */
 .pp-link--worked {
   color: var(--ink-2);
   font-weight: var(--fw-medium);
-  line-height: 1.25;
-  white-space: normal;
+}
+.pp-link > :first-child {
+  flex-shrink: 0;
 }
 /* Time me: a round button with the timer. */
 .pp-time {

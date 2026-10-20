@@ -9,6 +9,7 @@ import {
   clockResume,
   clockStart,
   durationLabel,
+  keepTogether,
   parseDuration,
   WORKED_LABEL,
   answerHref,
@@ -261,5 +262,14 @@ describe('the Time me clock', () => {
     expect(durationLabel(9000_000)).toBe('2 hours 30 minutes');
     expect(durationLabel(3600_000)).toBe('1 hour');
     expect(durationLabel(60_000)).toBe('1 minute');
+  });
+});
+
+describe('keepTogether', () => {
+  it('keeps the zone and the last word in one piece', () => {
+    expect(keepTogether('Zone A report 2')).toBe('Zone\u00a0A report\u00a02');
+    expect(keepTogether('Zone A report')).toBe('Zone\u00a0A report');
+    expect(keepTogether('Report')).toBe('Report');
+    expect(keepTogether('Report (2)')).toBe('Report\u00a0(2)');
   });
 });

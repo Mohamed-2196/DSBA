@@ -95,7 +95,7 @@
   font-weight: var(--fw-heavy);
   letter-spacing: var(--tracking-head);
   line-height: 1.25;
-  text-wrap: pretty;
+  text-wrap-style: pretty;
 }
 
 .dq-options {

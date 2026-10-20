@@ -414,7 +414,12 @@ button.nb-where__module:hover {
   align-items: center;
   gap: 2px;
 }
-.nb-tools--end {
+.nb-toolbar__end {
+  display: flex;
+  align-items: center;
+  gap: 4px 10px;
+}
+.nb-toolbar__end--zoom {
   margin-left: auto;
 }
 .nb-tool {
@@ -654,7 +659,7 @@ button.nb-where__module:hover {
   .nb-toolbar__row > * {
     flex: none;
   }
-  .nb-tools--end {
+  .nb-toolbar__end--zoom {
     margin-left: 0;
   }
   .nb-finger span {

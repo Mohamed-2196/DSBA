@@ -373,14 +373,14 @@ html:has(.np--full) {
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-head);
   line-height: var(--lh-heading);
-  text-wrap: balance;
+  text-wrap-style: balance;
 }
 .np-welcome__lead {
   max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-16);
   line-height: 1.55;
-  text-wrap: pretty;
+  text-wrap-style: pretty;
 }
 .np-welcome__notice {
   display: flex;

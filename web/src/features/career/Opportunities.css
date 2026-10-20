@@ -169,6 +169,8 @@
 }
 
 .career-emp__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-family: var(--font-display);
   font-size: var(--fs-17);
   font-weight: var(--fw-display);
@@ -195,7 +197,7 @@
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   line-height: 1.35;
-  text-wrap: balance;
+  text-wrap-style: balance;
 }
 .career-emp__why {
   color: var(--ink-2);

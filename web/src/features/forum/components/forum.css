@@ -156,7 +156,7 @@
   font-weight: var(--fw-bold);
   line-height: 1.38;
   letter-spacing: -0.012em;
-  text-wrap: pretty;
+  text-wrap-style: pretty;
 }
 .forum-row__link {
   color: var(--ink);

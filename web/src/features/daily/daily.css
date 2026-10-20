@@ -44,6 +44,11 @@
   --dy-nearest: var(--mine-rose);
   --dy-sudoku: var(--y1);
 }
+/* Dark: "not in the word" recedes below the empty tiles, like the keyboard's spent keys (its letter is 8.9:1). */
+[data-theme='dark'] .dy {
+  --dy-miss: var(--key-spent);
+  --dy-on-miss: var(--ink-2);
+}
 
 /* ── Glyphs: each game drawn small, in its own pieces ────────────────────────────────────────────── */
 .dy-glyph {

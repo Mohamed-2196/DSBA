@@ -353,7 +353,6 @@ export default function HomePage() {
                   variant="ghost"
                   leadingIcon={<Icon glyph={glyph.settings} />}
                   onClick={() => setCustomizing(true)}
-                  className="home-head__custom"
                   data-hub="home-customize-open"
                 >
                   Customise Home

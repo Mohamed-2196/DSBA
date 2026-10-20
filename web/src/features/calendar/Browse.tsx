@@ -1,6 +1,18 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { BREAKPOINTS, cohortLabel, useMediaQuery } from '../../state';
-import { Button, Chip, cx, EmptyState, Icon, IconButton, Menu, SegmentedControl, glyph, type MenuItem } from '../../ui';
+import {
+  Button,
+  Chip,
+  cx,
+  EmptyState,
+  Icon,
+  IconButton,
+  Menu,
+  SegmentedControl,
+  glyph,
+  useScrollFade,
+  type MenuItem,
+} from '../../ui';
 import { formatShort, parseDay, type DayKey } from '../../lib/dates';
 import { monthTitle } from './dates';
 import { DayList } from './DayList';
@@ -158,9 +170,12 @@ export function Browse({ view, today, calendarEmpty, onAddDate, onAddMine }: Bro
 
 function Filters({ view }: { view: CalendarView }) {
   const { signedIn, showsPlan, types, toggleType, clearTypes } = view;
+  // On phones the chips scroll in one row: its cut edge fades while there is more to see.
+  const typesRef = useRef<HTMLDivElement>(null);
+  useScrollFade(typesRef);
   return (
     <div className="cal-filters">
-      <div className="cal-filters__types" role="group" aria-label="Event types (also the colour key)">
+      <div ref={typesRef} className="cal-filters__types" role="group" aria-label="Event types (also the colour key)">
         {TYPE_ORDER.map((type) => (
           <Chip
             key={type}

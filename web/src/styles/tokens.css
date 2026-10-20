@@ -374,8 +374,8 @@
   --mine-slate: #ced4da;
   --plan: #e9c46a;
   --highlight-soft: #3a3a3f;
-  --thumb-bg: #22355f;
-  --thumb-shadow: none;
+  --thumb-bg: #34497f; /* 7.6:1 under --ink; its ring is 3.7:1 on the --surface-2 track */
+  --thumb-shadow: inset 0 0 0 1px #6a84bd;
   --tile-stroke: rgba(255, 255, 255, 0.14);
   --key-spent: #0a1733;
   --key-spent-ink: #8798be;

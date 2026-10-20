@@ -57,8 +57,9 @@
   align-items: center;
   gap: var(--sp-4);
 }
-.home-head__custom {
-  margin-left: -6px;
+/* The row's ghost buttons line their words up with the date, wherever the row wraps; the gap still parts them. */
+.home-head__meta .ui-button--ghost {
+  margin-inline-start: calc(-1 * var(--btn-px));
 }
 /* A guest: what signing in adds, said once, quietly. */
 .home-head__guest {
@@ -370,6 +371,8 @@
   text-transform: uppercase;
 }
 .home-next__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
   display: block;
   margin-top: 4px;
   color: var(--ink);

@@ -11,7 +11,7 @@ import { usePapers } from '../../papers/public';
 import { itemPath, timeMeHref } from '../api';
 import { isNew } from '../display';
 import { docTone } from '../kinds';
-import { sittingRow, type SittingLink } from '../papers';
+import { keepTogether, sittingRow, type SittingLink } from '../papers';
 import type { LinkState } from './FileCard';
 import './PaperSittings.css';
 
@@ -46,7 +46,7 @@ function FileLink({
       <DocThumb tone={docTone(link.item)} size="sm" />
       <span>
         <span className="visually-hidden">{when} </span>
-        {link.label}
+        {keepTogether(link.label)}
         {noun ? <span className="visually-hidden"> {noun}</span> : null}
         {workedNote ? <span className="pp-link__worked">, worked answers</span> : null}
         {yours ? <span className="visually-hidden">, your zone</span> : null}

@@ -60,6 +60,8 @@
   gap: 2px;
 }
 .shell-footer__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--ink);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);

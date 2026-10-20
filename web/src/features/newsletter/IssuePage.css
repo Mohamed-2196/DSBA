@@ -148,6 +148,10 @@
     background-color var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease);
 }
+.nl-toc__item > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .nl-toc__item:hover {
   background: var(--surface-2);
   color: var(--ink);
@@ -482,7 +486,7 @@
   font-size: var(--fs-20);
   line-height: 1.35;
   color: color-mix(in srgb, var(--on-inverse) 92%, transparent);
-  text-wrap: balance;
+  text-wrap-style: balance;
 }
 
 /* ── Deadlines ────────────────────────────────────────────────────────── */
@@ -897,6 +901,7 @@
   }
   .nl-toc__item {
     width: auto;
+    max-width: min(80vw, 18rem);
     white-space: nowrap;
     border: 1px solid var(--line-strong);
     border-radius: var(--r-pill);
@@ -905,6 +910,11 @@
   }
   .nl-toc__item.is-active {
     border-color: var(--ink);
+  }
+  /* A long section's pill ends in an ellipsis (its button says the whole title). */
+  .nl-toc__item > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 @media (max-width: 699px) {
