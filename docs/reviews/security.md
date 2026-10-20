@@ -63,7 +63,7 @@ abuse by volume (storage, mail, Noora's budget) and the production deployment it
 | SEC-61 | nit (unverified) | Noora (`ask.py:69`) | The reservation counts characters, so a crafted prompt can cost more than reserved |
 | SEC-62 | nit (unverified) | web (`offline.ts:146`) | A second open tab can write the offline snapshot back after a sign-out |
 | SEC-63 | nit | access (`routers/library.py:235`, `suggestions.py:31`, `requests.py:81`) | Tagging, flagging, suggestions and requests need no box |
-| SEC-64 | nit (D14 trade-off) | site (`routers/site.py:38`) | A stolen admin session can repoint the sidebar's MyClass and UoL links without a step-up |
+| SEC-64 | nit (D14 trade-off) | site (`routers/site.py:38`) | **fixed**: Site settings' links take only BIBF and University of London hosts (`DSBA_PORTAL_HOSTS`) |
 | SEC-65 | nit | web, deployment | Dev-only npm advisories, a wide `media-src`, no `Permissions-Policy`, base images by tag |
 | SEC-14 | minor | Mohamed | **still open, and worse**: no site-wide upload budget; D16 raised the ceiling to about 3 GB an hour per account |
 | SEC-34 | nit | Noora | still open: a paper's text goes in the system prompt (fenced) |
@@ -139,7 +139,7 @@ Fix or decide these before real students' addresses go in:
   plays, the addresses on sessions and in the audit log), who processes it (AWS, the mail provider, Twilio, and
   Anthropic for Noora's answers), how to export and delete (Your account), and how long backups keep it. Bahrain's
   PDPL expects one.
-- [ ] Decide the open product calls that touch security: SEC-64 (the sidebar's links), SEC-14 (done: 20 GB / 1 GB), shorter sessions on shared
+- [ ] Decide the open product calls that touch security: SEC-64 (done: host allow-list), SEC-14 (done: 20 GB / 1 GB), shorter sessions on shared
   computers (S-2), and whether a rep confirms seniors.
 - [ ] Clear the local `sec16*@example.com` test accounts if you copy the local database anywhere. They aren't in the
   production plan. Fork C's 7 orphaned objects from the SEC-49 proof are in the local MinIO only, under `notes/`.
@@ -441,7 +441,12 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-64. A stolen admin session can repoint the sidebar's MyClass and UoL links without a step-up (nit; D14 trade-off)
 
-- **Status (round 16 fixes, branch `round16/secfix`):** open: Mohamed's call (host allowlist for MyClass and UoL links, or a step-up for Site settings' links).
+- **Status (branch `round16/sec64`):** fixed. Mohamed chose the host allow-list. Site settings' four links (MyClass,
+  the UoL portal, the regulations, exam entry and results) take only https:// on a host of `DSBA_PORTAL_HOSTS`
+  (default `bibf.edu.bh`, `bibf.com`, `london.ac.uk`) or a subdomain of one, with an ASCII host as typed: look-alikes,
+  userinfo tricks, Unicode and full-width-dot hosts get a 422 on the field ("Links here must go to BIBF or University
+  of London sites."). Contributors' own pages stay any https:// link. Tests: `api/tests/core/test_portal_links.py`,
+  `api/tests/content/test_site.py`.
 
 - **Owner:** site. **Where:** `PUT /site` (`routers/site.py:38`) needs `requires_admin()` with no step-up (D14), and
   `SiteUrl` takes any https URL. `PUT /guides` needs `guides.edit`, which reps hold.
