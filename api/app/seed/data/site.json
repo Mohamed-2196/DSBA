@@ -100,8 +100,8 @@
   "homeBlocks": [
     "start_here",
     "results_day",
-    "coming_up",
     "carry_on",
+    "coming_up",
     "todo",
     "continue",
     "modules",

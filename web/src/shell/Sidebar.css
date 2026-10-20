@@ -260,16 +260,38 @@
   padding: var(--sp-4) 0 var(--sp-16);
 }
 .shell-rail.is-collapsed .shell-nav__item {
+  flex-direction: column;
   justify-content: center;
-  width: 48px;
-  height: 44px;
+  gap: 2px;
+  width: 64px;
+  height: auto;
+  min-height: 52px;
+  padding: var(--sp-6) 0 var(--sp-4);
+}
+.shell-rail.is-collapsed .shell-nav__item--ext {
+  min-height: 44px;
   padding: 0;
+}
+.shell-nav__short {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: var(--fw-semibold);
+  line-height: 13px;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .shell-rail.is-collapsed .shell-nav__newdot {
   display: block;
 }
+.shell-rail.is-collapsed {
+  padding-inline: var(--sp-4);
+}
 .shell-rail.is-collapsed .shell-rail__scroll {
-  width: calc(48px + 2 * var(--sp-8));
+  width: 64px;
+  margin-inline: 0;
+  padding-inline: 0;
 }
 .shell-rail.is-collapsed .shell-rail__foot {
   width: 48px;
@@ -295,7 +317,7 @@
 
 /* Touch screens: 44px rows and a 44px brand target (UX review UX-11). */
 @media (pointer: coarse) {
-  .shell-nav__item,
+  .shell-rail:not(.is-collapsed) .shell-nav__item,
   .shell-nav__item--ext {
     height: var(--touch-min);
   }
@@ -315,5 +337,33 @@
   .shell-nav__group {
     margin-top: var(--sp-8);
     padding-top: var(--sp-8);
+  }
+}
+
+/* A phone on its side (ST-71): too short for the sections and the account at once. The whole rail scrolls as one,
+   theme and account after the last section, so nothing sits over the nav; the fades show there is more below. */
+@media (max-height: 500px) {
+  .shell-rail {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    background:
+      linear-gradient(var(--surface) 30%, transparent) top / 100% 24px no-repeat local,
+      linear-gradient(transparent, var(--surface) 70%) bottom / 100% 24px no-repeat local,
+      linear-gradient(color-mix(in srgb, var(--ink) 10%, transparent), transparent) top / 100% 10px no-repeat scroll,
+      linear-gradient(transparent, color-mix(in srgb, var(--ink) 10%, transparent)) bottom / 100% 10px no-repeat scroll;
+  }
+  .shell-rail__brand {
+    height: 56px;
+  }
+  .shell-rail__year,
+  .shell-rail.is-collapsed .shell-rail__year {
+    padding-block: 0 var(--sp-8);
+  }
+  .shell-rail__scroll {
+    flex: 0 0 auto;
+    overflow: visible;
+    background: none;
   }
 }

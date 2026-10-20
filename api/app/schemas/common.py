@@ -87,6 +87,8 @@ ErrorCode = Literal[
     "nothing_found",  # 409: no file was found for the request to confirm
     # library, uploads, newsletter, calendar
     "slug_taken",  # 409: a rep chose an address another issue has
+    "number_taken",  # 409: a published issue already has this number (fields.number says the next free one)
+    "empty_issue",  # 409: an issue with no stories can't be published
     "not_published",  # 409: reactions and votes wait for the issue to be published
     "already_voted",  # 409: one vote per poll
     "poll_closed",  # 409: the poll takes no more votes

@@ -37,7 +37,7 @@ export function ReplyEditForm({ reply, onDone }: { reply: Reply; onDone: () => v
           images.reset();
           onDone();
         },
-        onError: (e) => setError(errorMessage(e, "Your changes weren't saved. Try again.")),
+        onError: (e) => setError(errorMessage(e, 'Your changes weren’t saved. Try again.')),
       },
     );
   };

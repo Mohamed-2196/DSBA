@@ -1134,3 +1134,24 @@ def test_searching_notes_finds_only_your_own(
     other = client_for(omar).get(f"{API}/notes", params={"q": "mgf"}).json()["items"]
     assert [n["id"] for n in other] == [theirs["id"]]
     assert client_for().get(f"{API}/notes", params={"q": "mgf"}).status_code == 401
+
+
+def test_a_note_on_a_past_paper_is_named_as_the_library_names_the_paper(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, module: Module, db: Session
+) -> None:
+    """Student test ST-80: not "ST2133 Exam paper - May 2024", the file's title, but the paper's sitting."""
+    rep = client_for(make_user(name="Maryam Rep", roles=("student", "rep")))
+    item = share_pdf(rep, storage, title="ST2133 Exam paper - May 2024")
+    stored = db.get(LibraryItem, item["id"])
+    assert stored is not None
+    stored.module_id, stored.kind, stored.exam_year, stored.exam_session, stored.zone = (
+        module.id,
+        "past-paper",
+        2024,
+        "may",
+        "A",
+    )
+    db.commit()
+    note = client_for(make_user()).post(f"{API}/notes/annotate", json={"libraryItemId": item["id"]}).json()
+    tag = module.unit_code or module.short_name
+    assert note["title"] == f"{tag} · May 2024 · Zone A"

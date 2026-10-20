@@ -64,9 +64,20 @@ export function ScoreDialog({ title, score, onSave, onClose }: ScoreDialogProps)
   );
 }
 
-/** "How did it go?" for a past paper outside the board (Time me stopped, or the paper's page): reads the score there
- *  is and saves the new one. Render it signed in, with the board on (the scores live there). */
-export function PaperScoreDialog({ itemId, title, onClose }: { itemId: string; title: string; onClose: () => void }) {
+/** "How did it go?" for a past paper outside the board (Time me ended, or the paper's page): reads the score there
+ *  is and saves the new one. Render it signed in, with the board on (the scores live there). `onSaved` runs on Save,
+ *  not on Skip. */
+export function PaperScoreDialog({
+  itemId,
+  title,
+  onSaved,
+  onClose,
+}: {
+  itemId: string;
+  title: string;
+  onSaved?: () => void;
+  onClose: () => void;
+}) {
   const scores = usePaperScores();
   const save = useSaveScore();
   if (scores.isPending) return null;
@@ -74,7 +85,10 @@ export function PaperScoreDialog({ itemId, title, onClose }: { itemId: string; t
     <ScoreDialog
       title={title}
       score={scores.data?.[itemId] ?? null}
-      onSave={(score) => save.mutate({ itemId, score })}
+      onSave={(score) => {
+        save.mutate({ itemId, score });
+        onSaved?.();
+      }}
       onClose={onClose}
     />
   );

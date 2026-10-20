@@ -149,7 +149,7 @@
 .notes-picker {
   display: flex;
   gap: var(--sp-8);
-  align-items: center;
+  align-items: flex-end;
   margin-bottom: var(--sp-12);
 }
 .notes-picker__select {

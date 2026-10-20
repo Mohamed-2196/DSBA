@@ -87,7 +87,7 @@ function SavedWhere({
   return (
     <span className={cx('nb-saved', `is-${readOnly ? 'saved' : opening ? 'saving' : state}`)} data-hub="note-status">
       {icon}
-      <span role="status" aria-live="polite">
+      <span className="nb-saved__words" role="status" aria-live="polite">
         {words}
       </span>
     </span>
@@ -171,7 +171,7 @@ export function NoteHeader({
       items={notebookItems}
       trigger={
         <button type="button" className="nb-saved__book" data-hub="note-notebook">
-          {bookName}
+          <span className="nb-saved__name">{bookName}</span>
           <Icon glyph={glyph.chevronDown} />
         </button>
       }

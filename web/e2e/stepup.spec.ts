@@ -69,7 +69,7 @@ test('Sara changes her email address: a code to her current address first, then 
   await expect(stepUp).toContainText(`To change how you sign in, enter the code we sent to ${before.email}.`);
   const code = await waitForCode('email', before.email ?? '', since);
   await stepUp.getByLabel('6-digit code').fill(code === '000000' ? '111111' : '000000');
-  await expect(stepUp).toContainText("That code isn't right. 4 tries left.");
+  await expect(stepUp).toContainText('That code isn’t right. 4 tries left.');
   const since2 = Date.now();
   await stepUp.getByLabel('6-digit code').fill(code);
 

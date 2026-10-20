@@ -1,6 +1,7 @@
 """The newsletter: typed issues (code quality review CQ-4, decision D5), size limits (security review SEC-6),
 publishing to every account (decision D1), reactions, the activity log (student test ST-9) and two reps saving the
-same address at once (CQ-14)."""
+same address at once (CQ-14), one published issue per number (ST-68), no empty issue published (ST-75) and a
+deleted issue's notifications (ST-74)."""
 
 from __future__ import annotations
 
@@ -12,11 +13,13 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import set_committed_value
 
 from app.core.links import LINK_RULE, PICTURE_RULE
 from app.models import AuditEntry, EmailOutbox, IssueStatus, NewsletterIssue, Notification, User
+from app.schemas.newsletter import IssueCreate
 from app.seed.loader import load_newsletter, read
 from app.services import newsletter as svc
 from tests.content.conftest import API, PNG
@@ -597,3 +600,80 @@ def test_publishing_tells_only_those_the_newsletter_is_on_for(
     told = {n.user_id for n in db.scalars(select(Notification))}
     assert told == {other_rep.id, admin.id}
     assert student.id not in told
+
+
+# ── numbers, empty issues and deleted issues (student test ST-68, ST-74, ST-75) ─────────────────────
+
+
+def test_a_published_number_is_never_taken_again(client_for: Clients, moderator: User, db: Session) -> None:
+    rep = client_for(moderator)
+    out = rep.post(ISSUES, json=new_issue(slug="ninety-nine", number=99)).json()
+    assert rep.post(f"{ISSUES}/{out['id']}/publish").status_code == 200
+
+    # a new draft can't take it, and is told the next free number
+    r = rep.post(ISSUES, json=new_issue(slug="another-99", number=99))
+    assert r.status_code == 409, r.text
+    assert r.json()["error"]["code"] == "number_taken"
+    assert r.json()["error"]["message"] == "Issue 99 is already out. The next free number is 100."
+    assert r.json()["error"]["fields"]["number"] == r.json()["error"]["message"]
+
+    # nor can a draft be renumbered to it, nor a published issue keep or move to another published number
+    draft = rep.post(ISSUES, json=new_issue(slug="hundred", number=100)).json()
+    assert rep.patch(f"{ISSUES}/{draft['id']}", json={"number": 99}).json()["error"]["code"] == "number_taken"
+    assert rep.patch(f"{ISSUES}/{out['id']}", json={"number": 99, "title": "Same number"}).status_code == 200
+    assert db.scalar(select(NewsletterIssue.number).where(NewsletterIssue.slug == "hundred")) == 100
+
+
+def test_two_drafts_may_share_a_number_until_one_is_published(client_for: Clients, moderator: User) -> None:
+    rep = client_for(moderator)
+    first = rep.post(ISSUES, json=new_issue(slug="first", number=7)).json()
+    second = rep.post(ISSUES, json=new_issue(slug="second", number=7)).json()
+    assert rep.post(f"{ISSUES}/{first['id']}/publish").status_code == 200
+    r = rep.post(f"{ISSUES}/{second['id']}/publish")
+    assert r.status_code == 409, r.text
+    assert r.json()["error"]["code"] == "number_taken"
+    assert rep.get(f"{ISSUES}/second").json()["status"] == "draft"
+    assert [i["slug"] for i in client_for().get(ISSUES).json()] == ["first"]
+
+
+def test_the_database_keeps_published_numbers_unique(moderator: User, db: Session) -> None:
+    """Two publishes at once pass the check together; the partial unique index stops the second."""
+    a = svc.new_draft(IssueCreate.model_validate(new_issue(slug="a", number=5)), moderator)
+    b = svc.new_draft(IssueCreate.model_validate(new_issue(slug="b", number=5)), moderator)
+    db.add_all([a, b])
+    db.flush()
+    a.status = IssueStatus.published
+    db.flush()
+    b.status = IssueStatus.published
+    with pytest.raises(IntegrityError):
+        db.flush()
+    db.rollback()
+
+
+def test_an_issue_with_no_stories_cant_be_published(client_for: Clients, moderator: User) -> None:
+    rep = client_for(moderator)
+    issue = rep.post(ISSUES, json=new_issue(sections=[], cover={})).json()
+    r = rep.post(f"{ISSUES}/{issue['id']}/publish")
+    assert r.status_code == 409, r.text
+    assert r.json()["error"]["code"] == "empty_issue"
+    assert rep.get(f"{ISSUES}/{issue['slug']}").json()["status"] == "draft"
+
+
+def test_deleting_an_issue_takes_its_notifications_back(
+    client_for: Clients, make_user: Callable[..., User], moderator: User, db: Session
+) -> None:
+    reader = make_user(name="Reader")
+    db.commit()
+    rep = client_for(moderator)
+    gone = rep.post(ISSUES, json=new_issue(slug="gone", number=3)).json()
+    kept = rep.post(ISSUES, json=new_issue(slug="kept", number=4)).json()
+    for issue in (gone, kept):
+        assert rep.post(f"{ISSUES}/{issue['id']}/publish").status_code == 200
+    assert len(list(db.scalars(select(Notification).where(Notification.user_id == reader.id)))) == 2
+
+    assert rep.delete(f"{ISSUES}/{gone['id']}").status_code == 204
+    db.expire_all()
+    left = list(db.scalars(select(Notification).where(Notification.user_id == reader.id)))
+    assert [n.url for n in left] == ["/newsletter/kept"]
+    pending = list(db.scalars(select(EmailOutbox).where(EmailOutbox.status == "pending")))
+    assert all(e.notification_id in {n.id for n in left} for e in pending)

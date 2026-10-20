@@ -28,7 +28,7 @@
 //                                        for them or nothing is tagged)
 //   practisePath(moduleId, chapterId)   the chapter's practise page; progressLabel(progress) '30 of 87 done, 4 stuck'
 //   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
-//   useTimeMe()                         the paper being timed with Time me ({ timer, start, pause, resume, stop }),
+//   useTimeMe()                         the paper being timed with Time me ({ timer, start, pause, resume, end, stop }),
 //                                        kept in this browser
 //   <TimerPill />                       the floating Time me clock, on every page but the paper's own (the shell
 //                                        mounts it once)

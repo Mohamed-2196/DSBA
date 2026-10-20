@@ -113,7 +113,7 @@ export function RolesTab() {
             <thead>
               <tr>
                 <th scope="col" className="access-grid__corner">
-                  Box
+                  What they can do
                 </th>
                 {roles.map((r) => (
                   <th key={r.id} scope="col">

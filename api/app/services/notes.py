@@ -652,7 +652,8 @@ def annotate(db: Session, user: User, item_id: uuid.UUID) -> tuple[Note, bool]:
     note = Note(
         user_id=user.id,
         notebook_id=nb.id,
-        title=item.title[:200],
+        # named as the library names the paper ('ST2133 · May 2024 · Zone A'), not by its file's title (ST-80)
+        title=library.exam_title(item, (module.unit_code or module.short_name) if module is not None else None)[:200],
         doc={"type": "doc", "content": []},
         text="",
         paper="lined",

@@ -27,7 +27,7 @@ export function DeleteThreadDialog({ thread, open, onClose }: DeleteThreadDialog
       body={<p>{threadDeleteCopy(thread)}</p>}
       confirmLabel="Delete thread"
       busy={remove.isPending}
-      error={remove.isError ? errorMessage(remove.error, "The thread wasn't deleted. Try again.") : null}
+      error={remove.isError ? errorMessage(remove.error, 'The thread wasn’t deleted. Try again.') : null}
       onClose={() => {
         onClose();
         remove.reset();
@@ -72,7 +72,7 @@ export function DeleteReplyDialog({ reply, hasReplies, open, onClose }: DeleteRe
       body={<p>{replyDeleteCopy(reply, hasReplies)}</p>}
       confirmLabel="Delete reply"
       busy={remove.isPending}
-      error={remove.isError ? errorMessage(remove.error, "The reply wasn't deleted. Try again.") : null}
+      error={remove.isError ? errorMessage(remove.error, 'The reply wasn’t deleted. Try again.') : null}
       onClose={() => {
         onClose();
         remove.reset();

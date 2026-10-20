@@ -12801,7 +12801,7 @@
           "newsletter"
         ],
         "summary": "Create Issue",
-        "description": "A draft. Errors: slug_taken (409); invalid_input (422: the content doesn't fit the schema, a link isn't\nhttps://, mailto: or a page of the Hub, or the issue is over 256 KB of JSON).",
+        "description": "A draft. Errors: slug_taken (409); number_taken (409: a published issue has this number; the message names the\nnext free one); invalid_input (422: the content doesn't fit the schema, a link isn't https://, mailto: or a page of\nthe Hub, or the issue is over 256 KB of JSON).",
         "operationId": "create_issue_api_v1_newsletter_issues_post",
         "requestBody": {
           "required": true,
@@ -13006,7 +13006,7 @@
           "newsletter"
         ],
         "summary": "Update Issue",
-        "description": "Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are\nreplaced as a whole). Errors: slug_taken (409), poll_has_votes (409: a poll's answers changed after it got\nvotes), invalid_input (422).",
+        "description": "Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are\nreplaced as a whole). Errors: slug_taken (409), number_taken (409: another published issue has this number),\npoll_has_votes (409: a poll's answers changed after it got votes), invalid_input (422).",
         "operationId": "update_issue_api_v1_newsletter_issues__issue_id__patch",
         "parameters": [
           {
@@ -13118,6 +13118,7 @@
           "newsletter"
         ],
         "summary": "Delete Issue",
+        "description": "Deletes the issue, and the notifications that announced it.",
         "operationId": "delete_issue_api_v1_newsletter_issues__issue_id__delete",
         "parameters": [
           {
@@ -13214,7 +13215,7 @@
           "newsletter"
         ],
         "summary": "Publish Issue",
-        "description": "Publishes the issue and tells every account in the Hub. It also goes by email to those who keep \"New\nnewsletter issues\" on, unless an issue email went out in the last 24 hours: `emailed` says which. Audited.\nPublishing an issue that is already out changes nothing.",
+        "description": "Publishes the issue and tells every account in the Hub. It also goes by email to those who keep \"New\nnewsletter issues\" on, unless an issue email went out in the last 24 hours: `emailed` says which. Audited.\nPublishing an issue that is already out changes nothing. Errors: empty_issue (409: no stories yet), number_taken\n(409: another published issue has this number).",
         "operationId": "publish_issue_api_v1_newsletter_issues__issue_id__publish_post",
         "parameters": [
           {
@@ -35924,6 +35925,8 @@
               "already_asked",
               "nothing_found",
               "slug_taken",
+              "number_taken",
+              "empty_issue",
               "not_published",
               "already_voted",
               "poll_closed",

@@ -118,7 +118,7 @@ export function ReplyComposer({
           // Too many replies in an hour, a reply that went, a field the API turned down: its words say what to do.
           if (e instanceof ApiError && e.fields.body) setError(e.fields.body);
           else if (e instanceof ApiError && e.fields.parentId) setError(e.fields.parentId);
-          else setError(errorMessage(e, "Your reply wasn't posted. Try again."));
+          else setError(errorMessage(e, 'Your reply wasn’t posted. Try again.'));
         },
       },
     );

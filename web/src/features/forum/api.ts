@@ -450,7 +450,7 @@ export function useThreadVote() {
     },
     onError: (err, { threadId, up }) => {
       patchThread(qc, threadId, (t) => (t.voted === up ? withVote(t, !up) : t));
-      push({ title: "Your vote wasn't saved", body: errorMessage(err), tone: 'alert' });
+      push({ title: 'Your vote wasn’t saved', body: errorMessage(err), tone: 'alert' });
     },
     onSuccess: (res, { threadId }, ctx) => {
       if (ctx && isLatestVote(`t:${threadId}`, ctx.seq))
@@ -479,7 +479,7 @@ export function useReplyVote() {
     },
     onError: (err, { replyId, up }) => {
       patchReply(qc, replyId, (r) => (r.voted === up ? withVote(r, !up) : r));
-      push({ title: "Your vote wasn't saved", body: errorMessage(err), tone: 'alert' });
+      push({ title: 'Your vote wasn’t saved', body: errorMessage(err), tone: 'alert' });
     },
     onSuccess: (res, { replyId }, ctx) => {
       if (ctx && isLatestVote(`r:${replyId}`, ctx.seq))
@@ -545,7 +545,7 @@ export function useFollowThread() {
         data && data.id === threadId ? { ...data, following } : data,
       );
     },
-    onError: (err) => push({ title: "That wasn't saved", body: errorMessage(err), tone: 'alert' }),
+    onError: (err) => push({ title: 'That wasn’t saved', body: errorMessage(err), tone: 'alert' }),
   });
 }
 

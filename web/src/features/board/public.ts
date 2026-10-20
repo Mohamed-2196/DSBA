@@ -12,7 +12,7 @@
 //   <SittingsDone papers />              "4 of 12 sittings done" from the board (nothing until one is done)
 //   <PaperDone itemId />                 a "Done" badge, with the private score, for a paper done on the board or
 //                                        scored
-//   <PaperScoreDialog itemId title onClose />
+//   <PaperScoreDialog itemId title onSaved? onClose />
 //                                        "How did it go?": saves the student's practice score on a past paper
 //                                        (signed in, with featureOn('board'))
 export { AddToBoard } from './AddToBoard';

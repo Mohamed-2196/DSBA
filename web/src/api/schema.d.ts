@@ -2098,8 +2098,9 @@ export interface paths {
         put?: never;
         /**
          * Create Issue
-         * @description A draft. Errors: slug_taken (409); invalid_input (422: the content doesn't fit the schema, a link isn't
-         *     https://, mailto: or a page of the Hub, or the issue is over 256 KB of JSON).
+         * @description A draft. Errors: slug_taken (409); number_taken (409: a published issue has this number; the message names the
+         *     next free one); invalid_input (422: the content doesn't fit the schema, a link isn't https://, mailto: or a page of
+         *     the Hub, or the issue is over 256 KB of JSON).
          */
         post: operations["create_issue_api_v1_newsletter_issues_post"];
         delete?: never;
@@ -2138,15 +2139,18 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Issue */
+        /**
+         * Delete Issue
+         * @description Deletes the issue, and the notifications that announced it.
+         */
         delete: operations["delete_issue_api_v1_newsletter_issues__issue_id__delete"];
         options?: never;
         head?: never;
         /**
          * Update Issue
          * @description Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are
-         *     replaced as a whole). Errors: slug_taken (409), poll_has_votes (409: a poll's answers changed after it got
-         *     votes), invalid_input (422).
+         *     replaced as a whole). Errors: slug_taken (409), number_taken (409: another published issue has this number),
+         *     poll_has_votes (409: a poll's answers changed after it got votes), invalid_input (422).
          */
         patch: operations["update_issue_api_v1_newsletter_issues__issue_id__patch"];
         trace?: never;
@@ -2164,7 +2168,8 @@ export interface paths {
          * Publish Issue
          * @description Publishes the issue and tells every account in the Hub. It also goes by email to those who keep "New
          *     newsletter issues" on, unless an issue email went out in the last 24 hours: `emailed` says which. Audited.
-         *     Publishing an issue that is already out changes nothing.
+         *     Publishing an issue that is already out changes nothing. Errors: empty_issue (409: no stories yet), number_taken
+         *     (409: another published issue has this number).
          */
         post: operations["publish_issue_api_v1_newsletter_issues__issue_id__publish_post"];
         delete?: never;
@@ -6720,7 +6725,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "too_many_topics" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "already_played" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "number_taken" | "empty_issue" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "too_many_topics" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "already_played" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
             /** Message */
             message: string;
             /** Fields */

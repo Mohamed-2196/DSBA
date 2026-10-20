@@ -50,7 +50,7 @@ async function sharePaper(rep: Page, file: string, title: string): Promise<Item>
 /** The paper the first test shares; the second test scores it again and removes it. */
 let paper: Item | null = null;
 
-test('Time me asks for the score when it stops, the paper says "Done, 68%", and Carry on leads back to it', async ({
+test('Time me asks before ending, keeps the clock when the score is skipped, the paper says "Done, 68%", and Carry on leads back to it', async ({
   sara,
   rep,
   run,
@@ -65,8 +65,23 @@ test('Time me asks for the score when it stops, the paper says "Done, 68%", and 
   await timeMe.getByRole('button', { name: 'Start 1 hour' }).click();
   await expect(sara.locator('[data-hub="exam-timer"]')).toContainText(/0:59:\d\d left/);
 
-  await sara.getByRole('button', { name: 'Stop the timer' }).click();
+  // ST-67: ending is deliberate. "Keep going" leaves the clock running...
+  const timerBar = sara.locator('[data-hub="exam-timer"]');
+  await timerBar.getByRole('button', { name: 'End this attempt' }).click();
+  const ending = sara.getByRole('dialog', { name: 'End this attempt?' });
+  await expect(ending).toContainText(/You’re 0:0\d:\d\d into 1 hour/);
+  await ending.getByRole('button', { name: 'Keep going' }).click();
+  await expect(ending).toBeHidden();
+  await expect(timerBar).toContainText(/0:59:\d\d left of 1 hour/);
+  // ... and skipping "How did it go?" keeps the stopped clock, to resume or score later.
+  await timerBar.getByRole('button', { name: 'End this attempt' }).click();
+  await ending.getByRole('button', { name: 'End attempt' }).click();
   const score = sara.getByRole('dialog', { name: 'How did it go?' });
+  await expect(score).toBeVisible();
+  await sara.keyboard.press('Escape');
+  await expect(score).toBeHidden();
+  await expect(timerBar).toContainText('left, ended');
+  await timerBar.getByRole('button', { name: 'Save my score' }).click();
   await expect(score).toBeVisible();
   await score.getByLabel('Your score').fill('68');
   await score.locator('[data-hub="board-score-save"]').click();

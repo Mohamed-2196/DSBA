@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Computed, Date, ForeignKey, Index, Integer, SmallInteger, String, Text, func
+from sqlalchemy import Computed, Date, ForeignKey, Index, Integer, SmallInteger, String, Text, func, text
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -25,6 +25,13 @@ class NewsletterIssue(Base):
     __table_args__ = (
         Index("ix_newsletter_issues_search", "search_vector", postgresql_using="gin"),
         Index("ix_newsletter_issues_created_by", "created_by"),  # account deletion (SET NULL)
+        # One published issue per number; drafts may share one until they are published (ST-68).
+        Index(
+            "ix_newsletter_issues_published_number",
+            "number",
+            unique=True,
+            postgresql_where=text("status = 'published'"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()

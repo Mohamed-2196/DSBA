@@ -18,7 +18,7 @@ export function useThreadModeration(thread: Pick<ThreadDetail, 'id'>) {
         },
         onError: (e) => {
           // A hide runs from its dialog, which shows the problem itself.
-          if (change.status !== 'hidden') push({ title: "That didn't work", body: errorMessage(e), tone: 'alert' });
+          if (change.status !== 'hidden') push({ title: 'That didn’t work', body: errorMessage(e), tone: 'alert' });
         },
       },
     );
@@ -29,7 +29,7 @@ export function useThreadModeration(thread: Pick<ThreadDetail, 'id'>) {
     /** what went wrong with the last hide (for its dialog) */
     hideError:
       moderate.isError && moderate.variables?.change.status === 'hidden'
-        ? errorMessage(moderate.error, "The thread wasn't hidden. Try again.")
+        ? errorMessage(moderate.error, 'The thread wasn’t hidden. Try again.')
         : null,
     reset: moderate.reset,
     pin: (pinned: boolean) =>
@@ -69,7 +69,7 @@ export function useThreadModeration(thread: Pick<ThreadDetail, 'id'>) {
                   }
                 : { title: 'Thread visible again', body: 'Everyone can see it now.', tone: 'success' },
             ),
-          onError: (e) => push({ title: "That didn't work", body: errorMessage(e), tone: 'alert' }),
+          onError: (e) => push({ title: 'That didn’t work', body: errorMessage(e), tone: 'alert' }),
         },
       ),
   };

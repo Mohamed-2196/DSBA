@@ -83,8 +83,9 @@ def get_issue(slug: str, db: DB, user: OptionalUser) -> IssueDetail:
 
 @router.post("/newsletter/issues", response_model=IssueDetail, status_code=status.HTTP_201_CREATED)
 def create_issue(body: IssueCreate, request: Request, user: NewsletterManager, db: DB) -> IssueDetail:
-    """A draft. Errors: slug_taken (409); invalid_input (422: the content doesn't fit the schema, a link isn't
-    https://, mailto: or a page of the Hub, or the issue is over 256 KB of JSON)."""
+    """A draft. Errors: slug_taken (409); number_taken (409: a published issue has this number; the message names the
+    next free one); invalid_input (422: the content doesn't fit the schema, a link isn't https://, mailto: or a page of
+    the Hub, or the issue is over 256 KB of JSON)."""
     issue = svc.create_issue(db, user, body, client_ip(request))
     db.commit()
     return svc.to_detail(db, issue, user)
@@ -93,8 +94,8 @@ def create_issue(body: IssueCreate, request: Request, user: NewsletterManager, d
 @router.patch("/newsletter/issues/{issue_id}", response_model=IssueDetail)
 def update_issue(issue_id: UUID, body: IssueUpdate, request: Request, user: NewsletterManager, db: DB) -> IssueDetail:
     """Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are
-    replaced as a whole). Errors: slug_taken (409), poll_has_votes (409: a poll's answers changed after it got
-    votes), invalid_input (422)."""
+    replaced as a whole). Errors: slug_taken (409), number_taken (409: another published issue has this number),
+    poll_has_votes (409: a poll's answers changed after it got votes), invalid_input (422)."""
     issue = svc.get_by_id(db, issue_id)
     svc.update_issue(db, user, issue, body, client_ip(request))
     db.commit()
@@ -105,7 +106,8 @@ def update_issue(issue_id: UUID, body: IssueUpdate, request: Request, user: News
 def publish_issue(issue_id: UUID, request: Request, user: NewsletterManager, db: DB) -> PublishedIssue:
     """Publishes the issue and tells every account in the Hub. It also goes by email to those who keep "New
     newsletter issues" on, unless an issue email went out in the last 24 hours: `emailed` says which. Audited.
-    Publishing an issue that is already out changes nothing."""
+    Publishing an issue that is already out changes nothing. Errors: empty_issue (409: no stories yet), number_taken
+    (409: another published issue has this number)."""
     issue = svc.get_by_id(db, issue_id)
     emailed = svc.publish(db, user, issue, client_ip(request))
     db.commit()
@@ -114,6 +116,7 @@ def publish_issue(issue_id: UUID, request: Request, user: NewsletterManager, db:
 
 @router.delete("/newsletter/issues/{issue_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_issue(issue_id: UUID, request: Request, user: NewsletterManager, db: DB) -> Response:
+    """Deletes the issue, and the notifications that announced it."""
     svc.delete_issue(db, user, svc.get_by_id(db, issue_id), client_ip(request))
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

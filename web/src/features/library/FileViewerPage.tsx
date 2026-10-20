@@ -43,7 +43,7 @@ import type { LibraryItem } from './types';
 import { useStar } from './useStar';
 import { paperContext, usePaperSittings } from './papers';
 import { AskNoora } from './viewer/AskNoora';
-import { ExamTimer, TimeMeButton, TimeMeDialog, timedPaper, useFinishPaper, useTimeMe } from './viewer/ExamTimer';
+import { ExamTimer, TimeMeButton, TimeMeDialog, timedPaper, useEndAttempt, useTimeMe } from './viewer/ExamTimer';
 import { MetaPanel } from './viewer/MetaPanel';
 import { Preview } from './viewer/Preview';
 import { toolbarLayout, toolbarRoom, type MoreAction } from './viewer/toolbar';
@@ -88,6 +88,7 @@ export default function FileViewerPage() {
           <Panel padding="none">
             <EmptyState
               icon={<Icon glyph={glyph.search} />}
+              titleAs="h1"
               title="We couldn’t find that file"
               body="It may have been removed, or it isn’t published yet. Search the library for it instead."
               action={
@@ -188,9 +189,9 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const [params, setParams] = useSearchParams();
   const [timeMeOpen, setTimeMeOpen] = useState(false);
   const isPaper = item.kind === 'past-paper' && item.source === 'file' && item.status === 'published';
-  const { timer, start, pause, resume, stop } = useTimeMe();
+  const { timer, start, pause, resume, end, stop } = useTimeMe();
   const timing = timer?.paper.id === item.id ? timer : null;
-  const { finish, dialog: scoreDialog } = useFinishPaper(stop);
+  const { close: closeTimer, score: scoreTimed, dialog: scoreDialog } = useEndAttempt({ end, stop });
   const [scoring, setScoring] = useState(false);
   const sittings = usePaperSittings(item.moduleId, { enabled: isPaper && item.examYear !== null });
   const report = paperContext(sittings.data?.sittings, item.id)?.reports[0] ?? null;
@@ -476,7 +477,8 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           report={report}
           onPause={pause}
           onResume={resume}
-          onFinish={() => finish(timing.paper)}
+          onClose={() => closeTimer(timing)}
+          onScore={() => scoreTimed(timing.paper)}
         />
       ) : null}
       {status ? (

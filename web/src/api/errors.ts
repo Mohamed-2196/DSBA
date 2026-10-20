@@ -22,17 +22,24 @@ export class ApiError extends Error {
   readonly retryAfter: number | null;
 
   constructor({ status, code, message, fields, retryAfter, cause }: ApiErrorInit) {
-    super(message, { cause });
+    super(typeset(message), { cause });
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
-    this.fields = fields ? fieldsByName(fields) : {};
+    this.fields = fields
+      ? fieldsByName(Object.fromEntries(Object.entries(fields).map(([k, m]) => [k, typeset(m)])))
+      : {};
     this.retryAfter = retryAfter ?? null;
   }
 
   get isUnauthenticated(): boolean {
     return this.status === 401;
   }
+}
+
+/** The API's words set as the app sets its own: a curly apostrophe inside a word ("isn't" → "isn’t", ST-77). */
+export function typeset(text: string): string {
+  return text.replace(/(\p{L})'(\p{L})/gu, '$1’$2');
 }
 
 interface ErrorBody {

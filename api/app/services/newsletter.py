@@ -14,7 +14,7 @@ from datetime import timedelta
 from typing import Any
 
 from pydantic import BaseModel
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -23,7 +23,16 @@ from app.core.access import Box, Feature
 from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.links import json_size
 from app.core.time import utcnow
-from app.models import AuditEntry, IssueStatus, NewsletterIssue, NewsletterReaction, User
+from app.models import (
+    AuditEntry,
+    EmailOutbox,
+    IssueStatus,
+    NewsletterIssue,
+    NewsletterReaction,
+    Notification,
+    OutboxStatus,
+    User,
+)
 from app.schemas.newsletter import (
     CardAside,
     CtaBlock,
@@ -179,6 +188,36 @@ def _slug_taken() -> ApiError:
     return conflict("slug_taken", "Another issue already uses this address.")
 
 
+PUBLISHED_NUMBER_INDEX = "ix_newsletter_issues_published_number"
+
+
+def next_number(db: Session) -> int:
+    """The number after every issue's, drafts included: free for a new issue."""
+    return (db.scalar(select(func.max(NewsletterIssue.number))) or 0) + 1
+
+
+def _number_taken(db: Session, number: int) -> ApiError:
+    message = f"Issue {number} is already out. The next free number is {next_number(db)}."
+    return ApiError(409, "number_taken", message, fields={"number": message})
+
+
+def check_number_free(db: Session, number: int, issue_id: uuid.UUID | None = None) -> None:
+    """409 number_taken when a published issue other than this one has the number (ST-68). A draft may share a draft's
+    number; whichever is published second is refused."""
+    q = select(NewsletterIssue.id).where(
+        NewsletterIssue.number == number, NewsletterIssue.status == IssueStatus.published
+    )
+    if issue_id is not None:
+        q = q.where(NewsletterIssue.id != issue_id)
+    if db.scalar(q.limit(1)) is not None:
+        raise _number_taken(db, number)
+
+
+def _clash(db: Session, error: IntegrityError, number: int) -> ApiError:
+    """The unique index two writes at once ran into: the published number's, else the address's."""
+    return _number_taken(db, number) if PUBLISHED_NUMBER_INDEX in str(error.orig) else _slug_taken()
+
+
 def check_slug_free(db: Session, slug: str, issue_id: uuid.UUID | None = None) -> None:
     """409 slug_taken when another issue has this address (two reps saving at once are caught on insert)."""
     q = select(NewsletterIssue.id).where(NewsletterIssue.slug == slug)
@@ -221,6 +260,7 @@ def new_draft(body: IssueCreate, author: User | None = None) -> NewsletterIssue:
 def create_issue(db: Session, user: User, body: IssueCreate, ip: str | None) -> NewsletterIssue:
     """A new draft. Its uploaded pictures must be newsletter pictures, and become attached to it."""
     check_slug_free(db, body.slug)
+    check_number_free(db, body.number)
     shown = newsletter_images.check(db, newsletter_images.pictures(body.cover, body.sections))
     issue = new_draft(body, user)
     _insert(db, issue)
@@ -234,6 +274,8 @@ def update_issue(db: Session, user: User, issue: NewsletterIssue, body: IssueUpd
     savepoint, so a new address that another rep took a moment earlier answers 409 slug_taken, not a 500."""
     if body.slug is not None and body.slug != issue.slug:
         check_slug_free(db, body.slug, issue.id)
+    if body.number is not None and body.number != issue.number:
+        check_number_free(db, body.number, issue.id)
     if body.sections is not None:
         polls.keep_voted_answers(db, issue, polls.polls_in(read_sections(issue)), polls.polls_in(body.sections))
     pictures_change = body.cover is not None or body.sections is not None
@@ -253,9 +295,9 @@ def update_issue(db: Session, user: User, issue: NewsletterIssue, body: IssueUpd
             changed = apply_patch(issue, body, EDITABLE, blank=BLANK)
             _check_size(issue)
             db.flush()
-    except IntegrityError:
+    except IntegrityError as e:
         db.expire(issue)
-        raise _slug_taken() from None
+        raise _clash(db, e, body.number if body.number is not None else issue.number) from None
     except ApiError:
         db.expire(issue)  # drop the unsaved changes
         raise
@@ -275,9 +317,26 @@ def update_issue(db: Session, user: User, issue: NewsletterIssue, body: IssueUpd
         )
 
 
+def forget_issue(db: Session, issue: NewsletterIssue) -> None:
+    """The notifications about this issue go with it, and their emails if they haven't gone out (ST-74): they would
+    open "We couldn't find that issue"."""
+    about_it = select(Notification.id).where(
+        Notification.kind == "new_issue", Notification.data.contains({"issueId": str(issue.id)})
+    )
+    db.execute(
+        update(EmailOutbox)
+        .where(EmailOutbox.notification_id.in_(about_it), EmailOutbox.status == OutboxStatus.pending)
+        .values(status=OutboxStatus.cancelled)
+        .execution_options(synchronize_session=False)
+    )
+    db.execute(delete(Notification).where(Notification.id.in_(about_it)).execution_options(synchronize_session=False))
+
+
 def delete_issue(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> None:
-    """The audit row keeps the slug, so the seed never brings a deleted issue back. Its pictures are released."""
+    """The audit row keeps the slug, so the seed never brings a deleted issue back. Its pictures are released, and its
+    notifications go."""
     newsletter_images.release(db, issue)
+    forget_issue(db, issue)
     record(
         db,
         user,
@@ -301,6 +360,9 @@ def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> 
     db.refresh(issue, with_for_update=True)  # two publishes at once: the second finds it published
     if issue.status == IssueStatus.published:
         return False
+    if not issue.sections:
+        raise conflict("empty_issue", "This issue has no stories yet. Add one before you publish it.")
+    check_number_free(db, issue.number, issue.id)
     now = utcnow()
     ratelimit.lock(db, "newsletter:cohort-email")  # two issues published at once can't both email
     emailed_lately = select(AuditEntry.id).where(
@@ -311,6 +373,11 @@ def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> 
     emailed = db.scalar(emailed_lately.limit(1)) is None
     issue.status = IssueStatus.published
     issue.published_at = now
+    try:
+        with db.begin_nested():  # another issue with this number published a moment earlier
+            db.flush()
+    except IntegrityError as e:
+        raise _clash(db, e, issue.number) from None
     readers = access.audience(db, Feature.newsletter)
     notified = (
         0

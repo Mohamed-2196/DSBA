@@ -13,7 +13,7 @@ export function useReplyModeration(reply: Pick<Reply, 'id'>) {
     /** what went wrong with the last hide (its dialog shows it) */
     hideError:
       moderate.isError && moderate.variables?.change.status === 'hidden'
-        ? errorMessage(moderate.error, "The reply wasn't hidden. Try again.")
+        ? errorMessage(moderate.error, 'The reply wasn’t hidden. Try again.')
         : null,
     reset: moderate.reset,
     hide: (reason: string | null, onDone: () => void) =>
@@ -44,7 +44,7 @@ export function useReplyModeration(reply: Pick<Reply, 'id'>) {
                   }
                 : { title: 'Reply visible again', tone: 'success' },
             ),
-          onError: (e) => push({ title: "That didn't work", body: errorMessage(e), tone: 'alert' }),
+          onError: (e) => push({ title: 'That didn’t work', body: errorMessage(e), tone: 'alert' }),
         },
       ),
   };

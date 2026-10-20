@@ -44,7 +44,7 @@ export function BoardStart({ taken, readOnly, onStarted }: BoardStartProps) {
               className={cx('board-start__option', starting === t.id && 'is-starting')}
               style={{ '--tpl': colorVar(t.color) } as CSSProperties}
               disabled={readOnly || create.isPending}
-              aria-label={`Start a ${t.name} board`}
+              aria-label={`Start ${/^[aeiou]/i.test(t.name) ? 'an' : 'a'} ${t.name} board`}
               aria-describedby={`board-start-${t.id}`}
               onClick={() => start(t.id)}
               data-hub={`board-template-${t.id}`}

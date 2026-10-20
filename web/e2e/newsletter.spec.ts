@@ -1,7 +1,7 @@
 // The newsletter: a rep publishes a draft, students are notified, read it and react; guests read it too.
 // Publishing notifies every account in the database that wants newsletter news (the teardown deletes the issue).
 import { expect, test } from './fixtures';
-import { api, remember } from './support';
+import { api, freshIssueNumber, remember } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -15,9 +15,10 @@ test('a rep publishes a draft; Ali is notified, reads it and reacts; a guest rea
 }) => {
   const slug = `e2e-${run.tag}`;
   const title = `Revision week special [e2e ${run.tag}]`;
+  const number = freshIssueNumber();
   const created = await api<{ id: string; status: string }>(rep, 'POST', '/api/v1/newsletter/issues', {
     slug,
-    number: 99,
+    number,
     title,
     date: bahrainToday(),
     dek: 'Where to revise, what to bring, and the dates that matter.',
@@ -54,7 +55,7 @@ test('a rep publishes a draft; Ali is notified, reads it and reacts; a guest rea
   );
   await rep.getByRole('button', { name: 'Publish', exact: true }).first().click();
   const confirm = rep.getByRole('dialog');
-  await expect(confirm).toContainText('Publish issue 99?');
+  await expect(confirm).toContainText(`Publish issue ${number}?`);
   await confirm.getByRole('button', { name: 'Publish and notify everyone' }).click();
   await expect(rep.locator('main')).not.toContainText('Only people who manage the newsletter can see this issue');
 

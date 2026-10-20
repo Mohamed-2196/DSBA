@@ -1,5 +1,6 @@
 import { errorMessage } from '../api/errors';
 import { accountLine, badgeOf, useAuth } from '../auth';
+import { formatPhone } from '../auth/identifiers';
 import { useToast } from '../state';
 import { Avatar, Button, Icon, IconButton, Menu, Skeleton, cx, glyph, type MenuItem } from '../ui';
 import { openBugReport } from '../features/bugs/public';
@@ -70,7 +71,8 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
       : me.needsProfile
         ? 'Finish your profile'
         : accountLine({ badge: badgeOf(me), year: me.year });
-  const identity = me.email || me.phone || '';
+  // A number as people write it: '+973 3376 0536' (ST-77).
+  const identity = me.email || (me.phone ? formatPhone(me.phone) : '');
 
   const onSignOut = async () => {
     try {

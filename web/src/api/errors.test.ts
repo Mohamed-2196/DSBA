@@ -3,6 +3,7 @@ import {
   ApiError,
   NETWORK_MESSAGE,
   SERVER_MESSAGE,
+  typeset,
   errorMessage,
   fieldKey,
   isApiError,
@@ -213,5 +214,23 @@ describe('unplacedMessage', () => {
     const all = refused({ 'body.title': 'Too short.' });
     expect(unplacedMessage(all, placeFieldErrors(all.fields, ['title']))).toBeNull();
     expect(unplacedMessage(null, placeFieldErrors({}, ['title']))).toBeNull();
+  });
+});
+
+describe('the API’s words (ST-77)', () => {
+  it('take a curly apostrophe inside a word, as the app’s own copy does', () => {
+    expect(typeset("That code isn't right. 4 tries left.")).toBe('That code isn’t right. 4 tries left.');
+    expect(typeset("'quoted' and rock 'n' roll")).toBe("'quoted' and rock 'n' roll");
+  });
+
+  it('in messages and in each field', () => {
+    const e = new ApiError({
+      status: 409,
+      code: 'number_taken',
+      message: "Issue 9 isn't free.",
+      fields: { number: "isn't" },
+    });
+    expect(e.message).toBe('Issue 9 isn’t free.');
+    expect(e.fields.number).toBe('isn’t');
   });
 });

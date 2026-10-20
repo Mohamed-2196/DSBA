@@ -593,9 +593,26 @@ function lookUp(k: Knowledge, text: string, said: string, year: number | null): 
   const topics = findTopics(k, stems, topicWords(said).join(' '), year);
   const found = aboutTopic(topics, stems);
   if (found) return found;
-  // Nothing more specific: a module that was named, or whose name is all that was said, is still an answer.
-  if (named && (named.sure || named.used.length === stems.length)) return aboutModule(k, named.module, year);
+  // Nothing more specific: a module whose name is all that was said is still an answer.
+  if (named && named.used.length === stems.length) return aboutModule(k, named.module, year);
+  // A module and a topic it doesn't list: not the module's summary (that reads as a misunderstanding, ST-69), but
+  // that she can't explain it from her script, and the module's page to look in.
+  if (named && named.sure) {
+    return {
+      mood: 'sad',
+      text: `${k.script.notFound} ${withoutAi(k)}`,
+      refs: [moduleRef(named.module, `${named.module.called} lessons`)],
+      suggestions: k.script.tryInstead,
+    };
+  }
   return null;
+}
+
+/** What she says when her script can't answer: that only her AI explains topics, and what she can do instead. */
+function withoutAi(k: Knowledge): string {
+  return k.name === null
+    ? 'From my script I can’t explain topics: sign in for my AI answers. I can still find where a topic is taught, say what’s in a module or check exam dates.'
+    : 'My AI answers are off right now, and from my script I can’t explain topics. I can still find where a topic is taught, say what’s in a module or check exam dates.';
 }
 
 /** Answer one message. `now` is the time, for exam countdowns. */
@@ -654,5 +671,5 @@ export function answer({ text, attachments, year }: Question, k: Knowledge, now:
     if (guess) return { mood: 'happy', text: script.fileGuess, refs: guess.refs.slice(0, 4) };
     return { mood: 'neutral', text: script.fileUnknown, refs: [], suggestions: script.tryInstead.slice(0, 2) };
   }
-  return { mood: 'sad', text: script.notFound, refs: [], suggestions: script.tryInstead };
+  return { mood: 'sad', text: `${script.notFound} ${withoutAi(k)}`, refs: [], suggestions: script.tryInstead };
 }

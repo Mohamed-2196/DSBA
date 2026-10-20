@@ -62,7 +62,7 @@ setup('Sara signs up with her phone number: wrong code, resend, profile', async 
 
   // A wrong code says how many tries are left.
   await dialog.getByLabel('6-digit code').fill(code1 === '000000' ? '111111' : '000000');
-  await expect(dialog).toContainText("That code isn't right. 4 tries left.");
+  await expect(dialog).toContainText('That code isn’t right. 4 tries left.');
 
   // Resend after the countdown: a new code, and the first one stops working. (One name for the action, before and
   // after a code expires: "Send a new code", UI/UX review.)

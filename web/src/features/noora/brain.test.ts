@@ -162,3 +162,23 @@ describe('switched-off features', () => {
     expect(links(ask('past papers'))).toEqual(['/library']);
   });
 });
+
+describe('questions her script can’t answer (ST-69)', () => {
+  it('says she can’t explain a topic without her AI, rather than giving the module’s summary', () => {
+    const r = ask('Explain the Neyman-Pearson lemma for ST2133 with an example');
+    expect(r.text).toContain('My AI answers are off right now');
+    expect(r.text).not.toContain('is a Year 2 module');
+    expect(links(r)).toEqual(['/modules/advanced-stats-distribution']);
+    expect(r.suggestions?.length).toBeGreaterThan(0);
+  });
+
+  it('still describes a module when the module is all that was asked', () => {
+    expect(ask('What’s in ST2133?').text).toContain('is a Year 2 module');
+  });
+
+  it('tells a guest to sign in for her AI', () => {
+    const k = buildKnowledge([ST2133], new Map([[ST2133.id, detail]]), [], null, () => true, SCRIPT);
+    const r = answer({ text: 'what is a sufficient statistic', attachments: [], year: 2 }, k);
+    expect(r.text).toContain('sign in for my AI answers');
+  });
+});

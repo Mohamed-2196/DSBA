@@ -109,7 +109,7 @@ export function ReplyItem({
                   mate: 'pip-pod',
                 },
           ),
-        onError: (e) => push({ title: "That didn't work", body: errorMessage(e), tone: 'alert' }),
+        onError: (e) => push({ title: 'That didn’t work', body: errorMessage(e), tone: 'alert' }),
       },
     );
   };

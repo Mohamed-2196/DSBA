@@ -128,8 +128,11 @@ export default function ForumPage() {
                   className="forum-live__link"
                   onClick={() => update({ cohort: 'all', status: 'no-replies', tag: '', q: '' })}
                 >
-                  <span className="u-tabular">{formatCount(stats.data.noReplies)}</span>{' '}
-                  {stats.data.noReplies === 1 ? 'question is' : 'questions are'} waiting for a first reply
+                  {/* One run of text: in the 44 px touch box (a flex box), the number and the words stay together. */}
+                  <span>
+                    <span className="u-tabular">{formatCount(stats.data.noReplies)}</span>{' '}
+                    {stats.data.noReplies === 1 ? 'question is' : 'questions are'} waiting for a first reply
+                  </span>
                 </button>
               ) : null}
             </div>
