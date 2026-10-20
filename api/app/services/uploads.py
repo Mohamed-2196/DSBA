@@ -41,7 +41,7 @@ from app.models import (
     User,
 )
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
-from app.services import access, notebook_uploads, ratelimit
+from app.services import access, notebook_uploads, ratelimit, upload_budget
 from app.services.forum.visibility import can_read_thread, moderates
 from app.services.storage import INCOMING_PREFIX, Storage, error_code, get_storage, safe_file_name
 
@@ -274,7 +274,8 @@ def _check_room(db: Session, user: User, purpose: UploadPurpose, size_bytes: int
 
 
 def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage | None = None) -> PresignedUpload:
-    """The upload row (pending) and its presigned POST. The rate limit and the purpose's room (_check_room()) are
+    """The upload row (pending) and its presigned POST. The rate limit, the purpose's room (_check_room()) and the
+    daily budgets (upload_budget) are
     counted under the person's upload lock, so parallel requests are counted one after the other and can't all fit
     in the same room. The caller commits."""
     purpose = UploadPurpose(body.purpose)
@@ -288,6 +289,7 @@ def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage 
         raise ApiError(422, "too_large", msg, fields={"sizeBytes": msg})
     check_rate(db, user, purpose)  # takes the lock, held until the transaction ends
     _check_room(db, user, purpose, body.size_bytes)
+    upload_budget.check(db, user, body.size_bytes)  # the person's and the hub's bytes in 24 hours (SEC-14)
     if purpose == UploadPurpose.note_file:
         notebook_uploads.record_upload(db, user, body.size_bytes)
 

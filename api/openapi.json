@@ -7193,7 +7193,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who\nmanage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB; board\n(a file on a board card): the library's types and GIF, up to DSBA_MAX_UPLOAD_MB; note_file: the library's types\nand GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room; career_logo: PNG, JPEG, WebP up to\nDSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r, `application/octet-stream` is\naccepted too). POST `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads\nper hour; note files apart, with the hourly limit admins set (60 to start).\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),\nforbidden (403: no library.upload, no forum.post for a forum picture, no newsletter.manage for a newsletter\npicture, no career.edit for a logo), feature_off (404: the library, its uploads, the forum, the newsletter,\nthe boards, the notebook or Career Navigator are switched off).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who\nmanage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB; board\n(a file on a board card): the library's types and GIF, up to DSBA_MAX_UPLOAD_MB; note_file: the library's types\nand GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room; career_logo: PNG, JPEG, WebP up to\nDSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r, `application/octet-stream` is\naccepted too). POST `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads\nper hour; note files apart, with the hourly limit admins set (60 to start). Every upload also counts against the\nperson's and the hub's daily budgets (1 GB and 20 GB to start; Manage \u2192 Numbers): over either, 429 rate_limited.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),\nforbidden (403: no library.upload, no forum.post for a forum picture, no newsletter.manage for a newsletter\npicture, no career.edit for a logo), feature_off (404: the library, its uploads, the forum, the newsletter,\nthe boards, the notebook or Career Navigator are switched off).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -7486,6 +7486,198 @@
               }
             },
             "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/uploads": {
+      "get": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Upload Limits",
+        "description": "The hub's and each account's upload budgets per 24 hours, and the bytes uploads declared in the last 24 hours.\nAdmins only.",
+        "operationId": "upload_limits_api_v1_admin_uploads_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadLimitsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Set Upload Limits",
+        "description": "Set the megabytes the whole hub (1 GB to 1 TB) and each account (10 MB to 100 GB) may upload in 24 hours.\nAdmins only. Audited (`uploads.limits`).",
+        "operationId": "set_upload_limits_api_v1_admin_uploads_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadLimitsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadLimitsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -49691,6 +49883,66 @@
           "sizeBytes"
         ],
         "title": "UploadCreate"
+      },
+      "UploadLimitsIn": {
+        "properties": {
+          "hubMbPerDay": {
+            "type": "integer",
+            "maximum": 1048576.0,
+            "minimum": 1024.0,
+            "title": "Hubmbperday"
+          },
+          "accountMbPerDay": {
+            "type": "integer",
+            "maximum": 102400.0,
+            "minimum": 10.0,
+            "title": "Accountmbperday"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hubMbPerDay",
+          "accountMbPerDay"
+        ],
+        "title": "UploadLimitsIn",
+        "description": "The upload budgets admins set: megabytes the whole hub, and each account, may upload in 24 hours."
+      },
+      "UploadLimitsOut": {
+        "properties": {
+          "hubMbPerDay": {
+            "type": "integer",
+            "title": "Hubmbperday"
+          },
+          "accountMbPerDay": {
+            "type": "integer",
+            "title": "Accountmbperday"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "bytesLastDay": {
+            "type": "integer",
+            "title": "Byteslastday"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hubMbPerDay",
+          "accountMbPerDay",
+          "updatedAt",
+          "bytesLastDay"
+        ],
+        "title": "UploadLimitsOut",
+        "description": "The upload budgets and how much of the hub's is used, for admins in Manage \u2192 Numbers."
       },
       "UploadOut": {
         "properties": {

@@ -350,7 +350,7 @@ the lists are `app/core/access.py` (`BOXES`, `FEATURES`), which the screen shows
 Admin holds every box. These powers belong to Admin and are no box: roles and what each may do, giving roles, the
 switches, account recovery, who reported something, suspending an admin, Site settings, the grades calculator's
 rules, Mini Noora's words and her limits (Manage → Numbers), the notebook's upload limit and numbers (Manage →
-Numbers), bug reports (Manage → Bugs) and loading a Daily content
+Numbers), the daily upload budgets (Manage → Numbers), bug reports (Manage → Bugs) and loading a Daily content
 file. Roles, people's roles, the switches, account recovery, Mini Noora's words and her limits also need a recent
 confirmation: a session more than ten minutes old is asked for a step-up code (`SteppedUpAdmin` in
 `routers/_base.py`, `sessions.require_step_up()`).
@@ -499,3 +499,8 @@ re-chains them at merge.
   a play finished before a fix as practice, and limits keeps per account and per address. Trade-off: the history is
   the browser's word (no signed guest tokens), so a guest could try a puzzle in private windows and keep the best
   play; the same scouting is open to anyone with a second browser, so the Daily accepts it.
+- **D18 Daily upload budgets are an admin setting** (Mohamed, 2026-10-20; security review SEC-14). Every upload counts,
+  by the size it declares when it starts, against the whole hub's budget (20 GB in 24 hours to start) and its
+  account's (1 GB), in `upload_limits` (`services/upload_budget.py`). Over either, POST /uploads answers 429
+  rate_limited with the wait until it fits. Admins set both in Manage → Numbers (`GET`/`PUT /admin/uploads`) on a
+  normal session, audited as `uploads.limits`.

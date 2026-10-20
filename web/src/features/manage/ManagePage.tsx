@@ -37,6 +37,7 @@ import { useAdminStats } from './api';
 import { Gaps } from './Gaps';
 import { NooraNumbers } from './NooraNumbers';
 import { NotebookNumbers } from './NotebookNumbers';
+import { UploadBudgets } from './UploadBudgets';
 import { SundaySummary } from './SundaySummary';
 import { SummaryWords } from './SummaryWords';
 import { BugReports } from '../bugs/public';
@@ -85,6 +86,7 @@ function Numbers() {
       <HubNumbers />
       {featureOn('noora.ai') ? <NooraNumbers canEdit={isAdmin} /> : null}
       {isAdmin ? <NotebookNumbers /> : null}
+      {isAdmin ? <UploadBudgets /> : null}
     </div>
   );
 }

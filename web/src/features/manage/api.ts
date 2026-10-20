@@ -4,11 +4,19 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ADMIN_STATS_KEY } from '../../api/keys';
-import type { NooraLimitsIn, NotebookLimitsIn, SummaryEditable, SummarySave, SummaryWords } from '../../api/types';
+import type {
+  NooraLimitsIn,
+  NotebookLimitsIn,
+  SummaryEditable,
+  SummarySave,
+  SummaryWords,
+  UploadLimitsIn,
+} from '../../api/types';
 import type { CohortYear } from '../../state';
 
 const NOORA_USAGE_KEY = ['admin', 'noora'] as const;
 const NOTEBOOK_UPLOADS_KEY = ['admin', 'notebook'] as const;
+const UPLOAD_LIMITS_KEY = ['admin', 'uploads'] as const;
 
 export function useAdminStats(enabled: boolean) {
   return useQuery({
@@ -54,6 +62,25 @@ export function useSetNotebookLimits() {
   return useMutation({
     mutationFn: (body: NotebookLimitsIn) => call(api.PUT('/api/v1/admin/notebook', { body })),
     onSuccess: (out) => qc.setQueryData(NOTEBOOK_UPLOADS_KEY, out),
+  });
+}
+
+/** The hub's and each account's upload budgets per 24 hours (admins), and the bytes uploaded in the last 24 hours. */
+export function useUploadLimits(enabled: boolean) {
+  return useQuery({
+    queryKey: UPLOAD_LIMITS_KEY,
+    queryFn: () => call(api.GET('/api/v1/admin/uploads')),
+    refetchInterval: 60_000,
+    enabled,
+  });
+}
+
+/** Admins set the megabytes the whole hub, and each account, may upload in 24 hours. */
+export function useSetUploadLimits() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UploadLimitsIn) => call(api.PUT('/api/v1/admin/uploads', { body })),
+    onSuccess: (out) => qc.setQueryData(UPLOAD_LIMITS_KEY, out),
   });
 }
 

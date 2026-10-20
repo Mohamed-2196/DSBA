@@ -256,6 +256,7 @@ class Upload(Base):
         Index("ix_uploads_newsletter_issue", "newsletter_issue_id"),  # an issue's pictures
         Index("ix_uploads_bug_report", "bug_report_id"),  # a report's screenshot
         Index("ix_uploads_card", "card_id"),  # a card's files; removing a card (SET NULL)
+        Index("ix_uploads_created", "created_at"),  # the hub's upload budget: bytes in the last 24 hours
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -275,3 +276,25 @@ class Upload(Base):
     )
     bug_report_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("bug_reports.id", ondelete="SET NULL"))
     card_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("board_cards.id", ondelete="SET NULL"))
+
+
+DEFAULT_HUB_MB_PER_DAY = 20 * 1024  # 20 GB
+DEFAULT_ACCOUNT_MB_PER_DAY = 1024  # 1 GB
+
+
+class UploadLimits(Base):
+    """The one row of the upload budgets admins set in Manage → Numbers (SEC-14): the megabytes the whole hub, and
+    each account, may upload in 24 hours, counted from what uploads declare when they start."""
+
+    __tablename__ = "upload_limits"
+    __table_args__ = (CheckConstraint("id = 1", name="single_row"),)
+
+    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, default=1)
+    hub_mb_per_day: Mapped[int] = mapped_column(
+        Integer, default=DEFAULT_HUB_MB_PER_DAY, server_default=str(DEFAULT_HUB_MB_PER_DAY)
+    )
+    account_mb_per_day: Mapped[int] = mapped_column(
+        Integer, default=DEFAULT_ACCOUNT_MB_PER_DAY, server_default=str(DEFAULT_ACCOUNT_MB_PER_DAY)
+    )
+    updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    updated_at: Mapped[datetime | None]

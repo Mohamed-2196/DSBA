@@ -101,6 +101,22 @@ const notebookLimits = (d: Record<string, unknown>): string => {
     : 'changed the notebook’s upload limit';
 };
 
+/** Megabytes in words: '512 MB', '1 GB', '1.5 GB'. */
+const megabytes = (mb: number): string => {
+  if (mb < 1024) return `${formatCount(mb)} MB`;
+  const gb = mb / 1024;
+  return `${Number.isInteger(gb) ? formatCount(gb) : gb.toFixed(1)} GB`;
+};
+
+const uploadLimits = (d: Record<string, unknown>): string => {
+  const after = typeof d.after === 'object' && d.after !== null ? (d.after as Record<string, unknown>) : {};
+  const hub = count(after.hubMbPerDay);
+  const account = count(after.accountMbPerDay);
+  return hub && account
+    ? `set the upload budgets to ${megabytes(hub)} a day for the hub and ${megabytes(account)} per account`
+    : 'changed the upload budgets';
+};
+
 /** An admin's identifier change (account recovery): data.from and data.to are masked ("s•••@example.com"). */
 const IDENTIFIER_NOUN: Record<string, string> = { email: 'email address', phone: 'phone number' };
 
@@ -195,6 +211,7 @@ const ACTIONS: Record<string, Describe> = {
   'bug_report.status': (d) => BUG_STATUS[str(d.status) ?? ''] ?? 'changed a bug report',
   'noora.limits': nooraLimits,
   'notebook.limits': notebookLimits,
+  'uploads.limits': uploadLimits,
   'noora.update': () => 'edited Mini Noora’s instructions and script',
   'site.update': () => 'edited Site settings',
   'guides.update': () => 'edited the guides',

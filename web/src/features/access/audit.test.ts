@@ -186,6 +186,12 @@ describe('describeAudit', () => {
     expect(describeAudit(entry('notebook.limits', { after: { uploadsPerHour: 60 } }))).toBe(
       'set the notebook’s uploads to 60 an hour per student',
     );
+    expect(describeAudit(entry('uploads.limits', { after: { hubMbPerDay: 20480, accountMbPerDay: 512 } }))).toBe(
+      'set the upload budgets to 20 GB a day for the hub and 512 MB per account',
+    );
+    expect(describeAudit(entry('uploads.limits', { after: { hubMbPerDay: 2048, accountMbPerDay: 1536 } }))).toBe(
+      'set the upload budgets to 2 GB a day for the hub and 1.5 GB per account',
+    );
     expect(describeAudit(entry('site.update', { title: 'Site settings', parts: ['links'] }))).toBe(
       'edited Site settings',
     );
