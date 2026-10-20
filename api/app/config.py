@@ -30,6 +30,7 @@ RAISABLE_LIMITS = (
     "otp_max_per_identifier_per_hour",
     "otp_max_per_identifier_per_day",
     "otp_max_per_ip_per_hour",
+    "otp_max_per_ipv6_site_per_hour",
     "sms_max_per_hour",
     "sms_max_per_day",
     "email_max_per_hour",
@@ -83,6 +84,8 @@ class Settings(BaseSettings):
     otp_max_per_identifier_per_hour: int = 5
     otp_max_per_identifier_per_day: int = 10
     otp_max_per_ip_per_hour: int = 30
+    # An IPv6 network counts by its /64; its /48 together gets this looser limit, so rotating /64s doesn't multiply it.
+    otp_max_per_ipv6_site_per_hour: int = 120
     # Phone numbers without a country code are read as numbers in this region.
     default_phone_region: str = "BH"
 

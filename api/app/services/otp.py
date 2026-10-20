@@ -64,7 +64,7 @@ from app.services.identifiers import (
     sms_capable,
 )
 from app.services.mailer import DeliveryError
-from app.services.ratelimit import human_wait, in_ip_bucket, ip_bucket, lock, window_wait
+from app.services.ratelimit import IPV6_SITE_PREFIX, human_wait, in_ip_bucket, ip_bucket, lock, window_wait
 
 log = logging.getLogger("dsba.otp")
 
@@ -169,31 +169,36 @@ def start(
     s = get_settings()
     now = utcnow()
     channel = channel_for(kind)
-    long_code = _check_limits(db, kind=kind, identifier=identifier, channel=channel, ip=ip, user=user, now=now)
+    long_code, send = _check_limits(db, kind=kind, identifier=identifier, channel=channel, ip=ip, user=user, now=now)
     in_use = taken() if taken is not None else False
     db.execute(delete(OtpChallenge).where(OtpChallenge.created_at < now - KEEP_CHALLENGES))
     challenge, code = _add_challenge(db, _purpose(flow), channel, identifier, ip, user, now, long_code=long_code)
-    db.commit()  # the row exists before the code can arrive
-    try:
-        if in_use:
-            _deliver_in_use_notice(kind, identifier)
-        else:
-            _deliver(kind, identifier, code, flow)
-    except DeliveryError:
-        challenge.expires_at = challenge.created_at  # never usable, and the next try needs no cooldown
+    if not send:  # over the sign-up budget: answered as usual, never sent, never usable, and not counted as sent
+        challenge.expires_at = challenge.created_at
         db.commit()
-        other = "your phone number" if kind == "email" else "your email address"
-        raise ApiError(503, "delivery_failed", f"We couldn't send the code. Try again, or use {other}.") from None
-    db.execute(
-        update(OtpChallenge)
-        .where(
-            OtpChallenge.identifier == identifier,
-            OtpChallenge.id != challenge.id,
-            OtpChallenge.consumed_at.is_(None),
-            OtpChallenge.expires_at > now,
+        log.info("A sign-in code for a new address was not sent: the sign-up email budget is spent")
+    else:
+        db.commit()  # the row exists before the code can arrive
+        try:
+            if in_use:
+                _deliver_in_use_notice(kind, identifier)
+            else:
+                _deliver(kind, identifier, code, flow)
+        except DeliveryError:
+            challenge.expires_at = challenge.created_at  # never usable, and the next try needs no cooldown
+            db.commit()
+            other = "your phone number" if kind == "email" else "your email address"
+            raise ApiError(503, "delivery_failed", f"We couldn't send the code. Try again, or use {other}.") from None
+        db.execute(
+            update(OtpChallenge)
+            .where(
+                OtpChallenge.identifier == identifier,
+                OtpChallenge.id != challenge.id,
+                OtpChallenge.consumed_at.is_(None),
+                OtpChallenge.expires_at > now,
+            )
+            .values(expires_at=now)
         )
-        .values(expires_at=now)
-    )
     db.commit()
     return OtpChallengeOut(
         challenge_id=challenge.id,
@@ -245,12 +250,15 @@ def same_address(kind: Kind, identifier: str) -> ColumnElement[bool]:
 
 def _check_limits(
     db: Session, *, kind: Kind, identifier: str, channel: Channel, ip: str | None, user: User | None, now: datetime
-) -> bool:
-    """Raises 429 rate_limited (or sms_unavailable) when a limit is reached. -> True when the code must be long."""
+) -> tuple[bool, bool]:
+    """Raises 429 rate_limited (or sms_unavailable) when a limit is reached. -> (whether the code must be long,
+    whether to send it: False over the sign-up email budget)."""
     s = get_settings()
-    # Always in this order (address, IP, user, channel), so concurrent requests cannot deadlock.
+    # Always in this order (address, IP, IPv6 site, user, channel), so concurrent requests cannot deadlock.
     lock(db, f"otp:id:{rate_key(kind, identifier)}")
     lock(db, f"otp:ip:{ip_bucket(ip) or '-'}")
+    if ip is not None and ":" in ip:
+        lock(db, f"otp:site:{ip_bucket(ip, IPV6_SITE_PREFIX)}")
     if user is not None:
         lock(db, f"otp:user:{user.id}")
     lock(db, f"otp:{channel.value}")  # the site-wide budget of the channel
@@ -277,6 +285,14 @@ def _check_limits(
     check(
         [network], s.otp_max_per_ip_per_hour, HOUR, "Too many codes were asked for from your network. Try again in {}."
     )
+    if ip is not None and ":" in ip:  # an IPv6 site's /64s together: one place rotating its addresses (SEC-52)
+        site = in_ip_bucket(OtpChallenge.ip, ip, IPV6_SITE_PREFIX)
+        check(
+            [site],
+            s.otp_max_per_ipv6_site_per_hour,
+            HOUR,
+            "Too many codes were asked for from your network. Try again in {}.",
+        )
     if user is not None:
         mine = [OtpChallenge.user_id == user.id]
         check(mine, s.otp_max_per_identifier_per_hour, HOUR, "You've asked for too many codes. Try again in {}.")
@@ -293,9 +309,10 @@ def _check_limits(
             if window_wait(db, created, texts, limit=limit, window=window, now=now):
                 log.warning("SMS budget reached (%d per %s): codes by text are paused", limit, window)
                 raise ApiError(429, "sms_unavailable", "We can't send texts right now. Use your email address instead.")
+        send = True
     else:
-        _check_email_budget(db, known=user is not None or _has_account(db, kind, identifier), now=now)
-    return _wrong_codes(db, [address], now) >= LONG_CODES_AFTER
+        send = _check_email_budget(db, known=user is not None or _has_account(db, kind, identifier), now=now)
+    return _wrong_codes(db, [address], now) >= LONG_CODES_AFTER, send
 
 
 def _has_account(db: Session, kind: Kind, identifier: str) -> bool:
@@ -303,43 +320,39 @@ def _has_account(db: Session, kind: Kind, identifier: str) -> bool:
     return db.scalar(select(User.id).where(column == identifier).limit(1)) is not None
 
 
-def _check_email_budget(db: Session, *, known: bool, now: datetime) -> None:
-    """The site-wide budgets for sign-in emails (SEC-52), counted under the otp:email lock.
+def _check_email_budget(db: Session, *, known: bool, now: datetime) -> bool:
+    """The site-wide budgets for sign-in emails (SEC-52), counted under the otp:email lock. -> False when the code
+    must quietly not be sent.
 
-    Codes for addresses no account has (sign-ups) have a budget of their own, so made-up addresses can use up only
-    that: a student whose account exists still gets a code. Every email together has a much higher ceiling, which
-    keeps the mail provider's quota safe. Trade-off: while the sign-up budget is spent, the answer differs for
-    addresses without an account."""
+    Every email together has a ceiling that keeps the mail provider's quota safe: over it, everyone is asked to wait
+    (429 rate_limited), whether or not the address has an account. Codes for addresses no account has (sign-ups)
+    also have a smaller budget of their own, so made-up addresses can use up only that and a student whose account
+    exists still gets a code. Over the sign-up budget the answer stays exactly what it would have been (it must never
+    say whether an account exists); the code just isn't sent, and the challenge can't be used."""
     s = get_settings()
     created = OtpChallenge.created_at
     emails = [OtpChallenge.channel == Channel.email, OtpChallenge.expires_at > OtpChallenge.created_at]
-    budgets: list[tuple[list[ColumnElement[bool]], int, timedelta, str]] = [
-        (emails, s.email_max_per_hour, HOUR, "all"),
-        (emails, s.email_max_per_day, DAY, "all"),
-    ]
-    if not known:
-        signups = [
-            *emails,
-            OtpChallenge.user_id.is_(None),
-            ~select(User.id).where(User.email == OtpChallenge.identifier).exists(),
-        ]
-        budgets += [
-            (signups, s.email_signups_max_per_hour, HOUR, "sign-up"),
-            (signups, s.email_signups_max_per_day, DAY, "sign-up"),
-        ]
-    for where, limit, window, which in budgets:
-        wait = window_wait(db, created, where, limit=limit, window=window, now=now)
-        if not wait:
-            continue
-        log.warning("The %s email budget is reached (%d per %s): those codes by email are paused", which, limit, window)
-        if which == "sign-up":
-            message = f"Lots of new accounts are being made right now. Try again in {human_wait(wait)}."
-        else:
-            message = (
+    for limit, window in ((s.email_max_per_hour, HOUR), (s.email_max_per_day, DAY)):
+        wait = window_wait(db, created, emails, limit=limit, window=window, now=now)
+        if wait:
+            log.warning("Sign-in email budget reached (%d per %s): codes by email are paused", limit, window)
+            raise rate_limited(
+                wait,
                 f"The Hub has sent too many sign-in emails for now. Try again in {human_wait(wait)}, "
-                "or use your phone number."
+                "or use your phone number.",
             )
-        raise rate_limited(wait, message)
+    if known:
+        return True
+    signups = [
+        *emails,
+        OtpChallenge.user_id.is_(None),
+        ~select(User.id).where(User.email == OtpChallenge.identifier).exists(),
+    ]
+    for limit, window in ((s.email_signups_max_per_hour, HOUR), (s.email_signups_max_per_day, DAY)):
+        if window_wait(db, created, signups, limit=limit, window=window, now=now):
+            log.warning("Sign-up email budget reached (%d per %s): codes for new addresses are paused", limit, window)
+            return False
+    return True
 
 
 def _failures(db: Session, where: Sequence[ColumnElement[bool]], now: datetime) -> list[tuple[datetime, int]]:

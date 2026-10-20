@@ -86,6 +86,7 @@ def test_good_production_settings_start() -> None:
         ({"sms_max_per_day": 10000}, "DSBA_SMS_MAX_PER_DAY is above its default (300)"),
         ({"email_max_per_day": 10000}, "DSBA_EMAIL_MAX_PER_DAY is above its default (3000)"),
         ({"email_signups_max_per_hour": 1000}, "DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR is above its default (100)"),
+        ({"otp_max_per_ipv6_site_per_hour": 1000}, "DSBA_OTP_MAX_PER_IPV6_SITE_PER_HOUR is above its default (120)"),
         ({"s3_bucket": ""}, "DSBA_S3_BUCKET is empty"),
         ({"s3_access_key_id": "dsba"}, "DSBA_S3_ACCESS_KEY_ID and DSBA_S3_SECRET_ACCESS_KEY must be set"),
         ({"s3_secret_access_key": "dsba-dev-secret"}, "DSBA_S3_ACCESS_KEY_ID and DSBA_S3_SECRET_ACCESS_KEY"),

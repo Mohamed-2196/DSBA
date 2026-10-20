@@ -441,12 +441,13 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_COOKIE_SECURE`, `DSBA_COOKIE_DOMAIN` | false (true in production), none | cookies only over HTTPS; a cookie domain (empty in production) |
 | `DSBA_TRUSTED_PROXIES` | none | addresses or CIDRs whose `X-Forwarded-For` is read (section 5) |
 | `DSBA_OTP_TTL_SECONDS`, `DSBA_OTP_MAX_ATTEMPTS`, `DSBA_OTP_RESEND_SECONDS` | `600`, `5`, `30` | sign-in codes: lifetime, tries per code, wait before another |
-| `DSBA_OTP_MAX_PER_IDENTIFIER_PER_HOUR`, `…_PER_DAY`, `DSBA_OTP_MAX_PER_IP_PER_HOUR` | `5`, `10`, `30` | codes per address and per network (an IPv4 address, or an IPv6 /48) |
+| `DSBA_OTP_MAX_PER_IDENTIFIER_PER_HOUR`, `…_PER_DAY`, `DSBA_OTP_MAX_PER_IP_PER_HOUR` | `5`, `10`, `30` | codes per address and per network (an IPv4 address, or an IPv6 /64) |
+| `DSBA_OTP_MAX_PER_IPV6_SITE_PER_HOUR` | `120` | codes per IPv6 /48 together, so one place rotating its /64s can't multiply the per-network limit |
 | `DSBA_DEFAULT_PHONE_REGION` | `BH` | how a phone number without a country code is read |
 | `DSBA_EMAIL_BACKEND` | `console` | `smtp`, `file` (into `DSBA_EMAIL_FILE_DIR`, default `var/mail`) or `console` |
 | `DSBA_EMAIL_FROM` | `DSBA Hub <no-reply@dsba-hub.local>` | the sender |
 | `DSBA_SMTP_HOST`, `_PORT`, `_USERNAME`, `_PASSWORD`, `_STARTTLS` | `127.0.0.1`, `1025`, none, none, false | the mail relay |
-| `DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR`, `DSBA_EMAIL_SIGNUPS_MAX_PER_DAY` | `100`, `500` | sign-in emails the whole site may send to addresses no account has (sign-ups); over it, new sign-ups are asked to try again later, while students with an account still get codes |
+| `DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR`, `DSBA_EMAIL_SIGNUPS_MAX_PER_DAY` | `100`, `500` | sign-in emails the whole site may send to addresses no account has (sign-ups). Over it, the answer stays the same (it never says whether an account exists) but the code for a new address isn't sent, and the log says so; students with an account still get codes |
 | `DSBA_EMAIL_MAX_PER_HOUR`, `DSBA_EMAIL_MAX_PER_DAY` | `600`, `3000` | every sign-in email together; over it, codes by email pause (the mail provider's daily quota must be well above the daily figure) |
 | `DSBA_SMS_BACKEND` | `console` | `twilio`, `file` (into `DSBA_SMS_FILE_DIR`, default `var/sms`) or `console` |
 | `DSBA_TWILIO_ACCOUNT_SID`, `_AUTH_TOKEN`, `_FROM` | none | Twilio; `_FROM` is a number or a Messaging Service SID |

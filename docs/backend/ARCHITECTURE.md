@@ -436,7 +436,7 @@ questions they raised:
   saying a student rep hid it, and is notified when it is hidden. Everyone else gets a 404, as before;
   moderators see it with the hidden marker. No schema change: the reason travels in the notification.
 - **D4 Sign-in lockout:** wrong-code lockouts apply to the pair of address and
-  network (IP, or /48 for IPv6); per-address limits only slow down, they never lock the owner out for a day.
+  network (IP, or /64 for IPv6); per-address limits only slow down, they never lock the owner out for a day.
 - **D5 The newsletter editor is a form.** Sections and their blocks get real schemas, and reps edit them
   with fields, not JSON. It must work on a phone.
 - **D6 Contribute means upload.** "Contribute" opens the library upload (sign-in first for guests). GitHub stays

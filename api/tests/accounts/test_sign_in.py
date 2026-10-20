@@ -342,13 +342,12 @@ def test_codes_per_ip_per_hour(
     assert c.post(f"{API}/auth/otp", json={"identifier": "ip9@example.com"}, headers=elsewhere).status_code == 202
 
 
-def test_ipv6_clients_are_counted_by_their_48(
+def test_ipv6_clients_are_counted_by_their_64(
     client_for: ClientFor,
     outbox: Outbox,
     set_option: Callable[[str, Any], None],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """One IPv6 site may hold a whole /48: its /64s count as one network (SEC-52)."""
     monkeypatch.setattr(auth_router, "client_ip", lambda request: request.headers.get("x-test-ip"))
     set_option("otp_max_per_ip_per_hour", 2)
     c = client_for()
@@ -358,9 +357,32 @@ def test_ipv6_clients_are_counted_by_their_48(
         return int(r.status_code)
 
     assert from_ip("2001:db8:1:2::1", 1) == 202
-    assert from_ip("2001:db8:1:3::9", 2) == 202  # another /64 of the same /48
-    assert from_ip("2001:db8:1:ffff:ffff:ffff:ffff:ffff", 3) == 429  # same /48
-    assert from_ip("2001:db8:2::1", 4) == 202  # the next /48
+    assert from_ip("2001:db8:1:2:aaaa::9", 2) == 202
+    assert from_ip("2001:db8:1:2:ffff:ffff:ffff:ffff", 3) == 429  # same /64
+    assert from_ip("2001:db8:1:3::1", 4) == 202  # the next /64
+
+
+def test_ipv6_sites_have_a_looser_limit_on_their_48(
+    client_for: ClientFor,
+    outbox: Outbox,
+    set_option: Callable[[str, Any], None],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Rotating /64s inside one /48 doesn't multiply the per-network limit: the /48 has a looser one (SEC-52)."""
+    monkeypatch.setattr(auth_router, "client_ip", lambda request: request.headers.get("x-test-ip"))
+    set_option("otp_max_per_ip_per_hour", 2)
+    set_option("otp_max_per_ipv6_site_per_hour", 3)
+    c = client_for()
+
+    def from_ip(ip: str, n: int) -> int:
+        r = c.post(f"{API}/auth/otp", json={"identifier": f"site-{n}@example.com"}, headers={"x-test-ip": ip})
+        return int(r.status_code)
+
+    assert from_ip("2001:db8:1:1::1", 1) == 202
+    assert from_ip("2001:db8:1:1::2", 2) == 202
+    assert from_ip("2001:db8:1:2::1", 3) == 202  # another /64: its own per-network limit
+    assert from_ip("2001:db8:1:3::1", 4) == 429  # but the /48 has had 3
+    assert from_ip("2001:db8:2::1", 5) == 202  # the next /48
 
 
 def test_requests_without_an_ip_share_one_bucket(
@@ -474,24 +496,46 @@ def test_spent_sign_up_budget_never_stops_an_existing_student(
     make_user: Callable[..., User],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Made-up addresses from many networks spend the sign-up budget; new sign-ups then wait, and a student whose
-    account exists still gets a code (SEC-52)."""
+    """Made-up addresses from many networks spend the sign-up budget; a student whose account exists still gets a
+    code (SEC-52)."""
     monkeypatch.setattr(auth_router, "client_ip", lambda request: request.headers.get("x-test-ip"))
     make_user(email="known@example.com")
     set_option("email_signups_max_per_hour", 3)
     c = client_for()
-    for n in range(3):
+    for n in range(5):
         r = c.post(
             f"{API}/auth/otp", json={"identifier": f"made-up{n}@example.com"}, headers={"x-test-ip": f"198.51.100.{n}"}
         )
         assert r.status_code == 202, r.text
-    r = c.post(f"{API}/auth/otp", json={"identifier": "newcomer@example.com"}, headers={"x-test-ip": "192.0.2.50"})
-    assert r.status_code == 429
-    assert r.json()["error"]["code"] == "rate_limited"
-    assert "Try again in" in r.json()["error"]["message"]
     r = c.post(f"{API}/auth/otp", json={"identifier": "known@example.com"}, headers={"x-test-ip": "192.0.2.50"})
     assert r.status_code == 202, r.text
-    assert [m.to for m in outbox if m.channel == "email"][-1] == "known@example.com"
+    sent = [m.to for m in outbox if m.channel == "email"]
+    assert sent == [*(f"made-up{n}@example.com" for n in range(3)), "known@example.com"]
+
+
+def test_spent_sign_up_budget_answers_alike_for_known_and_unknown_addresses(
+    client_for: ClientFor,
+    outbox: Outbox,
+    set_option: Callable[[str, Any], None],
+    make_user: Callable[..., User],
+    db: Session,
+) -> None:
+    """Over the sign-up budget, a new address gets the same answer as an existing account's (never saying whether an
+    account exists), and its code is quietly not sent and can't be used."""
+    make_user(email="member@example.com")
+    set_option("email_signups_max_per_hour", 1)
+    assert start(client_for(), "first-new@example.com").status_code == 202
+    known = start(client_for(), "member@example.com")
+    unknown = start(client_for(), "second-new@example.com")
+    assert known.status_code == unknown.status_code == 202
+    k, u = known.json(), unknown.json()
+    assert k.pop("challengeId") != u.pop("challengeId")
+    assert k.pop("destinationHint") != u.pop("destinationHint")  # each names its own address
+    assert k == u
+    assert [m.to for m in outbox if m.channel == "email"] == ["first-new@example.com", "member@example.com"]
+    skipped = db.scalar(select(OtpChallenge).where(OtpChallenge.identifier == "second-new@example.com"))
+    assert skipped is not None
+    assert skipped.expires_at == skipped.created_at  # never usable
 
 
 def test_delivery_failure(client_for: ClientFor, outbox: Outbox, monkeypatch: pytest.MonkeyPatch, db: Session) -> None:
