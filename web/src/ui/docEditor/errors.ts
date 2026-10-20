@@ -1,5 +1,5 @@
 // The API's 422 for a document edited whole, as its editor shows it: each field's message by the field's path under
-// the document ('startHere.steps.2.links.0.to'), and the messages about the save, the document or a whole part of it.
+// the document ('resultsDay.steps.2.links.0.to'), and the messages about the save, the document or a whole part of it.
 
 export interface DocErrors {
   /** by path under the document */
@@ -10,7 +10,7 @@ export interface DocErrors {
 
 /** What a document's editor tells docErrors about the document's shape. */
 export interface DocShape {
-  /** the parts and lists whose own messages are about all of them ('startHere.steps': "Add at least one step"), shown
+  /** the parts and lists whose own messages are about all of them ('resultsDay.steps': "Add at least one step"), shown
    *  above the editor; every other path is a field's */
   wholes?: readonly string[];
   /** the places that hold one of several shapes, with * for any one name or number: '*.steps.*.links.*' (a link to a

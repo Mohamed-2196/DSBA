@@ -1,29 +1,6 @@
-// The guides: when Year 1's Start here card shows, which calendar date a step points at, and the ticks kept in the
-// browser (when the Results day card shows, GET /home says). Plain functions over the guides (GET /guides), tested in startHere.test.ts.
-import { addDaysToKey, type DayKey } from '../../lib/dates';
-
-const pad = (n: number): string => String(n).padStart(2, '0');
-
-export interface StartWindow {
-  /** the card shows today */
-  open: boolean;
-  /** the first day of this academic year */
-  from: DayKey;
-  /** the last day the card shows */
-  to: DayKey;
-}
-
-/**
- * The first `weeks` weeks of the academic year that `today` is in. The year starts on `termStart` (month 1-12):
- * before it, today still belongs to last year's.
- */
-export function startWindow(today: DayKey, termStart: { month: number; day: number }, weeks: number): StartWindow {
-  const year = Number(today.slice(0, 4));
-  const thisYears = `${year}-${pad(termStart.month)}-${pad(termStart.day)}`;
-  const from = today >= thisYears ? thisYears : `${year - 1}-${pad(termStart.month)}-${pad(termStart.day)}`;
-  const to = addDaysToKey(from, weeks * 7 - 1);
-  return { open: today >= from && today <= to, from, to };
-}
+// The guides: which calendar date a step points at, and the ticks kept in the browser (when the Results day card
+// shows, GET /home says). Plain functions over the guides (GET /guides), tested in guides.test.ts.
+import type { DayKey } from '../../lib/dates';
 
 interface DatedEvent {
   id: string;

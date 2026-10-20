@@ -6,7 +6,7 @@ import { Badge, Button, glyph, Icon, IconButton, Panel } from '../../ui';
 import { useGuides } from './api';
 import { GuideSteps } from './GuideSteps';
 import { useResultsTicks } from './useGuideTicks';
-import './StartHere.css';
+import './Guides.css';
 
 /** The id of the results date the card was hidden for: it comes back on the next one. */
 const HIDDEN_KEY = 'hub.results.hidden';
@@ -21,13 +21,13 @@ function Card({ guide, eventId }: { guide: ResultsDay; eventId: string }) {
       as="section"
       padding="none"
       radius="feature"
-      className="start-card start-card--results"
+      className="guide-card"
       aria-labelledby="results-card-title"
       data-hub="results-card"
     >
-      <div className="start-card__head">
-        <div className="start-card__titles">
-          <h2 id="results-card-title" className="start-card__title">
+      <div className="guide-card__head">
+        <div className="guide-card__titles">
+          <h2 id="results-card-title" className="guide-card__title">
             {guide.title}
           </h2>
           <Badge
@@ -43,9 +43,9 @@ function Card({ guide, eventId }: { guide: ResultsDay; eventId: string }) {
           data-hub="results-hide"
         />
       </div>
-      <p className="start-card__intro">{guide.intro}</p>
+      <p className="guide-card__intro">{guide.intro}</p>
       <GuideSteps steps={guide.steps} ticks={ticks} variant="card" />
-      <div className="start-card__foot">
+      <div className="guide-card__foot">
         <Button variant="ghost" size="sm" to="/results-day" trailingIcon={<Icon glyph={glyph.forward} />}>
           What each step means
         </Button>

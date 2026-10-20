@@ -1,4 +1,4 @@
-// The guides (GET /guides, for everyone): Start here, Results day and Choosing your Year 3 electives, and their editor
+// The guides (GET /guides, for everyone): Results day and Choosing your Year 3 electives, and their editor
 // (holders of guides.edit). A save refreshes what everyone sees.
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';

@@ -1,18 +1,17 @@
-// A guide's checklist (Start here, Results day): Home's cards show it short, the guide's page in full. Ticks stay in
-// this browser, like Career Navigator's checklist. A step's links go to another site, one of Site settings' saved
-// links, a page of the hub, the next matching calendar date, or the app's install button.
+// A guide's checklist (Results day): Home's card shows it short, the guide's page in full. Ticks stay in this browser,
+// like Career Navigator's checklist. A step's links go to another site, one of Site settings' saved links, a page of
+// the hub or the next matching calendar date.
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import type { DateLink as DateLinkData, GuideStep } from '../../api/types';
 import { addDaysToKey, formatDay, todayKey } from '../../lib/dates';
-import { useInstall } from '../../lib/pwa';
-import { Badge, Button, cx, glyph, Icon, Skeleton } from '../../ui';
+import { cx, glyph, Icon, Skeleton } from '../../ui';
 import { safeInternalPath } from '../../ui/safeHref';
 import { useCalendarEvents } from '../calendar/public';
 import { httpsHref, useSite } from '../site/public';
-import { nextDated } from './startHere';
+import { nextDated } from './guides';
 import type { GuideTicks } from './useGuideTicks';
-import './StartHere.css';
+import './Guides.css';
 
 type GuideLink = GuideStep['links'][number];
 
@@ -23,9 +22,9 @@ function DateLink({ link }: { link: DateLinkData }) {
   if (events.isPending) return <Skeleton width={180} height={16} />;
   if (events.isError) {
     return (
-      <span className="start-step__note">
+      <span className="guide-step__note">
         The date didn’t load.{' '}
-        <button type="button" className="start-link" onClick={() => void events.refetch()}>
+        <button type="button" className="guide-link" onClick={() => void events.refetch()}>
           Try again
         </button>
       </span>
@@ -33,10 +32,10 @@ function DateLink({ link }: { link: DateLinkData }) {
   }
   const event = nextDated(events.data, link.title, today);
   if (!event) {
-    return <span className="start-step__note">{link.label}: not on the calendar yet. Ask your rep.</span>;
+    return <span className="guide-step__note">{link.label}: not on the calendar yet. Ask your rep.</span>;
   }
   return (
-    <Link to={`/calendar?event=${encodeURIComponent(event.id)}`} className="start-link" data-hub="guide-date">
+    <Link to={`/calendar?event=${encodeURIComponent(event.id)}`} className="guide-link" data-hub="guide-date">
       {link.label} {formatDay(event.date, { weekday: 'long' })}
       {event.sample ? ', not confirmed yet' : ''}
       <Icon glyph={glyph.forward} />
@@ -44,38 +43,9 @@ function DateLink({ link }: { link: DateLinkData }) {
   );
 }
 
-/** "Install the app" where the browser offers it; the steps for iPhone and Android where it doesn't. */
-function InstallLink() {
-  const { canPrompt, installed, prompt } = useInstall();
-  if (installed) {
-    return (
-      <Badge tone="signal" icon={<Icon glyph={glyph.success} />}>
-        Installed
-      </Badge>
-    );
-  }
-  if (canPrompt) {
-    return (
-      <Button
-        size="sm"
-        leadingIcon={<Icon glyph={glyph.download} />}
-        onClick={() => void prompt()}
-        data-hub="start-install"
-      >
-        Install the app
-      </Button>
-    );
-  }
-  return (
-    <span className="start-step__note">
-      On iPhone, tap Share, then Add to Home Screen. On Android, open the browser menu, then Install app.
-    </span>
-  );
-}
-
 function OutLink({ href, label }: { href: string | null; label: string }) {
   return href ? (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="start-link">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="guide-link">
       {label}
       <Icon glyph={glyph.external} />
       <span className="visually-hidden"> (opens in a new tab)</span>
@@ -93,15 +63,13 @@ function StepLink({ link }: { link: GuideLink }) {
       return <OutLink href={httpsHref(site?.links[link.link].url)} label={link.label} />;
     case 'page':
       return (link.feature && !featureOn(link.feature)) || !safeInternalPath(link.to) ? null : (
-        <Link to={link.to} className="start-link">
+        <Link to={link.to} className="guide-link">
           {link.label}
           <Icon glyph={glyph.forward} />
         </Link>
       );
     case 'date':
       return featureOn('calendar') ? <DateLink link={link} /> : null;
-    case 'install':
-      return <InstallLink />;
   }
 }
 
@@ -115,30 +83,30 @@ export interface GuideStepsProps {
 export function GuideSteps({ steps, ticks, variant }: GuideStepsProps) {
   const { done, toggle } = ticks;
   return (
-    <ol role="list" className={cx('start-steps', `start-steps--${variant}`)} data-hub="guide-steps">
+    <ol role="list" className={cx('guide-steps', `guide-steps--${variant}`)} data-hub="guide-steps">
       {steps.map((step) => {
         const ticked = done.has(step.id);
         const hintId = `guide-hint-${step.id}`;
         return (
-          <li key={step.id} className={cx('start-step', ticked && 'is-done')} data-step-id={step.id}>
-            <label className="start-check">
+          <li key={step.id} className={cx('guide-step', ticked && 'is-done')} data-step-id={step.id}>
+            <label className="guide-check">
               <input
                 type="checkbox"
-                className="start-check__box"
+                className="guide-check__box"
                 checked={ticked}
                 onChange={() => toggle(step.id)}
                 aria-describedby={variant === 'page' ? hintId : undefined}
               />
-              <span className="start-check__title">{step.title}</span>
+              <span className="guide-check__title">{step.title}</span>
             </label>
-            <div className="start-step__more">
+            <div className="guide-step__more">
               {variant === 'page' ? (
-                <p className="start-step__hint" id={hintId}>
+                <p className="guide-step__hint" id={hintId}>
                   {step.hint}
                 </p>
               ) : null}
               {step.links.length ? (
-                <div className="start-step__links">
+                <div className="guide-step__links">
                   {step.links.map((link, i) => (
                     <StepLink key={i} link={link} />
                   ))}

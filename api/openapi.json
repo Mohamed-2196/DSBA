@@ -29479,7 +29479,7 @@
           "site"
         ],
         "summary": "Guides",
-        "description": "Start here, Results day and Choosing your electives.",
+        "description": "Results day and Choosing your electives.",
         "operationId": "guides_api_v1_guides_get",
         "responses": {
           "200": {
@@ -39975,53 +39975,6 @@
         "title": "GuestPlayIn",
         "description": "A guest's play of a day's game, kept on the account they've just signed in to: the moves their browser made\nand the version of the day's puzzle it made them on (Play.revision)."
       },
-      "GuidePlace": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 60,
-            "minLength": 1,
-            "title": "Name"
-          },
-          "whose": {
-            "type": "string",
-            "maxLength": 60,
-            "minLength": 1,
-            "title": "Whose"
-          },
-          "what": {
-            "type": "string",
-            "maxLength": 300,
-            "minLength": 1,
-            "title": "What"
-          },
-          "link": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "myclass",
-                  "uolPortal",
-                  "regulations",
-                  "results"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Link"
-          }
-        },
-        "type": "object",
-        "required": [
-          "name",
-          "whose",
-          "what"
-        ],
-        "title": "GuidePlace",
-        "description": "One of the sites Start here tells apart."
-      },
       "GuideStep": {
         "properties": {
           "id": {
@@ -40056,16 +40009,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/DateLink"
-                },
-                {
-                  "$ref": "#/components/schemas/InstallLink"
                 }
               ],
               "discriminator": {
                 "propertyName": "kind",
                 "mapping": {
                   "date": "#/components/schemas/DateLink",
-                  "install": "#/components/schemas/InstallLink",
                   "page": "#/components/schemas/PageLink",
                   "site": "#/components/schemas/SavedLink",
                   "web": "#/components/schemas/WebLink"
@@ -40088,9 +40037,6 @@
       },
       "GuidesDoc": {
         "properties": {
-          "startHere": {
-            "$ref": "#/components/schemas/StartHere"
-          },
           "resultsDay": {
             "$ref": "#/components/schemas/ResultsDay"
           },
@@ -40100,7 +40046,6 @@
         },
         "type": "object",
         "required": [
-          "startHere",
           "resultsDay",
           "electives"
         ],
@@ -40620,21 +40565,6 @@
           "version"
         ],
         "title": "InkSheet"
-      },
-      "InstallLink": {
-        "properties": {
-          "kind": {
-            "type": "string",
-            "const": "install",
-            "title": "Kind"
-          }
-        },
-        "type": "object",
-        "required": [
-          "kind"
-        ],
-        "title": "InstallLink",
-        "description": "\"Install the app\", or how to add it to an iPhone's home screen."
       },
       "IssueCover": {
         "properties": {
@@ -47360,7 +47290,6 @@
                 "items": {
                   "type": "string",
                   "enum": [
-                    "start_here",
                     "results_day",
                     "coming_up",
                     "carry_on",
@@ -47494,7 +47423,6 @@
                 "items": {
                   "type": "string",
                   "enum": [
-                    "start_here",
                     "results_day",
                     "coming_up",
                     "carry_on",
@@ -47511,7 +47439,7 @@
                   ]
                 },
                 "type": "array",
-                "maxItems": 14
+                "maxItems": 13
               },
               {
                 "type": "null"
@@ -50632,7 +50560,6 @@
             "items": {
               "type": "string",
               "enum": [
-                "start_here",
                 "results_day",
                 "coming_up",
                 "carry_on",
@@ -50649,7 +50576,7 @@
               ]
             },
             "type": "array",
-            "maxItems": 14,
+            "maxItems": 13,
             "minItems": 1,
             "title": "Homeblocks"
           },
@@ -50996,80 +50923,6 @@
           "starred"
         ],
         "title": "StarResult"
-      },
-      "StartHere": {
-        "properties": {
-          "title": {
-            "type": "string",
-            "maxLength": 60,
-            "minLength": 1,
-            "title": "Title"
-          },
-          "intro": {
-            "type": "string",
-            "maxLength": 300,
-            "minLength": 1,
-            "title": "Intro"
-          },
-          "termStart": {
-            "$ref": "#/components/schemas/TermStart"
-          },
-          "weeks": {
-            "type": "integer",
-            "maximum": 20.0,
-            "minimum": 1.0,
-            "title": "Weeks"
-          },
-          "steps": {
-            "items": {
-              "$ref": "#/components/schemas/GuideStep"
-            },
-            "type": "array",
-            "maxItems": 20,
-            "minItems": 1,
-            "title": "Steps"
-          },
-          "done": {
-            "type": "string",
-            "maxLength": 300,
-            "minLength": 1,
-            "title": "Done"
-          },
-          "placesTitle": {
-            "type": "string",
-            "maxLength": 60,
-            "minLength": 1,
-            "title": "Placestitle"
-          },
-          "placesIntro": {
-            "type": "string",
-            "maxLength": 300,
-            "minLength": 1,
-            "title": "Placesintro"
-          },
-          "places": {
-            "items": {
-              "$ref": "#/components/schemas/GuidePlace"
-            },
-            "type": "array",
-            "maxItems": 6,
-            "title": "Places",
-            "default": []
-          }
-        },
-        "type": "object",
-        "required": [
-          "title",
-          "intro",
-          "termStart",
-          "weeks",
-          "steps",
-          "done",
-          "placesTitle",
-          "placesIntro"
-        ],
-        "title": "StartHere",
-        "description": "Year 1's first weeks: Home's card for Year 1 from the first day of term for `weeks` weeks, and /start-here."
       },
       "StatItem": {
         "properties": {
@@ -51870,28 +51723,6 @@
           "mode"
         ],
         "title": "SwitchUpdate"
-      },
-      "TermStart": {
-        "properties": {
-          "month": {
-            "type": "integer",
-            "maximum": 12.0,
-            "minimum": 1.0,
-            "title": "Month"
-          },
-          "day": {
-            "type": "integer",
-            "maximum": 31.0,
-            "minimum": 1.0,
-            "title": "Day"
-          }
-        },
-        "type": "object",
-        "required": [
-          "month",
-          "day"
-        ],
-        "title": "TermStart"
       },
       "TextMatch": {
         "properties": {

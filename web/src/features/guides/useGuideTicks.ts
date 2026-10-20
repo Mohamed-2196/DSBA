@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { GuideStep } from '../../api/types';
 import { useLocalStorage } from '../../state';
-import { doneSteps, toggleStep } from './startHere';
+import { doneSteps, toggleStep } from './guides';
 
 export interface GuideTicks {
   done: Set<string>;
@@ -20,6 +20,5 @@ export function useGuideTicks(key: string, steps: readonly GuideStep[]): GuideTi
   return { done, total: ids.length, toggle: (id: string) => setStored((prev: unknown) => toggleStep(prev, id)) };
 }
 
-export const useStartTicks = (steps: readonly GuideStep[]): GuideTicks => useGuideTicks('hub.start.checklist', steps);
 export const useResultsTicks = (steps: readonly GuideStep[]): GuideTicks =>
   useGuideTicks('hub.results.checklist', steps);

@@ -146,7 +146,7 @@ FEATURE_FREE: dict[str, str] = {
     "/admin/bug-reports": "triaging bug reports: admins only",
     "/admin/uploads": "the hub's and each account's daily upload budgets: admins only",
     "/site": "the hub's own words and links (footer, About, the sidebar's links), and admins editing them",
-    "/guides": "Start here, Results day and the electives guide, and editing them: gated by its box",
+    "/guides": "Results day and the electives guide, and editing them: gated by its box",
     "/home": "Home's first screen: each of its parts follows its own feature's switch",
 }
 # Routes whose feature depends on the request: they check it in code, and the tests below prove it.

@@ -9,12 +9,11 @@ export const LINK_KINDS: { value: LinkKind; label: string }[] = [
   { value: 'web', label: 'Another site' },
   { value: 'page', label: 'A page of the hub' },
   { value: 'date', label: 'The next date on the calendar' },
-  { value: 'install', label: 'Install the app' },
 ];
 
 /** A link of `kind`, keeping `from`'s text when it had some. */
 export function linkOfKind(kind: LinkKind, from: GuideLink | null): GuideLink {
-  const label = from && 'label' in from ? from.label : '';
+  const label = from?.label ?? '';
   switch (kind) {
     case 'site':
       return { kind, link: 'uolPortal', label };
@@ -24,7 +23,5 @@ export function linkOfKind(kind: LinkKind, from: GuideLink | null): GuideLink {
       return { kind, to: '/', label, feature: null };
     case 'date':
       return { kind, title: '', type: 'deadline', label };
-    case 'install':
-      return { kind };
   }
 }

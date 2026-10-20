@@ -19,7 +19,7 @@ import { httpsHref, useSite } from '../site/public';
 import { useGuides } from './api';
 import { GuideSteps } from './GuideSteps';
 import { useResultsTicks } from './useGuideTicks';
-import './StartHere.css';
+import './Guides.css';
 
 /** The University's own pages: Site settings' regulations and results links. */
 function Sources() {
@@ -27,12 +27,12 @@ function Sources() {
   if (!site) return null;
   const links = [site.links.regulations, site.links.results];
   return (
-    <ul role="list" className="start-sources">
+    <ul role="list" className="guide-sources">
       {links.map((l) => {
         const href = httpsHref(l.url);
         return href ? (
           <li key={l.label}>
-            <a href={href} target="_blank" rel="noopener noreferrer" className="start-link">
+            <a href={href} target="_blank" rel="noopener noreferrer" className="guide-link">
               {l.label}
               <Icon glyph={glyph.external} />
               <span className="visually-hidden"> (opens in a new tab)</span>
@@ -64,7 +64,7 @@ export function ResultsDayBody({ guide }: { guide: ResultsDay }) {
       />
       <PageSection aria-labelledby="results-steps-title">
         <SectionHeader id="results-steps-title" title="What to do next" />
-        <Panel as="div" padding="none" radius="feature" className="start-page__panel">
+        <Panel as="div" padding="none" radius="feature" className="guide-page__panel">
           <GuideSteps steps={guide.steps} ticks={ticks} variant="page" />
         </Panel>
       </PageSection>
@@ -75,7 +75,7 @@ export function ResultsDayBody({ guide }: { guide: ResultsDay }) {
             title="Your marks in the calculator"
             description="Read from this browser. Nothing is sent anywhere."
           />
-          <Panel as="div" padding="none" radius="feature" className="start-page__panel start-page__panel--roomy">
+          <Panel as="div" padding="none" radius="feature" className="guide-page__panel guide-page__panel--roomy">
             <ProjectedClass />
           </Panel>
         </PageSection>
@@ -91,7 +91,7 @@ export function ResultsDayBody({ guide }: { guide: ResultsDay }) {
 export default function ResultsDayPage() {
   const guides = useGuides();
   return (
-    <Page className="start-page">
+    <Page className="guide-page">
       {guides.data ? (
         <ResultsDayBody guide={guides.data.resultsDay} />
       ) : guides.isError ? (

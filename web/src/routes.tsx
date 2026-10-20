@@ -211,13 +211,7 @@ const pages: AppRoute[] = [
     id: 'results-day',
     path: '/results-day',
     title: 'Results day',
-    Page: lazyPage(() => import('./features/start/ResultsDayPage')),
-  },
-  {
-    id: 'start-here',
-    path: '/start-here',
-    title: 'Start here',
-    Page: lazyPage(() => import('./features/start/StartHerePage')),
+    Page: lazyPage(() => import('./features/guides/ResultsDayPage')),
   },
   { id: 'about', path: '/about', title: 'About', Page: lazyPage(() => import('./features/site/AboutPage')) },
   {

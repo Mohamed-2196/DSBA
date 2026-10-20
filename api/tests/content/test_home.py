@@ -22,7 +22,7 @@ from tests.content.conftest import API
 Clients = Callable[..., TestClient]
 SetFeature = Callable[..., None]
 HOME = f"{API}/home"
-# A day in the October exams, in Start here's weeks (from 14 September for six weeks).
+# A day in the October exams.
 TODAY = dt.date(2026, 10, 20)
 QUESTION_SWITCHES = ("library.questions", "library.daily-question")
 
@@ -145,9 +145,8 @@ def test_a_guest_gets_the_years_first_screen_in_one_answer(
     order = sorted(str(t.id) for t in tags)
     assert home["dailyQuestion"]["id"] == order[(TODAY - dt.date(1970, 1, 1)).days % len(order)]
     assert home["dailyQuestion"]["paper"]["title"].startswith("Paper ")
-    # Start here's weeks, for Year 1: the guides come along
-    assert home["guides"]["startHere"]["title"]
-    assert home["resultsDay"] is None
+    # no results date in the last weeks: no guides
+    assert (home["resultsDay"], home["guides"]) == (None, None)
     assert home["shelf"] == {"newFiles": 0, "notes": None}
 
 
@@ -165,8 +164,7 @@ def test_each_year_gets_its_own_dates_and_next_exam(
     home = get_home(client_for(), year)
     assert ids(home) == dates
     assert (home["nextExam"] or {}).get("id") == exam
-    # Start here is Year 1's only
-    assert (home["guides"] is not None) == (year == 1)
+    assert home["guides"] is None  # no guide's card is due
 
 
 def test_a_students_papers_and_what_they_hid_shape_their_dates(
@@ -361,14 +359,6 @@ def test_results_day_comes_with_its_date_for_the_guides_weeks(
     home = get_home(client_for(), 2)
     assert home["resultsDay"] is None
     assert home["guides"] is None
-
-
-def test_start_here_comes_only_in_its_weeks(client_for: Clients, monkeypatch: Any) -> None:
-    assert get_home(client_for(), 1)["guides"] is not None
-    monkeypatch.setattr(home_service, "bahrain_today", lambda: dt.date(2026, 12, 1))
-    assert get_home(client_for(), 1)["guides"] is None
-    monkeypatch.setattr(home_service, "bahrain_today", lambda: dt.date(2027, 9, 20))  # the next academic year's
-    assert get_home(client_for(), 1)["guides"] is not None
 
 
 # ── validation ───────────────────────────────────────────────────────────────────────────────

@@ -1,17 +1,9 @@
-// Manage → Guides (guides.edit): Start here, Results day and Choosing your Year 3 electives, edited as one draft and
+// Manage → Guides (guides.edit): Results day and Choosing your Year 3 electives, edited as one draft and
 // saved together. A save someone else made first (guides_changed) offers to load theirs. Every save goes to the
 // activity log with what changed, before and after.
 import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
-import type {
-  Electives,
-  GuidePlace,
-  GuidesDoc,
-  GuidesEditable,
-  GuideStep,
-  ResultsDay,
-  StartHere,
-} from '../../../api/types';
+import type { Electives, GuidesDoc, GuidesEditable, GuideStep, ResultsDay } from '../../../api/types';
 import { FEATURE_KEYS } from '../../../auth';
 import { useToast } from '../../../state';
 import {
@@ -41,20 +33,13 @@ import {
 import { useSite, type SiteLinkKey } from '../../site/public';
 import { useGuidesForEditing, useReloadGuides, useSaveGuides } from '../api';
 import { ResultsDayBody } from '../ResultsDayPage';
-import { StartHereBody } from '../StartHerePage';
 import { LINK_KINDS, linkOfKind, type GuideLink, type LinkKind } from './links';
 import './GuidesEditor.css';
 
-type Section = 'startHere' | 'resultsDay' | 'electives';
+type Section = 'resultsDay' | 'electives';
 type Err = (path: string) => string | undefined;
 
 const SECTIONS: { id: Section; label: string; about: string; page: string }[] = [
-  {
-    id: 'startHere',
-    label: 'Start here',
-    about: 'Year 1’s first weeks: Home’s card for Year 1 from the first day of term, and the page.',
-    page: '/start-here',
-  },
   {
     id: 'resultsDay',
     label: 'Results day',
@@ -69,20 +54,6 @@ const SECTIONS: { id: Section; label: string; about: string; page: string }[] = 
   },
 ];
 
-const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
 const featureName = (key: string) => {
   const words = key.replace(/[._-]/g, ' ');
   return words.charAt(0).toUpperCase() + words.slice(1);
@@ -114,7 +85,7 @@ function Editor({ first }: { first: GuidesEditable }) {
   const [loaded, setLoaded] = useState(first);
   const saved = loaded.data;
   const [doc, setDoc] = useState<GuidesDoc>(saved);
-  const [section, setSection] = useState<Section>('startHere');
+  const [section, setSection] = useState<Section>('resultsDay');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<DocProblem | null>(null);
   const [previewing, setPreviewing] = useState(false);
@@ -143,7 +114,7 @@ function Editor({ first }: { first: GuidesEditable }) {
         onError: (e) => {
           if (isApiError(e) && e.code === 'guides_changed') return setProblem({ kind: 'changed', what: 'the guides' });
           const found = docErrors(isApiError(e) ? e.fields : {}, {
-            wholes: ['startHere', 'resultsDay', 'electives', 'startHere.steps', 'resultsDay.steps', 'startHere.places'],
+            wholes: ['resultsDay', 'electives', 'resultsDay.steps'],
             unions: ['*.steps.*.links.*'],
           });
           setFields(found.fields);
@@ -190,15 +161,6 @@ function Editor({ first }: { first: GuidesEditable }) {
           </Chip>
         ))}
       >
-        {section === 'startHere' ? (
-          <StartHereFields
-            guide={doc.startHere}
-            saved={saved.startHere}
-            onChange={(startHere) => setDoc((d) => ({ ...d, startHere }))}
-            err={err}
-            fields={fields}
-          />
-        ) : null}
         {section === 'resultsDay' ? (
           <ResultsDayFields
             guide={doc.resultsDay}
@@ -226,7 +188,6 @@ function Editor({ first }: { first: GuidesEditable }) {
       >
         {previewing ? (
           <div className="dedit-preview gedit-preview">
-            {section === 'startHere' ? <StartHereBody guide={doc.startHere} /> : null}
             {section === 'resultsDay' ? <ResultsDayBody guide={doc.resultsDay} /> : null}
             {section === 'electives' ? <ElectivesPreview guide={doc.electives} /> : null}
           </div>
@@ -259,102 +220,6 @@ interface PartProps<T> {
   onChange: (next: T) => void;
   err: Err;
   fields: Record<string, string>;
-}
-
-function StartHereFields({ guide, saved, onChange, err, fields }: PartProps<StartHere>) {
-  const set = (patch: Partial<StartHere>) => onChange({ ...guide, ...patch });
-  return (
-    <>
-      <div className="dedit-grid">
-        <TextField
-          label="Title"
-          value={guide.title}
-          onChange={(e) => set({ title: e.target.value })}
-          error={err('startHere.title')}
-          maxLength={60}
-          required
-        />
-        <TextArea
-          className="dedit-grid__wide"
-          label="Under the title"
-          value={guide.intro}
-          onChange={(e) => set({ intro: e.target.value })}
-          error={err('startHere.intro')}
-          rows={2}
-          maxLength={300}
-          required
-        />
-      </div>
-      <fieldset className="dedit-group">
-        <legend className="dedit-group__legend">When Home shows it to Year 1</legend>
-        <div className="dedit-grid">
-          <Select
-            label="Term starts in"
-            value={guide.termStart.month}
-            onChange={(e) => set({ termStart: { ...guide.termStart, month: Number(e.target.value) } })}
-            options={MONTHS.map((m, i) => ({ value: i + 1, label: m }))}
-            error={err('startHere.termStart.month')}
-          />
-          <WholeNumberField
-            label="On day"
-            min={1}
-            max={31}
-            value={guide.termStart.day}
-            onValue={(day) => set({ termStart: { ...guide.termStart, day } })}
-            error={err('startHere.termStart.day')}
-            required
-          />
-          <WholeNumberField
-            label="For how many weeks"
-            min={1}
-            max={20}
-            value={guide.weeks}
-            onValue={(weeks) => set({ weeks })}
-            error={err('startHere.weeks')}
-            required
-          />
-        </div>
-      </fieldset>
-      <StepsField
-        part="startHere"
-        steps={guide.steps}
-        saved={saved.steps}
-        onChange={(steps) => set({ steps })}
-        err={err}
-        fields={fields}
-      />
-      <TextField
-        label="Once every step is ticked"
-        value={guide.done}
-        onChange={(e) => set({ done: e.target.value })}
-        error={err('startHere.done')}
-        maxLength={300}
-        required
-      />
-      <fieldset className="dedit-group">
-        <legend className="dedit-group__legend">Sites told apart</legend>
-        <div className="dedit-grid">
-          <TextField
-            label="Heading"
-            value={guide.placesTitle}
-            onChange={(e) => set({ placesTitle: e.target.value })}
-            error={err('startHere.placesTitle')}
-            maxLength={60}
-            required
-          />
-          <TextField
-            label="Under the heading"
-            value={guide.placesIntro}
-            onChange={(e) => set({ placesIntro: e.target.value })}
-            error={err('startHere.placesIntro')}
-            maxLength={300}
-            required
-          />
-        </div>
-        <PlacesField places={guide.places} onChange={(places) => set({ places })} err={err} />
-      </fieldset>
-    </>
-  );
 }
 
 function ResultsDayFields({ guide, saved, onChange, err, fields }: PartProps<ResultsDay>) {
@@ -471,7 +336,7 @@ function ElectivesFields({
   );
 }
 
-// ── steps, links and places ──────────────────────────────────────────────────────────────────
+// ── steps and links ──────────────────────────────────────────────────────────────────
 
 function StepsField({
   part,
@@ -481,7 +346,7 @@ function StepsField({
   err,
   fields,
 }: {
-  part: 'startHere' | 'resultsDay';
+  part: 'resultsDay';
   steps: GuideStep[];
   saved: GuideStep[];
   onChange: (next: GuideStep[]) => void;
@@ -656,78 +521,14 @@ function LinkFields({
           />
         </>
       ) : null}
-      {link.kind !== 'install' ? (
-        <TextField
-          label="Link text"
-          value={link.label}
-          onChange={(e) => onChange({ ...link, label: e.target.value })}
-          error={err(`${path}.label`)}
-          maxLength={60}
-          required
-        />
-      ) : (
-        <p className="dedit__note gedit-install">
-          Shows “Install the app”, or how to add the hub to an iPhone’s home screen.
-        </p>
-      )}
+      <TextField
+        label="Link text"
+        value={link.label}
+        onChange={(e) => onChange({ ...link, label: e.target.value })}
+        error={err(`${path}.label`)}
+        maxLength={60}
+        required
+      />
     </div>
-  );
-}
-
-function PlacesField({
-  places,
-  onChange,
-  err,
-}: {
-  places: GuidePlace[];
-  onChange: (next: GuidePlace[]) => void;
-  err: Err;
-}) {
-  const saved = useSavedLinkOptions();
-  return (
-    <RowsEditor<GuidePlace>
-      items={places}
-      noun="site"
-      max={6}
-      onChange={onChange}
-      make={() => ({ name: '', whose: '', what: '', link: null })}
-    >
-      {(place, i, setPlace) => (
-        <div className="dedit-grid">
-          <TextField
-            label="Name"
-            value={place.name}
-            onChange={(e) => setPlace({ ...place, name: e.target.value })}
-            error={err(`startHere.places.${i}.name`)}
-            maxLength={60}
-            required
-          />
-          <TextField
-            label="Whose"
-            hint="Like BIBF."
-            value={place.whose}
-            onChange={(e) => setPlace({ ...place, whose: e.target.value })}
-            error={err(`startHere.places.${i}.whose`)}
-            maxLength={60}
-            required
-          />
-          <TextField
-            className="dedit-grid__wide"
-            label="What it’s for"
-            value={place.what}
-            onChange={(e) => setPlace({ ...place, what: e.target.value })}
-            error={err(`startHere.places.${i}.what`)}
-            maxLength={300}
-            required
-          />
-          <Select
-            label="Links to"
-            value={place.link ?? ''}
-            onChange={(e) => setPlace({ ...place, link: e.target.value ? (e.target.value as SiteLinkKey) : null })}
-            options={[{ value: '', label: 'No link' }, ...saved]}
-          />
-        </div>
-      )}
-    </RowsEditor>
   );
 }

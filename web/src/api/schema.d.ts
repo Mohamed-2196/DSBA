@@ -4712,7 +4712,7 @@ export interface paths {
         };
         /**
          * Guides
-         * @description Start here, Results day and Choosing your electives.
+         * @description Results day and Choosing your electives.
          */
         get: operations["guides_api_v1_guides_get"];
         /**
@@ -8161,20 +8161,6 @@ export interface components {
              */
             revision: number;
         };
-        /**
-         * GuidePlace
-         * @description One of the sites Start here tells apart.
-         */
-        GuidePlace: {
-            /** Name */
-            name: string;
-            /** Whose */
-            whose: string;
-            /** What */
-            what: string;
-            /** Link */
-            link?: ("myclass" | "uolPortal" | "regulations" | "results") | null;
-        };
         /** GuideStep */
         GuideStep: {
             /** Id */
@@ -8187,11 +8173,10 @@ export interface components {
              * Links
              * @default []
              */
-            links: (components["schemas"]["WebLink"] | components["schemas"]["SavedLink"] | components["schemas"]["PageLink"] | components["schemas"]["DateLink"] | components["schemas"]["InstallLink"])[];
+            links: (components["schemas"]["WebLink"] | components["schemas"]["SavedLink"] | components["schemas"]["PageLink"] | components["schemas"]["DateLink"])[];
         };
         /** GuidesDoc */
         GuidesDoc: {
-            startHere: components["schemas"]["StartHere"];
             resultsDay: components["schemas"]["ResultsDay"];
             electives: components["schemas"]["Electives"];
         };
@@ -8383,17 +8368,6 @@ export interface components {
             strokes: components["schemas"]["Stroke"][];
             /** Version */
             version: number;
-        };
-        /**
-         * InstallLink
-         * @description "Install the app", or how to add it to an iPhone's home screen.
-         */
-        InstallLink: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "install";
         };
         /**
          * IssueCover
@@ -10609,7 +10583,7 @@ export interface components {
              */
             trackProgress: boolean;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
+            homeBlocks?: ("results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
         };
         /**
          * PreferencesUpdate
@@ -10636,7 +10610,7 @@ export interface components {
             /** Trackprogress */
             trackProgress?: boolean | null;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
+            homeBlocks?: ("results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
         };
         /**
          * PresignedUpload
@@ -11754,7 +11728,7 @@ export interface components {
             /** Launchyear */
             launchYear: number;
             /** Homeblocks */
-            homeBlocks: ("start_here" | "results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[];
+            homeBlocks: ("results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[];
             examWeek: components["schemas"]["ExamWeek"];
             /** Tour */
             tour: components["schemas"]["TourStep"][];
@@ -11859,32 +11833,6 @@ export interface components {
         StarResult: {
             /** Starred */
             starred: boolean;
-        };
-        /**
-         * StartHere
-         * @description Year 1's first weeks: Home's card for Year 1 from the first day of term for `weeks` weeks, and /start-here.
-         */
-        StartHere: {
-            /** Title */
-            title: string;
-            /** Intro */
-            intro: string;
-            termStart: components["schemas"]["TermStart"];
-            /** Weeks */
-            weeks: number;
-            /** Steps */
-            steps: components["schemas"]["GuideStep"][];
-            /** Done */
-            done: string;
-            /** Placestitle */
-            placesTitle: string;
-            /** Placesintro */
-            placesIntro: string;
-            /**
-             * Places
-             * @default []
-             */
-            places: components["schemas"]["GuidePlace"][];
         };
         /** StatItem */
         StatItem: {
@@ -12192,13 +12140,6 @@ export interface components {
              * @default []
              */
             roleIds: string[];
-        };
-        /** TermStart */
-        TermStart: {
-            /** Month */
-            month: number;
-            /** Day */
-            day: number;
         };
         /**
          * TextMatch
@@ -13200,7 +13141,6 @@ export type GuessAddReport = components['schemas']['GuessAddReport'];
 export type GuessList = components['schemas']['GuessList'];
 export type GuessMove = components['schemas']['GuessMove'];
 export type GuestPlayIn = components['schemas']['GuestPlayIn'];
-export type GuidePlace = components['schemas']['GuidePlace'];
 export type GuideStep = components['schemas']['GuideStep'];
 export type GuidesDoc = components['schemas']['GuidesDoc'];
 export type GuidesEditable = components['schemas']['GuidesEditable'];
@@ -13218,7 +13158,6 @@ export type InkInfo = components['schemas']['InkInfo'];
 export type InkPage = components['schemas']['InkPage'];
 export type InkSave = components['schemas']['InkSave'];
 export type InkSheet = components['schemas']['InkSheet'];
-export type InstallLink = components['schemas']['InstallLink'];
 export type IssueCover = components['schemas']['IssueCover'];
 export type IssueCreate = components['schemas']['IssueCreate'];
 export type IssueDetail = components['schemas']['IssueDetail'];
@@ -13408,7 +13347,6 @@ export type SittingGap = components['schemas']['SittingGap'];
 export type SittingZone = components['schemas']['SittingZone'];
 export type SkillTaught = components['schemas']['SkillTaught'];
 export type StarResult = components['schemas']['StarResult'];
-export type StartHere = components['schemas']['StartHere'];
 export type StatItem = components['schemas']['StatItem'];
 export type StatsAside = components['schemas']['StatsAside'];
 export type StepUpResult = components['schemas']['StepUpResult'];
@@ -13429,7 +13367,6 @@ export type SummaryPreview = components['schemas']['SummaryPreview'];
 export type SummarySave = components['schemas']['SummarySave'];
 export type SummaryWords = components['schemas']['SummaryWords'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
-export type TermStart = components['schemas']['TermStart'];
 export type TextMatch = components['schemas']['TextMatch'];
 export type Theme = components['schemas']['Theme'];
 export type ThemeCreate = components['schemas']['ThemeCreate'];

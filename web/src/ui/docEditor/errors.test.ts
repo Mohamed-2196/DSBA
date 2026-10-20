@@ -17,13 +17,13 @@ describe('docErrors', () => {
   it('leaves out the shape the API names after a place that holds one of several', () => {
     const guides = docErrors(
       {
-        'data.startHere.steps.2.links.0.page.to': 'Use a page of the Hub.',
+        'data.resultsDay.steps.2.links.0.page.to': 'Use a page of the Hub.',
         'data.resultsDay.steps.0.links.1.web.href': 'Use an https:// link.',
       },
       { unions: ['*.steps.*.links.*'] },
     );
     expect(guides.fields).toEqual({
-      'startHere.steps.2.links.0.to': 'Use a page of the Hub.',
+      'resultsDay.steps.2.links.0.to': 'Use a page of the Hub.',
       'resultsDay.steps.0.links.1.href': 'Use an https:// link.',
     });
     const career = docErrors(
@@ -47,13 +47,13 @@ describe('docErrors', () => {
     const e = docErrors(
       {
         data: 'There is no module “x”.',
-        'data.startHere': 'Two steps have the same id “a”.',
-        'data.startHere.steps': 'Add at least one step.',
+        'data.resultsDay': 'Two steps have the same id “a”.',
+        'data.resultsDay.steps': 'Add at least one step.',
         'data.x': 'There is no module “x”.',
         version: 'Field required',
         logo: 'A logo isn’t uploaded yet.',
       },
-      { wholes: ['startHere', 'startHere.steps', 'x'] },
+      { wholes: ['resultsDay', 'resultsDay.steps', 'x'] },
     );
     expect(e.general).toEqual([
       'There is no module “x”.',
@@ -68,10 +68,10 @@ describe('docErrors', () => {
 
 describe('hasErrorUnder', () => {
   it('finds errors inside an item or a part', () => {
-    const fields = { 'startHere.steps.2.title': 'Give the step a title.' };
-    expect(hasErrorUnder(fields, 'startHere.steps.2')).toBe(true);
-    expect(hasErrorUnder(fields, 'startHere')).toBe(true);
-    expect(hasErrorUnder(fields, 'startHere.steps.1')).toBe(false);
-    expect(hasErrorUnder(fields, 'startHere.steps.20')).toBe(false);
+    const fields = { 'resultsDay.steps.2.title': 'Give the step a title.' };
+    expect(hasErrorUnder(fields, 'resultsDay.steps.2')).toBe(true);
+    expect(hasErrorUnder(fields, 'resultsDay')).toBe(true);
+    expect(hasErrorUnder(fields, 'resultsDay.steps.1')).toBe(false);
+    expect(hasErrorUnder(fields, 'resultsDay.steps.20')).toBe(false);
   });
 });

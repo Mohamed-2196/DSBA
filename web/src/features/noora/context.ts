@@ -16,7 +16,6 @@ const PAGES: Record<string, string> = {
   manage: 'Manage',
   board: 'Boards',
   'results-day': 'Results day',
-  'start-here': 'Start here',
   about: 'About',
 };
 

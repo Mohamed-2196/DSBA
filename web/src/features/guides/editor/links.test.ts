@@ -8,9 +8,8 @@ describe('linkOfKind', () => {
     expect(linkOfKind('date', page)).toEqual({ kind: 'date', title: '', type: 'deadline', label: 'Your modules' });
   });
 
-  it('starts empty from nothing, and the install button has no text', () => {
+  it('starts empty from nothing', () => {
     expect(linkOfKind('site', null)).toEqual({ kind: 'site', link: 'uolPortal', label: '' });
-    expect(linkOfKind('install', { kind: 'web', href: '', label: 'x' })).toEqual({ kind: 'install' });
-    expect(linkOfKind('web', { kind: 'install' })).toEqual({ kind: 'web', href: '', label: '' });
+    expect(linkOfKind('web', null)).toEqual({ kind: 'web', href: '', label: '' });
   });
 });

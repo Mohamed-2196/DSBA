@@ -22,7 +22,7 @@ class HomeShelf(ApiModel):
 class HomeOut(ApiModel):
     site: SiteDoc  # GET /site: Home's default blocks and exam week, besides the footer's words
     choices: list[PaperChoice]  # GET /modules/choices: what the student's papers pick from
-    guides: GuidesDoc | None  # GET /guides, only while a guide's card is due (Start here, Results day); else None
+    guides: GuidesDoc | None  # GET /guides, only while Results day's card is due; else None
     results_day: str | None  # the results date Results day's card is for (the calendar's id); None: no card
     # The calendar's dates from today for the next six months that count for the student: the year's and their
     # papers', less what they hid from their calendar and the hidden modules' (empty while the calendar is off).

@@ -5,6 +5,8 @@ past papers' questions Claude tagged (on the papers this install has: run the se
 Idempotent: running it again adds what is missing and never overwrites what moderators changed through the API.
 Something a moderator deleted stays deleted: calendar events and newsletter issues are looked up in the audit log
 (calendar.delete, newsletter.delete).
+The seed also tidies what the hub no longer has: RETIRED_FOLDERS and their files, and Home blocks that are gone from
+the saved site settings.
 Modules are starting content only: they load into an empty catalogue, and after that content managers edit them in
 the app (a module they removed stays removed). The one exception is BROKEN_CHAPTERS, which the seed removes from any
 catalogue that has them.
@@ -19,7 +21,7 @@ import json
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, get_args
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -34,11 +36,14 @@ from app.models import (
     DailyGuessWord,
     DailyTheme,
     DriveFolder,
+    ItemStatus,
     Lesson,
+    LibraryItem,
     Module,
     NewsletterIssue,
     Note,
 )
+from app.schemas.auth import HomeBlock
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCreate
 from app.services import career, newsletter, question_tagging, report_answers
@@ -311,6 +316,47 @@ def load_drive_folders(db: Session) -> int:
     return n
 
 
+# Drive folders the hub no longer reads (module id, the folder's link): MT1186's topic workbooks, which repeat the
+# lessons. The seed deletes the folder from any database that has it and removes the files the import brought from it.
+RETIRED_FOLDERS: frozenset[tuple[str, str]] = frozenset(
+    {("mathematics", "https://drive.google.com/drive/folders/13n0MsLtWx7b8jhtll4B6spZwtVenGWbk?sort=13&direction=a")}
+)
+
+
+def remove_retired_folders(db: Session) -> int:
+    """RETIRED_FOLDERS, wherever they still are: their library files become `removed` (nothing serves them; the daily
+    sweep deletes them from the bucket, services/library.py sweep_files) and the folder goes, so the import never reads
+    it again. Their import keys stay on the rows, so the files never come back. How many files it removed."""
+    n = 0
+    for module_id, url in RETIRED_FOLDERS:
+        folder = db.scalar(select(DriveFolder).where(DriveFolder.module_id == module_id, DriveFolder.url == url))
+        if folder is None:
+            continue
+        from_it = select(LibraryItem).where(LibraryItem.drive_folder_id == folder.id)
+        for item in db.scalars(from_it.where(LibraryItem.status != ItemStatus.removed)):
+            item.status = ItemStatus.removed
+            n += 1
+        db.delete(folder)
+    db.flush()
+    return n
+
+
+def tidy_home_blocks(db: Session) -> int:
+    """Saved site settings keep to the blocks Home has: a block that is gone leaves Home's default layout. 1 when it
+    changed them."""
+    row = db.get(ContentDoc, "site")
+    blocks = row.data.get("homeBlocks") if row is not None and isinstance(row.data, dict) else None
+    if row is None or not isinstance(blocks, list):
+        return 0
+    kept = [b for b in blocks if b in get_args(HomeBlock)]
+    if kept == blocks:
+        return 0
+    row.data = {**row.data, "homeBlocks": kept}
+    row.version += 1
+    db.flush()
+    return 1
+
+
 # ── Daily ────────────────────────────────────────────────────────────────────────────────────
 
 DAILY = DATA / "daily"
@@ -387,6 +433,8 @@ SECTIONS: dict[str, Callable[[Session], int]] = {
     "newsletter": load_newsletter,
     "career": load_career,
     "drive-folders": load_drive_folders,
+    "retired-folders": remove_retired_folders,
+    "home-blocks": tidy_home_blocks,
     "daily": load_daily,
     "paper-questions": load_paper_questions,
     "report-answers": load_report_answers,
