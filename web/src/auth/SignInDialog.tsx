@@ -1,19 +1,18 @@
-// Sign in with a one-time code: email or phone number → the code → (first time) name, cohort and whether we email
-// them about their notifications.
+// Sign in or sign up: Continue with Google, or an email address and a password → (first time) name, cohort and
+// whether we email them about their notifications. A forgotten password: Google, or a reset link from an admin.
 // AuthProvider shows it while someone needs to sign in, and calls the waiting actions once onDone() runs.
-// Closing it half-way keeps a pending code, so reopening it goes back to the code.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api, call } from '../api/client';
 import { ApiError, errorMessage } from '../api/errors';
-import type { Me, OtpChallengeOut } from '../api/types';
+import type { Me } from '../api/types';
 import { useToast, useYear, type CohortYear } from '../state';
 import { Button, HubLogo, Icon, Modal, TextField, glyph } from '../ui';
+import { authErrorMessage, checkEmail, checkNewPassword, fieldOf } from './authErrors';
 import { CohortPicker, type CohortChoice } from './CohortPicker';
-import { checkIdentifier, displayIdentifier, formatPhone, identifierHint } from './identifiers';
-import { CodeEntry } from './CodeEntry';
 import { EmailChoice } from './EmailChoice';
-import { isAddressProblem, otpErrorMessage } from './otpErrors';
+import { GoogleButton } from './GoogleButton';
+import { PasswordField } from './PasswordField';
 import { ME_KEY, refreshPersonalQueries } from './queries';
 import { useAuth } from './useAuth';
 import './SignInDialog.css';
@@ -32,13 +31,7 @@ export interface SignInDialogProps {
   onDismiss: () => void;
 }
 
-type Step = 'identifier' | 'code' | 'profile';
-
-interface Pending {
-  challenge: OtpChallengeOut;
-  receivedAt: number;
-  identifier: string;
-}
+type Step = 'sign-in' | 'sign-up' | 'forgot' | 'profile';
 
 const NAME_MIN = 2;
 const NAME_MAX = 40;
@@ -49,16 +42,17 @@ function firstName(name: string | null | undefined): string {
 
 export function SignInDialog({ open, reason, resumes = false, reauth = false, onDone, onDismiss }: SignInDialogProps) {
   const qc = useQueryClient();
-  const { me, status } = useAuth();
+  const { me, status, googleSignIn } = useAuth();
   const { push } = useToast();
   const { year: browsedYear } = useYear();
 
-  const [step, setStep] = useState<Step>('identifier');
-  const [identifier, setIdentifier] = useState('');
-  const [idError, setIdError] = useState<string | null>(null);
-  const [startError, setStartError] = useState<string | null>(null);
-  const [starting, setStarting] = useState(false);
-  const [pending, setPending] = useState<Pending | null>(null);
+  const [step, setStep] = useState<Step>('sign-in');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
   const [isNew, setIsNew] = useState(false);
 
   const [name, setName] = useState('');
@@ -71,27 +65,32 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const idRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  const pendingAlive = (p: Pending | null): p is Pending =>
-    !!p && Date.now() < p.receivedAt + p.challenge.expiresIn * 1000;
+  const clearErrors = () => {
+    setEmailError(null);
+    setPasswordError(null);
+    setFormError(null);
+  };
 
   // Where to start when the dialog opens.
   useEffect(() => {
     if (!open) return;
-    setStartError(null);
+    clearErrors();
+    setPassword('');
     if (reauth) {
       // Signing in again: their address is filled in (they can change it).
-      if (me && !pendingAlive(pending)) setIdentifier(me.email ?? (me.phone ? formatPhone(me.phone) : ''));
-      setStep(pendingAlive(pending) ? 'code' : 'identifier');
+      if (me) setEmail(me.email);
+      setStep('sign-in');
     } else if (me?.needsProfile) {
       setName(me.displayName ?? '');
       setCohort(me.year ?? browsedYear ?? null);
       setEmails(me.preferences.notificationEmails);
       setStep('profile');
     } else if (!me) {
-      setStep(pendingAlive(pending) ? 'code' : 'identifier');
+      setStep('sign-in');
     }
     // Only when it opens (or the person behind it changes), not on every edit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,71 +103,65 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, reauth, status, me, step]);
 
-  // Each step hands focus to its field.
+  // Each step hands focus to its first field.
   useEffect(() => {
     if (!open) return;
-    const target = step === 'identifier' ? idRef : step === 'profile' ? nameRef : null;
+    const target = step === 'profile' ? nameRef : step === 'forgot' ? null : reauth ? passwordRef : emailRef;
     if (target) requestAnimationFrame(() => target.current?.focus({ preventScroll: true }));
-  }, [open, step]);
+  }, [open, step, reauth]);
 
   const finish = (user: Me) => {
     const greeting = firstName(user.displayName);
     if (isNew) push({ tone: 'success', title: `Welcome to DSBA Hub${greeting ? `, ${greeting}` : ''}` });
     else if (!resumes) push({ tone: 'success', title: `Signed in${greeting ? ` as ${user.displayName}` : ''}` });
-    setPending(null);
-    setIdentifier('');
-    setStep('identifier');
+    setPassword('');
+    setStep('sign-in');
     onDone();
   };
 
-  const sendCode = async (value: string) => {
-    const challenge = await call(api.POST('/api/v1/auth/otp', { body: { identifier: value } }));
-    setPending({ challenge, receivedAt: Date.now(), identifier: value });
-    setStep('code');
-  };
-
-  const onStart = async (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const value = identifier.trim();
-    const check = checkIdentifier(value);
-    setStartError(null);
-    if (check.error) {
-      setIdError(check.error);
-      idRef.current?.focus();
+    const creating = step === 'sign-up';
+    const eErr = checkEmail(email);
+    const pErr = creating ? checkNewPassword(password) : password ? null : 'Enter your password.';
+    setEmailError(eErr);
+    setPasswordError(pErr);
+    setFormError(null);
+    if (eErr || pErr) {
+      (eErr ? emailRef : passwordRef).current?.focus();
       return;
     }
-    setIdError(null);
-    setStarting(true);
+    setSending(true);
     try {
-      await sendCode(value);
-    } catch (err) {
-      if (isAddressProblem(err)) {
-        setIdError(otpErrorMessage(err));
-        idRef.current?.focus();
+      const body = { email: email.trim(), password };
+      const result = await call(
+        creating ? api.POST('/api/v1/auth/sign-up', { body }) : api.POST('/api/v1/auth/sign-in', { body }),
+      );
+      qc.setQueryData(ME_KEY, result.user);
+      void refreshPersonalQueries(qc);
+      setIsNew(result.isNewUser);
+      if (result.user.needsProfile) {
+        setName(result.user.displayName ?? '');
+        setCohort(result.user.year ?? browsedYear ?? null);
+        setEmails(result.user.preferences.notificationEmails);
+        setStep('profile');
       } else {
-        setStartError(otpErrorMessage(err));
+        finish(result.user);
+      }
+    } catch (err) {
+      const message = authErrorMessage(err);
+      const field = fieldOf(err);
+      if (field === 'email') {
+        setEmailError(message);
+        emailRef.current?.focus();
+      } else if (field === 'password') {
+        setPasswordError(message);
+        passwordRef.current?.focus();
+      } else {
+        setFormError(message);
       }
     } finally {
-      setStarting(false);
-    }
-  };
-
-  const onVerify = async (code: string) => {
-    if (!pending) return;
-    const result = await call(
-      api.POST('/api/v1/auth/otp/verify', { body: { challengeId: pending.challenge.challengeId, code } }),
-    );
-    qc.setQueryData(ME_KEY, result.user);
-    void refreshPersonalQueries(qc);
-    setPending(null);
-    setIsNew(result.isNewUser);
-    if (result.user.needsProfile) {
-      setName(result.user.displayName ?? '');
-      setCohort(result.user.year ?? browsedYear ?? null);
-      setEmails(result.user.preferences.notificationEmails);
-      setStep('profile');
-    } else {
-      finish(result.user);
+      setSending(false);
     }
   };
 
@@ -209,15 +202,19 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
     }
   };
 
-  const channel = pending?.challenge.channel;
+  const switchTo = (next: Step) => {
+    clearErrors();
+    setStep(next);
+  };
+
   const title =
     step === 'profile'
       ? 'Set up your profile'
-      : step === 'code'
-        ? channel === 'sms'
-          ? 'Check your messages'
-          : 'Check your email'
-        : reason || 'Sign in to DSBA Hub';
+      : step === 'sign-up'
+        ? 'Create your account'
+        : step === 'forgot'
+          ? 'Forgot your password?'
+          : reason || 'Sign in to DSBA Hub';
   // Every step carries the lockup above its title, so the dialog reads as the hub's own.
   const heading = (
     <>
@@ -228,11 +225,19 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
   const description =
     step === 'profile'
       ? 'This is how classmates see you on the forum and in the library.'
-      : step === 'code' && pending
-        ? `Sent to ${displayIdentifier(pending.identifier)}.`
-        : 'Use your email or phone number. New here? This creates your account.';
-  // A number gets the phone keypad; anything else the email keyboard (UX-17).
-  const numeric = /^\s*[+\d]/.test(identifier);
+      : step === 'sign-up'
+        ? 'Reading is open to everyone. An account lets you post, upload and keep your own things.'
+        : step === 'forgot'
+          ? 'There are two ways back in.'
+          : googleSignIn
+            ? 'Continue with Google, or use your email address and password.'
+            : 'Use your email address and password.';
+  const alert = formError ? (
+    <p className="signin__alert" role="alert">
+      <Icon glyph={glyph.error} />
+      {formError}
+    </p>
+  ) : null;
 
   return (
     <Modal
@@ -245,56 +250,98 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
       data-hub="sign-in"
     >
       <div className="signin">
-        {step === 'identifier' ? (
-          <form className="signin__form" onSubmit={onStart} noValidate>
+        {step === 'sign-in' || step === 'sign-up' ? (
+          <form className="signin__form" onSubmit={onSubmit} noValidate data-hub={step}>
+            {googleSignIn ? (
+              <>
+                <GoogleButton
+                  label={step === 'sign-up' ? 'Sign up with Google' : 'Continue with Google'}
+                  onError={setFormError}
+                />
+                <p className="signin__or" aria-hidden="true">
+                  or
+                </p>
+              </>
+            ) : null}
             <TextField
-              ref={idRef}
-              label="Email or phone number"
+              ref={emailRef}
+              label="Email address"
               size="lg"
-              value={identifier}
+              value={email}
               onChange={(e) => {
-                setIdentifier(e.target.value);
-                if (idError) setIdError(null);
-                if (startError) setStartError(null);
+                setEmail(e.target.value);
+                if (emailError) setEmailError(null);
+                if (formError) setFormError(null);
               }}
-              error={idError}
-              hint={identifierHint(identifier)}
-              type="text"
-              inputMode={numeric ? 'tel' : 'email'}
-              autoComplete="username"
+              error={emailError}
+              type="email"
+              inputMode="email"
+              autoComplete={step === 'sign-up' ? 'email' : 'username'}
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
               maxLength={254}
               data-autofocus
             />
-            <div className="visually-hidden" aria-live="polite">
-              {idError || ''}
+            <PasswordField
+              ref={passwordRef}
+              label="Password"
+              size="lg"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) setPasswordError(null);
+                if (formError) setFormError(null);
+              }}
+              error={passwordError}
+              hint={step === 'sign-up' ? 'At least 10 characters. A few words together are easy to remember.' : null}
+              autoComplete={step === 'sign-up' ? 'new-password' : 'current-password'}
+            />
+            {alert}
+            <Button type="submit" variant="primary" size="lg" fullWidth loading={sending}>
+              {step === 'sign-up' ? 'Create account' : 'Sign in'}
+            </Button>
+            <div className="signin__links">
+              {step === 'sign-in' ? (
+                <>
+                  <Button variant="ghost" size="sm" onClick={() => switchTo('sign-up')}>
+                    New here? Create an account
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => switchTo('forgot')}>
+                    Forgot your password?
+                  </Button>
+                </>
+              ) : (
+                <Button variant="ghost" size="sm" onClick={() => switchTo('sign-in')}>
+                  Have an account? Sign in
+                </Button>
+              )}
             </div>
-            {startError ? (
-              <p className="signin__alert" role="alert">
-                <Icon glyph={glyph.error} />
-                {startError}
+            {step === 'sign-up' && googleSignIn ? (
+              <p className="signin__fine">
+                Nobody checks your email address now. Continue with Google later to confirm it.
               </p>
             ) : null}
-            <Button type="submit" variant="primary" size="lg" fullWidth loading={starting}>
-              Send code
-            </Button>
-            <p className="signin__fine">We use it to sign you in.</p>
           </form>
         ) : null}
 
-        {step === 'code' && pending ? (
-          <CodeEntry
-            challenge={pending.challenge}
-            receivedAt={pending.receivedAt}
-            onVerify={onVerify}
-            onResend={() => sendCode(pending.identifier)}
-            onBack={() => {
-              setPending(null);
-              setStep('identifier');
-            }}
-          />
+        {step === 'forgot' ? (
+          <div className="signin__form" data-hub="forgot">
+            <ol className="signin__help">
+              {googleSignIn ? (
+                <li>
+                  If your address is a Gmail or Google account, continue with Google. You’re signed in, and you can set
+                  a new password in Your account.
+                </li>
+              ) : null}
+              <li>Ask an admin for a reset link. It works once, within an hour.</li>
+            </ol>
+            {googleSignIn ? <GoogleButton onError={setFormError} /> : null}
+            {alert}
+            <Button variant="ghost" size="sm" onClick={() => switchTo('sign-in')}>
+              Back to sign in
+            </Button>
+          </div>
         ) : null}
 
         {step === 'profile' ? (
@@ -329,7 +376,6 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
                 setEmailsError(null);
               }}
               error={emailsError}
-              hasEmail={!!me?.email}
             />
             {saveError ? (
               <p className="signin__alert" role="alert">

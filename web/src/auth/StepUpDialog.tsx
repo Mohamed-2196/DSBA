@@ -1,141 +1,117 @@
-// "Confirm it's you" (decision D2): changing how an account signs in, deleting it, or an admin changing access needs
-// a code sent to an address the account already has, unless the session is under 10 minutes old. The API answers 403
-// step_up_required; the session guard opens this dialog, and sends the change again once the code is right.
-import { useEffect, useRef, useState } from 'react';
+// "Confirm it's you" (decision D2): deleting the account, adding a password or Google, or an admin changing access
+// needs a session under 10 minutes old. The API answers 403 step_up_required; the session guard opens this dialog,
+// and sends the change again once the password is right. An account that signs in with Google confirms by
+// continuing with Google again: the page comes back signed in afresh, and the person does the change once more.
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api, call } from '../api/client';
-import type { Me, OtpChallengeOut } from '../api/types';
-import { Button, Icon, Modal, Skeleton, glyph } from '../ui';
-import { CodeEntry } from './CodeEntry';
-import { formatPhone } from './identifiers';
-import { otpErrorMessage } from './otpErrors';
+import type { Me } from '../api/types';
+import { Button, Icon, Modal, glyph } from '../ui';
+import { authErrorMessage } from './authErrors';
+import { GoogleButton } from './GoogleButton';
+import { PasswordField } from './PasswordField';
 import './SignInDialog.css';
 
-type Via = 'email' | 'phone';
-
 export interface StepUpDialogProps {
-  /** what the code allows, after "to": 'delete your account'; null: closed */
+  /** what confirming allows, after "to": 'delete your account'; null: closed */
   purpose: string | null;
   me: Me | null;
+  /** "Continue with Google" is set up on this hub */
+  googleSignIn: boolean;
   /** true: the session is renewed and the change can go ahead; false: the person gave up */
   onDone: (ok: boolean) => void;
 }
 
-interface Pending {
-  challenge: OtpChallengeOut;
-  receivedAt: number;
-  via: Via;
-}
-
-export function StepUpDialog({ purpose, me, onDone }: StepUpDialogProps) {
+export function StepUpDialog({ purpose, me, googleSignIn, onDone }: StepUpDialogProps) {
   const open = purpose !== null;
-  const [pending, setPending] = useState<Pending | null>(null);
-  const [sending, setSending] = useState(false);
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const sendingRef = useRef(false);
-  const first: Via = me?.email ? 'email' : 'phone';
-  const other: Via | null = me?.email && me?.phone ? 'phone' : null;
+  const [sending, setSending] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  const withPassword = !!me?.hasPassword;
+  const withGoogle = googleSignIn && !!me?.googleLinked;
 
-  const send = async (via: Via) => {
-    if (sendingRef.current) return;
-    sendingRef.current = true;
+  useEffect(() => {
+    if (!open) return;
+    setPassword('');
+    setError(null);
+  }, [open]);
+
+  const confirm = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!password) {
+      setError('Enter your password.');
+      ref.current?.focus();
+      return;
+    }
     setSending(true);
     setError(null);
     try {
-      const challenge = await call(api.POST('/api/v1/me/step-up', { body: { via } }));
-      setPending({ challenge, receivedAt: Date.now(), via });
-    } catch (e) {
-      setPending(null);
-      setError(otpErrorMessage(e));
+      await call(api.POST('/api/v1/me/step-up', { body: { password } }));
+      setPassword('');
+      onDone(true);
+    } catch (err) {
+      setError(authErrorMessage(err));
+      ref.current?.focus();
     } finally {
-      sendingRef.current = false;
       setSending(false);
     }
   };
 
-  // A code goes out as the dialog opens: the person already asked for the change.
-  useEffect(() => {
-    if (!open) return;
-    setPending(null);
-    setError(null);
-    void send(first);
-    // Once per opening.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const verify = async (code: string) => {
-    if (!pending) return;
-    await call(api.POST('/api/v1/me/step-up/verify', { body: { challengeId: pending.challenge.challengeId, code } }));
-    onDone(true);
-  };
-
-  const where = (via: Via) =>
-    via === 'email' ? (me?.email ?? 'your email address') : me?.phone ? formatPhone(me.phone) : 'your phone';
-  const switchTo: Via | null = pending
-    ? pending.via === 'email'
-      ? me?.phone
-        ? 'phone'
-        : null
-      : me?.email
-        ? 'email'
-        : null
-    : other;
+  const what = purpose ?? 'make this change';
+  const description = withPassword
+    ? `To ${what}, enter your password${withGoogle ? ', or continue with Google' : ''}.`
+    : withGoogle
+      ? `To ${what}, continue with Google. You’ll come back here; then do it once more.`
+      : `To ${what}, sign out and sign in again, then do it once more.`;
 
   return (
     <Modal
       open={open}
       onClose={() => onDone(false)}
       title="Confirm it’s you"
-      description={
-        pending
-          ? `To ${purpose ?? 'make this change'}, enter the code we sent to ${where(pending.via)}.`
-          : `To ${purpose ?? 'make this change'}, we’ll send a code to ${where(first)}.`
-      }
+      description={description}
       size="sm"
       className="signin-dialog"
       data-hub="step-up"
     >
       <div className="signin">
-        {pending ? (
-          <CodeEntry
-            challenge={pending.challenge}
-            receivedAt={pending.receivedAt}
-            onVerify={verify}
-            onResend={() => send(pending.via)}
-            onBack={switchTo ? () => void send(switchTo) : undefined}
-            backLabel={switchTo === 'phone' ? 'Text my phone instead' : 'Email me instead'}
-            submitLabel="Confirm"
-          />
-        ) : error ? (
-          <div className="signin__form">
-            <p className="signin__alert" role="alert">
-              <Icon glyph={glyph.error} />
-              {error}
-            </p>
-            <Button
-              variant="primary"
+        {withPassword ? (
+          <form className="signin__form" onSubmit={confirm} noValidate>
+            <input type="email" autoComplete="username" value={me?.email ?? ''} readOnly hidden />
+            <PasswordField
+              ref={ref}
+              label="Password"
               size="lg"
-              fullWidth
-              leadingIcon={<Icon glyph={glyph.refresh} />}
-              loading={sending}
-              onClick={() => void send(first)}
-            >
-              Send the code again
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError(null);
+              }}
+              error={error}
+              autoComplete="current-password"
+              data-autofocus
+            />
+            <Button type="submit" variant="primary" size="lg" fullWidth loading={sending}>
+              Confirm
             </Button>
-            {other ? (
-              <Button variant="ghost" size="sm" onClick={() => void send(other)} disabled={sending}>
-                Text my phone instead
-              </Button>
+          </form>
+        ) : null}
+        {withGoogle ? (
+          <>
+            {withPassword ? (
+              <p className="signin__or" aria-hidden="true">
+                or
+              </p>
             ) : null}
-          </div>
-        ) : (
-          <div className="signin__form" aria-busy="true">
-            <span className="visually-hidden" role="status">
-              Sending a code…
-            </span>
-            <Skeleton height={56} />
-            <Skeleton height={48} />
-          </div>
-        )}
+            <GoogleButton onError={setError} />
+            {!withPassword && error ? (
+              <p className="signin__alert" role="alert">
+                <Icon glyph={glyph.error} />
+                {error}
+              </p>
+            ) : null}
+          </>
+        ) : null}
       </div>
     </Modal>
   );

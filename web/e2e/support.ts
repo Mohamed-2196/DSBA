@@ -1,23 +1,23 @@
-// Shared helpers for the end-to-end suite: settings from the environment, one-time codes from the dev mail and
-// SMS folders, dev-login for the rep and the admin, the run's personas, CSRF headers and small test files.
+// Shared helpers for the end-to-end suite: settings from the environment, emails from the dev mail folder, dev-login
+// for the rep and the admin, the run's personas, CSRF headers and small test files.
 //
-// The defaults fit the Docker stack in e2e mode: `scripts/e2e.sh` switches the API to its file backends
-// (compose.e2e.yaml) and runs the suite. The file backends write to api/var/mail and api/var/sms, in Docker (where
-// they are mounted) and without it (DSBA_EMAIL_BACKEND=file and DSBA_SMS_BACKEND=file, run from api/).
+// The defaults fit the Docker stack in e2e mode: `scripts/e2e.sh` switches the API to its file mail backend
+// (compose.e2e.yaml) and runs the suite. It writes to api/var/mail, in Docker (where it is mounted) and without it
+// (DSBA_EMAIL_BACKEND=file, run from api/).
 //
 // Settings (all optional):
 //   E2E_BASE_URL   the web app, which proxies /api to the API (default http://localhost:5173, the web container)
 //   E2E_MAIL_DIR   where emails are saved as .eml files (default api/var/mail)
-//   E2E_SMS_DIR    where texts are saved as .txt files named after the number (default api/var/sms)
 //   E2E_API_DIR    the folder dev-login runs in (default api/)
 //   E2E_DEV_LOGIN  the dev-login command (default "docker compose -p dsba-hub exec -T api python -m app.cli
 //                  dev-login"; without Docker, "uv run --no-sync python -m app.cli dev-login")
 //   E2E_PSQL       runs one SQL statement, given as its last argument (default "docker compose -p dsba-hub exec -T db
-//                  psql -U dsba -d dsba -At -v ON_ERROR_STOP=1 -c"); the step-up test ages a session with it
+//                  psql -U dsba -d dsba -At -v ON_ERROR_STOP=1 -c"); the step-up test ages a session with it, and
+//                  the setup confirms Ali's address with it (as if he had continued with Google once)
 //   E2E_STATE_DIR  where sessions and the run's details are kept between projects (default: a temp folder)
 //   E2E_KEEP=1     keep what the run created (no account deletion, no clean-up at the end)
-// The first cloud set-up ran with E2E_BASE_URL=http://127.0.0.1:5178, E2E_MAIL_DIR=/home/claude/devsvc/mail,
-// E2E_SMS_DIR=/home/claude/devsvc/sms and E2E_DEV_LOGIN="uv run --no-sync python -m app.cli dev-login".
+// The first cloud set-up ran with E2E_BASE_URL=http://127.0.0.1:5178, E2E_MAIL_DIR=/home/claude/devsvc/mail and
+// E2E_DEV_LOGIN="uv run --no-sync python -m app.cli dev-login".
 import { execFile } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -43,7 +43,6 @@ export const env = {
   baseURL,
   host: new URL(baseURL).hostname,
   mailDir: process.env.E2E_MAIL_DIR ?? path.join(apiFolder, 'var', 'mail'),
-  smsDir: process.env.E2E_SMS_DIR ?? path.join(apiFolder, 'var', 'sms'),
   apiDir: process.env.E2E_API_DIR ?? apiFolder,
   devLogin: process.env.E2E_DEV_LOGIN ?? 'docker compose -p dsba-hub exec -T api python -m app.cli dev-login',
   psql: process.env.E2E_PSQL ?? 'docker compose -p dsba-hub exec -T db psql -U dsba -d dsba -At -v ON_ERROR_STOP=1 -c',
@@ -59,8 +58,8 @@ export type Persona = 'sara' | 'ali' | 'rep' | 'admin';
 export interface RunInfo {
   /** a short tag in everything this run creates, so it can be found (and cleaned up) again */
   tag: string;
-  sara: { name: string; local: string; e164: string; email: string };
-  ali: { name: string; email: string };
+  sara: { name: string; email: string; password: string };
+  ali: { name: string; email: string; password: string };
   rep: { name: string; email: string };
   admin: { name: string; email: string };
   /** filled in as the run goes, for the clean-up */
@@ -70,25 +69,18 @@ export interface RunInfo {
 const runFile = path.join(env.stateDir, 'run.json');
 export const statePath = (who: Persona): string => path.join(env.stateDir, `${who}.json`);
 
-function randomDigits(n: number): string {
-  let s = '';
-  for (let i = 0; i < n; i++) s += Math.floor(Math.random() * 10);
-  return s;
+/** A password for this run: long enough, and no common one. */
+export function newPassword(tag: string): string {
+  return `e2e ${tag} quiet library lamp`;
 }
 
-/** A new run: new students (a Bahraini mobile and an email address nobody uses), the same rep and admin. */
+/** A new run: new students (email addresses nobody uses, with passwords), the same rep and admin. */
 export function newRun(): RunInfo {
   const tag = `${Date.now().toString(36).slice(-4)}${Math.random().toString(36).slice(2, 5)}`;
-  const local = `3${'369'[Math.floor(Math.random() * 3)]}${randomDigits(6)}`; // 33xx, 36xx or 39xx xxxx
   const run: RunInfo = {
     tag,
-    sara: {
-      name: 'Sara E2E',
-      local: `${local.slice(0, 4)} ${local.slice(4)}`,
-      e164: `+973${local}`,
-      email: `sara.e2e.${tag}@example.com`,
-    },
-    ali: { name: 'Ali E2E', email: `ali.e2e.${tag}@example.com` },
+    sara: { name: 'Sara E2E', email: `sara.e2e.${tag}@example.com`, password: newPassword(tag) },
+    ali: { name: 'Ali E2E', email: `ali.e2e.${tag}@example.com`, password: newPassword(`${tag}a`) },
     rep: { name: 'Fatima E2E', email: 'e2e.rep@example.com' },
     admin: { name: 'Maryam E2E', email: 'e2e.admin@example.com' },
     created: { threads: [], items: [], events: [], issues: [] },
@@ -113,44 +105,9 @@ export function remember(kind: keyof RunInfo['created'], id: string): void {
   saveRun(run);
 }
 
-// ── one-time codes ──────────────────────────────────────────────────────────────────────────
+// ── emails ───────────────────────────────────────────────────────────────────────────────
 
-function newestCode(kind: 'email' | 'sms', to: string, since: number): string | null {
-  const dir = kind === 'email' ? env.mailDir : env.smsDir;
-  if (!fs.existsSync(dir)) return null;
-  const files = fs
-    .readdirSync(dir)
-    .filter((f) => (kind === 'email' ? f.endsWith('.eml') : f.includes(to)))
-    .map((f) => ({ f, t: fs.statSync(path.join(dir, f)).mtimeMs }))
-    .filter((x) => x.t >= since - 2000)
-    .sort((a, b) => b.t - a.t);
-  for (const { f } of files) {
-    const raw = fs.readFileSync(path.join(dir, f), 'utf8');
-    if (kind === 'email') {
-      const toLine = /^To:\s*(.*)$/im.exec(raw)?.[1] ?? '';
-      if (!toLine.toLowerCase().includes(to.toLowerCase())) continue;
-      const m = /Your DSBA Hub code: (\d{6})/.exec(raw);
-      if (m) return m[1];
-    } else {
-      const m = /code is (\d{6})/.exec(raw);
-      if (m) return m[1];
-    }
-  }
-  return null;
-}
-
-/** The newest code sent to an email address or an E.164 number since `since` (Date.now() before asking). */
-export async function waitForCode(kind: 'email' | 'sms', to: string, since: number): Promise<string> {
-  let code: string | null = null;
-  const dir = kind === 'email' ? env.mailDir : env.smsDir;
-  const message = `a code by ${kind} for ${to} in ${dir} (is the API on its file backends? scripts/e2e.sh switches it)`;
-  await expect
-    .poll(() => (code = newestCode(kind, to, since)), { message, timeout: 20_000, intervals: [250] })
-    .not.toBeNull();
-  return code as unknown as string;
-}
-
-/** Whether an email with this subject went to `to` since `since` (notices, not codes: the mail worker sends them). */
+/** Whether an email with this subject went to `to` since `since` (the mail worker sends them). */
 export function mailedSince(to: string, subject: string, since: number): boolean {
   if (!fs.existsSync(env.mailDir)) return false;
   return fs
@@ -162,16 +119,6 @@ export function mailedSince(to: string, subject: string, since: number): boolean
         new RegExp(`^To:.*${to.replace(/[.+]/g, '\\$&')}`, 'im').test(head) && head.includes(`Subject: ${subject}`)
       );
     });
-}
-
-/** The newest text to an E.164 number (security notices too). */
-export function newestText(e164: string): string {
-  const files = fs
-    .readdirSync(env.smsDir)
-    .filter((f) => f.includes(e164))
-    .sort();
-  const last = files[files.length - 1];
-  return last ? fs.readFileSync(path.join(env.smsDir, last), 'utf8') : '';
 }
 
 // ── sessions ────────────────────────────────────────────────────────────────────────────────
@@ -197,9 +144,9 @@ export async function devLogin(
   return token;
 }
 
-/** Makes a user's live sessions `minutes` older in the database. Changing an email address or phone number needs
- * a session under 10 minutes old (decision D2), so an aged session meets the step-up dialog, as a student does who
- * signed in yesterday. */
+/** Makes a user's live sessions `minutes` older in the database. Deleting the account, adding a password or linking
+ * Google needs a session under 10 minutes old (decision D2), so an aged session meets the step-up dialog, as a
+ * student does who signed in yesterday. */
 export async function ageSessions(userId: string, minutes: number): Promise<void> {
   if (!/^[0-9a-f-]{36}$/.test(userId) || !Number.isInteger(minutes))
     throw new Error(`ageSessions: bad input ${userId}, ${minutes}`);
@@ -207,6 +154,16 @@ export async function ageSessions(userId: string, minutes: number): Promise<void
   const sql = `UPDATE user_sessions SET created_at = created_at - interval '${minutes} minutes' WHERE user_id = '${userId}' AND revoked_at IS NULL`;
   const { stdout } = await run$(cmd, [...args, sql], { cwd: env.apiDir, timeout: 60_000 });
   if (!/^UPDATE [1-9]/m.test(stdout)) throw new Error(`ageSessions changed no session: ${stdout.slice(0, 200)}`);
+}
+
+/** Marks an account's email address confirmed, as continuing with Google once does (the suite can't sign in to
+ * Google). Staff roles need a confirmed address: the admin spec gives Ali one. */
+export async function confirmEmail(email: string): Promise<void> {
+  if (!/^[\w.+-]+@[\w.-]+$/.test(email)) throw new Error(`confirmEmail: bad input ${email}`);
+  const [cmd, ...args] = env.psql.split(/\s+/);
+  const sql = `UPDATE users SET email_confirmed_at = now() WHERE email = '${email.toLowerCase()}'`;
+  const { stdout } = await run$(cmd, [...args, sql], { cwd: env.apiDir, timeout: 60_000 });
+  if (!/^UPDATE 1/m.test(stdout)) throw new Error(`confirmEmail changed no account: ${stdout.slice(0, 200)}`);
 }
 
 /** Every page in the suite hides Mini Noora (she floats over the page and covers part of it) unless a test wants her,

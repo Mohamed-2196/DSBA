@@ -4,14 +4,13 @@ import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../..
 import type { Me, SessionInfo } from '../../api/types';
 import { useAuth, useUpdatePreferences, type Feature } from '../../auth';
 import { CohortPicker, type CohortChoice } from '../../auth/CohortPicker';
-import { formatPhone } from '../../auth/identifiers';
+import { GoogleButton } from '../../auth/GoogleButton';
 import { PageLoader } from '../../shell/PageLoader';
 import { useToast } from '../../state';
 import { ModulesGate } from '../../state/ModulesProvider';
 import {
   Badge,
   Button,
-  ConfirmDialog,
   Divider,
   EmptyState,
   Icon,
@@ -28,18 +27,11 @@ import {
   glyph,
   timeAgo,
 } from '../../ui';
-import {
-  downloadAccountData,
-  useRemoveIdentifier,
-  useRevokeSessions,
-  useSessions,
-  useUpdateMe,
-  type IdentifierKind,
-} from './api';
+import { downloadAccountData, useRevokeSessions, useSessions, useUpdateMe } from './api';
 import { SeniorListing } from '../career/public';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { describeDevice } from './device';
-import { IdentifierDialog } from './IdentifierDialog';
+import { PasswordDialog } from './PasswordDialog';
 import { useTracking } from '../modules/public';
 import { PapersButton } from '../papers/public';
 import './AccountPage.css';
@@ -125,132 +117,86 @@ function ProfileSection({ me }: { me: Me }) {
 
 // ── Sign-in methods ──────────────────────────────────────────────────────────────────────────
 
-const KIND_LABEL: Record<IdentifierKind, string> = { email: 'Email address', phone: 'Phone number' };
-
 function SignInMethods({ me }: { me: Me }) {
-  const { push } = useToast();
-  const remove = useRemoveIdentifier();
-  const [editing, setEditing] = useState<IdentifierKind | null>(null);
-  const [removing, setRemovingState] = useState<IdentifierKind | null>(null);
-  const [removeError, setRemoveError] = useState<string | null>(null);
-  const setRemoving = (kind: IdentifierKind | null) => {
-    setRemoveError(null);
-    setRemovingState(kind);
-  };
-  const [lastEdited, setLastEdited] = useState<IdentifierKind>('email');
-  const value = (kind: IdentifierKind) => (kind === 'email' ? me.email : me.phone ? formatPhone(me.phone) : null);
-  const both = !!me.email && !!me.phone;
-
-  const row = (kind: IdentifierKind) => {
-    const v = value(kind);
-    const kindGlyph = kind === 'email' ? glyph.mail : glyph.phone;
-    return (
-      <li key={kind} className="acct-row">
-        <span className="acct-row__icon" aria-hidden="true">
-          <Icon glyph={kindGlyph} />
-        </span>
-        <span className="acct-row__text">
-          <span className="acct-row__label">{KIND_LABEL[kind]}</span>
-          <span className={v ? 'acct-row__value' : 'acct-row__value is-empty'}>{v ?? 'Not added'}</span>
-        </span>
-        <span className="acct-row__actions">
-          {v ? (
-            <>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setLastEdited(kind);
-                  setEditing(kind);
-                }}
-                aria-label={`Change your ${kind === 'email' ? 'email address' : 'phone number'}`}
-              >
-                Change
-              </Button>
-              {both ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setRemoving(kind)}
-                  aria-label={`Remove your ${kind === 'email' ? 'email address' : 'phone number'}`}
-                >
-                  Remove
-                </Button>
-              ) : null}
-            </>
-          ) : (
-            <Button
-              size="sm"
-              onClick={() => {
-                setLastEdited(kind);
-                setEditing(kind);
-              }}
-            >
-              {kind === 'email' ? 'Add email' : 'Add phone'}
-            </Button>
-          )}
-        </span>
-      </li>
-    );
-  };
-
-  const other = removing === 'email' ? 'phone' : 'email';
-  const otherValue = removing ? value(other) : null;
+  const { googleSignIn } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const linkGoogle =
+    googleSignIn && !me.googleLinked ? (
+      <GoogleButton label="Link Google" link returnTo="/account" onError={setGoogleError} compact />
+    ) : null;
 
   return (
     <>
       <Panel padding="none">
         <ul role="list" className="acct-list">
-          {row('email')}
-          {row('phone')}
+          <li className="acct-row" data-hub="acct-email">
+            <span className="acct-row__icon" aria-hidden="true">
+              <Icon glyph={glyph.mail} />
+            </span>
+            <span className="acct-row__text">
+              <span className="acct-row__label">
+                Email address
+                {me.emailConfirmed ? null : (
+                  <Badge tone="warning" size="sm">
+                    Not confirmed
+                  </Badge>
+                )}
+              </span>
+              <span className="acct-row__value">{me.email}</span>
+            </span>
+          </li>
+          <li className="acct-row">
+            <span className="acct-row__icon" aria-hidden="true">
+              <Icon glyph={glyph.lock} />
+            </span>
+            <span className="acct-row__text">
+              <span className="acct-row__label">Password</span>
+              <span className={me.hasPassword ? 'acct-row__value' : 'acct-row__value is-empty'}>
+                {me.hasPassword ? 'Set' : 'No password yet'}
+              </span>
+            </span>
+            <span className="acct-row__actions">
+              <Button
+                size="sm"
+                variant={me.hasPassword ? 'ghost' : 'secondary'}
+                onClick={() => setEditing(true)}
+                aria-label={me.hasPassword ? 'Change your password' : undefined}
+              >
+                {me.hasPassword ? 'Change' : 'Add a password'}
+              </Button>
+            </span>
+          </li>
+          {googleSignIn || me.googleLinked ? (
+            <li className="acct-row" data-hub="acct-google">
+              <span className="acct-row__icon" aria-hidden="true">
+                <Icon glyph={glyph.user} />
+              </span>
+              <span className="acct-row__text">
+                <span className="acct-row__label">Google</span>
+                <span className={me.googleLinked ? 'acct-row__value' : 'acct-row__value is-empty'}>
+                  {me.googleLinked ? 'Linked: you can continue with Google' : 'Not linked'}
+                </span>
+              </span>
+              {linkGoogle ? <span className="acct-row__actions">{linkGoogle}</span> : null}
+            </li>
+          ) : null}
         </ul>
       </Panel>
+      {googleError ? (
+        <p className="acct-alert" role="alert">
+          <Icon glyph={glyph.error} />
+          {googleError}
+        </p>
+      ) : null}
       <p className="acct-note">
-        {both
-          ? 'Sign in with either one.'
-          : 'Add the other one too, so you can still sign in if you lose access to this one.'}{' '}
-        To change or remove one, we may first send a code to confirm it’s you.
+        {me.emailConfirmed
+          ? 'Changing your password signs out your other devices.'
+          : googleSignIn
+            ? 'Your email address isn’t confirmed yet. Link Google to confirm it: then nobody else can claim it, and you can sign in with Google too.'
+            : 'Your email address isn’t confirmed yet. Changing your password signs out your other devices.'}
       </p>
-      <IdentifierDialog
-        kind={editing}
-        current={editing ? value(editing) : value(lastEdited)}
-        onClose={() => setEditing(null)}
-      />
-      <ConfirmDialog
-        open={removing !== null}
-        title={`Remove your ${removing === 'phone' ? 'phone number' : 'email address'}?`}
-        confirmLabel="Remove"
-        tone="danger"
-        busy={remove.isPending}
-        error={removeError}
-        onClose={() => setRemoving(null)}
-        onConfirm={() => {
-          if (!removing) return;
-          setRemoveError(null);
-          remove.mutate(removing, {
-            onSuccess: () => {
-              push({
-                tone: 'success',
-                title: removing === 'phone' ? 'Phone number removed' : 'Email address removed',
-                body: 'To be safe, your other devices were signed out.',
-              });
-              setRemoving(null);
-            },
-            onError: (err) => setRemoveError(errorMessage(err)),
-          });
-        }}
-        body={
-          <p>
-            You’ll sign in with your {other === 'email' ? 'email address' : 'phone number'}
-            {otherValue ? (
-              <>
-                , <strong>{otherValue}</strong>,
-              </>
-            ) : null}{' '}
-            from now on. Your other devices will be signed out.
-          </p>
-        }
-      />
+      <PasswordDialog me={me} open={editing} onClose={() => setEditing(false)} />
     </>
   );
 }
@@ -605,7 +551,7 @@ export default function AccountPage() {
         <SectionHeader
           id="acct-signin"
           title="How you sign in"
-          description="We send a code to one of these each time you sign in."
+          description="Your email address and password, or Google."
         />
         <SignInMethods me={me} />
       </PageSection>

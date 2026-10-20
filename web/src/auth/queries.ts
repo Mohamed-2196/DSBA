@@ -3,9 +3,11 @@ import { removeStored } from '../state';
 
 /** The signed-in person (GET /me): Me, or null for a guest. */
 export const ME_KEY = ['me'] as const;
+/** Whether "Continue with Google" is set up: GET /auth/session says, alongside who is signed in. */
+export const GOOGLE_SIGN_IN_KEY = ['sign-in-methods'] as const;
 
 // Queries that are the same for everyone and expensive to reload (the module catalogue), plus /me itself.
-const SHARED_ROOTS = new Set<unknown>(['me', 'modules']);
+const SHARED_ROOTS = new Set<unknown>(['me', 'modules', 'sign-in-methods']);
 const isPersonal = (key: readonly unknown[]) => !SHARED_ROOTS.has(key[0]);
 
 /** After signing in: re-read everything that depends on who is asking (stars, votes, progress, notifications). */

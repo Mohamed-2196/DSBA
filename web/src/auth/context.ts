@@ -28,6 +28,8 @@ export interface AuthValue {
   offForOthers: (feature: Feature) => boolean;
   /** holds the Admin role on an active account */
   isAdmin: boolean;
+  /** "Continue with Google" is set up on this hub */
+  googleSignIn: boolean;
   /** holds at least one manager box: Manage is open to them */
   manages: boolean;
   roles: Me['roles'];

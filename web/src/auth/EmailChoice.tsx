@@ -7,8 +7,6 @@ export interface EmailChoiceProps {
   value: boolean | null;
   onChange: (value: boolean) => void;
   error?: string | null;
-  /** the account has an email address to send them to */
-  hasEmail: boolean;
 }
 
 /**
@@ -16,7 +14,7 @@ export interface EmailChoiceProps {
  * advance. The answer starts every notification email switch on Your account (PATCH /me preferences
  * .notificationEmails). data-hub="signup-emails".
  */
-export function EmailChoice({ value, onChange, error, hasEmail }: EmailChoiceProps) {
+export function EmailChoice({ value, onChange, error }: EmailChoiceProps) {
   const uid = useId().replace(/:/g, '');
   const errId = `${uid}-err`;
   const hintId = `${uid}-hint`;
@@ -47,9 +45,7 @@ export function EmailChoice({ value, onChange, error, hasEmail }: EmailChoicePro
         </p>
       ) : null}
       <p id={hintId} className="ui-field__hint signin-cohorts__error">
-        {hasEmail
-          ? 'Also accepted answers, your uploads and new newsletter issues. You can change each one in Your account.'
-          : 'Also accepted answers, your uploads and new newsletter issues, once you add an email address in Your account.'}
+        Also accepted answers, your uploads and new newsletter issues. You can change each one in Your account.
       </p>
     </fieldset>
   );

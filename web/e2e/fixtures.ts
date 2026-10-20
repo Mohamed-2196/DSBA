@@ -1,5 +1,5 @@
 // `test` with a page per persona, each in its own browser context (its own cookies and storage):
-//   sara   Year 2, signed up with her phone (setup project)        ali    Year 1, signed up with his email
+//   sara   Year 2, signed up with a password (setup project)        ali    Year 1, the same, address confirmed
 //   rep    a student rep (dev-login)                                admin  an admin (dev-login)
 //   guest  nobody signed in, browsing Year 2
 // Mini Noora is hidden on every page (she floats over the page and covers part of it); see support.prepareContext.

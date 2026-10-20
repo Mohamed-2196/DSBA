@@ -8,7 +8,7 @@ test.describe.configure({ mode: 'serial' });
 
 async function findAli(admin: Page, email: string) {
   await admin.goto('/admin/access?tab=people');
-  await admin.getByLabel('Search by name, email or phone').fill(email);
+  await admin.getByLabel('Search by name or email').fill(email);
   const row = admin.locator('tr').filter({ hasText: email }).first();
   await expect(row).toBeVisible();
   return row;

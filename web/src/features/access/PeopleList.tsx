@@ -1,10 +1,10 @@
 // Find an account, suspend it or lift its suspension; with `withRoles` (the Access screen), see and change its roles.
-// Only admins search by and see email addresses and phone numbers: the API leaves them out for everyone else.
+// Only admins search by and see email addresses: the API leaves them out for everyone else. Admins also make reset
+// links for people who forgot their password.
 import { useMemo, useState } from 'react';
 import { errorMessage } from '../../api/errors';
 import type { AdminUser } from '../../api/types';
 import { useAuth } from '../../auth';
-import { formatPhone } from '../../auth/identifiers';
 import { useDebouncedValue, useToast } from '../../state';
 import {
   Avatar,
@@ -24,6 +24,7 @@ import {
   timeAgo,
 } from '../../ui';
 import { useRoleCatalogue, usePeople, useUpdatePerson } from './api';
+import { ResetLinkDialog } from './ResetLinkDialog';
 import { RolesDialog } from './RolesDialog';
 import './PeopleList.css';
 
@@ -40,17 +41,20 @@ interface RowProps {
   withRoles: boolean;
   /** Suspending and lifting: only admins do it to an admin. */
   mayChangeStatus: boolean;
+  /** Reset links: admins make them, for anyone but an admin. */
+  mayReset: boolean;
   onStatus: (status: 'active' | 'suspended') => void;
   onRoles: () => void;
+  onReset: () => void;
 }
 
-function PersonRow({ p, isSelf, withRoles, mayChangeStatus, onStatus, onRoles }: RowProps) {
+function PersonRow({ p, isSelf, withRoles, mayChangeStatus, mayReset, onStatus, onRoles, onReset }: RowProps) {
   const suspended = p.status === 'suspended';
-  const contacts = [p.email, p.phone ? formatPhone(p.phone) : null].filter(Boolean).join(' · ');
+  const contacts = p.email;
   return (
     <tr className={suspended ? 'is-suspended' : undefined}>
       <td className="people-cell people-cell--person">
-        <Avatar name={p.displayName || p.email || p.phone || ''} size="md" decorative />
+        <Avatar name={p.displayName || p.email || ''} size="md" decorative />
         <span className="people-person">
           <span className="people-person__name">
             {displayName(p)}
@@ -64,6 +68,11 @@ function PersonRow({ p, isSelf, withRoles, mayChangeStatus, onStatus, onRoles }:
                 Suspended
               </Badge>
             ) : null}
+            {p.emailConfirmed || !contacts ? null : (
+              <Badge tone="warning" size="sm" title="Their email address isn’t confirmed by Google yet">
+                Not confirmed
+              </Badge>
+            )}
           </span>
           {contacts ? <span className="people-person__ids">{contacts}</span> : null}
         </span>
@@ -113,6 +122,17 @@ function PersonRow({ p, isSelf, withRoles, mayChangeStatus, onStatus, onRoles }:
         <span className="people-joined">Joined {formatDate(p.createdAt)}</span>
       </td>
       <td className="people-cell people-cell--actions">
+        {mayReset && !isSelf ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            leadingIcon={<Icon glyph={glyph.link} />}
+            onClick={onReset}
+            aria-label={`Make a password reset link for ${displayName(p)}`}
+          >
+            Reset link
+          </Button>
+        ) : null}
         {isSelf || !mayChangeStatus ? null : suspended ? (
           <Button
             size="sm"
@@ -149,6 +169,7 @@ export function PeopleList({ withRoles = false }: { withRoles?: boolean }) {
   const [pending, setPendingState] = useState<Pending>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [rolesOf, setRolesOf] = useState<AdminUser | null>(null);
+  const [resetFor, setResetFor] = useState<AdminUser | null>(null);
   const setPending = (next: Pending) => {
     setProblem(null);
     setPendingState(next);
@@ -156,7 +177,7 @@ export function PeopleList({ withRoles = false }: { withRoles?: boolean }) {
 
   const list = useMemo(() => people.data?.pages.flatMap((p) => p.items) ?? [], [people.data]);
   const total = people.data?.pages[0]?.total ?? 0;
-  const searchLabel = isAdmin ? 'Search by name, email or phone' : 'Search by name';
+  const searchLabel = isAdmin ? 'Search by name or email' : 'Search by name';
 
   const apply = (person: AdminUser, change: Change, done: () => void) => {
     setProblem(null);
@@ -222,7 +243,7 @@ export function PeopleList({ withRoles = false }: { withRoles?: boolean }) {
             body={
               q
                 ? isAdmin
-                  ? 'Check the spelling, or search by email or phone number.'
+                  ? 'Check the spelling, or search by email address.'
                   : 'Check the spelling, or try part of the name.'
                 : 'Accounts show up here once people sign in.'
             }
@@ -261,8 +282,10 @@ export function PeopleList({ withRoles = false }: { withRoles?: boolean }) {
                   isSelf={p.id === me?.id}
                   withRoles={withRoles}
                   mayChangeStatus={isAdmin || !p.roles.some((r) => r.slug === 'admin')}
+                  mayReset={isAdmin && !p.roles.some((r) => r.slug === 'admin')}
                   onStatus={(status) => setPending({ person: p, change: { status } })}
                   onRoles={() => setRolesOf(p)}
+                  onReset={() => setResetFor(p)}
                 />
               ))}
             </tbody>
@@ -292,6 +315,7 @@ export function PeopleList({ withRoles = false }: { withRoles?: boolean }) {
         onConfirm={() => pending && apply(pending.person, pending.change, () => setPending(null))}
         onClose={() => setPending(null)}
       />
+      {isAdmin ? <ResetLinkDialog person={resetFor} onClose={() => setResetFor(null)} /> : null}
       {withRoles ? (
         <RolesDialog
           person={rolesOf}
