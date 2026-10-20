@@ -1,11 +1,10 @@
 // Today's puzzles as students play them, each with the items it uses. A puzzle someone has opened is kept as it is, so
 // a mistake in it is fixed here: the item's dialog shows today's puzzle with the fix before it's applied. A puzzle
 // nobody has opened yet is made from the items as they are when someone does, so an edit reaches it.
-import { PencilSimple, WarningCircle } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { DailyContentOverview, ItemOut, TodayGame } from '../../../api/types';
 import { formatDay } from '../../../lib/dates';
-import { Badge, Button, EmptyState, Panel, QueryError, Skeleton, cx } from '../../../ui';
+import { Badge, Button, cx, EmptyState, glyph, Icon, Panel, QueryError, Skeleton } from '../../../ui';
 import { isApiError } from '../../../api/errors';
 import { useTodayPuzzles } from './api';
 import { ItemDialog } from './ItemDialog';
@@ -96,7 +95,7 @@ function TodayCard({ game, onOpen }: { game: TodayGame; onOpen: (item: ItemOut) 
         <TodayItems game={game} onOpen={onOpen} />
       ) : (
         <p className="dcms-check">
-          <WarningCircle aria-hidden="true" weight="fill" /> No puzzle today. {game.problem}
+          <Icon glyph={glyph.error} /> No puzzle today. {game.problem}
         </p>
       )}
       {game.out && game.fixesLeft === 0 ? (
@@ -115,7 +114,7 @@ function TodayItems({ game, onOpen }: { game: TodayGame; onOpen: (item: ItemOut)
       <Button
         size="sm"
         variant="secondary"
-        leadingIcon={PencilSimple}
+        leadingIcon={<Icon glyph={glyph.edit} />}
         className="dcms-today__fix"
         aria-label={`${game.out ? 'Fix' : 'Edit'} “${name}”`}
         onClick={() => onOpen(item)}

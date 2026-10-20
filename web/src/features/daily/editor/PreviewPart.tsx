@@ -1,10 +1,9 @@
 // A day's puzzles with their answers: as they went out for a day that is out, or as the content would make them for
 // a day to come (nothing is stored, so adding or retiring items before then can still change it).
-import { Check, WarningCircle } from '@phosphor-icons/react';
 import { Fragment, useState, type ReactNode } from 'react';
 import type { DailyContentOverview, PreviewGame } from '../../../api/types';
 import { addDaysToKey, formatDay, isDayKey } from '../../../lib/dates';
-import { Badge, Button, Highlight, Panel, QueryError, Skeleton, TextField, cx } from '../../../ui';
+import { Badge, Button, cx, glyph, Highlight, Icon, Panel, QueryError, Skeleton, TextField } from '../../../ui';
 import { useDailyPreview } from './api';
 import { gameInfo } from './lib/items';
 
@@ -98,7 +97,7 @@ function PreviewBody({ game }: { game: PreviewGame }) {
   if (!game.puzzle) {
     return (
       <p className="dcms-check">
-        <WarningCircle aria-hidden="true" weight="fill" /> No puzzle that day. {game.problem}
+        <Icon glyph={glyph.error} /> No puzzle that day. {game.problem}
       </p>
     );
   }
@@ -190,7 +189,7 @@ export function PuzzleView({ puzzle, before }: { puzzle: PreviewPuzzle; before?:
                 <ul className="dcms-preview__options">
                   {q.options.map((o, i) => (
                     <li key={`${i}-${o}`} className={cx(i === q.answer && 'is-right')}>
-                      {i === q.answer ? <Check aria-label="Right answer" weight="bold" /> : null}
+                      {i === q.answer ? <Icon glyph={glyph.check} aria-label="Right answer" /> : null}
                       {o}
                     </li>
                   ))}

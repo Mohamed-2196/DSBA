@@ -2,12 +2,11 @@
 // shell, such as the dev site. "Check" reads it and says what it would add and leave; "Load" adds what the hub lacks
 // and leaves what is there, so loading the same file again changes nothing. The file holds every answer: it goes
 // from this dialog to the API and nowhere else.
-import { FileArrowUp } from '@phosphor-icons/react';
 import { useId, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { BundleReport, ThemeOut } from '../../../api/types';
 import { useToast } from '../../../state';
-import { Button, Modal, formatCount } from '../../../ui';
+import { Button, formatCount, glyph, Icon, Modal } from '../../../ui';
 import { useImportBundle } from './api';
 import { GAMES } from './lib/items';
 
@@ -120,7 +119,7 @@ export function ContentFileDialog({ themes, onClose }: { themes: ThemeOut[]; onC
             data-autofocus
           />
           <p className="dcms__note">
-            <FileArrowUp aria-hidden="true" /> It holds every answer: keep it private, out of the repository and out of
+            <Icon glyph={glyph.upload} /> It holds every answer: keep it private, out of the repository and out of
             chats.
           </p>
         </div>

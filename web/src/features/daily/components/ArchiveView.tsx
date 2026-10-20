@@ -1,10 +1,9 @@
 // Past days: a month of sets on a calendar, how many of each day's games you finished, and the day you pick with
 // its six games to play again. Past days are practice: they never count for points.
-import { CaretLeft, CaretRight, CheckCircle, Circle } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { MONTHS, WEEKDAYS, type DayKey } from '../../../lib/dates';
 import { useQueryParam } from '../../../state';
-import { IconButton, QueryError, Skeleton, cx } from '../../../ui';
+import { cx, glyph, Icon, IconButton, QueryError, Skeleton } from '../../../ui';
 import { useDailyCalendar } from '../api';
 import { dayLabel, monthOf, monthWeeks, setNumber, shiftMonth } from '../lib/days';
 import type { CalendarDay, DailyToday } from '../types';
@@ -34,13 +33,13 @@ export function ArchiveView({ today }: { today: DailyToday }) {
           <div className="dh-cal__nav">
             <IconButton
               label="Previous month"
-              icon={CaretLeft}
+              icon={<Icon glyph={glyph.chevronLeft} />}
               disabled={month <= first}
               onClick={() => setMonth(shiftMonth(month, -1), { replace: true })}
             />
             <IconButton
               label="Next month"
-              icon={CaretRight}
+              icon={<Icon glyph={glyph.chevronRight} />}
               disabled={month >= last}
               onClick={() => setMonth(shiftMonth(month, 1), { replace: true })}
             />
@@ -177,11 +176,11 @@ function DayPanel({
                 <span className="dh-day__name">{g.info.title}</span>
                 {finished ? (
                   <span className="dh-day__state is-done">
-                    <CheckCircle weight="fill" aria-hidden="true" /> Done
+                    <Icon glyph={glyph.success} /> Done
                   </span>
                 ) : (
                   <span className="dh-day__state">
-                    <Circle aria-hidden="true" /> {isToday ? 'Play' : 'Practise'}
+                    <Icon glyph={glyph.play} /> {isToday ? 'Play' : 'Practise'}
                   </span>
                 )}
               </Link>

@@ -1,7 +1,6 @@
 // Themes and the weeks to come. The rotation's themes take turns in order (move them with the arrows); a theme out of
 // it runs only on weeks it is given. A theme joins the rotation once every game has what it needs, and a week that
 // has started keeps its theme.
-import { ArrowDown, ArrowUp, PencilSimple, Plus, Trash, WarningCircle } from '@phosphor-icons/react';
 import { useState, type ReactNode } from 'react';
 import { errorMessage, isApiError, placeFieldErrors, unplacedMessage } from '../../../api/errors';
 import type { DailyContentOverview, ThemeOut, WeekOut } from '../../../api/types';
@@ -11,6 +10,8 @@ import {
   Badge,
   Button,
   ConfirmDialog,
+  glyph,
+  Icon,
   IconButton,
   Modal,
   Panel,
@@ -58,7 +59,7 @@ export function ThemesPart({ overview }: { overview: DailyContentOverview }) {
               the rotation runs only on the weeks you give it below.
             </p>
           </div>
-          <Button leadingIcon={Plus} onClick={() => setEditing('new')}>
+          <Button leadingIcon={<Icon glyph={glyph.plus} />} onClick={() => setEditing('new')}>
             Add a theme
           </Button>
         </div>
@@ -67,14 +68,14 @@ export function ThemesPart({ overview }: { overview: DailyContentOverview }) {
             <ThemeRow key={t.id} theme={t} onEdit={() => setEditing(t)} onRemove={() => setRemoving(t)}>
               <IconButton
                 size="sm"
-                icon={ArrowUp}
+                icon={<Icon glyph={glyph.arrowUp} />}
                 label={`Move ${t.title} earlier`}
                 disabled={i === 0 || order.isPending}
                 onClick={() => move(i, -1)}
               />
               <IconButton
                 size="sm"
-                icon={ArrowDown}
+                icon={<Icon glyph={glyph.arrowDown} />}
                 label={`Move ${t.title} later`}
                 disabled={i === rotation.length - 1 || order.isPending}
                 onClick={() => move(i, 1)}
@@ -150,7 +151,7 @@ function ThemeRow({
         <p className="dcms-theme__title">
           <span>{t.title}</span>
           {t.problems.length === 0 ? null : (
-            <Badge tone="alert" size="sm" icon={WarningCircle}>
+            <Badge tone="alert" size="sm" icon={<Icon glyph={glyph.error} />}>
               Not ready
             </Badge>
           )}
@@ -167,9 +168,15 @@ function ThemeRow({
       </div>
       <div className="dcms-theme__tools">
         {children}
-        <IconButton size="sm" icon={PencilSimple} label={`Edit ${t.title}`} tooltip onClick={onEdit} />
+        <IconButton size="sm" icon={<Icon glyph={glyph.edit} />} label={`Edit ${t.title}`} tooltip onClick={onEdit} />
         {removable ? (
-          <IconButton size="sm" icon={Trash} label={`Delete ${t.title}`} tooltip onClick={onRemove} />
+          <IconButton
+            size="sm"
+            icon={<Icon glyph={glyph.trash} />}
+            label={`Delete ${t.title}`}
+            tooltip
+            onClick={onRemove}
+          />
         ) : null}
       </div>
     </li>

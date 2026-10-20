@@ -1,7 +1,6 @@
 // One game's items: by theme and status, found by any of their words, a page at a time. A row opens its form. An item
 // can be retired (it never runs again, and the days it ran keep it) and brought back, or deleted if it never ran.
 // The word game's guess list and Nearest neighbour's vocabulary sit under their games' items.
-import { Archive, ArrowCounterClockwise, Plus, Trash, UploadSimple } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { errorMessage } from '../../../api/errors';
 import type { DailyContentOverview, ItemOut } from '../../../api/types';
@@ -12,7 +11,11 @@ import {
   Badge,
   Button,
   ConfirmDialog,
+  cx,
   EmptyState,
+  formatCount,
+  glyph,
+  Icon,
   IconButton,
   Panel,
   QueryError,
@@ -20,8 +23,6 @@ import {
   SegmentedControl,
   Select,
   Skeleton,
-  cx,
-  formatCount,
 } from '../../../ui';
 import { useDailyItems, useDeleteItem, useRetireItem } from './api';
 import { GuessList } from './GuessList';
@@ -119,10 +120,10 @@ export function ItemsPart({ game, overview }: { game: ContentGame; overview: Dai
               <p className="dcms__note">{info.about}</p>
             </div>
             <div className="dcms-part__actions">
-              <Button leadingIcon={UploadSimple} onClick={() => setImporting(true)}>
+              <Button leadingIcon={<Icon glyph={glyph.upload} />} onClick={() => setImporting(true)}>
                 Import
               </Button>
-              <Button variant="primary" leadingIcon={Plus} onClick={() => setEditing('new')}>
+              <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} onClick={() => setEditing('new')}>
                 {`Add ${article(info.noun)} ${info.noun}`}
               </Button>
             </div>
@@ -173,7 +174,7 @@ export function ItemsPart({ game, overview }: { game: ContentGame; overview: Dai
               body={filtered ? 'Try another theme or other words.' : `Add one, or import a list.`}
               action={
                 filtered ? null : (
-                  <Button variant="primary" leadingIcon={Plus} onClick={() => setEditing('new')}>
+                  <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} onClick={() => setEditing('new')}>
                     {`Add ${article(info.noun)} ${info.noun}`}
                   </Button>
                 )
@@ -298,14 +299,20 @@ function ItemRow({ item, themeTitle, busy, onOpen, onRetire, onRemove }: ItemRow
       <span className="dcms-item__tools">
         <IconButton
           size="sm"
-          icon={item.retired ? ArrowCounterClockwise : Archive}
+          icon={item.retired ? <Icon glyph={glyph.undo} /> : <Icon glyph={glyph.folder} />}
           label={item.retired ? `Bring back “${title}”` : `Retire “${title}”`}
           tooltip
           disabled={busy}
           onClick={onRetire}
         />
         {item.uses === 0 ? (
-          <IconButton size="sm" icon={Trash} label={`Delete “${title}”`} tooltip onClick={onRemove} />
+          <IconButton
+            size="sm"
+            icon={<Icon glyph={glyph.trash} />}
+            label={`Delete “${title}”`}
+            tooltip
+            onClick={onRemove}
+          />
         ) : null}
       </span>
     </li>

@@ -1,8 +1,7 @@
 // Shares a result: the phone's share sheet where there is one, the clipboard elsewhere, with the outcome on the
 // button itself.
 import { useEffect, useRef, useState } from 'react';
-import { Check, ShareNetwork } from '@phosphor-icons/react';
-import { Button, type ButtonSize, type ButtonVariant } from '../../../ui';
+import { Button, type ButtonSize, type ButtonVariant, glyph, Icon } from '../../../ui';
 import { shareResult, type ShareOutcome } from '../lib/share';
 
 const LABEL: Record<ShareOutcome, string> = {
@@ -40,7 +39,7 @@ export function ShareButton({
       variant={variant}
       size={size}
       fullWidth={fullWidth}
-      leadingIcon={done ? Check : ShareNetwork}
+      leadingIcon={done ? <Icon glyph={glyph.check} /> : <Icon glyph={glyph.share} />}
       onClick={() => void onClick()}
       aria-live="polite"
     >

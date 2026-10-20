@@ -2,9 +2,8 @@
 // mistake); pencil marks, erasing and undoing them stay on this device. The pad shows how many of each digit are
 // left. Easy, medium and hard are each a play of their own: the first one started today counts.
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import { ArrowCounterClockwise, Eraser, Lightbulb, PencilSimple } from '@phosphor-icons/react';
 import { todayKey } from '../../../../lib/dates';
-import { SegmentedControl, cx } from '../../../../ui';
+import { cx, glyph, Icon, SegmentedControl } from '../../../../ui';
 import { loadNotes, saveNotes, type Notes } from '../../lib/storage';
 import {
   arePeers,
@@ -251,7 +250,7 @@ export function SudokuGame({ out, busy, play, flash, paused, onVariant }: GamePr
         <div className="dsu-controls">
           <div className="dsu-tools">
             <button type="button" className="dsu-tool" onClick={undoNote} disabled={!undo.length}>
-              <ArrowCounterClockwise aria-hidden="true" />
+              <Icon glyph={glyph.undo} />
               <span>Undo</span>
             </button>
             <button
@@ -260,7 +259,7 @@ export function SudokuGame({ out, busy, play, flash, paused, onVariant }: GamePr
               onClick={erase}
               disabled={!editable(selected) || !notes[selected]?.length}
             >
-              <Eraser aria-hidden="true" />
+              <Icon glyph={glyph.eraser} />
               <span>Erase</span>
             </button>
             <button
@@ -269,11 +268,11 @@ export function SudokuGame({ out, busy, play, flash, paused, onVariant }: GamePr
               onClick={() => setNoting((n) => !n)}
               aria-pressed={noting}
             >
-              <PencilSimple aria-hidden="true" />
+              <Icon glyph={glyph.edit} />
               <span>Notes {noting ? 'on' : 'off'}</span>
             </button>
             <button type="button" className="dsu-tool" onClick={() => void hint()} disabled={busy}>
-              <Lightbulb aria-hidden="true" />
+              <Icon glyph={glyph.sparkle} />
               <span>Hint</span>
             </button>
           </div>
@@ -321,19 +320,19 @@ export function SudokuExample() {
   return (
     <ul className="dsu-eg">
       <li>
-        <PencilSimple aria-hidden="true" />
+        <Icon glyph={glyph.edit} />
         <span>
           <strong>Notes</strong> pencil in the digits a cell might take. They don’t count as moves.
         </span>
       </li>
       <li>
-        <Eraser aria-hidden="true" />
+        <Icon glyph={glyph.eraser} />
         <span>
           <strong>Erase</strong> clears a cell’s notes, and <strong>Undo</strong> takes back the last change to them.
         </span>
       </li>
       <li>
-        <Lightbulb aria-hidden="true" />
+        <Icon glyph={glyph.sparkle} />
         <span>
           <strong>Hint</strong> fills the cell you’ve picked, or the most useful one.
         </span>
