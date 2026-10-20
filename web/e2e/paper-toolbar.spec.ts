@@ -48,6 +48,8 @@ test('on a phone, Time me opens its dialog, a double tap on Start stays put, and
     // tab bar under it (ST-62: it used to open Noora).
     await bar.getByRole('button', { name: 'Time me' }).tap();
     const start = sara.locator('[data-hub="time-me-start"]');
+    await expect(start).toBeVisible();
+    await sara.waitForTimeout(500); // the sheet has finished sliding up
     const box = await start.boundingBox();
     if (!box) throw new Error('No Start button in the Time me sheet');
     const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
