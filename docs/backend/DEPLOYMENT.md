@@ -259,6 +259,12 @@ The `backup` service runs `python -m app.cli backup` when it starts and every 24
 
 Without `DSBA_BACKUP_*` (development), dumps go to the main bucket under `backups/db/` with the API's key.
 
+The job holds only the database and its backup key (`DSBA_ROLE=backup`: production checks just those for it), never
+the secret key, mail, texts or AI keys. **When a run fails**, it writes `BACKUP FAILED` to its log, exits with status
+1, and the service tries again an hour later. Set `DSBA_BACKUP_PING_URL` to a dead man's switch (healthchecks.io, or
+any monitor with a ping URL; a daily period with a few hours' grace): every good run pings it, a failed run pings
+its `/fail`, and a job that stops running stops pinging, so the monitor emails you either way.
+
 **Recommended:** give the backup key only `s3:PutObject` and `s3:AbortMultipartUpload` on
 `arn:aws:s3:::<backup bucket>/backups/*`, turn on versioning or Object Lock on the backup bucket, keep dumps with a
 lifecycle rule, and set `DSBA_BACKUP_KEEP=0` (a write-only key can't list or delete old dumps; with a number there
@@ -305,8 +311,11 @@ The `sweep` service runs `python -m app.cli sweep` when it starts and every 24 h
 - sign-in codes older than two days (the longest rate-limit window is a day);
 - sessions that expired or were revoked more than 30 days ago;
 - the files of library items rejected or removed more than a week ago (the item stays, without its file);
-- the addresses kept on bug reports after a day, and the screenshots of bug reports closed (fixed or won't
-  fix) more than 90 days ago (the report stays, without its screenshot).
+- the addresses kept on bug reports and on guests' Daily plays kept at sign-in after a day, and the screenshots of
+  bug reports closed (fixed or won't fix) more than 90 days ago (the report stays, without its screenshot).
+
+It holds only the database and the bucket (`DSBA_ROLE=sweep`). A failed run writes `SWEEP FAILED`, pings
+`DSBA_SWEEP_PING_URL/fail` and is tried again an hour later, as the backup is.
 
 ## 9. Analytics (optional)
 
@@ -423,9 +432,20 @@ services, never to the text worker), then turn on `noora.ai` in Access; it arriv
 (`claude-haiku-5-5` by default; it thinks before it answers, at `DSBA_NOORA_EFFORT`). When Claude's safeguards decline a
 question, the student is told she can't help with that one, and the log keeps the decline's category only. Admins set
 her daily limit per student and the monthly budget in Manage → Numbers (an account under a week old asks at most 5
-a day, and an answer the student drops is charged what Claude used, so fresh sign-ups can't spend the month); also set a monthly spending limit on the
-Anthropic workspace as a backstop. Without the key, or with `noora.ai` off, she answers from her script, which admins
+a day, and an answer the student drops is charged what Claude used, so fresh sign-ups can't spend the month); also
+set a monthly spending limit on the Anthropic workspace as a backstop. Without the key, or with `noora.ai` off, she answers from her script, which admins
 edit in Manage → Mini Noora, and calls nobody.
+
+**Texts (Twilio).** The hub's own guards are the region check (`DSBA_SMS_ALLOWED_REGIONS=BH`) and its text budget
+(`DSBA_SMS_MAX_PER_HOUR` 50, `DSBA_SMS_MAX_PER_DAY` 300): anyone can still make it text up to 300 Bahraini numbers a
+day, about $15 to $30. Set Twilio's own protections too, so a changed setting or a leaked token can't reach further
+(SEC-56):
+- Messaging → Settings → Geo permissions: Bahrain only.
+- SMS Pumping Protection: on.
+- Billing: a usage trigger that emails you at a few dollars a day, and a spend cap on the account (or a sub-account
+  for the hub with its own cap).
+- Send from a Messaging Service (`DSBA_TWILIO_FROM=MG…`), not a bare number, so the sender can change without a
+  deploy.
 
 **The Sunday summary** is an email of the week ahead for each year, for students who keep its switch on. Turn on
 `summary` in Access. The `mail` service queues it on Sunday from the time set in Manage → Sunday summary and sends it;
@@ -489,6 +509,9 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_NOORA_LONG_PROMPT_TOKENS`, `DSBA_NOORA_LONG_INPUT_USD_PER_MTOK`, `DSBA_NOORA_LONG_OUTPUT_USD_PER_MTOK` | `100000`, `0.50`, `2.50` | the prices for a prompt over that many tokens |
 | `DSBA_NOORA_MAX_ANSWER_TOKENS`, `DSBA_NOORA_ANSWERS_AT_ONCE` | `8000`, `8` | the longest answer (her thinking included), and answers streaming at once hub-wide |
 | `DSBA_EDGE_PROXIES` (Caddy) | `127.0.0.1/32` | proxies in front of Caddy whose `X-Forwarded-For` it keeps; on Railway `private_ranges 100.64.0.0/10` (section 5) |
+| `DSBA_ROLE` | `api` | what the process is: `backup` and `sweep` (compose.prod.yaml) are checked for the settings they hold only; the API refuses any role but `api` |
+| `DSBA_BACKUP_PING_URL`, `DSBA_SWEEP_PING_URL` | none | dead man's switches: pinged after each good daily run, at `/fail` after a failed one (https only) |
+| `DSBA_API_MEMORY`, `DSBA_TEXTS_MEMORY` (compose) | `1g`, `1g` | memory limits of the API and the text worker: a spike restarts the service, not the server |
 | `DSBA_COMMIT_SHA` (or Railway's `RAILWAY_GIT_COMMIT_SHA`) | none | the commit `/api/v1/health` reports |
 
 `compose.prod.yaml` itself reads these from `.env`, besides the ones it passes on: `DSBA_DOMAIN`, `POSTGRES_PASSWORD`,
@@ -513,3 +536,20 @@ environment, each from its Dockerfile, with the settings kept in Railway; produc
 app's bundle (`scripts/check-deploy.sh`). The dev site runs outside production mode, with made-up accounts only
 (Mohamed's call, security review SEC-43).
 
+## 13. Monitoring and limits
+
+Nothing in the hub calls you when something breaks, so set these up before students arrive (SEC-57):
+
+- **Uptime:** an outside check on `https://<domain>/api/v1/health` every few minutes (UptimeRobot, healthchecks.io,
+  Better Stack), alerting you by email or text. It answers 200 only while the database answers.
+- **Daily jobs:** `DSBA_BACKUP_PING_URL` and `DSBA_SWEEP_PING_URL` (sections 7 and 8).
+- **The mail worker:** notifications, reminders and Sunday summaries stop silently if it dies (sign-in codes don't
+  need it). `restart: unless-stopped` brings it back after a crash; check `docker compose ps` after each deploy.
+- **Noora's spend:** the monthly limit on the Anthropic workspace, with its email alert at half.
+- **Disk:** an alert at 80% on the server's disk (the database volume and Docker's logs share it). Docker's logs
+  rotate at 10 MB × 5 files per service (`x-logging` in compose.prod.yaml).
+- **Memory:** the API and the text worker are capped at 1 GB each (`DSBA_API_MEMORY`, `DSBA_TEXTS_MEMORY`).
+
+**On Railway** compose.prod.yaml doesn't apply: set each service's memory limit in its settings, keep the default log
+retention, run backup and sweep as cron services with `DSBA_ROLE`, the same image and only the variables listed for
+them in compose.prod.yaml, and point the uptime check at the public domain.

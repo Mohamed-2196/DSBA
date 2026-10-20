@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import get_settings
+from app.config import ConfigError, get_settings
 from app.core.errors import ControlCharactersMiddleware, install_error_handlers
 from app.core.headers import SecurityHeadersMiddleware
 from app.core.limits import BodyLimitMiddleware
@@ -36,6 +36,8 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     s = get_settings()  # in production: refuses to start with unsafe settings (app.config.ConfigError)
+    if s.role != "api":
+        raise ConfigError([f"DSBA_ROLE is {s.role!r}: the API runs with the default role, api."], production=False)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     keep_secrets_out_of_access_log()  # the private calendar feed's secret is in its path
     # The interactive docs and the schema are for development: the web app's types come from api/openapi.json in

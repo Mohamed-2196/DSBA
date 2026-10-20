@@ -222,3 +222,37 @@ def test_the_text_worker_starts_with_only_its_settings_and_the_api_does_not(monk
     with pytest.raises(ConfigError) as refused:
         cli.texts_worker()
     assert refused.value.problems == ["DSBA_DATABASE_URL is not set: the default is the development database."]
+
+
+def test_the_daily_jobs_are_checked_for_what_they_hold_only() -> None:
+    """SEC-57: backup and sweep get only the settings they use in production, so only those are checked."""
+    db = GOOD["database_url"]
+    backup = Settings(
+        _env_file=None,
+        env="production",
+        role="backup",
+        database_url=db,
+        backup_bucket="dsba-backups",
+        backup_access_key_id="AKIABACKUPEXAMPLE",
+        backup_secret_access_key="a-backup-secret",
+    )
+    assert backup.problems() == []
+    no_key = Settings(_env_file=None, env="production", role="backup", database_url=db)
+    assert any("DSBA_BACKUP_BUCKET" in p for p in no_key.problems())
+    sweep = Settings(
+        _env_file=None,
+        env="production",
+        role="sweep",
+        database_url=db,
+        s3_endpoint_url="",
+        s3_access_key_id="AKIAEXAMPLEEXAMPLE",
+        s3_secret_access_key="an-example-secret-access-key",
+    )
+    assert sweep.problems() == []
+    assert Settings(_env_file=None, env="production", role="sweep").problems()  # no database, no bucket
+
+
+def test_the_api_never_starts_as_a_job(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(main, "get_settings", lambda: Settings(_env_file=None, role="sweep"))
+    with pytest.raises(ConfigError, match="DSBA_ROLE"):
+        main.create_app()

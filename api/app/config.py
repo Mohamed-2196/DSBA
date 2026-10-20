@@ -56,6 +56,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DSBA_", env_file=".env", extra="ignore")
 
     env: Literal["development", "test", "production"] = "development"
+    # What this process is. The daily jobs get only the settings they use (compose.prod.yaml), so production checks
+    # only those for them: backup, the database and its backup bucket; sweep, the database and the bucket. The API
+    # refuses to start as a job.
+    role: Literal["api", "backup", "sweep"] = "api"
     # Signs OTP codes, CSRF tokens and anything else that needs a server secret. Required in production.
     secret_key: SecretStr = SecretStr(DEV_SECRET)
     database_url: str = "postgresql+psycopg://dsba:dsba@127.0.0.1:5432/dsba"
@@ -159,6 +163,10 @@ class Settings(BaseSettings):
     # The newest N dumps are kept and older ones deleted; 0 keeps them all (retention by a bucket lifecycle rule,
     # which a write-only backup key needs).
     backup_keep: int = Field(default=14, ge=0)
+    # A dead man's switch for each daily job (healthchecks.io or the like): pinged after every run that worked, and
+    # at its /fail after one that didn't, so a job that fails or stops running sends you an alert (SEC-57).
+    backup_ping_url: str | None = None
+    sweep_ping_url: str | None = None
 
     # Comma-separated emails / phone numbers that become admins when they sign in (bootstrap).
     admin_identifiers: Annotated[list[str], NoDecode] = Field(default_factory=list)
@@ -288,7 +296,20 @@ class Settings(BaseSettings):
                 "DSBA_BACKUP_ACCESS_KEY_ID and DSBA_BACKUP_SECRET_ACCESS_KEY are set together, or not at all."
             )
         if self.is_production:
-            problems.extend(self.production_problems())
+            problems.extend(self.job_problems() if self.role != "api" else self.production_problems())
+        return problems
+
+    def job_problems(self) -> list[str]:
+        """What makes these settings unfit for a daily job in production (`role`): it holds no secret key, mail, texts
+        or AI keys, so only what it uses is checked."""
+        if self.role == "sweep":
+            return [*self._database_problems(), *self._storage_problems()]
+        problems = self._database_problems()
+        if not self.backup_bucket or self.backup_access_key_id is None:
+            problems.append(
+                "DSBA_BACKUP_BUCKET, DSBA_BACKUP_ACCESS_KEY_ID and DSBA_BACKUP_SECRET_ACCESS_KEY must be set: backups "
+                "go to their own bucket with their own key."
+            )
         return problems
 
     def production_problems(self) -> list[str]:
