@@ -17,6 +17,7 @@ import {
   type RefObject,
 } from 'react';
 import type { IconProps } from '@phosphor-icons/react';
+import { shieldPageTaps } from './tapShield';
 
 /** An icon: a Phosphor component (`Plus`) or an element (`<Plus weight="bold" />`, `<span className="dot" />`). */
 export type IconSource = ComponentType<IconProps> | ReactElement;
@@ -206,6 +207,8 @@ export function useOverlay({ open, onClose, panelRef, initialFocusRef, lock = tr
       cancelAnimationFrame(raf);
       document.removeEventListener('keydown', onKey);
       if (lock) unlockScroll();
+      // A quick second tap on the closing button must not land on the page under it (the tab bar).
+      shieldPageTaps();
       // Leave focus alone if the closing action already moved it somewhere on purpose.
       const active = document.activeElement;
       if (active && active !== document.body && panelAtOpen && !panelAtOpen.contains(active)) return;

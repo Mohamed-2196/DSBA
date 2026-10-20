@@ -1,5 +1,6 @@
 // A past paper's toolbar on a phone (390×844, touch): tapping Time me opens its dialog and nothing else (no note is
-// made), and Copy link, Annotate in my notebook and Report sit in the More menu.
+// made), a quick double tap on its Start stays on the paper, and Copy link, Annotate in my notebook and Report sit
+// in the More menu.
 import { expect, test } from './fixtures';
 import { api, makeFiles, personaContext, remember } from './support';
 
@@ -8,7 +9,11 @@ interface Item {
   slug: string;
 }
 
-test('on a phone, Time me opens its dialog and the rest is under More', async ({ browser, rep, run }) => {
+test('on a phone, Time me opens its dialog, a double tap on Start stays put, and the rest is under More', async ({
+  browser,
+  rep,
+  run,
+}) => {
   const files = makeFiles(run.tag);
   await rep.goto('/library?upload=1');
   const dialog = rep.getByRole('dialog');
@@ -38,6 +43,20 @@ test('on a phone, Time me opens its dialog and the rest is under More', async ({
     await expect(sara.getByRole('dialog', { name: 'Time me' })).toBeVisible();
     await expect(sara).toHaveURL(new RegExp(`/library/${item.slug}$`));
     await sara.keyboard.press('Escape');
+
+    // A double tap on Start: the first closes the sheet and starts the clock, and the second must not land on the
+    // tab bar under it (ST-62: it used to open Noora).
+    await bar.getByRole('button', { name: 'Time me' }).tap();
+    const start = sara.locator('[data-hub="time-me-start"]');
+    const box = await start.boundingBox();
+    if (!box) throw new Error('No Start button in the Time me sheet');
+    const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+    await sara.touchscreen.tap(x, y);
+    await sara.waitForTimeout(80);
+    await sara.touchscreen.tap(x, y);
+    await expect(sara.locator('[data-hub="exam-timer"]')).toBeVisible();
+    await sara.waitForTimeout(500);
+    await expect(sara).toHaveURL(new RegExp(`/library/${item.slug}$`));
 
     await bar.getByRole('button', { name: 'More actions' }).tap();
     const menu = sara.getByRole('menu');
