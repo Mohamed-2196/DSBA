@@ -32,6 +32,12 @@ function NavItem({ item, collapsed }: { item: NavConfig; collapsed: boolean }) {
             {item.isNew ? <span className="shell-nav__newdot" aria-hidden="true" /> : null}
           </span>
           <span className="shell-nav__label">{item.label}</span>
+          {/* The icon rail names each section under its icon: on a tablet there is no hover for a tooltip (ST-76). */}
+          {collapsed ? (
+            <span className="shell-nav__short" aria-hidden="true">
+              {item.short ?? item.label}
+            </span>
+          ) : null}
           {item.isNew ? (
             <Badge tone="highlight" size="sm" className="shell-nav__new">
               New

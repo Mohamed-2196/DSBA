@@ -28,6 +28,7 @@
 }
 .forum-live__link {
   color: var(--ink-2);
+  text-align: left;
   font-size: var(--fs-14);
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
@@ -125,6 +126,17 @@
   }
   .forum-filters__search {
     align-self: end;
+  }
+}
+/* A phone on its side (ST-71): the tabs and the search share a row, so the first thread starts on the first screen. */
+@media (max-height: 499px) and (min-width: 700px) {
+  .forum-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 280px);
+    grid-template-areas: 'tabs search' 'chips chips' 'main main' 'side side';
+    row-gap: var(--sp-12);
+  }
+  .forum-filters__search {
+    align-self: center;
   }
 }
 /* Wide monitors: the list keeps a reading width, and the sidebar takes the room. */

@@ -8,6 +8,8 @@ export type NavSection = 'home' | 'library' | 'modules' | 'notebook' | 'forum' |
 export interface NavItem {
   id: string;
   label: string;
+  /** the label under the icon in the tablet's icon rail, where a long one doesn't fit: "Career" */
+  short?: string;
   to: string;
   /** a brand icon; Noora shows her face instead */
   icon: Glyph;
@@ -97,6 +99,7 @@ export const NAV: NavItem[] = [
   {
     id: 'career',
     label: 'Career Navigator',
+    short: 'Career',
     to: '/career',
     icon: glyph.career,
     section: 'tools',
@@ -115,6 +118,7 @@ export const NAV: NavItem[] = [
   {
     id: 'daily',
     label: 'Daily puzzles',
+    short: 'Daily',
     to: '/daily',
     icon: glyph.daily,
     section: 'tools',

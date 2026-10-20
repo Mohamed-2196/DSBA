@@ -194,6 +194,12 @@
 }
 /* Short screens (a phone on its side): a slimmer band, so the content starts on the first screen. */
 @media (max-height: 499px) and (min-width: 700px) {
+  .ui-page {
+    padding-top: var(--sp-16);
+  }
+  .ui-page-header {
+    margin-bottom: var(--sp-16);
+  }
   .ui-page-header--band > .ui-page-header__main {
     padding: var(--sp-12) 0 var(--sp-12) var(--sp-24);
   }
