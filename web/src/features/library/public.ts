@@ -12,8 +12,8 @@
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …
 //   libraryItemTitle(item, moduleTag)   how lists name an item: a paper by its sitting ('ST2133 · May 2019 · Zone A',
 //                                        or without the code when moduleTag is null), anything else by its title
-//   <ChapterQuestions moduleId chapterId />  the Lessons tab's past exam questions tagged with a chapter
-//                                        (render it only while the library.questions feature is on)
+//   <ChapterQuestions moduleId chapterId />  the Lessons tab's past exam questions tagged with a chapter, grouped by
+//                                        its study guide's topics (render it only while library.questions is on)
 //   <DailyQuestion question moduleName examDays className />
 //                                        Home's past question a day before the next exam (GET /home picks it)
 //   usePaperSittings(moduleId)          a module's past papers, reports and solutions by sitting, newest first
@@ -26,7 +26,8 @@
 //   useModulePractice(moduleId)         the module page's practice: { isPending, chapters, total } (chapters with tagged
 //                                        questions and the student's progress through each; null while practice is off
 //                                        for them or nothing is tagged)
-//   practisePath(moduleId, chapterId)   the chapter's practise page; progressLabel(progress) '30 of 87 done, 4 stuck'
+//   practisePath(moduleId, chapterId, topic?)  the chapter's practise page, or one topic's (?topic=);
+//                                        progressLabel(progress) '30 of 87 done, 4 stuck'
 //   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
 //   useTimeMe()                         the paper being timed with Time me ({ timer, start, pause, resume, end, stop }),
 //                                        kept in this browser

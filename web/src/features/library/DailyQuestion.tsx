@@ -8,6 +8,7 @@ import { Button, DocThumb, Icon, PageSection, Panel, SectionHeader, glyph } from
 import { AddToBoard } from '../board/public';
 import { paperLabel } from '../../lib/exams';
 import { answerHref, questionHref, questionNumber } from './papers';
+import { questionAbout } from './topics';
 import './DailyQuestion.css';
 
 export interface DailyQuestionProps {
@@ -35,7 +36,7 @@ export function DailyQuestion({ question: q, moduleName, examDays, className }: 
           <span className="u-tabular">Question {questionNumber(q)}</span>, {sitting}
           {q.page ? <span className="lib-daily__page u-tabular"> (p. {q.page})</span> : null}
         </p>
-        <p className="lib-daily__chapter">On {q.chapterTitle}. A new one tomorrow.</p>
+        <p className="lib-daily__chapter">On {questionAbout(q)}. A new one tomorrow.</p>
         <div className="lib-daily__actions">
           <Button
             size="sm"

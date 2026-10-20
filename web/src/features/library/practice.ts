@@ -157,9 +157,10 @@ export function startAt(list: readonly PaperQuestion[], marks: Map<string, Mark>
   return i === -1 ? 0 : i;
 }
 
-/** The practise page of a chapter. */
-export function practisePath(moduleId: string, chapterId: string): string {
-  return `/modules/${encodeURIComponent(moduleId)}/practise/${encodeURIComponent(chapterId)}`;
+/** The practise page of a chapter, or of one of its topics (topics.ts OTHER_TOPIC: the questions without one). */
+export function practisePath(moduleId: string, chapterId: string, topic: string | null = null): string {
+  const path = `/modules/${encodeURIComponent(moduleId)}/practise/${encodeURIComponent(chapterId)}`;
+  return topic ? `${path}?topic=${encodeURIComponent(topic)}` : path;
 }
 
 /** Mark words, for buttons and screen readers. */

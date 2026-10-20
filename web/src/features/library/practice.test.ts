@@ -28,6 +28,7 @@ function q(id: string, question: number, chapterId = 'c1', patch: Partial<PaperQ
     },
     chapterId,
     chapterTitle: chapterId === 'c1' ? 'Elasticity' : 'Costs',
+    topics: [],
     section: null,
     question,
     page: null,

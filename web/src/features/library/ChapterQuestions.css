@@ -136,3 +136,29 @@
     min-height: 52px;
   }
 }
+
+/* Questions by topic: each study-guide topic's questions under its name and count. */
+.lib-chq__group {
+  display: grid;
+  gap: var(--sp-8);
+  min-width: 0;
+}
+.lib-chq__topic {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-4) var(--sp-8);
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+}
+.lib-chq__topic-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lib-chq__topic-n {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+}
