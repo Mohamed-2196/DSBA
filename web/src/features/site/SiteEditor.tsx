@@ -25,7 +25,7 @@ import {
 import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../ui/docEditor';
 import { MarkdownEditor } from '../forum/public';
 import { useReloadSite, useSaveSite, useSiteForEditing } from './api';
-import { HOME_BLOCKS } from '../home/public';
+import { EXAM_WEEK_PARTS, HOME_BLOCKS } from '../home/public';
 import { TourStepCard } from '../onboarding/public';
 import { AboutMain } from './AboutPage';
 import { HomeTourSection, SearchSection } from './HomeAndSearch';
@@ -69,8 +69,9 @@ const SECTIONS: { id: Section; label: string; about: string; parts: string[] }[]
   {
     id: 'home',
     label: 'Home and the tour',
-    about: 'Home for a student who hasn’t arranged their own, and the steps of the tour a new student may take.',
-    parts: ['homeBlocks', 'tour'],
+    about:
+      'Home for a student who hasn’t arranged their own, what leads it in exam week, and the steps of the tour a new student may take.',
+    parts: ['homeBlocks', 'examWeek', 'tour'],
   },
   {
     id: 'search',
@@ -366,6 +367,12 @@ function Editor({ first }: { first: SiteEditable }) {
                     <li key={b}>{HOME_BLOCKS[b].title}</li>
                   ))}
                 </ol>
+                <p className="dedit-preview__label">Exam week, on phones</p>
+                <p className="site-preview__line">
+                  {doc.examWeek.on
+                    ? `From ${doc.examWeek.daysBefore} ${doc.examWeek.daysBefore === 1 ? 'day' : 'days'} before an exam: ${doc.examWeek.lead.map((p) => EXAM_WEEK_PARTS[p].title).join(', ')}.`
+                    : 'Off: Home stays as it is before exams.'}
+                </p>
                 <p className="dedit-preview__label">The tour</p>
                 {doc.tour.map((step, i) => (
                   <TourStepCard key={step.id} step={step} n={i + 1} of={doc.tour.length} />

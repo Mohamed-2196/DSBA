@@ -1,11 +1,13 @@
 // Home: a greeting, then a grid of equal cards the student can show, hide and reorder (Customise Home): Up next,
 // Carry on, To-do, Continue, My modules, New files and Forum, with notices and the Ask Noora prompt across the whole
 // width.
+// In exam week, on a phone, the student's next exam leads instead of the desk shelf (ExamWeekLead.tsx; Site settings say
+// whether, from how many days before, and what leads).
 // Blocks from other features come from their public.ts, each in its own ErrorBoundary with its own loading, empty and
 // error states; a notice with nothing to say renders nothing.
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useAuth } from '../../auth';
-import { COHORTS, YEARS, useOnline, useYear } from '../../state';
+import { COHORTS, YEARS, useMediaQuery, useOnline, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Button,
@@ -33,6 +35,7 @@ import { LatestIssueCard } from '../newsletter/public';
 import { usePapers } from '../papers/public';
 import { ResultsDayCard, StartHereCard } from '../start/public';
 import { DailyCard } from '../daily/public';
+import { useSite } from '../site/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
 import { addDays, dayKey, formatLongDay, parseDay, todayKey } from '../../lib/dates';
 import { AskNoora } from './AskNoora';
@@ -42,6 +45,8 @@ import { CustomizeHome } from './CustomizeHome';
 import { useHomeLayout } from './layout';
 import { HomeForum } from './HomeForum';
 import { NewFiles } from './NewFiles';
+import { ExamWeekLead } from './ExamWeekLead';
+import { examWeekExam } from './examWeek';
 import { getExamSession } from './session';
 import { greetingFor, greetingLede, lumenPose } from './time';
 import { HomeShelf } from './HomeShelf';
@@ -78,6 +83,8 @@ function Notice({ id, children }: { id: HomeBlock; children: ReactNode }) {
 }
 
 const WAVED_KEY = 'hub.lumenWaved';
+/** Phones, upright or on their side: where exam week leads Home. */
+const PHONE = '(max-width: 699px), (max-height: 499px)';
 
 export default function HomePage() {
   const { year, setYear, activeYear } = useYear();
@@ -116,6 +123,9 @@ export default function HomePage() {
     [calendar.data, activeYear, getModule, today, papers],
   );
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
+  const phone = useMediaQuery(PHONE);
+  const examWeek = useSite().data?.examWeek;
+  const examWeekLeads = phone ? examWeekExam(session, examWeek) : null;
   const todo = useTodayAgenda({ enabled: signedIn && featureOn('board') });
   const carryOn = useCarryOn();
   const timeMe = useTimeMe();
@@ -363,9 +373,17 @@ export default function HomePage() {
               ) : null}
             </div>
           </div>
-          <HomeShelf year={activeYear} exam={nextExam ? { days: nextExam.days, date: nextExam.when } : null} />
+          {examWeekLeads ? null : (
+            <HomeShelf year={activeYear} exam={nextExam ? { days: nextExam.days, date: nextExam.when } : null} />
+          )}
         </div>
       </header>
+
+      {examWeekLeads && examWeek ? (
+        <ErrorBoundary name="Home exam week">
+          <ExamWeekLead exam={examWeekLeads} lead={examWeek.lead} events={calendar.data ?? []} todayIs={todayIs} />
+        </ErrorBoundary>
+      ) : null}
 
       {layout.problem ? (
         <QueryError
