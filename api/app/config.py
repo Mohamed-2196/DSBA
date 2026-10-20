@@ -24,6 +24,8 @@ DEV_S3_SECRET = "dsba-dev-secret"  # noqa: S105 - the development emulator's key
 DEV_EMAIL_FROM = "DSBA Hub <no-reply@dsba-hub.local>"
 HOST_PREFIX = "__Host-"  # a cookie only its own host can set: Secure, Path=/ and no Domain
 MIN_SECRET_LENGTH = 32
+MAX_SESSION_DAYS = 30
+SMTPS_PORT = 465  # SMTP with TLS from the start (no STARTTLS)
 OTP_MAX_ATTEMPTS = 5  # wrong tries per code; production refuses more
 # Limits production keeps at their defaults or lower, unless DSBA_ALLOW_RAISED_LIMITS says otherwise.
 # What `private_ranges` means in DSBA_TRUSTED_PROXIES: Caddy's own list for the same word.
@@ -332,6 +334,8 @@ class Settings(BaseSettings):
         for name, value in (("DSBA_SESSION_COOKIE", self.session_cookie), ("DSBA_CSRF_COOKIE", self.csrf_cookie)):
             if not value.startswith(HOST_PREFIX):
                 add(f"{name} must start with {HOST_PREFIX} (it is {value!r}), so that no other host can set it.")
+        if not 1 <= self.session_days <= MAX_SESSION_DAYS:
+            add(f"DSBA_SESSION_DAYS must be from 1 to {MAX_SESSION_DAYS}: a session lasts at most a month.")
         if self.cookie_domain:
             add("DSBA_COOKIE_DOMAIN must be empty: the cookies belong to the app's own host only.")
         if not self.web_origins:
@@ -375,6 +379,11 @@ class Settings(BaseSettings):
         elif "smtp_host" not in given:
             add(
                 "DSBA_SMTP_HOST must be your mail provider's SMTP server (the default is the development mail catcher)."
+            )
+        if self.email_backend == "smtp" and not self.smtp_starttls and self.smtp_port != SMTPS_PORT:
+            add(
+                f"DSBA_SMTP_STARTTLS must be true, or DSBA_SMTP_PORT {SMTPS_PORT} (TLS from the start): codes and the "
+                "SMTP password must never travel in clear."
             )
         if self.email_from == DEV_EMAIL_FROM:
             add("DSBA_EMAIL_FROM must be an address on your own domain, like 'DSBA Hub <no-reply@example.com>'.")

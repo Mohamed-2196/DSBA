@@ -33,6 +33,7 @@ GOOD: dict[str, Any] = {
     "email_backend": "smtp",
     "smtp_host": "smtp.example.com",
     "smtp_port": 587,
+    "smtp_starttls": True,
     "email_from": "DSBA Hub <no-reply@example.com>",
     "sms_backend": "twilio",
     "twilio_account_sid": "AC0123456789",
@@ -84,6 +85,8 @@ def test_good_production_settings_start() -> None:
         ({"otp_max_per_identifier_per_day": 11}, "DSBA_OTP_MAX_PER_IDENTIFIER_PER_DAY is above its default"),
         ({"sms_max_per_hour": 1000}, "DSBA_SMS_MAX_PER_HOUR is above its default (50)"),
         ({"sms_max_per_day": 10000}, "DSBA_SMS_MAX_PER_DAY is above its default (300)"),
+        ({"smtp_starttls": False}, "DSBA_SMTP_STARTTLS must be true"),
+        ({"session_days": 90}, "DSBA_SESSION_DAYS must be from 1 to 30"),
         ({"email_max_per_day": 10000}, "DSBA_EMAIL_MAX_PER_DAY is above its default (3000)"),
         ({"email_signups_max_per_hour": 1000}, "DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR is above its default (100)"),
         ({"otp_max_per_ipv6_site_per_hour": 1000}, "DSBA_OTP_MAX_PER_IPV6_SITE_PER_HOUR is above its default (120)"),
@@ -256,3 +259,7 @@ def test_the_api_never_starts_as_a_job(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(main, "get_settings", lambda: Settings(_env_file=None, role="sweep"))
     with pytest.raises(ConfigError, match="DSBA_ROLE"):
         main.create_app()
+
+
+def test_smtp_on_port_465_needs_no_starttls() -> None:
+    assert production(smtp_port=465, smtp_starttls=False).problems() == []

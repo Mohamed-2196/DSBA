@@ -42,13 +42,14 @@ What production refuses (`app/config.py`, `Settings.production_problems`):
 | `DSBA_SECRET_KEY` | at least 32 characters, not the development value |
 | `DSBA_DATABASE_URL` | set (compose builds it from `POSTGRES_PASSWORD`) |
 | `DSBA_COOKIE_SECURE` | true (the default in production) |
+| `DSBA_SESSION_DAYS` | 1 to 30 |
 | `DSBA_SESSION_COOKIE`, `DSBA_CSRF_COOKIE` | start with `__Host-` (the defaults in production are `__Host-dsba_session` and `__Host-dsba_csrf`); `DSBA_COOKIE_DOMAIN` empty |
 | `DSBA_WEB_ORIGINS`, `DSBA_WEB_BASE_URL` | `https://` only; `*` is refused in every environment |
 | `DSBA_TRUSTED_PROXIES` | set (the reverse proxy's address, or `127.0.0.1/32` with no proxy), never `0.0.0.0/0` or `::/0` |
 | `DSBA_OTP_MAX_ATTEMPTS` | at most 5 |
-| `DSBA_OTP_MAX_PER_*`, `DSBA_SMS_MAX_PER_*`, `DSBA_EMAIL_MAX_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
+| `DSBA_OTP_MAX_PER_*`, `DSBA_SMS_MAX_PER_*`, `DSBA_EMAIL_MAX_PER_*`, `DSBA_EMAIL_SIGNUPS_MAX_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
 | `DSBA_S3_*` | bucket and keys set, not the development keys; the endpoint set explicitly (empty for AWS S3); what browsers use (`DSBA_S3_PUBLIC_ENDPOINT_URL`, else `DSBA_S3_ENDPOINT_URL`) is `https://`; `DSBA_S3_CREATE_BUCKET` false (the default in production) |
-| `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain |
+| `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain; `DSBA_SMTP_STARTTLS` true, unless `DSBA_SMTP_PORT` is 465 (TLS from the start) |
 | `DSBA_SMS_BACKEND` | `twilio` with its three settings, or `DSBA_SMS_ALLOWED_REGIONS` empty (no texts at all) |
 
 Every other setting, the optional ones included, is in section 12.
@@ -541,7 +542,8 @@ app's bundle (`scripts/check-deploy.sh`). The dev site runs outside production m
 Nothing in the hub calls you when something breaks, so set these up before students arrive (SEC-57):
 
 - **Uptime:** an outside check on `https://<domain>/api/v1/health` every few minutes (UptimeRobot, healthchecks.io,
-  Better Stack), alerting you by email or text. It answers 200 only while the database answers.
+  Better Stack), alerting you by email or text. Use a keyword check for `"status":"ok"`: the answer stays 200 with
+  `"status":"degraded"` while the database or the bucket is unreachable.
 - **Daily jobs:** `DSBA_BACKUP_PING_URL` and `DSBA_SWEEP_PING_URL` (sections 7 and 8).
 - **The mail worker:** notifications, reminders and Sunday summaries stop silently if it dies (sign-in codes don't
   need it). `restart: unless-stopped` brings it back after a crash; check `docker compose ps` after each deploy.

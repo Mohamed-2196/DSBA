@@ -17,13 +17,12 @@ from email.policy import SMTPUTF8
 from email.utils import formatdate, make_msgid, parseaddr
 from pathlib import Path
 
-from app.config import get_settings
+from app.config import SMTPS_PORT, get_settings
 from app.core.time import utcnow
 from app.services.identifiers import destination_hint
 
 log = logging.getLogger("dsba.mail")
 TIMEOUT_SECONDS = 10
-SMTPS_PORT = 465  # TLS from the first byte (the other ports use STARTTLS when DSBA_SMTP_STARTTLS is set)
 
 
 class DeliveryError(Exception):
