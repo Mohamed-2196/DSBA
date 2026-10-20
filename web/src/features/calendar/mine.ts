@@ -13,7 +13,7 @@ import {
   weekdayOf,
   type DayKey,
 } from '../../lib/dates';
-import type { CalendarEvent, CalendarPrefs, PersonalColour, PersonalEvent, Reminder, Repeat } from './types';
+import type { CalendarEvent, CalendarPrefs, PersonalColour, PersonalEvent, PlanCard, Reminder, Repeat } from './types';
 
 export const REPEAT_DAYS = 365;
 /** The days between the occurrences of a repeat; a monthly one counts months. */
@@ -128,6 +128,35 @@ export function toOccurrence(p: PersonalEvent, day: DayKey): CalendarEvent {
   };
 }
 
+const PLAN_PREFIX = 'plan-';
+
+/** A card of the student's plan on its day, in the shape every list, grid and drawer of the calendar takes. */
+export function planEvent(card: PlanCard): CalendarEvent {
+  return {
+    id: `${PLAN_PREFIX}${card.id}`,
+    date: card.due,
+    endDate: null,
+    time: clock(card.dueTime),
+    place: null,
+    title: card.title,
+    type: 'event',
+    year: null,
+    moduleId: null,
+    unitCode: null,
+    duration: null,
+    rules: null,
+    source: null,
+    checkedOn: null,
+    employerId: null,
+    sample: false,
+    plan: card,
+  };
+}
+
+/** Where a card of the plan opens on its board. */
+export const planCardUrl = (card: Pick<PlanCard, 'id' | 'boardId'>): string =>
+  `/board?board=${encodeURIComponent(card.boardId)}&card=${encodeURIComponent(card.id)}`;
+
 /** Every occurrence of the student's events. */
 export const occurrences = (events: readonly PersonalEvent[]): CalendarEvent[] =>
   events.flatMap((p) => occurrenceDays(p).map((day) => toOccurrence(p, day)));
@@ -221,10 +250,10 @@ export function reminderLabel(remind: Reminder | null, allDay: boolean): string 
 
 /** Whether the student keeps a programme date off their calendar: the date itself, its module or its type. */
 export function isHidden(
-  e: Pick<CalendarEvent, 'id' | 'moduleId' | 'type' | 'mine'>,
+  e: Pick<CalendarEvent, 'id' | 'moduleId' | 'type' | 'mine' | 'plan'>,
   prefs: CalendarPrefs | null | undefined,
 ): boolean {
-  if (!prefs || e.mine) return false;
+  if (!prefs || e.mine || e.plan) return false;
   return (
     prefs.hiddenEvents.includes(e.id) ||
     prefs.hiddenTypes.includes(e.type) ||
@@ -232,15 +261,20 @@ export function isHidden(
   );
 }
 
-/** The programme dates on the student's calendar, and their own events' occurrences, by date. */
+/**
+ * The programme dates on the student's calendar, their own events' occurrences and, while they show it, their plan,
+ * by date.
+ */
 export function myCalendar(
   programme: readonly CalendarEvent[],
   mine: readonly PersonalEvent[],
   prefs: CalendarPrefs | null | undefined,
+  plan: readonly PlanCard[] = [],
 ): CalendarEvent[] {
   const shown = programme.filter((e) => !isHidden(e, prefs));
-  if (!mine.length) return shown;
-  return [...shown, ...occurrences(mine)].sort((a, b) => a.date.localeCompare(b.date));
+  const planned = prefs?.showPlan ? plan.map(planEvent) : [];
+  if (!mine.length && !planned.length) return shown;
+  return [...shown, ...occurrences(mine), ...planned].sort((a, b) => a.date.localeCompare(b.date));
 }
 
 // ── one day on the month grid ─────────────────────────────────────────────────────────────────
@@ -248,12 +282,12 @@ export function myCalendar(
 /**
  * The order of a day's events on the month grid, where only the first few fit: what starts that day before what
  * runs on from an earlier day (a window, a break); of those, exams and deadlines, then the student's own events by
- * start time (all-day ones first), then the other programme dates. Ties keep the order they came in.
+ * start time (all-day ones first), then their plan, then the other programme dates. Ties keep the order they came in.
  */
 export function dayOrder(events: readonly CalendarEvent[], day: DayKey): CalendarEvent[] {
   const rank = (e: CalendarEvent): number =>
-    e.date < day ? 3 : e.mine ? 1 : e.type === 'exam' || e.type === 'deadline' ? 0 : 2;
-  const at = (e: CalendarEvent): string => e.mine?.startTime ?? '';
+    e.date < day ? 4 : e.mine ? 1 : e.plan ? 2 : e.type === 'exam' || e.type === 'deadline' ? 0 : 3;
+  const at = (e: CalendarEvent): string => e.mine?.startTime ?? e.plan?.dueTime ?? '';
   return events
     .map((e, i) => ({ e, i }))
     .sort((a, b) => rank(a.e) - rank(b.e) || at(a.e).localeCompare(at(b.e)) || a.i - b.i)

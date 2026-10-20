@@ -46,17 +46,19 @@ type Papers = ReadonlySet<string> | null | undefined;
 
 /**
  * Events that apply to a cohort (year null → all), to a student's papers when given (a module's events only for
- * those modules) and, optionally, a set of filters (empty: everything): programme types, and 'mine' for the
- * student's own events, which every cohort shows.
+ * those modules) and, optionally, a set of filters (empty: everything): programme types, 'mine' for the
+ * student's own events and 'plan' for their plan, which every cohort shows.
  */
 export function filterEvents(
   events: readonly CalendarEvent[],
   { year, types, papers }: { year?: number | null; types?: ReadonlySet<EventFilter>; papers?: Papers } = {},
 ): CalendarEvent[] {
   const any = !types || types.size === 0;
-  return events.filter((e) =>
-    e.mine ? any || types.has('mine') : isMine(e, year ?? null, papers ?? null) && (any || types.has(e.type)),
-  );
+  return events.filter((e) => {
+    if (e.mine) return any || types.has('mine');
+    if (e.plan) return any || types.has('plan');
+    return isMine(e, year ?? null, papers ?? null) && (any || types.has(e.type));
+  });
 }
 
 /** Events still to come on `from` (a day key): starting that day or later, or running through it. In list order. */
@@ -139,14 +141,16 @@ export function weekAhead(
 
 /**
  * How many dates a cohort still has this month, from `today` on (the phone band's stat line, "7 dates ahead this
- * month"): every type, the student's own events included, and a window still open counts.
+ * month"): every type, the student's own events included, and a window still open counts. Their plan doesn't:
+ * it is what they do, not a date ahead.
  */
 export function datesAheadThisMonth(
   events: readonly CalendarEvent[],
   { year, today, papers }: { year: number | null; today: DayKey; papers?: Papers },
 ): number {
   const monthEnd = `${today.slice(0, 7)}-31`;
-  return filterEvents(events, { year, papers }).filter((e) => lastDay(e) >= today && e.date <= monthEnd).length;
+  return filterEvents(events, { year, papers }).filter((e) => !e.plan && lastDay(e) >= today && e.date <= monthEnd)
+    .length;
 }
 
 export interface DayGroup {

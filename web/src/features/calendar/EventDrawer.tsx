@@ -40,7 +40,7 @@ import {
   whenAndWhere,
   windowLeft,
 } from './eventMeta';
-import { monthDayOf, monthlyRule, reminderLabel, repeatLabel } from './mine';
+import { monthDayOf, monthlyRule, planCardUrl, reminderLabel, repeatLabel } from './mine';
 import type { CalendarEvent, EventType } from './types';
 import type { HiddenKind } from './useMyCalendar';
 
@@ -102,7 +102,19 @@ export function EventDrawer({
       className="cal-drawer"
       bodyClassName="cal-drawer__body"
       footer={
-        event?.mine ? (
+        event?.plan ? (
+          <div className="cal-drawer__footer">
+            <span className="cal-drawer__spacer" />
+            <Button
+              variant="primary"
+              leadingIcon={<Icon glyph={glyph.boards} />}
+              to={planCardUrl(event.plan)}
+              data-hub="calendar-plan-open"
+            >
+              Open on your board
+            </Button>
+          </div>
+        ) : event?.mine ? (
           <div className="cal-drawer__footer">
             {onEditMine ? (
               <Button
@@ -174,7 +186,9 @@ export function EventDrawer({
         ) : null
       }
     >
-      {event?.mine ? (
+      {event?.plan ? (
+        <PlanContent event={event} events={events} today={today} onOpen={onOpen} />
+      ) : event?.mine ? (
         <MineContent event={event} events={events} today={today} onOpen={onOpen} />
       ) : event ? (
         <DrawerContent
@@ -409,6 +423,103 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
           </div>
         </section>
       ) : null}
+    </div>
+  );
+}
+
+/** A card of the student's plan: its day and time, its board, its revision plan's module, and what else is on. */
+function PlanContent({
+  event,
+  events,
+  today,
+  onOpen,
+}: {
+  event: CalendarEvent;
+  events: CalendarEvent[];
+  today: Date;
+  onOpen: (e: CalendarEvent) => void;
+}) {
+  const { getModule } = useModules();
+  const card = event.plan;
+  if (!card) return null;
+  const date = parseDay(event.date);
+  const days = daysUntil(date, today);
+  const module = getModule(card.planModuleId);
+  const sameDay = events.filter((e) => e.date === event.date && e.id !== event.id);
+  const fromPlan = !card.dueDate && !!card.planModuleId;
+  return (
+    <div className="cal-drawer__content">
+      <div className="cal-drawer__badges">
+        <span className="cal-mine-badge cal-plan-badge">
+          <span className={cx('cal-dot', dotClass(event))} aria-hidden="true" />
+          Your plan
+        </span>
+      </div>
+
+      <div className="cal-drawer__when">
+        <span className="cal-drawer__day" aria-hidden="true">
+          {date.getDate()}
+        </span>
+        <span className="cal-drawer__datebits">
+          <span className="cal-drawer__weekday">{weekdayOf(date).long}</span>
+          <span className="cal-drawer__monthyear">{formatMonthYear(date)}</span>
+        </span>
+        <span className={cx('cal-drawer__countdown', days < 0 && 'is-past')}>
+          {days < 0 ? 'Overdue' : countdownLabel(days)}
+        </span>
+        <span className="visually-hidden">{formatLong(date)}</span>
+      </div>
+      <p className="cal-drawer__where">
+        <span className="visually-hidden">Time: </span>
+        {event.time ?? 'Any time that day'}
+      </p>
+
+      <dl className="cal-drawer__facts">
+        <div>
+          <dt>Board</dt>
+          <dd>{card.boardName}</dd>
+        </div>
+        {module ? (
+          <div>
+            <dt>Plan</dt>
+            <dd>
+              Revision for {module.unitCode || module.shortName}
+              {fromPlan ? <span className="cal-drawer__rule">The plan gave it this day.</span> : null}
+            </dd>
+          </div>
+        ) : null}
+        {card.checklist.length ? (
+          <div>
+            <dt>Checklist</dt>
+            <dd>
+              {card.checklist.filter((i) => i.done).length} of {card.checklist.length} done
+            </dd>
+          </div>
+        ) : null}
+      </dl>
+
+      {sameDay.length ? (
+        <section className="cal-drawer__section" aria-labelledby="cal-drawer-same">
+          <h3 id="cal-drawer-same" className="cal-drawer__h">
+            Also on this day
+          </h3>
+          <ul role="list" className="cal-drawer__list">
+            {sameDay.map((e) => (
+              <li key={e.id}>
+                <button type="button" className="cal-drawer__row" onClick={() => onOpen(e)}>
+                  <span className={cx('cal-dot', dotClass(e))} aria-hidden="true" />
+                  <span className="cal-drawer__row-title">{e.title}</span>
+                  {e.mine || e.plan ? null : <CohortBadge year={e.year} variant="dot" size="sm" short />}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <p className="cal-drawer__note">
+        Only you see your plan. Change the card on your board; turn the plan off in Customise.
+      </p>
     </div>
   );
 }

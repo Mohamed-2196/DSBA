@@ -107,6 +107,7 @@ export function whenAndWhere(e: Pick<CalendarEvent, 'type' | 'time' | 'place'>):
 /** Screen-reader summary of an event. */
 export function eventSummary(e: CalendarEvent): string {
   if (e.mine) return `${e.title}, your event${e.time ? `, ${e.time}` : ''}`;
+  if (e.plan) return `${e.title}, your plan${e.time ? `, ${e.time}` : ''}`;
   return `${e.title}, ${typeLabel(e.type)}${e.year ? `, Year ${e.year}` : ', all years'}`;
 }
 
@@ -145,21 +146,22 @@ export function sourceLine(e: Pick<CalendarEvent, 'source' | 'checkedOn'>): stri
 
 // ── a programme date or one of the student's own events ──────────────────────────────────────
 
-/** 'Exam', 'Mock exam', … or 'Your event'. */
-export const kindLabel = (e: Pick<CalendarEvent, 'type' | 'mine'>): string =>
-  e.mine ? 'Your event' : typeLabel(e.type);
+type Kind = Pick<CalendarEvent, 'type' | 'mine' | 'plan'>;
 
-/** The class that colours an event's dot: its type's, or the colour the student gave their own event. */
-export const dotClass = (e: Pick<CalendarEvent, 'type' | 'mine'>): string =>
-  e.mine ? `cal-dot--mine cal-colour--${e.mine.colour}` : `cal-dot--${e.type}`;
+/** 'Exam', 'Mock exam', … 'Your event' or 'Your plan'. */
+export const kindLabel = (e: Kind): string => (e.mine ? 'Your event' : e.plan ? 'Your plan' : typeLabel(e.type));
+
+/** The class that colours an event's dot: its type's, the colour the student gave their own event, or the plan's. */
+export const dotClass = (e: Kind): string =>
+  e.mine ? `cal-dot--mine cal-colour--${e.mine.colour}` : e.plan ? 'cal-dot--plan' : `cal-dot--${e.type}`;
 
 /** The tone class of a list row. */
-export const toneClass = (e: Pick<CalendarEvent, 'type' | 'mine'>): string =>
-  e.mine ? `cal-tone--mine cal-colour--${e.mine.colour}` : `cal-tone--${e.type}`;
+export const toneClass = (e: Kind): string =>
+  e.mine ? `cal-tone--mine cal-colour--${e.mine.colour}` : e.plan ? 'cal-tone--plan' : `cal-tone--${e.type}`;
 
 /** The class of a month-grid chip. */
-export const chipClass = (e: Pick<CalendarEvent, 'type' | 'mine'>): string =>
-  e.mine ? `cal-chip--mine cal-colour--${e.mine.colour}` : `cal-chip--${e.type}`;
+export const chipClass = (e: Kind): string =>
+  e.mine ? `cal-chip--mine cal-colour--${e.mine.colour}` : e.plan ? 'cal-chip--plan' : `cal-chip--${e.type}`;
 
 /** The band colour of a date leaf. */
-export const leafTone = (e: Pick<CalendarEvent, 'type' | 'mine'>): string => (e.mine ? 'neutral' : e.type);
+export const leafTone = (e: Kind): string => (e.mine || e.plan ? 'neutral' : e.type);

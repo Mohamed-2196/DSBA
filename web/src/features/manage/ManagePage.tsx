@@ -40,6 +40,7 @@ import { NotebookNumbers } from './NotebookNumbers';
 import { SundaySummary } from './SundaySummary';
 import { SummaryWords } from './SummaryWords';
 import { BugReports } from '../bugs/public';
+import { TimetablePaste } from '../calendar/public';
 import { groupSections, sectionsFor, type SectionId } from './sections';
 import './ManagePage.css';
 
@@ -174,13 +175,16 @@ const BODIES: Record<SectionId, () => ReactNode> = {
     </div>
   ),
   calendar: () => (
-    <LinkOut
-      icon={glyph.calendar}
-      title="The calendar"
-      body="Add, edit and delete events from the calendar itself."
-      to="/calendar"
-      label="Open the calendar"
-    />
+    <div className="manage-stack">
+      <TimetablePaste />
+      <LinkOut
+        icon={glyph.calendar}
+        title="One date at a time"
+        body="Add, edit and delete any date from the calendar itself."
+        to="/calendar"
+        label="Open the calendar"
+      />
+    </div>
   ),
   summary: () => <SummaryForMe />,
   career: () => <CareerEditor />,
@@ -201,6 +205,7 @@ const BODIES: Record<SectionId, () => ReactNode> = {
 /** The tabs that hold a draft. */
 const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set([
   'newsletter',
+  'calendar',
   'summary',
   'career',
   'content',

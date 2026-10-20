@@ -1,4 +1,5 @@
 // Public API of the calendar feature. Other features import from here only.
+import { lazy } from 'react';
 //
 //   <UpcomingEvents n={5} year? />           compact "coming up" list for the student's cohort (Home, forum sidebar),
 //                                            less the dates they hid, with their own events;
@@ -18,6 +19,11 @@
 // ?month=YYYY-MM (the month grid), ?cohort=all, ?types=exam,mock (comma list of event types; 'mine' for their own),
 // ?view=month (phones and tablets: the month instead of the list).
 export { UpcomingEvents } from './UpcomingEvents';
+//   <TimetablePaste />                      Manage → Calendar (holders of calendar.manage): paste the exam timetable,
+//                                            check each row, save them all at once (loads lazily, inside Manage's Suspense).
+export const TimetablePaste = lazy(() =>
+  import('./timetable/TimetablePaste').then((m) => ({ default: m.TimetablePaste })),
+);
 //   <EventFormDialog open event preset? onClose onSaved />   add or edit a date (holders of calendar.manage);
 //                                            `preset` fills a new one (Career Navigator's editor: a careers date).
 export { EventFormDialog } from './EventFormDialog';
