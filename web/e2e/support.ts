@@ -105,22 +105,6 @@ export function remember(kind: keyof RunInfo['created'], id: string): void {
   saveRun(run);
 }
 
-// ── emails ───────────────────────────────────────────────────────────────────────────────
-
-/** Whether an email with this subject went to `to` since `since` (the mail worker sends them). */
-export function mailedSince(to: string, subject: string, since: number): boolean {
-  if (!fs.existsSync(env.mailDir)) return false;
-  return fs
-    .readdirSync(env.mailDir)
-    .filter((f) => f.endsWith('.eml') && fs.statSync(path.join(env.mailDir, f)).mtimeMs >= since - 2000)
-    .some((f) => {
-      const head = fs.readFileSync(path.join(env.mailDir, f), 'utf8').split(/\r?\n\r?\n/)[0];
-      return (
-        new RegExp(`^To:.*${to.replace(/[.+]/g, '\\$&')}`, 'im').test(head) && head.includes(`Subject: ${subject}`)
-      );
-    });
-}
-
 // ── sessions ────────────────────────────────────────────────────────────────────────────────
 
 const run$ = promisify(execFile);
