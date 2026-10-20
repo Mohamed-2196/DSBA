@@ -11,7 +11,7 @@ export const MATE_POSES = {
   stacks: ['idle', 'happy', 'sleepy'],
 } as const;
 
-/** Each deskmate in a chunk of its own, loaded when it is first shown. */
+/** The drawings of each deskmate, loaded when one is first shown (the build keeps them all in one chunk). */
 export const MATE_LOADERS = {
   binder: () => import('./binder'),
   blink: () => import('./blink'),

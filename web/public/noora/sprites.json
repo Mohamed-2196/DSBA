@@ -1,70 +1,70 @@
 {
  "full": {
   "idle": {
-   "file": "idle.png"
+   "file": "idle.webp"
   },
   "side-right": {
-   "file": "side-right.png"
+   "file": "side-right.webp"
   },
   "side-left": {
-   "file": "side-left.png"
+   "file": "side-left.webp"
   },
   "back": {
-   "file": "back.png"
+   "file": "back.webp"
   },
   "walk-right": {
-   "file": "walk-right.png"
+   "file": "walk-right.webp"
   },
   "walk-left": {
-   "file": "walk-left.png"
+   "file": "walk-left.webp"
   },
   "talking": {
-   "file": "talking.png"
+   "file": "talking.webp"
   },
   "happy": {
-   "file": "happy.png"
+   "file": "happy.webp"
   },
   "excited": {
-   "file": "excited.png"
+   "file": "excited.webp"
   },
   "surprised": {
-   "file": "surprised.png"
+   "file": "surprised.webp"
   },
   "sad": {
-   "file": "sad.png"
+   "file": "sad.webp"
   }
  },
  "bust": {
   "angry": {
-   "file": "bust-angry.png"
+   "file": "bust-angry.webp"
   },
   "laughing": {
-   "file": "bust-laughing.png"
+   "file": "bust-laughing.webp"
   },
   "winking": {
-   "file": "bust-winking.png"
+   "file": "bust-winking.webp"
   },
   "thinking": {
-   "file": "bust-thinking.png"
+   "file": "bust-thinking.webp"
   },
   "wave": {
-   "file": "bust-wave.png"
+   "file": "bust-wave.webp"
   },
   "neutral": {
-   "file": "bust-neutral.png"
+   "file": "bust-neutral.webp"
   }
  },
  "canvas": {
   "full": {
-   "w": 680,
-   "h": 784,
-   "feetY": 768,
-   "centreX": 340
+   "w": 340,
+   "h": 392,
+   "feetY": 384,
+   "centreX": 170
   },
   "bust": {
-   "w": 600,
-   "h": 600
+   "w": 300,
+   "h": 300
   }
  },
- "note": "Full-body poses share one canvas (feet at feetY, centred on centreX); busts share another. Size them with CSS: the pixels are 2x."
+ "note": "Full-body poses share one canvas (feet at feetY, centred on centreX); busts share another. Size them with CSS: drawn at about 3x their CSS size."
 }

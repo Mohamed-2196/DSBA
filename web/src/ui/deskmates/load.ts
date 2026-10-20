@@ -6,7 +6,7 @@ export type AnyArt = Partial<Record<MatePose, ReactElement>>;
 const loaded = new Map<MateName, AnyArt>();
 const pending = new Map<MateName, Promise<AnyArt>>();
 
-/** Loads a deskmate's drawings (each deskmate is a chunk of its own); call it early for one that shows above the fold. */
+/** Loads a deskmate's drawings (all of them share one chunk); call it early for one that shows above the fold. */
 export function preloadDeskmate(mate: MateName): Promise<AnyArt> {
   const done = loaded.get(mate);
   if (done) return Promise.resolve(done);

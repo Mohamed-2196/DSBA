@@ -85,13 +85,10 @@ function ModulesNote() {
 export function YourModules({ year, today, mine }: { year: CohortYear; today: Date; mine: boolean }) {
   const { modules: catalogue } = useModules();
   const { papers } = usePapers();
-  // Less the dates the student hid from their calendar, as Up next.
-  const exams = useMyCalendarEvents(
-    { from: dayKey(today), type: 'exam' },
-    { enabled: useAuth().featureOn('calendar') },
-  );
+  // Less the dates the student hid from their calendar: the dates Up next reads (HomePage), so Home asks once.
+  const dates = useMyCalendarEvents({ from: dayKey(today) }, { enabled: useAuth().featureOn('calendar') });
   const nextExam = (moduleId: string): NextExam | null => {
-    const e = (exams.data ?? []).find((ev) => ev.moduleId === moduleId && !ev.sample);
+    const e = (dates.data ?? []).find((ev) => ev.type === 'exam' && ev.moduleId === moduleId && !ev.sample);
     if (!e) return null;
     const date = parseDay(e.date);
     return { date, days: daysBetween(today, date) };

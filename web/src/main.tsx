@@ -7,10 +7,8 @@ import '@fontsource-variable/figtree/wght.css';
 import '@fontsource-variable/figtree/wght-italic.css';
 import '@fontsource/jetbrains-mono/500.css';
 import '@fontsource/jetbrains-mono/700.css';
-// Arabic only (unicode-range subsets): forum posts written in Arabic
+// Arabic only (unicode-range subsets): forum posts written in Arabic. Two weights: 500 falls back to 400, 600 to 700.
 import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
-import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
-import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
 import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
 import './styles/tokens.css';
 import './styles/base.css';
@@ -18,9 +16,13 @@ import App from './App';
 import { indexedDbStore, startOfflineCache } from './api/offline';
 import { queryClient } from './api/queryClient';
 import { startPwa } from './lib/pwa';
+import { preloadPage } from './routes';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('#root is missing from index.html');
+
+// The page's own code starts downloading now, alongside the app's first API calls, not after them.
+preloadPage(window.location);
 
 // The installed app: the install prompt and, in a production build, the service worker (lib/pwa.ts).
 startPwa();

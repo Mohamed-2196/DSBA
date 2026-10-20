@@ -1,6 +1,7 @@
-import { forwardRef, useState, type ButtonHTMLAttributes, type CSSProperties } from 'react';
+import { forwardRef, useEffect, useState, type ButtonHTMLAttributes, type CSSProperties } from 'react';
 import { IconButton, modKeyLabel, Icon, glyph } from '../../ui';
 import { edgeClip, type Point, type Side } from './layout';
+import { afterSettling } from './settle';
 import { POSES, poseUrl, type Figure, type Pose } from './sprites';
 import './Mascot.css';
 
@@ -64,6 +65,10 @@ export const Mascot = forwardRef<HTMLButtonElement, MascotProps>(function Mascot
   // A pose is shown only once its image has arrived, so she never blinks out while one is still loading.
   const [arrived, setArrived] = useState<ReadonlySet<Pose>>(() => new Set());
   const shown: Pose = arrived.has(pose) ? pose : 'idle';
+  // Her other poses are drawn (and so fetched) once the page has settled; until then only the one she is in.
+  const [settled, setSettled] = useState(false);
+  useEffect(() => afterSettling(() => setSettled(true)), []);
+  const drawn = settled ? POSES : POSES.filter((name) => name === 'idle' || name === pose);
   const { canvas } = size;
   const shortcut = modKeyLabel() === '⌘' ? '⌘/' : 'Ctrl+/';
   const clip = edgeClip(point, size, canvas, windowWidth);
@@ -118,7 +123,7 @@ export const Mascot = forwardRef<HTMLButtonElement, MascotProps>(function Mascot
         <span className="noora__ground" aria-hidden="true" />
         <span className="noora__lift" style={clip ? { clipPath: clip } : undefined}>
           <span className="noora__figure" data-mirrored={mirrored ? '' : undefined}>
-            {POSES.map((name) => (
+            {drawn.map((name) => (
               <img
                 key={name}
                 className="noora__pose"

@@ -64,6 +64,7 @@ import {
 } from './open';
 import { choosePose, heading, lean, motionFor, type ChatMood, type Heading } from './poses';
 import { ScriptGate } from './ScriptGate';
+import { afterSettling } from './settle';
 import { HEIGHT, figure, preloadSprites } from './sprites';
 import { useDrag } from './useDrag';
 import { useViewport } from './useViewport';
@@ -357,19 +358,15 @@ function Noora({ away }: { away: boolean }) {
     if (phone) closeCard({ restoreFocus: false });
   }, [phone]);
 
-  useEffect(() => {
-    preloadSprites();
-    // Fetch the chat's code once the page has settled, so that her first press opens it at once.
-    const warm = () => {
-      loadChat().catch(() => {});
-    };
-    if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(warm, { timeout: 2000 });
-      return () => window.cancelIdleCallback(id);
-    }
-    const id = window.setTimeout(warm, 800);
-    return () => window.clearTimeout(id);
-  }, []);
+  // Fetch her pictures and the chat's code once the page has settled, so that her first press opens it at once.
+  useEffect(
+    () =>
+      afterSettling(() => {
+        preloadSprites();
+        loadChat().catch(() => {});
+      }),
+    [],
+  );
 
   // ── The first-visit hint ────────────────────────────────────────────────────────────────────────
   // Once, beside her, and only where it covers none of the page (a wide screen with room in its margin).

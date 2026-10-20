@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { BrandLogo, Divider, Drawer, Icon, cx, glyph } from '../ui';
 import { openBugReport } from '../features/bugs/public';
 import { NooraFace } from '../features/noora/public';
+import { preloadOnIntent } from '../routes';
 import { MOBILE_TAB_IDS, MORE_IDS } from './nav';
 import { usePortalLinks } from './portals';
 import { useShownNav } from './useShownNav';
@@ -37,6 +38,7 @@ export function MobileNav() {
             className={({ isActive }) => cx('shell-tabbar__item', isActive && 'is-active')}
             data-hub={`tab-${item.id}`}
             data-section={item.section}
+            {...preloadOnIntent(item.to)}
           >
             {({ isActive }) => (
               <>
@@ -81,6 +83,7 @@ export function MobileNav() {
                   onClick={close}
                   className={({ isActive }) => cx('shell-more__item', isActive && 'is-active')}
                   data-section={item.section}
+                  {...preloadOnIntent(item.to)}
                 >
                   {({ isActive }) => (
                     <>

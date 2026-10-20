@@ -96,7 +96,7 @@ const index = [
   ),
   '} as const;',
   '',
-  '/** Each deskmate in a chunk of its own, loaded when it is first shown. */',
+  '/** The drawings of each deskmate, loaded when one is first shown (the build keeps them all in one chunk). */',
   'export const MATE_LOADERS = {',
   ...names.map((n) => `  '${n}': () => import('./${n}'),`),
   '} as const;',

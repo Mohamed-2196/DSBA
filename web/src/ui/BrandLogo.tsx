@@ -36,6 +36,7 @@ export function BrandLogo({ name, height = 24, decorative = false, className }: 
   const a11y = decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': logo.alt };
   return (
     <span className={cx('ui-brandlogo', className)} style={{ width, height }} {...a11y}>
+      {/* Lazy, so the twin for the other theme (display: none) is only fetched once the theme changes. */}
       <img
         className={cx('ui-brandlogo__img', logo.dark && 'ui-brandlogo__img--light')}
         src={base + logo.light}
@@ -43,6 +44,7 @@ export function BrandLogo({ name, height = 24, decorative = false, className }: 
         width={width}
         height={height}
         decoding="async"
+        loading="lazy"
       />
       {logo.dark ? (
         <img
@@ -52,6 +54,7 @@ export function BrandLogo({ name, height = 24, decorative = false, className }: 
           width={width}
           height={height}
           decoding="async"
+          loading="lazy"
         />
       ) : null}
     </span>

@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import react from '@vitejs/plugin-react';
-import { defineConfig, loadEnv, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin, type Rollup } from 'vite';
 
 const SW_ENTRY = 'src/sw/sw.ts';
 // The offline spot is shown when the network is gone, so it is cached up front.
@@ -71,6 +71,36 @@ function versionMeta(version: string): Plugin {
   };
 }
 
+/** The fonts the first screen draws with: Figtree (the interface) and Bricolage Grotesque (headings), Latin. */
+const FIRST_FONTS = [
+  /^assets\/figtree-latin-wght-normal-[\w-]+\.woff2$/,
+  /^assets\/bricolage-grotesque-latin-opsz-normal-[\w-]+\.woff2$/,
+];
+
+/**
+ * <link rel="preload"> for the first screen's fonts, so they download with the app's code rather than after its
+ * stylesheet is read (the heading's font was otherwise asked for only once the first heading drew).
+ */
+function preloadFonts(base: string): Plugin {
+  return {
+    name: 'dsba-preload-fonts',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        const files = Object.keys(ctx.bundle ?? {}).filter((f) => FIRST_FONTS.some((re) => re.test(f)));
+        if (files.length !== FIRST_FONTS.length)
+          throw new Error(`Expected the first screen's fonts, found ${files.join(', ')}`);
+        return files.map((f) => ({
+          tag: 'link',
+          attrs: { rel: 'preload', href: `${base}${f}`, as: 'font', type: 'font/woff2', crossorigin: '' },
+          injectTo: 'head' as const,
+        }));
+      },
+    },
+  };
+}
+
 const PDFJS = 'node_modules/pdfjs-dist';
 const PDFJS_VERSION = (JSON.parse(readFileSync(`${PDFJS}/package.json`, 'utf8')) as { version: string }).version;
 /** pdf.js's own files, fetched by its worker as a page needs them (src/features/notes/pdf.ts). */
@@ -121,17 +151,82 @@ const VENDOR =
 const EDITOR =
   /\/node_modules\/(?:@tiptap\/[^/]+|prosemirror-[^/]+|linkifyjs|orderedmap|rope-sequence|w3c-keyname|fast-equals)\//;
 
+/** The brand icons (src/ui/icons/glyphs, one small module each): nearly every page draws a dozen of them. */
+const ICONS = /\/src\/ui\/icons\//;
+/** The deskmates' drawings (src/ui/deskmates/art): loaded together, the first time a page shows one. */
+const DESKMATES = /\/src\/ui\/deskmates\/art\/(?!index\.)/;
+
 /**
- * Two chunks of libraries, apart from the app's code: what every page runs on (React, the router, TanStack Query, the
- * API client), and the notebook's text editor (Tiptap and ProseMirror, only the notebook loads it). They change only
- * when the libraries are updated, so a deploy leaves them in the browser's cache. Every other chunk stays under
- * Vite's 500 kB warning, which is kept as the alarm.
+ * Chunks apart from the pages' own code:
+ * - vendor: what every page runs on (React, the router, TanStack Query, the API client);
+ * - editor: the notebook's text editor (Tiptap and ProseMirror, only the notebook loads it);
+ * - icons: every brand icon in one file, instead of a chunk per icon that pages fetched one by one;
+ * - deskmates: all seven deskmates' drawings, fetched once when the first one shows.
+ * Libraries change only when they are updated, so a deploy leaves them in the browser's cache. Every other chunk stays
+ * under Vite's 500 kB warning, which is kept as the alarm.
  */
 function libraryChunk(id: string): string | undefined {
   if (VENDOR.test(id)) return 'vendor';
   if (EDITOR.test(id)) return 'editor';
+  if (ICONS.test(id)) return 'icons';
+  if (DESKMATES.test(id)) return 'deskmates';
   return undefined;
 }
+
+/** A feature's stylesheet that at least this many of the lazily loaded parts (pages, dialogs, panels) use. */
+const SHARED_STYLES_MIN = 5;
+
+/** Every module `from` imports, directly or through others (dynamic imports aside). */
+function staticClosure(meta: Rollup.ManualChunkMeta, from: string): Set<string> {
+  const out = new Set<string>();
+  const stack = [from];
+  for (let id = stack.pop(); id !== undefined; id = stack.pop()) {
+    if (out.has(id)) continue;
+    out.add(id);
+    stack.push(...(meta.getModuleInfo(id)?.importedIds ?? []));
+  }
+  return out;
+}
+
+/**
+ * How many lazily loaded parts use each module, outside what the entry loads: worked out once, when Rollup first
+ * asks about a module (the module graph is complete by then).
+ */
+function lazyUsers(meta: Rollup.ManualChunkMeta): Map<string, number> {
+  const ids = [...meta.getModuleIds()];
+  const entry = new Set(
+    ids.filter((id) => meta.getModuleInfo(id)?.isEntry).flatMap((id) => [...staticClosure(meta, id)]),
+  );
+  const lazy = new Set(ids.flatMap((id) => meta.getModuleInfo(id)?.dynamicallyImportedIds ?? []));
+  const users = new Map<string, number>();
+  for (const part of lazy) {
+    for (const id of staticClosure(meta, part)) if (!entry.has(id)) users.set(id, (users.get(id) ?? 0) + 1);
+  }
+  return users;
+}
+
+/**
+ * The chunks: libraryChunk's, and one stylesheet (styles) for the feature styles that many parts share. Without it
+ * each shared chunk brings its own small stylesheet, and Home would ask for twenty. Styles that one page or a few use
+ * stay with them, so a page reads little it doesn't show.
+ */
+function chunks(): Rollup.GetManualChunk {
+  let users: Map<string, number> | null = null;
+  return (id, meta) => {
+    const library = libraryChunk(id);
+    if (library) return library;
+    if (!id.endsWith('.css') || id.includes('/node_modules/')) return undefined;
+    users ??= lazyUsers(meta);
+    return (users.get(id) ?? 0) >= SHARED_STYLES_MIN ? 'styles' : undefined;
+  };
+}
+
+/**
+ * Chunks smaller than this (bytes, before minifying) are merged into a chunk that loads with them, so a page fetches
+ * fewer tiny files. Rollup merges them where they also load code a page doesn't run, so the size is a trade: at 6 kB
+ * Home asks for about 38 scripts and pages read 6-17 kB (gzip) more; at 20 kB, about 24 scripts and up to 36 kB more.
+ */
+const MIN_CHUNK = 6_000;
 
 // The app is served from the same origin as the API: in development Vite proxies /api to the backend,
 // in production a reverse proxy does (see compose.yaml and docs/backend/DEPLOYMENT.md).
@@ -141,9 +236,15 @@ export default defineConfig(({ mode }) => {
   const version = appVersion(env);
   return {
     base: env.VITE_BASE || '/',
-    plugins: [react(), serviceWorker(), versionMeta(version), pdfjsAssets(env.VITE_BASE || '/')],
+    plugins: [
+      react(),
+      serviceWorker(),
+      versionMeta(version),
+      preloadFonts(env.VITE_BASE || '/'),
+      pdfjsAssets(env.VITE_BASE || '/'),
+    ],
     define: { __APP_VERSION__: JSON.stringify(version) },
-    build: { rollupOptions: { output: { manualChunks: libraryChunk } } },
+    build: { rollupOptions: { output: { manualChunks: chunks(), experimentalMinChunkSize: MIN_CHUNK } } },
     server: {
       host: env.VITE_DEV_HOST || '127.0.0.1',
       port: 5173,

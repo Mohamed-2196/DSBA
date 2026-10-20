@@ -53,6 +53,7 @@ export function HubLogo({
         {...(decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': NAME })}
         {...rest}
       >
+        {/* Lazy, so the copy for the other theme (display: none) is only fetched once the theme changes. */}
         <img
           className="ui-brandlogo__img ui-brandlogo__img--light"
           src={base + HUB_LOGO.light}
@@ -60,6 +61,7 @@ export function HubLogo({
           width={width}
           height={height}
           decoding="async"
+          loading="lazy"
         />
         <img
           className="ui-brandlogo__img ui-brandlogo__img--dark"
@@ -68,6 +70,7 @@ export function HubLogo({
           width={width}
           height={height}
           decoding="async"
+          loading="lazy"
         />
       </span>
     );

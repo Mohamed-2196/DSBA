@@ -53,6 +53,7 @@ export function LogoSlot({ kind = 'employer', id, logo, mono = '', size = 'md', 
           className="career-logo__img"
           src={src}
           alt=""
+          loading="lazy"
           decoding="async"
           draggable="false"
           onLoad={() => settle('ok')}

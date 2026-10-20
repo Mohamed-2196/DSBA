@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import type { CohortYear } from './cohort';
 import {
   AccountYearContext,
@@ -39,13 +39,17 @@ export function useToast(): ToastActions {
 
 /**
  * Used by the auth provider: the signed-in person's cohort (null for a guest or someone without one) becomes
- * the default year that useYear() shows.
+ * the default year that useYear() shows. Returns whether useYear() has caught up with it, so pages can wait rather
+ * than read a guest's year first and the person's own a moment later.
  */
-export function useAccountYearSync(year: CohortYear | null): void {
+export function useAccountYearSync(year: CohortYear | null): boolean {
   const sync = useContext(AccountYearContext);
+  const [synced, setSynced] = useState<CohortYear | null | undefined>(undefined);
   useEffect(() => {
     sync?.(year);
+    setSynced(year);
   }, [sync, year]);
+  return synced === year;
 }
 
 const NO_TOASTS: ToastList = { toasts: [], dismiss: () => {} };
