@@ -74,6 +74,9 @@ class Chapter(Base):
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     # Other words search finds it by, lower case ('mle', 'cramer rao'): schemas/modules.py Keyword.
     keywords: Mapped[list[str]] = mapped_column(ARRAY(String(40)), default=list, server_default="{}")
+    # What the module's study guide says the chapter covers (its learning outcomes, topics and key terms), from the
+    # seed (app/seed/data/chapter_outlines.json): Claude tags past papers' questions by it.
+    outline: Mapped[str | None] = mapped_column(Text)
 
     module: Mapped[Module] = relationship(back_populates="chapters")
     lessons: Mapped[list[Lesson]] = relationship(

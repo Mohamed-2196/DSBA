@@ -220,6 +220,9 @@ class PaperQuestion(ApiModel):
     section: str | None  # 'B' of "B1"; None: the paper numbers right through ("Q3")
     question: int
     page: int | None
+    # The question's first words as its PDF's text has them: the viewer finds them on the page and marks where the
+    # question starts. None: only the page is known.
+    anchor: str | None
     flagged: bool  # by the person asking
     flag_count: int | None  # people who manage the library only
     is_mine: bool
@@ -248,3 +251,33 @@ class QuestionMark(ApiModel):
     question: int
     mark: QuestionMarkKind
     updated_at: datetime
+
+
+# ── Claude's tagging of new past papers (Manage, admins) ─────────────────────────────────────
+
+TaggingState = Literal["queued", "working", "done", "skipped", "failed"]
+
+
+class PaperTaggingJob(ApiModel):
+    """One past paper's tagging by Claude: queued when it was published or an admin ran it again."""
+
+    paper: PaperRef
+    module_id: str | None
+    status: TaggingState
+    reason: str | None  # why it was skipped or failed, or what it waits for
+    questions: int | None  # questions the last run tagged
+    model: str | None
+    attempts: int
+    cost_cents: float  # every run's, estimated from the tokens
+    queued_at: datetime
+    next_attempt_at: datetime | None
+    finished_at: datetime | None
+
+
+class PaperTaggingOut(ApiModel):
+    """The papers' tagging jobs, the latest queued first, and how many are in each status."""
+
+    on: bool  # the switch library.autotag is on (for anyone)
+    configured: bool  # the API has an Anthropic key
+    counts: dict[TaggingState, int]
+    jobs: list[PaperTaggingJob]

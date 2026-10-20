@@ -39,6 +39,7 @@ FeatureKey = Literal[
     "library.questions",
     "library.daily-question",
     "library.practice",
+    "library.autotag",
     "newsletter",
     "newsletter.polls",
     "calendar",

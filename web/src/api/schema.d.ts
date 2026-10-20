@@ -1262,6 +1262,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/paper-tagging": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paper Tagging Jobs
+         * @description Each past paper's tagging by Claude, the latest queued first (200 at most; of one `status`, when given), how
+         *     many are in each status, whether the switch library.autotag is on and whether the API has a key. Admins only.
+         */
+        get: operations["paper_tagging_jobs_api_v1_admin_paper_tagging_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/paper-tagging/{item_id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Paper Tagging
+         * @description Queue a published past paper's tagging again: the mail worker runs it soon, replacing Claude's earlier tags
+         *     of the paper (never a student's). Admins only; audited (`library.tagging_run`).
+         *
+         *     Errors: not_found (404: not a module's published past paper), tagging_running (409: Claude is tagging it now).
+         */
+        post: operations["run_paper_tagging_api_v1_admin_paper_tagging__item_id__run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/uploads": {
         parameters: {
             query?: never;
@@ -6749,7 +6793,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "number_taken" | "empty_issue" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "too_many_topics" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "already_played" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "number_taken" | "empty_issue" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "too_many_topics" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "already_played" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready" | "tagging_running";
             /** Message */
             message: string;
             /** Fields */
@@ -7596,7 +7640,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily";
+            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily";
             /** Label */
             label: string;
             /** Hides */
@@ -7622,7 +7666,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily")[];
         };
         /** FileLink */
         FileLink: {
@@ -9014,7 +9058,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily")[];
             /**
              * Status
              * @enum {string}
@@ -10182,7 +10226,7 @@ export interface components {
             /** Label */
             label: string;
             /** Feature */
-            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily") | null;
+            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily") | null;
         };
         /** Page[ItemOut] */
         Page_ItemOut_: {
@@ -10245,6 +10289,8 @@ export interface components {
             question: number;
             /** Page */
             page: number | null;
+            /** Anchor */
+            anchor: string | null;
             /** Flagged */
             flagged: boolean;
             /** Flagcount */
@@ -10324,6 +10370,55 @@ export interface components {
             sittings: components["schemas"]["Sitting"][];
             /** Other */
             other: components["schemas"]["LibraryItem"][];
+        };
+        /**
+         * PaperTaggingJob
+         * @description One past paper's tagging by Claude: queued when it was published or an admin ran it again.
+         */
+        PaperTaggingJob: {
+            paper: components["schemas"]["PaperRef"];
+            /** Moduleid */
+            moduleId: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "working" | "done" | "skipped" | "failed";
+            /** Reason */
+            reason: string | null;
+            /** Questions */
+            questions: number | null;
+            /** Model */
+            model: string | null;
+            /** Attempts */
+            attempts: number;
+            /** Costcents */
+            costCents: number;
+            /**
+             * Queuedat
+             * Format: date-time
+             */
+            queuedAt: string;
+            /** Nextattemptat */
+            nextAttemptAt: string | null;
+            /** Finishedat */
+            finishedAt: string | null;
+        };
+        /**
+         * PaperTaggingOut
+         * @description The papers' tagging jobs, the latest queued first, and how many are in each status.
+         */
+        PaperTaggingOut: {
+            /** On */
+            on: boolean;
+            /** Configured */
+            configured: boolean;
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Jobs */
+            jobs: components["schemas"]["PaperTaggingJob"][];
         };
         /** ParagraphBlock */
         ParagraphBlock: {
@@ -13323,6 +13418,8 @@ export type PaperRef = components['schemas']['PaperRef'];
 export type PaperScore = components['schemas']['PaperScore'];
 export type PaperScoreSave = components['schemas']['PaperScoreSave'];
 export type PaperSittings = components['schemas']['PaperSittings'];
+export type PaperTaggingJob = components['schemas']['PaperTaggingJob'];
+export type PaperTaggingOut = components['schemas']['PaperTaggingOut'];
 export type ParagraphBlock = components['schemas']['ParagraphBlock'];
 export type PersonalEventCreate = components['schemas']['PersonalEventCreate'];
 export type PersonalEventOut = components['schemas']['PersonalEventOut'];
@@ -16612,7 +16709,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily";
+                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily";
             };
             cookie?: never;
         };
@@ -19465,6 +19562,176 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    paper_tagging_jobs_api_v1_admin_paper_tagging_get: {
+        parameters: {
+            query?: {
+                status?: ("queued" | "working" | "done" | "skipped" | "failed") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperTaggingOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    run_paper_tagging_api_v1_admin_paper_tagging__item_id__run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperTaggingJob"];
+                };
             };
             /** @description Bad Request */
             400: {

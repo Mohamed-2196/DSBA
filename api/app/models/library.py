@@ -27,6 +27,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import SLUG, Base, check_in, created_ts, in_range, str_enum, uuid_pk, year_range
 from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, ZONES, ExamSession, LibraryKind, QuestionMarkKind, Zone
 
+ANCHOR_MAX = 160  # paper_questions.anchor
+
 
 class ItemSource(enum.StrEnum):
     file = "file"
@@ -205,10 +207,46 @@ class PaperQuestion(Base):
     section: Mapped[str | None] = mapped_column(String(1))  # 'B' of "B1"; None: the paper numbers right through
     question: Mapped[int] = mapped_column(SmallInteger)
     page: Mapped[int | None] = mapped_column(SmallInteger)  # where the question starts in the PDF
+    # The question's first words as the PDF's text has them (ANCHOR_MAX characters at most), so the viewer finds
+    # and marks where it starts on its page; None: only the page is known.
+    anchor: Mapped[str | None] = mapped_column(String(ANCHOR_MAX))
     tagged_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     tagged_by_model: Mapped[str | None] = mapped_column(String(40))  # 'claude-haiku-5-5'; None: a student's tag
     flag_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = created_ts()
+
+
+class TaggingStatus(enum.StrEnum):
+    queued = "queued"  # waits for the tagging worker (and for the paper's text)
+    working = "working"  # the worker is asking Claude
+    done = "done"
+    skipped = "skipped"  # not run: the switch is off, there is no key, or the module has no chapters
+    failed = "failed"
+
+
+class PaperTagging(Base):
+    """Claude's tagging of one published past paper (app/services/paper_tagging.py): queued when the paper is
+    published or an admin runs it again, then done, skipped or failed, with why. Its cost counts toward the hub's
+    monthly budget for Claude, with Mini Noora's answers."""
+
+    __tablename__ = "paper_taggings"
+    __table_args__ = (
+        Index("ix_paper_taggings_status_queued", "status", "queued_at"),
+        Index("ix_paper_taggings_queued_by", "queued_by"),  # account deletion (SET NULL)
+    )
+
+    item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("library_items.id", ondelete="CASCADE"), primary_key=True)
+    status: Mapped[TaggingStatus] = mapped_column(str_enum(TaggingStatus, 8))
+    reason: Mapped[str | None] = mapped_column(String(200))  # why it was skipped or failed, or what it waits for
+    questions: Mapped[int | None] = mapped_column(SmallInteger)  # questions tagged by the last run
+    model: Mapped[str | None] = mapped_column(String(40))
+    attempts: Mapped[int] = mapped_column(SmallInteger, default=0, server_default="0")
+    cost_microusd: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")  # every run's, summed
+    queued_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    queued_at: Mapped[datetime] = created_ts()
+    next_attempt_at: Mapped[datetime | None]  # a queued run waits until then (after an error, or the budget)
+    started_at: Mapped[datetime | None]
+    finished_at: Mapped[datetime | None]
 
 
 class PaperQuestionFlag(Base):
