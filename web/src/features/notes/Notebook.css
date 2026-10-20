@@ -574,7 +574,8 @@ button.nb-where__module:hover {
   .nb-choice__item {
     height: 44px;
   }
-  .nb-reflow__note .nb-linkbutton {
+  .nb-reflow__note .nb-linkbutton,
+  .nb-toolbar__hint .nb-linkbutton {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
