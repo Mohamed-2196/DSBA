@@ -39,6 +39,10 @@ header controls are below 44 px on touch (ST-63).
   closes the sheet, and the second lands on the tab under it. On the laptop the same double click stays on the paper.
 - Fix: keep the tab bar from taking a tap for a moment after a sheet closes. Another way is to close the sheet when
   the pointer lifts, not on the first click. Both cover every bottom sheet with its main button over the tab bar.
+- **Fixed** (`round15/polish`): for 350 ms after a dialog or sheet closes on a touch screen, a clear layer takes
+  stray taps (`ui/tapShield.ts`, in every Modal and Drawer). Reproduced before the fix at 390×844: a double tap on
+  Start 2 hours opened `/noora`. After it, the page stays on the paper with the clock running.
+  `paper-toolbar.spec.ts` now double taps Start.
 
 #### ST-63 (minor) The notebook's header has three small touch targets
 
@@ -46,6 +50,9 @@ header controls are below 44 px on touch (ST-63).
 - Measured in the header (`[data-hub="notebook-header"]`): "Saved in your notebook" is 114×24, the module chip "ST2134"
   is 83×25 and "Written on ST2134 May 2024" is 170×20. The back link, Pages, Full screen and More are 44 px.
 - Expected: 44 px on touch screens (CLAUDE.md).
+- **Fixed** (`round15/polish`): on touch screens the notebook chip, the module chip and the paper's link are 44 px
+  tall themselves (the chips keep their small look; a clear border makes up the height). Measured at 390: My
+  notebook 106×44, ST2134 83×44, Notebook 96×44.
 
 #### ST-64 (minor) On a phone the new bands push the content down
 
@@ -61,17 +68,23 @@ header controls are below 44 px on touch (ST-63).
 - Expected: the content of each page within the first screen on a phone. The bands could shrink on phones (a one-line
   intro, the deskmate smaller), and the shelf could put the tile with news first or wrap to two rows.
 - Not broken: on the 1440 laptop all three pages show their content in the first screen.
+- **Fixed** (`round15/polish`, with UX-81): at 390×844 the forum's first thread is at 378 px (was 657), the
+  calendar's month grid at 314 px (was about 610) and the next exam at 262 px. Home's shelf wraps three over two with
+  every tile in view, Calendar's "Exam Fri" included, at 360 and 390.
 
 #### ST-65 (nit) "Notes" in the notebook
 
 - `notes/NoteHeader.tsx` line 209: the back link reads "Notes" (label "All notes"). The sidebar, the shelf and the
   More menu say Notebook. Suggest "Notebook".
+- **Fixed** (`round15/polish`): the back link reads "Notebook" (no separate label).
 
 #### ST-66 (nit) Search lists a module's sittings out of order
 
 - Library → search "ST2134 past paper": ST2134 · May 2024, May 2025, October 2024, October 2025, May 2026, May 2010.
   A student the night before the exam wants the newest first. When every result scores the same, sort by sitting,
   newest first.
+- **Fixed** (`round15/polish`, API): in a search, a module's files of one kind rank together, at the best of their
+  ranks, then newest sitting first (`services/library.py`; `test_a_search_lists_a_modules_sittings_newest_first`).
 
 ### By hand: the study journeys (390 phone / 1440 laptop)
 
