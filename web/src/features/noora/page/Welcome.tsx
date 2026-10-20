@@ -1,8 +1,7 @@
 // The full page before anything is asked: Noora greets the student by name and shows, with one card per kind of
 // help, that she answers anything they study. A card fills the box with a question to finish (starters.ts).
-import { ChatCircleDots, SignIn } from '@phosphor-icons/react';
 import { useMediaQuery } from '../../../state';
-import { Button } from '../../../ui';
+import { Button, Icon, glyph } from '../../../ui';
 import { Face } from '../Face';
 import { STARTER_ICONS } from './starterIcons';
 import type { Starter } from './starters';
@@ -39,7 +38,13 @@ export function Welcome({ name, lead, starters, onStart, questions, onAsk, pause
             Sign in to get full answers from my AI. Until then I answer from my script: modules, lessons, exam dates and
             where things are.
           </p>
-          <Button size="sm" variant="primary" leadingIcon={SignIn} onClick={onSignIn} data-hub="noora-sign-in">
+          <Button
+            size="sm"
+            variant="primary"
+            leadingIcon={<Icon glyph={glyph.signIn} />}
+            onClick={onSignIn}
+            data-hub="noora-sign-in"
+          >
             Sign in
           </Button>
         </div>
@@ -53,7 +58,7 @@ export function Welcome({ name, lead, starters, onStart, questions, onAsk, pause
           {questions.map((q) => (
             <li key={q}>
               <button type="button" className="np-starter" onClick={() => onAsk(q)} data-hub="noora-script-question">
-                <ChatCircleDots className="np-starter__icon" aria-hidden="true" weight="duotone" />
+                <Icon glyph={glyph.forum} className="np-starter__icon" />
                 <span className="np-starter__text">
                   <span className="np-starter__title">{q}</span>
                 </span>

@@ -15,23 +15,9 @@ import {
   type ReactNode,
 } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  ArrowClockwise,
-  ArrowDown,
-  ArrowRight,
-  Books,
-  CalendarDots,
-  Check,
-  Copy,
-  FileText,
-  PencilSimple,
-  PlayCircle,
-  SquaresFour,
-  type Icon,
-} from '@phosphor-icons/react';
 import { appUrl, copyText } from '../../lib/share';
 import { formatClock } from '../../lib/dates';
-import { IconButton, cx, safeInternalPath } from '../../ui';
+import { Icon, IconButton, cx, glyph, safeInternalPath, type Glyph } from '../../ui';
 import { FileChip, Shot } from './Attachment';
 import { Formula, Steps } from './Formula';
 import { messageAsText, refKind, type RefKind } from './refs';
@@ -39,13 +25,13 @@ import { Rich } from './RichText';
 import type { Message, MyMessage as MyMessageData, NooraMessage as NooraMessageData, Ref, Reply } from './types';
 import type { Pending } from './useChat';
 
-const KIND_ICON: Record<RefKind, Icon> = {
-  lesson: PlayCircle,
-  files: FileText,
-  module: SquaresFour,
-  calendar: CalendarDots,
-  library: Books,
-  page: ArrowRight,
+const KIND_ICON: Record<RefKind, Glyph> = {
+  lesson: glyph.video,
+  files: glyph.page,
+  module: glyph.modules,
+  calendar: glyph.calendar,
+  library: glyph.library,
+  page: glyph.forward,
 };
 const COPIED_FOR = 1600; // ms the copy button says it worked
 const AFTER_MAX = 3; // suggestions offered after an answer
@@ -59,15 +45,15 @@ function Refs({ refs, onFollow }: { refs: readonly Ref[]; onFollow: () => void }
       <ul role="list" className="nc-cards">
         {refs.map((ref, i) => {
           const to = safeInternalPath(ref.to);
-          const KindIcon = KIND_ICON[refKind(ref.to)];
+          const kind = KIND_ICON[refKind(ref.to)];
           const body = (
             <>
-              <KindIcon className="nc-card__icon" aria-hidden="true" weight="duotone" />
+              <Icon glyph={kind} className="nc-card__icon" />
               <span className="nc-card__text">
                 <span className="nc-card__label">{ref.label}</span>
                 <span className="nc-card__code">{ref.code}</span>
               </span>
-              {to ? <ArrowRight className="nc-card__go" aria-hidden="true" /> : null}
+              {to ? <Icon glyph={glyph.chevronRight} className="nc-card__go" /> : null}
             </>
           );
           return (
@@ -110,7 +96,7 @@ function Suggestions({
           <li key={s}>
             <button type="button" className="nc-suggest__item" onClick={() => onPick(s)} data-hub="noora-suggestion">
               <span>{s}</span>
-              <ArrowRight className="nc-suggest__go" aria-hidden="true" />
+              <Icon glyph={glyph.chevronRight} className="nc-suggest__go" />
             </button>
           </li>
         ))}
@@ -139,7 +125,7 @@ function CopyButton({ message }: { message: NooraMessageData }) {
       size="sm"
       className="nc-copy"
       label={copied ? 'Copied' : 'Copy answer'}
-      icon={copied ? Check : Copy}
+      icon={<Icon glyph={copied ? glyph.check : glyph.copy} />}
       tooltip
       tooltipSide="top"
       onClick={() => {
@@ -189,7 +175,7 @@ const NooraMessage = memo(function NooraMessage({ message, shown, isNew, onRegen
           <p>{message.notice}</p>
           {message.retry && onRegenerate ? (
             <button type="button" className="nc-notice__retry" onClick={onRegenerate} data-hub="noora-retry">
-              <ArrowClockwise aria-hidden="true" weight="bold" />
+              <Icon glyph={glyph.refresh} />
               Try again
             </button>
           ) : null}
@@ -217,7 +203,7 @@ const NooraMessage = memo(function NooraMessage({ message, shown, isNew, onRegen
               size="sm"
               className="nc-copy"
               label="Regenerate answer"
-              icon={ArrowClockwise}
+              icon={<Icon glyph={glyph.refresh} />}
               tooltip
               tooltipSide="top"
               onClick={onRegenerate}
@@ -268,7 +254,7 @@ const MyMessage = memo(function MyMessage({ message, isNew, onLoad, onEdit }: My
             size="sm"
             className="nc-copy"
             label="Edit and resend"
-            icon={PencilSimple}
+            icon={<Icon glyph={glyph.edit} />}
             tooltip
             tooltipSide="top"
             onClick={() => onEdit(message)}
@@ -438,7 +424,7 @@ export const MessageList = memo(function MessageList(props: MessageListProps) {
     const asked = new Set(messages.flatMap((m) => (m.from === 'me' ? [m.text.trim().toLowerCase()] : [])));
     return (own ?? pageChips).filter((s) => !asked.has(s.toLowerCase())).slice(0, AFTER_MAX);
   }, [messages, own, pageChips]);
-  const canRegenerate = resting && last?.from === 'noora' && messages.some((m) => m.from === 'me');
+  const canRegenerate = resting && last?.from === 'noora' && !last.declined && messages.some((m) => m.from === 'me');
   const editable = resting && onEdit ? onEdit : null;
 
   return (
@@ -474,7 +460,7 @@ export const MessageList = memo(function MessageList(props: MessageListProps) {
       </div>
       {away && messages.length ? (
         <button type="button" className="nc-jump" onClick={jump} data-hub="noora-jump">
-          <ArrowDown aria-hidden="true" weight="bold" />
+          <Icon glyph={glyph.arrowDown} />
           Jump to latest
         </button>
       ) : null}

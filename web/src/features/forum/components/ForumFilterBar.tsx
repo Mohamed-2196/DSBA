@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChatCircle } from '@phosphor-icons/react';
 import type { ForumStats } from '../../../api/types';
-import { Chip, SearchField, SegmentedControl, Tabs, cx, useScrollFade } from '../../../ui';
+import { Chip, Icon, SearchField, SegmentedControl, Tabs, glyph, useScrollFade } from '../../../ui';
 import type { FilterPatch } from '../lib/filters';
 import type { TagChip } from '../lib/tagChips';
 import { useTaxonomy } from '../lib/taxonomy';
@@ -30,9 +29,9 @@ export interface ForumFilterBarProps {
 
 /**
  * The list's filters, all in the URL: categories (tabs), sort, search, "No replies yet" and the most used tags.
- * Signed in, Yours follows All: newest activity first, so it has no sort. Wide: tabs and sort on a hairline, then
- * search and chips. Narrow (phones): tabs, then search on its own row (it needs
- * the room), then sort and the chips, which scroll sideways.
+ * Signed in, Yours follows All: newest activity first, so it has no sort. Its parts are items of the page's grid
+ * (ForumPage.css): wide, the tabs head the list with the search beside them over the sidebar, and the chips and the
+ * sort sit under the tabs; narrow (phones), tabs, then search on its own row, then the chips, which scroll sideways.
  */
 export function ForumFilterBar({ filters, update, stats, chips, scope, showYours }: ForumFilterBarProps) {
   const { categories, getCategory } = useTaxonomy();
@@ -68,15 +67,6 @@ export function ForumFilterBar({ filters, update, stats, chips, scope, showYours
           onChange={(id) => update({ cohort: id, tag: '' })}
         />
       </div>
-      <div className={cx('forum-filters__sort', cohort === 'yours' && 'is-unused')}>
-        <SegmentedControl
-          label="Sort threads"
-          size="sm"
-          options={SORTS}
-          value={sort}
-          onChange={(v) => update({ sort: String(v) })}
-        />
-      </div>
       <SearchField
         className="forum-filters__search"
         value={query}
@@ -88,34 +78,49 @@ export function ForumFilterBar({ filters, update, stats, chips, scope, showYours
         label="Search threads"
         dir="auto"
       />
-      <div
-        className="forum-filters__chips u-scroll-row u-scroll-row--bleed"
-        role="group"
-        aria-label="Filter threads"
-        ref={chipsRef}
-      >
-        <Chip
-          size="sm"
-          icon={ChatCircle}
-          selected={status === 'no-replies'}
-          count={waiting}
-          onChange={(on) => update({ status: on ? 'no-replies' : '' })}
-          data-hub="filter-no-replies"
+      <div className="forum-filters__row">
+        <div
+          className="forum-filters__chips u-scroll-row u-scroll-row--bleed"
+          role="group"
+          aria-label="Filter threads"
+          ref={chipsRef}
         >
-          No replies yet
-        </Chip>
-        {chips.length ? <span className="forum-filters__sep" aria-hidden="true" /> : null}
-        {chips.map((t) => (
           <Chip
-            key={t.id}
             size="sm"
-            selected={tag === t.id}
-            count={t.count}
-            onChange={(on) => update({ tag: on ? t.id : '' })}
+            icon={<Icon glyph={glyph.forum} />}
+            selected={status === 'no-replies'}
+            count={waiting}
+            onChange={(on) => update({ status: on ? 'no-replies' : '' })}
+            data-hub="filter-no-replies"
           >
-            {t.label}
+            No replies yet
           </Chip>
-        ))}
+          {chips.length ? <span className="forum-filters__sep" aria-hidden="true" /> : null}
+          {chips.map((t) => (
+            <Chip
+              key={t.id}
+              size="sm"
+              selected={tag === t.id}
+              count={t.count}
+              onChange={(on) => update({ tag: on ? t.id : '' })}
+            >
+              {t.label}
+            </Chip>
+          ))}
+        </div>
+        <div className="forum-filters__sort">
+          {cohort === 'yours' ? (
+            <span className="forum-filters__order">Newest activity first</span>
+          ) : (
+            <SegmentedControl
+              label="Sort threads"
+              size="sm"
+              options={SORTS}
+              value={sort}
+              onChange={(v) => update({ sort: String(v) })}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

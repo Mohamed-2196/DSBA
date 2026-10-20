@@ -337,7 +337,7 @@ html:has(.np--full) {
   max-width: min(80%, var(--measure));
   padding: 10px 16px;
   border-radius: 20px;
-  background: var(--surface-2);
+  background: var(--accent-soft);
   color: var(--ink);
   font-size: var(--fs-16);
   font-weight: var(--fw-regular);
@@ -492,6 +492,12 @@ html:has(.np--full) {
 .nc-composer--page .nc-send.ui-iconbutton {
   width: 40px;
   height: 40px;
+}
+@media (pointer: coarse) {
+  .nc-composer--page .nc-send.ui-iconbutton {
+    width: 44px;
+    height: 44px;
+  }
 }
 .np-add {
   padding: 0 12px 0 10px;

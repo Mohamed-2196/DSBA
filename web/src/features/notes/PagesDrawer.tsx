@@ -2,11 +2,10 @@
 // typed text on paper), to go to one, and to add, move, clear or delete paper pages. Typed text runs from the first
 // page of paper down and keeps the pages it is on: those can't be moved or deleted (pages of handwriting and pictures
 // can, and their pictures go with them).
-import { ArrowDown, ArrowUp, DotsThree, Eraser, Plus, Trash, X } from '@phosphor-icons/react';
 import { memo, useEffect, useRef, useState, type RefObject } from 'react';
 import type { Stroke } from '../../api/types';
 import { StrokePaths, type InkStroke } from '../../lib/ink';
-import { Button, ConfirmDialog, IconButton, Menu, cx, type MenuItem } from '../../ui';
+import { Button, ConfirmDialog, IconButton, Menu, cx, type MenuItem, Icon, glyph } from '../../ui';
 import type { Paper } from './draft';
 import type { LoadedPdf } from './pdf';
 import { FreePictureView } from './pictures/FreePictureView';
@@ -157,7 +156,7 @@ export function PagesDrawer({
         <h2 className="nb-pages__title">
           Pages <span>{sheets.length}</span>
         </h2>
-        <IconButton icon={X} label="Close pages" size="sm" onClick={onClose} />
+        <IconButton icon={<Icon glyph={glyph.close} />} label="Close pages" size="sm" onClick={onClose} />
       </div>
       <ol className="nb-pages__list">
         {sheets.map((s, i) => {
@@ -169,21 +168,21 @@ export function PagesDrawer({
                   {
                     id: 'up',
                     label: 'Move up',
-                    icon: ArrowUp,
+                    icon: <Icon glyph={glyph.arrowUp} />,
                     disabled: typed || k === 0 || k - 1 < typedPages,
                     onSelect: () => onAction({ kind: 'move', sheet: s.index, by: -1 }),
                   },
                   {
                     id: 'down',
                     label: 'Move down',
-                    icon: ArrowDown,
+                    icon: <Icon glyph={glyph.arrowDown} />,
                     disabled: typed || k >= paperCount - 1,
                     onSelect: () => onAction({ kind: 'move', sheet: s.index, by: 1 }),
                   },
                   {
                     id: 'clear',
                     label: 'Clear the handwriting',
-                    icon: Eraser,
+                    icon: <Icon glyph={glyph.eraser} />,
                     disabled: strokesOf(s.index).length === 0,
                     onSelect: () => onAction({ kind: 'clear', sheet: s.index }),
                   },
@@ -191,7 +190,7 @@ export function PagesDrawer({
                   {
                     id: 'delete',
                     label: typed ? 'Delete page (it has typed text)' : 'Delete page',
-                    icon: Trash,
+                    icon: <Icon glyph={glyph.trash} />,
                     danger: true,
                     disabled: typed || paperCount <= 1,
                     onSelect: () => setDeleting(s.index),
@@ -238,7 +237,12 @@ export function PagesDrawer({
                   label={`${label} options`}
                   items={items}
                   trigger={
-                    <IconButton icon={DotsThree} label={`${label} options`} size="sm" className="nb-thumb__more" />
+                    <IconButton
+                      icon={<Icon glyph={glyph.more} />}
+                      label={`${label} options`}
+                      size="sm"
+                      className="nb-thumb__more"
+                    />
                   }
                 />
               ) : null}
@@ -248,7 +252,12 @@ export function PagesDrawer({
       </ol>
       {readOnly ? null : (
         <div className="nb-pages__foot">
-          <Button size="sm" leadingIcon={Plus} onClick={() => onAction({ kind: 'add' })} fullWidth>
+          <Button
+            size="sm"
+            leadingIcon={<Icon glyph={glyph.plus} />}
+            onClick={() => onAction({ kind: 'add' })}
+            fullWidth
+          >
             Add a page
           </Button>
         </div>

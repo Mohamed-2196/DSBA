@@ -6,9 +6,9 @@
 }
 .ui-modal__panel.cmdk {
   align-self: start;
-  max-width: 720px;
-  max-height: min(76vh, 660px);
-  margin-top: min(12vh, 120px);
+  max-width: 640px;
+  max-height: min(78vh, 680px);
+  margin-top: min(10vh, 92px);
   overflow: hidden;
 }
 .ui-modal__body.cmdk-body {
@@ -21,18 +21,31 @@
 }
 
 /* ── Field ─────────────────────────────────────────────────────────── */
+/* Loupe sits beside the query (docs/design/deskmates/screens/search-laptop). On phones the field is a rounded box
+   with its own glass, after a back arrow (search-phone). */
 .cmdk-field {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: var(--sp-12);
-  height: 64px;
-  padding: 0 var(--sp-16) 0 20px;
+  height: 72px;
+  padding: 0 var(--sp-16) 0 var(--sp-16);
   border-bottom: 1px solid var(--line);
 }
+.cmdk-field__back,
 .cmdk-field__icon {
-  font-size: 22px;
-  color: var(--accent);
+  display: none;
+}
+.cmdk-field__mate {
+  flex: 0 0 auto;
+}
+.cmdk-field__box {
+  display: contents;
+}
+.cmdk-field__icon {
+  flex: 0 0 auto;
+  font-size: 20px;
+  color: var(--ink-2);
 }
 .cmdk-input {
   flex: 1 1 auto;
@@ -72,7 +85,12 @@
 }
 .cmdk-field__esc {
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border-radius: var(--r-xs);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  white-space: nowrap;
 }
 .cmdk-field__esc .ui-kbd {
   height: 22px;
@@ -97,22 +115,12 @@
   right: var(--sp-8);
   height: 0;
   border-radius: var(--r-control);
-  background: var(--surface-2);
+  background: var(--accent-soft);
   opacity: 0;
   pointer-events: none;
   transition:
     transform 140ms var(--ease),
     height 140ms var(--ease);
-}
-.cmdk-indicator::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 12px;
-  bottom: 12px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--accent);
 }
 .cmdk-group {
   position: relative;
@@ -127,8 +135,15 @@
   gap: var(--sp-8);
   padding: 12px 12px 6px;
   color: var(--ink-2);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-size: var(--fs-11);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cmdk-group__count,
+.cmdk-group__action {
+  letter-spacing: 0;
+  text-transform: none;
 }
 .cmdk-group__count {
   font-weight: var(--fw-medium);
@@ -259,6 +274,12 @@
 .cmdk-art {
   --modart-size: 36px;
 }
+/* A result's section icon on its section's pill. */
+.cmdk-tile--section,
+.cmdk-item.is-active .cmdk-tile--section {
+  background: var(--sec-pill);
+  color: var(--ink);
+}
 .cmdk-tile--module {
   background: color-mix(in srgb, var(--c) 15%, var(--surface));
   color: var(--c-strong);
@@ -380,11 +401,18 @@
 }
 .cmdk-enter {
   display: inline-flex;
+  align-items: center;
+  gap: 8px;
   opacity: 0;
   transition: opacity var(--dur-fast) var(--ease);
 }
 .cmdk-enter.is-on {
   opacity: 1;
+}
+.cmdk-enter__word {
+  color: var(--accent-text);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
 }
 .cmdk-item__remove {
   display: grid;
@@ -440,12 +468,28 @@
   font-size: var(--fs-14);
 }
 
-/* The words typed found nothing and were corrected: say what the results are for. */
+/* The words typed found nothing and were corrected: say what the results are for, on an inset line (phones: with
+   Loupe beside it). */
 .cmdk-corrected {
-  margin: 6px 12px 2px;
-  max-width: var(--measure);
-  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  margin: 8px 8px 2px;
+  padding: 12px 16px;
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  color: var(--ink);
   font-size: var(--fs-14);
+  animation: cmdk-late 160ms var(--ease) both;
+}
+.cmdk-corrected p {
+  max-width: var(--measure);
+}
+.cmdk-corrected strong {
+  font-weight: var(--fw-bold);
+}
+.cmdk-corrected__mate {
+  display: none;
 }
 
 /* ── Footer ────────────────────────────────────────────────────────── */
@@ -483,18 +527,56 @@
   }
 }
 
+/* Phones: a full-screen sheet, rows of 58 px, no keyboard hints. */
 @media (max-width: 699px) {
+  .ui-modal:has(> .ui-modal__panel.cmdk) {
+    padding: 0;
+  }
   .ui-modal__panel.cmdk {
-    margin-top: 0;
-    max-height: calc(100dvh - 16px);
-    border-radius: var(--r-card);
+    border: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
   }
   .cmdk-field {
-    height: 56px;
-    padding-left: var(--sp-16);
+    height: 72px;
+    gap: 4px;
+    padding: 0 var(--sp-12) 0 4px;
+    border-bottom: 0;
+  }
+  .cmdk-field__back {
+    display: inline-flex;
+  }
+  .cmdk-field__mate {
+    display: none;
+  }
+  .cmdk-field__box {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    height: 48px;
+    padding: 0 4px 0 14px;
+    border: 2px solid var(--accent);
+    border-radius: var(--r-input);
+    background: var(--surface);
+  }
+  .cmdk-field__icon {
+    display: inline-block;
   }
   .cmdk-input {
     font-size: var(--fs-16);
+  }
+  .cmdk-item {
+    min-height: 58px;
+  }
+  .cmdk-corrected__mate {
+    display: inline-flex;
+    flex: 0 0 auto;
   }
   .cmdk-field__esc {
     display: none;

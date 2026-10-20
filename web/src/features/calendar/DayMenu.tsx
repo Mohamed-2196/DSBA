@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
-import { CalendarPlus } from '@phosphor-icons/react';
 import { cohortTextColor } from '../../state';
-import { Button, cx, Menu } from '../../ui';
+import { Button, cx, Menu, Icon, glyph } from '../../ui';
 import { formatLong, formatLongDay, parseDay, type DayKey } from '../../lib/dates';
 import { dotClass, kindLabel } from './eventMeta';
 import type { CalendarEvent } from './types';
@@ -74,7 +73,7 @@ export function DayMenu({ day, events, showCohort, onOpen, onAdd, children, clas
             <div className="cal-daymenu__foot">
               <Button
                 size="sm"
-                leadingIcon={CalendarPlus}
+                leadingIcon={<Icon glyph={glyph.calendarAdd} />}
                 data-roving
                 onClick={() => {
                   close(false);

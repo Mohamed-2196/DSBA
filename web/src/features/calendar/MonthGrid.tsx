@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
-import { cohortTextColor } from '../../state';
+import { cohortTextColor, useMediaQuery } from '../../state';
 import { useModules } from '../../state/modules';
-import { cx } from '../../ui';
+import { Icon, cx, glyph } from '../../ui';
 import { addDays, dayKey, formatLong, isWeekend, WEEKDAYS, type DayKey } from '../../lib/dates';
+import { spansDays, weekBars, windowLine } from './windows';
 import { monthMatrix, monthOfDate, type MonthRef } from './dates';
 import { DayMenu } from './DayMenu';
 import { chipClass, chipText, dotClass, eventSummary } from './eventMeta';
@@ -10,7 +11,20 @@ import { dayOrder } from './mine';
 import { groupByDay } from './queries';
 import type { CalendarEvent } from './types';
 
+/** The dates a day shows before "N more": three on wide monitors, where the cells are wider. */
 const MAX_CHIPS = 2;
+const MAX_CHIPS_WIDE = 3;
+/** A line of a window bar, in px (CalendarPage.css, --bar-h plus the gap). */
+const BAR_LINE = 26;
+
+/** A chip's one line: 'ST2134 Exam 9:00', 'ST2134 Revision session', 'Event: Careers fair', 'Study group 18:00'. */
+function chipLabel(ev: CalendarEvent, code: string | null, line: string): string {
+  const time = ev.mine?.startTime?.slice(0, 5) ?? ev.time ?? null;
+  if (ev.mine) return time ? `${ev.title} ${time}` : ev.title;
+  if (ev.type === 'exam') return [code, 'Exam', time].filter(Boolean).join(' ');
+  if (ev.type === 'event') return `Event: ${code ? `${code} ${line}` : line}`;
+  return code ? `${code} ${line}` : line;
+}
 
 export interface MonthGridProps {
   month: MonthRef;
@@ -66,6 +80,8 @@ export function MonthGrid({
     return days;
   }, [events]);
   const todayKey = dayKey(today);
+  const maxChips = useMediaQuery('(min-width: 2200px)') ? MAX_CHIPS_WIDE : MAX_CHIPS;
+  const spanning = useMemo(() => events.filter(spansDays), [events]);
   const gridRef = useRef<HTMLDivElement>(null);
   const wantFocus = useRef(false);
   const [focusKey, setFocusKey] = useState<string | null>(null);
@@ -136,127 +152,155 @@ export function MonthGrid({
           </div>
         ))}
       </div>
-      {weeks.map((week) => (
-        <div key={dayKey(week[0] ?? today)} role="row" className="cal-grid__row">
-          {week.map((date) => {
-            const key = dayKey(date);
-            const list = byDay.get(key) ?? [];
-            const outside = !inMonth(date);
-            const isToday = key === todayKey;
-            const past = date < today;
-            const label = `${formatLong(date)}${isToday ? ', today' : ''}${list.length ? `, ${list.length} event${list.length > 1 ? 's' : ''}: ${list.map(eventSummary).join('; ')}` : ''}`;
-            const more = list.length - MAX_CHIPS;
-            const picked = compact && key === selectedDay;
-            return (
-              <div
-                key={key}
-                role="gridcell"
-                data-date={key}
-                tabIndex={key === activeKey ? 0 : -1}
-                aria-label={label}
-                aria-current={isToday ? 'date' : undefined}
-                aria-selected={compact ? picked : undefined}
-                className={cx(
-                  'cal-day',
-                  outside && 'is-outside',
-                  isToday && 'is-today',
-                  isWeekend(date) && 'is-weekend',
-                  past && 'is-past',
-                  list.length > 0 && 'has-events',
-                  picked && 'is-selected',
-                )}
-                onKeyDown={(e) => onKeyDown(e, date)}
-                onClick={compact && onSelectDay ? () => onSelectDay(key) : undefined}
-                onFocus={(e) => {
-                  if (e.target === e.currentTarget) setFocusKey(key);
-                }}
-              >
-                <span className="cal-day__head">
-                  {compact ? (
-                    <span className="cal-day__num" aria-hidden="true">
-                      {date.getDate()}
-                    </span>
-                  ) : (
-                    <DayMenu
-                      day={key}
-                      events={list}
-                      showCohort={showCohort}
-                      onOpen={onOpen}
-                      onAdd={onAdd}
-                      className="cal-day__num"
-                    >
-                      {date.getDate()}
-                    </DayMenu>
+      {weeks.map((week) => {
+        const bars = compact ? [] : weekBars(week, spanning);
+        const lines = bars.reduce((n, b) => Math.max(n, b.lane + 1), 0);
+        return (
+          <div
+            key={dayKey(week[0] ?? today)}
+            role="row"
+            className={cx('cal-grid__row', lines > 0 && 'has-bars')}
+            style={lines ? ({ '--bar-room': `${lines * BAR_LINE}px` } as CSSProperties) : undefined}
+          >
+            {week.map((date, col) => {
+              const key = dayKey(date);
+              const list = byDay.get(key) ?? [];
+              // A window is drawn as a bar across its days, not as a chip on each.
+              const chips = compact ? list : list.filter((ev) => !spansDays(ev));
+              const outside = !inMonth(date);
+              const isToday = key === todayKey;
+              const past = date < today;
+              const label = `${formatLong(date)}${isToday ? ', today' : ''}${list.length ? `, ${list.length} event${list.length > 1 ? 's' : ''}: ${list.map(eventSummary).join('; ')}` : ''}`;
+              const more = chips.length - maxChips;
+              const picked = compact && key === selectedDay;
+              return (
+                <div
+                  key={key}
+                  role="gridcell"
+                  data-date={key}
+                  tabIndex={key === activeKey ? 0 : -1}
+                  aria-label={label}
+                  aria-current={isToday ? 'date' : undefined}
+                  aria-selected={compact ? picked : undefined}
+                  className={cx(
+                    'cal-day',
+                    outside && 'is-outside',
+                    isToday && 'is-today',
+                    isWeekend(date) && 'is-weekend',
+                    past && 'is-past',
+                    list.length > 0 && 'has-events',
+                    picked && 'is-selected',
                   )}
-                  {isToday && !compact ? (
-                    <span className="cal-day__today" aria-hidden="true">
-                      Today
-                    </span>
-                  ) : null}
-                </span>
-                {compact ? (
-                  list.length ? (
-                    <span className="cal-day__dots" aria-hidden="true">
-                      {list.slice(0, 3).map((ev) => (
-                        <span key={ev.id} className={cx('cal-dot', dotClass(ev))} />
-                      ))}
-                    </span>
-                  ) : null
-                ) : list.length ? (
-                  <span className="cal-day__events">
-                    {list.slice(0, MAX_CHIPS).map((ev) => {
-                      const { code, line } = chipText(ev, getModule(ev.moduleId));
-                      const time = ev.mine?.startTime?.slice(0, 5) ?? null;
-                      return (
-                        <button
-                          key={ev.id}
-                          type="button"
-                          tabIndex={-1}
-                          className={cx(
-                            'cal-chip',
-                            chipClass(ev),
-                            ev.id === selectedId && 'is-selected',
-                            past && 'is-past',
-                          )}
-                          onClick={() => onOpen(ev)}
-                          data-hub="calendar-event"
-                          data-event-id={ev.id}
-                          aria-label={eventSummary(ev)}
-                        >
-                          <span className="cal-chip__top">
-                            <span className={cx('cal-dot', dotClass(ev))} aria-hidden="true" />
-                            <span className={cx('cal-chip__title', code && 'u-code')}>{code || line}</span>
+                  onKeyDown={(e) => onKeyDown(e, date)}
+                  onClick={compact && onSelectDay ? () => onSelectDay(key) : undefined}
+                  onFocus={(e) => {
+                    if (e.target === e.currentTarget) setFocusKey(key);
+                  }}
+                >
+                  <span className="cal-day__head">
+                    {compact ? (
+                      <span className="cal-day__num" aria-hidden="true">
+                        {date.getDate()}
+                      </span>
+                    ) : (
+                      <DayMenu
+                        day={key}
+                        events={list}
+                        showCohort={showCohort}
+                        onOpen={onOpen}
+                        onAdd={onAdd}
+                        className="cal-day__num"
+                      >
+                        {date.getDate()}
+                      </DayMenu>
+                    )}
+                    {isToday && !compact ? (
+                      <span className="cal-day__today" aria-hidden="true">
+                        Today
+                      </span>
+                    ) : null}
+                  </span>
+                  {compact ? (
+                    list.length ? (
+                      <span className="cal-day__dots" aria-hidden="true">
+                        {list.slice(0, 3).map((ev) => (
+                          <span key={ev.id} className={cx('cal-dot', dotClass(ev))} />
+                        ))}
+                      </span>
+                    ) : null
+                  ) : chips.length ? (
+                    <span className="cal-day__events">
+                      {chips.slice(0, maxChips).map((ev) => {
+                        const { code, line } = chipText(ev, getModule(ev.moduleId));
+                        return (
+                          <button
+                            key={ev.id}
+                            type="button"
+                            tabIndex={-1}
+                            className={cx(
+                              'cal-chip',
+                              chipClass(ev),
+                              ev.id === selectedId && 'is-selected',
+                              past && 'is-past',
+                            )}
+                            onClick={() => onOpen(ev)}
+                            data-hub="calendar-event"
+                            data-event-id={ev.id}
+                            aria-label={eventSummary(ev)}
+                          >
+                            {ev.type === 'exam' && !ev.mine ? (
+                              <Icon glyph={glyph.calendar} className="cal-chip__icon" />
+                            ) : null}
+                            <span className="cal-chip__title">{chipLabel(ev, code, line)}</span>
                             {showCohort && ev.year ? (
                               <span className="cal-chip__cohort" style={{ color: cohortTextColor(ev.year) }}>
                                 Y{ev.year}
                               </span>
                             ) : null}
+                          </button>
+                        );
+                      })}
+                      {more > 0 ? (
+                        <button
+                          type="button"
+                          tabIndex={-1}
+                          className="cal-day__more"
+                          onClick={(e) => openDay(e.currentTarget)}
+                        >
+                          {more} more
+                        </button>
+                      ) : null}
+                    </span>
+                  ) : null}
+                  {bars
+                    .filter((b) => b.start === col)
+                    .map(({ event: ev, span, lane }) => {
+                      const { code, line } = chipText(ev, getModule(ev.moduleId));
+                      return (
+                        <button
+                          key={ev.id}
+                          type="button"
+                          tabIndex={-1}
+                          className={cx('cal-bar-chip', chipClass(ev), ev.id === selectedId && 'is-selected')}
+                          style={{ '--span': span, '--lane': lane } as CSSProperties}
+                          onClick={() => onOpen(ev)}
+                          data-hub="calendar-event"
+                          data-event-id={ev.id}
+                          aria-label={eventSummary(ev)}
+                        >
+                          <span className="cal-chip__title">
+                            {code ? <span className="u-code">{code} </span> : null}
+                            {code ? line : ev.title} · {windowLine(ev, todayKey)}
                           </span>
-                          {code ? (
-                            <span className="cal-chip__line">{line}</span>
-                          ) : time ? (
-                            <span className="cal-chip__line">{time}</span>
-                          ) : null}
                         </button>
                       );
                     })}
-                    {more > 0 ? (
-                      <button
-                        type="button"
-                        tabIndex={-1}
-                        className="cal-day__more"
-                        onClick={(e) => openDay(e.currentTarget)}
-                      >
-                        {more} more
-                      </button>
-                    ) : null}
-                  </span>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }

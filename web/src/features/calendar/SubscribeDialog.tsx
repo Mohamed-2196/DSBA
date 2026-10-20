@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { CalendarPlus, Copy, DownloadSimple, Key } from '@phosphor-icons/react';
+import { Key } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import { cohortLabel, normalizeYear, useToast, YEARS, type CohortYear } from '../../state';
-import { Button, ConfirmDialog, Modal, SegmentedControl, TextField } from '../../ui';
+import { Button, ConfirmDialog, Modal, SegmentedControl, TextField, Icon, glyph } from '../../ui';
 import { useCopyLink } from '../../lib/useCopyLink';
 import { feedUrl, privateFeedUrl, usePrivateFeed } from './api';
 import type { MyCalendar } from './useMyCalendar';
@@ -105,10 +105,16 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
       footer={
         url && webcal ? (
           <>
-            <Button variant="ghost" leadingIcon={DownloadSimple} href={url} download={fileName} external={false}>
+            <Button
+              variant="ghost"
+              leadingIcon={<Icon glyph={glyph.download} />}
+              href={url}
+              download={fileName}
+              external={false}
+            >
               Download once (.ics)
             </Button>
-            <Button variant="primary" leadingIcon={CalendarPlus} href={webcal} external={false}>
+            <Button variant="primary" leadingIcon={<Icon glyph={glyph.calendarAdd} />} href={webcal} external={false}>
               Open in my calendar app
             </Button>
           </>
@@ -147,7 +153,7 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
             readOnly
             onFocus={(e) => e.currentTarget.select()}
             trailing={
-              <Button size="sm" variant="ghost" leadingIcon={Copy} onClick={() => void copy()}>
+              <Button size="sm" variant="ghost" leadingIcon={<Icon glyph={glyph.copy} />} onClick={() => void copy()}>
                 Copy
               </Button>
             }

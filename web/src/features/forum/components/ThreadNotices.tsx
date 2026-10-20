@@ -2,10 +2,10 @@
 // deleted, locked, or gone while the page was open; a link to a reply that isn't there; and the reply composer when
 // the thread takes replies and the person may post.
 import { useState, type RefObject } from 'react';
-import { ChatCircleText, Eye, EyeSlash, LockSimple, Prohibit, WarningCircle } from '@phosphor-icons/react';
+import { Prohibit } from '@phosphor-icons/react';
 import type { Reply, ThreadDetail } from '../../../api/types';
 import { useAuth } from '../../../auth';
-import { Button } from '../../../ui';
+import { Button, Icon, glyph } from '../../../ui';
 import { readOnlyFor, takesReplies, textDeleted } from '../lib/replies';
 import { ReplyComposer } from './ReplyComposer';
 
@@ -22,7 +22,7 @@ export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) 
   if (readOnlyFor(thread)) {
     return (
       <div className="forum-notice is-alert" role="note" data-hub="thread-hidden-note">
-        <EyeSlash aria-hidden="true" weight="bold" className="forum-notice__icon" />
+        <Icon glyph={glyph.eyeOff} className="forum-notice__icon" />
         <span className="forum-notice__text">
           <strong>A student rep hid this thread.</strong> Only you and the student reps can see it, and it can’t take
           replies or votes. If the rep gave a reason, it’s in your notifications. Contact a student rep if you think
@@ -34,7 +34,7 @@ export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) 
   const gone = textDeleted(thread, thread.canModerate);
   return (
     <div className="forum-notice is-alert" role="note">
-      <EyeSlash aria-hidden="true" weight="bold" className="forum-notice__icon" />
+      <Icon glyph={glyph.eyeOff} className="forum-notice__icon" />
       <span className="forum-notice__text">
         <strong>This thread is hidden.</strong>{' '}
         {gone
@@ -42,7 +42,7 @@ export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) 
           : 'Student reps, admins and its author can see it; nobody else.'}{' '}
         If it was reported, resolve the report in Manage.
       </span>
-      <Button size="sm" leadingIcon={Eye} loading={unhiding} onClick={onUnhide}>
+      <Button size="sm" leadingIcon={<Icon glyph={glyph.eye} />} loading={unhiding} onClick={onUnhide}>
         {gone ? 'Unhide as deleted' : 'Unhide'}
       </Button>
     </div>
@@ -53,7 +53,7 @@ export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) 
 export function UnavailableBanner() {
   return (
     <div className="forum-notice is-alert" role="status" data-hub="thread-unavailable">
-      <WarningCircle aria-hidden="true" weight="bold" className="forum-notice__icon" />
+      <Icon glyph={glyph.warning} className="forum-notice__icon" />
       <span className="forum-notice__text">
         <strong>This thread isn’t available any more.</strong> It was hidden or deleted after you opened it. You can
         still read what’s on the page, but it can’t take replies.
@@ -66,7 +66,7 @@ export function UnavailableBanner() {
 export function MissingReplyNote() {
   return (
     <p className="forum-notice" role="note" data-hub="reply-missing">
-      <ChatCircleText aria-hidden="true" weight="bold" className="forum-notice__icon" />
+      <Icon glyph={glyph.forum} className="forum-notice__icon" />
       <span className="forum-notice__text">
         The reply this link points to isn’t here any more. It may have been deleted or hidden.
       </span>
@@ -120,7 +120,7 @@ export function ThreadCompose({ thread, textareaRef, onPosted, unavailable = fal
   if (!open && !unsent) {
     return (
       <p className="forum-notice" role="note">
-        <LockSimple aria-hidden="true" weight="bold" className="forum-notice__icon" />
+        <Icon glyph={glyph.lock} className="forum-notice__icon" />
         <span className="forum-notice__text">{whyClosed(thread, unavailable)}</span>
       </p>
     );
@@ -129,14 +129,12 @@ export function ThreadCompose({ thread, textareaRef, onPosted, unavailable = fal
     <section className="forum-thread__compose" aria-label="Reply to this thread">
       {open && thread.locked ? (
         <p className="forum-compose-note forum-compose-note--locked" role="note">
-          <LockSimple aria-hidden="true" weight="bold" /> This thread is locked. As a student rep you can still reply;
-          everyone else can’t.
+          <Icon glyph={glyph.lock} /> This thread is locked. As a student rep you can still reply; everyone else can’t.
         </p>
       ) : null}
       {!open ? (
         <p className="forum-compose-note forum-compose-note--locked" role="alert">
-          <LockSimple aria-hidden="true" weight="bold" /> {whyClosed(thread, unavailable)} Copy your reply if you want
-          to keep it.
+          <Icon glyph={glyph.lock} /> {whyClosed(thread, unavailable)} Copy your reply if you want to keep it.
         </p>
       ) : null}
       <ReplyComposer

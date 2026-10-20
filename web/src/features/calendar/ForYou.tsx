@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
-import { Clock, Exam } from '@phosphor-icons/react';
 import { cohortLabel, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, CohortBadge, cx, EmptyState, Highlight } from '../../ui';
+import { Button, CohortBadge, cx, EmptyState, Highlight, Icon, glyph } from '../../ui';
 import { daysUntil, formatLong, formatLongDay, formatShort, parseDay } from '../../lib/dates';
 import { AddToCalendar } from './AddToCalendar';
 import { countdownLabel } from './dates';
@@ -101,7 +100,7 @@ function NextExamCard({ year, next, today, onOpen }: NextExamCardProps) {
     >
       <header className="cal-card__head">
         <h2 id="cal-exam-title" className="cal-card__title">
-          <Exam aria-hidden="true" weight="duotone" className="cal-card__icon" />
+          <Icon glyph={glyph.exam} className="cal-card__icon" />
           Your next exam
         </h2>
         {year ? <CohortBadge year={year} size="sm" /> : null}
@@ -122,7 +121,7 @@ function NextExamCard({ year, next, today, onOpen }: NextExamCardProps) {
         <span className="cal-exam__name">{name}</span>
       </p>
       <p className={cx('cal-exam__where', !exam.time && 'is-unset')}>
-        <Clock aria-hidden="true" />
+        <Icon glyph={glyph.clock} />
         <span>{where}</span>
       </p>
       {exam.sample ? (

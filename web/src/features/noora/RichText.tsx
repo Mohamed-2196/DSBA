@@ -3,9 +3,8 @@
 // anything else stays as its words.
 import { memo, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Copy } from '@phosphor-icons/react';
 import { copyText } from '../../lib/share';
-import { TeX, safeInternalPath } from '../../ui';
+import { TeX, safeInternalPath, Icon, glyph } from '../../ui';
 import { parseInline, parseRich, type Block, type Inline } from './rich';
 
 function Inlines({ text, onFollow }: { text: string; onFollow: () => void }) {
@@ -47,7 +46,6 @@ function CodeBlock({ lang, text }: { lang: string; text: string }) {
     const done = setTimeout(() => setCopied(false), COPIED_FOR);
     return () => clearTimeout(done);
   }, [copied]);
-  const CopyIcon = copied ? Check : Copy;
   return (
     <div className="nr-code">
       <div className="nr-code__bar">
@@ -58,7 +56,7 @@ function CodeBlock({ lang, text }: { lang: string; text: string }) {
           onClick={() => void copyText(text).then(setCopied)}
           data-hub="noora-copy-code"
         >
-          <CopyIcon aria-hidden="true" weight={copied ? 'bold' : 'regular'} />
+          <Icon glyph={copied ? glyph.check : glyph.copy} />
           <span>{copied ? 'Copied' : 'Copy code'}</span>
         </button>
       </div>

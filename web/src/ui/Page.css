@@ -61,7 +61,8 @@
    header's ::before, laid in the grid's first row, so on phones the actions can sit under it. */
 .ui-page-header--band {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  /* the words keep room for a readable line; several actions wrap rather than squeeze them (a tablet) */
+  grid-template-columns: minmax(min(26ch, 100%), 1fr) minmax(0, max-content) auto;
   grid-template-areas: 'main actions mate';
   align-items: center;
   gap: 0 var(--sp-24);

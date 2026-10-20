@@ -35,7 +35,17 @@ describe('readAnswer', () => {
       () => undefined,
     ).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(AnswerCutOff);
-    expect(error).toMatchObject({ message: 'Cut off.', said: true });
+    expect(error).toMatchObject({ message: 'Cut off.', said: true, declined: false });
+  });
+
+  it('marks an answer her safeguards declined', async () => {
+    const error = await readAnswer(
+      body(
+        'data: {"type":"text","text":"Some"}\n\ndata: {"type":"error","code":"noora_declined","message":"I can’t help with that one."}\n\n',
+      ),
+      () => undefined,
+    ).catch((e: unknown) => e);
+    expect(error).toMatchObject({ message: 'I can’t help with that one.', said: true, declined: true });
   });
 
   it('counts a stream that ends without done as cut off', async () => {

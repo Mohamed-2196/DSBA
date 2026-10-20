@@ -4,22 +4,13 @@
 // copies and her scripted "brain" with it.
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { matchPath, useLocation } from 'react-router-dom';
-import {
-  ArrowCounterClockwise,
-  ArrowsOutSimple,
-  ClockCounterClockwise,
-  DotsThree,
-  EyeSlash,
-  NotePencil,
-  TrayArrowDown,
-  X,
-} from '@phosphor-icons/react';
+import { ArrowsOutSimple } from '@phosphor-icons/react';
 import type { NooraScript } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useOpenNote } from '../notes/public';
 import { useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { ConfirmDialog, IconButton, Menu, cx } from '../../ui';
+import { ConfirmDialog, IconButton, Menu, cx, Icon, glyph } from '../../ui';
 import { carriesFiles, faceFor, highestId, moodFor, spokenFor } from './chat';
 import { Composer, type NoteChoice, type PageChoice, type PaperChoice } from './Composer';
 import { pageLabel } from './context';
@@ -259,10 +250,11 @@ export default function ChatPanel({
       }}
     >
       <header className="nc-head">
-        <Face bust={faceFor(pending, waving)} size={32} live className="nc-head__face" />
+        <Face bust={faceFor(pending, waving)} size={40} live className="nc-head__face" />
         <div className="nc-head__text">
           <h2 className="nc-head__title">Mini Noora</h2>
           <p className="nc-head__sub" data-hub="noora-sub">
+            {usingAi && !busy ? <span className="nc-head__dot" aria-hidden="true" /> : null}
             {subline}
           </p>
         </div>
@@ -276,7 +268,7 @@ export default function ChatPanel({
         />
         <IconButton
           label="New chat"
-          icon={NotePencil}
+          icon={<Icon glyph={glyph.edit} />}
           size="sm"
           tooltip
           disabled={!messages.length && !pending}
@@ -287,22 +279,35 @@ export default function ChatPanel({
           align="end"
           className="nc-menu"
           label="Chat options"
-          trigger={<IconButton label="Chat options" icon={DotsThree} size="sm" data-hub="noora-more" />}
+          trigger={
+            <IconButton label="Chat options" icon={<Icon glyph={glyph.more} />} size="sm" data-hub="noora-more" />
+          }
           items={[
-            { id: 'recent', label: 'Recent chats', icon: ClockCounterClockwise, onSelect: () => setView('recent') },
+            {
+              id: 'recent',
+              label: 'Recent chats',
+              icon: <Icon glyph={glyph.clock} />,
+              onSelect: () => setView('recent'),
+            },
             {
               id: 'clear',
               label: 'Clear chat',
-              icon: ArrowCounterClockwise,
+              icon: <Icon glyph={glyph.trash} />,
               disabled: !messages.length && !pending,
               onSelect: () => setConfirming('clear'),
             },
-            { id: 'hide', label: 'Hide Mini Noora', icon: EyeSlash, onSelect: onHide },
+            { id: 'hide', label: 'Hide Mini Noora', icon: <Icon glyph={glyph.eyeOff} />, onSelect: onHide },
             { divider: true, id: 'about-divider' },
             { heading: <span className="nc-menu__note">{footNote}</span>, id: 'about' },
           ]}
         />
-        <IconButton label="Close chat" icon={X} size="sm" onClick={onClose} data-hub="noora-close" />
+        <IconButton
+          label="Close chat"
+          icon={<Icon glyph={glyph.close} />}
+          size="sm"
+          onClick={onClose}
+          data-hub="noora-close"
+        />
       </header>
 
       {view === 'recent' ? (
@@ -353,7 +358,7 @@ export default function ChatPanel({
           </p>
           {/* Always there, shown while files are dragged over the chat. */}
           <div className="nc-drop" data-hub="noora-dropzone" aria-hidden="true">
-            <TrayArrowDown weight="duotone" />
+            <Icon glyph={glyph.download} />
             Drop to attach
           </div>
         </div>

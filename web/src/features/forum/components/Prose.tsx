@@ -1,8 +1,8 @@
 import { Fragment, useMemo, useState, type HTMLAttributes, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowSquareOut, ImageBroken } from '@phosphor-icons/react';
+import { ImageBroken } from '@phosphor-icons/react';
 import { API_ORIGIN } from '../../../api/client';
-import { TeX, cx } from '../../../ui';
+import { TeX, cx, Icon, glyph } from '../../../ui';
 import { mediaSrc, safeLink } from '../lib/links';
 import { parseBlocks, parseInline, type Block, type InlineToken } from '../lib/markdown';
 import './forum.css';
@@ -45,7 +45,7 @@ function LinkToken({ token }: { token: Extract<InlineToken, { type: 'link' }> })
     >
       {token.text}
       {showsHost ? null : <span className="forum-prose__host"> ({target.host})</span>}
-      <ArrowSquareOut aria-hidden="true" className="forum-prose__ext-icon" />
+      <Icon glyph={glyph.external} className="forum-prose__ext-icon" />
       <span className="visually-hidden"> (opens in a new tab)</span>
     </a>
   );

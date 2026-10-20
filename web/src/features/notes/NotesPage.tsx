@@ -1,6 +1,5 @@
 // /notes: the student's notebooks and notes, last edited first, with search, a notebook, a module's notes (from every
 // notebook) or one lesson's (?notebook=, ?module=, or ?module=&lesson= from a lesson page), and creation.
-import { Book, DotsThree, FilePdf, Folder, FolderPlus, PencilSimple, Plus, Trash } from '@phosphor-icons/react';
 import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
@@ -12,6 +11,7 @@ import { useModules } from '../../state/modules';
 import {
   Badge,
   Button,
+  DocThumb,
   ConfirmDialog,
   EmptyState,
   IconButton,
@@ -28,6 +28,8 @@ import {
   TextField,
   cx,
   timeAgo,
+  Icon,
+  glyph,
 } from '../../ui';
 import { remainingCount } from '../../api/paging';
 import {
@@ -66,6 +68,7 @@ function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
   return (
     <li className="notes-row">
       <Link to={`/notes/${note.id}`} className="notes-row__link" data-hub="note-row">
+        <DocThumb tone={note.onPdf ? 'paper' : 'note'} className="notes-row__doc" />
         <span className="notes-row__title" dir="auto">
           <MathLine parts={labelParts(note)} />
         </span>
@@ -75,11 +78,15 @@ function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
           </span>
         ) : null}
         <span className="notes-row__meta">
-          {module ? <span>{moduleLabel(module)}</span> : null}
+          {module ? (
+            <span className={cx('notes-row__code', module.unitCode && 'u-code')} title={moduleLabel(module)}>
+              {module.unitCode ?? module.shortName}
+            </span>
+          ) : null}
           {module && note.lessonId ? <span>{lessonLabel(place)}</span> : null}
           {note.onPdf ? (
             <Badge tone="neutral" size="sm">
-              <FilePdf aria-hidden="true" /> PDF
+              On a PDF
             </Badge>
           ) : null}
           <span>Edited {timeAgo(note.updatedAt)}</span>
@@ -145,7 +152,7 @@ function WriteOnPdf({ notebookId }: { notebookId: string | null }) {
         data-hub="note-pdf-input"
       />
       <Button
-        leadingIcon={FilePdf}
+        leadingIcon={<Icon glyph={glyph.page} />}
         onClick={() => input.current?.click()}
         loading={percent !== null}
         data-hub="note-from-pdf"
@@ -335,8 +342,14 @@ function NotesList() {
   const bookOptions = (b: Notebook): MenuItem[] =>
     !readOnly && !b.moduleId && b.id !== ownFirst?.id
       ? [
-          { id: 'rename', label: 'Rename', icon: PencilSimple, onSelect: () => setRenamingBook(b) },
-          { id: 'delete', label: 'Delete notebook', icon: Trash, danger: true, onSelect: () => setDeletingBook(b) },
+          { id: 'rename', label: 'Rename', icon: <Icon glyph={glyph.edit} />, onSelect: () => setRenamingBook(b) },
+          {
+            id: 'delete',
+            label: 'Delete notebook',
+            icon: <Icon glyph={glyph.trash} />,
+            danger: true,
+            onSelect: () => setDeletingBook(b),
+          },
         ]
       : [];
   const booksError = notebooksQuery.isError ? (
@@ -368,13 +381,17 @@ function NotesList() {
         actions={
           readOnly ? null : (
             <div className="notes-new">
-              <Button leadingIcon={FolderPlus} onClick={() => setNewBookOpen(true)} data-hub="new-notebook">
+              <Button
+                leadingIcon={<Icon glyph={glyph.folder} />}
+                onClick={() => setNewBookOpen(true)}
+                data-hub="new-notebook"
+              >
                 New notebook
               </Button>
               <WriteOnPdf notebookId={selectedNotebookId || null} />
               <Button
                 variant="primary"
-                leadingIcon={Plus}
+                leadingIcon={<Icon glyph={glyph.plus} />}
                 onClick={() =>
                   startNote.start(lesson ?? { notebookId: selectedNotebookId, moduleId: moduleId ?? undefined })
                 }
@@ -400,7 +417,13 @@ function NotesList() {
             <div className="notebooks-sidebar__head">
               <h3 className="notebooks-sidebar__title">Notebooks</h3>
               {readOnly ? null : (
-                <IconButton icon={Plus} label="New notebook" size="sm" onClick={() => setNewBookOpen(true)} tooltip />
+                <IconButton
+                  icon={<Icon glyph={glyph.plus} />}
+                  label="New notebook"
+                  size="sm"
+                  onClick={() => setNewBookOpen(true)}
+                  tooltip
+                />
               )}
             </div>
             <ul className="notebooks-sidebar__list">
@@ -411,7 +434,7 @@ function NotesList() {
                   onClick={() => setSelectedNotebookId(null, { replace: true })}
                 >
                   <span className="notebook-item__name">
-                    <Book aria-hidden="true" />
+                    <Icon glyph={glyph.notebook} />
                     All notes
                   </span>
                 </button>
@@ -426,7 +449,7 @@ function NotesList() {
                       onClick={() => setSelectedNotebookId(b.id, { replace: true })}
                     >
                       <span className="notebook-item__name">
-                        <Folder aria-hidden="true" />
+                        <Icon glyph={glyph.folder} />
                         {bookName(b)}
                       </span>
                       <span className="notebook-item__count">{b.noteCount}</span>
@@ -436,7 +459,7 @@ function NotesList() {
                         align="end"
                         label="Notebook options"
                         items={options}
-                        trigger={<IconButton icon={DotsThree} label="Options" size="sm" />}
+                        trigger={<IconButton icon={<Icon glyph={glyph.more} />} label="Options" size="sm" />}
                       />
                     ) : null}
                   </li>
@@ -468,7 +491,9 @@ function NotesList() {
                     align="end"
                     label="Notebook options"
                     items={selectedOptions}
-                    trigger={<IconButton icon={DotsThree} label={`Options for ${bookName(selectedBook)}`} />}
+                    trigger={
+                      <IconButton icon={<Icon glyph={glyph.more} />} label={`Options for ${bookName(selectedBook)}`} />
+                    }
                   />
                 ) : null}
               </div>
@@ -537,7 +562,7 @@ function NotesList() {
                     readOnly ? null : (
                       <Button
                         variant="primary"
-                        leadingIcon={Plus}
+                        leadingIcon={<Icon glyph={glyph.plus} />}
                         onClick={() => startNote.start()}
                         loading={startNote.starting}
                       >

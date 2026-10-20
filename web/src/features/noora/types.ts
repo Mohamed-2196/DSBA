@@ -74,6 +74,8 @@ export interface NooraMessage extends Reply {
   ai?: boolean;
   /** her AI couldn't answer this time: "Try again" asks it again */
   retry?: boolean;
+  /** her AI's safeguards declined the question: only her plain message, and nothing to ask again */
+  declined?: boolean;
 }
 export interface MyMessage {
   id: number;

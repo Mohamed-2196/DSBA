@@ -31,7 +31,7 @@ test('a Year 2 student picks her option and the calendar follows it', async ({ r
   remember('events', is.body.id);
   remember('events', em.body.id);
 
-  await sara.goto('/calendar');
+  await sara.goto('/calendar?view=list');
   await expect(sara.getByText(`IS mock ${tag}`).first()).toBeVisible();
   // She picks her option from Home's "My modules".
   await sara.goto('/');
@@ -45,7 +45,7 @@ test('a Year 2 student picks her option and the calendar follows it', async ({ r
   await expect
     .poll(async () => (await api<{ papers: string[] }>(sara, 'GET', '/api/v1/me')).body.papers)
     .toEqual(['econometrics']);
-  await sara.goto('/calendar');
+  await sara.goto('/calendar?view=list');
   await expect(sara.getByText(`Econometrics exam ${tag}`).first()).toBeVisible();
   await expect(sara.getByText(`IS mock ${tag}`)).toHaveCount(0);
 

@@ -11,7 +11,7 @@
 //   - Two fingers pinch to zoom and move the page; Ctrl or ⌘ with the wheel or trackpad zooms too.
 //   - The line being drawn, the lasso and the laser are drawn straight into an overlay (no React work while the pen
 //     moves); finished strokes go to the sheet's SVG (lib/ink).
-import { Copy, PaintBucket, Trash } from '@phosphor-icons/react';
+import { PaintBucket } from '@phosphor-icons/react';
 import {
   useCallback,
   useEffect,
@@ -39,7 +39,7 @@ import {
   type LaserPoint,
   type Point,
 } from '../../../lib/ink';
-import { cx } from '../../../ui';
+import { cx, Icon, glyph } from '../../../ui';
 import type { Paper } from '../draft';
 import type { LoadedPdf } from '../pdf';
 import { FreePictureLayer, type FreePictureLayerProps } from '../pictures/FreePictureLayer';
@@ -691,13 +691,13 @@ export function Surface({
             onPointerDown={(e) => e.stopPropagation()}
           >
             <button type="button" onClick={duplicate}>
-              <Copy aria-hidden="true" /> Duplicate
+              <Icon glyph={glyph.copy} /> Duplicate
             </button>
             <button type="button" onClick={recolour} title="Give it the colours the pen and the highlighter have now">
               <PaintBucket aria-hidden="true" /> Recolour
             </button>
             <button type="button" onClick={removeSelection} className="is-danger">
-              <Trash aria-hidden="true" /> Delete
+              <Icon glyph={glyph.trash} /> Delete
             </button>
           </div>
         ) : null}

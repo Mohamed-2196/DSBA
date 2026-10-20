@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Reply, ThreadDetail } from '../../../api/types';
 import { useAuth } from '../../../auth';
-import { Panel, SegmentedControl } from '../../../ui';
+import { SegmentedControl } from '../../../ui';
 import { nestReplies, takesReplies } from '../lib/replies';
 import type { ReplyOrder } from '../types';
 import { ReplyComposer } from './ReplyComposer';
@@ -95,7 +95,7 @@ export function ReplyList({
       </div>
 
       {replies.length ? (
-        <Panel as="div" padding="none" className="forum-replies__panel">
+        <div className="forum-replies__panel">
           <ol role="list" className="forum-replies__list">
             {replies.map((r) => {
               const composing = replyingTo?.parent.id === r.id;
@@ -146,7 +146,7 @@ export function ReplyList({
               );
             })}
           </ol>
-        </Panel>
+        </div>
       ) : (
         <p className="forum-replies__empty">No replies yet. If you know the answer, you could be the first to help.</p>
       )}

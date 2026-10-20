@@ -1,61 +1,50 @@
 // The parts of a palette row: the leading tile or glyph, the title with the query marked, and what trails it.
-import { createElement } from 'react';
-import {
-  ArrowSquareOut,
-  ArrowsLeftRight,
-  Bank,
-  BookOpenText,
-  Books,
-  Calculator,
-  CalendarDots,
-  CaretDown,
-  ChatCircleText,
-  ChatsCircle,
-  ClockCounterClockwise,
-  Eye,
-  EyeSlash,
-  Bug,
-  GraduationCap,
-  House,
-  Info,
-  Kanban,
-  MagnifyingGlass,
-  Moon,
-  Newspaper,
-  PencilSimpleLine,
-  PlayCircle,
-  SquaresFour,
-  Sun,
-  UploadSimple,
-  type Icon,
-} from '@phosphor-icons/react';
-import { Kbd, ModuleArt, ModuleIcon, cx, moduleArtSrc } from '../../ui';
+import type { ReactNode } from 'react';
+import { ArrowsLeftRight, Bank, Bug } from '@phosphor-icons/react';
+import { Icon, Kbd, ModuleArt, cx, glyph, moduleArtSrc, type Glyph, type MateSection } from '../../ui';
 import { formatMonthShort } from '../../lib/dates';
 import { matchRanges } from './match';
 import type { IconName, Item } from './search';
 
-const ICONS: Record<IconName, Icon> = {
-  ArrowsLeftRight,
-  Bank,
-  Books,
-  Calculator,
-  CalendarDots,
-  ChatCircleText,
-  ChatsCircle,
-  Eye,
-  EyeSlash,
-  Bug,
-  GraduationCap,
-  House,
-  Info,
-  Kanban,
-  Moon,
-  Newspaper,
-  PencilSimpleLine,
-  SquaresFour,
-  Sun,
-  UploadSimple,
+/** Each entry's picture: a brand icon where the family has one. */
+const BRAND: Partial<Record<IconName, Glyph>> = {
+  Books: glyph.library,
+  Calculator: glyph.grades,
+  CalendarDots: glyph.calendar,
+  ChatCircleText: glyph.forum,
+  ChatsCircle: glyph.forum,
+  Eye: glyph.eye,
+  EyeSlash: glyph.eyeOff,
+  GraduationCap: glyph.career,
+  House: glyph.home,
+  Info: glyph.info,
+  Kanban: glyph.boards,
+  Moon: glyph.moon,
+  Newspaper: glyph.newsletter,
+  PencilSimpleLine: glyph.edit,
+  SquaresFour: glyph.modules,
+  Sun: glyph.sun,
+  UploadSimple: glyph.upload,
 };
+const OTHER: Partial<Record<IconName, ReactNode>> = {
+  ArrowsLeftRight: <ArrowsLeftRight />,
+  Bank: <Bank />,
+  Bug: <Bug />,
+};
+
+function EntryIcon({ name }: { name: IconName }) {
+  const g = BRAND[name];
+  return g ? <Icon glyph={g} /> : <>{OTHER[name]}</>;
+}
+
+/** A result's section icon on that section's pill: a lesson or module, a file, a thread. */
+function SectionTile({ section, g }: { section: MateSection; g: Glyph }) {
+  return (
+    <span className="cmdk-tile cmdk-tile--section" data-section={section} aria-hidden="true">
+      <Icon glyph={g} size={20} active />
+    </span>
+  );
+}
 
 /** Text with every query token marked. */
 export function Marked({
@@ -100,53 +89,38 @@ export function Leading({ item }: { item: Item }) {
       return moduleArtSrc(item.art) ? (
         <ModuleArt art={item.art} className="cmdk-art" />
       ) : (
-        <span
-          className={cx('cmdk-tile', 'cmdk-tile--module', item.year && `cmdk-tile--y${item.year}`)}
-          aria-hidden="true"
-        >
-          <ModuleIcon moduleId={item.moduleId} />
-        </span>
+        <SectionTile section="modules" g={glyph.modules} />
       );
     case 'lesson':
-      return (
-        <span className="cmdk-tile" aria-hidden="true">
-          {item.chapter ? <BookOpenText /> : <PlayCircle />}
-        </span>
-      );
+      return <SectionTile section="modules" g={item.chapter ? glyph.modules : glyph.video} />;
     case 'file':
-      return <span className="cmdk-doc" aria-hidden="true" />;
+      return <SectionTile section="library" g={glyph.library} />;
     case 'thread':
-      return (
-        <span className="cmdk-tile" aria-hidden="true">
-          <ChatsCircle />
-        </span>
-      );
+      return <SectionTile section="forum" g={glyph.forum} />;
     case 'issue':
       return (
         <span className="cmdk-tile cmdk-tile--issue" aria-hidden="true">
-          {item.number != null ? String(item.number).padStart(2, '0') : <Newspaper />}
+          {item.number != null ? String(item.number).padStart(2, '0') : <Icon glyph={glyph.newsletter} />}
         </span>
       );
     case 'event':
       return item.when ? (
         <DateTile when={item.when} type={item.eventType} />
       ) : (
-        <span className="cmdk-tile" aria-hidden="true">
-          <CalendarDots />
-        </span>
+        <SectionTile section="calendar" g={glyph.calendar} />
       );
     case 'recent':
-      return <ClockCounterClockwise className="cmdk-glyph" aria-hidden="true" />;
+      return <Icon glyph={glyph.clock} className="cmdk-glyph" />;
     case 'suggestion':
-      return <MagnifyingGlass className="cmdk-glyph" aria-hidden="true" />;
+      return <Icon glyph={glyph.search} className="cmdk-glyph" />;
     case 'more':
-      return <CaretDown className="cmdk-glyph" aria-hidden="true" weight="bold" />;
+      return <Icon glyph={glyph.chevronDown} className="cmdk-glyph" />;
     case 'action':
     case 'page':
     case 'fallback':
       return (
         <span className="cmdk-tile" aria-hidden="true">
-          {createElement(ICONS[item.icon])}
+          <EntryIcon name={item.icon} />
         </span>
       );
   }
@@ -164,11 +138,14 @@ export function Trailing({ item, tokens, active }: { item: Item; tokens: readonl
     meta = <span className={cx('cmdk-meta', !item.past && item.eventType === 'exam' && 'is-exam')}>{item.rel}</span>;
   else if (item.kind === 'thread' && item.meta) meta = <span className="cmdk-meta u-tabular">{item.meta}</span>;
   else if (item.kind === 'action' && item.href)
-    meta = <ArrowSquareOut className="cmdk-ext" aria-label="Opens in a new tab" />;
+    meta = <Icon glyph={glyph.external} className="cmdk-ext" label="Opens in a new tab" />;
   return (
     <span className="cmdk-trail">
       {meta}
       <span className={cx('cmdk-enter', active && 'is-on')} aria-hidden="true">
+        <span className="cmdk-enter__word">
+          {item.kind === 'suggestion' ? 'Search' : item.kind === 'more' ? 'Show' : 'Open'}
+        </span>
         <Kbd>↵</Kbd>
       </span>
     </span>

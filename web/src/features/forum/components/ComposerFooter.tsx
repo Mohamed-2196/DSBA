@@ -1,6 +1,5 @@
-import { PaperPlaneRight } from '@phosphor-icons/react';
 import type { UserPublic } from '../../../api/types';
-import { Button, Kbd, modKeyLabel } from '../../../ui';
+import { Button, Kbd, modKeyLabel, Icon, glyph } from '../../../ui';
 import { AuthorAvatar } from './AuthorAvatar';
 import { AuthorFlair } from './ThreadBits';
 
@@ -38,7 +37,13 @@ export function ComposerFooter({ author, checking, posting, onDiscard }: Compose
         <Button variant="ghost" onClick={onDiscard} disabled={posting}>
           Discard
         </Button>
-        <Button type="submit" variant="primary" leadingIcon={PaperPlaneRight} loading={posting} data-hub="post-button">
+        <Button
+          type="submit"
+          variant="primary"
+          leadingIcon={<Icon glyph={glyph.send} />}
+          loading={posting}
+          data-hub="post-button"
+        >
           Post thread
         </Button>
       </span>

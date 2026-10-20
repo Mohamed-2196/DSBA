@@ -1,12 +1,11 @@
 // "Your notes" on a lesson page: the student's notes about this lesson, a quick add, and a way into the full editor:
 // beside the video (the page's panel, LessonNotePanel) when the page has one, else the notebook. Shown to signed-in
 // students while notes are on.
-import { NotePencil, Plus } from '@phosphor-icons/react';
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
-import { Button, QueryError, Skeleton, TextArea, timeAgo } from '../../ui';
+import { Button, QueryError, Skeleton, TextArea, timeAgo, Icon, glyph } from '../../ui';
 import { useCreateNote, useLessonNotes } from './api';
 import { docFromText, labelParts } from './draft';
 import { MathLine } from './MathLine';
@@ -47,7 +46,7 @@ export function LessonNotes({ moduleId, lessonId, onWriteBeside }: LessonNotesPr
     <section className="notes-lesson" aria-labelledby="notes-lesson-title" data-hub="lesson-notes">
       <div className="notes-lesson__head">
         <h3 id="notes-lesson-title" className="notes-lesson__title">
-          <NotePencil aria-hidden="true" />
+          <Icon glyph={glyph.edit} />
           Your notes
         </h3>
         {total > items.length ? (
@@ -102,7 +101,7 @@ export function LessonNotes({ moduleId, lessonId, onWriteBeside }: LessonNotesPr
               type="submit"
               size="sm"
               variant="primary"
-              leadingIcon={Plus}
+              leadingIcon={<Icon glyph={glyph.plus} />}
               loading={create.isPending}
               disabled={!text.trim()}
             >

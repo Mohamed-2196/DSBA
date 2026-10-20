@@ -47,12 +47,12 @@ html:has(.nb--full) .noora {
   width: min(800px, 100%);
 }
 
-/* ── Header: title, and where the note is kept ── */
+/* ── Header: back to the notes, the title at display size, and where the note is kept ── */
 .nb-header {
   flex: none;
   display: grid;
   gap: 2px;
-  padding: 6px 12px 6px;
+  padding: 8px 16px 10px;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
@@ -62,40 +62,60 @@ html:has(.nb--full) .noora {
   gap: 6px;
   min-width: 0;
 }
+.nb-crumbs {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.nb-crumbs__module {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .nb-back {
   flex: none;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 10px 0 8px;
+  gap: 4px;
+  height: 36px;
+  padding: 0 8px 0 2px;
   border-radius: var(--r-control);
-  color: var(--ink-2);
+  color: var(--accent-text);
   font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-bold);
   text-decoration: none;
 }
 .nb-back:hover {
   background: var(--surface-2);
-  color: var(--ink);
 }
 .nb-back svg {
   font-size: 18px;
 }
+/* The title: one line of words at display size, wrapping when the screen is narrow. */
 .nb-title {
-  flex: 1 1 auto;
+  display: block;
+  width: 100%;
   min-width: 0;
-  height: 40px;
-  padding: 0 8px;
+  min-height: 44px;
+  margin: 0 0 0 -8px;
+  padding: 2px 8px;
   border: 1px solid transparent;
   border-radius: var(--r-control);
   background: transparent;
   color: var(--ink);
-  font: inherit;
-  font-size: var(--fs-20);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.01em;
-  text-overflow: ellipsis;
+  font-family: var(--font-display);
+  font-size: var(--fs-28);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
+  line-height: 1.2;
+  resize: none;
+  overflow: hidden;
+  field-sizing: content;
 }
 .nb-title::placeholder {
   color: var(--ink-3);
@@ -114,6 +134,10 @@ html:has(.nb--full) .noora {
   display: flex;
   align-items: center;
   gap: 2px;
+  margin-left: auto;
+}
+.nb-header__actions .nb-header__wide {
+  margin-inline: 4px;
 }
 .nb-header__where {
   display: flex;
@@ -136,8 +160,12 @@ html:has(.nb--full) .noora {
   flex: none;
   font-size: 15px;
 }
-.nb-saved.is-saved > svg {
+.nb-saved.is-saved {
   color: var(--success);
+  font-weight: var(--fw-bold);
+}
+.nb-saved.is-saved > svg {
+  stroke-width: 2.4;
 }
 .nb-saved.is-offline,
 .nb-saved.is-error,
@@ -182,22 +210,27 @@ html:has(.nb--full) .noora {
 .nb-where__chip a:hover {
   color: var(--accent);
 }
+/* The module: a lavender pill in the notebook's colours, its code in mono. */
 .nb-where__module {
   position: relative;
   gap: 4px;
   margin: -2px 0;
-  padding: 2px 6px;
+  padding: 3px 10px;
   border: 0;
-  border-radius: 6px;
-  background: var(--surface-2);
-  color: var(--ink);
+  border-radius: var(--r-pill);
+  background: var(--sec-notebook-pill);
+  color: var(--sec-notebook-text);
   font: inherit;
-  font-weight: var(--fw-semibold);
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  font-weight: var(--fw-bold);
   cursor: pointer;
 }
-.nb-where__module:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
+span.nb-where__module {
+  cursor: default;
+}
+button.nb-where__module:hover {
+  background: var(--sec-notebook-tint);
 }
 .nb-where__module.is-unset {
   background: transparent;
@@ -224,8 +257,7 @@ html:has(.nb--full) .noora {
   color: var(--ink);
 }
 @media (pointer: coarse) {
-  .nb-back,
-  .nb-title {
+  .nb-back {
     height: 44px;
   }
   /* a 44 px target without a taller line */
@@ -238,30 +270,84 @@ html:has(.nb--full) .noora {
   }
 }
 @media (max-width: 699px) {
-  .nb-back {
-    justify-content: center;
-    min-width: 44px;
-    padding: 0;
+  .nb-header {
+    padding: 4px 12px 8px;
   }
-  .nb-back span {
-    display: none;
-  }
+  .nb-crumbs__module,
   .nb-header__wide {
     display: none;
   }
   .nb-title {
-    font-size: var(--fs-16);
+    font-size: var(--fs-22);
+  }
+}
+/* A phone on its side: the title keeps to one line. */
+@media (max-height: 500px) {
+  .nb-title {
+    font-size: var(--fs-18);
+    white-space: nowrap;
   }
 }
 
-/* ── Toolbar ── */
+/* ── Toolbar: a card under the header, Jot beside the tools ── */
 .nb-toolbar {
   flex: none;
   display: grid;
   gap: 4px;
-  padding: 4px 12px 6px;
+  margin: 10px 16px 0;
+  padding: 6px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
   background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+}
+.nb-toolbar__mate {
+  flex: none;
+  margin: -4px 4px -4px -2px;
+}
+/* The tool's name and its key, on hover or focus (Pen P). */
+.nb-tool {
+  position: relative;
+}
+.nb-tool__tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: var(--z-tooltip);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border-radius: var(--r-control);
+  background: var(--inverse);
+  color: var(--on-inverse);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.nb-tool__tip kbd {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--on-inverse) 18%, transparent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.nb-tool:hover .nb-tool__tip,
+.nb-tool:focus-visible .nb-tool__tip {
+  opacity: 1;
+  transition-delay: 300ms;
+}
+@media (hover: none) {
+  .nb-tool__tip {
+    display: none;
+  }
+}
+.nb-tool--redo svg {
+  transform: scaleX(-1);
 }
 .nb-toolbar__row {
   display: flex;
@@ -304,8 +390,9 @@ html:has(.nb--full) .noora {
   color: var(--ink);
 }
 .nb-tool.is-active {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--sec-notebook-pill);
+  color: var(--sec-notebook-text);
+  box-shadow: inset 0 0 0 1.5px var(--sec-notebook-art);
 }
 .nb-tool:disabled {
   opacity: 0.4;
@@ -487,7 +574,8 @@ html:has(.nb--full) .noora {
   .nb-choice__item {
     height: 44px;
   }
-  .nb-reflow__note .nb-linkbutton {
+  .nb-reflow__note .nb-linkbutton,
+  .nb-toolbar__hint .nb-linkbutton {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
@@ -496,7 +584,11 @@ html:has(.nb--full) .noora {
 /* Phones and the lesson panel: each row of the toolbar slides sideways inside itself, so the page keeps the room */
 @media (max-width: 699px) {
   .nb-toolbar {
-    padding-inline: 8px;
+    margin: 8px 8px 0;
+    padding-inline: 6px;
+  }
+  .nb-toolbar__mate {
+    display: none;
   }
   .nb-toolbar__row,
   .nb-tools,
@@ -601,6 +693,7 @@ html:has(.nb--full) .noora {
   --page-dot: #a9b9d2;
   --page-break: #b9c6da;
   --page-accent: #1558f0;
+  --page-margin: #d9cff7;
 }
 .nb-stack {
   position: absolute;
@@ -723,6 +816,12 @@ html:has(.nb--full) .noora {
 }
 .nb-text :is(p, h1, h2, h3, ul, ol, blockquote, pre, figure) {
   margin: 0;
+}
+/* Each paragraph takes the direction of its first letters: Arabic typed text aligns right inside its box, English
+   left. Ink is positional and never mirrors. */
+.nb-text :is(p, h1, h2, h3) {
+  unicode-bidi: plaintext;
+  text-align: start;
 }
 /* the paper's own colours, in both themes (headings would otherwise take the app's) */
 .nb-text :is(h1, h2, h3) {
@@ -1586,8 +1685,11 @@ html:has(.nb--full) .noora {
   flex-direction: column;
   width: 196px;
   min-height: 0;
+  margin: 12px 0 12px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
   background: var(--surface);
-  border-right: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
 }
 @media (max-width: 899px) {
   .nb-pages {
@@ -1602,13 +1704,15 @@ html:has(.nb--full) .noora {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 6px 2px 14px;
+  padding: 10px 6px 2px 16px;
 }
 .nb-pages__title {
   margin: 0;
-  color: var(--ink);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
+  color: var(--ink-2);
+  font-size: var(--fs-11);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .nb-pages__title span {
   margin-left: 4px;
@@ -1780,16 +1884,32 @@ html:has(.nb--full) .noora {
   min-height: 100%;
   max-width: 46rem;
   margin: 0 auto;
-  padding: 20px 20px 120px;
-  background: var(--page);
+  padding: 20px 20px 120px 44px;
+  /* the notebook's margin rule down the paper (notebook-phone) */
+  background: linear-gradient(
+      to right,
+      transparent 28px,
+      var(--page-margin) 28px,
+      var(--page-margin) 30px,
+      transparent 30px
+    )
+    var(--page);
 }
 @media (min-width: 720px) {
   .nb-scroller--text {
     padding: 20px 16px 0;
   }
   .nb-reflow {
-    padding: 32px 48px 120px;
-    border-radius: 4px 4px 0 0;
+    padding: 32px 48px 120px 72px;
+    background: linear-gradient(
+        to right,
+        transparent 44px,
+        var(--page-margin) 44px,
+        var(--page-margin) 46px,
+        transparent 46px
+      )
+      var(--page);
+    border-radius: 16px 16px 0 0;
     box-shadow:
       0 1px 2px rgba(10, 31, 68, 0.1),
       0 8px 24px rgba(10, 31, 68, 0.08);
@@ -1867,12 +1987,21 @@ html:has(.nb--full) .noora {
 }
 
 /* ── In the lesson panel: the text fills the panel's width ── */
+.nb--panel .nb-toolbar {
+  margin: 8px 8px 0;
+}
+.nb--panel .nb-toolbar__mate {
+  display: none;
+}
+.nb--panel .nb-title {
+  font-size: var(--fs-22);
+}
 .nb--panel .nb-scroller--text {
   padding: 0;
 }
 .nb--panel .nb-reflow {
   max-width: none;
-  padding: 16px 16px 96px;
+  padding: 16px 16px 96px 40px;
   border-radius: 0;
   box-shadow: none;
 }

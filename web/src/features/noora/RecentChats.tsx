@@ -1,9 +1,9 @@
 // The conversations saved in this browser (saved.ts), in the chat card: open one to carry on with it, go to the full
 // page to search, rename or delete them one by one, or delete them all.
 import { useEffect, useRef } from 'react';
-import { ArrowLeft, ArrowsOutSimple, ChatsCircle, Trash } from '@phosphor-icons/react';
+import { ArrowsOutSimple } from '@phosphor-icons/react';
 import { formatClock, formatDayMonth, todayKey } from '../../lib/dates';
-import { Button, IconButton } from '../../ui';
+import { Button, IconButton, Icon, glyph } from '../../ui';
 import type { SavedChat } from './saved';
 
 function when(at: number): string {
@@ -27,7 +27,13 @@ export function RecentChats({ chats, current, onOpen, onBack, onDeleteAll, onOpe
   return (
     <div className="nc-body nc-recent" data-hub="noora-recent">
       <div className="nc-recent__head">
-        <IconButton label="Back to the chat" icon={ArrowLeft} size="sm" onClick={onBack} data-hub="noora-recent-back" />
+        <IconButton
+          label="Back to the chat"
+          icon={<Icon glyph={glyph.back} />}
+          size="sm"
+          onClick={onBack}
+          data-hub="noora-recent-back"
+        />
         <h3 ref={heading} className="nc-recent__title" tabIndex={-1}>
           Recent chats
         </h3>
@@ -61,7 +67,7 @@ export function RecentChats({ chats, current, onOpen, onBack, onDeleteAll, onOpe
           </ul>
         ) : (
           <div className="nc-recent__empty">
-            <ChatsCircle aria-hidden="true" weight="duotone" />
+            <Icon glyph={glyph.forum} />
             <p>No saved chats yet. Your chats show up here.</p>
           </div>
         )}
@@ -80,7 +86,7 @@ export function RecentChats({ chats, current, onOpen, onBack, onDeleteAll, onOpe
         <Button
           variant="ghost"
           size="sm"
-          leadingIcon={Trash}
+          leadingIcon={<Icon glyph={glyph.trash} />}
           onClick={onDeleteAll}
           disabled={!chats.length}
           data-hub="noora-recent-delete-all"

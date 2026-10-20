@@ -1,9 +1,9 @@
 // Follow a thread (forum.follow): hear when it gets an accepted answer, or about every reply. Voting or replying
 // starts following it for answers; switching it off here keeps it off.
-import { Bell, BellRinging, BellSlash, Check } from '@phosphor-icons/react';
+import { BellSlash } from '@phosphor-icons/react';
 import type { ThreadDetail } from '../../../api/types';
 import { useAuth } from '../../../auth';
-import { Button, Menu } from '../../../ui';
+import { Button, Menu, Icon, glyph } from '../../../ui';
 import { useFollowThread } from '../api';
 
 export function FollowButton({ thread }: { thread: ThreadDetail }) {
@@ -16,7 +16,7 @@ export function FollowButton({ thread }: { thread: ThreadDetail }) {
       <Button
         variant="ghost"
         size="sm"
-        leadingIcon={Bell}
+        leadingIcon={<Icon glyph={glyph.bell} />}
         loading={follow.isPending}
         data-hub="follow"
         onClick={() => {
@@ -37,21 +37,27 @@ export function FollowButton({ thread }: { thread: ThreadDetail }) {
           id: 'answers',
           label: 'When it’s answered',
           hint: 'An accepted answer',
-          icon: every ? null : Check,
+          icon: every ? null : <Icon glyph={glyph.check} />,
           onSelect: () => set('answers'),
         },
         {
           id: 'replies',
           label: 'Every reply',
           hint: 'And the accepted answer',
-          icon: every ? Check : null,
+          icon: every ? <Icon glyph={glyph.check} /> : null,
           onSelect: () => set('replies'),
         },
         { divider: true },
         { id: 'off', label: 'Stop following', icon: BellSlash, onSelect: () => set('off') },
       ]}
       trigger={
-        <Button variant="ghost" size="sm" leadingIcon={BellRinging} loading={follow.isPending} data-hub="following">
+        <Button
+          variant="ghost"
+          size="sm"
+          leadingIcon={<Icon glyph={glyph.bell} active />}
+          loading={follow.isPending}
+          data-hub="following"
+        >
           Following
         </Button>
       }

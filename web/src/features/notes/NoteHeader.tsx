@@ -1,34 +1,17 @@
-// The editor's header: back to the notes, the note's title, and one line that says exactly where the note is kept
-// and whether it is saved there ("Saved in ST2133 Statistics"), what it is about (a module and a lesson) and what it
-// is written on (a library PDF, with a way back to it). The notebook's name is a menu that moves the note to another
-// one; the module is a menu that sets it (a note in a module's notebook goes to the new module's: the server says).
-// On the right: the pages, export, full screen, and the rest in a menu (paper, delete).
-import {
-  ArrowLeft,
-  ArrowSquareOut,
-  ArrowsIn,
-  ArrowsOut,
-  CaretDown,
-  CheckCircle,
-  CloudSlash,
-  DotsThree,
-  FilePdf,
-  GraduationCap,
-  Notebook as NotebookIcon,
-  PlayCircle,
-  Printer,
-  SquaresFour,
-  Trash,
-  WarningCircle,
-  X,
-} from '@phosphor-icons/react';
+// The editor's header (docs/design/deskmates/screens/notebook-*): back to the notes and the module the note is about,
+// the note's title at display size (it wraps on a phone), and one line that says exactly where the note is kept and
+// whether it is saved there ("Saved in ST2133 Statistics"), what it is about (a module and a lesson) and what it is
+// written on (a library PDF, with a way back to it). The notebook's name is a menu that moves the note to another one;
+// the module is a menu that sets it (a note in a module's notebook goes to the new module's: the server says). On the
+// right: the pages, Print or save as PDF, full screen, and the rest in a menu (paper, delete).
+import { ArrowsIn, ArrowsOut, Printer } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Note } from '../../api/types';
 import { moduleLabel } from '../../lib/modules';
 import { useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { IconButton, Menu, Spinner, cx, type MenuItem } from '../../ui';
+import { Button, Icon, IconButton, Menu, Spinner, cx, glyph, type MenuItem } from '../../ui';
 import { lessonHref } from '../modules/public';
 import { noteFileHref, useNotebooks } from './api';
 import { lessonLabel, type NoteDoc, type Paper } from './draft';
@@ -79,25 +62,25 @@ function SavedWhere({
   let icon: ReactNode;
   let words: ReactNode;
   if (readOnly) {
-    icon = <NotebookIcon aria-hidden="true" />;
+    icon = <Icon glyph={glyph.notebook} />;
     words = <>Read only, in {notebook}</>;
   } else if (opening) {
     icon = <Spinner size={14} />;
     words = <>Opening your handwriting, in {notebook}</>;
   } else if (state === 'saved') {
-    icon = <CheckCircle aria-hidden="true" weight="fill" />;
+    icon = <Icon glyph={glyph.check} />;
     words = <>Saved in {notebook}</>;
   } else if (state === 'saving' || state === 'unsaved') {
     icon = <Spinner size={14} />;
     words = <>Saving to {notebook}</>;
   } else if (state === 'offline') {
-    icon = <CloudSlash aria-hidden="true" />;
+    icon = <Icon glyph={glyph.offline} />;
     words = <>Offline: kept on this device until it can be saved to {notebook}</>;
   } else if (state === 'conflict') {
-    icon = <WarningCircle aria-hidden="true" weight="fill" />;
+    icon = <Icon glyph={glyph.warning} />;
     words = <>Changed in another tab or on another device. Choose a version below</>;
   } else {
-    icon = <WarningCircle aria-hidden="true" weight="fill" />;
+    icon = <Icon glyph={glyph.warning} />;
     words = <>Not saved to {notebook}. Kept on this device</>;
   }
   return (
@@ -147,7 +130,7 @@ export function NoteHeader({
     ...books.map((b) => ({
       id: b.id,
       label: b.title,
-      icon: NotebookIcon,
+      icon: <Icon glyph={glyph.notebook} />,
       hint: b.id === doc.notebookId ? 'Here now' : undefined,
       disabled: b.id === doc.notebookId,
       // a module's notebook holds that module's notes
@@ -185,7 +168,7 @@ export function NoteHeader({
       trigger={
         <button type="button" className="nb-saved__book" data-hub="note-notebook">
           {bookName}
-          <CaretDown aria-hidden="true" />
+          <Icon glyph={glyph.chevronDown} />
         </button>
       }
     />
@@ -212,7 +195,7 @@ export function NoteHeader({
       ? []
       : [
           { divider: true } as MenuItem,
-          { id: 'delete', label: 'Delete note', icon: Trash, danger: true, onSelect: onDelete },
+          { id: 'delete', label: 'Delete note', icon: <Icon glyph={glyph.trash} />, danger: true, onSelect: onDelete },
         ]),
   ];
 
@@ -220,35 +203,31 @@ export function NoteHeader({
     <header className="nb-header" data-hub="notebook-header">
       <div className="nb-header__row">
         {panel ? null : (
-          <Link to="/notes" className="nb-back" onClick={onBack} aria-label="All notes" title="All notes">
-            <ArrowLeft aria-hidden="true" />
-            <span>Notebook</span>
-          </Link>
+          <nav className="nb-crumbs" aria-label="Breadcrumb">
+            <Link to="/notes" className="nb-back" onClick={onBack} aria-label="All notes" title="All notes">
+              <Icon glyph={glyph.chevronLeft} />
+              <span>Notes</span>
+            </Link>
+            {module ? (
+              <span className="nb-crumbs__module">
+                <span aria-hidden="true">/</span> {moduleLabel(module)}
+              </span>
+            ) : null}
+          </nav>
         )}
-        <input
-          className="nb-title"
-          aria-label="Title"
-          placeholder="Untitled note"
-          value={doc.title}
-          maxLength={TITLE_MAX}
-          readOnly={readOnly}
-          dir="auto"
-          onChange={(e) => onChange({ title: e.target.value })}
-          data-hub="note-title"
-        />
         <div className="nb-header__actions">
           {panel ? (
             <Menu
               align="end"
               label="Note"
               items={moreItems}
-              trigger={<IconButton icon={DotsThree} label="More" tooltip data-hub="note-more" />}
+              trigger={<IconButton icon={<Icon glyph={glyph.more} />} label="More" tooltip data-hub="note-more" />}
             />
           ) : null}
           {panel ?? (
             <>
               <IconButton
-                icon={SquaresFour}
+                icon={<Icon glyph={glyph.page} />}
                 label={pagesShown ? 'Hide pages' : 'Pages'}
                 toggle
                 active={pagesShown}
@@ -256,15 +235,15 @@ export function NoteHeader({
                 tooltip
                 data-hub="note-pages"
               />
-              <IconButton
-                icon={Printer}
-                label="Print or save as PDF"
+              <Button
+                size="sm"
                 onClick={onExport}
-                tooltip
                 disabled={exporting}
                 className="nb-header__wide"
                 data-hub="note-export"
-              />
+              >
+                Print or save as PDF
+              </Button>
               <IconButton
                 icon={full ? ArrowsIn : ArrowsOut}
                 label={full ? 'Leave full screen' : 'Full screen'}
@@ -276,20 +255,33 @@ export function NoteHeader({
                 align="end"
                 label="Note"
                 items={moreItems}
-                trigger={<IconButton icon={DotsThree} label="More" tooltip data-hub="note-more" />}
+                trigger={<IconButton icon={<Icon glyph={glyph.more} />} label="More" tooltip data-hub="note-more" />}
               />
             </>
           )}
         </div>
       </div>
+      <textarea
+        className="nb-title"
+        aria-label="Title"
+        placeholder="Untitled note"
+        value={doc.title}
+        maxLength={TITLE_MAX}
+        readOnly={readOnly}
+        rows={1}
+        dir="auto"
+        // one line of words: Enter goes nowhere, and a pasted line break becomes a space
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.preventDefault();
+        }}
+        onChange={(e) => onChange({ title: e.target.value.replace(/[\r\n]+/g, ' ') })}
+        data-hub="note-title"
+      />
       <div className="nb-header__where">
         <SavedWhere state={state} opening={opening} readOnly={readOnly} notebook={notebook} />
         {readOnly ? (
           module ? (
-            <span className="nb-where__chip">
-              <GraduationCap aria-hidden="true" />
-              {moduleName}
-            </span>
+            <span className="nb-where__chip nb-where__module">{moduleName}</span>
           ) : null
         ) : (
           <Menu
@@ -304,16 +296,15 @@ export function NoteHeader({
                 }
                 data-hub="note-module"
               >
-                <GraduationCap aria-hidden="true" />
                 {module ? moduleName : 'Add a module'}
-                <CaretDown aria-hidden="true" />
+                <Icon glyph={glyph.chevronDown} />
               </button>
             }
           />
         )}
         {doc.lessonId && doc.moduleId ? (
           <span className="nb-where__chip">
-            <PlayCircle aria-hidden="true" />
+            <Icon glyph={glyph.video} />
             <Link to={lessonHref(doc.moduleId, doc.lessonId)}>About {lowerFirst(lessonLabel(place))}</Link>
             {readOnly ? null : (
               <button
@@ -323,21 +314,21 @@ export function NoteHeader({
                 aria-label="Not about this lesson"
                 title="Not about this lesson"
               >
-                <X aria-hidden="true" />
+                <Icon glyph={glyph.close} />
               </button>
             )}
           </span>
         ) : null}
         {pdf ? (
           <span className="nb-where__chip">
-            <FilePdf aria-hidden="true" />
+            <Icon glyph={glyph.page} />
             {pdf.available && pdf.slug ? (
               <Link to={`/library/${encodeURIComponent(pdf.slug)}`} title="Open the original in the library">
                 Written on {pdf.title}
               </Link>
             ) : pdf.available && pdf.uploadId ? (
               <a href={noteFileHref(pdf.uploadId)} target="_blank" rel="noopener noreferrer" title="Open the original">
-                Written on {pdf.title} <ArrowSquareOut aria-hidden="true" />
+                Written on {pdf.title} <Icon glyph={glyph.external} />
               </a>
             ) : (
               <span>Written on {pdf.title || 'a PDF'}, which isn’t available any more</span>

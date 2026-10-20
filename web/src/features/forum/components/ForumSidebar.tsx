@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ArrowFatUp } from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
-import { Count, ErrorBoundary, Skeleton, cx } from '../../../ui';
+import { CohortBadge, Count, ErrorBoundary, Icon, Skeleton, cx, glyph, timeAgo } from '../../../ui';
 import { useModules } from '../../../state/modules';
 import { UpcomingEvents } from '../../calendar/public';
+import { flattenPages, useThreadList } from '../api';
 import { authorName } from '../lib/authors';
 import { useTaxonomy } from '../lib/taxonomy';
 import type { ForumStats } from '../../../api/types';
@@ -21,10 +21,10 @@ export function CategoryMark({ category }: { category: Pick<ForumCategoryOut, 'y
       </span>
     );
   }
-  const Icon = FORUM_ICONS[category.icon ?? 'chat'].icon;
+  const Mark = FORUM_ICONS[category.icon ?? 'chat'].icon;
   return (
     <span className="forum-cat__mark forum-cat__mark--plain" aria-hidden="true">
-      <Icon weight="bold" />
+      <Mark weight="bold" />
     </span>
   );
 }
@@ -35,7 +35,8 @@ export interface ForumSidebarProps {
   onPickCategory: (id: CategoryId | 'all') => void;
 }
 
-/** The quiet margin next to the thread list. */
+/** The cards beside the thread list: who helped this week, questions waiting for a first reply, the categories,
+ *  what's coming up and the guidelines. */
 export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProps) {
   const { categories, guidelines, ready } = useTaxonomy();
   const { getModulesForYear } = useModules();
@@ -43,6 +44,38 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
   const { featureOn } = useAuth();
   return (
     <aside className="forum-side" data-hub="forum-sidebar" aria-label="Forum overview">
+      {people.length ? (
+        <section className="forum-side__block" aria-labelledby="forum-side-people">
+          <h2 id="forum-side-people" className="forum-side__title">
+            Helpful this week
+          </h2>
+          <ol role="list" className="forum-people">
+            {people.map((p) => (
+              <li key={p.user.id} className="forum-person">
+                <AuthorAvatar author={p.user} size="md" />
+                <span className="forum-person__text">
+                  <span className="forum-person__name">{authorName(p.user)}</span>
+                  <span className="forum-person__meta">
+                    {p.replies} {p.replies === 1 ? 'reply' : 'replies'}
+                    {p.accepted ? `, ${p.accepted} accepted` : ''}
+                    {p.votes > 0 ? (
+                      <span className="forum-person__score">
+                        <Icon glyph={glyph.vote} />
+                        {p.votes}
+                        <span className="visually-hidden">{p.votes === 1 ? ' upvote' : ' upvotes'}</span>
+                      </span>
+                    ) : null}
+                  </span>
+                </span>
+                {p.user.year ? <CohortBadge year={p.user.year} size="sm" /> : null}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+
+      {stats?.noReplies ? <WaitingForReply /> : null}
+
       <section className="forum-side__block" aria-labelledby="forum-side-cats">
         <h2 id="forum-side-cats" className="forum-side__title">
           Categories
@@ -84,40 +117,6 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
         </ul>
       </section>
 
-      {people.length ? (
-        <section className="forum-side__block" aria-labelledby="forum-side-people">
-          <h2 id="forum-side-people" className="forum-side__title">
-            Top contributors this week
-          </h2>
-          <ol role="list" className="forum-people">
-            {people.map((p, i) => (
-              <li key={p.user.id} className="forum-person">
-                <span className="forum-person__rank" aria-hidden="true">
-                  {i + 1}
-                </span>
-                <AuthorAvatar author={p.user} size="md" />
-                <span className="forum-person__text">
-                  <span className="forum-person__name">{authorName(p.user)}</span>
-                  <span className="forum-person__meta">
-                    {p.replies} {p.replies === 1 ? 'reply' : 'replies'}
-                    {p.accepted ? `, ${p.accepted} accepted` : ''}
-                  </span>
-                </span>
-                {p.votes > 0 ? (
-                  <span
-                    className="forum-person__score"
-                    aria-label={`${p.votes} ${p.votes === 1 ? 'upvote' : 'upvotes'} on their replies`}
-                  >
-                    <ArrowFatUp weight="fill" aria-hidden="true" />
-                    {p.votes}
-                  </span>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
-
       {featureOn('calendar') ? (
         <section className="forum-side__block" aria-labelledby="forum-side-dates">
           <div className="forum-side__head">
@@ -141,10 +140,10 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
           </h2>
           <ul role="list" className="forum-rules">
             {guidelines.map(({ id, icon, text }) => {
-              const Icon = FORUM_ICONS[icon].icon;
+              const Mark = FORUM_ICONS[icon].icon;
               return (
                 <li key={id}>
-                  <Icon aria-hidden="true" />
+                  <Mark aria-hidden="true" />
                   <span>{text}</span>
                 </li>
               );
@@ -153,6 +152,38 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
         </section>
       ) : null}
     </aside>
+  );
+}
+
+/** The newest questions nobody has answered yet: a nudge to help. */
+function WaitingForReply() {
+  const list = useThreadList({ unanswered: true, sort: 'new' }, { pageSize: 3 });
+  const threads = flattenPages(list.data).slice(0, 3);
+  const { getModule } = useModules();
+  if (!threads.length) return null;
+  return (
+    <section className="forum-side__block" aria-labelledby="forum-side-waiting">
+      <h2 id="forum-side-waiting" className="forum-side__title">
+        Waiting for a first reply
+      </h2>
+      <ul role="list" className="forum-waiting">
+        {threads.map((t) => {
+          const module = getModule(t.moduleId);
+          return (
+            <li key={t.id}>
+              <Link to={`/forum/${t.slug}`} className="forum-waiting__link" dir="auto">
+                {t.title}
+              </Link>
+              <span className="forum-waiting__meta">
+                {module?.unitCode ? <span className="u-code">{module.unitCode}</span> : null}
+                {module?.unitCode ? ' · ' : null}
+                {timeAgo(t.createdAt)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

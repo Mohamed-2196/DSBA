@@ -1,6 +1,5 @@
 import { forwardRef, useState, type ButtonHTMLAttributes, type CSSProperties } from 'react';
-import { X } from '@phosphor-icons/react';
-import { IconButton, modKeyLabel } from '../../ui';
+import { IconButton, modKeyLabel, Icon, glyph } from '../../ui';
 import type { Point, Side } from './layout';
 import { POSES, poseUrl, type Figure, type Pose } from './sprites';
 import './Mascot.css';
@@ -76,7 +75,13 @@ export const Mascot = forwardRef<HTMLButtonElement, MascotProps>(function Mascot
           <button type="button" className="noora__hint-text" onClick={onHintClick}>
             {HINT}
           </button>
-          <IconButton size="sm" icon={X} label="Close the hint" onClick={onHintClose} className="noora__hint-close" />
+          <IconButton
+            size="sm"
+            icon={<Icon glyph={glyph.close} />}
+            label="Close the hint"
+            onClick={onHintClose}
+            className="noora__hint-close"
+          />
         </div>
       ) : null}
       <button

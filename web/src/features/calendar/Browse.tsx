@@ -1,12 +1,11 @@
 import { useMemo } from 'react';
-import { CalendarBlank, CalendarPlus, ListBullets, Plus, SquaresFour } from '@phosphor-icons/react';
 import { BREAKPOINTS, cohortLabel, useMediaQuery } from '../../state';
-import { Button, Chip, cx, EmptyState, SegmentedControl } from '../../ui';
+import { Button, Chip, cx, EmptyState, Icon, SegmentedControl, glyph } from '../../ui';
 import { formatShort, parseDay, type DayKey } from '../../lib/dates';
 import { monthTitle } from './dates';
 import { DayList } from './DayList';
-import { EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
-import { MonthPanel } from './MonthPanel';
+import { TYPE_ORDER, typeLabel } from './eventMeta';
+import { MonthNav, MonthPanel } from './MonthPanel';
 import { groupByMonth } from './queries';
 import type { CalendarView } from './useCalendarView';
 
@@ -24,41 +23,57 @@ export interface BrowseProps {
 }
 
 /**
- * Every date ahead, as one list: a repeat of the student's own is one row, at its next day. Laptops and wider show
- * the month grid beside it; phones and tablets switch between the list and the month. Whose dates and which types
- * are picked above both.
+ * The bar under the calendar's band (docs/design/deskmates/screens/calendar-*): List or Month, whose dates (the
+ * student's year or every year), and in the month, its arrows and Today.
+ */
+export function CalendarBar({ view }: { view: CalendarView }) {
+  const { year, cohortYear, setAllYears } = view;
+  return (
+    <div className="cal-bar" data-hub="calendar-bar">
+      <SegmentedControl
+        label="Show as"
+        value={view.mode}
+        onChange={(v) => view.setMode(v === 'month' ? 'month' : 'list')}
+        options={[
+          { value: 'list', label: 'List' },
+          { value: 'month', label: 'Month' },
+        ]}
+        className="cal-bar__mode"
+      />
+      {year ? (
+        <SegmentedControl
+          label="Whose dates"
+          options={[
+            { value: 'mine', label: cohortLabel(year) },
+            { value: 'all', label: 'All years' },
+          ]}
+          value={cohortYear ? 'mine' : 'all'}
+          onChange={(v) => setAllYears(v === 'all')}
+          className="cal-bar__cohort"
+        />
+      ) : null}
+      {view.mode === 'month' ? <MonthNav view={view} /> : null}
+    </div>
+  );
+}
+
+/**
+ * Every date ahead as one list (a repeat of the student's own is one row, at its next day), or the month on a grid.
+ * The types above both are the colour key and a filter.
  */
 export function Browse({ view, today, calendarEmpty, onAddDate, onAddMine }: BrowseProps) {
-  const wide = useMediaQuery(BREAKPOINTS.desktop);
   const phone = useMediaQuery(BREAKPOINTS.mobile);
-  const showList = wide || view.mode === 'list';
-  const showMonth = wide || view.mode === 'month';
   const from =
     view.listFrom === view.todayKey ? 'From today' : `From ${formatShort(parseDay(view.listFrom))}, after this week`;
 
   return (
     <section className="cal-browse" aria-labelledby={BROWSE_TITLE_ID}>
-      <div className="cal-browse__head">
-        <h2 id={BROWSE_TITLE_ID} className="cal-browse__title">
-          Coming up
-        </h2>
-        {wide ? null : (
-          <SegmentedControl
-            label="Show as"
-            size="sm"
-            value={view.mode}
-            onChange={(v) => view.setMode(v === 'month' ? 'month' : 'list')}
-            options={[
-              { value: 'list', label: 'List', icon: ListBullets },
-              { value: 'month', label: 'Month', icon: SquaresFour },
-            ]}
-            className="cal-browse__mode"
-          />
-        )}
-      </div>
+      <h2 id={BROWSE_TITLE_ID} className={view.mode === 'list' ? 'cal-browse__title' : 'visually-hidden'}>
+        {view.mode === 'list' ? 'Coming up' : 'Month'}
+      </h2>
       <Filters view={view} />
-      <div className={cx('cal-browse__body', wide && 'cal-browse__body--split')}>
-        {showList ? (
+      <div className="cal-browse__body">
+        {view.mode === 'list' ? (
           <div className="cal-list" data-hub="calendar-list">
             <p className="cal-list__from">{from}</p>
             <UpcomingList
@@ -69,31 +84,31 @@ export function Browse({ view, today, calendarEmpty, onAddDate, onAddMine }: Bro
               onAddMine={onAddMine}
             />
           </div>
-        ) : null}
-        {showMonth ? <MonthPanel view={view} today={today} compact={phone} onAdd={onAddMine} /> : null}
+        ) : (
+          <MonthPanel view={view} today={today} compact={phone} onAdd={onAddMine} />
+        )}
       </div>
     </section>
   );
 }
 
 function Filters({ view }: { view: CalendarView }) {
-  const { year, cohortYear, setAllYears, signedIn, types, toggleType, clearTypes } = view;
+  const { signedIn, types, toggleType, clearTypes } = view;
   return (
     <div className="cal-filters">
-      {year ? (
-        <SegmentedControl
-          label="Whose dates"
-          size="sm"
-          options={[
-            { value: 'mine', label: cohortLabel(year) },
-            { value: 'all', label: 'All years' },
-          ]}
-          value={cohortYear ? 'mine' : 'all'}
-          onChange={(v) => setAllYears(v === 'all')}
-          className="cal-filters__cohort"
-        />
-      ) : null}
       <div className="cal-filters__types" role="group" aria-label="Event types (also the colour key)">
+        {TYPE_ORDER.map((type) => (
+          <Chip
+            key={type}
+            size="sm"
+            selected={types.has(type)}
+            onChange={() => toggleType(type)}
+            className={cx('cal-typechip', `cal-typechip--${type}`)}
+          >
+            <span className={cx('cal-swatch', `cal-swatch--${type}`)} aria-hidden="true" />
+            {typeLabel(type)}
+          </Chip>
+        ))}
         {signedIn ? (
           <Chip
             size="sm"
@@ -102,22 +117,10 @@ function Filters({ view }: { view: CalendarView }) {
             className="cal-typechip cal-typechip--mine"
             data-hub="calendar-filter-mine"
           >
-            <span className="cal-dot cal-dot--mine cal-colour--violet" aria-hidden="true" />
-            Yours
+            <span className="cal-swatch cal-swatch--mine" aria-hidden="true" />
+            Your events
           </Chip>
         ) : null}
-        {TYPE_ORDER.map((type) => (
-          <Chip
-            key={type}
-            size="sm"
-            selected={types.has(type)}
-            onChange={() => toggleType(type)}
-            color={EVENT_TYPES[type].color}
-            className={cx('cal-typechip', `cal-typechip--${type}`)}
-          >
-            {typeLabel(type)}
-          </Chip>
-        ))}
         {types.size ? (
           <Button size="sm" variant="ghost" onClick={clearTypes}>
             Show every type
@@ -140,7 +143,7 @@ function UpcomingList({ view, today, calendarEmpty, onAddDate, onAddMine }: Brow
       title = 'None of your own events ahead';
       body = 'Add the things you plan around: study groups, deadlines of your own, appointments.';
       action = (
-        <Button size="sm" variant="primary" leadingIcon={CalendarPlus} onClick={() => onAddMine()}>
+        <Button size="sm" variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} onClick={() => onAddMine()}>
           New event
         </Button>
       );
@@ -154,7 +157,7 @@ function UpcomingList({ view, today, calendarEmpty, onAddDate, onAddMine }: Brow
     } else if (calendarEmpty) {
       title = 'The calendar is empty';
       action = onAddDate ? (
-        <Button size="sm" variant="primary" leadingIcon={Plus} onClick={onAddDate}>
+        <Button size="sm" variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} onClick={onAddDate}>
           Add a date
         </Button>
       ) : null;
@@ -168,7 +171,7 @@ function UpcomingList({ view, today, calendarEmpty, onAddDate, onAddMine }: Brow
     }
     return (
       <div className="cal-list__empty">
-        <EmptyState size="sm" icon={CalendarBlank} title={title} body={body} action={action} />
+        <EmptyState size="sm" mate="blink" title={title} body={body} action={action} />
       </div>
     );
   }

@@ -43,6 +43,7 @@ test('a student adds their own weekly event, sees it on the calendar and Home, e
   // the "Yours" filter shows only their events
   await sara.locator('[data-hub="calendar-filter-mine"]').click();
   await expect(sara).toHaveURL(/types=mine/);
+  await sara.getByRole('radio', { name: 'List' }).click(); // laptops open on the month
   await expect(sara.locator('[data-hub="calendar-list"] [data-hub="calendar-event"]').first()).toContainText(title);
 
   // Home's "Coming up" lists it
@@ -94,7 +95,7 @@ test('a student adds their own weekly event, sees it on the calendar and Home, e
 });
 
 test('a student hides a programme date, then shows it again from Customise', async ({ sara }) => {
-  await sara.goto('/calendar?cohort=all');
+  await sara.goto('/calendar?cohort=all&view=list');
   const row = sara.locator('[data-hub="calendar-list"] [data-hub="calendar-event"]').first();
   const id = await row.getAttribute('data-event-id');
   expect(id).toBeTruthy();

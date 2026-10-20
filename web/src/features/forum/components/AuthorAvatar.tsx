@@ -1,6 +1,5 @@
-import { User } from '@phosphor-icons/react';
 import type { UserPublic } from '../../../api/types';
-import { Avatar, cx } from '../../../ui';
+import { Avatar, cx, Icon, glyph } from '../../../ui';
 
 const SIZES = { xs: 20, sm: 24, md: 32, lg: 40 } as const;
 
@@ -24,7 +23,7 @@ export function AuthorAvatar({ author, guest = false, size = 'sm', className }: 
         style={{ width: px, height: px, fontSize: Math.max(9, Math.round(px * (guest ? 0.55 : 0.42))) }}
         aria-hidden="true"
       >
-        {guest ? <User weight="bold" /> : '?'}
+        {guest ? <Icon glyph={glyph.user} /> : '?'}
       </span>
     );
   }

@@ -30,13 +30,19 @@
   font-weight: var(--fw-medium);
   text-decoration: none;
 }
+.forum-crumbs a.forum-crumbs__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent-text);
+  font-weight: var(--fw-bold);
+}
+.forum-crumbs__back svg {
+  font-size: 18px;
+}
 .forum-crumbs a:hover {
   color: var(--ink);
   text-decoration: underline;
-}
-.forum-crumbs svg {
-  color: var(--ink-3);
-  font-size: 11px;
 }
 .forum-crumbs [aria-current='page'] {
   color: var(--ink);
@@ -44,8 +50,11 @@
 }
 
 /* ── Thread list ─────────────────────────────────────────────────────────────── */
+/* Each thread is a card of its own (docs/design/deskmates/screens/forum-list-*). */
 .forum-list {
   container: forum-list / inline-size;
+  display: grid;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -54,35 +63,41 @@
 .forum-row {
   position: relative;
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
-  grid-template-areas: 'vote main stats';
-  column-gap: 18px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'main foot';
+  column-gap: 20px;
   align-items: start;
-  padding: 14px 20px 14px 16px;
-  transition: background-color var(--dur-fast) var(--ease);
-}
-.forum-row + .forum-row {
-  border-top: 1px solid var(--line);
-}
-.forum-list > .forum-row:first-child {
-  border-top-left-radius: calc(var(--r-card) - 1px);
-  border-top-right-radius: calc(var(--r-card) - 1px);
-}
-.forum-list > .forum-row:last-child {
-  border-bottom-left-radius: calc(var(--r-card) - 1px);
-  border-bottom-right-radius: calc(var(--r-card) - 1px);
+  padding: 20px 22px;
+  overflow: hidden;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
 }
 .forum-row:hover {
-  background: color-mix(in srgb, var(--surface-2) 42%, var(--surface));
+  border-color: var(--line-strong);
 }
 .forum-row:has(.forum-row__link:focus-visible) {
-  box-shadow: inset 0 0 0 2px var(--focus-color);
+  box-shadow: 0 0 0 2px var(--focus-color);
+}
+/* Something new for you: the pink unread rule down the card's start edge. */
+.forum-row.is-unread::before {
+  content: '';
+  position: absolute;
+  inset-block: 14px;
+  inset-inline-start: 0;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--sec-forum-art);
 }
 
 /* A post with a picture: its thumbnail sits between the text and the counts. */
 .forum-row.has-image {
-  grid-template-columns: 48px minmax(0, 1fr) auto auto;
-  grid-template-areas: 'vote main thumb stats';
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: 'main thumb foot';
 }
 .forum-row__thumb {
   grid-area: thumb;
@@ -101,54 +116,44 @@
   object-position: 38% 50%;
 }
 
-/* The vote and the counts share a foot on narrow rows; on wide ones each keeps its own column. */
+/* The counts on top, "Answered" under them. */
 .forum-row__foot {
-  display: contents;
+  grid-area: foot;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
 }
-.forum-row__vote {
-  grid-area: vote;
+.forum-row__counts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.forum-row__counts .forum-vote {
   position: relative;
   z-index: 1;
+}
+.forum-row__counts .forum-count {
+  background: none;
+  box-shadow: none;
+  font-size: var(--fs-13);
 }
 /* A post with a picture, on a narrow row: an icon in place of the thumbnail. */
 .forum-row__picture {
   display: none;
-  align-items: center;
   color: var(--ink-2);
   font-size: 16px;
-}
-/* There is something new for you in this thread (Yours): a dot before the title. */
-.forum-row__unread {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  margin-inline-end: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  vertical-align: 1px;
-}
-.forum-row.is-unread .forum-row__link {
-  font-weight: var(--fw-bold);
 }
 .forum-row__main {
   grid-area: main;
   min-width: 0;
-}
-.forum-row__stats {
-  grid-area: stats;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  min-width: 64px;
-  padding-top: 1px;
 }
 
 .forum-row__title {
   max-width: var(--measure);
   margin: 0;
   font-size: var(--fs-16);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   line-height: 1.38;
   letter-spacing: -0.012em;
   text-wrap: pretty;
@@ -178,7 +183,7 @@
   display: inline-block;
   margin-inline-end: 6px;
   color: var(--accent);
-  font-size: 15px;
+  font-size: 16px;
   vertical-align: -2px;
 }
 
@@ -188,7 +193,7 @@
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.5;
@@ -198,30 +203,88 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 14px;
-  margin-top: 9px;
+  gap: 6px 8px;
+  margin-top: 12px;
   color: var(--ink-2);
-  font-size: var(--fs-12);
+  font-size: var(--fs-13);
   line-height: 1.2;
 }
-.forum-row__author {
+.forum-row__by {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
+  margin-inline-start: 4px;
+  white-space: nowrap;
+}
+.forum-row__author {
   color: var(--ink);
   font-weight: var(--fw-semibold);
-  white-space: nowrap;
 }
 .forum-row__time {
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+/* "New activity" under the meta, with the unread dot. */
+.forum-row__news {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  color: var(--sec-forum-text);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+}
+.forum-row__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sec-forum-art);
+}
 
-/* Narrow lists (phones, a sidebar): the title takes the row's whole width, up to three lines (UX-74). The vote moves
-   to the foot of the row as a pill beside the replies and the time, and a picture shows as an icon there instead of
-   a thumbnail. */
+/* A grey pill: a module code (set in mono), or a place with no year (Study groups). */
+.forum-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+
+/* "Answered": a soft green pill whose tick draws itself in. */
+.forum-answered {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border-radius: var(--r-pill);
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+.forum-answered__tick {
+  font-size: 14px;
+  stroke-width: 2.4;
+  stroke-dasharray: 24;
+  animation: forum-tick 200ms var(--ease) both;
+}
+@keyframes forum-tick {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Narrow lists (phones, a sidebar): the title takes the card's whole width, up to three lines (UX-74). The counts
+   and "Answered" move to a foot line under the meta, and a picture shows as an icon there instead of a thumbnail. */
 @container forum-list (max-width: 560px) {
   .forum-row,
   .forum-row.has-image {
@@ -235,45 +298,14 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
-  .forum-row__excerpt {
-    display: none;
-  }
-  .forum-row__meta {
-    margin-top: 8px;
-    gap: 6px 10px;
-  }
   .forum-row__foot {
-    grid-area: foot;
-    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-top: 10px;
+    margin-top: 8px;
   }
-  .forum-row__vote,
-  .forum-row__stats {
-    grid-area: auto;
-  }
-  .forum-row__stats {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 12px;
-    padding: 0;
-    min-width: 0;
-  }
-  .forum-row .forum-vote {
-    flex-direction: row;
-    gap: 6px;
-    width: auto;
-    height: 30px;
-    padding: 0 11px 0 9px;
-    border-radius: var(--r-pill);
-    font-size: var(--fs-12);
-  }
-  .forum-row .forum-vote__icon {
-    font-size: 14px;
-  }
-  .forum-row .forum-tag:nth-of-type(n + 2) {
+  .forum-row__by .ui-avatar,
+  .forum-row .forum-tag {
     display: none;
   }
   .forum-row__thumb {
@@ -284,63 +316,61 @@
   }
 }
 @media (pointer: coarse) {
-  /* The row takes the tap (the title link's ::after); the link's own box is 44px too. Vertical padding on an inline
-     box changes nothing around it. */
-  .forum-row__link {
-    padding-block: 13px;
-  }
-  @container forum-list (max-width: 560px) {
-    .forum-row .forum-vote {
-      height: 44px;
-      padding-inline: 12px;
-    }
-    /* The title's 44px link box would push the meta down: the row is the target, so the link needs no padding. */
-    .forum-row__link {
-      padding-block: 0;
-    }
+  /* The card takes the tap (the title link's ::after). */
+  .forum-row__counts .forum-vote {
+    min-height: 44px;
   }
 }
 
 /* ── Vote ────────────────────────────────────────────────────────────────────── */
+/* The arrow and the count in a pill; voted, the pill is accent-soft and the arrow filled. */
 .forum-vote {
   position: relative;
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  width: 48px;
-  height: 56px;
-  border: 1px solid var(--line-strong);
+  gap: 6px;
+  min-width: 56px;
+  height: 36px;
+  padding: 0 12px 0 10px;
+  border: 0;
   border-radius: var(--r-control);
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--ink-2);
+  font-family: var(--font-ui);
   font-size: var(--fs-14);
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  --icon-tint: transparent;
   transition:
     background-color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease);
 }
 .forum-vote:hover {
-  border-color: var(--accent);
+  background: var(--accent-soft);
   color: var(--accent);
 }
 .forum-vote:active {
   transform: translateY(1px);
 }
 .forum-vote.is-voted {
-  border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
+  --icon-tint: var(--accent);
+}
+.forum-vote--quiet {
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  background: transparent;
+  font-size: var(--fs-13);
 }
 .forum-vote__icon {
-  font-size: 17px;
+  font-size: 16px;
 }
 .forum-vote__icon.is-popping {
   animation: forum-vote-pop 280ms var(--ease);
@@ -356,25 +386,10 @@
     transform: none;
   }
 }
-.forum-vote--lg {
-  width: 56px;
-  height: 66px;
-  font-size: var(--fs-16);
-}
-.forum-vote--lg .forum-vote__icon {
-  font-size: 21px;
-}
-.forum-vote--inline {
-  flex-direction: row;
-  gap: 6px;
-  width: auto;
-  height: 30px;
-  padding: 0 11px 0 9px;
-  border-radius: var(--r-pill);
-  font-size: var(--fs-12);
-}
-.forum-vote--inline .forum-vote__icon {
-  font-size: 14px;
+@media (pointer: coarse) {
+  .forum-vote {
+    min-height: 44px;
+  }
 }
 
 /* Odometer roll for counts */
