@@ -149,6 +149,7 @@ def edit_view(m: Module) -> ModuleEdit:
             id=c.id,
             title=c.title,
             hidden=c.hidden,
+            keywords=list(c.keywords),
             lessons=[
                 LessonOut.model_validate(
                     {
@@ -341,6 +342,7 @@ def _place_chapters(m: Module, body: ModuleSave) -> None:
     for ci, ch in enumerate(body.chapters):
         chapter = old_chapters[ch.id] if ch.id is not None else Chapter(id=new_id(), module_id=m.id)
         chapter.title, chapter.hidden, chapter.position = ch.title, ch.hidden, ci
+        chapter.keywords = list(ch.keywords)
         lessons: list[Lesson] = []
         for vi, item in enumerate(ch.lessons):
             parsed = parse_video(item.url)

@@ -146,6 +146,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
     assert first_load(db) == {
         **files,
         "broken-chapters": 0,
+        "chapter-words": 0,  # the modules arrive with their words
         "career": 1,
         "drive-folders": folders,
         "daily": daily,
@@ -169,6 +170,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
     assert again == {
         "modules": 0,
         "broken-chapters": 0,
+        "chapter-words": 0,
         "calendar": 0,
         "newsletter": 0,
         "career": 0,
@@ -274,6 +276,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
     assert again == {
         "modules": 0,
         "broken-chapters": 0,
+        "chapter-words": 0,
         "calendar": 0,
         "newsletter": 0,
         "career": 0,
@@ -356,3 +359,24 @@ def test_the_seed_removes_a_broken_chapter_and_moves_students_notes_and_cards_to
     assert module.version == version + 1
     assert [c.title for c in module.chapters].count("International Project Management") == 1
     assert load_all(db, only="broken-chapters") == {"broken-chapters": 0}  # once
+
+
+def test_the_seeds_chapter_words_reach_a_catalogue_loaded_before_them(db: Session) -> None:
+    """IDEA-50: a chapter without words gets the seed's; one a content manager gave words keeps them."""
+    from app.models import Chapter
+    from app.seed.loader import load_chapter_words, load_modules
+
+    load_modules(db)
+    for c in db.scalars(select(Chapter)):
+        c.keywords = []
+    edited = db.get(Chapter, "hhfxb62g")
+    assert edited is not None
+    edited.keywords = ["estimators"]
+    db.commit()
+    assert load_chapter_words(db) > 0
+    db.commit()
+    point = db.get(Chapter, "dzzxifwd")
+    assert point is not None
+    assert "mle" in point.keywords
+    assert edited.keywords == ["estimators"]
+    assert load_chapter_words(db) == 0

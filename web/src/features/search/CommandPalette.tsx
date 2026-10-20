@@ -1,7 +1,8 @@
 // ⌘K command palette: search everything + quick actions. PaletteHost mounts it the first time it is opened, open
 // with what it was opened with; after that it opens on ⌘K / Ctrl+K (toggle), "/" (outside text fields) and
 // openCommandPalette(query).
-// Content comes from GET /api/v1/search (debounced); recent searches stay in this browser.
+// Content comes from GET /api/v1/search (debounced), and a signed-in student's own notes from GET /notes?q= (never
+// /search: they are private); recent searches stay in this browser.
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadProblem } from '../../api/errors';
@@ -10,13 +11,14 @@ import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from 
 import { useModules } from '../../state/modules';
 import { Count, Deskmate, Icon, IconButton, Kbd, Spinner, Modal, cx, glyph } from '../../ui';
 import { useStartsThreads } from '../forum/public';
+import { noteLabel, useNoteSearch } from '../notes/public';
 import { openBugReport } from '../bugs/public';
 import { askNoora, hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
 import { httpsHref, useSite } from '../site/public';
 import { useSearch } from './api';
 import { tokenize } from './match';
 import { Leading, Marked, Trailing } from './PaletteRow';
-import { runSearch, textOf, type GroupId, type Item, type Portal } from './search';
+import { runSearch, textOf, type GroupId, type Item, type NoteHit, type Portal } from './search';
 import { usePaletteShortcuts } from './useShortcuts';
 import './CommandPalette.css';
 
@@ -38,7 +40,7 @@ export function CommandPalette({ opening }: { opening: string }) {
   const { theme, toggleTheme } = useTheme();
   const { getModule, getModulesForYear } = useModules();
   const nooraHidden = useMiniNooraHidden();
-  const { featureOn, mayTry } = useAuth();
+  const { featureOn, mayTry, status: account } = useAuth();
   const startsThreads = useStartsThreads();
   const site = useSite().data;
   const portals = useMemo(() => {
@@ -66,7 +68,16 @@ export function CommandPalette({ opening }: { opening: string }) {
   const text = textOf(query);
   const debounced = useDebouncedValue(text, 180);
   const search = useSearch(open ? debounced : '');
-  const waiting = text.length > 0 && (text !== debounced || search.isFetching);
+  const notesSearch = useNoteSearch(debounced, {
+    limit: 5,
+    enabled: open && account === 'signed-in' && featureOn('notes'),
+  });
+  const noteItems = notesSearch.data?.items;
+  const notes = useMemo<NoteHit[] | undefined>(
+    () => noteItems?.map((n) => ({ id: n.id, label: noteLabel(n), excerpt: n.excerpt })),
+    [noteItems],
+  );
+  const waiting = text.length > 0 && (text !== debounced || search.isFetching || notesSearch.isFetching);
 
   const reset = useCallback((q: string) => {
     moveRef.current = 'query';
@@ -110,6 +121,7 @@ export function CommandPalette({ opening }: { opening: string }) {
         offers: { threads: startsThreads, upload: uploads },
         portals,
         suggestions: site?.searchSuggestions,
+        notes: account === 'signed-in' ? notes : undefined,
       }),
     [
       query,
@@ -127,6 +139,8 @@ export function CommandPalette({ opening }: { opening: string }) {
       uploads,
       portals,
       site?.searchSuggestions,
+      account,
+      notes,
     ],
   );
   // Until the API has answered the words typed, "nothing found" would be premature.

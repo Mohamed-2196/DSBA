@@ -74,6 +74,10 @@
   margin: 0;
   padding-left: var(--sp-24);
 }
+.site-preview__line {
+  max-width: var(--measure);
+  color: var(--ink-2);
+}
 .site-preview__chips {
   display: flex;
   flex-wrap: wrap;

@@ -1,10 +1,17 @@
 // Site settings' parts for Home, the tour and search: the blocks a new student's Home shows, in order; the steps of
 // the tour; the other words students type for modules; and what search suggests before anything is typed.
 import { useState } from 'react';
-import type { SearchNickname, SiteDoc, TourStep } from '../../api/types';
-import { glyph, Icon, IconButton, Select, TextArea, TextField } from '../../ui';
+import type { ExamWeek, SearchNickname, SiteDoc, TourStep } from '../../api/types';
+import { glyph, Icon, IconButton, Select, Switch, TextArea, TextField, WholeNumberField } from '../../ui';
 import { ListEditor, RowsEditor, hasErrorUnder, newItemId } from '../../ui/docEditor';
-import { ALL_HOME_BLOCKS, HOME_BLOCKS, type HomeBlock } from '../home/public';
+import {
+  ALL_EXAM_WEEK_PARTS,
+  ALL_HOME_BLOCKS,
+  EXAM_WEEK_PARTS,
+  HOME_BLOCKS,
+  type ExamWeekPart,
+  type HomeBlock,
+} from '../home/public';
 import { TOUR_ARTS } from '../onboarding/public';
 
 type Set = (patch: Partial<SiteDoc>) => void;
@@ -28,6 +35,7 @@ export function HomeTourSection({
   return (
     <>
       <HomeBlocks blocks={doc.homeBlocks} onChange={(homeBlocks) => set({ homeBlocks })} error={err('homeBlocks')} />
+      <ExamWeekSettings week={doc.examWeek} onChange={(examWeek) => set({ examWeek })} err={err} />
       <fieldset className="dedit-group">
         <legend className="dedit-group__legend">The tour</legend>
         <p className="dedit__note">
@@ -158,6 +166,95 @@ function HomeBlocks({
           onChange={(e) => {
             const b = left.find((x) => x === e.target.value);
             if (b) onChange([...blocks, b]);
+            setAdding('');
+          }}
+        />
+      ) : null}
+    </fieldset>
+  );
+}
+
+/** Exam week (IDEA-48): whether the student's next exam leads Home on a phone, from how many days before, and what. */
+function ExamWeekSettings({ week, onChange, err }: { week: ExamWeek; onChange: (next: ExamWeek) => void; err: Err }) {
+  const [adding, setAdding] = useState('');
+  const set = (patch: Partial<ExamWeek>) => onChange({ ...week, ...patch });
+  const lead = week.lead;
+  const left = ALL_EXAM_WEEK_PARTS.filter((p) => !lead.includes(p));
+  const move = (from: number, by: -1 | 1) => {
+    const next = lead.slice();
+    const [p] = next.splice(from, 1);
+    if (p === undefined) return;
+    next.splice(from + by, 0, p);
+    set({ lead: next });
+  };
+  const listError = err('examWeek.lead') ?? err('examWeek');
+  return (
+    <fieldset className="dedit-group" data-hub="site-exam-week">
+      <legend className="dedit-group__legend">Exam week</legend>
+      <p className="dedit__note">
+        In the days before a student’s exam, Home on a phone leads with that exam instead of the desk shelf. The rest of
+        Home stays as the student arranged it.
+      </p>
+      <Switch
+        checked={week.on}
+        onChange={(on) => set({ on })}
+        label="Lead with the next exam"
+        description="On phones, for students with an exam on the calendar."
+      />
+      <WholeNumberField
+        label="Days before the exam"
+        hint="From 1 to 28. 7 starts a week before."
+        min={1}
+        max={28}
+        value={week.daysBefore}
+        onValue={(daysBefore) => set({ daysBefore })}
+        error={err('examWeek.daysBefore')}
+        disabled={!week.on}
+      />
+      <p className="dedit__note">What leads, in this order. A part with nothing to show is left out.</p>
+      {listError ? <p className="dedit__error">{listError}</p> : null}
+      <ol role="list" className="dedit-rows__items">
+        {lead.map((p, i) => (
+          <li key={p} className="dedit-row">
+            <div className="dedit-row__fields site-block">
+              <span className="site-block__title">{EXAM_WEEK_PARTS[p].title}</span>
+              <span className="dedit__note">{EXAM_WEEK_PARTS[p].description}</span>
+            </div>
+            <span className="dedit-row__tools">
+              <IconButton
+                size="sm"
+                icon={<Icon glyph={glyph.arrowUp} />}
+                label={`Move ${EXAM_WEEK_PARTS[p].title} up`}
+                disabled={i === 0}
+                onClick={() => move(i, -1)}
+              />
+              <IconButton
+                size="sm"
+                icon={<Icon glyph={glyph.arrowDown} />}
+                label={`Move ${EXAM_WEEK_PARTS[p].title} down`}
+                disabled={i === lead.length - 1}
+                onClick={() => move(i, 1)}
+              />
+              <IconButton
+                size="sm"
+                icon={<Icon glyph={glyph.trash} />}
+                label={`Take ${EXAM_WEEK_PARTS[p].title} out`}
+                disabled={lead.length <= 1}
+                onClick={() => set({ lead: lead.filter((x) => x !== p) })}
+              />
+            </span>
+          </li>
+        ))}
+      </ol>
+      {left.length ? (
+        <Select
+          label="Add a part"
+          value={adding}
+          placeholder="Choose a part"
+          options={left.map((p) => ({ value: p, label: EXAM_WEEK_PARTS[p].title }))}
+          onChange={(e) => {
+            const p = left.find((x): x is ExamWeekPart => x === e.target.value);
+            if (p) set({ lead: [...lead, p] });
             setAdding('');
           }}
         />

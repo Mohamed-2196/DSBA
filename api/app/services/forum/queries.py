@@ -140,6 +140,7 @@ class ThreadFilters:
     tag: str | None = None
     year: int | None = None
     unanswered: bool = False  # no visible replies yet
+    answered: bool = False  # an accepted answer
     yours: uuid.UUID | None = None  # this person's threads: started, replied to or followed
     paper: str | None = None  # a library item's slug: the threads that link to it
 
@@ -162,6 +163,8 @@ def list_threads(db: Session, viewer: User | None, f: ThreadFilters, sort: Sort,
         conds.append(year_condition(f.year))
     if f.unanswered:
         conds.append(ForumThread.reply_count == 0)
+    if f.answered:
+        conds.append(ForumThread.accepted_reply_id.is_not(None))
     if f.yours is not None:
         conds.append(yours_condition(f.yours))
     if f.paper:

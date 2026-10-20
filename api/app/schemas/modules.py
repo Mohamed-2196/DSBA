@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import re
+import unicodedata
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import Field, StringConstraints
+from pydantic import AfterValidator, Field, StringConstraints, field_validator
+from pydantic_core import PydanticCustomError
 
 from app.schemas.common import ApiModel, Year
 from app.schemas.links import PictureSrc
@@ -122,6 +125,24 @@ UnitCode = Annotated[str, StringConstraints(strip_whitespace=True, to_upper=True
 Link = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)]
 Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=160)]
 Optional200 = Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
+WORD_RE = re.compile(r"[^\W_]+")
+MAX_KEYWORDS = 12
+
+
+def _search_words(value: str) -> str:
+    """A chapter word as search compares it: its words in lower case without accents, one space apart ('Cramér-Rao'
+    → 'cramer rao')."""
+    plain = "".join(ch for ch in unicodedata.normalize("NFKD", value.lower()) if not unicodedata.combining(ch))
+    words = WORD_RE.findall(plain)
+    if not words:
+        raise PydanticCustomError("keyword", "A word for search needs a letter or a digit.")
+    return " ".join(words)
+
+
+# Another word students search for a chapter by: 'mle', 'cramer rao', 'fisher information'.
+Keyword = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40), AfterValidator(_search_words)
+]
 
 
 class ModuleFields(ApiModel):
@@ -154,7 +175,14 @@ class ChapterIn(ApiModel):
     title: Title
     hidden: bool = False
     id: ChapterId | None = None  # None: a new chapter
+    # other words search finds it by: abbreviations, names of results and methods ('mle', 'cramer rao')
+    keywords: list[Keyword] = Field(default_factory=list, max_length=MAX_KEYWORDS)
     lessons: list[LessonIn] = Field(default_factory=list, max_length=200)
+
+    @field_validator("keywords")
+    @classmethod
+    def _once_each(cls, keywords: list[str]) -> list[str]:
+        return list(dict.fromkeys(keywords))
 
 
 class ModuleSave(ModuleFields):
@@ -176,6 +204,7 @@ class ChapterOut(ApiModel):
     id: str
     title: str
     hidden: bool
+    keywords: list[str]
     lessons: list[LessonOut]
 
 

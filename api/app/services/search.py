@@ -17,7 +17,7 @@ import re
 from datetime import datetime, time
 from typing import Any
 
-from sqlalchemy import and_, case, func, or_, select
+from sqlalchemy import and_, case, func, literal, or_, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -35,6 +35,7 @@ from app.models import (
     LibraryItem,
     Module,
     NewsletterIssue,
+    PaperQuestion,
     PostStatus,
     User,
 )
@@ -293,8 +294,19 @@ def _modules(db: Session, terms: list[str], limit: int, viewer: User | None) -> 
     ]
 
 
+def _keyword_text() -> ColumnElement[str]:
+    """A chapter's words for search as one text ('mle maximum likelihood cramer rao')."""
+    return func.array_to_string(Chapter.keywords, " ")
+
+
+def _matched_words(keywords: list[str], terms: list[str]) -> list[str]:
+    """The chapter's words for search that a term starts a word of: why the chapter was found."""
+    return [k for k in keywords if any(w.startswith(t) for t in terms for w in k.split())]
+
+
 def _lessons(db: Session, terms: list[str], limit: int, viewer: User | None) -> list[SearchHit]:
-    """Chapters whose title has every word, opening their first lesson; then videos whose title (with their
+    """Chapters whose title or words for search (a content manager's 'mle', 'cramer rao') have every word, opening
+    their first lesson, with how many past questions are tagged with them; then videos whose title (with their
     chapter's) has every word. YouTube titles are noisy, so chapters rank first. Within each, the viewer's modules
     first, then whole words before prefixes."""
     yours = mine_first(viewer, Module.id, Module.year)
@@ -306,21 +318,36 @@ def _lessons(db: Session, terms: list[str], limit: int, viewer: User | None) -> 
         .correlate(Chapter)
         .scalar_subquery()
     )
-    chapter_has_all = and_(*(_starts_word(Chapter.title, t) for t in terms))
+    keywords = _keyword_text()
+    chapter_has_all = and_(*(or_(_starts_word(Chapter.title, t), _starts_word(keywords, t)) for t in terms))
+    questions_on = access.feature_on(db, viewer, Feature.library) and access.feature_on(
+        db, viewer, Feature.library_questions
+    )
+    questions = (
+        select(func.count(PaperQuestion.id))
+        .join(LibraryItem, LibraryItem.id == PaperQuestion.item_id)
+        .where(PaperQuestion.chapter_id == Chapter.id, LibraryItem.status == ItemStatus.published)
+        .correlate(Chapter)
+        .scalar_subquery()
+        if questions_on
+        else literal(0)
+    )
     chapters = db.execute(
         select(
             Chapter.id,
             Chapter.title,
+            Chapter.keywords,
             Module.id.label("module_id"),
             Module.unit_code,
             Module.short_name,
             first.label("lesson_id"),
+            questions.label("questions"),
         )
         .join(Module, Module.id == Chapter.module_id)
         .where(Module.hidden.is_(False), Chapter.hidden.is_(False), chapter_has_all, first.is_not(None))
         .order_by(
             *yours,
-            _whole_words_first(Chapter.title, terms=terms),
+            _whole_words_first(Chapter.title, keywords, terms=terms),
             Module.year,
             Module.position,
             Chapter.position,
@@ -328,19 +355,22 @@ def _lessons(db: Session, terms: list[str], limit: int, viewer: User | None) -> 
         )
         .limit(limit)
     ).all()
-    hits = [
-        SearchHit(
-            type="lesson",
-            id=c.id,
-            title=c.title,
-            snippet=None,
-            url=f"/modules/{c.module_id}/lessons/{c.lesson_id}",
-            meta=" · ".join(p for p in (c.unit_code or c.short_name, "Chapter") if p),
-            date=None,
-            page=None,
+    hits = []
+    for c in chapters:
+        also = _matched_words(c.keywords, terms)
+        asked = f"{c.questions} past {'question' if c.questions == 1 else 'questions'}" if c.questions else None
+        hits.append(
+            SearchHit(
+                type="lesson",
+                id=c.id,
+                title=c.title,
+                snippet=f"Also: {', '.join(also)}" if also else None,
+                url=f"/modules/{c.module_id}/lessons/{c.lesson_id}",
+                meta=" · ".join(p for p in (c.unit_code or c.short_name, "Chapter", asked) if p),
+                date=None,
+                page=None,
+            )
         )
-        for c in chapters
-    ]
     room = limit - len(hits)
     if room <= 0:
         return hits
@@ -378,16 +408,79 @@ def _lessons(db: Session, terms: list[str], limit: int, viewer: User | None) -> 
     return hits
 
 
+# Words that ask for a date, and the calendar types they name ("exam" finds every exam, whatever its title).
+DATE_TYPES: dict[str, tuple[str, ...]] = {
+    "exam": ("exam", "mock"),
+    "exams": ("exam", "mock"),
+    "final": ("exam",),
+    "finals": ("exam",),
+    "mock": ("mock",),
+    "mocks": ("mock",),
+    "deadline": ("deadline",),
+    "deadlines": ("deadline",),
+    "due": ("deadline",),
+    "revision": ("revision",),
+    "break": ("break",),
+    "holiday": ("break",),
+    "holidays": ("break",),
+}
+# A question about a date ("when is my exam", "what date is the ST2134 exam"): words that say nothing about which.
+DATE_FILLER = frozenset(
+    [
+        "when",
+        "whens",
+        "is",
+        "are",
+        "my",
+        "the",
+        "next",
+        "what",
+        "whats",
+        "date",
+        "dates",
+        "day",
+        "do",
+        "i",
+        "have",
+        "a",
+        "an",
+        "of",
+        "for",
+        "on",
+        "s",
+        "will",
+        "be",
+        "it",
+    ]
+)
+
+
+def date_terms(terms: list[str]) -> list[str] | None:
+    """The words that pick dates out of a query that asks for one (a word naming a type of date, or "when"/"date"):
+    the query less its filler ("when is my exam" → ["exam"]). None when the query doesn't ask for a date."""
+    if not any(t in DATE_TYPES or t in {"when", "whens", "date", "dates"} for t in terms):
+        return None
+    return [t for t in terms if t not in DATE_FILLER]
+
+
 def _event_word(word: str) -> ColumnElement[bool]:
-    return or_(
+    found = or_(
         _starts_word(CalendarEvent.title, word),
         CalendarEvent.unit_code.ilike(f"%{word}%"),
         _starts_word(Module.name, word),
         _starts_word(Module.short_name, word),
     )
+    types = DATE_TYPES.get(word)
+    return or_(found, CalendarEvent.type.in_(types)) if types else found
 
 
 def _events(db: Session, terms: list[str], limit: int, viewer: User | None) -> list[SearchHit]:
+    """Dates whose title, code or module has every word. A query that asks for a date ("when is my exam", "ST2134
+    exam") leaves out its filler and finds dates by their type too ("exam" finds every exam)."""
+    picked = date_terms(terms)
+    terms = terms if picked is None else picked
+    if not terms:
+        return []
     today = bahrain_today()
     upcoming = func.coalesce(CalendarEvent.end_date, CalendarEvent.date) >= today
     rows = db.scalars(

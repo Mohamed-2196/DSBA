@@ -781,3 +781,122 @@
   color: var(--ink-3);
   font-size: var(--fs-12);
 }
+
+/* ── Exam week (IDEA-48): on a phone, the next exam leads Home instead of the desk shelf ── */
+.home-exam {
+  display: grid;
+  gap: var(--sp-20);
+  margin-bottom: var(--sp-32);
+  container: blk / inline-size;
+}
+.home-exam__title {
+  display: grid;
+  gap: 2px;
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-display);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-head);
+}
+.home-exam__eyebrow {
+  color: var(--exam);
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.home-exam__part {
+  display: grid;
+  gap: var(--sp-10);
+  min-width: 0;
+}
+.home-exam__part-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8);
+  min-height: 32px;
+}
+.home-exam__part-title {
+  font-size: var(--fs-16);
+  font-weight: var(--fw-bold);
+}
+.home-exam__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
+.home-exam__asked {
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.home-exam__link {
+  color: var(--ink);
+  font-weight: var(--fw-bold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.home-exam__link:focus-visible,
+.home-exam__date:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.home-exam__dates {
+  display: grid;
+  gap: var(--sp-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.home-exam__date {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-12);
+  min-height: 56px;
+  padding: var(--sp-10) var(--sp-16);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+.home-exam__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sec-calendar-text);
+}
+.home-exam__dot--exam,
+.home-exam__dot--mock {
+  background: var(--exam);
+}
+.home-exam__date-text {
+  display: grid;
+  min-width: 0;
+}
+.home-exam__date-title {
+  overflow: hidden;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-exam__date-meta {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
+.home-exam__date-when {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+@media (pointer: coarse) {
+  .home-exam__actions .ui-button {
+    min-height: 44px;
+  }
+}

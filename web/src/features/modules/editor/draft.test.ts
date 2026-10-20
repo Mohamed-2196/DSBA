@@ -6,6 +6,8 @@ import {
   canStepLesson,
   draftProblems,
   isDirty,
+  keywordError,
+  keywordList,
   moveChapter,
   moveLesson,
   removeLesson,
@@ -41,8 +43,14 @@ const loaded: ModuleEdit = {
   updatedAt: null,
   description: 'Means and **medians**.',
   chapters: [
-    { id: 'chone', title: 'One', hidden: false, lessons: [lesson('la', 'aaaaaaaaaaa'), lesson('lb', 'bbbbbbbbbbb')] },
-    { id: 'chtwo', title: 'Two', hidden: true, lessons: [lesson('lc', 'ccccccccccc')] },
+    {
+      id: 'chone',
+      title: 'One',
+      hidden: false,
+      keywords: ['mle', 'cramer rao'],
+      lessons: [lesson('la', 'aaaaaaaaaaa'), lesson('lb', 'bbbbbbbbbbb')],
+    },
+    { id: 'chtwo', title: 'Two', hidden: true, keywords: [], lessons: [lesson('lc', 'ccccccccccc')] },
   ],
 };
 
@@ -118,5 +126,23 @@ describe('videoKind', () => {
     ['not a link', null],
   ])('%s is %s', (url, kind) => {
     expect(videoKind(url)).toBe(kind);
+  });
+});
+
+describe('a chapter’s words for search', () => {
+  it('load as one line and save as a list', () => {
+    const d = toDraft(loaded);
+    expect(d.chapters[0]?.keywords).toBe('mle, cramer rao');
+    expect(toSave(d, 4).chapters?.[0]?.keywords).toEqual(['mle', 'cramer rao']);
+    expect(isDirty(d, loaded)).toBe(false);
+  });
+  it('show the API’s problem with the list or one word', () => {
+    expect(keywordError({ 'chapters.1.keywords.2': 'Too long' }, 1)).toBe('Too long');
+    expect(keywordError({ 'chapters.1.keywords': 'Too many' }, 1)).toBe('Too many');
+    expect(keywordError({ 'chapters.1.title': 'Needed', 'chapters.10.keywords': 'x' }, 1)).toBeUndefined();
+  });
+  it('split at commas, leaving out empty ones', () => {
+    expect(keywordList(' MLE ,, Cramér-Rao, ')).toEqual(['MLE', 'Cramér-Rao']);
+    expect(keywordList('')).toEqual([]);
   });
 });

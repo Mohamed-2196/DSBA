@@ -1,5 +1,6 @@
 // Query → grouped results for the palette. Content (modules, lessons, library items, threads, newsletter issues
-// and calendar dates) comes ranked from the API; the palette adds its own actions, pages and recent searches.
+// and calendar dates) comes ranked from the API; a signed-in student's own notes come from the notes list's own
+// search (GET /notes?q=, private to them); the palette adds its own actions, pages and recent searches.
 import type { ModuleSummary, SearchHit, SearchResults } from '../../api/types';
 import type { Feature } from '../../auth';
 import { daysBetween, formatLong, isDayKey, parseDay, today } from '../../lib/dates';
@@ -13,6 +14,7 @@ export type GroupId =
   | 'modules'
   | 'lessons'
   | 'files'
+  | 'notes'
   | 'threads'
   | 'issues'
   | 'events'
@@ -76,6 +78,7 @@ export type Item =
     })
   | (Base & { kind: 'lesson'; to: string; chapter: boolean })
   | (Base & { kind: 'file'; to: string; meta: string | null })
+  | (Base & { kind: 'note'; to: string })
   | (Base & { kind: 'thread'; to: string; meta: string | null })
   | (Base & { kind: 'issue'; to: string; number: number | null })
   | (Base & {
@@ -124,6 +127,7 @@ export const GROUPS: Record<GroupId, { label: string; cap?: number; noun?: strin
   modules: { label: 'Modules', cap: 4, noun: 'modules' },
   lessons: { label: 'Lessons', cap: 3, noun: 'lessons' },
   files: { label: 'Library', cap: 3, noun: 'files' },
+  notes: { label: 'Your notes', cap: 3, noun: 'notes' },
   threads: { label: 'Forum', cap: 3, noun: 'threads' },
   issues: { label: 'Newsletter', cap: 2, noun: 'issues' },
   events: { label: 'Calendar', cap: 3, noun: 'dates' },
@@ -134,9 +138,9 @@ export const GROUPS: Record<GroupId, { label: string; cap?: number; noun?: strin
   fallback: { label: 'Search somewhere else' },
 };
 
-const CONTENT_ORDER: readonly GroupId[] = ['modules', 'lessons', 'files', 'threads', 'issues', 'events'];
+const CONTENT_ORDER: readonly GroupId[] = ['modules', 'lessons', 'files', 'notes', 'threads', 'issues', 'events'];
 
-/** Words that ask "when": a query starting with one puts the calendar first ("exam", "deadline st2133"). */
+/** Words that ask "when": a query with one puts the calendar first ("exam", "ST2134 exam", "when is my exam"). */
 const DATE_WORDS: ReadonlySet<string> = new Set([
   'exam',
   'exams',
@@ -150,11 +154,15 @@ const DATE_WORDS: ReadonlySet<string> = new Set([
   'mocks',
   'registration',
   'when',
+  'date',
+  'dates',
+  'final',
+  'finals',
 ]);
 
-/** The order of the content groups for a query's words: the calendar first when the first word asks "when". */
+/** The order of the content groups for a query's words: the calendar first when a word asks "when" (ST-73). */
 export function contentOrder(tokens: readonly string[]): GroupId[] {
-  if (tokens.length && DATE_WORDS.has(tokens[0].toLowerCase()))
+  if (tokens.some((t) => DATE_WORDS.has(t.toLowerCase())))
     return ['events', ...CONTENT_ORDER.filter((id) => id !== 'events')];
   return [...CONTENT_ORDER];
 }
@@ -447,6 +455,38 @@ const eventTypeOf = (meta: string | null): EventType | null => {
 /** The API's meta ('ST2133 · 3 replies') in the Hub's own style: parts joined with commas, never middle dots. */
 const plainMeta = (meta: string | null): string | null => (meta ? meta.split(/\s+·\s+/).join(', ') : null);
 
+const lessonIsChapter = (hit: SearchHit): boolean => (hit.meta ?? '').split(/\s+·\s+/)[1] === 'Chapter';
+
+/**
+ * A lesson hit's line. meta: 'EC1002 · Chapter' (with '· 12 past questions' when some are tagged) or 'EC1002 · Video'.
+ * A chapter's snippet says which of its words for search matched ('Also: mle'); a video's is its chapter.
+ */
+export function lessonSubtitle(hit: Pick<SearchHit, 'meta' | 'snippet'>): string {
+  const [code, what = '', ...rest] = (hit.meta ?? '').split(/\s+·\s+/);
+  const chapter = what === 'Chapter';
+  const label = [code, chapter ? 'chapter' : 'video'].filter(Boolean).join(' ');
+  if (!chapter) return hit.snippet ? `${label}, in ${hit.snippet}` : label;
+  const line = [label, ...rest].join(', ');
+  return hit.snippet ? `${line}. ${hit.snippet}` : line;
+}
+
+/** A note as the palette lists it: what it's called, the start of its text, and the note to open. */
+export interface NoteHit {
+  id: string;
+  /** its title, else its first line (notes' noteLabel) */
+  label: string;
+  excerpt: string;
+}
+
+const noteItem = (n: NoteHit): Item => ({
+  id: `note:${n.id}`,
+  group: 'notes',
+  kind: 'note',
+  title: n.label,
+  subtitle: n.excerpt.replace(/\s+/g, ' ').trim().slice(0, 120) || null,
+  to: `/notes/${encodeURIComponent(n.id)}`,
+});
+
 function toItem(
   hit: SearchHit,
   group: GroupId,
@@ -472,11 +512,7 @@ function toItem(
       };
     }
     case 'lesson': {
-      // meta: 'EC1002 · Chapter' or 'EC1002 · Video'; a video's snippet is its chapter.
-      const [code, what = ''] = (hit.meta ?? '').split(/\s+·\s+/);
-      const chapter = what === 'Chapter';
-      const label = [code, chapter ? 'chapter' : 'video'].filter(Boolean).join(' ');
-      return { ...base, kind: 'lesson', chapter, subtitle: hit.snippet ? `${label}, in ${hit.snippet}` : label, to };
+      return { ...base, kind: 'lesson', chapter: lessonIsChapter(hit), subtitle: lessonSubtitle(hit), to };
     }
     case 'library':
       return {
@@ -541,6 +577,8 @@ export interface SearchInput {
   portals?: readonly Portal[];
   /** What to try searching for before anything is typed (Site settings' searchSuggestions), once they have loaded. */
   suggestions?: readonly string[];
+  /** The signed-in student's own notes matching the query (undefined for a guest, or while notes are off). */
+  notes?: readonly NoteHit[];
   now?: Date;
 }
 
@@ -585,6 +623,7 @@ export function runSearch({
   offers,
   portals = [],
   suggestions = [],
+  notes = [],
   now = new Date(),
 }: SearchInput): Results {
   const cohortMatch = YEAR_RE.exec(query);
@@ -671,6 +710,7 @@ export function runSearch({
     files: off('library')
       ? []
       : (results?.library ?? []).map((h) => toItem(h, 'files', lookup, now)).filter((i): i is Item => !!i),
+    notes: off('notes') ? [] : notes.map(noteItem),
     threads: off('forum')
       ? []
       : (results?.threads ?? []).map((h) => toItem(h, 'threads', lookup, now)).filter((i): i is Item => !!i),

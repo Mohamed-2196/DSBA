@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SearchResults } from '../../api/types';
-import { contentOrder, runSearch, type SearchInput } from './search';
+import { contentOrder, lessonSubtitle, runSearch, type SearchInput } from './search';
 
 const base: SearchInput = {
   query: '',
@@ -202,7 +202,10 @@ describe('runSearch', () => {
     const both = results({ library: [file], events: [event] });
     const groupsOf = (query: string) => runSearch({ ...base, query, results: both }).groups.map((g) => g.id);
     expect(groupsOf('exam st2133')).toEqual(['events', 'files']);
-    expect(groupsOf('st2133 exam')).toEqual(['files', 'events']);
+    // ST-73: a date word anywhere leads with the calendar
+    expect(groupsOf('st2133 exam')).toEqual(['events', 'files']);
+    expect(groupsOf('when is my exam')).toEqual(['events', 'files']);
+    expect(groupsOf('st2133 notes')).toEqual(['files', 'events']);
     expect(contentOrder(['Deadline'])[0]).toBe('events');
   });
 
@@ -214,5 +217,49 @@ describe('runSearch', () => {
     });
     expect(r.corrected).toBe('hypothesis');
     expect(runSearch({ ...base, query: 'mgf', results: results({ library: [file] }) }).corrected).toBeNull();
+  });
+});
+
+describe('your notes in the palette (IDEA-51)', () => {
+  const notes = [
+    { id: 'n1', label: 'MGF trick', excerpt: 'Differentiate the MGF\n at zero' },
+    { id: 'n2', label: 'Untitled note', excerpt: '' },
+  ];
+
+  it('lists the student’s own notes after the library, each opening the note', () => {
+    const r = runSearch({ ...base, query: 'mgf', results: results({ library: [file], threads: [thread] }), notes });
+    expect(r.groups.map((g) => g.id)).toEqual(['files', 'notes', 'threads']);
+    const group = r.groups.find((g) => g.id === 'notes');
+    expect(group?.label).toBe('Your notes');
+    expect(group?.items[0]).toMatchObject({
+      kind: 'note',
+      title: 'MGF trick',
+      subtitle: 'Differentiate the MGF at zero',
+      to: '/notes/n1',
+    });
+    expect(group?.items[1]?.subtitle).toBeNull();
+  });
+
+  it('has no notes group for a guest, or while notes are off', () => {
+    const guest = runSearch({ ...base, query: 'mgf', results: results({ library: [file] }) });
+    expect(guest.groups.map((g) => g.id)).not.toContain('notes');
+    const off = runSearch({ ...base, query: 'mgf', notes, isOn: (f) => f !== 'notes' });
+    expect(off.groups.map((g) => g.id)).not.toContain('notes');
+  });
+
+  it('finds a note even when nothing else matched', () => {
+    const r = runSearch({ ...base, query: 'mgf', results: results(), notes });
+    expect(r.empty).toBe(false);
+    expect(r.groups[0]?.id).toBe('notes');
+  });
+});
+
+describe('lessonSubtitle (IDEA-50)', () => {
+  it('says why a chapter was found and how many past questions it has', () => {
+    expect(lessonSubtitle({ meta: 'ST2134 · Chapter · 55 past questions', snippet: 'Also: mle' })).toBe(
+      'ST2134 chapter, 55 past questions. Also: mle',
+    );
+    expect(lessonSubtitle({ meta: 'ST2134 · Chapter', snippet: null })).toBe('ST2134 chapter');
+    expect(lessonSubtitle({ meta: 'EC1002 · Video', snippet: 'Elasticity' })).toBe('EC1002 video, in Elasticity');
   });
 });

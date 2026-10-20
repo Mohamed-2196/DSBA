@@ -151,6 +151,14 @@
             "title": "Importance of Elasticity of Demand (Economics)",
             "channel": "RAIS Literature"
           }
+        ],
+        "keywords": [
+          "ped",
+          "yed",
+          "xed",
+          "price elasticity",
+          "income elasticity",
+          "cross elasticity"
         ]
       },
       {
@@ -178,6 +186,13 @@
             "title": "Example Income and Subsitution Effects For Normal and Inferior Goods",
             "channel": "Economicsfun"
           }
+        ],
+        "keywords": [
+          "indifference curve",
+          "budget constraint",
+          "utility",
+          "income effect",
+          "substitution effect"
         ]
       },
       {
@@ -198,6 +213,12 @@
             "title": "Intermediate Microeconomics: Costs of Production",
             "channel": "DrAzevedoEcon"
           }
+        ],
+        "keywords": [
+          "cost curves",
+          "production function",
+          "marginal cost",
+          "returns to scale"
         ]
       },
       {
@@ -258,6 +279,13 @@
             "title": "Intermediate Microeconomics: Imperfect Competition - Oligopoly and Monopolistic Competition, Part 3",
             "channel": "DrAzevedoEcon"
           }
+        ],
+        "keywords": [
+          "oligopoly",
+          "monopolistic competition",
+          "game theory",
+          "cournot",
+          "bertrand"
         ]
       },
       {
@@ -291,6 +319,12 @@
             "title": "The Edgeworth Box",
             "channel": "Katherine Silz-Carson"
           }
+        ],
+        "keywords": [
+          "externalities",
+          "public goods",
+          "deadweight loss",
+          "consumer surplus"
         ]
       },
       {
@@ -384,6 +418,11 @@
             "kind": "youtube-playlist",
             "videoId": "PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y"
           }
+        ],
+        "keywords": [
+          "multiplier",
+          "keynesian cross",
+          "is lm"
         ]
       },
       {
@@ -459,6 +498,11 @@
             "title": "Chapter 34: The Influence of Monetary and Fiscal Policy",
             "channel": "DrAzevedoEcon"
           }
+        ],
+        "keywords": [
+          "is lm",
+          "fiscal policy",
+          "monetary policy"
         ]
       },
       {
@@ -493,6 +537,11 @@
             "title": "The Taylor Rule and the Fed Funds Rate Target",
             "channel": "BurkeyAcademy"
           }
+        ],
+        "keywords": [
+          "ad as",
+          "aggregate demand",
+          "aggregate supply"
         ]
       },
       {
@@ -547,6 +596,10 @@
             "videoId": "522lWzrot1c",
             "unavailable": true
           }
+        ],
+        "keywords": [
+          "cpi",
+          "phillips curve"
         ]
       },
       {
@@ -636,6 +689,10 @@
             "title": "The relationship between the Current Account Balance and Exchange Rates",
             "channel": "Jason Welker"
           }
+        ],
+        "keywords": [
+          "balance of payments",
+          "exchange rate"
         ]
       },
       {
@@ -1050,6 +1107,12 @@
             "title": "Continuity and Differentiability",
             "channel": "The Organic Chemistry Tutor"
           }
+        ],
+        "keywords": [
+          "derivative",
+          "chain rule",
+          "product rule",
+          "quotient rule"
         ]
       },
       {
@@ -1112,6 +1175,12 @@
             "title": "Maximum Tax Revenue: Graphs, Algebra, and Analytics",
             "channel": "BurkeyAcademy"
           }
+        ],
+        "keywords": [
+          "maxima",
+          "minima",
+          "stationary point",
+          "second derivative test"
         ]
       },
       {
@@ -1188,6 +1257,11 @@
             "title": "Solving for Consumer, Producer, and Social Surplus using Integration",
             "channel": "Justin Eloriaga"
           }
+        ],
+        "keywords": [
+          "integral",
+          "integration by parts",
+          "substitution"
         ]
       },
       {
@@ -1257,6 +1331,10 @@
             "title": "Determine if a Function is a Homogeneous Function",
             "channel": "Mathispower4u"
           }
+        ],
+        "keywords": [
+          "partial derivative",
+          "partial differentiation"
         ]
       },
       {
@@ -1290,6 +1368,12 @@
             "videoId": "Ob56YXIV3rM",
             "unavailable": true
           }
+        ],
+        "keywords": [
+          "lagrange",
+          "lagrangian",
+          "constrained optimisation",
+          "hessian"
         ]
       },
       {
@@ -1320,6 +1404,13 @@
             "title": "Diagonalization",
             "channel": "Professor Dave Explains"
           }
+        ],
+        "keywords": [
+          "matrix",
+          "determinant",
+          "inverse",
+          "gaussian elimination",
+          "linear equations"
         ]
       },
       {
@@ -1480,6 +1571,11 @@
             "title": "A Differential Equation for Supply, Demand and Price of a Commodity",
             "channel": "Mike, the Mathematician"
           }
+        ],
+        "keywords": [
+          "ode",
+          "first order",
+          "separable"
         ]
       },
       {
@@ -1507,6 +1603,10 @@
             "title": "System of two homogeneous first oder linear differential equations",
             "channel": "Constantin Bürgi"
           }
+        ],
+        "keywords": [
+          "recurrence",
+          "recurrence relation"
         ]
       }
     ]
@@ -1581,6 +1681,13 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/1e139c2089d0b1ba102b6ca80ee7a9b21ef67ab4-1727605984348"
           }
+        ],
+        "keywords": [
+          "bayes",
+          "conditional probability",
+          "independence",
+          "permutations",
+          "combinations"
         ]
       },
       {
@@ -1617,6 +1724,13 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/d26b5547690da25c7c95c9b6f9d883b8f02989db-1728815259448"
           }
+        ],
+        "keywords": [
+          "expected value",
+          "variance",
+          "pdf",
+          "cdf",
+          "pmf"
         ]
       },
       {
@@ -1653,6 +1767,13 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/35aa8fdc99ebc6c514900e0d10d6475efc1e6f0c-1730024840073"
           }
+        ],
+        "keywords": [
+          "binomial",
+          "poisson",
+          "normal distribution",
+          "exponential",
+          "uniform"
         ]
       },
       {
@@ -1689,6 +1810,11 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0ed04dc535441cd50b10300abd8d4e0afba73d1d-1731234443655"
           }
+        ],
+        "keywords": [
+          "joint distribution",
+          "covariance",
+          "correlation"
         ]
       },
       {
@@ -1746,6 +1872,13 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/c0b7acbeb8c3b0ffc38afd3f83b9fc61da015210-1737628152762"
           }
+        ],
+        "keywords": [
+          "clt",
+          "central limit theorem",
+          "t distribution",
+          "chi squared",
+          "f distribution"
         ]
       },
       {
@@ -1779,6 +1912,14 @@
             "title": "Proof that the Sample Variance is an Unbiased Estimator of the Population Variance",
             "channel": "jbstatistics"
           }
+        ],
+        "keywords": [
+          "mle",
+          "maximum likelihood",
+          "method of moments",
+          "least squares",
+          "unbiased",
+          "mse"
         ]
       },
       {
@@ -1795,6 +1936,10 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/f62fa560cba372898a14413bade50ab996365917-1733826609321"
           }
+        ],
+        "keywords": [
+          "confidence interval",
+          "ci"
         ]
       },
       {
@@ -1831,6 +1976,13 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/c0b7acbeb8c3b0ffc38afd3f83b9fc61da015210-1737628152762"
           }
+        ],
+        "keywords": [
+          "hypothesis test",
+          "p value",
+          "t test",
+          "type i error",
+          "type ii error"
         ]
       },
       {
@@ -1847,6 +1999,10 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/6e912f7d532e2fbc50da2e22068e401a7bb0e69d-1738837727859"
           }
+        ],
+        "keywords": [
+          "analysis of variance",
+          "f test"
         ]
       },
       {
@@ -1883,6 +2039,12 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/de69448ae26c52ed01d9b99dcab3e38fb0a9e14c-1740479374347"
           }
+        ],
+        "keywords": [
+          "regression",
+          "ols",
+          "least squares",
+          "r squared"
         ]
       }
     ]
@@ -1980,6 +2142,12 @@
             "title": "[Chapter 1] #6 Multinomial coefficients",
             "channel": "Jingchen (Monika) Hu"
           }
+        ],
+        "keywords": [
+          "sample space",
+          "sigma algebra",
+          "probability measure",
+          "bayes"
         ]
       },
       {
@@ -2112,6 +2280,14 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/8061cbb90479322d62103f4b3f064c2fab667d9a-1761647247144"
           }
+        ],
+        "keywords": [
+          "mgf",
+          "moment generating function",
+          "pdf",
+          "cdf",
+          "pmf",
+          "transformation"
         ]
       },
       {
@@ -2153,6 +2329,13 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0f456d30b127e87c64e74649ca14200360538049-1764498735170"
           }
+        ],
+        "keywords": [
+          "joint distribution",
+          "covariance",
+          "correlation",
+          "bivariate normal",
+          "jacobian"
         ]
       },
       {
@@ -2189,6 +2372,12 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/8ed57c5fb6c2242f5900c636c888db5986ee90ac-1768905017112"
           }
+        ],
+        "keywords": [
+          "conditional expectation",
+          "conditional variance",
+          "law of total probability",
+          "tower property"
         ]
       }
     ]
@@ -2253,6 +2442,11 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/699b293e1c1a500fbbfdb86c91d5bf23100f063a-1759736056977"
           }
+        ],
+        "keywords": [
+          "statistical inference",
+          "sampling distribution",
+          "estimator"
         ]
       },
       {
@@ -2309,6 +2503,16 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/79272bdd636fb2ffe16599a9785394f4ccd01d94-1763537702123"
           }
+        ],
+        "keywords": [
+          "mle",
+          "maximum likelihood",
+          "method of moments",
+          "cramer rao",
+          "fisher information",
+          "unbiased",
+          "mse",
+          "sufficiency"
         ]
       },
       {
@@ -2365,6 +2569,12 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0dc6d98edeb745d624887f1cc4a77fe434fb64fa-1769585468937"
           }
+        ],
+        "keywords": [
+          "confidence interval",
+          "ci",
+          "pivotal quantity",
+          "interval estimation"
         ]
       },
       {
@@ -2376,6 +2586,15 @@
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/324829eb5f32555a0ca7aed9512ab9824b95b0a6-1767597309113"
           }
+        ],
+        "keywords": [
+          "hypothesis test",
+          "p value",
+          "likelihood ratio",
+          "neyman pearson",
+          "power",
+          "type i error",
+          "type ii error"
         ]
       }
     ]
@@ -2956,6 +3175,11 @@
             "title": "Decision Analysis 4 (Tree): EVSI - Expected Value of Sample Information",
             "channel": "Joshua Emmanuel"
           }
+        ],
+        "keywords": [
+          "emv",
+          "expected monetary value",
+          "decision tree"
         ]
       },
       {
@@ -3166,6 +3390,10 @@
             "title": "Linear Programming - Shadow Price, Slack/Surplus calculations",
             "channel": "Joshua Emmanuel"
           }
+        ],
+        "keywords": [
+          "linear programming",
+          "solver"
         ]
       },
       {
@@ -3193,6 +3421,10 @@
             "title": "Basic Excel Business Analytics #66: Monte Carlo Simulation for New Product, 3 Uncertain Variables",
             "channel": "excelisfun"
           }
+        ],
+        "keywords": [
+          "monte carlo",
+          "simulation"
         ]
       }
     ]
@@ -3241,6 +3473,12 @@
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 2: The Simple Regression Model",
             "channel": "youtube-economist"
           }
+        ],
+        "keywords": [
+          "ols",
+          "slr",
+          "least squares",
+          "r squared"
         ]
       },
       {
@@ -3254,6 +3492,13 @@
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 3: Multiple Regression Analysis: Estimation",
             "channel": "youtube-economist"
           }
+        ],
+        "keywords": [
+          "ols",
+          "mlr",
+          "omitted variable bias",
+          "gauss markov",
+          "multicollinearity"
         ]
       },
       {
@@ -3267,6 +3512,12 @@
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 4: Inference",
             "channel": "youtube-economist"
           }
+        ],
+        "keywords": [
+          "t test",
+          "f test",
+          "p value",
+          "confidence interval"
         ]
       },
       {
@@ -3280,6 +3531,11 @@
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 5: OLS Asymptotics",
             "channel": "youtube-economist"
           }
+        ],
+        "keywords": [
+          "consistency",
+          "asymptotic normality",
+          "large sample"
         ]
       },
       {
@@ -3293,6 +3549,13 @@
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 8: Heteroskedasticity",
             "channel": "youtube-economist"
           }
+        ],
+        "keywords": [
+          "white test",
+          "breusch pagan",
+          "robust standard errors",
+          "wls",
+          "gls"
         ]
       },
       {
@@ -3306,6 +3569,13 @@
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 12: Serial corr. and heterosk. in time series",
             "channel": "youtube-economist"
           }
+        ],
+        "keywords": [
+          "autocorrelation",
+          "serial correlation",
+          "stationarity",
+          "trend",
+          "seasonality"
         ]
       },
       {
@@ -3319,6 +3589,12 @@
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 15/16: Instrumental variables estimation",
             "channel": "youtube-economist"
           }
+        ],
+        "keywords": [
+          "iv",
+          "2sls",
+          "instruments",
+          "endogeneity"
         ]
       }
     ]

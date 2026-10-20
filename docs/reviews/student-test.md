@@ -52,7 +52,7 @@ ST-19 (a double tap on Send request makes two requests) is still open.
 | ST-70 | minor | Yusuf, phone | Offline, a page whose code wasn't loaded yet (a thread, Career) shows "Something went wrong while showing this page" |
 | ST-71 | minor | Maryam, 844×390 | Landscape phone: the rail shows Home, Modules and Library, the rest hidden under the theme and profile footer; the forum's first thread starts at 444 px of 390 |
 | ST-72 | minor | Yusuf, 390 and 360 | The forum band's "1 question is waiting for a first reply" breaks: the number alone on the left, the text centred over two lines |
-| ST-73 | minor | Yusuf, laptop | Search: "ST2134 exam" lists 10 library files before its Calendar group; "when is my exam" finds no date at all |
+| ST-73 | minor, fixed | Yusuf, laptop | Search: "ST2134 exam" lists 10 library files before its Calendar group; "when is my exam" finds no date at all |
 | ST-74 | nit | Huda, phone | Deleting a newsletter issue leaves its notifications, which open "We couldn't find that issue" |
 | ST-75 | nit | Rashid, laptop | An issue with no sections can be published, and "Publish and notify everyone" doesn't warn |
 | ST-76 | nit | Huda, 768 tablet | The tablet rail is 13 icons with no labels; Boards, Grades, Career, Newsletter, Daily and Requests are hard to tell apart |
@@ -134,6 +134,9 @@ ST-19 (a double tap on Send request makes two requests) is still open.
 - Good: "regresion" is read as "regression", "الانحدار" finds the Arabic thread, "integration by parts" finds the
   lessons, the workbook and the thread, and Enter opens the first result.
 - Screenshot: `search-laptop-1.png`.
+- **Fixed** (round 16, `round16/home16`): a date word anywhere in the query puts the Calendar first, and the API
+  reads "when is my exam" and "ST2134 exam" as dates by their type, filler left out
+  (`test_a_question_about_a_date_finds_the_dates`, `search.test.ts`).
 
 #### ST-74 to ST-82 (nits)
 

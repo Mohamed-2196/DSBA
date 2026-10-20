@@ -360,3 +360,72 @@ def test_a_misspelt_query_is_corrected_when_it_finds_nothing(
     for q in ("zqxwvk", "ST9999", "hyp"):
         nothing = search(guest, q)
         assert nothing["corrected"] is None, q
+
+
+ST2134 = "advanced-stats-inferential"
+POINT_ESTIMATION = "dzzxifwd"  # ST2134's chapter, with the seed's words for search ('mle', 'cramer rao', …)
+
+
+def test_chapter_words_find_the_chapter_and_its_past_questions(
+    db: Session, modules: dict[str, Module], student: User, client_for: Clients, set_feature: Callable[..., None]
+) -> None:
+    """IDEA-50: "MLE" finds ST2134's Point Estimation (a Year 2 student's own module first), says why, and how many
+    past questions are tagged with it; a word in two parts ("cramer rao") does too, and a chapter's title still
+    finds it."""
+    from app.models import PaperQuestion
+
+    paper = _link("st2134-may-2024", "ST2134 May 2024", "past-paper", ST2134)
+    paper.exam_year = 2024
+    db.add(paper)
+    db.flush()
+    db.add_all([PaperQuestion(item_id=paper.id, chapter_id=POINT_ESTIMATION, question=n) for n in (1, 3)])
+    db.commit()
+
+    # past questions by topic switched off: no count
+    off = search(client_for(student), "MLE", types=["lesson"])["lessons"]
+    assert (off[0]["id"], off[0]["meta"]) == (POINT_ESTIMATION, "ST2134 · Chapter")
+    set_feature("library.questions", "everyone")
+    hits = search(client_for(student), "MLE", types=["lesson"])["lessons"]
+    assert hits[0]["id"] == POINT_ESTIMATION
+    assert (hits[0]["title"], hits[0]["meta"]) == ("Point Estimation", "ST2134 · Chapter · 2 past questions")
+    assert hits[0]["snippet"] == "Also: mle"
+    assert hits[0]["url"].startswith(f"/modules/{ST2134}/lessons/")
+    assert "hhfxb62g" in [h["id"] for h in hits]  # ST1215's Point Estimation has the word too
+
+    guest = search(client_for(), "cramer rao", types=["lesson"])["lessons"]
+    assert guest[0]["id"] == POINT_ESTIMATION
+    assert guest[0]["snippet"] == "Also: cramer rao"
+    titled = search(client_for(), "point estimation", types=["lesson"])["lessons"]
+    assert POINT_ESTIMATION in [h["id"] for h in titled]
+    assert next(h for h in titled if h["id"] == POINT_ESTIMATION)["snippet"] is None
+
+
+def test_a_question_about_a_date_finds_the_dates(
+    db: Session, modules: dict[str, Module], student: User, client_for: Clients
+) -> None:
+    """ST-73: "when is my exam" finds the student's exam, and "ST2134 exam" that module's, though neither title says
+    "when", "my" or "exam"; filler alone finds no dates."""
+    today, day = bahrain_today(), dt.timedelta(days=1)
+    db.add_all(
+        [
+            CalendarEvent(
+                id="st2134-final",
+                date=today + 5 * day,
+                title="Statistical Inference",
+                type="exam",
+                year=2,
+                module_id=ST2134,
+                unit_code="ST2134",
+            ),
+            CalendarEvent(id="ec1002-final", date=today + 2 * day, title="Economics", type="exam", year=1),
+            CalendarEvent(id="st2134-deadline", date=today + day, title="ST2134 coursework", type="deadline", year=2),
+        ]
+    )
+    db.commit()
+    mine = search(client_for(student), "when is my exam")["events"]
+    assert titles(mine)[:2] == ["Statistical Inference", "Economics"]  # their year first
+    coded = search(client_for(student), "ST2134 exam")["events"]
+    assert titles(coded) == ["Statistical Inference"]
+    due = search(client_for(), "when is the deadline")["events"]
+    assert titles(due) == ["ST2134 coursework"]
+    assert search(client_for(), "when is")["events"] == []

@@ -7,6 +7,7 @@
 //   <UploadsQueue />                    moderators' review queue (Manage's Uploads section)
 //   <FlaggedQuestions />                question tags flagged as wrong, to keep or remove (Manage's Uploads section)
 //   libraryItemPath(item)               '/library/<slug>', the item's page
+//   libraryTimeMeHref(item)             the paper's page with Time me started
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …
 //   libraryItemTitle(item, moduleTag)   how lists name an item: a paper by its sitting ('ST2133 · May 2019 · Zone A',
 //                                        or without the code when moduleTag is null), anything else by its title
@@ -37,7 +38,7 @@ import { Skeleton } from '../../ui';
 export { useRecentFiles } from './api';
 export { questionNumber, useModuleQuestions, usePaperSittings } from './papers';
 export { SittingsTable } from './components/SittingsTable';
-export { itemPath as libraryItemPath } from './api';
+export { itemPath as libraryItemPath, timeMeHref as libraryTimeMeHref } from './api';
 export { examTitle as libraryItemTitle, isNew as isNewLibraryItem } from './display';
 export {
   EXAM_KINDS as LIBRARY_EXAM_KINDS,

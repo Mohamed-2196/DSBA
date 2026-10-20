@@ -1119,3 +1119,18 @@ def test_a_deleted_module_leaves_its_notebook(
     db.commit()
     got = c.get(f"{API}/notes/{note['id']}").json()
     assert (got["moduleId"], got["notebookId"]) == (None, note["notebookId"])
+
+
+def test_searching_notes_finds_only_your_own(
+    client_for: Callable[..., TestClient], make_user: Callable[..., User]
+) -> None:
+    """IDEA-51: the ⌘K palette's "Your notes" asks GET /notes?q=: each student finds their own notes and never
+    another student's, and a guest gets nothing."""
+    sara, omar = make_user(name="Sara Notes", year=2), make_user(name="Omar Notes", year=2)
+    mine = new_note(client_for(sara), "The MGF trick: differentiate at zero", title="MGF trick")
+    theirs = new_note(client_for(omar), "My MGF trick is different", title="Omar's MGF trick")
+    found = client_for(sara).get(f"{API}/notes", params={"q": "mgf tri", "limit": 5}).json()
+    assert ([n["id"] for n in found["items"]], found["total"]) == ([mine["id"]], 1)
+    other = client_for(omar).get(f"{API}/notes", params={"q": "mgf"}).json()["items"]
+    assert [n["id"] for n in other] == [theirs["id"]]
+    assert client_for().get(f"{API}/notes", params={"q": "mgf"}).status_code == 401

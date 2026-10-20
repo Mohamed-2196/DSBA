@@ -977,7 +977,8 @@ Quick wins are marked **quick win** in the heading.
 - **Costs and risks:** Home moving on its own may surprise students who customised it, so it only changes the first
   block and says why ("Exam week: MT1186 Thursday").
 - **How we'd know it worked:** papers opened from Home in exam weeks; Home's scroll depth on phones.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/home16`), as an admin setting: Manage → Site settings → Home and the tour → Exam
+  week (on or off, days before, which parts lead in order). Phones upright or on their side; the desk shelf gives way.
 
 ### IDEA-49. Asked before, on the module page · quick win
 
@@ -989,7 +990,7 @@ Quick wins are marked **quick win** in the heading.
 - **Size:** S, web only.
 - **Costs and risks:** none; it shows what's already public.
 - **How we'd know it worked:** threads opened from module pages; fewer duplicate threads.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/home16`): `GET /forum/threads?answered=true&sort=top`; the card sits above Discussion.
 
 ## Round 16 · Finding it
 
@@ -1005,7 +1006,8 @@ Quick wins are marked **quick win** in the heading.
 - **Size:** S, both.
 - **Costs and risks:** a content manager types the words, once per chapter; Haiku could suggest them during tagging.
 - **How we'd know it worked:** chapter results opened from search; searches ending without a click.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/home16`), as words on each chapter (Manage → Modules; seeded for 46 chapters,
+  `seed --only chapter-words` for a catalogue loaded before). The result opens the chapter's first lesson.
 
 ### IDEA-51. Your notes in search · quick win
 
@@ -1016,7 +1018,7 @@ Quick wins are marked **quick win** in the heading.
 - **Size:** S, web only.
 - **Costs and risks:** none; the query goes to the same private endpoint the notes page uses, never into `/search`.
 - **How we'd know it worked:** notes opened from the palette.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/home16`).
 
 ### IDEA-52. What's in this recording
 
