@@ -7,6 +7,7 @@ from uuid import UUID
 from pydantic import Field, HttpUrl, StringConstraints
 
 from app.schemas.common import ApiModel, Page, UserPublic, Year
+from app.schemas.modules import StudyTopic, StudyTopicId
 
 EXAM_YEAR_MIN, EXAM_YEAR_MAX = 1990, 2100  # the exam years a past paper may give
 
@@ -181,6 +182,7 @@ class PaperSittings(ApiModel):
 # ── past questions by chapter ────────────────────────────────────────────────────────────────
 
 QUESTION_MAX, PAGE_MAX = 40, 999
+TOPICS_MAX = 3  # a tag's study-guide topics
 Section = Annotated[str, StringConstraints(pattern=r"^[A-Z]$")]  # 'B' of "B1"
 
 
@@ -192,6 +194,8 @@ class PaperQuestionCreate(ApiModel):
     question: int = Field(ge=1, le=QUESTION_MAX)
     chapter_id: Annotated[str, StringConstraints(min_length=1, max_length=16)]
     page: int | None = Field(default=None, ge=1, le=PAGE_MAX)  # where the question starts in the PDF
+    # The chapter's study-guide topics the question tests (ModuleDetail's chapters list them); none is fine.
+    topic_ids: list[StudyTopicId] = Field(default_factory=list, max_length=TOPICS_MAX)
 
 
 class PaperRef(ApiModel):
@@ -217,6 +221,7 @@ class PaperQuestion(ApiModel):
     paper: PaperRef
     chapter_id: str
     chapter_title: str
+    topics: list[StudyTopic]  # the chapter's study-guide topics it tests, in the guide's order; none: not told yet
     section: str | None  # 'B' of "B1"; None: the paper numbers right through ("Q3")
     question: int
     page: int | None

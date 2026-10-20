@@ -208,7 +208,15 @@ def test_a_request_holds_the_modules_chapters_the_pages_and_a_schema_of_its_chap
     assert fmt["type"] == "json_schema"
     question = fmt["schema"]["properties"]["questions"]["items"]
     assert question["properties"]["chapter_ids"]["items"]["enum"] == chapter_ids(db)
-    assert question["required"] == ["section", "question", "start_page", "anchor", "chapter_ids", "confidence"]
+    assert question["required"] == [
+        "section",
+        "question",
+        "start_page",
+        "anchor",
+        "chapter_ids",
+        "topic_ids",
+        "confidence",
+    ]
     assert question["properties"]["section"]["anyOf"] == [
         {"type": "string", "enum": [chr(c) for c in range(ord("A"), ord("Z") + 1)]},
         {"type": "null"},
@@ -478,7 +486,7 @@ def test_the_shipped_seed_file_is_a_list_of_papers() -> None:
     for e in entries:
         assert set(e) == {"module", "title", "importKey", "contentHash", "model", "questions"}
         for x in e["questions"]:
-            assert set(x) - {"section", "anchor"} == {"question", "page", "chapters"}
+            assert set(x) - {"section", "anchor", "topics"} == {"question", "page", "chapters"}
             assert x.get("anchor") is None or (x["page"] and 0 < len(x["anchor"]) <= 160)
             assert x.get("section", "A") in qt.SECTIONS
 

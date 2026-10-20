@@ -47,6 +47,7 @@ from app.schemas.library import (
     TaggingState,
     Zone,
 )
+from app.schemas.modules import ChapterId, StudyTopicId
 from app.services import library as svc
 from app.services import paper_tagging, past_questions, question_marks
 from app.services.search import text_query, words
@@ -230,12 +231,19 @@ def review(item_id: UUID, body: ReviewDecision, request: Request, user: LibraryM
 
 @router.get("/library/questions", response_model=list[PaperQuestion], dependencies=QUESTIONS)
 def module_questions(
-    db: DB, user: OptionalUser, module_id: str | None = None, flagged: bool = False
+    db: DB,
+    user: OptionalUser,
+    module_id: str | None = None,
+    flagged: bool = False,
+    chapter_id: ChapterId | None = None,
+    topic_id: StudyTopicId | None = None,
 ) -> list[PaperQuestion]:
-    """The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.
-    `flagged`: only the tags someone flagged, the most flagged first, of `module_id` or of every module (library
-    managers; 403 for others). Errors: invalid_input (422: an unknown module, or none without `flagged`)."""
-    return past_questions.for_module(db, module_id, user, flagged=flagged)
+    """The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first; of one
+    chapter with `chapter_id`, and of one of that chapter's study-guide topics with `topic_id` too (ModuleDetail's
+    chapters list their topics). `flagged`: only the tags someone flagged, the most flagged first, of `module_id` or
+    of every module (library managers; 403 for others). Errors: invalid_input (422: an unknown module, or none without
+    `flagged`; a chapter not of the module; a topic not of the chapter, or without `chapter_id`)."""
+    return past_questions.for_module(db, module_id, user, flagged=flagged, chapter_id=chapter_id, topic_id=topic_id)
 
 
 @router.get("/library/items/{item_id}/questions", response_model=list[PaperQuestion], dependencies=QUESTIONS)
@@ -251,10 +259,11 @@ def paper_questions(item_id: UUID, db: DB, user: OptionalUser) -> list[PaperQues
     dependencies=QUESTIONS,
 )
 def tag_question(item_id: UUID, body: PaperQuestionCreate, user: Uploader, db: DB) -> PaperQuestion:
-    """Tag a question of a published past paper with one of its module's chapters, and the page it starts on.
+    """Tag a question of a published past paper with one of its module's chapters, the page it starts on, and up to
+    three of the chapter's study-guide topics (`topicIds`).
 
-    Errors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter),
-    rate_limited (429: 60 an hour)."""
+    Errors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter, a
+    topic not of the chapter), rate_limited (429: 60 an hour)."""
     row = past_questions.tag(db, user, item_id, body)
     db.commit()
     return past_questions.to_out(db, [row], user)[0]

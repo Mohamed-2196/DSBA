@@ -1128,9 +1128,11 @@ export interface paths {
         };
         /**
          * Module Questions
-         * @description The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.
-         *     `flagged`: only the tags someone flagged, the most flagged first, of `module_id` or of every module (library
-         *     managers; 403 for others). Errors: invalid_input (422: an unknown module, or none without `flagged`).
+         * @description The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first; of one
+         *     chapter with `chapter_id`, and of one of that chapter's study-guide topics with `topic_id` too (ModuleDetail's
+         *     chapters list their topics). `flagged`: only the tags someone flagged, the most flagged first, of `module_id` or
+         *     of every module (library managers; 403 for others). Errors: invalid_input (422: an unknown module, or none without
+         *     `flagged`; a chapter not of the module; a topic not of the chapter, or without `chapter_id`).
          */
         get: operations["module_questions_api_v1_library_questions_get"];
         put?: never;
@@ -1156,10 +1158,11 @@ export interface paths {
         put?: never;
         /**
          * Tag Question
-         * @description Tag a question of a published past paper with one of its module's chapters, and the page it starts on.
+         * @description Tag a question of a published past paper with one of its module's chapters, the page it starts on, and up to
+         *     three of the chapter's study-guide topics (`topicIds`).
          *
-         *     Errors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter),
-         *     rate_limited (429: 60 an hour).
+         *     Errors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter, a
+         *     topic not of the chapter), rate_limited (429: 60 an hour).
          */
         post: operations["tag_question_api_v1_library_items__item_id__questions_post"];
         delete?: never;
@@ -6403,6 +6406,11 @@ export interface components {
             audioUrl?: string | null;
             /** Videos */
             videos: components["schemas"]["Video"][];
+            /**
+             * Topics
+             * @default []
+             */
+            topics: components["schemas"]["StudyTopic"][];
         };
         /** ChapterIn */
         ChapterIn: {
@@ -10283,6 +10291,8 @@ export interface components {
             chapterId: string;
             /** Chaptertitle */
             chapterTitle: string;
+            /** Topics */
+            topics: components["schemas"]["StudyTopic"][];
             /** Section */
             section: string | null;
             /** Question */
@@ -10316,6 +10326,8 @@ export interface components {
             chapterId: string;
             /** Page */
             page?: number | null;
+            /** Topicids */
+            topicIds?: string[];
         };
         /** PaperRef */
         PaperRef: {
@@ -12076,6 +12088,16 @@ export interface components {
             points: number[];
             anchor?: components["schemas"]["InkAnchor"] | null;
         };
+        /**
+         * StudyTopic
+         * @description A topic of a chapter, as its module's study guide lists it.
+         */
+        StudyTopic: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+        };
         /** SudokuView */
         SudokuView: {
             /**
@@ -13513,6 +13535,7 @@ export type StepUpStart = components['schemas']['StepUpStart'];
 export type StorageUse = components['schemas']['StorageUse'];
 export type Streak = components['schemas']['Streak'];
 export type Stroke = components['schemas']['Stroke'];
+export type StudyTopic = components['schemas']['StudyTopic'];
 export type SudokuView = components['schemas']['SudokuView'];
 export type SuggestionAccept = components['schemas']['SuggestionAccept'];
 export type SuggestionCreate = components['schemas']['SuggestionCreate'];
@@ -18778,6 +18801,8 @@ export interface operations {
             query?: {
                 module_id?: string | null;
                 flagged?: boolean;
+                chapter_id?: string | null;
+                topic_id?: string | null;
             };
             header?: never;
             path?: never;

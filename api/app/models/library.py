@@ -13,11 +13,13 @@ from sqlalchemy import (
     CheckConstraint,
     Computed,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     SmallInteger,
     String,
     Text,
+    UniqueConstraint,
     false,
     func,
 )
@@ -26,6 +28,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import SLUG, Base, check_in, created_ts, in_range, str_enum, uuid_pk, year_range
 from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, ZONES, ExamSession, LibraryKind, QuestionMarkKind, Zone
+from app.schemas.modules import TOPIC_ID_MAX
 
 ANCHOR_MAX = 160  # paper_questions.anchor
 
@@ -199,6 +202,7 @@ class PaperQuestion(Base):
         CheckConstraint("section IS NULL OR section ~ '^[A-Z]$'", name="section_letter"),
         CheckConstraint("page IS NULL OR page BETWEEN 1 AND 999", name="page_range"),
         CheckConstraint("tagged_by IS NULL OR tagged_by_model IS NULL", name="one_tagger"),
+        UniqueConstraint("id", "chapter_id"),  # paper_question_topics: a tag's topics are its own chapter's
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -214,6 +218,33 @@ class PaperQuestion(Base):
     tagged_by_model: Mapped[str | None] = mapped_column(String(40))  # 'claude-haiku-5-5'; None: a student's tag
     flag_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = created_ts()
+
+
+class PaperQuestionTopic(Base):
+    """A topic of its chapter's study guide that a tagged question tests (one to three a tag). The keys hold the tag's
+    chapter on both sides, so a tag only takes its own chapter's topics; a topic the study guide's file no longer lists
+    goes, and its tags with it."""
+
+    __tablename__ = "paper_question_topics"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["question_id", "chapter_id"],
+            ["paper_questions.id", "paper_questions.chapter_id"],
+            name="fk_paper_question_topics_question",
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ["chapter_id", "topic_id"],
+            ["chapter_topics.chapter_id", "chapter_topics.id"],
+            name="fk_paper_question_topics_topic",
+            ondelete="CASCADE",
+        ),
+        Index("ix_paper_question_topics_chapter_topic", "chapter_id", "topic_id"),  # by topic, and the topic's CASCADE
+    )
+
+    question_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    topic_id: Mapped[str] = mapped_column(String(TOPIC_ID_MAX), primary_key=True)
+    chapter_id: Mapped[str] = mapped_column(String(16))
 
 
 class TaggingStatus(enum.StrEnum):

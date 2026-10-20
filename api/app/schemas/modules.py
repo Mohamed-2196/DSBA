@@ -15,6 +15,17 @@ from app.schemas.links import PictureSrc
 VideoKind = Literal["youtube", "youtube-playlist", "bbb"]
 LessonId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]{1,16}$")]  # app/services/modules.py new_id()
 ChapterId = LessonId
+# A study-guide topic's id, unique within its chapter: its title lower case, each run of other characters a hyphen, cut
+# to 48 characters, with '-2', '-3' after a title the chapter already has (services/chapter_outlines.py topic_id()).
+TOPIC_ID_MAX = 52
+StudyTopicId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=TOPIC_ID_MAX)]
+
+
+class StudyTopic(ApiModel):
+    """A topic of a chapter, as its module's study guide lists it."""
+
+    id: str
+    title: str
 
 
 class LessonTopic(ApiModel):
@@ -45,6 +56,7 @@ class Chapter(ApiModel):
     title: str
     audio_url: str | None = None
     videos: list[Video]
+    topics: list[StudyTopic] = []  # the study guide's, in its order: past questions are grouped by them
 
 
 ShelfKind = Literal["course-materials", "exercises", "past-paper", "vle-materials", "cheat-sheet", "notes", "other"]

@@ -26,7 +26,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk, year_range
 from app.schemas.calendar import EventType
-from app.schemas.modules import VideoKind
+from app.schemas.modules import TOPIC_ID_MAX, VideoKind
 from app.schemas.suggestions import TOPIC_MAX_SECONDS
 
 
@@ -82,6 +82,22 @@ class Chapter(Base):
     lessons: Mapped[list[Lesson]] = relationship(
         back_populates="chapter", order_by="Lesson.position", cascade="all, delete-orphan", lazy="selectin"
     )
+    topics: Mapped[list[ChapterTopic]] = relationship(
+        order_by="ChapterTopic.position", cascade="all, delete-orphan", lazy="selectin"
+    )
+
+
+class ChapterTopic(Base):
+    """A topic of a chapter as its module's study guide lists it ("Price elasticity of demand"), from the seed
+    (app/seed/data/chapter_outlines.json; services/chapter_outlines.py topic_id() makes its id from its title). A past
+    paper's tag of the chapter names the topics its question tests, so students practise a chapter topic by topic."""
+
+    __tablename__ = "chapter_topics"
+
+    chapter_id: Mapped[str] = mapped_column(ForeignKey("chapters.id", ondelete="CASCADE"), primary_key=True)
+    id: Mapped[str] = mapped_column(String(TOPIC_ID_MAX), primary_key=True)  # unique within its chapter
+    position: Mapped[int] = mapped_column(SmallInteger, default=0)
+    title: Mapped[str] = mapped_column(String(200))
 
 
 class Lesson(Base):

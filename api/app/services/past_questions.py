@@ -1,6 +1,7 @@
 """Past questions by topic: students tag a past paper's question with one of its module's chapters ("Q3:
-Elasticity", or "B1: Elasticity" on a paper that numbers each section from 1), each chapter lists the questions
-tagged with it, any student flags a wrong tag, and the people who manage the library remove it.
+Elasticity", or "B1: Elasticity" on a paper that numbers each section from 1), and with up to three of the topics its
+study guide lists for that chapter ("Price elasticity of demand"); each chapter lists the questions tagged with it,
+topic by topic, any student flags a wrong tag, and the people who manage the library remove it.
 
 Only a module's published past papers take tags, and only with that module's chapters. Who tagged what is kept for
 moderation only: nobody else sees it."""
@@ -12,7 +13,7 @@ from collections.abc import Sequence
 from datetime import date, timedelta
 from typing import TypeVar
 
-from sqlalchemy import Select, delete, func, select, update
+from sqlalchemy import Select, and_, delete, exists, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -20,16 +21,19 @@ from sqlalchemy.orm import Session
 from app.core.errors import conflict, forbidden, invalid, not_found
 from app.models import (
     Chapter,
+    ChapterTopic,
     ItemStatus,
     LibraryItem,
     LibraryText,
     PaperQuestion,
     PaperQuestionFlag,
+    PaperQuestionTopic,
     TextStatus,
     User,
 )
 from app.schemas.library import PAST_PAPER, PaperQuestionCreate, PaperRef
 from app.schemas.library import PaperQuestion as PaperQuestionOut
+from app.schemas.modules import StudyTopic
 from app.services import question_anchors, report_answers
 from app.services.content import record
 from app.services.exam_names import newest_sitting_first
@@ -62,10 +66,56 @@ def paper_ref(item: LibraryItem, covers: set[uuid.UUID]) -> PaperRef:
     )
 
 
+def topics_of(db: Session, tag_ids: Sequence[uuid.UUID]) -> dict[uuid.UUID, list[StudyTopic]]:
+    """Each tag's study-guide topics, in the guide's order."""
+    out: dict[uuid.UUID, list[StudyTopic]] = {}
+    if not tag_ids:
+        return out
+    rows = db.execute(
+        select(PaperQuestionTopic.question_id, ChapterTopic.id, ChapterTopic.title)
+        .join(
+            ChapterTopic,
+            and_(
+                ChapterTopic.chapter_id == PaperQuestionTopic.chapter_id,
+                ChapterTopic.id == PaperQuestionTopic.topic_id,
+            ),
+        )
+        .where(PaperQuestionTopic.question_id.in_(tag_ids))
+        .order_by(ChapterTopic.position)
+    ).tuples()
+    for question_id, topic_id, title in rows:
+        out.setdefault(question_id, []).append(StudyTopic(id=topic_id, title=title))
+    return out
+
+
+def set_topics(db: Session, tag: PaperQuestion, topic_ids: Sequence[str]) -> None:
+    """The tag's topics made these: ids of its own chapter's topics (the caller checked them)."""
+    db.execute(delete(PaperQuestionTopic).where(PaperQuestionTopic.question_id == tag.id))
+    if topic_ids:
+        db.execute(
+            pg_insert(PaperQuestionTopic).on_conflict_do_nothing(),
+            [{"question_id": tag.id, "chapter_id": tag.chapter_id, "topic_id": t} for t in topic_ids],
+        )
+
+
+def _chapter_topics(db: Session, chapter_id: str, topic_ids: Sequence[str]) -> list[str]:
+    """`topic_ids` once each, in the order given; 422 when one isn't a topic of the chapter."""
+    wanted = list(dict.fromkeys(topic_ids))
+    if not wanted:
+        return []
+    known = set(
+        db.scalars(select(ChapterTopic.id).where(ChapterTopic.chapter_id == chapter_id, ChapterTopic.id.in_(wanted)))
+    )
+    if len(known) != len(wanted):
+        raise invalid("topicIds", "Pick topics of the chapter you chose.")
+    return wanted
+
+
 def to_out(db: Session, tags: Sequence[PaperQuestion], user: User | None) -> list[PaperQuestionOut]:
-    """Tags as this person sees them, with their papers and chapters, in one query per relation."""
+    """Tags as this person sees them, with their papers, chapters and topics, in one query per relation."""
     if not tags:
         return []
+    topics = topics_of(db, [t.id for t in tags])
     items = {i.id: i for i in db.scalars(select(LibraryItem).where(LibraryItem.id.in_({t.item_id for t in tags})))}
     chapters = {c.id: c for c in db.scalars(select(Chapter).where(Chapter.id.in_({t.chapter_id for t in tags})))}
     flagged: set[uuid.UUID] = set()
@@ -89,6 +139,7 @@ def to_out(db: Session, tags: Sequence[PaperQuestion], user: User | None) -> lis
                 paper=paper_ref(items[t.item_id], covers),
                 chapter_id=t.chapter_id,
                 chapter_title=chapters[t.chapter_id].title,
+                topics=topics.get(t.id, []),
                 section=t.section,
                 question=t.question,
                 page=t.page,
@@ -144,15 +195,35 @@ def _tags(q: Select[tuple[T]], module_id: str | None, *, staff: bool) -> Select[
 
 
 def for_module(
-    db: Session, module_id: str | None, user: User | None, *, flagged: bool = False
+    db: Session,
+    module_id: str | None,
+    user: User | None,
+    *,
+    flagged: bool = False,
+    chapter_id: str | None = None,
+    topic_id: str | None = None,
 ) -> list[PaperQuestionOut]:
-    """A module's tags on published papers: chapter by chapter, the newest sitting first. `flagged`: only the tags
-    someone flagged, the most flagged first, of one module or of all (people who manage the library)."""
+    """A module's tags on published papers: chapter by chapter, the newest sitting first; of one chapter with
+    `chapter_id`, and of one of its study-guide topics with `topic_id` too. `flagged`: only the tags someone flagged,
+    the most flagged first, of one module or of all (people who manage the library)."""
     if module_id is None and not flagged:
         raise invalid("moduleId", "Choose a module.")
     staff = sees_hidden_modules(user)
     require_module(db, module_id, visible=not staff)
     q = _tags(select(PaperQuestion), module_id, staff=staff)
+    if topic_id is not None and chapter_id is None:
+        raise invalid("chapterId", "Choose the topic's chapter too.")
+    if chapter_id is not None:
+        chapter = db.get(Chapter, chapter_id)
+        if chapter is None or chapter.module_id != module_id or (chapter.hidden and not staff):
+            raise invalid("chapterId", "Pick one of this module's chapters.")
+        q = q.where(PaperQuestion.chapter_id == chapter_id)
+    if topic_id is not None:
+        if db.get(ChapterTopic, (chapter_id, topic_id)) is None:
+            raise invalid("topicId", "Pick one of this chapter's topics.")
+        q = q.where(
+            exists().where(PaperQuestionTopic.question_id == PaperQuestion.id, PaperQuestionTopic.topic_id == topic_id)
+        )
     if flagged:
         if not manages(user):
             raise forbidden("Only people who manage the library can see flagged tags.")
@@ -169,12 +240,13 @@ def for_module(
 
 
 def tag(db: Session, user: User, item_id: uuid.UUID, body: PaperQuestionCreate) -> PaperQuestion:
-    """Tag a question of a published past paper with a chapter of its module that students see (never a hidden one).
-    At most TAGS_PER_HOUR an hour."""
+    """Tag a question of a published past paper with a chapter of its module that students see (never a hidden one),
+    and any of that chapter's study-guide topics. At most TAGS_PER_HOUR an hour."""
     item = _published_paper(db, item_id, user)
     chapter = db.get(Chapter, body.chapter_id)
     if chapter is None or chapter.module_id != item.module_id or chapter.hidden:
         raise invalid("chapterId", "Pick one of this module's chapters.")
+    topic_ids = _chapter_topics(db, chapter.id, body.topic_ids)
     enforce(
         db,
         f"paper-questions:{user.id}",
@@ -201,6 +273,7 @@ def tag(db: Session, user: User, item_id: uuid.UUID, body: PaperQuestionCreate) 
         name = label(body.section, body.question)
         message = f"{name} is already tagged with {chapter.title}. Pick another chapter."
         raise conflict("already_tagged", message) from None
+    set_topics(db, row, topic_ids)
     return row
 
 

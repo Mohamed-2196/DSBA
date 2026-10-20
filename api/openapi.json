@@ -6447,7 +6447,7 @@
           "library"
         ],
         "summary": "Module Questions",
-        "description": "The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.\n`flagged`: only the tags someone flagged, the most flagged first, of `module_id` or of every module (library\nmanagers; 403 for others). Errors: invalid_input (422: an unknown module, or none without `flagged`).",
+        "description": "The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first; of one\nchapter with `chapter_id`, and of one of that chapter's study-guide topics with `topic_id` too (ModuleDetail's\nchapters list their topics). `flagged`: only the tags someone flagged, the most flagged first, of `module_id` or\nof every module (library managers; 403 for others). Errors: invalid_input (422: an unknown module, or none without\n`flagged`; a chapter not of the module; a topic not of the chapter, or without `chapter_id`).",
         "operationId": "module_questions_api_v1_library_questions_get",
         "parameters": [
           {
@@ -6474,6 +6474,41 @@
               "type": "boolean",
               "default": false,
               "title": "Flagged"
+            }
+          },
+          {
+            "name": "chapter_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]{1,16}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Chapter Id"
+            }
+          },
+          {
+            "name": "topic_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 52,
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Topic Id"
             }
           }
         ],
@@ -6677,7 +6712,7 @@
           "library"
         ],
         "summary": "Tag Question",
-        "description": "Tag a question of a published past paper with one of its module's chapters, and the page it starts on.\n\nErrors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter),\nrate_limited (429: 60 an hour).",
+        "description": "Tag a question of a published past paper with one of its module's chapters, the page it starts on, and up to\nthree of the chapter's study-guide topics (`topicIds`).\n\nErrors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter, a\ntopic not of the chapter), rate_limited (429: 60 an hour).",
         "operationId": "tag_question_api_v1_library_items__item_id__questions_post",
         "parameters": [
           {
@@ -35274,6 +35309,14 @@
             },
             "type": "array",
             "title": "Videos"
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/StudyTopic"
+            },
+            "type": "array",
+            "title": "Topics",
+            "default": []
           }
         },
         "type": "object",
@@ -46414,6 +46457,13 @@
             "type": "string",
             "title": "Chaptertitle"
           },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/StudyTopic"
+            },
+            "type": "array",
+            "title": "Topics"
+          },
           "section": {
             "anyOf": [
               {
@@ -46496,6 +46546,7 @@
           "paper",
           "chapterId",
           "chapterTitle",
+          "topics",
           "section",
           "question",
           "page",
@@ -46547,6 +46598,16 @@
               }
             ],
             "title": "Page"
+          },
+          "topicIds": {
+            "items": {
+              "type": "string",
+              "maxLength": 52,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Topicids"
           }
         },
         "type": "object",
@@ -51699,6 +51760,25 @@
         ],
         "title": "Stroke",
         "description": "One line drawn with the pen or the highlighter. `points` is x, y, pressure (0-1), x, y, pressure, \u2026 in sheet\nunits, the sheet's top left at 0, 0. A stroke on paper has an `anchor`; one on a PDF's page keeps its place."
+      },
+      "StudyTopic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "StudyTopic",
+        "description": "A topic of a chapter, as its module's study guide lists it."
       },
       "SudokuView": {
         "properties": {

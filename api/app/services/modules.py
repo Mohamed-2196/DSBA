@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import invalid, not_found
 from app.models import Chapter, Lesson, Module
 from app.schemas.modules import Chapter as ChapterOut
-from app.schemas.modules import LessonTopic, ModuleDetail, ModuleSummary, Video
+from app.schemas.modules import LessonTopic, ModuleDetail, ModuleSummary, StudyTopic, Video
 
 MODULE_UNKNOWN = "Pick a module from the list."
 ID_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"
@@ -142,6 +142,7 @@ def chapters_out(m: Module, topics: dict[str, list[LessonTopic]] | None = None) 
             title=c.title,
             audio_url=c.audio_url,
             videos=[video_out(v, shown.get(v.id)) for v in visible_lessons(c)],
+            topics=[StudyTopic(id=t.id, title=t.title) for t in c.topics],
         )
         for c in visible_chapters(m)
     ]
