@@ -435,7 +435,7 @@ function LinkFields({
         />
         <TextField
           label="Address"
-          hint="An https:// link."
+          hint="An https:// link to a BIBF or University of London site."
           value={link.url}
           onChange={(e) => onChange({ ...link, url: e.target.value.trim() })}
           error={err(`${path}.url`)}

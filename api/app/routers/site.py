@@ -39,7 +39,8 @@ def save_site(body: SiteSave, request: Request, user: Admin, db: DB) -> SiteEdit
     """Save the site settings, if nobody saved them since `version`. Audited with what changed, before and after.
 
     Errors: site_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
-    fit, a link that isn't https://, a module that doesn't exist, an id used twice)."""
+    fit, a link that isn't https://, a link to BIBF or the University on a host outside DSBA_PORTAL_HOSTS, a module that
+    doesn't exist, an id used twice)."""
     out = svc.save_site(db, user, body.data, body.version, client_ip(request))
     db.commit()
     return SiteEditable.model_validate(out, from_attributes=True)

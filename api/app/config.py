@@ -170,6 +170,12 @@ class Settings(BaseSettings):
     backup_ping_url: str | None = None
     sweep_ping_url: str | None = None
 
+    # The hosts Site settings' links (MyClass, the UoL portal, the regulations, exam entry and results) may point at,
+    # each with its subdomains (SEC-64): a stolen admin session can't send students to a look-alike sign-in page.
+    portal_hosts: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["bibf.edu.bh", "bibf.com", "london.ac.uk"], min_length=1
+    )
+
     # Comma-separated emails / phone numbers that become admins when they sign in (bootstrap).
     admin_identifiers: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
@@ -230,7 +236,7 @@ class Settings(BaseSettings):
             return v.strip().lower()
         return None
 
-    @field_validator("web_origins", "admin_identifiers", "sms_allowed_regions", mode="before")
+    @field_validator("web_origins", "admin_identifiers", "sms_allowed_regions", "portal_hosts", mode="before")
     @classmethod
     def _split_csv(cls, v: object) -> object:
         return _csv(v)
@@ -242,6 +248,15 @@ class Settings(BaseSettings):
         if any("*" in origin for origin in v):
             raise ValueError("DSBA_WEB_ORIGINS can't contain '*': list the web app's origins")
         return [origin.rstrip("/") for origin in v]
+
+    @field_validator("portal_hosts")
+    @classmethod
+    def _plain_hosts(cls, v: list[str]) -> list[str]:
+        hosts = [h.lower() for h in v]
+        bad = [h for h in hosts if not re.fullmatch(r"[a-z0-9-]+(?:\.[a-z0-9-]+)+", h)]
+        if bad:
+            raise ValueError(f"DSBA_PORTAL_HOSTS takes host names like bibf.edu.bh, not {', '.join(bad)}")
+        return hosts
 
     @field_validator("sms_allowed_regions")
     @classmethod

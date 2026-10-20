@@ -41,6 +41,7 @@ x-api-env: &api-env
   DSBA_TWILIO_AUTH_TOKEN: ${DSBA_TWILIO_AUTH_TOKEN:-}
   DSBA_TWILIO_FROM: ${DSBA_TWILIO_FROM:-}
   DSBA_ADMIN_IDENTIFIERS: ${DSBA_ADMIN_IDENTIFIERS:-}
+  DSBA_PORTAL_HOSTS: ${DSBA_PORTAL_HOSTS:-bibf.edu.bh,bibf.com,london.ac.uk}  # Site settings' links (SEC-64)
   DSBA_ANTHROPIC_API_KEY: ${DSBA_ANTHROPIC_API_KEY:-}  # Mini Noora's AI answers (the noora.ai feature)
   DSBA_NOORA_MODEL: ${DSBA_NOORA_MODEL:-claude-haiku-5-5}
 
