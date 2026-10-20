@@ -409,6 +409,14 @@ def find_user(db: Session, kind: Kind, identifier: str) -> User | None:
     return db.scalar(select(User).where(column == identifier))
 
 
+def _bootstraps_admin(db: Session, user: User, created: bool) -> bool:
+    """DSBA_ADMIN_IDENTIFIERS gives Admin to a listed account when it is created, or while the hub has no active admin
+    at all. Never otherwise: Admin taken from a listed account stays taken (SEC-54)."""
+    if not {user.email, user.phone} & admin_identifiers() or access.access_of(user, db).admin:
+        return False
+    return created or not access.has_active_admin(db)
+
+
 def user_for_sign_in(db: Session, kind: Kind, identifier: str, ip: str | None) -> tuple[User, bool]:
     """The account for a verified identifier, created when there is none. -> (user, created)."""
     now = utcnow()
@@ -432,7 +440,7 @@ def user_for_sign_in(db: Session, kind: Kind, identifier: str, ip: str | None) -
         else:
             user, created = candidate, True
             access.give(db, user, STUDENT)
-    if not access.access_of(user, db).admin and {user.email, user.phone} & admin_identifiers():
+    if _bootstraps_admin(db, user, created):
         # a new account has no name yet: the activity log shows its masked address instead (UX-15)
         name = user.display_name or destination_hint(kind, identifier)
         before = access.role_names(user)

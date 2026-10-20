@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import uuid
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
@@ -17,7 +18,7 @@ from app.core.security import hash_token
 from app.core.time import utcnow
 from app.models import AuditEntry, OtpChallenge, OtpPurpose, User, UserSession
 from app.routers import auth as auth_router
-from app.services import mailer
+from app.services import access, mailer
 from app.services.mailer import DeliveryError
 from tests.accounts.conftest import API, Outbox, SignIn, logout, start, verify, wrong
 
@@ -504,10 +505,10 @@ def test_admin_identifiers_become_admins(
     def slugs(identifier: str) -> list[str]:
         return [r["slug"] for r in sign_in(identifier)[1]["user"]["roles"]]
 
-    assert slugs("boss@example.com") == ["admin", "student"]
+    assert slugs("rep@example.com") == ["admin", "student"]  # an existing account, while the hub has no admin
+    assert slugs("boss@example.com") == ["admin", "student"]  # new accounts
     assert slugs("+97333999999") == ["admin", "student"]
     assert slugs("plain@example.com") == ["student"]
-    assert slugs("rep@example.com") == ["admin", "student"]
     entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "user.roles", AuditEntry.target_id == str(rep.id)))
     assert entry is not None
     assert entry.actor_id is None
@@ -517,6 +518,38 @@ def test_admin_identifiers_become_admins(
         "via": "bootstrap",
         "targetName": "Test Student",
     }
+
+
+def test_admin_identifiers_never_give_admin_back(
+    sign_in: SignIn, set_option: Callable[[str, Any], None], db: Session
+) -> None:
+    """Admin taken from a listed account stays taken at its next sign-in (SEC-54)."""
+    set_option("admin_identifiers", ["founder@example.com"])
+    set_option("otp_resend_seconds", 0)
+    _, result = sign_in("founder@example.com")
+    assert [r["slug"] for r in result["user"]["roles"]] == ["admin", "student"]
+    sign_in("other-admin@example.com")
+    other = db.scalar(select(User).where(User.email == "other-admin@example.com"))
+    founder = db.get(User, uuid.UUID(result["user"]["id"]))
+    assert other is not None
+    assert founder is not None
+    access.give(db, other, "admin")
+    student = access.role_by_slug(db, "student")
+    assert student is not None
+    access.set_roles(db, founder, [student])
+    db.commit()
+    _, again = sign_in("founder@example.com")
+    assert [r["slug"] for r in again["user"]["roles"]] == ["student"]
+
+
+def test_admin_identifiers_skip_existing_accounts_while_an_admin_exists(
+    sign_in: SignIn, set_option: Callable[[str, Any], None], make_user: Callable[..., User]
+) -> None:
+    make_user(email="head@example.com", roles=("student", "admin"))
+    make_user(email="late@example.com", roles=("student",))
+    set_option("admin_identifiers", ["late@example.com"])
+    _, result = sign_in("late@example.com")
+    assert [r["slug"] for r in result["user"]["roles"]] == ["student"]
 
 
 def test_logout(sign_in: SignIn, db: Session) -> None:

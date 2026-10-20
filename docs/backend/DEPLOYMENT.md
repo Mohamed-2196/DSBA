@@ -125,8 +125,10 @@ docker compose -f compose.prod.yaml run --rm api python -m app.cli set-role you@
 `scripts/seed-real.sh --prod` does the seed and also brings the files of the library's Google Drive folders into the
 library (section 10).
 
-`DSBA_ADMIN_IDENTIFIERS` gives the Admin role, when they first sign in, to the people listed there. `set-role` sets
-exactly the roles you name, and writes an audit entry.
+`DSBA_ADMIN_IDENTIFIERS` gives the Admin role to a listed person when their account is created at sign-in, or when
+they sign in while the hub has no active admin at all. It never gives Admin back to an account that already had it
+taken away while other admins remain. Keep it to your own address; once you are signed in as admin you can empty it.
+`set-role` sets exactly the roles you name, and writes an audit entry.
 
 **Daily puzzles' content.** The seed loads the Daily themes (out of the rotation) and the public guess list (into a
 list under 5,000 words, so a content file loaded first doesn't leave The Word refusing everyday guesses), but no
@@ -461,7 +463,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_BACKUP_S3_ENDPOINT_URL`, `DSBA_BACKUP_S3_REGION` | the main store's | the backup bucket's store, when it is another one |
 | `DSBA_BACKUP_ACCESS_KEY_ID`, `DSBA_BACKUP_SECRET_ACCESS_KEY` | none | the backup key, set together or not at all |
 | `DSBA_BACKUP_SSE`, `DSBA_BACKUP_KMS_KEY_ID`, `DSBA_BACKUP_KEEP` | `AES256`, none, `14` | encryption at rest, and how many dumps to keep (0: all) |
-| `DSBA_ADMIN_IDENTIFIERS` | none | emails or phone numbers that get Admin when they first sign in |
+| `DSBA_ADMIN_IDENTIFIERS` | none | emails or phone numbers that get Admin when their account is created, or while the hub has no active admin |
 | `DSBA_GOOGLE_API_KEY`, `DSBA_GOOGLE_SERVICE_ACCOUNT_FILE` | none | the Drive import only (section 10) |
 | `DSBA_ANTHROPIC_API_KEY`, `DSBA_NOORA_MODEL` | none, `claude-haiku-5-5` | Mini Noora's AI answers (section 11) |
 | `DSBA_NOORA_EFFORT` | `medium` | how much she thinks before she answers: `low`, `medium` or `high` |
