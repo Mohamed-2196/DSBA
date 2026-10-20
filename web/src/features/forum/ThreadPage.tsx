@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import type { Reply, ThreadDetail } from '../../api/types';
 import { appUrl } from '../../lib/share';
 import { useCopyLink } from '../../lib/useCopyLink';
-import { Button, EmptyState, Page, Panel, QueryError, Skeleton, Icon, glyph } from '../../ui';
-import { useDocumentTitle } from '../../state';
+import { Button, EmptyState, Icon, Page, Panel, QueryError, Skeleton, cx, glyph } from '../../ui';
+import { BREAKPOINTS, useDocumentTitle, useMediaQuery } from '../../state';
+import { useModules } from '../../state/modules';
 import { isNotFound, useThread, useThreadSeen } from './api';
 import { authorName } from './lib/authors';
 import { scrollBehavior } from './lib/motion';
@@ -78,6 +79,53 @@ export default function ThreadPage() {
   );
 }
 
+/**
+ * Phones: once the title has scrolled away, a compact bar under the top bar keeps it on one line, with the way back
+ * to the forum. It watches a marker placed after the header; hidden, it is out of sight and of the tab order.
+ */
+function CompactBar({ thread }: { thread: ThreadDetail }) {
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const { getModule } = useModules();
+  const marker = useRef<HTMLSpanElement>(null);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const el = marker.current;
+    if (!phone || !el || typeof IntersectionObserver === 'undefined') return undefined;
+    const io = new IntersectionObserver(([entry]) =>
+      setShown(!!entry && !entry.isIntersecting && entry.boundingClientRect.top < 0),
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [phone]);
+  const code = getModule(thread.moduleId)?.unitCode;
+  return (
+    <>
+      <span ref={marker} className="forum-tbar__marker" aria-hidden="true" />
+      {phone ? (
+        <div className={cx('forum-tbar', shown && 'is-shown')}>
+          <Link to="/forum" className="forum-tbar__back" aria-label="Back to the forum">
+            <Icon glyph={glyph.chevronLeft} />
+          </Link>
+          <span className="forum-tbar__text">
+            <span className="forum-tbar__title" dir="auto">
+              {thread.title}
+            </span>
+            <span className="forum-tbar__sub">
+              Forum
+              {code ? (
+                <>
+                  {' '}
+                  · <span className="u-code">{code}</span>
+                </>
+              ) : null}
+            </span>
+          </span>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 function ThreadSkeleton() {
   return (
     <Page className="forum-page forum-thread" aria-busy="true">
@@ -147,6 +195,7 @@ function ThreadView({ thread, reload, unavailable }: ThreadViewProps) {
   return (
     <Page className="forum-page forum-thread">
       <ThreadHeader thread={thread} unavailable={unavailable} />
+      <CompactBar thread={thread} />
 
       <div className="forum-thread__layout">
         <div className="forum-thread__main" ref={mainRef}>

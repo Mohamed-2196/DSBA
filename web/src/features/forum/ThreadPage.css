@@ -539,6 +539,22 @@
   .forum-reply {
     padding: 16px 16px 12px;
   }
+  /* The actions keep to one line: tighter buttons, the menu at the end. */
+  .forum-reply__actions,
+  .forum-op__actions {
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+  .forum-reply__actions > .ui-button,
+  .forum-op__actions > .ui-button {
+    padding-inline: 8px;
+  }
+  .forum-reply__actions > .forum-vote,
+  .forum-op__actions > .forum-vote {
+    flex: none;
+    min-width: 0;
+    margin-inline-end: 4px;
+  }
   .forum-replies__nested {
     padding-left: 12px;
   }
@@ -562,6 +578,13 @@
   }
 }
 
+/* The narrowest phones: a reply's actions may take a second line rather than squeeze. */
+@container forum-page (max-width: 350px) {
+  .forum-reply__actions {
+    flex-wrap: wrap;
+  }
+}
+
 /* Touch screens: 44px targets (UX review UX-11) */
 @media (pointer: coarse) {
   @container forum-page (max-width: 640px) {
@@ -569,4 +592,63 @@
       height: 44px;
     }
   }
+}
+
+/* Phones: the compact bar once the title has scrolled away (ThreadPage.tsx, CompactBar). */
+.forum-tbar__marker {
+  display: block;
+  height: 0;
+}
+.forum-tbar {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 56px;
+  padding: 0 var(--sp-16) 0 4px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease),
+    visibility 0s linear var(--dur-fast);
+}
+.forum-tbar.is-shown {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
+}
+.forum-tbar__back {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-control);
+  color: var(--accent-text);
+  font-size: 20px;
+}
+.forum-tbar__text {
+  display: grid;
+  min-width: 0;
+}
+.forum-tbar__title {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--fs-15);
+  font-weight: var(--fw-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.forum-tbar__sub {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
 }
