@@ -41,7 +41,7 @@ from app.models import (
 )
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCreate
-from app.services import career, newsletter, question_tagging, report_answers
+from app.services import career, chapter_outlines, newsletter, question_tagging, report_answers
 
 DATA = Path(__file__).parent / "data"
 
@@ -365,6 +365,11 @@ def add_guess_words(db: Session, words: Sequence[str]) -> int:
 # ── past questions ───────────────────────────────────────────────────────────────────────────
 
 
+def load_chapter_outlines(db: Session) -> int:
+    """What each module's study guide says its chapters cover (services/chapter_outlines.py), for Claude's tags."""
+    return chapter_outlines.load(db, read(chapter_outlines.SEED_FILE))
+
+
 def load_paper_questions(db: Session) -> int:
     """Claude's tags of past papers' questions (`python -m app.cli export-question-tags` writes the file), on the
     papers this install has: services/question_tagging.py import_tags() says what it leaves out."""
@@ -383,6 +388,7 @@ SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
     "broken-chapters": remove_broken_chapters,
     "chapter-words": load_chapter_words,
+    "chapter-outlines": load_chapter_outlines,
     "calendar": load_calendar,
     "newsletter": load_newsletter,
     "career": load_career,

@@ -29,7 +29,7 @@ import { askAboutPaper, useNooraAiReady } from '../noora/public';
 import { MarkBadge } from './components/MarkBadge';
 import { ThreadCount, WorkedAnswerLink } from './components/QuestionExtras';
 import { askAboutHref, moduleTag } from './display';
-import { answerHref, questionHref, questionLink, questionName, questionNumber, useModuleQuestions } from './papers';
+import { answerHref, questionHref, questionName, questionNumber, useModuleQuestions } from './papers';
 import {
   filtered,
   marksByKey,
@@ -182,7 +182,7 @@ export default function PractisePage() {
       ? askAboutHref(
           { moduleId },
           `${questionName(q)} of ${code ? `${code} · ` : ''}${paperLabel(q.paper)}`,
-          appUrl(questionLink(q)),
+          appUrl(questionHref(q)),
         )
       : null;
 

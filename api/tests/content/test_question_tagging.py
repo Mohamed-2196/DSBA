@@ -208,7 +208,7 @@ def test_a_request_holds_the_modules_chapters_the_pages_and_a_schema_of_its_chap
     assert fmt["type"] == "json_schema"
     question = fmt["schema"]["properties"]["questions"]["items"]
     assert question["properties"]["chapter_ids"]["items"]["enum"] == chapter_ids(db)
-    assert question["required"] == ["section", "question", "start_page", "chapter_ids", "confidence"]
+    assert question["required"] == ["section", "question", "start_page", "anchor", "chapter_ids", "confidence"]
     assert question["properties"]["section"]["anyOf"] == [
         {"type": "string", "enum": [chr(c) for c in range(ord("A"), ord("Z") + 1)]},
         {"type": "null"},
@@ -221,7 +221,8 @@ def test_a_request_holds_the_modules_chapters_the_pages_and_a_schema_of_its_chap
     assert content.startswith("Module: EC1002 Introduction to Economics")
     first = db.scalars(select(Chapter).where(Chapter.module_id == MODULE).order_by(Chapter.position)).first()
     assert first is not None
-    assert f'<chapter id="{first.id}">{first.title} (lessons: ' in content
+    # without a study-guide outline, a chapter shows the titles of its lessons
+    assert f'<chapter id="{first.id}">\n<title>{first.title}</title>\n<lessons>' in content
     assert '<page number="3">\nPage 3. Question 3.' in content
     assert 'title="EC1002 ZA May 2024"' in content
 
@@ -477,7 +478,8 @@ def test_the_shipped_seed_file_is_a_list_of_papers() -> None:
     for e in entries:
         assert set(e) == {"module", "title", "importKey", "contentHash", "model", "questions"}
         for x in e["questions"]:
-            assert set(x) - {"section"} == {"question", "page", "chapters"}
+            assert set(x) - {"section", "anchor"} == {"question", "page", "chapters"}
+            assert x.get("anchor") is None or (x["page"] and 0 < len(x["anchor"]) <= 160)
             assert x.get("section", "A") in qt.SECTIONS
 
 

@@ -4,7 +4,7 @@
 import { Link } from 'react-router-dom';
 import type { PaperQuestion } from '../../../api/types';
 import { DocThumb, Icon, cx, glyph } from '../../../ui';
-import { answerHref, questionLink, questionName } from '../papers';
+import { answerHref, questionHref, questionName } from '../papers';
 import './QuestionExtras.css';
 
 /** "Worked answer, report p. 7": the sitting's examiners' report at the question's commentary. */
@@ -43,7 +43,7 @@ export function ThreadCount({
   if (threads < 1) return null;
   return (
     <Link
-      to={questionLink(question)}
+      to={questionHref(question)}
       className="lib-qx__link lib-qx__threads"
       data-hub="question-threads"
       aria-label={`${threads === 1 ? '1 thread' : `${threads} threads`} about ${questionName(question)}`}

@@ -1,0 +1,3739 @@
+[
+ {
+  "module": "economics",
+  "unitCode": "EC1002",
+  "source": "Introduction to economics (EC1002), O. Birchall with D. Verry, M. Bray and D. Petropoulou, University of London, 2022",
+  "chapters": [
+   {
+    "id": "jvnrh7sx",
+    "title": "The Economic Problem",
+    "guide": "Block 1: Economics, the economy and tools of economic analysis",
+    "outcomes": [
+     "Economics as the study of how society handles unlimited desires and scarce resources",
+     "How society decides what, how and for whom to produce",
+     "Identify the opportunity cost of a decision",
+     "Distinguish positive from normative economics",
+     "Define micro and macroeconomics; explain why theories simplify reality",
+     "Time-series, cross-section and panel data; index numbers; real vs nominal variables",
+     "Build a simple model and use 'other things equal'"
+    ],
+    "topics": [
+     "Scarcity and rationality",
+     "Production possibility frontier",
+     "Opportunity cost, absolute and comparative advantage",
+     "Markets",
+     "Microeconomics and macroeconomics",
+     "Models, theory and criticisms of economics",
+     "Data, index numbers, real and nominal variables"
+    ],
+    "terms": [
+     "scarcity",
+     "rationality",
+     "production possibility frontier",
+     "opportunity cost",
+     "absolute advantage",
+     "comparative advantage",
+     "gains from trade",
+     "positive economics",
+     "normative economics",
+     "ceteris paribus",
+     "index number",
+     "real vs nominal variables",
+     "time-series data",
+     "cross-section data",
+     "panel data",
+     "scatter diagram"
+    ]
+   },
+   {
+    "id": "3gu4spfp",
+    "title": "Supply and Demand",
+    "guide": "Block 2: Demand, supply and the market",
+    "outcomes": [
+     "Define a market; draw demand and supply and inverse curves",
+     "Find equilibrium price and quantity; price adjustment",
+     "Analyse what shifts demand and supply curves",
+     "Define reservation prices; consumer and producer surplus",
+     "Analyse excess supply and excess demand",
+     "Discuss price controls",
+     "How markets answer what, how and for whom; functions of prices (ration, allocate)"
+    ],
+    "topics": [
+     "Equilibrium",
+     "Demand and supply curves",
+     "Shifts in demand and supply",
+     "Consumer and producer surplus",
+     "Price ceilings and floors"
+    ],
+    "terms": [
+     "equilibrium price",
+     "excess demand",
+     "excess supply",
+     "shift vs movement along a curve",
+     "reservation price",
+     "consumer surplus",
+     "producer surplus",
+     "price ceiling",
+     "price floor",
+     "rationing function of prices",
+     "allocative function of prices",
+     "normal good",
+     "substitutes and complements"
+    ]
+   },
+   {
+    "id": "tyiz8fqt",
+    "title": "Elasticity",
+    "guide": "Block 3: Elasticity",
+    "outcomes": [
+     "Elasticities measure responsiveness of demand and supply",
+     "Define and calculate price elasticity of demand and its determinants",
+     "Relationship between demand elasticity and revenue",
+     "Fallacy of composition",
+     "Cross-price elasticity: complements and substitutes",
+     "Income elasticity: inferior, normal and luxury goods",
+     "Calculate price elasticity of supply",
+     "How elasticities affect tax incidence"
+    ],
+    "topics": [
+     "Price elasticity of demand",
+     "Cross-price elasticity of demand",
+     "Income elasticity of demand",
+     "Price elasticity of supply",
+     "Incidence of a tax"
+    ],
+    "terms": [
+     "price elasticity of demand",
+     "elastic and inelastic demand",
+     "unit elasticity",
+     "total revenue",
+     "cross-price elasticity",
+     "income elasticity",
+     "inferior good",
+     "luxury good",
+     "price elasticity of supply",
+     "tax incidence",
+     "fallacy of composition",
+     "arc and point elasticity"
+    ]
+   },
+   {
+    "id": "xg9aypby",
+    "title": "Consumer Choice",
+    "guide": "Block 4: Consumer choice",
+    "outcomes": [
+     "Relate utility and tastes",
+     "Diminishing marginal utility",
+     "Diminishing marginal rate of substitution; calculate MRS",
+     "Represent tastes as indifference curves",
+     "Derive a budget line",
+     "Explain consumer choice with indifference curves and budget constraint",
+     "Effects of income and price changes; income and substitution effects",
+     "Link individual and market demand"
+    ],
+    "topics": [
+     "Consumer choice and demand decisions",
+     "Utility maximisation and choice",
+     "Income and price changes",
+     "Individual demand curve",
+     "Market demand curve",
+     "Complements and substitutes"
+    ],
+    "terms": [
+     "utility",
+     "marginal utility",
+     "indifference curve",
+     "marginal rate of substitution",
+     "budget line",
+     "budget constraint",
+     "tangency condition MRS = price ratio",
+     "income-consumption curve",
+     "price-consumption curve",
+     "income effect",
+     "substitution effect",
+     "Giffen good",
+     "inferior good",
+     "normal good"
+    ]
+   },
+   {
+    "id": "tjy8vbcf",
+    "title": "The Firm",
+    "guide": "Block 5: The firm",
+    "outcomes": [
+     "Economic vs accounting cost",
+     "Revenue, cost and profit",
+     "Production function and diminishing marginal returns",
+     "Choice of technique depends on input prices",
+     "Isoquants and isocost curves to derive total cost",
+     "Calculate marginal cost and marginal revenue; profit-maximising output",
+     "Fixed and variable factors; short-run and long-run costs",
+     "Returns to scale and average cost"
+    ],
+    "topics": [
+     "Introduction to the firm",
+     "Firm's supply decision",
+     "Profit = total revenue - total cost",
+     "Cost, production and output"
+    ],
+    "terms": [
+     "economic cost",
+     "accounting cost",
+     "production function",
+     "diminishing marginal returns",
+     "isoquant",
+     "isocost",
+     "total cost",
+     "average cost",
+     "marginal cost",
+     "MR = MC",
+     "fixed cost",
+     "variable cost",
+     "returns to scale",
+     "economies of scale",
+     "long-run average cost",
+     "normal profit"
+    ]
+   },
+   {
+    "id": "j86yz7hk",
+    "title": "Perfect Competition",
+    "guide": "Block 6: Perfect competition",
+    "outcomes": [
+     "Define perfect competition",
+     "Why a competitive firm sets marginal cost equal to price",
+     "Profits and losses lead to entry and exit",
+     "Draw the industry supply curve",
+     "Comparative static analysis of a competitive industry"
+    ],
+    "topics": [
+     "Assumptions and implications",
+     "Firm's supply decision",
+     "Industry supply curves",
+     "Comparative statics",
+     "Perfect competition and efficiency"
+    ],
+    "terms": [
+     "price taker",
+     "horizontal demand curve",
+     "MR = P",
+     "P = MC",
+     "shutdown rule P > AVC",
+     "long-run exit P < AC",
+     "supernormal profit",
+     "entry and exit",
+     "industry supply curve",
+     "comparative statics",
+     "allocative efficiency",
+     "productive efficiency"
+    ]
+   },
+   {
+    "id": "zzcvaauv",
+    "title": "Pure Monopoly",
+    "guide": "Block 7: Pure monopoly",
+    "outcomes": [
+     "Define pure monopoly",
+     "Find optimal price and output using MC = MR",
+     "Relate PED to monopoly power",
+     "Compare output under monopoly and perfect competition",
+     "Effect of price discrimination on output and profit"
+    ],
+    "topics": [
+     "Perfect competition and perfect monopoly",
+     "Monopoly analysis",
+     "Social cost of monopoly",
+     "Price discrimination",
+     "When can monopolies be justified"
+    ],
+    "terms": [
+     "barriers to entry",
+     "marginal revenue",
+     "MR = MC",
+     "Lerner index",
+     "mark-up over marginal cost",
+     "deadweight loss",
+     "allocative inefficiency",
+     "first-degree price discrimination",
+     "second-degree price discrimination",
+     "third-degree price discrimination",
+     "natural monopoly",
+     "dynamic efficiency"
+    ]
+   },
+   {
+    "id": "bibtm6gq",
+    "title": "Market structure and Imperfect Competition",
+    "guide": "Block 8: Market structure and imperfect competition",
+    "outcomes": [
+     "Recognise imperfect competition, oligopoly and monopolistic competition",
+     "How cost and demand affect market structure",
+     "Interpret an N-firm concentration ratio",
+     "Equilibrium in monopolistic competition",
+     "Collusion vs competition in a cartel",
+     "Game theory: dominant strategies, Nash equilibrium, backwards induction",
+     "Reaction functions; Cournot, Bertrand and Stackelberg"
+    ],
+    "topics": [
+     "Theory of market structure",
+     "Monopolistic competition",
+     "Oligopoly",
+     "Game theory",
+     "Models of oligopoly"
+    ],
+    "terms": [
+     "N-firm concentration ratio",
+     "monopolistic competition",
+     "product differentiation",
+     "oligopoly",
+     "cartel",
+     "collusion",
+     "game theory",
+     "payoff matrix",
+     "dominant strategy",
+     "Nash equilibrium",
+     "prisoners' dilemma",
+     "backwards induction",
+     "reaction function",
+     "Cournot competition",
+     "Bertrand competition",
+     "Stackelberg leader"
+    ]
+   },
+   {
+    "id": "j9gz9bqm",
+    "title": "The Labour Market",
+    "guide": "Block 9: The labour market",
+    "outcomes": [
+     "Factors of production",
+     "Firm's demand for inputs, long and short run",
+     "Marginal value product, marginal revenue product, marginal cost of a factor",
+     "Industry demand for labour",
+     "Labour supply decisions",
+     "Economic rent",
+     "Labour market equilibrium and disequilibrium; minimum wage and unemployment"
+    ],
+    "topics": [
+     "Factors of production",
+     "Analysis of the labour market",
+     "Labour supply",
+     "Labour market equilibrium",
+     "Disequilibrium in the labour market"
+    ],
+    "terms": [
+     "derived demand",
+     "marginal revenue product",
+     "marginal value product",
+     "marginal cost of labour",
+     "labour supply",
+     "income and substitution effects on labour supply",
+     "economic rent",
+     "transfer earnings",
+     "equilibrium wage",
+     "minimum wage",
+     "monopsony"
+    ]
+   },
+   {
+    "id": "nynrjjzb",
+    "title": "Welfare Economics",
+    "guide": "Block 10: Welfare economics and the role of government",
+    "outcomes": [
+     "Define welfare economics; horizontal and vertical equity",
+     "Pareto efficiency and the invisible hand",
+     "Market failure; partial removal of distortions may harm",
+     "Externalities and solutions; taxes to correct them",
+     "Monopoly power as market failure",
+     "Pollution, congestion and climate change",
+     "Why markets cannot provide public goods"
+    ],
+    "topics": [
+     "Equity and efficiency",
+     "Distortion of the market",
+     "Sources of market failure",
+     "Taxes and externalities",
+     "Public goods"
+    ],
+    "terms": [
+     "Pareto efficiency",
+     "Pareto improvement",
+     "invisible hand",
+     "general equilibrium",
+     "horizontal equity",
+     "vertical equity",
+     "market failure",
+     "second best",
+     "externality",
+     "Pigovian tax",
+     "social marginal cost",
+     "public good",
+     "non-rival",
+     "non-excludable",
+     "free rider"
+    ]
+   },
+   {
+    "id": "kbwa3msw",
+    "title": "Introduction to Macroeconomics",
+    "guide": "Block 11: Introduction to macroeconomics",
+    "outcomes": [
+     "Macroeconomics as study of the whole economy",
+     "GDP by income, expenditure or output gives the same result",
+     "Circular flow between households and firms",
+     "Identity Y = C + I + G + NX; leakages equal injections",
+     "Nominal vs real national income",
+     "Shortcomings of GDP as a measure of wellbeing; broader measures"
+    ],
+    "topics": [
+     "Macroeconomic analysis",
+     "Circular flow of income",
+     "Measuring GDP"
+    ],
+    "terms": [
+     "GDP",
+     "national accounts",
+     "value added",
+     "income approach",
+     "expenditure approach",
+     "output approach",
+     "circular flow",
+     "injections",
+     "leakages",
+     "Y = C + I + G + NX",
+     "nominal GDP",
+     "real GDP",
+     "GDP deflator",
+     "GNP"
+    ]
+   },
+   {
+    "id": "tvwq6cff",
+    "title": "Supply-side economics and economic growth",
+    "guide": "Block 12: Supply-side economics and economic growth",
+    "outcomes": [
+     "Explain supply-side economics",
+     "Growth in potential output",
+     "Malthus' forecast and why it failed",
+     "Solow model of growth",
+     "Convergence hypothesis; rich and poor country growth",
+     "Endogenous growth and policy",
+     "Growth and environmental sustainability"
+    ],
+    "topics": [
+     "Supply-side economics",
+     "Economic growth",
+     "Inputs to production",
+     "Solow growth model",
+     "Romer's endogenous growth",
+     "Costs of growth"
+    ],
+    "terms": [
+     "supply-side policy",
+     "potential output",
+     "human capital",
+     "Malthusian trap",
+     "Solow model",
+     "steady state",
+     "capital accumulation",
+     "technical progress",
+     "convergence hypothesis",
+     "endogenous growth",
+     "Romer model",
+     "sustainable growth"
+    ]
+   },
+   {
+    "id": "yfigvsjd",
+    "title": "Output and aggregate demand (playlist)",
+    "guide": "Block 13: Output and aggregate demand",
+    "outcomes": [
+     "Contrast actual and potential output",
+     "Aggregate demand determines short-run equilibrium output",
+     "Inflationary and deflationary gaps",
+     "Marginal propensity to consume and to import",
+     "Calculate the multiplier and balanced budget multiplier",
+     "Paradox of thrift",
+     "Fiscal policy, automatic stabilisers, structural budget; deficits and national debt"
+    ],
+    "topics": [
+     "Consumption and investment demand",
+     "Equilibrium output",
+     "The multiplier",
+     "Foreign trade: exports and imports"
+    ],
+    "terms": [
+     "aggregate demand",
+     "marginal propensity to consume",
+     "marginal propensity to import",
+     "multiplier",
+     "balanced budget multiplier",
+     "inflationary gap",
+     "deflationary gap",
+     "paradox of thrift",
+     "automatic stabilisers",
+     "discretionary fiscal policy",
+     "structural budget",
+     "national debt",
+     "45-degree diagram"
+    ]
+   },
+   {
+    "id": "tie7ydjt",
+    "title": "Money and banking; interest rates and monetary transmission",
+    "guide": "Block 14: Money and banking; interest rates and monetary transmission",
+    "outcomes": [
+     "Functions of money",
+     "How banks create money",
+     "Liquidity vs solvency crisis",
+     "Narrow and broad money; motives for holding money",
+     "Money demand depends on output, prices and interest rates",
+     "Central bank role and money market equilibrium",
+     "Intermediate targets and transmission mechanism"
+    ],
+    "topics": [
+     "Money and banking",
+     "Financial crises",
+     "Demand for money",
+     "Money market equilibrium and monetary control",
+     "Monetary policy targets, instruments, transmission"
+    ],
+    "terms": [
+     "medium of exchange",
+     "store of value",
+     "unit of account",
+     "money multiplier",
+     "fractional reserve banking",
+     "liquidity crisis",
+     "solvency crisis",
+     "narrow money",
+     "broad money",
+     "transactions motive",
+     "precautionary motive",
+     "speculative motive",
+     "money market equilibrium",
+     "transmission mechanism",
+     "central bank",
+     "bank rate"
+    ]
+   },
+   {
+    "id": "grazx8hu",
+    "title": "Monetary and fiscal policy",
+    "guide": "Block 15: Monetary and fiscal policy",
+    "outcomes": [
+     "Forms of monetary policy",
+     "Derive the IS curve",
+     "Explain the MP curve",
+     "Equilibrium in output and money markets",
+     "Shifts linked to fiscal and monetary policy",
+     "Impact of fiscal policy and of money demand shock",
+     "Policy mix"
+    ],
+    "topics": [
+     "Monetary policy",
+     "The IS-MP model",
+     "Deriving the IS curve",
+     "The MP curve",
+     "The IS-MP in action"
+    ],
+    "terms": [
+     "IS curve",
+     "MP curve",
+     "IS-MP model",
+     "investment demand",
+     "real interest rate",
+     "multiplier",
+     "slope of IS",
+     "shift of IS",
+     "policy mix",
+     "money demand shock",
+     "interest rate rule",
+     "monetary policy",
+     "fiscal policy"
+    ]
+   },
+   {
+    "id": "dxsv7nqw",
+    "title": "Aggregate demand and Aggregate supply",
+    "guide": "Block 16: Aggregate demand and aggregate supply",
+    "outcomes": [
+     "Inflation targets for monetary policy; the rr schedule",
+     "How inflation affects aggregate demand; AD schedule",
+     "Classical aggregate supply and equilibrium inflation",
+     "Complete crowding out in the classical model",
+     "Why wages adjust slowly; short-run aggregate supply",
+     "Short-run and permanent demand and supply shocks",
+     "Flexible inflation targets and the Taylor rule"
+    ],
+    "topics": [
+     "Aggregate demand",
+     "Aggregate supply",
+     "Equilibrium inflation",
+     "Wage rigidity",
+     "Short-run aggregate supply",
+     "Adjustment to demand shocks"
+    ],
+    "terms": [
+     "AD-AS model",
+     "rr schedule",
+     "inflation target",
+     "classical aggregate supply",
+     "crowding out",
+     "wage rigidity",
+     "short-run aggregate supply",
+     "demand shock",
+     "supply shock",
+     "flexible inflation targeting",
+     "Taylor rule",
+     "equilibrium inflation"
+    ]
+   },
+   {
+    "id": "emgu6tns",
+    "title": "Inflation",
+    "guide": "Block 17: Inflation",
+    "outcomes": [
+     "Nominal and real interest rates and inflation",
+     "When budget deficits cause money growth",
+     "The Phillips curve",
+     "Inflation expectations",
+     "Costs of inflation",
+     "Central bank independence and inflation control",
+     "How central banks set interest rates"
+    ],
+    "topics": [
+     "Money and inflation",
+     "Phillips curve and inflation expectations",
+     "Costs of inflation",
+     "Controlling inflation"
+    ],
+    "terms": [
+     "inflation",
+     "Fisher effect",
+     "real interest rate",
+     "quantity theory of money",
+     "short-run Phillips curve",
+     "long-run Phillips curve",
+     "expectations-augmented Phillips curve",
+     "shoeleather costs",
+     "menu costs",
+     "unexpected inflation redistribution",
+     "deflation",
+     "hyperinflation",
+     "central bank independence",
+     "inflation target"
+    ]
+   },
+   {
+    "id": "4vu5nkk4",
+    "title": "Unemployment",
+    "guide": "Block 18: Unemployment",
+    "outcomes": [
+     "Measured unemployment: claimant count and standardised rate",
+     "Classical, frictional, structural and demand-deficient unemployment",
+     "Voluntary vs involuntary unemployment",
+     "Determinants of unemployment",
+     "How supply-side policies reduce equilibrium unemployment",
+     "Private and social costs of unemployment",
+     "Hysteresis"
+    ],
+    "topics": [
+     "Rates of unemployment",
+     "Analysis of unemployment",
+     "Changes in unemployment",
+     "Cyclical unemployment",
+     "Cost of unemployment"
+    ],
+    "terms": [
+     "unemployment rate",
+     "labour force",
+     "claimant count",
+     "frictional unemployment",
+     "structural unemployment",
+     "classical unemployment",
+     "demand-deficient unemployment",
+     "voluntary unemployment",
+     "involuntary unemployment",
+     "equilibrium unemployment",
+     "hysteresis",
+     "supply-side policy"
+    ]
+   },
+   {
+    "id": "5ft2435s",
+    "title": "Exchange rates and the balance of payments",
+    "guide": "Block 19: Exchange rates and the balance of payments",
+    "outcomes": [
+     "Analyse the foreign exchange market",
+     "Balance of payments accounts",
+     "Determinants of current account flows",
+     "Perfect capital mobility",
+     "Speculation and capital flows",
+     "Internal and external balance",
+     "Long-run equilibrium exchange rate"
+    ],
+    "topics": [
+     "The exchange rate",
+     "The balance of payments",
+     "Real and PPP exchange rates",
+     "Current and financial accounts",
+     "Long-run equilibrium"
+    ],
+    "terms": [
+     "exchange rate",
+     "foreign exchange market",
+     "appreciation",
+     "depreciation",
+     "balance of payments",
+     "current account",
+     "financial account",
+     "real exchange rate",
+     "purchasing power parity",
+     "perfect capital mobility",
+     "speculation",
+     "internal balance",
+     "external balance",
+     "floating exchange rate",
+     "fixed exchange rate"
+    ]
+   },
+   {
+    "id": "8dzevirm",
+    "title": "Open Economy Macroeconomics",
+    "guide": "Block 20: Open economy macroeconomics",
+    "outcomes": [
+     "Monetary and fiscal policy under fixed exchange rates",
+     "Effects of a devaluation",
+     "Monetary and fiscal policy under flexible exchange rates"
+    ],
+    "topics": [
+     "Macroeconomy under fixed exchange rates",
+     "Devaluation of a fixed exchange rate",
+     "Macroeconomy under floating exchange rates"
+    ],
+    "terms": [
+     "fixed exchange rate",
+     "devaluation",
+     "floating exchange rate",
+     "IS-LM-BP analysis",
+     "capital mobility",
+     "foreign exchange intervention",
+     "balance of payments equilibrium",
+     "policy effectiveness under fixed rates",
+     "policy effectiveness under floating rates"
+    ]
+   }
+  ],
+  "unmatched": []
+ },
+ {
+  "module": "business",
+  "unitCode": "MN1178",
+  "source": "BMGC chapter notes (student notes on the course textbook; no subject guide in the library)",
+  "chapters": [
+   {
+    "id": "6r8c733y",
+    "title": "Globalisation",
+    "guide": "Chapter 1: Globalisation",
+    "outcomes": [
+     "Define globalisation, globality and deglobalisation and their major characteristics",
+     "Assess the global economy and its broad trends (output, trade, FDI, types of firm, world order)",
+     "Present the globalisation debates (jobs and income, labour and environment, shifts in economic power, wealth distribution)",
+     "Describe the implications of globalisation, slowbalisation and Covid-19 for international companies"
+    ],
+    "topics": [
+     "Definition and characteristics of globalisation",
+     "Trends in world output, trade and FDI; non-US and mini-multinationals; change in world order",
+     "Slowbalisation, protectionism and de-globalisation, and their causes and implications",
+     "Globalisation debates: opponents versus supporters",
+     "Does distance still matter: Friedman versus Ghemawat",
+     "What globalisation means for firms: low trade barriers, technology, transport"
+    ],
+    "terms": [
+     "globality",
+     "deglobalisation",
+     "slowbalisation",
+     "multinational enterprise",
+     "mini-multinationals",
+     "comparative advantage",
+     "Friedman's 10 flatteners",
+     "law of semi-globalisation",
+     "law of distance",
+     "CAGE distance",
+     "containerisation",
+     "supranational organisations (WTO, IMF, World Bank)",
+     "protectionism"
+    ]
+   },
+   {
+    "id": "g8u2nfmy",
+    "title": "Political, economic and legal environments",
+    "guide": "Chapter 2: Political, Economic and Legal Environment",
+    "outcomes": [
+     "Define institutions and their role in reducing uncertainty, transaction costs and opportunism",
+     "Explain differences among political systems and their influence on international business",
+     "Discuss differences among economic systems and the related challenges",
+     "Describe the basic differences between legal systems",
+     "Assess debates on how political, economic and legal institutions affect country development"
+    ],
+    "topics": [
+     "Institution-based view: formal and informal institutions",
+     "Political systems: collectivism versus individualism, democracy versus totalitarianism",
+     "Economic systems: market, command and mixed; varieties of capitalism",
+     "Legal systems: common, civil and religious law",
+     "Property rights, intellectual property, product safety and liability, corporate governance",
+     "Country development and measuring it (GNI, PPP, HDI); why countries succeed or fail"
+    ],
+    "terms": [
+     "institution-based view",
+     "transaction costs",
+     "opportunism (Williamson)",
+     "institutional transition",
+     "totalitarianism (communist, theocratic, tribal, right-wing)",
+     "proportional representation versus first-past-the-post",
+     "political risk",
+     "market economy",
+     "command economy",
+     "mixed economy",
+     "varieties of capitalism (Hall and Soskice)",
+     "coordinated versus liberal market economy",
+     "common law",
+     "civil law",
+     "religious law",
+     "UN Convention on Contracts for the International Sale of Goods",
+     "patents, copyrights, trademarks",
+     "Paris Convention",
+     "product liability",
+     "corporate governance",
+     "Human Development Index",
+     "Sen's capabilities",
+     "North: institutions and performance"
+    ]
+   },
+   {
+    "id": "nivt387r",
+    "title": "Informal Institutions",
+    "guide": "Chapter 3: Informal Institutions",
+    "outcomes": [
+     "Define culture and explain how language and religion shape it",
+     "Discuss how cultures systematically differ (context, cluster and dimensions approaches)",
+     "Describe the importance of ethics and ways to deal with ethical dilemmas",
+     "Summarise the CSR challenges facing companies in the global economy and how institutions shape CSR and sustainability practices",
+     "Describe forms of corruption in international contexts and counter-policies"
+    ],
+    "topics": [
+     "Culture, ethnocentrism and cultural intelligence",
+     "Context approach, cluster approach, dimensions approach (Hofstede, Trompenaars)",
+     "Managing cultural diversity; language and unspoken communication",
+     "Religion and its effect on business",
+     "Ethics: ethical dilemmas, relativism, imperialism, Donaldson's middle road",
+     "CSR, stakeholder analysis, triple bottom line, four CSR concerns",
+     "CSR strategies; Willard's sustainability journey; circular economy",
+     "Corruption and how to reduce it"
+    ],
+    "terms": [
+     "ethnocentrism",
+     "high-context and low-context cultures",
+     "Huntington's civilisations",
+     "Hofstede's six dimensions",
+     "power distance",
+     "uncertainty avoidance",
+     "masculinity versus femininity",
+     "indulgence versus restraint",
+     "Trompenaars' seven dimensions",
+     "universalism versus particularism",
+     "lingua franca",
+     "cross-cultural literacy",
+     "ethical relativism",
+     "ethical imperialism",
+     "Donaldson's three principles",
+     "primary and secondary stakeholders",
+     "instrumental versus normative view",
+     "triple bottom line",
+     "tragedy of the commons",
+     "race to the bottom",
+     "reactive, defensive, accommodative, proactive strategy",
+     "Willard's five-stage sustainability journey",
+     "circular economy",
+     "pervasiveness and arbitrariness of corruption",
+     "OECD anti-bribery measure"
+    ]
+   },
+   {
+    "id": "uzjmuvcd",
+    "title": "International Trade and Investment",
+    "guide": "Chapter 4: International Trade and Investment",
+    "outcomes": [
+     "Describe and assess classical and modern theories of trade",
+     "Explain how governments regulate and restrain trade through tariff and non-tariff barriers",
+     "Debate free trade versus protectionism and its net effects on different parties",
+     "Explain the theories and conditions under which FDI makes business sense (OLI)",
+     "Assess the costs and benefits of FDI for the host country and the actions host governments take"
+    ],
+    "topics": [
+     "Classical theories: mercantilism, absolute advantage, comparative advantage, factor endowments",
+     "Modern theories: product life cycle, strategic trade theory, Porter's diamond",
+     "Tariff and non-tariff barriers",
+     "Free trade debate: political and economic arguments for intervention",
+     "FDI: greenfield versus acquisition, flows and stock, horizontal versus vertical",
+     "Dunning's OLI framework",
+     "Government restrictions on FDI and recommendations for MNEs"
+    ],
+    "terms": [
+     "mercantilism",
+     "zero-sum game",
+     "absolute advantage",
+     "comparative advantage",
+     "factor endowments",
+     "product life cycle (Vernon)",
+     "strategic trade theory",
+     "Porter diamond",
+     "tariff",
+     "subsidies",
+     "import quota",
+     "voluntary export restraints",
+     "local content requirements",
+     "anti-dumping duties",
+     "infant industry argument",
+     "FDI flow and stock",
+     "horizontal and vertical FDI",
+     "greenfield investment",
+     "OLI framework",
+     "ownership, location and internalisation advantages",
+     "liability of outsidership",
+     "agglomeration"
+    ]
+   },
+   {
+    "id": "x7fewq6r",
+    "title": "Multilateral organisations and regional integration",
+    "guide": "Chapter 5: Multilateral Organisations and Regional Integration",
+    "outcomes": [
+     "Explain the multilateral institutions of the global trade system (GATT, WTO) and their current challenges",
+     "Describe the multilateral institutions of the global monetary system (IMF) and their challenges",
+     "Describe the advantages and disadvantages of regional and bilateral economic integration in Europe, the Americas and Asia Pacific"
+    ],
+    "topics": [
+     "Five levels of regional economic integration",
+     "Trade creation versus trade diversion",
+     "GATT and the WTO: functions, dispute settlement, Doha Round, criticisms and challenges",
+     "IMF: roles and criticisms",
+     "European Union: single market, four freedoms, free movement, euro",
+     "Americas: NAFTA and USMCA, Mercosur, Andean Community",
+     "Asia-Pacific: ASEAN and RCEP"
+    ],
+    "terms": [
+     "free trade area",
+     "customs union",
+     "common market",
+     "economic union",
+     "political union",
+     "trade creation",
+     "trade diversion",
+     "GATT",
+     "WTO",
+     "non-discrimination",
+     "most favoured nation",
+     "Doha Development Agenda",
+     "Dispute Settlement Body and Appellate Body",
+     "IMF lender of last resort",
+     "moral hazard",
+     "subsidiarity principle",
+     "Schengen Agreement",
+     "four freedoms",
+     "NAFTA",
+     "USMCA",
+     "Mercosur",
+     "Andean Community",
+     "ASEAN",
+     "RCEP"
+    ]
+   },
+   {
+    "id": "f7bedikd",
+    "title": "Exchange Rates",
+    "guide": "Chapter 6: Exchange Rates and IMS",
+    "outcomes": [
+     "Describe the determinants of exchange rates",
+     "Outline the development of the international monetary system",
+     "Discuss the role of the International Monetary Fund",
+     "Identify a company's possible management responses to currency exchange rate risk"
+    ],
+    "topics": [
+     "Foreign exchange market and why firms use it",
+     "What affects supply and demand for a currency",
+     "Transaction, translation and economic exposure",
+     "Strategies to reduce foreign exchange risk",
+     "Gold standard, Bretton Woods and the post-Bretton Woods system",
+     "Exchange rate policies: floating, pegged, fixed, common currency",
+     "Strategic hedging, diversification, currency hedging and swaps"
+    ],
+    "terms": [
+     "spot exchange rate",
+     "interest rates and exchange rates",
+     "current account surplus and deficit",
+     "bandwagon effect",
+     "transaction exposure",
+     "translation exposure",
+     "economic exposure",
+     "leading and lagging",
+     "gold standard",
+     "Bretton Woods Agreement",
+     "IMF and World Bank",
+     "free float and managed float",
+     "pegged exchange rate",
+     "currency board",
+     "common currency (CFA franc)",
+     "strategic hedging",
+     "currency swap",
+     "bid and offer rate"
+    ]
+   },
+   {
+    "id": "4dhhuihn",
+    "title": "Overview of Strategy and the Enterprise in International Context",
+    "guide": "Chapter 7: Strategy & Enterprise in International Contexts",
+    "outcomes": [
+     "Define strategy, value creation and the value chain, and apply them to international cases",
+     "Identify economies from location, experience effects and scale",
+     "Describe the components of environmental analysis and apply PESTEL, SWOT, Minimax and CAGE",
+     "Develop international strategy with Ghemawat's AAA model",
+     "Choose among the four basic international strategies: international, localisation, global standardisation, transnational"
+    ],
+    "topics": [
+     "Strategy and value creation; unrealised and emergent strategy",
+     "Value chain: primary and support activities",
+     "Location economies, experience curve effects, economies of scale",
+     "PESTEL, SWOT and Minimax analysis",
+     "CAGE distance framework and the Four Cs",
+     "AAA model: adaptation, aggregation, arbitrage",
+     "Pressures for cost reduction and local responsiveness",
+     "Four international strategies and how strategy evolves"
+    ],
+    "terms": [
+     "value chain",
+     "core competencies",
+     "location economies",
+     "experience curve",
+     "economies of scale",
+     "PESTEL",
+     "SWOT",
+     "Minimax",
+     "CAGE (cultural, administrative, geographic, economic)",
+     "Four Cs: configuration, coordination, culture, cosmopolitanism",
+     "AAA: adaptation, aggregation, arbitrage",
+     "economic arbitrage",
+     "pressure for cost reductions",
+     "pressure for local responsiveness",
+     "international (home replication) strategy",
+     "localisation (multi-domestic) strategy",
+     "global standardisation strategy",
+     "transnational strategy",
+     "mass customisation"
+    ]
+   },
+   {
+    "id": "s3qgzhaj",
+    "title": "Competitive Strategy for International Business",
+    "guide": "Chapter 8: Competitive Strategy",
+    "outcomes": [
+     "Describe, assess and apply the five forces framework for industry analysis",
+     "Summarise the generic strategies of cost leadership, differentiation and focus",
+     "Define the resource-based approach and apply the VRIO framework",
+     "Outline the institution-based view of international competitiveness",
+     "Explain how to choose a positioning, leverage or opportunity strategy"
+    ],
+    "topics": [
+     "Porter's five forces and its criticisms",
+     "Generic strategies: cost leadership, differentiation, focus",
+     "Resource-based view: tangible and intangible resources, human capital, capabilities",
+     "Capitalism without capital: the 4Ss of intangibles",
+     "VRIO framework",
+     "Positioning, leverage and opportunity strategies; arriving at the right strategy",
+     "Debates: dynamic capabilities, institution-based view, the 4Rs of customer connection"
+    ],
+    "terms": [
+     "five forces",
+     "competitive rivalry",
+     "threat of entrants and entry barriers",
+     "threat of substitutes",
+     "bargaining power of buyers and suppliers",
+     "hypercompetition",
+     "complementors",
+     "cost leadership",
+     "differentiation",
+     "focus (niche) strategy",
+     "content, aura, personalisation, expertise",
+     "resource-based view",
+     "tangible and intangible resources",
+     "capabilities",
+     "sunk costs, scalability, spillovers, synergies (4Ss)",
+     "VRIO (value, rarity, imitability, organisation)",
+     "positioning strategy",
+     "leverage strategy",
+     "opportunity strategy",
+     "dynamic capabilities",
+     "4Rs: recognise, request, respond, repeat"
+    ]
+   },
+   {
+    "id": "zc4vwrqj",
+    "title": "International Business Strategies: Market Entry and Growth",
+    "guide": "Chapter 9: Entry Strategies, Alliances and Evolution",
+    "outcomes": [
+     "Establish the major decisions in entering an international market: why, where, when, how",
+     "Identify the six modes of foreign market entry, their advantages and risks, and the criteria for choosing",
+     "Compare strategic alliances, acquisitions and greenfield strategies as entry modes",
+     "Explain how firms evolve their international presence over time"
+    ],
+    "topics": [
+     "Why and where to enter: resource, market, efficiency and innovation seeking",
+     "When to enter: first-mover and late-mover advantages",
+     "Scale and ownership; born-global firms and lean internationalisation",
+     "Six entry modes: exporting, turnkey, licensing, franchising, joint venture, wholly owned subsidiary",
+     "Greenfield versus acquisition",
+     "Strategic alliances: reasons, criticisms, success factors",
+     "Evolution of international strategy"
+    ],
+    "terms": [
+     "first-mover advantage",
+     "born global",
+     "lean internationalisation",
+     "exporting",
+     "letter of credit",
+     "turnkey project",
+     "licensing",
+     "royalty",
+     "cross-licensing",
+     "franchising",
+     "master franchisee",
+     "joint venture",
+     "wholly owned subsidiary",
+     "greenfield strategy",
+     "acquisition",
+     "strategic alliance",
+     "partner selection",
+     "alliance structure",
+     "market-seeking, resource-seeking, efficiency-seeking, innovation-seeking"
+    ]
+   },
+   {
+    "id": "j7gsqmv3",
+    "title": "International Marketing and R&D Strategy",
+    "guide": "Chapter 10: International Marketing and R&D Strategy",
+    "outcomes": [
+     "Define and apply marketing strategy, segmentation and the marketing mix in international business",
+     "Discuss product, price and promotion strategies and how to shape them to country conditions",
+     "Apply distribution strategy concepts",
+     "Discuss why R&D matters and where to locate it, and how to protect IP"
+    ],
+    "topics": [
+     "International marketing and the Ansoff Matrix",
+     "Market segmentation and the 4Ps; customer lifecycle and CRM",
+     "Product strategy and product differentiation",
+     "Pricing strategy: price discrimination and strategic pricing",
+     "Promotion strategy: barriers, push versus pull, standardised advertising",
+     "Place: differences in distribution systems and choosing a strategy",
+     "R&D strategy: location, commercialisation, integration, IP protection"
+    ],
+    "terms": [
+     "Ansoff Matrix",
+     "market penetration",
+     "market development",
+     "product development",
+     "diversification",
+     "marketing mix (4Ps)",
+     "market segmentation",
+     "customer relationship management",
+     "price discrimination",
+     "price elasticity of demand",
+     "predatory pricing",
+     "multipoint pricing",
+     "experience curve pricing",
+     "anti-dumping regulations",
+     "source effects",
+     "country-of-origin effects",
+     "noise levels",
+     "push versus pull strategy",
+     "retail concentration",
+     "channel length, exclusivity and quality",
+     "cross-functional teams",
+     "innovation hubs"
+    ]
+   },
+   {
+    "id": "n5et3j85",
+    "title": "Global Sourcing and Production",
+    "guide": "Chapter 12: Global Sourcing of Production and Services",
+    "outcomes": [
+     "Outline trends towards outsourcing, global sourcing and offshoring",
+     "List the factors that influence production location",
+     "Apply make-or-buy decision making",
+     "Describe offshoring and its challenges, and strategies to minimise risk in global sourcing",
+     "Apply a framework for global location attractiveness",
+     "Make business service and IT sourcing decisions and manage the outsourcing life cycle"
+    ],
+    "topics": [
+     "Key terms: global sourcing, outsourcing, internalisation, externalisation",
+     "Production location: country, fixed cost, technological and product factors",
+     "Make-or-buy decisions: advantages of making and of buying",
+     "Offshoring: when it is problematic, managing offshore outsourcing",
+     "Location attractiveness: costs, skills, environment, infrastructure, risk, market potential",
+     "Outsourcing models and strategic sourcing of IT (order winners, qualifiers, commodities, distractions)",
+     "Offshoring risks and the outsourcing life cycle"
+    ],
+    "terms": [
+     "global sourcing",
+     "outsourcing",
+     "offshoring",
+     "internalisation and externalisation",
+     "minimum efficient scale",
+     "flexible manufacturing (lean production)",
+     "value to weight ratio",
+     "global learning",
+     "make-or-buy decision",
+     "proprietary technology",
+     "total outsourcing",
+     "selective outsourcing",
+     "multi-sourcing versus bundled services",
+     "order winners",
+     "qualifiers",
+     "useful commodities",
+     "distractions",
+     "transparent, codifiable, opaque and non-codifiable processes",
+     "moral contract",
+     "outsourcing life cycle"
+    ]
+   },
+   {
+    "id": "zhirjh9f",
+    "title": "Global information systems management",
+    "guide": "Chapter 13: Global Information Systems Management",
+    "outcomes": [
+     "Assess the importance and dimensions of aligning IT strategy, organisation, development, projects and operations with business strategy",
+     "Define global enterprise IT architecture and use four enterprise architecture models to fit international strategy",
+     "Explain the strengths and weaknesses of the multinational, international, transnational and global types of IT architecture",
+     "Recommend key success factors in building and transitioning enterprise IT architectures"
+    ],
+    "topics": [
+     "Business and IT alignment and how it is achieved",
+     "Fifteen practices across direction, IT organisation, development, operations",
+     "Enterprise IT architecture: enterprise systems and IT infrastructure",
+     "Bartlett and Ghoshal's four approaches: multinational, international, transnational, global",
+     "Strengths and weaknesses of each architecture"
+    ],
+    "terms": [
+     "business-IT alignment",
+     "business information system",
+     "enterprise IT architecture",
+     "enterprise systems",
+     "IT infrastructure",
+     "business flexibility versus business standardisation",
+     "Strategic Impact grid",
+     "federal IT structure",
+     "retained core IT capabilities",
+     "regionally shared services",
+     "decision rights",
+     "managed consensus",
+     "one-size-fits-all",
+     "legacy systems"
+    ]
+   },
+   {
+    "id": "p96a6t6q",
+    "title": "International Project Management",
+    "guide": "Chapter 15: International Project Management",
+    "outcomes": [
+     "Define project, project and programme management, and the project management office",
+     "Discuss the major project management methodologies, their uses, strengths and weaknesses",
+     "Assess the distinctive challenges of international projects",
+     "Analyse risk in international projects using risk-profiling frameworks and identify mitigation"
+    ],
+    "topics": [
+     "Projects, project lifecycle, programme management, the PMO",
+     "Methodologies: Waterfall, Agile, Scrum, CPM, PRiSM, PRINCE2",
+     "How international projects differ: complexity, cultures, time zones, risk intensity",
+     "Risk management process and four mitigation strategies",
+     "Risk profiling frameworks"
+    ],
+    "terms": [
+     "project",
+     "project management lifecycle (initiation, planning, executing, completion)",
+     "programme management",
+     "project management office",
+     "Waterfall",
+     "Agile",
+     "Scrum",
+     "sprint",
+     "scope creep",
+     "critical path method",
+     "critical path",
+     "PRiSM",
+     "PRINCE2",
+     "risk register",
+     "probability and impact matrix",
+     "risk avoidance",
+     "risk acceptance",
+     "risk transfer",
+     "risk absorption and pooling",
+     "five risk areas (Lacity and Willcocks)"
+    ]
+   },
+   {
+    "id": "aypy998e",
+    "title": "International Human Resource Management",
+    "guide": "Chapter 14: International Human Resource Management",
+    "outcomes": [
+     "Define international HRM and discuss HR strategies in overseas operations",
+     "Assess expatriate challenges, selection criteria, and training and repatriation",
+     "Discuss the challenges of appraising performance and the elements of an international compensation package",
+     "Explain major labour relations issues internationally",
+     "Assess the impact of automation and the 2020-21 crisis on future HRM"
+    ],
+    "topics": [
+     "Staffing policy: ethnocentric, polycentric, geocentric",
+     "Expatriates: failure, selection and the global manager",
+     "Training, repatriation and management development",
+     "Performance appraisal",
+     "Compensation: going-rate and balance sheet approaches, package components",
+     "Labour relations and country-specific practices",
+     "Emerging issues: automation, Covid-19, Gartner trends"
+    ],
+    "terms": [
+     "ethnocentric policy",
+     "polycentric policy",
+     "geocentric policy",
+     "parent-country, host-country and third-country nationals",
+     "cultural myopia",
+     "expatriate failure",
+     "Mendenhall and Oddou's four dimensions",
+     "global mindset",
+     "cultural, language and practical training",
+     "repatriation",
+     "going-rate approach",
+     "balance sheet approach",
+     "hardship allowance",
+     "collective bargaining",
+     "industrial democracy",
+     "work councils",
+     "gig workers"
+    ]
+   },
+   {
+    "id": "z33gh628",
+    "title": "Global Digital Management",
+    "guide": "Chapter 16: Global Digital Management",
+    "outcomes": [
+     "Define digitisation, digitalisation and digital transformation",
+     "Describe and assess the 10 major digital technologies used in building digital business",
+     "Explain the components of a digital business model and apply them to international businesses",
+     "Identify the building blocks of digital business and analyse digital transformation progress",
+     "Discuss why digital transformation fails or succeeds, with international examples"
+    ],
+    "topics": [
+     "Digitisation, digitalisation, digital transformation",
+     "SMAC/BRAIDA technologies",
+     "Digital business model: content, experience, platform",
+     "Six dimensions of digital preparedness",
+     "Five building blocks of digital business",
+     "Digital transformation: why it fails and how to succeed",
+     "Change management and digital culture; the DBS case"
+    ],
+    "terms": [
+     "digitisation",
+     "digitalisation",
+     "digital transformation",
+     "SMAC",
+     "cloud computing",
+     "blockchain",
+     "distributed ledger",
+     "robotic process automation",
+     "cognitive automation",
+     "Internet of Things",
+     "digital fabrication (3D printing)",
+     "augmented reality",
+     "content, experience, platform framework",
+     "digital preparedness",
+     "shared customer insights",
+     "operational backbone",
+     "digital platform",
+     "accountability framework",
+     "external developer platform",
+     "digital culture: impact, speed, openness, autonomy"
+    ]
+   }
+  ],
+  "unmatched": []
+ },
+ {
+  "module": "mathematics",
+  "unitCode": "MT1186",
+  "source": "MT1186 Mathematical methods, J. Ward, University of London (Undergraduate study in Economics, Management, Finance and the Social Sciences), 2025",
+  "chapters": [
+   {
+    "id": "r8fe2s9j",
+    "title": "Functions",
+    "guide": "Chapter 2: Functions (2.2 elementary functions, 2.3 combinations, 2.4 inverses, 2.5 identities, 2.6 applications)",
+    "outcomes": [
+     "identify elementary functions and sketch their graphs",
+     "find combinations of elementary functions and inverses (if they exist)",
+     "use identities to rewrite expressions involving powers, logarithms and trigonometric functions",
+     "solve problems from economics-based subjects that involve functions"
+    ],
+    "topics": [
+     "Elementary functions: power, exponential, logarithmic, trigonometric",
+     "Linear combinations, products and quotients of functions",
+     "Compositions of functions",
+     "Inverse functions: roots, logarithms, inverse trigonometric functions",
+     "Laws of logarithms and trigonometric identities",
+     "Supply and demand functions, equilibrium, and the effects of taxation"
+    ],
+    "terms": [
+     "domain and range",
+     "composition f(g(x))",
+     "inverse function",
+     "one-to-one",
+     "exponential function e^x",
+     "natural logarithm ln x",
+     "laws of logarithms",
+     "radians",
+     "sin, cos, tan",
+     "arcsin, arccos, arctan",
+     "sin²x + cos²x = 1",
+     "supply function",
+     "demand function",
+     "market equilibrium",
+     "tax on a good"
+    ]
+   },
+   {
+    "id": "w8t2b3p7",
+    "title": "Differentiation",
+    "guide": "Chapter 3: Differentiation",
+    "outcomes": [
+     "find simple derivatives using the definition of the derivative",
+     "find derivatives using standard derivatives and the rules of differentiation",
+     "use the derivative to find tangent lines and use these to approximate functions",
+     "solve problems from economics-based subjects that involve derivatives"
+    ],
+    "topics": [
+     "Definition of the derivative as a limit of difference quotients",
+     "Standard derivatives and rules of differentiation",
+     "Higher-order derivatives",
+     "Meaning of the derivative, rates of change, marginal functions",
+     "Tangent lines and linear approximations",
+     "Elasticity and other economic applications",
+     "Existence of derivatives (differentiability, continuity, kinks)"
+    ],
+    "terms": [
+     "derivative f'(a)",
+     "limit definition",
+     "linear combination rule",
+     "product rule",
+     "quotient rule",
+     "chain rule",
+     "derivative of e^x and ln x",
+     "logarithmic differentiation",
+     "second derivative",
+     "tangent line",
+     "linear approximation",
+     "marginal cost",
+     "marginal revenue",
+     "price elasticity of demand",
+     "differentiability"
+    ]
+   },
+   {
+    "id": "35u3dquu",
+    "title": "One Variable Optimisation",
+    "guide": "Chapter 4: One-variable optimisation",
+    "outcomes": [
+     "use first and second-order derivatives to identify the relevant features of a function",
+     "sketch curves by identifying their key features",
+     "optimise functions of one variable",
+     "solve problems from economics-based subjects that involve optimisation"
+    ],
+    "topics": [
+     "Increasing and decreasing functions, stationary points",
+     "Second derivatives, convex and concave functions, points of inflection",
+     "Curve sketching for polynomials and other elementary functions",
+     "Asymptotes and cusps",
+     "Global optimisation on intervals, constrained optimisation",
+     "When differentiability fails",
+     "Applications: profit, revenue, cost, tax revenue"
+    ],
+    "terms": [
+     "stationary point",
+     "local maximum and minimum",
+     "global maximum and minimum",
+     "first derivative test",
+     "second derivative test",
+     "convex function",
+     "concave function",
+     "point of inflection",
+     "curve sketching",
+     "horizontal asymptote",
+     "vertical asymptote",
+     "oblique asymptote",
+     "cusp",
+     "elasticity",
+     "profit maximisation"
+    ]
+   },
+   {
+    "id": "skkqwgvk",
+    "title": "The Art of Integration",
+    "guide": "Chapter 5: Integration",
+    "outcomes": [
+     "find integrals using standard integrals and the rules of integration",
+     "find integrals by simplifying the integrand using partial fractions and trigonometric identities",
+     "use integrals to find areas",
+     "solve problems from economics-based subjects that involve integrals"
+    ],
+    "topics": [
+     "Indefinite integrals, standard integrals and basic rules",
+     "Integration by substitution",
+     "Integration by parts",
+     "Partial fractions",
+     "Trigonometric identities to simplify integrands",
+     "Definite integrals and areas, fundamental theorem of calculus",
+     "Marginal functions revisited, consumer and producer surplus"
+    ],
+    "terms": [
+     "antiderivative",
+     "constant of integration",
+     "linear combination rule",
+     "substitution u = g(x)",
+     "integration by parts",
+     "partial fractions",
+     "definite integral",
+     "area under a curve",
+     "fundamental theorem of calculus",
+     "initial condition",
+     "marginal cost to total cost",
+     "consumer surplus",
+     "producer surplus"
+    ]
+   },
+   {
+    "id": "7m3yeibe",
+    "title": "Functions of Several Variables",
+    "guide": "Chapter 6: Functions of several variables",
+    "outcomes": [
+     "visualise a surface by using sections and contours",
+     "find partial derivatives",
+     "use the chain rule to find derivatives of various kinds",
+     "show that a function is homogeneous and verify Euler's theorem",
+     "solve problems from economics-based subjects that involve partial derivatives"
+    ],
+    "topics": [
+     "Surfaces and planes",
+     "Contours (level curves) and sections",
+     "Partial differentiation and its geometric meaning",
+     "Chain rule for several variables",
+     "Homogeneous functions and Euler's theorem",
+     "Second-order partial derivatives"
+    ],
+    "terms": [
+     "surface z = f(x,y)",
+     "contour",
+     "level curve",
+     "section",
+     "partial derivative f_x",
+     "chain rule for partial derivatives",
+     "total derivative",
+     "implicit differentiation",
+     "homogeneous function of degree k",
+     "Euler's theorem",
+     "second-order partial derivatives f_xy",
+     "Young's theorem (symmetry of mixed partials)",
+     "production function",
+     "isoquant"
+    ]
+   },
+   {
+    "id": "hk43786w",
+    "title": "Multivariate Optimisation",
+    "guide": "Chapter 7: Multivariate optimisation",
+    "outcomes": [
+     "find and classify the stationary points of a function of two variables",
+     "solve problems from economics-based subjects that involve unconstrained optimisation",
+     "optimise a function in the presence of constraints",
+     "solve problems from economics-based subjects that involve constrained optimisation"
+    ],
+    "topics": [
+     "Stationary points of functions of two variables",
+     "Classifying stationary points with the Hessian and second-order test",
+     "Applications of unconstrained optimisation",
+     "Optimal points on the boundary of a region (substitution of the constraint)",
+     "Method of Lagrange multipliers",
+     "Meaning of the Lagrange multiplier",
+     "Applications to economics"
+    ],
+    "terms": [
+     "stationary point",
+     "Hessian matrix",
+     "second derivative test D = f_xx f_yy - (f_xy)^2",
+     "local maximum, minimum, saddle point",
+     "constrained optimisation",
+     "Lagrange multiplier",
+     "Lagrangian function",
+     "boundary of a region",
+     "utility maximisation",
+     "cost minimisation",
+     "shadow price"
+    ]
+   },
+   {
+    "id": "hmv8hbuk",
+    "title": "Matrices and Linear Equations",
+    "guide": "Chapter 8: Matrices and linear equations (8.1 vectors and matrices, 8.2 linear systems, 8.3 diagonalisation)",
+    "outcomes": [
+     "perform the given operations on vectors and matrices",
+     "use cofactor expansions to find determinants",
+     "determine whether a matrix is invertible and, if it is, find its inverse",
+     "solve systems of linear equations using row operations, Cramer's rule or an inverse matrix as appropriate",
+     "find the eigenvalues and eigenvectors of a 2 × 2 matrix",
+     "diagonalise a 2 × 2 matrix"
+    ],
+    "topics": [
+     "Vectors and matrices, operations",
+     "Determinants by cofactor expansion",
+     "Inverse matrices",
+     "Systems of linear equations: row operations, Gaussian elimination",
+     "Cramer's rule and the inverse matrix method",
+     "Eigenvalues and eigenvectors",
+     "Diagonalisation of matrices"
+    ],
+    "terms": [
+     "column vector",
+     "matrix multiplication",
+     "transpose",
+     "determinant",
+     "cofactor expansion",
+     "invertible matrix",
+     "inverse matrix",
+     "row operations",
+     "row echelon form",
+     "Cramer's rule",
+     "eigenvalue",
+     "eigenvector",
+     "characteristic equation det(A - λI) = 0",
+     "diagonalisation A = PDP^-1",
+     "invertibility test det A ≠ 0"
+    ]
+   },
+   {
+    "id": "2uwhnans",
+    "title": "Differential Equations",
+    "guide": "Chapter 9: Differential equations (all sections; 9.4 systems and 9.5 applications are not in the hub's lesson list)",
+    "outcomes": [
+     "identify and solve separable and linear first-order ODEs",
+     "identify and solve homogeneous and non-homogeneous second-order ODEs with constant coefficients",
+     "solve coupled systems of first-order ODEs",
+     "solve problems from economics-based subjects that involve applications of ODEs"
+    ],
+    "topics": [
+     "What is a differential equation: order, degree, general and particular solutions, initial conditions",
+     "Separable first-order ODEs",
+     "Linear first-order ODEs and the integrating factor",
+     "Homogeneous second-order ODEs with constant coefficients",
+     "Non-homogeneous second-order ODEs",
+     "Systems of first-order ODEs by reduction to second order or by diagonalisation",
+     "Applications: demand from elasticity, continuous price adjustment, market trends"
+    ],
+    "terms": [
+     "ordinary differential equation",
+     "order and degree",
+     "general solution",
+     "particular solution",
+     "initial value problem",
+     "separable ODE",
+     "integrating factor",
+     "auxiliary equation",
+     "complementary function",
+     "particular integral",
+     "undetermined coefficients",
+     "coupled system",
+     "eigenvalue method",
+     "equilibrium solution",
+     "stability"
+    ]
+   },
+   {
+    "id": "d74wxfxt",
+    "title": "Difference Equations",
+    "guide": "Chapter 10: Difference equations (10.1 sequences, 10.2 first-order, 10.3 second-order, 10.4 systems, 10.5 applications)",
+    "outcomes": [
+     "identify and solve first-order difference equations",
+     "identify and solve homogeneous and non-homogeneous second-order difference equations",
+     "solve coupled systems of first-order difference equations",
+     "solve problems from economics-based subjects that involve applications of difference equations"
+    ],
+    "topics": [
+     "Geometric and arithmetic sequences",
+     "First-order difference equations and their time-independent solution",
+     "Homogeneous second-order difference equations",
+     "Non-homogeneous second-order difference equations",
+     "Systems of first-order difference equations by reduction or diagonalisation",
+     "Applications: interest rates and investments, cobweb model, macroeconomic models"
+    ],
+    "terms": [
+     "difference equation",
+     "y_t = a y_{t-1} + b",
+     "time-independent (equilibrium) solution y*",
+     "general solution",
+     "initial condition y_0",
+     "geometric sequence",
+     "arithmetic sequence",
+     "auxiliary equation",
+     "complementary function",
+     "stability and convergence",
+     "oscillation",
+     "cobweb model",
+     "compound interest",
+     "diagonalisation of coupled system"
+    ]
+   }
+  ],
+  "unmatched": []
+ },
+ {
+  "module": "statistics",
+  "unitCode": "ST1215",
+  "source": "Introduction to mathematical statistics, J.S. Abdey, ST1215, University of London, 2023",
+  "chapters": [
+   {
+    "id": "935gqnys",
+    "title": "Probability Theory",
+    "guide": "Chapter 2: Probability theory",
+    "outcomes": [
+     "Explain random experiments, sample spaces and events",
+     "List the axioms of probability and derive the common probability rules from them",
+     "Use the formulae for combinations and permutations of k objects out of n",
+     "Explain conditional probability and independent events",
+     "Prove and apply the law of total probability over a partition of the sample space",
+     "Prove and apply Bayes' theorem to find conditional probabilities"
+    ],
+    "topics": [
+     "Set theory and Venn diagrams",
+     "Axiomatic definition of probability",
+     "Classical probability and relative frequency",
+     "Counting: permutations and combinations, with and without replacement",
+     "Conditional probability and the chain rule",
+     "Independence of events",
+     "Total probability and Bayes' theorem"
+    ],
+    "terms": [
+     "sample space",
+     "event",
+     "complement, union, intersection",
+     "mutually exclusive (disjoint) events",
+     "partition",
+     "collectively exhaustive",
+     "axioms of probability",
+     "permutation",
+     "combination",
+     "binomial coefficient",
+     "factorial",
+     "conditional probability",
+     "chain rule",
+     "independence",
+     "law of total probability",
+     "Bayes' theorem"
+    ]
+   },
+   {
+    "id": "hqnvqdi4",
+    "title": "Random Variables",
+    "guide": "Chapter 3: Random variables",
+    "outcomes": [
+     "Define a random variable and distinguish it from the values it takes",
+     "Explain the difference between discrete and continuous random variables",
+     "Find the mean and variance of simple discrete and continuous random variables",
+     "Use simple properties of expected values and variances"
+    ],
+    "topics": [
+     "Discrete random variables and their probability (mass) function",
+     "Cumulative distribution function and its properties",
+     "Expected value versus sample mean",
+     "Moments of a random variable",
+     "Moment generating function",
+     "Continuous random variables and probability density functions",
+     "Median of a random variable"
+    ],
+    "terms": [
+     "random variable",
+     "probability function",
+     "probability density function",
+     "cumulative distribution function",
+     "step function",
+     "expected value E(X)",
+     "variance",
+     "standard deviation",
+     "E(g(X))",
+     "Var(X) = E(X^2) - (E(X))^2",
+     "moments",
+     "moment generating function",
+     "median",
+     "Pareto distribution"
+    ]
+   },
+   {
+    "id": "57vcz5gf",
+    "title": "Common Distributions of Random Variables",
+    "guide": "Chapter 4: Common distributions of random variables",
+    "outcomes": [
+     "Summarise the uniform, Bernoulli, binomial, Poisson, exponential and normal distributions",
+     "Calculate probabilities using the pf, pdf or cdf",
+     "Determine probabilities using statistical tables",
+     "State the expected value and variance of these distributions"
+    ],
+    "topics": [
+     "Discrete uniform, Bernoulli, binomial and Poisson distributions",
+     "Connections between distributions; Poisson approximation of the binomial",
+     "Continuous uniform and exponential distributions",
+     "Normal distribution and standardisation",
+     "Normal approximation of the binomial with continuity correction"
+    ],
+    "terms": [
+     "Bernoulli distribution",
+     "binomial distribution",
+     "Poisson distribution",
+     "discrete uniform",
+     "continuous uniform",
+     "exponential distribution",
+     "normal distribution",
+     "standard normal",
+     "z-score",
+     "standardised variable",
+     "normal tables",
+     "continuity correction",
+     "Poisson approximation of the binomial",
+     "moment generating function",
+     "central limit theorem"
+    ]
+   },
+   {
+    "id": "zwvna9b6",
+    "title": "Multivariate Random Variables",
+    "guide": "Chapter 5: Multivariate random variables",
+    "outcomes": [
+     "Arrange discrete bivariate probabilities in tabular form",
+     "Define and find marginal and conditional distributions",
+     "Define and determine independence of two random variables",
+     "Compute expected values of functions of two random variables and prove simple properties",
+     "Define and calculate covariance and correlation"
+    ],
+    "topics": [
+     "Joint probability functions",
+     "Marginal distributions",
+     "Continuous multivariate distributions",
+     "Conditional distributions, conditional mean and variance",
+     "Covariance and correlation; sample covariance and correlation",
+     "Independent random variables",
+     "Sums and products of random variables"
+    ],
+    "terms": [
+     "joint probability function",
+     "marginal distribution",
+     "conditional distribution",
+     "conditional mean",
+     "conditional variance",
+     "independence",
+     "covariance",
+     "correlation",
+     "uncorrelated",
+     "E(XY)",
+     "Cov(X,Y) = E(XY) - E(X)E(Y)",
+     "variance of a sum",
+     "sums of independent normal variables",
+     "random vector"
+    ]
+   },
+   {
+    "id": "nycc5z2u",
+    "title": "Sampling Distributions of Statistics",
+    "guide": "Chapter 6: Sampling distributions of statistics",
+    "outcomes": [
+     "Show how sampling from a population gives a sampling distribution for a statistic",
+     "Prove and apply the mean and variance of the sample mean for a random sample",
+     "State the central limit theorem and when it approximates well"
+    ],
+    "topics": [
+     "Random samples and their joint distribution",
+     "Statistics and their sampling distributions",
+     "Sample mean from a normal population",
+     "The central limit theorem",
+     "Chi-squared, t and F distributions",
+     "Population versus sample, parameter versus statistic"
+    ],
+    "terms": [
+     "random sample",
+     "IID random variables",
+     "statistic",
+     "sampling distribution",
+     "sampling variance",
+     "E(sample mean) = mu",
+     "Var(sample mean) = sigma^2/n",
+     "central limit theorem",
+     "chi-squared distribution",
+     "Student's t distribution",
+     "F distribution",
+     "degrees of freedom",
+     "parameter versus statistic"
+    ]
+   },
+   {
+    "id": "hhfxb62g",
+    "title": "Point Estimation",
+    "guide": "Chapter 7: Point estimation",
+    "outcomes": [
+     "Assess an estimator through its sampling distribution",
+     "Use bias and variance of an estimator",
+     "Define and calculate mean squared error",
+     "Find estimators by method of moments, least squares and maximum likelihood"
+    ],
+    "topics": [
+     "Estimation criteria: bias, variance and MSE",
+     "Method of moments estimation",
+     "Least squares estimation",
+     "Maximum likelihood estimation",
+     "Asymptotic distribution of MLEs"
+    ],
+    "terms": [
+     "point estimator",
+     "point estimate",
+     "unbiased",
+     "bias",
+     "mean squared error",
+     "standard error",
+     "consistent estimator",
+     "law of large numbers",
+     "sample moment, population moment",
+     "method of moments",
+     "least squares",
+     "likelihood function",
+     "log-likelihood",
+     "maximum likelihood estimator",
+     "Fisher information",
+     "invariance principle"
+    ]
+   },
+   {
+    "id": "9xf4eaw6",
+    "title": "Interval Estimation",
+    "guide": "Chapter 8: Interval estimation",
+    "outcomes": [
+     "Explain the coverage probability of a confidence interval",
+     "Construct confidence intervals for means of normal and non-normal populations, variance known and unknown",
+     "Construct confidence intervals for the variance of a normal population",
+     "Link confidence intervals to distribution theory and critique their assumptions"
+    ],
+    "topics": [
+     "Intervals for means of normal distributions",
+     "Approximate confidence intervals for non-normal means",
+     "MLE-based confidence intervals",
+     "Use of the chi-squared distribution",
+     "Intervals for variances of normal distributions"
+    ],
+    "terms": [
+     "confidence interval",
+     "coverage probability",
+     "interval estimator",
+     "interval width",
+     "pivot",
+     "z interval",
+     "t interval",
+     "chi-squared interval for variance",
+     "sample proportion interval",
+     "sample size determination",
+     "standard error"
+    ]
+   },
+   {
+    "id": "9dhn7cfg",
+    "title": "Hypothesis Tests",
+    "guide": "Chapter 9: Hypothesis testing",
+    "outcomes": [
+     "Define and apply hypothesis testing terminology",
+     "Conduct the tests covered in the chapter",
+     "Calculate the power of simpler tests",
+     "Explain rejection regions in terms of significance level and power"
+    ],
+    "topics": [
+     "Setting: p-value, significance level, test statistic",
+     "Two-sided and one-sided tests for normal means",
+     "t tests",
+     "Type I and Type II errors",
+     "Tests for variances of normal distributions",
+     "Paired comparison and power functions",
+     "Comparing two normal means",
+     "Tests for correlation coefficients",
+     "F test for ratio of two variances"
+    ],
+    "terms": [
+     "null hypothesis",
+     "alternative hypothesis",
+     "test statistic",
+     "critical value",
+     "rejection region",
+     "p-value",
+     "significance level",
+     "Type I error",
+     "Type II error",
+     "power function",
+     "t test",
+     "paired comparison",
+     "chi-squared test for variance",
+     "F test",
+     "pooled variance",
+     "test for correlation"
+    ]
+   },
+   {
+    "id": "xt9a3uyv",
+    "title": "ANOVA",
+    "guide": "Chapter 10: Analysis of variance (ANOVA)",
+    "outcomes": [
+     "Explain the purpose of analysis of variance",
+     "Interpret one-way and two-way ANOVA models",
+     "Carry out small one-way and two-way ANOVA examples and report an ANOVA table",
+     "Perform hypothesis tests and confidence intervals in ANOVA",
+     "Interpret residuals from ANOVA"
+    ],
+    "topics": [
+     "Testing equality of three population means",
+     "One-way ANOVA",
+     "From one-way to two-way ANOVA",
+     "Two-way ANOVA with blocks",
+     "Residuals"
+    ],
+    "terms": [
+     "ANOVA",
+     "one-way ANOVA",
+     "two-way ANOVA",
+     "total variation",
+     "between-groups variation",
+     "within-groups variation",
+     "between-treatments",
+     "between-blocks",
+     "ANOVA decomposition",
+     "ANOVA table",
+     "F test",
+     "residual",
+     "random errors",
+     "sample mean"
+    ]
+   },
+   {
+    "id": "6zdqtvng",
+    "title": "Linear Regression",
+    "guide": "Chapter 11: Linear regression",
+    "outcomes": [
+     "Derive least squares estimators of intercept and slope in simple linear regression",
+     "Construct confidence intervals and tests for intercept and slope",
+     "Construct confidence intervals and prediction intervals and explain the difference",
+     "Summarise and interpret the multiple linear regression model",
+     "State the assumptions of regression models",
+     "Interpret computer output of a fitted regression"
+    ],
+    "topics": [
+     "Simple linear regression",
+     "Inference for parameters in normal regression models",
+     "Regression ANOVA",
+     "Confidence intervals for E(y)",
+     "Prediction intervals for y",
+     "Multiple linear regression models",
+     "Regression using R"
+    ],
+    "terms": [
+     "simple linear regression",
+     "multiple linear regression",
+     "dependent variable",
+     "independent variable (regressor)",
+     "intercept",
+     "slope coefficient",
+     "least squares estimation",
+     "residual",
+     "linear estimators",
+     "ANOVA decomposition",
+     "coefficient of determination R^2",
+     "confidence interval for E(y)",
+     "prediction interval",
+     "regression assumptions",
+     "t test on slope"
+    ]
+   }
+  ],
+  "unmatched": []
+ },
+ {
+  "module": "econometrics",
+  "unitCode": "EC2020",
+  "source": "Elements of econometrics, EC2020, M. Schafgans and T. Komarova, University of London, 2023",
+  "chapters": [
+   {
+    "id": "6jmn24c5",
+    "title": "Nature of Econometrics and Economic Data",
+    "guide": "Chapter 2: The nature of econometrics and economic data (Wooldridge 1.1-1.4); Chapter 1 refresher is background",
+    "outcomes": [
+     "understand the steps for empirical analysis",
+     "give an example of how economic theory leads to an empirical econometric model",
+     "know the different types of economic data",
+     "discuss ceteris paribus",
+     "discuss counterfactual reasoning"
+    ],
+    "topics": [
+     "What is econometrics",
+     "Steps in empirical economic analysis",
+     "Structure of economic data: cross-sectional, time series, pooled, panel",
+     "Causality, ceteris paribus and counterfactual reasoning"
+    ],
+    "terms": [
+     "econometric model",
+     "economic model",
+     "empirical analysis",
+     "cross-sectional data",
+     "random sampling",
+     "time series data",
+     "panel data",
+     "experimental data",
+     "observational (nonexperimental) data",
+     "causal effect",
+     "ceteris paribus",
+     "counterfactual outcomes",
+     "counterfactual reasoning"
+    ]
+   },
+   {
+    "id": "mtitgdpr",
+    "title": "The Simple Regression Model",
+    "guide": "Chapter 3: Simple regression model (Wooldridge Ch. 2)",
+    "outcomes": [
+     "understand the three issues in formulating a simple regression model and how they are addressed",
+     "know the terminology of the regression model components",
+     "discuss the key assumptions on how regressor and error are related",
+     "derive and interpret OLS estimates; define fitted values and residuals and derive their algebraic properties",
+     "discuss the effect of changing units of measurement on estimates and R2",
+     "interpret OLS estimates when variables are in logarithmic form",
+     "establish unbiasedness of OLS and the role of the assumptions",
+     "derive the variance of the OLS estimator under homoskedasticity"
+    ],
+    "topics": [
+     "Definition of the simple regression model and population regression function",
+     "Deriving the OLS estimates",
+     "Properties of OLS on any sample: fitted values, residuals, goodness of fit",
+     "Units of measurement and functional form (log models)",
+     "Expected values and variances of the OLS estimators",
+     "Introduction to R in RStudio"
+    ],
+    "terms": [
+     "simple linear regression model",
+     "dependent and explanatory variable",
+     "error term",
+     "slope coefficient",
+     "intercept",
+     "ordinary least squares (OLS)",
+     "residual",
+     "fitted value",
+     "population regression function",
+     "sample regression function",
+     "SST, SSE, SSR",
+     "R-squared",
+     "zero conditional mean",
+     "homoskedasticity",
+     "unbiasedness"
+    ]
+   },
+   {
+    "id": "48isg7ra",
+    "title": "Multiple Regression Analysis: Estimation",
+    "guide": "Chapter 4: Multiple regression analysis: Estimation (Wooldridge Ch. 3); Chapter 6 for quadratics and dummy variables is a related extension",
+    "outcomes": [
+     "discuss the advantage of the multiple regression model over the simple one",
+     "understand the derivation of the OLS estimator in multiple regression",
+     "interpret coefficients holding other factors fixed (ceteris paribus)",
+     "discuss the partialling-out approach (Frisch-Waugh-Lovell)",
+     "know assumptions MLR.1-MLR.4 for unbiasedness and MLR.5 for the variance",
+     "discuss the consequences of including irrelevant variables and excluding relevant variables (omitted variable bias) and its likely direction",
+     "know the expression for Var of the OLS estimator and what improves precision",
+     "understand multicollinearity and the Gauss-Markov theorem"
+    ],
+    "topics": [
+     "Motivation for multiple regression",
+     "Mechanics and interpretation of OLS",
+     "Expected value of the OLS estimators and omitted variable bias",
+     "Variance of the OLS estimators, multicollinearity",
+     "Efficiency of OLS: Gauss-Markov theorem",
+     "R application for estimation"
+    ],
+    "terms": [
+     "partial effect",
+     "confounders",
+     "Frisch-Waugh-Lovell theorem",
+     "omitted variable bias",
+     "irrelevant variable",
+     "perfect collinearity",
+     "multicollinearity",
+     "standard error of the estimator",
+     "BLUE",
+     "Gauss-Markov theorem",
+     "MLR.1-MLR.5",
+     "R-squared and added regressors",
+     "variance inflation"
+    ]
+   },
+   {
+    "id": "9xtetwaf",
+    "title": "Inference",
+    "guide": "Chapter 5: Multiple regression analysis: Inference (Wooldridge Ch. 4)",
+    "outcomes": [
+     "understand the classical linear model (CLM) and the normality assumption MLR.6",
+     "contrast the sampling distribution using se with that using sd of the estimator",
+     "perform the t test for a single parameter, one- and two-sided, and obtain p-values",
+     "construct and interpret confidence intervals and use them for two-sided tests",
+     "test a single linear combination of parameters",
+     "perform the F test for multiple linear restrictions in SSR form and R2 form",
+     "perform the F test for overall significance and relate the F test to the t test"
+    ],
+    "topics": [
+     "Sampling distribution of the OLS estimators",
+     "t test for a single population parameter",
+     "Confidence intervals",
+     "Testing a single linear combination of parameters",
+     "Testing multiple linear restrictions: the F test",
+     "R application for inference"
+    ],
+    "terms": [
+     "classical linear model",
+     "normality assumption",
+     "null and alternative hypothesis",
+     "one-sided and two-sided alternative",
+     "significance level",
+     "critical value",
+     "rejection region",
+     "t statistic",
+     "p-value",
+     "confidence interval",
+     "Type I error",
+     "Type II error",
+     "power of a test",
+     "restricted and unrestricted model",
+     "joint hypothesis test",
+     "F statistic",
+     "test for significance of the regression"
+    ]
+   },
+   {
+    "id": "gazw7qiy",
+    "title": "OLS Asymptotics",
+    "guide": "Chapter 7: Multiple regression analysis: Asymptotics (Wooldridge Ch. 5)",
+    "outcomes": [
+     "understand the implications of dropping normality of errors for finite-sample inference",
+     "explain the consequences of endogeneity for OLS estimation",
+     "understand consistency and establish consistency of OLS",
+     "know which conditions guarantee consistency",
+     "explain asymptotic normality of the standardised OLS estimator",
+     "understand the implications of large-sample results for inference",
+     "explain when OLS is asymptotically efficient"
+    ],
+    "topics": [
+     "Consistency of OLS",
+     "Inconsistency and asymptotic bias",
+     "Asymptotic normality and large sample inference",
+     "Asymptotic efficiency of OLS"
+    ],
+    "terms": [
+     "large sample properties",
+     "consistency",
+     "inconsistency",
+     "asymptotic distribution",
+     "asymptotic normality",
+     "asymptotic efficiency",
+     "asymptotic standard error",
+     "zero mean and zero correlation assumption",
+     "law of large numbers",
+     "central limit theorem",
+     "plim"
+    ]
+   },
+   {
+    "id": "w8jhm9u7",
+    "title": "Heteroskedasticity",
+    "guide": "Chapter 8: Heteroskedasticity (Wooldridge Ch. 8, Sections 8.1-8.4)",
+    "outcomes": [
+     "understand the definitions of homoskedasticity and heteroskedasticity",
+     "explain the consequences of heteroskedasticity for OLS estimators, standard errors, confidence intervals, t and F tests",
+     "describe the principles of heteroskedasticity-robust inference",
+     "discuss and implement approaches to detecting and testing for heteroskedasticity",
+     "explain what a weighted least squares estimator is and its properties"
+    ],
+    "topics": [
+     "Consequences of heteroskedasticity for OLS",
+     "Heteroskedasticity-robust inference after OLS",
+     "Testing for heteroskedasticity: graphical analysis, Breusch-Pagan, White",
+     "Weighted least squares",
+     "R applications for heteroskedasticity"
+    ],
+    "terms": [
+     "heteroskedasticity",
+     "homoskedasticity",
+     "robust standard errors",
+     "robust t statistic",
+     "robust Wald statistic",
+     "Breusch-Pagan test",
+     "White test",
+     "weighted least squares (WLS)",
+     "feasible GLS",
+     "variance function",
+     "OLS still unbiased and consistent"
+    ]
+   },
+   {
+    "id": "s7m9nt7j",
+    "title": "Time series",
+    "guide": "Chapter 14: Autocorrelation in time series regression (Wooldridge 12.1-12.3), with the time series setting in Chapter 13 (Wooldridge Ch. 10-11) and Chapter 15 (trends, unit roots) as related material",
+    "outcomes": [
+     "describe the consequences of serial correlation in the error for OLS with strictly or contemporaneously exogenous regressors",
+     "give the intuition for heteroskedasticity and serial correlation adjustment of standard errors",
+     "describe the consequences of serial correlation when lags of the dependent variable are regressors",
+     "outline testing for serial correlation under strict exogeneity and under contemporaneous exogeneity",
+     "estimate time series regressions and test for serial correlation in software"
+    ],
+    "topics": [
+     "Properties of OLS with serially correlated errors",
+     "Serial correlation-robust inference after OLS",
+     "Testing for autocorrelation",
+     "R application for time series models",
+     "Related: static and finite distributed lag models, stationarity and weak dependence (Ch. 13)",
+     "Related: trends, unit roots, cointegration (Ch. 15)"
+    ],
+    "terms": [
+     "serial correlation (autocorrelation)",
+     "AR(1) errors",
+     "HAC standard errors",
+     "serial correlation-robust inference",
+     "strict exogeneity",
+     "contemporaneous exogeneity",
+     "lagged dependent variable",
+     "static model",
+     "finite distributed lag model",
+     "long run propensity",
+     "covariance stationary",
+     "weakly dependent",
+     "MA(1)",
+     "unit root",
+     "Dickey-Fuller test",
+     "cointegration",
+     "error correction model"
+    ]
+   },
+   {
+    "id": "kfec5xg7",
+    "title": "Instrumental variables estimation",
+    "guide": "Chapter 9: Instrumental variable estimation and two-stage least squares (Wooldridge Ch. 15); also Chapter 10: Measurement error (IV solution) and Chapter 11: Simultaneous equation models (Wooldridge Ch. 16)",
+    "outcomes": [
+     "understand endogeneity in linear regression and its consequences for OLS",
+     "explain instrumental variables in simple and multiple regression",
+     "describe the principles and properties of IV estimators and the challenges of the IV approach",
+     "explain overidentification and two-stage least squares",
+     "describe a test for endogeneity of an explanatory variable",
+     "discuss choices of instruments and conduct IV/2SLS in software",
+     "understand simultaneity bias and identification in simultaneous equations (Ch. 11)",
+     "understand classical errors-in-variables and the IV fix (Ch. 10)"
+    ],
+    "topics": [
+     "Overview of endogeneity and omitted variables",
+     "IV estimation of the simple regression model",
+     "IV estimation of the multiple regression model",
+     "Two-stage least squares",
+     "Testing for endogeneity",
+     "Related: measurement error; simultaneous equations models and identification"
+    ],
+    "terms": [
+     "endogenous and exogenous variable",
+     "instrument",
+     "instrument exogeneity (validity)",
+     "instrument relevance",
+     "reduced form equation",
+     "exclusion restriction",
+     "IV estimator",
+     "first stage",
+     "two stage least squares (2SLS)",
+     "exact identification",
+     "overidentification",
+     "Hausman endogeneity test",
+     "classical errors-in-variables",
+     "attenuation bias",
+     "simultaneity bias",
+     "structural equation",
+     "order condition",
+     "rank condition"
+    ]
+   }
+  ],
+  "unmatched": []
+ },
+ {
+  "module": "advanced-stats-distribution",
+  "unitCode": "ST2133",
+  "source": "ST2133 Advanced statistics: distribution theory, subject guide by J.S. Abdey, University of London, 2021",
+  "chapters": [
+   {
+    "id": "m6nat6ty",
+    "title": "Probability Space",
+    "guide": "Chapter 2: Probability space",
+    "outcomes": [
+     "calculate probabilities for simple situations by counting",
+     "define a sigma-algebra",
+     "derive the properties of a probability measure from the axioms",
+     "calculate probabilities in large spaces using permutations and combinations",
+     "explain the link between combinations and multinomial coefficients",
+     "derive conditional probability and prove it defines a valid probability measure",
+     "apply Bayes' theorem to reverse conditioning",
+     "define independent events and use independence to calculate probabilities"
+    ],
+    "topics": [
+     "Probability fundamentals: sample space, events, set operations",
+     "Mathematical probability: measure, sigma-algebra, probability measure and its axioms",
+     "Methods for counting outcomes: permutations, combinations, multinomial coefficients",
+     "Conditional probability",
+     "Total probability formula and Bayes' theorem",
+     "Independence of events"
+    ],
+    "terms": [
+     "sample space",
+     "sigma-algebra",
+     "measure",
+     "probability measure",
+     "Kolmogorov axioms",
+     "inclusion-exclusion",
+     "continuity of probability (limits of sets)",
+     "indicator function",
+     "fundamental counting principle",
+     "permutations nPr",
+     "combinations nCr",
+     "multinomial coefficient",
+     "conditional probability P(A|B)",
+     "total probability formula",
+     "Bayes' theorem",
+     "pairwise vs mutual independence"
+    ]
+   },
+   {
+    "id": "77mvh6qf",
+    "title": "Random variables and univariate distributions",
+    "guide": "Chapter 3: Random variables and univariate distributions (sections 3.4 to 3.12)",
+    "outcomes": [
+     "give formal and informal definitions of a random variable",
+     "explain the characteristics of distribution functions (cdf)",
+     "distinguish discrete from continuous random variables",
+     "give the pmf or pdf and support of common distributions, and check a function is a valid mass or density",
+     "calculate moments (mean, variance, higher moments)",
+     "prove and manipulate inequalities involving expectation",
+     "derive mgfs and calculate moments from them; calculate cumulants from the cgf",
+     "determine the distribution of a function of a random variable; summarise scale/location and probability integral transformations"
+    ],
+    "topics": [
+     "Mapping outcomes to real numbers; positive random variables",
+     "Distribution functions and discrete vs continuous variables",
+     "Discrete distributions: degenerate, uniform, Bernoulli, binomial, geometric, negative binomial, Polya, hypergeometric, Poisson",
+     "Continuous distributions: uniform, exponential, normal, gamma, beta, triangular",
+     "Expectation, variance and higher moments; expectation operator",
+     "Inequalities involving expectation",
+     "Moment and cumulant generating functions",
+     "Functions of random variables Y = g(X), monotone transformations",
+     "Convergence of sequences of random variables"
+    ],
+    "terms": [
+     "cdf",
+     "pmf",
+     "pdf",
+     "support",
+     "binomial",
+     "geometric",
+     "negative binomial",
+     "hypergeometric",
+     "Poisson",
+     "exponential",
+     "gamma",
+     "beta",
+     "normal",
+     "E(X), Var(X)",
+     "skewness and kurtosis",
+     "Markov inequality",
+     "Chebyshev's inequality",
+     "Jensen's inequality",
+     "moment generating function",
+     "cumulant generating function",
+     "cumulants",
+     "change of variables",
+     "probability integral transformation",
+     "convergence in distribution/probability"
+    ]
+   },
+   {
+    "id": "kyrya42v",
+    "title": "Multivariate distributions",
+    "guide": "Chapter 4: Multivariate distributions",
+    "outcomes": [
+     "define joint and marginal distributions; derive marginals from joint cdf, pmf or pdf, including awkward supports",
+     "construct joint and marginal tables for a discrete bivariate distribution",
+     "check a bivariate function is a valid mass or density; calculate probabilities from it",
+     "calculate expectations and joint moments of functions of several variables",
+     "distinguish pairwise from mutual independence, and uncorrelated from independent",
+     "show a variance matrix of a random vector is non-negative definite",
+     "derive the density of a transformation of continuous random variables",
+     "derive the distribution of a sum of random variables"
+    ],
+    "topics": [
+     "Bivariate joint and marginal mass and density functions",
+     "Independence of two and of n random variables; identical distributions",
+     "Measures of pairwise dependence: covariance and correlation",
+     "Joint moments and joint mgfs",
+     "Random vectors, mean vector and variance matrix",
+     "Bivariate and multivariate transformations (Jacobian)",
+     "Sums of random variables and convolutions",
+     "Multivariate normal distribution, bivariate normal"
+    ],
+    "terms": [
+     "joint pdf/pmf",
+     "marginal distribution",
+     "covariance",
+     "correlation coefficient",
+     "uncorrelated vs independent",
+     "joint mgf",
+     "random vector",
+     "variance matrix",
+     "non-negative definite",
+     "Jacobian",
+     "transformation of variables",
+     "convolution",
+     "sum of independent random variables",
+     "mutual independence",
+     "i.i.d.",
+     "bivariate normal",
+     "joint normality and independence"
+    ]
+   },
+   {
+    "id": "a33wzqx2",
+    "title": "Conditional distributions",
+    "guide": "Chapter 5: Conditional distributions",
+    "outcomes": [
+     "derive conditional mass and density functions from joint mass and density functions",
+     "state the relationships between joint, marginal and conditional distributions and use them to solve problems",
+     "calculate conditional expectations of a function of a random variable",
+     "apply the law of iterated expectations",
+     "prove the variance decomposition E(Var(Y|X)) + Var(E(Y|X))",
+     "derive and use conditional mgfs and cgfs",
+     "solve problems involving hierarchies, mixtures and random sums"
+    ],
+    "topics": [
+     "Discrete and continuous conditional distributions",
+     "Conditional expectations and conditional moments",
+     "Conditional moment generating functions",
+     "Hierarchies and mixtures",
+     "Random sums",
+     "Conditioning for random vectors"
+    ],
+    "terms": [
+     "conditional pmf/pdf f(y|x)",
+     "conditional expectation E(Y|X)",
+     "law of iterated expectations",
+     "law of total variance",
+     "conditional variance",
+     "conditional mgf",
+     "conditional cgf",
+     "hierarchical model",
+     "mixture distribution",
+     "random sum"
+    ]
+   }
+  ],
+  "unmatched": []
+ },
+ {
+  "module": "advanced-stats-inferential",
+  "unitCode": "ST2134",
+  "source": "Advanced statistics: statistical inference (ST2134), J. Abdey, University of London subject guide, 2026 edition (newer than the 2021 edition, which has the same five chapters)",
+  "chapters": [
+   {
+    "id": "79s9wx38",
+    "title": "Fundamentals of statistical inference",
+    "guide": "Chapter 2: Fundamentals of statistical inference (2.4 to 2.10: basics, revision of fundamentals, populations and samples, data reduction, sufficiency, minimal sufficiency, likelihood)",
+    "outcomes": [
+     "explain the difference between a model (the random sample) and data (the observed sample)",
+     "distinguish point estimators from point estimates",
+     "discuss the role of statistics in data reduction",
+     "define a sufficient statistic and a minimal sufficient statistic",
+     "use the factorisation theorem to decide whether a statistic is sufficient",
+     "define likelihood, log-likelihood, score and Fisher information, and compute them for standard distributions",
+     "state two forms of Fisher information and how they are related"
+    ],
+    "topics": [
+     "population, random sample, parameters; sampling with and without replacement",
+     "revision: summation and product notation, sample moments, skewness, kurtosis, sample quantiles",
+     "inference, data reduction and statistics",
+     "point estimation, interval estimation and hypothesis testing introduced",
+     "sufficiency and the sufficiency principle",
+     "factorisation theorem",
+     "minimal sufficiency",
+     "likelihood and log-likelihood for random samples",
+     "score function and Fisher information"
+    ],
+    "terms": [
+     "population",
+     "random sample",
+     "statistic",
+     "data reduction",
+     "sufficient statistic",
+     "sufficiency principle",
+     "factorisation theorem",
+     "minimal sufficient statistic",
+     "likelihood function",
+     "log-likelihood function",
+     "score function",
+     "Fisher information",
+     "expected and observed information",
+     "sample mean minimises sum of squared deviations",
+     "sample moments"
+    ]
+   },
+   {
+    "id": "dzzxifwd",
+    "title": "Point Estimation",
+    "guide": "Chapter 3: Point estimation (3.4 to 3.9: properties of estimators, sufficiency in estimation, sample moments, method of moments, order statistics, Cramer-Rao, maximum likelihood)",
+    "outcomes": [
+     "calculate bias, variance and mean squared error of an estimator, e.g. the sample mean",
+     "establish whether an estimator is consistent",
+     "improve an estimator by conditioning on a sufficient statistic; prove the Rao-Blackwell theorem",
+     "show the sample mean and sample variance are unbiased; derive the distributions of the sample mean and variance for a normal population",
+     "derive method of moments estimators",
+     "derive the distribution of the sample minimum, maximum and ith order statistic",
+     "prove and use the Cramer-Rao inequality to find lower bounds and test for minimum variance unbiased estimators",
+     "derive maximum likelihood estimators, describe their large sample properties, and derive the method of scoring update"
+    ],
+    "topics": [
+     "bias, variance and mean squared error; consistency",
+     "application of sufficiency: Rao-Blackwell theorem",
+     "sample mean and sample variance; central limit theorem; law of large numbers",
+     "sample mean and variance from a normal population",
+     "method of moments estimation",
+     "sample quantiles and order statistics, sample minimum and maximum",
+     "variance of unbiased estimators: Cramer-Rao lower bound, MVUE",
+     "maximum likelihood estimation, its properties and invariance",
+     "numerical maximisation: Newton-Raphson, method of scoring"
+    ],
+    "terms": [
+     "bias",
+     "mean squared error",
+     "consistency",
+     "unbiased estimator",
+     "Rao-Blackwell theorem",
+     "central limit theorem",
+     "method of moments",
+     "order statistics",
+     "joint density of order statistics",
+     "Cramer-Rao inequality",
+     "Cramer-Rao lower bound",
+     "minimum variance unbiased estimator",
+     "maximum likelihood estimator",
+     "invariance of MLE",
+     "asymptotic normality of MLE",
+     "method of scoring",
+     "Newton-Raphson"
+    ]
+   },
+   {
+    "id": "kd2j4c7n",
+    "title": "Confidence Intervals",
+    "guide": "Chapter 4: Interval estimation (4.4 to 4.8)",
+    "outcomes": [
+     "explain the distinction between an interval estimator and an interval estimate, and interpret interval estimates",
+     "define coverage probability and confidence coefficient",
+     "calculate the expected length of an interval estimator",
+     "state pivotal functions for standard cases",
+     "derive confidence intervals using pivotal functions",
+     "compute the confidence coefficient of an interval estimator based on order statistics"
+    ],
+    "topics": [
+     "interval estimators and confidence sets",
+     "coverage probability and expected length",
+     "finding interval estimators from pivotal functions",
+     "asymptotic pivotal functions from maximum likelihood estimators",
+     "confidence intervals for quantiles using order statistics"
+    ],
+    "terms": [
+     "interval estimator",
+     "interval estimate",
+     "confidence set",
+     "coverage probability",
+     "confidence coefficient",
+     "expected length",
+     "pivotal function",
+     "asymptotic pivot",
+     "confidence interval for a quantile",
+     "chi-squared pivot for variance",
+     "t pivot for the mean"
+    ]
+   },
+   {
+    "id": "ijvkf6pq",
+    "title": "Hypothesis Testing",
+    "guide": "Chapter 5: Hypothesis testing (5.4 to 5.9)",
+    "outcomes": [
+     "distinguish simple and composite hypotheses, and size from significance level",
+     "define Type I and Type II errors and relate them to size and power",
+     "summarise the use of p-values",
+     "construct tests using pivotal functions",
+     "state and prove the Neyman-Pearson lemma and construct most powerful tests for simple hypotheses",
+     "determine whether a test is uniformly most powerful",
+     "explain the rationale for the likelihood ratio test, including with nuisance parameters, and construct it for standard cases"
+    ],
+    "topics": [
+     "statistical tests: decision rules, test statistics, critical region",
+     "Type I and II errors, power function, p-value",
+     "constructing tests from pivotal functions",
+     "most powerful tests and the Neyman-Pearson lemma; uniformly most powerful tests",
+     "likelihood ratio test",
+     "testing with nuisance parameters",
+     "likelihood ratio tests and sufficiency; asymptotic distribution of the likelihood ratio",
+     "Wald and score tests"
+    ],
+    "terms": [
+     "null and alternative hypothesis",
+     "simple and composite hypothesis",
+     "size of a test",
+     "significance level",
+     "Type I error",
+     "Type II error",
+     "power function",
+     "p-value",
+     "critical region",
+     "Neyman-Pearson lemma",
+     "most powerful test",
+     "uniformly most powerful test",
+     "likelihood ratio test",
+     "nuisance parameter",
+     "Wilks' theorem (-2 log likelihood ratio ~ χ²)",
+     "Wald test",
+     "score test"
+    ]
+   }
+  ],
+  "unmatched": []
+ },
+ {
+  "module": "business-analytics",
+  "unitCode": "ST2187",
+  "source": "Business analytics, applied modelling and prediction, J. Abdey, ST2187, 2026 (University of London)",
+  "chapters": [
+   {
+    "id": "ngeg4tv9",
+    "title": "Block 1: Decision-Making Under Uncertainty and Modelling",
+    "guide": "Chapter 1: Decision-making under uncertainty",
+    "outcomes": [
+     "Explain why uncertainty is inherent in business decision-making",
+     "Distinguish dependent and independent variables",
+     "Identify controllable and uncontrollable variables",
+     "Evaluate models on the simplicity-reality trade-off",
+     "Apply probabilistic thinking to decision problems",
+     "Analyse the Monty Hall problem to understand Bayesian updating",
+     "Assess when qualitative versus quantitative approaches are appropriate"
+    ],
+    "topics": [
+     "Understanding uncertainty in business decisions",
+     "Identifying and classifying variables, the four Ps",
+     "Building and evaluating models",
+     "Qualitative versus quantitative analysis",
+     "Probability and decision-making",
+     "The Monty Hall problem as a case study in Bayesian thinking"
+    ],
+    "terms": [
+     "uncertainty",
+     "dependent variable",
+     "independent variable",
+     "controllable variable",
+     "uncontrollable variable",
+     "marketing mix (four Ps)",
+     "model",
+     "simplicity-reality trade-off",
+     "qualitative analysis",
+     "quantitative analysis",
+     "Monty Hall problem",
+     "switching strategy",
+     "Bayesian updating",
+     "prior and posterior belief"
+    ]
+   },
+   {
+    "id": "66fcg48k",
+    "title": "Block 2: Descriptive Statistics",
+    "guide": "Chapter 2: Descriptive statistics",
+    "outcomes": [
+     "Select appropriate summary statistics for different types of business variable",
+     "Calculate and interpret measures of central tendency and dispersion",
+     "Recognise how distribution shape affects interpretation",
+     "Identify when variability is risk versus opportunity",
+     "Compare performance across business units or periods",
+     "Detect outliers that warrant investigation",
+     "Communicate insights with numerical summaries"
+    ],
+    "topics": [
+     "Variables and variation",
+     "Measures of central tendency: mean, median, mode",
+     "Measures of dispersion: range, IQR, variance, standard deviation",
+     "The empirical rule",
+     "Distribution shape and skewness via mean-median comparison",
+     "Coefficient of variation",
+     "Outlier detection and treatment",
+     "Communicating descriptive statistics"
+    ],
+    "terms": [
+     "sample mean",
+     "median",
+     "mode",
+     "range",
+     "interquartile range",
+     "variance",
+     "standard deviation",
+     "empirical rule",
+     "skewness",
+     "mean-median comparison",
+     "coefficient of variation",
+     "outlier",
+     "quartiles",
+     "box plot",
+     "robust measure"
+    ]
+   },
+   {
+    "id": "xs3z8vxd",
+    "title": "Block 3: Exploring Relationships Between Variables",
+    "guide": "Chapter 15: Bivariate analysis",
+    "outcomes": [
+     "Construct and interpret scatterplots for linear and non-linear patterns",
+     "Calculate and interpret correlation coefficients",
+     "Test hypotheses about population correlation",
+     "Build contingency tables and conduct chi-squared tests of association",
+     "Measure association strength",
+     "Distinguish correlation from causation and recognise spurious correlation",
+     "Communicate bivariate findings"
+    ],
+    "topics": [
+     "Always start with plots",
+     "Scatterplots",
+     "Measuring linear association (sample correlation)",
+     "Is the observed correlation real? t test",
+     "Spearman's rank correlation",
+     "Contingency table analysis and expected frequencies",
+     "Chi-squared test of association",
+     "Multiple testing, causation, outliers, sample size",
+     "Correlation matrices; when linear models fail"
+    ],
+    "terms": [
+     "scatterplot",
+     "sample correlation coefficient r",
+     "t test for correlation",
+     "Spearman's rank correlation",
+     "contingency table",
+     "crosstabulation",
+     "expected frequency under independence",
+     "chi-squared test of association",
+     "phi coefficient",
+     "contingency coefficient",
+     "multiple testing",
+     "correlation does not imply causation",
+     "spurious correlation",
+     "reverse causation",
+     "confounding variable",
+     "correlation matrix"
+    ]
+   },
+   {
+    "id": "3eqhr6df",
+    "title": "Block 5: Probability and Probability Distributions",
+    "guide": "Chapter 9: Probability (random variables introduced at the start of Chapter 10)",
+    "outcomes": [
+     "Explain random experiments, sample spaces and events",
+     "List the axioms of probability and the rules derived from them",
+     "Use formulae for combinations and permutations",
+     "Explain conditional probability and independent events",
+     "State Bayes' theorem and apply it to find conditional probabilities"
+    ],
+    "topics": [
+     "Experiments, outcomes, sample spaces, events",
+     "Classical, empirical and subjective probability",
+     "Multiplication principle, factorials, permutations, combinations",
+     "Axioms, complement rule, addition rule",
+     "Independence and multiplication rule",
+     "Conditional probability",
+     "Law of total probability and Bayes' theorem",
+     "Random variables (discrete versus continuous)"
+    ],
+    "terms": [
+     "sample space",
+     "event",
+     "classical probability",
+     "empirical probability",
+     "subjective probability",
+     "multiplication principle",
+     "n!",
+     "permutation",
+     "combination nCk",
+     "axioms of probability",
+     "complement rule",
+     "addition rule",
+     "mutually exclusive",
+     "independent events",
+     "P(A|B)",
+     "law of total probability",
+     "Bayes' theorem",
+     "prior and posterior probability",
+     "random variable"
+    ]
+   },
+   {
+    "id": "kdn8e8rj",
+    "title": "Block 6: Common Probability Distributions",
+    "guide": "Chapter 10: Probability distributions",
+    "outcomes": [
+     "Distinguish discrete from continuous random variables",
+     "Select appropriate distributions for business contexts",
+     "Calculate probabilities with binomial, Poisson and normal distributions",
+     "Interpret distribution parameters (mean, variance) in business terms",
+     "Use the normal distribution for practical problems",
+     "Know when approximations between distributions are appropriate"
+    ],
+    "topics": [
+     "Random variables from business uncertainty",
+     "Binomial distribution",
+     "Poisson distribution for rare events, adjusting the rate",
+     "Normal distribution and standardisation",
+     "Choosing the right distribution",
+     "Normal approximation to the binomial"
+    ],
+    "terms": [
+     "random variable",
+     "binomial distribution",
+     "number of trials n",
+     "success probability pi",
+     "Poisson distribution",
+     "rate parameter lambda",
+     "normal distribution",
+     "standardisation",
+     "z score",
+     "standard normal table",
+     "empirical rule",
+     "mean n*pi",
+     "variance n*pi*(1-pi)",
+     "normal approximation to the binomial",
+     "continuity correction",
+     "distribution selection"
+    ]
+   },
+   {
+    "id": "n8qhje9z",
+    "title": "Block 7: Decision Trees and EMV",
+    "guide": "Chapter 11: Decision tree analysis and game theory (sections 11.1 to 11.5; game theory 11.6 to 11.9 has no hub lesson)",
+    "outcomes": [
+     "Construct and solve decision trees using expected monetary value and backward induction",
+     "Distinguish risk-averse, risk-neutral and risk-loving preferences",
+     "Calculate the expected value of perfect and imperfect information",
+     "(Also in the chapter) identify Nash equilibria; apply Cournot, Bertrand and Stackelberg models"
+    ],
+    "topics": [
+     "Elements of decision trees: decision and chance nodes",
+     "Solving trees with expected monetary value",
+     "Backward induction for multi-stage decisions",
+     "Risk attitudes, certainty equivalent, risk premium",
+     "Value of perfect information",
+     "Value of imperfect information using Bayes' theorem",
+     "Game theory: Nash equilibrium, Cournot, Bertrand, Stackelberg"
+    ],
+    "terms": [
+     "decision tree",
+     "decision node",
+     "chance node",
+     "payoff",
+     "expected monetary value (EMV)",
+     "backward induction",
+     "risk-averse",
+     "risk-neutral",
+     "risk-loving",
+     "certainty equivalent",
+     "risk premium",
+     "EVPI",
+     "EVII (expected value of imperfect information)",
+     "Bayes' theorem",
+     "Nash equilibrium",
+     "Cournot model",
+     "Bertrand model",
+     "Stackelberg leadership"
+    ]
+   },
+   {
+    "id": "f8sx4mp7",
+    "title": "Block 8: Sampling and Sampling Distributions",
+    "guide": "Chapter 12: Sampling and sampling distributions",
+    "outcomes": [
+     "Design sampling strategies balancing cost, precision and constraints",
+     "Distinguish probability from non-probability sampling",
+     "Identify sources of bias in sample selection and measurement",
+     "Explain sampling distributions and their role in inference",
+     "Apply the central limit theorem to probabilities for sample means",
+     "Determine sample sizes",
+     "Interpret standard errors"
+    ],
+    "topics": [
+     "Economics of sampling; census versus sample",
+     "Non-probability sampling: convenience, judgemental, quota, snowball",
+     "Probability sampling: simple random, systematic, stratified, cluster",
+     "Sampling distribution and standard error",
+     "Central limit theorem",
+     "Sampling distribution of the sample proportion",
+     "Sample size determination",
+     "Coverage error, non-response, finite population correction"
+    ],
+    "terms": [
+     "census",
+     "sampling frame",
+     "convenience sampling",
+     "judgemental sampling",
+     "quota sampling",
+     "snowball sampling",
+     "simple random sampling",
+     "systematic sampling",
+     "stratified sampling",
+     "cluster sampling",
+     "sampling distribution",
+     "standard error sigma/sqrt(n)",
+     "central limit theorem",
+     "sample proportion",
+     "coverage error",
+     "non-response bias",
+     "finite population correction",
+     "square root law"
+    ]
+   },
+   {
+    "id": "5z2y7atg",
+    "title": "Block 9: Confidence Interval Estimation",
+    "guide": "Chapter 13: Estimation",
+    "outcomes": [
+     "Explain why estimation error is unavoidable",
+     "Construct and interpret confidence intervals for means and proportions",
+     "Communicate estimation uncertainty",
+     "Determine sample sizes for business objectives",
+     "Compare groups using confidence intervals",
+     "Recognise when pooled variance methods are appropriate",
+     "Identify misinterpretations of confidence intervals"
+    ],
+    "topics": [
+     "Why point estimates are insufficient",
+     "Understanding confidence intervals and drivers of width",
+     "Intervals for means (t) and proportions",
+     "Comparing two proportions and two means (pooled variance)",
+     "Paired data",
+     "Sample size determination",
+     "Common errors: precision claims, practical versus statistical significance"
+    ],
+    "terms": [
+     "point estimate",
+     "confidence interval",
+     "confidence level",
+     "margin of error",
+     "t distribution",
+     "standard error",
+     "interval for a proportion",
+     "difference of two proportions",
+     "pooled variance",
+     "paired data",
+     "sample size formula",
+     "diminishing returns",
+     "interpretation of 95% confidence",
+     "practical versus statistical significance"
+    ]
+   },
+   {
+    "id": "ipdnhbeh",
+    "title": "Block 10: Hypothesis Testing",
+    "guide": "Chapter 14: Hypothesis testing",
+    "outcomes": [
+     "Formulate null and alternative hypotheses",
+     "Explain Type I and Type II errors",
+     "Calculate and interpret p-values",
+     "Test population means with z and t distributions",
+     "Test proportions and differences between groups",
+     "Decide when paired methods apply",
+     "Distinguish statistical significance from business importance"
+    ],
+    "topics": [
+     "Testing versus estimation; structure of a test",
+     "Type I and Type II errors and their costs",
+     "p-values and significance level",
+     "Tests for a mean and a proportion",
+     "Two-group comparisons, pooled variance",
+     "Paired samples",
+     "One-tailed versus two-tailed tests",
+     "Effect size and sample size",
+     "Common mistakes"
+    ],
+    "terms": [
+     "null hypothesis H0",
+     "alternative hypothesis H1",
+     "Type I error",
+     "Type II error",
+     "significance level alpha",
+     "p-value",
+     "test statistic",
+     "z test",
+     "t test",
+     "one-tailed test",
+     "two-tailed test",
+     "pooled variance",
+     "paired samples test",
+     "power",
+     "effect size",
+     "never 'accept H0'",
+     "statistical versus practical significance"
+    ]
+   },
+   {
+    "id": "a4cwudiv",
+    "title": "Block 11: Simple Linear Regression",
+    "guide": "Chapter 16: Linear regression (diagnostics and use of a fitted line); Chapter 15 for correlation; Chapter 17 section 17.4 for the model equation",
+    "outcomes": [
+     "Check regression assumptions with visual and statistical diagnostics",
+     "Interpret residual plots to find model inadequacies",
+     "Address violations of assumptions",
+     "Choose transformations for non-linear relationships",
+     "Validate models with holdout samples and cross-validation",
+     "Assess practical significance of coefficients",
+     "Identify when regression is inappropriate"
+    ],
+    "topics": [
+     "Residual plots: ideal, curved, funnel patterns",
+     "Normality of residuals and influential observations",
+     "Transformations: log and other non-linear models",
+     "The R-squared trap",
+     "Model validation, in-sample versus out-of-sample",
+     "Practical significance, communicating results, common mistakes",
+     "When regression is inappropriate (e.g. logistic for binary outcomes)"
+    ],
+    "terms": [
+     "simple linear regression",
+     "y-hat = b0 + b1 x",
+     "slope",
+     "intercept",
+     "residual",
+     "R-squared",
+     "residual plot",
+     "non-constant variance",
+     "non-linearity",
+     "normality of residuals",
+     "influential observation",
+     "transformation",
+     "holdout sample",
+     "cross-validation",
+     "extrapolation",
+     "logistic regression"
+    ]
+   },
+   {
+    "id": "sra4myeb",
+    "title": "Block 12: Multiple Regression Analysis",
+    "guide": "Chapter 17: Multiple regression",
+    "outcomes": [
+     "Build multiple regression models with quantitative and categorical predictors",
+     "Interpret coefficients while controlling for other variables",
+     "Evaluate overall significance with the F test; compare models with adjusted R-squared",
+     "Create and interpret interaction terms",
+     "Build dummy variables and interpret their coefficients",
+     "Recognise multicollinearity and its consequences",
+     "Identify omitted variable bias"
+    ],
+    "topics": [
+     "Why simple regression is rarely enough",
+     "Multiple regression framework",
+     "F test of overall significance",
+     "Adjusted R-squared",
+     "Dummy variables",
+     "Interaction effects",
+     "Multicollinearity",
+     "Omitted variable bias",
+     "Systematic model building; polynomial regression"
+    ],
+    "terms": [
+     "y = b0 + b1x1 + ... + bkxk",
+     "holding other variables constant",
+     "omnibus F test",
+     "F = (Regression SS/k)/(Residual SS/(n-k-1))",
+     "adjusted R-squared",
+     "dummy variable",
+     "reference category",
+     "interaction term",
+     "multicollinearity",
+     "inflated standard errors",
+     "omitted variable bias",
+     "polynomial regression",
+     "parsimony"
+    ]
+   },
+   {
+    "id": "3kfhijnb",
+    "title": "Block 13: Time Series Analysis and Forecasting",
+    "guide": "Chapter 18: Time-series analysis and forecasting",
+    "outcomes": [
+     "Identify trend, seasonal and cyclical components",
+     "Construct forecasts with moving averages and exponential smoothing",
+     "Choose forecast horizons",
+     "Evaluate forecast accuracy with several metrics",
+     "Recognise structural changes",
+     "Select smoothing parameters by optimisation",
+     "Communicate forecast uncertainty"
+    ],
+    "topics": [
+     "Economics of forecasting",
+     "Diagnosing time series patterns",
+     "Moving averages",
+     "Exponential smoothing and Holt's method for trend",
+     "Seasonal adjustment",
+     "Accuracy metrics",
+     "Optimising smoothing parameters",
+     "Forecast uncertainty and monitoring; common mistakes"
+    ],
+    "terms": [
+     "time series",
+     "trend",
+     "seasonal component",
+     "cyclical component",
+     "noise",
+     "moving average",
+     "weighted moving average",
+     "exponential smoothing",
+     "smoothing constant alpha",
+     "Holt's method",
+     "seasonal adjustment",
+     "RMSE",
+     "MAE",
+     "MASE",
+     "holdout validation",
+     "deterministic versus stochastic trend"
+    ]
+   },
+   {
+    "id": "zaai4t2u",
+    "title": "Block 14: Optimisation Models",
+    "guide": "Chapter 19: Constrained optimisation models",
+    "outcomes": [
+     "Formulate problems with decision variables, objective and constraints",
+     "Distinguish binding from non-binding constraints",
+     "Solve with Excel Solver and interpret the solution",
+     "Conduct sensitivity analysis",
+     "Interpret shadow prices as willingness to pay for extra resource",
+     "Apply conjoint analysis",
+     "Communicate recommendations"
+    ],
+    "topics": [
+     "Structure of optimisation problems",
+     "Feasibility",
+     "Building and solving in Excel Solver",
+     "Sensitivity analysis and shadow prices",
+     "Resource allocation and blending problems",
+     "Integer constraints",
+     "Conjoint analysis",
+     "Common mistakes; when optimisation fails"
+    ],
+    "terms": [
+     "decision variables",
+     "objective function",
+     "constraints",
+     "feasible region",
+     "binding constraint",
+     "slack",
+     "Excel Solver",
+     "sensitivity report",
+     "shadow price",
+     "allowable range",
+     "blending problem",
+     "integer constraint",
+     "conjoint analysis",
+     "part-worth",
+     "importance weight"
+    ]
+   },
+   {
+    "id": "3di898yc",
+    "title": "Block 15: Monte Carlo Simulation",
+    "guide": "Chapter 20: Monte Carlo simulation",
+    "outcomes": [
+     "Design simulation models balancing realism and complexity",
+     "Interpret output distributions for downside risk and upside",
+     "Determine adequate number of simulations",
+     "Conduct sensitivity analysis",
+     "Compare strategies using simulation output",
+     "Recognise effects of correlated inputs",
+     "Communicate findings"
+    ],
+    "topics": [
+     "Why expected values alone mislead",
+     "Interpreting simulation output",
+     "How many simulations are enough",
+     "Sensitivity analysis",
+     "Correlated uncertainties",
+     "Comparing strategies",
+     "Scenario analysis and stress testing",
+     "Value-at-Risk and Conditional Value-at-Risk"
+    ],
+    "terms": [
+     "Monte Carlo simulation",
+     "random numbers",
+     "output distribution",
+     "percentile",
+     "probability of a critical event",
+     "standard error of the simulated mean",
+     "sensitivity analysis",
+     "correlated inputs",
+     "scenario analysis",
+     "stress testing",
+     "VaR",
+     "CVaR",
+     "risk profile"
+    ]
+   }
+  ],
+  "unmatched": [
+   {
+    "id": "yd2a8pzt",
+    "title": "Excel (recommended course)",
+    "why": "Generic external Excel course; the guide only uses Excel as a tool (Solver, simulation)"
+   },
+   {
+    "id": "3qgghfui",
+    "title": "Tableau (recommended course)",
+    "why": "External Tableau project course; guide Chapters 3 to 8 teach Tableau visualisation but the hub has no matching block"
+   }
+  ]
+ },
+ {
+  "module": "programming-data-science",
+  "unitCode": "ST2195",
+  "source": "ST2195 Programming for Data Science, University of London: 'ST2195 Complete', the block-by-block course notes (Blocks 1-7, 9, 10; no printed edition or year, no formal learning outcomes)",
+  "chapters": [
+   {
+    "id": "79mwvkwk",
+    "title": "Git (full course)",
+    "guide": "Block 1: Version Control (Git, GitHub), pp. 34-43",
+    "outcomes": [
+     "Explain what version control is and why data scientists use it",
+     "Create a repository and commit changes",
+     "Use branches and merge them",
+     "Host a project on GitHub and collaborate"
+    ],
+    "topics": [
+     "Version control and distributed version control systems",
+     "Setting up a new Git repository",
+     "Staging, committing and the log",
+     "Branching and merging",
+     "Repository hosting and collaboration on GitHub"
+    ],
+    "terms": [
+     "version control",
+     "DVCS",
+     "git init",
+     "git add",
+     "git commit",
+     "git log",
+     "git branch",
+     "git merge",
+     "staging area",
+     "repository",
+     "GitHub",
+     "push and pull",
+     "clone"
+    ]
+   },
+   {
+    "id": "hxxq954f",
+    "title": "Block 1: Intro to Data Science, R, Python & Git",
+    "guide": "Block 1: Introduction to Data Science (pp. 1-43)",
+    "outcomes": [
+     "Define data science and say what it is not (not just machine learning, not just statistics)",
+     "Install R and Python and use them through consoles, IDEs and notebooks",
+     "Write reproducible documents with Markdown and R Markdown",
+     "Use Git for version control"
+    ],
+    "topics": [
+     "What data and data science are, with example tasks",
+     "Open source software, source-code editors and IDEs",
+     "Installing and using R (console, GUI, RStudio)",
+     "Markdown, R Markdown and R Notebooks",
+     "Python via QtConsole, Spyder and Jupyter notebooks",
+     "Version control with Git and GitHub"
+    ],
+    "terms": [
+     "data science",
+     "computational and statistical techniques",
+     "open source",
+     "IDE",
+     "RStudio",
+     "Spyder",
+     "Jupyter notebook",
+     "Markdown",
+     "R Markdown",
+     "knit",
+     "R Notebook",
+     "print function",
+     "help.start()",
+     "Git",
+     "GitHub"
+    ]
+   },
+   {
+    "id": "cdrdx7q4",
+    "title": "Block 2: Data Types, Structures & File Formats (R & Python)",
+    "guide": "Block 2: Data (pp. 44-118)",
+    "outcomes": [
+     "Distinguish structured, semi-structured and unstructured data",
+     "Read and write plain text, CSV, XML and JSON files in R and Python",
+     "Use R data types and structures: vectors, factors, matrices, arrays, lists, data frames",
+     "Use Python data structures: tuples, lists, sets, dictionaries, NumPy arrays, pandas data frames"
+    ],
+    "topics": [
+     "Structured, semi-structured and unstructured data; document-term matrix",
+     "File formats for data exchange: plain text, CSV, XML, JSON, Excel",
+     "Import/export in R: scan, read.table, xml2, jsonlite",
+     "Data types and structures in R",
+     "Data structures in Python",
+     "NumPy and pandas",
+     "Data exchange file formats with Python"
+    ],
+    "terms": [
+     "scan()",
+     "read.csv",
+     "write.csv",
+     "XML",
+     "XPath",
+     "JSON",
+     "delimiter-separated values",
+     "NA and NaN",
+     "vector",
+     "factor",
+     "ordered factor",
+     "matrix",
+     "array",
+     "list",
+     "data frame",
+     "tuple",
+     "dictionary",
+     "ndarray",
+     "NumPy",
+     "pandas DataFrame",
+     "document-term matrix",
+     "tm package"
+    ]
+   },
+   {
+    "id": "jh4w6yes",
+    "title": "Block 3: SQL and Databases (SQLite, R, Python)",
+    "guide": "Block 3: Introduction to Relational Databases and SQL (pp. 119-195)",
+    "outcomes": [
+     "Describe relational databases, tables, keys and tuples",
+     "Create, populate and modify an SQLite database",
+     "Write SQL queries with SELECT, WHERE, joins and aggregation",
+     "Query databases from R (DBI, dplyr) and from Python (sqlite3, pandas)"
+    ],
+    "topics": [
+     "Relational databases and relations",
+     "SQL and SQLite with DB Browser",
+     "Creating, updating and deleting tables and rows",
+     "SELECT queries, multiple conditions, aggregation, joins, ORDER BY",
+     "Databases in R using DBI and dplyr",
+     "Databases in Python"
+    ],
+    "terms": [
+     "relational database",
+     "primary key",
+     "foreign key",
+     "SQL",
+     "SQLite",
+     "CREATE TABLE",
+     "INSERT",
+     "UPDATE",
+     "DELETE",
+     "SELECT FROM WHERE",
+     "AVG",
+     "MAX",
+     "GROUP BY",
+     "INNER JOIN",
+     "ORDER BY",
+     "DBI",
+     "dbSendQuery",
+     "dbExecute",
+     "dplyr",
+     "dbplyr",
+     "sqlite3"
+    ]
+   },
+   {
+    "id": "irsu5f86",
+    "title": "Block 4: Programming Concepts in R (Control Flow & Functions)",
+    "guide": "Block 4: Programming Concepts (pp. 196-215)",
+    "outcomes": [
+     "Define a program, algorithm and the programming process",
+     "Write programs with sequences, branches and loops",
+     "Define and call functions and understand scope",
+     "Debug R code and handle conditions and errors"
+    ],
+    "topics": [
+     "Computer programming and algorithms",
+     "Avoiding spaghetti programming; top-down programming",
+     "Variables, control flow structures and functions in R",
+     "Writing functions, arguments and return values",
+     "Debugging in R and handling errors/conditions"
+    ],
+    "terms": [
+     "algorithm",
+     "spaghetti programming",
+     "top-down programming",
+     "branch",
+     "if else",
+     "for loop",
+     "while loop",
+     "function",
+     "argument",
+     "return value",
+     "scope",
+     "variable assignment",
+     "debugging",
+     "traceback",
+     "tryCatch",
+     "stop and warning"
+    ]
+   },
+   {
+    "id": "4c5atm56",
+    "title": "Block 5: Variables, Mutability, Aliasing & OOP (Python)",
+    "guide": "Block 5: Variables, Mutability and Aliasing in Python and R (pp. 216-257)",
+    "outcomes": [
+     "Explain objects and types in Python, type checking and casting",
+     "Explain mutability, aliasing and cloning, and compare Python with R copy behaviour",
+     "Write control flow and functions in Python and explain scope",
+     "Handle exceptions and debug Python code",
+     "Define classes and compare object-oriented and functional programming"
+    ],
+    "topics": [
+     "Objects and types",
+     "Mutable and immutable objects; aliasing",
+     "Control flow structures in Python",
+     "Functions and scope in Python; functions with mutable objects",
+     "Exceptions and error handling",
+     "Debugging in Python",
+     "Classes and programming paradigms (OOP, functional)"
+    ],
+    "terms": [
+     "object",
+     "type()",
+     "casting",
+     "mutable",
+     "immutable",
+     "aliasing",
+     "id()",
+     "cloning",
+     "global frame",
+     "scope",
+     "try-except-else-finally",
+     "EAFP",
+     "exception",
+     "debugging",
+     "class",
+     "method",
+     "__init__",
+     "encapsulation",
+     "inheritance",
+     "functional programming"
+    ]
+   },
+   {
+    "id": "iyjn27be",
+    "title": "Block 6: Data Wrangling (R & Python)",
+    "guide": "Block 6: Introduction to Data Wrangling (pp. 258-295)",
+    "outcomes": [
+     "Define data wrangling and its main activities",
+     "Reshape, subset, merge and summarise data in R using base R and dplyr",
+     "Do the same in Python with pandas",
+     "Record and parameterise wrangling decisions for reproducibility"
+    ],
+    "topics": [
+     "Data wrangling: discovering, structuring, cleaning and enriching",
+     "Wrangling operations in R: reshaping, subsetting, dplyr verbs, joins",
+     "Wrangling operations in Python with pandas: reshaping, indexing, time series"
+    ],
+    "terms": [
+     "data wrangling",
+     "data munging",
+     "reproducibility",
+     "long and wide format",
+     "melt",
+     "reshape2",
+     "dplyr",
+     "filter()",
+     "select()",
+     "mutate()",
+     "summarize()",
+     "group_by()",
+     "pipe %>%",
+     "join",
+     "pivot",
+     "loc and iloc",
+     "missing values (NA)",
+     "POSIXct dates"
+    ]
+   },
+   {
+    "id": "2654m55h",
+    "title": "Block 7-8: Data Visualisation & Web/APIs",
+    "guide": "Block 7: Exploratory Analysis and Data Visualisation (pp. 296-390); the web/API part has no matching guide material",
+    "outcomes": [
+     "Choose a graph suited to the type and scale of the variable",
+     "Draw plots with base R and with ggplot2",
+     "Draw plots with matplotlib, pandas and seaborn",
+     "Visualise networks with networkx"
+    ],
+    "topics": [
+     "History of graphs: Playfair, Minard, Nightingale, Snow",
+     "Basic graphs and principles for visualisation",
+     "Graphics in R: line, scatter, histogram, density, box, violin, bar, heat maps",
+     "Grammar of graphics and ggplot2",
+     "matplotlib, seaborn and pandas plots",
+     "Network visualisations"
+    ],
+    "terms": [
+     "histogram",
+     "kernel density plot",
+     "boxplot",
+     "violin plot",
+     "bar plot",
+     "scatter plot",
+     "matrix scatter plot",
+     "heat map",
+     "nominal, ordinal, continuous variables",
+     "plot()",
+     "ggplot2",
+     "aesthetics",
+     "geom",
+     "facet_grid",
+     "theme",
+     "matplotlib",
+     "seaborn",
+     "hue",
+     "networkx",
+     "graph layout"
+    ]
+   },
+   {
+    "id": "9q4k2bdt",
+    "title": "Block 9: Machine Learning Frameworks",
+    "guide": "Block 9: Machine Learning Frameworks (pp. 391-411)",
+    "outcomes": [
+     "Define machine learning and the supervised/unsupervised split",
+     "Use train, validation and test sets and cross-validation to compare models",
+     "Build machine learning pipelines in R (mlr3) and Python (scikit-learn)",
+     "Evaluate classifiers with a confusion matrix and ROC curve; encode categorical variables"
+    ],
+    "topics": [
+     "Data science workflow and machine learning applications",
+     "Elements of a model: cost function, pre-processing, pipelines",
+     "Types of models; regression versus classification",
+     "Train/validation/test sets and K-fold cross-validation",
+     "Machine learning in R with mlr3, benchmarking, parallelisation",
+     "Classification metrics; categorical variables; scikit-learn pipelines"
+    ],
+    "terms": [
+     "supervised learning",
+     "unsupervised learning",
+     "cost function",
+     "mean squared error",
+     "imputation",
+     "pipeline",
+     "train error",
+     "test error",
+     "K-fold cross-validation",
+     "leave-one-out",
+     "mlr3",
+     "benchmarking",
+     "confusion matrix",
+     "sensitivity",
+     "specificity",
+     "ROC curve",
+     "AUC",
+     "dummy variables",
+     "scikit-learn",
+     "gradient boosting"
+    ]
+   },
+   {
+    "id": "v4yitqqt",
+    "title": "Block 10: Software Development & R Packages",
+    "guide": "Block 10: Introduction to Software Development (pp. 412-end)",
+    "outcomes": [
+     "List the phases of software development",
+     "Compare SDLC methodologies",
+     "Build and document an R package",
+     "Organise Python code into modules and packages",
+     "Write unit tests"
+    ],
+    "topics": [
+     "Software development phases",
+     "SDLC methodologies: waterfall, iterative, agile, V-shaped, DevOps, spiral",
+     "Developing R packages: skeleton, NAMESPACE, DESCRIPTION, documentation",
+     "Modules and packages in Python",
+     "Software testing and unit testing"
+    ],
+    "terms": [
+     "requirements analysis",
+     "software design",
+     "implementation",
+     "SDLC",
+     "waterfall model",
+     "iterative model",
+     "agile model",
+     "sprint",
+     "V-shaped model",
+     "DevOps",
+     "spiral model",
+     "R package",
+     "DESCRIPTION file",
+     "NAMESPACE",
+     "roxygen2",
+     "Rd files",
+     "CRAN",
+     "PyPI",
+     "__init__.py",
+     "unit test",
+     "integration testing"
+    ]
+   }
+  ],
+  "unmatched": [
+   {
+    "id": "dfcvydb2",
+    "title": "R for Data Science (full course)",
+    "why": "The guide has no material on R as a whole; its R content is spread across the block chapters"
+   },
+   {
+    "id": "jr9ntiqc",
+    "title": "Python for Data Science (full course)",
+    "why": "The guide has no material on Python as a whole; its Python content is spread across the block chapters"
+   },
+   {
+    "id": "b6v2akn8",
+    "title": "SQL (full course)",
+    "why": "A generic external SQL course; the guide's SQL content is only the Block 3 chapter"
+   }
+  ]
+ }
+]

@@ -61,6 +61,7 @@ class Feature(enum.StrEnum):
     library_questions = "library.questions"  # past papers' questions tagged with chapters
     library_daily_question = "library.daily-question"  # Home's past question a day (GET /home)
     library_practice = "library.practice"  # practising a chapter's past questions, with marks kept per student
+    library_autotag = "library.autotag"  # Claude tags each new past paper's questions (services/paper_tagging.py)
     newsletter = "newsletter"
     newsletter_polls = "newsletter.polls"  # polls in issues: the issue reads without them
     calendar = "calendar"
@@ -187,6 +188,11 @@ FEATURES: dict[Feature, FeatureInfo] = {
         "Practise a chapter",
         "Working through a chapter's past questions one by one, marking each done, stuck or skipped, and the progress "
         "on chapters and modules. The marks are kept. Needs past questions by topic.",
+    ),
+    Feature.library_autotag: FeatureInfo(
+        "Tag new past papers with Claude",
+        "Claude tags each past paper published from now on with its module's chapters, by the study guide. Off, new "
+        "papers wait untagged; admins can run them in Manage. On for any role counts as on.",
     ),
     Feature.newsletter: FeatureInfo("Newsletter", "Every issue and its reactions."),
     Feature.newsletter_polls: FeatureInfo("Newsletter polls", "The polls in issues and voting in them."),

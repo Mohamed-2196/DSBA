@@ -153,6 +153,7 @@ ErrorCode = Literal[
     "not_out_yet",  # 404: a day whose puzzles aren't out yet, before the first one, or a game its theme can't make
     "puzzle_changed",  # 409: another editor saved this puzzle content since it was loaded: load it again
     "theme_not_ready",  # 409: the change would leave a theme that runs without enough puzzles for a game
+    "tagging_running",  # 409: Claude is tagging the paper now; run it again once it's done
 ]
 
 

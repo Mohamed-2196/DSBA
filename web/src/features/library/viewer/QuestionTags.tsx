@@ -18,7 +18,7 @@ import { moduleDetailQuery } from '../../modules/public';
 import {
   questionAnchor,
   questionLabel,
-  questionLink,
+  questionHref,
   questionName,
   questionNumber,
   useFlagQuestion,
@@ -33,13 +33,13 @@ const SECTIONS = ['A', 'B', 'C', 'D'] as const;
 
 function TagRow({
   tag,
-  onPage,
+  onQuestion,
   askHref,
   threads,
   target,
 }: {
   tag: PaperQuestion;
-  onPage: (page: number) => void;
+  onQuestion: (tag: PaperQuestion) => void;
   /** "Ask about Q3": a new thread linking the paper at the question; null while the person can't post */
   askHref: string | null;
   /** threads that link this question */
@@ -76,8 +76,8 @@ function TagRow({
         <button
           type="button"
           className="lib-qtags__q"
-          onClick={() => onPage(tag.page ?? 1)}
-          aria-label={`Go to page ${tag.page} for question ${number}`}
+          onClick={() => onQuestion(tag)}
+          aria-label={`Show question ${number} on page ${tag.page}`}
         >
           {questionLabel(tag)}
         </button>
@@ -265,8 +265,9 @@ export function TagQuestionDialog({
   );
 }
 
-/** Shown on a module's published past paper while the feature is on. `onPage` opens the PDF at a page. */
-export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (page: number) => void }) {
+/** Shown on a module's published past paper while the feature is on. `onQuestion` opens the PDF at a question and
+ *  marks where it starts. */
+export function QuestionTags({ item, onQuestion }: { item: LibraryItem; onQuestion: (tag: PaperQuestion) => void }) {
   const { requireAuth, me, featureOn } = useAuth();
   const tags = usePaperQuestions(item.id);
   const { getModule } = useModules();
@@ -282,7 +283,7 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
     document.getElementById(hash.slice(1).toLowerCase())?.scrollIntoView({ block: 'nearest' });
   }, [loaded, hash]);
   const askHref = (t: PaperQuestion) =>
-    starts ? askAboutHref(item, `${questionName(t)} of ${paperName}`, appUrl(questionLink(t))) : null;
+    starts ? askAboutHref(item, `${questionName(t)} of ${paperName}`, appUrl(questionHref(t))) : null;
   const module = useQuery({ ...moduleDetailQuery(item.moduleId ?? ''), enabled: !!item.moduleId });
   const [dialogOpen, setDialogOpen] = useState(false);
   const chapters = module.data?.chapters ?? [];
@@ -317,7 +318,7 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
             <TagRow
               key={t.id}
               tag={t}
-              onPage={onPage}
+              onQuestion={onQuestion}
               askHref={askHref(t)}
               threads={counts.get(threadKey(t)) ?? 0}
               target={hash.toLowerCase() === `#${questionAnchor(t)}`}

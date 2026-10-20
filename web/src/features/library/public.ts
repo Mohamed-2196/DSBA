@@ -6,6 +6,7 @@
 //   useRecentFiles({ n, year, enabled }) newest published items: { data: LibraryItem[] | undefined, isPending, isError, refetch }
 //   <UploadsQueue />                    moderators' review queue (Manage's Uploads section)
 //   <FlaggedQuestions />                question tags flagged as wrong, to keep or remove (Manage's Uploads section)
+//   <PaperTagging />                    Claude's tagging of new past papers, to run again (admins; Manage's Uploads)
 //   libraryItemPath(item)               '/library/<slug>', the item's page
 //   libraryTimeMeHref(item)             the paper's page with Time me started
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …
@@ -53,6 +54,7 @@ export {
 export { UploadsQueue } from './UploadsQueue';
 export { ChapterQuestions } from './ChapterQuestions';
 export { FlaggedQuestions } from './FlaggedQuestions';
+export { PaperTagging } from './PaperTagging';
 export { DailyQuestion } from './DailyQuestion';
 export { ClockText, TimerPill, useTimeMe } from './viewer/ExamTimer';
 export { timedPaperPath, type RunningTimer, type TimedPaper } from './timeMe';

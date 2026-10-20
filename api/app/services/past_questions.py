@@ -18,14 +18,24 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import conflict, forbidden, invalid, not_found
-from app.models import Chapter, ItemStatus, LibraryItem, PaperQuestion, PaperQuestionFlag, User
+from app.models import (
+    Chapter,
+    ItemStatus,
+    LibraryItem,
+    LibraryText,
+    PaperQuestion,
+    PaperQuestionFlag,
+    TextStatus,
+    User,
+)
 from app.schemas.library import PAST_PAPER, PaperQuestionCreate, PaperRef
 from app.schemas.library import PaperQuestion as PaperQuestionOut
-from app.services import report_answers
+from app.services import question_anchors, report_answers
 from app.services.content import record
 from app.services.exam_names import newest_sitting_first
 from app.services.library import cover_path, covered, hidden_from, in_hidden_module, manages, sees_hidden_modules
 from app.services.modules import require_module
+from app.services.paper_text import PAGE_BREAK
 from app.services.ratelimit import enforce
 
 TAGS_PER_HOUR = 60
@@ -38,7 +48,7 @@ def label(section: str | None, question: int) -> str:
     return f"{section}{question}" if section else f"Q{question}"
 
 
-def _paper(item: LibraryItem, covers: set[uuid.UUID]) -> PaperRef:
+def paper_ref(item: LibraryItem, covers: set[uuid.UUID]) -> PaperRef:
     return PaperRef.model_validate(
         {
             "id": item.id,
@@ -76,12 +86,13 @@ def to_out(db: Session, tags: Sequence[PaperQuestion], user: User | None) -> lis
         out.append(
             PaperQuestionOut(
                 id=t.id,
-                paper=_paper(items[t.item_id], covers),
+                paper=paper_ref(items[t.item_id], covers),
                 chapter_id=t.chapter_id,
                 chapter_title=chapters[t.chapter_id].title,
                 section=t.section,
                 question=t.question,
                 page=t.page,
+                anchor=t.anchor,
                 flagged=t.id in flagged,
                 flag_count=t.flag_count if moderator else None,
                 is_mine=mine,
@@ -179,6 +190,7 @@ def tag(db: Session, user: User, item_id: uuid.UUID, body: PaperQuestionCreate) 
         section=body.section,
         question=body.question,
         page=body.page,
+        anchor=_anchor(db, item.id, body.page, body.question, body.section),
         tagged_by=user.id,
     )
     try:
@@ -190,6 +202,15 @@ def tag(db: Session, user: User, item_id: uuid.UUID, body: PaperQuestionCreate) 
         message = f"{name} is already tagged with {chapter.title}. Pick another chapter."
         raise conflict("already_tagged", message) from None
     return row
+
+
+def _anchor(db: Session, item_id: uuid.UUID, page: int | None, question: int, section: str | None) -> str | None:
+    """Where the question starts on the page the student gave, from the paper's text (services/question_anchors.py)."""
+    text = db.get(LibraryText, item_id)
+    if page is None or text is None or text.status != TextStatus.done or not text.body or text.pages is None:
+        return None
+    pages = text.body.split(PAGE_BREAK)
+    return question_anchors.find(pages[page - 1], question, section) if page <= len(pages) else None
 
 
 def get(db: Session, question_id: uuid.UUID) -> PaperQuestion:

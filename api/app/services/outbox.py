@@ -226,6 +226,17 @@ def drain(sessions: Callable[[], AbstractContextManager[Session]], limit: int = 
     return handled
 
 
+def _tag_papers(sessions: Callable[[], AbstractContextManager[Session]]) -> int:
+    """One past paper's tagging job, if one is due; its trouble never stops the mail."""
+    from app.services import paper_tagging
+
+    try:
+        return paper_tagging.run_due(sessions)
+    except Exception:  # tagging must never stop the mail
+        log.exception("mail worker: tagging a past paper failed")
+        return 0
+
+
 def run_worker(
     sessions: Callable[[], AbstractContextManager[Session]],
     *,
@@ -235,8 +246,9 @@ def run_worker(
 ) -> int:
     """The mail worker: sends due emails, waits `poll_seconds` when there are none, purges old rows hourly, turns
     board cards' reminders into notifications as they come (app/services/board/reminders.py), sends the reminders
-    for students' own events (app/services/my_calendar.py), and on Sunday morning (Bahrain) queues the week's
-    summaries (app/services/summary.py). SIGTERM and SIGINT stop it after the email in hand. With `once`, it stops
+    for students' own events (app/services/my_calendar.py), on Sunday morning (Bahrain) queues the week's
+    summaries (app/services/summary.py), and has Claude tag new past papers, one a round
+    (app/services/paper_tagging.py). SIGTERM and SIGINT stop it after the email in hand. With `once`, it stops
     when nothing is due."""
     from app.services import my_calendar, summary
     from app.services.board import reminders
@@ -270,6 +282,7 @@ def run_worker(
                 last_purge = utcnow()
             reminders.send_due(sessions)
             handled = drain(sessions)
+            handled += _tag_papers(sessions)
         except SQLAlchemyError:
             log.exception("mail worker: database error; trying again in %.0f s", poll_seconds)
             handled = 0

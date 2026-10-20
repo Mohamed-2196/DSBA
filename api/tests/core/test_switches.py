@@ -122,6 +122,7 @@ OFF_AT_FIRST = (
     "daily",
     "notes.share",
     "modules.time-stamps",
+    "library.autotag",
 )
 
 # Features that live inside another one, whose routes need it on too.

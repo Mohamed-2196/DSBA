@@ -10,8 +10,17 @@ from fastapi.responses import RedirectResponse
 
 from app.core.access import Box, Feature
 from app.core.pagination import Limit, Offset, YearParam
-from app.core.security import DB, ActiveUser, CurrentUser, OptionalUser, client_ip, needs_feature, requires
-from app.models import User
+from app.core.security import (
+    DB,
+    ActiveUser,
+    CurrentUser,
+    OptionalUser,
+    client_ip,
+    needs_feature,
+    requires,
+    requires_admin,
+)
+from app.models import TaggingStatus, User
 from app.routers._base import router_for
 from app.schemas.library import (
     EXAM_YEAR_MAX,
@@ -28,21 +37,25 @@ from app.schemas.library import (
     PaperQuestion,
     PaperQuestionCreate,
     PaperSittings,
+    PaperTaggingJob,
+    PaperTaggingOut,
     QuestionMark,
     QuestionMarkSave,
     ReviewDecision,
     Section,
     StarResult,
+    TaggingState,
     Zone,
 )
 from app.services import library as svc
-from app.services import past_questions, question_marks
+from app.services import paper_tagging, past_questions, question_marks
 from app.services.search import text_query, words
 
 router = router_for("library", needs_feature(Feature.library))
 COVER_CACHE = "private, max-age=240"  # less than the link lives (download_url_ttl_seconds, 300 s)
 Uploader = Annotated[User, requires(Box.library_upload)]
 LibraryManager = Annotated[User, requires(Box.library_manage)]
+Admin = Annotated[User, requires_admin()]
 QUESTIONS = [needs_feature(Feature.library_questions)]
 PRACTICE = [*QUESTIONS, needs_feature(Feature.library_practice)]
 
@@ -313,3 +326,25 @@ def forget_question_mark(
     question_marks.forget(db, user, item_id, section, question)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ── Manage: Claude's tagging of new past papers (admins) ─────────────────────────────────────
+
+
+@router.get("/admin/paper-tagging", response_model=PaperTaggingOut)
+def paper_tagging_jobs(user: Admin, db: DB, status: TaggingState | None = None) -> PaperTaggingOut:
+    """Each past paper's tagging by Claude, the latest queued first (200 at most; of one `status`, when given), how
+    many are in each status, whether the switch library.autotag is on and whether the API has a key. Admins only."""
+    return paper_tagging.overview(db, TaggingStatus(status) if status else None)
+
+
+@router.post("/admin/paper-tagging/{item_id}/run", response_model=PaperTaggingJob)
+def run_paper_tagging(item_id: UUID, request: Request, user: Admin, db: DB) -> PaperTaggingJob:
+    """Queue a published past paper's tagging again: the mail worker runs it soon, replacing Claude's earlier tags
+    of the paper (never a student's). Admins only; audited (`library.tagging_run`).
+
+    Errors: not_found (404: not a module's published past paper), tagging_running (409: Claude is tagging it now)."""
+    job = paper_tagging.run_again(db, user, item_id, client_ip(request))
+    out = paper_tagging.job_out(db, job)
+    db.commit()
+    return out

@@ -8,7 +8,7 @@ import { FileThumb } from '../components/FileThumb';
 import { linkPlace } from '../display';
 import { formatOf, previewKind } from '../kinds';
 import type { LibraryItem } from '../types';
-import { PdfPages } from './PdfPages';
+import { PdfPages, type QuestionMark } from './PdfPages';
 
 /** Which app opens a format, for "Download it to open it in …". */
 function opensIn(tag: string | undefined): string {
@@ -118,9 +118,24 @@ function ImagePreview({ item, src }: { item: LibraryItem; src: string }) {
 /**
  * The file itself: PDFs in the browser's PDF viewer and images as they are, both from a short-lived link
  * (GET /library/items/{id}/file); on phones the Hub draws a PDF's pages itself (PdfPages). Other formats and links show
- * a card with Download or Open. `page` opens a PDF at that page (where a search found its words, or a tagged question starts).
+ * a card with Download or Open. `page` opens a PDF at that page (where a search found its words). `mark` opens it at a
+ * tagged question and marks where the question starts: the Hub draws the pages then on every screen, as a browser's own
+ * viewer can't be told to mark anything.
  */
-export function Preview({ item, compact, page = null }: { item: LibraryItem; compact: boolean; page?: number | null }) {
+export function Preview({
+  item,
+  compact,
+  page = null,
+  mark = null,
+  waitForMark = false,
+}: {
+  item: LibraryItem;
+  compact: boolean;
+  page?: number | null;
+  mark?: QuestionMark | null;
+  /** the question to mark is still loading: show neither viewer yet, so one doesn't swap for the other */
+  waitForMark?: boolean;
+}) {
   const removed = item.status === 'removed';
   const kind = removed ? null : previewKind(item);
   const link = useFileLink(kind ? item.id : null);
@@ -172,12 +187,13 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
   }
 
   if (kind === 'image') return <ImagePreview item={item} src={src} />;
+  if (waitForMark) return <Loading label="Loading the PDF" />;
   const at = page ? `#page=${page}` : '';
 
-  if (compact) {
+  if (compact || mark) {
     // Phone browsers show one page of a PDF in a frame, or nothing: the Hub draws it instead, so the paper stays here
-    // beside Time me.
-    return <PdfPages src={src} href={(link.data?.url ?? src) + at} title={item.title} page={page} />;
+    // beside Time me. A question to mark is drawn by the Hub on every screen.
+    return <PdfPages src={src} href={(link.data?.url ?? src) + at} title={item.title} page={page} mark={mark} />;
   }
 
   return (

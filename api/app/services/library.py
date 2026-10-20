@@ -645,6 +645,14 @@ def _match_requests(db: Session, item: LibraryItem) -> None:
     match_published(db, item)
 
 
+def _queue_tagging(db: Session, item: LibraryItem, user: User) -> None:
+    """A past paper a rep or admin published: Claude tags its questions off the request path
+    (services/paper_tagging.py)."""
+    from app.services import paper_tagging  # paper_tagging -> question_tagging -> library
+
+    paper_tagging.queue(db, item, by=user)
+
+
 def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str | None = None) -> LibraryItem:
     """A completed upload of the user's own becomes an item: pending for students; published at once (and audited,
     as it skipped review) for library managers. The upload's row is locked first, so two parallel requests for one
@@ -688,6 +696,7 @@ def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str
     if moderator:
         record(db, user, "library.publish", "library_item", item.id, item.title, ip, own=True)
         _match_requests(db, item)
+        _queue_tagging(db, item, user)
     return item
 
 
@@ -797,6 +806,8 @@ def apply_update(db: Session, user: User, item: LibraryItem, body: LibraryItemUp
             changed.append("year")
     if "kind" in changed:
         report_answers.refresh(db, item)  # a file that becomes an examiners' report, or stops being one
+    if item.status == ItemStatus.published and {"kind", "module_id"} & set(changed):
+        _queue_tagging(db, item, user)  # a paper that becomes a past paper, or moves to another module's chapters
     if changed and item.uploaded_by != user.id:
         record(db, user, "library.edit", "library_item", item.id, item.title, ip, fields=sorted(changed))
 
@@ -840,6 +851,7 @@ def review(
     record(db, user, f"library.{decision}", "library_item", item.id, item.title, ip, note=note or None)
     if item.status == ItemStatus.published and previous != ItemStatus.published:
         _match_requests(db, item)
+        _queue_tagging(db, item, user)
     if item.uploaded_by is not None and item.status != previous:
         kind: NotificationKind
         if decision == "publish":

@@ -143,10 +143,12 @@ def test_seed_loads_everything_once(db: Session) -> None:
     folders = expected_folders()
     themes = len(read("daily/themes"))
     daily = themes + len(daily_guess_words())
+    outlines = sum(len(m["chapters"]) for m in read("chapter_outlines"))
     assert first_load(db) == {
         **files,
         "broken-chapters": 0,
         "chapter-words": 0,  # the modules arrive with their words
+        "chapter-outlines": outlines,
         "career": 1,
         "drive-folders": folders,
         "daily": daily,
@@ -172,6 +174,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
         "modules": 0,
         "broken-chapters": 0,
         "chapter-words": 0,
+        "chapter-outlines": 0,
         "calendar": 0,
         "newsletter": 0,
         "career": 0,
@@ -279,6 +282,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
         "modules": 0,
         "broken-chapters": 0,
         "chapter-words": 0,
+        "chapter-outlines": 0,
         "calendar": 0,
         "newsletter": 0,
         "career": 0,

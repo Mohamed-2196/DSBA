@@ -3734,6 +3734,7 @@
                 "library.questions",
                 "library.daily-question",
                 "library.practice",
+                "library.autotag",
                 "newsletter",
                 "newsletter.polls",
                 "calendar",
@@ -7454,6 +7455,227 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/paper-tagging": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Paper Tagging Jobs",
+        "description": "Each past paper's tagging by Claude, the latest queued first (200 at most; of one `status`, when given), how\nmany are in each status, whether the switch library.autotag is on and whether the API has a key. Admins only.",
+        "operationId": "paper_tagging_jobs_api_v1_admin_paper_tagging_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "queued",
+                    "working",
+                    "done",
+                    "skipped",
+                    "failed"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperTaggingOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/paper-tagging/{item_id}/run": {
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Run Paper Tagging",
+        "description": "Queue a published past paper's tagging again: the mail worker runs it soon, replacing Claude's earlier tags\nof the paper (never a student's). Admins only; audited (`library.tagging_run`).\n\nErrors: not_found (404: not a module's published past paper), tagging_running (409: Claude is tagging it now).",
+        "operationId": "run_paper_tagging_api_v1_admin_paper_tagging__item_id__run_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperTaggingJob"
+                }
+              }
+            }
           },
           "400": {
             "content": {
@@ -36105,7 +36327,8 @@
               "puzzle_fixed",
               "not_out_yet",
               "puzzle_changed",
-              "theme_not_ready"
+              "theme_not_ready",
+              "tagging_running"
             ],
             "title": "Code"
           },
@@ -38325,6 +38548,7 @@
               "library.questions",
               "library.daily-question",
               "library.practice",
+              "library.autotag",
               "newsletter",
               "newsletter.polls",
               "calendar",
@@ -38422,6 +38646,7 @@
                 "library.questions",
                 "library.daily-question",
                 "library.practice",
+                "library.autotag",
                 "newsletter",
                 "newsletter.polls",
                 "calendar",
@@ -42853,6 +43078,7 @@
                 "library.questions",
                 "library.daily-question",
                 "library.practice",
+                "library.autotag",
                 "newsletter",
                 "newsletter.polls",
                 "calendar",
@@ -46031,6 +46257,7 @@
                   "library.questions",
                   "library.daily-question",
                   "library.practice",
+                  "library.autotag",
                   "newsletter",
                   "newsletter.polls",
                   "calendar",
@@ -46213,6 +46440,17 @@
             ],
             "title": "Page"
           },
+          "anchor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor"
+          },
           "flagged": {
             "type": "boolean",
             "title": "Flagged"
@@ -46261,6 +46499,7 @@
           "section",
           "question",
           "page",
+          "anchor",
           "flagged",
           "flagCount",
           "isMine",
@@ -46463,6 +46702,165 @@
         ],
         "title": "PaperSittings",
         "description": "A module's past papers, examiners' reports and solutions: by sitting, newest first, and the ones without an\nexam year apart."
+      },
+      "PaperTaggingJob": {
+        "properties": {
+          "paper": {
+            "$ref": "#/components/schemas/PaperRef"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "working",
+              "done",
+              "skipped",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "questions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Questions"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "costCents": {
+            "type": "number",
+            "title": "Costcents"
+          },
+          "queuedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Queuedat"
+          },
+          "nextAttemptAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextattemptat"
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finishedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "paper",
+          "moduleId",
+          "status",
+          "reason",
+          "questions",
+          "model",
+          "attempts",
+          "costCents",
+          "queuedAt",
+          "nextAttemptAt",
+          "finishedAt"
+        ],
+        "title": "PaperTaggingJob",
+        "description": "One past paper's tagging by Claude: queued when it was published or an admin ran it again."
+      },
+      "PaperTaggingOut": {
+        "properties": {
+          "on": {
+            "type": "boolean",
+            "title": "On"
+          },
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "queued",
+                "working",
+                "done",
+                "skipped",
+                "failed"
+              ]
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/PaperTaggingJob"
+            },
+            "type": "array",
+            "title": "Jobs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "on",
+          "configured",
+          "counts",
+          "jobs"
+        ],
+        "title": "PaperTaggingOut",
+        "description": "The papers' tagging jobs, the latest queued first, and how many are in each status."
       },
       "ParagraphBlock": {
         "properties": {

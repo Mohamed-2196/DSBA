@@ -39,9 +39,10 @@ import { ReviewActions } from './components/ReviewActions';
 import { StarButton } from './components/StarButton';
 import { examTitle, isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
 import { KIND_BY_ID, docTone, formatOf } from './kinds';
+import type { PaperQuestion } from '../../api/types';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
-import { paperContext, usePaperSittings } from './papers';
+import { paperContext, questionAnchor, questionMark, usePaperQuestions, usePaperSittings } from './papers';
 import { AskNoora } from './viewer/AskNoora';
 import { ExamTimer, TimeMeButton, TimeMeDialog, timedPaper, useEndAttempt, useTimeMe } from './viewer/ExamTimer';
 import { MetaPanel } from './viewer/MetaPanel';
@@ -195,6 +196,13 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const [scoring, setScoring] = useState(false);
   const sittings = usePaperSittings(item.moduleId, { enabled: isPaper && item.examYear !== null });
   const report = paperContext(sittings.data?.sittings, item.id)?.reports[0] ?? null;
+  // Opened at a tagged question (#q3, from a chapter's list or a thread): the paper marks where it starts.
+  const pointsAtQuestion = isPaper && !!item.moduleId && featureOn('library.questions') && location.hash.length > 1;
+  const questions = usePaperQuestions(item.id, { enabled: pointsAtQuestion });
+  const mark = useMemo(
+    () => (pointsAtQuestion ? questionMark(questions.data, location.hash) : null),
+    [pointsAtQuestion, questions.data, location.hash],
+  );
 
   useEffect(() => {
     if (params.get('time') === '1') {
@@ -209,14 +217,12 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
     }
   }, [params, setParams, location.state]);
 
-  const openPage = (n: number) =>
-    setParams(
-      (p) => {
-        p.set('page', String(n));
-        return p;
-      },
-      { replace: true, state: location.state },
-    );
+  // A question in "Questions by topic": the PDF at its page, with its start marked.
+  const openQuestion = (t: PaperQuestion) => {
+    const search = new URLSearchParams(location.search);
+    if (t.page) search.set('page', String(t.page));
+    navigate({ search: `?${search.toString()}`, hash: questionAnchor(t) }, { replace: true, state: location.state });
+  };
   const annotate = useAnnotate();
 
   const startAnnotating = () =>
@@ -487,7 +493,13 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
 
       <div className={cx('lib-viewer__body', isDesktop && metaOpen && 'has-meta')}>
         <div className="lib-viewer__canvas" role="region" aria-label={`${name}, preview`}>
-          <Preview item={item} compact={isMobile} page={page} />
+          <Preview
+            item={item}
+            compact={isMobile}
+            page={page}
+            mark={mark}
+            waitForMark={pointsAtQuestion && questions.isPending}
+          />
         </div>
         {metaOpen ? (
           <MetaPanel
@@ -495,7 +507,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
             item={item}
             linkState={linkState}
             className={isDesktop ? undefined : 'lib-meta--stacked'}
-            onPage={openPage}
+            onQuestion={openQuestion}
           />
         ) : null}
       </div>
