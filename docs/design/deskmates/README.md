@@ -58,6 +58,9 @@ states in place of today's spot illustrations.
 
 ## Open items
 
+- Decided (Mohamed, 2026-10-20): a note's page stays white in dark mode, like paper on a dark desk; ink is
+  never remapped.
+
 - The logo exists only as PNG; SVG masters would keep it sharp at every size.
 - On dark, Lumen's light cone needs `.mate-light { opacity: .7 }`; ground shadows don't show on dark.
 - At 24 px a deskmate reads only as a silhouette, so below 32 px the nav icons stand in.

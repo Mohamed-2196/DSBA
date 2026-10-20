@@ -149,8 +149,14 @@ descriptions, local and Railway dev (694 each).
 
 Migration chain ends … → 0042 → 0045 → 0046.
 
-Running: `round15/screens1` (phase 3a: library, module page, Home to the mockups). Next: phase 3b (notebook, forum,
-calendar, search, Noora's panel), then the UI/UX review and a full e2e run of the new look.
+Also merged: `round15/screens1` (3a: library, module page, Home), `round15/screens2` (3b: notebook, forum,
+calendar, search, Noora's frame), `round15/screens3` (3c: Boards, Grades, Career, account, sign-in, onboarding),
+`round15/uxreview` (UX-80 to UX-91), `round15/e2e` (117 passed, 0 failed; ST-62 to ST-66) and `round15/polish`
+(all of those fixed but the notebook in dark, which stays white by Mohamed's call, and UX-90's last pages).
+
+Mohamed's calls (2026-10-20): Mini Noora keeps her standing figure as the launcher; a note's page stays white in dark.
+
+Still in the old look: Manage, Access, Newsletter, Daily, Requests, Start here (bare titles, Phosphor icons).
 
 ## Operating notes
 
