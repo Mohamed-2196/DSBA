@@ -9,17 +9,23 @@
 // is back. Online, the app reads the API as it always does.
 //
 // The snapshot belongs to one account. When the session says someone else is here (signing out, signing in as
-// another person, a session that ended) everything but the shared module pages is dropped, in memory and in storage.
+// another person, a session that ended, any answer of 401) everything but the shared module pages is dropped, in
+// memory and in storage, and in every other open tab (a BroadcastChannel), so none writes it back. An account's own
+// entries show offline only for a day after the app last heard online that the session is live (SEC-53, SEC-62).
 import { hydrate, onlineManager, type Query, type QueryClient, type QueryState } from '@tanstack/react-query';
+import { ApiError } from './errors';
 import {
   entryFor,
   offlineScope,
   ownerOf,
+  ownerShown,
   prune,
   readSnapshot,
   type OfflineEntry,
   type OfflineSnapshot,
 } from './offlineCache';
+
+const CHANNEL = 'dsba-hub-offline';
 
 /** Where the snapshot lives: IndexedDB in the app, a plain object in the tests. */
 export interface SnapshotStore {
@@ -127,6 +133,8 @@ export async function startOfflineCache(
   const snapshot = readSnapshot(raw, now());
   /** whose snapshot this is; null until the session says (nothing is written before) */
   let owner: string | null = snapshot?.owner ?? null;
+  /** when the app last heard online that the owner's session is live */
+  let liveAt = snapshot?.liveAt ?? 0;
   /** personal data read before this moment belongs to the previous account, so it is never written */
   let ownerSince = 0;
   const entries = new Map<string, OfflineEntry>((snapshot?.entries ?? []).map((e) => [e.hash, e]));
@@ -140,7 +148,7 @@ export async function startOfflineCache(
     const kept = prune(entries.values(), now());
     entries.clear();
     for (const e of kept) entries.set(e.hash, e);
-    return { v: 1, owner, entries: kept };
+    return { v: 1, owner, liveAt, entries: kept };
   };
   const save = async (snapshot: OfflineSnapshot | null): Promise<void> => {
     if (!snapshot) return;
@@ -168,8 +176,29 @@ export async function startOfflineCache(
     timer ??= setTimeout(() => void write(), delay);
   };
 
+  /** Drop what was the previous account's (as of `since`), keeping the shared module pages. */
+  const forgetPersonal = (since: number) => {
+    ownerSince = since;
+    for (const [hash, e] of entries) if (offlineScope(e.key) !== 'shared') entries.delete(hash);
+    writing = writing.then(() => store.clear().catch(() => undefined));
+  };
+
+  const channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(CHANNEL);
+  /** Another tab heard that someone else is here: forget the same, and write nothing of the previous account. */
+  const onMessage = (event: MessageEvent<unknown>) => {
+    const data = event.data;
+    if (typeof data !== 'object' || data === null || !('owner' in data) || typeof data.owner !== 'string') return;
+    if (owner === data.owner) return;
+    if (timer !== undefined) clearTimeout(timer);
+    timer = undefined;
+    owner = data.owner;
+    liveAt = 0;
+    forgetPersonal(now());
+  };
+  channel?.addEventListener('message', onMessage);
+
   /** Someone else is here (as of `since`, when the session said so): forget what was the previous account's, keep
-   *  the shared module pages. */
+   *  the shared module pages, and tell the other tabs. */
   const noteOwner = (next: string, since: number) => {
     if (owner === next) return;
     const hadOwner = owner !== null;
@@ -178,9 +207,9 @@ export async function startOfflineCache(
       schedule(); // the first answer since the page opened: whatever is in memory was read for them
       return;
     }
-    ownerSince = since;
-    for (const [hash, e] of entries) if (offlineScope(e.key) !== 'shared') entries.delete(hash);
-    writing = writing.then(() => store.clear().catch(() => undefined));
+    liveAt = 0;
+    forgetPersonal(since);
+    channel?.postMessage({ owner: next });
     schedule();
   };
 
@@ -188,7 +217,8 @@ export async function startOfflineCache(
   const fill = (query: Query) => {
     if (query.state.data !== undefined) return;
     const entry = entries.get(query.queryHash);
-    if (!entry) return;
+    if (!entry || owner === null) return;
+    if (offlineScope(entry.key) !== 'shared' && !ownerShown({ owner, liveAt }, now())) return;
     hydrate(qc, {
       mutations: [],
       queries: [
@@ -200,7 +230,11 @@ export async function startOfflineCache(
   /** A query that answered: kept, if it is kept at all and was read for the person here now. */
   const note = (query: Query) => {
     const { queryKey, state } = query;
-    if (queryKey.length === 1 && queryKey[0] === 'me') noteOwner(ownerOf(state.data), state.dataUpdatedAt);
+    if (queryKey.length === 1 && queryKey[0] === 'me') {
+      noteOwner(ownerOf(state.data), state.dataUpdatedAt);
+      liveAt = Math.max(liveAt, state.dataUpdatedAt); // the API just said whose session this is
+      schedule();
+    }
     const scope = offlineScope(queryKey);
     if (!scope || (scope === 'owner' && state.dataUpdatedAt < ownerSince)) return;
     const entry = entryFor(query.queryHash, queryKey, state.data, state.dataUpdatedAt);
@@ -215,6 +249,10 @@ export async function startOfflineCache(
       if (!onlineManager.isOnline()) fill(event.query);
     } else if (event.type === 'updated' && event.action.type === 'success') {
       note(event.query);
+    } else if (event.type === 'updated' && event.action.type === 'error') {
+      // the session ended (here or elsewhere): nobody is signed in on this browser now
+      const error = event.action.error;
+      if (error instanceof ApiError && error.isUnauthenticated) noteOwner('guest', now());
     }
   });
   // The app may have started before storage answered (main.tsx waits half a second at most): catch up on the
@@ -243,6 +281,8 @@ export async function startOfflineCache(
     flush: write,
     stop: () => {
       stopCache();
+      channel?.removeEventListener('message', onMessage);
+      channel?.close();
       stopOnline();
       if (timer !== undefined) clearTimeout(timer);
       if (hasDocument) {

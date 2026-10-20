@@ -83,7 +83,8 @@ export interface paths {
          *     (`codeFormat: "long"`, written 'ABCDE-FGH23'), which nobody can guess.
          *
          *     Errors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited
-         *     (429, with retryAfter), delivery_failed (503: try again or use the other method).
+         *     (429, with retryAfter), delivery_failed (503, texts only: try again or use the other method). Emails go out just
+         *     after the answer.
          */
         post: operations["start_sign_in_api_v1_auth_otp_post"];
         delete?: never;
@@ -1277,7 +1278,8 @@ export interface paths {
          *     and GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room; career_logo: PNG, JPEG, WebP up to
          *     DSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r, `application/octet-stream` is
          *     accepted too). POST `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads
-         *     per hour; note files apart, with the hourly limit admins set (60 to start).
+         *     per hour; note files apart, with the hourly limit admins set (60 to start). Every upload also counts against the
+         *     person's and the hub's daily budgets (1 GB and 20 GB to start; Manage → Numbers): over either, 429 rate_limited.
          *
          *     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
          *     for review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),
@@ -1333,6 +1335,32 @@ export interface paths {
          */
         get: operations["media_api_v1_media__upload_id__get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Upload Limits
+         * @description The hub's and each account's upload budgets per 24 hours, and the bytes uploads declared in the last 24 hours.
+         *     Admins only.
+         */
+        get: operations["upload_limits_api_v1_admin_uploads_get"];
+        /**
+         * Set Upload Limits
+         * @description Set the megabytes the whole hub (1 GB to 1 TB) and each account (10 MB to 100 GB) may upload in 24 hours.
+         *     Admins only. Audited (`uploads.limits`).
+         */
+        put: operations["set_upload_limits_api_v1_admin_uploads_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -4576,6 +4604,8 @@ export interface components {
             dailyPlays: components["schemas"]["ExportDailyPlay"][];
             /** Dailyshowonboard */
             dailyShowOnBoard: boolean;
+            /** Weeklysummaries */
+            weeklySummaries: string[];
         };
         /**
          * AdminStats
@@ -6665,6 +6695,10 @@ export interface components {
             points: number;
             /** Moves */
             moves: unknown[];
+            /** Mistakes */
+            mistakes: number;
+            /** Hints */
+            hints: number;
             /**
              * Startedat
              * Format: date-time
@@ -6672,6 +6706,10 @@ export interface components {
             startedAt: string;
             /** Finishedat */
             finishedAt: string | null;
+            /** Keptat */
+            keptAt: string | null;
+            /** Keptip */
+            keptIp: string | null;
         };
         /**
          * ExportEmail
@@ -12098,6 +12136,30 @@ export interface components {
             /** Sizebytes */
             sizeBytes: number;
         };
+        /**
+         * UploadLimitsIn
+         * @description The upload budgets admins set: megabytes the whole hub, and each account, may upload in 24 hours.
+         */
+        UploadLimitsIn: {
+            /** Hubmbperday */
+            hubMbPerDay: number;
+            /** Accountmbperday */
+            accountMbPerDay: number;
+        };
+        /**
+         * UploadLimitsOut
+         * @description The upload budgets and how much of the hub's is used, for admins in Manage → Numbers.
+         */
+        UploadLimitsOut: {
+            /** Hubmbperday */
+            hubMbPerDay: number;
+            /** Accountmbperday */
+            accountMbPerDay: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            /** Byteslastday */
+            bytesLastDay: number;
+        };
         /** UploadOut */
         UploadOut: {
             /**
@@ -12735,6 +12797,8 @@ export type TodayGame = components['schemas']['TodayGame'];
 export type TodayPuzzles = components['schemas']['TodayPuzzles'];
 export type TourStep = components['schemas']['TourStep'];
 export type UploadCreate = components['schemas']['UploadCreate'];
+export type UploadLimitsIn = components['schemas']['UploadLimitsIn'];
+export type UploadLimitsOut = components['schemas']['UploadLimitsOut'];
 export type UploadOut = components['schemas']['UploadOut'];
 export type UserPublic = components['schemas']['UserPublic'];
 export type UserRolesUpdate = components['schemas']['UserRolesUpdate'];
@@ -18993,6 +19057,176 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    upload_limits_api_v1_admin_uploads_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadLimitsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_upload_limits_api_v1_admin_uploads_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadLimitsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadLimitsOut"];
+                };
             };
             /** @description Bad Request */
             400: {

@@ -218,6 +218,20 @@ def set_roles(db: Session, user: User, roles: Iterable[AccessRole], *, by: User 
     forget(db)
 
 
+def has_active_admin(db: Session) -> bool:
+    """Whether any active account holds Admin. Takes the admins' lock first, as ensure_admins_remain() does, so a
+    bootstrap and a demotion are counted one after the other."""
+    ratelimit.lock(db, "access:admins")
+    found = db.scalar(
+        select(RoleGrant.user_id)
+        .join(AccessRole, AccessRole.id == RoleGrant.role_id)
+        .join(User, User.id == RoleGrant.user_id)
+        .where(AccessRole.slug == ADMIN, User.status == UserStatus.active)
+        .limit(1)
+    )
+    return found is not None
+
+
 def ensure_admins_remain(db: Session, losing: User) -> None:
     """409 last_admin when `losing`, about to lose Admin, be suspended or be deleted, is the only active admin.
 

@@ -42,13 +42,14 @@ What production refuses (`app/config.py`, `Settings.production_problems`):
 | `DSBA_SECRET_KEY` | at least 32 characters, not the development value |
 | `DSBA_DATABASE_URL` | set (compose builds it from `POSTGRES_PASSWORD`) |
 | `DSBA_COOKIE_SECURE` | true (the default in production) |
+| `DSBA_SESSION_DAYS` | 1 to 30 |
 | `DSBA_SESSION_COOKIE`, `DSBA_CSRF_COOKIE` | start with `__Host-` (the defaults in production are `__Host-dsba_session` and `__Host-dsba_csrf`); `DSBA_COOKIE_DOMAIN` empty |
 | `DSBA_WEB_ORIGINS`, `DSBA_WEB_BASE_URL` | `https://` only; `*` is refused in every environment |
 | `DSBA_TRUSTED_PROXIES` | set (the reverse proxy's address, or `127.0.0.1/32` with no proxy), never `0.0.0.0/0` or `::/0` |
 | `DSBA_OTP_MAX_ATTEMPTS` | at most 5 |
-| `DSBA_OTP_MAX_PER_*`, `DSBA_SMS_MAX_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
+| `DSBA_OTP_MAX_PER_*`, `DSBA_SMS_MAX_PER_*`, `DSBA_EMAIL_MAX_PER_*`, `DSBA_EMAIL_SIGNUPS_MAX_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
 | `DSBA_S3_*` | bucket and keys set, not the development keys; the endpoint set explicitly (empty for AWS S3); what browsers use (`DSBA_S3_PUBLIC_ENDPOINT_URL`, else `DSBA_S3_ENDPOINT_URL`) is `https://`; `DSBA_S3_CREATE_BUCKET` false (the default in production) |
-| `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain |
+| `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain; `DSBA_SMTP_STARTTLS` true, unless `DSBA_SMTP_PORT` is 465 (TLS from the start) |
 | `DSBA_SMS_BACKEND` | `twilio` with its three settings, or `DSBA_SMS_ALLOWED_REGIONS` empty (no texts at all) |
 
 Every other setting, the optional ones included, is in section 12.
@@ -125,8 +126,11 @@ docker compose -f compose.prod.yaml run --rm api python -m app.cli set-role you@
 `scripts/seed-real.sh --prod` does the seed and also brings the files of the library's Google Drive folders into the
 library (section 10).
 
-`DSBA_ADMIN_IDENTIFIERS` gives the Admin role, when they first sign in, to the people listed there. `set-role` sets
-exactly the roles you name, and writes an audit entry.
+`DSBA_ADMIN_IDENTIFIERS` gives the Admin role to a listed person only when they sign in while the hub has no active
+admin at all: it starts the hub. Once anyone is an admin it does nothing, so Admin taken from a listed person stays
+taken, even if they delete their account and sign up again. Keep it to your own address; you can empty it once you
+are signed in as admin.
+`set-role` sets exactly the roles you name, and writes an audit entry.
 
 **Daily puzzles' content.** The seed loads the Daily themes (out of the rotation) and the public guess list (into a
 list under 5,000 words, so a content file loaded first doesn't leave The Word refusing everyday guesses), but no
@@ -185,9 +189,23 @@ In `compose.prod.yaml`, Caddy has a fixed address on the internal network (`DSBA
 in `DSBA_DOCKER_SUBNET`, default `172.30.0.0/24`; change both if that subnet is taken) and is the only trusted proxy.
 Caddy drops any `X-Forwarded-For` a client sends and writes the client's address. The API publishes no port.
 
-**Behind Cloudflare or another CDN**, Caddy sees the CDN's addresses: add the CDN's ranges to Caddy
-(`servers { trusted_proxies static <ranges> }` in the global options) **and** to `DSBA_TRUSTED_PROXIES`, so both
+**Behind Cloudflare or another CDN**, Caddy sees the CDN's addresses: put the CDN's ranges in Caddy's
+`DSBA_EDGE_PROXIES` (space-separated; the Caddyfile's `trusted_proxies`) **and** in `DSBA_TRUSTED_PROXIES`, so both
 skip them when reading the header.
+
+**On Railway** (production's host, Mohamed's call, SEC-50), Railway's edge proxy ends TLS and is the only way in:
+Caddy sees the edge's address, and the API sees Caddy's address on the project's private network. Railway doesn't
+publish the edge's addresses, but nothing else can reach a service without a TCP proxy, so trust the private ranges:
+- the web service (Caddy): `DSBA_EDGE_PROXIES=private_ranges 100.64.0.0/10`. Caddy then keeps the edge's
+  `X-Forwarded-For` and adds the edge's address, reading it from the right (`trusted_proxies_strict`).
+- the API service: `DSBA_TRUSTED_PROXIES=private_ranges,100.64.0.0/10` (`private_ranges` means Caddy's list:
+  10/8, 172.16/12, 192.168/16, 127/8, fd00::/8 and ::1). The API reads the header from the right, skips Caddy and the
+  edge, and finds the browser; anything a browser wrote in the header itself stays to the left and is ignored.
+- Never give either service a public TCP proxy or a second public domain that skips Caddy.
+- Check it once after deploying: sign in, open Your account → Sessions, and confirm the address shown is your own
+  (compare with any "what is my IP" page). If it shows a 100.64.x.x or fd12:… address, an edge or Caddy address is
+  missing from the lists: add its range to both. If the edge's addresses are public ones, Railway has changed how it
+  connects; ask Railway support for its edge ranges rather than trusting everything.
 
 ## 6. Security headers
 
@@ -242,6 +260,12 @@ The `backup` service runs `python -m app.cli backup` when it starts and every 24
 
 Without `DSBA_BACKUP_*` (development), dumps go to the main bucket under `backups/db/` with the API's key.
 
+The job holds only the database and its backup key (`DSBA_ROLE=backup`: production checks just those for it), never
+the secret key, mail, texts or AI keys. **When a run fails**, it writes `BACKUP FAILED` to its log, exits with status
+1, and the service tries again an hour later. Set `DSBA_BACKUP_PING_URL` to a dead man's switch (healthchecks.io, or
+any monitor with a ping URL; a daily period with a few hours' grace): every good run pings it, a failed run pings
+its `/fail`, and a job that stops running stops pinging, so the monitor emails you either way.
+
 **Recommended:** give the backup key only `s3:PutObject` and `s3:AbortMultipartUpload` on
 `arn:aws:s3:::<backup bucket>/backups/*`, turn on versioning or Object Lock on the backup bucket, keep dumps with a
 lifecycle rule, and set `DSBA_BACKUP_KEEP=0` (a write-only key can't list or delete old dumps; with a number there
@@ -288,8 +312,11 @@ The `sweep` service runs `python -m app.cli sweep` when it starts and every 24 h
 - sign-in codes older than two days (the longest rate-limit window is a day);
 - sessions that expired or were revoked more than 30 days ago;
 - the files of library items rejected or removed more than a week ago (the item stays, without its file);
-- the addresses kept on bug reports after a day, and the screenshots of bug reports closed (fixed or won't
-  fix) more than 90 days ago (the report stays, without its screenshot).
+- the addresses kept on bug reports and on guests' Daily plays kept at sign-in after a day, and the screenshots of
+  bug reports closed (fixed or won't fix) more than 90 days ago (the report stays, without its screenshot).
+
+It holds only the database and the bucket (`DSBA_ROLE=sweep`). A failed run writes `SWEEP FAILED`, pings
+`DSBA_SWEEP_PING_URL/fail` and is tried again an hour later, as the backup is.
 
 ## 9. Analytics (optional)
 
@@ -405,9 +432,21 @@ in the `.env` of your checkout. Without the script, the import alone is
 services, never to the text worker), then turn on `noora.ai` in Access; it arrives off. The model is `DSBA_NOORA_MODEL`
 (`claude-haiku-5-5` by default; it thinks before it answers, at `DSBA_NOORA_EFFORT`). When Claude's safeguards decline a
 question, the student is told she can't help with that one, and the log keeps the decline's category only. Admins set
-her daily limit per student and the monthly budget in Manage → Numbers; also set a monthly spending limit on the
-Anthropic workspace as a backstop. Without the key, or with `noora.ai` off, she answers from her script, which admins
+her daily limit per student and the monthly budget in Manage → Numbers (an account under a week old asks at most 5
+a day, and an answer the student drops is charged what Claude used, so fresh sign-ups can't spend the month); also
+set a monthly spending limit on the Anthropic workspace as a backstop. Without the key, or with `noora.ai` off, she answers from her script, which admins
 edit in Manage → Mini Noora, and calls nobody.
+
+**Texts (Twilio).** The hub's own guards are the region check (`DSBA_SMS_ALLOWED_REGIONS=BH`) and its text budget
+(`DSBA_SMS_MAX_PER_HOUR` 50, `DSBA_SMS_MAX_PER_DAY` 300): anyone can still make it text up to 300 Bahraini numbers a
+day, about $15 to $30. Set Twilio's own protections too, so a changed setting or a leaked token can't reach further
+(SEC-56):
+- Messaging → Settings → Geo permissions: Bahrain only.
+- SMS Pumping Protection: on.
+- Billing: a usage trigger that emails you at a few dollars a day, and a spend cap on the account (or a sub-account
+  for the hub with its own cap).
+- Send from a Messaging Service (`DSBA_TWILIO_FROM=MG…`), not a bare number, so the sender can change without a
+  deploy.
 
 **The Sunday summary** is an email of the week ahead for each year, for students who keep its switch on. Turn on
 `summary` in Access. The `mail` service queues it on Sunday from the time set in Manage → Sunday summary and sends it;
@@ -438,11 +477,14 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_COOKIE_SECURE`, `DSBA_COOKIE_DOMAIN` | false (true in production), none | cookies only over HTTPS; a cookie domain (empty in production) |
 | `DSBA_TRUSTED_PROXIES` | none | addresses or CIDRs whose `X-Forwarded-For` is read (section 5) |
 | `DSBA_OTP_TTL_SECONDS`, `DSBA_OTP_MAX_ATTEMPTS`, `DSBA_OTP_RESEND_SECONDS` | `600`, `5`, `30` | sign-in codes: lifetime, tries per code, wait before another |
-| `DSBA_OTP_MAX_PER_IDENTIFIER_PER_HOUR`, `…_PER_DAY`, `DSBA_OTP_MAX_PER_IP_PER_HOUR` | `5`, `10`, `30` | codes per address and per network |
+| `DSBA_OTP_MAX_PER_IDENTIFIER_PER_HOUR`, `…_PER_DAY`, `DSBA_OTP_MAX_PER_IP_PER_HOUR` | `5`, `10`, `30` | codes per address and per network (an IPv4 address, or an IPv6 /64) |
+| `DSBA_OTP_MAX_PER_IPV6_SITE_PER_HOUR` | `120` | codes per IPv6 /48 together, so one place rotating its /64s can't multiply the per-network limit |
 | `DSBA_DEFAULT_PHONE_REGION` | `BH` | how a phone number without a country code is read |
 | `DSBA_EMAIL_BACKEND` | `console` | `smtp`, `file` (into `DSBA_EMAIL_FILE_DIR`, default `var/mail`) or `console` |
 | `DSBA_EMAIL_FROM` | `DSBA Hub <no-reply@dsba-hub.local>` | the sender |
 | `DSBA_SMTP_HOST`, `_PORT`, `_USERNAME`, `_PASSWORD`, `_STARTTLS` | `127.0.0.1`, `1025`, none, none, false | the mail relay |
+| `DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR`, `DSBA_EMAIL_SIGNUPS_MAX_PER_DAY` | `100`, `500` | sign-in emails the whole site may send to addresses no account has (sign-ups). Over it, the answer and the per-address limits stay the same (they never say whether an account exists) but the code for a new address isn't sent (marked `suppressed`, it never verifies), and the log says so; students with an account still get codes. Sign-in emails go out just after the answer, so a failed send shows only in the log |
+| `DSBA_EMAIL_MAX_PER_HOUR`, `DSBA_EMAIL_MAX_PER_DAY` | `600`, `3000` | every sign-in email together; over it, codes by email pause (the mail provider's daily quota must be well above the daily figure) |
 | `DSBA_SMS_BACKEND` | `console` | `twilio`, `file` (into `DSBA_SMS_FILE_DIR`, default `var/sms`) or `console` |
 | `DSBA_TWILIO_ACCOUNT_SID`, `_AUTH_TOKEN`, `_FROM` | none | Twilio; `_FROM` is a number or a Messaging Service SID |
 | `DSBA_SMS_ALLOWED_REGIONS` | `BH` | countries whose mobile numbers get codes by text; empty: no texts |
@@ -460,13 +502,17 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_BACKUP_S3_ENDPOINT_URL`, `DSBA_BACKUP_S3_REGION` | the main store's | the backup bucket's store, when it is another one |
 | `DSBA_BACKUP_ACCESS_KEY_ID`, `DSBA_BACKUP_SECRET_ACCESS_KEY` | none | the backup key, set together or not at all |
 | `DSBA_BACKUP_SSE`, `DSBA_BACKUP_KMS_KEY_ID`, `DSBA_BACKUP_KEEP` | `AES256`, none, `14` | encryption at rest, and how many dumps to keep (0: all) |
-| `DSBA_ADMIN_IDENTIFIERS` | none | emails or phone numbers that get Admin when they first sign in |
+| `DSBA_ADMIN_IDENTIFIERS` | none | emails or phone numbers that get Admin at sign-in while the hub has no active admin |
 | `DSBA_GOOGLE_API_KEY`, `DSBA_GOOGLE_SERVICE_ACCOUNT_FILE` | none | the Drive import only (section 10) |
 | `DSBA_ANTHROPIC_API_KEY`, `DSBA_NOORA_MODEL` | none, `claude-haiku-5-5` | Mini Noora's AI answers (section 11) |
 | `DSBA_NOORA_EFFORT` | `medium` | how much she thinks before she answers: `low`, `medium` or `high` |
 | `DSBA_NOORA_INPUT_USD_PER_MTOK`, `DSBA_NOORA_OUTPUT_USD_PER_MTOK` | `0.10`, `0.50` | the model's prices, for the estimated cost the monthly budget is checked against |
 | `DSBA_NOORA_LONG_PROMPT_TOKENS`, `DSBA_NOORA_LONG_INPUT_USD_PER_MTOK`, `DSBA_NOORA_LONG_OUTPUT_USD_PER_MTOK` | `100000`, `0.50`, `2.50` | the prices for a prompt over that many tokens |
 | `DSBA_NOORA_MAX_ANSWER_TOKENS`, `DSBA_NOORA_ANSWERS_AT_ONCE` | `8000`, `8` | the longest answer (her thinking included), and answers streaming at once hub-wide |
+| `DSBA_EDGE_PROXIES` (Caddy) | `127.0.0.1/32` | proxies in front of Caddy whose `X-Forwarded-For` it keeps; on Railway `private_ranges 100.64.0.0/10` (section 5) |
+| `DSBA_ROLE` | `api` | what the process is: `backup` and `sweep` (compose.prod.yaml) are checked for the settings they hold only; the API refuses any role but `api` |
+| `DSBA_BACKUP_PING_URL`, `DSBA_SWEEP_PING_URL` | none | dead man's switches: pinged after each good daily run, at `/fail` after a failed one (https only) |
+| `DSBA_API_MEMORY`, `DSBA_TEXTS_MEMORY` (compose) | `1g`, `1g` | memory limits of the API and the text worker: a spike restarts the service, not the server |
 | `DSBA_COMMIT_SHA` (or Railway's `RAILWAY_GIT_COMMIT_SHA`) | none | the commit `/api/v1/health` reports |
 
 `compose.prod.yaml` itself reads these from `.env`, besides the ones it passes on: `DSBA_DOMAIN`, `POSTGRES_PASSWORD`,
@@ -491,3 +537,21 @@ environment, each from its Dockerfile, with the settings kept in Railway; produc
 app's bundle (`scripts/check-deploy.sh`). The dev site runs outside production mode, with made-up accounts only
 (Mohamed's call, security review SEC-43).
 
+## 13. Monitoring and limits
+
+Nothing in the hub calls you when something breaks, so set these up before students arrive (SEC-57):
+
+- **Uptime:** an outside check on `https://<domain>/api/v1/health` every few minutes (UptimeRobot, healthchecks.io,
+  Better Stack), alerting you by email or text. Use a keyword check for `"status":"ok"`: the answer stays 200 with
+  `"status":"degraded"` while the database or the bucket is unreachable.
+- **Daily jobs:** `DSBA_BACKUP_PING_URL` and `DSBA_SWEEP_PING_URL` (sections 7 and 8).
+- **The mail worker:** notifications, reminders and Sunday summaries stop silently if it dies (sign-in codes don't
+  need it). `restart: unless-stopped` brings it back after a crash; check `docker compose ps` after each deploy.
+- **Noora's spend:** the monthly limit on the Anthropic workspace, with its email alert at half.
+- **Disk:** an alert at 80% on the server's disk (the database volume and Docker's logs share it). Docker's logs
+  rotate at 10 MB × 5 files per service (`x-logging` in compose.prod.yaml).
+- **Memory:** the API and the text worker are capped at 1 GB each (`DSBA_API_MEMORY`, `DSBA_TEXTS_MEMORY`).
+
+**On Railway** compose.prod.yaml doesn't apply: set each service's memory limit in its settings, keep the default log
+retention, run backup and sweep as cron services with `DSBA_ROLE`, the same image and only the variables listed for
+them in compose.prod.yaml, and point the uptime check at the public domain.

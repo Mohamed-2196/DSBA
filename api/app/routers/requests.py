@@ -30,6 +30,7 @@ from app.services import requests as svc
 
 router = router_for("requests", needs_feature(Feature.requests))
 Handler = Annotated[User, requires(Box.requests_manage)]
+Poster = Annotated[User, requires(Box.forum_post)]  # a student's write: the posting box governs it (D11)
 
 
 @router.get("/requests", response_model=RequestPage)
@@ -78,7 +79,7 @@ def get_request(request_id: UUID, db: DB, viewer: OptionalUser) -> RequestOut:
 
 
 @router.post("/requests", response_model=RequestOut, status_code=status.HTTP_201_CREATED)
-def create_request(body: RequestCreate, user: ActiveUser, db: DB) -> RequestOut:
+def create_request(body: RequestCreate, user: Poster, db: DB) -> RequestOut:
     """Ask for something. A paper request may name its file (module, `wantedKind`, maybe `examYear` and `zone`), and a
     date request the unconfirmed event it asks about (`eventId`), so they can close themselves. Errors: invalid_input
     (422: a short title, an unknown module, a confirmed or unknown date), already_asked (409: the same file asked for
@@ -89,7 +90,7 @@ def create_request(body: RequestCreate, user: ActiveUser, db: DB) -> RequestOut:
 
 
 @router.put("/requests/{request_id}/me-too", response_model=RequestOut)
-def add_me_too(request_id: UUID, user: ActiveUser, db: DB) -> RequestOut:
+def add_me_too(request_id: UUID, user: Poster, db: DB) -> RequestOut:
     """Say "me too". Saying it twice changes nothing. Errors: not_found (404), own_request (409), request_closed
     (409: done or declined)."""
     req = svc.get_request(db, request_id)
@@ -99,7 +100,7 @@ def add_me_too(request_id: UUID, user: ActiveUser, db: DB) -> RequestOut:
 
 
 @router.delete("/requests/{request_id}/me-too", response_model=RequestOut)
-def take_back_me_too(request_id: UUID, user: ActiveUser, db: DB) -> RequestOut:
+def take_back_me_too(request_id: UUID, user: Poster, db: DB) -> RequestOut:
     """Take back a "me too". Errors: not_found (404), own_request (409)."""
     req = svc.get_request(db, request_id)
     svc.set_me_too(db, user, req, False)

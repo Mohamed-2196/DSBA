@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import status
+from fastapi import Request, status
 from fastapi.responses import RedirectResponse
 
-from app.core.security import DB, ActiveUser, OptionalUser
-from app.models import UploadPurpose
+from app.core.security import DB, ActiveUser, OptionalUser, client_ip, requires_admin
+from app.models import UploadPurpose, User
 from app.routers._base import router_for
-from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
+from app.schemas.uploads import PresignedUpload, UploadCreate, UploadLimitsIn, UploadLimitsOut, UploadOut
+from app.services import upload_budget
 from app.services import uploads as svc
 
 router = router_for("uploads")
+Admin = Annotated[User, requires_admin()]
 
 # The presigned link lives download_url_ttl_seconds (300 s by default): browsers may reuse the redirect for less.
 MEDIA_CACHE = "private, max-age=240"
@@ -29,7 +32,8 @@ def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUplo
     and GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room; career_logo: PNG, JPEG, WebP up to
     DSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r, `application/octet-stream` is
     accepted too). POST `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads
-    per hour; note files apart, with the hourly limit admins set (60 to start).
+    per hour; note files apart, with the hourly limit admins set (60 to start). Every upload also counts against the
+    person's and the hub's daily budgets (1 GB and 20 GB to start; Manage → Numbers): over either, 429 rate_limited.
 
     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
     for review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),
@@ -65,3 +69,22 @@ def media(upload_id: UUID, db: DB, user: OptionalUser) -> RedirectResponse:
     otherwise; feature_off while the forum or the newsletter is off for the viewer."""
     url = svc.media_redirect_url(db, upload_id, user)
     return RedirectResponse(url, status_code=status.HTTP_302_FOUND, headers={"Cache-Control": MEDIA_CACHE})
+
+
+# ── Manage: the upload budgets (admins) ──
+
+
+@router.get("/admin/uploads", response_model=UploadLimitsOut)
+def upload_limits(user: Admin, db: DB) -> UploadLimitsOut:
+    """The hub's and each account's upload budgets per 24 hours, and the bytes uploads declared in the last 24 hours.
+    Admins only."""
+    return upload_budget.numbers(db)
+
+
+@router.put("/admin/uploads", response_model=UploadLimitsOut)
+def set_upload_limits(body: UploadLimitsIn, request: Request, user: Admin, db: DB) -> UploadLimitsOut:
+    """Set the megabytes the whole hub (1 GB to 1 TB) and each account (10 MB to 100 GB) may upload in 24 hours.
+    Admins only. Audited (`uploads.limits`)."""
+    upload_budget.set_limits(db, user, body, client_ip(request))
+    db.commit()
+    return upload_budget.numbers(db)

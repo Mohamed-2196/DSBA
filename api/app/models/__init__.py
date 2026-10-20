@@ -58,6 +58,7 @@ from app.models.library import (
     QuestionMark,
     TextStatus,
     Upload,
+    UploadLimits,
     UploadPurpose,
     UploadStatus,
 )
@@ -152,6 +153,7 @@ __all__ = [
     "ThreadFollow",
     "ThreadVote",
     "Upload",
+    "UploadLimits",
     "UploadPurpose",
     "UploadStatus",
     "User",

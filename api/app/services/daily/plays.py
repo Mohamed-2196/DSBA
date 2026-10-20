@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from pydantic import TypeAdapter
-from sqlalchemy import Integer, and_, cast, func, select
+from sqlalchemy import CursorResult, Integer, and_, cast, func, select, update
 from sqlalchemy.orm import InstrumentedAttribute, Session
 
 from app.core.errors import ApiError, conflict, invalid
@@ -340,6 +340,20 @@ def keep_guest_play(
     if not row.scored:
         row.points = 0
     return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, row.scored, False, body.revision)
+
+
+KEEP_IP = dt.timedelta(days=1)  # far past KEEPS_WINDOW: the per-address limit no longer counts it
+
+
+def clear_old_kept_ips(db: Session) -> int:
+    """Forgets the address a guest's play was kept from once the keeps' limit no longer counts it (the sweep)."""
+    old = (
+        update(DailyPlay)
+        .where(DailyPlay.kept_ip.is_not(None), DailyPlay.kept_at < utcnow() - KEEP_IP)
+        .values(kept_ip=None)
+        .execution_options(synchronize_session=False)
+    )
+    return typing.cast("CursorResult[Any]", db.execute(old)).rowcount
 
 
 def _limit_keeps(db: Session, user: User, ip: str | None) -> None:

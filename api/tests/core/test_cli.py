@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import urllib.request
 import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -302,3 +303,59 @@ def test_seed_takes_every_section_by_name(section: str, monkeypatch: pytest.Monk
     monkeypatch.setattr("app.seed.loader.load_all", load_all)
     assert cli.main(["seed", "--only", section]) == 0
     assert ran == [section]
+
+
+def test_a_failed_backup_says_so_loudly_and_tells_its_monitor(
+    set_option: SetOption, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """SEC-57: exit status 1, BACKUP FAILED in the log, and DSBA_BACKUP_PING_URL/fail; a good run pings the URL."""
+    pinged: list[str] = []
+    set_option("backup_ping_url", "https://hc-ping.example.com/abc")
+    monkeypatch.setattr(cli, "ping", lambda url, ok: pinged.append(f"{url} {'ok' if ok else 'fail'}"))
+
+    def broken(_: Any) -> bool:
+        raise RuntimeError("the bucket said no")
+
+    monkeypatch.setattr(cli, "backup", broken)
+    assert cli.cmd_backup(argparse.Namespace()) == 1
+    assert "BACKUP FAILED" in capsys.readouterr().err
+    monkeypatch.setattr(cli, "backup", lambda _: True)
+    assert cli.cmd_backup(argparse.Namespace()) == 0
+    assert pinged == ["https://hc-ping.example.com/abc fail", "https://hc-ping.example.com/abc ok"]
+
+
+def test_a_failed_sweep_says_so_loudly(
+    set_option: SetOption, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    pinged: list[bool] = []
+    monkeypatch.setattr(cli, "ping", lambda url, ok: pinged.append(ok))
+
+    def broken() -> cli.SweepReport:
+        raise RuntimeError("the database went away")
+
+    monkeypatch.setattr(cli, "sweep", broken)
+    assert cli.cmd_sweep(argparse.Namespace()) == 1
+    assert "SWEEP FAILED" in capsys.readouterr().err
+    assert pinged == [False]
+
+
+def test_the_ping_goes_only_to_https(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    opened: list[str] = []
+
+    class Answer:
+        def __enter__(self) -> Answer:
+            return self
+
+        def __exit__(self, *_: object) -> None:
+            return None
+
+    def urlopen(url: str, timeout: float) -> Answer:
+        opened.append(url)
+        return Answer()
+
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen)
+    cli.ping("https://hc-ping.example.com/abc/", ok=False)
+    cli.ping("http://hc-ping.example.com/abc", ok=True)
+    cli.ping(None, ok=True)
+    assert opened == ["https://hc-ping.example.com/abc/fail"]
+    assert "must be https://" in capsys.readouterr().err

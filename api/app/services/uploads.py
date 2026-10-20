@@ -41,7 +41,7 @@ from app.models import (
     User,
 )
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
-from app.services import access, notebook_uploads, ratelimit
+from app.services import access, notebook_uploads, ratelimit, upload_budget
 from app.services.forum.visibility import can_read_thread, moderates
 from app.services.storage import INCOMING_PREFIX, Storage, error_code, get_storage, safe_file_name
 
@@ -184,7 +184,8 @@ def media_url(upload_id: uuid.UUID) -> str:
 
 
 def _final_key(up: Upload) -> str:
-    return f"{FINAL_PREFIXES[up.purpose]}/{uuid.uuid4()}/{safe_file_name(up.file_name)}"
+    """One final key per upload, so a repeated copy can only overwrite its own object, never add another."""
+    return f"{FINAL_PREFIXES[up.purpose]}/{up.id}/{safe_file_name(up.file_name)}"
 
 
 def _shown_at(up: Upload) -> str | None:
@@ -273,7 +274,8 @@ def _check_room(db: Session, user: User, purpose: UploadPurpose, size_bytes: int
 
 
 def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage | None = None) -> PresignedUpload:
-    """The upload row (pending) and its presigned POST. The rate limit and the purpose's room (_check_room()) are
+    """The upload row (pending) and its presigned POST. The rate limit, the purpose's room (_check_room()) and the
+    daily budgets (upload_budget) are
     counted under the person's upload lock, so parallel requests are counted one after the other and can't all fit
     in the same room. The caller commits."""
     purpose = UploadPurpose(body.purpose)
@@ -287,6 +289,7 @@ def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage 
         raise ApiError(422, "too_large", msg, fields={"sizeBytes": msg})
     check_rate(db, user, purpose)  # takes the lock, held until the transaction ends
     _check_room(db, user, purpose, body.size_bytes)
+    upload_budget.check(db, user, body.size_bytes)  # the person's and the hub's bytes in 24 hours (SEC-14)
     if purpose == UploadPurpose.note_file:
         notebook_uploads.record_upload(db, user, body.size_bytes)
 
@@ -369,8 +372,11 @@ def require_box(user: User, purpose: UploadPurpose) -> None:
 
 
 def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | None = None) -> UploadOut:
-    """Checks what arrived and moves it to its final key. The caller commits."""
-    up = db.get(Upload, upload_id)
+    """Checks what arrived and moves it to its final key. The caller commits.
+
+    The row is locked until the transaction ends, so parallel calls for one upload run one after the other: the
+    second waits, then sees the stored result instead of copying the file again (SEC-49)."""
+    up = db.get(Upload, upload_id, with_for_update=True, populate_existing=True)
     if up is None or up.user_id != user.id:
         raise not_found("This upload doesn't exist.")
     require_features(db, user, up.purpose)

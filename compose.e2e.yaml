@@ -29,6 +29,10 @@ services:
       DSBA_OTP_MAX_PER_IP_PER_HOUR: "1000"
       DSBA_SMS_MAX_PER_HOUR: "1000"
       DSBA_SMS_MAX_PER_DAY: "10000"
+      DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR: "1000"
+      DSBA_EMAIL_SIGNUPS_MAX_PER_DAY: "10000"
+      DSBA_EMAIL_MAX_PER_HOUR: "1000"
+      DSBA_EMAIL_MAX_PER_DAY: "10000"
     volumes:
       - ./api/var/mail:/app/var/mail
       - ./api/var/sms:/app/var/sms

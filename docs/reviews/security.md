@@ -16,7 +16,9 @@ How it was checked:
 - **Reading:** every router and its service, the web app's storage, rendering and service worker, `compose.prod.yaml`,
   the Caddyfile, both Dockerfiles, `.env.example`, the CI workflows and DEPLOYMENT.md.
 - **Tests:** the full API suite passes. The backup test needs `pg_dump` 17 on PATH (`/opt/homebrew/opt/libpq/bin`).
-- **Proof tests:** 7 in the API and 1 in Vitest. All of them pass, which means each problem is real:
+- **Proof tests:** 7 in the API and 1 in Vitest. All of them passed, which meant each problem was real. On
+  `round16/secfix` each became a regression test of the safe behaviour (the status lines below name them), and the
+  files below are gone:
   - `api/tests/core/test_sec_review_r16_uploads.py` (SEC-49);
   - `api/tests/noora/test_sec_review_r16_noora.py` (SEC-51);
   - `api/tests/accounts/test_sec_review_r16_auth.py` (SEC-52, SEC-54, SEC-59);
@@ -68,6 +70,9 @@ abuse by volume (storage, mail, Noora's budget) and the production deployment it
 
 ## Launch blockers
 
+Status on `round16/secfix`: SEC-49, SEC-52, SEC-54 and SEC-14 are fixed in code; SEC-50 is fixed in config and
+needs the Railway values and the check; SEC-56 needs Mohamed's Twilio settings.
+
 Fix or decide these before real students' addresses go in:
 
 1. **SEC-49.** Lock the upload row in `complete_upload`. It is a one-line fix, and without it one account can fill the
@@ -82,8 +87,10 @@ Fix or decide these before real students' addresses go in:
 ## Before go-live (Mohamed must do or approve)
 
 **Where and how it runs**
-- [ ] Choose the production host: a server with `compose.prod.yaml`, or Railway prod. On Railway, `compose.prod.yaml`
-  doesn't apply, so set every value in section 2 of DEPLOYMENT.md by hand, and handle SEC-50.
+- [x] Choose the production host: Railway (Mohamed's call).
+- [ ] On Railway `compose.prod.yaml` doesn't apply: set every value in section 2 of DEPLOYMENT.md by hand, and
+  `DSBA_EDGE_PROXIES` and `DSBA_TRUSTED_PROXIES` as section 5 says; then check your own address under Your account →
+  Sessions (SEC-50). Run backup and sweep as cron services with `DSBA_ROLE` (section 13).
 - [ ] Run the API in production mode (`DSBA_ENV=production`; the image's default). It must start, which proves
   `Settings.production_problems` is empty. The public Railway dev site stays development-only, with made-up accounts
   (SEC-43); never point real students at it.
@@ -98,11 +105,12 @@ Fix or decide these before real students' addresses go in:
   for backups, each with its own IAM user (DEPLOYMENT.md, sections 3 and 7). Use a new bucket, not the dev one.
 - [ ] SMTP credentials, Twilio SID and token, the Anthropic key, and the Google key if importing. Keep a list of where
   each lives and who can rotate it. Set a monthly spending limit on the Anthropic workspace (SEC-51).
-- [ ] `DSBA_ADMIN_IDENTIFIERS`: only your own address. Empty it after your first sign-in until SEC-54 is fixed.
+- [ ] `DSBA_ADMIN_IDENTIFIERS`: only your own address. It gives Admin only while the hub has none (SEC-54, fixed).
 - [ ] Keep `DSBA_ALLOW_RAISED_LIMITS` unset (false).
 
 **Mail and texts**
-- [ ] SPF, DKIM and DMARC for the sending domain, plus bounce handling (SEC-52).
+- [ ] SPF, DKIM and DMARC for the sending domain, plus bounce handling (SEC-52). Choose a provider whose daily quota
+  is well above `DSBA_EMAIL_MAX_PER_DAY` (3,000).
 - [ ] Twilio: Geo Permissions set to Bahrain only, SMS Pumping Protection on, and a usage trigger or spend cap
   (SEC-56). As built, anyone can make the hub send up to 300 texts a day, about $15 to $30.
 
@@ -114,7 +122,8 @@ Fix or decide these before real students' addresses go in:
 
 **Backups**
 - [ ] Watch the first nightly backup land, then **restore it into a scratch database** (DEPLOYMENT.md, section 7).
-- [ ] Get told when a backup fails (SEC-57). Today it only writes "backup failed" to a log nobody reads.
+- [ ] Get told when a backup fails (SEC-57): set `DSBA_BACKUP_PING_URL` and `DSBA_SWEEP_PING_URL` to a dead man's
+  switch (DEPLOYMENT.md, sections 7, 8 and 13).
 - [ ] Decide how long backups keep deleted accounts. The default of 14 days of dumps is fine; say so in the privacy
   notice.
 
@@ -122,14 +131,15 @@ Fix or decide these before real students' addresses go in:
 - [ ] An uptime check on `/api/v1/health` from outside, alerting you by email or text.
 - [ ] Alerts on: the backup failing, the mail worker stopping (notifications, reminders and
   Sunday summaries stop), Noora's budget passing 50% in a month, and disk use on the database volume.
-- [ ] Log rotation for Docker (`json-file` with `max-size`), and a memory limit on `api`.
+- [x] Log rotation for Docker and a memory limit on `api` and `texts` (compose.prod.yaml; on Railway, set the memory
+  limit per service).
 
 **People and data**
 - [ ] A short privacy notice. It should say what the hub keeps (emails, phone numbers, notes, notebook files, Daily
   plays, the addresses on sessions and in the audit log), who processes it (AWS, the mail provider, Twilio, and
   Anthropic for Noora's answers), how to export and delete (Your account), and how long backups keep it. Bahrain's
   PDPL expects one.
-- [ ] Decide the open product calls that touch security: SEC-14 (the upload budget), shorter sessions on shared
+- [ ] Decide the open product calls that touch security: SEC-64 (the sidebar's links), SEC-14 (done: 20 GB / 1 GB), shorter sessions on shared
   computers (S-2), and whether a rep confirms seniors.
 - [ ] Clear the local `sec16*@example.com` test accounts if you copy the local database anywhere. They aren't in the
   production plan. Fork C's 7 orphaned objects from the SEC-49 proof are in the local MinIO only, under `notes/`.
@@ -139,6 +149,8 @@ Fix or decide these before real students' addresses go in:
 ## New findings (round 16)
 
 ### SEC-49. Parallel `/complete` calls each copy the file; the extra copies belong to nothing and are never deleted (major)
+
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `f8fc95bd`: `complete_upload` locks the row and re-checks it under the lock; the final key carries the upload's id. Regression: `api/tests/core/test_upload_races.py` (two real parallel completes, one copy). The 7 local MinIO orphans from the proof are still to delete by hand.
 
 - **Owner:** uploads. **Where:**
   - `api/app/services/uploads.py:372`: `complete_upload` loads the row with `db.get(Upload, upload_id)`, with no row
@@ -169,6 +181,8 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-50. Behind Railway's edge every student shares a few addresses: the per-network limits stop sign-in for everyone (major; blocker if production runs on Railway; unverified there)
 
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `8f603bf2` (production on Railway, Mohamed's call): Caddy keeps `X-Forwarded-For` only from `DSBA_EDGE_PROXIES` (strict, right to left), and `DSBA_TRUSTED_PROXIES` understands `private_ranges`; DEPLOYMENT.md section 5 has the Railway values and the one-time check. Regression: `tests/core/test_client_ip.py`. Still to do on Railway: set both values and do the check.
+
 - **Owner:** deployment. **Where:**
   - `web/deploy/Caddyfile:31`: `reverse_proxy` with no `trusted_proxies` in the global options.
   - `api/app/core/security.py:83` (`client_ip`), and `DSBA_TRUSTED_PROXIES`.
@@ -193,6 +207,8 @@ Fix or decide these before real students' addresses go in:
   - On a server with `compose.prod.yaml`, nothing changes. Either way, write the chosen host into DEPLOYMENT.md.
 
 ### SEC-51. Fresh accounts can spend Noora's whole monthly budget by dropping answers (minor)
+
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `31b77952`: accounts under a week old ask 5 questions a day; a dropped answer is settled at Claude's reported usage plus the streamed words and 1,000 thinking tokens, capped at its reservation. Regression: `tests/noora/test_budget_abuse.py`. Not done: a per-network or hub-wide hourly cap (no address is kept on Noora's usage rows), an admin alert at a quarter of the budget, and a lower `noora_max_answer_tokens`.
 
 - **Owner:** Noora. **Where:**
   - `api/app/services/noora/ask.py:343`: a dropped answer is charged at least its full reservation.
@@ -220,6 +236,8 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-52. No site-wide budget for sign-in emails: one network sends 720 a day (major with a small-quota mail provider, minor otherwise)
 
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `c1040459`, `5201263c`, `54176809`, `857a8eef`: every sign-in email together has a ceiling (`DSBA_EMAIL_MAX_PER_HOUR`/`_DAY`, 600/3000); addresses with no account have their own smaller budget (`DSBA_EMAIL_SIGNUPS_MAX_PER_*`, 100/500), over which the code is quietly suppressed (same answer, same limits, never verifies; migration 0047) so existing students keep signing in and nothing says whether an account exists; sign-in emails go out after the answer; IPv6 keeps /64 per client plus a looser /48 limit (`DSBA_OTP_MAX_PER_IPV6_SITE_PER_HOUR`, 120). Regression: `tests/accounts/test_sign_in.py`.
+
 - **Owner:** sign-in. **Where:** `api/app/services/otp.py:261-297` (`_check_limits`). Texts have a site budget
   (`sms_max_per_hour` 50, `sms_max_per_day` 300); emails have only per-address (5 an hour) and per-network (30 an hour)
   limits. An IPv6 network is a /64, so one /48 holds 65,536 of them.
@@ -240,6 +258,8 @@ Fix or decide these before real students' addresses go in:
     (Before go-live).
 
 ### SEC-53. The offline copy still shows a student's events and anonymous questions after their session ended elsewhere (minor)
+
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `f94a7d78`: an account's own entries show offline only for a day after the session was last seen live; any 401 forgets the account; own events, Yours/Mine lists and anonymous threads are never kept. Regression: `web/src/api/offline.test.ts`.
 
 - **Owner:** web. **Where:**
   - `web/src/api/offline.ts:121-187` (`startOfflineCache`, `fill`, `noteOwner`).
@@ -266,6 +286,8 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-54. `DSBA_ADMIN_IDENTIFIERS` gives Admin back at every sign-in (minor)
 
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `0f03c5b3`, `5201263c`: `DSBA_ADMIN_IDENTIFIERS` gives Admin only while the hub has no active admin, so neither a demoted account nor a deleted-and-remade one gets it back. Regression: `tests/accounts/test_sign_in.py`.
+
 - **Owner:** accounts. **Where:** `api/app/services/accounts.py:436-442` (`user_for_sign_in`). Any account whose email
   or phone is listed and isn't an admin gets Admin, on every sign-in, not just the first.
 - **What happens:**
@@ -279,6 +301,8 @@ Fix or decide these before real students' addresses go in:
   empty `DSBA_ADMIN_IDENTIFIERS` after the first sign-in.
 
 ### SEC-55. Past questions show hidden chapters and hidden modules, and hidden chapters take tags (minor)
+
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `6b5c6d8e`, `1651611a` (Mohamed: hide its files too): a hidden module's files, past questions and chapters are hidden from students and guests (lists, counts, search, sittings, item pages, Noora's paper and report); library managers and content editors still see them, and an uploader keeps their own; hidden chapters refuse tags. Regression: `tests/content/test_hidden_modules.py`, `tests/noora/test_paper.py`.
 
 - **Owner:** library. **Where:**
   - `api/app/services/past_questions.py:151`: `tag()` checks only that the chapter belongs to the item's module,
@@ -304,6 +328,8 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-56. Twilio's own protections aren't in the deployment steps (minor)
 
+- **Status (round 16 fixes, branch `round16/secfix`):** documented in `d603aac3`: DEPLOYMENT.md section 11 lists Twilio's Geo permissions, SMS Pumping Protection, usage trigger and spend cap, and a Messaging Service. Mohamed sets them in Twilio.
+
 - **Owner:** deployment. **Where:** `docs/backend/DEPLOYMENT.md`, sections 1, 2, 11 and 12, and `.env.example`.
   Nothing mentions Geo Permissions, SMS Pumping Protection or a spend limit. The design review asked for them.
 - **What happens:**
@@ -318,6 +344,8 @@ Fix or decide these before real students' addresses go in:
   - a Messaging Service, not a bare number, so the sender can be changed without a deploy.
 
 ### SEC-57. Production has no monitoring, backups fail silently, and the containers have no memory or log limits (minor)
+
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `d603aac3` (code and config): backup and sweep run with `DSBA_ROLE` and only their own settings; a failed run logs BACKUP/SWEEP FAILED, exits 1, pings `DSBA_*_PING_URL/fail` and retries in an hour; logs rotate and the API and text worker have memory limits. DEPLOYMENT.md section 13 has the monitoring Mohamed sets up (uptime check, ping URLs, disk alert).
 
 - **Owner:** deployment. **Where:** `compose.prod.yaml`.
   - The `backup` and `sweep` loops (`:121`, `:147`) only `echo 'backup failed' >&2`.
@@ -344,6 +372,8 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-58. Two parallel item creations on one upload share a file the sweep can then delete (nit, unverified)
 
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `5a331d59`: `create_from_upload` locks the upload row. Regression: `tests/core/test_upload_races.py`.
+
 - **Owner:** library. **Where:** `api/app/services/library.py:611-646`. The upload row is read without
   `with_for_update`; the person's lock is taken later, in `check_pending_room`.
 - **What happens:** two `POST /library/items` with the same `uploadId` both see `uploaded`, and two items share one
@@ -352,6 +382,8 @@ Fix or decide these before real students' addresses go in:
   the same fix as SEC-49.
 
 ### SEC-59. A kept Daily play keeps the client's IP address for good, and the export leaves it out (nit)
+
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `268b5472`: the sweep forgets `kept_ip` a day after the keep; the export carries mistakes, hints, keptAt, keptIp and the Sunday summary weeks. Regression: `tests/daily/test_keep.py`.
 
 - **Owner:** Daily, accounts. **Where:**
   - `api/app/models/daily.py:57` (`kept_ip`), set at `services/daily/plays.py:336`.
@@ -366,6 +398,8 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-60. Production accepts SMTP without TLS and a session of any length (nit)
 
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `51d47f74`: production refuses `DSBA_SMTP_STARTTLS=false` unless the port is 465, and `DSBA_SESSION_DAYS` outside 1 to 30.
+
 - **Owner:** config. **Where:** `api/app/config.py:272-346` (`production_problems`).
 - **What happens:**
   - `DSBA_SMTP_STARTTLS=false` on port 587 passes, and codes and the SMTP password then travel in clear.
@@ -376,6 +410,8 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-61. The reservation counts characters, so a crafted prompt can cost more than reserved (nit, unverified)
 
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `e43f80db`: the reservation counts ASCII by characters and everything else by UTF-8 bytes.
+
 - **Owner:** Noora. **Where:** `ask.py:69` and `:207` (`CHARS_PER_TOKEN = 3`).
 - **What happens:** about 56,000 characters of rare symbols can tokenize at several tokens each and pass the 100K
   long-prompt line: about $0.13 for a question that reserved $0.006. Settlement uses Claude's real usage, so the
@@ -384,6 +420,8 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-62. A second open tab can write the offline snapshot back after a sign-out (nit, unverified)
 
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `f94a7d78`: a sign-out (or a 401) in one tab is broadcast; the other tabs drop the account's entries and pending write.
+
 - **Owner:** web. **Where:** `web/src/api/offline.ts:146-152` (`writeNow` on `pagehide`).
 - **What happens:** a tab still open holds A's entries in memory with `owner = A`. If it has a pending write when it
   closes, it can put A's snapshot back after another tab's sign-out cleared it.
@@ -391,6 +429,8 @@ Fix or decide these before real students' addresses go in:
   in every tab.
 
 ### SEC-63. Tagging, flagging, suggestions and requests need no box (nit)
+
+- **Status (round 16 fixes, branch `round16/secfix`):** fixed in `38aca7d3`: tagging and flagging need `library.upload`; requests, "me too" and video suggestions need `forum.post`. Regression: `tests/core/test_access_matrix.py`.
 
 - **Owner:** access. **Where:** `routers/library.py:235` (`tag_question`), `:263` (`flag_question`),
   `routers/suggestions.py:31` and `routers/requests.py:81` take any `ActiveUser`.
@@ -401,6 +441,8 @@ Fix or decide these before real students' addresses go in:
 
 ### SEC-64. A stolen admin session can repoint the sidebar's MyClass and UoL links without a step-up (nit; D14 trade-off)
 
+- **Status (round 16 fixes, branch `round16/secfix`):** open: Mohamed's call (host allowlist for MyClass and UoL links, or a step-up for Site settings' links).
+
 - **Owner:** site. **Where:** `PUT /site` (`routers/site.py:38`) needs `requires_admin()` with no step-up (D14), and
   `SiteUrl` takes any https URL. `PUT /guides` needs `guides.edit`, which reps hold.
 - **What happens:** whoever holds an admin session can send every student's "MyClass" or "UoL portal" link to a
@@ -409,6 +451,8 @@ Fix or decide these before real students' addresses go in:
   or ask for a step-up only when Site settings' links change.
 
 ### SEC-65. Dev-only npm advisories, a wide `media-src`, no `Permissions-Policy`, base images by tag (nit)
+
+- **Status (round 16 fixes, branch `round16/secfix`):** partly fixed in `e43f80db`: Caddy sends `Permissions-Policy`. Open: `media-src` stays `https:` (chapter audio may come from any https host), `knip` not bumped (dev-only), base images not pinned by digest.
 
 - **Owner:** web, deployment.
 - **What:**
@@ -1263,6 +1307,8 @@ The findings are about what leaves the Hub by email, what stays in a shared brow
   - Optionally, run the child as another user with no network (`unshare -n`, or a seccomp profile on the service).
 
 ### SEC-34. Uploaded papers' words go in the system prompt, not the user's turn (nit, unverified)
+
+- **Status:** fixed in `8a68f900`: the paper's and the report's words go in the student's turn; the system prompt keeps only the instructions.
 
 - **Owner:** Noora. **Where:** `api/app/services/noora/ask.py:279` appends `paper.block(asked)` to `system`. The
   block (`services/noora/paper.py`) holds up to 12,000 characters of a PDF anyone can upload, and 8,000 of the
@@ -2249,6 +2295,8 @@ the upload policy on AWS S3 (proved on MinIO), and a browser pass over the new e
   with the same race: 2 of 5 answered `mismatch`, 3 stored the real PDF, none stored the swapped bytes.
 
 ### SEC-14. No cap on what waits for review, and rejected files are never deleted (minor)
+
+- **Status:** fixed in `790c8617` (Mohamed: admin setting): a hub-wide (20 GB) and a per-account (1 GB) budget per 24 hours, set in Manage → Numbers (`/admin/uploads`, audited `uploads.limits`, migration 0048). Regression: `tests/core/test_upload_budget.py`.
 
 - **Owner:** content (`services/uploads.py`, `services/library.py:453` `review`).
 - **What:** the only limit is 20 uploads per account per hour, up to 50 MB each, and accounts are free (an email each;

@@ -61,6 +61,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import urllib.request
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any, cast
@@ -228,8 +229,44 @@ def prune_backups(target: BackupTarget, keep: int) -> int:
     return len(old)
 
 
+def ping(url: str | None, ok: bool) -> None:
+    """Tells a dead man's switch (DSBA_BACKUP_PING_URL, DSBA_SWEEP_PING_URL) how a daily job went: its URL after a run
+    that worked, URL/fail after one that didn't. https only; a ping that fails is only reported."""
+    if not url:
+        return
+    target = url.rstrip("/") + ("" if ok else "/fail")
+    if not target.startswith("https://"):
+        print(f"not pinging {target}: the ping URL must be https://", file=sys.stderr)
+        return
+    try:
+        with urllib.request.urlopen(target, timeout=10):  # noqa: S310 - https only, checked above
+            pass
+    except OSError as e:
+        print(f"the ping to the job's monitor failed ({type(e).__name__})", file=sys.stderr)
+
+
+def failed_loudly(job: str, url: str | None) -> int:
+    """A daily job that failed: said loudly in the log and to its monitor, and exit status 1."""
+    print(f"{job.upper()} FAILED: see the lines above. It runs again in an hour.", file=sys.stderr)
+    ping(url, ok=False)
+    return 1
+
+
 def cmd_backup(_: argparse.Namespace) -> int:
     s = get_settings()
+    try:
+        done = backup(s)
+    except Exception as e:  # anything at all: the monitor must hear about it
+        print(f"backup failed: {type(e).__name__}: {e}", file=sys.stderr)
+        done = False
+    if not done:
+        return failed_loudly("backup", s.backup_ping_url)
+    ping(s.backup_ping_url, ok=True)
+    return 0
+
+
+def backup(s: Settings) -> bool:
+    """One dump into the backup bucket, then the oldest pruned. -> False when pg_dump failed."""
     target = backup_target(s)
     key = f"{target.prefix}{utcnow():%Y%m%dT%H%M%SZ}.sql.gz"
     with tempfile.TemporaryDirectory(prefix="dsba-backup-") as tmp:
@@ -238,7 +275,7 @@ def cmd_backup(_: argparse.Namespace) -> int:
         done = subprocess.run(cmd, env=env, capture_output=True, text=True, check=False)  # noqa: S603 - fixed argv
         if done.returncode != 0:
             print(f"backup failed: pg_dump exited with {done.returncode}\n{done.stderr.strip()}", file=sys.stderr)
-            return 1
+            return False
         size = os.path.getsize(path)
         extra: dict[str, Any] = {"ContentType": "application/gzip", **encryption_args(s)}
         target.client.upload_file(path, target.bucket, key, ExtraArgs=extra)
@@ -251,7 +288,7 @@ def cmd_backup(_: argparse.Namespace) -> int:
     else:
         if pruned:
             print(f"deleted {pruned} older backup(s), keeping the newest {s.backup_keep}")
-    return 0
+    return True
 
 
 # ── sweep ────────────────────────────────────────────────────────────────────────────────────
@@ -265,15 +302,16 @@ class SweepReport:
     files: int = 0  # files of rejected or removed library items
     bug_report_ips: int = 0  # guests' addresses on bug reports, forgotten once the rate limit no longer counts them
     bug_screenshots: int = 0  # screenshots of bug reports closed long ago
+    kept_play_ips: int = 0  # addresses guests' Daily plays were kept from, forgotten after a day
 
 
 def sweep() -> SweepReport:
     """Deletes uploads never attached to anything, note files no note shows any more (released) and board files off
-    their card (objects first, then rows), old
-    sign-in codes, sessions that ended long ago, the files of library items rejected or removed a week ago, the
-    addresses kept on bug reports and the screenshots of reports closed long ago. Safe to run at any time and to
-    run again."""
+    their card (objects first, then rows), old sign-in codes, sessions that ended long ago, the files of library items
+    rejected or removed a week ago, the addresses kept on bug reports and on kept Daily plays, and the screenshots of
+    reports closed long ago. Safe to run at any time and to run again."""
     from app.services.bugs import clear_old_ips, sweep_screenshots
+    from app.services.daily.plays import clear_old_kept_ips
     from app.services.library import sweep_files
     from app.services.otp import KEEP_CHALLENGES
 
@@ -296,6 +334,7 @@ def sweep() -> SweepReport:
         sessions = cast(CursorResult[Any], db.execute(dead)).rowcount
         bug_report_ips = clear_old_ips(db)
         bug_screenshots = sweep_screenshots(db, storage, now)
+        kept_play_ips = clear_old_kept_ips(db)
         db.commit()
     return SweepReport(
         uploads=len(stale),
@@ -304,11 +343,18 @@ def sweep() -> SweepReport:
         files=files,
         bug_report_ips=bug_report_ips,
         bug_screenshots=bug_screenshots,
+        kept_play_ips=kept_play_ips,
     )
 
 
 def cmd_sweep(_: argparse.Namespace) -> int:
-    r = sweep()
+    url = get_settings().sweep_ping_url
+    try:
+        r = sweep()
+    except Exception as e:  # anything at all: the monitor must hear about it
+        print(f"sweep failed: {type(e).__name__}: {e}", file=sys.stderr)
+        return failed_loudly("sweep", url)
+    ping(url, ok=True)
     print(
         f"swept {r.uploads} upload(s), {r.files} library file(s), {r.bug_screenshots} bug screenshot(s), "
         f"{r.challenges} sign-in code(s) and {r.sessions} session(s)"

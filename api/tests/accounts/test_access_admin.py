@@ -82,7 +82,10 @@ def test_admins_make_a_role_and_give_it(client_for: ClientFor, make_user: MakeUs
     assert catalogue["boxes"][0] == {
         "key": "forum.post",
         "area": "Forum",
-        "label": "Start threads, reply, vote, accept answers and edit your own posts",
+        "label": (
+            "Start threads, reply, vote, accept answers and edit your own posts; "
+            "ask for files and dates; suggest videos"
+        ),
     }
 
 

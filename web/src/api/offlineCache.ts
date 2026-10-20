@@ -8,6 +8,10 @@
 // their email or phone, so the app still knows who it is while offline.
 /** An entry older than this is never shown: a week, so last week's timetable doesn't pass for this week's. */
 export const OFFLINE_MAX_AGE = 7 * 24 * 60 * 60_000;
+/** An account's own entries are shown offline only this long after the app last heard, online, that its session
+ *  is live: a day. A session that ended elsewhere (signed out from another device, or expired) can't be seen from
+ *  an offline computer, so the next person there sees nothing personal after that (SEC-53). */
+export const OWNER_LIVE_MAX_AGE = 24 * 60 * 60_000;
 /** The whole snapshot stays under this many characters of JSON (about 4 MB); the oldest entries go first. */
 export const OFFLINE_MAX_SIZE = 4_000_000;
 /** And under this many entries. */
@@ -47,11 +51,12 @@ export function offlineScope(key: readonly unknown[]): OfflineScope {
       return null; // 'file': short-lived signed links
     }
     case 'forum':
+      // never the student's own lists (yours, mine): they say which questions they asked, anonymous ones too
+      if (family === 'list' && isObject(rest[0]) && (rest[0].yours || rest[0].mine)) return null;
       return typeof family === 'string' && FORUM_FAMILIES.has(family) ? 'owner' : null;
     case 'calendar':
-      // the programme dates, and the student's own; never their settings (they hold the private feed address)
-      if (family === 'events' || family === 'upcoming') return 'owner';
-      return family === 'mine' && rest[0] === 'events' ? 'owner' : null;
+      // the programme dates; never the student's own events or settings (the private feed address)
+      return family === 'events' || family === 'upcoming' ? 'owner' : null;
     case 'papers':
       return family === 'choices' ? 'owner' : null;
     case 'progress':
@@ -74,6 +79,8 @@ export function keptData(key: readonly unknown[], data: unknown): unknown {
     if (!isObject(data)) return undefined;
     return { ...data, email: null, phone: null };
   }
+  // an anonymous thread is never kept: on the asker's computer, keeping it would say who asked it
+  if (key[0] === 'forum' && key[1] === 'thread' && isObject(data) && data.anonymous === true) return undefined;
   return data;
 }
 
@@ -88,12 +95,19 @@ export interface OfflineEntry {
   size: number;
 }
 
-/** What is stored: one account's entries ('guest' when nobody is signed in). */
+/** What is stored: one account's entries ('guest' when nobody is signed in), and when the app last heard online
+ *  that the account's session is live. */
 export interface OfflineSnapshot {
   v: 1;
   owner: string;
+  liveAt: number;
   entries: OfflineEntry[];
 }
+
+/** Whether a snapshot's own entries may be shown offline: always a guest's; an account's only for a day after its
+ *  session was last seen live. */
+export const ownerShown = (snapshot: Pick<OfflineSnapshot, 'owner' | 'liveAt'>, now: number): boolean =>
+  snapshot.owner === 'guest' || now - snapshot.liveAt <= OWNER_LIVE_MAX_AGE;
 
 /** The snapshot's owner for the session's answer (GET /auth/session's Me, or null for a guest). */
 export const ownerOf = (me: unknown): string => (isObject(me) && typeof me.id === 'string' ? me.id : 'guest');
@@ -141,5 +155,6 @@ const isEntry = (v: unknown): v is OfflineEntry =>
 /** A stored snapshot as read back, pruned, or null when it is missing, malformed or from another shape. */
 export function readSnapshot(raw: unknown, now: number): OfflineSnapshot | null {
   if (!isObject(raw) || raw.v !== 1 || typeof raw.owner !== 'string' || !Array.isArray(raw.entries)) return null;
-  return { v: 1, owner: raw.owner, entries: prune(raw.entries.filter(isEntry), now) };
+  const liveAt = typeof raw.liveAt === 'number' ? raw.liveAt : 0;
+  return { v: 1, owner: raw.owner, liveAt, entries: prune(raw.entries.filter(isEntry), now) };
 }

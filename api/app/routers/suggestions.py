@@ -25,10 +25,11 @@ from app.services import suggestions as svc
 
 router = router_for("suggestions", needs_feature(Feature.modules_video_suggestions))
 Editor = Annotated[User, requires(Box.content_edit)]
+Poster = Annotated[User, requires(Box.forum_post)]  # a student's write: the posting box governs it (D11)
 
 
 @router.post("/video-suggestions", response_model=SuggestionOut, status_code=status.HTTP_201_CREATED)
-def suggest_video(body: SuggestionCreate, user: ActiveUser, db: DB) -> SuggestionOut:
+def suggest_video(body: SuggestionCreate, user: Poster, db: DB) -> SuggestionOut:
     """Suggest a video for a module's chapter (`chapterId` null: the editor picks one). The link must be a YouTube
     video or playlist, or a class recording on vc.bibf.com.
 

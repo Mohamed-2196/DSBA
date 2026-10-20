@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, SmallInteger, String, text
+from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Index, SmallInteger, String, text
 from sqlalchemy.dialects.postgresql import ARRAY, INET
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -77,6 +77,9 @@ class OtpChallenge(Base):
     expires_at: Mapped[datetime]
     consumed_at: Mapped[datetime | None]
     ip: Mapped[str | None] = mapped_column(INET)
+    # Over the sign-up email budget the code isn't sent, and never verifies; the answer and the limits treat the
+    # challenge like any other, so nothing says whether an account exists (SEC-52).
+    suppressed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
 
 class UserSession(Base):

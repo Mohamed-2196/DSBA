@@ -24,14 +24,23 @@ DEV_S3_SECRET = "dsba-dev-secret"  # noqa: S105 - the development emulator's key
 DEV_EMAIL_FROM = "DSBA Hub <no-reply@dsba-hub.local>"
 HOST_PREFIX = "__Host-"  # a cookie only its own host can set: Secure, Path=/ and no Domain
 MIN_SECRET_LENGTH = 32
+MAX_SESSION_DAYS = 30
+SMTPS_PORT = 465  # SMTP with TLS from the start (no STARTTLS)
 OTP_MAX_ATTEMPTS = 5  # wrong tries per code; production refuses more
 # Limits production keeps at their defaults or lower, unless DSBA_ALLOW_RAISED_LIMITS says otherwise.
+# What `private_ranges` means in DSBA_TRUSTED_PROXIES: Caddy's own list for the same word.
+PRIVATE_RANGES = ("192.168.0.0/16", "172.16.0.0/12", "10.0.0.0/8", "127.0.0.0/8", "fd00::/8", "::1/128")
 RAISABLE_LIMITS = (
     "otp_max_per_identifier_per_hour",
     "otp_max_per_identifier_per_day",
     "otp_max_per_ip_per_hour",
+    "otp_max_per_ipv6_site_per_hour",
     "sms_max_per_hour",
     "sms_max_per_day",
+    "email_max_per_hour",
+    "email_max_per_day",
+    "email_signups_max_per_hour",
+    "email_signups_max_per_day",
 )
 
 
@@ -49,6 +58,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DSBA_", env_file=".env", extra="ignore")
 
     env: Literal["development", "test", "production"] = "development"
+    # What this process is. The daily jobs get only the settings they use (compose.prod.yaml), so production checks
+    # only those for them: backup, the database and its backup bucket; sweep, the database and the bucket. The API
+    # refuses to start as a job.
+    role: Literal["api", "backup", "sweep"] = "api"
     # Signs OTP codes, CSRF tokens and anything else that needs a server secret. Required in production.
     secret_key: SecretStr = SecretStr(DEV_SECRET)
     database_url: str = "postgresql+psycopg://dsba:dsba@127.0.0.1:5432/dsba"
@@ -79,6 +92,8 @@ class Settings(BaseSettings):
     otp_max_per_identifier_per_hour: int = 5
     otp_max_per_identifier_per_day: int = 10
     otp_max_per_ip_per_hour: int = 30
+    # An IPv6 network counts by its /64; its /48 together gets this looser limit, so rotating /64s doesn't multiply it.
+    otp_max_per_ipv6_site_per_hour: int = 120
     # Phone numbers without a country code are read as numbers in this region.
     default_phone_region: str = "BH"
 
@@ -91,6 +106,13 @@ class Settings(BaseSettings):
     smtp_password: SecretStr | None = None
     smtp_starttls: bool = False
     email_file_dir: str = "var/mail"
+    # Sign-in emails the whole site may send (SEC-52). Codes for addresses no account has (sign-ups) have their own,
+    # smaller budget, so made-up addresses can't stop existing students signing in; every email together has the
+    # higher ceiling. Choose a mail provider whose daily quota is well above email_max_per_day.
+    email_signups_max_per_hour: int = 100
+    email_signups_max_per_day: int = 500
+    email_max_per_hour: int = 600
+    email_max_per_day: int = 3000
 
     # SMS (one-time codes). backend: console | file | twilio
     sms_backend: Literal["console", "file", "twilio"] = "console"
@@ -143,6 +165,10 @@ class Settings(BaseSettings):
     # The newest N dumps are kept and older ones deleted; 0 keeps them all (retention by a bucket lifecycle rule,
     # which a write-only backup key needs).
     backup_keep: int = Field(default=14, ge=0)
+    # A dead man's switch for each daily job (healthchecks.io or the like): pinged after every run that worked, and
+    # at its /fail after one that didn't, so a job that fails or stops running sends you an alert (SEC-57).
+    backup_ping_url: str | None = None
+    sweep_ping_url: str | None = None
 
     # Comma-separated emails / phone numbers that become admins when they sign in (bootstrap).
     admin_identifiers: Annotated[list[str], NoDecode] = Field(default_factory=list)
@@ -225,11 +251,17 @@ class Settings(BaseSettings):
     @field_validator("trusted_proxies", mode="before")
     @classmethod
     def _networks(cls, v: object) -> object:
-        """'10.0.0.5' and '10.0.0.0/24' alike, comma-separated (host bits are fine: '10.0.0.5/24' is its network)."""
+        """'10.0.0.5' and '10.0.0.0/24' alike, comma-separated (host bits are fine: '10.0.0.5/24' is its network).
+        `private_ranges` stands for the private and loopback networks, as in Caddy's trusted_proxies: behind a
+        platform's edge proxy whose addresses aren't published (Railway), where nothing but that edge and the
+        project's own services can reach the container (docs/backend/DEPLOYMENT.md, section 5)."""
         v = _csv(v)
         if isinstance(v, list):
+            expanded: list[object] = []
+            for x in v:
+                expanded.extend(PRIVATE_RANGES if x == "private_ranges" else [x])
             try:
-                return [ipaddress.ip_network(x, strict=False) if isinstance(x, str) else x for x in v]
+                return [ipaddress.ip_network(x, strict=False) if isinstance(x, str) else x for x in expanded]
             except ValueError as e:
                 raise ValueError(f"DSBA_TRUSTED_PROXIES: {e}") from None
         return v
@@ -266,7 +298,20 @@ class Settings(BaseSettings):
                 "DSBA_BACKUP_ACCESS_KEY_ID and DSBA_BACKUP_SECRET_ACCESS_KEY are set together, or not at all."
             )
         if self.is_production:
-            problems.extend(self.production_problems())
+            problems.extend(self.job_problems() if self.role != "api" else self.production_problems())
+        return problems
+
+    def job_problems(self) -> list[str]:
+        """What makes these settings unfit for a daily job in production (`role`): it holds no secret key, mail, texts
+        or AI keys, so only what it uses is checked."""
+        if self.role == "sweep":
+            return [*self._database_problems(), *self._storage_problems()]
+        problems = self._database_problems()
+        if not self.backup_bucket or self.backup_access_key_id is None:
+            problems.append(
+                "DSBA_BACKUP_BUCKET, DSBA_BACKUP_ACCESS_KEY_ID and DSBA_BACKUP_SECRET_ACCESS_KEY must be set: backups "
+                "go to their own bucket with their own key."
+            )
         return problems
 
     def production_problems(self) -> list[str]:
@@ -289,6 +334,8 @@ class Settings(BaseSettings):
         for name, value in (("DSBA_SESSION_COOKIE", self.session_cookie), ("DSBA_CSRF_COOKIE", self.csrf_cookie)):
             if not value.startswith(HOST_PREFIX):
                 add(f"{name} must start with {HOST_PREFIX} (it is {value!r}), so that no other host can set it.")
+        if not 1 <= self.session_days <= MAX_SESSION_DAYS:
+            add(f"DSBA_SESSION_DAYS must be from 1 to {MAX_SESSION_DAYS}: a session lasts at most a month.")
         if self.cookie_domain:
             add("DSBA_COOKIE_DOMAIN must be empty: the cookies belong to the app's own host only.")
         if not self.web_origins:
@@ -332,6 +379,11 @@ class Settings(BaseSettings):
         elif "smtp_host" not in given:
             add(
                 "DSBA_SMTP_HOST must be your mail provider's SMTP server (the default is the development mail catcher)."
+            )
+        if self.email_backend == "smtp" and not self.smtp_starttls and self.smtp_port != SMTPS_PORT:
+            add(
+                f"DSBA_SMTP_STARTTLS must be true, or DSBA_SMTP_PORT {SMTPS_PORT} (TLS from the start): codes and the "
+                "SMTP password must never travel in clear."
             )
         if self.email_from == DEV_EMAIL_FROM:
             add("DSBA_EMAIL_FROM must be an address on your own domain, like 'DSBA Hub <no-reply@example.com>'.")

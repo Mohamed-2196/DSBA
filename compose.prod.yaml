@@ -44,16 +44,25 @@ x-api-env: &api-env
   DSBA_ANTHROPIC_API_KEY: ${DSBA_ANTHROPIC_API_KEY:-}  # Mini Noora's AI answers (the noora.ai feature)
   DSBA_NOORA_MODEL: ${DSBA_NOORA_MODEL:-claude-haiku-5-5}
 
+# Docker's logs rotate (10 MB, 5 files a service), so they never fill the disk the database lives on.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 x-api: &api
   build: ./api
   image: dsba-hub-api
   environment: *api-env
   networks: [internal]
   restart: unless-stopped
+  logging: *logging
 
 services:
   db:
     image: postgres:17-alpine
+    logging: *logging
     environment:
       POSTGRES_USER: dsba
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
@@ -82,8 +91,9 @@ services:
     restart: "no"
 
   api:
-    # No published port: only the web service reaches it.
+    # No published port: only the web service reaches it. A memory spike restarts the API, not the whole server.
     <<: *api
+    mem_limit: ${DSBA_API_MEMORY:-1g}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -114,15 +124,21 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    logging: *logging
 
   backup:
-    # Every 24 hours: pg_dump into the backup bucket, encrypted at rest, newest DSBA_BACKUP_KEEP kept. Its key is
-    # its own (the API never holds it). Restore: docs/backend/DEPLOYMENT.md.
+    # Every 24 hours: pg_dump into the backup bucket, encrypted at rest, newest DSBA_BACKUP_KEEP kept. It holds only
+    # the database and its own bucket key (the API never holds it): no secret key, mail, texts or AI keys. A failed
+    # run says BACKUP FAILED in the log, pings DSBA_BACKUP_PING_URL/fail, and is tried again an hour later; set the
+    # ping URL so a failure, or a job that stops running, reaches you. Restore: docs/backend/DEPLOYMENT.md.
     <<: *api
     command: >-
-      sh -c "while true; do python -m app.cli backup || echo 'backup failed' >&2; sleep 86400; done"
+      sh -c "while true; do if python -m app.cli backup; then sleep 86400; else sleep 3600; fi; done"
     environment:
-      <<: *api-env
+      <<: *bucket-env
+      DSBA_ENV: production
+      DSBA_ROLE: backup
+      DSBA_DATABASE_URL: postgresql+psycopg://dsba:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/dsba
       DSBA_BACKUP_BUCKET: ${DSBA_BACKUP_BUCKET:?set DSBA_BACKUP_BUCKET in .env}
       DSBA_BACKUP_PREFIX: ${DSBA_BACKUP_PREFIX:-backups/db/}
       DSBA_BACKUP_S3_ENDPOINT_URL: ${DSBA_BACKUP_S3_ENDPOINT_URL:-}
@@ -132,6 +148,7 @@ services:
       DSBA_BACKUP_SSE: ${DSBA_BACKUP_SSE:-AES256}
       DSBA_BACKUP_KMS_KEY_ID: ${DSBA_BACKUP_KMS_KEY_ID:-}
       DSBA_BACKUP_KEEP: ${DSBA_BACKUP_KEEP:-14}
+      DSBA_BACKUP_PING_URL: ${DSBA_BACKUP_PING_URL:-}
     healthcheck:
       disable: true  # no web server in this container
     depends_on:
@@ -140,10 +157,20 @@ services:
 
   sweep:
     # Every 24 hours: uploads never attached to anything, old sign-in codes, sessions that ended long ago, the files
-    # of library items rejected or removed a week ago, and the screenshots of bug reports closed 90 days ago.
+    # of library items rejected or removed a week ago, and the screenshots of bug reports closed 90 days ago. It
+    # holds only the database and the bucket. A failed run says SWEEP FAILED, pings DSBA_SWEEP_PING_URL/fail and is
+    # tried again an hour later.
     <<: *api
     command: >-
-      sh -c "while true; do python -m app.cli sweep || echo 'sweep failed' >&2; sleep 86400; done"
+      sh -c "while true; do if python -m app.cli sweep; then sleep 86400; else sleep 3600; fi; done"
+    environment:
+      <<: *bucket-env
+      DSBA_ENV: production
+      DSBA_ROLE: sweep
+      DSBA_DATABASE_URL: postgresql+psycopg://dsba:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/dsba
+      DSBA_S3_ACCESS_KEY_ID: ${DSBA_S3_ACCESS_KEY_ID:?set DSBA_S3_ACCESS_KEY_ID in .env}
+      DSBA_S3_SECRET_ACCESS_KEY: ${DSBA_S3_SECRET_ACCESS_KEY:?set DSBA_S3_SECRET_ACCESS_KEY in .env}
+      DSBA_SWEEP_PING_URL: ${DSBA_SWEEP_PING_URL:-}
     healthcheck:
       disable: true  # no web server in this container
     depends_on:
@@ -170,6 +197,7 @@ services:
     # library/ and write covers/ (docs/backend/DEPLOYMENT.md, section 3). No secret key, mail, texts or AI keys.
     <<: *api
     command: python -m app.cli text-worker
+    mem_limit: ${DSBA_TEXTS_MEMORY:-1g}
     environment:
       <<: *bucket-env
       DSBA_ENV: production

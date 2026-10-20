@@ -92,6 +92,12 @@ class FakeClient:
 
 
 @pytest.fixture(autouse=True)
+def week_old_accounts(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Accounts here ask the full daily allowance; test_budget_abuse.py turns the new-account allowance back on."""
+    monkeypatch.setattr(ask, "NEW_ACCOUNT_DAYS", 0)
+
+
+@pytest.fixture(autouse=True)
 def noora_ai_on(set_feature: Callable[..., None]) -> None:
     """The AI answers arrive switched off: these tests switch them on for everyone."""
     set_feature("noora.ai", "everyone")

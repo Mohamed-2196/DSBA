@@ -23,7 +23,7 @@ from app.schemas.library import PaperQuestion as PaperQuestionOut
 from app.services import report_answers
 from app.services.content import record
 from app.services.exam_names import newest_sitting_first
-from app.services.library import cover_path, covered, manages
+from app.services.library import cover_path, covered, hidden_from, in_hidden_module, manages, sees_hidden_modules
 from app.services.modules import require_module
 from app.services.ratelimit import enforce
 
@@ -90,9 +90,9 @@ def to_out(db: Session, tags: Sequence[PaperQuestion], user: User | None) -> lis
     return out
 
 
-def _published_paper(db: Session, item_id: uuid.UUID) -> LibraryItem:
+def _published_paper(db: Session, item_id: uuid.UUID, user: User | None) -> LibraryItem:
     item = db.get(LibraryItem, item_id)
-    if item is None or item.status != ItemStatus.published:
+    if item is None or item.status != ItemStatus.published or hidden_from(db, item, user):
         raise not_found("This file doesn't exist or isn't public yet.")
     if item.kind != PAST_PAPER or item.module_id is None:
         raise conflict("not_a_paper", "Only a module's past papers have questions to tag.")
@@ -100,12 +100,13 @@ def _published_paper(db: Session, item_id: uuid.UUID) -> LibraryItem:
 
 
 def for_paper(db: Session, item_id: uuid.UUID, user: User | None) -> list[PaperQuestionOut]:
-    """A published paper's tags, by question, then chapter order."""
-    item = _published_paper(db, item_id)
+    """A published paper's tags, by question, then chapter order. Hidden chapters' tags only for staff."""
+    item = _published_paper(db, item_id, user)
+    shown = [] if sees_hidden_modules(user) else [Chapter.hidden.is_(False)]
     tags = db.scalars(
         select(PaperQuestion)
         .join(Chapter, Chapter.id == PaperQuestion.chapter_id)
-        .where(PaperQuestion.item_id == item.id)
+        .where(PaperQuestion.item_id == item.id, *shown)
         .order_by(
             PaperQuestion.section.nulls_first(), PaperQuestion.question, Chapter.position, PaperQuestion.created_at
         )
@@ -120,13 +121,16 @@ def for_module(
     someone flagged, the most flagged first, of one module or of all (people who manage the library)."""
     if module_id is None and not flagged:
         raise invalid("moduleId", "Choose a module.")
-    require_module(db, module_id)
+    staff = sees_hidden_modules(user)
+    require_module(db, module_id, visible=not staff)
     q = (
         select(PaperQuestion)
         .join(LibraryItem, LibraryItem.id == PaperQuestion.item_id)
         .join(Chapter, Chapter.id == PaperQuestion.chapter_id)
         .where(LibraryItem.status == ItemStatus.published)
     )
+    if not staff:  # hidden modules and chapters don't exist for students (SEC-55)
+        q = q.where(Chapter.hidden.is_(False), ~in_hidden_module())
     if module_id is not None:
         q = q.where(LibraryItem.module_id == module_id)
     if flagged:
@@ -145,10 +149,11 @@ def for_module(
 
 
 def tag(db: Session, user: User, item_id: uuid.UUID, body: PaperQuestionCreate) -> PaperQuestion:
-    """Tag a question of a published past paper with a chapter of its module. At most TAGS_PER_HOUR an hour."""
-    item = _published_paper(db, item_id)
+    """Tag a question of a published past paper with a chapter of its module that students see (never a hidden one).
+    At most TAGS_PER_HOUR an hour."""
+    item = _published_paper(db, item_id, user)
     chapter = db.get(Chapter, body.chapter_id)
-    if chapter is None or chapter.module_id != item.module_id:
+    if chapter is None or chapter.module_id != item.module_id or chapter.hidden:
         raise invalid("chapterId", "Pick one of this module's chapters.")
     enforce(
         db,

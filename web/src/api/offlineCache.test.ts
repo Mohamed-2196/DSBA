@@ -30,7 +30,6 @@ describe('offlineScope: what is kept for reading offline', () => {
     [['forum', 'meta'], 'owner'],
     [['calendar', 'events', {}], 'owner'],
     [['calendar', 'upcoming', { n: 5, year: null }], 'owner'],
-    [['calendar', 'mine', 'events'], 'owner'],
     [['papers', 'choices'], 'owner'],
     [['progress', 'u1'], 'owner'],
     [['newsletter', 'list', { drafts: false }], 'owner'],
@@ -54,6 +53,10 @@ describe('offlineScope: what is kept for reading offline', () => {
     // short-lived signed file links and the private calendar feed address
     [['library', 'file', 'i1']],
     [['calendar', 'mine', 'settings']],
+    // the student's own events and forum lists: they say what they asked, anonymous questions too (SEC-53)
+    [['calendar', 'mine', 'events']],
+    [['forum', 'list', { yours: true }, 20]],
+    [['forum', 'list', { mine: true }, 20]],
     // personal tools with their own storage, searches, notifications
     [['notes', 'one', 'n1']],
     [['notifications']],
@@ -145,8 +148,15 @@ describe('readSnapshot', () => {
   const now = 1_000_000_000_000;
 
   it('reads a stored snapshot back, pruned', () => {
-    const raw = { v: 1, owner: 'u1', entries: [entry('a', now - 1), entry('old', now - OFFLINE_MAX_AGE - 1)] };
-    expect(readSnapshot(raw, now)).toEqual({ v: 1, owner: 'u1', entries: [entry('a', now - 1)] });
+    const raw = {
+      v: 1,
+      owner: 'u1',
+      liveAt: now - 5,
+      entries: [entry('a', now - 1), entry('old', now - OFFLINE_MAX_AGE - 1)],
+    };
+    expect(readSnapshot(raw, now)).toEqual({ v: 1, owner: 'u1', liveAt: now - 5, entries: [entry('a', now - 1)] });
+    // a snapshot without liveAt was never seen live: its own entries don't show offline
+    expect(readSnapshot({ ...raw, liveAt: undefined }, now)?.liveAt).toBe(0);
   });
 
   it('drops entries whose keys are no longer kept, and malformed ones', () => {

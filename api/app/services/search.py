@@ -188,7 +188,12 @@ def _library(
     rows = db.execute(
         select(LibraryItem, Module.unit_code, Module.short_name)
         .outerjoin(Module, Module.id == LibraryItem.module_id)
-        .where(LibraryItem.status == ItemStatus.published, ~lib.duplicate(), or_(in_doc, paper_text.content_match(tsq)))
+        .where(
+            LibraryItem.status == ItemStatus.published,
+            ~lib.duplicate(),
+            ~lib.in_hidden_module(),
+            or_(in_doc, paper_text.content_match(tsq)),
+        )
         .order_by(
             in_doc.desc(),
             *mine_first(viewer, LibraryItem.module_id, LibraryItem.year),

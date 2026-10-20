@@ -88,11 +88,13 @@ class BoxInfo(NamedTuple):
 BOXES: dict[Box, BoxInfo] = {
     Box.forum_post: BoxInfo(
         "Forum",
-        "Start threads, reply, vote, accept answers and edit your own posts",
+        "Start threads, reply, vote, accept answers and edit your own posts; ask for files and dates; suggest videos",
         "Your account can't post in the forum. Contact a student rep.",
     ),
     Box.library_upload: BoxInfo(
-        "Library", "Upload files for review", "Your account can't upload to the library. Contact a student rep."
+        "Library",
+        "Upload files for review; tag and flag past papers' questions",
+        "Your account can't upload to the library. Contact a student rep.",
     ),
     Box.newsletter_react: BoxInfo(
         "Newsletter",
