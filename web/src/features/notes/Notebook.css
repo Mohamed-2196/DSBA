@@ -140,6 +140,7 @@ html:has(.nb--full) .noora {
   margin-inline: 4px;
 }
 .nb-header__where {
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
