@@ -42,6 +42,10 @@
   background: var(--exam-soft);
   color: var(--exam);
 }
+.ui-badge--warning {
+  background: var(--warning-fill);
+  color: var(--on-warning-fill);
+}
 .ui-badge--navy {
   background: var(--inverse);
   color: var(--on-inverse);

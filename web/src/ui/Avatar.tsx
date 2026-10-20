@@ -3,7 +3,7 @@ import { cx } from './internal';
 import { initials } from './utils';
 import './Avatar.css';
 
-const TONES = ['y1', 'y2', 'y3', 'cobalt', 'signal', 'alert'] as const;
+const TONES = ['y1', 'y2', 'y3', 'accent', 'success', 'error'] as const;
 const SIZES = { xs: 20, sm: 24, md: 32, lg: 40, xl: 56 } as const;
 
 export type AvatarSize = keyof typeof SIZES | number;

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { cohortLabel, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, CohortBadge, cx, EmptyState, Highlight, Icon, glyph } from '../../ui';
+import { Button, CohortBadge, cx, EmptyState, Icon, glyph } from '../../ui';
 import { daysUntil, formatLong, formatLongDay, formatShort, parseDay } from '../../lib/dates';
 import { AddToCalendar } from './AddToCalendar';
 import { countdownLabel } from './dates';
@@ -112,9 +112,7 @@ function NextExamCard({ year, next, today, onOpen }: NextExamCardProps) {
           {date.getFullYear() !== today.getFullYear() ? ` ${date.getFullYear()}` : ''}
         </time>
         <span className="visually-hidden">, </span>
-        <Highlight as="span" className="cal-exam__count">
-          {countdownLabel(days)}
-        </Highlight>
+        <span className="cal-exam__count">{countdownLabel(days)}</span>
       </p>
       <p className="cal-exam__what">
         {code ? <span className="u-code cal-exam__code">{code}</span> : null}
