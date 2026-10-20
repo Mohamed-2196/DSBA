@@ -31,6 +31,7 @@ def solutions(year: int, session: ExamSession, zone: Zone | None = None) -> Exam
 
 
 NOTHING = ExamMeta(None, None, False)
+WORKED = ExamMeta(None, None, False, solutions=True)  # worked solutions to a paper that is no sitting
 
 NAMES: list[tuple[str, ExamMeta]] = [
     # the archive
@@ -99,9 +100,10 @@ NAMES: list[tuple[str, ExamMeta]] = [
     ("EC2066 Sample paper commentary - 2026.pdf", NOTHING),
     ("ST2195_2022_PrelimExam_comm.pdf", NOTHING),
     ("ST2195_Commentary_prelim_2022.pdf", NOTHING),
-    ("ST3189_PrelimExam_2023_with_solutions.pdf", NOTHING),
+    ("ST3189_PrelimExam_2023_with_solutions.pdf", WORKED),
+    ("ST2195_Prelim_Exam_2023_WithSolutions.pdf", WORKED),
     ("ST1215 Preliminary exam paper commentary - 2025.pdf", NOTHING),
-    ("Math 1186-Mock Test 1 (2024-2025)-Solution.pdf", NOTHING),
+    ("Math 1186-Mock Test 1 (2024-2025)-Solution.pdf", WORKED),
     ("MT1186.Mathematical.Methods.Mock.2023.EC.pdf", NOTHING),
     ("2020-mock-examination-paper-ec1002.pdf", NOTHING),
     ("Model Answer - Test 2 - ST1215 - 2025.pdf", NOTHING),
