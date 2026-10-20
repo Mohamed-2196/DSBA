@@ -6,6 +6,7 @@ export const REPORT_NOUN: Record<ReportTargetType, string> = {
   reply: 'reply',
   library_item: 'file',
   request: 'request',
+  shared_note: 'shared note',
 };
 
 export const REPORT_REASONS: { value: ReportReason; label: string; hint: string }[] = [

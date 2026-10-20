@@ -15,6 +15,7 @@ const TARGET: Record<ReportTargetType, { label: string; icon: Glyph }> = {
   reply: { label: 'Reply', icon: glyph.reply },
   library_item: { label: 'Library file', icon: glyph.page },
   request: { label: 'Request', icon: glyph.hand },
+  shared_note: { label: 'Shared note', icon: glyph.notebook },
 };
 
 const STATUS_BADGE: Partial<Record<ReportTargetStatus, { label: string; tone: 'alert' | 'neutral' | 'outline' }>> = {
@@ -30,6 +31,7 @@ const GONE: Record<ReportTargetType, string> = {
   reply: 'A post that no longer exists',
   library_item: 'A file that no longer exists',
   request: 'A request that no longer exists',
+  shared_note: 'A shared note that no longer exists',
 };
 
 /** Where the reported thing is: a page of the app (internal paths only). */

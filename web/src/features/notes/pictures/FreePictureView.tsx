@@ -2,7 +2,7 @@
 // turned about its middle, with its caption under it. The same view is on the pages, in the pages drawer and in the
 // export, so a picture is in the same place in all three.
 import { useState } from 'react';
-import { noteFileHref } from '../api';
+import { useFileHref } from '../files';
 import type { Rect } from '../text/picture';
 import type { FreePicture } from './geometry';
 import { boxStyle } from './style';
@@ -23,6 +23,7 @@ export function Cropped({
   h: number;
 }) {
   const [broken, setBroken] = useState(false);
+  const fileHref = useFileHref();
   if (broken) {
     return (
       <span className="nb-free__frame nb-free__broken" role="img" aria-label="This picture isn’t available any more">
@@ -35,7 +36,7 @@ export function Cropped({
   return (
     <span className="nb-free__frame">
       <img
-        src={noteFileHref(upload)}
+        src={fileHref(upload)}
         alt={alt}
         draggable={false}
         decoding="async"

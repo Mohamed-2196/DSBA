@@ -42,6 +42,14 @@ describe('sectionsFor', () => {
     ]);
   });
 
+  it('gives content editors the queue for time stamps alone, too', () => {
+    expect(sectionsFor(holds('content.edit'), onlyOn('modules.time-stamps'))).toEqual(['videos', 'content', 'gaps']);
+  });
+
+  it('gives library reps the reports while only shared notes are on', () => {
+    expect(sectionsFor(holds('library.manage'), onlyOn('notes.share'))[0]).toBe('reports');
+  });
+
   it('gives content editors the Daily puzzles while Daily is on', () => {
     expect(sectionsFor(holds('content.edit'), onlyOn('daily'))).toEqual(['content', 'daily', 'gaps']);
     expect(groupSections(['content', 'daily'])).toEqual([

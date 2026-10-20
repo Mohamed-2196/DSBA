@@ -120,6 +120,7 @@ def to_out(db: Session, share: SharedNote, viewer: User | None) -> SharedNoteOut
         {
             **_summary(share, viewer, _authors(db, [share])),
             "module_title": module.name if module else "",
+            "note_id": share.note_id if viewer is not None and share.user_id == viewer.id else None,
             "doc": share.doc,
             "paper": share.paper,
             "sheets": share.sheets,

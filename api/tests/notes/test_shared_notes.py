@@ -50,6 +50,7 @@ def test_a_shared_note_is_a_copy_everyone_reads_with_its_writers_name(
     assert shared["author"]["year"] == 3
     assert (shared["mine"], shared["hidden"], shared["canModerate"]) == (True, False, False)
     assert [p["sheet"] for p in shared["ink"]] == [1000]
+    assert shared["noteId"] == note["id"]
 
     for reader in (client_for(), client_for(make_user(name="Hamad Reader", year=2))):
         listed = reader.get(f"{API}/shared-notes?moduleId={module.id}").json()
@@ -60,6 +61,7 @@ def test_a_shared_note_is_a_copy_everyone_reads_with_its_writers_name(
         assert one.status_code == 200
         assert one.json()["doc"] == note["doc"]
         assert one.json()["moduleTitle"] == module.name
+        assert one.json()["noteId"] is None  # only its writer learns which note it came from
         # the note itself, and the other note, stay private
         assert reader.get(f"{API}/notes/{note['id']}").status_code in (401, 404)
         assert reader.get(f"{API}/notes/{private['id']}").status_code in (401, 404)
@@ -349,3 +351,17 @@ def test_unsharing_never_gives_back_a_share(
     assert r.status_code == 429
     assert r.json()["error"]["code"] == "rate_limited"
     assert share(c, new_note(c, "another", moduleId=module.id), 429)["error"]["code"] == "rate_limited"
+
+
+def test_up_to_date_follows_what_the_note_holds_not_when_it_was_saved(
+    client_for: ClientFor, make_user: MakeUser, module: Module
+) -> None:
+    c = client_for(make_user())
+    note = new_note(c, "Same words", moduleId=module.id)
+    share(c, note)
+    changed = save(c, note, doc=doc("Other words")).json()
+    assert changed["share"]["upToDate"] is False
+    back = save(c, changed, doc=doc("Same words")).json()  # changed back: the copy has it again
+    assert back["share"]["upToDate"] is True
+    assert ink(c, back, 1000, [stroke()], 0).status_code == 200  # handwriting the copy hasn't got
+    assert c.get(f"{API}/notes/{note['id']}").json()["share"]["upToDate"] is False

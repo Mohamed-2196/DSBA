@@ -2,8 +2,9 @@
 // (a stamp tapped in a note). It talks to the embedded player with YouTube's postMessage protocol (the embed loads
 // with enablejsapi=1 and this page's origin), without loading YouTube's script: the page says it is listening, the
 // player answers with its state and current time while it plays, and commands go back the same way. Class
-// recordings (BigBlueButton) have no clock.
+// recordings (BigBlueButton) have no clock: going to a time loads them again there (withClock).
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { playbackTime } from './topics/time';
 
 export interface VideoClock {
   /** whether the player answers (a YouTube video, loaded) */
@@ -34,11 +35,16 @@ export function timeFrom(origin: string, data: unknown): number | null {
   return typeof t === 'number' && Number.isFinite(t) && t >= 0 ? t : null;
 }
 
-/** The embed's address with the player's messages turned on (and `start` seconds in, when given). */
+/** The embed's address with the player's messages turned on (and `start` seconds in, when given). A class recording
+ *  (BigBlueButton's playback) has no messages, but starts at `?t=`. */
 export function withClock(src: string, origin: string, start?: number | null): string {
   try {
     const u = new URL(src);
-    if (!u.hostname.includes('youtube')) return src;
+    if (!u.hostname.includes('youtube')) {
+      if (!start || start <= 0 || !u.pathname.startsWith('/playback/')) return src;
+      u.searchParams.set('t', playbackTime(start));
+      return u.toString();
+    }
     u.searchParams.set('enablejsapi', '1');
     u.searchParams.set('origin', origin);
     if (start && start > 0) u.searchParams.set('start', String(Math.floor(start)));

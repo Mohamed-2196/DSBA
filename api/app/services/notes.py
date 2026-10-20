@@ -420,8 +420,27 @@ def _share_of(db: Session, note: Note) -> NoteShare | None:
         hidden=share.hidden,
         shared_at=share.shared_at,
         updated_at=share.updated_at,
-        up_to_date=note.updated_at <= share.updated_at and note.module_id == share.module_id,
+        up_to_date=_same_as(db, note, share),
     )
+
+
+def _same_as(db: Session, note: Note, share: SharedNote) -> bool:
+    """Whether the shared copy still has the note as it is: its module, title, text, paper, pages and ink."""
+    if note.updated_at <= share.updated_at and note.module_id == share.module_id:
+        return True
+    fields = (note.module_id, note.title, note.doc, note.paper, note.sheets)
+    if fields != (share.module_id, share.title, share.doc, share.paper, share.sheets):
+        return False
+    rows = db.execute(
+        select(NoteInk.sheet, NoteInk.strokes)
+        .where(
+            NoteInk.note_id == note.id,
+            NoteInk.sheet >= PAPER_SHEETS_FROM,
+            NoteInk.sheet < PAPER_SHEETS_FROM + note.sheets,
+        )
+        .order_by(NoteInk.sheet)
+    ).tuples()
+    return [{"sheet": sheet, "strokes": strokes} for sheet, strokes in rows if strokes] == share.ink
 
 
 def list_notes(

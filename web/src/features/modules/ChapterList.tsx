@@ -10,6 +10,8 @@ import { Icon, IconButton, Menu, ProgressRing, cx, glyph } from '../../ui';
 import { KIND_ICON, chapterLessons, lessonHref } from './lessons';
 import { computeChapterProgress, computeModuleProgress, type ProgressState } from './progress';
 import { useThumbnail } from './thumbs';
+import { coversLine } from './topics/time';
+import './topics/Topics.css';
 
 /** '9 videos', '6 class recordings', '1 playlist', '4 class recordings and 3 videos'. */
 function chapterContents(ch: Chapter): string {
@@ -251,6 +253,11 @@ export function ChapterList({
                                 </span>
                               ) : null}
                             </span>
+                            {vid.topics.length ? (
+                              <span className="mod-vid__covers" dir="auto">
+                                {coversLine(vid.topics.map((t) => t.label))}
+                              </span>
+                            ) : null}
                           </span>
                         </Link>
                       </li>

@@ -1,0 +1,186 @@
+/* Notes shared with a module: the editor's share button and dialog, and the page that reads a shared note. */
+
+/* ── the editor: "Share with module" ── */
+.nb-share-btn__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--warning);
+  vertical-align: middle;
+}
+.nb-share {
+  display: grid;
+  gap: var(--sp-12);
+  max-width: 62ch;
+}
+.nb-share p {
+  margin: 0;
+}
+.nb-share__state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.nb-share__wait {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.nb-share__error {
+  color: var(--error);
+  font-size: var(--fs-14);
+}
+.nb-share__more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+  padding-top: var(--sp-8);
+  border-top: 1px solid var(--line);
+}
+.nb-share__stop {
+  color: var(--error);
+}
+
+/* ── the shared note's page ── */
+.shn-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-16);
+}
+.shn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  justify-self: start;
+  min-height: 44px;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  text-decoration: none;
+}
+.shn-back:hover {
+  color: var(--ink);
+}
+.shn-head {
+  display: grid;
+  gap: var(--sp-8);
+  padding: var(--sp-20) var(--sp-24);
+  border-radius: var(--r-panel);
+  background: var(--sec-pill);
+}
+.shn-head__kind {
+  margin: 0;
+  color: var(--sec-text);
+  font-size: var(--fs-13);
+  font-weight: 600;
+}
+.shn-head__title {
+  margin: 0;
+  max-width: 40ch;
+  font-family: var(--font-display);
+  font-size: var(--fs-28);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
+  line-height: 34px;
+  overflow-wrap: anywhere;
+}
+.shn-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--sp-4);
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-14);
+}
+.shn-head__meta .ui-badge {
+  margin-left: var(--sp-8);
+}
+.shn-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
+.shn-hidden {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  margin: 0;
+  padding: var(--sp-12) var(--sp-16);
+  border-radius: var(--r-input);
+  background: var(--error-soft);
+  color: var(--ink);
+  font-size: var(--fs-14);
+}
+.shn-foot {
+  max-width: 70ch;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+}
+@media (max-width: 699px) {
+  .shn-head {
+    padding: var(--sp-16) var(--sp-20);
+  }
+  .shn-head__title {
+    font-size: var(--fs-22);
+    line-height: 28px;
+  }
+}
+
+/* the note: its pages scaled to fit, or its text at reading size */
+.shn-view {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-12);
+  min-width: 0;
+}
+.shn-view__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-12);
+}
+.shn-view__hint {
+  flex: 1 1 14rem;
+  min-width: 0;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.shn-view__pages {
+  min-width: 0;
+  overflow: hidden;
+  padding: 2px 0 16px;
+}
+.shn-view__canvas {
+  position: relative;
+  margin: 0 auto;
+}
+.shn-view__stack {
+  user-select: text;
+  -webkit-user-select: text;
+}
+.shn-view__sheet {
+  position: absolute;
+  left: 0;
+  width: 800px;
+  pointer-events: none;
+}
+.shn-view__sheet .nb-free {
+  z-index: 3;
+}
+/* a picture wider than a phone's text scrolls inside the paper, as in the editor's text view, never the page */
+.shn-view__text {
+  overflow-x: auto;
+  width: 100%;
+  min-height: 0;
+  padding-bottom: 40px;
+  border-radius: 4px;
+  box-shadow:
+    0 1px 2px rgba(10, 31, 68, 0.1),
+    0 4px 16px rgba(10, 31, 68, 0.06);
+}

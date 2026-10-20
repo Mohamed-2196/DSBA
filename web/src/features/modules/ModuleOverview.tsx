@@ -29,7 +29,14 @@ import { aheadRows, typeLabel } from '../calendar/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
 import { useModuleLatestThreads, useStartsThreads } from '../forum/public';
 import { SittingsTable, libraryItemPath, usePaperSittings } from '../library/public';
-import { NoteName, useModuleNotes, useStartNote } from '../notes/public';
+import {
+  NoteName,
+  sharedByLine,
+  sharedNotePath,
+  useModuleNotes,
+  useModuleSharedNotes,
+  useStartNote,
+} from '../notes/public';
 import { useModuleFiles } from './api';
 import { useModuleDates } from './exams';
 import { chapterPosition, lastOpenedLabel, lessonHref, moduleTabOn } from './lessons';
@@ -369,52 +376,101 @@ function NoNotes({ name, newNote }: { name: string; newNote: ReactNode }) {
   );
 }
 
-function NewestNotes({ moduleId, onTab }: { moduleId: string; onTab: (tab: string, hash?: string) => void }) {
-  const q = useModuleFiles(moduleId, 'notes', { limit: ROWS });
+/** A row of "Students' notes": a note shared from a notebook, or a notes file in the library. */
+interface NoteRow {
+  key: string;
+  to: string;
+  title: string;
+  meta: string;
+  at: string;
+}
+
+function NewestNotes({
+  moduleId,
+  onTab,
+  library,
+  sharing,
+}: {
+  moduleId: string;
+  onTab: (tab: string, hash?: string) => void;
+  library: boolean;
+  sharing: boolean;
+}) {
+  const files = useModuleFiles(moduleId, 'notes', { limit: ROWS, enabled: library });
+  const shared = useModuleSharedNotes(moduleId, { limit: ROWS, enabled: sharing });
   const title = 'Students’ notes';
-  if (q.isPending) return <BlockLoading title={title} />;
-  if (q.isError) {
+  const queries = [library ? files : null, sharing ? shared : null].filter((x) => x !== null);
+  if (queries.some((x) => x.isPending)) return <BlockLoading title={title} />;
+  const failed = queries.find((x) => x.isError);
+  if (failed) {
     return (
       <Block title={title} hub="module-notes">
         <QueryError
-          error={q.error}
+          error={failed.error}
           title="The notes didn’t load"
           size="sm"
           panel={false}
-          onRetry={() => void q.refetch()}
-          retrying={q.isFetching}
+          onRetry={() => queries.forEach((x) => void x.refetch())}
+          retrying={queries.some((x) => x.isFetching)}
         />
       </Block>
     );
   }
-  const notes = q.data;
-  if (!notes.length) return null;
+  const rows: NoteRow[] = [
+    ...(sharing ? (shared.data?.items ?? []) : []).map((n) => ({
+      key: `s-${n.id}`,
+      to: sharedNotePath(n.id),
+      title: n.title || 'Untitled note',
+      meta: `${sharedByLine(n)}, ${timeAgo(n.sharedAt)}`,
+      at: n.sharedAt,
+    })),
+    ...(library ? (files.data ?? []) : []).map((n) => {
+      const who = sharedBy(n);
+      const when = timeAgo(n.publishedAt ?? n.createdAt);
+      return {
+        key: `f-${n.id}`,
+        to: libraryItemPath(n),
+        title: n.title,
+        meta: who ? `Shared by ${who}, ${when}` : `Shared ${when}`,
+        at: n.publishedAt ?? n.createdAt,
+      };
+    }),
+  ]
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, ROWS);
+  if (!rows.length) return null;
+  const sharedMore = sharing && (shared.data?.total ?? 0) > 0;
   return (
     <Block
       title={title}
       hub="module-notes"
       link={
-        <Button variant="ghost" size="sm" onClick={() => onTab('files', 'files-notes')} className="mod-blk__link">
-          All notes
-        </Button>
+        library ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onTab('files', sharedMore ? 'shared-notes' : 'files-notes')}
+            className="mod-blk__link"
+          >
+            All notes
+          </Button>
+        ) : null
       }
     >
       <ul className="mod-rows" role="list">
-        {notes.map((n) => {
-          const who = sharedBy(n);
-          const when = timeAgo(n.publishedAt ?? n.createdAt);
-          return (
-            <li key={n.id}>
-              <Link to={libraryItemPath(n)} className="mod-row mod-row--doc">
-                <DocThumb tone="note" size="md" />
-                <span className="mod-row__text">
-                  <span className="mod-row__title">{n.title}</span>
-                  <span className="mod-row__meta">{who ? `Shared by ${who}, ${when}` : `Shared ${when}`}</span>
+        {rows.map((n) => (
+          <li key={n.key}>
+            <Link to={n.to} className="mod-row mod-row--doc">
+              <DocThumb tone="note" size="md" />
+              <span className="mod-row__text">
+                <span className="mod-row__title" dir="auto">
+                  {n.title}
                 </span>
-              </Link>
-            </li>
-          );
-        })}
+                <span className="mod-row__meta">{n.meta}</span>
+              </span>
+            </Link>
+          </li>
+        ))}
       </ul>
     </Block>
   );
@@ -606,6 +662,7 @@ export function ModuleOverview({
 }) {
   const { me, featureOn } = useAuth();
   const libraryOn = featureOn('library');
+  const sharingOn = featureOn('notes.share');
   const name = m.unitCode || m.name;
   const notesOn = !!me && !me.needsProfile && featureOn('notes');
   const notes = useModuleNotes(m.id, { limit: ROWS, enabled: notesOn });
@@ -649,7 +706,9 @@ export function ModuleOverview({
       ) : null}
       {moduleTabOn('discussion', featureOn) ? <NewestThreads moduleId={m.id} name={name} onTab={onTab} /> : null}
       <CarryOnHere moduleId={m.id} extra={noteOnCarry} />
-      {libraryOn ? <NewestNotes moduleId={m.id} onTab={onTab} /> : null}
+      {libraryOn || sharingOn ? (
+        <NewestNotes moduleId={m.id} onTab={onTab} library={libraryOn} sharing={sharingOn} />
+      ) : null}
       {libraryOn ? <MoreInLibrary module={m} libraryCount={libraryCount} onTab={onTab} onUpload={onUpload} /> : null}
     </div>
   );

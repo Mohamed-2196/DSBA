@@ -189,3 +189,10 @@
     padding: var(--sp-16);
   }
 }
+.sugg-queues {
+  display: grid;
+  gap: var(--sp-16);
+}
+.sugg-queues > .ui-seg {
+  justify-self: start;
+}

@@ -48748,6 +48748,18 @@
             "type": "string",
             "title": "Moduletitle"
           },
+          "noteId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Noteid"
+          },
           "doc": {
             "additionalProperties": true,
             "type": "object",
@@ -48792,6 +48804,7 @@
           "sharedAt",
           "updatedAt",
           "moduleTitle",
+          "noteId",
           "doc",
           "paper",
           "sheets",

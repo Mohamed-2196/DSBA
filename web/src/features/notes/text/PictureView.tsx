@@ -14,7 +14,7 @@ import {
 import { createPortal } from 'react-dom';
 import { useMediaQuery } from '../../../state';
 import { cx, type MenuItem, glyph, Icon } from '../../../ui';
-import { noteFileHref } from '../api';
+import { useFileHref } from '../files';
 import { DetailsDialog } from '../pictures/DetailsDialog';
 import { usePictureSpace } from '../pictures/space';
 import { LINE, TEXT_WIDTH } from '../surface/layout';
@@ -84,6 +84,7 @@ function Shown({
   height: number;
   onBroken: () => void;
 }) {
+  const fileHref = useFileHref();
   const t = turned(p.rotate);
   const keptW = t ? height : width;
   const keptH = t ? width : height;
@@ -96,7 +97,7 @@ function Shown({
         style={{ width: keptW, height: keptH, transform: `translate(-50%, -50%) rotate(${p.rotate}deg)` }}
       >
         <img
-          src={noteFileHref(p.upload)}
+          src={fileHref(p.upload)}
           alt={p.alt}
           draggable={false}
           decoding="async"
@@ -110,6 +111,7 @@ function Shown({
 }
 
 export function PictureView({ node, updateAttributes, deleteNode, editor, selected, getPos }: ReactNodeViewProps) {
+  const fileHref = useFileHref();
   const p = pictureAttrs(node.attrs);
   const editable = editor.isEditable;
   const [size, setSize] = useState<{ width: number; x: number } | null>(null);
@@ -254,7 +256,7 @@ export function PictureView({ node, updateAttributes, deleteNode, editor, select
         ]
       : []),
     { id: 'details', label: 'Caption and description', icon: glyph.text, onSelect: () => setDetails(true) },
-    { id: 'open', label: 'Open full size', icon: glyph.external, href: noteFileHref(p.upload) },
+    { id: 'open', label: 'Open full size', icon: glyph.external, href: fileHref(p.upload) },
   ];
 
   const boxStyle: CSSProperties = {

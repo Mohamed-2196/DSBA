@@ -11313,6 +11313,8 @@ export interface components {
             updatedAt: string;
             /** Moduletitle */
             moduleTitle: string;
+            /** Noteid */
+            noteId: string | null;
             /** Doc */
             doc: {
                 [key: string]: unknown;

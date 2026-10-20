@@ -27,6 +27,7 @@ import {
 import { LessonPoster } from './Poster';
 import { flatLessons, type FlatLesson, type ProgressApi } from './progress';
 import { ProgressOffer } from './ProgressOffer';
+import { LessonTopics } from './topics/LessonTopics';
 import { useTracking } from './tracking';
 import { useThumbnail, youtubeLooksBlocked } from './thumbs';
 import { useVideoClock, withClock } from './videoClock';
@@ -228,6 +229,15 @@ export function LessonsTab({
     });
   }, []);
 
+  // A time stamp beside the player: the video goes there, in sight.
+  const seekTopic = useCallback(
+    (seconds: number) => {
+      seek(seconds);
+      revealPlayer();
+    },
+    [seek, revealPlayer],
+  );
+
   // The notes open beside the video, with the video in sight above them.
   const openNotes = () => {
     setNoting(true);
@@ -403,16 +413,23 @@ export function LessonsTab({
           </div>
         ) : null}
         <div className="mod-lessons__aside">
-          <ChapterList
-            module={m}
-            selection={selection}
-            state={state}
-            tracking={tracking}
-            onTracking={track.set}
-            nowLabel={stage === 'frame' ? 'Playing' : 'Selected'}
-            onReset={onReset}
-            onPick={revealPlayer}
-          />
+          {featureOn('modules.time-stamps') && video.kind !== 'youtube-playlist' ? (
+            <ErrorBoundary name="LessonTopics" resetKey={key}>
+              <LessonTopics key={key} video={video} now={clock.now} onSeek={seekTopic} />
+            </ErrorBoundary>
+          ) : null}
+          <div className="mod-lessons__chapters">
+            <ChapterList
+              module={m}
+              selection={selection}
+              state={state}
+              tracking={tracking}
+              onTracking={track.set}
+              nowLabel={stage === 'frame' ? 'Playing' : 'Selected'}
+              onReset={onReset}
+              onPick={revealPlayer}
+            />
+          </div>
         </div>
       </div>
     </div>

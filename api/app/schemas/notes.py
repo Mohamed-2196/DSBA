@@ -275,6 +275,7 @@ class SharedNote(SharedNoteSummary):
     it."""
 
     module_title: str
+    note_id: UUID | None  # the note it was copied from: for its writer only
     doc: dict[str, Any]
     paper: Paper
     sheets: int

@@ -12,6 +12,7 @@ import { createPortal } from 'react-dom';
 import { fileExtension, formatSize } from '../../../api/uploads';
 import { TeX, cx, glyph, Icon, type Glyph } from '../../../ui';
 import { noteFileHref } from '../api';
+import { useFileHref } from '../files';
 import { LINE } from '../surface/layout';
 import { BlockBar, BlockBarButton } from './BlockBar';
 import { BLOCK_MATH, INLINE_MATH } from './mathText';
@@ -361,6 +362,7 @@ function FileView({ node, deleteNode, editor, selected, getPos }: ReactNodeViewP
   const name = String(node.attrs.name ?? 'File');
   const size = Number(node.attrs.size ?? 0);
   const editable = editor.isEditable;
+  const fileHref = useFileHref();
   const ext = fileExtension(name);
   const fileGlyph = (ext && FILE_ICONS[ext]) || glyph.page;
   const { move, onPointerDown } = useBlockMove({ editor, getPos, enabled: editable, selected });
@@ -384,7 +386,7 @@ function FileView({ node, deleteNode, editor, selected, getPos }: ReactNodeViewP
         <span className="nb-file__text">
           <a
             className="nb-file__name"
-            href={noteFileHref(upload)}
+            href={fileHref(upload)}
             target="_blank"
             rel="noopener noreferrer"
             title={`Open ${name}`}
@@ -393,12 +395,7 @@ function FileView({ node, deleteNode, editor, selected, getPos }: ReactNodeViewP
           </a>
           <span className="nb-file__size">{[ext?.toUpperCase(), formatSize(size)].filter(Boolean).join(' · ')}</span>
         </span>
-        <a
-          className="nb-file__download"
-          href={noteFileHref(upload, true)}
-          aria-label={`Download ${name}`}
-          title="Download"
-        >
+        <a className="nb-file__download" href={fileHref(upload, true)} aria-label={`Download ${name}`} title="Download">
           <Icon glyph={glyph.download} aria-hidden="true" />
         </a>
         {editable && selected && !move ? (
