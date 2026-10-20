@@ -607,8 +607,9 @@ def _match_requests(db: Session, item: LibraryItem) -> None:
 
 def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str | None = None) -> LibraryItem:
     """A completed upload of the user's own becomes an item: pending for students; published at once (and audited,
-    as it skipped review) for library managers."""
-    up = db.get(Upload, body.upload_id)
+    as it skipped review) for library managers. The upload's row is locked first, so two parallel requests for one
+    upload can't both make an item on the same file (SEC-58)."""
+    up = db.get(Upload, body.upload_id, with_for_update=True, populate_existing=True)
     if up is None or up.user_id != user.id:
         raise not_found("This upload doesn't exist.")
     if up.purpose != UploadPurpose.library:

@@ -14,7 +14,10 @@ from sqlalchemy import Engine, create_engine, delete
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
 
-from app.models import Upload, UploadPurpose, UploadStatus, User
+from app.core.errors import ApiError
+from app.models import LibraryItem, Upload, UploadPurpose, UploadStatus, User
+from app.schemas.library import LibraryItemCreate
+from app.services import library
 from app.services import uploads as svc
 from app.services.storage import Storage
 from tests.core.helpers import PDF
@@ -97,6 +100,64 @@ def test_parallel_completes_copy_the_file_once(
             assert stored.storage_key.startswith(f"library/{upload_id}/")
     finally:
         with own_connections() as s:
+            s.execute(delete(Upload).where(Upload.user_id == user_id))
+            s.execute(delete(User).where(User.id == user_id))
+            s.commit()
+
+
+def test_parallel_item_creations_on_one_upload_make_one_item(
+    own_connections: sessionmaker[Session], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Two POST /library/items with one upload at once: the second waits for the upload's row lock, then sees it
+    attached and answers already_used. Two items never share one file."""
+    with own_connections() as s:
+        user = User(email=f"race-{uuid.uuid4().hex[:8]}@example.com", display_name="Race Student", year=2)
+        s.add(user)
+        s.flush()
+        up = Upload(
+            user_id=user.id,
+            purpose=UploadPurpose.library,
+            storage_key=f"library/{uuid.uuid4()}/notes.pdf",
+            file_name="notes.pdf",
+            content_type="application/pdf",
+            size_bytes=len(PDF),
+            status=UploadStatus.uploaded,
+        )
+        s.add(up)
+        s.commit()
+        upload_id, user_id = up.id, user.id
+    body = LibraryItemCreate.model_validate({"uploadId": str(upload_id), "kind": "notes", "title": "Week 3 notes"})
+
+    first_in, second_asking = threading.Event(), threading.Event()
+
+    def first() -> str:
+        with own_connections() as s:
+            library.create_from_upload(s, s.get_one(User, user_id), body)
+            first_in.set()
+            assert second_asking.wait(10)
+            time.sleep(0.3)  # the second request is waiting for the lock now
+            s.commit()
+        return "ok"
+
+    def second() -> str:
+        assert first_in.wait(10)
+        with own_connections() as s:
+            person = s.get_one(User, user_id)
+            second_asking.set()
+            try:
+                library.create_from_upload(s, person, body)
+            except ApiError as e:
+                return e.code
+            s.commit()
+        return "ok"
+
+    try:
+        with ThreadPoolExecutor(2) as pool:
+            done = [pool.submit(first), pool.submit(second)]
+            assert [f.result(timeout=30) for f in done] == ["ok", "already_used"]
+    finally:
+        with own_connections() as s:
+            s.execute(delete(LibraryItem).where(LibraryItem.uploaded_by == user_id))
             s.execute(delete(Upload).where(Upload.user_id == user_id))
             s.execute(delete(User).where(User.id == user_id))
             s.commit()
