@@ -1,7 +1,7 @@
 """exams marked main sitting or resit, and the modules each student is resitting
 
 Revision ID: 0054
-Revises: 0052
+Revises: 0055
 Create Date: 2026-10-20 21:00:00
 
 - `calendar_events.resit`: an exam's resit sitting (only exams can be one). A resit counts down for the year after
@@ -19,7 +19,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0054"
-down_revision: str | None = "0052"
+down_revision: str | None = "0055"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
