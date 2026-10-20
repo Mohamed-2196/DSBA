@@ -308,7 +308,7 @@ def test_media_serves_nothing_but_completed_forum_images(
     library = upload_file(c)  # a library file must never skip review through /media
     for upload_id in (pending["uploadId"], library["uploadId"], str(uuid.uuid4())):
         assert client_for().get(f"{API}/media/{upload_id}", follow_redirects=False).status_code == 404
-    assert client_for().get(f"{API}/media/not-a-uuid", follow_redirects=False).status_code == 422
+    assert client_for().get(f"{API}/media/not-a-uuid", follow_redirects=False).status_code == 404
 
 
 def test_media_paths_are_what_posts_refer_to(

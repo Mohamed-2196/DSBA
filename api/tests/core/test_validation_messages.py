@@ -241,3 +241,8 @@ def test_an_address_whose_id_cant_be_one_is_not_found() -> None:
     assert (e.status, e.code, e.message) == (404, "not_found", "We couldn't find that. Check the link.")
     body = validation_error([{"type": "uuid_parsing", "loc": ("body", "moduleId"), "msg": "x"}])
     assert (body.status, body.code) == (422, "invalid_input")
+
+
+def test_a_route_answers_404_for_an_id_that_cant_be_one(client_for: Clients, student: User) -> None:
+    r = client_for(student).get(f"{API}/library/items/nope/file")
+    assert (r.status_code, r.json()["error"]["code"]) == (404, "not_found")

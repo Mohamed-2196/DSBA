@@ -311,7 +311,7 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def _validation(_: Request, exc: RequestValidationError) -> JSONResponse:
         err = validation_error(exc.errors())
-        return JSONResponse(_body(err.code, err.message, fields=err.fields), status_code=422)
+        return JSONResponse(_body(err.code, err.message, fields=err.fields), status_code=err.status)
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(_: Request, exc: StarletteHTTPException) -> JSONResponse:
