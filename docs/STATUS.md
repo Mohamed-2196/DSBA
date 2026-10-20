@@ -255,9 +255,14 @@ account device icons).
 
 ## Next
 
-1. Round 13: merge the reviews and the squash, then builders fix what the reviews found.
-2. Still open from earlier reviews: review numbers in comments and tests (CQ-20); SEC-14; the standards review's
-   S-1 typed linting, S-3 re-encoding uploaded pictures, S-4 `noUncheckedIndexedAccess`, and S-5 to S-7.
+1. Add the chapters the retag found missing (Mohamed, 2026-10-21: "Add the chapters"): from the study guides,
+   ST1215 data visualisation and descriptive statistics (with sampling), EC2020 binary response and maximum
+   likelihood (and panel data if the guide has it), MN1178 organisation structure, and others where a guide
+   chapter has no hub chapter; add their outlines and topics, then have Haiku subagents move the affected
+   questions (the notes in the retag say which) and ship `paper_questions.json` again.
+2. Then, when Mohamed says go: a student test of round 17 (resits, topics, Quick Look, the new sign-in), a security
+   review of the new sign-in, Year 3 chapters and tagging, Quick Look in the sittings table and Cmd-K.
+3. Still open from earlier reviews: CQ-20; SEC-14; the standards review's S-1, S-3, S-4 and S-5 to S-7.
 
 ## Waiting on Mohamed
 

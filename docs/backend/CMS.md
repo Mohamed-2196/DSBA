@@ -101,29 +101,30 @@ groups shows neither of them that word.
 
 ### Past questions: Claude's tags
 
-Claude Haiku tags each past paper's questions with its module's chapters once, and the tags ship in the seed, so
-every environment has the same ones. Claude's tags have no tagger (`tagged_by`) and name the model instead
-(`paper_questions.tagged_by_model`): students flag them, and `library.manage` keeps or removes them like a student's.
+Claude's tags name the model instead of a tagger (`paper_questions.tagged_by_model`): students flag them, and
+`library.manage` keeps or removes them like a student's. Each tag gives a question one or two chapters and up to
+three study-guide topics of those chapters, and the question's opening words (`anchor`), which the paper viewer
+highlights.
 
-- **Tagging** (needs `DSBA_ANTHROPIC_API_KEY`; in Docker, `docker compose exec api python -m app.cli ...`):
-  - `tag-questions --dry-run`: the papers it would send, the ones it passes by and why, and the estimate (tokens
-    from the characters, at Claude Haiku 5.5's price, half for a batch). Nothing is sent.
-  - `tag-questions --sample 5`: five papers one by one, each paper's tags printed (question, page, chapters,
-    confidence) and saved. Look at a few in the app before the full run.
-  - `tag-questions`: every paper not tagged yet as one Message Batch. It prints the estimate, asks, sends, waits
-    (most batches end within an hour) and saves the results. If it stops, `tag-questions --batch <id>` collects
-    the same batch. `--module EC1002` (or the module's id), `--limit N`, `--redo` (tag again papers Claude tagged
-    before, replacing its tags) and `--yes` work with each.
-  - Which papers: published past papers (not reports or solutions) whose text was read, one copy of each file.
-    A paper with too little text (a scan) or too much for one request is passed by. One paper's error is logged
-    and the run goes on; the next run sends it again.
-  - What is kept: one or two chapters a question, with a confidence of 0.6 or more, questions 1 to 40. A question a
-    student tagged keeps the student's tags only.
-- **Shipping:** `export-question-tags` writes Claude's tags to `api/app/seed/data/paper_questions.json`; commit it.
-  Each paper is named by its Drive import key and the SHA-256 of its file, which are the same on every install
-  (item ids aren't: production imports afresh). `python -m app.cli seed` loads the tags onto the papers the install
-  has, so run it again after the Drive import (`scripts/seed-real.sh` does). Loading never adds a tag twice, a tag
-  a moderator removed, or a tag on a question a student tagged.
+- **Chapter outlines:** `api/app/seed/data/chapter_outlines.json` holds each chapter's study-guide outline (the
+  guide it comes from, outcomes, topics with ids, key terms). The seed writes them to `chapters.outline` and
+  `chapter_topics`; a topic id is the title in lowercase with every other run of characters a hyphen, cut to 48.
+  Tagging judges questions against these outlines, so a chapter the outline lacks gets no questions of its own.
+- **Shipped tags:** `api/app/seed/data/paper_questions.json`, one entry per paper, named by its Drive import key and
+  the SHA-256 of its file (the same on every install). Each question has `question`, `page`, `chapters`, and may
+  have `section`, `anchor` (at most 160 characters, on that page) and `topics` (`"<chapter id>:<topic id>"`).
+  `python -m app.cli seed` loads them onto the papers the install has, replacing Claude's older tags of a listed
+  paper; it never touches a student's tag or brings back one a moderator removed. Run it again after the Drive
+  import (`scripts/seed-real.sh` does).
+- **Bulk retagging:** done with Claude Code Haiku subagents, not the API (2026-10-21): each reads a paper's text and
+  the module's outline and writes the entry above; a script checks chapter and topic ids and that each anchor is on
+  its page before the file is committed.
+- **New papers:** with `library.autotag` on and `DSBA_ANTHROPIC_API_KEY` set, publishing a past paper queues a job
+  that the mail worker runs: Claude (`claude-haiku-5-5`) tags it from the outlines, within Noora's monthly budget.
+  Admins see each paper's status and run it again in Manage → Uploads → Tagging new past papers (audited). Without
+  the key or the switch the job is skipped and the paper is published as usual.
+- **CLI:** `tag-questions` (`--dry-run`, `--sample N`, `--module`, `--redo`, `--batch <id>`) tags through the API as
+  a Message Batch, and `export-question-tags` writes Claude's tags back to the seed file.
 
 ## Still in the code
 
