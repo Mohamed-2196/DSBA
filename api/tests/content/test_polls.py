@@ -64,7 +64,7 @@ def test_a_vote_must_be_one_of_the_answers_in_a_published_issue(
     issue = publish(client_for(moderator), with_poll(POLL))
     assert vote(client_for(student), issue["id"], 3).status_code == 422
     assert vote(client_for(student), issue["id"], 0, poll="nope").status_code == 404
-    draft = client_for(moderator).post(ISSUES, json={**with_poll(POLL), "slug": "draft-poll"}).json()
+    draft = client_for(moderator).post(ISSUES, json={**with_poll(POLL), "slug": "draft-poll", "number": 3}).json()
     assert vote(client_for(student), draft["id"], 0).status_code == 404
     assert vote(client_for(moderator), draft["id"], 0).json()["error"]["code"] == "not_published"
 

@@ -1,7 +1,7 @@
 // Boxes and switches, end to end: a newsletter manager publishes but can't moderate; a switched-off calendar is gone
 // for a student and a guest, and marked for an admin; a guest sees only what's on for everyone.
 import { expect, test } from './fixtures';
-import { api, remember, roleIdBySlug, setSwitch, switchBack, switchOn } from './support';
+import { api, remember, roleIdBySlug, setSwitch, switchBack, switchOn, freshIssueNumber } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -16,7 +16,7 @@ test('a newsletter manager can publish but not moderate', async ({ admin, sara, 
   try {
     const issue = await api<{ id: string }>(sara, 'POST', '/api/v1/newsletter/issues', {
       slug: `e2e-nm-${run.tag}`,
-      number: 98,
+      number: freshIssueNumber(),
       title: `Newsletter manager test [e2e ${run.tag}]`,
       date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bahrain' }).format(new Date()),
       dek: 'A draft from a newsletter manager.',

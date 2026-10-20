@@ -735,3 +735,6 @@ export function trackErrors(page: Page): string[] {
   });
   return errors;
 }
+
+/** A newsletter issue number no published issue has: the API refuses a number already out (ST-68). */
+export const freshIssueNumber = (): number => 10_000 + Math.floor(Math.random() * 89_000);

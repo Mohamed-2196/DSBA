@@ -2,7 +2,7 @@
 // student"; Sara follows his thread and hears when it is answered; a rep's poll takes one vote from Sara and shows
 // her the counts. The switches end off, as they start.
 import { expect, test } from './fixtures';
-import { api, remember, switchBack, switchOn } from './support';
+import { api, remember, switchBack, switchOn, freshIssueNumber } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -52,7 +52,7 @@ test('Sara votes once in a poll and sees the counts', async ({ rep, sara, run })
   const slug = `e2e-poll-${run.tag}`;
   const created = await api<{ id: string }>(rep, 'POST', '/api/v1/newsletter/issues', {
     slug,
-    number: 98,
+    number: freshIssueNumber(),
     title: `Ask the cohort [e2e ${run.tag}]`,
     date: bahrainToday(),
     sections: [

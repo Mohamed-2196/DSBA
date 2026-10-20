@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { errorMessage } from '../../../api/errors';
 import { useSingleFlight, useToast } from '../../../state';
-import { Button, type ButtonSize, ConfirmDialog, glyph, Icon, IconButton } from '../../../ui';
+import { Button, type ButtonSize, ConfirmDialog, glyph, Icon, IconButton, Modal } from '../../../ui';
 import { useDeleteIssue, usePublishIssue } from '../api';
 import { issueNo, publishedNote } from '../lib/text';
 
@@ -11,6 +11,8 @@ interface ActionIssue {
   slug: string;
   number: number;
   title: string;
+  /** known once the issue itself is loaded: an issue with none can't be published (ST-75) */
+  sections?: readonly unknown[];
 }
 
 export function PublishButton({
@@ -52,8 +54,27 @@ export function PublishButton({
       >
         Publish
       </Button>
+      {issue.sections?.length === 0 ? (
+        <Modal
+          open={asking}
+          onClose={() => setAsking(false)}
+          title={`Issue ${no} has no stories yet`}
+          description="This issue has no stories yet. Add one in the editor before you publish it."
+          size="sm"
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setAsking(false)}>
+                Close
+              </Button>
+              <Button variant="primary" leadingIcon={<Icon glyph={glyph.edit} />} to={`/newsletter/${issue.slug}/edit`}>
+                Edit the issue
+              </Button>
+            </>
+          }
+        />
+      ) : null}
       <ConfirmDialog
-        open={asking}
+        open={asking && issue.sections?.length !== 0}
         title={`Publish issue ${no}?`}
         body={
           <>
