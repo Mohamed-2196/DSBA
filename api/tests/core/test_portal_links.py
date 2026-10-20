@@ -55,9 +55,9 @@ def test_allowed_hosts_and_their_subdomains_pass(url: str) -> None:
         "https://evil.com%2F@bibf.edu.bh",
         "https://evil.com;bibf.edu.bh",
         "https://bibf%2Eedu%2Ebh",
-        "https://bíbf.edu.bh",  # Unicode look-alikes, and their punycode
+        "https://b\u00edbf.edu.bh",  # Unicode look-alikes, and their punycode
         "https://xn--bbf-yla.edu.bh",
-        "https://myclass.bibf．com",  # a full-width dot a browser would rewrite
+        "https://myclass.bibf\uff0ecom",  # a full-width dot a browser would rewrite
         "https://bibf.edu.bh.",  # a trailing dot
         "https://bibf.edu.bh:notaport",
         "https://bibf.edu.bh /x",
@@ -70,17 +70,18 @@ def test_other_hosts_and_tricks_are_refused(url: str) -> None:
 
 def test_every_seeded_link_passes_the_default_hosts() -> None:
     links = json.loads(SEED.read_text(encoding="utf-8"))["links"]
-    hosts = Settings(_env_file=None).portal_hosts  # type: ignore[call-arg]
+    hosts = Settings(_env_file=None).portal_hosts
     assert hosts == HOSTS
-    assert links and all(is_portal_url(link["url"], hosts) for link in links.values())
+    assert links
+    assert all(is_portal_url(link["url"], hosts) for link in links.values())
 
 
 def test_the_hosts_are_a_comma_separated_setting() -> None:
-    s = Settings(_env_file=None, portal_hosts=" BIBF.edu.bh , london.ac.uk ")  # type: ignore[call-arg]
+    s = Settings(_env_file=None, portal_hosts=" BIBF.edu.bh , london.ac.uk ")
     assert s.portal_hosts == ["bibf.edu.bh", "london.ac.uk"]
 
 
 @pytest.mark.parametrize("value", ["*.bibf.com", "https://bibf.com", "bibf", ""])
 def test_a_host_list_that_isnt_plain_host_names_stops_the_api(value: str) -> None:
     with pytest.raises(ValidationError):
-        Settings(_env_file=None, portal_hosts=value)  # type: ignore[call-arg]
+        Settings(_env_file=None, portal_hosts=value)
