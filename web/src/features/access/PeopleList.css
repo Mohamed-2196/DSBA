@@ -204,3 +204,22 @@
     display: none;
   }
 }
+
+/* A reset link, made for someone who forgot their password. */
+.people-reset {
+  display: grid;
+  gap: var(--sp-12);
+  justify-items: start;
+}
+.people-reset .ui-field {
+  width: 100%;
+}
+.people-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: var(--sp-8);
+  color: var(--error);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+}

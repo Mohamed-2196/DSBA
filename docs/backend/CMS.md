@@ -140,7 +140,7 @@ student's data; each is copy or a rule that ships with the app.
 | Section names of a module's files ("Books and study guide", "Past papers", ...) | `web/src/features/modules/resources.ts` | Fixed library kinds. |
 | The hub's name, the page title and the installed app's name and description | `web/index.html`, `web/public/manifest.webmanifest` | Read before the app runs; a change needs a build. |
 | The logos: DSBA Hub's lockup and tile, MyClass's, the University's and BIBF's, the module pictures that ship with the hub | `web/public/brand/`, `web/public/modules/` | Files of the app. Modules point at their picture by path, so any module can be given an uploaded one instead. |
-| Sign-in code and notification emails | `api/app/services/otp.py`, `notify.py` | Transactional copy. |
+| Notification emails and account notices | `api/app/services/notify.py`, `signin.py` | Transactional copy. |
 
 Google Drive and Docs addresses are refused in library links, Site settings and the guides, and are never rendered as
 links anywhere (`web/src/ui/safeHref.ts`): one pasted into a forum post or a newsletter shows as plain text.

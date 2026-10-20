@@ -30,12 +30,12 @@ DSBA Hub was a front-end prototype: every page ran on demo data in the browser. 
   search and the grades calculator.
 - **Needs an account:** posting, replying, voting, accepting answers, reporting, uploading, starring,
   reactions, notifications, synced lesson progress and account settings.
-- **Sign-in:** a phone number **or** an email address gets a 6-digit one-time code. There are no passwords,
-  and anyone can create an account. After the first sign-in the person picks a display name and their
-  cohort (Year 1/2/3, or none). An account can carry both an email and a phone number.
+- **Sign-in:** an email address and a password (no email check), or "Continue with Google". Anyone can create an
+  account. After the first sign-in the person picks a display name and their cohort (Year 1/2/3, or none). An
+  account's address is *confirmed* only once Google vouches for it (decision D19).
 - **Roles:** every account holds `student`; `rep` (student reps: moderate the forum and library, edit the
   calendar and newsletter) and `admin` (also people, roles and switches) come on top, and admins can add custom
-  roles. `DSBA_ADMIN_IDENTIFIERS` bootstraps admins.
+  roles, which only confirmed accounts may hold. `DSBA_ADMIN_IDENTIFIERS` bootstraps admins, on a Google sign-in only.
   `python -m app.cli set-role ID ROLE...` sets someone's roles from the shell (slugs, such as `student admin`).
 - **The grades calculator stays in the browser.** Students' marks are not sent to the server (privacy).
 
@@ -58,7 +58,8 @@ api/                          Python backend
                               modules library uploads newsletter calendar feeds content site grades home
                               notes shared_notes lesson_topics board noora mini_noora daily daily_content
   app/services/               the logic:
-                              accounts identifiers otp sessions mailer sms outbox notify notifications summary
+                              accounts identifiers signin passwords google sessions mailer outbox notify
+                              notifications summary
                               ratelimit audit access roles reports bugs
                               forum/ (threads, replies, votes, follows, search, views, visibility, notices,
                               taxonomy, settings, ...)
@@ -113,7 +114,7 @@ needs a change in an area another builder holds says so in its report (file, wha
 
 | Area | Routers | Services | Tables | Web |
 |---|---|---|---|---|
-| Accounts, sign-in, sessions | `auth`, `me`, `progress`, `notifications` | `accounts`, `identifiers`, `otp`, `sessions`, `notifications`, `notify`, `outbox`, `mailer`, `sms` | `users`, `otp_challenges`, `user_sessions`, `notifications`, `lesson_views`, `lesson_resume`, `email_outbox` | `src/auth`, `account`, `notifications`, `onboarding` |
+| Accounts, sign-in, sessions | `auth`, `me`, `progress`, `notifications` | `accounts`, `identifiers`, `signin`, `passwords`, `google`, `sessions`, `notifications`, `notify`, `outbox`, `mailer` | `users`, `sign_in_attempts`, `google_logins`, `password_resets`, `user_sessions`, `notifications`, `lesson_views`, `lesson_resume`, `email_outbox` | `src/auth`, `account`, `notifications`, `onboarding` |
 | Access, people, reports, the activity log | `access`, `admin`, `features`, `reports` | `access`, `roles`, `audit`, `reports` | `roles`, `role_boxes`, `user_roles`, `feature_switches`, `feature_switch_roles`, `reports`, `audit_log` | `access`, `manage` |
 | Forum, with its categories, tags, guidelines and tips | `forum` | `forum/` (`taxonomy` and `settings` for Manage → Forum) | `forum_*` | `forum` (`forum/settings` is Manage → Forum) |
 | Library, past papers, the Drive import, the text worker | `library`, `uploads` | `library`, `uploads`, `storage`, `past_questions`, `exam_names`, `drive`, `drive_import`, `paper_text`, `text_extract` | `library_items`, `library_texts`, `library_stars`, `paper_questions`, `paper_question_flags`, `drive_folders`, `uploads` | `library`, `papers` |
@@ -197,8 +198,7 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   notifies an actor about their own action. The in-app notification always comes; for the kinds in
   `outbox.EMAIL_SWITCHES` an email is queued in the same transaction when the person has an email address and
   keeps that switch on (decision D1). The mail worker (`python -m app.cli mail-worker`) sends queued emails with
-  retries; never send mail inside a request, except sign-in codes (step-up codes in the request; sign-in emails just after
-  the answer, as a background task, so the answer takes the same time whether or not a code is sent). **Audit** every moderation and admin action
+  retries; never send mail inside a request. **Audit** every moderation and admin action
   with `app.services.audit.record(...)`; actions on an account carry its name (`targetName`).
 - **Shared rules:** slugs and ids from titles with `core.text.insert_with_unique_slug()`
   (a free one, retried on a race; a title without Latin letters gets a short id, decision D8), link and picture
@@ -216,10 +216,10 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   the image is attached to a visible post (`Upload.thread_id` / `reply_id`), and always to its uploader and to
   moderators. Hiding or deleting the post hides its images too.
 - **Clean-up** that can wait goes into the daily sweep (`python -m app.cli sweep`): uploads never attached to
-  anything, old sign-in codes, ended sessions, files of rejected or removed library items. Add to it instead of
+  anything, old sign-in attempts, Google sign-ins and reset links, ended sessions, files of rejected or removed library items. Add to it instead of
   running clean-up inside a request.
-- **Rate limits** live in the database: count rows in a time window (OTP challenges per identifier and per
-  IP, threads/replies/uploads per user per hour), counted under an advisory lock. No Redis.
+- **Rate limits** live in the database: count rows in a time window (sign-in attempts per address and per
+  network, threads/replies/uploads per user per hour), counted under an advisory lock. No Redis.
 - **Search** uses the generated `search_vector` columns (`simple` config, GIN). Use
   `websearch_to_tsquery` for full queries, plus a prefix match on the last word for search-as-you-type.
 - **Markdown** is stored raw and rendered by the web app, which must escape HTML. The server limits lengths
@@ -230,7 +230,7 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   and rules live in small functions or a `services/<area>.py` you own.
 - **Tests** (pytest) cover each endpoint's happy path, auth (guest / other user / rep), validation
   errors and rate limits. Fixtures from `tests/conftest.py`: `client_for(user=None)` (each call is a separate
-  browser, with CSRF handled), `make_user(email=, phone=, name=, roles=, year=)` (`roles` is a sequence of slugs, `("student",)` by default), `db`, `storage` (moto: a
+  browser, with CSRF handled), `make_user(email=, name=, roles=, year=, confirmed=, password=)` (`roles` is a sequence of slugs, `("student",)` by default; `confirmed` defaults to true, as staff roles need it), `db`, `storage` (moto: a
   browser upload in a test is `storage.client.put_object(Bucket=storage.bucket, Key=..., Body=..., ContentType=...)`).
   Run `uv run --no-sync pytest tests/<your area> -q`. Every test run gets its own database. `scripts/check.sh`
   runs everything CI runs (ruff, ruff format, mypy, the whole suite with the drift checks, and the web checks).
@@ -300,20 +300,21 @@ Docker". Either way:
 | PostgreSQL | `127.0.0.1:5432`, user `dsba` / `dsba`, database `dsba`. Tests create their own databases (`DSBA_TEST_ADMIN_URL`). |
 | S3 | MinIO in Docker (`http://localhost:9000`, console `:9001`), or moto without Docker; bucket `dsba-hub`, keys `dsba` / `dsba-dev-secret` |
 | Email | Mailpit in Docker (`http://localhost:8025`); without Docker, the API's log (`DSBA_EMAIL_BACKEND=console`) or files (`file`) |
-| Texts | the API's log (`console`) or files (`DSBA_SMS_BACKEND=file`, `DSBA_SMS_FILE_DIR`) |
+| Google | "Continue with Google" with `DSBA_GOOGLE_CLIENT_ID` and `_SECRET` (DEPLOYMENT.md, section 14); without them, passwords only |
 | API | `http://127.0.0.1:8000` (`/api/v1/docs`); it reloads when a file under `api/app` changes |
 | Web | `:5173`. Parallel agents each run their own Vite from their own worktree (`npx vite --port 5174` … `5178`); all pass `/api` to `:8000`. |
 
-- **Sign in without a code** (development only):
-  `cd api && uv run --no-sync python -m app.cli dev-login you@example.com --name "Test Student" --year 2 [--role rep]`
-  (in Docker: `docker compose exec api python -m app.cli dev-login …`). It prints a token; set it as the
+- **Sign in without the dialog** (development only):
+  `cd api && uv run --no-sync python -m app.cli dev-login you@example.com --name "Test Student" --year 2 [--role rep]
+  [--password …]` (in Docker: `docker compose exec api python -m app.cli dev-login …`). The account counts as
+  confirmed, as if Google had vouched for it. It prints a token; set it as the
   `dsba_session` cookie for the app's host (Playwright:
   `context.add_cookies([{name:'dsba_session', value: token, domain:'127.0.0.1', path:'/'}])`).
 - **Seed the dev DB:** `python -m app.cli seed` (the Docker stack's `api` service runs the migrations and the seed
   when it starts). `python -m app.cli enable-features` switches every feature on (development only, audited).
 - **The mail worker** (`python -m app.cli mail-worker`; Docker starts one) sends notification emails, queues the
   Sunday summaries at the time set in Manage → Sunday summary, and turns board cards' and personal events'
-  reminders into notifications. Sign-in codes don't need it; reminders do.
+  reminders into notifications.
 - **The text worker:** `python -m app.cli text-worker` reads the words and makes the cover of each published PDF and
   Word file, for search inside papers. `extract-texts` does the files already there.
 - **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-5-5`) power
@@ -354,7 +355,7 @@ switches, account recovery, who reported something, suspending an admin, Site se
 rules, Mini Noora's words and her limits (Manage → Numbers), the notebook's upload limit and numbers (Manage →
 Numbers), the daily upload budgets (Manage → Numbers), bug reports (Manage → Bugs) and loading a Daily content
 file. Roles, people's roles, the switches, account recovery, Mini Noora's words and her limits also need a recent
-confirmation: a session more than ten minutes old is asked for a step-up code (`SteppedUpAdmin` in
+confirmation: a session more than ten minutes old is asked for the password, or Google again (`SteppedUpAdmin` in
 `routers/_base.py`, `sessions.require_step_up()`).
 
 Every feature is a switch: off, on for some roles, or on for everyone. The baseline migration turns on the forum,
@@ -363,16 +364,29 @@ every feature added since arrives off (`python -m app.cli enable-features` turns
 
 ## Security baseline (builders apply it from the start; the security reviewer checks it)
 
-- One-time codes: 6 digits from `secrets`, stored only as an HMAC with `DSBA_SECRET_KEY`, compared in
-  constant time. They expire after 10 minutes and allow 5 attempts per challenge. Codes are rate-limited per
-  identifier and per IP. "Start sign-in" answers the same whether or not an account exists, and codes are
-  never logged in production. Wrong codes lock the pair of address and network for a day, never the address
-  (decision D4); after many wrong codes for an address, its codes are 10 letters and digits instead. A deleted
-  account's codes stay, anonymised, so the limits keep counting them.
-- Changing how one signs in (adding, changing or removing an email or phone) and deleting the account need a
-  recent confirmation: a session less than 10 minutes old, or a step-up code sent to an identifier the account
-  already has (decision D2; `sessions.require_step_up()`). Admins can recover an account
-  (`PATCH /admin/users/{id}` with `email`/`phone`, audited).
+- Passwords (`services/passwords.py`): argon2id (argon2-cffi's RFC 9106 low-memory defaults), NFKC first; at least
+  10 characters, not one of the 1,000 most common (`services/common_passwords.txt`), not the address, more than two
+  different characters. Sign-in answers the same `invalid_credentials` for an unknown address, an account without a
+  password and a wrong password, after the same work (a stand-in hash). Limits (decision D4): wrong passwords per
+  address and network (an IPv4 address or an IPv6 /64) lock that pair for the hour; per address from everywhere they
+  only slow down; attempts per network; sign-ups per network per hour and day, each try counted. The rows hold a
+  keyed hash of the address's rate-limit key, never the address, so a deleted account refills nothing. No email
+  verification: an address is confirmed only by Google.
+- Google (`services/google.py`): OpenID Connect code flow with PKCE (S256), a state that is single use, expires in
+  ten minutes and must match a cookie of the browser that started it (no login CSRF), and a nonce. The ID token is
+  checked against Google's JWKS (RS256 only), `iss`, `aud`, `exp`, `iat`, the nonce and `email_verified`. It returns
+  only to a same-origin path, without its fragment or one-time parameters. Google outranks a typed address: it takes
+  over an unconfirmed account with that address (password cleared, every session ended, audited `user.takeover`); a
+  confirmed account's address never changes hands.
+- Staff roles (anything beyond Student) need a confirmed account (`roles.set_user_roles`, `set-role`: 409
+  `account_not_confirmed`); `DSBA_ADMIN_IDENTIFIERS` applies on a Google sign-in only.
+- Forgotten passwords: Google, or an admin's reset link (`POST /admin/users/{id}/reset-link`, step-up): 256 bits,
+  stored as SHA-256, one hour, single use, a newer one retires it, never for an account holding Admin, audited
+  (`user.reset_link`, `user.password_reset`), and using it ends every session. The token travels in the link's
+  fragment.
+- Adding a password to a Google account, linking Google and deleting the account need a recent confirmation: a
+  session less than 10 minutes old, or POST /me/step-up with the password (or Google again) (decision D2;
+  `sessions.require_step_up()`). Changing a password needs the current one and signs out every other session.
 - Sessions: a random token (256 bits) in an HttpOnly, SameSite=Lax cookie, stored only as a SHA-256. A session
   lasts `DSBA_SESSION_DAYS` (30) at most; there is no idle timeout yet (`docs/reviews/standards.md`, S-2). Rotate
   on sign-in, revoke on sign-out, and let people revoke other sessions. CSRF: the middleware checks every unsafe
@@ -397,17 +411,16 @@ every feature added since arrives off (`python -m app.cli enable-features` turns
   `app/core/headers.py`). In production Caddy adds HSTS and the web app's CSP (scripts only from the app, the one
   inline script by hash): `docs/backend/DEPLOYMENT.md`, section 6.
 - Production fails closed: the API refuses to start while any setting is unsafe (`Settings.production_problems`:
-  secret key, cookies, origins, proxies, storage, email, SMS) and lists every problem at once.
+  secret key, cookies, origins, proxies, storage, email, raised limits) and lists every problem at once.
 - The text worker opens files anyone could have uploaded, so it holds the least: in production it connects as its
   own database role, `dsba_texts`, which may only read `library_items` (and note a file's hash) and keep the words in
   `library_texts` (`paper_text.WORKER_GRANTS`; the `migrate` service runs `python -m app.cli texts-role` after every
   migration, with `DSBA_TEXTS_DB_PASSWORD`), and its own bucket key, which may only read `library/*` and write
-  `covers/*`. It gets no secret key, mail, texts or AI key (`Settings.texts_problems` checks only the database and the
+  `covers/*`. It gets no secret key, mail, Google or AI key (`Settings.texts_problems` checks only the database and the
   bucket). Each file is read in a child process with a time and memory limit, an environment without settings, and a
   non-dumpable parent. DEPLOYMENT.md, sections 2 and 3, has the role, the key's policy and the settings.
-- No personal data in public responses: `UserPublic` is `{id, displayName, year, badge}`, never an email or a
-  phone number.
-- Errors don't leak internals, and logs carry no codes, tokens or full phone numbers.
+- No personal data in public responses: `UserPublic` is `{id, displayName, year, badge}`, never an email address.
+- Errors don't leak internals, and logs carry no passwords, tokens or full email addresses.
 
 ## Reviews and how the team works together
 
@@ -432,14 +445,13 @@ questions they raised:
   outbox table drained by a worker, so a slow mail server never slows a request and failures retry. The
   switches on Your account map one-to-one to these kinds, and the in-app notification is never silenced by an
   email switch.
-- **D2 Step-up for account changes.** Changing or removing an email or phone, and deleting the account, need a
-  fresh code sent to an identifier the account already has (or, for deletion, any of them). A session alone
-  is not enough.
+- **D2 Step-up for account changes.** Adding a password or Google, and deleting the account, need a recent
+  confirmation: the password, or Google again. A session alone is not enough.
 - **D3 Hidden threads stay visible to their author.** The author can still open a hidden thread, with a banner
   saying a student rep hid it, and is notified when it is hidden. Everyone else gets a 404, as before;
   moderators see it with the hidden marker. No schema change: the reason travels in the notification.
-- **D4 Sign-in lockout:** wrong-code lockouts apply to the pair of address and
-  network (IP, or /64 for IPv6); per-address limits only slow down, they never lock the owner out for a day.
+- **D4 Sign-in lockout:** wrong-password lockouts apply to the pair of address and network (IP, or /64 for IPv6);
+  per-address limits only slow down, never for more than the hour.
 - **D5 The newsletter editor is a form.** Sections and their blocks get real schemas, and reps edit them
   with fields, not JSON. It must work on a phone.
 - **D6 Contribute means upload.** "Contribute" opens the library upload (sign-in first for guests). GitHub stays
@@ -464,11 +476,11 @@ re-chains them at merge.
   - A suspended account holds no boxes. The last active admin can't lose Admin: the check locks the admins' role
     rows, and deleting your own account is refused while you're the last admin.
   - Admin powers need a fresh step-up (`step_up_required` otherwise). That covers roles, people's roles, switches,
-    and changing someone's email or phone. Account recovery on an account holding Admin answers 403.
+    and reset links. A reset link for an account holding Admin answers 403.
   - The Student role holds only its four student-level boxes; adding any other answers 422 on `boxes`.
   - A role's badge passes the staff-words check, and only holders of Admin or Rep may use staff words in names.
   - Changing your own roles, suspension or account through the admin routes answers 409 `cannot_change_self`.
-  - Without Admin, the people list searches display names only, and no people response carries an email or phone.
+  - Without Admin, the people list searches display names only, and no people response carries an email address.
     Reports are listed and resolved by their area's box, and the excerpt shows only to a holder of that box.
   - Publishing a newsletter issue sends its cohort email only if none went out in the last 24 hours; otherwise it
     publishes without the email and the response says so.
@@ -492,7 +504,7 @@ re-chains them at merge.
   are limited per student per hour by `notebook_limits.uploads_per_hour` (60 to start; 1-1000), counted apart from
   other uploads, which keep 20 an hour. Admins set it in Manage → Numbers on a normal session (as D14), audited as
   `notebook.limits`, beside the notebook's numbers: uploads in the last hour, 24 hours and 7 days, students refused
-  at the limit, the top uploaders by count and by bytes (display names only, never an email or phone), and everyone's
+  at the limit, the top uploaders by count and by bytes (display names only, never an email address), and everyone's
   note files against the sum of their rooms (`GET /admin/notebook`, admins only). Each student's counts per day
   (`notebook_upload_days`) are in their export and go with the account. A released file shown in a note again counts
   against the room again and must fit (409 `notes_full`).
@@ -506,3 +518,8 @@ re-chains them at merge.
   account's (1 GB), in `upload_limits` (`services/upload_budget.py`). Over either, POST /uploads answers 429
   rate_limited with the wait until it fits. Admins set both in Manage → Numbers (`GET`/`PUT /admin/uploads`) on a
   normal session, audited as `uploads.limits`.
+- **D19 Passwords and Google instead of one-time codes** (Mohamed, 2026-10-21). Students sign up with an email address
+  and a password, with no email check, or continue with Google; codes, texts and phone numbers are gone. Only Google
+  confirms an address: staff roles and the admin bootstrap need it, and Google takes over an unconfirmed account
+  with its address. A forgotten password: Google, or an admin's one-time reset link (the hub sends no email for it).
+

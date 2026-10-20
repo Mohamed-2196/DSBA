@@ -4,9 +4,10 @@ Sign-in always makes a new session (the browser's previous one is revoked); core
 the browser the CSRF cookie bound to it, and a fresh one when the session cookie is cleared. A user keeps at most
 MAX_LIVE sessions (security review finding 16).
 
-Step-up (decision D2): changing or removing an email address or phone number, and deleting the account,
-need a session that started less than STEP_UP_WINDOW ago: a sign-in, or a renewal after a code sent to one of the
-account's own identifiers (POST /me/step-up). A session alone, however old, is not enough."""
+Step-up (decision D2): adding a password to an account that signs in with Google, linking Google, deleting the account
+and the admin-only changes need a session that started less than STEP_UP_WINDOW ago: a sign-in (with a password or
+with Google), or a renewal after the account's password (POST /me/step-up). A session alone, however old, is not
+enough."""
 
 from __future__ import annotations
 
@@ -110,7 +111,7 @@ def live(db: Session, user_id: uuid.UUID) -> list[UserSession]:
 
 
 def step_up_left(sess: UserSession | None) -> int:
-    """Seconds this session may still change identifiers or delete the account without another code (0: none)."""
+    """Seconds this session may still make the changes that need a recent confirmation (0: none)."""
     if sess is None:
         return 0
     left = sess.created_at + STEP_UP_WINDOW - utcnow()
@@ -123,7 +124,7 @@ def require_step_up(sess: UserSession | None) -> None:
         raise ApiError(
             403,
             "step_up_required",
-            "For your security, confirm it's you first: we'll send a code to your email address or phone number.",
+            "For your security, confirm it's you first: enter your password, or continue with Google.",
         )
 
 

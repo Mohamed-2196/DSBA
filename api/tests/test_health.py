@@ -63,10 +63,10 @@ def test_errors_have_one_shape(client: TestClient) -> None:
     r = client.get("/api/v1/nope")
     assert r.status_code == 404
     assert r.json()["error"]["code"] == "not_found"
-    r = client.post("/api/v1/auth/otp", json={})
+    r = client.post("/api/v1/auth/sign-in", json={})
     assert r.status_code == 422
     assert r.json()["error"]["code"] == "invalid_input"
-    assert "identifier" in r.json()["error"]["fields"]
+    assert "email" in r.json()["error"]["fields"]
 
 
 def test_signed_in_client_reaches_protected_routes(client_for, make_user) -> None:  # type: ignore[no-untyped-def]

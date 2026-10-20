@@ -1,51 +1,44 @@
-"""Fixtures for the accounts tests: captured emails and texts, the mail worker, settings for one test, sign-in
-helpers and a clock."""
+"""Fixtures for the accounts tests: captured emails, the mail worker, settings for one test, sign-in helpers, a fake
+Google and a clock."""
 
 from __future__ import annotations
 
-import re
+import time
 import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
+import httpx
 import httpx2
+import jwt
 import pytest
+from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
-from sqlalchemy import update
+from jwt.algorithms import RSAAlgorithm
+from pydantic import SecretStr
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
-from app.models import Module, OtpChallenge, UserSession
-from app.services import mailer, sms
+from app.models import Module, SignInAttempt, User, UserSession
+from app.services import google, mailer
 from app.services import outbox as mail_outbox
 from tests.lessons import chapters
 
 API = "/api/v1"
+PASSWORD = "correct horse battery"  # passes the rules: long enough and not a common password
 
 
 @dataclass
 class Message:
-    channel: str  # 'email' | 'sms'
     to: str
     subject: str | None
     text: str
     html: str | None = None
-
-    @property
-    def code(self) -> str:
-        found = re.search(r"\b(\d{6})\b", self.text)
-        assert found, f"no code in {self.text!r}"
-        return found.group(1)
-
-    @property
-    def long_code(self) -> str:
-        """A long code as written in the message: 'ABCDE-FGH23'."""
-        found = re.search(r"\b([A-Z0-9]{5}-[A-Z0-9]{5})\b", self.text)
-        assert found, f"no long code in {self.text!r}"
-        return found.group(1)
 
 
 class Outbox(list[Message]):
@@ -55,17 +48,13 @@ class Outbox(list[Message]):
 
 @pytest.fixture
 def outbox(monkeypatch: pytest.MonkeyPatch) -> Outbox:
-    """Every email and text the API sends during the test, instead of sending it."""
+    """Every email the API sends during the test, instead of sending it."""
     box = Outbox()
 
     def send_email(to: str, subject: str, text: str, html: str | None = None) -> None:
-        box.append(Message("email", to, subject, text, html))
-
-    def send_sms(to: str, text: str) -> None:
-        box.append(Message("sms", to, None, text))
+        box.append(Message(to, subject, text, html))
 
     monkeypatch.setattr(mailer, "send_email", send_email)
-    monkeypatch.setattr(sms, "send_sms", send_sms)
     return box
 
 
@@ -100,18 +89,19 @@ def set_option(monkeypatch: pytest.MonkeyPatch, settings: Settings) -> Callable[
     return _set
 
 
-def start(c: TestClient, identifier: str) -> httpx2.Response:
-    r: httpx2.Response = c.post(f"{API}/auth/otp", json={"identifier": identifier})
-    return r
-
-
 def sync_csrf(c: TestClient) -> None:
-    """Sign-in and sign-out replace the CSRF cookie; the web app reads it before each request, so do the same."""
+    """Signing in and out replaces the CSRF cookie; the web app reads it before each request, so do the same."""
     c.headers["X-CSRF-Token"] = c.cookies.get("dsba_csrf") or ""
 
 
-def verify(c: TestClient, challenge_id: str, code: str) -> httpx2.Response:
-    r: httpx2.Response = c.post(f"{API}/auth/otp/verify", json={"challengeId": challenge_id, "code": code})
+def sign_up(c: TestClient, email: str, password: str = PASSWORD) -> httpx2.Response:
+    r: httpx2.Response = c.post(f"{API}/auth/sign-up", json={"email": email, "password": password})
+    sync_csrf(c)
+    return r
+
+
+def sign_in_with(c: TestClient, email: str, password: str = PASSWORD) -> httpx2.Response:
+    r: httpx2.Response = c.post(f"{API}/auth/sign-in", json={"email": email, "password": password})
     sync_csrf(c)
     return r
 
@@ -122,43 +112,138 @@ def logout(c: TestClient) -> httpx2.Response:
     return r
 
 
-def wrong(code: str) -> str:
-    return f"{(int(code) + 1) % 1_000_000:06d}"
-
-
 SignIn = Callable[..., tuple[TestClient, dict[str, Any]]]
 
 
 @pytest.fixture
-def sign_in(client_for: Callable[..., TestClient], outbox: Outbox) -> SignIn:
-    """sign_in('a@b.com') -> (a browser signed in through the real flow, the SignInResult)."""
+def sign_in(client_for: Callable[..., TestClient], db: Session) -> SignIn:
+    """sign_in('a@b.com') -> (a browser signed in through the real flow, the SignInResult): it signs up when no
+    account has the address, else signs in with `password`."""
 
-    def _sign_in(identifier: str, client: TestClient | None = None) -> tuple[TestClient, dict[str, Any]]:
+    def _sign_in(
+        email: str, client: TestClient | None = None, password: str = PASSWORD
+    ) -> tuple[TestClient, dict[str, Any]]:
         c = client or client_for()
-        r = start(c, identifier)
-        assert r.status_code == 202, r.text
-        r2 = verify(c, r.json()["challengeId"], outbox[-1].code)
-        assert r2.status_code == 200, r2.text
-        return c, r2.json()
+        known = db.scalar(select(User.id).where(User.email == email.lower())) is not None
+        r = sign_in_with(c, email, password) if known else sign_up(c, email, password)
+        assert r.status_code in (200, 201), r.text
+        return c, r.json()
 
     return _sign_in
 
 
 @pytest.fixture
 def age(db: Session) -> Callable[..., None]:
-    """age(seconds, identifier=None): moves challenges that far into the past, as if the time had passed."""
+    """age(seconds): moves every sign-in attempt that far into the past, as if the time had passed."""
 
-    def _age(seconds: float, identifier: str | None = None) -> None:
-        delta = timedelta(seconds=seconds)
-        stmt = update(OtpChallenge).values(
-            created_at=OtpChallenge.created_at - delta, expires_at=OtpChallenge.expires_at - delta
-        )
-        if identifier is not None:
-            stmt = stmt.where(OtpChallenge.identifier == identifier)
+    def _age(seconds: float) -> None:
+        stmt = update(SignInAttempt).values(created_at=SignInAttempt.created_at - timedelta(seconds=seconds))
         db.execute(stmt.execution_options(synchronize_session="fetch"))
         db.commit()
 
     return _age
+
+
+# ── a fake Google ─────────────────────────────────────────────────────────────────────────────
+
+CLIENT_ID = "test-client.apps.googleusercontent.com"
+
+
+@dataclass
+class FakeGoogle:
+    """Google's token endpoint and published keys, on a mock transport. `claims` go into the next ID token (with the
+    nonce of the sign-in being finished); `token_status` and `token_body` replace the token endpoint's answer."""
+
+    key: rsa.RSAPrivateKey = field(
+        default_factory=lambda: rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    )
+    kid: str = "test-key"
+    claims: dict[str, Any] = field(default_factory=dict)
+    token_status: int = 200
+    token_body: dict[str, Any] | None = None
+    token_requests: list[dict[str, list[str]]] = field(default_factory=list)
+    key_fetches: int = 0
+    nonce: str = ""
+
+    def jwks(self) -> dict[str, Any]:
+        public = RSAAlgorithm.to_jwk(self.key.public_key(), as_dict=True)
+        return {"keys": [{**public, "kid": self.kid, "alg": "RS256", "use": "sig"}]}
+
+    def id_token(self, key: rsa.RSAPrivateKey | None = None, **overrides: Any) -> str:
+        now = int(time.time())
+        claims: dict[str, Any] = {
+            "iss": "https://accounts.google.com",
+            "aud": CLIENT_ID,
+            "sub": "google-sub-1",
+            "email": "sara@gmail.com",
+            "email_verified": True,
+            "iat": now,
+            "exp": now + 3600,
+            "nonce": self.nonce,
+            **self.claims,
+            **overrides,
+        }
+        claims = {k: v for k, v in claims.items() if v is not None}
+        return jwt.encode(claims, key or self.key, algorithm="RS256", headers={"kid": self.kid})
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        if request.url == google.JWKS_URL:
+            self.key_fetches += 1
+            return httpx.Response(200, json=self.jwks())
+        if request.url == google.TOKEN_URL:
+            self.token_requests.append(parse_qs(request.content.decode()))
+            body = self.token_body if self.token_body is not None else {"id_token": self.id_token()}
+            return httpx.Response(self.token_status, json=body)
+        return httpx.Response(404)
+
+
+@pytest.fixture
+def fake_google(monkeypatch: pytest.MonkeyPatch, settings: Settings) -> Iterator[FakeGoogle]:
+    """ "Continue with Google" set up, with Google's endpoints faked."""
+    fake = FakeGoogle()
+    monkeypatch.setattr(settings, "google_client_id", CLIENT_ID)
+    monkeypatch.setattr(settings, "google_client_secret", SecretStr("test-secret"))
+    monkeypatch.setattr(google, "http_client", lambda: httpx.Client(transport=httpx.MockTransport(fake.handle)))
+    google.KEYS.clear()
+    yield fake
+    google.KEYS.clear()
+
+
+def google_start(c: TestClient, return_to: str = "/forum", path: str = "/auth/google") -> dict[str, str]:
+    """POST /auth/google (or /me/google): -> the authorization URL's query (state, nonce, code_challenge...)."""
+    r = c.post(f"{API}{path}", json={"returnTo": return_to})
+    assert r.status_code == 200, r.text
+    query = parse_qs(urlsplit(r.json()["url"]).query)
+    return {k: v[0] for k, v in query.items()}
+
+
+def google_callback(c: TestClient, state: str, code: str = "the-code", **extra: str) -> httpx2.Response:
+    r: httpx2.Response = c.get(
+        f"{API}/auth/google/callback", params={"state": state, "code": code, **extra}, follow_redirects=False
+    )
+    sync_csrf(c)
+    return r
+
+
+GoogleSignIn = Callable[..., httpx2.Response]
+
+
+@pytest.fixture
+def google_sign_in(fake_google: FakeGoogle, client_for: Callable[..., TestClient]) -> GoogleSignIn:
+    """google_sign_in(c, sub=, email=, ...): the whole "Continue with Google" in browser `c`, with these claims in the
+    ID token. -> the callback's answer (a 303 back to the app)."""
+
+    def _go(c: TestClient, return_to: str = "/forum", path: str = "/auth/google", **claims: Any) -> httpx2.Response:
+        query = google_start(c, return_to, path)
+        fake_google.nonce = query["nonce"]
+        fake_google.claims = claims
+        return google_callback(c, query["state"])
+
+    return _go
+
+
+def unique_email() -> str:
+    return f"student-{uuid.uuid4().hex[:8]}@example.com"
 
 
 @pytest.fixture

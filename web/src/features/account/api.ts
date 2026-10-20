@@ -2,12 +2,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ACCOUNT_KEY } from '../../api/keys';
-import type { MeUpdate, SessionInfo } from '../../api/types';
+import type { MeUpdate, PasswordChange, SessionInfo } from '../../api/types';
 import { ME_KEY } from '../../auth';
 
 export const SESSIONS_KEY = [...ACCOUNT_KEY, 'sessions'] as const;
-
-export type IdentifierKind = 'email' | 'phone';
 
 export function useSessions(enabled: boolean) {
   return useQuery({
@@ -26,12 +24,11 @@ export function useUpdateMe() {
   });
 }
 
-/** Removing (or adding, or changing) a way to sign in signs out the account's other devices on the server. */
-export function useRemoveIdentifier() {
+/** Change the password, or add one: the server signs out the account's other devices. */
+export function useSetPassword() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (kind: IdentifierKind) =>
-      call(api.DELETE('/api/v1/me/identifiers/{kind}', { params: { path: { kind } } })),
+    mutationFn: (body: PasswordChange) => call(api.PUT('/api/v1/me/password', { body })),
     onSuccess: (me) => {
       qc.setQueryData(ME_KEY, me);
       void qc.invalidateQueries({ queryKey: SESSIONS_KEY });

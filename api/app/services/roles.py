@@ -232,8 +232,9 @@ def delete_role(db: Session, admin: User, role_id: uuid.UUID, ip: str | None) ->
 
 
 def set_user_roles(db: Session, admin: User, target: User, role_ids: Sequence[uuid.UUID], ip: str | None) -> None:
-    """The person holds exactly these roles afterwards. Nobody changes their own, and the last active admin keeps
-    Admin."""
+    """The person holds exactly these roles afterwards. Nobody changes their own, the last active admin keeps Admin,
+    and a role beyond Student goes only to an account whose email address Google confirmed (409
+    account_not_confirmed): anyone can sign up with any address."""
     limit_changes(db, admin)
     if target.id == admin.id:
         raise conflict("cannot_change_self", "You can't change your own roles. Ask another admin.")
@@ -241,6 +242,12 @@ def set_user_roles(db: Session, admin: User, target: User, role_ids: Sequence[uu
     roles = db.scalars(select(AccessRole).where(AccessRole.id.in_(wanted))).all() if wanted else []
     if len(roles) != len(wanted):
         raise invalid("roleIds", UNKNOWN_ROLE)
+    holds = set(access.access_of(target, db).slugs)
+    if target.email_confirmed_at is None and any(r.slug not in holds and r.slug != STUDENT for r in roles):
+        raise conflict(
+            "account_not_confirmed",
+            "This account's email address isn't confirmed. They need to continue with Google once, then try again.",
+        )
     before = access.role_names(target)
     if access.access_of(target, db).admin and all(r.slug != ADMIN for r in roles):
         access.ensure_admins_remain(db, target)

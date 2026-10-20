@@ -54,8 +54,8 @@ export interface paths {
         };
         /**
          * Session State
-         * @description Who is signed in: `{"me": Me}`, or `{"me": null}` for a guest. Never 401, so a guest's page load logs no
-         *     error (student test ST-10); GET /me still answers 401 when signed out.
+         * @description Who is signed in: `{"me": Me}`, or `{"me": null}` for a guest, and whether "Continue with Google" is set up.
+         *     Never 401, so a guest's page load logs no error (student test ST-10); GET /me still answers 401 when signed out.
          */
         get: operations["session_state_api_v1_auth_session_get"];
         put?: never;
@@ -66,7 +66,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/otp": {
+    "/api/v1/auth/sign-up": {
         parameters: {
             query?: never;
             header?: never;
@@ -76,24 +76,22 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Start Sign In
-         * @description Send a code to an email address or phone number. The same answer whether or not an account exists.
+         * Sign Up
+         * @description A new account with an email address and a password (10 characters or more, not a common one); this browser is
+         *     signed in to it (with a CSRF cookie bound to the new session: read it again before the next request). The address
+         *     isn't checked by email.
          *
-         *     The code is 6 digits; after many wrong codes for an address it is 10 letters and digits instead
-         *     (`codeFormat: "long"`, written 'ABCDE-FGH23'), which nobody can guess.
-         *
-         *     Errors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited
-         *     (429, with retryAfter), delivery_failed (503, texts only: try again or use the other method). Emails go out just
-         *     after the answer.
+         *     Errors: invalid_email, weak_password (422), email_taken (409), rate_limited (429: new accounts from this
+         *     network).
          */
-        post: operations["start_sign_in_api_v1_auth_otp_post"];
+        post: operations["sign_up_api_v1_auth_sign_up_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/otp/verify": {
+    "/api/v1/auth/sign-in": {
         parameters: {
             query?: never;
             header?: never;
@@ -103,13 +101,80 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Verify Sign In
-         * @description Check the code; on success the account is created if needed and the session cookie is set (with a CSRF
-         *     cookie bound to it: read it again before the next request).
+         * Sign In
+         * @description Sign in with an email address and a password. A wrong password and an address without an account (or without a
+         *     password) answer the same: invalid_credentials (422). This browser's previous session ends; read the CSRF cookie
+         *     again afterwards.
          *
-         *     Errors: invalid_code (422, with attempts left in the message), code_expired (410), too_many_attempts (429).
+         *     Errors: invalid_email, invalid_credentials (422), rate_limited (429, with retryAfter).
          */
-        post: operations["verify_sign_in_api_v1_auth_otp_verify_post"];
+        post: operations["sign_in_api_v1_auth_sign_in_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Google
+         * @description Start "Continue with Google": send the browser to `url`. Google brings it back to /auth/google/callback, which
+         *     signs it in (creating the account, or taking over an unconfirmed one with the address) and returns to `returnTo`.
+         *
+         *     Errors: not_found (404: not set up on this hub), rate_limited (429).
+         */
+        post: operations["start_google_api_v1_auth_google_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Google Callback
+         * @description Where Google sends the browser back (the OAuth client's redirect URI). Not for the web app to call.
+         */
+        get: operations["google_callback_api_v1_auth_google_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset Password
+         * @description Set a new password with a reset link an admin made. The link is used up, every session of the account ends,
+         *     and this browser is signed in.
+         *
+         *     Errors: reset_link_invalid (410), weak_password (422), rate_limited (429).
+         */
+        post: operations["reset_password_api_v1_auth_password_reset_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -240,21 +305,21 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Start Step Up
-         * @description Send a code to one of the account's own identifiers: `via` "email" or "phone" (by default the email
-         *     address, else the phone number). Check it with POST /me/step-up/verify.
+         * Step Up
+         * @description Confirm it's you with your password. This browser gets a new session (and a new CSRF cookie: read it again),
+         *     with which the changes that need a recent confirmation work for `expiresIn` seconds. An account without a password
+         *     confirms by continuing with Google again (POST /auth/google), which signs this browser in afresh.
          *
-         *     Errors: invalid_input (422: the account has no such identifier), sms_unavailable, rate_limited,
-         *     delivery_failed, as for POST /auth/otp.
+         *     Errors: wrong_password (422), rate_limited (429), forbidden (403: the account has no password).
          */
-        post: operations["start_step_up_api_v1_me_step_up_post"];
+        post: operations["step_up_api_v1_me_step_up_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/me/step-up/verify": {
+    "/api/v1/me/password": {
         parameters: {
             query?: never;
             header?: never;
@@ -262,88 +327,42 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
         /**
-         * Verify Step Up
-         * @description Check the code sent by POST /me/step-up. On success this browser gets a new session (and a new CSRF cookie:
-         *     read it again), with which changing identifiers and deleting the account work for `expiresIn` seconds.
+         * Set Password
+         * @description Change your password (with `currentPassword`), or add one to an account that signs in with Google (within ten
+         *     minutes of signing in, else step_up_required). Every other browser signed in to the account is signed out.
          *
-         *     Errors: invalid_code (422), code_expired (410), too_many_attempts (429).
+         *     Errors: wrong_password (422 on currentPassword), weak_password (422 on newPassword), step_up_required (403),
+         *     rate_limited (429).
          */
-        post: operations["verify_step_up_api_v1_me_step_up_verify_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/me/identifiers/otp": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Start Add Identifier
-         * @description Add the other kind of identifier (a phone number to an email account, or the reverse), or change one: a code
-         *     goes to the new address.
-         *
-         *     The answer is the same whether or not another account uses the identifier: if one does, the address gets a
-         *     message saying so instead of a code (so nobody can test which addresses have accounts), and
-         *     /me/identifiers/verify answers identifier_taken. Errors: identifier_unchanged (409) when it is already this
-         *     account's, step_up_required (403), plus those of POST /auth/otp.
-         */
-        post: operations["start_add_identifier_api_v1_me_identifiers_otp_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/me/identifiers/verify": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Verify Add Identifier
-         * @description Check the code sent by POST /me/identifiers/otp and put the identifier on the account. The account's other
-         *     sessions are signed out, and the identifier it replaces (or, for an addition, the other one) gets a notice.
-         *
-         *     Errors: invalid_code (422), code_expired (410), too_many_attempts (429), identifier_taken (409).
-         */
-        post: operations["verify_add_identifier_api_v1_me_identifiers_verify_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/me/identifiers/{kind}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
+        put: operations["set_password_api_v1_me_password_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         /**
-         * Remove Identifier
-         * @description Remove the email address or the phone number; the account must keep at least one (last_identifier, 409).
-         *     The account's other sessions are signed out and the removed identifier gets a notice.
+         * Link Google
+         * @description Add "Continue with Google" to your account: send the browser to `url`. When Google brings it back, the account
+         *     signs in with Google from now on and its email address becomes the Google account's, confirmed; other browsers are
+         *     signed out. It comes back to `returnTo` (with ?authError=google_taken or email_taken when another account has that
+         *     Google account or its address).
          *
-         *     Errors: step_up_required (403), last_identifier (409).
+         *     Errors: step_up_required (403), not_found (404: Google isn't set up on this hub), rate_limited (429).
          */
-        delete: operations["remove_identifier_api_v1_me_identifiers__kind__delete"];
+        post: operations["link_google_api_v1_me_google_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -565,7 +584,7 @@ export interface paths {
         /**
          * List Users
          * @description Search by name (case-insensitive, any part), newest accounts first. `role`: a role's slug. Only admins search
-         *     and see email addresses and phone numbers (a phone number may be typed with spaces).
+         *     and see email addresses.
          *
          *     Errors: invalid (422: no role with this slug).
          */
@@ -593,17 +612,36 @@ export interface paths {
         head?: never;
         /**
          * Update User
-         * @description Suspend or restore an account, or recover one: replace or remove its email
-         *     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
-         *     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
-         *     Recovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding
-         *     Admin (security review AD-1).
+         * @description Suspend or restore an account. Audited, and the person gets a notification. Suspending or restoring an admin is
+         *     for admins, with a recent step-up (security review AD-1).
          *
-         *     Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,
-         *     and so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,
-         *     or suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422).
+         *     Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: suspending or restoring
+         *     an admin), step_up_required (403: suspending or restoring an admin).
          */
         patch: operations["update_user_api_v1_admin_users__user_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/reset-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make Reset Link
+         * @description A one-time link for someone who forgot their password, for you to pass on (the Hub sends no email). It works
+         *     once, within an hour; a newer link retires older ones. Audited, and the person is told.
+         *
+         *     Errors: step_up_required (403), forbidden (403: an account holding Admin), cannot_change_self (409).
+         */
+        post: operations["make_reset_link_api_v1_admin_users__user_id__reset_link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/admin/users/{user_id}/roles": {
@@ -4991,8 +5029,8 @@ export interface components {
             displayName: string | null;
             /** Email */
             email: string | null;
-            /** Phone */
-            phone: string | null;
+            /** Emailconfirmed */
+            emailConfirmed: boolean;
             /** Roles */
             roles: components["schemas"]["RoleSummary"][];
             /**
@@ -5023,18 +5061,11 @@ export interface components {
         };
         /**
          * AdminUserUpdate
-         * @description Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`
-         *     and `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's
-         *     address (`null` removes it; one must stay), end every session of the account, send a notice to the address that
-         *     was replaced or removed, and are audited (`user.identifier`).
+         * @description `status` needs people.suspend; only admins suspend or restore an admin.
          */
         AdminUserUpdate: {
             /** Status */
             status?: ("active" | "suspended") | null;
-            /** Email */
-            email?: string | null;
-            /** Phone */
-            phone?: string | null;
         };
         /**
          * AfterId
@@ -6813,7 +6844,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "number_taken" | "empty_issue" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "too_many_topics" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "already_played" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready" | "tagging_running";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_email" | "weak_password" | "invalid_credentials" | "wrong_password" | "email_taken" | "reset_link_invalid" | "account_not_confirmed" | "invalid_display_name" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "number_taken" | "empty_issue" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "summary_changed" | "newsletter_settings_changed" | "grades_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "too_many_topics" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "already_played" | "puzzle_fixed" | "not_out_yet" | "puzzle_changed" | "theme_not_ready" | "tagging_running";
             /** Message */
             message: string;
             /** Fields */
@@ -7075,7 +7106,7 @@ export interface components {
         };
         /**
          * ExportEmail
-         * @description An email the Hub sent you, or will send (notifications and account notices; sign-in codes are not kept).
+         * @description An email the Hub sent you, or will send (notifications and account notices).
          */
         ExportEmail: {
             /** Kind */
@@ -8026,6 +8057,23 @@ export interface components {
              * @enum {string}
              */
             kind: "give-up";
+        };
+        /**
+         * GoogleRedirect
+         * @description Send the browser here (Google's sign-in page). It comes back to `returnTo`, with ?authError=<GoogleError> when
+         *     it didn't work.
+         */
+        GoogleRedirect: {
+            /** Url */
+            url: string;
+        };
+        /**
+         * GoogleStart
+         * @description Where to come back to afterwards: a path in the app ('/forum'); anything else goes back to '/'.
+         */
+        GoogleStart: {
+            /** Returnto */
+            returnTo?: string | null;
         };
         /** GradeBand */
         GradeBand: {
@@ -9059,9 +9107,13 @@ export interface components {
              */
             status: "active" | "suspended";
             /** Email */
-            email: string | null;
-            /** Phone */
-            phone: string | null;
+            email: string;
+            /** Emailconfirmed */
+            emailConfirmed: boolean;
+            /** Haspassword */
+            hasPassword: boolean;
+            /** Googlelinked */
+            googleLinked: boolean;
             /** Needsprofile */
             needsProfile: boolean;
             /**
@@ -10047,7 +10099,7 @@ export interface components {
         };
         /**
          * NotebookUploader
-         * @description One student's notebook uploads in the last 7 days, by display name (no email or phone).
+         * @description One student's notebook uploads in the last 7 days, by display name (no email address).
          */
         NotebookUploader: {
             /**
@@ -10149,49 +10201,6 @@ export interface components {
             graduate: components["schemas"]["OfferTypeLabel"];
             internship: components["schemas"]["OfferTypeLabel"];
             careers: components["schemas"]["OfferTypeLabel"];
-        };
-        /** OtpChallengeOut */
-        OtpChallengeOut: {
-            /**
-             * Challengeid
-             * Format: uuid
-             */
-            challengeId: string;
-            /**
-             * Channel
-             * @enum {string}
-             */
-            channel: "email" | "sms";
-            /** Destinationhint */
-            destinationHint: string;
-            /** Expiresin */
-            expiresIn: number;
-            /** Resendafter */
-            resendAfter: number;
-            /**
-             * Codeformat
-             * @default digits
-             * @enum {string}
-             */
-            codeFormat: "digits" | "long";
-        };
-        /**
-         * OtpStartRequest
-         * @description An email address or a phone number (local Bahraini numbers need no country code).
-         */
-        OtpStartRequest: {
-            /** Identifier */
-            identifier: string;
-        };
-        /** OtpVerifyRequest */
-        OtpVerifyRequest: {
-            /**
-             * Challengeid
-             * Format: uuid
-             */
-            challengeId: string;
-            /** Code */
-            code: string;
         };
         /**
          * PageChange
@@ -10436,6 +10445,27 @@ export interface components {
              * @default false
              */
             lead: boolean;
+        };
+        /**
+         * PasswordChange
+         * @description A new password from Your account. `currentPassword` is needed when the account has one; an account without one
+         *     (it signs in with Google) adds one within ten minutes of signing in, or after confirming it's you.
+         */
+        PasswordChange: {
+            /** Currentpassword */
+            currentPassword?: string | null;
+            /** Newpassword */
+            newPassword: string;
+        };
+        /**
+         * PasswordResetRequest
+         * @description A new password through a reset link an admin made (the token is the part after #token= in the link).
+         */
+        PasswordResetRequest: {
+            /** Token */
+            token: string;
+            /** Newpassword */
+            newPassword: string;
         };
         /** PersonalEventCreate */
         PersonalEventCreate: {
@@ -11354,6 +11384,19 @@ export interface components {
             offset: number;
         };
         /**
+         * ResetLinkOut
+         * @description A one-time link to set a new password, for the admin to pass on. It works once, until `expiresAt`.
+         */
+        ResetLinkOut: {
+            /** Url */
+            url: string;
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
+        };
+        /**
          * ResultsDay
          * @description What results mean and what to do next: Home's card for `weeks` weeks from each results date on the calendar
          *     (an event whose title contains `event_title`), and /results-day.
@@ -11657,6 +11700,8 @@ export interface components {
          */
         SessionState: {
             me: components["schemas"]["Me"] | null;
+            /** Googlesignin */
+            googleSignIn: boolean;
         };
         /**
          * ShareRequest
@@ -11772,11 +11817,29 @@ export interface components {
              */
             updatedAt: string;
         };
+        /** SignInRequest */
+        SignInRequest: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+        };
         /** SignInResult */
         SignInResult: {
             user: components["schemas"]["Me"];
             /** Isnewuser */
             isNewUser: boolean;
+        };
+        /**
+         * SignUpRequest
+         * @description A new account with an email address and a password. The address isn't checked by email: it counts as confirmed
+         *     only once its owner signs in with Google.
+         */
+        SignUpRequest: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
         };
         /**
          * SignoffBlock
@@ -11987,21 +12050,21 @@ export interface components {
             wide: boolean;
         };
         /**
+         * StepUpRequest
+         * @description Confirm it's you with the account's password (an account with Google only signs in with Google again).
+         */
+        StepUpRequest: {
+            /** Password */
+            password: string;
+        };
+        /**
          * StepUpResult
-         * @description The browser's session was renewed: changing or removing an identifier and deleting the account work without
-         *     another code for `expires_in` seconds.
+         * @description The browser's session was renewed: adding a password and deleting the account work without confirming again for
+         *     `expires_in` seconds.
          */
         StepUpResult: {
             /** Expiresin */
             expiresIn: number;
-        };
-        /**
-         * StepUpStart
-         * @description Which of the account's own identifiers gets the code: by default the email address, else the phone number.
-         */
-        StepUpStart: {
-            /** Via */
-            via?: ("email" | "phone") | null;
         };
         /**
          * StorageUse
@@ -13268,6 +13331,8 @@ export type GameInfo = components['schemas']['GameInfo'];
 export type GapModule = components['schemas']['GapModule'];
 export type Gaps = components['schemas']['Gaps'];
 export type GiveUpMove = components['schemas']['GiveUpMove'];
+export type GoogleRedirect = components['schemas']['GoogleRedirect'];
+export type GoogleStart = components['schemas']['GoogleStart'];
 export type GradeBand = components['schemas']['GradeBand'];
 export type GradeBands = components['schemas']['GradeBands'];
 export type GradeOption = components['schemas']['GradeOption'];
@@ -13390,9 +13455,6 @@ export type NotificationOut = components['schemas']['NotificationOut'];
 export type NotificationPage = components['schemas']['NotificationPage'];
 export type OfferTypeLabel = components['schemas']['OfferTypeLabel'];
 export type OfferTypeLabels = components['schemas']['OfferTypeLabels'];
-export type OtpChallengeOut = components['schemas']['OtpChallengeOut'];
-export type OtpStartRequest = components['schemas']['OtpStartRequest'];
-export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
 export type PageChange = components['schemas']['PageChange'];
 export type PageLink = components['schemas']['PageLink'];
 export type PageItemOut = components['schemas']['Page_ItemOut_'];
@@ -13407,6 +13469,8 @@ export type PaperSittings = components['schemas']['PaperSittings'];
 export type PaperTaggingJob = components['schemas']['PaperTaggingJob'];
 export type PaperTaggingOut = components['schemas']['PaperTaggingOut'];
 export type ParagraphBlock = components['schemas']['ParagraphBlock'];
+export type PasswordChange = components['schemas']['PasswordChange'];
+export type PasswordResetRequest = components['schemas']['PasswordResetRequest'];
 export type PersonalEventCreate = components['schemas']['PersonalEventCreate'];
 export type PersonalEventOut = components['schemas']['PersonalEventOut'];
 export type PersonalEventUpdate = components['schemas']['PersonalEventUpdate'];
@@ -13453,6 +13517,7 @@ export type RequestEvent = components['schemas']['RequestEvent'];
 export type RequestGap = components['schemas']['RequestGap'];
 export type RequestOut = components['schemas']['RequestOut'];
 export type RequestPage = components['schemas']['RequestPage'];
+export type ResetLinkOut = components['schemas']['ResetLinkOut'];
 export type ResultsDay = components['schemas']['ResultsDay'];
 export type ResumeUpdate = components['schemas']['ResumeUpdate'];
 export type ReviewDecision = components['schemas']['ReviewDecision'];
@@ -13477,7 +13542,9 @@ export type ShareRequest = components['schemas']['ShareRequest'];
 export type SharedNote = components['schemas']['SharedNote'];
 export type SharedNotePage = components['schemas']['SharedNotePage'];
 export type SharedNoteSummary = components['schemas']['SharedNoteSummary'];
+export type SignInRequest = components['schemas']['SignInRequest'];
 export type SignInResult = components['schemas']['SignInResult'];
+export type SignUpRequest = components['schemas']['SignUpRequest'];
 export type SignoffBlock = components['schemas']['SignoffBlock'];
 export type SimilarRequest = components['schemas']['SimilarRequest'];
 export type SiteContributor = components['schemas']['SiteContributor'];
@@ -13493,8 +13560,8 @@ export type SkillTaught = components['schemas']['SkillTaught'];
 export type StarResult = components['schemas']['StarResult'];
 export type StatItem = components['schemas']['StatItem'];
 export type StatsAside = components['schemas']['StatsAside'];
+export type StepUpRequest = components['schemas']['StepUpRequest'];
 export type StepUpResult = components['schemas']['StepUpResult'];
-export type StepUpStart = components['schemas']['StepUpStart'];
 export type StorageUse = components['schemas']['StorageUse'];
 export type Streak = components['schemas']['Streak'];
 export type Stroke = components['schemas']['Stroke'];
@@ -13809,7 +13876,7 @@ export interface operations {
             };
         };
     };
-    start_sign_in_api_v1_auth_otp_post: {
+    sign_up_api_v1_auth_sign_up_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -13818,17 +13885,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OtpStartRequest"];
+                "application/json": components["schemas"]["SignUpRequest"];
             };
         };
         responses: {
             /** @description Successful Response */
-            202: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OtpChallengeOut"];
+                    "application/json": components["schemas"]["SignInResult"];
                 };
             };
             /** @description Bad Request */
@@ -13894,8 +13961,86 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Service Unavailable */
-            503: {
+        };
+    };
+    sign_in_api_v1_auth_sign_in_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignInRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignInResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13905,7 +14050,7 @@ export interface operations {
             };
         };
     };
-    verify_sign_in_api_v1_auth_otp_verify_post: {
+    start_google_api_v1_auth_google_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -13914,7 +14059,179 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OtpVerifyRequest"];
+                "application/json": components["schemas"]["GoogleStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleRedirect"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    google_callback_api_v1_auth_google_callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Back to the app: the page it started from, with ?authError=<code> on failure */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    reset_password_api_v1_auth_password_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetRequest"];
             };
         };
         responses: {
@@ -14199,7 +14516,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description step_up_required: confirm it's you first (POST /me/step-up) */
+            /** @description step_up_required: confirm it's you first (POST /me/step-up, or Google) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14591,7 +14908,7 @@ export interface operations {
             };
         };
     };
-    start_step_up_api_v1_me_step_up_post: {
+    step_up_api_v1_me_step_up_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -14600,103 +14917,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["StepUpStart"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OtpChallengeOut"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Too Many Requests */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    verify_step_up_api_v1_me_step_up_verify_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OtpVerifyRequest"];
+                "application/json": components["schemas"]["StepUpRequest"];
             };
         };
         responses: {
@@ -14754,15 +14975,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Gone */
-            410: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
@@ -14783,7 +14995,7 @@ export interface operations {
             };
         };
     };
-    start_add_identifier_api_v1_me_identifiers_otp_post: {
+    set_password_api_v1_me_password_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -14792,17 +15004,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OtpStartRequest"];
+                "application/json": components["schemas"]["PasswordChange"];
             };
         };
         responses: {
             /** @description Successful Response */
-            202: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OtpChallengeOut"];
+                    "application/json": components["schemas"]["Me"];
                 };
             };
             /** @description Bad Request */
@@ -14823,7 +15035,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description step_up_required: confirm it's you first (POST /me/step-up) */
+            /** @description step_up_required: confirm it's you first (POST /me/step-up, or Google) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14868,18 +15080,9 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
         };
     };
-    verify_add_identifier_api_v1_me_identifiers_verify_post: {
+    link_google_api_v1_me_google_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -14888,7 +15091,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OtpVerifyRequest"];
+                "application/json": components["schemas"]["GoogleStart"];
             };
         };
         responses: {
@@ -14898,7 +15101,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Me"];
+                    "application/json": components["schemas"]["GoogleRedirect"];
                 };
             };
             /** @description Bad Request */
@@ -14919,101 +15122,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Gone */
-            410: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Too Many Requests */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    remove_identifier_api_v1_me_identifiers__kind__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                kind: "email" | "phone";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Me"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description step_up_required: confirm it's you first (POST /me/step-up) */
+            /** @description step_up_required: confirm it's you first (POST /me/step-up, or Google) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16020,6 +16129,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    make_reset_link_api_v1_admin_users__user_id__reset_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetLinkOut"];
                 };
             };
             /** @description Bad Request */

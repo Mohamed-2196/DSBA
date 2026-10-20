@@ -93,6 +93,20 @@
   gap: var(--sp-4);
 }
 
+.acct-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: var(--sp-8);
+  color: var(--error);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+}
+.acct-alert svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
 .acct-note {
   margin-top: var(--sp-8);
   max-width: var(--measure);

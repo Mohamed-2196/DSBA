@@ -79,9 +79,10 @@ Fix or decide these before real students' addresses go in:
    bucket for good.
 2. **SEC-50.** Decide where production runs. On Railway, make Caddy trust Railway's edge and prove the real client
    address reaches the API. On a server with `compose.prod.yaml` it holds as documented.
-3. **SEC-52 and SEC-56.** Add a site-wide hourly and daily cap on sign-in emails. Choose an SMTP provider whose daily
-   quota is far above that cap. Lock the Twilio account to Bahrain with a spend cap.
-4. **SEC-54.** Make the admin bootstrap one-time, or empty `DSBA_ADMIN_IDENTIFIERS` after the first sign-in.
+3. **SEC-52 and SEC-56: overtaken by decision D19.** Sign-in sends no codes any more (passwords or Google), so there
+   are no sign-in emails to cap and no texts. Choose an SMTP provider for notifications and account notices.
+4. **SEC-54.** Make the admin bootstrap one-time, or empty `DSBA_ADMIN_IDENTIFIERS` after the first sign-in. It now
+   applies only on a Google sign-in (D19).
 5. **SEC-14 (decision).** Set a hub-wide daily upload budget, or accept the risk in writing.
 
 ## Before go-live (Mohamed must do or approve)
@@ -98,21 +99,26 @@ Fix or decide these before real students' addresses go in:
 - [ ] Use a domain you control, with HSTS working. Don't submit the domain to the HSTS preload list yet.
 
 **Secrets (in `.env` on the server or in Railway's variables, never in the repository or the chat)**
-- [ ] `DSBA_SECRET_KEY`: new and random (48 bytes). Never reuse the dev site's key: it signs codes, CSRF tokens and feed
-  addresses.
+- [ ] `DSBA_SECRET_KEY`: new and random (48 bytes). Never reuse the dev site's key: it keys the sign-in limits'
+  address hashes, CSRF tokens and feed addresses.
 - [ ] `POSTGRES_PASSWORD` and `DSBA_TEXTS_DB_PASSWORD`: long and random (`.env.example`'s `dsba` is for development).
 - [ ] Bucket keys: one for the API, one for the text worker (`library/*` read, `covers/*` write), and one write-only key
   for backups, each with its own IAM user (DEPLOYMENT.md, sections 3 and 7). Use a new bucket, not the dev one.
-- [ ] SMTP credentials, Twilio SID and token, the Anthropic key, and the Google key if importing. Keep a list of where
+- [ ] SMTP credentials, the Google OAuth client's id and secret (a production client of its own, not the dev one),
+  the Anthropic key, and the Google API key if importing. Keep a list of where
   each lives and who can rotate it. Set a monthly spending limit on the Anthropic workspace (SEC-51).
-- [ ] `DSBA_ADMIN_IDENTIFIERS`: only your own address. It gives Admin only while the hub has none (SEC-54, fixed).
+- [ ] `DSBA_ADMIN_IDENTIFIERS`: only your own address. It gives Admin only while the hub has none (SEC-54, fixed), and
+  only when you continue with Google, so set up Google first (D19).
 - [ ] Keep `DSBA_ALLOW_RAISED_LIMITS` unset (false).
 
-**Mail and texts**
-- [ ] SPF, DKIM and DMARC for the sending domain, plus bounce handling (SEC-52). Choose a provider whose daily quota
-  is well above `DSBA_EMAIL_MAX_PER_DAY` (3,000).
-- [ ] Twilio: Geo Permissions set to Bahrain only, SMS Pumping Protection on, and a usage trigger or spend cap
-  (SEC-56). As built, anyone can make the hub send up to 300 texts a day, about $15 to $30.
+**Mail and sign-in**
+- [ ] SPF, DKIM and DMARC for the sending domain, plus bounce handling. Notifications and account notices only: sign-in
+  sends no email.
+- [ ] Google: the OAuth consent screen published (External), and the production client's only redirect URI
+  `https://<domain>/api/v1/auth/google/callback` (DEPLOYMENT.md, section 14). Check `/api/v1/auth/session` says
+  `"googleSignIn": true`.
+- [ ] Decide whether notification emails should go to addresses Google hasn't confirmed: anyone can sign up with
+  someone else's address and switch emails on (account notices already skip unconfirmed addresses).
 
 **Storage**
 - [ ] Run `setup-bucket` (CORS for the production origin only, and the 1-day `incoming/` expiry).
@@ -135,9 +141,9 @@ Fix or decide these before real students' addresses go in:
   limit per service).
 
 **People and data**
-- [ ] A short privacy notice. It should say what the hub keeps (emails, phone numbers, notes, notebook files, Daily
-  plays, the addresses on sessions and in the audit log), who processes it (AWS, the mail provider, Twilio, and
-  Anthropic for Noora's answers), how to export and delete (Your account), and how long backups keep it. Bahrain's
+- [ ] A short privacy notice. It should say what the hub keeps (email addresses, password hashes, notes, notebook
+  files, Daily plays, the addresses on sessions and in the audit log), who processes it (AWS, the mail provider,
+  Google for "Continue with Google", and Anthropic for Noora's answers), how to export and delete (Your account), and how long backups keep it. Bahrain's
   PDPL expects one.
 - [ ] Decide the open product calls that touch security: SEC-64 (done: host allow-list), SEC-14 (done: 20 GB / 1 GB), shorter sessions on shared
   computers (S-2), and whether a rep confirms seniors.
@@ -552,20 +558,19 @@ full suite, which passes, and the code around them is unchanged since round 12 e
 
 1. **Close the volume holes before launch.**
    - Lock the upload row in `complete_upload` (SEC-49, SEC-58).
-   - Add a site-wide sign-in email budget (SEC-52).
    - Decide the hub-wide upload budget (SEC-14).
    - Cap Noora per network and for new accounts (SEC-51).
 2. **Make the production deployment real and watched.**
    - Pick the host and prove client addresses through the proxy (SEC-50).
    - Add monitoring, backup alerts, log rotation and a memory limit, and trim each job's secrets (SEC-57).
-   - Lock Twilio to Bahrain with a spend cap (SEC-56).
+   - Set up Google sign-in for production (D19; DEPLOYMENT.md, section 14).
    - Make the admin bootstrap one-time (SEC-54).
    - Work through the "Before go-live" list, restore drill included.
 3. **Tighten what leaks quietly.**
    - Keep the most private families out of the offline copy (SEC-53, SEC-62).
    - Filter hidden chapters and modules from past questions (SEC-55).
    - Forget the Daily keep's address after a day (SEC-59).
-   - Write a short privacy notice that names Anthropic, AWS, the mail provider and Twilio.
+   - Write a short privacy notice that names Anthropic, AWS, the mail provider and Google.
 
 ---
 

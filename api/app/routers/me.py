@@ -1,40 +1,43 @@
 """The signed-in user's account. Owner: accounts.
 
-Changing how one signs in (adding, changing or removing an email address or phone number) and deleting the account
-need a recent confirmation (decision D2, security review SEC-9): a session less than sessions.STEP_UP_WINDOW old.
-Otherwise these answer 403 `step_up_required`; the web app then runs POST /me/step-up and /me/step-up/verify (a
-code to an identifier the account already has) and repeats the request."""
+Adding a password to an account that signs in with Google, linking Google and deleting the account need a recent
+confirmation (decision D2, security review SEC-9): a session less than sessions.STEP_UP_WINDOW old. Otherwise these
+answer 403 `step_up_required`; the web app then confirms it's you (POST /me/step-up with the password, or Continue
+with Google again) and repeats the request. Changing a password needs the current one instead."""
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 from uuid import UUID
 
 from fastapi import Request, Response, status
 
-from app.core.errors import conflict, not_found
+from app.core.errors import not_found
 from app.core.security import DB, CurrentSession, CurrentUser, clear_session_cookie, client_ip
-from app.models import UserSession
+from app.models import GoogleIntent, UserSession
 from app.routers._base import router_for
 from app.schemas.auth import (
     AccountExport,
+    GoogleRedirect,
+    GoogleStart,
     Me,
     MeUpdate,
-    OtpChallengeOut,
-    OtpStartRequest,
-    OtpVerifyRequest,
+    PasswordChange,
     SessionInfo,
+    StepUpRequest,
     StepUpResult,
-    StepUpStart,
 )
 from app.schemas.common import ErrorResponse
-from app.services import accounts, otp, sessions
+from app.services import accounts, google, sessions, signin
 from app.services.storage import get_storage
 
 router = router_for("me")
 
 STEP_UP: dict[int | str, dict[str, Any]] = {
-    403: {"model": ErrorResponse, "description": "step_up_required: confirm it's you first (POST /me/step-up)"}
+    403: {
+        "model": ErrorResponse,
+        "description": "step_up_required: confirm it's you first (POST /me/step-up, or Google)",
+    }
 }
 
 
@@ -95,105 +98,50 @@ def revoke_session(session_id: UUID, user: CurrentUser, sess: CurrentSession, db
     return resp
 
 
-# ── step-up: confirm it's you ────────────────────────────────────────────────────────────────
+# ── signing in: confirm it's you, the password, Google ──────────────────────────────────────────
 
 
-@router.post(
-    "/me/step-up",
-    response_model=OtpChallengeOut,
-    status_code=status.HTTP_202_ACCEPTED,
-    responses={503: {"model": ErrorResponse}},
-)
-def start_step_up(body: StepUpStart, request: Request, user: CurrentUser, db: DB) -> OtpChallengeOut:
-    """Send a code to one of the account's own identifiers: `via` "email" or "phone" (by default the email
-    address, else the phone number). Check it with POST /me/step-up/verify.
-
-    Errors: invalid_input (422: the account has no such identifier), sms_unavailable, rate_limited,
-    delivery_failed, as for POST /auth/otp."""
-    kind, identifier = accounts.step_up_target(user, body.via)
-    otp.check_textable(kind, identifier)
-    return otp.start(db, kind=kind, identifier=identifier, flow="step_up", ip=client_ip(request), user=user)
-
-
-@router.post("/me/step-up/verify", response_model=StepUpResult, responses={410: {"model": ErrorResponse}})
-def verify_step_up(
-    body: OtpVerifyRequest, request: Request, response: Response, user: CurrentUser, sess: CurrentSession, db: DB
+@router.post("/me/step-up", response_model=StepUpResult)
+def step_up(
+    body: StepUpRequest, request: Request, response: Response, user: CurrentUser, sess: CurrentSession, db: DB
 ) -> StepUpResult:
-    """Check the code sent by POST /me/step-up. On success this browser gets a new session (and a new CSRF cookie:
-    read it again), with which changing identifiers and deleting the account work for `expiresIn` seconds.
+    """Confirm it's you with your password. This browser gets a new session (and a new CSRF cookie: read it again),
+    with which the changes that need a recent confirmation work for `expiresIn` seconds. An account without a password
+    confirms by continuing with Google again (POST /auth/google), which signs this browser in afresh.
 
-    Errors: invalid_code (422), code_expired (410), too_many_attempts (429)."""
-    otp.verify(db, challenge_id=body.challenge_id, code=body.code, flow="step_up", user_id=user.id)
+    Errors: wrong_password (422), rate_limited (429), forbidden (403: the account has no password)."""
+    signin.confirm_password(db, user, body.password, client_ip(request))
     renewed = sessions.renew(db, user, sess, request, response)
     db.commit()
     return StepUpResult(expires_in=sessions.step_up_left(renewed))
 
 
-# ── identifiers ─────────────────────────────────────────────────────────────────────────────
+@router.put("/me/password", response_model=Me, responses=STEP_UP)
+def set_password(body: PasswordChange, request: Request, user: CurrentUser, sess: CurrentSession, db: DB) -> Me:
+    """Change your password (with `currentPassword`), or add one to an account that signs in with Google (within ten
+    minutes of signing in, else step_up_required). Every other browser signed in to the account is signed out.
+
+    Errors: wrong_password (422 on currentPassword), weak_password (422 on newPassword), step_up_required (403),
+    rate_limited (429)."""
+    signin.set_password(db, user, sess, body, client_ip(request))
+    db.commit()
+    return accounts.me_out(user)
 
 
-@router.post(
-    "/me/identifiers/otp",
-    response_model=OtpChallengeOut,
-    status_code=status.HTTP_202_ACCEPTED,
-    responses={**STEP_UP, 503: {"model": ErrorResponse}},
-)
-def start_add_identifier(
-    body: OtpStartRequest, request: Request, user: CurrentUser, sess: CurrentSession, db: DB
-) -> OtpChallengeOut:
-    """Add the other kind of identifier (a phone number to an email account, or the reverse), or change one: a code
-    goes to the new address.
+@router.post("/me/google", response_model=GoogleRedirect, responses=STEP_UP)
+def link_google(
+    body: GoogleStart, request: Request, response: Response, user: CurrentUser, sess: CurrentSession, db: DB
+) -> GoogleRedirect:
+    """Add "Continue with Google" to your account: send the browser to `url`. When Google brings it back, the account
+    signs in with Google from now on and its email address becomes the Google account's, confirmed; other browsers are
+    signed out. It comes back to `returnTo` (with ?authError=google_taken or email_taken when another account has that
+    Google account or its address).
 
-    The answer is the same whether or not another account uses the identifier: if one does, the address gets a
-    message saying so instead of a code (so nobody can test which addresses have accounts), and
-    /me/identifiers/verify answers identifier_taken. Errors: identifier_unchanged (409) when it is already this
-    account's, step_up_required (403), plus those of POST /auth/otp."""
-    kind, identifier = otp.prepare(body.identifier)
-    if (user.email if kind == "email" else user.phone) == identifier:
-        raise conflict("identifier_unchanged", f"This {accounts.LABELS[kind]} is already on your account.")
+    Errors: step_up_required (403), not_found (404: Google isn't set up on this hub), rate_limited (429)."""
     sessions.require_step_up(sess)
-
-    def taken() -> bool:
-        other = accounts.find_user(db, kind, identifier)
-        return other is not None and other.id != user.id
-
-    return otp.start(
-        db, kind=kind, identifier=identifier, flow="add_identifier", ip=client_ip(request), user=user, taken=taken
+    url, state = google.start(
+        db, intent=GoogleIntent.link, user=user, return_to=body.return_to or "/account", ip=client_ip(request)
     )
-
-
-@router.post("/me/identifiers/verify", response_model=Me, responses={410: {"model": ErrorResponse}})
-def verify_add_identifier(body: OtpVerifyRequest, user: CurrentUser, sess: CurrentSession, db: DB) -> Me:
-    """Check the code sent by POST /me/identifiers/otp and put the identifier on the account. The account's other
-    sessions are signed out, and the identifier it replaces (or, for an addition, the other one) gets a notice.
-
-    Errors: invalid_code (422), code_expired (410), too_many_attempts (429), identifier_taken (409)."""
-    verified = otp.verify(db, challenge_id=body.challenge_id, code=body.code, flow="add_identifier", user_id=user.id)
-    kind, identifier = verified.kind, verified.identifier
-    other = accounts.find_user(db, kind, identifier)
-    if other is not None and other.id != user.id:
-        raise accounts.identifier_taken(kind)
-    text_notice = accounts.change_identifier(db, user, sess, kind, identifier)
     db.commit()
-    if text_notice is not None:
-        otp.send_text_notice(*text_notice)
-    return accounts.me_out(user)
-
-
-@router.delete("/me/identifiers/{kind}", response_model=Me, responses=STEP_UP)
-def remove_identifier(kind: Literal["email", "phone"], user: CurrentUser, sess: CurrentSession, db: DB) -> Me:
-    """Remove the email address or the phone number; the account must keep at least one (last_identifier, 409).
-    The account's other sessions are signed out and the removed identifier gets a notice.
-
-    Errors: step_up_required (403), last_identifier (409)."""
-    current, other = (user.email, user.phone) if kind == "email" else (user.phone, user.email)
-    if current is None:
-        return accounts.me_out(user)
-    if other is None:
-        raise conflict("last_identifier", "You need at least one way to sign in. Add the other one first.")
-    sessions.require_step_up(sess)
-    text_notice = accounts.change_identifier(db, user, sess, kind, None)
-    db.commit()
-    if text_notice is not None:
-        otp.send_text_notice(*text_notice)
-    return accounts.me_out(user)
+    google.set_state_cookie(response, state)
+    return GoogleRedirect(url=url)

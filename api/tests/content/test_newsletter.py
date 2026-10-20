@@ -438,7 +438,7 @@ def test_publishing_tells_every_account_once(
     keen = make_user(name="Keen")
     quiet = make_user(name="Quiet")
     quiet.preferences = {**quiet.preferences, "email_new_issues": False}
-    phone_only = make_user(email=None, phone="+97333123456", name="Phone Only")
+    undecided = make_user(name="Undecided", emails=None)
     db.commit()
 
     rep = client_for(moderator)
@@ -451,7 +451,7 @@ def test_publishing_tells_every_account_once(
     assert r.json()["publishedAt"] is not None
 
     notes = list(db.scalars(select(Notification)))
-    assert {n.user_id for n in notes} == {keen.id, quiet.id, phone_only.id}  # not the publisher
+    assert {n.user_id for n in notes} == {keen.id, quiet.id, undecided.id}  # not the publisher
     for n in notes:
         assert (n.kind, n.url, n.actor_id) == ("new_issue", "/newsletter/october-issue", moderator.id)
         assert n.title == "New issue of The DSBA Newsletter: The October issue"

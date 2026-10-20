@@ -1,4 +1,4 @@
-"""Accounts: users, sign-in challenges (one-time codes) and sessions."""
+"""Accounts: users, their sessions, and what signing in with a password or with Google keeps."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Index, SmallInteger, String, text
+from sqlalchemy import ForeignKey, Index, SmallInteger, String, text
 from sqlalchemy.dialects.postgresql import ARRAY, INET
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,27 +20,32 @@ class UserStatus(enum.StrEnum):
     suspended = "suspended"  # can sign in and read, cannot post, upload or react
 
 
-class Channel(enum.StrEnum):
-    email = "email"
-    sms = "sms"
+class AttemptKind(enum.StrEnum):
+    sign_in = "sign_in"  # a password sign-in that worked
+    sign_in_failed = "sign_in_failed"  # a wrong password, or an address without a password
+    sign_up = "sign_up"  # a new account with a password
+    reset_failed = "reset_failed"  # a password reset link that didn't work
 
 
-class OtpPurpose(enum.StrEnum):
+class GoogleIntent(enum.StrEnum):
     sign_in = "sign_in"
-    add_identifier = "add_identifier"  # a signed-in user adds a phone number or email to their account
+    link = "link"  # a signed-in account adds Google
 
 
 class User(Base):
     __tablename__ = "users"
     __table_args__ = (
-        CheckConstraint("email IS NOT NULL OR phone IS NOT NULL", name="has_identifier"),
         check_in("zone", ZONES),
         year_range(),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
-    email: Mapped[str | None] = mapped_column(String(254), unique=True)  # lower-cased
-    phone: Mapped[str | None] = mapped_column(String(20), unique=True)  # E.164, e.g. +97333123456
+    email: Mapped[str] = mapped_column(String(254), unique=True)  # lower-cased
+    # When Google vouched for the address (a Google sign-in, or linking Google). None: typed at sign-up, unproven.
+    # Only confirmed accounts hold staff roles, and an unconfirmed one goes to whoever signs in with Google for it.
+    email_confirmed_at: Mapped[datetime | None]
+    google_sub: Mapped[str | None] = mapped_column(String(255), unique=True)  # Google's id for the person
+    password_hash: Mapped[str | None] = mapped_column(String(255))  # argon2id; None: signs in with Google only
     display_name: Mapped[str | None] = mapped_column(String(60))  # None until the profile step
     year: Mapped[int | None] = mapped_column(SmallInteger)  # cohort 1-3; None = not a current student
     status: Mapped[UserStatus] = mapped_column(
@@ -58,31 +63,59 @@ class User(Base):
     last_seen_at: Mapped[datetime | None]
 
 
-class OtpChallenge(Base):
-    """One one-time code sent to an email address or phone number. The code itself is never stored, only an HMAC."""
+class SignInAttempt(Base):
+    """One attempt that the sign-in limits count: password sign-ins (and failures), sign-ups, wrong current
+    passwords and failed reset links. `account_key` is a keyed hash of the address's rate-limit key, never the
+    address, so the rows hold nothing personal and outlive a deleted account; the sweep deletes them after two days."""
 
-    __tablename__ = "otp_challenges"
+    __tablename__ = "sign_in_attempts"
     __table_args__ = (
-        Index("ix_otp_challenges_identifier_created", "identifier", "created_at"),
-        Index("ix_otp_challenges_ip_created", "ip", "created_at"),
-        # a signed-in account's codes per hour (step-up, a new address), and anonymise() before a deletion
-        Index("ix_otp_challenges_user_created", "user_id", "created_at"),
+        Index("ix_sign_in_attempts_key_created", "kind", "account_key", "created_at"),
+        Index("ix_sign_in_attempts_ip_created", "kind", "ip", "created_at"),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
-    purpose: Mapped[OtpPurpose] = mapped_column(str_enum(OtpPurpose))
-    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    channel: Mapped[Channel] = mapped_column(str_enum(Channel, 10))
-    identifier: Mapped[str] = mapped_column(String(254))  # normalised email or E.164 phone number
-    code_hash: Mapped[str] = mapped_column(String(64))
-    attempts: Mapped[int] = mapped_column(SmallInteger, default=0, server_default="0")
+    kind: Mapped[AttemptKind] = mapped_column(str_enum(AttemptKind))
+    account_key: Mapped[str | None] = mapped_column(String(64))
+    ip: Mapped[str | None] = mapped_column(INET)
+    created_at: Mapped[datetime] = created_ts()
+
+
+class GoogleLogin(Base):
+    """A "Continue with Google" in progress: from the redirect to Google until its callback, once, within minutes.
+    The state travels in the URL and in a cookie of this browser, and only its SHA-256 is stored; the nonce must come
+    back inside Google's ID token, and the PKCE verifier goes with the code to Google's token endpoint."""
+
+    __tablename__ = "google_logins"
+    __table_args__ = (Index("ix_google_logins_ip_created", "ip", "created_at"),)
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    state_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    nonce: Mapped[str] = mapped_column(String(64))
+    code_verifier: Mapped[str] = mapped_column(String(128))
+    intent: Mapped[GoogleIntent] = mapped_column(str_enum(GoogleIntent, 10))
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))  # linking
+    return_to: Mapped[str] = mapped_column(String(512))  # a path in the app
+    ip: Mapped[str | None] = mapped_column(INET)
     created_at: Mapped[datetime] = created_ts()
     expires_at: Mapped[datetime]
-    consumed_at: Mapped[datetime | None]
-    ip: Mapped[str | None] = mapped_column(INET)
-    # Over the sign-up email budget the code isn't sent, and never verifies; the answer and the limits treat the
-    # challenge like any other, so nothing says whether an account exists (SEC-52).
-    suppressed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    used_at: Mapped[datetime | None]
+
+
+class PasswordReset(Base):
+    """A one-time link to set a new password, made by an admin for someone who forgot theirs. Only the token's SHA-256
+    is stored; it works once, within an hour, and a newer link retires it."""
+
+    __tablename__ = "password_resets"
+    __table_args__ = (Index("ix_password_resets_user", "user_id"), Index("ix_password_resets_created_by", "created_by"))
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = created_ts()
+    expires_at: Mapped[datetime]
+    used_at: Mapped[datetime | None]
 
 
 class UserSession(Base):

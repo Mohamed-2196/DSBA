@@ -1,6 +1,7 @@
 # Local development stack: Postgres and MinIO keep their data in named volumes, so `docker compose down`
 # (without -v) and restarts lose nothing. Mailpit catches every email the API and the mail worker send
-# (http://localhost:8025); one-time codes sent by SMS are printed in the API's log (docker compose logs -f api).
+# (http://localhost:8025). Open the app at http://localhost:5173 (DSBA_WEB_BASE_URL): "Continue with Google" comes
+# back to that address, and the sign-in only works in the browser that started it there.
 #
 #   docker compose up --build      then open http://localhost:5173
 #
@@ -21,8 +22,10 @@ x-api-env: &api-env
   DSBA_EMAIL_BACKEND: smtp
   DSBA_SMTP_HOST: mailpit
   DSBA_SMTP_PORT: "1025"
-  DSBA_SMS_BACKEND: console
   DSBA_ADMIN_IDENTIFIERS: ${DSBA_ADMIN_IDENTIFIERS:-}
+  # "Continue with Google" (docs/backend/DEPLOYMENT.md, section 14): off while either is empty.
+  DSBA_GOOGLE_CLIENT_ID: ${DSBA_GOOGLE_CLIENT_ID:-}
+  DSBA_GOOGLE_CLIENT_SECRET: ${DSBA_GOOGLE_CLIENT_SECRET:-}
   DSBA_PORTAL_HOSTS: ${DSBA_PORTAL_HOSTS:-bibf.edu.bh,bibf.com,london.ac.uk}  # Site settings' links (SEC-64)
   DSBA_ANTHROPIC_API_KEY: ${DSBA_ANTHROPIC_API_KEY:-}  # Mini Noora's AI answers (the noora.ai feature)
   DSBA_NOORA_MODEL: ${DSBA_NOORA_MODEL:-claude-haiku-5-5}

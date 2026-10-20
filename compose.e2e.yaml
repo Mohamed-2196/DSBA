@@ -5,15 +5,13 @@
 #   docker compose up -d --no-deps api mail web    # back to Mailpit (from the main checkout: scripts/e2e.sh --restore)
 #
 # What changes while it is applied (development only; production uses compose.prod.yaml):
-#   - Emails (sign-in codes, and the mail worker's notifications) are saved as .eml files in api/var/mail instead of
-#     going to Mailpit, and texts as .txt files in api/var/sms instead of the API's log. The suite reads its codes
-#     there. api/var/ is git-ignored.
+#   - Emails (the mail worker's notifications and account notices) are saved as .eml files in api/var/mail instead of
+#     going to Mailpit, where the suite reads them. api/var/ is git-ignored.
 #   - Every request reaches the API through the web container's proxy, so the whole suite comes from one address.
-#     A run asks for 5 to 7 codes, 3 of them by text, and even a run of one spec signs the students up first. With
-#     the per-network limit (30 codes an hour), the run after the fourth to sixth in an hour would be refused, and
-#     the site's text budget (50 an hour, 300 a day) would stop an afternoon of reruns, so both are raised. The
-#     per-address and per-account limits stay as they are: each run signs up new students, and the suite checks
-#     the wait before a new code.
+#     A run signs up three students and signs in again several times, and an afternoon of reruns would pass the
+#     per-network limits on sign-ups (10 an hour, 30 a day) and sign-ins (60 an hour), so those are raised. The
+#     limits on wrong passwords for an address stay as they are: each run signs up new students.
+#   - "Continue with Google" stays off (no DSBA_GOOGLE_CLIENT_ID): the suite can't sign in to Google.
 
 x-e2e-mail: &e2e-mail
   DSBA_EMAIL_BACKEND: file
@@ -23,19 +21,13 @@ services:
   api:
     environment:
       <<: *e2e-mail
-      DSBA_SMS_BACKEND: file
-      DSBA_SMS_FILE_DIR: /app/var/sms
-      DSBA_SMS_ALLOWED_REGIONS: BH  # the suite signs up with random +973 mobile numbers
-      DSBA_OTP_MAX_PER_IP_PER_HOUR: "1000"
-      DSBA_SMS_MAX_PER_HOUR: "1000"
-      DSBA_SMS_MAX_PER_DAY: "10000"
-      DSBA_EMAIL_SIGNUPS_MAX_PER_HOUR: "1000"
-      DSBA_EMAIL_SIGNUPS_MAX_PER_DAY: "10000"
-      DSBA_EMAIL_MAX_PER_HOUR: "1000"
-      DSBA_EMAIL_MAX_PER_DAY: "10000"
+      DSBA_SIGN_UPS_PER_NETWORK_PER_HOUR: "1000"
+      DSBA_SIGN_UPS_PER_NETWORK_PER_DAY: "10000"
+      DSBA_SIGN_INS_PER_NETWORK_PER_HOUR: "1000"
+      DSBA_GOOGLE_CLIENT_ID: ""
+      DSBA_GOOGLE_CLIENT_SECRET: ""
     volumes:
       - ./api/var/mail:/app/var/mail
-      - ./api/var/sms:/app/var/sms
 
   mail:
     environment:

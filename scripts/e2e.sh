@@ -5,7 +5,7 @@
 #   scripts/e2e.sh e2e/forum.spec.ts        # one area (the setup project still signs the students up first)
 #   scripts/e2e.sh --headed -g "rep hides"  # anything else goes to `npx playwright test`
 #   E2E_KEEP=1 scripts/e2e.sh               # keep the run's accounts and posts to look at afterwards
-#   scripts/e2e.sh --restore                # put api, mail and web back on Mailpit, the log and the main checkout
+#   scripts/e2e.sh --restore                # put api, mail and web back on Mailpit and the main checkout
 #
 # Start the stack once with `docker compose up -d --build`, and install the suite's tools once:
 # `cd web && npm ci && npx playwright install chromium`.
@@ -16,19 +16,19 @@
 # PLAYWRIGHT_BROWSERS_PATH Playwright's browsers in another folder.
 #
 # What it changes in the running stack (compose.e2e.yaml, over compose.yaml):
-#   - It recreates `api` and `mail` (and `web` if its settings differ) with the file backends: emails, sign-in codes
-#     included, are saved in api/var/mail and texts in api/var/sms (git-ignored), where the suite reads its codes.
-#     Mailpit gets nothing while this lasts. It restarts `web` when its packages don't match package-lock.json.
-#   - It raises two limits the whole suite would otherwise run into, because every request reaches the API through
-#     the web container's proxy and so comes from one address: codes per network per hour (30) and the site's
-#     texts per hour and day (50 and 300). Per-address and per-account limits are unchanged.
+#   - It recreates `api` and `mail` (and `web` if its settings differ) with the file mail backend: emails are saved
+#     in api/var/mail (git-ignored), where the suite reads them. Mailpit gets nothing while this lasts. It restarts
+#     `web` when its packages don't match package-lock.json.
+#   - It raises the per-network limits on sign-ups and sign-ins, which the whole suite would otherwise run into:
+#     every request reaches the API through the web container's proxy and so comes from one address. The limits on
+#     wrong passwords for an address are unchanged. "Continue with Google" stays off.
 #   - db, minio and mailpit are never touched (no stop, no recreate, no `down`).
 # The recreated containers run the code of the checkout the script is in (a git worktree's, when run from one). The
 # stack stays in e2e mode after the run, so reruns start at once; `scripts/e2e.sh --restore` undoes it, from any
 # checkout: api, mail and web go back to the main checkout's code.
 #
 # The suite's settings (web/e2e/support.ts) default to this stack; set any of them to override:
-#   E2E_BASE_URL=http://localhost:5173  E2E_MAIL_DIR=<repo>/api/var/mail  E2E_SMS_DIR=<repo>/api/var/sms
+#   E2E_BASE_URL=http://localhost:5173  E2E_MAIL_DIR=<repo>/api/var/mail
 #   E2E_DEV_LOGIN="docker compose -p dsba-hub exec -T api python -m app.cli dev-login"
 set -euo pipefail
 
@@ -39,7 +39,6 @@ e2e=("${base[@]}" -f "$root/compose.e2e.yaml")
 # The main checkout (the repository's own folder, not a worktree's): where --restore puts the stack back.
 main="$(cd "$(git -C "$root" rev-parse --path-format=absolute --git-common-dir)/.." && pwd)"
 mail_dir="$root/api/var/mail"
-sms_dir="$root/api/var/sms"
 
 say() { printf '\n== %s\n' "$*"; }
 fail() { printf 'scripts/e2e.sh: %s\n' "$*" >&2; exit 1; }
@@ -78,13 +77,13 @@ playwright_chromium_installed() {
 }
 
 restore() {
-  say "Putting api, mail and web back on Mailpit (emails), the API's log (texts) and the code in $main"
+  say "Putting api, mail and web back on Mailpit (emails) and the code in $main"
   docker compose -p "$project" -f "$main/compose.yaml" up -d --no-deps api mail web
   wait_for "The API" http://127.0.0.1:8000/api/v1/health 180
   [[ "$(backend)" != file ]] || fail "the API still writes emails to files."
   wait_for "The web app" http://localhost:5173/api/v1/health 300
   fresh_web_packages
-  echo "Done: emails go to Mailpit (http://localhost:8025), texts to \`docker compose logs api\`."
+  echo "Done: emails go to Mailpit (http://localhost:8025)."
 }
 
 case "${1:-}" in
@@ -111,11 +110,11 @@ if [[ -z "${E2E_CHROMIUM:-}${PLAYWRIGHT_BROWSERS_PATH:-}" ]] && ! playwright_chr
   echo "Playwright's own Chromium isn't installed, so the suite runs in Google Chrome."
 fi
 
-# The folders the API writes into (as its own user, so open to everyone on a Linux host). Files older than two days
-# go: no run needs them, and the suite reads every new file while it waits for a code.
-mkdir -p "$mail_dir" "$sms_dir"
-chmod a+rwx "$mail_dir" "$sms_dir"
-find "$mail_dir" "$sms_dir" -type f -mtime +2 -delete
+# The folder the API writes into (as its own user, so open to everyone on a Linux host). Files older than two days
+# go: no run needs them, and the suite reads the new ones while it waits for an email.
+mkdir -p "$mail_dir"
+chmod a+rwx "$mail_dir"
+find "$mail_dir" -type f -mtime +2 -delete
 
 say "Switching the stack to e2e mode (compose.e2e.yaml)"
 "${e2e[@]}" up -d --no-deps api mail web
@@ -126,13 +125,12 @@ fresh_web_packages
 
 export E2E_BASE_URL="${E2E_BASE_URL:-http://localhost:5173}"
 export E2E_MAIL_DIR="${E2E_MAIL_DIR:-$mail_dir}"
-export E2E_SMS_DIR="${E2E_SMS_DIR:-$sms_dir}"
 export E2E_DEV_LOGIN="${E2E_DEV_LOGIN:-docker compose -p $project exec -T api python -m app.cli dev-login}"
 
 say "npx playwright test $*"
 status=0
 (cd "$root/web" && npx playwright test "$@") || status=$?
 
-say "The stack is still in e2e mode: emails and texts go to api/var/mail and api/var/sms."
+say "The stack is still in e2e mode: emails go to api/var/mail."
 echo "Back to Mailpit: scripts/e2e.sh --restore"
 exit "$status"

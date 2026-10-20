@@ -2,7 +2,7 @@
 
 Count-then-insert is serialised with transaction-scoped advisory locks (`lock`), always taken in the same order
 by every caller, so a burst of parallel requests cannot all pass the same count. For a simple limit ("20 uploads
-per user per hour") use `enforce()`, which does both; the sign-in codes (services/otp.py) combine several.
+per user per hour") use `enforce()`, which does both; the sign-in limits (services/passwords.py) combine several.
 
 The client's address for a per-IP limit comes from core.security.client_ip."""
 
@@ -23,7 +23,6 @@ from app.core.errors import rate_limited
 from app.core.time import utcnow
 
 IPV6_BUCKET_PREFIX = 64  # one IPv6 client usually holds a whole /64
-IPV6_SITE_PREFIX = 48  # one IPv6 site may hold a whole /48: a looser limit counts its /64s together
 
 
 def ip_bucket(ip: str | None, v6_prefix: int = IPV6_BUCKET_PREFIX) -> str | None:

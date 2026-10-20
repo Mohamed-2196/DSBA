@@ -1,4 +1,4 @@
-"""Identifiers, hints, rate-limit keys and the small helpers behind the limits."""
+"""Email addresses, hints, rate-limit keys and the small helpers behind the limits."""
 
 from __future__ import annotations
 
@@ -7,64 +7,27 @@ from datetime import timedelta
 from typing import Any
 
 import pytest
-from sqlalchemy import literal, select
-from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
 from app.core.time import utcnow
 from app.services import ratelimit
-from app.services.identifiers import (
-    admin_identifiers,
-    destination_hint,
-    email_rate_key_sql,
-    normalize_identifier,
-    rate_key,
-    sms_capable,
-)
+from app.services.identifiers import account_key, admin_identifiers, destination_hint, normalize_email, rate_key
 
 
-@pytest.mark.parametrize(
-    ("raw", "expected"),
-    [
-        ("  Name@Example.COM ", ("email", "name@example.com")),
-        ("33123456", ("phone", "+97333123456")),
-        ("+973 3312 3456", ("phone", "+97333123456")),
-        ("00973 33123456", ("phone", "+97333123456")),
-        ("+44 7911 123456", ("phone", "+447911123456")),
-    ],
-)
-def test_normalize(raw: str, expected: tuple[str, str]) -> None:
-    assert normalize_identifier(raw) == expected
+def test_normalize_email() -> None:
+    assert normalize_email("  Name@Example.COM ") == "name@example.com"
 
 
-@pytest.mark.parametrize("raw", ["name@", "hello", "1234", "+973 1"])
-def test_normalize_refuses(raw: str) -> None:
+@pytest.mark.parametrize("raw", ["", "nobody", "a@", "@example.com", "33123456", "a b@example.com"])
+def test_normalize_email_refuses(raw: str) -> None:
     with pytest.raises(ApiError) as e:
-        normalize_identifier(raw)
-    assert e.value.code == "invalid_identifier"
+        normalize_email(raw)
+    assert e.value.code == "invalid_email"
 
 
-@pytest.mark.parametrize(
-    ("kind", "value", "hint"),
-    [
-        ("email", "mariam@gmail.com", "m•••@gmail.com"),
-        ("email", "a@x.org", "a•••@x.org"),
-        ("phone", "+97333123456", "+973 •••• ••56"),
-        ("phone", "+966501234567", "+966 • •••• ••67"),
-        ("phone", "+447911123456", "+44 •• •••• ••56"),
-    ],
-)
-def test_destination_hint(kind: Any, value: str, hint: str) -> None:
-    assert destination_hint(kind, value) == hint
-
-
-def test_sms_capable() -> None:
-    assert sms_capable("+97333123456", ["BH"])
-    assert sms_capable("+97333123456", ["bh "])
-    assert not sms_capable("+97317123456", ["BH"])  # a landline
-    assert not sms_capable("+966501234567", ["BH"])
-    assert sms_capable("+966501234567", ["BH", "SA"])
-    assert not sms_capable("garbage", ["BH"])
+@pytest.mark.parametrize(("value", "hint"), [("sara@example.com", "s•••@example.com"), ("@x.com", "•••@x.com")])
+def test_destination_hint(value: str, hint: str) -> None:
+    assert destination_hint(value) == hint
 
 
 @pytest.mark.parametrize(
@@ -73,20 +36,24 @@ def test_sms_capable() -> None:
         ("name@example.com", "name@example.com"),
         ("name+tag@example.com", "name@example.com"),
         ("first.last+a+b@example.com", "first.last@example.com"),
-        ("First.Last@gmail.com".lower(), "firstlast@gmail.com"),
+        ("first.last@gmail.com", "firstlast@gmail.com"),
         ("f.i.r.s.t+x@googlemail.com", "first@gmail.com"),
         ("+only@example.com", "@example.com"),
     ],
 )
-def test_rate_key_in_python_and_sql(db: Session, address: str, key: str) -> None:
-    assert rate_key("email", address) == key
-    assert db.scalar(select(email_rate_key_sql(literal(address)))) == key
-    assert rate_key("phone", "+97333123456") == "+97333123456"
+def test_rate_key(address: str, key: str) -> None:
+    assert rate_key(address) == key
+
+
+def test_account_key_is_a_keyed_hash_of_the_rate_key() -> None:
+    assert account_key("name+1@gmail.com") == account_key("n.a.m.e@googlemail.com")
+    assert account_key("name@gmail.com") != account_key("other@gmail.com")
+    assert "name" not in account_key("name@gmail.com")
 
 
 def test_admin_identifiers_are_normalised(set_option: Callable[[str, Any], None]) -> None:
-    set_option("admin_identifiers", ["Boss@Example.com", "+973 3399 9999", "33999998", "nonsense"])
-    assert admin_identifiers() == frozenset({"boss@example.com", "+97333999999", "+97333999998"})
+    set_option("admin_identifiers", ["Boss@Example.com", "+973 3399 9999", "nonsense"])
+    assert admin_identifiers() == frozenset({"boss@example.com"})
 
 
 def test_wait_for() -> None:

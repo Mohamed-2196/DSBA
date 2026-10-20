@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import re
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import Request
 from sqlalchemy import ColumnElement, Select, func, or_, select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, aliased
 
 from app.core.access import Box, Feature
@@ -28,6 +26,7 @@ from app.models import (
 )
 from app.routers._base import SteppedUpAdmin, router_for
 from app.schemas.access import UserRolesUpdate
+from app.schemas.auth import ResetLinkOut
 from app.schemas.common import ErrorResponse
 from app.schemas.gaps import Gaps
 from app.schemas.moderation import AdminStats, AdminUser, AdminUserPage, AdminUserUpdate, AuditOut, AuditPage
@@ -42,18 +41,16 @@ from app.services import (
     requests,
     roles,
     sessions,
+    signin,
     suggestions,
 )
 from app.services.accounts import public_user
 from app.services.audit import record
-from app.services.identifiers import Kind, destination_hint, normalize_identifier
 from app.services.notify import notify
-from app.services.otp import send_text_notice
 
 router = router_for("admin")
 
 SEARCH_MAX = 100
-PHONE_LIKE = re.compile(r"[\d\s()+.-]+")
 STATUS_NOTICES: dict[UserStatus, tuple[str, str | None]] = {
     UserStatus.active: ("Your account is active again", "You can post, upload and react again."),
     UserStatus.suspended: (
@@ -68,13 +65,13 @@ def _count(db: DB, q: Select[tuple[int]]) -> int:
 
 
 def admin_user(u: User, *, contacts: bool) -> AdminUser:
-    """A person for the people list. `contacts`: their email address and phone number (admins only)."""
+    """A person for the people list. `contacts`: their email address (admins only)."""
     return AdminUser.model_validate(
         {
             "id": u.id,
             "display_name": u.display_name,
             "email": u.email if contacts else None,
-            "phone": u.phone if contacts else None,
+            "email_confirmed": u.email_confirmed_at is not None,
             "roles": accounts.role_summaries(u),
             "status": u.status.value,
             "year": u.year,
@@ -145,7 +142,7 @@ def list_users(
     offset: Offset = 0,
 ) -> AdminUserPage:
     """Search by name (case-insensitive, any part), newest accounts first. `role`: a role's slug. Only admins search
-    and see email addresses and phone numbers (a phone number may be typed with spaces).
+    and see email addresses.
 
     Errors: invalid (422: no role with this slug)."""
     contacts = access.is_admin(user)
@@ -155,10 +152,7 @@ def list_users(
         pattern = _like(text)
         matches = [User.display_name.ilike(pattern, escape="\\")]
         if contacts:
-            matches += [User.email.ilike(pattern, escape="\\"), User.phone.ilike(pattern, escape="\\")]
-            digits = re.sub(r"\D", "", text)
-            if len(digits) >= 3 and PHONE_LIKE.fullmatch(text):
-                matches.append(User.phone.like(f"%{digits}%"))
+            matches.append(User.email.ilike(pattern, escape="\\"))
         where.append(or_(*matches))
     if role is not None:
         held = access.role_by_slug(db, role)
@@ -187,37 +181,22 @@ def update_user(
     sess: CurrentSession,
     db: DB,
 ) -> AdminUser:
-    """Suspend or restore an account, or recover one: replace or remove its email
-    address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
-    Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
-    Recovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding
-    Admin (security review AD-1).
+    """Suspend or restore an account. Audited, and the person gets a notification. Suspending or restoring an admin is
+    for admins, with a recent step-up (security review AD-1).
 
-    Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,
-    and so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,
-    or suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422)."""
+    Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: suspending or restoring
+    an admin), step_up_required (403: suspending or restoring an admin)."""
     target = db.get(User, user_id)
     if target is None:
         raise not_found("This account doesn't exist.")
     new_status = UserStatus(body.status) if body.status is not None else None
-    recovery: dict[Kind, str | None] = {}
-    if "email" in body.model_fields_set:
-        recovery["email"] = body.email
-    if "phone" in body.model_fields_set:
-        recovery["phone"] = body.phone
     contacts = access.is_admin(user)
-    if new_status is None and not recovery:
+    if new_status is None:
         return admin_user(target, contacts=contacts)
     if target.id == user.id:
         raise conflict("cannot_change_self", "You can't change your own account here. Ask another admin.")
-    if recovery:
-        if not contacts:
-            raise forbidden("Only admins can do this.")
-        if access.access_of(target, db).admin:
-            raise forbidden("An admin's email address and phone number can't be changed here. Take Admin away first.")
-        sessions.require_step_up(sess)
     ip = client_ip(request)
-    if new_status is not None and new_status != target.status:
+    if new_status != target.status:
         if access.access_of(target, db).admin:
             if not contacts:
                 suspend = new_status == UserStatus.suspended
@@ -229,65 +208,22 @@ def update_user(
         target.status = new_status
         title, body_text = STATUS_NOTICES[new_status]
         notify(db, target.id, "system", title, body=body_text, actor=user)
-    notices = [n for kind, raw in recovery.items() if (n := _recover(db, user, target, kind, raw, ip)) is not None]
     db.commit()
-    for to, message in notices:
-        send_text_notice(to, message)
     return admin_user(target, contacts=contacts)
 
 
-def _recover(db: DB, admin: User, target: User, kind: Kind, raw: str | None, ip: str | None) -> tuple[str, str] | None:
-    """Puts `raw` (None: removes) as the target's email address or phone number. -> a text notice to send after
-    the commit, if any."""
-    label = accounts.LABELS[kind]
-    current, other = (target.email, target.phone) if kind == "email" else (target.phone, target.email)
-    value: str | None = None
-    if raw is not None:
-        found, value = normalize_identifier(raw)
-        if found != kind:
-            raise invalid(
-                kind,
-                f"Enter a {'valid email address' if kind == 'email' else 'phone number'}.",
-                code="invalid_identifier",
-            )
-        if value == current:
-            return None
-        owner = accounts.find_user(db, kind, value)
-        if owner is not None and owner.id != target.id:
-            raise conflict("identifier_taken", f"Another account already uses this {label}.")
-    elif current is None:
-        return None
-    elif other is None:
-        raise conflict("last_identifier", "The account needs at least one way to sign in.")
-    change = accounts.set_identifier(target, kind, value)
-    try:
-        with db.begin_nested():
-            db.flush()
-    except IntegrityError:  # taken a moment ago
-        raise conflict("identifier_taken", f"Another account already uses this {label}.") from None
-    record(
-        db,
-        admin,
-        "user.identifier",
-        "user",
-        target.id,
-        {
-            "kind": kind,
-            "from": destination_hint(kind, change.before) if change.before else None,
-            "to": destination_hint(kind, value) if value else None,
-        },
-        ip,
-    )
-    sessions.revoke_others(db, target.id, keep=None)
-    notify(
-        db,
-        target.id,
-        "system",
-        f"An admin changed the {label} on your account",
-        body="Your account was signed out everywhere. Sign in with your current email address or phone number.",
-        actor=admin,
-    )
-    return accounts.queue_identifier_notice(db, target, change)
+@router.post("/admin/users/{user_id}/reset-link", response_model=ResetLinkOut)
+def make_reset_link(user_id: UUID, request: Request, user: SteppedUpAdmin, db: DB) -> ResetLinkOut:
+    """A one-time link for someone who forgot their password, for you to pass on (the Hub sends no email). It works
+    once, within an hour; a newer link retires older ones. Audited, and the person is told.
+
+    Errors: step_up_required (403), forbidden (403: an account holding Admin), cannot_change_self (409)."""
+    target = db.get(User, user_id)
+    if target is None:
+        raise not_found("This account doesn't exist.")
+    link = signin.issue_reset_link(db, user, target, client_ip(request))
+    db.commit()
+    return link
 
 
 @router.put("/admin/users/{user_id}/roles", response_model=AdminUser)

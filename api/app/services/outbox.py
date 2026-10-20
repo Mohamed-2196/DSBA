@@ -7,8 +7,9 @@
 - A failed send is retried with exponential backoff (30 s, 1 min, 2 min, ... up to 6 h, with some jitter), and
   given up after MAX_ATTEMPTS. Logs name the kind and the masked address, never the address or the body.
 - Nobody gets a notification email or a Sunday summary before answering the question about emails when they sign
-  up (wants()). Then each notification email follows its switch, and a switch never set follows the answer; the
-  Sunday summary is off until they turn it on.
+  up, or while Google hasn't confirmed their address: anyone can sign up with someone else's (wants()). Then each
+  notification email follows its switch, and a switch never set follows the answer; the Sunday summary is off until
+  they turn it on.
 - When its turn comes, a notification email or a Sunday summary is cancelled if the person no longer wants it: the
   account is gone, its email address changed, or the switch for that kind was turned off. It is cancelled too when
   the feature it is about is switched off for the person.
@@ -92,10 +93,10 @@ def answer_of(user: User) -> bool | None:
 
 def wants(user: User, switch: str) -> bool:
     """Whether the email switch `switch` (a Preferences field) is on for this person. None is before they answer the
-    question about emails; then a switch they set says so, a notification email they never switched follows their
-    answer, and the Sunday summary is off until they turn it on."""
+    question about emails, and while Google hasn't confirmed the address; then a switch they set says so, a
+    notification email they never switched follows their answer, and the Sunday summary is off until they turn it on."""
     answer = answer_of(user)
-    if answer is None:
+    if answer is None or user.email_confirmed_at is None:
         return False
     value = (user.preferences if isinstance(user.preferences, dict) else {}).get(switch)
     if isinstance(value, bool):
@@ -106,7 +107,9 @@ def wants(user: User, switch: str) -> bool:
 def wanted_by(switch: str) -> ColumnElement[bool]:
     """A condition on User: the email switch `switch` is on (as wants(), in SQL)."""
     prefs = User.preferences
-    answered = or_(prefs.contains({ANSWER: True}), prefs.contains({ANSWER: False}))
+    answered = and_(
+        User.email_confirmed_at.is_not(None), or_(prefs.contains({ANSWER: True}), prefs.contains({ANSWER: False}))
+    )
     turned_on = prefs.contains({switch: True})
     if switch == SUMMARY_SWITCH:
         return and_(answered, turned_on)
@@ -191,7 +194,7 @@ def send_one(db: Session, now: datetime | None = None) -> bool:
             log.warning(
                 "gave up on a %s email to %s after %d tries",
                 row.kind,
-                destination_hint("email", row.to_address),
+                destination_hint(row.to_address),
                 row.attempts,
             )
         else:

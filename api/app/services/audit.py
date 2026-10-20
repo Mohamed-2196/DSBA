@@ -48,11 +48,7 @@ def record(
 def person_name(user: User) -> str | None:
     """How the log names an account: its display name, or its masked address ('s•••@example.com') when it has none
     yet (a new account, or one that never finished signing up)."""
-    if user.display_name:
-        return user.display_name
-    if user.email:
-        return destination_hint("email", user.email)
-    return destination_hint("phone", user.phone) if user.phone else None
+    return user.display_name or destination_hint(user.email)
 
 
 def _user(db: Session, user_id: object | None) -> User | None:

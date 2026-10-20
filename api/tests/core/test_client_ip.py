@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.core.security import client_ip
-from app.models import AuditEntry, OtpChallenge, User
+from app.models import AttemptKind, AuditEntry, SignInAttempt, User
 from tests.core.conftest import BrowserAt, SetOption
 from tests.core.helpers import API, new_thread
 
@@ -67,45 +67,49 @@ def test_forwarded_for_counts_only_from_a_trusted_proxy(
     assert client_ip(_request(peer, *forwarded)) == expected
 
 
-def _start(c: TestClient, identifier: str, forwarded: str | None = None) -> int:
+def _start(c: TestClient, email: str, forwarded: str | None = None) -> int:
+    """A sign-up from behind `forwarded`; the CSRF header follows the new session's cookie afterwards."""
     headers = {"X-Forwarded-For": forwarded} if forwarded else {}
-    return int(c.post(f"{API}/auth/otp", json={"identifier": identifier}, headers=headers).status_code)
+    body = {"email": email, "password": "correct horse battery"}
+    status = int(c.post(f"{API}/auth/sign-up", json=body, headers=headers).status_code)
+    c.headers["X-CSRF-Token"] = c.cookies.get("dsba_csrf") or ""
+    return status
 
 
-def _challenge_ips(db: Session, prefix: str) -> set[str | None]:
-    rows = db.scalars(select(OtpChallenge.ip).where(OtpChallenge.identifier.like(f"{prefix}%")))
+def _challenge_ips(db: Session) -> set[str | None]:
+    rows = db.scalars(select(SignInAttempt.ip).where(SignInAttempt.kind == AttemptKind.sign_up))
     return {str(ip) if ip is not None else None for ip in rows}
 
 
 def test_a_spoofed_forwarded_for_does_not_escape_the_per_ip_limit(
     browser_at: BrowserAt, set_option: SetOption, db: Session
 ) -> None:
-    set_option("otp_max_per_ip_per_hour", 2)
+    set_option("sign_ups_per_network_per_hour", 2)
     c = browser_at("203.0.113.5")
-    assert _start(c, "spoof1@example.com", "1.1.1.1") == 202
-    assert _start(c, "spoof2@example.com", "2.2.2.2") == 202
+    assert _start(c, "spoof1@example.com", "1.1.1.1") == 201
+    assert _start(c, "spoof2@example.com", "2.2.2.2") == 201
     assert _start(c, "spoof3@example.com", "3.3.3.3") == 429  # a new header value is not a new address
-    assert _challenge_ips(db, "spoof") == {"203.0.113.5"}
+    assert _challenge_ips(db) == {"203.0.113.5"}
 
 
 def test_behind_a_trusted_proxy_each_client_counts_for_itself(
     browser_at: BrowserAt, set_option: SetOption, db: Session
 ) -> None:
     set_option("trusted_proxies", [ipaddress.ip_network(f"{PROXY}/32")])
-    set_option("otp_max_per_ip_per_hour", 1)
+    set_option("sign_ups_per_network_per_hour", 1)
     proxy = browser_at(PROXY)
-    assert _start(proxy, "behind1@example.com", "198.51.100.7") == 202
-    assert _start(proxy, "behind2@example.com", "203.0.113.9") == 202  # another student behind the same proxy
+    assert _start(proxy, "behind1@example.com", "198.51.100.7") == 201
+    assert _start(proxy, "behind2@example.com", "203.0.113.9") == 201  # another student behind the same proxy
     assert _start(proxy, "behind3@example.com", "6.6.6.6, 198.51.100.7") == 429  # the first one again
-    assert _challenge_ips(db, "behind") == {"198.51.100.7", "203.0.113.9"}
+    assert _challenge_ips(db) == {"198.51.100.7", "203.0.113.9"}
 
 
 def test_a_forwarded_for_that_is_not_an_address_is_no_address(
     browser_at: BrowserAt, set_option: SetOption, db: Session
 ) -> None:
     set_option("trusted_proxies", [ipaddress.ip_network(f"{PROXY}/32")])
-    assert _start(browser_at(PROXY), "garbage@example.com", "abc") == 202  # not a 500 from the INET column
-    assert _challenge_ips(db, "garbage") == {None}
+    assert _start(browser_at(PROXY), "garbage@example.com", "abc") == 201  # not a 500 from the INET column
+    assert _challenge_ips(db) == {None}
 
 
 def test_audit_rows_record_the_client_behind_the_proxy(

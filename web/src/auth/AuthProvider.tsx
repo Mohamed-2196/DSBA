@@ -7,8 +7,9 @@ import type { Me } from '../api/types';
 import { useAccountYearSync, useToast } from '../state';
 import { canDo, featureIsOn, isActiveAdmin, managerBoxes, offerOf, offered, offForOthers } from './access';
 import { AuthContext, type AuthValue, type SignInRequest } from './context';
-import { ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
+import { GOOGLE_SIGN_IN_KEY, ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
 import { readGuestFeatures } from './guestFeatures';
+import { GoogleReturn } from './GoogleReturn';
 import { createSessionGuard } from './sessionGuard';
 import { SignInDialog } from './SignInDialog';
 import { StepUpDialog } from './StepUpDialog';
@@ -112,7 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ME_KEY,
     queryFn: async ({ client }): Promise<Me | null> => {
       const before = client.getQueryData<Me | null>(ME_KEY) ?? null;
-      const { me } = await call(api.GET('/api/v1/auth/session'));
+      const { me, googleSignIn } = await call(api.GET('/api/v1/auth/session'));
+      client.setQueryData(GOOGLE_SIGN_IN_KEY, googleSignIn);
       // Signing in again after a session ended: keep the page as it was until that is done.
       if (before && !me && reauthPending()) return before;
       if (before && !me) queueMicrotask(() => sessionEndedRef.current({ userId: before.id, write: false }));
@@ -123,6 +125,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnWindowFocus: true,
   });
   const me = sessionQuery.data ?? null;
+  // Whether "Continue with Google" is set up: the session's answer says, alongside who is signed in.
+  const googleQuery = useQuery({ queryKey: GOOGLE_SIGN_IN_KEY, queryFn: () => false, enabled: false });
+  const googleSignIn = googleQuery.data === true;
 
   // The guest list of features. Signed in, /me carries the list; it's fetched for admins too, to mark what's off for
   // others. /features answers a signed-in person with their own list, so it always goes without credentials.
@@ -145,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const yearShown = useAccountYearSync(me?.year ?? null);
 
   // Every API call goes through the session guard: a 401 on an action asks the person to sign in again and then
-  // sends it again (UX-1); a 403 step_up_required asks for a code first (D2).
+  // sends it again (UX-1); a 403 step_up_required asks the person to confirm it's them first (D2).
   useEffect(() => {
     const guard = createSessionGuard({
       currentUserId: () => qc.getQueryData<Me | null>(ME_KEY)?.id ?? null,
@@ -208,6 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       featureOn: (feature) => featureIsOn(me, guestFeatures.list, feature),
       offForOthers: (feature) => offForOthers(me, guestFeatures.list, feature),
       isAdmin: isActiveAdmin(me),
+      googleSignIn,
       manages: managerBoxes(me).length > 0,
       roles: me?.roles ?? [],
       refresh,
@@ -221,6 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [
     me,
+    googleSignIn,
     guestFeatures.list,
     guestFeatures.loading,
     sessionQuery.isPending,
@@ -242,7 +249,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         onDone={onSignedIn}
         onDismiss={onDismissed}
       />
-      <StepUpDialog purpose={stepUp?.purpose ?? null} me={me} onDone={finishStepUp} />
+      <StepUpDialog purpose={stepUp?.purpose ?? null} me={me} googleSignIn={googleSignIn} onDone={finishStepUp} />
+      <GoogleReturn me={me} ready={!sessionQuery.isPending} openSignIn={openSignIn} />
     </AuthContext.Provider>
   );
 }

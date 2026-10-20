@@ -62,7 +62,7 @@ test('every page fits a 390×844 phone screen, in dark mode too', async ({ brows
 });
 
 test('writing asks a guest to sign in first', async ({ guest }) => {
-  const signIn = guest.getByRole('dialog').filter({ has: guest.getByLabel('Email or phone number') });
+  const signIn = guest.getByRole('dialog').filter({ has: guest.getByLabel('Email address') });
   await guest.goto('/library');
   await guest.locator('[data-hub="upload-button"]').click();
   await expect(signIn).toBeVisible();

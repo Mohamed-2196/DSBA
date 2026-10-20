@@ -25,7 +25,7 @@ from app.models import AccessRole, AuditEntry, Notification, RoleBox, User, User
 from app.schemas.access import RoleUpdate
 from app.services import access, accounts, documents, roles
 from app.services.noora.settings import NOORA
-from tests.accounts.conftest import API, Outbox, sync_csrf
+from tests.accounts.conftest import API, PASSWORD, Outbox, sync_csrf
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
@@ -34,7 +34,7 @@ ADMIN = ("student", "admin")
 
 @pytest.fixture
 def boss(make_user: MakeUser) -> User:
-    return make_user(email="head@example.com", name="Head Admin", roles=ADMIN)
+    return make_user(email="head@example.com", name="Head Admin", roles=ADMIN, password=PASSWORD)
 
 
 def role_id(db: Session, slug: str) -> str:
@@ -356,11 +356,8 @@ def test_two_last_admins_deleting_their_accounts_at_once_leave_one(
 # ── the security review's rules (AD-1, AD-3, AD-4, AD-7, AD-9) ─────────────────────────────────
 
 
-def _step_up(c: TestClient, outbox: Outbox, to: str) -> None:
-    started = c.post(f"{API}/me/step-up", json={})
-    assert started.status_code == 202, started.text
-    code = outbox.to(to)[-1].code
-    done = c.post(f"{API}/me/step-up/verify", json={"challengeId": started.json()["challengeId"], "code": code})
+def _step_up(c: TestClient) -> None:
+    done = c.post(f"{API}/me/step-up", json={"password": PASSWORD})
     sync_csrf(c)  # a new session comes with a new CSRF cookie
     assert done.status_code == 200, done.text
 
@@ -390,7 +387,7 @@ def test_admin_changes_need_a_recent_step_up(
     for method, path, body in writes:
         r = c.request(method, f"{API}{path}", json=body)
         assert (r.status_code, r.json()["error"]["code"]) == (403, "step_up_required"), (method, path)
-    assert c.get(f"{API}/admin/roles").status_code == 200  # reading needs no code
+    assert c.get(f"{API}/admin/roles").status_code == 200  # reading needs no confirmation
     assert c.get(f"{API}/admin/features").status_code == 200
     access.forget(db)
     assert db.scalar(select(AuditEntry).where(AuditEntry.actor_id == boss.id)) is None
@@ -398,7 +395,7 @@ def test_admin_changes_need_a_recent_step_up(
     assert access.access_of(sara).slugs == ("student",)
     assert access.feature_on(db, None, Feature.forum)
 
-    _step_up(c, outbox, "head@example.com")
+    _step_up(c)
     for method, path, body in writes:
         r = c.request(method, f"{API}{path}", json=body)
         assert r.status_code in (200, 201, 204), (method, path, r.text)
@@ -426,7 +423,7 @@ def test_suspending_an_admin_needs_a_recent_step_up(
     assert other.status == UserStatus.active
     assert c.patch(f"{API}/admin/users/{sara.id}", json={"status": "suspended"}).status_code == 200
 
-    _step_up(c, outbox, "head@example.com")
+    _step_up(c)
     assert c.patch(f"{API}/admin/users/{other.id}", json={"status": "suspended"}).status_code == 200
     db.expire_all()
     assert db.scalar(select(User.status).where(User.id == other.id)) == UserStatus.suspended

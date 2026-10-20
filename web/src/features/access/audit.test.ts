@@ -91,21 +91,16 @@ describe('describeAudit', () => {
     expect(describeAudit(entry('library.publish', {}))).toBe('published a library file');
   });
 
-  it('describes an admin’s change to an account’s sign-in address', () => {
-    expect(
-      describeAudit(
-        entry(
-          'user.identifier',
-          { kind: 'email', from: 's•••@example.com', to: 'm•••@example.com', targetName: 'Sara M.' },
-          'user',
-        ),
-      ),
-    ).toBe('changed Sara M.’s email address from s•••@example.com to m•••@example.com');
-    expect(
-      describeAudit(
-        entry('user.identifier', { kind: 'phone', from: null, to: '+973 •••• ••56', targetName: 'Sara M.' }, 'user'),
-      ),
-    ).toBe('added +973 •••• ••56 as Sara M.’s phone number');
+  it('describes reset links and takeovers', () => {
+    expect(describeAudit(entry('user.reset_link', { targetName: 'Sara M.' }, 'user'))).toBe(
+      'made a password reset link for Sara M.',
+    );
+    expect(describeAudit(entry('user.password_reset', { targetName: 'Sara M.' }, 'user'))).toBe(
+      'set a new password with a reset link',
+    );
+    expect(describeAudit(entry('user.takeover', { via: 'google', targetName: 'Sara M.' }, 'user'))).toBe(
+      'signed in with Google and took over Sara M.’s unconfirmed account with that address',
+    );
   });
 
   it('names the account from the snapshot, else from loaded accounts', () => {

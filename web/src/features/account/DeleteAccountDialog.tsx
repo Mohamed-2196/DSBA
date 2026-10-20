@@ -74,8 +74,8 @@ export function DeleteAccountDialog({ open, onClose }: { open: boolean; onClose:
     >
       <form id="delete-account-form" className="acct-delete" onSubmit={onSubmit} noValidate>
         <p>
-          Your name, email address, phone number, stars, votes, reactions, lesson progress, notifications and bug
-          reports are deleted, and you’re signed out everywhere.
+          Your name, email address, password, stars, votes, reactions, lesson progress, notifications and bug reports
+          are deleted, and you’re signed out everywhere.
         </p>
         <p>
           Your threads and replies stay, shown as from a deleted user. Library files that were published stay, without

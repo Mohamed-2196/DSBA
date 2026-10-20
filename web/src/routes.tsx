@@ -186,6 +186,13 @@ const pages: AppRoute[] = [
     modules: false,
   },
   {
+    id: 'reset-password',
+    path: '/reset-password',
+    title: 'Choose a new password',
+    Page: lazyPage(() => import('./features/account/ResetPasswordPage')),
+    modules: false,
+  },
+  {
     id: 'manage',
     path: '/manage',
     title: 'Manage',

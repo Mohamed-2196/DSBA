@@ -3,11 +3,13 @@
 openapi            print the OpenAPI document (the web app generates its types from it)
 seed [--only X]    load the reference content (modules, calendar, newsletter, career, the Drive folders to import,
                    and the past questions Claude tagged, on the papers the install has)
-set-role ID ROLE...  make the account with this email or phone number hold exactly these roles (slugs; audited)
+set-role EMAIL ROLE...  make the account with this email address hold exactly these roles (slugs; audited). A
+                   role beyond Student needs an address Google confirmed (the person continues with Google once)
 backup             pg_dump the database into the backup bucket, encrypted at rest, and keep the newest
                    DSBA_BACKUP_KEEP (docs/backend/DEPLOYMENT.md: where backups go, and how to restore one)
 sweep              delete what is no longer needed: uploads never attached to anything or whose board card is gone
-                   (after a day), sign-in codes older than two days, sessions that expired or were revoked more
+                   (after a day), sign-in attempts and Google sign-ins older than two days and one, reset links that
+                   ended a day ago, sessions that expired or were revoked more
                    than 30 days ago, the files of library items rejected or removed more than a week ago, and the
                    screenshots of bug reports closed more than 90 days ago
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
@@ -44,11 +46,11 @@ tag-questions      have Claude tag each published past paper's questions with it
                    question). Needs DSBA_ANTHROPIC_API_KEY, except for --dry-run
 export-question-tags [FILE]  write Claude's tags to the seed (default app/seed/data/paper_questions.json), keyed
                    by each paper's import key and file hash, so `seed` gives every environment the same tags
-dev-login ID       development only: print a session token for an account (created if needed, holding Student;
-                   --role gives one more role)
+dev-login EMAIL    development only: print a session token for an account (created if needed, holding Student,
+                   its address counted as confirmed; --role gives one more role, --password sets its password)
 enable-features    development only: switch every feature on for everyone (each change goes to the activity log)
 
-Nothing here prints a one-time code, and only dev-login prints a token (it refuses to run in production). Nothing
+Nothing here prints a password, and only dev-login prints a token (it refuses to run in production). Nothing
 prints the Google API key."""
 
 from __future__ import annotations
@@ -75,7 +77,17 @@ from app.config import Settings, get_settings, texts_settings
 from app.core.access import Feature
 from app.core.time import utcnow
 from app.db import get_sessionmaker, make_engine, sessions_for
-from app.models import AccessRole, OtpChallenge, Upload, UploadPurpose, UploadStatus, User, UserSession
+from app.models import (
+    AccessRole,
+    GoogleLogin,
+    PasswordReset,
+    SignInAttempt,
+    Upload,
+    UploadPurpose,
+    UploadStatus,
+    User,
+    UserSession,
+)
 from app.seed.loader import SECTIONS as SEED_SECTIONS
 from app.services.storage import Storage, get_storage, s3_client
 
@@ -84,8 +96,9 @@ if TYPE_CHECKING:
 
     from app.services.question_tagging import Report as TaggingReport
 
-# Rows a dump leaves out: sign-in codes and sessions are of no use after a restore (everyone signs in again).
-BACKUP_SKIP_DATA = ("otp_challenges", "user_sessions")
+# Rows a dump leaves out: sign-in attempts, Google sign-ins in progress, reset links and sessions are of no use after a
+# restore (everyone signs in again).
+BACKUP_SKIP_DATA = ("sign_in_attempts", "google_logins", "password_resets", "user_sessions")
 BACKUP_NAME = re.compile(r"\d{8}T\d{6}Z\.sql\.gz")
 UPLOAD_GRACE = timedelta(days=1)  # an upload not attached to anything after this long is swept
 SESSION_RETENTION = timedelta(days=30)  # expired or revoked sessions are kept this long (who signed in from where)
@@ -111,17 +124,21 @@ def cmd_seed(args: argparse.Namespace) -> int:
 
 
 def cmd_set_role(args: argparse.Namespace) -> int:
-    from app.core.access import ADMIN
+    from app.core.access import ADMIN, STUDENT
     from app.core.errors import ApiError
     from app.services import access
     from app.services.audit import record
-    from app.services.identifiers import normalize_identifier
+    from app.services.identifiers import normalize_email
 
-    _, ident = normalize_identifier(args.identifier)
+    try:
+        ident = normalize_email(args.email)
+    except ApiError as e:
+        print(e.message, file=sys.stderr)
+        return 1
     with get_sessionmaker()() as db:
-        user = db.scalar(select(User).where((User.email == ident) | (User.phone == ident)))
+        user = db.scalar(select(User).where(User.email == ident))
         if user is None:
-            print(f"no account for {ident}: sign in once first", file=sys.stderr)
+            print(f"no account for {ident}: sign up once first", file=sys.stderr)
             return 1
         found = {slug: access.role_by_slug(db, slug) for slug in args.roles}
         wanted = [role for role in found.values() if role is not None]
@@ -129,6 +146,10 @@ def cmd_set_role(args: argparse.Namespace) -> int:
             missing = ", ".join(slug for slug, role in found.items() if role is None)
             known = ", ".join(db.scalars(select(AccessRole.slug).order_by(AccessRole.position)))
             print(f"no role called {missing}: the roles are {known}", file=sys.stderr)
+            return 1
+        held = set(access.access_of(user, db).slugs)
+        if user.email_confirmed_at is None and any(r.slug not in held and r.slug != STUDENT for r in wanted):
+            print(f"{ident} isn't confirmed: they continue with Google once, then run this again", file=sys.stderr)
             return 1
         before = access.role_names(user)
         try:
@@ -297,7 +318,7 @@ def backup(s: Settings) -> bool:
 @dataclass(frozen=True)
 class SweepReport:
     uploads: int
-    challenges: int
+    attempts: int  # sign-in attempts, Google sign-ins and reset links
     sessions: int
     files: int = 0  # files of rejected or removed library items
     bug_report_ips: int = 0  # guests' addresses on bug reports, forgotten once the rate limit no longer counts them
@@ -307,13 +328,14 @@ class SweepReport:
 
 def sweep() -> SweepReport:
     """Deletes uploads never attached to anything, note files no note shows any more (released) and board files off
-    their card (objects first, then rows), old sign-in codes, sessions that ended long ago, the files of library items
-    rejected or removed a week ago, the addresses kept on bug reports and on kept Daily plays, and the screenshots of
-    reports closed long ago. Safe to run at any time and to run again."""
+    their card (objects first, then rows), old sign-in attempts, Google sign-ins and reset links, sessions that ended
+    long ago, the files of library items rejected or removed a week ago, the addresses kept on bug reports and on kept
+    Daily plays, and the screenshots of reports closed long ago. Safe to run at any time and to run again."""
     from app.services.bugs import clear_old_ips, sweep_screenshots
     from app.services.daily.plays import clear_old_kept_ips
+    from app.services.google import KEEP_LOGINS
     from app.services.library import sweep_files
-    from app.services.otp import KEEP_CHALLENGES
+    from app.services.passwords import KEEP_ATTEMPTS
 
     now = utcnow()
     storage = get_storage()
@@ -327,8 +349,12 @@ def sweep() -> SweepReport:
             storage.delete(up.storage_key)  # a pending upload's incoming object may never have arrived: still fine
             db.delete(up)
         files = sweep_files(db, storage, now)  # library files rejected or removed a week ago
-        old_codes = delete(OtpChallenge).where(OtpChallenge.created_at < now - KEEP_CHALLENGES)
-        challenges = cast(CursorResult[Any], db.execute(old_codes)).rowcount
+        old_rows = (
+            delete(SignInAttempt).where(SignInAttempt.created_at < now - KEEP_ATTEMPTS),
+            delete(GoogleLogin).where(GoogleLogin.created_at < now - KEEP_LOGINS),
+            delete(PasswordReset).where(PasswordReset.expires_at < now - KEEP_LOGINS),
+        )
+        attempts = sum(cast(CursorResult[Any], db.execute(stmt)).rowcount for stmt in old_rows)
         ended = now - SESSION_RETENTION
         dead = delete(UserSession).where(or_(UserSession.expires_at < ended, UserSession.revoked_at < ended))
         sessions = cast(CursorResult[Any], db.execute(dead)).rowcount
@@ -338,7 +364,7 @@ def sweep() -> SweepReport:
         db.commit()
     return SweepReport(
         uploads=len(stale),
-        challenges=challenges,
+        attempts=attempts,
         sessions=sessions,
         files=files,
         bug_report_ips=bug_report_ips,
@@ -357,7 +383,7 @@ def cmd_sweep(_: argparse.Namespace) -> int:
     ping(url, ok=True)
     print(
         f"swept {r.uploads} upload(s), {r.files} library file(s), {r.bug_screenshots} bug screenshot(s), "
-        f"{r.challenges} sign-in code(s) and {r.sessions} session(s)"
+        f"{r.attempts} sign-in record(s) and {r.sessions} session(s)"
     )
     return 0
 
@@ -647,24 +673,34 @@ def cmd_daily_content(args: argparse.Namespace) -> int:
 
 def cmd_dev_login(args: argparse.Namespace) -> int:
     from app.core.access import STUDENT
+    from app.core.errors import ApiError
     from app.core.security import hash_token, new_token
-    from app.services import access
-    from app.services.identifiers import normalize_identifier
+    from app.services import access, passwords
+    from app.services.identifiers import normalize_email
 
     if get_settings().is_production:
         print("dev-login is disabled in production", file=sys.stderr)
         return 1
-    kind, ident = normalize_identifier(args.identifier)
+    try:
+        ident = normalize_email(args.email)
+        if args.password is not None:
+            passwords.check_new(args.password, ident)
+    except ApiError as e:
+        print(e.message, file=sys.stderr)
+        return 1
     with get_sessionmaker()() as db:
         if args.role and access.role_by_slug(db, args.role) is None:
             print(f"no role called {args.role}", file=sys.stderr)
             return 1
-        user = db.scalar(select(User).where((User.email == ident) | (User.phone == ident)))
+        user = db.scalar(select(User).where(User.email == ident))
         if user is None:
-            user = User(email=ident if kind == "email" else None, phone=ident if kind == "phone" else None)
+            user = User(email=ident)
             db.add(user)
             db.flush()
             access.give(db, user, STUDENT)
+        user.email_confirmed_at = user.email_confirmed_at or utcnow()  # development: as if Google had vouched
+        if args.password is not None:
+            user.password_hash = passwords.hash_password(args.password)
         if args.name:
             user.display_name = args.name
         if args.year:
@@ -723,7 +759,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     sp.set_defaults(fn=cmd_seed)
     sr = sub.add_parser("set-role")
-    sr.add_argument("identifier")
+    sr.add_argument("email")
     sr.add_argument(
         "roles",
         nargs="+",
@@ -780,7 +816,8 @@ def main(argv: list[str] | None = None) -> int:
     xq.add_argument("file", metavar="FILE", nargs="?", default=None, help="default: the seed's paper_questions.json")
     xq.set_defaults(fn=cmd_export_question_tags)
     dl = sub.add_parser("dev-login")
-    dl.add_argument("identifier")
+    dl.add_argument("email")
+    dl.add_argument("--password", default=None, help="set the account's password too (the rules apply)")
     dl.add_argument("--role", default=None, metavar="ROLE", help="give this role too (a slug, such as rep or admin)")
     dl.add_argument("--name", default=None)
     dl.add_argument("--year", type=int, choices=[1, 2, 3], default=None)

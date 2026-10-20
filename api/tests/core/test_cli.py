@@ -23,13 +23,15 @@ from app.core.access import FEATURES, Feature
 from app.core.security import hash_token
 from app.core.time import utcnow
 from app.models import (
+    AttemptKind,
     AuditEntry,
-    Channel,
+    GoogleIntent,
+    GoogleLogin,
     ItemSource,
     ItemStatus,
     LibraryItem,
-    OtpChallenge,
-    OtpPurpose,
+    PasswordReset,
+    SignInAttempt,
     Upload,
     UploadPurpose,
     UploadStatus,
@@ -84,32 +86,53 @@ def test_sweep_deletes_what_is_no_longer_needed(
         _upload(db, storage, owner, UploadStatus.uploaded, timedelta(hours=2), f"forum/{uuid.uuid4()}/c.png"),
     ]
 
-    def challenge(age: timedelta) -> OtpChallenge:
-        return OtpChallenge(
-            purpose=OtpPurpose.sign_in,
-            channel=Channel.email,
-            identifier=f"{uuid.uuid4().hex[:8]}@example.com",
-            code_hash="0" * 64,
+    def attempt(age: timedelta) -> SignInAttempt:
+        return SignInAttempt(kind=AttemptKind.sign_in_failed, account_key="0" * 64, created_at=now - age)
+
+    def google_login(age: timedelta) -> GoogleLogin:
+        return GoogleLogin(
+            state_hash=uuid.uuid4().hex * 2,
+            nonce="n",
+            code_verifier="v",
+            intent=GoogleIntent.sign_in,
+            return_to="/",
             created_at=now - age,
             expires_at=now - age + timedelta(minutes=10),
+        )
+
+    def reset(age: timedelta) -> PasswordReset:
+        return PasswordReset(
+            user_id=owner.id,
+            token_hash=uuid.uuid4().hex * 2,
+            created_at=now - age,
+            expires_at=now - age + timedelta(hours=1),
         )
 
     def session(**dates: Any) -> UserSession:
         return UserSession(user_id=owner.id, token_hash=uuid.uuid4().hex * 2, **dates)
 
-    old_code, recent_code = challenge(3 * day), challenge(day)
+    old_rows: list[SignInAttempt | GoogleLogin | PasswordReset] = [
+        attempt(3 * day),
+        google_login(2 * day),
+        reset(3 * day),
+    ]
+    recent_rows: list[SignInAttempt | GoogleLogin | PasswordReset] = [
+        attempt(day),
+        google_login(timedelta(hours=1)),
+        reset(timedelta(hours=1)),
+    ]
     dead = [session(expires_at=now - 31 * day), session(expires_at=now + day, revoked_at=now - 31 * day)]
     alive = [
         session(expires_at=now - day),
         session(expires_at=now + day, revoked_at=now - day),
         session(expires_at=now + day),
     ]
-    db.add_all([old_code, recent_code, *dead, *alive])
+    db.add_all([*old_rows, *recent_rows, *dead, *alive])
     db.commit()
-    ids = {"codes": (old_code.id, recent_code.id), "dead": [s.id for s in dead], "alive": [s.id for s in alive]}
+    ids = {"dead": [s.id for s in dead], "alive": [s.id for s in alive]}
 
     report = cli.sweep()
-    assert (report.uploads, report.challenges, report.sessions) == (2, 1, 2)
+    assert (report.uploads, report.attempts, report.sessions) == (2, 3, 2)
     db.expire_all()
     for up in gone:
         assert db.get(Upload, up.id) is None
@@ -117,8 +140,10 @@ def test_sweep_deletes_what_is_no_longer_needed(
     for up in kept:
         assert db.get(Upload, up.id) is not None
         assert storage.head(up.storage_key) is not None
-    assert db.get(OtpChallenge, ids["codes"][0]) is None
-    assert db.get(OtpChallenge, ids["codes"][1]) is not None
+    for row in old_rows:
+        assert db.get(type(row), row.id) is None
+    for row in recent_rows:
+        assert db.get(type(row), row.id) is not None
     assert all(db.get(UserSession, i) is None for i in ids["dead"])
     assert all(db.get(UserSession, i) is not None for i in ids["alive"])
     assert cli.sweep().uploads == 0  # nothing left to do
@@ -206,6 +231,15 @@ def test_set_role_gives_exactly_these_roles_and_is_audited(
     assert cli.main(["set-role", "nobody@example.com", "admin"]) == 1
     assert cli.main(["set-role", "soon.rep@example.com", "owner"]) == 1
     assert "no role called owner" in capsys.readouterr().err
+
+
+def test_set_role_needs_a_confirmed_address_for_staff_roles(
+    same_session: Session, make_user: Callable[..., User], capsys: pytest.CaptureFixture[str]
+) -> None:
+    user = make_user(email="typed@example.com", confirmed=False)
+    assert cli.main(["set-role", "typed@example.com", "student", "rep"]) == 1
+    assert "isn't confirmed" in capsys.readouterr().err
+    assert access.access_of(user).slugs == ("student",)
 
 
 def test_set_role_never_leaves_the_hub_without_an_admin(

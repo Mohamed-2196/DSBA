@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable, Iterator
 
 import httpx2
@@ -12,7 +11,6 @@ from fastapi.testclient import TestClient
 
 from app.core.security import csrf_token_for
 from app.models import User
-from app.services import mailer
 from tests.core.conftest import SetOption
 from tests.core.helpers import API
 
@@ -80,19 +78,12 @@ def test_any_answer_brings_the_cookie_in_step_with_the_session(
     assert _set_cookies(in_step.get(f"{API}/me"), "dsba_csrf") == []  # nothing to change
 
 
-def test_sign_in_binds_the_token_and_sign_out_replaces_it(
-    client_for: Callable[..., TestClient], monkeypatch: pytest.MonkeyPatch
-) -> None:
-    sent: list[str] = []
-    monkeypatch.setattr(mailer, "send_email", lambda to, subject, text, html=None: sent.append(text))
+def test_sign_in_binds_the_token_and_sign_out_replaces_it(client_for: Callable[..., TestClient]) -> None:
     c = client_for()
     guest_token = c.cookies["dsba_csrf"]
-    start = c.post(f"{API}/auth/otp", json={"identifier": "bound@example.com"})  # no session: plain double submit
-    assert start.status_code == 202, start.text
-    code = re.search(r"\b(\d{6})\b", sent[-1])
-    assert code is not None
-    r = c.post(f"{API}/auth/otp/verify", json={"challengeId": start.json()["challengeId"], "code": code.group(1)})
-    assert r.status_code == 200, r.text
+    body = {"email": "bound@example.com", "password": "correct horse battery"}
+    r = c.post(f"{API}/auth/sign-up", json=body)  # no session: plain double submit
+    assert r.status_code == 201, r.text
     session = _value(_set_cookies(r, "dsba_session")[0])
     assert [_value(h) for h in _set_cookies(r, "dsba_csrf")] == [csrf_token_for(session)]  # one cookie: the bound one
 
@@ -120,6 +111,6 @@ def test_cookie_names_come_from_the_settings(set_option: SetOption, browser: Cal
     assert not any(a.startswith("domain") for a in attributes)
     assert _set_cookies(r, "dsba_csrf") == []
     c.headers["X-CSRF-Token"] = c.cookies["__Host-dsba_csrf"]
-    assert c.post(f"{API}/auth/otp", json={"identifier": "host-prefix@example.com"}).status_code == 202
+    assert c.post(f"{API}/auth/logout").status_code == 204
     c.headers["X-CSRF-Token"] = "something-else"
-    assert c.post(f"{API}/auth/otp", json={"identifier": "host-prefix@example.com"}).status_code == 403
+    assert c.post(f"{API}/auth/logout").status_code == 403

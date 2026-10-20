@@ -119,9 +119,6 @@ const uploadLimits = (d: Record<string, unknown>): string => {
     : 'changed the upload budgets';
 };
 
-/** An admin's identifier change (account recovery): data.from and data.to are masked ("s•••@example.com"). */
-const IDENTIFIER_NOUN: Record<string, string> = { email: 'email address', phone: 'phone number' };
-
 const ACTIONS: Record<string, Describe> = {
   'user.roles': (d, name) =>
     `changed ${name ? `${name}’s roles` : 'someone’s roles'} from ${list(names(d.from))} to ${list(names(d.to))}${via(d)}`,
@@ -155,16 +152,10 @@ const ACTIONS: Record<string, Describe> = {
   'forum.reply.unhide': (d) => `brought back a reply in${quoted(d.title)}`,
   'forum.reply.edit': (d) => `edited a reply in${quoted(d.title)}`,
   'forum.reply.delete': (d) => `deleted a reply in${quoted(d.title)}`,
-  'user.identifier': (d, name) => {
-    const noun = IDENTIFIER_NOUN[str(d.kind) ?? ''] ?? 'sign-in address';
-    const whose = name ? `${name}’s` : 'an account’s';
-    const from = str(d.from);
-    const to = str(d.to);
-    if (from && to) return `changed ${whose} ${noun} from ${from} to ${to}`;
-    if (to) return `added ${to} as ${whose} ${noun}`;
-    if (from) return `removed ${whose} ${noun}, ${from}`;
-    return `changed ${whose} ${noun}`;
-  },
+  'user.reset_link': (_d, name) => `made a password reset link for ${name ?? 'an account'}`,
+  'user.password_reset': () => 'set a new password with a reset link',
+  'user.takeover': (_d, name) =>
+    `signed in with Google and took over ${name ? `${name}’s` : 'an'} unconfirmed account with that address`,
   'report.resolve': (d) =>
     d.status === 'dismissed' ? `dismissed a report about ${reported(d)}` : `acted on a report about ${reported(d)}`,
   'library.publish': (d) => `published ${libraryFile(d.title)}`,

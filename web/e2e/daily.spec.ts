@@ -4,7 +4,7 @@
 // stack without the Daily's content has no puzzles: the spec says so and skips.
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { api, gotoAccount, personaContext, waitForCode } from './support';
+import { api, gotoAccount, newPassword, personaContext } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -231,10 +231,10 @@ test('a guest who wins and signs up from the result card keeps the win and its p
   const dialog = page.getByRole('dialog');
   await expect(dialog).toHaveCount(1);
   const email = `keep.e2e.${run.tag}@example.com`;
-  await dialog.getByLabel('Email or phone number').fill(email);
-  const since = Date.now();
-  await dialog.getByRole('button', { name: 'Send code' }).click();
-  await dialog.getByLabel('6-digit code').fill(await waitForCode('email', email, since));
+  await dialog.getByRole('button', { name: 'New here? Create an account' }).click();
+  await dialog.getByLabel('Email address').fill(email);
+  await dialog.getByLabel('Password', { exact: true }).fill(newPassword(`${run.tag}k`));
+  await dialog.getByRole('button', { name: 'Create account' }).click();
   await expect(dialog).toContainText('Set up your profile');
   await expect(dialog).toHaveCount(1);
   await dialog.getByLabel('Display name').fill('Keep E2E');
@@ -253,7 +253,7 @@ test('a guest who wins and signs up from the result card keeps the win and its p
   await page.goto('/daily');
   await expect(page.locator('a[data-game="word"]')).toContainText('Solved · +100');
 
-  // The account goes again (made a minute ago: no code to confirm).
+  // The account goes again (made a minute ago: nothing to confirm).
   await gotoAccount(page);
   await page.getByRole('button', { name: 'Delete account' }).click();
   const confirm = page.getByRole('dialog');

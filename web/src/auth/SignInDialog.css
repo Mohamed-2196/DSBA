@@ -1,4 +1,4 @@
-/* Sign-in dialog and the shared code entry (also used on the account page). */
+/* Sign-in dialog, its Google button and password field (also used on the account page). */
 .signin {
   display: grid;
   gap: var(--sp-16);
@@ -49,23 +49,93 @@
   --icon-tint: var(--sec-calendar-tint);
 }
 
-/* The code: big, spaced digits, centred. */
-.otp__field .ui-control__input {
-  padding-inline: 12px calc(12px - 0.42em);
-  font-family: var(--font-mono);
-  font-size: var(--fs-22);
-  font-weight: 600;
-  letter-spacing: 0.42em;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
+/* "Continue with Google", as Google's branding guidelines draw it: Google's own G on white (or #131314 in the dark),
+   a 1 px #747775 (#8E918F) border, #1F1F1F (#E3E3E3) text in Roboto Medium 14 px, and the same height as our
+   large buttons. The G is Google's official mark (public/brand/google), never redrawn. */
+.google-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid #747775;
+  border-radius: var(--r-pill);
+  background: #fff;
+  color: #1f1f1f;
+  font-family: Roboto, var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
 }
-.otp__field .ui-control__input::placeholder {
-  letter-spacing: 0.42em;
+.google-button:hover:not(:disabled) {
+  background: #f2f2f2;
 }
-/* A long code (10 letters and digits, ABCDE-FGH23) needs less spacing to fit a phone. */
-.otp__field--long .ui-control__input {
-  padding-inline: 12px calc(12px - 0.18em);
-  letter-spacing: 0.18em;
+.google-button:focus-visible {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
+.google-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.google-button--compact {
+  width: auto;
+  min-height: 44px;
+}
+.google-button__g {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+.google-button__g--dark {
+  display: none;
+}
+[data-theme='dark'] .google-button {
+  border-color: #8e918f;
+  background: #131314;
+  color: #e3e3e3;
+}
+[data-theme='dark'] .google-button:hover:not(:disabled) {
+  background: #1f1f20;
+}
+[data-theme='dark'] .google-button__g--light {
+  display: none;
+}
+[data-theme='dark'] .google-button__g--dark {
+  display: block;
+}
+
+/* "or" between Google and the email form. */
+.signin__or {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
+.signin__or::before,
+.signin__or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Help with a forgotten password. */
+.signin__help {
+  display: grid;
+  gap: var(--sp-8);
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  line-height: 1.5;
 }
 
 /* Profile step: the cohort choice as a row of cards. */

@@ -96,29 +96,27 @@ describe('session guard: 401', () => {
   it('leaves sign-in and step-up requests alone', async () => {
     const { hooks, run } = setup();
     expect(
-      await run('POST', '/api/v1/auth/otp/verify', refusal(401, 'unauthenticated'), { code: '1' }),
+      await run('POST', '/api/v1/auth/sign-in', refusal(401, 'unauthenticated'), { email: 'a@b.c', password: 'x' }),
     ).toBeUndefined();
-    expect(
-      await run('POST', '/api/v1/me/step-up/verify', refusal(401, 'unauthenticated'), { code: '1' }),
-    ).toBeUndefined();
+    expect(await run('POST', '/api/v1/me/step-up', refusal(401, 'unauthenticated'), { password: 'x' })).toBeUndefined();
     expect(hooks.sessionEnded).not.toHaveBeenCalled();
     expect(hooks.signIn).not.toHaveBeenCalled();
   });
 });
 
 describe('session guard: step-up (D2)', () => {
-  it('asks for a code, then sends the change again', async () => {
+  it('asks the person to confirm it’s them, then sends the change again', async () => {
     const { hooks, run, sent } = setup();
-    const result = await run('POST', '/api/v1/me/identifiers/otp', refusal(403, 'step_up_required'), {
-      identifier: '+97333000000',
+    const result = await run('PUT', '/api/v1/me/password', refusal(403, 'step_up_required'), {
+      newPassword: 'a brand new passphrase',
     });
-    expect(hooks.stepUp).toHaveBeenCalledWith('change how you sign in');
+    expect(hooks.stepUp).toHaveBeenCalledWith('add a password');
     expect(result?.status).toBe(200);
-    expect(await sent[0].json()).toEqual({ identifier: '+97333000000' });
+    expect(await sent[0].json()).toEqual({ newPassword: 'a brand new passphrase' });
     expect(sent[0].headers.get('X-CSRF-Token')).toBe('fresh-token');
   });
 
-  it('asks an admin for a code before a role change, then sends the change again (AD-1)', async () => {
+  it('asks an admin to confirm before a role change, then sends the change again (AD-1)', async () => {
     const { hooks, run, sent } = setup();
     const result = await run('PATCH', '/api/v1/admin/roles/r1', refusal(403, 'step_up_required'), {
       version: 4,
@@ -143,15 +141,11 @@ describe('session guard: step-up (D2)', () => {
     expect(hooks.stepUp).not.toHaveBeenCalled();
   });
 
-  it('says what the code is for', () => {
+  it('says what confirming allows', () => {
     expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me` })).toBe('delete your account');
-    expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me/identifiers/phone` })).toBe(
-      'remove your phone number',
-    );
-    expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me/identifiers/email` })).toBe(
-      'remove your email address',
-    );
-    expect(stepUpPurpose({ method: 'POST', url: `${API}/api/v1/me/identifiers/otp` })).toBe('change how you sign in');
+    expect(stepUpPurpose({ method: 'PUT', url: `${API}/api/v1/me/password` })).toBe('add a password');
+    expect(stepUpPurpose({ method: 'POST', url: `${API}/api/v1/me/google` })).toBe('link Google');
+    expect(stepUpPurpose({ method: 'POST', url: `${API}/api/v1/admin/users/u1/reset-link` })).toBe('make a reset link');
     expect(stepUpPurpose({ method: 'POST', url: `${API}/api/v1/admin/roles` })).toBe('change roles');
     expect(stepUpPurpose({ method: 'PATCH', url: `${API}/api/v1/admin/roles/r1` })).toBe('change roles');
     expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/admin/roles/r1` })).toBe('change roles');

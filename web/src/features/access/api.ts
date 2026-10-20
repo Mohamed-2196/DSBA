@@ -117,6 +117,16 @@ export function useUpdatePerson() {
   });
 }
 
+/** A one-time reset link for someone who forgot their password (admins, with a recent sign-in). */
+export function useMakeResetLink() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      call(api.POST('/api/v1/admin/users/{user_id}/reset-link', { params: { path: { user_id: id } } })),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: AUDIT_KEY }),
+  });
+}
+
 /** The roles someone holds afterwards, exactly. */
 export function useSetUserRoles() {
   const qc = useQueryClient();

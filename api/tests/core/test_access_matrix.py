@@ -169,13 +169,13 @@ def test_suspending_without_admin_powers(
     c = client_for(keeper)
     listed = c.get(f"{API}/admin/users").json()["items"]
     assert listed
-    assert all(p["email"] is None and p["phone"] is None for p in listed)  # no contact details (spec note 10)
+    assert all(p["email"] is None for p in listed)  # no contact details (spec note 10)
     assert c.patch(f"{API}/admin/users/{student.id}", json={"status": "suspended"}).status_code == 200
     refused = c.patch(f"{API}/admin/users/{boss.id}", json={"status": "suspended"})
     assert (refused.status_code, refused.json()["error"]["message"]) == (403, "Only admins can suspend an admin.")
     itself = c.patch(f"{API}/admin/users/{keeper.id}", json={"status": "suspended"})
     assert itself.json()["error"]["code"] == "cannot_change_self"
-    recovery = c.patch(f"{API}/admin/users/{student.id}", json={"email": "taken.over@example.com"})
+    recovery = c.post(f"{API}/admin/users/{student.id}/reset-link")
     assert (recovery.status_code, recovery.json()["error"]["message"]) == (403, "Only admins can do this.")
     db.refresh(student)
     assert student.email == "sara@example.com"
@@ -185,26 +185,25 @@ def test_suspending_without_admin_powers(
 def test_people_search_without_admin_matches_names_only(
     client_for: ClientFor, holder: Holder, make_user: Callable[..., User]
 ) -> None:
-    """Security review AD-2: without Admin, a search can't find anyone by part of an address or a number."""
+    """Security review AD-2: without Admin, a search can't find anyone by part of an address."""
     make_user(name="Sara Student", email="sara.hidden@example.com")
-    make_user(name="Omar Phone", email=None, phone="+97333123456")
+    make_user(name="Omar Other", email="omar.3312@example.com")
     boss = make_user(name="Head Admin", roles=("student", "admin"))
     keeper = client_for(holder(frozenset({Box.people_suspend})))
 
     def names(c: TestClient, q: str) -> list[str]:
         r = c.get(f"{API}/admin/users", params={"q": q})
         assert r.status_code == 200, r.text
-        if c is keeper:  # no address and no number in any answer to a holder
+        if c is keeper:  # no address in any answer to a holder
             assert "@" not in r.text
-            assert "97333123456" not in r.text
         return [p["displayName"] for p in r.json()["items"]]
 
-    for q in ("sara.hidden@example.com", "sara.hidden", "hidden@", "97333123456", "3312"):
+    for q in ("sara.hidden@example.com", "sara.hidden", "hidden@", "3312"):
         assert names(keeper, q) == []
     assert names(keeper, "Sara") == ["Sara Student"]
     admin = client_for(boss)
     assert names(admin, "sara.hidden@example.com") == ["Sara Student"]
-    assert names(admin, "3312") == ["Omar Phone"]
+    assert names(admin, "3312") == ["Omar Other"]
 
 
 def test_report_excerpts_stay_with_their_area(

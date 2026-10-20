@@ -303,7 +303,7 @@ class NotebookLimitsIn(ApiModel):
 
 
 class NotebookUploader(ApiModel):
-    """One student's notebook uploads in the last 7 days, by display name (no email or phone)."""
+    """One student's notebook uploads in the last 7 days, by display name (no email address)."""
 
     user_id: UUID
     display_name: str | None  # None: the account has no profile yet

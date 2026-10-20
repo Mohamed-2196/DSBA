@@ -103,7 +103,7 @@ describe('followPerson', () => {
     id: 'u1',
     displayName: 'Sara',
     email: null,
-    phone: null,
+    emailConfirmed: true,
     roles: [{ id: 'r0', slug: 'student', name: 'Student', badge: null }],
     status: 'active',
     year: 2,
