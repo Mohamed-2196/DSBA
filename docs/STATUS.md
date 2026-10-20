@@ -125,7 +125,7 @@ Art handoff for the core: `docs/design/asset-prompts-round4.md` (C1 no lessons, 
 Round 14 finished: the module page shows the student's notes and the sittings table; the e2e recheck passed 113 of
 113 (ST-58 to ST-61 found, ST-59 to ST-61 fixed with ST-56); ST-46 (a file in two modules shows in both).
 
-## Round 15 (the Deskmates look; Questions by topic filled): 2026-10-19 to 2026-10-20
+## Round 15 (the Deskmates look; Questions by topic filled): merged 2026-10-20
 
 Mohamed picked direction B, "Deskmates", from three (comparison and v2 are Artifacts), asked for the existing DSBA Hub
 logo, new colours and better sidebar icons, and approved v2. The package is `docs/design/deskmates/` (README has the
@@ -156,7 +156,10 @@ calendar, search, Noora's frame), `round15/screens3` (3c: Boards, Grades, Career
 
 Mohamed's calls (2026-10-20): Mini Noora keeps her standing figure as the launcher; a note's page stays white in dark.
 
-Still in the old look: Manage, Access, Newsletter, Daily, Requests, Start here (bare titles, Phosphor icons).
+`round15/screens4` (3d) brought Manage, Access, Newsletter, Daily, Requests, Start here and the 404 pages into the
+look (UX-90): every screen is now Deskmates. Phosphor remains only where the brand set has no glyph (Daily's flame,
+snowflake, trophy and backspace; the newsletter's block icons; two Manage empty states; Career's sector and role icons;
+account device icons).
 
 ## Operating notes
 
