@@ -36,7 +36,7 @@ import {
   timeAgo,
 } from '../../ui';
 import { itemPath, useLibraryFacets, useLibraryList, useLibraryPages } from './api';
-import { FileCard, type LinkState } from './components/FileCard';
+import { FileGrid, type LinkState } from './components/FileCard';
 import { FileRows } from './components/FileRow';
 import { FileThumb } from './components/FileThumb';
 import { FilterSheet } from './components/FilterSheet';
@@ -154,7 +154,7 @@ function ResultsSkeleton({ view, isMobile }: { view: LibraryView; isMobile: bool
       <div className="lib-ixs" aria-hidden="true">
         {Array.from({ length: 6 }, (_, i) => (
           <div key={i} className="lib-ix">
-            <Skeleton width={40} height={50} radius={6} />
+            <Skeleton width={48} height={62} radius={4} />
             <div className="lib-ix__main">
               <Skeleton lines={2} />
             </div>
@@ -495,18 +495,13 @@ export default function LibraryPage() {
           </p>
         ) : null}
         {view === 'grid' ? (
-          <div className="lib-grid">
-            {items.map((f) => (
-              <FileCard
-                key={f.id}
-                item={f}
-                sort={sort}
-                onToggleStar={toggleStar}
-                linkState={linkState}
-                thumbSize={isMobile ? 'strip' : 'grid'}
-              />
-            ))}
-          </div>
+          <FileGrid
+            items={items}
+            sort={sort}
+            onToggleStar={toggleStar}
+            linkState={linkState}
+            thumbSize={isMobile ? 'strip' : 'grid'}
+          />
         ) : (
           <FileRows items={items} sort={sort} onToggleStar={toggleStar} linkState={linkState} />
         )}

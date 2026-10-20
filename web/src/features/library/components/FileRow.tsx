@@ -1,10 +1,10 @@
-// The library's index cards: one file per card, its drawn document (coloured by type), its name, what it is and who
+// The library's index cards: one file per card, its first page (or its drawn document, coloured by type), its name, what it is and who
 // shared it, and for a past paper the two things a student does with one, Time me and Open
 // (docs/design/deskmates/v2/library-screen.svg). The whole card opens the file; the buttons sit above that link.
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../auth';
 import { useModules } from '../../../state/modules';
-import { Badge, Button, DocThumb, Icon, IconButton, cx, glyph } from '../../../ui';
+import { Badge, Button, Icon, IconButton, cx, glyph } from '../../../ui';
 import { PaperDone } from '../../board/public';
 import { downloadHref, itemPath, openLinkHref, timeMeHref } from '../api';
 import {
@@ -18,9 +18,11 @@ import {
   sharedBy,
   statusInfo,
 } from '../display';
-import { docTone } from '../kinds';
 import type { LibraryItem, LibrarySort } from '../types';
 import type { LinkState } from './FileCard';
+import { CoverThumb } from './CoverThumb';
+import { QL_BUTTON, QL_FILE, QL_LINK } from '../quickLook/rules';
+import { useQuickLook } from '../quickLook/useQuickLook';
 import { StarButton } from './StarButton';
 import './FileRow.css';
 
@@ -28,11 +30,13 @@ function FileRow({
   item,
   sort,
   onToggleStar,
+  onPreview,
   linkState,
 }: {
   item: LibraryItem;
   sort: LibrarySort;
   onToggleStar: (item: LibraryItem) => void;
+  onPreview: (item: LibraryItem) => void;
   linkState?: LinkState;
 }) {
   const { getModule } = useModules();
@@ -46,8 +50,8 @@ function FileRow({
   const published = item.status === 'published';
   const paper = published && item.kind === 'past-paper' && item.source === 'file';
   return (
-    <article className={cx('lib-ix', paper && 'lib-ix--paper')} data-hub="file-card">
-      <DocThumb tone={docTone(item)} size="lg" className="lib-ix__doc" />
+    <article className={cx('lib-ix', paper && 'lib-ix--paper')} data-hub="file-card" {...{ [QL_FILE]: item.id }}>
+      <CoverThumb item={item} size="lg" className="lib-ix__doc" />
       <div className="lib-ix__main">
         <p className="lib-ix__title">
           <Link
@@ -55,6 +59,7 @@ function FileRow({
             state={linkState}
             className="lib-ix__link"
             title={name === item.title ? undefined : item.title}
+            {...{ [QL_LINK]: '' }}
           >
             {name}
           </Link>
@@ -75,26 +80,16 @@ function FileRow({
         </p>
         {by ? <p className="lib-ix__by">{by}</p> : null}
         {found ? <p className="lib-ix__match">{found}</p> : null}
-        {paper ? (
-          <div className="lib-ix__actions">
-            <Button
-              variant="primary"
-              size="sm"
-              leadingIcon={<Icon glyph={glyph.timer} />}
-              to={timeMeHref(item)}
-              state={linkState}
-              aria-label={`Time me on ${name}`}
-            >
-              Time me
-            </Button>
-            <Button size="sm" to={itemPath(item)} state={linkState} aria-label={`Open ${name}`}>
-              Open
-            </Button>
-            {featureOn('board') ? <PaperDone itemId={item.id} /> : null}
-          </div>
-        ) : null}
       </div>
       <div className="lib-ix__side">
+        <IconButton
+          label={`Preview ${name}`}
+          icon={<Icon glyph={glyph.eye} />}
+          size="sm"
+          className="lib-ix__preview"
+          onClick={() => onPreview(item)}
+          {...{ [QL_BUTTON]: '' }}
+        />
         {published ? <StarButton on={item.starred} onToggle={() => onToggleStar(item)} title={name} /> : null}
         {item.source === 'link' ? (
           <IconButton
@@ -114,11 +109,30 @@ function FileRow({
           />
         )}
       </div>
+      {paper ? (
+        <div className="lib-ix__actions">
+          <Button
+            variant="primary"
+            size="sm"
+            leadingIcon={<Icon glyph={glyph.timer} />}
+            to={timeMeHref(item)}
+            state={linkState}
+            aria-label={`Time me on ${name}`}
+          >
+            Time me
+          </Button>
+          <Button size="sm" to={itemPath(item)} state={linkState} aria-label={`Open ${name}`}>
+            Open
+          </Button>
+          {featureOn('board') ? <PaperDone itemId={item.id} /> : null}
+        </div>
+      ) : null}
     </article>
   );
 }
 
-/** A list of files as index cards: one column on phones, as many as fit beside each other on wider screens. */
+/** A list of files as index cards: one column on phones, as many as fit beside each other on wider screens. Space on
+ *  a file, or its Preview button, shows it in Quick Look. */
 export function FileRows({
   items,
   sort,
@@ -132,13 +146,23 @@ export function FileRows({
   linkState?: LinkState;
   className?: string;
 }) {
+  const quickLook = useQuickLook(items);
   return (
-    <ul className={cx('lib-ixs', className)} role="list">
-      {items.map((f) => (
-        <li key={f.id}>
-          <FileRow item={f} sort={sort} onToggleStar={onToggleStar} linkState={linkState} />
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className={cx('lib-ixs', className)} role="list" {...quickLook.listProps}>
+        {items.map((f) => (
+          <li key={f.id}>
+            <FileRow
+              item={f}
+              sort={sort}
+              onToggleStar={onToggleStar}
+              onPreview={quickLook.preview}
+              linkState={linkState}
+            />
+          </li>
+        ))}
+      </ul>
+      {quickLook.dialog}
+    </>
   );
 }
