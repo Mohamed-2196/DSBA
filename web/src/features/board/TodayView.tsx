@@ -1,10 +1,9 @@
 // Today, across every active board: what's overdue, due today, tomorrow and over the next week. Tick a card to send
 // it to its board's done column, or open it.
-import { Clock, WarningCircle } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { AgendaCard, BoardSummary } from '../../api/types';
 import { formatDay, todayKey } from '../../lib/dates';
-import { EmptyState, QueryError, Skeleton, cx } from '../../ui';
+import { EmptyState, QueryError, Skeleton, cx, Icon, glyph } from '../../ui';
 import { useTodayAgenda } from './api';
 import { TODAY_DAYS, agendaSections, colorVar, doneColumn, dueLabel, timeText, type AgendaSection } from './board';
 import { PriorityBadge } from './CardItem';
@@ -113,7 +112,7 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
                       </span>
                       {when ? (
                         <span className={cx('board-list__due', overdue && 'is-overdue')}>
-                          {overdue ? <WarningCircle aria-hidden="true" weight="fill" /> : <Clock aria-hidden="true" />}
+                          {overdue ? <Icon glyph={glyph.error} /> : <Icon glyph={glyph.clock} />}
                           {when}
                         </span>
                       ) : null}

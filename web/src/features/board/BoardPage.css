@@ -84,9 +84,10 @@
   gap: var(--sp-12);
   margin-bottom: var(--sp-16);
   padding: var(--sp-12) var(--sp-16);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .board-filter__group {
   display: flex;
@@ -125,9 +126,10 @@
   gap: var(--sp-12) var(--sp-16);
   margin-bottom: var(--sp-16);
   padding: var(--sp-12) var(--sp-16);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .board-archived__icon {
   flex: none;
@@ -165,23 +167,30 @@
   gap: var(--sp-12);
   min-width: 0;
   padding: var(--sp-12) var(--sp-16);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
+/* the plan's calendar sits on Blink's pill: plans are about dates */
 .board-plan__icon {
   flex: none;
-  width: 24px;
-  height: 24px;
-  color: var(--accent);
+  box-sizing: content-box;
+  padding: 8px;
+  border-radius: var(--r-control);
+  background: var(--sec-calendar-pill);
+  color: var(--icon-line);
+  --icon-tint: var(--sec-calendar-tint);
+  --icon-paper: var(--surface);
 }
 .board-plan__text {
   display: flex;
   flex: 1;
   flex-direction: column;
+  gap: 2px;
   min-width: 0;
   margin: 0;
-  font-size: var(--fs-14);
+  font-size: var(--fs-15);
 }
 .board-plan__text span {
   color: var(--ink-2);
@@ -220,8 +229,8 @@
   max-width: 360px;
   min-height: 140px;
   padding: var(--sp-12);
-  border: 1px solid var(--line);
-  border-radius: var(--r-card);
+  border: 1.5px dashed transparent;
+  border-radius: var(--r-panel);
   background: var(--surface-2);
   transition:
     border-color var(--dur-fast) var(--ease),
@@ -236,6 +245,7 @@
 }
 .board-col.is-over {
   border-color: var(--accent);
+  border-style: solid;
   background: var(--accent-soft);
 }
 .board-col--single {
@@ -257,8 +267,11 @@
   gap: var(--sp-8);
   min-width: 0;
   margin: 0;
-  font-size: var(--fs-15);
-  font-weight: var(--fw-bold);
+  padding-left: 4px;
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
 }
 .board-col__title {
   overflow: hidden;
@@ -268,20 +281,23 @@
 .board-col__count {
   flex: none;
   min-width: 22px;
-  padding: 1px 7px;
+  padding: 1px 8px;
   border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--ink-2);
+  background: var(--sec-pill);
+  color: var(--sec-text);
+  font-family: var(--font-ui);
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
 .board-col__done {
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   color: var(--success);
+  --icon-tint: var(--sec-modules-tint);
 }
 .board-col__tools {
   display: flex;
@@ -352,12 +368,19 @@
   background: var(--surface);
   color: var(--ink);
 }
+.board-col__add:focus-visible,
+.board-columns__add:focus-visible,
+.board-col__older:focus-visible {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
 .board-col__form {
   display: flex;
   flex-direction: column;
   gap: var(--sp-8);
-  padding: var(--sp-8);
-  border-radius: var(--r-control);
+  padding: var(--sp-10);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
@@ -371,8 +394,8 @@
   flex: 0 0 48px;
   place-items: center;
   height: 140px;
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--r-card);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r-panel);
   background: transparent;
   color: var(--ink-2);
   font-size: 20px;
@@ -401,10 +424,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-8);
-  padding: var(--sp-12);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  padding: var(--sp-12) var(--sp-14);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
   color: var(--ink);
   overflow-wrap: anywhere;
   transition:
@@ -413,7 +437,7 @@
 }
 .board-card:hover {
   border-color: var(--line-strong);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-float);
 }
 .board-card:has(.board-card__open:focus-visible) {
   outline: var(--focus-width) solid var(--focus-color);
@@ -429,12 +453,14 @@
   opacity: 0.65;
 }
 .board-card.is-overdue {
-  box-shadow: inset 3px 0 0 var(--error);
+  box-shadow:
+    inset 4px 0 0 var(--error),
+    var(--shadow-card);
 }
 .board-card.is-overdue:hover {
   box-shadow:
-    inset 3px 0 0 var(--error),
-    var(--shadow-card);
+    inset 4px 0 0 var(--error),
+    var(--shadow-float);
 }
 .board-card.is-done .board-card__title {
   color: var(--ink-2);
@@ -442,9 +468,9 @@
 
 .board-card__cover {
   height: 128px;
-  margin: calc(-1 * var(--sp-12)) calc(-1 * var(--sp-12)) 0;
+  margin: calc(-1 * var(--sp-12)) calc(-1 * var(--sp-14)) 0;
   overflow: hidden;
-  border-radius: 11px 11px 0 0;
+  border-radius: calc(var(--r-card) - 1.5px) calc(var(--r-card) - 1.5px) 0 0;
   background: var(--surface-2);
 }
 .board-card__cover img {
@@ -462,8 +488,8 @@
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
+  font-size: var(--fs-15);
+  font-weight: var(--fw-bold);
   line-height: 1.4;
 }
 /* a long title (a lesson's full name) shows its first four lines; the card opens to all of it */
@@ -512,12 +538,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 2px 8px;
+  padding: 1px 9px 1px 7px;
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--r-pill);
-  background: var(--surface-2);
+  background: var(--surface);
   color: var(--ink-2);
   font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
 }
 .board-card__label-dot {
   flex: none;
@@ -598,10 +625,17 @@
   gap: 3px;
 }
 .board-card__count svg {
-  font-size: 15px;
+  font-size: 16px;
 }
 .board-card__count.is-complete {
   color: var(--success);
+  font-weight: var(--fw-semibold);
+}
+.board-card__due svg {
+  font-size: 16px;
+}
+.board-card__due.is-overdue svg {
+  --icon-tint: var(--sec-calendar-tint);
 }
 
 /* ── the list and Today ───────────────────────────────────────────────────────────────────── */
@@ -628,9 +662,10 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
   list-style: none;
 }
 .board-list__row,
@@ -707,14 +742,15 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 1px 8px;
+  padding: 1px 9px;
   border-radius: var(--r-pill);
   background: var(--surface-2);
   font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
 }
 .board-list__column svg {
   color: var(--success);
+  --icon-tint: var(--sec-modules-tint);
 }
 .board-list__label,
 .board-today__board {
@@ -742,22 +778,30 @@
   align-items: center;
   gap: var(--sp-8);
   margin: 0;
-  font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
 }
 .board-today__h.is-overdue {
   color: var(--error);
 }
 .board-today__count {
   min-width: 22px;
-  padding: 1px 7px;
+  padding: 1px 8px;
   border-radius: var(--r-pill);
-  background: var(--surface-2);
-  color: var(--ink-2);
+  background: var(--sec-pill);
+  color: var(--sec-text);
+  font-family: var(--font-ui);
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   text-align: center;
+}
+.board-today__h.is-overdue .board-today__count {
+  background: var(--error-soft);
+  color: var(--error);
 }
 
 /* ── usage ────────────────────────────────────────────────────────────────────────────────── */

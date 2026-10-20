@@ -1,7 +1,6 @@
 // A student's first board: each template is one click from a board of its own, named after it and opened at once.
-import { ArrowRight, CheckCircle } from '@phosphor-icons/react';
 import { useState, type CSSProperties } from 'react';
-import { Button, Spinner, cx } from '../../ui';
+import { Button, Icon, Spinner, cx, glyph } from '../../ui';
 import { useCreateBoard } from './api';
 import { colorVar, startName, TEMPLATES, type BoardTemplate } from './board';
 import './BoardStart.css';
@@ -55,7 +54,7 @@ export function BoardStart({ taken, readOnly, onStarted }: BoardStartProps) {
                 {starting === t.id ? (
                   <Spinner size={18} />
                 ) : (
-                  <ArrowRight aria-hidden="true" className="board-start__go" />
+                  <Icon glyph={glyph.forward} size={20} className="board-start__go" />
                 )}
               </span>
               <span className="board-start__blurb" id={`board-start-${t.id}`}>
@@ -67,7 +66,7 @@ export function BoardStart({ taken, readOnly, onStarted }: BoardStartProps) {
                   const done = i === t.columns.length - 1;
                   return (
                     <span key={c} className={cx('board-start__column', done && 'is-done')}>
-                      {done ? <CheckCircle weight="fill" /> : null}
+                      {done ? <Icon glyph={glyph.success} size={16} /> : null}
                       {t.id === 'weekly' && !done ? c.slice(0, 3) : c}
                     </span>
                   );
@@ -82,7 +81,7 @@ export function BoardStart({ taken, readOnly, onStarted }: BoardStartProps) {
           Revising for an exam? Open its module and choose <strong>Plan my revision</strong>: the lessons and past
           papers go on a board, spread over the days you have.
         </p>
-        <Button size="sm" variant="ghost" to="/modules" trailingIcon={ArrowRight}>
+        <Button size="sm" variant="ghost" to="/modules" trailingIcon={<Icon glyph={glyph.forward} />}>
           Your modules
         </Button>
       </div>

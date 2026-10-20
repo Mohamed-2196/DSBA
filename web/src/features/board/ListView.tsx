@@ -1,10 +1,9 @@
 // A board as one list, in board order: tick a card done (or not done again), open it, see where it stands. A card
 // added here goes to the end of the first column that isn't done.
-import { CheckCircle, Clock, ListBullets, Plus, WarningCircle } from '@phosphor-icons/react';
 import { useState, type FormEvent } from 'react';
 import type { BoardCard, BoardLabel, BoardSummary } from '../../api/types';
 import { formatDay } from '../../lib/dates';
-import { Button, EmptyState, TextField, cx } from '../../ui';
+import { Button, EmptyState, TextField, cx, Icon, glyph } from '../../ui';
 import { useAddCard } from './api';
 import { checklistProgress, colorVar, doneColumn, dueLabel, dueOf, isOverdue, isUnsaved } from './board';
 import { PriorityBadge } from './CardItem';
@@ -59,7 +58,7 @@ export function ListView({
             onChange={(e) => setTitle(e.target.value)}
             enterKeyHint="done"
           />
-          <Button type="submit" variant="primary" leadingIcon={Plus} disabled={!title.trim()}>
+          <Button type="submit" variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} disabled={!title.trim()}>
             Add
           </Button>
         </form>
@@ -69,7 +68,7 @@ export function ListView({
         filtering ? (
           <EmptyState
             size="sm"
-            icon={ListBullets}
+            icon={<Icon glyph={glyph.list} />}
             title="No cards match the filter"
             body="Try another due date or label."
             action={
@@ -81,7 +80,7 @@ export function ListView({
         ) : (
           <EmptyState
             size="sm"
-            icon={ListBullets}
+            icon={<Icon glyph={glyph.list} />}
             title="No cards on this board yet"
             body={readOnly ? undefined : 'Add your first one above.'}
           />
@@ -110,7 +109,7 @@ export function ListView({
                   <div className="board-list__meta">
                     {column ? (
                       <span className="board-list__column">
-                        {column.done ? <CheckCircle aria-hidden="true" weight="fill" /> : null}
+                        {column.done ? <Icon glyph={glyph.success} /> : null}
                         {column.name}
                       </span>
                     ) : null}
@@ -135,7 +134,7 @@ export function ListView({
                     ) : null}
                     {due && !isDone ? (
                       <span className={cx('board-list__due', overdue && 'is-overdue')}>
-                        {overdue ? <WarningCircle aria-hidden="true" weight="fill" /> : <Clock aria-hidden="true" />}
+                        {overdue ? <Icon glyph={glyph.error} /> : <Icon glyph={glyph.clock} />}
                         {dueLabel(
                           due,
                           today,

@@ -1,23 +1,5 @@
 // Boards: a student's own boards for study and everyday tasks. Tabs switch between Today (what's due on every board)
 // and each board, shown as columns or as a list; a card opens in a drawer. Only the student sees their boards.
-import {
-  Archive,
-  ArrowCounterClockwise,
-  ArrowLeft,
-  ArrowRight,
-  CalendarCheck,
-  CaretDown,
-  Columns,
-  DotsThree,
-  Funnel,
-  Kanban,
-  ListBullets,
-  PencilSimple,
-  Plus,
-  Sun,
-  Tag,
-  Trash,
-} from '@phosphor-icons/react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { AgendaCard, BoardCard, BoardColumn, BoardLabel, BoardPlan, BoardSummary } from '../../api/types';
@@ -29,6 +11,7 @@ import {
   Chip,
   ConfirmDialog,
   EmptyState,
+  Icon,
   IconButton,
   Menu,
   Page,
@@ -39,6 +22,7 @@ import {
   TabPanel,
   Tabs,
   cx,
+  glyph,
   type MenuItem,
 } from '../../ui';
 import {
@@ -102,10 +86,10 @@ export default function BoardPage() {
   if (status === 'loading') return <BoardSkeleton />;
   if (status !== 'signed-in') {
     return (
-      <Page width="wide" className="board-page">
-        <PageHeader title="Boards" description={DESCRIPTION} />
+      <Page width="wide" className="board-page" data-section="tools">
+        <PageHeader section="tools" title="Boards" description={DESCRIPTION} />
         <EmptyState
-          icon={Kanban}
+          icon={<Icon glyph={glyph.boards} />}
           title="Sign in to use boards"
           body="Your boards hold study plans, coursework and to-dos, and they’re private to your student account."
           action={
@@ -223,8 +207,8 @@ function BoardApp() {
   if (boardsQuery.isPending) return <BoardSkeleton />;
   if (boardsQuery.isError) {
     return (
-      <Page width="wide" className="board-page">
-        <PageHeader title="Boards" description={DESCRIPTION} />
+      <Page width="wide" className="board-page" data-section="tools">
+        <PageHeader section="tools" title="Boards" description={DESCRIPTION} />
         <QueryError
           error={boardsQuery.error}
           title="Your boards didn’t load"
@@ -433,20 +417,37 @@ function BoardApp() {
   const boardMenu = (board: BoardSummary): MenuItem[] => {
     const i = active.findIndex((b) => b.id === board.id);
     return [
-      { id: 'edit', label: 'Edit board', icon: PencilSimple, onSelect: () => setBoardDialog(board) },
-      { id: 'column', label: 'Add column', icon: Columns, onSelect: () => setColumnDialog('new') },
-      { id: 'labels', label: 'Labels', icon: Tag, onSelect: () => setLabelsOpen(true) },
-      { id: 'left', label: 'Move board left', icon: ArrowLeft, disabled: i <= 0, onSelect: () => moveBoard(board, -1) },
+      { id: 'edit', label: 'Edit board', icon: <Icon glyph={glyph.edit} />, onSelect: () => setBoardDialog(board) },
+      {
+        id: 'column',
+        label: 'Add column',
+        icon: <Icon glyph={glyph.boards} />,
+        onSelect: () => setColumnDialog('new'),
+      },
+      { id: 'labels', label: 'Labels', icon: <Icon glyph={glyph.bookmark} />, onSelect: () => setLabelsOpen(true) },
+      {
+        id: 'left',
+        label: 'Move board left',
+        icon: <Icon glyph={glyph.back} />,
+        disabled: i <= 0,
+        onSelect: () => moveBoard(board, -1),
+      },
       {
         id: 'right',
         label: 'Move board right',
-        icon: ArrowRight,
+        icon: <Icon glyph={glyph.forward} />,
         disabled: i < 0 || i >= active.length - 1,
         onSelect: () => moveBoard(board, 1),
       },
       { divider: true, id: 'd' },
-      { id: 'archive', label: 'Archive board', icon: Archive, onSelect: () => archive(board) },
-      { id: 'delete', label: 'Delete board', icon: Trash, danger: true, onSelect: () => setDeletingBoard(board) },
+      { id: 'archive', label: 'Archive board', icon: <Icon glyph={glyph.folder} />, onSelect: () => archive(board) },
+      {
+        id: 'delete',
+        label: 'Delete board',
+        icon: <Icon glyph={glyph.trash} />,
+        danger: true,
+        onSelect: () => setDeletingBoard(board),
+      },
     ];
   };
 
@@ -468,7 +469,7 @@ function BoardApp() {
             (b): MenuItem => ({
               id: b.id,
               label: <BoardName board={b} />,
-              icon: Archive,
+              icon: <Icon glyph={glyph.folder} />,
               onSelect: () => openBoard(b.id),
             }),
           ),
@@ -478,7 +479,7 @@ function BoardApp() {
       ? []
       : ([
           { divider: true, id: 'd3' },
-          { id: 'new', label: 'New board', icon: Plus, onSelect: () => setBoardDialog('new') },
+          { id: 'new', label: 'New board', icon: <Icon glyph={glyph.plus} />, onSelect: () => setBoardDialog('new') },
         ] satisfies MenuItem[])),
   ];
 
@@ -494,7 +495,7 @@ function BoardApp() {
       <>
         {current.archived ? (
           <div className="board-archived" data-hub="board-archived">
-            <Archive aria-hidden="true" className="board-archived__icon" />
+            <Icon glyph={glyph.folder} size={24} className="board-archived__icon" />
             <p className="board-archived__text">
               <strong>{current.name} is archived.</strong> Its cards are kept but stay out of Today. Bring it back to
               change it.
@@ -502,13 +503,17 @@ function BoardApp() {
             {suspended ? null : (
               <div className="board-archived__actions">
                 <Button
-                  leadingIcon={ArrowCounterClockwise}
+                  leadingIcon={<Icon glyph={glyph.undo} />}
                   onClick={() => updateBoard.mutate({ id: current.id, patch: { archived: false } })}
                   loading={updateBoard.isPending}
                 >
                   Bring back
                 </Button>
-                <Button variant="ghost" leadingIcon={Trash} onClick={() => setDeletingBoard(current)}>
+                <Button
+                  variant="ghost"
+                  leadingIcon={<Icon glyph={glyph.trash} />}
+                  onClick={() => setDeletingBoard(current)}
+                >
                   Delete
                 </Button>
               </div>
@@ -523,14 +528,14 @@ function BoardApp() {
             value={view}
             onChange={(v) => go({ view: v })}
             options={[
-              { value: 'board', label: 'Columns', icon: Kanban },
-              { value: 'list', label: 'List', icon: ListBullets },
+              { value: 'board', label: 'Columns', icon: <Icon glyph={glyph.boards} /> },
+              { value: 'list', label: 'List', icon: <Icon glyph={glyph.list} /> },
             ]}
           />
           <Button
             size="sm"
             variant={filtering ? 'secondary' : 'ghost'}
-            leadingIcon={Funnel}
+            leadingIcon={<Icon glyph={glyph.filter} />}
             aria-expanded={showFilter}
             aria-controls={filterId}
             onClick={() => setShowFilter((v) => !v)}
@@ -543,7 +548,7 @@ function BoardApp() {
               <Button
                 size="sm"
                 variant="primary"
-                leadingIcon={Plus}
+                leadingIcon={<Icon glyph={glyph.plus} />}
                 onClick={() => {
                   const target = columns[0]?.id;
                   if (target) setAdding({ columnId: target, at: Date.now() });
@@ -561,7 +566,7 @@ function BoardApp() {
                 trigger={
                   <IconButton
                     label="Board options"
-                    icon={DotsThree}
+                    icon={<Icon glyph={glyph.more} />}
                     variant="secondary"
                     size="sm"
                     data-hub="board-menu"
@@ -677,13 +682,18 @@ function BoardApp() {
     );
 
   return (
-    <Page width="wide" className="board-page">
+    <Page width="wide" className="board-page" data-section="tools">
       <PageHeader
+        section="tools"
         title="Boards"
         description={DESCRIPTION}
         actions={
           suspended || isPhone || !boards.length ? null : (
-            <Button leadingIcon={Plus} onClick={() => setBoardDialog('new')} data-hub="board-new">
+            <Button
+              leadingIcon={<Icon glyph={glyph.plus} />}
+              onClick={() => setBoardDialog('new')}
+              data-hub="board-new"
+            >
               New board
             </Button>
           )
@@ -709,7 +719,7 @@ function BoardApp() {
               value={tabValue}
               onChange={(id) => (id === 'today' ? go({ view: 'today', card: null }) : openBoard(id))}
               tabs={[
-                { id: 'today', label: 'Today', icon: Sun, count: dueNow || null },
+                { id: 'today', label: 'Today', icon: <Icon glyph={glyph.sun} />, count: dueNow || null },
                 ...active.map((b) => ({ id: b.id, label: <BoardName board={b} />, count: b.open })),
               ]}
             />
@@ -721,7 +731,7 @@ function BoardApp() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  trailingIcon={CaretDown}
+                  trailingIcon={<Icon glyph={glyph.chevronDown} />}
                   className="board-tabs__all"
                   data-hub="board-all"
                 >
@@ -897,7 +907,7 @@ function PlanRow({ plan, readOnly, onRemove }: { plan: BoardPlan; readOnly: bool
   const total = plan.left + plan.done;
   return (
     <li className="board-plan" data-hub="board-plan-row">
-      <CalendarCheck aria-hidden="true" weight="duotone" className="board-plan__icon" />
+      <Icon glyph={glyph.calendar} size={24} className="board-plan__icon" />
       <p className="board-plan__text">
         <strong>{plan.moduleName} revision</strong>
         <span>
@@ -933,8 +943,8 @@ function ColumnsSkeleton({ count }: { count: number }) {
 
 function BoardSkeleton() {
   return (
-    <Page width="wide" className="board-page" aria-busy="true">
-      <PageHeader title="Boards" description={DESCRIPTION} />
+    <Page width="wide" className="board-page" data-section="tools" aria-busy="true">
+      <PageHeader section="tools" title="Boards" description={DESCRIPTION} />
       <div className="board-tabs" aria-hidden="true">
         <Skeleton height={20} width={280} />
       </div>

@@ -1,9 +1,8 @@
 // A card's comments in its drawer: notes the student leaves themselves as the work goes on. Only they see them.
-import { ChatCircleDots, Trash } from '@phosphor-icons/react';
 import { useId, useState, type FormEvent, type KeyboardEvent } from 'react';
 import type { BoardCardDetail } from '../../api/types';
 import { formatClock, formatDay } from '../../lib/dates';
-import { Button, IconButton, TextArea } from '../../ui';
+import { Button, IconButton, TextArea, Icon, glyph } from '../../ui';
 import { useAddComment, useDeleteComment } from './api';
 
 /** The API keeps up to 100 comments on a card, each up to 2,000 characters. */
@@ -39,7 +38,7 @@ export function CardComments({ card, readOnly }: { card: BoardCardDetail; readOn
     <section className="card-detail__section" aria-labelledby={headingId}>
       <div className="card-detail__section-head">
         <h3 className="card-detail__h" id={headingId}>
-          <ChatCircleDots aria-hidden="true" />
+          <Icon glyph={glyph.forum} />
           Comments
           {card.comments.length ? <span className="card-detail__h-count">{card.comments.length}</span> : null}
         </h3>
@@ -56,7 +55,7 @@ export function CardComments({ card, readOnly }: { card: BoardCardDetail; readOn
                 {readOnly ? null : (
                   <IconButton
                     label="Delete this comment"
-                    icon={Trash}
+                    icon={<Icon glyph={glyph.trash} />}
                     size="sm"
                     disabled={remove.isPending}
                     onClick={() => remove.mutate({ cardId: card.id, boardId: card.boardId, commentId: c.id })}

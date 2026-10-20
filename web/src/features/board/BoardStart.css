@@ -4,8 +4,11 @@
 }
 .board-start__title {
   margin: 0;
-  font-size: var(--fs-20);
-  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
+  line-height: var(--lh-heading);
 }
 .board-start__lead {
   max-width: var(--measure);
@@ -46,10 +49,13 @@
   flex-direction: column;
   gap: var(--sp-10);
   width: 100%;
-  padding: var(--sp-16);
-  border: 1px solid var(--line);
+  padding: var(--sp-16) var(--sp-16) var(--sp-16) var(--sp-20);
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
   color: var(--ink);
   font: inherit;
   text-align: left;
@@ -58,6 +64,18 @@
     border-color var(--dur-fast) var(--ease),
     box-shadow var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease);
+}
+.board-start__option:focus-visible {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
+/* the template's colour runs down the card's edge, like a tab on an index card */
+.board-start__option::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--tpl, var(--accent));
 }
 .board-start__option:hover:not(:disabled) {
   border-color: var(--line-strong);
@@ -78,24 +96,14 @@
   gap: var(--sp-8);
 }
 .board-start__name {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-8);
-  font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
-}
-.board-start__name::before {
-  content: '';
-  flex: none;
-  width: 10px;
-  height: 10px;
-  border-radius: var(--r-pill);
-  background: var(--tpl, var(--accent));
+  font-family: var(--font-display);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
 }
 .board-start__go {
   flex: none;
   color: var(--ink-2);
-  font-size: 18px;
   transition:
     color var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease);
@@ -119,19 +127,19 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 2px 8px;
-  border-radius: var(--r-xs);
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
   background: var(--surface-2);
   color: var(--ink-2);
   font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   white-space: nowrap;
 }
 .board-start__column.is-done {
+  padding-left: 4px;
+  background: var(--success-soft);
   color: var(--success);
-}
-.board-start__column svg {
-  font-size: 12px;
+  --icon-tint: var(--sec-modules-tint);
 }
 .board-start__aside {
   display: flex;

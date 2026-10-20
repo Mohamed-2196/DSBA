@@ -1,31 +1,12 @@
 // One card on a board: its cover, its title (which opens it), priority and labels, a line of its description, and
 // what's due and attached. Its menu moves it (Alt with the arrow keys does the same from the keyboard), scores a past
 // paper, or deletes it.
-import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUp,
-  BookOpen,
-  CalendarDots,
-  ChatCircleDots,
-  CheckSquare,
-  Clock,
-  DotsThree,
-  FileText,
-  Paperclip,
-  PencilSimple,
-  PlayCircle,
-  Trash,
-  Trophy,
-  WarningCircle,
-  type Icon,
-} from '@phosphor-icons/react';
 import { useId, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import type { BoardCard, BoardColumn, BoardLabel, BoardLink } from '../../api/types';
 import { formatDay } from '../../lib/dates';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
-import { Badge, IconButton, Menu, cx, safeInternalPath, type MenuItem } from '../../ui';
+import { Badge, IconButton, Menu, cx, safeInternalPath, type MenuItem, Icon, glyph, type Glyph } from '../../ui';
 import { apiFileSrc } from './api';
 import {
   checklistProgress,
@@ -41,12 +22,12 @@ import {
 } from './board';
 import { FOCUS_WAIT_MS, type CardActions } from './types';
 
-const LINK_ICON: Record<BoardLink['type'], Icon> = {
-  event: CalendarDots,
-  my_event: CalendarDots,
-  lesson: PlayCircle,
-  module: BookOpen,
-  library_item: FileText,
+const LINK_ICON: Record<BoardLink['type'], Glyph> = {
+  event: glyph.calendar,
+  my_event: glyph.calendar,
+  lesson: glyph.video,
+  module: glyph.modules,
+  library_item: glyph.page,
 };
 
 /** What the link says when the card is named after what it links to. */
@@ -123,7 +104,7 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
   };
 
   const items: MenuItem[] = [
-    { id: 'open', label: 'Open card', icon: PencilSimple, onSelect: () => actions.onOpen(card) },
+    { id: 'open', label: 'Open card', icon: <Icon glyph={glyph.edit} />, onSelect: () => actions.onOpen(card) },
     { divider: true, id: 'd1' },
     ...columns
       .filter((c) => c.id !== card.columnId)
@@ -131,14 +112,14 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
         (c): MenuItem => ({
           id: `to-${c.id}`,
           label: `Move to ${c.name}`,
-          icon: ArrowRight,
+          icon: <Icon glyph={glyph.forward} />,
           onSelect: () => actions.onMove(card, c.id, 'menu'),
         }),
       ),
     {
       id: 'up',
       label: 'Move up',
-      icon: ArrowUp,
+      icon: <Icon glyph={glyph.arrowUp} />,
       hint: 'Alt+↑',
       disabled: !actions.canNudge(card, -1),
       onSelect: () => actions.onNudge(card, -1, 'menu'),
@@ -146,7 +127,7 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
     {
       id: 'down',
       label: 'Move down',
-      icon: ArrowDown,
+      icon: <Icon glyph={glyph.arrowDown} />,
       hint: 'Alt+↓',
       disabled: !actions.canNudge(card, 1),
       onSelect: () => actions.onNudge(card, 1, 'menu'),
@@ -157,12 +138,18 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
           {
             id: 'score',
             label: score == null ? 'Add your score' : 'Change your score',
-            icon: Trophy,
+            icon: <Icon glyph={glyph.exam} />,
             onSelect: () => actions.onScore(card),
           },
         ] satisfies MenuItem[])
       : []),
-    { id: 'delete', label: 'Delete card', icon: Trash, danger: true, onSelect: () => actions.onDelete(card) },
+    {
+      id: 'delete',
+      label: 'Delete card',
+      icon: <Icon glyph={glyph.trash} />,
+      danger: true,
+      onSelect: () => actions.onDelete(card),
+    },
   ];
 
   return (
@@ -219,7 +206,7 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
               <IconButton
                 ref={wants('menu')}
                 label={`Actions for “${card.title}”`}
-                icon={DotsThree}
+                icon={<Icon glyph={glyph.more} />}
                 size="sm"
                 className="board-card__menu"
                 data-part="menu"
@@ -256,14 +243,14 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
         <div className="board-card__foot">
           {due && !isDone ? (
             <p className={cx('board-card__due', overdue && 'is-overdue')}>
-              {overdue ? <WarningCircle aria-hidden="true" weight="fill" /> : <Clock aria-hidden="true" />}
+              {overdue ? <Icon glyph={glyph.error} /> : <Icon glyph={glyph.clock} />}
               {dueLabel(due, today, formatDay(due, { weekday: 'short', month: 'short', year: false }), card.dueTime)}
             </p>
           ) : null}
           <p className="board-card__counts">
             {check ? (
               <span className={cx('board-card__count', check.done === check.total && 'is-complete')}>
-                <CheckSquare aria-hidden="true" />
+                <Icon glyph={glyph.check} />
                 <span aria-hidden="true">
                   {check.done}/{check.total}
                 </span>
@@ -272,14 +259,14 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
             ) : null}
             {card.attachmentCount ? (
               <span className="board-card__count">
-                <Paperclip aria-hidden="true" />
+                <Icon glyph={glyph.attach} />
                 <span aria-hidden="true">{card.attachmentCount}</span>
                 <span className="visually-hidden">{plural(card.attachmentCount, 'file', 'files')}</span>
               </span>
             ) : null}
             {card.commentCount ? (
               <span className="board-card__count">
-                <ChatCircleDots aria-hidden="true" />
+                <Icon glyph={glyph.forum} />
                 <span aria-hidden="true">{card.commentCount}</span>
                 <span className="visually-hidden">{plural(card.commentCount, 'comment', 'comments')}</span>
               </span>
@@ -292,19 +279,19 @@ export function CardItem({ card, prevId, columns, labels, today, actions }: Card
 }
 
 function CardLink({ link, cardTitle }: { link: BoardLink; cardTitle: string }) {
-  const IconFor = LINK_ICON[link.type];
+  const linkGlyph = LINK_ICON[link.type];
   const to = link.url ? safeInternalPath(link.url) : null;
   if (!link.title || !to) {
     return (
       <p className="board-card__link board-card__link--gone">
-        <IconFor aria-hidden="true" />
+        <Icon glyph={linkGlyph} />
         <span>What this card linked to is no longer in the hub</span>
       </p>
     );
   }
   return (
     <Link to={to} className="board-card__link">
-      <IconFor aria-hidden="true" />
+      <Icon glyph={linkGlyph} />
       <span>{link.title === cardTitle ? OPEN_LINK[link.type] : link.title}</span>
     </Link>
   );

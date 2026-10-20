@@ -1,12 +1,23 @@
 // A card opened in a drawer (a sheet from the bottom on phones), with everything about it. Each change saves as it is
 // made; the title and the description save when you leave them, and when the drawer closes.
-import { CalendarDots, Clock, Tag, Trash } from '@phosphor-icons/react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { BoardCard, BoardCardDetail, BoardCardUpdate, BoardLabel, BoardSummary } from '../../api/types';
 import { formatDay } from '../../lib/dates';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
-import { Button, Chip, Drawer, QueryError, Select, Skeleton, TextArea, TextField, safeInternalPath } from '../../ui';
+import {
+  Button,
+  Chip,
+  Drawer,
+  QueryError,
+  Select,
+  Skeleton,
+  TextArea,
+  TextField,
+  safeInternalPath,
+  Icon,
+  glyph,
+} from '../../ui';
 import { MarkdownEditor } from '../forum/public';
 import { useCardDetail, useUpdateCard } from './api';
 import { colorVar, columnLabel, PRIORITIES, REMINDERS, type Priority, type RemindBefore } from './board';
@@ -213,7 +224,7 @@ function CardForm({
       <section className="card-detail__section" aria-labelledby={labelsId}>
         <div className="card-detail__section-head">
           <h3 className="card-detail__h" id={labelsId}>
-            <Tag aria-hidden="true" />
+            <Icon glyph={glyph.bookmark} />
             Labels
           </h3>
           {readOnly ? null : (
@@ -249,7 +260,7 @@ function CardForm({
 
       <section className="card-detail__section" aria-labelledby={dueId}>
         <h3 className="card-detail__h" id={dueId}>
-          <Clock aria-hidden="true" />
+          <Icon glyph={glyph.clock} />
           Due
         </h3>
         <div className="card-detail__grid card-detail__grid--due">
@@ -318,7 +329,7 @@ function CardForm({
         {readOnly ? null : (
           <Button
             variant="ghost"
-            leadingIcon={Trash}
+            leadingIcon={<Icon glyph={glyph.trash} />}
             className="card-detail__delete"
             onClick={() => onDelete(card)}
             data-hub="board-card-delete"
@@ -339,7 +350,7 @@ function LinkedItem({ card }: { card: BoardCardDetail }) {
   return (
     <section className="card-detail__section" aria-labelledby={headingId}>
       <h3 className="card-detail__h" id={headingId}>
-        <CalendarDots aria-hidden="true" />
+        <Icon glyph={glyph.calendar} />
         From the hub
       </h3>
       {link.title && to ? (
