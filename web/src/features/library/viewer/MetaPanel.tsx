@@ -14,6 +14,7 @@ import { appUrl } from '../../../lib/share';
 import { PaperThreads, useStartsThreads } from '../../forum/public';
 import { examLabel } from '../../../lib/exams';
 import { EXAM_KINDS, formatOf, kindLabel } from '../kinds';
+import type { PaperQuestion } from '../../../api/types';
 import type { LibraryItem } from '../types';
 import { QuestionTags } from './QuestionTags';
 import { SittingPanel } from './SittingPanel';
@@ -68,19 +69,19 @@ function MoreFromModule({ item, linkState }: { item: LibraryItem; linkState?: Li
 }
 
 /** The file page's details column: module, facts, credit, description, the paper's sitting and its questions by
- *  topic, the original, more from the module. `onPage` opens a PDF at a page. */
+ *  topic, the original, more from the module. `onQuestion` opens a PDF at a tagged question. */
 export function MetaPanel({
   item,
   linkState,
   className,
   id,
-  onPage,
+  onQuestion,
 }: {
   item: LibraryItem;
   linkState?: LinkState;
   className?: string;
   id?: string;
-  onPage: (page: number) => void;
+  onQuestion: (tag: PaperQuestion) => void;
 }) {
   const { getModule } = useModules();
   const { featureOn } = useAuth();
@@ -162,7 +163,7 @@ export function MetaPanel({
           <PaperThreads slug={item.slug} headingLevel={3} />
         </section>
       ) : null}
-      {tagging ? <QuestionTags item={item} onPage={onPage} /> : null}
+      {tagging ? <QuestionTags item={item} onQuestion={onQuestion} /> : null}
 
       {item.description ? (
         <section className="lib-meta__desc" aria-labelledby="lib-meta-desc">

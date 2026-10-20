@@ -26,7 +26,7 @@ import { CareerEditor } from '../career/public';
 import { DailyContentEditor } from '../daily/public';
 import { ForumSettingsEditor, ReportsQueue } from '../forum/public';
 import { ModulesEditor, SuggestionsQueue } from '../modules/public';
-import { FlaggedQuestions, UploadsQueue } from '../library/public';
+import { FlaggedQuestions, PaperTagging, UploadsQueue } from '../library/public';
 import { RequestsQueue } from '../requests/public';
 import { GradeRulesEditor } from '../grades/public';
 import { IssuesManager, NewsletterSettingsEditor } from '../newsletter/public';
@@ -166,6 +166,7 @@ const BODIES: Record<SectionId, () => ReactNode> = {
     <>
       <UploadsQueue />
       <FlaggedQuestions />
+      <PaperTagging />
     </>
   ),
   requests: () => <RequestsQueue />,

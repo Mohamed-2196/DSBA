@@ -7,6 +7,8 @@ import type {
   PaperQuestion,
   PaperQuestionCreate,
   PaperSittings,
+  PaperTaggingJob,
+  PaperTaggingOut,
   Sitting,
   SittingZone,
   WorkedAnswer,
@@ -14,6 +16,9 @@ import type {
 import { zoneLabel } from '../../lib/exams';
 
 export const PAPERS_KEY = ['library', 'papers'] as const;
+
+/** Where Claude's tagging of a past paper stands: queued, working, done, skipped or failed. */
+export type TaggingState = PaperTaggingJob['status'];
 export const QUESTIONS_KEY = ['library', 'questions'] as const;
 
 export const paperKeys = {
@@ -21,6 +26,7 @@ export const paperKeys = {
   paper: (itemId: string) => [...QUESTIONS_KEY, 'paper', itemId] as const,
   module: (moduleId: string, flagged = false) => [...QUESTIONS_KEY, 'module', moduleId, flagged] as const,
   flagged: [...QUESTIONS_KEY, 'flagged'] as const,
+  tagging: (status: TaggingState | null) => [...QUESTIONS_KEY, 'tagging', status] as const,
 };
 
 /** A module's past papers, examiners' reports and solutions by sitting, newest first. */
@@ -173,21 +179,28 @@ export function questionLabel(q: Numbered & Pick<PaperQuestion, 'page'>): string
   return q.page ? `${questionName(q)} (p. ${q.page})` : questionName(q);
 }
 
-/** The paper's page, open at the question's page when it is known. */
-export function questionHref(q: Pick<PaperQuestion, 'paper' | 'page'>): string {
-  const base = `/library/${encodeURIComponent(q.paper.slug)}`;
-  return q.page ? `${base}?page=${q.page}` : base;
-}
-
-/** The question's anchor on its paper's page, which forum threads link to: 'q3', or 'b1' where the paper has
- *  sections. */
+/** The question's anchor on its paper's page, which links to the question end with: 'q3', or 'b1' where the paper
+ *  has sections. */
 export function questionAnchor(q: Numbered): string {
   return questionName(q).toLowerCase();
 }
 
-/** The paper at the question, with its anchor: '/library/<slug>?page=4#q3'. What "Ask about Q3" links to. */
-export function questionLink(q: Numbered & Pick<PaperQuestion, 'paper' | 'page'>): string {
-  return `${questionHref(q)}#${questionAnchor(q)}`;
+/** The paper open at the question: '/library/<slug>?page=4#q3'. The paper's page marks where the question starts
+ *  (questionMark()). */
+export function questionHref(q: Numbered & Pick<PaperQuestion, 'paper' | 'page'>): string {
+  const base = `/library/${encodeURIComponent(q.paper.slug)}`;
+  return `${q.page ? `${base}?page=${q.page}` : base}#${questionAnchor(q)}`;
+}
+
+/** The question the paper page's address points at (#q3), to mark where it starts: null without one, or when it has
+ *  no page. */
+export function questionMark(
+  tags: readonly PaperQuestion[] | undefined,
+  hash: string,
+): { page: number; anchor: string | null; name: string } | null {
+  const target = hash.replace(/^#/, '').toLowerCase();
+  const tag = target ? tags?.find((t) => t.page && questionAnchor(t) === target) : undefined;
+  return tag?.page ? { page: tag.page, anchor: tag.anchor, name: questionName(tag) } : null;
 }
 
 /** The examiners' report open at the question's commentary. */
@@ -346,4 +359,52 @@ export function yourZoneFirst(zones: readonly SittingZone[], zone: SittingZone['
 /** A file's name in a sitting with no-break spaces, so 'Zone A report 2' wraps only as 'Zone A' / 'report 2'. */
 export function keepTogether(label: string): string {
   return label.replace(/\bZone /g, 'Zone\u00a0').replace(/ (?=\(?\d+\)?$)/, '\u00a0');
+}
+
+// ── Claude's tagging of new past papers (Manage, admins) ──
+
+/** Each past paper's tagging by Claude, the latest queued first (of one status, when given). Refreshed while
+ *  some wait or run. */
+export function usePaperTagging(status: TaggingState | null, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: paperKeys.tagging(status),
+    queryFn: ({ signal }): Promise<PaperTaggingOut> =>
+      call(api.GET('/api/v1/admin/paper-tagging', { params: { query: { status } }, signal })),
+    refetchInterval: (query) => (query.state.data && taggingBusy(query.state.data) ? 15_000 : false),
+    enabled,
+  });
+}
+
+/** Queue a paper's tagging again. */
+export function useRunPaperTagging() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId: string) =>
+      call(api.POST('/api/v1/admin/paper-tagging/{item_id}/run', { params: { path: { item_id: itemId } } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...QUESTIONS_KEY, 'tagging'] }),
+  });
+}
+
+/** Whether some papers wait or are being tagged. */
+export function taggingBusy(out: Pick<PaperTaggingOut, 'counts'>): boolean {
+  return (out.counts.queued ?? 0) + (out.counts.working ?? 0) > 0;
+}
+
+/** A job's status in words, and its badge's tone. */
+export function taggingStatus(status: TaggingState): {
+  label: string;
+  tone: 'neutral' | 'cobalt' | 'signal' | 'warning' | 'alert';
+} {
+  switch (status) {
+    case 'queued':
+      return { label: 'Waiting', tone: 'neutral' };
+    case 'working':
+      return { label: 'Tagging now', tone: 'cobalt' };
+    case 'done':
+      return { label: 'Tagged', tone: 'signal' };
+    case 'skipped':
+      return { label: 'Skipped', tone: 'warning' };
+    case 'failed':
+      return { label: 'Failed', tone: 'alert' };
+  }
 }

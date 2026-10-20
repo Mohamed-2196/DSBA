@@ -871,3 +871,45 @@ button.lib-qtags__q {
     top: 56px;
   }
 }
+
+/* A tagged question's start, marked on its page (PdfPages): an outlined band with its name, never colour alone.
+   The page is white in both themes, so the mark keeps the light theme's accent. */
+.lib-pdf__mark {
+  position: absolute;
+  inset-inline: 1.5%;
+  border: 2px solid #2445c2;
+  border-radius: 6px;
+  background: rgb(36 69 194 / 0.08);
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.9);
+  pointer-events: none;
+}
+.lib-pdf__mark--page {
+  inset: 0;
+  border-width: 3px;
+  background: none;
+}
+/* focus comes to the mark when it is found; its own border shows it, thicker, without covering the next line */
+.lib-pdf__mark:focus {
+  outline: none;
+  border-width: 3px;
+}
+.lib-pdf__marklabel {
+  position: absolute;
+  inset-block-end: 100%;
+  inset-inline-start: -2px;
+  padding: 2px 8px;
+  border-radius: 6px 6px 0 0;
+  background: #2445c2;
+  color: #fff;
+  font: 600 var(--fs-12) / 1.4 var(--font-ui);
+  white-space: nowrap;
+}
+.lib-pdf__mark--page .lib-pdf__marklabel {
+  inset-block: 0 auto;
+  border-radius: 0 0 6px 0;
+}
+/* a band at the very top of the page: its name goes under its top edge, where the page doesn't cut it off */
+.lib-pdf__mark--top .lib-pdf__marklabel {
+  inset-block: 0 auto;
+  border-radius: 0 0 6px 0;
+}

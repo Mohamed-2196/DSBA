@@ -31,6 +31,7 @@ function q(id: string, question: number, chapterId = 'c1', patch: Partial<PaperQ
     section: null,
     question,
     page: null,
+    anchor: null,
     flagged: false,
     flagCount: null,
     isMine: false,

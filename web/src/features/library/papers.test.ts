@@ -18,7 +18,9 @@ import {
   questionAnchor,
   questionHref,
   questionKey,
-  questionLink,
+  questionMark,
+  taggingBusy,
+  taggingStatus,
   questionLabel,
   questionName,
   questionNumber,
@@ -92,6 +94,7 @@ function tag(patch: Partial<PaperQuestion>): PaperQuestion {
     section: null,
     question: 3,
     page: null,
+    anchor: null,
     flagged: false,
     flagCount: null,
     isMine: false,
@@ -143,15 +146,24 @@ describe('questions', () => {
     expect(questionName(tag({ section: 'B', question: 1 }))).toBe('B1');
     expect(questionNumber(tag({ section: 'B', question: 1 }))).toBe('B1');
     expect(questionNumber(tag({}))).toBe('3');
-    expect(questionHref(tag({}))).toBe('/library/ec1002-za-may-2024');
-    expect(questionHref(tag({ page: 4 }))).toBe('/library/ec1002-za-may-2024?page=4');
+  });
+
+  it('marks the question the address points at, when it has a page', () => {
+    const tags = [tag({ page: 4, anchor: '3. Define the price elasticity' }), tag({ section: 'B', question: 1 })];
+    expect(questionMark(tags, '#q3')).toEqual({ page: 4, anchor: '3. Define the price elasticity', name: 'Q3' });
+    expect(questionMark(tags, '#Q3')).toEqual({ page: 4, anchor: '3. Define the price elasticity', name: 'Q3' });
+    expect(questionMark(tags, '#b1')).toBeNull(); // no page
+    expect(questionMark(tags, '')).toBeNull();
+    expect(questionMark(undefined, '#q3')).toBeNull();
+    expect(questionMark([tag({ page: 2, anchor: null })], '#q3')).toEqual({ page: 2, anchor: null, name: 'Q3' });
   });
 
   it('anchors a question on its paper for the forum, and opens its worked answer', () => {
+    expect(questionHref(tag({}))).toBe('/library/ec1002-za-may-2024#q3');
     expect(questionAnchor(tag({}))).toBe('q3');
     expect(questionAnchor(tag({ section: 'B', question: 1 }))).toBe('b1');
-    expect(questionLink(tag({ page: 4 }))).toBe('/library/ec1002-za-may-2024?page=4#q3');
-    expect(questionLink(tag({ section: 'B', question: 1 }))).toBe('/library/ec1002-za-may-2024#b1');
+    expect(questionHref(tag({ page: 4 }))).toBe('/library/ec1002-za-may-2024?page=4#q3');
+    expect(questionHref(tag({ section: 'B', question: 1 }))).toBe('/library/ec1002-za-may-2024#b1');
     const answer = { id: 'r', slug: 'ec1002-report-may-2024', page: 7 };
     expect(answerHref(answer)).toBe('/library/ec1002-report-may-2024?page=7');
     expect(answerLabel(answer)).toBe('Worked answer, report p. 7');
@@ -271,5 +283,20 @@ describe('keepTogether', () => {
     expect(keepTogether('Zone A report')).toBe('Zone\u00a0A report');
     expect(keepTogether('Report')).toBe('Report');
     expect(keepTogether('Report (2)')).toBe('Report\u00a0(2)');
+  });
+});
+
+describe('the tagging of new past papers', () => {
+  it('says whether some papers wait or are being tagged', () => {
+    const counts = { queued: 0, working: 0, done: 3, skipped: 1, failed: 0 };
+    expect(taggingBusy({ counts })).toBe(false);
+    expect(taggingBusy({ counts: { ...counts, queued: 1 } })).toBe(true);
+    expect(taggingBusy({ counts: { ...counts, working: 1 } })).toBe(true);
+  });
+
+  it('names each status in words, never by colour alone', () => {
+    expect(taggingStatus('queued')).toEqual({ label: 'Waiting', tone: 'neutral' });
+    expect(taggingStatus('done').label).toBe('Tagged');
+    expect(taggingStatus('failed')).toEqual({ label: 'Failed', tone: 'alert' });
   });
 });
