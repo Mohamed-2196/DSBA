@@ -6,7 +6,7 @@
 // Each page opens in a fresh browser context (empty cache, no service worker) with Chrome's network emulation at the
 // given round trip (default 300 ms) and 20 Mbit/s, as a guest and, when DSBA_SESSION is set, signed in. For each it
 // prints the requests by type, the JS and CSS bytes on the wire, the largest contentful paint, when the network went
-// quiet, the longest chain of scripts and styles that waited on each other, and the API calls (repeats marked).
+// quiet, in how many waves the scripts and styles and the API calls went out, and the API calls (repeats marked).
 // Chrome is the installed one (channel 'chrome').
 import { chromium } from '@playwright/test';
 
@@ -17,6 +17,19 @@ const SESSION = process.env.DSBA_SESSION;
 const ROUTES = ['/', '/library', '/modules', '/forum', '/calendar'];
 
 const browser = await chromium.launch({ channel: 'chrome' });
+
+/** How many bursts these request times (ms) fall into, a burst starting over half a round trip after the last. */
+function waves(times) {
+  let count = 0;
+  let start = -Infinity;
+  for (const t of [...times].sort((a, b) => a - b)) {
+    if (t - start > RTT / 2) {
+      count += 1;
+      start = t;
+    }
+  }
+  return count;
+}
 
 async function measure(route, signedIn) {
   const context = await browser.newContext({
@@ -39,9 +52,7 @@ async function measure(route, signedIn) {
   });
   const requests = new Map();
   cdp.on('Network.requestWillBeSent', (e) => {
-    const init = e.initiator;
-    const from = init.url ?? init.stack?.callFrames?.[0]?.url ?? init.stack?.parent?.callFrames?.[0]?.url;
-    requests.set(e.requestId, { url: e.request.url, type: e.type, from, bytes: 0 });
+    requests.set(e.requestId, { url: e.request.url, type: e.type, at: e.timestamp * 1000, bytes: 0 });
   });
   cdp.on('Network.loadingFinished', (e) => {
     const r = requests.get(e.requestId);
@@ -70,18 +81,11 @@ async function measure(route, signedIn) {
   const images = byType('Image');
   const fonts = byType('Font');
   const api = all.filter((r) => r.url.includes('/api/'));
-  // The chain: how many files each script or style waited on before it was asked for.
-  const depthOf = new Map();
-  const depth = (url, seen = new Set()) => {
-    if (depthOf.has(url)) return depthOf.get(url);
-    if (seen.has(url)) return 0;
-    seen.add(url);
-    const r = all.find((x) => x.url === url);
-    const d = r?.from && r.from !== url && r.from !== BASE + route ? depth(r.from, seen) + 1 : 1;
-    depthOf.set(url, d);
-    return d;
-  };
-  const chain = Math.max(0, ...[...scripts, ...styles].map((r) => depth(r.url)));
+  // The chain: in how many waves the scripts and styles were asked for. Chrome doesn't name the module that imported
+  // a script, so a wave is a burst of requests starting more than half a round trip after the previous burst began:
+  // each one waited for something that came before it.
+  const chain = waves([...scripts, ...styles].map((r) => r.at));
+  const apiWaves = waves(api.map((r) => r.at));
   const kb = (list) => Math.round(list.reduce((n, r) => n + r.bytes, 0) / 1024);
   const counts = new Map();
   for (const r of api) {
@@ -101,6 +105,7 @@ async function measure(route, signedIn) {
     lcp,
     idle,
     chain,
+    apiWaves,
     calls: [...counts].map(([p, n]) => (n > 1 ? `${p} x${n}` : p)),
   };
 }
@@ -112,10 +117,10 @@ for (const signedIn of SESSION ? [false, true] : [false]) {
 await browser.close();
 
 console.log(`RTT ${RTT} ms, 20 Mbit/s, 1440x900, cold cache`);
-console.log('who        route      js css img font api  jsKB cssKB   lcp  idle chain');
+console.log('who        route      js css img font api  jsKB cssKB   lcp  idle chain apiWaves');
 for (const r of rows) {
   console.log(
-    `${r.who.padEnd(10)} ${r.route.padEnd(10)} ${String(r.js).padStart(2)} ${String(r.css).padStart(3)} ${String(r.img).padStart(3)} ${String(r.font).padStart(4)} ${String(r.api).padStart(3)} ${String(r.jsKB).padStart(5)} ${String(r.cssKB).padStart(5)} ${String(r.lcp).padStart(5)} ${String(r.idle).padStart(5)} ${String(r.chain).padStart(5)}`,
+    `${r.who.padEnd(10)} ${r.route.padEnd(10)} ${String(r.js).padStart(2)} ${String(r.css).padStart(3)} ${String(r.img).padStart(3)} ${String(r.font).padStart(4)} ${String(r.api).padStart(3)} ${String(r.jsKB).padStart(5)} ${String(r.cssKB).padStart(5)} ${String(r.lcp).padStart(5)} ${String(r.idle).padStart(5)} ${String(r.chain).padStart(5)} ${String(r.apiWaves).padStart(8)}`,
   );
 }
 if (process.argv.includes('--calls')) {
