@@ -1,8 +1,9 @@
-import { Suspense, useLayoutEffect, type ComponentType, type LazyExoticComponent, type ReactNode } from 'react';
+import { Suspense, useLayoutEffect, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { SwitchedOff, useAuth, type Feature } from '../auth';
 import { ModulesGate } from '../state/ModulesProvider';
 import { Badge, Page as PageFrame, QueryError } from '../ui';
+import type { LazyPage } from './lazyPage';
 import { PageLoader } from './PageLoader';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 
@@ -11,7 +12,7 @@ export interface AppRoute {
   id: string;
   path: string;
   title: string | null;
-  Page: LazyExoticComponent<ComponentType>;
+  Page: LazyPage;
   /** false: the page doesn't use the module catalogue, so it shows even when the catalogue can't be loaded */
   modules?: false;
   /** who may open it (the style guide is a tool for the team, not a page for students) */

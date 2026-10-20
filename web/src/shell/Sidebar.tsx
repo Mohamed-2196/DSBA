@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { BREAKPOINTS, useMediaQuery } from '../state';
 import { Badge, BrandLogo, HubLogo, Icon, Tooltip, cx, glyph } from '../ui';
 import { NooraFace } from '../features/noora/public';
+import { preloadOnIntent } from '../routes';
 import { type NavItem as NavConfig } from './nav';
 import { usePortalLinks, type PortalLink } from './portals';
 import { useShownNav } from './useShownNav';
@@ -19,6 +20,7 @@ function NavItem({ item, collapsed }: { item: NavConfig; collapsed: boolean }) {
       aria-label={collapsed ? (item.isNew ? `${item.label} (new)` : item.label) : undefined}
       data-hub={`nav-${item.id}`}
       data-section={item.section}
+      {...preloadOnIntent(item.to)}
     >
       {({ isActive }) => (
         <>
