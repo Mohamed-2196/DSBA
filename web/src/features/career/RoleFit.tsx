@@ -1,26 +1,33 @@
 import { useMemo, useState } from 'react';
 import {
-  CaretDown,
   Briefcase,
-  Certificate,
   ChartBar,
   ChartPieSlice,
-  ChatsCircle,
-  CheckCircle,
-  CircleDashed,
   Cpu,
   Flask,
   Handshake,
   ShieldWarning,
   Target,
   TrendUp,
-  Wrench,
   type Icon,
 } from '@phosphor-icons/react';
 import type { CareerRole } from '../../api/types';
 import { BREAKPOINTS, cohortColor, cohortLabel, useMediaQuery, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, Chip, CohortBadge, PageSection, Panel, ProgressRing, SectionHeader, cx } from '../../ui';
+import {
+  Badge,
+  Button,
+  Chip,
+  CohortBadge,
+  glyph,
+  Icon as BrandIcon,
+  PageSection,
+  Panel,
+  ProgressRing,
+  SectionHeader,
+  cx,
+  type Glyph,
+} from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { useCareerData } from './context';
 import { usePapers } from '../papers/public';
@@ -46,12 +53,11 @@ const GROUPS: {
   status: SkillStatus;
   key: 'covered' | 'later' | 'gaps';
   title: string;
-  icon: Icon;
-  weight: 'fill' | 'bold';
+  icon: Glyph;
 }[] = [
-  { status: 'covered', key: 'covered', title: 'Covered by your modules so far', icon: CheckCircle, weight: 'fill' },
-  { status: 'later', key: 'later', title: 'Coming in later years', icon: CircleDashed, weight: 'bold' },
-  { status: 'gap', key: 'gaps', title: 'Yours to close', icon: Wrench, weight: 'bold' },
+  { status: 'covered', key: 'covered', title: 'Covered by your modules so far', icon: glyph.success },
+  { status: 'later', key: 'later', title: 'Coming in later years', icon: glyph.clock },
+  { status: 'gap', key: 'gaps', title: 'Yours to close', icon: glyph.edit },
 ];
 
 /** What is left after the covered skills, as one short sentence. */
@@ -188,7 +194,7 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
                   {fitCerts.map((c) => (
                     <li key={c.id}>
                       <button type="button" className="career-fitcert" onClick={() => jumpToCert(c.id)}>
-                        <Certificate className="career-fitcert__icon" aria-hidden="true" />
+                        <BrandIcon glyph={glyph.exam} size={16} className="career-fitcert__icon" />
                         {c.short}
                       </button>
                     </li>
@@ -201,7 +207,7 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
               <Button
                 variant="secondary"
                 size="sm"
-                leadingIcon={ChatsCircle}
+                leadingIcon={<BrandIcon glyph={glyph.forum} />}
                 to={askLink(role.ask)}
                 className="career-fit__ask"
               >
@@ -214,7 +220,7 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
             <div className="career-fit__more">
               <Button
                 variant="secondary"
-                trailingIcon={CaretDown}
+                trailingIcon={<BrandIcon glyph={glyph.chevronDown} />}
                 aria-expanded={false}
                 aria-controls="career-fit-skills"
                 onClick={() => setSkillsOpen(true)}
@@ -228,7 +234,6 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
               {GROUPS.map((g) => {
                 const rows = fit[g.key];
                 if (!rows.length) return null;
-                const GroupIcon = g.icon;
                 return (
                   <section
                     key={g.status}
@@ -236,7 +241,7 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
                     aria-label={`${g.title}: ${rows.length}`}
                   >
                     <h4 className="career-group__title">
-                      <GroupIcon className="career-group__icon" weight={g.weight} aria-hidden="true" />
+                      <BrandIcon glyph={g.icon} size={20} className="career-group__icon" />
                       {g.title}
                       <span className="career-group__count">{rows.length}</span>
                     </h4>

@@ -1,6 +1,5 @@
-// The one competition on the board, beside the page title.
-import { ArrowUpRight } from '@phosphor-icons/react';
-import { Badge } from '../../ui';
+// The one competition on the board, under the page's band.
+import { Badge, glyph, Icon } from '../../ui';
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
 import { webUrl } from './lib/links';
@@ -8,7 +7,7 @@ import { logoOf } from './lib/logos';
 import { LogoSlot } from './LogoSlot';
 
 /**
- * The one competition on the board, featured beside the page title. BIBF is taking participants, so the way in
+ * The one competition on the board, featured under the page's band. BIBF is taking participants, so the way in
  * is the programme office (no deadline is shown, and none is invented).
  */
 export function FeaturedCompetition() {
@@ -31,7 +30,7 @@ export function FeaturedCompetition() {
             {url ? (
               <a href={url} target="_blank" rel="noopener noreferrer" className="career-featured__link">
                 {f.title}
-                <ArrowUpRight className="career-featured__go" weight="bold" aria-hidden="true" />
+                <Icon glyph={glyph.external} size={16} className="career-featured__go" />
                 <span className="visually-hidden">{`, opens ${hostOf(url)} in a new tab`}</span>
               </a>
             ) : (

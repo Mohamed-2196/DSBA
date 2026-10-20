@@ -1,20 +1,10 @@
 // A board as columns of cards. Laptops and tablets see every column side by side (the row scrolls when there are
 // more than fit) and drag cards with a mouse; phones see one column at a time behind tabs. Every move is also in
 // each card's menu, and Alt with the arrow keys moves a focused card.
-import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle,
-  Circle,
-  DotsThree,
-  PencilSimple,
-  Plus,
-  Trash,
-} from '@phosphor-icons/react';
 import { useEffect, useId, useRef, useState, type DragEvent, type FormEvent, type KeyboardEvent } from 'react';
 import type { BoardCard, BoardColumn, BoardLabel, BoardSummary } from '../../api/types';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
-import { Button, IconButton, Menu, TabPanel, Tabs, TextField, Tooltip, cx, type MenuItem } from '../../ui';
+import { Button, IconButton, Menu, TabPanel, Tabs, TextField, Tooltip, cx, type MenuItem, Icon, glyph } from '../../ui';
 import { useAddCard } from './api';
 import { cardsIn, counts, splitDone } from './board';
 import { CardItem } from './CardItem';
@@ -82,7 +72,7 @@ export function KanbanView({
           tabs={columns.map((c) => ({
             id: c.id,
             label: c.name,
-            icon: c.done ? CheckCircle : null,
+            icon: c.done ? <Icon glyph={glyph.success} /> : null,
             count: shown[c.id] ?? 0,
           }))}
         />
@@ -138,7 +128,7 @@ export function KanbanView({
             onClick={columnActions.onAdd}
             data-hub="board-add-column"
           >
-            <Plus aria-hidden="true" />
+            <Icon glyph={glyph.plus} />
           </button>
         </Tooltip>
       )}
@@ -210,32 +200,37 @@ function KanbanColumn({
   };
 
   const menu: MenuItem[] = [
-    { id: 'rename', label: 'Rename column', icon: PencilSimple, onSelect: () => columnActions.onRename(column) },
+    {
+      id: 'rename',
+      label: 'Rename column',
+      icon: <Icon glyph={glyph.edit} />,
+      onSelect: () => columnActions.onRename(column),
+    },
     {
       id: 'left',
       label: 'Move left',
-      icon: ArrowLeft,
+      icon: <Icon glyph={glyph.back} />,
       disabled: index === 0,
       onSelect: () => columnActions.onMove(column, -1),
     },
     {
       id: 'right',
       label: 'Move right',
-      icon: ArrowRight,
+      icon: <Icon glyph={glyph.forward} />,
       disabled: index === total - 1,
       onSelect: () => columnActions.onMove(column, 1),
     },
     {
       id: 'done',
       label: column.done ? 'Stop counting cards here as done' : 'Count cards here as done',
-      icon: column.done ? Circle : CheckCircle,
+      icon: column.done ? <Icon glyph={glyph.undo} /> : <Icon glyph={glyph.success} />,
       onSelect: () => columnActions.onToggleDone(column),
     },
     { divider: true, id: 'd' },
     {
       id: 'delete',
       label: 'Delete column',
-      icon: Trash,
+      icon: <Icon glyph={glyph.trash} />,
       danger: true,
       disabled: total <= 1,
       onSelect: () => columnActions.onDelete(column),
@@ -264,7 +259,7 @@ function KanbanColumn({
             <span className="visually-hidden"> {cards.length === 1 ? 'card' : 'cards'}</span>
           </span>
           {column.done ? (
-            <CheckCircle className="board-col__done" weight="fill" aria-label="Cards here count as done" role="img" />
+            <Icon glyph={glyph.success} className="board-col__done" aria-label="Cards here count as done" role="img" />
           ) : null}
         </h2>
         {readOnly ? null : (
@@ -272,7 +267,7 @@ function KanbanColumn({
             {single ? (
               <IconButton
                 label={`Add a card to ${column.name}`}
-                icon={Plus}
+                icon={<Icon glyph={glyph.plus} />}
                 size="sm"
                 onClick={() => onAdding(column.id)}
               />
@@ -281,7 +276,9 @@ function KanbanColumn({
               label={`Column ${column.name}`}
               align="end"
               items={menu}
-              trigger={<IconButton label={`Column options for ${column.name}`} icon={DotsThree} size="sm" />}
+              trigger={
+                <IconButton label={`Column options for ${column.name}`} icon={<Icon glyph={glyph.more} />} size="sm" />
+              }
             />
           </span>
         )}
@@ -348,7 +345,7 @@ function KanbanColumn({
           onClick={() => onAdding(column.id)}
           data-hub="board-quick-add"
         >
-          <Plus aria-hidden="true" />
+          <Icon glyph={glyph.plus} />
           Add a card
         </button>
       )}

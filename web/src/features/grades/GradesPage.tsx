@@ -1,9 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowCounterClockwise, CaretDown, Flask, LockSimple } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { BREAKPOINTS, useLocalStorage, useMediaQuery, useQueryParam, useToast } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, cx, Menu, Page, PageHeader, PageSection, QueryError, SectionHeader, Skeleton } from '../../ui';
+import {
+  Button,
+  cx,
+  glyph,
+  Icon,
+  Menu,
+  Page,
+  PageHeader,
+  PageSection,
+  QueryError,
+  SectionHeader,
+  Skeleton,
+} from '../../ui';
 import { httpsHref, useSite } from '../site/public';
 import { useGradeRules } from './api';
 import { bandsOf, CLASS_NAME, CLASS_SHORT } from './bands';
@@ -30,7 +41,7 @@ export default function GradesPage() {
   if (rules.data) return <Calculator rules={rules.data} />;
   return (
     <Page className="grades-page">
-      <PageHeader title={TITLE} description={DESCRIPTION} />
+      <PageHeader section="tools" title={TITLE} description={DESCRIPTION} />
       {rules.isError ? (
         <QueryError
           error={rules.error}
@@ -143,14 +154,10 @@ function Calculator({ rules }: { rules: Rules }) {
       <Menu
         label="Examples"
         align="end"
-        trigger={
-          <Button leadingIcon={Flask} trailingIcon={<CaretDown weight="bold" />}>
-            Try an example
-          </Button>
-        }
+        trigger={<Button trailingIcon={<Icon glyph={glyph.chevronDown} />}>Try an example</Button>}
         items={Object.entries(EXAMPLES).map(([id, ex]) => ({ id, label: ex.label, onSelect: () => loadExample(id) }))}
       />
-      <Button variant="ghost" leadingIcon={ArrowCounterClockwise} onClick={reset} disabled={!hasMarks(record)}>
+      <Button variant="ghost" leadingIcon={<Icon glyph={glyph.undo} />} onClick={reset} disabled={!hasMarks(record)}>
         Reset
       </Button>
     </div>
@@ -159,12 +166,13 @@ function Calculator({ rules }: { rules: Rules }) {
   return (
     <Page className="grades-page">
       <PageHeader
+        section="tools"
         title={TITLE}
         description={DESCRIPTION}
         actions={actions}
         meta={
           <p className="grades-privacy" data-hub="grades-privacy">
-            <LockSimple className="grades-privacy__icon" weight="bold" aria-hidden="true" />
+            <Icon glyph={glyph.lock} size={16} className="grades-privacy__icon" />
             Your marks stay in this browser and are never sent to the Hub’s server.
             {status === 'signed-in' ? ' Signing out clears them from this browser.' : null}
           </p>

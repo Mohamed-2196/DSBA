@@ -1,24 +1,9 @@
 // A card's files in its drawer: add several at once, see the pictures, open or save any file, make a picture the
 // card's cover, delete one.
-import {
-  DownloadSimple,
-  File as FileIcon,
-  FileCsv,
-  FileDoc,
-  FilePdf,
-  FilePpt,
-  FileXls,
-  ImageSquare,
-  Paperclip,
-  Plus,
-  Trash,
-  type Icon,
-} from '@phosphor-icons/react';
 import { useId, useRef, useState, type ChangeEvent } from 'react';
 import type { BoardCardDetail, CardAttachment } from '../../api/types';
 import {
   checkUpload,
-  fileExtension,
   formatSize,
   progressText,
   uploadErrorMessage,
@@ -27,22 +12,11 @@ import {
   type UploadProgress,
 } from '../../api/uploads';
 import { useToast } from '../../state';
-import { Badge, Button, ConfirmDialog, IconButton } from '../../ui';
+import { Badge, Button, ConfirmDialog, IconButton, Icon, glyph } from '../../ui';
 import { boardFileHref, useAttachFile, useDetachFile, useUpdateCard } from './api';
 
 /** The API keeps up to 10 files on a card. */
 const MAX_FILES = 10;
-
-const KIND_ICON: Record<string, Icon> = {
-  pdf: FilePdf,
-  doc: FileDoc,
-  docx: FileDoc,
-  xls: FileXls,
-  xlsx: FileXls,
-  csv: FileCsv,
-  ppt: FilePpt,
-  pptx: FilePpt,
-};
 
 export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly: boolean }) {
   const headingId = useId();
@@ -112,14 +86,19 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
       ) : null}
       <IconButton
         label={`Download ${file.fileName}`}
-        icon={DownloadSimple}
+        icon={<Icon glyph={glyph.download} />}
         size="sm"
         href={boardFileHref(file.id, true)}
         external={false}
         download={file.fileName}
       />
       {readOnly ? null : (
-        <IconButton label={`Delete ${file.fileName}`} icon={Trash} size="sm" onClick={() => setDeleting(file)} />
+        <IconButton
+          label={`Delete ${file.fileName}`}
+          icon={<Icon glyph={glyph.trash} />}
+          size="sm"
+          onClick={() => setDeleting(file)}
+        />
       )}
     </span>
   );
@@ -128,7 +107,7 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
     <section className="card-detail__section" aria-labelledby={headingId}>
       <div className="card-detail__section-head">
         <h3 className="card-detail__h" id={headingId}>
-          <Paperclip aria-hidden="true" />
+          <Icon glyph={glyph.attach} />
           Files
           {files.length ? <span className="card-detail__h-count">{files.length}</span> : null}
         </h3>
@@ -147,7 +126,7 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
             <Button
               size="sm"
               variant="secondary"
-              leadingIcon={Plus}
+              leadingIcon={<Icon glyph={glyph.plus} />}
               loading={!!sending}
               disabled={full}
               onClick={() => inputRef.current?.click()}
@@ -180,7 +159,7 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
                 <span className="card-files__size">
                   {formatSize(file.sizeBytes)}
                   {card.coverUrl === file.url ? (
-                    <Badge tone="cobalt" size="sm" icon={ImageSquare}>
+                    <Badge tone="cobalt" size="sm" icon={<Icon glyph={glyph.image} />}>
                       Cover
                     </Badge>
                   ) : null}
@@ -195,10 +174,9 @@ export function CardFiles({ card, readOnly }: { card: BoardCardDetail; readOnly:
       {others.length ? (
         <ul role="list" className="card-files__list">
           {others.map((file) => {
-            const KindIcon = KIND_ICON[fileExtension(file.fileName) ?? ''] ?? FileIcon;
             return (
               <li key={file.id} className="card-files__file">
-                <KindIcon className="card-files__icon" aria-hidden="true" />
+                <Icon glyph={glyph.page} size={24} className="card-files__icon" />
                 <div className="card-files__meta">
                   <a
                     href={boardFileHref(file.id)}

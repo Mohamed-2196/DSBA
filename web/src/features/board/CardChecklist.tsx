@@ -1,8 +1,7 @@
 // A card's checklist in its drawer: tick, reorder and remove to-dos, and add new ones. Each change saves at once.
-import { ArrowDown, ArrowUp, CheckSquare, Trash } from '@phosphor-icons/react';
 import { useId, useState, type FormEvent } from 'react';
 import type { ChecklistItem } from '../../api/types';
-import { Button, IconButton, TextField, cx } from '../../ui';
+import { Button, IconButton, TextField, cx, Icon, glyph } from '../../ui';
 import { checklistProgress, moveItem, newItemId } from './board';
 
 /** The API keeps up to 50 to-dos on a card. */
@@ -32,7 +31,7 @@ export function CardChecklist({ items, readOnly, onChange }: CardChecklistProps)
     <section className="card-detail__section" aria-labelledby={headingId}>
       <div className="card-detail__section-head">
         <h3 className="card-detail__h" id={headingId}>
-          <CheckSquare aria-hidden="true" />
+          <Icon glyph={glyph.check} />
           Checklist
         </h3>
         {items.length ? (
@@ -72,21 +71,21 @@ export function CardChecklist({ items, readOnly, onChange }: CardChecklistProps)
                 <span className="card-detail__todo-actions">
                   <IconButton
                     label={`Move “${item.text}” up`}
-                    icon={ArrowUp}
+                    icon={<Icon glyph={glyph.arrowUp} />}
                     size="sm"
                     disabled={i === 0}
                     onClick={() => onChange(moveItem(items, item.id, -1))}
                   />
                   <IconButton
                     label={`Move “${item.text}” down`}
-                    icon={ArrowDown}
+                    icon={<Icon glyph={glyph.arrowDown} />}
                     size="sm"
                     disabled={i === items.length - 1}
                     onClick={() => onChange(moveItem(items, item.id, 1))}
                   />
                   <IconButton
                     label={`Remove “${item.text}”`}
-                    icon={Trash}
+                    icon={<Icon glyph={glyph.trash} />}
                     size="sm"
                     onClick={() => onChange(items.filter((x) => x.id !== item.id))}
                   />

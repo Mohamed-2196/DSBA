@@ -1,9 +1,9 @@
-import { ArrowUpRight, CaretDown, CaretUp, Database, FileText, Timer } from '@phosphor-icons/react';
+import { Database } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import type { CareerCert, ModuleSummary } from '../../api/types';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, PageSection, Panel, SectionHeader, cx } from '../../ui';
+import { Button, glyph, Icon, PageSection, Panel, SectionHeader, cx } from '../../ui';
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
 import { SHOW_CERT_EVENT, jumpTo } from './lib/jump';
@@ -63,7 +63,7 @@ export function CertCard({ cert }: { cert: CareerCert }) {
 
       <p className="career-cert__good">{cert.goodFor}</p>
       <p className="career-cert__time">
-        <Timer className="career-cert__time-icon" aria-hidden="true" />
+        <Icon glyph={glyph.timer} size={16} className="career-cert__time-icon" />
         {cert.effortNote}
       </p>
 
@@ -84,7 +84,7 @@ export function CertCard({ cert }: { cert: CareerCert }) {
       <footer className="career-cert__foot">
         {url ? (
           <>
-            <Button variant="secondary" size="sm" href={url} trailingIcon={ArrowUpRight}>
+            <Button variant="secondary" size="sm" href={url} trailingIcon={<Icon glyph={glyph.external} />}>
               Official page
               <span className="visually-hidden">{` for ${cert.name}, opens ${host} in a new tab`}</span>
             </Button>
@@ -93,7 +93,12 @@ export function CertCard({ cert }: { cert: CareerCert }) {
             </span>
           </>
         ) : cert.file ? (
-          <Button variant="secondary" size="sm" to={libraryLink(cert.file.module)} leadingIcon={FileText}>
+          <Button
+            variant="secondary"
+            size="sm"
+            to={libraryLink(cert.file.module)}
+            leadingIcon={<Icon glyph={glyph.page} />}
+          >
             Find it in the library
           </Button>
         ) : null}
@@ -151,7 +156,7 @@ export function Certificates() {
         <div className="career-opps__more">
           <Button
             variant="secondary"
-            trailingIcon={folded ? CaretDown : CaretUp}
+            trailingIcon={<Icon glyph={folded ? glyph.chevronDown : glyph.chevronUp} />}
             aria-expanded={!folded}
             onClick={() => setAll(folded)}
           >

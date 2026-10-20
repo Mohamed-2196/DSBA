@@ -34,10 +34,11 @@ export interface PageHeaderProps {
   leading?: ReactNode;
   /**
    * A core section's page: the header becomes a band in the section's colour with its deskmate (idle, decorative).
+   * A tool's page ('tools': Boards, Grades, Career Navigator) gets the band in Home's blue with no deskmate.
    * On phones the actions sit under the band.
    */
-  section?: MateSection;
-  /** the deskmate in a section band, when it needs more than the default (a pose, Binder's cover) */
+  section?: MateSection | 'tools';
+  /** the deskmate in a section band, when it needs more than the default (a pose, Binder's cover); tools have none */
   mate?: ReactNode;
   className?: string;
   children?: ReactNode;
@@ -55,11 +56,19 @@ export function PageHeader({
   className,
   children,
 }: PageHeaderProps) {
+  const drawn =
+    section === 'tools' ? mate : section ? (mate ?? <Deskmate mate={SECTION_MATE[section]} size={100} />) : null;
   return (
-    <header className={cx('ui-page-header', section && 'ui-page-header--band', className)} data-section={section}>
-      {section ? (
-        <div className="ui-page-header__mate">{mate ?? <Deskmate mate={SECTION_MATE[section]} size={100} />}</div>
-      ) : null}
+    <header
+      className={cx(
+        'ui-page-header',
+        section && 'ui-page-header--band',
+        section && !drawn && 'ui-page-header--bare',
+        className,
+      )}
+      data-section={section}
+    >
+      {drawn ? <div className="ui-page-header__mate">{drawn}</div> : null}
       <div className="ui-page-header__main">
         {leading ? <div className="ui-page-header__leading">{leading}</div> : null}
         <h1 className="ui-page-header__title">{title}</h1>

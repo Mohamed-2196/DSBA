@@ -1,10 +1,9 @@
 // The student's labels, the same on every board: make one, rename or recolour it, or delete it (it leaves every
 // card).
-import { PencilSimple, Plus, Trash } from '@phosphor-icons/react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { BoardLabel } from '../../api/types';
 import { errorMessage, isApiError } from '../../api/errors';
-import { Button, ConfirmDialog, IconButton, Modal, TextField } from '../../ui';
+import { Button, ConfirmDialog, IconButton, Modal, TextField, Icon, glyph } from '../../ui';
 import { useCreateLabel, useDeleteLabel, useUpdateLabel } from './api';
 import { colorVar, type BoardColor } from './board';
 import { ColorPicker } from './ColorPicker';
@@ -73,8 +72,18 @@ export function LabelDialog({ labels, onClose }: LabelDialogProps) {
                     <span className="label-dialog__dot" style={{ background: colorVar(l.color) }} aria-hidden="true" />
                     {l.name}
                   </span>
-                  <IconButton label={`Edit ${l.name}`} icon={PencilSimple} size="sm" onClick={() => setEditing(l.id)} />
-                  <IconButton label={`Delete ${l.name}`} icon={Trash} size="sm" onClick={() => setDeleting(l)} />
+                  <IconButton
+                    label={`Edit ${l.name}`}
+                    icon={<Icon glyph={glyph.edit} />}
+                    size="sm"
+                    onClick={() => setEditing(l.id)}
+                  />
+                  <IconButton
+                    label={`Delete ${l.name}`}
+                    icon={<Icon glyph={glyph.trash} />}
+                    size="sm"
+                    onClick={() => setDeleting(l)}
+                  />
                 </li>
               ),
             )}
@@ -97,7 +106,12 @@ export function LabelDialog({ labels, onClose }: LabelDialogProps) {
             data-autofocus
           />
           <ColorPicker legend="Its colour" value={color} onChange={setColor} />
-          <Button type="submit" leadingIcon={Plus} loading={create.isPending} disabled={!name.trim()}>
+          <Button
+            type="submit"
+            leadingIcon={<Icon glyph={glyph.plus} />}
+            loading={create.isPending}
+            disabled={!name.trim()}
+          >
             Add label
           </Button>
         </form>

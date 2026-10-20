@@ -26,6 +26,8 @@
 }
 .ui-field__error svg {
   font-size: 16px;
+  /* status icons take their tone's tint: an error, the calendar's */
+  --icon-tint: var(--sec-calendar-tint);
 }
 
 .ui-control {

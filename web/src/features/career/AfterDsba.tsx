@@ -1,10 +1,10 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, GraduationCap } from '@phosphor-icons/react';
+import { GraduationCap } from '@phosphor-icons/react';
 import type { CareerChecklistItem } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useLocalStorage } from '../../state';
-import { Badge, Button, PageSection, Panel, SectionHeader, cx } from '../../ui';
+import { Badge, Button, glyph, Icon, PageSection, Panel, SectionHeader, cx } from '../../ui';
 import { useModuleDetail } from './api';
 import { useCareerData } from './context';
 import { jumpTo } from './lib/jump';
@@ -35,7 +35,7 @@ function RowLink({ link }: { link: CareerChecklistItem['link'] }) {
   const body = (
     <>
       {link.label}
-      <ArrowRight weight="bold" aria-hidden="true" />
+      <Icon glyph={glyph.forward} size={16} />
     </>
   );
   switch (link.kind) {
@@ -155,7 +155,7 @@ export function AfterDsba() {
               <strong>{study.title}</strong> {study.body}
             </p>
             {studyTo ? (
-              <Button variant="secondary" size="sm" to={studyTo} trailingIcon={ArrowRight}>
+              <Button variant="secondary" size="sm" to={studyTo} trailingIcon={<Icon glyph={glyph.forward} />}>
                 {study.action.label}
               </Button>
             ) : null}

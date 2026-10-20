@@ -1,10 +1,9 @@
-import { CheckCircle, Kanban } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 import type { BoardLinkIn } from '../../api/types';
 import { errorMessage, isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import { Button, type ButtonSize } from '../../ui';
+import { Button, type ButtonSize, Icon, glyph } from '../../ui';
 import { useAddCard, useBoardLinks } from './api';
 
 export interface AddToBoardProps {
@@ -29,7 +28,14 @@ export function AddToBoard({ link, size = 'sm', className }: AddToBoardProps) {
   if (onBoard) {
     const to = match.boardId ? `/board?board=${match.boardId}&card=${match.cardId}` : '/board';
     return (
-      <Button size={size} variant="ghost" to={to} leadingIcon={CheckCircle} className={className} data-hub="board-on">
+      <Button
+        size={size}
+        variant="ghost"
+        to={to}
+        leadingIcon={<Icon glyph={glyph.success} />}
+        className={className}
+        data-hub="board-on"
+      >
         On your board
       </Button>
     );
@@ -58,7 +64,7 @@ export function AddToBoard({ link, size = 'sm', className }: AddToBoardProps) {
   return (
     <Button
       size={size}
-      leadingIcon={Kanban}
+      leadingIcon={<Icon glyph={glyph.boards} />}
       loading={add.isPending}
       className={className}
       data-hub="board-add"

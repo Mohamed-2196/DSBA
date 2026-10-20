@@ -12,16 +12,18 @@
   gap: var(--sp-8);
   margin-bottom: var(--sp-24);
   padding: var(--sp-12) var(--sp-16);
-  border-radius: var(--r-control);
+  border: 1.5px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border-radius: var(--r-card);
   background: var(--error-soft);
   color: var(--ink);
   font-size: var(--fs-14);
 }
 .acct-banner svg {
   flex: 0 0 auto;
-  margin-top: 2px;
+  margin-top: 1px;
   color: var(--error);
-  font-size: 18px;
+  font-size: 20px;
+  --icon-tint: var(--sec-calendar-tint);
 }
 
 /* Profile */
@@ -46,18 +48,18 @@
   padding: var(--sp-12) var(--sp-16);
 }
 .acct-row + .acct-row {
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .acct-row__icon {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--r-control);
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font-size: 18px;
+  background: var(--sec-home-pill);
+  color: var(--sec-home-text);
+  font-size: 20px;
 }
 .acct-row__text {
   display: grid;
@@ -131,8 +133,21 @@
 }
 .acct-data__title {
   color: var(--ink);
-  font-size: var(--fs-16);
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
+}
+
+/* Your modules: the picker's summary as one card. */
+.acct-papers {
+  display: flex;
+}
+.acct-papers > .ui-button {
+  min-height: 44px;
+  justify-content: flex-start;
+  white-space: normal;
+  text-align: start;
 }
 .acct-data__item > .ui-button {
   flex: 0 0 auto;
@@ -156,7 +171,7 @@
     padding: var(--sp-12);
   }
   .acct-row__text {
-    flex-basis: calc(100% - 48px);
+    flex-basis: calc(100% - 52px);
   }
   .acct-row__actions {
     width: 100%;

@@ -2,10 +2,9 @@
 // a code sent to an address the account already has, unless the session is under 10 minutes old. The API answers 403
 // step_up_required; the session guard opens this dialog, and sends the change again once the code is right.
 import { useEffect, useRef, useState } from 'react';
-import { ArrowClockwise, WarningCircle } from '@phosphor-icons/react';
 import { api, call } from '../api/client';
 import type { Me, OtpChallengeOut } from '../api/types';
-import { Button, Modal, Skeleton } from '../ui';
+import { Button, Icon, Modal, Skeleton, glyph } from '../ui';
 import { CodeEntry } from './CodeEntry';
 import { formatPhone } from './identifiers';
 import { otpErrorMessage } from './otpErrors';
@@ -109,14 +108,14 @@ export function StepUpDialog({ purpose, me, onDone }: StepUpDialogProps) {
         ) : error ? (
           <div className="signin__form">
             <p className="signin__alert" role="alert">
-              <WarningCircle aria-hidden="true" weight="fill" />
+              <Icon glyph={glyph.error} />
               {error}
             </p>
             <Button
               variant="primary"
               size="lg"
               fullWidth
-              leadingIcon={ArrowClockwise}
+              leadingIcon={<Icon glyph={glyph.refresh} />}
               loading={sending}
               onClick={() => void send(first)}
             >

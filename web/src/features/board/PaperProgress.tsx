@@ -1,7 +1,6 @@
-import { CheckCircle } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import { useAuth } from '../../auth';
-import { Badge } from '../../ui';
+import { Badge, Icon, glyph } from '../../ui';
 import { useBoardLinks, usePaperScores } from './api';
 import { sittingsDone, type Paper } from './board';
 
@@ -37,7 +36,7 @@ export function PaperDone({ itemId }: { itemId: string }) {
   const score = scores[itemId];
   if (!done.has(itemId)) return null;
   return (
-    <Badge tone="signal" size="sm" icon={CheckCircle}>
+    <Badge tone="signal" size="sm" icon={<Icon glyph={glyph.success} />}>
       {score == null ? 'Done' : `Done, ${score}%`}
     </Badge>
   );

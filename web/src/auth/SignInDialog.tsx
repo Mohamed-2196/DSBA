@@ -4,12 +4,11 @@
 // Closing it half-way keeps a pending code, so reopening it goes back to the code.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { WarningCircle } from '@phosphor-icons/react';
 import { api, call } from '../api/client';
 import { ApiError, errorMessage } from '../api/errors';
 import type { Me, OtpChallengeOut } from '../api/types';
 import { useToast, useYear, type CohortYear } from '../state';
-import { Button, HubLogo, Modal, TextField } from '../ui';
+import { Button, HubLogo, Icon, Modal, TextField, glyph } from '../ui';
 import { CohortPicker, type CohortChoice } from './CohortPicker';
 import { checkIdentifier, displayIdentifier, formatPhone, identifierHint } from './identifiers';
 import { CodeEntry } from './CodeEntry';
@@ -219,16 +218,13 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
           ? 'Check your messages'
           : 'Check your email'
         : reason || 'Sign in to DSBA Hub';
-  // The first step carries the lockup above its title, so the dialog reads as the hub's own.
-  const heading =
-    step === 'identifier' ? (
-      <>
-        <HubLogo variant="lockup" size={30} decorative className="signin__brand" />
-        {title}
-      </>
-    ) : (
-      title
-    );
+  // Every step carries the lockup above its title, so the dialog reads as the hub's own.
+  const heading = (
+    <>
+      <HubLogo variant="lockup" size={30} decorative className="signin__brand" />
+      {title}
+    </>
+  );
   const description =
     step === 'profile'
       ? 'This is how classmates see you on the forum and in the library.'
@@ -277,7 +273,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
             </div>
             {startError ? (
               <p className="signin__alert" role="alert">
-                <WarningCircle aria-hidden="true" weight="fill" />
+                <Icon glyph={glyph.error} />
                 {startError}
               </p>
             ) : null}
@@ -337,7 +333,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
             />
             {saveError ? (
               <p className="signin__alert" role="alert">
-                <WarningCircle aria-hidden="true" weight="fill" />
+                <Icon glyph={glyph.error} />
                 {saveError}
               </p>
             ) : null}

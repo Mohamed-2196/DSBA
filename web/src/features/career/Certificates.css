@@ -66,8 +66,9 @@
 }
 
 .career-cert__name {
-  font-size: 1.0625rem;
-  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
   letter-spacing: -0.012em;
   line-height: 1.25;
   text-wrap: balance;
@@ -95,9 +96,8 @@
 }
 .career-cert__time-icon {
   flex: none;
-  margin-top: 3px;
-  font-size: 15px;
-  color: var(--ink-3);
+  margin-top: 2px;
+  color: var(--icon-line);
 }
 
 .career-cert__label {
@@ -128,7 +128,7 @@
   gap: var(--sp-12);
   margin-top: auto;
   padding-top: var(--sp-12);
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .career-cert__host {
   min-width: 0;

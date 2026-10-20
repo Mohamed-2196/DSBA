@@ -1,8 +1,7 @@
 // "On your marks so far": the calculator's marks from this browser, read and classified here. Nothing is sent.
-import { ArrowRight, ArrowSquareOut } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { useModulesOptional } from '../../state/modules';
-import { cx } from '../../ui';
+import { cx, glyph, Icon } from '../../ui';
 import { httpsHref, useSite } from '../site/public';
 import { useGradeRules } from './api';
 import { CLASS_NAME, CLASS_SHORT } from './bands';
@@ -109,7 +108,7 @@ export function ProjectedClass({ calculatorLink = true, className }: ProjectedCl
           {regulations ? (
             <a href={regulations} target="_blank" rel="noopener noreferrer" className="projected__link">
               {site.links.regulations.label}
-              <ArrowSquareOut weight="bold" aria-hidden="true" />
+              <Icon glyph={glyph.external} size={16} />
               <span className="visually-hidden"> (opens in a new tab)</span>
             </a>
           ) : null}
@@ -118,7 +117,7 @@ export function ProjectedClass({ calculatorLink = true, className }: ProjectedCl
       {calculatorLink ? (
         <Link to="/grades" className="projected__link">
           {p.state === 'empty' ? 'Enter your marks' : 'Open the grades calculator'}
-          <ArrowRight weight="bold" aria-hidden="true" />
+          <Icon glyph={glyph.forward} size={16} />
         </Link>
       ) : null}
     </div>

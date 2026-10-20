@@ -1,7 +1,6 @@
 // The tour's three pictures, built from the real UI vocabulary rather than images.
-import { ArrowFatUp, ArrowSquareOut, ChatsCircle, MagnifyingGlass } from '@phosphor-icons/react';
 import { useModules } from '../../state/modules';
-import { Highlight, ModuleIcon } from '../../ui';
+import { Highlight, Icon, ModuleIcon, glyph } from '../../ui';
 
 export function SearchArt() {
   const { getModule } = useModules();
@@ -10,7 +9,7 @@ export function SearchArt() {
     <div className="onb-art onb-art--search" aria-hidden="true">
       <div className="onb-mini">
         <div className="onb-mini__field">
-          <MagnifyingGlass />
+          <Icon glyph={glyph.search} />
           <span>econometrics</span>
           <span className="onb-mini__caret" />
         </div>
@@ -62,7 +61,7 @@ export function LibraryArt() {
         <span className="onb-page__lines" />
       </div>
       <span className="onb-art__chip">
-        <ArrowSquareOut weight="bold" /> Download
+        <Icon glyph={glyph.download} /> Download
       </span>
     </div>
   );
@@ -79,7 +78,7 @@ export function ForumArt() {
       {rows.map((r) => (
         <div key={r.title} className="onb-thread">
           <span className="onb-thread__votes">
-            <ArrowFatUp weight="fill" />
+            <Icon glyph={glyph.vote} />
             {r.votes}
           </span>
           <span className="onb-thread__text">
@@ -91,7 +90,7 @@ export function ForumArt() {
         </div>
       ))}
       <span className="onb-art__badge">
-        <ChatsCircle weight="duotone" /> Forum <span className="onb-art__new">New</span>
+        <Icon glyph={glyph.forum} data-section="forum" /> Forum <span className="onb-art__new">New</span>
       </span>
     </div>
   );

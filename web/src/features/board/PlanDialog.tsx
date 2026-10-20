@@ -1,7 +1,6 @@
 // "Plan my revision" on a module: past papers (one every few days, and one a day in the last week) and the lessons not
 // watched yet, as many as fit the days left to the exam, as cards on the board. When not every lesson fits, the
 // chapters the student finds hard come first. No reminders: the plan only lives on the board.
-import { CalendarCheck } from '@phosphor-icons/react';
 import { useQuery } from '@tanstack/react-query';
 import { useId, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +8,7 @@ import { errorMessage, isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { addDaysToKey, isDayKey, todayKey, type DayKey } from '../../lib/dates';
 import { useToast } from '../../state';
-import { Button, Chip, Modal, Select, TextField, type ButtonSize } from '../../ui';
+import { Button, Chip, Modal, Select, TextField, type ButtonSize, Icon, glyph } from '../../ui';
 import { moduleDetailQuery } from '../modules/public';
 import { useBoards, useMakePlan } from './api';
 import './BoardDialog.css';
@@ -48,7 +47,7 @@ export function PlanRevision({
     <>
       <Button
         size={size}
-        leadingIcon={CalendarCheck}
+        leadingIcon={<Icon glyph={glyph.calendar} />}
         className={className}
         data-hub="board-plan"
         aria-label={short && !planned ? label : undefined}

@@ -2,7 +2,6 @@
 // and roles from Career Navigator's document (lib/electives.ts), what students say from the forum's Module choice
 // threads. Its title, intro and disclaimer, and how many electives a student takes, are the electives guide (Manage →
 // Guides).
-import { ArrowLeft, ChatsCircle, Files, Info, Plus, Sparkle } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { CareerDoc } from '../../api/types';
@@ -13,6 +12,8 @@ import {
   Badge,
   Button,
   EmptyState,
+  glyph,
+  Icon,
   ModuleArt,
   ModuleIcon,
   Page,
@@ -64,7 +65,7 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
 
       <section className="elective__part" aria-label={`Skills ${m.shortName} builds`}>
         <h3 className="elective__label">
-          <Sparkle weight="fill" aria-hidden="true" />
+          <Icon glyph={glyph.sparkle} size={16} />
           Skills it builds
         </h3>
         {e.skills.length ? (
@@ -113,7 +114,7 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
             className="elective__link"
             data-hub="elective-threads"
           >
-            <ChatsCircle weight="bold" aria-hidden="true" />
+            <Icon glyph={glyph.forum} size={16} />
             What students say
           </Link>
         ) : null}
@@ -122,13 +123,13 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
             to={`${askLink(`Is ${m.name} a good elective?`)}&module=${encodeURIComponent(m.id)}`}
             className="elective__link"
           >
-            <Plus weight="bold" aria-hidden="true" />
+            <Icon glyph={glyph.plus} size={16} />
             Ask about it
           </Link>
         ) : null}
         {featureOn('library') ? (
           <Link to={`/library?module=${encodeURIComponent(m.id)}`} className="elective__link">
-            <Files weight="bold" aria-hidden="true" />
+            <Icon glyph={glyph.page} size={16} />
             Files
           </Link>
         ) : null}
@@ -144,7 +145,7 @@ function ElectivesBody({ data, pick }: { data: CareerDoc; pick: number | null })
     return (
       <Panel padding="none">
         <EmptyState
-          icon={Sparkle}
+          icon={<Icon glyph={glyph.sparkle} />}
           title="No electives listed yet"
           body="They will show here once Career Navigator lists them."
           action={<Button to="/career">Back to Career Navigator</Button>}
@@ -176,19 +177,20 @@ export default function ElectivesPage() {
   const guide = useGuides().data?.electives;
   const pick = Object.values(usePapers().choices).find((c) => c?.kind === 'electives')?.pick ?? null;
   return (
-    <Page width="wide" className="electives-page">
+    <Page width="wide" className="electives-page" data-section="tools">
       <PageHeader
+        section="tools"
         title={guide?.title ?? 'Choosing your Year 3 electives'}
         description={guide?.intro}
         actions={
-          <Button variant="ghost" size="sm" to="/career" leadingIcon={ArrowLeft}>
+          <Button variant="ghost" size="sm" to="/career" leadingIcon={<Icon glyph={glyph.back} />}>
             Career Navigator
           </Button>
         }
       />
       {guide ? (
         <Panel tone="inset" padding="none" className="electives__note" role="note">
-          <Info weight="bold" aria-hidden="true" />
+          <Icon glyph={glyph.info} size={20} />
           <p>{guide.disclaimer}</p>
         </Panel>
       ) : null}
@@ -211,7 +213,7 @@ export default function ElectivesPage() {
       ) : (
         <Panel padding="none">
           <EmptyState
-            icon={Sparkle}
+            icon={<Icon glyph={glyph.sparkle} />}
             title="Career Navigator is being set up"
             body="The electives will show here once it is."
             action={<Button to="/">Back to Home</Button>}

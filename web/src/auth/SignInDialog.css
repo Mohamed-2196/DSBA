@@ -44,8 +44,9 @@
 }
 .signin__alert svg {
   flex: 0 0 auto;
-  margin-top: 2px;
-  font-size: 16px;
+  margin-top: 1px;
+  font-size: 18px;
+  --icon-tint: var(--sec-calendar-tint);
 }
 
 /* The code: big, spaced digits, centred. */
@@ -90,8 +91,13 @@
 .signin-cohort--wide {
   grid-column: 1 / -1;
 }
+/* The radio covers its card, so the target is the card's 44 px; the label paints it. */
 .signin-cohort input {
   position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   opacity: 0;
   pointer-events: none;
 }
@@ -101,10 +107,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: 46px;
   padding: 0 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-control);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-input);
   background: var(--surface);
   color: var(--ink);
   font-size: var(--fs-14);
@@ -120,12 +126,15 @@
 }
 .signin-cohort--y1 label {
   --c: var(--y1);
+  --c-soft: var(--y1-soft);
 }
 .signin-cohort--y2 label {
   --c: var(--y2);
+  --c-soft: var(--y2-soft);
 }
 .signin-cohort--y3 label {
   --c: var(--y3);
+  --c-soft: var(--y3-soft);
 }
 .signin-cohort__dot {
   width: 9px;
@@ -135,11 +144,13 @@
 }
 .signin-cohort input:checked + label {
   border-color: var(--c);
-  background: color-mix(in srgb, var(--c) 12%, var(--surface));
-  box-shadow: inset 0 0 0 1px var(--c);
+  background: var(--c-soft, var(--accent-soft));
+  box-shadow: inset 0 0 0 1.5px var(--c);
+  font-weight: var(--fw-bold);
 }
 .signin-cohort--none input:checked + label {
   --c: var(--accent);
+  --c-soft: var(--accent-soft);
 }
 .signin-cohort input:focus-visible + label {
   outline: var(--focus-width) solid var(--focus-color);
@@ -161,4 +172,8 @@
 }
 .signin-cohort--answer input:checked + label {
   --c: var(--accent);
+  --c-soft: var(--accent-soft);
+}
+.signin-cohorts__error svg {
+  --icon-tint: var(--sec-calendar-tint);
 }

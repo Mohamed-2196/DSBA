@@ -1,9 +1,8 @@
 // A new board (from a template, with its name, colour and an optional icon), or an existing board's name, colour and
 // icon.
-import { CheckCircle } from '@phosphor-icons/react';
 import { useId, useState, type FormEvent } from 'react';
 import type { BoardSummary } from '../../api/types';
-import { Button, Modal, TextField, cx } from '../../ui';
+import { Button, Modal, TextField, cx, Icon, glyph } from '../../ui';
 import { useCreateBoard, useUpdateBoard } from './api';
 import { EMOJI_CHOICES, startName, TEMPLATES, type BoardColor, type BoardTemplate } from './board';
 import { ColorPicker } from './ColorPicker';
@@ -100,7 +99,7 @@ export function BoardDialog({ board, taken, onClose, onCreated }: BoardDialogPro
                   />
                   <span className="board-dialog__template-name">
                     {t.name}
-                    {template === t.id ? <CheckCircle weight="fill" aria-hidden="true" /> : null}
+                    {template === t.id ? <Icon glyph={glyph.success} /> : null}
                   </span>
                   <span className="board-dialog__template-cols">
                     {t.id === 'weekly' ? 'Monday to Sunday, Done' : t.columns.join(', ')}

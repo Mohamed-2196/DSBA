@@ -1,18 +1,7 @@
 // /account: profile, sign-in methods, emails, signed-in devices, data export and account deletion.
 import { useEffect, useState, type FormEvent } from 'react';
-import {
-  DeviceMobile,
-  DeviceTablet,
-  DownloadSimple,
-  EnvelopeSimple,
-  Monitor,
-  Phone,
-  SignIn,
-  SignOut,
-  Trash,
-  UserCircle,
-  WarningCircle,
-} from '@phosphor-icons/react';
+// Phone and the device kinds have no brand icon, so the two lists of rows keep Phosphor for every row.
+import { DeviceMobile, DeviceTablet, EnvelopeSimple, Monitor, Phone } from '@phosphor-icons/react';
 import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../../api/errors';
 import type { Me, SessionInfo } from '../../api/types';
 import { useAuth, useUpdatePreferences, type Feature } from '../../auth';
@@ -27,6 +16,7 @@ import {
   ConfirmDialog,
   Divider,
   EmptyState,
+  Icon,
   Page,
   PageHeader,
   PageSection,
@@ -37,6 +27,7 @@ import {
   Switch,
   TextField,
   formatDate,
+  glyph,
   timeAgo,
 } from '../../ui';
 import {
@@ -154,11 +145,11 @@ function SignInMethods({ me }: { me: Me }) {
 
   const row = (kind: IdentifierKind) => {
     const v = value(kind);
-    const Icon = kind === 'email' ? EnvelopeSimple : Phone;
+    const KindIcon = kind === 'email' ? EnvelopeSimple : Phone;
     return (
       <li key={kind} className="acct-row">
         <span className="acct-row__icon" aria-hidden="true">
-          <Icon />
+          <KindIcon />
         </span>
         <span className="acct-row__text">
           <span className="acct-row__label">{KIND_LABEL[kind]}</span>
@@ -367,7 +358,7 @@ const DEVICE_ICON = { desktop: Monitor, phone: DeviceMobile, tablet: DeviceTable
 
 function SessionRow({ s, onSignOut, busy }: { s: SessionInfo; onSignOut: () => void; busy: boolean }) {
   const device = describeDevice(s.userAgent);
-  const Icon = DEVICE_ICON[device.kind];
+  const DeviceIcon = DEVICE_ICON[device.kind];
   const seen = s.current
     ? 'Active now'
     : s.lastSeenAt
@@ -376,7 +367,7 @@ function SessionRow({ s, onSignOut, busy }: { s: SessionInfo; onSignOut: () => v
   return (
     <li className="acct-row">
       <span className="acct-row__icon" aria-hidden="true">
-        <Icon />
+        <DeviceIcon />
       </span>
       <span className="acct-row__text">
         <span className="acct-row__label">
@@ -431,7 +422,7 @@ function Sessions() {
             <Button
               size="sm"
               variant="ghost"
-              leadingIcon={SignOut}
+              leadingIcon={<Icon glyph={glyph.signOut} />}
               onClick={() =>
                 signOut(
                   others.map((s) => s.id),
@@ -504,7 +495,7 @@ function YourData() {
             reports, uploads, stars, reactions, progress, notifications and the emails we sent you.
           </p>
         </div>
-        <Button leadingIcon={DownloadSimple} onClick={() => void download()} loading={downloading}>
+        <Button leadingIcon={<Icon glyph={glyph.download} />} onClick={() => void download()} loading={downloading}>
           Download
         </Button>
       </div>
@@ -514,7 +505,7 @@ function YourData() {
           <h3 className="acct-data__title">Delete your account</h3>
           <p>Your personal data goes for good. Your posts stay, shown as from a deleted user.</p>
         </div>
-        <Button variant="danger" leadingIcon={Trash} onClick={() => setDeleting(true)}>
+        <Button variant="danger" leadingIcon={<Icon glyph={glyph.trash} />} onClick={() => setDeleting(true)}>
           Delete account
         </Button>
       </div>
@@ -532,16 +523,16 @@ export default function AccountPage() {
   if (!me) {
     return (
       <Page width="narrow">
-        <PageHeader title="Your account" description="Your profile, how you sign in, and your data." />
+        <PageHeader section="tools" title="Your account" description="Your profile, how you sign in, and your data." />
         <Panel padding="none">
           <EmptyState
-            icon={UserCircle}
+            icon={<Icon glyph={glyph.user} />}
             title="Sign in to see your account"
             body="Your profile, how you sign in, your devices and your data are here once you’re signed in."
             action={
               <Button
                 variant="primary"
-                leadingIcon={SignIn}
+                leadingIcon={<Icon glyph={glyph.signIn} />}
                 onClick={() => openSignIn({ reason: 'Sign in to see your account' })}
               >
                 Sign in
@@ -555,10 +546,10 @@ export default function AccountPage() {
 
   return (
     <Page width="narrow" className="acct">
-      <PageHeader title="Your account" description="Your profile, how you sign in, and your data." />
+      <PageHeader section="tools" title="Your account" description="Your profile, how you sign in, and your data." />
       {me.status === 'suspended' ? (
         <p className="acct-banner" role="status">
-          <WarningCircle aria-hidden="true" weight="fill" />
+          <Icon glyph={glyph.error} />
           <span>
             Your account is suspended. You can still sign in and read, but you can’t post, upload or react. Contact a
             student rep.
@@ -601,7 +592,9 @@ export default function AccountPage() {
             <QueryError error={error} title="Your modules didn’t load" onRetry={retry} retrying={retrying} size="sm" />
           )}
         >
-          <PapersButton />
+          <Panel padding="sm" className="acct-papers">
+            <PapersButton />
+          </Panel>
         </ModulesGate>
       </PageSection>
 
