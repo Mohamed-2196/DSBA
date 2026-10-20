@@ -508,14 +508,15 @@
   {
     "id": "2026-10-19-economics-exam",
     "date": "2026-10-19",
-    "title": "EC1002 Introduction to Economics (October exam)",
+    "title": "EC1002 Introduction to Economics (October resit)",
     "type": "exam",
     "year": 1,
     "moduleId": "economics",
     "unitCode": "EC1002",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-10-20-business-analytics-deadline",
@@ -532,62 +533,67 @@
   {
     "id": "2026-10-22-mathematics-exam",
     "date": "2026-10-22",
-    "title": "MT1186 Mathematical Methods (October exam)",
+    "title": "MT1186 Mathematical Methods (October resit)",
     "type": "exam",
     "year": 1,
     "moduleId": "mathematics",
     "unitCode": "MT1186",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-10-23-advanced-stats-inferential-exam",
     "date": "2026-10-23",
-    "title": "ST2134 Advanced Statistics: Statistical Inference (October exam)",
+    "title": "ST2134 Advanced Statistics: Statistical Inference (October resit)",
     "type": "exam",
     "year": 2,
     "moduleId": "advanced-stats-inferential",
     "unitCode": "ST2134",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-10-26-statistics-exam",
     "date": "2026-10-26",
-    "title": "ST1215 Introduction to Mathematical Statistics (October exam)",
+    "title": "ST1215 Introduction to Mathematical Statistics (October resit)",
     "type": "exam",
     "year": 1,
     "moduleId": "statistics",
     "unitCode": "ST1215",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-10-27-business-analytics-exam",
     "date": "2026-10-27",
-    "title": "ST2187 Business Analytics, Applied Modelling and Prediction (October exam)",
+    "title": "ST2187 Business Analytics, Applied Modelling and Prediction (October resit)",
     "type": "exam",
     "year": 2,
     "moduleId": "business-analytics",
     "unitCode": "ST2187",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-10-30-advanced-stats-distribution-exam",
     "date": "2026-10-30",
-    "title": "ST2133 Advanced Statistics: Distribution Theory (October exam)",
+    "title": "ST2133 Advanced Statistics: Distribution Theory (October resit)",
     "type": "exam",
     "year": 2,
     "moduleId": "advanced-stats-distribution",
     "unitCode": "ST2133",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-11-01-deadline",
@@ -604,50 +610,54 @@
   {
     "id": "2026-11-02-business-exam",
     "date": "2026-11-02",
-    "title": "MN1178 Business and Management in a Global Context (October exam)",
+    "title": "MN1178 Business and Management in a Global Context (October resit)",
     "type": "exam",
     "year": 1,
     "moduleId": "business",
     "unitCode": "MN1178",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-11-03-econometrics-exam",
     "date": "2026-11-03",
-    "title": "EC2020 Elements of Econometrics (October exam)",
+    "title": "EC2020 Elements of Econometrics (October resit)",
     "type": "exam",
     "year": 2,
     "moduleId": "econometrics",
     "unitCode": "EC2020",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-11-05-information-systems-exam",
     "date": "2026-11-05",
-    "title": "IS2184 Information Systems Management (October exam)",
+    "title": "IS2184 Information Systems Management (October resit)",
     "type": "exam",
     "year": 2,
     "moduleId": "information-systems",
     "unitCode": "IS2184",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-11-06-programming-data-science-exam",
     "date": "2026-11-06",
-    "title": "ST2195 Programming for Data Science (October exam)",
+    "title": "ST2195 Programming for Data Science (October resit)",
     "type": "exam",
     "year": 2,
     "moduleId": "programming-data-science",
     "unitCode": "ST2195",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "resit": true
   },
   {
     "id": "2026-12-01-machine-learning-mock",

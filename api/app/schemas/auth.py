@@ -128,6 +128,9 @@ class Me(ApiModel):
     # module of their year.
     papers: list[str]
     zone: Zone | None  # the zone whose papers they sit; None: not chosen
+    # The modules this person is resitting ("I'm resitting this" on a module's page): their resits count down for
+    # them whatever their year.
+    resits: list[str]
 
 
 class SignInResult(ApiModel):
@@ -153,6 +156,8 @@ class MeUpdate(ApiModel):
     # are sent with it.
     papers: Annotated[list[PaperId], Field(max_length=MAX_PAPERS)] | None = None
     zone: Zone | None = None  # null clears it
+    # The whole list (repeats are dropped); [] clears it. A new `year` keeps it: a resit follows the student.
+    resits: Annotated[list[PaperId], Field(max_length=MAX_PAPERS)] | None = None
 
 
 class StepUpStart(ApiModel):

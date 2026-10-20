@@ -9,10 +9,11 @@ from __future__ import annotations
 import datetime as dt
 import re
 from collections.abc import Collection, Iterable, Mapping
-from typing import NamedTuple
+from typing import NamedTuple, Protocol
 
-from sqlalchemy import Select, and_, func, or_, select
+from sqlalchemy import Select, and_, false, func, or_, select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.config import get_settings
 from app.core.access import Feature
@@ -23,6 +24,7 @@ from app.models import BoardCard, CalendarEvent, Module, Notification, User
 from app.schemas.calendar import CalendarEventCreate, CalendarEventOut, CalendarEventUpdate, NoticeStatus
 from app.services import access, ratelimit
 from app.services.content import apply_patch, record
+from app.services.exam_names import resit_sitting
 from app.services.modules import require_module
 from app.services.notify import notify_all
 
@@ -46,6 +48,50 @@ def cohort_label(year: int | None) -> str:
 # ── queries ──────────────────────────────────────────────────────────────────────────────────
 
 
+FINAL_YEAR = 3
+
+
+class _Dated(Protocol):
+    @property
+    def year(self) -> int | None: ...
+    @property
+    def module_id(self) -> str | None: ...
+    @property
+    def resit(self) -> bool: ...
+
+
+def resit_for(e: _Dated, year: int | None, resits: Collection[str] = ()) -> bool:
+    """Whether a resit is for a student of `year` (None: any year) resitting the modules `resits`: the year after the
+    module's, and anyone resitting it. A final-year module's resit is for those resitting it only."""
+    if e.module_id is not None and e.module_id in resits:
+        return True
+    return year is None or e.year is None or year == e.year + 1
+
+
+def for_year(e: _Dated, year: int | None, resits: Collection[str] = ()) -> bool:
+    """Whether a programme date is for a student of `year` (None: any year): an everyone-date, their year's dates
+    (main sittings included), and the resits for them (resit_for). A module's own year never has its resit."""
+    if e.resit:
+        return resit_for(e, year, resits)
+    return year is None or e.year is None or e.year == year
+
+
+def resit_clause(year: int | None, resits: Collection[str] = ()) -> ColumnElement[bool]:
+    """resit_for in SQL, for the resits only."""
+    if year is None:
+        return CalendarEvent.resit.is_(True)
+    whose = [CalendarEvent.year.is_(None), CalendarEvent.year == year - 1]
+    if resits:
+        whose.append(CalendarEvent.module_id.in_(resits))
+    return and_(CalendarEvent.resit, or_(*whose))
+
+
+def year_clause(year: int, resits: Collection[str] = ()) -> ColumnElement[bool]:
+    """for_year in SQL."""
+    main = and_(~CalendarEvent.resit, or_(CalendarEvent.year == year, CalendarEvent.year.is_(None)))
+    return or_(main, resit_clause(year, resits))
+
+
 def events_query(
     *,
     start: dt.date | None = None,
@@ -54,22 +100,30 @@ def events_query(
     module_id: str | None = None,
     type_: str | None = None,
     papers: Collection[str] | None = None,
+    resits: Collection[str] = (),
 ) -> Select[tuple[CalendarEvent]]:
-    """Events that overlap [start, end], for a cohort plus everyone-events, oldest first. With `papers` (module ids),
-    a module's events count only for those modules, whatever their year; the others still follow `year`."""
+    """Events that overlap [start, end], for a cohort (for_year: `resits` are the modules the student is resitting)
+    plus everyone-events, oldest first. With `papers` (module ids), a module's main sittings and other dates count
+    only for those modules, whatever their year; its resits, and dates without a module, still follow `year`."""
     q = select(CalendarEvent)
     if start is not None:
         q = q.where(func.coalesce(CalendarEvent.end_date, CalendarEvent.date) >= start)
     if end is not None:
         q = q.where(CalendarEvent.date <= end)
-    in_year = or_(CalendarEvent.year == year, CalendarEvent.year.is_(None)) if year is not None else None
     if papers is not None:
         unlinked = CalendarEvent.module_id.is_(None)
+        in_year = year_clause(year, resits) if year is not None else None
         q = q.where(
-            or_(CalendarEvent.module_id.in_(papers), and_(unlinked, in_year) if in_year is not None else unlinked)
+            or_(
+                and_(~CalendarEvent.resit, CalendarEvent.module_id.in_(papers)),
+                and_(unlinked, in_year) if in_year is not None else unlinked,
+                resit_clause(year, resits)
+                if year is not None
+                else and_(CalendarEvent.resit, CalendarEvent.module_id.in_(papers)),
+            )
         )
-    elif in_year is not None:
-        q = q.where(in_year)
+    elif year is not None:
+        q = q.where(year_clause(year, resits))
     if module_id is not None:
         q = q.where(CalendarEvent.module_id == module_id)
     if type_ is not None:
@@ -85,21 +139,29 @@ def list_events(
     year: int | None,
     module_id: str | None,
     type_: str | None,
+    resits: Collection[str] = (),
 ) -> list[CalendarEventOut]:
-    q = events_query(start=start, end=end, year=year, module_id=module_id, type_=type_)
+    q = events_query(start=start, end=end, year=year, module_id=module_id, type_=type_, resits=resits)
     return [CalendarEventOut.model_validate(e) for e in db.scalars(q)]
 
 
-def upcoming(db: Session, n: int, year: int | None) -> list[CalendarEventOut]:
+def upcoming(db: Session, n: int, year: int | None, resits: Collection[str] = ()) -> list[CalendarEventOut]:
     """The next n events from today in Bahrain, including any still running today."""
-    q = events_query(start=bahrain_today(), year=year).limit(n)
+    q = events_query(start=bahrain_today(), year=year, resits=resits).limit(n)
     return [CalendarEventOut.model_validate(e) for e in db.scalars(q)]
 
 
-def feed(db: Session, year: int | None, type_: str | None = None, papers: Collection[str] | None = None) -> str:
+def feed(
+    db: Session,
+    year: int | None,
+    type_: str | None = None,
+    papers: Collection[str] | None = None,
+    resits: Collection[str] = (),
+) -> str:
     """The iCalendar document for a cohort (plus everyone-events), or for everyone; with `type_`, only events of
-    that type (the exams); with `papers`, only those modules' events (events_query)."""
-    events = db.scalars(events_query(year=year, type_=type_, papers=papers)).all()
+    that type (the exams); with `papers`, only those modules' events; with `resits`, those modules' resits too
+    (events_query)."""
+    events = db.scalars(events_query(year=year, type_=type_, papers=papers, resits=resits)).all()
     module_ids = {e.module_id for e in events if e.module_id}
     modules = {m.id: m for m in db.scalars(select(Module).where(Module.id.in_(module_ids)))} if module_ids else {}
     name = f"DSBA Hub: Year {year}" if year else "DSBA Hub"
@@ -122,7 +184,7 @@ def event_ics(db: Session, event_id: str) -> str:
 # ── writing (moderators) ─────────────────────────────────────────────────────────────────────
 
 DETAILS = ("duration", "rules", "source", "checked_on", "employer_id")
-EDITABLE = ("date", "end_date", "time", "place", "title", "type", "year", "sample", *DETAILS)
+EDITABLE = ("date", "end_date", "time", "place", "title", "type", "year", "sample", "resit", *DETAILS)
 CLEARABLE = ("end_date", "time", "place", "year", *DETAILS)
 
 
@@ -131,6 +193,8 @@ def _check(e: CalendarEvent) -> None:
         raise invalid("endDate", "The last day can't be before the first.")
     if e.type == "careers" and not e.source:
         raise invalid("source", "Add where this date comes from. Careers dates show only with their source.")
+    if e.resit and e.type != "exam":
+        raise invalid("resit", "Only an exam can be a resit. Change the type to exam, or untick Resit.")
 
 
 def get_event(db: Session, event_id: str) -> CalendarEvent:
@@ -142,9 +206,11 @@ def get_event(db: Session, event_id: str) -> CalendarEvent:
 
 def create_event(db: Session, user: User, body: CalendarEventCreate, ip: str | None) -> CalendarEvent:
     """A new date, with the id '<date>-<slug of the title>' ('-2' when taken). For a module's event the cohort is the
-    module's year unless `year` is sent (null: everyone)."""
+    module's year unless `year` is sent (null: everyone). An exam sent without `resit` is a resit when its date is in
+    the October sitting (exam_names.resit_sitting)."""
     module = require_module(db, body.module_id)
     year = module.year if module is not None and "year" not in body.model_fields_set else body.year
+    resit = body.resit if body.resit is not None else body.type == "exam" and resit_sitting(body.date)
     event = CalendarEvent(
         date=body.date,
         end_date=body.end_date,
@@ -161,6 +227,7 @@ def create_event(db: Session, user: User, body: CalendarEventCreate, ip: str | N
         checked_on=body.checked_on,
         employer_id=body.employer_id,
         sample=body.sample,
+        resit=resit,
         created_by=user.id,
     )
     _check(event)
@@ -182,6 +249,9 @@ def update_event(
     before = Before(event.date, event.end_date, event.time, event.place, event.sample)
     module = require_module(db, body.module_id) if "module_id" in body.model_fields_set else None
     changed = apply_patch(event, body, EDITABLE, clearable=CLEARABLE)
+    if event.resit and event.type != "exam" and "resit" not in body.model_fields_set:
+        event.resit = False  # no longer an exam, so no longer a resit
+        changed.append("resit")
     if "module_id" in body.model_fields_set and (module.id if module else None) != event.module_id:
         event.module_id = module.id if module else None
         event.unit_code = module.unit_code if module else None
@@ -255,10 +325,9 @@ def change_message(e: CalendarEvent, before: Before) -> tuple[str, str] | None:
 
 
 def tell_students(db: Session, user: User, e: CalendarEvent, before: Before) -> DateNotice:
-    """Tells students about a change to an exam, mock or deadline: its cohort (every student with a year, for an
-    event for everyone) and anyone with it on their study board, among those the calendar is on for. A notification
-    each, and an email for those who keep "Date changes" on. At most one notice per event a day (Bahrain): a later
-    change that day is "limit" and tells nobody."""
+    """Tells students about a change to an exam, mock or deadline: its cohort (cohort()) and anyone with it on their
+    study board, among those the calendar is on for. A notification each, and an email for those who keep "Date
+    changes" on. At most one notice per event a day (Bahrain): a later change that day is "limit" and tells nobody."""
     message = change_message(e, before) if e.type in NOTICE_TYPES else None
     if message is None:
         return DateNotice("none", 0)
@@ -274,7 +343,6 @@ def tell_students(db: Session, user: User, e: CalendarEvent, before: Before) -> 
     )
     if db.scalar(told_today.limit(1)) is not None:
         return DateNotice("limit", 0)
-    cohort = User.year == e.year if e.year is not None else User.year.is_not(None)
     on_board = select(BoardCard.user_id).where(BoardCard.link_type == "event", BoardCard.link_id == e.id)
     title, body = message
     told = notify_all(
@@ -285,9 +353,22 @@ def tell_students(db: Session, user: User, e: CalendarEvent, before: Before) -> 
         url=f"/calendar?date={e.date.isoformat()}&event={e.id}",
         actor=user,
         data={"eventId": e.id},
-        only=and_(readers, or_(cohort, User.id.in_(on_board))),
+        only=and_(readers, or_(cohort(e), User.id.in_(on_board))),
     )
     return DateNotice("sent", told)
+
+
+def cohort(e: CalendarEvent) -> ColumnElement[bool]:
+    """The students a date is for (for_year), as a condition on User: its year's, or every student's with a year for
+    an everyone-date; a resit's: the next year's (none after the final year) and those resitting its module."""
+    if not e.resit:
+        return User.year == e.year if e.year is not None else User.year.is_not(None)
+    whose = [User.resits.contains([e.module_id])] if e.module_id else []
+    if e.year is None:
+        whose.append(User.year.is_not(None))
+    elif e.year < FINAL_YEAR:
+        whose.append(User.year == e.year + 1)
+    return or_(*whose) if whose else false()
 
 
 def delete_event(db: Session, user: User, event: CalendarEvent, ip: str | None) -> None:
@@ -337,18 +418,25 @@ def utc_stamp(t: dt.datetime) -> str:
 
 
 def summary(e: CalendarEvent) -> str:
-    """The title, led by the unit code when the title doesn't already name it."""
-    if e.unit_code and e.unit_code.lower() not in e.title.lower():
-        return f"{e.unit_code} {e.title}"
-    return e.title
+    """The title, led by the unit code when the title doesn't already name it, and saying "resit" for a resit."""
+    title = e.title
+    if e.resit and "resit" not in title.lower():
+        title = f"{title} (resit)"
+    if e.unit_code and e.unit_code.lower() not in title.lower():
+        return f"{e.unit_code} {title}"
+    return title
 
 
 def describe(e: CalendarEvent, module: Module | None) -> str:
     when = f"{e.date:%A} {e.date.day} {e.date:%B %Y}"
     if e.end_date and e.end_date != e.date:
         when += f" to {e.end_date:%A} {e.end_date.day} {e.end_date:%B %Y}"
-    who = f"Year {e.year}" if e.year else "all years"
-    lines = [f"{TYPE_LABELS.get(e.type, 'Event')} for {who}, {when}."]
+    if e.resit:
+        who = f"Year {e.year + 1} and anyone resitting" if e.year and e.year < FINAL_YEAR else "anyone resitting"
+        lines = [f"Resit for {who}, {when}."]
+    else:
+        who = f"Year {e.year}" if e.year else "all years"
+        lines = [f"{TYPE_LABELS.get(e.type, 'Event')} for {who}, {when}."]
     if module is not None:
         lines.append(f"Module: {module.unit_code + ' ' if module.unit_code else ''}{module.name}.")
     if e.time or e.place:

@@ -186,3 +186,17 @@ def test_long_runs_of_space_read_fast() -> None:
     # Linear work takes a fraction of a second even on a busy machine; the backtracking this guards against took
     # minutes, so a generous limit never flakes and still catches it.
     assert time.perf_counter() - start < 2.0
+
+
+def test_a_line_that_says_resit_is_a_resit() -> None:
+    text = (
+        "MT1186 Mathematical Methods 22/10/2026 09:00 Hall A (Resit)\n"
+        "ST2134\tResits\t23/10/2026\t10:00\tHall B\n"
+        "EC1002 Introduction to Economics 24/10/2026 14:00 Hall C\n"
+    )
+    parsed = parse_timetable(text, TODAY, TITLES)
+    assert [(r.unit_code, r.resit, r.place) for r in parsed] == [
+        ("MT1186", True, "Hall A"),
+        ("ST2134", True, "Hall B"),
+        ("EC1002", None, "Hall C"),  # says nothing: its date decides
+    ]

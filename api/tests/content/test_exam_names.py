@@ -10,6 +10,7 @@ from app.services.exam_names import (
     ExamMeta,
     SittingKey,
     exam_meta_from_name,
+    resit_sitting,
     sitting_label,
     sitting_order,
     tidy_title,
@@ -180,3 +181,18 @@ def test_unit_codes_are_read_from_a_name_in_capitals() -> None:
     assert unit_codes("ST104A - Statistics 1 - 2008 Exam") == set()  # not a unit code of four digits
     assert unit_codes("Math 1186 - Mock Test 1 (2024-2025)") == set()
     assert unit_codes("EC20201 notes") == set()
+
+
+def test_an_exam_in_the_october_sitting_is_a_resit_by_default() -> None:
+    import datetime as dt
+
+    assert [resit_sitting(dt.date(2026, m, 15)) for m in (1, 5, 6, 8, 9, 10, 11, 12)] == [
+        False,
+        False,
+        False,
+        False,
+        True,
+        True,
+        True,
+        True,
+    ]

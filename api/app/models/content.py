@@ -179,6 +179,10 @@ class LessonTopic(Base):
 
 
 class CalendarEvent(Base):
+    """A date on the programme calendar. An exam is its module's main sitting or a resit (`resit`): the main sitting
+    is for the module's own year, a resit for the year after it and for anyone who says they are resitting the module
+    (services/calendar.py for_year)."""
+
     __tablename__ = "calendar_events"
     __table_args__ = (
         Index("ix_calendar_events_date", "date"),
@@ -186,6 +190,7 @@ class CalendarEvent(Base):
         year_range(),
         CheckConstraint("end_date IS NULL OR end_date >= date", name="end_after_start"),
         check_in("type", get_args(EventType)),
+        CheckConstraint("NOT resit OR type = 'exam'", name="resit_is_exam"),
     )
 
     id: Mapped[str] = mapped_column(String(120), primary_key=True)  # '2025-04-30-economics-exam'
@@ -204,6 +209,7 @@ class CalendarEvent(Base):
     checked_on: Mapped[dt.date | None] = mapped_column(Date)  # when someone last checked it against the source
     employer_id: Mapped[str | None] = mapped_column(String(64))  # a careers date: the Career Navigator employer
     sample: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # a placeholder date
+    resit: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # an exam's resit sitting
     created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = created_ts()
     updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now())

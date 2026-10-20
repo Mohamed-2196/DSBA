@@ -285,3 +285,17 @@ def test_the_answer_holds_no_worker_thread() -> None:
     assert inspect.isasyncgenfunction(ask.answer)
     client = ask.make_client(get_settings().model_copy(update={"anthropic_api_key": SecretStr("sk-test")}))
     assert isinstance(client, anthropic.AsyncAnthropic)
+
+
+def test_she_knows_a_resit_is_for_students_retaking_it() -> None:
+    from app.models import CalendarEvent
+
+    resit = CalendarEvent(
+        id="r", date=bahrain_today(), title="MT1186 exam", type="exam", year=1, unit_code="MT1186", resit=True
+    )
+    main = CalendarEvent(id="m", date=bahrain_today(), title="ST2134 exam", type="exam", year=2, resit=False)
+    screen = prompt.screen_block(
+        prompt.Screen(today=bahrain_today(), year=2, route="/", module=None, lesson_id=None, dates=[resit, main])
+    )
+    assert "MT1186 exam (resit exam, for students retaking the module, MT1186)" in screen
+    assert "ST2134 exam (exam)" in screen

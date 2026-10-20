@@ -429,3 +429,31 @@ def test_a_question_about_a_date_finds_the_dates(
     due = search(client_for(), "when is the deadline")["events"]
     assert titles(due) == ["ST2134 coursework"]
     assert search(client_for(), "when is")["events"] == []
+
+
+def test_resits_are_found_and_said_to_be_resits(
+    db: Session, modules: dict[str, Module], make_user: Callable[..., User], client_for: Clients
+) -> None:
+    today, day = bahrain_today(), dt.timedelta(days=1)
+    db.add_all(
+        [
+            CalendarEvent(
+                id="mt1186-resit",
+                date=today + 2 * day,
+                title="Mathematical Methods",
+                type="exam",
+                year=1,
+                unit_code="MT1186",
+                resit=True,
+            ),
+            CalendarEvent(id="mt1186-mock", date=today + day, title="Maths mock", type="mock", year=1),
+        ]
+    )
+    db.commit()
+    hits = search(client_for(), "when is the resit")["events"]
+    assert [(h["title"], h["meta"]) for h in hits] == [("Mathematical Methods", "Resit · Year 1 module")]
+    # a Year 1 student's own dates come first: the mock, not their year's modules' resit
+    year1 = search(client_for(make_user(year=1)), "when is my exam")["events"]
+    assert titles(year1) == ["Maths mock", "Mathematical Methods"]
+    year2 = search(client_for(make_user(year=2)), "when is my exam")["events"]
+    assert titles(year2) == ["Mathematical Methods", "Maths mock"]

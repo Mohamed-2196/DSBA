@@ -51,6 +51,9 @@ class User(Base):
     # Empty: every module of their year. Private: only /me and the export show it.
     papers: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list, server_default="{}")
     zone: Mapped[Zone | None] = mapped_column(String(8))  # the zone whose papers they sit
+    # The modules this person is resitting, as module ids: their resit sittings count down for them whatever their
+    # year. Private: only /me and the export show it.
+    resits: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list, server_default="{}")
     created_at: Mapped[datetime] = created_ts()
     last_seen_at: Mapped[datetime | None]
 

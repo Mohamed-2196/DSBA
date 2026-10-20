@@ -17,12 +17,14 @@ RTC stands for Recognised Teaching Centre: for some modules the University of Lo
 Teaching Centres beside zone A's and zone B's. That paper is a zone of its own, 'RTC'.
 Mocks, preliminary and sample papers belong to no sitting: their names give nothing.
 
-This is also where the API names zones and sittings, once: zone_label(), sitting_key(), sitting_label(), and the
-newest-first order of sittings (sitting_order(), and newest_sitting_first() in SQL). The web app's twin is
+This is also where the API names zones and sittings, once: zone_label(), sitting_key(), sitting_label(), the
+newest-first order of sittings (sitting_order(), and newest_sitting_first() in SQL), and the calendar's default for
+whether an exam is a resit (resit_sitting()). The web app's twin is
 web/src/lib/exams.ts."""
 
 from __future__ import annotations
 
+import datetime as dt
 import re
 import unicodedata
 from typing import Any, NamedTuple, Protocol
@@ -133,6 +135,16 @@ _MONTHS: dict[ExamSession, str] = {"may": "May", "october": "October"}
 # Newest first: in a year the October resits come after the May sitting; a sitting whose session isn't known is last.
 _NEWEST: dict[ExamSession, int] = {"october": 0, "may": 1}
 _SESSION_UNKNOWN = len(_NEWEST)
+
+
+# The months of the October resits: an exam on the calendar in them is a resit unless a rep says otherwise.
+RESIT_MONTHS = range(9, 13)  # September to December
+
+
+def resit_sitting(day: dt.date) -> bool:
+    """Whether an exam on `day` is in the October resits rather than the May sitting: the default a new exam takes
+    (the calendar keeps whatever a rep marks it)."""
+    return day.month in RESIT_MONTHS
 
 
 def zone_label(zone: Zone) -> str:

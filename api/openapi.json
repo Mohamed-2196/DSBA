@@ -772,7 +772,7 @@
           "me"
         ],
         "summary": "Update Me",
-        "description": "Display name, cohort year, email switches, papers and zone. Only the fields sent change; `year: null` clears it.\n\nErrors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).",
+        "description": "Display name, cohort year, email switches, papers, zone and resits. Only the fields sent change; `year: null`\nclears it.\n\nErrors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).",
         "operationId": "update_me_api_v1_me_patch",
         "requestBody": {
           "content": {
@@ -16226,7 +16226,7 @@
           "calendar"
         ],
         "summary": "List Events",
-        "description": "Events between `from` and `to` (inclusive; an event spanning several days counts if it overlaps), for a\ncohort plus everyone-events, oldest first.",
+        "description": "Events between `from` and `to` (inclusive; an event spanning several days counts if it overlaps), for a\ncohort plus everyone-events, oldest first. A cohort has its own main sittings and the year before's resits, never\nits own modules' resits; `resits` (module ids) adds those modules' resits.",
         "operationId": "list_events_api_v1_calendar_events_get",
         "parameters": [
           {
@@ -16322,6 +16322,24 @@
                 }
               ],
               "title": "Type"
+            }
+          },
+          {
+            "name": "resits",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 1400,
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}(,[a-z0-9][a-z0-9-]{0,63})*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Resits"
             }
           }
         ],
@@ -16519,7 +16537,7 @@
           "calendar"
         ],
         "summary": "Upcoming",
-        "description": "The next `limit` events from today (Bahrain time), including any still running today.",
+        "description": "The next `limit` events from today (Bahrain time), including any still running today. A cohort's resits as\nfor /calendar/events.",
         "operationId": "upcoming_api_v1_calendar_upcoming_get",
         "parameters": [
           {
@@ -16551,6 +16569,24 @@
                 }
               ],
               "title": "Year"
+            }
+          },
+          {
+            "name": "resits",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 1400,
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}(,[a-z0-9][a-z0-9-]{0,63})*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Resits"
             }
           }
         ],
@@ -16648,7 +16684,7 @@
           "calendar"
         ],
         "summary": "Ics Feed",
-        "description": "An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).\n`type=exam` gives only the exams (the web app's \"Download the exams\"). `modules` (comma-separated module ids,\nup to 20) keeps a module's events to those papers, from any year: the feed of someone's own papers, with\nnothing in the address that says who they are.",
+        "description": "An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).\n`type=exam` gives only the exams (the web app's \"Download the exams\"). `modules` (comma-separated module ids,\nup to 20) keeps a module's events to those papers, from any year: the feed of someone's own papers, with\nnothing in the address that says who they are. `resits` (module ids) adds those modules' resits, as for\n/calendar/events.",
         "operationId": "ics_feed_api_v1_calendar_feed_ics_get",
         "parameters": [
           {
@@ -16712,6 +16748,24 @@
                 }
               ],
               "title": "Modules"
+            }
+          },
+          {
+            "name": "resits",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 1400,
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}(,[a-z0-9][a-z0-9-]{0,63})*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Resits"
             }
           }
         ],
@@ -33155,6 +33209,17 @@
             "type": "boolean",
             "title": "Sample",
             "default": false
+          },
+          "resit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resit"
           }
         },
         "type": "object",
@@ -33325,6 +33390,10 @@
           "sample": {
             "type": "boolean",
             "title": "Sample"
+          },
+          "resit": {
+            "type": "boolean",
+            "title": "Resit"
           }
         },
         "type": "object",
@@ -33344,7 +33413,8 @@
           "source",
           "checkedOn",
           "employerId",
-          "sample"
+          "sample",
+          "resit"
         ],
         "title": "CalendarEventOut"
       },
@@ -33509,6 +33579,10 @@
             "type": "boolean",
             "title": "Sample"
           },
+          "resit": {
+            "type": "boolean",
+            "title": "Resit"
+          },
           "notice": {
             "type": "string",
             "enum": [
@@ -33541,6 +33615,7 @@
           "checkedOn",
           "employerId",
           "sample",
+          "resit",
           "notice",
           "told"
         ],
@@ -33728,6 +33803,17 @@
               }
             ],
             "title": "Sample"
+          },
+          "resit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resit"
           },
           "notify": {
             "type": "boolean",
@@ -42940,6 +43026,13 @@
               }
             ],
             "title": "Zone"
+          },
+          "resits": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Resits"
           }
         },
         "type": "object",
@@ -42957,7 +43050,8 @@
           "createdAt",
           "preferences",
           "papers",
-          "zone"
+          "zone",
+          "resits"
         ],
         "title": "Me"
       },
@@ -43033,6 +43127,22 @@
               }
             ],
             "title": "Zone"
+          },
+          "resits": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resits"
           }
         },
         "type": "object",
@@ -52743,6 +52853,10 @@
             ],
             "title": "Year"
           },
+          "resitters": {
+            "type": "boolean",
+            "title": "Resitters"
+          },
           "exams": {
             "type": "integer",
             "title": "Exams"
@@ -52764,12 +52878,13 @@
         "type": "object",
         "required": [
           "year",
+          "resitters",
           "exams",
           "notice",
           "told"
         ],
         "title": "TimetableNotice",
-        "description": "What one year was told."
+        "description": "What one year was told: about its main sittings, and the year before's resits."
       },
       "TimetablePreview": {
         "properties": {
@@ -52928,6 +53043,10 @@
             ],
             "title": "Year"
           },
+          "resit": {
+            "type": "boolean",
+            "title": "Resit"
+          },
           "eventId": {
             "anyOf": [
               {
@@ -52978,6 +53097,7 @@
           "moduleId",
           "moduleName",
           "year",
+          "resit",
           "eventId",
           "action",
           "was",
@@ -53035,11 +53155,22 @@
               }
             ],
             "title": "Place"
+          },
+          "resit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resit"
           }
         },
         "type": "object",
         "title": "TimetableRowIn",
-        "description": "One exam of the timetable as the rep checked it. A row without a time or a place keeps the exam's own."
+        "description": "One exam of the timetable as the rep checked it. A row without a time or a place keeps the exam's own. Without\n`resit`, the row says (the word \"resit\") or its date does (exam_names.resit_sitting)."
       },
       "TimetableSave": {
         "properties": {
@@ -53135,6 +53266,10 @@
           "sample": {
             "type": "boolean",
             "title": "Sample"
+          },
+          "resit": {
+            "type": "boolean",
+            "title": "Resit"
           }
         },
         "type": "object",
@@ -53142,7 +53277,8 @@
           "date",
           "time",
           "place",
-          "sample"
+          "sample",
+          "resit"
         ],
         "title": "TimetableWas",
         "description": "The exam as the calendar has it now."

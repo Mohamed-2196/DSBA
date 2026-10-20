@@ -307,7 +307,9 @@ def _screen(db: Session, user: User, body: NooraQuestion, today: dt.date) -> pro
     year = body.year or user.year
     dates = None
     if access.feature_on(db, user, Feature.calendar):
-        dates = list(db.scalars(events_query(start=today, year=year).limit(prompt.CALENDAR_DATES)))
+        dates = list(
+            db.scalars(events_query(start=today, year=year, resits=user.resits or []).limit(prompt.CALENDAR_DATES))
+        )
     return prompt.Screen(today=today, year=year, route=body.route, module=module, lesson_id=body.lesson_id, dates=dates)
 
 

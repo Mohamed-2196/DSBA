@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import bahrain_today, utcnow
 from app.models import AuditEntry, CalendarEvent, Module, Notification, User
+from app.services import timetable
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -27,6 +28,13 @@ def day(n: int) -> dt.date:
 
 def slash(d: dt.date) -> str:
     return f"{d.day:02d}/{d.month:02d}/{d.year}"
+
+
+@pytest.fixture(autouse=True)
+def main_sittings(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Rows are main sittings whatever month the tests run in, unless a test marks them (resit_sitting reads the
+    month)."""
+    monkeypatch.setattr(timetable, "resit_sitting", lambda _day: False)
 
 
 @pytest.fixture
@@ -110,7 +118,8 @@ def test_the_preview_says_what_each_row_will_do(
     st = rows[0]
     assert (st["date"], st["time"], st["place"]) == (day(13).isoformat(), "10:00 AM to 1:00 PM", "BIBF Hall A")
     assert (st["eventId"], st["moduleId"], st["year"]) == ("st2134-exam", "advanced-stats-inferential", 2)
-    assert st["was"] == {"date": day(12).isoformat(), "time": None, "place": None, "sample": True}
+    assert st["was"] == {"date": day(12).isoformat(), "time": None, "place": None, "sample": True, "resit": False}
+    assert st["resit"] is False
     assert st["text"].startswith("ST2134\t")
     assert rows[2]["eventId"] is None
     assert rows[2]["was"] is None
@@ -131,7 +140,7 @@ def test_the_preview_flags_unknown_codes_duplicates_and_missing_dates(
     rows = preview(client_for(moderator), text=text)
     assert [r["action"] for r in rows] == ["fix"] * 5
     assert rows[0]["problems"] == ["No module has the code ZZ9999. Check it, or add the code to the module in Manage."]
-    assert rows[1]["problems"] == ["ST2134 is in the timetable more than once. Keep one row."]
+    assert rows[1]["problems"] == ["ST2134's main sitting is in the timetable more than once. Keep one row."]
     assert rows[3]["problems"] == ["No date. Add it."]
     assert rows[4]["problems"] == ["No module code. Add it."]
 
@@ -245,7 +254,7 @@ def test_saving_changes_every_exam_at_once_and_tells_each_year_once(
     # the same day again: nobody is told twice
     rows = preview(rep, rows=[{"unitCode": "ST2134", "date": day(13).isoformat(), "place": "Hall Z"}])
     r = rep.post(SAVE, json=save_body(rows))
-    assert r.json()["notices"] == [{"year": 2, "exams": 1, "notice": "limit", "told": 0}]
+    assert r.json()["notices"] == [{"year": 2, "resitters": False, "exams": 1, "notice": "limit", "told": 0}]
     assert len(notices(db, student)) == 1
 
 
@@ -298,3 +307,114 @@ def test_ten_saves_an_hour(client_for: Clients, moderator: User, exams: dict[str
     r = client_for(moderator).post(SAVE, json=body)
     assert r.status_code == 429
     assert r.json()["error"]["code"] == "rate_limited"
+
+
+# ── resits ───────────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def resits(db: Session, modules: dict[str, Module], exams: dict[str, CalendarEvent]) -> dict[str, CalendarEvent]:
+    """MT1186's resit near its main sitting, and a final-year module's resit."""
+    modules["machine-learning"].unit_code = "ST3189"
+    rows = [
+        CalendarEvent(
+            id="mt1186-resit",
+            date=day(20),
+            title="Mathematical Methods resit",
+            type="exam",
+            year=1,
+            module_id="mathematics",
+            unit_code="MT1186",
+            resit=True,
+        ),
+        CalendarEvent(
+            id="st3189-resit",
+            date=day(21),
+            title="Machine Learning resit",
+            type="exam",
+            year=3,
+            module_id="machine-learning",
+            unit_code="ST3189",
+            resit=True,
+        ),
+    ]
+    db.add_all(rows)
+    db.commit()
+    return {e.id: e for e in rows}
+
+
+def test_a_row_matches_the_exam_of_its_own_sitting(
+    client_for: Clients, moderator: User, resits: dict[str, CalendarEvent]
+) -> None:
+    text = f"MT1186 {slash(day(18))} 10:00 Hall A Resit\nMT1186\t{slash(day(15))}\t09:00\tHall B\n"
+    rows = preview(client_for(moderator), text=text)
+    assert [(r["resit"], r["eventId"], r["action"]) for r in rows] == [
+        (True, "mt1186-resit", "update"),  # "Resit" on the line: the resit, though the main sitting is nearer
+        (False, "mt1186-exam", "update"),
+    ]
+    assert rows[0]["place"] == "Hall A"  # the word isn't taken for the venue
+    assert rows[0]["was"]["resit"] is True
+    assert rows[0]["problems"] == []
+
+
+def test_a_rows_sitting_comes_from_its_date_unless_marked(
+    client_for: Clients, moderator: User, resits: dict[str, CalendarEvent], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(timetable, "resit_sitting", lambda d: d >= day(17))
+    rep = client_for(moderator)
+    rows = preview(rep, rows=[{"unitCode": "MT1186", "date": day(19).isoformat()}])
+    assert (rows[0]["resit"], rows[0]["eventId"]) == (True, "mt1186-resit")
+    rows = preview(rep, rows=[{"unitCode": "MT1186", "date": day(19).isoformat(), "resit": False}])
+    assert (rows[0]["resit"], rows[0]["eventId"]) == (False, "mt1186-exam")
+    # a main sitting and a resit of one module are two rows, not a repeat
+    both = [
+        {"unitCode": "MT1186", "date": day(14).isoformat()},
+        {"unitCode": "MT1186", "date": day(19).isoformat()},
+    ]
+    assert [r["problems"] for r in preview(rep, rows=both)] == [[], []]
+
+
+def test_a_new_resit_is_saved_as_one(
+    client_for: Clients, moderator: User, exams: dict[str, CalendarEvent], db: Session
+) -> None:
+    body = {"rows": [{"unitCode": "EC1002", "date": day(30).isoformat(), "resit": True}], "source": SOURCE}
+    r = client_for(moderator).post(SAVE, json=body)
+    assert r.status_code == 200, r.text
+    new = db.scalar(select(CalendarEvent).where(CalendarEvent.module_id == "economics", CalendarEvent.date == day(30)))
+    assert new is not None
+    assert (new.title, new.type, new.year, new.resit) == ("Introduction to Economics resit", "exam", 1, True)
+
+
+def test_resits_are_told_to_the_next_year_and_those_resitting(
+    client_for: Clients,
+    moderator: User,
+    student: User,
+    other: User,
+    make_user: Callable[..., User],
+    resits: dict[str, CalendarEvent],
+    db: Session,
+) -> None:
+    resitting = make_user(name="Resitting", year=3)
+    resitting.resits = ["mathematics", "machine-learning"]
+    final_year = make_user(name="Final Year", year=3)
+    db.commit()
+    rows = [
+        {"unitCode": "MT1186", "date": day(20).isoformat(), "place": "Hall D", "resit": True},
+        {"unitCode": "ST3189", "date": day(21).isoformat(), "place": "Hall E", "resit": True},
+    ]
+    r = client_for(moderator).post(SAVE, json={"rows": rows, "source": SOURCE})
+    assert r.status_code == 200, r.text
+    assert sorted(r.json()["notices"], key=lambda n: n["resitters"]) == [
+        {"year": 2, "resitters": False, "exams": 1, "notice": "sent", "told": 2},  # Year 2 (Sara), and the resitter
+        {"year": None, "resitters": True, "exams": 1, "notice": "sent", "told": 1},  # the final-year resit: theirs only
+    ]
+    [year2] = notices(db, student)
+    assert year2.title == "Exam timetable for Year 2: 1 exam"
+    assert year2.body is not None
+    assert "MT1186 Mathematical Methods resit:" in year2.body
+    assert notices(db, other) == []  # Year 1: the module's own year never hears about its resit
+    assert notices(db, final_year) == []
+    assert sorted(n.title for n in notices(db, resitting)) == [
+        "Exam timetable for Year 2: 1 exam",
+        "Exam timetable: 1 resit",
+    ]

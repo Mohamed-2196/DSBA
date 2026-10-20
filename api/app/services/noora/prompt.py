@@ -160,7 +160,8 @@ def lesson_title(module: Module, lesson_id: str | None) -> str | None:
 def _date_line(e: CalendarEvent) -> str:
     when = e.date.isoformat() + (f" to {e.end_date.isoformat()}" if e.end_date else "")
     extras = [data(x) for x in (e.time, e.place, e.unit_code) if x]
-    line = f"- {when}: {data(e.title)} ({data(e.type)}{', ' + ', '.join(extras) if extras else ''})"
+    kind = "resit exam, for students retaking the module" if e.resit else data(e.type)
+    line = f"- {when}: {data(e.title)} ({kind}{', ' + ', '.join(extras) if extras else ''})"
     return line + (" (to be confirmed)" if e.sample else "")
 
 

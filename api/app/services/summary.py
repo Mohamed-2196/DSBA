@@ -46,7 +46,7 @@ from app.models import (
 )
 from app.schemas.summary import SummaryEditable, SummaryPreview, SummaryWords
 from app.services import access, documents
-from app.services.calendar import NOTICE_TYPES
+from app.services.calendar import NOTICE_TYPES, year_clause
 from app.services.calendar import summary as event_name
 from app.services.notify import inbox_full, switch_footer, unlink
 from app.services.outbox import WEEKLY_SUMMARY, queue, wanted_by
@@ -160,7 +160,7 @@ def build(
                 CalendarEvent.type.in_(NOTICE_TYPES),
                 CalendarEvent.date <= saturday,
                 func.coalesce(CalendarEvent.end_date, CalendarEvent.date) >= sunday,
-                or_(CalendarEvent.year == year, CalendarEvent.year.is_(None)),
+                year_clause(year),  # the year's main sittings and the year before's resits
             )
             .order_by(CalendarEvent.date, CalendarEvent.id)
             .limit(MAX_ITEMS)
