@@ -81,3 +81,13 @@ def test_fresh_accounts_no_longer_spend_the_month_by_dropping_answers(
     accounts = math.ceil(budget / row.cost_microusd)
     hours = accounts / SIGN_UPS_PER_HOUR_PER_ADDRESS
     assert hours > 7 * 24  # more than a week of sign-ups from one address, each account a week old before its fifth
+
+
+def test_rare_symbols_are_reserved_by_their_bytes() -> None:
+    """SEC-61: 3,000 four-byte symbols reserve as 6,000 tokens (by bytes), not 1,000 (by characters)."""
+    from app.config import get_settings
+
+    s = get_settings()
+    plain = ask.estimate_microusd([{"type": "text", "text": "a" * 3000}], [], 0, s)
+    symbols = ask.estimate_microusd([{"type": "text", "text": "\U0001d54f" * 3000}], [], 0, s)
+    assert symbols == 6 * plain

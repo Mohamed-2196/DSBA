@@ -67,6 +67,7 @@ MICRO_PER_CENT = 10_000
 CUT_OFF = "My answer was cut off. Try asking again in a minute."
 DECLINED = "I can't help with that one. Try asking it another way, or ask a student rep."
 CHARS_PER_TOKEN = 3  # a cautious estimate of a prompt's tokens from its characters
+BYTES_PER_TOKEN = 2  # and from its UTF-8 bytes, for text of rare symbols
 RATE_CARD_MARGIN = 1.5  # how far short of the real tokens a character count may fall
 ANSWER_STALE = dt.timedelta(minutes=2)  # an answer still marked as streaming after this ended without settling
 LOCK = "noora:answers"
@@ -208,22 +209,29 @@ def cost_microusd(u: Usage, s: Settings) -> int:
 
 def estimate_microusd(system: list[TextBlockParam], messages: list[MessageParam], max_tokens: int, s: Settings) -> int:
     """The most an answer can cost: the prompt at the full input price (no cache discount), and a whole answer (its
-    thinking included). A count from characters can fall short of the real tokens, so a prompt within
-    RATE_CARD_MARGIN of the long-prompt line is reserved on the long rate card."""
-    chars = sum(len(b["text"]) for b in system)
-    chars += sum(_content_chars(m["content"]) for m in messages)
-    tokens_in = math.ceil(chars / CHARS_PER_TOKEN)
+    thinking included). The prompt's tokens are counted cautiously (_tokens()). A count can still fall short of the
+    real tokens, so a prompt within RATE_CARD_MARGIN of the long-prompt line is reserved on the long rate card."""
+    texts = [b["text"] for b in system] + [t for m in messages for t in _content_texts(m["content"])]
+    tokens_in = sum(_tokens(t) for t in texts)
     price_in, price_out = prices(math.ceil(tokens_in * RATE_CARD_MARGIN), s)
     return math.ceil(tokens_in * price_in + max_tokens * price_out)
 
 
-def _content_chars(content: object) -> int:
-    """A message's text length, whether it is a string or a list of blocks."""
+def _tokens(text: str) -> int:
+    """A cautious count of a text's tokens: plain ASCII at CHARS_PER_TOKEN characters a token, anything else at
+    BYTES_PER_TOKEN of its UTF-8 bytes, since rare symbols take several tokens a character (SEC-61)."""
+    ascii_chars = sum(1 for c in text if c < "\x80")
+    other_bytes = len(text.encode("utf-8")) - ascii_chars
+    return math.ceil(ascii_chars / CHARS_PER_TOKEN) + math.ceil(other_bytes / BYTES_PER_TOKEN)
+
+
+def _content_texts(content: object) -> list[str]:
+    """A message's texts, whether it is a string or a list of blocks."""
     if isinstance(content, str):
-        return len(content)
+        return [content]
     if isinstance(content, list):
-        return sum(len(b["text"]) for b in content if isinstance(b, dict) and isinstance(b.get("text"), str))
-    return 0
+        return [b["text"] for b in content if isinstance(b, dict) and isinstance(b.get("text"), str)]
+    return []
 
 
 def _seconds_to_midnight() -> int:
