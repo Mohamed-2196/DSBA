@@ -703,7 +703,8 @@ button.nb-where__module:hover {
 .nb-stack,
 .nb-reflow,
 .nb-pages,
-.nb-print {
+.nb-print,
+.nb-print-sources {
   --page: #ffffff;
   --page-ink: #172033;
   --page-ink-2: #4a5872;

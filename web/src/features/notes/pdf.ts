@@ -36,7 +36,8 @@ export interface LoadedPdf {
   pages: PageSize[];
 }
 
-async function sourceOf(pdf: NotePdf): Promise<string> {
+/** Where a note's PDF is read from: a library file's short-lived link, or the student's own file. */
+export async function sourceOf(pdf: NotePdf): Promise<string> {
   if (pdf.libraryItemId) {
     const link = await call(
       api.GET('/api/v1/library/items/{item_id}/file', { params: { path: { item_id: pdf.libraryItemId } } }),

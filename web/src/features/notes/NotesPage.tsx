@@ -1,6 +1,6 @@
 // /notes: the student's notebooks and notes, last edited first, with search, a notebook, a module's notes (from every
 // notebook) or one lesson's (?notebook=, ?module=, or ?module=&lesson= from a lesson page), and creation.
-import { useRef, useState, type FormEvent } from 'react';
+import { lazy, Suspense, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import type { Notebook, NoteSummary, StorageUse } from '../../api/types';
@@ -283,6 +283,9 @@ function RenameDialog({ notebook, onClose }: { notebook: Notebook; onClose: () =
   );
 }
 
+/** Every note of a module as one print (the editor's code: loaded when it is asked for). */
+const PrintModule = lazy(() => import('./print/PrintModule').then((m) => ({ default: m.PrintModule })));
+
 function NotesList() {
   const { me } = useAuth();
   const { getModule, getModulesForYear } = useModules();
@@ -316,6 +319,8 @@ function NotesList() {
   const showAll = () => setParams({ module: null, lesson: null }, { replace: true });
   const pickModule = (id: string | null) => setParams({ module: id, lesson: null }, { replace: true });
   const notes = useNotes(filters);
+  const [printing, setPrinting] = useState(false);
+  const printModule = moduleId && !lesson ? getModule(moduleId) : null;
   const readOnly = me?.status === 'suspended';
 
   const [unsent] = useState(() => new Set(draftIds()));
@@ -571,6 +576,16 @@ function NotesList() {
                   data-hub="notes-module-filter"
                 />
               )}
+              {printModule && total > 0 ? (
+                <Button
+                  leadingIcon={<Icon glyph={glyph.print} />}
+                  onClick={() => setPrinting(true)}
+                  className="notes-filters__print"
+                  data-hub="notes-print-all"
+                >
+                  Print all
+                </Button>
+              ) : null}
             </div>
           )}
 
@@ -673,6 +688,15 @@ function NotesList() {
           setDeletingBook(null);
         }}
       />
+      {printing && printModule ? (
+        <Suspense fallback={null}>
+          <PrintModule
+            moduleId={printModule.id}
+            title={`${printModule.unitCode || printModule.shortName} notes`}
+            onDone={() => setPrinting(false)}
+          />
+        </Suspense>
+      ) : null}
     </Page>
   );
 }
