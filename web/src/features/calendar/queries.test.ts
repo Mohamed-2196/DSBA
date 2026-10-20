@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { whenAndWhere } from './eventMeta';
 import {
   aheadRows,
+  datesAheadThisMonth,
   eventDays,
   filterEvents,
   groupByDay,
@@ -206,5 +207,20 @@ describe('aheadRows', () => {
     const headline = ev('2026-10-23');
     const next = ev('2026-10-26');
     expect(aheadRows([headline, next], today, new Set([headline.id])).map((r) => r.event.id)).toEqual([next.id]);
+  });
+});
+
+describe('datesAheadThisMonth', () => {
+  it('counts the cohort’s dates from today to the end of the month', () => {
+    const events = [
+      ev('2026-10-19'), // yesterday
+      ev('2026-10-20'),
+      ev('2026-10-31', { type: 'deadline' }),
+      ev('2026-11-01'), // next month
+      ev('2026-10-25', { year: 1 }), // another year
+      ev('2026-10-10', { endDate: '2026-10-22', type: 'careers' }), // still open
+    ];
+    expect(datesAheadThisMonth(events, { year: 2, today: '2026-10-20' })).toBe(3);
+    expect(datesAheadThisMonth(events, { year: null, today: '2026-10-20' })).toBe(4);
   });
 });

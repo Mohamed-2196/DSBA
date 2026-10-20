@@ -101,12 +101,15 @@ function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
   );
 }
 
-/** A note written over a PDF of the student's own (lecture slides, a worksheet): it uploads, then opens to write on. */
-function WriteOnPdf({ notebookId }: { notebookId: string | null }) {
+/**
+ * A note written over a PDF of the student's own (lecture slides, a worksheet): `pick` opens the file picker, then the
+ * PDF uploads and the note opens to write on. `input` is the hidden file field to render once.
+ */
+function usePdfNote(notebookId: string | null) {
   const navigate = useNavigate();
   const create = useCreateNote();
   const { push } = useToast();
-  const input = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLInputElement>(null);
   const [percent, setPercent] = useState<number | null>(null);
 
   const start = async (file: File) => {
@@ -137,30 +140,26 @@ function WriteOnPdf({ notebookId }: { notebookId: string | null }) {
     }
   };
 
-  return (
-    <>
-      <input
-        ref={input}
-        type="file"
-        accept="application/pdf,.pdf"
-        hidden
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = '';
-          if (file) void start(file);
-        }}
-        data-hub="note-pdf-input"
-      />
-      <Button
-        leadingIcon={<Icon glyph={glyph.page} />}
-        onClick={() => input.current?.click()}
-        loading={percent !== null}
-        data-hub="note-from-pdf"
-      >
-        {percent !== null ? `Uploading ${percent}%` : 'Write on a PDF'}
-      </Button>
-    </>
+  const input = (
+    <input
+      ref={ref}
+      type="file"
+      accept="application/pdf,.pdf"
+      hidden
+      onChange={(e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (file) void start(file);
+      }}
+      data-hub="note-pdf-input"
+    />
   );
+  return {
+    input,
+    pick: () => ref.current?.click(),
+    percent,
+    label: percent !== null ? `Uploading ${percent}%` : 'Write on a PDF',
+  };
 }
 
 /** How much of one of the notebooks' two budgets is used, and what makes room. */
@@ -330,6 +329,11 @@ function NotesList() {
     setQ(value.trim() || null, { replace: true });
   };
 
+  // Nothing written yet: the empty state is the page (no filters or pickers with nothing to act on).
+  const nothingYet = !!notes.data && total === 0 && !filtered && !lesson;
+  const newNote = () => startNote.start(lesson ?? { notebookId: selectedNotebookId, moduleId: moduleId ?? undefined });
+  const pdf = usePdfNote(selectedNotebookId || null);
+
   const notebooks = notebooksQuery.data?.items ?? [];
   const storage = notebooksQuery.data?.storage;
   const ownFirst = firstOwnNotebook(notebooks);
@@ -374,32 +378,66 @@ function NotesList() {
 
   return (
     <Page width="default">
+      {pdf.input}
       <PageHeader
         section="notebook"
         title="Notebook"
         description="Your notes, handwriting, formulas and PDF annotations. Kept private to you."
         actions={
-          readOnly ? null : (
+          readOnly || nothingYet ? null : (
             <div className="notes-new">
-              <Button
-                leadingIcon={<Icon glyph={glyph.folder} />}
-                onClick={() => setNewBookOpen(true)}
-                data-hub="new-notebook"
-              >
-                New notebook
-              </Button>
-              <WriteOnPdf notebookId={selectedNotebookId || null} />
+              {narrow ? null : (
+                <>
+                  <Button
+                    leadingIcon={<Icon glyph={glyph.folder} />}
+                    onClick={() => setNewBookOpen(true)}
+                    data-hub="new-notebook"
+                  >
+                    New notebook
+                  </Button>
+                  <Button
+                    leadingIcon={<Icon glyph={glyph.page} />}
+                    onClick={pdf.pick}
+                    loading={pdf.percent !== null}
+                    data-hub="note-from-pdf"
+                  >
+                    {pdf.label}
+                  </Button>
+                </>
+              )}
               <Button
                 variant="primary"
                 leadingIcon={<Icon glyph={glyph.plus} />}
-                onClick={() =>
-                  startNote.start(lesson ?? { notebookId: selectedNotebookId, moduleId: moduleId ?? undefined })
-                }
+                onClick={newNote}
                 loading={startNote.starting}
                 data-hub="note-new"
               >
                 New note
               </Button>
+              {narrow ? (
+                <Menu
+                  align="end"
+                  label="More ways to add"
+                  items={[
+                    {
+                      id: 'pdf',
+                      label: pdf.label,
+                      icon: <Icon glyph={glyph.page} />,
+                      onSelect: pdf.pick,
+                      disabled: pdf.percent !== null,
+                    },
+                    {
+                      id: 'notebook',
+                      label: 'New notebook',
+                      icon: <Icon glyph={glyph.folder} />,
+                      onSelect: () => setNewBookOpen(true),
+                    },
+                  ]}
+                  trigger={
+                    <IconButton icon={<Icon glyph={glyph.more} />} label="More ways to add" data-hub="notes-more" />
+                  }
+                />
+              ) : null}
             </div>
           )
         }
@@ -472,7 +510,7 @@ function NotesList() {
         )}
 
         <section className="notes-section" aria-label="Notes in notebook">
-          {narrow ? (
+          {narrow && !nothingYet ? (
             <>
               <div className="notes-picker" data-hub="notebook-picker">
                 <Select
@@ -512,27 +550,29 @@ function NotesList() {
               </Button>
             </p>
           ) : null}
-          <div className="notes-filters">
-            <SearchField
-              className="notes-filters__search"
-              label="Search your notes"
-              placeholder="Search your notes"
-              value={text}
-              onValueChange={onSearch}
-              onClear={() => onSearch('')}
-            />
-            {lesson ? null : (
-              <Select
-                className="notes-filters__module"
-                label="Module"
-                hideLabel
-                value={moduleId ?? ''}
-                onChange={(e) => pickModule(e.target.value || null)}
-                options={[{ value: '', label: 'Every module' }, ...moduleOptions]}
-                data-hub="notes-module-filter"
+          {nothingYet ? null : (
+            <div className="notes-filters">
+              <SearchField
+                className="notes-filters__search"
+                label="Search your notes"
+                placeholder="Search your notes"
+                value={text}
+                onValueChange={onSearch}
+                onClear={() => onSearch('')}
               />
-            )}
-          </div>
+              {lesson ? null : (
+                <Select
+                  className="notes-filters__module"
+                  label="Module"
+                  hideLabel
+                  value={moduleId ?? ''}
+                  onChange={(e) => pickModule(e.target.value || null)}
+                  options={[{ value: '', label: 'Every module' }, ...moduleOptions]}
+                  data-hub="notes-module-filter"
+                />
+              )}
+            </div>
+          )}
 
           {notes.isPending ? (
             <Panel padding="none" aria-busy="true">
@@ -560,14 +600,24 @@ function NotesList() {
                   body="Type with rich text, write with stylus ink, or annotate past papers."
                   action={
                     readOnly ? null : (
-                      <Button
-                        variant="primary"
-                        leadingIcon={<Icon glyph={glyph.plus} />}
-                        onClick={() => startNote.start()}
-                        loading={startNote.starting}
-                      >
-                        Write your first note
-                      </Button>
+                      <>
+                        <Button
+                          variant="primary"
+                          leadingIcon={<Icon glyph={glyph.plus} />}
+                          onClick={newNote}
+                          loading={startNote.starting}
+                          data-hub="note-new"
+                        >
+                          Write your first note
+                        </Button>
+                        <Button
+                          leadingIcon={<Icon glyph={glyph.page} />}
+                          onClick={pdf.pick}
+                          loading={pdf.percent !== null}
+                        >
+                          {pdf.label}
+                        </Button>
+                      </>
                     )
                   }
                 />

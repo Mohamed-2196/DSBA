@@ -36,7 +36,12 @@ function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string)
     // A toast is a dark card in either theme ("ink on light, raised on dark"), so it takes the dark tokens.
     <div
       data-theme="dark"
-      className={cx('ui-toast', `ui-toast--${toast.tone}`, leaving && 'is-leaving')}
+      className={cx(
+        'ui-toast',
+        `ui-toast--${toast.tone}`,
+        toast.compact && 'ui-toast--compact',
+        leaving && 'is-leaving',
+      )}
       role={toast.tone === 'alert' ? 'alert' : 'status'}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}

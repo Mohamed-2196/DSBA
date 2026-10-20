@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ForumStats } from '../../../api/types';
-import { Chip, Icon, SearchField, SegmentedControl, Tabs, glyph, useScrollFade } from '../../../ui';
+import { BREAKPOINTS, useMediaQuery } from '../../../state';
+import { Button, Chip, Drawer, Icon, SearchField, SegmentedControl, Tabs, glyph, useScrollFade } from '../../../ui';
 import type { FilterPatch } from '../lib/filters';
 import type { TagChip } from '../lib/tagChips';
 import { useTaxonomy } from '../lib/taxonomy';
@@ -54,30 +55,126 @@ export function ForumFilterBar({ filters, update, stats, chips, scope, showYours
 
   const chipsRef = useRef<HTMLDivElement>(null);
   useScrollFade(chipsRef, null, `${cohort}|${chips.map((t) => t.id).join()}`);
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const yours = cohort === 'yours';
+  const on = (status === 'no-replies' ? 1 : 0) + (tag ? 1 : 0) + (!yours && sort !== 'hot' ? 1 : 0);
+
+  const noReplies = (
+    <Chip
+      size="sm"
+      icon={<Icon glyph={glyph.forum} />}
+      selected={status === 'no-replies'}
+      count={waiting}
+      onChange={(picked) => update({ status: picked ? 'no-replies' : '' })}
+      data-hub="filter-no-replies"
+    >
+      No replies yet
+    </Chip>
+  );
+  const tagChips = chips.map((t) => (
+    <Chip
+      key={t.id}
+      size="sm"
+      selected={tag === t.id}
+      count={t.count}
+      onChange={(picked) => update({ tag: picked ? t.id : '' })}
+    >
+      {t.label}
+    </Chip>
+  ));
+  const sortControl = yours ? (
+    <span className="forum-filters__order">Newest activity first</span>
+  ) : (
+    <SegmentedControl
+      label="Sort threads"
+      size="sm"
+      options={SORTS}
+      value={sort}
+      onChange={(v) => update({ sort: String(v) })}
+    />
+  );
+  const searchField = (
+    <SearchField
+      className="forum-filters__search"
+      value={query}
+      onValueChange={(v) => {
+        setQuery(v);
+        update({ q: v });
+      }}
+      placeholder={scope ? `Search ${scope}` : 'Search threads'}
+      label="Search threads"
+      dir="auto"
+    />
+  );
+  const tabsEl = (
+    <div className="forum-filters__tabs-wrap">
+      <Tabs
+        idBase="forum"
+        label="Categories"
+        className="forum-filters__tabs u-scroll-row--bleed"
+        tabs={tabs}
+        value={cohort}
+        onChange={(id) => update({ cohort: id, tag: '' })}
+      />
+    </div>
+  );
+
+  if (phone)
+    return (
+      <div className="forum-filters" data-hub="forum-filters">
+        {tabsEl}
+        <div className="forum-filters__phone">
+          {searchField}
+          <button
+            type="button"
+            className="forum-filters__open"
+            onClick={() => setSheetOpen(true)}
+            aria-haspopup="dialog"
+            aria-label={on ? `Filters, ${on} on` : 'Filters'}
+            data-hub="forum-filters-open"
+          >
+            <Icon glyph={glyph.filter} />
+            Filters
+            {on ? <span className="forum-filters__n">{on}</span> : null}
+          </button>
+        </div>
+        <Drawer
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          side="bottom"
+          title="Filters"
+          bodyClassName="forum-sheet"
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => update({ status: '', tag: '', sort: 'hot' })} disabled={!on}>
+                Clear all
+              </Button>
+              <Button variant="primary" onClick={() => setSheetOpen(false)} data-hub="forum-filters-done">
+                Show threads
+              </Button>
+            </>
+          }
+        >
+          <div className="forum-sheet__group">
+            <h3 className="forum-sheet__label">Sort</h3>
+            {sortControl}
+          </div>
+          <div className="forum-sheet__group">
+            <h3 className="forum-sheet__label">Show</h3>
+            <div className="forum-sheet__chips" role="group" aria-label="Filter threads">
+              {noReplies}
+              {tagChips}
+            </div>
+          </div>
+        </Drawer>
+      </div>
+    );
 
   return (
     <div className="forum-filters" data-hub="forum-filters">
-      <div className="forum-filters__tabs-wrap">
-        <Tabs
-          idBase="forum"
-          label="Categories"
-          className="forum-filters__tabs u-scroll-row--bleed"
-          tabs={tabs}
-          value={cohort}
-          onChange={(id) => update({ cohort: id, tag: '' })}
-        />
-      </div>
-      <SearchField
-        className="forum-filters__search"
-        value={query}
-        onValueChange={(v) => {
-          setQuery(v);
-          update({ q: v });
-        }}
-        placeholder={scope ? `Search ${scope}` : 'Search threads'}
-        label="Search threads"
-        dir="auto"
-      />
+      {tabsEl}
+      {searchField}
       <div className="forum-filters__row">
         <div
           className="forum-filters__chips u-scroll-row u-scroll-row--bleed"
@@ -85,42 +182,11 @@ export function ForumFilterBar({ filters, update, stats, chips, scope, showYours
           aria-label="Filter threads"
           ref={chipsRef}
         >
-          <Chip
-            size="sm"
-            icon={<Icon glyph={glyph.forum} />}
-            selected={status === 'no-replies'}
-            count={waiting}
-            onChange={(on) => update({ status: on ? 'no-replies' : '' })}
-            data-hub="filter-no-replies"
-          >
-            No replies yet
-          </Chip>
+          {noReplies}
           {chips.length ? <span className="forum-filters__sep" aria-hidden="true" /> : null}
-          {chips.map((t) => (
-            <Chip
-              key={t.id}
-              size="sm"
-              selected={tag === t.id}
-              count={t.count}
-              onChange={(on) => update({ tag: on ? t.id : '' })}
-            >
-              {t.label}
-            </Chip>
-          ))}
+          {tagChips}
         </div>
-        <div className="forum-filters__sort">
-          {cohort === 'yours' ? (
-            <span className="forum-filters__order">Newest activity first</span>
-          ) : (
-            <SegmentedControl
-              label="Sort threads"
-              size="sm"
-              options={SORTS}
-              value={sort}
-              onChange={(v) => update({ sort: String(v) })}
-            />
-          )}
-        </div>
+        <div className="forum-filters__sort">{sortControl}</div>
       </div>
     </div>
   );

@@ -11,6 +11,29 @@
   gap: var(--sp-12);
   margin-bottom: var(--sp-24);
 }
+/* A phone: List | Month, then New event and ⋯ at the end of the same row; the month's arrows go under them. */
+.cal-bar--phone {
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-16);
+}
+.cal-bar__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  margin-inline-start: auto;
+}
+.cal-bar--phone .cal-nav {
+  flex: 1 1 100%;
+}
+.cal-bar--phone .cal-nav__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-18);
+  white-space: nowrap;
+}
+.cal-stat {
+  font-weight: var(--fw-semibold);
+}
 .cal-nav {
   display: flex;
   align-items: center;
@@ -130,10 +153,8 @@
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
-.cal-exam__count.ui-highlight {
-  --hl-size: 100% 100%;
-  background-position: 0 50%;
-  padding: 0.06em 0.26em 0.14em;
+.cal-exam__count {
+  color: var(--exam);
 }
 .cal-exam__what {
   display: flex;
@@ -335,6 +356,9 @@
 .cal-browse__title + .cal-filters {
   margin-top: var(--sp-12);
 }
+.cal-month--compact .cal-filters {
+  margin-top: var(--sp-12);
+}
 .cal-month ~ .cal-filters,
 .visually-hidden + .cal-filters {
   margin-top: 0;
@@ -370,7 +394,7 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--success-fill) 40%, transparent);
 }
 .cal-swatch--deadline {
-  background: var(--highlight);
+  background: var(--warning-fill);
 }
 .cal-swatch--careers {
   background: var(--surface);
@@ -581,8 +605,8 @@
   --chip-ink: var(--success);
 }
 .cal-chip--deadline {
-  --chip-bg: var(--highlight);
-  --chip-ink: var(--highlight-ink);
+  --chip-bg: var(--warning-fill);
+  --chip-ink: var(--on-warning-fill);
 }
 .cal-chip--careers {
   --chip-bg: var(--surface);
@@ -605,8 +629,10 @@
 .cal-bar-chip.is-selected {
   box-shadow: 0 0 0 2px var(--ink);
 }
+/* A day gone by: the chip's fill fades into the day, and its words stay at full strength (AA). */
 .cal-chip.is-past {
-  opacity: 0.7;
+  --chip-bg-past: color-mix(in srgb, var(--chip-bg) 45%, var(--surface));
+  background: var(--chip-bg-past);
 }
 .cal-chip__icon {
   flex: 0 0 auto;
@@ -1185,7 +1211,7 @@ button.cal-day__num:focus-visible {
   outline-offset: -1.5px;
 }
 .cal-chip--mine.is-past {
-  opacity: 0.7;
+  outline-color: color-mix(in srgb, var(--mine) 55%, var(--surface));
 }
 .cal-mine-badge {
   display: inline-flex;

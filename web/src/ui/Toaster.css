@@ -101,6 +101,35 @@
   .ui-toast {
     width: auto;
   }
+  /* A compact toast is a pill centred over the tab bar, one line, clear of the text being written. */
+  .ui-toast--compact {
+    align-self: center;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    max-width: 100%;
+    padding: 4px 4px 4px 12px;
+    border-radius: var(--r-pill);
+  }
+  .ui-toast--compact .ui-toast__mate {
+    --mate-size: 32px;
+    margin: -4px 0;
+  }
+  .ui-toast--compact .ui-toast__text {
+    display: flex;
+    gap: 0.35em;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .ui-toast--compact .ui-toast__title::after {
+    content: ' ·';
+  }
+  .ui-toast--compact .ui-toast__body {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+  }
   /* Dialogs are bottom sheets on phones: while one is open, toasts move to the top so they never cover its fields
      and buttons (UX review UX-8). */
   body:has(.ui-modal, .ui-drawer) .ui-toaster {

@@ -204,9 +204,9 @@ export function NoteHeader({
       <div className="nb-header__row">
         {panel ? null : (
           <nav className="nb-crumbs" aria-label="Breadcrumb">
-            <Link to="/notes" className="nb-back" onClick={onBack} aria-label="All notes" title="All notes">
+            <Link to="/notes" className="nb-back" onClick={onBack}>
               <Icon glyph={glyph.chevronLeft} />
-              <span>Notes</span>
+              <span>Notebook</span>
             </Link>
             {module ? (
               <span className="nb-crumbs__module">

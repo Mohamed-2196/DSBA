@@ -221,10 +221,13 @@ html:has(.nb--full) .noora {
   background: var(--sec-notebook-pill);
   color: var(--sec-notebook-text);
   font: inherit;
-  font-family: var(--font-mono);
-  font-size: 0.94em;
   font-weight: var(--fw-bold);
   cursor: pointer;
+}
+/* A module's code is set in mono (BRAND §3); "Add a module" is words, in the text face. */
+.nb-where__module:not(.is-unset) {
+  font-family: var(--font-mono);
+  font-size: 0.94em;
 }
 span.nb-where__module {
   cursor: default;
@@ -256,13 +259,26 @@ button.nb-where__module:hover {
   background: var(--surface-2);
   color: var(--ink);
 }
+/* Touch screens: the notebook, the module and the paper's link are 44 px tall targets, so the row grows to 44. */
 @media (pointer: coarse) {
   .nb-back {
     height: 44px;
   }
-  /* a 44 px target without a taller line */
-  .nb-saved__book::before,
-  .nb-where__module::before,
+  .nb-header__where {
+    row-gap: 0;
+  }
+  .nb-saved__book,
+  .nb-where__module,
+  .nb-where__chip a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin: 0;
+  }
+  .nb-where__module,
+  .nb-saved__book {
+    padding-block: 0;
+  }
   .nb-where__remove::before {
     content: '';
     position: absolute;
@@ -2030,13 +2046,9 @@ button.nb-where__module:hover {
 }
 @media (pointer: coarse) {
   /* 44 px to tap without a taller line */
-  .nb-time::before,
-  .nb-where__chip a::before {
+  .nb-time::before {
     content: '';
     position: absolute;
     inset: -10px -2px;
-  }
-  .nb-where__chip a {
-    position: relative;
   }
 }

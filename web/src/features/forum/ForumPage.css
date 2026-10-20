@@ -374,6 +374,9 @@
 }
 /* Narrow (phones): the chips scroll to the screen's edge, and the sort follows them on its own line. */
 @container forum-page (max-width: 640px) {
+  .forum-layout {
+    row-gap: var(--sp-12);
+  }
   .forum-filters__row {
     flex-wrap: wrap;
   }
@@ -385,6 +388,72 @@
   .forum-side {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* A phone: the search and one Filters button share a row; the chips and the sort are in the Filters sheet. */
+.forum-filters__phone {
+  grid-area: search;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  min-width: 0;
+}
+.forum-filters__phone > .forum-filters__search {
+  flex: 1 1 auto;
+}
+.forum-filters__open {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--sp-6);
+  min-height: 44px;
+  padding: 0 var(--sp-14);
+  border-radius: var(--r-pill);
+  background: var(--inverse);
+  color: var(--on-inverse);
+  font: inherit;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  --icon-tint: transparent;
+}
+.forum-filters__open:hover {
+  background: color-mix(in srgb, var(--inverse) 88%, var(--paper));
+}
+.forum-filters__open:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+.forum-filters__n {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 var(--sp-6);
+  border-radius: var(--r-pill);
+  background: var(--warning-fill);
+  color: var(--on-warning-fill);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-heavy);
+  font-variant-numeric: tabular-nums;
+}
+.forum-sheet {
+  display: grid;
+  gap: var(--sp-20);
+}
+.forum-sheet__group {
+  display: grid;
+  gap: var(--sp-8);
+  justify-items: start;
+}
+.forum-sheet__label {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+}
+.forum-sheet__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
 }
 
 /* Touch screens: 44px targets (UX review UX-11) */

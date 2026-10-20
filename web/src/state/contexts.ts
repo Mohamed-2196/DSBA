@@ -37,6 +37,9 @@ export interface ToastInput {
    * failure, and not on every toast.
    */
   mate?: MateName;
+  /** a one-line pill (title · body) for a quiet confirmation over a page being written in, such as a note's first
+   *  save: on a phone it keeps clear of the text */
+  compact?: boolean;
 }
 
 export interface Toast extends ToastInput {
