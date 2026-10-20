@@ -48,7 +48,7 @@ def save_site(body: SiteSave, request: Request, user: Admin, db: DB) -> SiteEdit
 
 @router.get("/guides", response_model=GuidesDoc)
 def guides(db: DB) -> GuidesDoc:
-    """Start here, Results day and Choosing your electives."""
+    """Results day and Choosing your electives."""
     return svc.guides(db)
 
 

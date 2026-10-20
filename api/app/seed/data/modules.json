@@ -949,8 +949,8 @@
     "position": 2,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1OoirkioHtZGzmI9M1JXMkvE6exSUUiJx",
-      "exercises": "https://drive.google.com/drive/folders/13n0MsLtWx7b8jhtll4B6spZwtVenGWbk?sort=13&direction=a",
-      "exercisesNote": "Dr. Mahmood's chapters have everything covered.",
+      "exercises": null,
+      "exercisesNote": null,
       "vle": "https://drive.google.com/drive/folders/1kdEB7pHSGgwvZLkh7ixE4Wo885Evd7K9",
       "olderExams": "https://drive.google.com/drive/folders/1amoR_NggUIMMtpNYzgYp3XwT0mnrJ82Y",
       "cheatSheet": null

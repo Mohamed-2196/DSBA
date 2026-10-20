@@ -213,7 +213,7 @@ def test_her_pages_are_the_apps_pages() -> None:
     """Every page of the app (web/src/routes.tsx) is one she is told a student is on, and every page she may send a
     student to is one of the app's."""
     paths = re.findall(r"path: '([^']+)'", ROUTES.read_text(encoding="utf-8"))
-    assert {"/start-here", "/results-day", "/career/electives", "/daily/:day/:game"} <= set(paths)
+    assert {"/results-day", "/career/electives", "/daily/:day/:game"} <= set(paths)
     for path in paths:
         if path != "*":
             sample = re.sub(r":\w+", "x-1", path)

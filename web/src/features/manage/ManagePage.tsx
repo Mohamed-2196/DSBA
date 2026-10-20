@@ -32,7 +32,7 @@ import { GradeRulesEditor } from '../grades/public';
 import { IssuesManager, NewsletterSettingsEditor } from '../newsletter/public';
 import { NooraEditor } from '../noora/public';
 import { SiteEditor } from '../site/public';
-import { GuidesEditor } from '../start/public';
+import { GuidesEditor } from '../guides/public';
 import { useAdminStats } from './api';
 import { Gaps } from './Gaps';
 import { NooraNumbers } from './NooraNumbers';

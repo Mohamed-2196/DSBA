@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, DocThumb, EmptyState, Icon, Panel, QueryError, glyph } from '../../ui';
-import { libraryDocTone, libraryItemPath, libraryItemTitle, libraryKindLabel, useRecentFiles } from '../library/public';
+import { LibraryCover, libraryItemPath, libraryItemTitle, libraryKindLabel, useRecentFiles } from '../library/public';
 import { modulesFor, usePapers } from '../papers/public';
 import { HomeList, HomeListLoading, type HomeListRow } from './HomeList';
 import { newFileRows } from './fileRows';
@@ -35,7 +35,7 @@ export function NewFiles({ year, n = 5 }: { year: CohortYear; n?: number }) {
       }
       return {
         id: r.id,
-        icon: <DocThumb tone={libraryDocTone(r.item)} size="md" />,
+        icon: <LibraryCover item={r.item} size="md" />,
         title: libraryItemTitle(r.item, null), // the code shows beside it
         to: libraryItemPath(r.item),
         code: codeOf(r.item.moduleId),

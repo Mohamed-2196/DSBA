@@ -1,4 +1,4 @@
-/* Manage → Guides: the preview drawer's note, and the install link's line. */
+/* Manage → Guides: the preview drawer's note. */
 .gedit-preview .ui-page-header {
   margin-top: 0;
 }
@@ -10,7 +10,4 @@
 .gedit-note p {
   margin: 0;
   max-width: var(--measure);
-}
-.gedit-install {
-  align-self: center;
 }

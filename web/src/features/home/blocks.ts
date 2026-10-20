@@ -21,12 +21,6 @@ export interface BlockInfo {
 }
 
 export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
-  start_here: {
-    title: 'Start here',
-    description: 'Year 1’s checklist in the first weeks.',
-    features: [],
-    span: 'wide',
-  },
   results_day: {
     title: 'Results day',
     description: 'What to do in the two weeks after results.',

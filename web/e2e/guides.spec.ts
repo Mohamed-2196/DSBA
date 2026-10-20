@@ -1,17 +1,7 @@
-// The guides and the installed app: Start here and Results day keep their ticks in the browser, the projected class
+// The guides and the installed app: Results day keeps its ticks in the browser, the projected class
 // reads the calculator's marks without sending them, the electives guide compares the electives from Career
 // Navigator's data, and the app manifest is served.
 import { expect, test } from './fixtures';
-
-test('Start here ticks a step and keeps it after a reload', async ({ guest }) => {
-  await guest.goto('/start-here');
-  await expect(guest.getByRole('heading', { level: 1, name: 'Start here' })).toBeVisible();
-  const step = guest.getByRole('checkbox', { name: 'Get your University of London login' });
-  await step.check();
-  await expect(guest.getByText(/^1 of \d+ done$/)).toBeVisible();
-  await guest.reload();
-  await expect(guest.getByRole('checkbox', { name: 'Get your University of London login' })).toBeChecked();
-});
 
 test('the electives guide lists the electives with the roles they lead to', async ({ guest }) => {
   await guest.goto('/career');

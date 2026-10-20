@@ -24,7 +24,7 @@ import {
   moduleArtSrc,
 } from '../../ui';
 import { useStartsThreads } from '../forum/public';
-import { useGuides } from '../start/public';
+import { useGuides } from '../guides/public';
 import { useCareer } from './api';
 import { askLink } from './lib/links';
 import { electives, type Elective } from './lib/electives';

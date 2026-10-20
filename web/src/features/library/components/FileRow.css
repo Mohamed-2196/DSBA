@@ -12,12 +12,18 @@
   display: flex;
   min-width: 0;
 }
+/* The file's first page on the left, its words beside it, the tools on the right; a paper's buttons run under the
+   words and the tools, so they keep to one line on phones. */
 .lib-ix {
   position: relative;
   flex: 1 1 auto;
-  display: flex;
-  align-items: flex-start;
-  gap: var(--sp-12);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'doc main side'
+    'doc actions actions';
+  align-items: start;
+  column-gap: var(--sp-12);
   min-width: 0;
   padding: 14px var(--sp-8) 14px 14px;
   border: 1.5px solid var(--line);
@@ -36,10 +42,11 @@
   outline-offset: 2px;
 }
 .lib-ix__doc {
+  grid-area: doc;
   margin-top: 2px;
 }
 .lib-ix__main {
-  flex: 1 1 auto;
+  grid-area: main;
   min-width: 0;
   display: grid;
   gap: 3px;
@@ -103,6 +110,7 @@
   z-index: 1;
 }
 .lib-ix__actions {
+  grid-area: actions;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -110,15 +118,16 @@
   margin-top: var(--sp-8);
 }
 .lib-ix__side {
-  flex: 0 0 auto;
+  grid-area: side;
   display: flex;
   align-items: center;
   margin: -4px 0;
 }
-.lib-ix__original {
+.lib-ix__original,
+.lib-ix__preview {
   color: var(--ink-2);
 }
-/* Phones: the star alone; the file downloads from its page. */
+/* Phones: Preview and the star; the file downloads from its page. */
 @media (max-width: 699px) {
   .lib-ix__original {
     display: none;

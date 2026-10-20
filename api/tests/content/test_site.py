@@ -163,7 +163,7 @@ def test_of_two_first_saves_the_second_is_refused(db: Session, admin: User, monk
         (lambda d: d.update(launchYear=1999), "data.launchYear"),
         (lambda d: d.update(tagline=" "), "data.tagline"),
         (lambda d: d["homeBlocks"].append("modules"), "data"),
-        (lambda d: d["homeBlocks"].append("weather"), "data.homeBlocks.11"),
+        (lambda d: d["homeBlocks"].append("weather"), "data.homeBlocks.10"),
         (lambda d: d.update(homeBlocks=[]), "data.homeBlocks"),
         (lambda d: d["tour"][0].update(art="rocket"), "data.tour.0.art"),
         (lambda d: d.update(tour=[]), "data.tour"),
@@ -237,7 +237,7 @@ def test_holders_of_guides_edit_save_them(
     make_role("guide-writers", Box.guides_edit)
     writer = make_user(name="Huda Guides", roles=("student", "guide-writers"))
     data = seed("guides")
-    data["startHere"]["steps"][0]["title"] = "Get your UoL login"
+    data["resultsDay"]["steps"][0]["title"] = "Read your results"
     data["electives"]["title"] = "Choosing your electives"
     r = client_for(writer).put(GUIDES, json={"version": 0, "data": data})
     assert r.status_code == 200, r.text
@@ -246,7 +246,7 @@ def test_holders_of_guides_edit_save_them(
     entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "guides.update"))
     assert entry is not None
     assert (entry.target_id, entry.data["title"]) == ("guides", "The guides")
-    assert entry.data["parts"] == ["startHere", "electives"]
+    assert entry.data["parts"] == ["resultsDay", "electives"]
     assert entry.data["before"]["electives"] == {"title": "Choosing your Year 3 electives"}
     assert entry.data["after"]["electives"] == {"title": "Choosing your electives"}
 
@@ -259,12 +259,12 @@ def test_holders_of_guides_edit_save_them(
 @pytest.mark.parametrize(
     ("change", "field"),
     [
-        (lambda g: g["startHere"]["steps"].append(dict(g["startHere"]["steps"][0])), "data.startHere"),
-        (lambda g: g["startHere"]["steps"][0].update(id="Get Login"), "data.startHere.steps.0.id"),
-        (lambda g: g["startHere"].update(steps=[]), "data.startHere.steps"),
+        (lambda g: g["resultsDay"]["steps"].append(dict(g["resultsDay"]["steps"][0])), "data.resultsDay"),
+        (lambda g: g["resultsDay"]["steps"][0].update(id="Read Results"), "data.resultsDay.steps.0.id"),
+        (lambda g: g["resultsDay"].update(steps=[]), "data.resultsDay.steps"),
         (
-            lambda g: g["startHere"]["steps"][2]["links"][0].update(to="https://example.com"),
-            "data.startHere.steps.2.links.0.page.to",
+            lambda g: g["resultsDay"]["steps"][1]["links"][0].update(to="https://example.com"),
+            "data.resultsDay.steps.1.links.0.page.to",
         ),
         (
             lambda g: g["resultsDay"]["steps"][0]["links"].append(
@@ -273,16 +273,17 @@ def test_holders_of_guides_edit_save_them(
             "data.resultsDay.steps.0.links.2.web.href",
         ),
         (
-            lambda g: g["startHere"]["steps"][0]["links"].append(
+            lambda g: g["resultsDay"]["steps"][3]["links"].append(
                 {"kind": "web", "href": "https://docs.google.com/document/d/1abc", "label": "Notes"}
             ),
-            "data.startHere.steps.0.links.1.web.href",
+            "data.resultsDay.steps.3.links.1.web.href",
         ),
         (
             lambda g: g["resultsDay"]["steps"][0]["links"].append({"kind": "site", "link": "vle", "label": "The VLE"}),
             "data.resultsDay.steps.0.links.2.site.link",
         ),
-        (lambda g: g["startHere"]["termStart"].update(month=13), "data.startHere.termStart.month"),
+        (lambda g: g["resultsDay"].update(weeks=13), "data.resultsDay.weeks"),
+        (lambda g: g["resultsDay"]["steps"][0]["links"].append({"kind": "install"}), "data.resultsDay.steps.0.links.2"),
     ],
 )
 def test_the_guides_are_checked(

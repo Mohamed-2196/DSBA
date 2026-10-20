@@ -33,7 +33,7 @@ import { DailyQuestion, useTimeMe } from '../library/public';
 import { ContinueLearning, useTracking } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
 import { usePapers } from '../papers/public';
-import { ResultsDayCard, StartHereCard } from '../start/public';
+import { ResultsDayCard } from '../guides/public';
 import { DailyCard } from '../daily/public';
 import { useSite } from '../site/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
@@ -139,13 +139,6 @@ export default function HomePage() {
 
   const render = (b: HomeBlock): ReactNode => {
     switch (b) {
-      case 'start_here':
-        // The guides come with Home's answer only while a card is due.
-        return home.data?.guides ? (
-          <Notice key={b} id={b}>
-            <StartHereCard year={activeYear} />
-          </Notice>
-        ) : null;
       case 'results_day':
         return home.data?.resultsDay ? (
           <Notice key={b} id={b}>

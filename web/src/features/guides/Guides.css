@@ -1,29 +1,29 @@
-/* Start here (start-): Home's card and the /start-here page share the checklist. */
+/* The guides (guide-): Home's Results day card and the /results-day page share the checklist. */
 
 /* ── The checklist ───────────────────────────────────────────────────────────────────────────── */
-.start-steps {
+.guide-steps {
   list-style: none;
-  container: start-steps / inline-size;
+  container: guide-steps / inline-size;
 }
-.start-step {
+.guide-step {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: var(--sp-12) 0;
   border-top: 1.5px solid var(--line);
 }
-.start-step:first-child {
+.guide-step:first-child {
   border-top: 0;
 }
 
-.start-check {
+.guide-check {
   display: flex;
   align-items: flex-start;
   gap: var(--sp-12);
   min-width: 0;
   cursor: pointer;
 }
-.start-check__box {
+.guide-check__box {
   appearance: none;
   flex: none;
   display: grid;
@@ -39,7 +39,7 @@
     background-color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease);
 }
-.start-check__box::after {
+.guide-check__box::after {
   content: '';
   width: 12px;
   height: 12px;
@@ -48,60 +48,60 @@
   transform: scale(0);
   transition: transform var(--dur-fast) var(--ease);
 }
-.start-check__box:checked {
+.guide-check__box:checked {
   background: var(--accent);
   border-color: var(--accent);
 }
-.start-check__box:checked::after {
+.guide-check__box:checked::after {
   transform: scale(1);
 }
-.start-check:hover .start-check__box:not(:checked) {
+.guide-check:hover .guide-check__box:not(:checked) {
   border-color: var(--ink);
 }
-.start-check__title {
+.guide-check__title {
   max-width: var(--measure);
   color: var(--ink);
   font-size: var(--fs-16);
   font-weight: var(--fw-semibold);
   line-height: 1.35;
 }
-.start-step.is-done .start-check__title {
+.guide-step.is-done .guide-check__title {
   color: var(--ink-2);
   text-decoration: line-through;
   text-decoration-color: var(--ink-3);
 }
 
 /* Hint and links sit under the title, lined up with it. */
-.start-step__more {
+.guide-step__more {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
   margin-left: calc(22px + var(--sp-12));
   min-width: 0;
 }
-.start-step__more:empty {
+.guide-step__more:empty {
   display: none;
 }
-.start-step__hint {
+.guide-step__hint {
   max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.5;
 }
-.start-step__links {
+.guide-step__links {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-4) var(--sp-16);
 }
-.start-step__note {
+.guide-step__note {
   max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.45;
 }
 
-.start-link {
+.guide-link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -115,148 +115,105 @@
   text-decoration: none;
   cursor: pointer;
 }
-.start-link:hover {
+.guide-link:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.start-link svg {
+.guide-link svg {
   flex: none;
   font-size: 12px;
 }
 
 @media (pointer: coarse) {
-  .start-check {
+  .guide-check {
     min-height: 44px;
     align-items: center;
   }
-  .start-check__box {
+  .guide-check__box {
     margin: 0;
   }
-  .start-link {
+  .guide-link {
     min-height: 44px;
   }
 }
 
 /* ── Home's card ─────────────────────────────────────────────────────────────────────────────── */
-.start-card {
+.guide-card {
   padding: var(--sp-24);
-  border-color: color-mix(in srgb, var(--y1) 40%, var(--line));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
 }
-.start-card__head {
+.guide-card__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--sp-12);
 }
-.start-card__titles {
+.guide-card__titles {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-8) var(--sp-12);
   min-width: 0;
 }
-.start-card__title {
+.guide-card__title {
   font-size: var(--fs-22);
   font-weight: var(--fw-heavy);
   letter-spacing: var(--tracking-head);
   line-height: var(--lh-heading);
 }
-.start-card__intro {
+.guide-card__intro {
   max-width: var(--measure);
   margin: var(--sp-4) 0 var(--sp-8);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.5;
 }
-.start-card__foot {
+.guide-card__foot {
   margin-top: var(--sp-8);
   margin-left: -10px;
 }
 /* Wide enough: two columns of steps. */
-@container start-steps (min-width: 720px) {
-  .start-steps--card {
+@container guide-steps (min-width: 720px) {
+  .guide-steps--card {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: var(--sp-32);
   }
-  .start-steps--card .start-step:nth-child(2) {
+  .guide-steps--card .guide-step:nth-child(2) {
     border-top: 0;
   }
 }
 @media (max-width: 699px) {
-  .start-card {
+  .guide-card {
     padding: var(--sp-16);
   }
 }
 
 /* ── The page ────────────────────────────────────────────────────────────────────────────────── */
-.start-page__panel {
+.guide-page__panel {
   padding: var(--sp-8) var(--sp-24);
 }
-.start-page__panel .start-step {
+.guide-page__panel .guide-step {
   padding: var(--sp-16) 0;
 }
-.start-page__done {
-  margin-top: var(--sp-12);
-  color: var(--success);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-}
 @media (max-width: 699px) {
-  .start-page__panel {
+  .guide-page__panel {
     padding: var(--sp-4) var(--sp-16);
   }
 }
 
-.start-places {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: var(--sp-16);
-}
-.start-place {
-  padding: var(--sp-16) var(--sp-24);
-  border: 1.5px solid var(--line);
-  border-radius: var(--r-card);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-}
-.start-place__name {
-  font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
-}
-.start-place__name .start-link {
-  font-size: inherit;
-  font-weight: inherit;
-}
-.start-place__whose {
-  margin-top: 2px;
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
-}
-.start-place__what {
-  margin-top: var(--sp-8);
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-  line-height: 1.5;
-}
-
 /* ── Results day ─────────────────────────────────────────────────────────────────────────────── */
-.start-card--results {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
-}
-.start-page__panel--roomy {
+.guide-page__panel--roomy {
   padding: var(--sp-16) var(--sp-24);
 }
-.start-sources {
+.guide-sources {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: var(--sp-8);
 }
 @media (max-width: 699px) {
-  .start-page__panel--roomy {
+  .guide-page__panel--roomy {
     padding: var(--sp-16);
   }
 }

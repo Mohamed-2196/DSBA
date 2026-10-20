@@ -194,7 +194,8 @@ def exam_meta_from_name(name: str) -> ExamMeta:
     year: the main sitting is in May and June, and the resits' files say so."""
     text = _clean(name)
     if _NOT_A_SITTING.search(text):
-        return ExamMeta(None, None, False)
+        # No sitting, but a file of worked solutions still says so ('ST2195_Prelim_Exam_2023_WithSolutions.pdf').
+        return ExamMeta(None, None, False, solutions=bool(_SOLUTIONS.search(text)))
     years = _years(text)
     year = years.pop() if len(years) == 1 else None
     zone = _zone(text)

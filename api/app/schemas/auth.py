@@ -58,7 +58,6 @@ class OtpVerifyRequest(ApiModel):
 
 # Home's blocks, in the order a student first sees them. Each one renders only when it has something to show.
 HomeBlock = Literal[
-    "start_here",  # Start here: Year 1's checklist in the first weeks
     "results_day",  # Results day: two weeks from each results date
     "coming_up",  # the next exam and this week's dates
     "carry_on",  # pick up where you left off: the papers, notes and lessons last opened in this browser, the timer

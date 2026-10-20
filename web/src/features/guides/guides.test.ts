@@ -1,20 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { doneSteps, nextDated, startWindow, toggleStep } from './startHere';
-
-const TERM = { month: 9, day: 14 };
-
-describe('startWindow', () => {
-  it('opens for six weeks from the first day of term', () => {
-    expect(startWindow('2026-09-14', TERM, 6)).toEqual({ open: true, from: '2026-09-14', to: '2026-10-25' });
-    expect(startWindow('2026-10-25', TERM, 6).open).toBe(true);
-    expect(startWindow('2026-10-26', TERM, 6).open).toBe(false);
-  });
-
-  it('counts the days before term as last year’s', () => {
-    expect(startWindow('2026-09-13', TERM, 6)).toEqual({ open: false, from: '2025-09-14', to: '2025-10-25' });
-    expect(startWindow('2027-03-01', TERM, 6).from).toBe('2026-09-14');
-  });
-});
+import { doneSteps, nextDated, toggleStep } from './guides';
 
 describe('nextDated', () => {
   const events = [

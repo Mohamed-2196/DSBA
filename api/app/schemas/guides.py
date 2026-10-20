@@ -1,10 +1,9 @@
-"""The guides: Start here (Year 1's first weeks), Results day (what results mean and what to do next) and Choosing
-your Year 3 electives. One document that holders of guides.edit save as a whole (PUT /guides); its starting content is
-app/seed/data/guides.json.
+"""The guides: Results day (what results mean and what to do next) and Choosing your Year 3 electives. One document
+that holders of guides.edit save as a whole (PUT /guides); its starting content is app/seed/data/guides.json.
 
 A step's links say where its buttons go: another site (https://), one of the hub's saved links (Site settings), a page
-of the hub, the next calendar date whose title contains some words, or the button that installs the app. A step's
-`id` is how each browser keeps its tick, so it stays the same when the step is reworded."""
+of the hub, or the next calendar date whose title contains some words. A step's `id` is how each browser keeps its
+tick, so it stays the same when the step is reworded."""
 
 from __future__ import annotations
 
@@ -57,13 +56,7 @@ class DateLink(ApiModel):
     label: Label
 
 
-class InstallLink(ApiModel):
-    """ "Install the app", or how to add it to an iPhone's home screen."""
-
-    kind: Literal["install"]
-
-
-GuideLink = Annotated[WebLink | SavedLink | PageLink | DateLink | InstallLink, Field(discriminator="kind")]
+GuideLink = Annotated[WebLink | SavedLink | PageLink | DateLink, Field(discriminator="kind")]
 
 
 class GuideStep(ApiModel):
@@ -73,45 +66,12 @@ class GuideStep(ApiModel):
     links: list[GuideLink] = Field(default=[], max_length=4)
 
 
-class GuidePlace(ApiModel):
-    """One of the sites Start here tells apart."""
-
-    name: Label
-    whose: Label  # whose site it is: 'BIBF'
-    what: Sentence
-    link: SiteLinkKey | None = None
-
-
-class TermStart(ApiModel):
-    month: int = Field(ge=1, le=12)
-    day: int = Field(ge=1, le=31)
-
-
 def _unique_steps(steps: list[GuideStep]) -> None:
     seen: set[str] = set()
     for s in steps:
         if s.id in seen:
             raise PydanticCustomError("duplicate", f"Two steps have the same id “{s.id}”.")
         seen.add(s.id)
-
-
-class StartHere(ApiModel):
-    """Year 1's first weeks: Home's card for Year 1 from the first day of term for `weeks` weeks, and /start-here."""
-
-    title: Label
-    intro: Sentence
-    term_start: TermStart  # the first day of the academic year
-    weeks: int = Field(ge=1, le=20)
-    steps: list[GuideStep] = Field(min_length=1, max_length=20)
-    done: Sentence  # once every step is ticked
-    places_title: Label
-    places_intro: Sentence
-    places: list[GuidePlace] = Field(default=[], max_length=6)
-
-    @model_validator(mode="after")
-    def _ids(self) -> StartHere:
-        _unique_steps(self.steps)
-        return self
 
 
 class ResultsDay(ApiModel):
@@ -141,7 +101,6 @@ class Electives(ApiModel):
 
 
 class GuidesDoc(ApiModel):
-    start_here: StartHere
     results_day: ResultsDay
     electives: Electives
 

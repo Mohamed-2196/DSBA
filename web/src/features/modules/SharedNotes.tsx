@@ -32,16 +32,16 @@ export function SharedNotes({ moduleId }: { moduleId: string }) {
         Shared from students’ notebooks
         <span className="mod-shared__count">{total}</span>
       </h3>
-      <ul className="mod-rows" role="list">
+      <ul className="mod-lines" role="list">
         {items.map((n) => (
           <li key={n.id}>
-            <Link to={sharedNotePath(n.id)} className="mod-row mod-row--doc">
+            <Link to={sharedNotePath(n.id)} className="mod-line mod-line--doc">
               <DocThumb tone="note" size="md" />
-              <span className="mod-row__text">
-                <span className="mod-row__title" dir="auto">
+              <span className="mod-line__text">
+                <span className="mod-line__title" dir="auto">
                   {n.title || 'Untitled note'}
                 </span>
-                <span className="mod-row__meta">
+                <span className="mod-line__meta">
                   {sharedByLine(n)}, {timeAgo(n.sharedAt)}
                 </span>
               </span>

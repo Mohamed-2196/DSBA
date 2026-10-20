@@ -92,7 +92,6 @@ describe('offeredBlocks', () => {
   });
   it('starts with studying first, and leaves the Daily games to be turned on (ST-50)', () => {
     expect(STUDENT_DEFAULT).toEqual([
-      'start_here',
       'results_day',
       'carry_on', // before Up next's countdown, so a phone reaches it (ST-81)
       'coming_up',

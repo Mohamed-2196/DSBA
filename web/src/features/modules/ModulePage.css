@@ -324,12 +324,12 @@ html:has(.mod-tabs) {
 }
 
 /* A block's rows: a title, a line under it, and on the right a count or a badge. */
-.mod-rows {
+.mod-lines {
   display: grid;
   gap: 2px;
   margin: 0 -8px;
 }
-.mod-row {
+.mod-line {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -343,21 +343,21 @@ html:has(.mod-tabs) {
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease);
 }
-a.mod-row:hover,
-button.mod-row:hover {
+a.mod-line:hover,
+button.mod-line:hover {
   background: var(--surface-2);
 }
-a.mod-row:hover .mod-row__title,
-button.mod-row:hover .mod-row__title {
+a.mod-line:hover .mod-line__title,
+button.mod-line:hover .mod-line__title {
   text-decoration: underline;
   text-underline-offset: 0.18em;
 }
-.mod-row__text {
+.mod-line__text {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
-.mod-row__title {
+.mod-line__title {
   min-width: 0;
   display: -webkit-box;
   overflow: hidden;
@@ -368,21 +368,21 @@ button.mod-row:hover .mod-row__title {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
-.mod-row__meta {
+.mod-line__meta {
   color: var(--ink-2);
   font-size: var(--fs-12);
   line-height: 1.4;
 }
-.mod-row__title {
+.mod-line__title {
   font-size: var(--fs-15);
   font-weight: var(--fw-bold);
 }
 /* A row led by its drawn document (your notes, students' notes). */
-.mod-row--doc {
+.mod-line--doc {
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--sp-12);
 }
-.mod-row__answered {
+.mod-line__answered {
   display: inline-flex;
   align-items: center;
   gap: 2px;

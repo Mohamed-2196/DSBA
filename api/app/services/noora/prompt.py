@@ -75,7 +75,6 @@ PAGES: tuple[tuple[str, str, Feature | None], ...] = (
     ("/board", "Boards: the student's own boards of cards", Feature.board),
     ("/requests", "Ask the student reps for something (a past paper, a fix, an event)", Feature.requests),
     ("/daily", "Daily: a few short puzzles, the same for everyone each day", Feature.daily),
-    ("/start-here", "Start here: the first steps for a new student", None),
     ("/results-day", "Results day: what to do when the results come out", None),
     ("/about", "About DSBA Hub", None),
 )
@@ -87,7 +86,7 @@ CALENDAR_DATES = 8  # the next dates she is told about
 ROUTE_PATH = re.compile(
     r"/(?:about|account|admin/access|board|calendar|career(?:/electives)?|daily(?:/[\w-]+){0,2}|forum(?:/[\w-]+)?"
     r"|grades|library(?:/[\w-]+)?|manage|modules(?:/[\w-]+(?:/(?:lessons|practise)/[\w-]+)?)?|newsletter(?:/[\w-]+(?:/edit)?)?"
-    r"|noora|notes(?:/shared)?(?:/[\w-]+)?|requests(?:/[\w-]+)?|results-day|start-here|styleguide)?/?",
+    r"|noora|notes(?:/shared)?(?:/[\w-]+)?|requests(?:/[\w-]+)?|results-day|styleguide)?/?",
     re.ASCII,
 )
 ROUTE_QUERY = re.compile(r"[\w=&.-]{1,100}", re.ASCII)

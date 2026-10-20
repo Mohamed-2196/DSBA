@@ -539,7 +539,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.lib-card__preview {
+  flex: none;
+  margin: -2px -4px -6px auto;
+  color: var(--ink-2);
+}
 .lib-card__star {
+  flex: none;
   margin: -2px -6px -6px 0;
 } /* clear of the card link above: the two never overlap */
 

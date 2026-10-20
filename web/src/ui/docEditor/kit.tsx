@@ -346,7 +346,7 @@ export function ListEditor<T extends { id: string }>({
   );
 }
 
-/** A short list whose rows are edited in place (a step's links, Start here's places): move and remove buttons on
+/** A short list whose rows are edited in place (a step's links, search's suggestions): move and remove buttons on
  *  each row, and a button to add one. */
 export function RowsEditor<T>({
   items,

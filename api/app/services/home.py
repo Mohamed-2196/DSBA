@@ -1,8 +1,8 @@
-"""Home's first screen in one answer: the site settings, the papers' choices, a guide while its card is due, the
-student's dates and next exam, the day's past question for it, and the desk shelf's numbers. Each part follows the
-same rules as the endpoint it stands in for (switches, hidden modules, years); what is personal is the asker's own.
+"""Home's first screen in one answer: the site settings, the papers' choices, the guides while Results day's card is
+due, the student's dates and next exam, the day's past question for it, and the desk shelf's numbers. Each part follows
+the same rules as the endpoint it stands in for (switches, hidden modules, years); what is personal is the asker's own.
 
-The web app works some of them out too, for its own pages (getExamSession, startWindow and papersFor in
+The web app works some of them out too, for its own pages (getExamSession and papersFor in
 web/src/features): keep the two in step."""
 
 from __future__ import annotations
@@ -46,12 +46,11 @@ def home(db: Session, user: User | None, year: int, picks: Collection[str]) -> H
     dates = _dates(db, user, year, picks, catalogue, today) if Feature.calendar in on else []
     exam = next_exam(dates, today)
     guides = site.guides(db)
-    start_here = year == 1 and start_open(today, guides)
     results = results_event(db, today, guides) if Feature.calendar in on else None
     return HomeOut(
         site=site.site(db),
         choices=grades.rules(db).choices(),
-        guides=guides if start_here or results else None,
+        guides=guides if results else None,
         results_day=results,
         dates=dates,
         next_exam=exam,
@@ -106,14 +105,6 @@ def _daily_question(
     if module is None or module.hidden:
         return None
     return past_questions.daily(db, module.id, user, today)
-
-
-def start_open(today: dt.date, guides: GuidesDoc) -> bool:
-    """Whether today is in Start here's first weeks of the academic year (the web app's startWindow)."""
-    start = guides.start_here.term_start
-    this_years = dt.date(today.year, start.month, start.day)
-    since = this_years if today >= this_years else dt.date(today.year - 1, start.month, start.day)
-    return today <= since + timedelta(days=guides.start_here.weeks * 7 - 1)
 
 
 def results_event(db: Session, today: dt.date, guides: GuidesDoc) -> str | None:

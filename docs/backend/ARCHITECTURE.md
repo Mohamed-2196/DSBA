@@ -342,7 +342,7 @@ the lists are `app/core/access.py` (`BOXES`, `FEATURES`), which the screen shows
 | `calendar.manage` | add, edit and delete programme dates | Rep, Content manager |
 | `career.edit` | Manage → Career Navigator | Content manager |
 | `content.edit` | modules, chapters and lessons; suggested videos; Manage → Daily puzzles | Content manager |
-| `guides.edit` | Manage → Guides: Start here, Results day, Choosing your electives | Rep, Content manager |
+| `guides.edit` | Manage → Guides: Results day, Choosing your electives | Rep, Content manager |
 | `requests.manage` | answer and remove requests, and their reports | Rep |
 | `summary.share` | a year's Sunday summary to paste into its group; its words and the time it goes out | Rep |
 | `stats.view` | the hub's numbers | Rep |

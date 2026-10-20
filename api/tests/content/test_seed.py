@@ -23,6 +23,8 @@ from app.models import (
     DailyTheme,
     DriveFolder,
     IssueStatus,
+    ItemSource,
+    ItemStatus,
     Lesson,
     LibraryItem,
     Module,
@@ -35,6 +37,9 @@ from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCover, IssueSection
 from app.seed.loader import (
     BROKEN_CHAPTERS,
+    REFILED,
+    RETIRED_FILES,
+    RETIRED_FOLDERS,
     daily_guess_words,
     load_all,
     load_daily,
@@ -151,6 +156,9 @@ def test_seed_loads_everything_once(db: Session) -> None:
         "chapter-outlines": outlines,
         "career": 1,
         "drive-folders": folders,
+        "retired-folders": 0,
+        "library-files": 0,
+        "home-blocks": 0,
         "daily": daily,
         "paper-questions": 0,  # the library is empty until the import
         "report-answers": 0,  # and has no examiners' reports yet
@@ -179,6 +187,9 @@ def test_seed_loads_everything_once(db: Session) -> None:
         "newsletter": 0,
         "career": 0,
         "drive-folders": 0,
+        "retired-folders": 0,
+        "library-files": 0,
+        "home-blocks": 0,
         "daily": 0,
         "paper-questions": 0,
         "report-answers": 0,
@@ -287,6 +298,9 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
         "newsletter": 0,
         "career": 0,
         "drive-folders": 0,
+        "retired-folders": 0,
+        "library-files": 0,
+        "home-blocks": 0,
         "daily": 0,
         "paper-questions": 0,
         "report-answers": 0,
@@ -387,3 +401,101 @@ def test_the_seeds_chapter_words_reach_a_catalogue_loaded_before_them(db: Sessio
     assert "mle" in point.keywords
     assert edited.keywords == ["estimators"]
     assert load_chapter_words(db) == 0
+
+
+def test_the_seed_removes_a_retired_folder_and_the_files_it_brought(db: Session, client_for: Clients) -> None:
+    """MT1186's topic workbooks: the folder is out of the seed files, and a database that has it loses it and its
+    files; files from other folders stay."""
+    assert not any((m["id"], f.url) in RETIRED_FOLDERS for m in read("modules") for f in module_folders(m))
+    first_load(db)
+    ((module_id, url),) = RETIRED_FOLDERS
+    retired = DriveFolder(module_id=module_id, kind="exercises", title="Exercises", url=url)
+    kept = db.scalar(select(DriveFolder).where(DriveFolder.module_id == module_id))
+    assert kept is not None
+    db.add(retired)
+    db.flush()
+
+    def imported(folder: DriveFolder, title: str) -> LibraryItem:
+        item = LibraryItem(
+            slug=f"f-{uuid.uuid4().hex[:8]}",
+            source=ItemSource.file,
+            kind=folder.kind,
+            title=title,
+            module_id=module_id,
+            storage_key=f"library/{uuid.uuid4()}/f.pdf",
+            file_name="f.pdf",
+            content_type="application/pdf",
+            size_bytes=8,
+            status=ItemStatus.published,
+            import_key=f"drive/{module_id}/{uuid.uuid4().hex}",
+            drive_folder_id=folder.id,
+        )
+        db.add(item)
+        return item
+
+    workbooks = [imported(retired, f"{n}. Topic - workbook") for n in (1, 2)]
+    other = imported(kept, "Course outline")
+    db.commit()
+    assert {i["title"] for i in client_for().get(f"{API}/library/items").json()["items"]} >= {"1. Topic - workbook"}
+
+    assert load_all(db, only="retired-folders") == {"retired-folders": 2}
+    db.commit()
+    db.expire_all()
+    assert [i.status for i in workbooks] == [ItemStatus.removed, ItemStatus.removed]
+    assert all(i.import_key for i in workbooks)  # the import never brings them back
+    assert other.status == ItemStatus.published
+    assert db.scalar(select(DriveFolder).where(DriveFolder.url == url)) is None
+    assert [i["title"] for i in client_for().get(f"{API}/library/items").json()["items"]] == ["Course outline"]
+    assert load_all(db, only="retired-folders") == {"retired-folders": 0}  # once
+
+
+def test_the_seed_takes_blocks_home_no_longer_has_out_of_saved_site_settings(db: Session) -> None:
+    first_load(db)
+    data = dict(read("site"))
+    data["homeBlocks"] = ["gone_block", *data["homeBlocks"]]
+    db.add(ContentDoc(key="site", data=data, version=3))
+    db.commit()
+    assert load_all(db, only="home-blocks") == {"home-blocks": 1}
+    db.commit()
+    row = db.get(ContentDoc, "site")
+    assert row is not None
+    db.refresh(row)
+    assert (row.data["homeBlocks"], row.version) == (read("site")["homeBlocks"], 4)
+    assert load_all(db, only="home-blocks") == {"home-blocks": 0}
+
+
+def test_the_seed_removes_a_duplicate_and_refiles_a_misfiled_paper(db: Session, client_for: Clients) -> None:
+    first_load(db)
+    module = db.scalars(select(Module)).first()
+    assert module is not None
+
+    def imported(key: str, title: str) -> LibraryItem:
+        item = LibraryItem(
+            slug=f"f-{uuid.uuid4().hex[:8]}",
+            source=ItemSource.file,
+            kind="past-paper",
+            title=title,
+            module_id=module.id,
+            storage_key=f"library/{uuid.uuid4()}/f.pdf",
+            file_name="f.pdf",
+            content_type="application/pdf",
+            size_bytes=8,
+            status=ItemStatus.published,
+            import_key=key,
+        )
+        db.add(item)
+        return item
+
+    (twice,) = RETIRED_FILES
+    (misfiled,) = REFILED
+    copy = imported(twice, "Exam paper, the second copy")
+    worked = imported(misfiled, "Prelim exam with solutions")
+    other = imported(f"drive/{module.id}/{uuid.uuid4().hex}", "Exam paper")
+    db.commit()
+
+    assert load_all(db, only="library-files") == {"library-files": 2}
+    db.commit()
+    db.expire_all()
+    assert (copy.status, worked.kind, worked.status) == (ItemStatus.removed, REFILED[misfiled], ItemStatus.published)
+    assert (other.kind, other.status) == ("past-paper", ItemStatus.published)
+    assert load_all(db, only="library-files") == {"library-files": 0}  # once; a moderator's later changes stay

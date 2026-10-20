@@ -137,7 +137,7 @@ BOXES: dict[Box, BoxInfo] = {
     ),
     Box.guides_edit: BoxInfo(
         "Guides",
-        "Edit the guides: Start here, Results day and Choosing your electives",
+        "Edit the guides: Results day and Choosing your electives",
         "Only people who edit the guides can do this.",
     ),
     Box.requests_manage: BoxInfo(

@@ -62,7 +62,7 @@ describe('Home’s one request', () => {
     expect(qc.getQueryData(PAPER_CHOICES_KEY)).toEqual(HOME.choices);
     expect(qc.getQueryData(GUIDES_KEY)).toBeUndefined();
 
-    const guides = { startHere: { title: 'Start here' } } as unknown as HomeOut['guides'];
+    const guides = { resultsDay: { title: 'Results day' } } as unknown as HomeOut['guides'];
     seedFromHome(qc, { ...HOME, guides });
     expect(qc.getQueryData(GUIDES_KEY)).toEqual(guides);
   });

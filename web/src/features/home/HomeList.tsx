@@ -1,5 +1,5 @@
-// The list inside Home's New files and Forum cards: a drawn document or an icon, a title, the module and what it is,
-// and when.
+// The list inside Home's New files and Forum cards: a file's first page, a drawn document or an icon, a title, the
+// module and what it is, and when.
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Panel, Skeleton, timeAgo } from '../../ui';

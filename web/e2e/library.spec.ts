@@ -283,3 +283,26 @@ test('two publishes at once tell the uploader once', async ({ rep, ali, run }) =
   expect(answers.map((a) => a.status)).toEqual([200, 200]);
   expect(await published()).toBe(1);
 });
+
+test('Quick Look: Space on a file shows its first pages, the arrows move on, Space closes', async ({ guest }) => {
+  await guest.goto('/library?year=all&type=past-paper&sort=new&view=list');
+  const links = guest.locator('main [data-ql-link]');
+  await expect(links.nth(1)).toBeVisible();
+  await links.first().focus();
+  await guest.keyboard.press('Space');
+  const look = guest.locator('[data-hub="quick-look"]');
+  await expect(look).toBeVisible();
+  await expect(guest).toHaveURL(/\/library\?/); // still on the list
+  const first = await look.locator('h2').textContent();
+  await expect(look.locator('.lib-ql__page').first()).toBeVisible();
+  await guest.keyboard.press('ArrowRight');
+  await expect(look.locator('h2')).not.toHaveText(first ?? '');
+  await guest.keyboard.press('Space');
+  await expect(look).toHaveCount(0);
+  await expect(links.nth(1)).toBeFocused(); // back on the file it moved to
+  // Space in a text field types a space
+  await guest.getByPlaceholder('Search files').click();
+  await guest.keyboard.type('May 2024');
+  await expect(guest.getByPlaceholder('Search files')).toHaveValue('May 2024');
+  await expect(look).toHaveCount(0);
+});
