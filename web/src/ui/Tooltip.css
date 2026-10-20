@@ -1,5 +1,8 @@
+/* The anchor never makes its trigger wider than the trigger's column (a long name ellipsizes inside it). */
 .ui-tooltip-anchor {
   display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
 }
 .ui-tooltip {
   position: fixed;

@@ -342,3 +342,8 @@ export function yourZoneFirst(zones: readonly SittingZone[], zone: SittingZone['
   if (!zone) return [...zones];
   return [...zones.filter((z) => z.zone === zone), ...zones.filter((z) => z.zone !== zone)];
 }
+
+/** A file's name in a sitting with no-break spaces, so 'Zone A report 2' wraps only as 'Zone A' / 'report 2'. */
+export function keepTogether(label: string): string {
+  return label.replace(/\bZone /g, 'Zone\u00a0').replace(/ (?=\(?\d+\)?$)/, '\u00a0');
+}

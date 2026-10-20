@@ -57,7 +57,7 @@
   color: var(--ink-2);
   font-size: var(--fs-12);
   line-height: 1.5;
-  text-wrap: balance;
+  text-wrap-style: balance;
 }
 .lib-upload__error {
   margin-top: calc(-1 * var(--sp-8));

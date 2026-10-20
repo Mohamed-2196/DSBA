@@ -29,6 +29,8 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-optical-sizing: auto;
+  /* A word longer than its line (a URL, a file name, a snake_case name a student typed) breaks rather than spills. */
+  overflow-wrap: break-word;
 }
 
 #root {
@@ -46,7 +48,9 @@ h6 {
   font-weight: var(--fw-bold);
   line-height: var(--lh-heading);
   letter-spacing: var(--tracking-head);
-  text-wrap: balance;
+  text-wrap-style: balance;
+  /* Titles are often typed by students: a long word may break anywhere, so it never sets the width of its box. */
+  overflow-wrap: anywhere;
   color: var(--ink);
 }
 /* Titles and headings in the display face; smaller heads stay in the interface face. */
@@ -87,7 +91,8 @@ pre {
   margin: 0;
 }
 p {
-  text-wrap: pretty;
+  text-wrap-style: pretty;
+  overflow-wrap: anywhere;
 }
 ul,
 ol {
@@ -289,7 +294,8 @@ b {
 }
 
 /* A row that scrolls sideways (tabs, chips, a toolbar): no scrollbar, and the cut edge fades while there is more
-   to see (ui/useScrollFade sets data-fade-start and data-fade-end), so it reads as a row to swipe, not a broken one.
+   to see, so it reads as a row to swipe, not a broken one. The fade follows ui/useScrollFade's data-fade-start and
+   data-fade-end, on this class or on any row that scrolls only at some sizes.
    Hidden labels inside it stay inside it. */
 .u-scroll-row {
   position: relative;
@@ -300,15 +306,15 @@ b {
 .u-scroll-row::-webkit-scrollbar {
   display: none;
 }
-.u-scroll-row[data-fade-end='true'] {
+[data-fade-end='true'] {
   -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
   mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
 }
-.u-scroll-row[data-fade-start='true'] {
+[data-fade-start='true'] {
   -webkit-mask-image: linear-gradient(to right, transparent, #000 32px);
   mask-image: linear-gradient(to right, transparent, #000 32px);
 }
-.u-scroll-row[data-fade-start='true'][data-fade-end='true'] {
+[data-fade-start='true'][data-fade-end='true'] {
   -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
   mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
 }

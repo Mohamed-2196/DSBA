@@ -14,7 +14,7 @@
   color: var(--ink-2);
   font-size: var(--fs-13);
   text-align: center;
-  text-wrap: balance;
+  text-wrap-style: balance;
 }
 .carry__item {
   display: flex;
