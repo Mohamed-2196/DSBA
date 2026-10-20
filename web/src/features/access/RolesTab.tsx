@@ -1,11 +1,10 @@
 // Every role, its badge, how many people hold it and its boxes: a grid with roles across and boxes down, or one card
 // per role on phones. Admins open a role to edit it.
 import { useState } from 'react';
-import { Check, Lock, Plus, Trash } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { BoxOut, RoleOut } from '../../api/types';
 import { BREAKPOINTS, useMediaQuery, useToast } from '../../state';
-import { Badge, Button, ConfirmDialog, Panel, QueryError, Skeleton, formatCount } from '../../ui';
+import { Badge, Button, ConfirmDialog, formatCount, glyph, Icon, Panel, QueryError, Skeleton } from '../../ui';
 import { useDeleteRole, useRoleCatalogue } from './api';
 import { groupBoxes } from './grid';
 import { RoleEditor } from './RoleEditor';
@@ -19,7 +18,7 @@ function RoleHeader({ role, onEdit, onDelete }: { role: RoleOut; onEdit: () => v
   return (
     <span className="access-role">
       <span className="access-role__name">
-        {role.locked ? <Lock aria-hidden="true" weight="bold" /> : null}
+        {role.locked ? <Icon glyph={glyph.lock} /> : null}
         {role.name}
         {role.locked ? <span className="visually-hidden"> (can’t be changed)</span> : null}
       </span>
@@ -30,7 +29,13 @@ function RoleHeader({ role, onEdit, onDelete }: { role: RoleOut; onEdit: () => v
           {role.locked ? 'See' : 'Edit'}
         </Button>
         {role.builtIn || role.locked ? null : (
-          <Button size="sm" variant="ghost" leadingIcon={Trash} onClick={onDelete} aria-label={`Delete ${role.name}`}>
+          <Button
+            size="sm"
+            variant="ghost"
+            leadingIcon={<Icon glyph={glyph.trash} />}
+            onClick={onDelete}
+            aria-label={`Delete ${role.name}`}
+          >
             Delete
           </Button>
         )}
@@ -76,7 +81,7 @@ export function RolesTab() {
   return (
     <>
       <div className="access-tools">
-        <Button variant="primary" leadingIcon={Plus} onClick={() => setEditing('new')}>
+        <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} onClick={() => setEditing('new')}>
           New role
         </Button>
       </div>
@@ -129,9 +134,7 @@ export function RolesTab() {
                     <th scope="row">{b.label}</th>
                     {roles.map((r) => (
                       <td key={r.id}>
-                        {holds(r, b.key) ? (
-                          <Check aria-hidden="true" weight="bold" className="access-grid__yes" />
-                        ) : null}
+                        {holds(r, b.key) ? <Icon glyph={glyph.check} className="access-grid__yes" /> : null}
                         <span className="visually-hidden">{holds(r, b.key) ? 'Yes' : 'No'}</span>
                       </td>
                     ))}

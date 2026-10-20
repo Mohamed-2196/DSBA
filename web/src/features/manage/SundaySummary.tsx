@@ -1,12 +1,11 @@
 // Manage's Sunday summary: this week's text for a year, to paste into its WhatsApp group, and how many people in
 // that year get it by email. The mail worker sends the emails on Sunday at the words' send time by itself; nothing is
 // sent here.
-import { Copy } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { formatLong, parseDay } from '../../lib/dates';
 import { copyText } from '../../lib/share';
 import { cohortLabel, useToast, YEARS, type CohortYear } from '../../state';
-import { Button, Panel, QueryError, SegmentedControl, Skeleton, formatCount } from '../../ui';
+import { Button, formatCount, glyph, Icon, Panel, QueryError, SegmentedControl, Skeleton } from '../../ui';
 import { useSummaryPreview, useSummaryWords } from './api';
 
 export function SundaySummary({ defaultYear }: { defaultYear: CohortYear | null }) {
@@ -60,7 +59,12 @@ export function SundaySummary({ defaultYear }: { defaultYear: CohortYear | null 
             {p.text}
           </pre>
           <div>
-            <Button variant="primary" leadingIcon={Copy} onClick={() => void copy()} disabled={p.empty}>
+            <Button
+              variant="primary"
+              leadingIcon={<Icon glyph={glyph.copy} />}
+              onClick={() => void copy()}
+              disabled={p.empty}
+            >
               Copy the text
             </Button>
           </div>

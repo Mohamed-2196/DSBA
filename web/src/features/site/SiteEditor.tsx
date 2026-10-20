@@ -1,7 +1,6 @@
 // Manage → Site settings (admins): the hub's own words and links, edited as one draft and saved together. A save
 // someone else made first (site_changed) offers to load theirs. Every save goes to the activity log with what changed,
 // before and after.
-import { X } from '@phosphor-icons/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../api/errors';
 import type { NoteCredit, SiteContributor, SiteDoc, SiteEditable, SiteLink } from '../../api/types';
@@ -10,7 +9,10 @@ import { useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Chip,
+  cx,
   Drawer,
+  glyph,
+  Icon,
   IconButton,
   Panel,
   QueryError,
@@ -19,7 +21,6 @@ import {
   TextArea,
   TextField,
   WholeNumberField,
-  cx,
 } from '../../ui';
 import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../ui/docEditor';
 import { MarkdownEditor } from '../forum/public';
@@ -555,7 +556,7 @@ function ModulesPick({
               <span className="site-pick__text">{labelOf.get(id) ?? id}</span>
               <IconButton
                 size="sm"
-                icon={X}
+                icon={<Icon glyph={glyph.close} />}
                 label={`Remove ${labelOf.get(id) ?? id}`}
                 onClick={() => onChange(value.filter((x) => x !== id))}
               />

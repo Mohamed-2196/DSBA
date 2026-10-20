@@ -3,12 +3,11 @@
 // them in Manage → Suggested videos. Shown while the feature is on for the viewer.
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, YoutubeLogo } from '@phosphor-icons/react';
 import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../../../api/errors';
 import type { ModuleDetail, SuggestionOut } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
-import { Badge, Button, Modal, Select, TextField, timeAgo } from '../../../ui';
+import { Badge, Button, glyph, Icon, Modal, Select, TextField, timeAgo } from '../../../ui';
 import { lessonHref } from '../lessons';
 import { useMySuggestions, useSuggestVideo } from './api';
 import { STATUS_LABEL } from './model';
@@ -181,7 +180,7 @@ export function SuggestVideo({ module: m }: { module: ModuleDetail }) {
   return (
     <section className="sugg-panel" aria-labelledby="sugg-panel-title" data-hub="suggest-video">
       <div className="sugg-panel__head">
-        <YoutubeLogo className="sugg-panel__icon" weight="duotone" aria-hidden="true" />
+        <Icon glyph={glyph.video} className="sugg-panel__icon" />
         <div className="sugg-panel__text">
           <h2 id="sugg-panel-title" className="sugg-panel__title">
             Know a good video for this module?
@@ -190,7 +189,7 @@ export function SuggestVideo({ module: m }: { module: ModuleDetail }) {
             Suggest it for a chapter. A content manager checks every suggestion before it becomes a lesson.
           </p>
         </div>
-        <Button leadingIcon={Plus} onClick={start} className="sugg-panel__action">
+        <Button leadingIcon={<Icon glyph={glyph.plus} />} onClick={start} className="sugg-panel__action">
           Suggest a video
         </Button>
       </div>

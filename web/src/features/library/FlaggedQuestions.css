@@ -22,7 +22,7 @@
   justify-content: space-between;
   gap: var(--sp-8) var(--sp-16);
   padding: var(--sp-12) var(--sp-16);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
 }
 .lib-flagged__row:last-child {
   border-bottom: 0;

@@ -9,9 +9,10 @@
   display: grid;
   gap: 2px;
   padding: var(--sp-12) var(--sp-16);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .manage-number dt {
   color: var(--ink-2);
@@ -21,10 +22,11 @@
 .manage-number dd {
   margin: 0;
   color: var(--ink);
+  font-family: var(--font-display);
   font-size: var(--fs-22);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-display);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-head);
   line-height: 1.2;
 }
 .manage-stack {
@@ -37,8 +39,10 @@
 }
 .manage-noora__title {
   margin: 0;
-  font-size: var(--fs-16);
-  font-weight: var(--fw-semibold);
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
 }
 .manage-noora__note {
   max-width: var(--measure);
@@ -74,14 +78,14 @@
   font-size: var(--fs-14);
 }
 .manage-storage__meter {
-  height: 8px;
+  height: 10px;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: var(--r-pill);
   background: var(--surface-2);
 }
 .manage-storage__fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: var(--r-pill);
   background: var(--accent);
 }
 .manage-uploaders-grid {
@@ -106,9 +110,10 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .manage-uploaders__row {
   display: flex;
@@ -119,7 +124,7 @@
   font-size: var(--fs-14);
 }
 .manage-uploaders__row + .manage-uploaders__row {
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .manage-uploaders__name {
   min-width: 0;
@@ -159,9 +164,9 @@
   width: 100%;
   max-width: var(--measure);
   margin: 0;
-  padding: var(--sp-12);
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
+  padding: var(--sp-12) var(--sp-16);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-card);
   background: var(--surface-2);
   color: var(--ink);
   font-size: var(--fs-14);
@@ -199,16 +204,21 @@
   align-items: center;
   gap: var(--sp-8);
   margin: 0;
-  font-size: var(--fs-16);
-  font-weight: var(--fw-semibold);
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
 }
 .gaps-list__count {
   min-width: 1.5rem;
-  padding: 0 var(--sp-8);
-  border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--ink-2);
+  padding: 1px var(--sp-8);
+  border-radius: var(--r-pill);
+  background: var(--sec-tools-pill);
+  color: var(--sec-tools-text);
+  font-family: var(--font-ui);
   font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0;
   text-align: center;
 }
 .gaps-list__note {
@@ -222,10 +232,10 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .gaps-rows > li {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
 }
 .gaps-row {
   display: grid;
@@ -259,7 +269,10 @@
   font-size: var(--fs-14);
 }
 .gaps-none svg {
+  flex: none;
+  font-size: 20px;
   color: var(--success);
+  --icon-tint: var(--sec-modules-tint);
 }
 @media (max-width: 599px) {
   .gaps-row {
@@ -302,26 +315,30 @@
 }
 .manage-nav__head {
   margin: 0 0 var(--sp-4);
-  padding: 0 10px;
-  color: var(--ink-2);
+  padding: 0 12px;
+  color: var(--ink-3);
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.1em;
+  line-height: 16px;
+  text-transform: uppercase;
 }
 .manage-nav ul {
   display: grid;
   gap: 2px;
 }
+/* Like the app's own nav: the active tool sits on Home's pill with a heavier icon and a bold label. */
 .manage-nav__item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  min-height: 40px;
-  padding: 0 10px;
-  border-radius: var(--r-control);
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: var(--r-nav);
   color: var(--ink-2);
-  font-size: var(--fs-14);
+  font-size: var(--fs-15);
   font-weight: var(--fw-medium);
   text-align: left;
   transition:
@@ -329,30 +346,24 @@
     color var(--dur-fast) var(--ease);
 }
 .manage-nav__item:hover {
-  background: color-mix(in srgb, var(--surface-2) 65%, transparent);
-  color: var(--ink);
-}
-.manage-nav__item.is-active {
   background: var(--surface-2);
   color: var(--ink);
-  font-weight: var(--fw-semibold);
 }
-.manage-nav__item.is-active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 9px;
-  bottom: 9px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--accent);
+.manage-nav__item:focus-visible {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
+.manage-nav__item.is-active {
+  background: var(--sec-tools-pill);
+  color: var(--sec-tools-text);
+  font-weight: var(--fw-bold);
 }
 .manage-nav__icon {
   flex: 0 0 auto;
-  font-size: 18px;
+  color: var(--icon-line);
 }
 .manage-nav__item.is-active .manage-nav__icon {
-  color: var(--accent);
+  color: var(--icon-line-active);
 }
 .manage-nav__label {
   flex: 1 1 auto;
@@ -375,8 +386,10 @@
 }
 .manage-doc__title {
   margin: 0;
-  font-size: var(--fs-16);
-  font-weight: var(--fw-semibold);
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
 }
 
 /* Prose in every section, hints included, stays a comfortable line long. */

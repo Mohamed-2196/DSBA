@@ -4,9 +4,10 @@
   gap: var(--sp-16);
   margin-top: var(--sp-24);
   padding: var(--sp-16) var(--sp-24);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .sugg-panel__head {
   display: flex;
@@ -44,7 +45,7 @@
   display: grid;
   gap: var(--sp-8);
   padding-top: var(--sp-12);
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .sugg-mine__h {
   color: var(--ink-2);
@@ -116,16 +117,17 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .sugg-card {
   display: grid;
   gap: var(--sp-4);
   min-width: 0;
   padding: var(--sp-16) var(--sp-24);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
 }
 .sugg-card:last-child {
   border-bottom: 0;

@@ -4,7 +4,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { ArrowSquareOut, YoutubeLogo } from '@phosphor-icons/react';
 import { errorMessage } from '../../../api/errors';
 import type { SuggestionOut } from '../../../api/types';
 import { useToast } from '../../../state';
@@ -12,6 +11,8 @@ import {
   Badge,
   Button,
   EmptyState,
+  glyph,
+  Icon,
   Panel,
   QueryError,
   SegmentedControl,
@@ -212,7 +213,7 @@ function SuggestionCard({ s }: { s: SuggestionOut }) {
       <h3 className="sugg-card__title" dir="auto">
         <a href={s.url} target="_blank" rel="noopener noreferrer">
           {s.title}
-          <ArrowSquareOut aria-label="(opens in a new tab)" className="sugg-card__out" />
+          <Icon glyph={glyph.external} aria-label="(opens in a new tab)" className="sugg-card__out" />
         </a>
       </h3>
       {s.reason ? (
@@ -282,7 +283,7 @@ export function SuggestionsQueue() {
         <Panel padding="none">
           <EmptyState
             size="sm"
-            icon={YoutubeLogo}
+            icon={<Icon glyph={glyph.video} />}
             title={
               status === 'pending'
                 ? 'Nothing waiting'

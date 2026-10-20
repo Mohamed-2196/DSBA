@@ -34,7 +34,8 @@ export interface PageHeaderProps {
   leading?: ReactNode;
   /**
    * A core section's page: the header becomes a band in the section's colour with its deskmate (idle, decorative).
-   * A tool's page ('tools': Boards, Grades, Career Navigator) gets the band in Home's blue with no deskmate.
+   * A tool's or staff page ('tools': Boards, Grades, Career Navigator, the Newsletter, Daily puzzles, Requests, Start
+   * here, Manage, Access, Your account, a page that doesn't exist) gets the band in Home's blue with no deskmate.
    * On phones the actions sit under the band.
    */
   section?: MateSection | 'tools';

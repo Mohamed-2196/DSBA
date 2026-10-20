@@ -1,7 +1,6 @@
 // Find an account, suspend it or lift its suspension; with `withRoles` (the Access screen), see and change its roles.
 // Only admins search by and see email addresses and phone numbers: the API leaves them out for everyone else.
 import { useMemo, useState } from 'react';
-import { PencilSimple, Prohibit, UserCheck, UsersThree } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { AdminUser } from '../../api/types';
 import { useAuth } from '../../auth';
@@ -14,12 +13,14 @@ import {
   CohortBadge,
   ConfirmDialog,
   EmptyState,
+  formatDate,
+  glyph,
+  Icon,
   Panel,
   QueryError,
   SearchField,
   Select,
   Skeleton,
-  formatDate,
   timeAgo,
 } from '../../ui';
 import { useRoleCatalogue, usePeople, useUpdatePerson } from './api';
@@ -82,7 +83,7 @@ function PersonRow({ p, isSelf, withRoles, mayChangeStatus, onStatus, onRoles }:
               <Button
                 size="sm"
                 variant="ghost"
-                leadingIcon={PencilSimple}
+                leadingIcon={<Icon glyph={glyph.edit} />}
                 onClick={onRoles}
                 aria-label={`Change the roles of ${displayName(p)}`}
               >
@@ -115,7 +116,7 @@ function PersonRow({ p, isSelf, withRoles, mayChangeStatus, onStatus, onRoles }:
         {isSelf || !mayChangeStatus ? null : suspended ? (
           <Button
             size="sm"
-            leadingIcon={UserCheck}
+            leadingIcon={<Icon glyph={glyph.undo} />}
             onClick={() => onStatus('active')}
             aria-label={`Lift the suspension of ${displayName(p)}`}
           >
@@ -125,7 +126,7 @@ function PersonRow({ p, isSelf, withRoles, mayChangeStatus, onStatus, onRoles }:
           <Button
             size="sm"
             variant="ghost"
-            leadingIcon={Prohibit}
+            leadingIcon={<Icon glyph={glyph.lock} />}
             onClick={() => onStatus('suspended')}
             aria-label={`Suspend ${displayName(p)}`}
           >
@@ -216,7 +217,7 @@ export function PeopleList({ withRoles = false }: { withRoles?: boolean }) {
         ) : list.length === 0 ? (
           <EmptyState
             size="sm"
-            icon={UsersThree}
+            icon={<Icon glyph={glyph.user} />}
             title={q ? `No one matches “${q}”` : role ? 'No one holds this role' : 'No one here yet'}
             body={
               q

@@ -1,12 +1,24 @@
 // Manage → Career Navigator (holders of career.edit): every part of the page, edited as one draft and saved together.
 // A save someone else made first (career_changed) offers to load theirs. Hidden items stay here and leave the page.
 // Every save goes to the activity log with what changed, before and after.
-import { ArrowSquareOut, DotsThree, Eye } from '@phosphor-icons/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { CareerDoc, CareerEditable } from '../../../api/types';
 import { BREAKPOINTS, useMediaQuery, useToast, useUnsavedChanges } from '../../../state';
-import { Button, Chip, Drawer, EmptyState, IconButton, Menu, Panel, QueryError, Skeleton, timeAgo } from '../../../ui';
+import {
+  Button,
+  Chip,
+  Drawer,
+  EmptyState,
+  glyph,
+  Icon,
+  IconButton,
+  Menu,
+  Panel,
+  QueryError,
+  Skeleton,
+  timeAgo,
+} from '../../../ui';
 import { docErrors } from '../../../ui/docEditor';
 import { CareerBody } from '../CareerPage';
 import { useCareerForEditing, useReloadCareer, useSaveCareer } from './api';
@@ -220,10 +232,20 @@ function Editor({ first }: { first: Loaded }) {
           <div className="cedit__actions">
             {phone ? null : (
               <>
-                <Button variant="ghost" to="/career" target="_blank" rel="noopener" trailingIcon={ArrowSquareOut}>
+                <Button
+                  variant="ghost"
+                  to="/career"
+                  target="_blank"
+                  rel="noopener"
+                  trailingIcon={<Icon glyph={glyph.external} />}
+                >
                   Open the page<span className="visually-hidden"> (opens in a new tab)</span>
                 </Button>
-                <Button variant="secondary" leadingIcon={Eye} onClick={() => setPreviewing(true)}>
+                <Button
+                  variant="secondary"
+                  leadingIcon={<Icon glyph={glyph.eye} />}
+                  onClick={() => setPreviewing(true)}
+                >
                   Preview
                 </Button>
               </>
@@ -247,10 +269,15 @@ function Editor({ first }: { first: Loaded }) {
                 label="More for Career Navigator"
                 align="end"
                 items={[
-                  { id: 'page', label: 'Open the page', icon: ArrowSquareOut, href: '/career' },
-                  { id: 'preview', label: 'Preview', icon: Eye, onSelect: () => setPreviewing(true) },
+                  { id: 'page', label: 'Open the page', icon: <Icon glyph={glyph.external} />, href: '/career' },
+                  {
+                    id: 'preview',
+                    label: 'Preview',
+                    icon: <Icon glyph={glyph.eye} />,
+                    onSelect: () => setPreviewing(true),
+                  },
                 ]}
-                trigger={<IconButton label="More" icon={DotsThree} variant="secondary" />}
+                trigger={<IconButton label="More" icon={<Icon glyph={glyph.more} />} variant="secondary" />}
               />
             ) : null}
           </div>

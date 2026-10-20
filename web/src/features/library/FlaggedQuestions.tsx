@@ -1,11 +1,10 @@
 // Manage → Uploads, for library managers: question tags students said were wrong. Keep the tag (its flags go) or
 // remove it. Renders nothing while none is flagged or the feature is off.
-import { Check, Trash } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import { Button, Panel } from '../../ui';
+import { Button, glyph, Icon, Panel } from '../../ui';
 import { useLibraryAccess } from './access';
 import { questionHref, questionLabel, useFlaggedQuestions, useKeepQuestion, useRemoveQuestion } from './papers';
 import './FlaggedQuestions.css';
@@ -38,7 +37,7 @@ export function FlaggedQuestions() {
               <span className="lib-flagged__acts">
                 <Button
                   size="sm"
-                  leadingIcon={Check}
+                  leadingIcon={<Icon glyph={glyph.check} />}
                   onClick={() => keep.mutate({ id: t.id }, { onError: failed('Couldn’t keep the tag') })}
                   disabled={keep.isPending}
                 >
@@ -47,7 +46,7 @@ export function FlaggedQuestions() {
                 <Button
                   size="sm"
                   variant="danger"
-                  leadingIcon={Trash}
+                  leadingIcon={<Icon glyph={glyph.trash} />}
                   onClick={() => remove.mutate({ id: t.id }, { onError: failed('Couldn’t remove the tag') })}
                   disabled={remove.isPending}
                 >

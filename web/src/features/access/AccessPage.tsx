@@ -1,8 +1,7 @@
 // /admin/access (admins): roles and their boxes, people's roles, the feature switches, and the activity log.
-import { ClockCounterClockwise, IdentificationBadge, ToggleRight, UsersThree } from '@phosphor-icons/react';
 import { Gate } from '../../auth';
 import { useQueryParam } from '../../state';
-import { ErrorBoundary, Page, PageHeader, TabPanel, Tabs } from '../../ui';
+import { ErrorBoundary, glyph, Icon, Page, PageHeader, TabPanel, Tabs } from '../../ui';
 import { ActivityLog } from './ActivityLog';
 import { FeaturesTab } from './FeaturesTab';
 import { PeopleList } from './PeopleList';
@@ -10,10 +9,10 @@ import { RolesTab } from './RolesTab';
 import './AccessPage.css';
 
 const TABS = [
-  { id: 'roles', label: 'Roles', icon: IdentificationBadge },
-  { id: 'people', label: 'People', icon: UsersThree },
-  { id: 'features', label: 'Features', icon: ToggleRight },
-  { id: 'activity', label: 'Activity', icon: ClockCounterClockwise },
+  { id: 'roles', label: 'Roles', icon: <Icon glyph={glyph.lock} /> },
+  { id: 'people', label: 'People', icon: <Icon glyph={glyph.user} /> },
+  { id: 'features', label: 'Features', icon: <Icon glyph={glyph.settings} /> },
+  { id: 'activity', label: 'Activity', icon: <Icon glyph={glyph.clock} /> },
 ];
 
 function AccessScreen() {
@@ -22,6 +21,7 @@ function AccessScreen() {
   return (
     <Page className="access">
       <PageHeader
+        section="tools"
         title="Access"
         description="Who can do what, and which features are on. Every change is logged under Activity."
       />

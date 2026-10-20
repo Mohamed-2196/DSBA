@@ -1,9 +1,8 @@
 // One list in the Career Navigator editor (employers, tracks, roles, ...): each item a row that opens into its form,
 // with buttons to move it, hide it and remove it. Moving uses buttons, so it works the same with a finger, a mouse
 // or a keyboard.
-import { ArrowDown, ArrowUp, CaretDown, Eye, EyeSlash, Plus, Trash } from '@phosphor-icons/react';
 import { useState, type ReactNode } from 'react';
-import { Badge, Button, ConfirmDialog, IconButton, Modal, cx } from '../../../ui';
+import { Badge, Button, ConfirmDialog, cx, glyph, Icon, IconButton, Modal } from '../../../ui';
 import { savedIdsOf, type EditorSection } from './doc';
 import { openKey, useEditor } from './state';
 
@@ -89,7 +88,7 @@ export function ItemList<T>({
                     <span className="cedit-item__title">
                       {title}
                       {hidden ? (
-                        <Badge tone="neutral" icon={EyeSlash} size="sm">
+                        <Badge tone="neutral" icon={<Icon glyph={glyph.eyeOff} />} size="sm">
                           Hidden
                         </Badge>
                       ) : null}
@@ -100,21 +99,21 @@ export function ItemList<T>({
                       ) : null}
                     </span>
                     {metaOf ? <span className="cedit-item__meta">{metaOf(item)}</span> : null}
-                    <CaretDown className="cedit-item__caret" weight="bold" aria-hidden="true" />
+                    <Icon glyph={glyph.chevronDown} className="cedit-item__caret" />
                   </button>
                   <span className="cedit-item__tools">
                     {onMove ? (
                       <>
                         <IconButton
                           size="sm"
-                          icon={ArrowUp}
+                          icon={<Icon glyph={glyph.arrowUp} />}
                           label={`Move ${title} up`}
                           disabled={i === 0}
                           onClick={() => onMove(i, -1)}
                         />
                         <IconButton
                           size="sm"
-                          icon={ArrowDown}
+                          icon={<Icon glyph={glyph.arrowDown} />}
                           label={`Move ${title} down`}
                           disabled={i === items.length - 1}
                           onClick={() => onMove(i, 1)}
@@ -124,7 +123,7 @@ export function ItemList<T>({
                     {onHide ? (
                       <IconButton
                         size="sm"
-                        icon={hidden ? Eye : EyeSlash}
+                        icon={hidden ? <Icon glyph={glyph.eye} /> : <Icon glyph={glyph.eyeOff} />}
                         label={hidden ? `Show ${title} on the page` : `Hide ${title} from the page`}
                         tooltip
                         onClick={() => (hidden ? onHide(id, false) : tryOr(() => onHide(id, true)))}
@@ -132,7 +131,7 @@ export function ItemList<T>({
                     ) : null}
                     <IconButton
                       size="sm"
-                      icon={Trash}
+                      icon={<Icon glyph={glyph.trash} />}
                       label={`Remove ${title}`}
                       tooltip
                       onClick={() => tryOr(() => setRemoving({ id, title }))}
@@ -153,7 +152,7 @@ export function ItemList<T>({
       )}
       <Button
         variant="secondary"
-        leadingIcon={Plus}
+        leadingIcon={<Icon glyph={glyph.plus} />}
         onClick={() => {
           const id = onAdd();
           keepRow(section, id);

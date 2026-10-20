@@ -1,13 +1,24 @@
 // One module in the editor: its details, its picture, and its chapters and lessons, saved together. A save someone
 // else made first (module_changed) offers to load theirs; removing something students' notes, cards, files or threads
 // refer to (content_in_use) says so and suggests hiding it instead.
-import { ArrowLeft, ArrowSquareOut, EyeSlash, Trash } from '@phosphor-icons/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Location } from 'react-router-dom';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ModuleEdit } from '../../../api/types';
 import { useToast, useUnsavedChanges, YEARS } from '../../../state';
-import { Badge, Button, ConfirmDialog, Panel, QueryError, Select, Skeleton, Switch, TextField } from '../../../ui';
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  glyph,
+  Icon,
+  Panel,
+  QueryError,
+  Select,
+  Skeleton,
+  Switch,
+  TextField,
+} from '../../../ui';
 import { MarkdownEditor } from '../../forum/public';
 import { useDeleteModule, useModuleForEditing, useReloadModule, useSaveModule } from './api';
 import { ArtField } from './ArtField';
@@ -49,7 +60,7 @@ export function ModuleForm({ id, onClose }: Props) {
 
 function BackButton({ onClose }: { onClose: () => void }) {
   return (
-    <Button variant="ghost" leadingIcon={ArrowLeft} onClick={onClose} className="medit__back">
+    <Button variant="ghost" leadingIcon={<Icon glyph={glyph.back} />} onClick={onClose} className="medit__back">
       All modules
     </Button>
   );
@@ -139,7 +150,7 @@ function Editor({ first, onClose }: { first: ModuleEdit; onClose: () => void }) 
             {loaded.unitCode ? `${loaded.unitCode} ${loaded.name}` : loaded.name}
           </h3>
           {loaded.hidden ? (
-            <Badge tone="neutral" icon={EyeSlash} size="sm">
+            <Badge tone="neutral" icon={<Icon glyph={glyph.eyeOff} />} size="sm">
               Hidden
             </Badge>
           ) : null}
@@ -151,7 +162,7 @@ function Editor({ first, onClose }: { first: ModuleEdit; onClose: () => void }) 
               to={`/modules/${loaded.id}`}
               target="_blank"
               rel="noopener"
-              trailingIcon={ArrowSquareOut}
+              trailingIcon={<Icon glyph={glyph.external} />}
             >
               Open the module<span className="visually-hidden"> (opens in a new tab)</span>
             </Button>
@@ -239,7 +250,12 @@ function Editor({ first, onClose }: { first: ModuleEdit; onClose: () => void }) 
       </div>
 
       <div className="medit__foot">
-        <Button variant="ghost" leadingIcon={Trash} onClick={() => setRemoving(true)} className="medit__remove">
+        <Button
+          variant="ghost"
+          leadingIcon={<Icon glyph={glyph.trash} />}
+          onClick={() => setRemoving(true)}
+          className="medit__remove"
+        >
           Remove this module
         </Button>
       </div>

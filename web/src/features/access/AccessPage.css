@@ -32,7 +32,7 @@
 .access-grid th,
 .access-grid td {
   padding: var(--sp-8) var(--sp-12);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
   text-align: center;
   vertical-align: middle;
 }
@@ -167,7 +167,7 @@
   padding: var(--sp-16);
 }
 .access-feature + .access-feature {
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .access-switch {
   min-width: 0;

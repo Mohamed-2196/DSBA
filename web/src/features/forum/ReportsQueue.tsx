@@ -3,11 +3,10 @@
 // A report points at a thread, a reply or a library file. The way through: open the post, deal with it there (hide
 // it from its menu, for example), then resolve the report here with a short note; or dismiss it when the post is fine.
 import { useMemo, useState } from 'react';
-import { CheckCircle, Flag } from '@phosphor-icons/react';
 import { ApiError } from '../../api/errors';
 import { remainingCount } from '../../api/paging';
 import { useAuth } from '../../auth';
-import { EmptyState, Panel, QueryError, Skeleton, TabPanel, Tabs } from '../../ui';
+import { EmptyState, glyph, Icon, Panel, QueryError, Skeleton, TabPanel, Tabs } from '../../ui';
 import { useReports } from './api';
 import type { ReportOut } from '../../api/types';
 import type { ReportStatus } from './types';
@@ -45,7 +44,11 @@ function flatten(pages: { items: ReportOut[] }[] | undefined): ReportOut[] {
 function NotForYou() {
   return (
     <Panel padding="none">
-      <EmptyState icon={Flag} title="Reports aren’t on your account" body="Ask an admin if you should have access." />
+      <EmptyState
+        icon={<Icon glyph={glyph.flag} />}
+        title="Reports aren’t on your account"
+        body="Ask an admin if you should have access."
+      />
     </Panel>
   );
 }
@@ -96,7 +99,7 @@ function ReportList({ status }: { status: ReportStatus }) {
     return (
       <Panel padding="none">
         <EmptyState
-          icon={status === 'open' ? CheckCircle : Flag}
+          icon={status === 'open' ? <Icon glyph={glyph.success} /> : <Icon glyph={glyph.flag} />}
           title={EMPTY[status].title}
           body={EMPTY[status].body}
         />

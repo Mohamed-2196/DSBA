@@ -1,7 +1,6 @@
 // Manage → Guides (guides.edit): Start here, Results day and Choosing your Year 3 electives, edited as one draft and
 // saved together. A save someone else made first (guides_changed) offers to load theirs. Every save goes to the
 // activity log with what changed, before and after.
-import { Info } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type {
@@ -17,7 +16,10 @@ import { FEATURE_KEYS } from '../../../auth';
 import { useToast } from '../../../state';
 import {
   Chip,
+  cx,
   Drawer,
+  glyph,
+  Icon,
   PageHeader,
   Panel,
   QueryError,
@@ -26,7 +28,6 @@ import {
   TextArea,
   TextField,
   WholeNumberField,
-  cx,
 } from '../../../ui';
 import {
   DocFrame,
@@ -238,9 +239,9 @@ function Editor({ first }: { first: GuidesEditable }) {
 function ElectivesPreview({ guide }: { guide: Electives }) {
   return (
     <>
-      <PageHeader title={guide.title} description={guide.intro} />
+      <PageHeader section="tools" title={guide.title} description={guide.intro} />
       <Panel tone="inset" padding="none" className="electives__note gedit-note" role="note">
-        <Info weight="bold" aria-hidden="true" />
+        <Icon glyph={glyph.info} />
         <p>{guide.disclaimer}</p>
       </Panel>
       <p className="dedit__note">

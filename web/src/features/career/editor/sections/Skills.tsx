@@ -1,11 +1,10 @@
 // Skills: which modules teach each one and how far, a note when they don't go far enough, and the usual step to
 // close the gap. Electives: which modules a student chooses. The electives guide is built from both, with the roles.
-import { Plus, Trash } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import type { CareerSkill, SkillTaught } from '../../../../api/types';
 import { moduleLabel } from '../../../../lib/modules';
 import { useModules } from '../../../../state/modules';
-import { Button, IconButton, Select, TextArea, TextField } from '../../../../ui';
+import { Button, glyph, Icon, IconButton, Select, TextArea, TextField } from '../../../../ui';
 import { electives } from '../../lib/electives';
 import { freeId, publicDoc, removeItem, savedIdsOf } from '../doc';
 import { StepField } from '../fields';
@@ -93,7 +92,7 @@ function SkillForm({ skill: s }: { skill: SkillRow }) {
                 required
               />
               <IconButton
-                icon={Trash}
+                icon={<Icon glyph={glyph.trash} />}
                 label={`Remove module ${n + 1}`}
                 onClick={() => set({ taught: s.taught.filter((_, k) => k !== n) })}
                 className="cedit-rows__remove"
@@ -105,7 +104,7 @@ function SkillForm({ skill: s }: { skill: SkillRow }) {
           <Button
             variant="ghost"
             size="sm"
-            leadingIcon={Plus}
+            leadingIcon={<Icon glyph={glyph.plus} />}
             onClick={() =>
               set({ taught: [...s.taught, { module: String(modules[0]?.value ?? ''), depth: 2, what: '' }] })
             }

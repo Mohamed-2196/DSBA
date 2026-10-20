@@ -91,7 +91,7 @@
   gap: var(--sp-12);
   margin: 0;
   padding: var(--sp-12) var(--sp-16) var(--sp-16);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   min-width: 0;
 }
@@ -115,7 +115,7 @@
   width: 100%;
 }
 .cedit-item {
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-control);
   background: var(--surface);
   min-width: 0;
@@ -192,7 +192,7 @@
 }
 .cedit-item__form {
   padding: var(--sp-12) var(--sp-16) var(--sp-16);
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 
 /* rows inside a form (offers, modules that teach a skill) */
@@ -236,7 +236,7 @@
   gap: var(--sp-4);
   max-width: 100%;
   padding-inline-start: var(--sp-12);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: 999px;
   background: var(--surface-2);
 }
@@ -254,7 +254,7 @@
   min-height: 40px;
   max-width: 100%;
   padding: 0 var(--sp-12);
-  border: 1px solid var(--line-strong, var(--line));
+  border: 1.5px solid var(--line-strong, var(--line));
   border-radius: var(--r-control);
   background: var(--surface);
   color: var(--ink);

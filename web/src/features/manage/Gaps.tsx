@@ -1,11 +1,10 @@
 // Manage's Gaps screen: what's missing, by module, for the people who fill it. Each part shows for the box
 // that fixes it (the API sends null for the others), and each line links to where it's fixed.
-import { CheckCircle } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { formatDay } from '../../lib/dates';
 import { sittingLabel } from '../../lib/exams';
 import { moduleLabel } from '../../lib/modules';
-import { Panel, QueryError, Skeleton } from '../../ui';
+import { glyph, Icon, Panel, QueryError, Skeleton } from '../../ui';
 import { askedBy, requestPath } from '../requests/public';
 import { useGaps } from './api';
 import { eventMissing, eventPath, lessonLine, moduleEditor, moduleFiles, scanLine, sittingMissing } from './gapLabels';
@@ -55,7 +54,7 @@ function GapList({
         </ul>
       ) : (
         <p className="gaps-none">
-          <CheckCircle weight="fill" aria-hidden="true" />
+          <Icon glyph={glyph.success} />
           {done}
         </p>
       )}

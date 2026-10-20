@@ -1,6 +1,5 @@
 // A module's logo or picture in the editor: upload one (purpose module_art), replace it or remove it, and the icon
 // students see while there is none. The upload is only kept once the module is saved; the API attaches it then.
-import { ImageSquare, Trash, UploadSimple } from '@phosphor-icons/react';
 import { useId, useRef, useState } from 'react';
 import {
   checkUpload,
@@ -10,7 +9,7 @@ import {
   UPLOAD_RULES,
   type UploadProgress,
 } from '../../../api/uploads';
-import { Button, ModuleArt, ModuleIcon, Select, moduleArtSrc } from '../../../ui';
+import { Button, glyph, Icon, ModuleArt, moduleArtSrc, ModuleIcon, Select } from '../../../ui';
 import { MODULE_ICONS } from './draft';
 
 export interface ArtFieldProps {
@@ -90,7 +89,7 @@ export function ArtField({ art, icon, unitCode, onArt, onIcon, error }: ArtField
             <Button
               variant="secondary"
               size="sm"
-              leadingIcon={shown ? ImageSquare : UploadSimple}
+              leadingIcon={shown ? <Icon glyph={glyph.image} /> : <Icon glyph={glyph.upload} />}
               onClick={() => input.current?.click()}
               loading={progress !== null}
               aria-describedby={hintId}
@@ -99,7 +98,7 @@ export function ArtField({ art, icon, unitCode, onArt, onIcon, error }: ArtField
               {shown ? 'Upload another' : 'Upload a picture'}
             </Button>
             {shown ? (
-              <Button variant="ghost" size="sm" leadingIcon={Trash} onClick={() => onArt(null)}>
+              <Button variant="ghost" size="sm" leadingIcon={<Icon glyph={glyph.trash} />} onClick={() => onArt(null)}>
                 Remove the picture
               </Button>
             ) : null}

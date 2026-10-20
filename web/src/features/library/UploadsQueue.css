@@ -29,7 +29,7 @@
   align-items: start;
   gap: var(--sp-16);
   padding: var(--sp-16) var(--sp-24);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
 }
 .lib-queue__row:last-child {
   border-bottom: 0;
