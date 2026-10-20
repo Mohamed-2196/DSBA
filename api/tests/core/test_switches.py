@@ -89,6 +89,12 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("modules.video-suggestions", "POST", "/video-suggestions"),
     ("modules.video-suggestions", "GET", "/video-suggestions/mine"),
     ("modules.video-suggestions", "GET", "/content/video-suggestions"),
+    ("modules.time-stamps", "POST", "/lesson-topics"),
+    ("modules.time-stamps", "GET", "/lesson-topics/mine"),
+    ("modules.time-stamps", "GET", "/content/lesson-topics"),
+    ("notes.share", "GET", "/shared-notes?moduleId=economics"),
+    ("notes.share", "GET", f"/shared-notes/{NOTHING}"),
+    ("notes.share", "PUT", f"/notes/{NOTHING}/share"),
     ("daily", "GET", "/daily"),
     ("daily", "GET", "/daily/2026-10-01/word"),
     ("daily", "POST", "/daily/2026-10-01/word/moves"),
@@ -114,10 +120,12 @@ OFF_AT_FIRST = (
     "library.practice",
     "requests.done",
     "daily",
+    "notes.share",
+    "modules.time-stamps",
 )
 
 # Features that live inside another one, whose routes need it on too.
-INSIDE: dict[str, str] = {"requests.done": "requests", "library.practice": "library.questions"}
+INSIDE: dict[str, str] = {"requests.done": "requests", "library.practice": "library.questions", "notes.share": "notes"}
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.
@@ -176,6 +184,9 @@ AREAS: dict[str, Feature] = {
     "/grades": Feature.grades,
     "/video-suggestions": Feature.modules_video_suggestions,
     "/content/video-suggestions": Feature.modules_video_suggestions,
+    "/shared-notes": Feature.notes_share,
+    "/lesson-topics": Feature.modules_time_stamps,
+    "/content/lesson-topics": Feature.modules_time_stamps,
 }
 
 

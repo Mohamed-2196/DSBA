@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import invalid, not_found
 from app.models import Chapter, Lesson, Module
 from app.schemas.modules import Chapter as ChapterOut
-from app.schemas.modules import ModuleDetail, ModuleSummary, Video
+from app.schemas.modules import LessonTopic, ModuleDetail, ModuleSummary, Video
 
 MODULE_UNKNOWN = "Pick a module from the list."
 ID_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"
@@ -120,7 +120,7 @@ def lesson_path(lesson: Lesson) -> str:
     return f"/modules/{lesson.module_id}/lessons/{lesson.id}"
 
 
-def video_out(lesson: Lesson) -> Video:
+def video_out(lesson: Lesson, topics: list[LessonTopic] | None = None) -> Video:
     return Video(
         id=lesson.id,
         kind=lesson.kind,
@@ -129,12 +129,20 @@ def video_out(lesson: Lesson) -> Video:
         title=lesson.title,
         channel=lesson.channel,
         unavailable=lesson.unavailable,
+        topics=topics or [],
     )
 
 
-def chapters_out(m: Module) -> list[ChapterOut]:
+def chapters_out(m: Module, topics: dict[str, list[LessonTopic]] | None = None) -> list[ChapterOut]:
+    """The chapters and lessons students see, each lesson with its `topics` (by lesson id) when given."""
+    shown = topics or {}
     return [
-        ChapterOut(id=c.id, title=c.title, audio_url=c.audio_url, videos=[video_out(v) for v in visible_lessons(c)])
+        ChapterOut(
+            id=c.id,
+            title=c.title,
+            audio_url=c.audio_url,
+            videos=[video_out(v, shown.get(v.id)) for v in visible_lessons(c)],
+        )
         for c in visible_chapters(m)
     ]
 
@@ -167,13 +175,17 @@ def list_modules(db: Session, year: int | None, *, library: bool) -> list[Module
     return [ModuleSummary.model_validate(_summary(m, counts.get(m.id, 0) if library else None)) for m in db.scalars(q)]
 
 
-def module_detail(db: Session, module_id: str, *, library: bool) -> ModuleDetail:
-    """`library`: as for list_modules()."""
+def module_detail(db: Session, module_id: str, *, library: bool, topics: bool = False) -> ModuleDetail:
+    """`library`: as for list_modules(). `topics`: whether time stamps are on for the viewer (each lesson's topics)."""
     m = db.get(Module, module_id)
     if m is None or m.hidden:
         raise not_found("This module doesn't exist.")
+    from app.services.lesson_topics import shown  # lesson_topics -> modules (student_lesson)
     from app.services.library import module_counts, module_shelves  # library -> modules (require_module)
 
     count = module_counts(db, m.id).get(m.id, 0) if library else None
     shelves = module_shelves(db, m.id) if library else []
-    return ModuleDetail.model_validate({**_summary(m, count), "shelves": shelves, "chapters": chapters_out(m)})
+    lesson_topics = shown(db, (v.id for c in m.chapters for v in c.lessons)) if topics else None
+    return ModuleDetail.model_validate(
+        {**_summary(m, count), "shelves": shelves, "chapters": chapters_out(m, lesson_topics)}
+    )

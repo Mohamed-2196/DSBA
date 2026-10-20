@@ -1,11 +1,13 @@
 // Manage → Suggested videos (content.edit, while the feature is on): students' suggestions, oldest first. Accept
 // adds the video as a lesson at the end of a chapter (the suggested one, another, or a new one); Decline needs a
-// reason the student sees. Either way the student gets a notification.
+// reason the student sees. Either way the student gets a notification. Students' time stamps for lessons' videos
+// (topics/TopicsQueue.tsx) are a second queue here, while they are on.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { errorMessage } from '../../../api/errors';
 import type { SuggestionOut } from '../../../api/types';
+import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
 import {
   Badge,
@@ -24,6 +26,7 @@ import {
 } from '../../../ui';
 import { moduleDetailQuery } from '../api';
 import { lessonHref } from '../lessons';
+import { TopicsQueue } from '../topics/TopicsQueue';
 import { useAcceptSuggestion, useDeclineSuggestion, useSuggestionQueue } from './api';
 import { NEW_CHAPTER, STATUS_LABEL, acceptBody, type SuggestionStatus } from './model';
 import './Suggestions.css';
@@ -242,7 +245,7 @@ function SuggestionCard({ s }: { s: SuggestionOut }) {
   );
 }
 
-export function SuggestionsQueue() {
+function VideoQueue() {
   const [status, setStatus] = useState<SuggestionStatus>('pending');
   const list = useSuggestionQueue(status);
   const items = list.data?.pages.flatMap((p) => p.items) ?? [];
@@ -296,5 +299,26 @@ export function SuggestionsQueue() {
         </Panel>
       )}
     </section>
+  );
+}
+
+type Queue = 'videos' | 'stamps';
+const QUEUES: { value: Queue; label: string }[] = [
+  { value: 'videos', label: 'Videos' },
+  { value: 'stamps', label: 'Time stamps' },
+];
+
+/** Manage → Suggested videos: the suggested videos and the time stamps, each while its feature is on. */
+export function SuggestionsQueue() {
+  const { featureOn } = useAuth();
+  const videos = featureOn('modules.video-suggestions');
+  const stamps = featureOn('modules.time-stamps');
+  const [queue, setQueue] = useState<Queue>(videos ? 'videos' : 'stamps');
+  if (!videos || !stamps) return videos ? <VideoQueue /> : <TopicsQueue />;
+  return (
+    <div className="sugg-queues">
+      <SegmentedControl label="Suggestions" options={QUEUES} value={queue} onChange={setQueue} />
+      {queue === 'videos' ? <VideoQueue /> : <TopicsQueue />}
+    </div>
   );
 }

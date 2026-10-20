@@ -20,4 +20,11 @@ describe('the video clock', () => {
     expect(u.searchParams.get('start')).toBe('125');
     expect(withClock('https://bbb.example/playback/1', 'http://x')).toBe('https://bbb.example/playback/1');
   });
+
+  it('starts a class recording at a time with BigBlueButton’s ?t=', () => {
+    const rec = 'https://vc.bibf.com/playback/presentation/2.3/abc-1676264200087';
+    expect(withClock(rec, 'http://x', 760)).toBe(`${rec}?t=12m40s`);
+    expect(withClock(rec, 'http://x', null)).toBe(rec);
+    expect(withClock('https://example.com/other', 'http://x', 60)).toBe('https://example.com/other');
+  });
 });

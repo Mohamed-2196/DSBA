@@ -36,6 +36,7 @@ const sampleNote = (over: Partial<Note> = {}): Note => ({
   onPdf: false,
   pdf: null,
   ink: [],
+  share: null,
   version: 3,
   createdAt: '2026-10-13T10:00:00Z',
   updatedAt: '2026-10-13T10:00:00Z',

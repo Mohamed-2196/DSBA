@@ -8,6 +8,11 @@
 .mod-lessons__main {
   min-width: 0;
 }
+.mod-lessons__aside {
+  display: grid;
+  gap: var(--sp-16);
+  min-width: 0;
+}
 @container mod-panels (min-width: 880px) {
   .mod-lessons__grid {
     grid-template-columns: minmax(0, 1fr) 22rem;
@@ -17,8 +22,17 @@
   .mod-lessons__aside {
     position: relative;
     min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-16);
   }
-  .mod-lessons__aside > .mod-chapters {
+  /* the time stamps take what they need (they scroll past about nine), the chapters the rest */
+  .mod-lessons__chapters {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 320px;
+  }
+  .mod-lessons__chapters > .mod-chapters {
     position: absolute;
     inset: 0;
   }

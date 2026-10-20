@@ -13,7 +13,8 @@ one carries its number, like "R-3".
 
 - **Approved, round 16:** IDEA-44, IDEA-45, IDEA-46, IDEA-47 (past papers into practice); IDEA-48 (exam week leads
   Home, as an admin setting, not a code change), IDEA-49, IDEA-50, IDEA-51 (Home and search); IDEA-53, IDEA-54,
-  IDEA-55 (notebook and dates); IDEA-29 (share a note with your module), IDEA-52 (recording time stamps).
+  IDEA-55 (notebook and dates); IDEA-29 (share a note with your module), IDEA-52 (recording time stamps): both
+  built in `round16/share16`.
 - **Declined:** IDEA-25, IDEA-28, IDEA-34 (covered by what's built).
 - **Waiting:** IDEA-56 (papers kept offline), IDEA-22 (on hold behind R-8).
 
@@ -621,7 +622,12 @@ Quick wins are marked **quick win** in the heading: a day or two each.
 - **Costs and risks:** review load for reps, as with uploads. The shared copy is public, so the dialog says so. Copied
   study guides get the usual rejection.
 - **How we'd know it worked:** modules with a cheat sheet by May; downloads and views of shared notes.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/share16`). "Share with module" in the note editor shares a read-only copy of
+  the note as it is (text, handwriting, pictures), with the writer's name and year or without them; it lists under
+  the module's "Students' notes" (Overview) and "Shared from students' notebooks" (Files), at `/notes/shared/:id`.
+  The writer updates the copy ("Behind your note" when it differs) or stops sharing. Moderated after the fact, like
+  forum posts: anyone reports it, library reps hide it (the writer is told) or show it again; no review before it
+  shows. Notes on a PDF can't be shared. Switch `notes.share`.
 
 ### IDEA-30. Flip cards from your notes
 
@@ -1042,7 +1048,11 @@ Quick wins are marked **quick win** in the heading.
 - **Size:** M, both: a table and a migration, the suggest form, the queue, marks under the player.
 - **Costs and risks:** review load, a minute a suggestion. Start with ST2134 and ST2133, where every title is a date.
 - **How we'd know it worked:** recordings with topics; lessons opened from search.
-- **Status:** proposed.
+- **Status:** built (round 16, `round16/share16`). "In this recording" beside the player lists the accepted time
+  stamps and takes the video there (a class recording reloads at `?t=`); "Add a time stamp" fills in the video's time
+  when YouTube tells it. Content managers accept (putting the time or words right), decline with a reason, or take
+  one off, in Manage → Suggested videos → Time stamps. The chapter list says "Covers: …". Not yet in search. Switch
+  `modules.time-stamps`.
 
 ## Round 16 · Notebook
 

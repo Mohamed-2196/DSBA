@@ -187,6 +187,7 @@ def test_create_edit_and_audit(client_for: Clients, manager: User, db: Session) 
                     "title": "Intro",
                     "channel": None,
                     "unavailable": False,
+                    "topics": [],
                 }
             ],
         }

@@ -1,10 +1,10 @@
-"""Reports of forum threads, forum replies, library items and requests, and the queues of the people who handle
-them. Owner: community agent.
+"""Reports of forum threads, forum replies, library items, requests and notes shared with a module, and the queues of
+the people who handle them. Owner: community agent.
 
 A report names its target by type and id. Each person may have one open report per target. Forum reports are for
-people with forum.moderate, library reports for people with library.manage and request reports for people with
-requests.manage: they resolve or dismiss them (hiding the post, removing the file or the request is a separate
-action), and the reporter is told. Who reported is shown to admins only:
+people with forum.moderate, library and shared note reports for people with library.manage and request reports for
+people with requests.manage: they resolve or dismiss them (hiding the post or the shared note, removing the file or the
+request is a separate action), and the reporter is told. Who reported is shown to admins only:
 student reps are classmates (security review, finding 22)."""
 
 from __future__ import annotations
@@ -28,9 +28,11 @@ from app.models import (
     ForumThread,
     ItemStatus,
     LibraryItem,
+    Module,
     PostStatus,
     Report,
     ReportStatus,
+    SharedNote,
     StudentRequest,
     User,
 )
@@ -50,6 +52,7 @@ TARGET_FEATURES: dict[str, Feature] = {
     "reply": Feature.forum,
     "library_item": Feature.library,
     "request": Feature.requests,
+    "shared_note": Feature.notes_share,
 }
 
 
@@ -70,6 +73,7 @@ class _Target:
     status: str
     author_id: uuid.UUID | None
     public: bool  # a guest can see it right now
+    named_to_admins_only: bool = False  # shared without a name: only admins see who wrote it
 
 
 def _targets(db: Session, keys: Iterable[tuple[str, uuid.UUID]]) -> dict[tuple[str, uuid.UUID], _Target]:
@@ -127,6 +131,22 @@ def _targets(db: Session, keys: Iterable[tuple[str, uuid.UUID]]) -> dict[tuple[s
                 req.author_id,
                 not removed,
             )
+    if ids.get("shared_note"):
+        rows_sn = db.execute(
+            select(SharedNote, Module.hidden)
+            .join(Module, Module.id == SharedNote.module_id)
+            .where(SharedNote.id.in_(ids["shared_note"]))
+        ).tuples()
+        for sn, module_hidden in rows_sn:
+            out["shared_note", sn.id] = _Target(
+                sn.title or "Untitled note",
+                f"/notes/shared/{sn.id}",
+                excerpt(sn.text) or None,
+                "hidden" if sn.hidden else "visible",
+                sn.user_id,
+                not sn.hidden and not module_hidden and sn.withdrawn_at is None,
+                named_to_admins_only=not sn.credited,
+            )
     return out
 
 
@@ -148,6 +168,10 @@ def _reportable(db: Session, kind: str, target_id: uuid.UUID, user: User) -> boo
     if kind == "request":
         req = db.get(StudentRequest, target_id, options=[defer(StudentRequest.search_vector)])
         return req is not None and req.removed_at is None
+    if kind == "shared_note":
+        sn = db.get(SharedNote, target_id)
+        module = db.get(Module, sn.module_id) if sn is not None else None
+        return sn is not None and sn.withdrawn_at is None and module is not None and not sn.hidden and not module.hidden
     item = db.get(LibraryItem, target_id, options=[defer(LibraryItem.search_vector)])
     return item is not None and item.status == ItemStatus.published
 
@@ -193,13 +217,15 @@ def create_report(db: Session, user: User, data: ReportCreate) -> Report:
 
 
 def _queue(db: Session, user: User) -> list[str]:
-    """The target types this person acts on: forum posts with forum.moderate, library files with library.manage,
-    requests with requests.manage, each while its feature is on for them."""
+    """The target types this person acts on: forum posts with forum.moderate, library files and shared notes with
+    library.manage, requests with requests.manage, each while its feature is on for them."""
     types: list[str] = []
     if access.can(user, Box.forum_moderate) and access.feature_on(db, user, Feature.forum):
         types += ["thread", "reply"]
     if access.can(user, Box.library_manage) and access.feature_on(db, user, Feature.library):
         types.append("library_item")
+    if access.can(user, Box.library_manage) and access.feature_on(db, user, Feature.notes_share):
+        types.append("shared_note")
     if access.can(user, Box.requests_manage) and access.feature_on(db, user, Feature.requests):
         types.append("request")
     return types
@@ -233,7 +259,9 @@ def _report_outs(db: Session, reports: Sequence[Report], viewer: User) -> list[R
                     "target_url": target.url if target else None,
                     "target_excerpt": target.excerpt if target else None,
                     "target_status": target.status if target else None,
-                    "target_author": public_user(people.get(target.author_id)) if target and target.author_id else None,
+                    "target_author": public_user(people.get(target.author_id))
+                    if target and target.author_id and (show_reporter or not target.named_to_admins_only)
+                    else None,
                     "reason": r.reason,
                     "note": r.note,
                     "status": r.status.value,
@@ -280,6 +308,7 @@ _TARGET_WORDS = {
     "reply": "a reply in",
     "library_item": "the library file",
     "request": "the request",
+    "shared_note": "the shared note",
 }
 
 

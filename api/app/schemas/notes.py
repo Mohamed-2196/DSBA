@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import AfterValidator, Field, StringConstraints, field_validator, model_validator
 
-from app.schemas.common import ApiModel, Page
+from app.schemas.common import ApiModel, Page, UserPublic
 from app.schemas.modules import LessonId
 
 TITLE_MAX = 200
@@ -208,6 +208,19 @@ class NoteSummary(ApiModel):
     updated_at: datetime
 
 
+class NoteShare(ApiModel):
+    """The note's copy shared with its module's students (GET /shared-notes/{id}), as its writer sees it from the
+    note. `upToDate`: the copy has the note as it is now; otherwise the writer may update it."""
+
+    id: UUID
+    module_id: str
+    credited: bool
+    hidden: bool  # a student rep hid it: only its writer and moderators see it
+    shared_at: datetime
+    updated_at: datetime
+    up_to_date: bool
+
+
 class Note(NoteSummary):
     doc: dict[str, Any]
     text: str
@@ -215,10 +228,69 @@ class Note(NoteSummary):
     sheets: int
     pdf: NotePdf | None
     ink: list[InkInfo]  # the sheets that have ink, and their versions: each one is read on its own
+    share: NoteShare | None  # its copy shared with the module, if it has one
 
 
 class NotePage(Page[NoteSummary]):
     pass
+
+
+# ── notes shared with a module ───────────────────────────────────────────────────────────────
+
+
+class ShareRequest(ApiModel):
+    """Share the note with its module's students, or update the copy shared: `credited` shows the writer's name and
+    year with it (false: "Shared by a student")."""
+
+    credited: bool = True
+
+
+class InkPage(ApiModel):
+    """The handwriting on one sheet of a shared note."""
+
+    sheet: int
+    strokes: list[Stroke]
+
+
+class SharedNoteSummary(ApiModel):
+    """A note shared with a module, in the module's list. `author` is None when it was shared without a name (or the
+    account has no profile). `mine`: the viewer shared it. `hidden`: a student rep hid it (only its writer and
+    moderators see it)."""
+
+    id: UUID
+    module_id: str
+    title: str
+    excerpt: str  # the start of its typed text
+    author: UserPublic | None
+    credited: bool  # shared with the writer's name (`author` may still be None: an account without a profile)
+    mine: bool
+    hidden: bool
+    shared_at: datetime
+    updated_at: datetime  # when it was last copied from the note
+
+
+class SharedNote(SharedNoteSummary):
+    """A shared note to read: its typed text (a ProseMirror document, as a note's), paper, pages and handwriting.
+    Its pictures and files are read with GET /shared-notes/{id}/files/{uploadId}. `canModerate`: the viewer may hide
+    it."""
+
+    module_title: str
+    note_id: UUID | None  # the note it was copied from: for its writer only
+    doc: dict[str, Any]
+    paper: Paper
+    sheets: int
+    ink: list[InkPage]
+    can_moderate: bool
+
+
+class SharedNotePage(Page[SharedNoteSummary]):
+    pass
+
+
+class HideRequest(ApiModel):
+    """Why it is hidden: its writer is told."""
+
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)] = ""
 
 
 # ── Manage: the notebook's uploads ──

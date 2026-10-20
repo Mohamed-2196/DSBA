@@ -27,6 +27,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk, year_range
 from app.schemas.calendar import EventType
 from app.schemas.modules import VideoKind
+from app.schemas.suggestions import TOPIC_MAX_SECONDS
 
 
 class Module(Base):
@@ -143,6 +144,35 @@ class VideoSuggestion(Base):
     )
     reply: Mapped[str | None] = mapped_column(Text)  # why it was declined
     lesson_id: Mapped[str | None] = mapped_column(ForeignKey("lessons.id", ondelete="SET NULL"))
+    decided_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    decided_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = created_ts()
+
+
+class LessonTopic(Base):
+    """A time in a lesson's video and what it covers ("41:20 MLE of a uniform"). A student suggests it; it waits in
+    Manage → Suggested videos with the suggested videos until a content manager accepts it (it shows beside the
+    player, and in the lesson list) or declines it with a reason. Only videos the player can take to a time have
+    topics: YouTube videos and class recordings."""
+
+    __tablename__ = "lesson_topics"
+    __table_args__ = (
+        Index("ix_lesson_topics_lesson_seconds", "lesson_id", "seconds"),  # a lesson's topics in order
+        Index("ix_lesson_topics_author_created", "author_id", "created_at"),  # the daily limit, export, deletion
+        Index("ix_lesson_topics_decided_by", "decided_by"),  # account deletion (SET NULL)
+        Index("ix_lesson_topics_queue", "created_at", postgresql_where=text("status = 'pending'")),
+        CheckConstraint(f"seconds BETWEEN 0 AND {TOPIC_MAX_SECONDS}", name="seconds_range"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    lesson_id: Mapped[str] = mapped_column(ForeignKey("lessons.id", ondelete="CASCADE"))
+    author_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    seconds: Mapped[int] = mapped_column(Integer)  # from the start of the video
+    label: Mapped[str] = mapped_column(String(120))
+    status: Mapped[SuggestionStatus] = mapped_column(
+        str_enum(SuggestionStatus, 10), default=SuggestionStatus.pending, server_default=SuggestionStatus.pending.value
+    )
+    reply: Mapped[str | None] = mapped_column(Text)  # why it was declined
     decided_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     decided_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = created_ts()

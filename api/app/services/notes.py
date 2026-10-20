@@ -42,6 +42,7 @@ from app.models import (
     Note,
     Notebook,
     NoteInk,
+    SharedNote,
     Upload,
     UploadPurpose,
     UploadStatus,
@@ -60,6 +61,7 @@ from app.schemas.notes import (
     NoteCreate,
     NotePage,
     NotePdf,
+    NoteShare,
     NoteSummary,
     NoteUpdate,
     PageChange,
@@ -293,9 +295,10 @@ def rename_notebook(db: Session, user: User, notebook_id: uuid.UUID, title: str)
     return nb
 
 
-def _release(db: Session, user: User, upload_ids: Iterable[uuid.UUID]) -> None:
-    """Of these files of the student's, the ones none of their notes lists any more are released: they stop counting
-    against the student's room, and the sweep deletes them. Run after the notes' lists are written (flushed)."""
+def release(db: Session, user: User, upload_ids: Iterable[uuid.UUID]) -> None:
+    """Of these files of the student's, the ones none of their notes, and none of the copies they shared with a
+    module, lists any more are released: they stop counting against the student's room, and the sweep deletes them.
+    Run after the notes' and copies' lists are written (flushed)."""
     ids = set(upload_ids)
     if not ids:
         return
@@ -307,6 +310,11 @@ def _release(db: Session, user: User, upload_ids: Iterable[uuid.UUID]) -> None:
         )
         .exists()
     )
+    shared = (
+        select(SharedNote.id)
+        .where(SharedNote.user_id == user.id, SharedNote.uploads.contains(array([Upload.id])))
+        .exists()
+    )
     db.execute(
         update(Upload)
         .where(
@@ -315,6 +323,7 @@ def _release(db: Session, user: User, upload_ids: Iterable[uuid.UUID]) -> None:
             Upload.purpose == UploadPurpose.note_file,
             Upload.status == UploadStatus.attached,
             ~listed,
+            ~shared,
         )
         .values(status=UploadStatus.released)
     )
@@ -326,7 +335,7 @@ def delete_notebook(db: Session, user: User, notebook_id: uuid.UUID) -> None:
     shown = {u for (uploads,) in db.execute(select(Note.uploads).where(Note.notebook_id == nb.id)) for u in uploads}
     db.delete(nb)
     db.flush()
-    _release(db, user, shown)
+    release(db, user, shown)
 
 
 # ── notes: reading ───────────────────────────────────────────────────────────────────────────
@@ -394,8 +403,44 @@ def to_out(db: Session, note: Note) -> NoteOut:
             "sheets": note.sheets,
             "pdf": _pdf_of(db, note),
             "ink": [InkInfo(sheet=sheet, version=version) for sheet, version in ink],
+            "share": _share_of(db, note),
         }
     )
+
+
+def _share_of(db: Session, note: Note) -> NoteShare | None:
+    """The note's copy shared with its module (services/shared_notes.py), as its writer sees it from the note."""
+    share = db.scalar(select(SharedNote).where(SharedNote.note_id == note.id))
+    if share is None or share.withdrawn_at is not None:
+        return None
+    return NoteShare(
+        id=share.id,
+        module_id=share.module_id,
+        credited=share.credited,
+        hidden=share.hidden,
+        shared_at=share.shared_at,
+        updated_at=share.updated_at,
+        up_to_date=_same_as(db, note, share),
+    )
+
+
+def _same_as(db: Session, note: Note, share: SharedNote) -> bool:
+    """Whether the shared copy still has the note as it is: its module, title, text, paper, pages and ink."""
+    if note.updated_at <= share.updated_at and note.module_id == share.module_id:
+        return True
+    fields = (note.module_id, note.title, note.doc, note.paper, note.sheets)
+    if fields != (share.module_id, share.title, share.doc, share.paper, share.sheets):
+        return False
+    rows = db.execute(
+        select(NoteInk.sheet, NoteInk.strokes)
+        .where(
+            NoteInk.note_id == note.id,
+            NoteInk.sheet >= PAPER_SHEETS_FROM,
+            NoteInk.sheet < PAPER_SHEETS_FROM + note.sheets,
+        )
+        .order_by(NoteInk.sheet)
+    ).tuples()
+    return [{"sheet": sheet, "strokes": strokes} for sheet, strokes in rows if strokes] == share.ink
 
 
 def list_notes(
@@ -454,8 +499,8 @@ def _own(db: Session, user: User, note_id: uuid.UUID, *, lock: bool = False) -> 
     return note
 
 
-def get_note(db: Session, user: User, note_id: uuid.UUID) -> Note:
-    return _own(db, user, note_id)
+def get_note(db: Session, user: User, note_id: uuid.UUID, *, lock: bool = False) -> Note:
+    return _own(db, user, note_id, lock=lock)
 
 
 # ── notes: writing ───────────────────────────────────────────────────────────────────────────
@@ -507,7 +552,7 @@ def _attach(db: Session, user: User, note: Note, uploads: Iterable[uuid.UUID]) -
     revived = sum(size for _, status, size in rows if status == UploadStatus.released)
     note.uploads = sorted(owned)
     db.flush()
-    _release(db, user, before - owned)
+    release(db, user, before - owned)
     check_files(db, user, revived)
     if owned:
         db.execute(update(Upload).where(Upload.id.in_(owned)).values(status=UploadStatus.attached))
@@ -822,7 +867,7 @@ def delete_note(db: Session, user: User, note_id: uuid.UUID) -> None:
     shown = set(note.uploads or [])
     db.delete(note)
     db.flush()
-    _release(db, user, shown)
+    release(db, user, shown)
 
 
 # ── files ────────────────────────────────────────────────────────────────────────────────────

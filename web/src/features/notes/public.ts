@@ -28,9 +28,13 @@
 //                                            line with formulas set, else "Untitled note"
 //   useStartNote()                           { start({ moduleId, lessonId }), starting }: a new note about a module
 //                                            (or lesson), opened in the editor
+//   useModuleSharedNotes(moduleId, { limit, enabled })
+//                                            the notes students shared with a module, the newest first ({ items,
+//                                            total }): a module page's "Students' notes" (anyone, while notes.share is
+//                                            on); each opens at sharedNotePath(id), and sharedByLine(note) says whose
 //
-// Pages: /notes (the list; ?notebook=, ?module= for a module's notes, ?module=&lesson= for one lesson's) and
-// /notes/:id (the editor).
+// Pages: /notes (the list; ?notebook=, ?module= for a module's notes, ?module=&lesson= for one lesson's),
+// /notes/:id (the editor) and /notes/shared/:id (a note shared with a module, read only).
 export { LessonNotes } from './LessonNotes';
 export { LessonNotePanel } from './LessonNotePanel';
 export { lessonVideoStart } from './text/videoTimes';
@@ -42,3 +46,5 @@ export { useStartNote } from './useStartNote';
 export { NoteName } from './NoteName';
 export type { OpenNote } from './current';
 export { usePdfAt } from './pdf';
+export { useModuleSharedNotes } from './shared/api';
+export { sharedByLine, sharedNotePath } from './shared/words';

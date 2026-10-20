@@ -8,7 +8,8 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Note } from '../../api/types';
 import { moduleLabel } from '../../lib/modules';
-import { useYear } from '../../state';
+import { useAuth } from '../../auth';
+import { BREAKPOINTS, useMediaQuery, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, Icon, IconButton, Menu, Spinner, cx, glyph, type MenuItem } from '../../ui';
 import { lessonHref } from '../modules/public';
@@ -16,6 +17,7 @@ import { noteFileHref, useNotebooks } from './api';
 import { lessonLabel, type NoteDoc, type Paper } from './draft';
 import { useLessonPlace } from './lessonPlace';
 import { TITLE_MAX } from './limits';
+import { ShareNote } from './shared/ShareNote';
 import type { SaveState } from './useNoteEditor';
 
 const PAPERS: { value: Paper; label: string }[] = [
@@ -110,6 +112,9 @@ export function NoteHeader({
   panel,
 }: NoteHeaderProps) {
   const notebooks = useNotebooks();
+  const { featureOn } = useAuth();
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const sharing = !!note && !readOnly && featureOn('notes.share');
   const books = notebooks.data?.items ?? [];
   const book = books.find((b) => b.id === doc.notebookId);
   const bookName = book ? book.title : 'your notebook';
@@ -225,6 +230,9 @@ export function NoteHeader({
           ) : null}
           {panel ?? (
             <>
+              {sharing && note ? (
+                <ShareNote note={note} saved={state === 'saved'} moduleId={doc.moduleId} compact={phone} />
+              ) : null}
               <IconButton
                 icon={<Icon glyph={glyph.page} />}
                 label={pagesShown ? 'Hide pages' : 'Pages'}

@@ -28,6 +28,8 @@ const REPORTED: Record<string, string> = {
   thread: 'the thread',
   reply: 'a reply in',
   library_item: 'the library file',
+  request: 'the request',
+  shared_note: 'the shared note',
 };
 const reported = (d: Record<string, unknown>): string => {
   const title = quoted(d.title);
@@ -187,6 +189,11 @@ const ACTIONS: Record<string, Describe> = {
   },
   'suggestion.accept': (d) => `added the suggested video${quoted(d.title)} as a lesson`,
   'suggestion.decline': (d) => `declined the suggested video${quoted(d.title)}`,
+  'topic.accept': (d) => `put the time stamp${quoted(d.title)} beside${quoted(d.lesson) || ' a lesson'}`,
+  'topic.decline': (d) => `declined the time stamp${quoted(d.title)}`,
+  'topic.remove': (d) => `took the time stamp${quoted(d.title)} off${quoted(d.lesson) || ' a lesson'}`,
+  'shared_note.hide': (d) => `hid the shared note${quoted(d.title)} from its module`,
+  'shared_note.show': (d) => `showed the shared note${quoted(d.title)} in its module again`,
   'module.create': (d) => `added the module${quoted(d.title)}`,
   'module.update': (d) => `edited the module${quoted(d.title)}`,
   'module.delete': (d) => `removed the module${quoted(d.title)}`,

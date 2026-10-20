@@ -1,5 +1,6 @@
-"""Suggested videos: a student suggests a video for a module's chapter, and content managers accept it
-(it becomes a lesson) or decline it with a reason."""
+"""Suggested videos and time stamps: a student suggests a video for a module's chapter, or a time in a lesson's video
+and what it covers; content managers accept it (it becomes a lesson, or a topic beside the player) or decline it with
+a reason."""
 
 from __future__ import annotations
 
@@ -7,10 +8,10 @@ from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import StringConstraints
+from pydantic import Field, StringConstraints
 
 from app.schemas.common import ApiModel, Page, UserPublic
-from app.schemas.modules import ChapterId, Link, Title, VideoKind
+from app.schemas.modules import ChapterId, LessonId, Link, Title, VideoKind
 
 SuggestionStatus = Literal["pending", "accepted", "declined"]
 SuggestionTitle = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
@@ -64,4 +65,46 @@ class SuggestionOut(ApiModel):
 
 
 class SuggestionPage(Page[SuggestionOut]):
+    pass
+
+
+# ── time stamps ──
+
+TOPIC_MAX_SECONDS = 86_399  # app/models/content.py: within a day's video
+TopicLabel = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
+Seconds = Annotated[int, Field(ge=0, le=TOPIC_MAX_SECONDS)]
+
+
+class TopicCreate(ApiModel):
+    """A time in the lesson's video (seconds from its start) and what it covers there."""
+
+    lesson_id: LessonId
+    seconds: Seconds
+    label: TopicLabel
+
+
+class TopicAccept(ApiModel):
+    """Accept as suggested, or with the time or the words put right."""
+
+    seconds: Seconds | None = None
+    label: TopicLabel | None = None
+
+
+class TopicOut(ApiModel):
+    id: UUID
+    module_id: str
+    module_title: str
+    lesson_id: str
+    lesson_title: str  # what the lesson is called ("Chapter 3: class of 17 Sep 2025")
+    seconds: int
+    label: str
+    status: SuggestionStatus
+    reply: str | None  # why it was declined
+    author: UserPublic | None  # None once the account is deleted
+    decided_by: UserPublic | None
+    decided_at: datetime | None
+    created_at: datetime
+
+
+class TopicPage(Page[TopicOut]):
     pass

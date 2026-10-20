@@ -708,4 +708,28 @@ button.mod-row:hover .mod-row__title {
   .mod-prac__row {
     min-height: 44px;
   }
+
+/* The Files tab's notes shared from students' notebooks (SharedNotes.tsx), above the library's files. */
+.mod-shared {
+  display: grid;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-24);
+}
+.mod-shared__h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-bold);
+}
+.mod-shared__count {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+}
+.mod-shared > .ui-button {
+  justify-self: start;
 }

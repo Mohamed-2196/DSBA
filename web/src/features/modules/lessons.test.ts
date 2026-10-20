@@ -27,13 +27,14 @@ describe('lessonName', () => {
     id: 'c1',
     title: 'Point estimation',
     videos: [
-      { id: 'a', kind: 'youtube', videoId: 'x', title: 'The method of moments', unavailable: false },
-      { id: 'b', kind: 'youtube', videoId: 'y', unavailable: false },
+      { id: 'a', kind: 'youtube', videoId: 'x', title: 'The method of moments', unavailable: false, topics: [] },
+      { id: 'b', kind: 'youtube', videoId: 'y', unavailable: false, topics: [] },
       {
         id: 'c',
         kind: 'bbb',
         url: 'https://vc.bibf.com/playback/presentation/2.3/65797004-1758094343105',
         unavailable: false,
+        topics: [],
       },
     ],
   };

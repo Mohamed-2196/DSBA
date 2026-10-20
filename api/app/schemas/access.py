@@ -48,12 +48,14 @@ FeatureKey = Literal[
     "noora",
     "noora.ai",
     "notes",
+    "notes.share",
     "board",
     "requests",
     "requests.autoclose",
     "requests.done",
     "summary",
     "modules.video-suggestions",
+    "modules.time-stamps",
     "daily",
 ]
 

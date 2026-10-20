@@ -37,6 +37,7 @@ import { isModuleTab, lessonHref, moduleTabOn, type ModuleTab } from './lessons'
 import { ModuleOverview } from './ModuleOverview';
 import { computeResumePoint, findLesson, useProgress, type ResumeKind, type ResumePoint } from './progress';
 import { resourceSummary, shelfHash, shelfWithFiles } from './resources';
+import { SharedNotes } from './SharedNotes';
 import { SuggestVideo } from './suggestions/SuggestVideo';
 import './ModulePage.css';
 
@@ -359,6 +360,11 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
         </TabPanel>
         {moduleTabOn('files', featureOn) ? (
           <TabPanel idBase="module" id="files" value={tab}>
+            {featureOn('notes.share') ? (
+              <ErrorBoundary name="SharedNotes" resetKey={m.id}>
+                <SharedNotes moduleId={m.id} />
+              </ErrorBoundary>
+            ) : null}
             <ErrorBoundary name="ModuleFiles" resetKey={m.id}>
               <ModuleFiles moduleId={m.id} />
             </ErrorBoundary>

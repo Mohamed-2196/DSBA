@@ -3743,12 +3743,14 @@
                 "noora",
                 "noora.ai",
                 "notes",
+                "notes.share",
                 "board",
                 "requests",
                 "requests.autoclose",
                 "requests.done",
                 "summary",
                 "modules.video-suggestions",
+                "modules.time-stamps",
                 "daily"
               ],
               "type": "string",
@@ -4069,6 +4071,7 @@
           "modules"
         ],
         "summary": "Get Module",
+        "description": "The module with its chapters and lessons (each with its time stamps while they are on), and its shelves.",
         "operationId": "get_module_api_v1_modules__module_id__get",
         "parameters": [
           {
@@ -15436,6 +15439,786 @@
         }
       }
     },
+    "/api/v1/notes/{note_id}/share": {
+      "put": {
+        "tags": [
+          "shared-notes"
+        ],
+        "summary": "Share Note",
+        "description": "Share a copy of your note with its module's students, or copy it again over the one shared. The note stays\nprivate: they see the copy, as it is now, with your name and year unless `credited` is false.\n\nErrors: not_found (404: not your note), invalid_input (422: no module, a hidden module, written over a PDF,\nnothing in it, too big), rate_limited (429: twenty an hour).",
+        "operationId": "share_note_api_v1_notes__note_id__share_put",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedNote"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/shared-notes/{share_id}": {
+      "delete": {
+        "tags": [
+          "shared-notes"
+        ],
+        "summary": "Unshare Note",
+        "description": "Stop sharing your note: the copy goes from the module. Your note stays. Errors: not_found (404: not yours).",
+        "operationId": "unshare_note_api_v1_shared_notes__share_id__delete",
+        "parameters": [
+          {
+            "name": "share_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Share Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "shared-notes"
+        ],
+        "summary": "Get Shared Note",
+        "description": "A shared note to read. Hidden ones (and those of a hidden module) are 404, except to their writer and\nmoderators.",
+        "operationId": "get_shared_note_api_v1_shared_notes__share_id__get",
+        "parameters": [
+          {
+            "name": "share_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Share Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedNote"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/shared-notes": {
+      "get": {
+        "tags": [
+          "shared-notes"
+        ],
+        "summary": "Module Shared Notes",
+        "description": "The notes students shared with a module, the newest first. Errors: not_found (404: no such module).",
+        "operationId": "module_shared_notes_api_v1_shared_notes_get",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "title": "Moduleid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Page size"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "description": "Items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Items to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedNotePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/shared-notes/{share_id}/files/{upload_id}": {
+      "get": {
+        "tags": [
+          "shared-notes"
+        ],
+        "summary": "Shared Note File",
+        "description": "A picture or file the shared note shows: 302 to a short-lived link, shown in the browser (pictures and PDFs)\nor, with `download`, saved under its name. 404 to anyone who can't read the note.",
+        "operationId": "shared_note_file_api_v1_shared_notes__share_id__files__upload_id__get",
+        "parameters": [
+          {
+            "name": "share_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Share Id"
+            }
+          },
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Upload Id"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Download"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/shared-notes/{share_id}/hide": {
+      "post": {
+        "tags": [
+          "shared-notes"
+        ],
+        "summary": "Hide Shared Note",
+        "description": "Hide it from the module (library.manage). Its writer is told, with `reason`. Audited (`shared_note.hide`).",
+        "operationId": "hide_shared_note_api_v1_shared_notes__share_id__hide_post",
+        "parameters": [
+          {
+            "name": "share_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Share Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HideRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedNote"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/shared-notes/{share_id}/show": {
+      "post": {
+        "tags": [
+          "shared-notes"
+        ],
+        "summary": "Show Shared Note",
+        "description": "Show a hidden one again (library.manage). Its writer is told. Audited (`shared_note.show`).",
+        "operationId": "show_shared_note_api_v1_shared_notes__share_id__show_post",
+        "parameters": [
+          {
+            "name": "share_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Share Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedNote"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/calendar/events": {
       "get": {
         "tags": [
@@ -23844,6 +24627,685 @@
         }
       }
     },
+    "/api/v1/lesson-topics": {
+      "post": {
+        "tags": [
+          "lesson-topics"
+        ],
+        "summary": "Suggest Topic",
+        "description": "Suggest what a lesson's video covers at a time (`seconds` from its start). It shows beside the player once a\ncontent manager accepts it.\n\nErrors: invalid_input (422: a lesson students can't see, a playlist, no words), already_suggested (409: a time\nstamp within ten seconds of it waits or is shown), rate_limited (429: twenty a day).",
+        "operationId": "suggest_topic_api_v1_lesson_topics_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopicCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/lesson-topics/mine": {
+      "get": {
+        "tags": [
+          "lesson-topics"
+        ],
+        "summary": "My Topics",
+        "description": "Your time stamps, newest first (the latest 50), for one lesson or all of them.",
+        "operationId": "my_topics_api_v1_lesson_topics_mine_get",
+        "parameters": [
+          {
+            "name": "lessonId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]{1,16}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lessonid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopicOut"
+                  },
+                  "title": "Response My Topics Api V1 Lesson Topics Mine Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/lesson-topics": {
+      "get": {
+        "tags": [
+          "lesson-topics"
+        ],
+        "summary": "Topics Queue",
+        "description": "The review queue: waiting time stamps oldest first, decided ones the latest decision first.",
+        "operationId": "topics_queue_api_v1_content_lesson_topics_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "pending",
+                "accepted",
+                "declined"
+              ],
+              "type": "string",
+              "default": "pending",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Page size"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "description": "Items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Items to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/lesson-topics/{topic_id}/accept": {
+      "post": {
+        "tags": [
+          "lesson-topics"
+        ],
+        "summary": "Accept Topic",
+        "description": "Show it beside the player, with the time (`seconds`) or the words (`label`) put right if need be. Tells the\nstudent. Audited (`topic.accept`).\n\nErrors: not_found (404), suggestion_closed (409), already_suggested (409: the video shows a time stamp within ten\nseconds), too_many_topics (409), invalid_input (422).",
+        "operationId": "accept_topic_api_v1_content_lesson_topics__topic_id__accept_post",
+        "parameters": [
+          {
+            "name": "topic_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Topic Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopicAccept"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/lesson-topics/{topic_id}/decline": {
+      "post": {
+        "tags": [
+          "lesson-topics"
+        ],
+        "summary": "Decline Topic",
+        "description": "Decline with a reason the student sees. Tells the student. Audited (`topic.decline`).\n\nErrors: not_found (404), suggestion_closed (409), invalid_input (422: no reason).",
+        "operationId": "decline_topic_api_v1_content_lesson_topics__topic_id__decline_post",
+        "parameters": [
+          {
+            "name": "topic_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Topic Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionDecline"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/lesson-topics/{topic_id}": {
+      "delete": {
+        "tags": [
+          "lesson-topics"
+        ],
+        "summary": "Remove Topic",
+        "description": "Take a time stamp off the video. Audited (`topic.remove`).\n\nErrors: not_found (404), suggestion_closed (409: it isn't shown).",
+        "operationId": "remove_topic_api_v1_content_lesson_topics__topic_id__delete",
+        "parameters": [
+          {
+            "name": "topic_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Topic Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/bug-reports": {
       "post": {
         "tags": [
@@ -28805,6 +30267,20 @@
             "type": "array",
             "title": "Videosuggestions"
           },
+          "lessonTopics": {
+            "items": {
+              "$ref": "#/components/schemas/ExportTopic"
+            },
+            "type": "array",
+            "title": "Lessontopics"
+          },
+          "sharedNotes": {
+            "items": {
+              "$ref": "#/components/schemas/ExportSharedNote"
+            },
+            "type": "array",
+            "title": "Sharednotes"
+          },
           "calendarEvents": {
             "items": {
               "$ref": "#/components/schemas/PersonalEventOut"
@@ -28873,6 +30349,8 @@
           "nooraUsage",
           "notebookUploads",
           "videoSuggestions",
+          "lessonTopics",
+          "sharedNotes",
           "calendarEvents",
           "calendarSettings",
           "dailyPlays",
@@ -34477,6 +35955,7 @@
               "already_a_lesson",
               "already_suggested",
               "suggestion_closed",
+              "too_many_topics",
               "note_changed",
               "ink_changed",
               "too_many_notes",
@@ -36097,7 +37576,8 @@
               "thread",
               "reply",
               "library_item",
-              "request"
+              "request",
+              "shared_note"
             ],
             "title": "Targettype"
           },
@@ -36369,6 +37849,70 @@
         ],
         "title": "ExportSenior"
       },
+      "ExportSharedNote": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "noteId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Noteid"
+          },
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "credited": {
+            "type": "boolean",
+            "title": "Credited"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "doc": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Doc"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "sharedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sharedat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "noteId",
+          "moduleId",
+          "credited",
+          "title",
+          "text",
+          "doc",
+          "hidden",
+          "sharedAt",
+          "updatedAt"
+        ],
+        "title": "ExportSharedNote",
+        "description": "A copy of one of your notes shared with its module: what its students read (your note is in `notebooks`)."
+      },
       "ExportSuggestion": {
         "properties": {
           "id": {
@@ -36553,6 +38097,64 @@
         ],
         "title": "ExportThread"
       },
+      "ExportTopic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "lessonId": {
+            "type": "string",
+            "title": "Lessonid"
+          },
+          "seconds": {
+            "type": "integer",
+            "title": "Seconds"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "lessonId",
+          "seconds",
+          "label",
+          "status",
+          "reply",
+          "createdAt"
+        ],
+        "title": "ExportTopic",
+        "description": "A time stamp you suggested for a lesson's video."
+      },
       "ExportVote": {
         "properties": {
           "type": {
@@ -36605,12 +38207,14 @@
               "noora",
               "noora.ai",
               "notes",
+              "notes.share",
               "board",
               "requests",
               "requests.autoclose",
               "requests.done",
               "summary",
               "modules.video-suggestions",
+              "modules.time-stamps",
               "daily"
             ],
             "title": "Feature"
@@ -36700,12 +38304,14 @@
                 "noora",
                 "noora.ai",
                 "notes",
+                "notes.share",
                 "board",
                 "requests",
                 "requests.autoclose",
                 "requests.done",
                 "summary",
                 "modules.video-suggestions",
+                "modules.time-stamps",
                 "daily"
               ]
             },
@@ -38486,6 +40092,19 @@
         ],
         "title": "Health"
       },
+      "HideRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "HideRequest",
+        "description": "Why it is hidden: its writer is told."
+      },
       "HintMove": {
         "properties": {
           "kind": {
@@ -38692,6 +40311,28 @@
         ],
         "title": "InkInfo",
         "description": "A sheet that has ink, without the ink: read it with GET /notes/{id}/ink/{sheet}."
+      },
+      "InkPage": {
+        "properties": {
+          "sheet": {
+            "type": "integer",
+            "title": "Sheet"
+          },
+          "strokes": {
+            "items": {
+              "$ref": "#/components/schemas/Stroke"
+            },
+            "type": "array",
+            "title": "Strokes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sheet",
+          "strokes"
+        ],
+        "title": "InkPage",
+        "description": "The handwriting on one sheet of a shared note."
       },
       "InkSave": {
         "properties": {
@@ -39983,6 +41624,31 @@
         ],
         "title": "LessonOut"
       },
+      "LessonTopic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "seconds": {
+            "type": "integer",
+            "title": "Seconds"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "seconds",
+          "label"
+        ],
+        "title": "LessonTopic",
+        "description": "A time in a lesson's video and what it covers (\"41:20 MLE of a uniform\"): suggested by a student, accepted by\na content manager."
+      },
       "LessonWatchedUpdate": {
         "properties": {
           "watched": {
@@ -40959,12 +42625,14 @@
                 "noora",
                 "noora.ai",
                 "notes",
+                "notes.share",
                 "board",
                 "requests",
                 "requests.autoclose",
                 "requests.done",
                 "summary",
                 "modules.video-suggestions",
+                "modules.time-stamps",
                 "daily"
               ]
             },
@@ -43097,6 +44765,16 @@
             },
             "type": "array",
             "title": "Ink"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NoteShare"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -43116,7 +44794,8 @@
           "paper",
           "sheets",
           "pdf",
-          "ink"
+          "ink",
+          "share"
         ],
         "title": "Note"
       },
@@ -43328,6 +45007,53 @@
         ],
         "title": "NotePdf",
         "description": "The PDF a note is written over: a library file (`libraryItemId`, read with /library/items/{id}/file, its page\nat /library/{slug}) or the student's own (`uploadId`, read with /notes/files/{id}). `available` is false once the\nfile is gone."
+      },
+      "NoteShare": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "credited": {
+            "type": "boolean",
+            "title": "Credited"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "sharedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sharedat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "upToDate": {
+            "type": "boolean",
+            "title": "Uptodate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "moduleId",
+          "credited",
+          "hidden",
+          "sharedAt",
+          "updatedAt",
+          "upToDate"
+        ],
+        "title": "NoteShare",
+        "description": "The note's copy shared with its module's students (GET /shared-notes/{id}), as its writer sees it from the\nnote. `upToDate`: the copy has the note as it is now; otherwise the writer may update it."
       },
       "NoteSummary": {
         "properties": {
@@ -44077,12 +45803,14 @@
                   "noora",
                   "noora.ai",
                   "notes",
+                  "notes.share",
                   "board",
                   "requests",
                   "requests.autoclose",
                   "requests.done",
                   "summary",
                   "modules.video-suggestions",
+                  "modules.time-stamps",
                   "daily"
                 ]
               },
@@ -46533,7 +48261,8 @@
               "thread",
               "reply",
               "library_item",
-              "request"
+              "request",
+              "shared_note"
             ],
             "title": "Targettype"
           },
@@ -46587,7 +48316,8 @@
               "thread",
               "reply",
               "library_item",
-              "request"
+              "request",
+              "shared_note"
             ],
             "title": "Targettype"
           },
@@ -48216,6 +49946,238 @@
         ],
         "title": "SessionState",
         "description": "GET /auth/session: the signed-in user, or null for a guest. Never 401."
+      },
+      "ShareRequest": {
+        "properties": {
+          "credited": {
+            "type": "boolean",
+            "title": "Credited",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "ShareRequest",
+        "description": "Share the note with its module's students, or update the copy shared: `credited` shows the writer's name and\nyear with it (false: \"Shared by a student\")."
+      },
+      "SharedNote": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "excerpt": {
+            "type": "string",
+            "title": "Excerpt"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "credited": {
+            "type": "boolean",
+            "title": "Credited"
+          },
+          "mine": {
+            "type": "boolean",
+            "title": "Mine"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "sharedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sharedat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "moduleTitle": {
+            "type": "string",
+            "title": "Moduletitle"
+          },
+          "noteId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Noteid"
+          },
+          "doc": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Doc"
+          },
+          "paper": {
+            "type": "string",
+            "enum": [
+              "blank",
+              "lined",
+              "grid",
+              "dotted"
+            ],
+            "title": "Paper"
+          },
+          "sheets": {
+            "type": "integer",
+            "title": "Sheets"
+          },
+          "ink": {
+            "items": {
+              "$ref": "#/components/schemas/InkPage"
+            },
+            "type": "array",
+            "title": "Ink"
+          },
+          "canModerate": {
+            "type": "boolean",
+            "title": "Canmoderate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "moduleId",
+          "title",
+          "excerpt",
+          "author",
+          "credited",
+          "mine",
+          "hidden",
+          "sharedAt",
+          "updatedAt",
+          "moduleTitle",
+          "noteId",
+          "doc",
+          "paper",
+          "sheets",
+          "ink",
+          "canModerate"
+        ],
+        "title": "SharedNote",
+        "description": "A shared note to read: its typed text (a ProseMirror document, as a note's), paper, pages and handwriting.\nIts pictures and files are read with GET /shared-notes/{id}/files/{uploadId}. `canModerate`: the viewer may hide\nit."
+      },
+      "SharedNotePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SharedNoteSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "SharedNotePage"
+      },
+      "SharedNoteSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "excerpt": {
+            "type": "string",
+            "title": "Excerpt"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "credited": {
+            "type": "boolean",
+            "title": "Credited"
+          },
+          "mine": {
+            "type": "boolean",
+            "title": "Mine"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "sharedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sharedat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "moduleId",
+          "title",
+          "excerpt",
+          "author",
+          "credited",
+          "mine",
+          "hidden",
+          "sharedAt",
+          "updatedAt"
+        ],
+        "title": "SharedNoteSummary",
+        "description": "A note shared with a module, in the module's list. `author` is None when it was shared without a name (or the\naccount has no profile). `mine`: the viewer shared it. `hidden`: a student rep hid it (only its writer and\nmoderators see it)."
       },
       "SignInResult": {
         "properties": {
@@ -51256,6 +53218,206 @@
         ],
         "title": "TodayPuzzles"
       },
+      "TopicAccept": {
+        "properties": {
+          "seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 86399.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seconds"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "title": "TopicAccept",
+        "description": "Accept as suggested, or with the time or the words put right."
+      },
+      "TopicCreate": {
+        "properties": {
+          "lessonId": {
+            "type": "string",
+            "pattern": "^[a-z0-9]{1,16}$",
+            "title": "Lessonid"
+          },
+          "seconds": {
+            "type": "integer",
+            "maximum": 86399.0,
+            "minimum": 0.0,
+            "title": "Seconds"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lessonId",
+          "seconds",
+          "label"
+        ],
+        "title": "TopicCreate",
+        "description": "A time in the lesson's video (seconds from its start) and what it covers there."
+      },
+      "TopicOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "moduleTitle": {
+            "type": "string",
+            "title": "Moduletitle"
+          },
+          "lessonId": {
+            "type": "string",
+            "title": "Lessonid"
+          },
+          "lessonTitle": {
+            "type": "string",
+            "title": "Lessontitle"
+          },
+          "seconds": {
+            "type": "integer",
+            "title": "Seconds"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decidedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decidedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decidedat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "moduleId",
+          "moduleTitle",
+          "lessonId",
+          "lessonTitle",
+          "seconds",
+          "label",
+          "status",
+          "reply",
+          "author",
+          "decidedBy",
+          "decidedAt",
+          "createdAt"
+        ],
+        "title": "TopicOut"
+      },
+      "TopicPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TopicOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "TopicPage"
+      },
       "TourStep": {
         "properties": {
           "id": {
@@ -51580,6 +53742,14 @@
             "type": "boolean",
             "title": "Unavailable",
             "default": false
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/LessonTopic"
+            },
+            "type": "array",
+            "title": "Topics",
+            "default": []
           }
         },
         "type": "object",
@@ -51588,7 +53758,7 @@
           "kind"
         ],
         "title": "Video",
-        "description": "A lesson: one video of a chapter. `id` is the lesson's own, for good: its address is\n/modules/<module id>/lessons/<id>."
+        "description": "A lesson: one video of a chapter. `id` is the lesson's own, for good: its address is\n/modules/<module id>/lessons/<id>. `topics`: what its video covers, by time, in order."
       },
       "VocabularyIn": {
         "properties": {

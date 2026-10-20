@@ -16,7 +16,7 @@ import {
   type ProgressState,
 } from './progress';
 
-const video = (id: string): Video => ({ id, kind: 'youtube', videoId: `yt${id}`, unavailable: false });
+const video = (id: string): Video => ({ id, kind: 'youtube', videoId: `yt${id}`, unavailable: false, topics: [] });
 const chapter = (title: string, n: number): Chapter => ({
   id: title.toLowerCase(),
   title,

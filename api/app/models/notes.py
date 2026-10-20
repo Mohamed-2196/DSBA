@@ -18,6 +18,7 @@ from typing import Any
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     Date,
     ForeignKey,
@@ -36,6 +37,7 @@ from app.models.base import Base, check_in, created_ts, uuid_pk
 
 PAPERS = ("blank", "lined", "grid", "dotted")
 NO_UPLOADS = text("'{}'")  # (inside Note, `text` is the column)
+NO_INK = text("'[]'::jsonb")
 DEFAULT_UPLOADS_PER_HOUR = 60
 
 
@@ -156,3 +158,58 @@ class NotebookUploadDay(Base):
     uploads: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     size_bytes: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")
     capped: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # refused at the hourly limit
+
+
+class SharedNote(Base):
+    """A copy of a student's note shared with its module's students: its title, typed text, paper, pages, ink and
+    the pictures and files it shows, as they were when it was shared (or last updated). The note itself stays private
+    and goes on changing; "Update the shared copy" copies it again. Sharing never shows the student's other notes.
+
+    The copy lists the note files it shows (`uploads`): they stay in use (services/notes.py) while the copy lists them,
+    and anyone who may read the copy may read them. A moderator (library.manage) may hide it: hidden, it is 404 to
+    everyone but its author and moderators. Its writer may stop sharing it (`withdrawn_at`): the row stays, emptied, so
+    sharing the note again finds it as a moderator left it (still hidden). Deleting the note, its notebook or the
+    account deletes the copy."""
+
+    __tablename__ = "shared_notes"
+    __table_args__ = (
+        Index("ix_shared_notes_note", "note_id", unique=True),  # one shared copy per note
+        Index("ix_shared_notes_module_shared", "module_id", "shared_at"),  # a module's shared notes, newest first
+        Index("ix_shared_notes_user", "user_id"),  # export; the files a student's copies show
+        Index("ix_shared_notes_hidden_by", "hidden_by"),  # account deletion (SET NULL)
+        Index("ix_shared_notes_uploads", "uploads", postgresql_using="gin"),  # the copies that show a file
+        check_in("paper", PAPERS),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    note_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("notes.id", ondelete="CASCADE"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    module_id: Mapped[str] = mapped_column(ForeignKey("modules.id", ondelete="CASCADE"))
+    credited: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")  # shown with the name
+    title: Mapped[str] = mapped_column(String(200), default="", server_default="")
+    doc: Mapped[dict[str, Any]] = mapped_column(default=dict, server_default=text("'{}'::jsonb"))
+    text: Mapped[str] = mapped_column(Text, default="", server_default="")
+    paper: Mapped[str] = mapped_column(String(8), default="lined", server_default="lined")
+    sheets: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    # The ink of every sheet that has some: [{"sheet": 1000, "strokes": [...]}, ...]
+    ink: Mapped[list[Any]] = mapped_column(default=list, server_default=NO_INK)
+    uploads: Mapped[list[uuid.UUID]] = mapped_column(ARRAY(Uuid), default=list, server_default=NO_UPLOADS)
+    note_version: Mapped[int] = mapped_column(Integer)  # the note's version when it was copied
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    hidden_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    hidden_at: Mapped[datetime | None]
+    withdrawn_at: Mapped[datetime | None]  # its writer stopped sharing it: emptied, and shown to nobody
+    shared_at: Mapped[datetime] = created_ts()
+    updated_at: Mapped[datetime] = created_ts()  # when it was last copied from the note
+
+
+class NoteShareEvent(Base):
+    """One share, update or unshare of a copy by its writer: what the hourly limit on sharing counts (deleting a
+    copy never gives one back)."""
+
+    __tablename__ = "note_share_events"
+    __table_args__ = (Index("ix_note_share_events_user_at", "user_id", "at"),)
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    at: Mapped[datetime] = created_ts()

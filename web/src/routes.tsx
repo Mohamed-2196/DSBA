@@ -134,6 +134,13 @@ const pages: AppRoute[] = [
     feature: 'notes',
   },
   {
+    id: 'shared-note',
+    path: '/notes/shared/:shareId',
+    title: 'Shared note',
+    Page: lazy(() => import('./features/notes/shared/SharedNotePage')),
+    feature: 'notes.share',
+  },
+  {
     id: 'note',
     path: '/notes/:noteId',
     title: 'Notebook',
