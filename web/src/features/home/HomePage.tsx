@@ -37,7 +37,7 @@ import { ResultsDayCard, StartHereCard } from '../start/public';
 import { DailyCard } from '../daily/public';
 import { useSite } from '../site/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
-import { addDays, dayKey, formatLongDay, parseDay, todayKey } from '../../lib/dates';
+import { formatLongDay, parseDay, todayKey } from '../../lib/dates';
 import { AskNoora } from './AskNoora';
 import { ALL_BLOCKS, BLOCKS, offeredBlocks, type HomeBlock } from './blocks';
 import { ComingUp } from './ComingUp';
@@ -117,7 +117,9 @@ export default function HomePage() {
   // Today in Bahrain, as the API counts it; a new object only when the day changes.
   const todayIs = todayKey(now);
   const today = useMemo(() => parseDay(todayIs), [todayIs]);
-  const calendar = useMyCalendarEvents({ from: todayIs, to: dayKey(addDays(today, 120)) }, { enabled: calendarOn });
+  // Every date from today: Up next reads its exam session from them, and My modules each module's next exam (the same
+  // query, so Home asks once).
+  const calendar = useMyCalendarEvents({ from: todayIs }, { enabled: calendarOn });
   const session = useMemo(
     () => getExamSession(calendar.data ?? [], activeYear, getModule, today, { papers }),
     [calendar.data, activeYear, getModule, today, papers],

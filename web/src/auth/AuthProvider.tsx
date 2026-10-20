@@ -127,10 +127,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // The guest list of features. Signed in, /me carries the list; it's fetched for admins too, to mark what's off for
   // others. /features answers a signed-in person with their own list, so it always goes without credentials.
   // A guest's pages wait for it (retried once, not three times); if it fails, a guest sees every feature.
+  // Without a CSRF cookie (set at sign-in) this browser is almost surely a guest's, so the list is asked for alongside
+  // the session rather than after it.
   const featuresQuery = useQuery({
     queryKey: FEATURES_KEY,
     queryFn: async () => (await call(api.GET('/api/v1/features', { credentials: 'omit' }))).features,
-    enabled: !sessionQuery.isPending && (!me || isActiveAdmin(me)),
+    enabled: sessionQuery.isPending ? readCsrfCookie() === null : !me || isActiveAdmin(me),
     staleTime: 60_000,
     retry: 1,
   });

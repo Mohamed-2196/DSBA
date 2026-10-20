@@ -46,7 +46,8 @@ export function UpcomingEvents({ n = 5, year: forYear, skip = null }: UpcomingEv
   const hides = !!prefs && prefs.hiddenEvents.length + prefs.hiddenModules.length + prefs.hiddenTypes.length > 0;
   // With papers, read more and keep the student's own (another paper's dates drop out); with hidden dates, as many
   // as the API gives, so a hidden type of date never empties the list.
-  const ask = n + (skip ? 1 : 0);
+  // One spare for the date a host skips, asked for from the start, so the list isn't read again once the host knows it.
+  const ask = n + 1;
   const query = useUpcomingEvents({ n: hides ? 60 : papers ? ask * 4 : ask, year });
   const showOwn = my.signedIn && (year == null || year === ownYear);
   const own = useMemo(() => {
