@@ -1,13 +1,12 @@
 // The file found for a paper request. While it waits, the requester or a rep says whether it's the one: yes closes
 // the request as done, no keeps it open for the next file. Once done, it links to the file.
-import { FileText } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../../../api/errors';
 import type { RequestOut } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { zoneLabel } from '../../../lib/exams';
 import { useToast } from '../../../state';
-import { Button, Panel } from '../../../ui';
+import { Button, glyph, Icon, Panel } from '../../../ui';
 import { libraryItemPath, libraryKindLabel } from '../../library/public';
 import { useAnswerFound } from '../api';
 import { awaitsAnswer } from '../labels';
@@ -51,7 +50,7 @@ export function FoundPanel({ request }: { request: RequestOut }) {
     <Panel className="req-found" data-hub="request-found">
       <p className="req-found__h">{waiting ? 'Is this the file?' : 'It’s in the library'}</p>
       <p className="req-found__file">
-        <FileText aria-hidden="true" />{' '}
+        <Icon glyph={glyph.page} />{' '}
         <Link to={libraryItemPath(file)} dir="auto">
           {file.title}
         </Link>{' '}

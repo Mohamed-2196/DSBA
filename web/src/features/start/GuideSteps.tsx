@@ -1,13 +1,12 @@
 // A guide's checklist (Start here, Results day): Home's cards show it short, the guide's page in full. Ticks stay in
 // this browser, like Career Navigator's checklist. A step's links go to another site, one of Site settings' saved
 // links, a page of the hub, the next matching calendar date, or the app's install button.
-import { ArrowRight, ArrowSquareOut, CheckCircle, DownloadSimple } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import type { DateLink as DateLinkData, GuideStep } from '../../api/types';
 import { addDaysToKey, formatDay, todayKey } from '../../lib/dates';
 import { useInstall } from '../../lib/pwa';
-import { Badge, Button, Skeleton, cx } from '../../ui';
+import { Badge, Button, cx, glyph, Icon, Skeleton } from '../../ui';
 import { safeInternalPath } from '../../ui/safeHref';
 import { useCalendarEvents } from '../calendar/public';
 import { httpsHref, useSite } from '../site/public';
@@ -40,7 +39,7 @@ function DateLink({ link }: { link: DateLinkData }) {
     <Link to={`/calendar?event=${encodeURIComponent(event.id)}`} className="start-link" data-hub="guide-date">
       {link.label} {formatDay(event.date, { weekday: 'long' })}
       {event.sample ? ', not confirmed yet' : ''}
-      <ArrowRight weight="bold" aria-hidden="true" />
+      <Icon glyph={glyph.forward} />
     </Link>
   );
 }
@@ -50,14 +49,19 @@ function InstallLink() {
   const { canPrompt, installed, prompt } = useInstall();
   if (installed) {
     return (
-      <Badge tone="signal" icon={CheckCircle}>
+      <Badge tone="signal" icon={<Icon glyph={glyph.success} />}>
         Installed
       </Badge>
     );
   }
   if (canPrompt) {
     return (
-      <Button size="sm" leadingIcon={DownloadSimple} onClick={() => void prompt()} data-hub="start-install">
+      <Button
+        size="sm"
+        leadingIcon={<Icon glyph={glyph.download} />}
+        onClick={() => void prompt()}
+        data-hub="start-install"
+      >
         Install the app
       </Button>
     );
@@ -73,7 +77,7 @@ function OutLink({ href, label }: { href: string | null; label: string }) {
   return href ? (
     <a href={href} target="_blank" rel="noopener noreferrer" className="start-link">
       {label}
-      <ArrowSquareOut weight="bold" aria-hidden="true" />
+      <Icon glyph={glyph.external} />
       <span className="visually-hidden"> (opens in a new tab)</span>
     </a>
   ) : null;
@@ -91,7 +95,7 @@ function StepLink({ link }: { link: GuideLink }) {
       return (link.feature && !featureOn(link.feature)) || !safeInternalPath(link.to) ? null : (
         <Link to={link.to} className="start-link">
           {link.label}
-          <ArrowRight weight="bold" aria-hidden="true" />
+          <Icon glyph={glyph.forward} />
         </Link>
       );
     case 'date':

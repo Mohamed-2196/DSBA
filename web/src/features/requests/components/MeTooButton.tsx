@@ -1,12 +1,11 @@
 // "Me too" on a request: toggles at once (api.ts useMeToo rolls back on failure). Guests sign in first. The
 // requester sees "You asked" with how many more want it; a suspended account and a closed request see the count
 // without the button working.
-import { HandWaving } from '@phosphor-icons/react';
 import type { RequestOut } from '../../../api/types';
 import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
-import { cx } from '../../../ui';
+import { cx, glyph, Icon } from '../../../ui';
 import { useMeToo } from '../api';
 import { meTooOfMine } from '../labels';
 import { useMayAsk } from '../useMayAsk';
@@ -55,7 +54,7 @@ export function MeTooButton({ request, size = 'md' }: { request: RequestOut; siz
         toggle();
       }}
     >
-      <HandWaving weight={request.meToo ? 'fill' : 'bold'} aria-hidden="true" className="req-metoo__icon" />
+      <Icon glyph={glyph.vote} active={request.meToo} className="req-metoo__icon" />
       {request.mine ? (
         <span className="req-metoo__label">{meTooOfMine(count)}</span>
       ) : (

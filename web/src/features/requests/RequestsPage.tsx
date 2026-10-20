@@ -1,7 +1,6 @@
 // /requests: what students asked the reps for, the most wanted first. Filters live in the URL (?kind, ?status,
 // ?sort, ?mine). ?new=<kind> opens "New request" with that kind (the library's "Ask for it" links here). "You asked,
 // we did" opens the page while no filter is set.
-import { HandWaving, Plus } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { useQueryParam, useSetQueryParams } from '../../state';
 import {
@@ -9,6 +8,8 @@ import {
   Chip,
   Count,
   EmptyState,
+  glyph,
+  Icon,
   Page,
   PageHeader,
   PageSection,
@@ -55,7 +56,7 @@ export default function RequestsPage() {
   };
   const askButton =
     mayAsk === 'suspended' ? null : (
-      <Button variant="primary" leadingIcon={Plus} onClick={startRequest} data-hub="new-request">
+      <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} onClick={startRequest} data-hub="new-request">
         New request
       </Button>
     );
@@ -75,14 +76,14 @@ export default function RequestsPage() {
   } else if (!items.length) {
     body = anyFilter ? (
       <EmptyState
-        icon={HandWaving}
+        icon={<Icon glyph={glyph.question} />}
         title="No requests match these filters"
         body="Try another kind or status."
         action={<Button onClick={() => setParams({ kind: null, status: null, mine: null })}>Clear filters</Button>}
       />
     ) : (
       <EmptyState
-        icon={HandWaving}
+        icon={<Icon glyph={glyph.question} />}
         title="No requests yet"
         body="Need a past paper, a fix or a date the hub doesn’t have? Ask the reps here."
         action={askButton}
@@ -113,6 +114,7 @@ export default function RequestsPage() {
   return (
     <Page className="req-page">
       <PageHeader
+        section="tools"
         title="Requests"
         description="Ask the reps for a past paper, a fix, a date or a feature. Say “me too” to what you need as well: the most wanted come first."
         actions={askButton}

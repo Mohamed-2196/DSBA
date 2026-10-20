@@ -1,11 +1,10 @@
 // Home's "Results day" card: for a few weeks from each results date on the calendar (the Results day guide), until
 // it is hidden.
-import { ArrowRight, X } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import type { ResultsDay } from '../../api/types';
 import { addDaysToKey, todayKey } from '../../lib/dates';
 import { useLocalStorage } from '../../state';
-import { Badge, Button, IconButton, Panel } from '../../ui';
+import { Badge, Button, glyph, Icon, IconButton, Panel } from '../../ui';
 import { useCalendarEvents } from '../calendar/public';
 import { useGuides } from './api';
 import { GuideSteps } from './GuideSteps';
@@ -41,7 +40,7 @@ function Card({ guide, eventId }: { guide: ResultsDay; eventId: string }) {
           >{`${n} of ${ticks.total} done`}</Badge>
         </div>
         <IconButton
-          icon={X}
+          icon={<Icon glyph={glyph.close} />}
           label="Hide Results day"
           size="sm"
           onClick={() => setHiddenFor(eventId)}
@@ -51,7 +50,7 @@ function Card({ guide, eventId }: { guide: ResultsDay; eventId: string }) {
       <p className="start-card__intro">{guide.intro}</p>
       <GuideSteps steps={guide.steps} ticks={ticks} variant="card" />
       <div className="start-card__foot">
-        <Button variant="ghost" size="sm" to="/results-day" trailingIcon={ArrowRight}>
+        <Button variant="ghost" size="sm" to="/results-day" trailingIcon={<Icon glyph={glyph.forward} />}>
           What each step means
         </Button>
       </div>

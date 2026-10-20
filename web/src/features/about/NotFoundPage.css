@@ -1,25 +1,16 @@
-.notfound {
-  max-width: 560px;
-  padding: var(--sp-64) 0 var(--sp-32);
-}
+/* A page that doesn’t exist: the tools band says what happened and offers the two ways on. */
 .notfound__code {
-  color: var(--ink);
-}
-.notfound__title {
-  margin-top: var(--sp-16);
-  font-size: var(--fs-28);
+  margin: 0;
+  color: var(--sec-text);
+  font-size: var(--fs-12);
   font-weight: var(--fw-heavy);
+  letter-spacing: 0.1em;
+  line-height: 16px;
+  text-transform: uppercase;
 }
-.notfound__body {
-  margin-top: var(--sp-12);
-  color: var(--ink-2);
+.notfound .ui-page-header__leading {
+  margin-bottom: var(--sp-8);
 }
-.notfound__body code {
+.notfound .ui-page-header__desc code {
   word-break: break-all;
-}
-.notfound__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-8);
-  margin-top: var(--sp-24);
 }
