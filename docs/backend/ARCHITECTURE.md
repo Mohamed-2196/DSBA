@@ -55,8 +55,8 @@ api/                          Python backend
   app/routers/                thin HTTP layer, one file per area (mounted in routers/__init__.py):
                               health auth me progress notifications admin access features
                               forum reports requests seniors suggestions summary bugs
-                              modules library uploads newsletter calendar feeds content site grades
-                              notes board noora mini_noora daily daily_content
+                              modules library uploads newsletter calendar feeds content site grades home
+                              notes shared_notes lesson_topics board noora mini_noora daily daily_content
   app/services/               the logic:
                               accounts identifiers otp sessions mailer sms outbox notify notifications summary
                               ratelimit audit access roles reports bugs
@@ -65,16 +65,18 @@ api/                          Python backend
                               requests seniors suggestions gaps polls
                               library uploads storage search content modules module_editor
                               newsletter newsletter_settings newsletter_images calendar my_calendar career
-                              past_questions exam_names paper_text text_extract drive drive_import
-                              documents (the documents edited whole in Manage) site grades
-                              notes note_doc board/ (boards, cards, plans, files, reminders, export, common)
+                              past_questions question_tagging question_marks report_answers exam_names paper_text
+                              text_extract drive drive_import timetable timetable_parse search_spelling
+                              documents (the documents edited whole in Manage) site grades home (Home's first screen)
+                              upload_budget notebook_uploads lesson_topics
+                              notes note_doc shared_notes board/ (boards, cards, plans, files, reminders, export, common)
                               noora/ (ask, prompt, paper, settings)
                               daily/ (plays, today, rules, content, editor, bundle, streaks, badges, sudoku_engine, games/)
   app/seed/                   the seed loader and the starting content (data/*.json; data/daily: the Daily themes
                               and the word game's guess list)
   app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, weekly-summary,
-                              import-drive, exam-meta, text-worker, extract-texts, texts-role,
-                              daily-content, dev-login, enable-features (`python -m app.cli --help` says what each does)
+                              import-drive, exam-meta, text-worker, extract-texts, report-answers, texts-role,
+                              daily-content, tag-questions, export-question-tags, dev-login, enable-features (`python -m app.cli --help` says what each does)
   tests/conftest.py           shared harness (each run makes its own database)
   tests/core|accounts|community|content|notes|board|noora|daily/   each area's tests
   Dockerfile, requirements.txt   the API image; requirements.txt is uv.lock exported with hashes
