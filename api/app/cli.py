@@ -72,6 +72,7 @@ from app.core.access import Feature
 from app.core.time import utcnow
 from app.db import get_sessionmaker, make_engine, sessions_for
 from app.models import AccessRole, OtpChallenge, Upload, UploadPurpose, UploadStatus, User, UserSession
+from app.seed.loader import SECTIONS as SEED_SECTIONS
 from app.services.storage import Storage, get_storage, s3_client
 
 if TYPE_CHECKING:
@@ -657,16 +658,7 @@ def main(argv: list[str] | None = None) -> int:
     sp = sub.add_parser("seed")
     sp.add_argument(
         "--only",
-        choices=[
-            "modules",
-            "broken-chapters",
-            "calendar",
-            "newsletter",
-            "career",
-            "drive-folders",
-            "daily",
-            "paper-questions",
-        ],
+        choices=list(SEED_SECTIONS),
         default=None,
     )
     sp.set_defaults(fn=cmd_seed)

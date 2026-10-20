@@ -35,6 +35,7 @@ from app.models import (
     User,
     UserSession,
 )
+from app.seed.loader import SECTIONS
 from app.services import access
 from app.services.storage import INCOMING_RULE_ID, Storage, s3_client
 from tests.core.conftest import SetOption
@@ -287,3 +288,17 @@ def test_enable_features_switches_everything_on_and_logs_it(same_session: Sessio
 def test_enable_features_refuses_in_production(same_session: Session, set_option: SetOption) -> None:
     set_option("env", "production")
     assert cli.main(["enable-features"]) == 1
+
+
+@pytest.mark.parametrize("section", list(SECTIONS))
+def test_seed_takes_every_section_by_name(section: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`seed --only X` takes every section the loader has, so a new section is never left unreachable."""
+    ran: list[str | None] = []
+
+    def load_all(db: object, only: str | None = None) -> dict[str, int]:
+        ran.append(only)
+        return {}
+
+    monkeypatch.setattr("app.seed.loader.load_all", load_all)
+    assert cli.main(["seed", "--only", section]) == 0
+    assert ran == [section]
