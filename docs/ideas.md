@@ -9,6 +9,40 @@ comes back only if something changes, and it then says what.
 Mohamed's own requests, R-1 to R-10, are in `docs/ROADMAP.md`. Ideas here don't repeat them. An idea that sharpens
 one carries its number, like "R-3".
 
+## Round 16 ranking of the open ideas (20 October 2026)
+
+Every idea still proposed or on hold, ranked by what it's worth to a DSBA student today, study core first. Sizes are
+S (a day or two), M (about a week) and L (more). New ones are described in "Round 16" at the end.
+
+| Rank | Idea | Size | Why here |
+| --- | --- | --- | --- |
+| 1 | IDEA-44 Each question with its worked answer | M | 159 of 216 reports walk through each question, often with the full answer; nobody can find it |
+| 2 | IDEA-48 Exam week leads Home on phones | S | the first phone screen is five tiles that repeat the tab bar, two days before an exam |
+| 3 | IDEA-46 "Solutions" that says the report has them | S | the sittings table says "No solutions yet" beside reports full of answers |
+| 4 | IDEA-45 Practise a chapter | M | 1,446 tagged questions, but no way to work through one chapter's and keep score |
+| 5 | IDEA-29 Share a note with your module | M | still the only route from private notes to the cheat sheets modules lack |
+| 6 | IDEA-51 Your notes in search | S | the palette finds every file but not what you wrote yourself |
+| 7 | IDEA-54 The exam timetable in one paste | M | none of the October exams has a time or a place; a rep can't type 16 by hand |
+| 8 | IDEA-50 Chapter words for search | S | "MLE" and "Cramér-Rao" find reports but never the chapter or its questions |
+| 9 | IDEA-47 Ask about one question | S | "Has anyone asked about 2024 Q3?" is the exam-night forum question |
+| 10 | IDEA-35 Hear about it on your phone | M | the installed hub still never buzzes |
+| 11 | IDEA-31 Is there class today? | S-M | daily value, but only if a rep posts it faster than WhatsApp |
+| 12 | IDEA-49 Asked before, on the module page | S | shows the forum's answers where students already are |
+| 13 | IDEA-52 What's in this recording | M | 27 ST2134 lessons are all called "Class recording" |
+| 14 | IDEA-55 Your revision plan on the calendar | S | the plan lives on a board few students open |
+| 15 | IDEA-30 Flip cards from your notes | S-M | useful, but Anki users already have Anki |
+| 16 | IDEA-53 Print a module's notes | S | the night-before printout; the per-note A4 export already exists |
+| 17 | IDEA-32 Ask about this lesson | M | worth it once the forum is busier; today it has a handful of threads |
+| 18 | IDEA-56 Keep a module's papers on this phone | M | campus wifi drops, but short-lived file links make it fiddly |
+| 19 | IDEA-33 Every deadline on my board | S | Home's To-do and the calendar already show dated deadlines |
+| on hold | IDEA-22 Links that look right in WhatsApp | M | waits on R-8; if R-8 comes back, it ranks about 9th |
+
+**Older ideas (IDEA-1 to IDEA-24).** Only IDEA-22 is still open. IDEA-4, IDEA-9, IDEA-15 and IDEA-19 were marked
+proposed, but the code shows them built in rounds 6 and 14, so their statuses now say so; IDEA-26 and IDEA-43 too.
+
+**Obsolete.** IDEA-25 (the module page and IDEA-48 cover it), IDEA-28 (too little data now that progress is opt in)
+and IDEA-34 (Home already shows the week). Mohamed can decline them.
+
 ## Round 1: 13 October 2026
 
 **How I used the hub.** As a guest and as three made-up students (Layla in Year 1, Hamad in Year 2, Reem in Year 3),
@@ -161,7 +195,8 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** the forum's rule against sharing exam questions while an exam window is open, so papers from
   a session still running can't be picked. Moderation as usual.
 - **How we'd know it worked:** threads that name a paper, and how often they get an answer compared with others.
-- **Status:** proposed.
+- **Status:** built, mostly (round 14, `round14/forum` and `round14/library`): "Ask about this paper" opens the composer
+  with the paper's link, and the paper lists the threads that link it. A question number isn't a field; IDEA-47 adds it.
 
 ### IDEA-5. Search finds lessons · quick win · **built (round 5)**
 
@@ -229,7 +264,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** S, web only.
 - **Costs and risks:** none.
 - **How we'd know it worked:** replies from Years 2 and 3 on Year 1 threads; time to a first reply.
-- **Status:** proposed.
+- **Status:** built (round 6), behind the switch `forum.help-below` (`forum/HelpBelow.tsx`).
 
 ## Your papers and your dates
 
@@ -315,7 +350,8 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** M on top of R-9, both.
 - **Costs and risks:** curating takes a content manager's time. Links rot, so the daily sweep could check them later.
 - **How we'd know it worked:** Year 3 modules with lessons by January; Year 3 lesson views.
-- **Status:** proposed.
+- **Status:** built (round 6), behind `modules.video-suggestions`. Year 3 still has no lessons: that's content, waiting on
+  Mohamed (STATUS, Content gaps).
 
 ### IDEA-16. Choosing your Year 3 electives · **built (round 5)**
 
@@ -372,7 +408,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** M on top of R-2, both.
 - **Costs and risks:** it needs the import's year and zone. One request per person per item.
 - **How we'd know it worked:** share of requests closed this way; days from request to file.
-- **Status:** proposed.
+- **Status:** built (round 6), behind `requests.autoclose` (`requests.match_published`, `close_for_date`).
 
 ### IDEA-20. Ask the cohort: polls · **built (round 5)**
 
@@ -512,7 +548,8 @@ Quick wins are marked **quick win** in the heading: a day or two each.
 - **Costs and risks:** another page to keep in step with the rest. It's only as good as the times and places reps
   enter (IDEA-11).
 - **How we'd know it worked:** visits in the 72 hours before each exam; papers opened from it.
-- **Status:** proposed.
+- **Status:** proposed. Round 16 suggests dropping it: the module page (round 14) now does most of it, and
+  IDEA-48 puts the rest on Home.
 
 ### IDEA-26. Noora reads the paper you're on
 
@@ -531,7 +568,7 @@ Quick wins are marked **quick win** in the heading: a day or two each.
   question when the student names one, and let the existing budget refuse when it's spent. Scanned papers have no
   text, so the button hides. The live-assessment rule in Noora's prompt stays.
 - **How we'd know it worked:** asks from paper pages, and the share Noora answers without "I don't know".
-- **Status:** proposed.
+- **Status:** built (round 6): "Ask Noora about this paper" (`noora/paper.py`).
 
 ### IDEA-27. A past question a day · quick win
 
@@ -559,7 +596,8 @@ Quick wins are marked **quick win** in the heading: a day or two each.
 - **Costs and risks:** shown only when at least ten students watched, so no one person can be singled out. It needs
   one exam season of data, so it starts paying off in May.
 - **How we'd know it worked:** views of marked chapters against unmarked ones in the month before.
-- **Status:** proposed.
+- **Status:** proposed. Round 16 suggests dropping it: lesson progress is opt-in (round 8) and the Year 2
+  recordings are named by date, so the counts would be too thin to show.
 
 ## Round 2 · Notes into revision
 
@@ -646,7 +684,8 @@ Quick wins are marked **quick win** in the heading: a day or two each.
 - **Costs and risks:** none new: the summary already leaves out anything a guest can't read and features that are
   off.
 - **How we'd know it worked:** clicks from the card; visits on Sundays and Mondays.
-- **Status:** proposed.
+- **Status:** proposed. Round 16 suggests dropping it: Home's Up next, New files, Forum and daily question
+  blocks (rounds 7-14) already show the week.
 
 ### IDEA-35. Hear about it on your phone
 
@@ -819,4 +858,250 @@ a note with your module), which they would sit well beside.
 - **Costs and risks:** stale data shown as current. The time stamp line handles it, and private lists (notes) stay
   out of the cache.
 - **How we'd know it worked:** fewer spinners on a cold load, and the time to first content on a throttled phone.
+- **Status:** built (`round14/offline`): the last lists stay readable offline for a week, per account.
+
+## Round 16: 20 October 2026
+
+**How I used the hub.** In the Deskmates look (round 15), as a guest and as made-up students in Years 1, 2 and 3
+(`student.ideas.y*@example.com`, dev-login), on a 390×844 phone and a 1366×768 laptop. It was exam week: MT1186 in two
+days, ST2134 in three, the ST2187 MCQ closing today. I went through a normal week (modules, lessons, the forum, the
+calendar, the notebook) and the night before ST2134 (its papers, reports, tagged questions, search and Noora). I
+posted nothing. I read the reports' stored text in the local database to see what's in them, and the v1 bundle on
+`gh-pages`, whose Cheat Sheet and Exercises links the hub has since replaced with real files.
+
+**What stood out.**
+- The study core is now good. ST2134's page is its home: the exam chip, the sittings table, Plan my revision, your
+  notes and students' notes. A paper lists its tagged questions, and a chapter lists "Past exam questions on this
+  chapter". That's what Drive and WhatsApp can't do.
+- The examiners' reports are the hub's hidden treasure. 159 of the 216 with text walk through each question under
+  "Approaching the question", and ST2134's give the full working. Yet the sittings table says "No solutions yet" for
+  most sittings, and a tagged question opens the paper, never what the examiners said about it.
+- On a phone, Home's first screen is the greeting and five tiles that repeat the tab bar. Two days before MT1186, Year
+  1's countdown sits under Start here, below the fold.
+- Search finds "MLE" inside reports, but not ST2134's Point Estimation chapter or its 55 tagged questions. Year 2
+  lessons are 27 videos called "Class recording" with a date.
+- The palette searches files, threads and dates, but not your own notes.
+- The forum has a handful of real threads. WhatsApp still holds the questions, so the forum should show up where
+  students already are rather than wait to be visited.
+- No October exam has a time or place yet, and Year 3 has no lessons or exam dates. Both are content, waiting on
+  Mohamed (STATUS), so I left them out.
+
+Quick wins are marked **quick win** in the heading.
+
+## Round 16 · Past papers into practice
+
+### IDEA-44. Each question with its worked answer
+
+- **The moment:** Hamad, 11 pm before ST2134, on 2024 Q2(c): "I've got an answer. Is it right? The report's 12 pages
+  and I don't know where Q2 starts."
+- **The idea:** A tagged question gets "What the examiners said": it opens that sitting's report at the page where
+  the question's commentary starts, beside the paper on a laptop and as a second tab on a phone. The chapter list and
+  the past question a day get the same link. The page is found once, when a report's text is stored, by the same
+  pass that tags questions (the report's "Question 2" heading, checked by the tagger), and kept on the question.
+- **Builds on:** `paper_questions` (question, page, chapters), the sitting links from paper to report (IDEA-1),
+  `library_texts` with its page breaks, the tagging pipeline (`question_tagging.py`, seeded by Haiku agents), the
+  viewer's `?page=` links, `ChapterQuestions`.
+- **Size:** M, both: a report page on each question and a migration, the matching step, two links in the web app.
+- **Costs and risks:** a wrong page sends a student to the wrong answer, so show "Report, page 7" and let anyone flag
+  it, as tags are flagged today. Reports without per-question sections (about a quarter) get no link. No personal
+  data, no AI cost after the one pass.
+- **How we'd know it worked:** reports opened from a question; reports downloaded nearly as often as papers in May.
 - **Status:** proposed.
+
+### IDEA-45. Practise a chapter
+
+- **The moment:** Layla, a week before ST1215: "Hypothesis Tests has 87 past questions. I want to do them in order and
+  know which I've done and which I got stuck on."
+- **The idea:** "Practise this chapter" on a chapter's past questions: one question at a time, newest sitting first,
+  each opening the paper at its page, with "Done", "Stuck" and "Skip". The chapter then shows "30 of 87 done,
+  4 stuck", and Stuck offers the report (IDEA-44), Noora on the paper, and asking the forum (IDEA-47). Marks are saved
+  to the account, like practice scores.
+- **Builds on:** `GET /library/questions` by module and chapter, the paper-scores pattern (`/paper-scores`, D15), the
+  Lessons tab's question list, "Ask Noora about this paper".
+- **Size:** M, both: a marks table and a migration, two endpoints, the practise screen.
+- **Costs and risks:** another kind of progress, so it's private, in the export and gone with the account. Only as
+  good as the tags; flagged tags already handle that.
+- **How we'd know it worked:** chapters practised in the month before May; questions marked stuck that then got a
+  report or forum visit.
+- **Status:** proposed.
+
+### IDEA-46. "Solutions" that says the report has them · quick win
+
+- **The moment:** Reem, on Machine Learning's sittings: "Every row says No solutions yet. So I'll ask in the group."
+  The May 2025 report beside it works through every question.
+- **The idea:** In the sittings table and on a paper's page, a sitting with no solutions file but a report that has
+  per-question commentary shows "Worked in the report" with the report's link, instead of "No solutions yet". The
+  flag is set when the report's text is stored.
+- **Builds on:** `GET /library/papers` sittings, `library_texts` (a search for "Approaching the question" or
+  numbered question headings), the sittings table and `SittingPanel`.
+- **Size:** S, both: one boolean on the sitting's report in the response, set at text time; a word in the table.
+- **Costs and risks:** none. Copy must not promise model answers where a report only comments.
+- **How we'd know it worked:** fewer "solutions for 2023?" requests; report opens from the table.
+- **Status:** proposed.
+
+### IDEA-47. Ask about one question · quick win
+
+- **The moment:** Hamad: "Has anyone asked about 2024 Q3? The paper says one thread links it, but it's about Q1."
+- **The idea:** Each tagged question row gets "Ask about Q3", which opens the composer with a link to the paper at
+  that question (`/library/<slug>#q3`), and shows "2 threads" when threads already link it. The paper's thread list
+  groups by question.
+- **Builds on:** `links_to_paper()` (it already accepts an anchor), "Ask about this paper" (`askAboutHref`),
+  `PaperThreads`, the question rows.
+- **Size:** S, both: a `question` filter beside `paper` on `/forum/threads`, the link, a count.
+- **Costs and risks:** the forum's live-exam rule stays: papers from a running session can't be picked. Moderation as
+  usual.
+- **How we'd know it worked:** threads that name a question; answers on them in exam weeks.
+- **Status:** proposed.
+
+## Round 16 · Home and the week
+
+### IDEA-48. Exam week leads Home on phones · quick win
+
+- **The moment:** Layla opens the hub on the bus, two days before MT1186: the greeting, five tiles for places the tab
+  bar already shows, then Start here. The countdown is three thumbs down.
+- **The idea:** In the seven days before one of your exams, Home's first block on a phone is that exam: the date,
+  time and place (or "not set yet"), and three buttons: the next sitting you haven't timed, the report for the last
+  one, and the chapter with the most past questions. The shortcut tiles fold into one row, and Start here goes below
+  Up next. Outside exam weeks, Home is as it is. This replaces IDEA-25's separate page.
+- **Builds on:** `home/blocks.ts` and the customisable order (round 8), the countdown's `session.ts`, the sittings,
+  paper scores, `/library/questions` counts, Carry on.
+- **Size:** S, web only.
+- **Costs and risks:** Home moving on its own may surprise students who customised it, so it only changes the first
+  block and says why ("Exam week: MT1186 Thursday").
+- **How we'd know it worked:** papers opened from Home in exam weeks; Home's scroll depth on phones.
+- **Status:** proposed.
+
+### IDEA-49. Asked before, on the module page · quick win
+
+- **The moment:** Hamad on ST2133's page: "Somebody must have asked about the MGF already." The answer is in the
+  forum, which he hasn't opened this month.
+- **The idea:** On a module's Overview, "Asked before": up to three answered threads for the module, most voted first,
+  and "Ask a question" with the module filled in. Hidden when there are none.
+- **Builds on:** `GET /forum/threads` with `module` and an answered filter, the Discussion tab, the composer presets.
+- **Size:** S, web only.
+- **Costs and risks:** none; it shows what's already public.
+- **How we'd know it worked:** threads opened from module pages; fewer duplicate threads.
+- **Status:** proposed.
+
+## Round 16 · Finding it
+
+### IDEA-50. Chapter words for search · quick win
+
+- **The moment:** Hamad types "MLE" and gets three reports. He wanted ST2134's Point Estimation chapter and its past
+  questions.
+- **The idea:** Site settings' search nicknames, which today point at modules, can point at a chapter too: "mle",
+  "cramer rao" and "fisher information" find Point Estimation. The chapter result says "55 past questions" and opens
+  the Lessons tab at that chapter.
+- **Builds on:** `search.nicknames()` and Manage → Site settings, the `lessons` group in `GET /search`, the chapter
+  question counts.
+- **Size:** S, both.
+- **Costs and risks:** a content manager types the words, once per chapter; Haiku could suggest them during tagging.
+- **How we'd know it worked:** chapter results opened from search; searches ending without a click.
+- **Status:** proposed.
+
+### IDEA-51. Your notes in search · quick win
+
+- **The moment:** Sara: "I wrote the MGF trick down somewhere. ⌘K finds every file in the hub but not my own note."
+- **The idea:** When signed in, the palette adds a "Your notes" group from the notes list's own search, private to
+  you, after the library group.
+- **Builds on:** `GET /notes?q=` (already there for the notes list), the palette's groups (`search/search.ts`).
+- **Size:** S, web only.
+- **Costs and risks:** none; the query goes to the same private endpoint the notes page uses, never into `/search`.
+- **How we'd know it worked:** notes opened from the palette.
+- **Status:** proposed.
+
+### IDEA-52. What's in this recording
+
+- **The moment:** Hamad: "Which of the 27 'Class recording' videos does the Cramér-Rao bound? I'm not watching 30
+  hours to find it."
+- **The idea:** Under a recording, "Add a topic at this time" lets a student suggest a time and a line ("41:20 MLE of
+  a uniform"). A content manager accepts it, as video suggestions are accepted. Accepted topics show as marks under
+  the video, in the lesson list ("Covers: MLE, invariance") and in search.
+- **Builds on:** the video-suggestions queue (`/video-suggestions`, Manage), notes beside the playing video with time
+  stamps (ST-44), the YouTube player's seek, search's `lessons` group.
+- **Size:** M, both: a table and a migration, the suggest form, the queue, marks under the player.
+- **Costs and risks:** review load, a minute a suggestion. Start with ST2134 and ST2133, where every title is a date.
+- **How we'd know it worked:** recordings with topics; lessons opened from search.
+- **Status:** proposed.
+
+## Round 16 · Notebook
+
+### IDEA-53. Print a module's notes
+
+- **The moment:** Reem, the night before: "I want all my Microeconomics notes on paper, in order, to read in the
+  morning."
+- **The idea:** "Print all" on the notes list filtered by a module: one A4 PDF of those notes, oldest first, with ink
+  and pictures, built the way a single note's export is built.
+- **Builds on:** notes' module (IDEA-41), the A4 export with ink (round 12), the notes list's module filter.
+- **Size:** S, web only.
+- **Costs and risks:** a large PDF on a phone; cap it at about 30 notes and say so.
+- **How we'd know it worked:** exports in the week before exams.
+- **Status:** proposed.
+
+## Round 16 · Dates
+
+### IDEA-54. The exam timetable in one paste
+
+- **The moment:** Mohamed, when the October timetable arrives: "Sixteen exams, each with a time and a room. I'm not
+  opening sixteen forms."
+- **The idea:** In Manage → Calendar, "Paste the timetable": paste the rows (unit code, date, time, room) as they come
+  from the official email or spreadsheet. The hub matches each row to its exam event by unit code, shows what will
+  change, and saves them at once with a source and today's checked date. Each year affected gets one notice listing
+  its exams, not one per event.
+- **Builds on:** calendar events' `time`, `place`, `source` and `checkedOn` (IDEA-11), unit codes on modules,
+  `date_changed` notifications (IDEA-12), the audit log, the Gaps tab's "exams without a time or place".
+- **Size:** M, both: a preview endpoint and a bulk save, the paste screen.
+- **Costs and risks:** a mismatched row puts a wrong room on an exam, so the preview shows every change and rows it
+  couldn't match. Year 3's modules need unit codes first.
+- **How we'd know it worked:** exams with a time and place a week before the session; fewer "what time?" messages.
+- **Status:** proposed.
+
+### IDEA-55. Your revision plan on the calendar
+
+- **The moment:** Layla made a plan for ST1215, but she lives in the calendar view, not on boards: "What did I say
+  I'd do today?"
+- **The idea:** The calendar shows your dated board cards as a "Your plan" layer, switchable like the event types, and
+  the private feed carries them to the phone's calendar.
+- **Builds on:** `GET /board-agenda`, the calendar's type filters, the private feed (`/calendar/mine/feed`).
+- **Size:** S, web mostly; the feed part touches the API.
+- **Costs and risks:** a busy plan crowds the month view, so it's off until switched on.
+- **How we'd know it worked:** plan cards opened from the calendar; feed subscriptions.
+- **Status:** proposed.
+
+## Round 16 · Offline
+
+### IDEA-56. Keep a module's papers on this phone
+
+- **The moment:** Yusuf, outside the exam hall on campus wifi that keeps dropping: "I opened the 2024 paper an hour ago.
+  Now it won't load."
+- **The idea:** "Keep on this phone" on a module's sittings saves the last five papers and their reports in the
+  installed app's storage, shown with a tick, and removed with a tap or after the exam.
+- **What changed since round 2:** round 2 left offline papers out ("connections in Bahrain are good"); round 14 found
+  campus wifi drops and built offline lists (IDEA-43). Files are the missing half.
+- **Builds on:** the service worker and offline lists (IDEA-43), the file route `/library/items/{id}/file`, sittings.
+- **Size:** M, web.
+- **Costs and risks:** short-lived file links, so the worker fetches the bytes once and stores them, not the link;
+  about 5 MB a module. Cleared on sign-out like the lists.
+- **How we'd know it worked:** papers opened offline in exam weeks.
+- **Status:** proposed.
+
+## Considered and left out (round 16)
+
+- **A separate exam-night page (IDEA-25):** the module page has become it; IDEA-48 adds the missing part to Home.
+- **Paid paper bundles and StuDocu-style uploads of answers:** the reports already hold the answers (IDEA-44, 46);
+  student answers would need marking and moderation the rep can't give.
+- **More Daily:** Mohamed put the study core first.
+- **Exam times and Year 3 lessons:** content waiting on Mohamed, not features.
+
+## Top eight (round 16)
+
+1. **IDEA-44: each question with its worked answer.** The hub already holds the answers to most past questions. This
+   joins them to the questions, which is exactly the night-before-exam job that Drive can't do.
+2. **IDEA-48: exam week leads Home on phones.** A day's work; it puts the next exam where the thumb lands.
+3. **IDEA-46: "Solutions" that says the report has them.** A day's work that stops students asking for files the hub
+   already has.
+4. **IDEA-45: practise a chapter.** It turns 1,446 tagged questions into a revision routine with a score.
+5. **IDEA-29: share a note with your module.** Still the route to the cheat sheets the library lacks.
+6. **IDEA-51: your notes in search.** One group in the palette makes the notebook findable.
+7. **IDEA-54: the exam timetable in one paste.** It makes the rep's most important upkeep a five-minute job.
+8. **IDEA-50: chapter words for search.** It sends "MLE" to the chapter and its questions instead of a report.
