@@ -1,10 +1,10 @@
 // The Daily (/daily): the day's number and the week's theme, one line of how today stands (done, points, streak, the
 // time to the next set), and the six games as tiles; then past days to practise, the leaderboard and your stats.
 import { useQueryClient } from '@tanstack/react-query';
-import { CheckCircle, Clock, Flame, Snowflake, Star } from '@phosphor-icons/react';
+import { Flame, Snowflake } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { useQueryParam } from '../../state';
-import { Button, Page, QueryError, Skeleton, TabPanel, Tabs, cx } from '../../ui';
+import { Button, cx, Page, PageHeader, QueryError, Skeleton, TabPanel, Tabs } from '../../ui';
 import { newDay, useDailyToday } from './api';
 import { ArchiveView } from './components/ArchiveView';
 import { Countdown } from './components/Countdown';
@@ -34,7 +34,7 @@ export default function DailyPage() {
       {today.data === undefined ? (
         today.isError ? (
           <>
-            <h1 className="dh-title">Daily puzzles</h1>
+            <PageHeader section="tools" title="Daily puzzles" />
             <QueryError
               error={today.error}
               title="Today’s puzzles didn’t load"
@@ -79,46 +79,42 @@ function Head({ today }: { today: DailyToday }) {
   const qc = useQueryClient();
   const streak = today.streak;
   return (
-    <header className="dh-head">
-      <h1 className="dh-title dy-num">
-        Daily #{today.number} · {today.theme.title}
-      </h1>
-      {today.theme.blurb ? <p className="dh-blurb">{today.theme.blurb}</p> : null}
-      <ul className="dh-status" aria-label="Today so far">
-        <li className="dy-num">
-          <CheckCircle weight={today.done ? 'fill' : 'regular'} aria-hidden="true" />
-          {today.done} of {today.games.length} done
-        </li>
-        {me ? (
+    <PageHeader
+      section="tools"
+      className="dh-head"
+      title={<span className="dy-num">{`Daily #${today.number} · ${today.theme.title}`}</span>}
+      description={today.theme.blurb || undefined}
+      meta={
+        // One line of how today stands. Only the streak carries an icon: the flame and the freeze are the game's own.
+        <ul className="dh-status" aria-label="Today so far">
           <li className="dy-num">
-            <Star weight={today.points ? 'fill' : 'regular'} aria-hidden="true" />
-            {today.points === 1 ? '1 point' : `${today.points} points`}
+            {today.done} of {today.games.length} done
           </li>
-        ) : null}
-        {streak ? (
-          <li className={cx('dy-num', streak.current > 0 && 'is-lit')}>
-            <Flame weight={streak.current > 0 ? 'fill' : 'regular'} aria-hidden="true" />
-            {streak.current > 0 ? `${streak.current}-day streak` : 'Start a streak'}
-            {streak.freezeReady && streak.current > 0 ? (
-              <span className="dh-status__freeze" title="Miss a day this week and your streak carries on">
-                <Snowflake weight="fill" aria-hidden="true" />
-                <span className="dh-status__freeze-text">Freeze ready</span>
-              </span>
-            ) : null}
-          </li>
-        ) : (
+          {me ? <li className="dy-num">{today.points === 1 ? '1 point' : `${today.points} points`}</li> : null}
+          {streak ? (
+            <li className={cx('dy-num', streak.current > 0 && 'is-lit')}>
+              {streak.current > 0 ? <Flame weight="fill" aria-hidden="true" /> : null}
+              {streak.current > 0 ? `${streak.current}-day streak` : 'Start a streak'}
+              {streak.freezeReady && streak.current > 0 ? (
+                <span className="dh-status__freeze" title="Miss a day this week and your streak carries on">
+                  <Snowflake weight="fill" aria-hidden="true" />
+                  <span className="dh-status__freeze-text">Freeze ready</span>
+                </span>
+              ) : null}
+            </li>
+          ) : (
+            <li>
+              <Button variant="secondary" size="sm" onClick={() => openSignIn()}>
+                Sign in to keep points and a streak
+              </Button>
+            </li>
+          )}
           <li>
-            <Button variant="ghost" size="sm" onClick={() => openSignIn()}>
-              Sign in to keep points and a streak
-            </Button>
+            Next set in <Countdown to={today.nextAt} onDone={() => newDay(qc)} />
           </li>
-        )}
-        <li>
-          <Clock aria-hidden="true" />
-          Next set in <Countdown to={today.nextAt} onDone={() => newDay(qc)} />
-        </li>
-      </ul>
-    </header>
+        </ul>
+      }
+    />
   );
 }
 
@@ -138,11 +134,7 @@ function HubSkeleton() {
   return (
     <div aria-busy="true">
       <span className="visually-hidden">Loading today’s puzzles</span>
-      <div className="dh-head">
-        <Skeleton width="14em" height={36} />
-        <Skeleton width="20em" />
-        <Skeleton width="16em" />
-      </div>
+      <PageHeader section="tools" className="dh-head" title="Daily puzzles" meta={<Skeleton width="16em" />} />
       <ul className="dh-games">
         {Array.from({ length: 6 }, (_, i) => (
           <li key={i}>

@@ -3,7 +3,7 @@
   display: block;
   max-width: 12rem;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-control);
   background: var(--surface-2);
 }

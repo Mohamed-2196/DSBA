@@ -29,7 +29,7 @@
 .grades-set__table th,
 .grades-set__table td {
   padding: 6px 8px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
   text-align: left;
   vertical-align: top;
 }

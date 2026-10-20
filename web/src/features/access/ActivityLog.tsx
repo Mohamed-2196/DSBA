@@ -1,9 +1,8 @@
 // The activity log: who did what, newest first, in plain words.
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
-import { ClockCounterClockwise } from '@phosphor-icons/react';
 import type { AdminUserPage } from '../../api/types';
 import { useAuth } from '../../auth';
-import { Avatar, Button, EmptyState, Panel, QueryError, Skeleton, formatDate, timeAgo } from '../../ui';
+import { Avatar, Button, EmptyState, formatDate, glyph, Icon, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
 import { ADMIN_USERS_KEY, useAudit, usePeople } from './api';
 import { auditActor, describeAudit } from './audit';
 import './ActivityLog.css';
@@ -56,7 +55,7 @@ export function ActivityLog() {
       <Panel padding="none">
         <EmptyState
           size="sm"
-          icon={ClockCounterClockwise}
+          icon={<Icon glyph={glyph.clock} />}
           title="Nothing yet"
           body="Role changes, switches, suspensions and moderation show up here."
         />

@@ -1,8 +1,18 @@
 // /start-here: Year 1's first weeks in full (the Start here guide, edited in Manage → Guides). Open to everyone,
 // all year.
-import { ArrowSquareOut } from '@phosphor-icons/react';
 import type { GuidePlace, StartHere } from '../../api/types';
-import { Badge, Page, PageHeader, PageSection, Panel, QueryError, SectionHeader, Skeleton } from '../../ui';
+import {
+  Badge,
+  glyph,
+  Icon,
+  Page,
+  PageHeader,
+  PageSection,
+  Panel,
+  QueryError,
+  SectionHeader,
+  Skeleton,
+} from '../../ui';
 import { httpsHref, useSite } from '../site/public';
 import { useGuides } from './api';
 import { GuideSteps } from './GuideSteps';
@@ -21,7 +31,7 @@ function Places({ places }: { places: readonly GuidePlace[] }) {
               {href ? (
                 <a href={href} target="_blank" rel="noopener noreferrer" className="start-link">
                   {p.name}
-                  <ArrowSquareOut weight="bold" aria-hidden="true" />
+                  <Icon glyph={glyph.external} />
                   <span className="visually-hidden"> (opens in a new tab)</span>
                 </a>
               ) : (
@@ -44,6 +54,7 @@ export function StartHereBody({ guide }: { guide: StartHere }) {
   return (
     <>
       <PageHeader
+        section="tools"
         title={guide.title}
         description={guide.intro}
         meta={

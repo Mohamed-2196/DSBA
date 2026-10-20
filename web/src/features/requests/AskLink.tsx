@@ -1,8 +1,7 @@
 // "Can't find it? Ask for it": a link to /requests with "New request" open on a kind, for pages where something
 // may be missing (the library). Shows only while requests are on and the person isn't suspended.
-import { HandWaving } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
-import { Button } from '../../ui';
+import { Button, glyph, Icon } from '../../ui';
 import type { RequestKind } from './types';
 import { useMayAsk } from './useMayAsk';
 import './AskLink.css';
@@ -21,7 +20,7 @@ export function AskLink({ kind = 'paper', lead = 'Can’t find it?', className }
   return (
     <p className={className ?? 'req-ask'} data-hub="ask-link">
       <span>{lead}</span>
-      <Button variant="ghost" size="sm" leadingIcon={HandWaving} to={`/requests?new=${kind}`}>
+      <Button variant="ghost" size="sm" leadingIcon={<Icon glyph={glyph.question} />} to={`/requests?new=${kind}`}>
         Ask for it
       </Button>
     </p>

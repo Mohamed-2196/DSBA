@@ -2,8 +2,8 @@
 // from its puzzle.
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle, Flame } from '@phosphor-icons/react';
-import { Panel, QueryError, Skeleton, cx } from '../../ui';
+import { Flame } from '@phosphor-icons/react';
+import { cx, glyph, Icon, Panel, QueryError, Skeleton } from '../../ui';
 import { useDailyToday } from './api';
 import { GameTile } from './components/GameGlyph';
 import { gameLink, statusOf } from './lib/status';
@@ -75,7 +75,7 @@ export function DailyCard() {
               <Link to={gameLink(g)} className={cx('home-daily__item', done && 'is-done')}>
                 <span className="home-daily__icon">
                   <GameTile game={g.info.id} size={36} />
-                  {done ? <CheckCircle className="home-daily__check" weight="fill" aria-hidden="true" /> : null}
+                  {done ? <Icon glyph={glyph.success} className="home-daily__check" /> : null}
                 </span>
                 <span className="home-daily__text">
                   <span className="home-daily__name">{g.info.title}</span>

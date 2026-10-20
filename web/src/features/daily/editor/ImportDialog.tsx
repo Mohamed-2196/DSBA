@@ -1,12 +1,11 @@
 // Pasting items in bulk: a word list, or quiz questions and groups as rows with a header (copied from a spreadsheet,
 // or CSV). "Check" reads every row with the same rules as the form and says what can be added and what can't, and
 // why; "Add" adds the rows that pass, together, in one entry of the activity log.
-import { Check, WarningCircle } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { isApiError, placeFieldErrors, unplacedMessage } from '../../../api/errors';
 import type { ImportReport, ThemeOut } from '../../../api/types';
 import { useToast, useUnsavedChanges } from '../../../state';
-import { Button, Modal, Select, Switch, TextArea, cx, formatCount } from '../../../ui';
+import { Button, cx, formatCount, glyph, Icon, Modal, Select, Switch, TextArea } from '../../../ui';
 import { useImportItems } from './api';
 import { gameInfo, type ContentGame } from './lib/items';
 
@@ -143,9 +142,9 @@ export function ImportDialog({ game, themes, defaultTheme, onClose }: ImportDial
                 .map((row, i) => (
                   <li key={`${row.line}-${i}`} className={cx('dcms-report__row', row.problem ? 'is-refused' : 'is-ok')}>
                     {row.problem ? (
-                      <WarningCircle aria-hidden="true" weight="fill" className="dcms-report__icon" />
+                      <Icon glyph={glyph.error} className="dcms-report__icon" />
                     ) : (
-                      <Check aria-hidden="true" weight="bold" className="dcms-report__icon" />
+                      <Icon glyph={glyph.check} className="dcms-report__icon" />
                     )}
                     <span className="dcms-report__text">
                       <span className="dcms-report__line">Line {row.line}</span> {row.text}

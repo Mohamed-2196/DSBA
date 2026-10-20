@@ -1,10 +1,9 @@
 // Employers: who they are, what they offer, the tracks they suit, their own page, their logo, and their application
 // dates on the calendar. Each one shows its card as students will see it.
-import { CalendarPlus, PencilSimple, Plus, Trash } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import type { CareerEmployer, CareerOffer } from '../../../../api/types';
 import { useAuth } from '../../../../auth';
-import { Button, IconButton, Select, TextArea, TextField } from '../../../../ui';
+import { Button, glyph, Icon, IconButton, Select, TextArea, TextField } from '../../../../ui';
 import { EventFormDialog, useCalendarEvents, type CalendarEvent } from '../../../calendar/public';
 import { CareerContext } from '../../context';
 import { EmployerCard } from '../../EmployerCard';
@@ -143,7 +142,7 @@ function EmployerForm({ employer: e, index }: { employer: CareerEmployer; index:
                 maxLength={160}
               />
               <IconButton
-                icon={Trash}
+                icon={<Icon glyph={glyph.trash} />}
                 label={`Remove offer ${n + 1}`}
                 onClick={() => set(e.id, { offers: e.offers.filter((_, k) => k !== n) })}
                 className="cedit-rows__remove"
@@ -155,7 +154,7 @@ function EmployerForm({ employer: e, index }: { employer: CareerEmployer; index:
           <Button
             variant="ghost"
             size="sm"
-            leadingIcon={Plus}
+            leadingIcon={<Icon glyph={glyph.plus} />}
             onClick={() => set(e.id, { offers: [...e.offers, { type: 'internship', name: null }] })}
           >
             Add an offer
@@ -250,7 +249,12 @@ function ApplicationDates({ employer }: { employer: CareerEmployer }) {
               <span className="cedit-dates__when">{d.endDate ? `${d.date} to ${d.endDate}` : d.date}</span>
               <span className="cedit-dates__title">{d.title}</span>
               {manages ? (
-                <IconButton size="sm" icon={PencilSimple} label={`Edit ${d.title}`} onClick={() => setEditing(d)} />
+                <IconButton
+                  size="sm"
+                  icon={<Icon glyph={glyph.edit} />}
+                  label={`Edit ${d.title}`}
+                  onClick={() => setEditing(d)}
+                />
               ) : null}
             </li>
           ))}
@@ -265,7 +269,12 @@ function ApplicationDates({ employer }: { employer: CareerEmployer }) {
       ) : !isSaved ? (
         <p className="cedit__note">Save the new employer first, then add its dates.</p>
       ) : (
-        <Button variant="secondary" size="sm" leadingIcon={CalendarPlus} onClick={() => setEditing('new')}>
+        <Button
+          variant="secondary"
+          size="sm"
+          leadingIcon={<Icon glyph={glyph.calendarAdd} />}
+          onClick={() => setEditing('new')}
+        >
           Add a date
         </Button>
       )}

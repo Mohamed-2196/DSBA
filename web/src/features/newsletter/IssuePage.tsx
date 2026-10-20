@@ -1,11 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { CaretLeft, CaretRight, Clock, Newspaper, PencilSimple } from '@phosphor-icons/react';
 import { isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { formatDay } from '../../lib/dates';
 import { useDocumentTitle, useMediaQuery, useQueryParam } from '../../state';
-import { Badge, Button, EmptyState, HubLogo, Page, Panel, QueryError, Skeleton, cx } from '../../ui';
+import {
+  Badge,
+  Button,
+  cx,
+  EmptyState,
+  glyph,
+  HubLogo,
+  Icon,
+  Page,
+  PageHeader,
+  Panel,
+  QueryError,
+  Skeleton,
+} from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { toCard, useIssue, useIssueDetails, useIssues } from './api';
 import { EditorAvatars } from './components/Blocks';
@@ -27,7 +39,7 @@ function RunningHead({
   share?: boolean;
 }) {
   return (
-    <div className="nl-runhead">
+    <div className="nl-runhead" data-section="tools">
       <Link to="/newsletter" className="nl-runhead__name">
         <Wordmark />
       </Link>
@@ -68,7 +80,7 @@ function Toc({ issue, active, onGo }: { issue: Issue; active: string | undefined
         })}
       </ol>
       <p className="nl-toc__time">
-        <Clock aria-hidden="true" />
+        <Icon glyph={glyph.clock} />
         {issue.readMinutes} min read
       </p>
     </nav>
@@ -94,9 +106,9 @@ function Pager({ issue }: { issue: Issue }) {
         </span>
         <span className="nl-pager__text">
           <span className="nl-pager__dir">
-            {dir === 'prev' ? <CaretLeft weight="bold" aria-hidden="true" /> : null}
+            {dir === 'prev' ? <Icon glyph={glyph.chevronLeft} /> : null}
             {dir === 'prev' ? 'Older issue' : 'Newer issue'}
-            {dir === 'next' ? <CaretRight weight="bold" aria-hidden="true" /> : null}
+            {dir === 'next' ? <Icon glyph={glyph.chevronRight} /> : null}
           </span>
           <span className="nl-pager__title">{i.title}</span>
           <span className="nl-pager__meta">
@@ -129,7 +141,12 @@ function ModeratorBar({ issue }: { issue: Issue }) {
         </span>
       </p>
       <div className="nl-modbar__actions">
-        <Button size="sm" leadingIcon={PencilSimple} to={`/newsletter/${issue.slug}/edit`} data-hub="issue-edit">
+        <Button
+          size="sm"
+          leadingIcon={<Icon glyph={glyph.edit} />}
+          to={`/newsletter/${issue.slug}/edit`}
+          data-hub="issue-edit"
+        >
           Edit
         </Button>
         <DeleteIssueButton issue={issue} size="sm" onDeleted={() => navigate('/newsletter', { replace: true })} />
@@ -234,7 +251,7 @@ function IssueReader({ issue }: { issue: Issue }) {
                 </span>
               ) : null}
               <span className="nl-issue__time">
-                <Clock aria-hidden="true" />
+                <Icon glyph={glyph.clock} />
                 {issue.readMinutes} min read
               </span>
             </div>
@@ -273,7 +290,7 @@ function IssueReader({ issue }: { issue: Issue }) {
       ) : (
         <Panel padding="none" className="nl-issue__empty">
           <EmptyState
-            icon={Newspaper}
+            icon={<Icon glyph={glyph.newsletter} />}
             title="This issue has no stories yet"
             body={manages ? 'Add its sections in the editor.' : 'Come back soon.'}
             action={manages ? <Button to={`/newsletter/${issue.slug}/edit`}>Open the editor</Button> : null}
@@ -291,15 +308,12 @@ function IssueNotFound() {
   useDocumentTitle('Issue not found');
   return (
     <Page>
-      <h1 className="visually-hidden">Issue not found</h1>
-      <Panel padding="none">
-        <EmptyState
-          icon={Newspaper}
-          title="We couldn’t find that issue"
-          body="The link may be mistyped, or the issue isn’t out yet. Every issue of The DSBA Newsletter is on the newsletter page."
-          action={<Button to="/newsletter">See all issues</Button>}
-        />
-      </Panel>
+      <PageHeader
+        section="tools"
+        title="We couldn’t find that issue"
+        description="The link may be mistyped, or the issue isn’t out yet. Every issue of The DSBA Newsletter is on the newsletter page."
+        actions={<Button to="/newsletter">See all issues</Button>}
+      />
     </Page>
   );
 }
@@ -308,7 +322,7 @@ function IssueSkeleton() {
   return (
     <Page className="nl-issue" aria-busy="true">
       <span className="visually-hidden">Loading the issue</span>
-      <div className="nl-runhead" aria-hidden="true">
+      <div className="nl-runhead" data-section="tools" aria-hidden="true">
         <Skeleton width={260} height={30} />
       </div>
       <div className="nl-issue__hero" aria-hidden="true">
@@ -337,7 +351,7 @@ export default function IssuePage() {
     if (isApiError(q.error) && q.error.status === 404) return <IssueNotFound />;
     return (
       <Page>
-        <h1 className="visually-hidden">The DSBA Newsletter</h1>
+        <PageHeader section="tools" title="The DSBA Newsletter" />
         <QueryError
           error={q.error}
           title="This issue didn’t load"

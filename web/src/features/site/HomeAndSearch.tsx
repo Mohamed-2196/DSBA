@@ -2,8 +2,7 @@
 // the tour; the other words students type for modules; and what search suggests before anything is typed.
 import { useState } from 'react';
 import type { SearchNickname, SiteDoc, TourStep } from '../../api/types';
-import { ArrowDown, ArrowUp, Trash } from '@phosphor-icons/react';
-import { IconButton, Select, TextArea, TextField } from '../../ui';
+import { glyph, Icon, IconButton, Select, TextArea, TextField } from '../../ui';
 import { ListEditor, RowsEditor, hasErrorUnder, newItemId } from '../../ui/docEditor';
 import { ALL_HOME_BLOCKS, HOME_BLOCKS, type HomeBlock } from '../home/public';
 import { TOUR_ARTS } from '../onboarding/public';
@@ -127,21 +126,21 @@ function HomeBlocks({
             <span className="dedit-row__tools">
               <IconButton
                 size="sm"
-                icon={ArrowUp}
+                icon={<Icon glyph={glyph.arrowUp} />}
                 label={`Move ${HOME_BLOCKS[b].title} up`}
                 disabled={i === 0}
                 onClick={() => move(i, -1)}
               />
               <IconButton
                 size="sm"
-                icon={ArrowDown}
+                icon={<Icon glyph={glyph.arrowDown} />}
                 label={`Move ${HOME_BLOCKS[b].title} down`}
                 disabled={i === blocks.length - 1}
                 onClick={() => move(i, 1)}
               />
               <IconButton
                 size="sm"
-                icon={Trash}
+                icon={<Icon glyph={glyph.trash} />}
                 label={`Take ${HOME_BLOCKS[b].title} off Home`}
                 disabled={blocks.length <= 1}
                 onClick={() => onChange(blocks.filter((x) => x !== b))}

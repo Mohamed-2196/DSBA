@@ -1,8 +1,15 @@
 // The copy of a section in the editor: paragraphs, bulleted lists, the editors' sign-off, buttons and polls (while
 // newsletter.polls is on), each a small form of its own, with Add, Move up/down and Remove.
-import { ChartBar, ListBullets, Plus, Signature, TextAlignLeft, CursorClick, type Icon } from '@phosphor-icons/react';
+import {
+  ChartBar,
+  ListBullets,
+  Signature,
+  TextAlignLeft,
+  CursorClick,
+  type Icon as PhosphorIcon,
+} from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
-import { Button, Switch, cx } from '../../../ui';
+import { Button, cx, glyph, Icon, Switch } from '../../../ui';
 import {
   LIMITS,
   blankBlock,
@@ -23,7 +30,7 @@ const BLOCK_KINDS: {
   type: BlockKind;
   label: string;
   add: string;
-  icon: Icon;
+  icon: PhosphorIcon;
 }[] = [
   { type: 'p', label: 'Paragraph', add: 'Paragraph', icon: TextAlignLeft },
   { type: 'list', label: 'Bulleted list', add: 'List', icon: ListBullets },
@@ -87,7 +94,7 @@ function ListItems({
       <Button
         size="sm"
         variant="ghost"
-        leadingIcon={Plus}
+        leadingIcon={<Icon glyph={glyph.plus} />}
         disabled={block.items.length >= LIMITS.items}
         onClick={() => setItems((items) => [...items, blankItem()])}
       >
@@ -161,7 +168,7 @@ function PollForm({
           <Button
             size="sm"
             variant="ghost"
-            leadingIcon={Plus}
+            leadingIcon={<Icon glyph={glyph.plus} />}
             disabled={block.answers.length >= LIMITS.pollAnswers}
             onClick={() => setAnswers((answers) => [...answers, blankItem()])}
           >

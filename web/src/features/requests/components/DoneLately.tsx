@@ -1,9 +1,8 @@
 // "You asked, we did" on /requests (requests.done): the requests done in the last 30 days, the latest first, with how
 // many asked for each. Nothing while the switch is off or nothing was done.
-import { CheckCircle } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../auth';
-import { Button, PageSection, countOf, timeAgo } from '../../../ui';
+import { Button, countOf, glyph, Icon, PageSection, timeAgo } from '../../../ui';
 import { useDoneRequests } from '../api';
 import { askedBy, kindLabel, requestPath } from '../labels';
 
@@ -26,7 +25,7 @@ export function DoneLately({ onShowAll }: { onShowAll: () => void }) {
         {done.items.map((r) => (
           <li key={r.id}>
             <Link to={requestPath(r.id)} className="req-done__row">
-              <CheckCircle weight="fill" className="req-done__icon" aria-hidden="true" />
+              <Icon glyph={glyph.success} className="req-done__icon" />
               <span className="req-done__main">
                 <span className="req-done__name" dir="auto">
                   {r.title}

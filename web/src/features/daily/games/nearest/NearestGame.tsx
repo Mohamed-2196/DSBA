@@ -2,8 +2,7 @@
 // listed closest first with a bar for how close it is; the latest guess stays at the top so the change is easy to
 // read. A hint shows a word closer than the best so far.
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
-import { Lightbulb } from '@phosphor-icons/react';
-import { Button, cx } from '../../../../ui';
+import { Button, cx, glyph, Icon } from '../../../../ui';
 import { BAND_LABEL, band, bestRank, byCloseness, closeness } from '../../lib/nearest';
 import type { NearestGuess } from '../../types';
 import type { GameProps } from '../registry';
@@ -91,7 +90,7 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
           </Button>
           <Button
             variant="secondary"
-            leadingIcon={Lightbulb}
+            leadingIcon={<Icon glyph={glyph.sparkle} />}
             onClick={() => void hint()}
             disabled={busy || best === 1 || (best !== null && best <= 2)}
           >

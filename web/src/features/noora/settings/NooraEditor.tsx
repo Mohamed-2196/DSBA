@@ -2,7 +2,6 @@
 // she says without her AI, the questions she offers on each page and the cards of her full page. Edited as one draft
 // and saved together. The rules that always follow her instructions are shown, never edited. A save someone else made
 // first (noora_changed) offers to load theirs. Every save goes to the activity log with what changed, before and after.
-import { Lock } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type {
@@ -17,7 +16,20 @@ import type {
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Button, Chip, Drawer, Panel, QueryError, Select, Skeleton, TextArea, TextField, cx } from '../../../ui';
+import {
+  Button,
+  Chip,
+  cx,
+  Drawer,
+  glyph,
+  Icon,
+  Panel,
+  QueryError,
+  Select,
+  Skeleton,
+  TextArea,
+  TextField,
+} from '../../../ui';
 import {
   DocFrame,
   ListEditor,
@@ -377,7 +389,7 @@ function FixedRules({ rules, onPreview }: { rules: string; onPreview: () => void
   return (
     <section className="noora-set__fixed" aria-labelledby="noora-set-fixed">
       <h5 id="noora-set-fixed" className="noora-set__fixed-title">
-        <Lock aria-hidden="true" weight="bold" /> Rules that always follow her instructions
+        <Icon glyph={glyph.lock} /> Rules that always follow her instructions
       </h5>
       <p className="dedit__note">
         These come after your instructions and the facts in every question, whatever the instructions say. They keep her

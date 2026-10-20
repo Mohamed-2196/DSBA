@@ -1,9 +1,8 @@
 // Roles: what each job is, its tools, the skills it needs (most important first), the question students ask seniors
 // about it, and, for a skill, a step of its own instead of the skill's usual one.
-import { Plus, Trash } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { CareerRole } from '../../../../api/types';
-import { Button, IconButton, Select, TextArea, TextField } from '../../../../ui';
+import { Button, glyph, Icon, IconButton, Select, TextArea, TextField } from '../../../../ui';
 import { freeId, moveItem, removalBlocker, removeItem, savedIdsOf } from '../doc';
 import { PickList, StepField, WordList } from '../fields';
 import { ItemList } from '../ItemList';
@@ -152,7 +151,7 @@ function OwnSteps({ role: r, index }: { role: CareerRole; index: number }) {
             }}
           />
           <IconButton
-            icon={Trash}
+            icon={<Icon glyph={glyph.trash} />}
             label={`Remove the step for ${doc.skills[skill]?.name ?? skill}`}
             onClick={() => {
               const close = { ...r.close };
@@ -177,7 +176,7 @@ function OwnSteps({ role: r, index }: { role: CareerRole; index: number }) {
           <Button
             variant="secondary"
             size="sm"
-            leadingIcon={Plus}
+            leadingIcon={<Icon glyph={glyph.plus} />}
             disabled={!adding}
             onClick={() => {
               set(r.id, { close: { ...r.close, [adding]: { kind: 'opps', text: '' } } });

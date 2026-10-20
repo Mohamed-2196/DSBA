@@ -4,12 +4,24 @@
 // whole screen, so the board and its keyboard fit without scrolling; Mini Noora steps away while it's open.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ArrowLeft, DotsThreeVertical, Flag, Question, SignIn } from '@phosphor-icons/react';
 import { errorMessage, isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { isDayKey, todayKey } from '../../lib/dates';
 import { useDocumentTitle, useQueryParam } from '../../state';
-import { Button, ConfirmDialog, EmptyState, IconButton, Menu, QueryError, Skeleton, cx } from '../../ui';
+import {
+  Button,
+  ConfirmDialog,
+  cx,
+  EmptyState,
+  glyph,
+  Icon,
+  IconButton,
+  Menu,
+  Page,
+  PageHeader,
+  QueryError,
+  Skeleton,
+} from '../../ui';
 import { useDailyMove, useDailyPlay, useDailyToday } from './api';
 import { Flash, type FlashMessage, type FlashTone } from './components/Flash';
 import { GameTile } from './components/GameGlyph';
@@ -28,13 +40,14 @@ export default function DailyGamePage() {
   const params = useParams<{ game: string; day?: string }>();
   if (!isGameId(params.game) || (params.day !== undefined && !isDayKey(params.day))) {
     return (
-      <div className="dy dg dg--missing">
-        <EmptyState
+      <Page>
+        <PageHeader
+          section="tools"
           title="There’s no such puzzle"
-          body="Pick one of today’s puzzles instead."
-          action={<Button to="/daily">Go to Daily</Button>}
+          description="Pick one of today’s puzzles instead."
+          actions={<Button to="/daily">Go to Daily</Button>}
         />
-      </div>
+      </Page>
     );
   }
   return (
@@ -172,10 +185,16 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
   const { Component } = plugin;
   return (
     <div className={cx('dy dg', `dg--${game}`, over && 'is-over')} data-game={game}>
-      <header className="dg-bar">
+      <header className="dg-bar" data-section="tools">
         <div className="dg-bar__start">
-          <IconButton className="dg-only-phone" label="Back to Daily" icon={ArrowLeft} to="/daily" />
-          <Button className="dg-only-wide" variant="ghost" size="sm" leadingIcon={ArrowLeft} to="/daily">
+          <IconButton className="dg-only-phone" label="Back to Daily" icon={<Icon glyph={glyph.back} />} to="/daily" />
+          <Button
+            className="dg-only-wide"
+            variant="ghost"
+            size="sm"
+            leadingIcon={<Icon glyph={glyph.back} />}
+            to="/daily"
+          >
             Daily
           </Button>
         </div>
@@ -190,16 +209,22 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
           </div>
         </div>
         <div className="dg-bar__end">
-          <IconButton label="How to play" icon={Question} onClick={() => setRulesOpen(true)} disabled={!out} tooltip />
+          <IconButton
+            label="How to play"
+            icon={<Icon glyph={glyph.question} />}
+            onClick={() => setRulesOpen(true)}
+            disabled={!out}
+            tooltip
+          />
           <Menu
             align="end"
             label="More"
             onOpenChange={setMenuOpen}
-            trigger={<IconButton label="More" icon={DotsThreeVertical} disabled={!out} />}
+            trigger={<IconButton label="More" icon={<Icon glyph={glyph.moreVertical} />} disabled={!out} />}
             items={[
               {
                 label: secret ? 'Give up' : 'Give up and see the answer',
-                icon: Flag,
+                icon: <Icon glyph={glyph.flag} />,
                 danger: true,
                 disabled: !out || over || status === 'new',
                 onSelect: () => setConfirmGiveUp(true),
@@ -333,7 +358,7 @@ function Notice({
     return (
       <p className="dg-notice">
         <span>Your points aren’t kept as a guest.</span>
-        <Button variant="ghost" size="sm" leadingIcon={SignIn} onClick={onSignIn}>
+        <Button variant="ghost" size="sm" leadingIcon={<Icon glyph={glyph.signIn} />} onClick={onSignIn}>
           Sign in
         </Button>
       </p>
@@ -389,7 +414,7 @@ function StageSkeleton() {
 function ScreenSkeleton({ game }: { game: GameId }) {
   return (
     <div className={cx('dy dg', `dg--${game}`)}>
-      <header className="dg-bar">
+      <header className="dg-bar" data-section="tools">
         <div className="dg-bar__start" />
         <div className="dg-bar__title">
           <GameTile game={game} size={32} className="dg-bar__tile" />

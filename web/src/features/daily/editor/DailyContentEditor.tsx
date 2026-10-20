@@ -3,11 +3,22 @@
 // is chosen with ?part=. Changes reach the days to come; a day that is out keeps its puzzles, unless a mistake in
 // today's is fixed. Every change goes to the activity log. Admins also load a content file, for a new install with no
 // puzzles yet.
-import { CalendarBlank, CalendarCheck, Eye, FileArrowUp, PuzzlePiece } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { useAuth } from '../../../auth';
 import { useQueryParam } from '../../../state';
-import { Button, Chip, EmptyState, QueryError, Select, Skeleton, Panel, countOf, formatCount } from '../../../ui';
+import {
+  Button,
+  Chip,
+  countOf,
+  EmptyState,
+  formatCount,
+  glyph,
+  Icon,
+  Panel,
+  QueryError,
+  Select,
+  Skeleton,
+} from '../../../ui';
 import { useDailyContent } from './api';
 import { ContentFileDialog } from './ContentFileDialog';
 import { ItemsPart } from './ItemsPart';
@@ -56,7 +67,11 @@ export function DailyContentEditor() {
   const holds = (g: GameInfo) => `${g.label} · ${countOf(total(g.id), g.noun)}`;
   const empty = GAMES.every((g) => total(g.id) === 0);
   const loadFile = isAdmin ? (
-    <Button leadingIcon={FileArrowUp} variant={empty ? 'primary' : 'secondary'} onClick={() => setLoading(true)}>
+    <Button
+      leadingIcon={<Icon glyph={glyph.upload} />}
+      variant={empty ? 'primary' : 'secondary'}
+      onClick={() => setLoading(true)}
+    >
       Load a content file
     </Button>
   ) : null;
@@ -82,7 +97,7 @@ export function DailyContentEditor() {
         <Panel padding="none">
           <EmptyState
             size="sm"
-            icon={PuzzlePiece}
+            icon={<Icon glyph={glyph.daily} />}
             title="No puzzles yet"
             body={
               isAdmin
@@ -95,13 +110,17 @@ export function DailyContentEditor() {
       ) : null}
       {loading ? <ContentFileDialog themes={data.themes} onClose={() => setLoading(false)} /> : null}
       <nav className="dcms__nav" aria-label="Parts of Daily puzzles">
-        <Chip selected={part === 'today'} onChange={() => setPart('today', { replace: true })} icon={CalendarCheck}>
+        <Chip
+          selected={part === 'today'}
+          onChange={() => setPart('today', { replace: true })}
+          icon={<Icon glyph={glyph.calendar} />}
+        >
           Today
         </Chip>
         <Chip
           selected={part === 'themes'}
           onChange={() => setPart('themes', { replace: true })}
-          icon={CalendarBlank}
+          icon={<Icon glyph={glyph.list} />}
           count={data.themes.length}
         >
           Themes and weeks
@@ -111,7 +130,11 @@ export function DailyContentEditor() {
             {holds(g)}
           </Chip>
         ))}
-        <Chip selected={part === 'preview'} onChange={() => setPart('preview', { replace: true })} icon={Eye}>
+        <Chip
+          selected={part === 'preview'}
+          onChange={() => setPart('preview', { replace: true })}
+          icon={<Icon glyph={glyph.eye} />}
+        >
           Preview a day
         </Chip>
       </nav>

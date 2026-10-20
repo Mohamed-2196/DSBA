@@ -2,8 +2,7 @@
 // level's colour, plainest to trickiest), a near miss says "one away", and four mistakes end the play. Picks stay
 // after a miss so one word can be swapped; the player's own arrangement of the board is kept.
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { ArrowsClockwise } from '@phosphor-icons/react';
-import { Button, cx } from '../../../../ui';
+import { Button, cx, glyph, Icon } from '../../../../ui';
 import { MAX_MISTAKES, breakable, keepOrder, shuffled } from '../../lib/groups';
 import type { FoundGroup } from '../../types';
 import type { GameProps } from '../registry';
@@ -134,7 +133,7 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
           <div className="dgr-actions">
             <Button
               variant="secondary"
-              leadingIcon={ArrowsClockwise}
+              leadingIcon={<Icon glyph={glyph.refresh} />}
               onClick={() => setOrder(shuffled(board))}
               disabled={busy}
             >

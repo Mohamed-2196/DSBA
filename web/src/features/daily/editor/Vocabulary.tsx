@@ -1,6 +1,5 @@
 // Nearest neighbour's vocabulary: every word a guess may be, with the tags that decide what's close and a few words
 // listed as very close. Any change ranks the secret words again; the days that are out keep their rankings.
-import { PencilSimple, Plus, Trash, X } from '@phosphor-icons/react';
 import { useId, useState, type KeyboardEvent } from 'react';
 import { errorMessage, isApiError, placeFieldErrors, unplacedMessage } from '../../../api/errors';
 import type { VocabularyOut } from '../../../api/types';
@@ -10,6 +9,9 @@ import {
   Button,
   ConfirmDialog,
   EmptyState,
+  formatCount,
+  glyph,
+  Icon,
   IconButton,
   Modal,
   Panel,
@@ -17,7 +19,6 @@ import {
   SearchField,
   Skeleton,
   TextField,
-  formatCount,
 } from '../../../ui';
 import { useAddVocabulary, useDeleteVocabulary, useSaveVocabulary, useVocabulary } from './api';
 
@@ -44,7 +45,7 @@ export function Vocabulary({ tags }: { tags: string[] }) {
             other count as closer still. Secret words are ranked again after every change.
           </p>
         </div>
-        <Button leadingIcon={Plus} onClick={() => setEditing('new')}>
+        <Button leadingIcon={<Icon glyph={glyph.plus} />} onClick={() => setEditing('new')}>
           Add a word
         </Button>
       </div>
@@ -97,7 +98,7 @@ export function Vocabulary({ tags }: { tags: string[] }) {
                 <span className="dcms-item__tools">
                   <IconButton
                     size="sm"
-                    icon={PencilSimple}
+                    icon={<Icon glyph={glyph.edit} />}
                     label={`Edit ${w.word}`}
                     tooltip
                     onClick={() => setEditing(w)}
@@ -105,7 +106,7 @@ export function Vocabulary({ tags }: { tags: string[] }) {
                   {w.secretIn ? null : (
                     <IconButton
                       size="sm"
-                      icon={Trash}
+                      icon={<Icon glyph={glyph.trash} />}
                       label={`Delete ${w.word}`}
                       tooltip
                       onClick={() => setRemoving(w)}
@@ -337,7 +338,7 @@ function WordChips({
               <span className="dcms-word__text">{v}</span>
               <IconButton
                 size="sm"
-                icon={X}
+                icon={<Icon glyph={glyph.close} />}
                 label={`Take ${v} off`}
                 onClick={() => onChange(values.filter((x) => x !== v))}
               />

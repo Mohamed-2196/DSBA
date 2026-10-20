@@ -1,8 +1,7 @@
 // Manage → Requests: the requests waiting for an answer (or planned), the most wanted first, each with the answer
 // form. For people with requests.manage while requests are on (features/manage/sections.ts).
 import { useState } from 'react';
-import { HandWaving } from '@phosphor-icons/react';
-import { Button, EmptyState, Panel, QueryError, SegmentedControl, Skeleton } from '../../ui';
+import { Button, EmptyState, glyph, Icon, Panel, QueryError, SegmentedControl, Skeleton } from '../../ui';
 import { useRequests } from './api';
 import { AnswerForm } from './components/AnswerForm';
 import { RequestCard } from './components/RequestCard';
@@ -58,7 +57,7 @@ export function RequestsQueue() {
         <Panel padding="none">
           <EmptyState
             size="sm"
-            icon={HandWaving}
+            icon={<Icon glyph={glyph.question} />}
             title={status === 'open' ? 'Nothing waiting' : 'Nothing planned'}
             body="New requests show up here."
             action={<Button to="/requests">See every request</Button>}

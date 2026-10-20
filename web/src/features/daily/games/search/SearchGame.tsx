@@ -2,8 +2,7 @@
 // first letter to its last (the line keeps to the nearest direction), or tap the first letter and then the last;
 // the arrow keys and Enter do the same. Found words stay marked with a line of their own colour.
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
-import { Lightbulb } from '@phosphor-icons/react';
-import { Button, cx } from '../../../../ui';
+import { Button, cx, glyph, Icon } from '../../../../ui';
 import { cellAt, cellTones, findTone, lineCells, pointIn, posKey, samePos, snapEnd, type Pos } from '../../lib/search';
 import type { SearchFound } from '../../types';
 import type { GameProps } from '../registry';
@@ -224,7 +223,7 @@ export function SearchGame({ out, busy, play, flash, paused }: GameProps) {
           <Button
             variant="secondary"
             size="sm"
-            leadingIcon={Lightbulb}
+            leadingIcon={<Icon glyph={glyph.sparkle} />}
             disabled={busy || foundWords.size >= (view?.words.length ?? 8)}
             onClick={async () => {
               const r = await play({ kind: 'hint' });

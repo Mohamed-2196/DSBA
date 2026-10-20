@@ -350,8 +350,23 @@ the phone band's mate as 64–72 px (60 under 375 px) and the compact toast's as
   - Daily's raster tiles and the newsletter's masthead are design calls for Mohamed. The masthead is a deliberate
     editorial look and can stay.
 
-**Partly fixed** (phase 3c): Boards, Grades, Career Navigator and Your account have the tools band in Home's tones.
-The Newsletter, Daily, Manage and Requests are still bare titles.
+**Fixed** (phase 3c, then phase 3d in `round15/screens4`): every tool and staff page opens on the tools band in
+Home's tones with no deskmate. Phase 3c did Boards, Grades, Career Navigator and Your account; phase 3d did the rest:
+- **Manage:** the band, and the tool list styled like the app's nav (Home's pill, brand icons, heavier when active).
+  The Numbers are index cards. The queues and editors have 1.5 px cards with the card shadow, and brand icons.
+- **Access:** the band and brand icons on its tabs.
+- **Newsletter:** the band on the list, the editor and the not-found pages. On an issue, the running head is a slim
+  band over the issue's own editorial masthead, which stays.
+- **Daily puzzles:** the band, with how today stands as pills. A game's bar is a slim band, and its controls use brand
+  icons. The boards and their colours are unchanged.
+- **Requests, Start here, Results day and the 404 page:** the band. A request's head is a slim band, and "Me too"
+  uses the brand vote icon.
+
+These Phosphor icons stay, each in a row of its own family:
+- the Daily streak's flame and freeze, the badges in Your stats, the leaderboard's empty trophy and the keyboard's
+  backspace;
+- the newsletter's own section, reaction, poll and block-kind icons, plus WhatsApp in its share menu (a logo);
+- Manage's "switched off" empty state (Power) and the empty Bugs list (Bug).
 
 #### UX-91 Small leftovers (nit)
 

@@ -1,9 +1,8 @@
-import { BellSimple, CheckCircle } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
-import { Button, Skeleton, cx } from '../../../ui';
+import { Button, cx, glyph, Icon, Skeleton } from '../../../ui';
 import { useNewIssueEmails } from '../api';
 import './SubscribeBox.css';
 
@@ -66,7 +65,7 @@ export function SubscribeBox({ variant = 'panel', className }: SubscribeBoxProps
     action = (
       <div className="nl-subscribe__done">
         <p className="nl-subscribe__status" role="status">
-          <CheckCircle weight="fill" aria-hidden="true" />
+          <Icon glyph={glyph.success} />
           Subscribed
         </p>
         <Button variant="ghost" size="sm" onClick={() => set(false)} loading={news.isPending} data-hub="subscribe-off">
@@ -95,7 +94,7 @@ export function SubscribeBox({ variant = 'panel', className }: SubscribeBoxProps
       aria-label="Hear about new issues of The DSBA Newsletter"
     >
       <div className="nl-subscribe__text">
-        <BellSimple className="nl-subscribe__icon" weight="duotone" aria-hidden="true" />
+        <Icon glyph={glyph.bell} className="nl-subscribe__icon" />
         <h2 className="nl-subscribe__title">{title}</h2>
         <p className="nl-subscribe__body">{body}</p>
         {ready ? (

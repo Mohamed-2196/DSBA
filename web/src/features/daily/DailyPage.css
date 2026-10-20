@@ -1,73 +1,55 @@
 /* The Daily's hub (DailyPage.tsx): the day and its theme with one line of how today stands, the six games as tiles,
    past days, the leaderboard and your stats. */
 
-/* ── The head ────────────────────────────────────────────────────────────────────────────────────── */
-.dh-head {
-  display: grid;
-  gap: var(--sp-8);
-  margin-bottom: var(--sp-20);
-}
-.dh-title {
-  margin: 0;
-  font-size: var(--fs-28);
-  font-weight: var(--fw-heavy);
-  letter-spacing: var(--tracking-head);
-  line-height: 1.12;
-}
-.dh-blurb {
-  margin: 0;
-  max-width: var(--measure);
-  color: var(--ink-2);
-  font-size: var(--fs-16);
-  line-height: 1.45;
-}
-/* One line of how today stands; each part has its icon, so a wrapped line starts cleanly. */
+/* ── The head: the tools band, with how today stands as a row of pills ───────────────────────────── */
 .dh-status {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px var(--sp-16);
+  gap: var(--sp-8);
   margin: 0;
   padding: 0;
   list-style: none;
-  color: var(--ink-2);
-  font-size: var(--fs-14);
+  color: var(--ink);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
 }
 .dh-status > li {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 28px;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
   white-space: nowrap;
+}
+.dh-status > li:has(> .ui-button) {
+  padding: 0;
+  border: 0;
+  background: none;
 }
 .dh-status svg {
   flex: 0 0 auto;
-  font-size: 17px;
+  font-size: 16px;
 }
 .dh-status time {
-  color: var(--ink);
-  font-weight: var(--fw-semibold);
-}
-.dh-status > li.is-lit {
-  color: var(--ink);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
 }
 .dh-status > li.is-lit > svg {
-  color: var(--y3);
-}
-.dh-status .ui-button {
-  margin-left: calc(-1 * var(--sp-8));
+  color: var(--y3-strong);
 }
 .dh-status__freeze {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
+  margin-right: -8px;
+  padding: 1px 8px;
   border-radius: var(--r-pill);
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
 }
 .dh-status__freeze svg {
   font-size: 14px;
@@ -78,19 +60,12 @@
 }
 
 @media (max-width: 699px) {
-  .dh-head {
-    gap: 6px;
-    margin-bottom: var(--sp-12);
-  }
-  .dh-title {
-    font-size: var(--fs-22);
-  }
-  .dh-blurb {
-    font-size: var(--fs-14);
-  }
   .dh-status {
-    column-gap: var(--sp-12);
-    font-size: var(--fs-13);
+    gap: 6px;
+  }
+  .dh-status > li {
+    min-height: 28px;
+    padding: 0 10px;
   }
   /* The snowflake alone says it on a phone; its words stay for screen readers. */
   .dh-status__freeze {

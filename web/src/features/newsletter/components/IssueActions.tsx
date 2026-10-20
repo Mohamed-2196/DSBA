@@ -1,9 +1,8 @@
 // Moderators' actions on an issue: publish (it reaches everyone, so it asks first) and delete.
 import { useState } from 'react';
-import { PaperPlaneTilt, Trash } from '@phosphor-icons/react';
 import { errorMessage } from '../../../api/errors';
 import { useSingleFlight, useToast } from '../../../state';
-import { Button, ConfirmDialog, IconButton, type ButtonSize } from '../../../ui';
+import { Button, type ButtonSize, ConfirmDialog, glyph, Icon, IconButton } from '../../../ui';
 import { useDeleteIssue, usePublishIssue } from '../api';
 import { issueNo, publishedNote } from '../lib/text';
 
@@ -44,7 +43,7 @@ export function PublishButton({
       <Button
         variant="primary"
         size={size}
-        leadingIcon={PaperPlaneTilt}
+        leadingIcon={<Icon glyph={glyph.send} />}
         onClick={() => {
           publish.reset();
           setAsking(true);
@@ -116,7 +115,7 @@ export function DeleteIssueButton({
       {iconOnly ? (
         <IconButton
           label={`Delete issue ${no}`}
-          icon={Trash}
+          icon={<Icon glyph={glyph.trash} />}
           variant="secondary"
           size={size}
           tooltip
@@ -124,7 +123,13 @@ export function DeleteIssueButton({
           data-hub="issue-delete"
         />
       ) : (
-        <Button variant="ghost" size={size} leadingIcon={Trash} onClick={open} data-hub="issue-delete">
+        <Button
+          variant="ghost"
+          size={size}
+          leadingIcon={<Icon glyph={glyph.trash} />}
+          onClick={open}
+          data-hub="issue-delete"
+        >
           Delete
         </Button>
       )}

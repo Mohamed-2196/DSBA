@@ -1,7 +1,6 @@
 // The Career Navigator editor's own inputs: lists of ids picked from the document, short text lists, "close this gap"
 // steps, checklist links, logos and module pickers. Each is a labelled field with its error, like the design
 // system's.
-import { Plus, UploadSimple, X } from '@phosphor-icons/react';
 import { useId, useRef, useState, type ReactNode } from 'react';
 import type { CareerChecklistItem, CareerLogo } from '../../../api/types';
 import {
@@ -12,7 +11,7 @@ import {
   checkUpload,
   type UploadProgress,
 } from '../../../api/uploads';
-import { Button, Field, IconButton, Select, TextArea, TextField } from '../../../ui';
+import { Button, Field, glyph, Icon, IconButton, Select, TextArea, TextField } from '../../../ui';
 import type { SelectOption } from '../../../ui/Field';
 import type { CloseStep } from '../lib/links';
 import type { LogoKind } from '../lib/logos';
@@ -47,7 +46,7 @@ export function PickList({ label, hint, value, options, onChange, error, addLabe
                   <span className="cedit-chip__text">{labelOf.get(id) ?? id}</span>
                   <IconButton
                     size="sm"
-                    icon={X}
+                    icon={<Icon glyph={glyph.close} />}
                     label={`Remove ${typeof labelOf.get(id) === 'string' ? String(labelOf.get(id)) : id}`}
                     onClick={() => onChange(value.filter((x) => x !== id))}
                   />
@@ -112,7 +111,7 @@ export function WordList({
                   <span className="cedit-chip__text">{w}</span>
                   <IconButton
                     size="sm"
-                    icon={X}
+                    icon={<Icon glyph={glyph.close} />}
                     label={`Remove ${w}`}
                     onClick={() => onChange(value.filter((x) => x !== w))}
                   />
@@ -136,7 +135,13 @@ export function WordList({
                   }
                 }}
               />
-              <Button variant="secondary" size="sm" leadingIcon={Plus} onClick={add} disabled={!text.trim()}>
+              <Button
+                variant="secondary"
+                size="sm"
+                leadingIcon={<Icon glyph={glyph.plus} />}
+                onClick={add}
+                disabled={!text.trim()}
+              >
                 Add
               </Button>
             </div>
@@ -440,7 +445,7 @@ export function LogoField({
             <Button
               variant="secondary"
               size="sm"
-              leadingIcon={UploadSimple}
+              leadingIcon={<Icon glyph={glyph.upload} />}
               onClick={() => input.current?.click()}
               loading={progress !== null}
               aria-describedby={hintId}

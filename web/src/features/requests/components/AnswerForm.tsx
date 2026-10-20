@@ -1,11 +1,10 @@
 // The reps' answer to a request: a status and a public reply, and "Remove" behind a confirmation. Shown to people
 // with requests.manage, on the request's page and in Manage.
 import { useState } from 'react';
-import { Trash } from '@phosphor-icons/react';
 import { errorMessage } from '../../../api/errors';
 import type { RequestOut } from '../../../api/types';
 import { useToast } from '../../../state';
-import { Button, ConfirmDialog, SegmentedControl, TextArea } from '../../../ui';
+import { Button, ConfirmDialog, glyph, Icon, SegmentedControl, TextArea } from '../../../ui';
 import { useAnswerRequest, useRemoveRequest } from '../api';
 import { STATUSES, needsReply } from '../labels';
 import type { RequestStatus } from '../types';
@@ -82,7 +81,12 @@ export function AnswerForm({ request, onRemoved }: { request: RequestOut; onRemo
           >
             Save answer
           </Button>
-          <Button variant="ghost" size="sm" leadingIcon={Trash} onClick={() => setRemoving(true)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            leadingIcon={<Icon glyph={glyph.trash} />}
+            onClick={() => setRemoving(true)}
+          >
             Remove
           </Button>
         </div>

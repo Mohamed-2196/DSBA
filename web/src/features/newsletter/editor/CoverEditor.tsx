@@ -1,7 +1,6 @@
 // The cover in the issue editor: its colour, an illustration or type alone, and the cover lines that point to the
 // stories, beside a live thumbnail of the cover.
-import { Plus } from '@phosphor-icons/react';
-import { Button, SegmentedControl, Select } from '../../../ui';
+import { Button, glyph, Icon, SegmentedControl, Select } from '../../../ui';
 import { IssueCover } from '../components/IssueCover';
 import {
   LIMITS,
@@ -163,7 +162,7 @@ export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorPro
         <Button
           size="sm"
           variant="secondary"
-          leadingIcon={Plus}
+          leadingIcon={<Icon glyph={glyph.plus} />}
           onClick={add}
           disabled={lines.length >= LIMITS.coverLines || !draft.sections.length}
           className="nl-ed-start"

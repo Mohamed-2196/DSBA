@@ -1,6 +1,5 @@
 // Manage → Modules (content.edit): every module by year, in programme order, hidden ones too. Reorder a year by
 // dragging or with the up and down buttons, add a module with its picture, or open one in the editor (?module=<id>).
-import { ArrowDown, ArrowUp, DotsSixVertical, EyeSlash, Plus } from '@phosphor-icons/react';
 import { useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ModuleEditSummary } from '../../../api/types';
@@ -8,17 +7,19 @@ import { useMediaQuery, useQueryParam, useToast, YEARS } from '../../../state';
 import {
   Badge,
   Button,
+  cx,
+  glyph,
+  Icon,
   IconButton,
   Modal,
   ModuleArt,
+  moduleArtSrc,
   ModuleIcon,
   Panel,
   QueryError,
   Select,
   Skeleton,
   TextField,
-  cx,
-  moduleArtSrc,
 } from '../../../ui';
 import { useCreateModule, useModulesForEditing, useReorderModules } from './api';
 import { ArtField } from './ArtField';
@@ -49,7 +50,7 @@ function ModuleList({ onOpen }: { onOpen: (id: string) => void }) {
     <div className="medit">
       <div className="medit__bar">
         <p className="medit__lede">Students see these modules and lessons. Changes show as soon as you save.</p>
-        <Button leadingIcon={Plus} onClick={() => setAdding(true)} data-hub="module-add">
+        <Button leadingIcon={<Icon glyph={glyph.plus} />} onClick={() => setAdding(true)} data-hub="module-add">
           Add a module
         </Button>
       </div>
@@ -142,7 +143,7 @@ function YearList({
               }}
               onDrop={(e) => drop(e, m.id)}
             >
-              <DotsSixVertical className="medit__grip" aria-hidden="true" />
+              <Icon glyph={glyph.drag} className="medit__grip" />
               <RowVisual m={m} />
               <button type="button" className="medit__open" onClick={() => onOpen(m.id)}>
                 <span className="medit__name">{m.unitCode ? `${m.unitCode} ${m.name}` : m.name}</span>
@@ -152,20 +153,20 @@ function YearList({
                 </span>
               </button>
               {m.hidden ? (
-                <Badge tone="neutral" icon={EyeSlash} size="sm">
+                <Badge tone="neutral" icon={<Icon glyph={glyph.eyeOff} />} size="sm">
                   Hidden
                 </Badge>
               ) : null}
               <span className="medit__steps">
                 <IconButton
-                  icon={ArrowUp}
+                  icon={<Icon glyph={glyph.arrowUp} />}
                   label={`Move ${m.shortName} up`}
                   size="sm"
                   disabled={i === 0 || reorder.isPending}
                   onClick={() => step(i, -1)}
                 />
                 <IconButton
-                  icon={ArrowDown}
+                  icon={<Icon glyph={glyph.arrowDown} />}
                   label={`Move ${m.shortName} down`}
                   size="sm"
                   disabled={i === modules.length - 1 || reorder.isPending}

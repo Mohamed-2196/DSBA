@@ -2,27 +2,25 @@
 // Saving sends PATCH /newsletter/issues/{id}. Problems are checked against the API's own limits as the rep goes
 // (after the first try to save), and a 422 from the API lands on the field that caused it. Unsaved edits are
 // guarded against leaving the page and kept on this device until they are saved.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ArrowCounterClockwise,
-  ArrowSquareOut,
-  CalendarCheck,
-  ChatsCircle,
-  Books,
-  Eye,
-  FloppyDisk,
-  Megaphone,
-  NotePencil,
-  PencilSimple,
-  Plus,
-  WarningCircle,
-} from '@phosphor-icons/react';
 import type { IssueDetail } from '../../../api/types';
 import { errorMessage, isApiError } from '../../../api/errors';
 import { formatDay } from '../../../lib/dates';
 import { useDocumentTitle, useLeaveGuard, useMediaQuery, useToast } from '../../../state';
-import { Badge, Button, ConfirmDialog, Menu, Page, PageHeader, SegmentedControl, cx, countOf } from '../../../ui';
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  countOf,
+  cx,
+  glyph,
+  Icon,
+  Menu,
+  Page,
+  PageHeader,
+  SegmentedControl,
+} from '../../../ui';
 import { useUpdateIssue } from '../api';
 import { DeleteIssueButton, PublishButton } from '../components/IssueActions';
 import {
@@ -57,16 +55,16 @@ const NO_ERRORS: FieldErrors = {};
 /** Below this width the form and the preview take turns (Edit / Preview). */
 const SIDE_BY_SIDE = '(min-width: 1100px)';
 
-const ADD: { kind: NewSection; label: string; icon: typeof NotePencil }[] = [
-  { kind: 'story', label: 'A story', icon: NotePencil },
+const ADD: { kind: NewSection; label: string; icon: ReactElement }[] = [
+  { kind: 'story', label: 'A story', icon: <Icon glyph={glyph.edit} /> },
   {
     kind: 'deadlines',
     label: 'Deadlines from the calendar',
-    icon: CalendarCheck,
+    icon: <Icon glyph={glyph.deadline} />,
   },
-  { kind: 'forum', label: 'Hot threads from the forum', icon: ChatsCircle },
-  { kind: 'library', label: 'New files in the library', icon: Books },
-  { kind: 'requests', label: 'Requests done', icon: Megaphone },
+  { kind: 'forum', label: 'Hot threads from the forum', icon: <Icon glyph={glyph.forum} /> },
+  { kind: 'library', label: 'New files in the library', icon: <Icon glyph={glyph.library} /> },
+  { kind: 'requests', label: 'Requests done', icon: <Icon glyph={glyph.question} /> },
 ];
 
 /** The keys of `next` whose sections had an open card in `prev` (matched by link name: keys change on a reload). */
@@ -309,7 +307,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
       {copy.earlier ? (
         <div className="nl-ed-restore" role="status">
           <p className="nl-ed-restore__text">
-            <ArrowCounterClockwise weight="bold" aria-hidden="true" />
+            <Icon glyph={glyph.undo} />
             You have changes from {keptAt(copy.earlier.savedAt)} that weren’t saved.
           </p>
           <div className="nl-ed-restore__actions">
@@ -391,7 +389,11 @@ export function Editor({ detail }: { detail: IssueDetail }) {
         <Menu
           label="Add a section"
           trigger={
-            <Button leadingIcon={Plus} id={controlId('add-section')} data-hub="editor-add-section">
+            <Button
+              leadingIcon={<Icon glyph={glyph.plus} />}
+              id={controlId('add-section')}
+              data-hub="editor-add-section"
+            >
               Add a section
             </Button>
           }
@@ -408,12 +410,12 @@ export function Editor({ detail }: { detail: IssueDetail }) {
         <p className={cx('nl-ed-bar__status', (problems > 0 || formError) && 'is-alert')} role="status">
           {formError ? (
             <>
-              <WarningCircle weight="fill" aria-hidden="true" />
+              <Icon glyph={glyph.error} />
               {formError}
             </>
           ) : problems ? (
             <>
-              <WarningCircle weight="fill" aria-hidden="true" />
+              <Icon glyph={glyph.error} />
               {countOf(problems, 'problem', 'problems')} to fix
             </>
           ) : dirty ? (
@@ -430,7 +432,6 @@ export function Editor({ detail }: { detail: IssueDetail }) {
           ) : null}
           <Button
             variant="primary"
-            leadingIcon={FloppyDisk}
             onClick={() => save()}
             loading={update.isPending}
             disabled={!dirty}
@@ -447,6 +448,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
     <PollVotesContext.Provider value={detail.polls}>
       <Page width="wide" className="nl-editor">
         <PageHeader
+          section="tools"
           title={`Edit issue ${no}`}
           description={
             published
@@ -463,7 +465,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
             <>
               {dirty ? (
                 <Button
-                  leadingIcon={ArrowSquareOut}
+                  leadingIcon={<Icon glyph={glyph.external} />}
                   onClick={() => save('open')}
                   loading={update.isPending}
                   data-hub="issue-save-open"
@@ -471,7 +473,11 @@ export function Editor({ detail }: { detail: IssueDetail }) {
                   Save and open
                 </Button>
               ) : (
-                <Button leadingIcon={ArrowSquareOut} to={`/newsletter/${detail.slug}`} data-hub="issue-open">
+                <Button
+                  leadingIcon={<Icon glyph={glyph.external} />}
+                  to={`/newsletter/${detail.slug}`}
+                  data-hub="issue-open"
+                >
                   Open the issue
                 </Button>
               )}
@@ -485,7 +491,6 @@ export function Editor({ detail }: { detail: IssueDetail }) {
               {!published && !dirty ? <PublishButton issue={detail} /> : null}
               <Button
                 variant={dirty ? 'primary' : 'secondary'}
-                leadingIcon={FloppyDisk}
                 onClick={() => save()}
                 loading={update.isPending}
                 disabled={!dirty}
@@ -504,8 +509,8 @@ export function Editor({ detail }: { detail: IssueDetail }) {
             value={pane}
             onChange={(v) => setPane(v === 'preview' ? 'preview' : 'edit')}
             options={[
-              { value: 'edit', label: 'Edit', icon: PencilSimple },
-              { value: 'preview', label: 'Preview', icon: Eye },
+              { value: 'edit', label: 'Edit', icon: <Icon glyph={glyph.edit} /> },
+              { value: 'preview', label: 'Preview', icon: <Icon glyph={glyph.eye} /> },
             ]}
           />
         )}

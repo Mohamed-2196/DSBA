@@ -21,9 +21,10 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .req-card {
   display: grid;
@@ -31,7 +32,7 @@
   align-items: start;
   gap: var(--sp-16);
   padding: var(--sp-16) var(--sp-24);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
 }
 .req-card:last-child {
   border-bottom: 0;
@@ -99,7 +100,7 @@
   min-width: 56px;
   min-height: 44px;
   padding: var(--sp-8);
-  border: 1px solid var(--line-strong);
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--r-control);
   background: var(--surface);
   color: var(--ink-2);
@@ -167,11 +168,35 @@
   gap: var(--sp-12);
   margin-top: var(--sp-16);
 }
+.req-detail__head {
+  display: grid;
+  gap: var(--sp-8);
+  padding: var(--sp-20) var(--sp-24);
+  border-radius: var(--r-panel);
+  background: var(--sec-pill);
+}
+.req-detail__head .req-card__kind {
+  color: var(--sec-text);
+}
+.req-detail__head .req-card__meta {
+  color: var(--ink);
+}
 .req-detail__title {
-  font-size: var(--fs-22);
-  font-weight: var(--fw-heavy);
-  line-height: var(--lh-heading);
+  font-family: var(--font-display);
+  font-size: var(--fs-28);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
+  line-height: 34px;
   overflow-wrap: anywhere;
+}
+@media (max-width: 699px) {
+  .req-detail__head {
+    padding: var(--sp-16) var(--sp-20);
+  }
+  .req-detail__title {
+    font-size: var(--fs-22);
+    line-height: 28px;
+  }
 }
 .req-detail__details {
   max-width: var(--measure);
@@ -209,8 +234,10 @@
   margin-top: var(--sp-24);
 }
 .req-detail__manage-h {
-  font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tracking-head);
 }
 
 /* The reps' answer form */
@@ -361,12 +388,13 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .req-done__list > li + li {
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .req-done__row {
   display: grid;

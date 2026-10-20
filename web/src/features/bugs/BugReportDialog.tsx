@@ -1,13 +1,12 @@
 // "Report a bug": what happened, what they expected, and (signed in) a screenshot. The page, the app's version and
 // the browser go with it, and the dialog says so. Guests can report too; the API limits how often.
-import { ImageSquare, X } from '@phosphor-icons/react';
 import { useId, useRef, useState, type FormEvent } from 'react';
 import { useLocation } from 'react-router-dom';
 import { errorMessage, isApiError } from '../../api/errors';
 import { UPLOAD_RULES, checkUpload, uploadErrorMessage, uploadFile } from '../../api/uploads';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import { Button, IconButton, Modal, TextArea } from '../../ui';
+import { Button, glyph, Icon, IconButton, Modal, TextArea } from '../../ui';
 import { useReportBug } from './api';
 import { browserOf, pageOf } from './context';
 import { closeBugReport, useBugReportOpen } from './open';
@@ -131,11 +130,16 @@ function BugForm({
           {shot ? (
             <div className="bug-form__preview">
               <img src={shot.preview} alt="Your screenshot" />
-              <IconButton label="Remove the screenshot" icon={X} size="sm" onClick={dropShot} />
+              <IconButton
+                label="Remove the screenshot"
+                icon={<Icon glyph={glyph.close} />}
+                size="sm"
+                onClick={dropShot}
+              />
             </div>
           ) : (
             <Button
-              leadingIcon={ImageSquare}
+              leadingIcon={<Icon glyph={glyph.image} />}
               onClick={() => fileRef.current?.click()}
               aria-describedby={`${uid}-shot ${uid}-shot-hint`}
             >

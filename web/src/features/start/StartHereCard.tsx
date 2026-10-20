@@ -1,9 +1,8 @@
 // Home's "Start here" card: Year 1, the first weeks of the academic year (the Start here guide), until it is hidden.
-import { ArrowRight, X } from '@phosphor-icons/react';
 import type { StartHere } from '../../api/types';
 import { todayKey } from '../../lib/dates';
 import { useLocalStorage, type CohortYear } from '../../state';
-import { Badge, Button, IconButton, Panel } from '../../ui';
+import { Badge, Button, glyph, Icon, IconButton, Panel } from '../../ui';
 import { useGuides } from './api';
 import { startWindow } from './startHere';
 import { GuideSteps } from './GuideSteps';
@@ -42,7 +41,7 @@ function Card({ guide }: { guide: StartHere }) {
           <Badge tone={n === total ? 'signal' : 'neutral'} aria-live="polite">{`${n} of ${total} done`}</Badge>
         </div>
         <IconButton
-          icon={X}
+          icon={<Icon glyph={glyph.close} />}
           label="Hide Start here"
           size="sm"
           onClick={() => setHiddenIn(term.from)}
@@ -52,7 +51,7 @@ function Card({ guide }: { guide: StartHere }) {
       <p className="start-card__intro">{guide.intro}</p>
       <GuideSteps steps={guide.steps} ticks={ticks} variant="card" />
       <div className="start-card__foot">
-        <Button variant="ghost" size="sm" to="/start-here" trailingIcon={ArrowRight}>
+        <Button variant="ghost" size="sm" to="/start-here" trailingIcon={<Icon glyph={glyph.forward} />}>
           What each step means
         </Button>
       </div>

@@ -4,13 +4,12 @@
 //
 // An item today's puzzle uses (and someone has opened) can fix today's puzzle too: the dialog then shows today's
 // puzzle with the fix, what changes and who it reaches, before the fix is applied.
-import { Check, Plus, WarningCircle, X } from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { ItemOut, QuizData, ThemeOut, TodayFixOut } from '../../../api/types';
 import { useToast, useUnsavedChanges } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Button, IconButton, Modal, Select, Switch, TextArea, TextField } from '../../../ui';
+import { Button, glyph, Icon, IconButton, Modal, Select, Switch, TextArea, TextField } from '../../../ui';
 import {
   useAddGuesses,
   useCreateItem,
@@ -291,11 +290,11 @@ function AnswerField({ word, error, onChange }: { word: string; error?: string; 
   if (complete && guesses.data && !guesses.isPlaceholderData) {
     hint = known ? (
       <span className="dcms-check is-ok">
-        <Check aria-hidden="true" weight="bold" /> In the guess list.
+        <Icon glyph={glyph.check} /> In the guess list.
       </span>
     ) : (
       <span className="dcms-check">
-        <WarningCircle aria-hidden="true" weight="fill" /> Not in the guess list yet.{' '}
+        <Icon glyph={glyph.error} /> Not in the guess list yet.{' '}
         <Button
           size="sm"
           variant="ghost"
@@ -332,12 +331,11 @@ function SecretField({ word, error, onChange }: { word: string; error?: string; 
   if (complete && found.data && !found.isPlaceholderData) {
     hint = known ? (
       <span className="dcms-check is-ok">
-        <Check aria-hidden="true" weight="bold" /> In the vocabulary.
+        <Icon glyph={glyph.check} /> In the vocabulary.
       </span>
     ) : (
       <span className="dcms-check">
-        <WarningCircle aria-hidden="true" weight="fill" /> Not in the vocabulary yet. Add it under Vocabulary, with its
-        tags, first.
+        <Icon glyph={glyph.error} /> Not in the vocabulary yet. Add it under Vocabulary, with its tags, first.
       </span>
     );
   }
@@ -456,7 +454,12 @@ function QuizFields({ data, err, onChange }: { data: QuizData; err: Err; onChang
                 className="dcms-option__text"
               />
               {data.options.length > MIN_OPTIONS ? (
-                <IconButton size="sm" icon={X} label={`Remove option ${i + 1}`} onClick={() => removeOption(i)} />
+                <IconButton
+                  size="sm"
+                  icon={<Icon glyph={glyph.close} />}
+                  label={`Remove option ${i + 1}`}
+                  onClick={() => removeOption(i)}
+                />
               ) : null}
             </li>
           ))}
@@ -464,7 +467,7 @@ function QuizFields({ data, err, onChange }: { data: QuizData; err: Err; onChang
         {data.options.length < MAX_OPTIONS ? (
           <Button
             size="sm"
-            leadingIcon={Plus}
+            leadingIcon={<Icon glyph={glyph.plus} />}
             className="dcms-options__add"
             onClick={() => onChange({ ...data, options: [...data.options, ''] })}
           >

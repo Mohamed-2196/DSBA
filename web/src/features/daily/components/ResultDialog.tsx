@@ -1,8 +1,8 @@
 // The result card at the end of a play: what it came to, its picture in the hub's colours, the points and streak, the
 // share button (the shared text has the emoji grid), and the way to the next puzzle.
 import type { CSSProperties } from 'react';
-import { ArrowRight, Flame } from '@phosphor-icons/react';
-import { Button, Modal } from '../../../ui';
+import { Flame } from '@phosphor-icons/react';
+import { Button, glyph, Icon, Modal } from '../../../ui';
 import { HELD, resultOf } from '../lib/result';
 import { hasSquares, type GameDay, type PlayOut, type Streak } from '../types';
 import { GameTile } from './GameGlyph';
@@ -86,7 +86,7 @@ export function ResultDialog({ open, onClose, out, signedIn, secret, streak, nex
               variant="secondary"
               fullWidth
               to={next.variant ? `/daily/${next.info.id}?difficulty=${next.variant}` : `/daily/${next.info.id}`}
-              trailingIcon={ArrowRight}
+              trailingIcon={<Icon glyph={glyph.forward} />}
               onClick={onClose}
             >
               Next: {next.info.title}

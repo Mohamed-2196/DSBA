@@ -1,9 +1,19 @@
 // /results-day: what results mean and what to do next (the Results day guide, edited in Manage → Guides). Open to
 // everyone, all year.
-import { ArrowSquareOut } from '@phosphor-icons/react';
 import type { ResultsDay } from '../../api/types';
 import { useAuth } from '../../auth';
-import { Badge, Page, PageHeader, PageSection, Panel, QueryError, SectionHeader, Skeleton } from '../../ui';
+import {
+  Badge,
+  glyph,
+  Icon,
+  Page,
+  PageHeader,
+  PageSection,
+  Panel,
+  QueryError,
+  SectionHeader,
+  Skeleton,
+} from '../../ui';
 import { ProjectedClass } from '../grades/public';
 import { httpsHref, useSite } from '../site/public';
 import { useGuides } from './api';
@@ -24,7 +34,7 @@ function Sources() {
           <li key={l.label}>
             <a href={href} target="_blank" rel="noopener noreferrer" className="start-link">
               {l.label}
-              <ArrowSquareOut weight="bold" aria-hidden="true" />
+              <Icon glyph={glyph.external} />
               <span className="visually-hidden"> (opens in a new tab)</span>
             </a>
           </li>
@@ -42,6 +52,7 @@ export function ResultsDayBody({ guide }: { guide: ResultsDay }) {
   return (
     <>
       <PageHeader
+        section="tools"
         title={guide.title}
         description={guide.intro}
         meta={

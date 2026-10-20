@@ -2,10 +2,9 @@
 // what can be done to it: open it, edit it, publish a draft, delete it. "New issue" starts a draft and opens its editor.
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, Newspaper, PencilSimple, Plus } from '@phosphor-icons/react';
 import type { IssueSummary } from '../../api/types';
 import { formatDay } from '../../lib/dates';
-import { Badge, Button, EmptyState, IconButton, Panel, QueryError, Skeleton } from '../../ui';
+import { Badge, Button, EmptyState, glyph, Icon, IconButton, Panel, QueryError, Skeleton } from '../../ui';
 import { useIssues } from './api';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
 import { managerOrder } from './lib/manage';
@@ -39,7 +38,7 @@ function Row({ issue }: { issue: IssueSummary }) {
       <span className="nl-drafts__actions">
         <IconButton
           label={draft ? `Preview issue ${no}` : `Open issue ${no}`}
-          icon={Eye}
+          icon={<Icon glyph={glyph.eye} />}
           variant="secondary"
           size="sm"
           tooltip
@@ -47,7 +46,7 @@ function Row({ issue }: { issue: IssueSummary }) {
         />
         <IconButton
           label={`Edit issue ${no}`}
-          icon={PencilSimple}
+          icon={<Icon glyph={glyph.edit} />}
           variant="secondary"
           size="sm"
           tooltip
@@ -93,7 +92,12 @@ export function IssuesManager() {
             to a published issue shows straight away.
           </p>
         </div>
-        <Button variant="primary" leadingIcon={Plus} onClick={() => setCreating(true)} data-hub="issue-new">
+        <Button
+          variant="primary"
+          leadingIcon={<Icon glyph={glyph.plus} />}
+          onClick={() => setCreating(true)}
+          data-hub="issue-new"
+        >
           New issue
         </Button>
       </div>
@@ -110,7 +114,7 @@ export function IssuesManager() {
       ) : (
         <EmptyState
           size="sm"
-          icon={Newspaper}
+          icon={<Icon glyph={glyph.newsletter} />}
           title="No issues yet"
           body="Start the first one: it stays a draft until you publish it."
         />

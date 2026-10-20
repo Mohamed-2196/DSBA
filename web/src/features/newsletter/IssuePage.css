@@ -1,13 +1,16 @@
 /* /newsletter/:slug — the issue reader. Display titles, Figtree for reading. */
 
 /* ── Running head ─────────────────────────────────────────────────────── */
+/* The page's chrome is the tools band, slim: the newsletter's name back to the list, the issue and its date, and
+   sharing. The issue's own masthead (the hero) stays editorial under it. */
 .nl-runhead {
   display: flex;
   align-items: center;
   gap: var(--sp-8) var(--sp-24);
   flex-wrap: wrap;
-  padding-bottom: var(--sp-16);
-  border-bottom: 1px solid var(--line);
+  padding: var(--sp-12) var(--sp-16) var(--sp-12) var(--sp-24);
+  border-radius: var(--r-panel);
+  background: var(--sec-pill);
 }
 .nl-runhead__name {
   display: inline-flex;
@@ -23,7 +26,7 @@
 .nl-runhead__meta {
   display: flex;
   gap: var(--sp-16);
-  color: var(--ink-2);
+  color: var(--ink);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
 }
@@ -907,6 +910,7 @@
 @media (max-width: 699px) {
   .nl-runhead {
     gap: 6px var(--sp-12);
+    padding: var(--sp-12) var(--sp-12) var(--sp-12) var(--sp-16);
   }
   .nl-runhead__name {
     font-size: var(--fs-20);
@@ -923,7 +927,7 @@
   }
   /* icon-only on phones; the label stays as the accessible name */
   .nl-runhead__share .ui-button {
-    width: 32px;
+    width: 36px;
     padding: 0;
   }
   .nl-runhead__share .ui-button__label {
@@ -1021,9 +1025,10 @@
   gap: var(--sp-12) var(--sp-24);
   margin-bottom: var(--sp-24);
   padding: var(--sp-12) var(--sp-16);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .nl-modbar.is-draft {
   border-style: dashed;
@@ -1066,5 +1071,8 @@
   }
   .nl-runhead__name {
     min-height: 44px;
+  }
+  .nl-runhead__share .ui-button {
+    min-width: 44px;
   }
 }

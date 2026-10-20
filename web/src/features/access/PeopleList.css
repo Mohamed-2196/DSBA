@@ -28,7 +28,7 @@
 }
 .people-table th {
   padding: 10px var(--sp-16);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
   background: var(--surface-2);
   color: var(--ink-2);
   font-size: var(--fs-12);
@@ -41,7 +41,7 @@
   vertical-align: middle;
 }
 .people-table tbody tr + tr td {
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .people-table tr.is-suspended .people-person__name {
   color: var(--ink-2);
@@ -115,7 +115,7 @@
   padding: var(--sp-16);
 }
 .people-loading__row + .people-loading__row {
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .people-loading__row .ui-skeleton-lines {
   flex: 1 1 auto;
@@ -159,7 +159,7 @@
     padding: var(--sp-12) var(--sp-16);
   }
   .people-table tbody tr + tr {
-    border-top: 1px solid var(--line);
+    border-top: 1.5px solid var(--line);
   }
   .people-table tbody tr + tr td {
     border-top: 0;

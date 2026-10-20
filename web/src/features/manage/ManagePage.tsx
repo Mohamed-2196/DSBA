@@ -1,29 +1,6 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import {
-  BookOpenText,
-  Bug,
-  Calculator,
-  CalendarCheck,
-  CalendarDots,
-  ChartBar,
-  ChatCircleDots,
-  ChatsCircle,
-  ClockCounterClockwise,
-  Compass,
-  Flag,
-  GearSix,
-  HandWaving,
-  ListChecks,
-  ListMagnifyingGlass,
-  Newspaper,
-  Power,
-  PuzzlePiece,
-  Tray,
-  UsersThree,
-  YoutubeLogo,
-  type Icon,
-} from '@phosphor-icons/react';
+import { Power } from '@phosphor-icons/react';
 import { Suspense, useId, useMemo, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, UnsavedProvider, useLeaveGuard, useQueryParam, useUnsavedRegistry } from '../../state';
@@ -41,6 +18,9 @@ import {
   Skeleton,
   cx,
   formatCount,
+  glyph,
+  Icon,
+  type Glyph,
 } from '../../ui';
 import { ActivityLog, PeopleList } from '../access/public';
 import { CareerEditor } from '../career/public';
@@ -64,27 +44,27 @@ import { BugReports } from '../bugs/public';
 import { groupSections, sectionsFor, type SectionId } from './sections';
 import './ManagePage.css';
 
-const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
-  reports: { label: 'Reports', icon: Flag },
-  uploads: { label: 'Uploads', icon: Tray },
-  requests: { label: 'Requests', icon: HandWaving },
-  bugs: { label: 'Bugs', icon: Bug },
-  newsletter: { label: 'Newsletter', icon: Newspaper },
-  calendar: { label: 'Calendar', icon: CalendarDots },
-  summary: { label: 'Sunday summary', icon: CalendarCheck },
-  career: { label: 'Career Navigator', icon: Compass },
-  content: { label: 'Modules', icon: BookOpenText },
-  daily: { label: 'Daily puzzles', icon: PuzzlePiece },
-  guides: { label: 'Guides', icon: ListChecks },
-  forum: { label: 'Forum', icon: ChatsCircle },
-  videos: { label: 'Suggested videos', icon: YoutubeLogo },
-  gaps: { label: 'Gaps', icon: ListMagnifyingGlass },
-  numbers: { label: 'Numbers', icon: ChartBar },
-  people: { label: 'People', icon: UsersThree },
-  activity: { label: 'Activity', icon: ClockCounterClockwise },
-  noora: { label: 'Mini Noora', icon: ChatCircleDots },
-  grades: { label: 'Grades calculator', icon: Calculator },
-  site: { label: 'Site settings', icon: GearSix },
+const SECTIONS: Record<SectionId, { label: string; icon: Glyph }> = {
+  reports: { label: 'Reports', icon: glyph.flag },
+  uploads: { label: 'Uploads', icon: glyph.upload },
+  requests: { label: 'Requests', icon: glyph.question },
+  bugs: { label: 'Bugs', icon: glyph.warning },
+  newsletter: { label: 'Newsletter', icon: glyph.newsletter },
+  calendar: { label: 'Calendar', icon: glyph.calendar },
+  summary: { label: 'Sunday summary', icon: glyph.send },
+  career: { label: 'Career Navigator', icon: glyph.career },
+  content: { label: 'Modules', icon: glyph.modules },
+  daily: { label: 'Daily puzzles', icon: glyph.daily },
+  guides: { label: 'Guides', icon: glyph.exam },
+  forum: { label: 'Forum', icon: glyph.forum },
+  videos: { label: 'Suggested videos', icon: glyph.video },
+  gaps: { label: 'Gaps', icon: glyph.search },
+  numbers: { label: 'Numbers', icon: glyph.list },
+  people: { label: 'People', icon: glyph.user },
+  activity: { label: 'Activity', icon: glyph.clock },
+  noora: { label: 'Mini Noora', icon: glyph.sparkle },
+  grades: { label: 'Grades calculator', icon: glyph.grades },
+  site: { label: 'Site settings', icon: glyph.settings },
 };
 
 const NUMBERS = [
@@ -148,7 +128,7 @@ function LinkOut({
   to,
   label,
 }: {
-  icon: Icon;
+  icon: Glyph;
   title: string;
   body: string;
   to: string;
@@ -156,7 +136,13 @@ function LinkOut({
 }) {
   return (
     <Panel padding="none">
-      <EmptyState size="sm" icon={icon} title={title} body={body} action={<Button to={to}>{label}</Button>} />
+      <EmptyState
+        size="sm"
+        icon={<Icon glyph={icon} />}
+        title={title}
+        body={body}
+        action={<Button to={to}>{label}</Button>}
+      />
     </Panel>
   );
 }
@@ -190,7 +176,7 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   ),
   calendar: () => (
     <LinkOut
-      icon={CalendarDots}
+      icon={glyph.calendar}
       title="The calendar"
       body="Add, edit and delete events from the calendar itself."
       to="/calendar"
@@ -235,7 +221,11 @@ const LOADING = (
 );
 
 const HEADER = (
-  <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />
+  <PageHeader
+    section="tools"
+    title="Manage"
+    description="Your tools, and what’s waiting for you. Every action is logged."
+  />
 );
 
 /**
@@ -287,7 +277,6 @@ function ManageNav({
             </h2>
             <ul role="list" aria-labelledby={`${headId}-${g.id}`}>
               {g.sections.map((id) => {
-                const Icon = SECTIONS[id].icon;
                 const n = counts[id];
                 return (
                   <li key={id}>
@@ -298,11 +287,7 @@ function ManageNav({
                       onClick={() => onPick(id)}
                       data-section={id}
                     >
-                      <Icon
-                        aria-hidden="true"
-                        weight={id === current ? 'duotone' : 'regular'}
-                        className="manage-nav__icon"
-                      />
+                      <Icon glyph={SECTIONS[id].icon} size={20} active={id === current} className="manage-nav__icon" />
                       <span className="manage-nav__label">{SECTIONS[id].label}</span>
                       {n ? <Count value={n} /> : null}
                     </button>

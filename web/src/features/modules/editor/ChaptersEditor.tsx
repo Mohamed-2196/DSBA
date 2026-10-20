@@ -1,19 +1,8 @@
 // The chapters and lessons of the module in the editor. Drag a chapter or a lesson by its handle (a lesson may go to
 // another chapter), or use the up and down buttons. Hiding keeps a chapter or lesson, and everything students
 // attached to it, out of their sight; removing a chapter that still has lessons offers to hide it instead.
-import {
-  ArrowDown,
-  ArrowUp,
-  CaretDown,
-  CaretRight,
-  DotsSixVertical,
-  Eye,
-  EyeSlash,
-  Plus,
-  Trash,
-} from '@phosphor-icons/react';
 import { useState, type DragEvent } from 'react';
-import { Badge, Button, ConfirmDialog, IconButton, Panel, TextField, cx } from '../../../ui';
+import { Badge, Button, ConfirmDialog, cx, glyph, Icon, IconButton, Panel, TextField } from '../../../ui';
 import {
   addChapter,
   addLesson,
@@ -143,7 +132,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                     onDragEnd={endDrag}
                     title="Drag to move the chapter"
                   >
-                    <DotsSixVertical aria-hidden="true" />
+                    <Icon glyph={glyph.drag} />
                   </span>
                   <TextField
                     className="medit-chapter__title"
@@ -155,39 +144,44 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                     required
                   />
                   {ch.hidden ? (
-                    <Badge tone="neutral" icon={EyeSlash} size="sm">
+                    <Badge tone="neutral" icon={<Icon glyph={glyph.eyeOff} />} size="sm">
                       Hidden
                     </Badge>
                   ) : null}
                   <span className="medit__tools">
                     <IconButton
-                      icon={ch.hidden ? Eye : EyeSlash}
+                      icon={ch.hidden ? <Icon glyph={glyph.eye} /> : <Icon glyph={glyph.eyeOff} />}
                       label={ch.hidden ? `Show chapter ${c + 1} to students` : `Hide chapter ${c + 1} from students`}
                       size="sm"
                       onClick={() => setDraft((d) => updateChapter(d, c, { hidden: !ch.hidden }))}
                     />
                     <IconButton
-                      icon={ArrowUp}
+                      icon={<Icon glyph={glyph.arrowUp} />}
                       label={`Move chapter ${c + 1} up`}
                       size="sm"
                       disabled={c === 0}
                       onClick={() => setDraft((d) => moveChapter(d, c, c - 1))}
                     />
                     <IconButton
-                      icon={ArrowDown}
+                      icon={<Icon glyph={glyph.arrowDown} />}
                       label={`Move chapter ${c + 1} down`}
                       size="sm"
                       disabled={c === draft.chapters.length - 1}
                       onClick={() => setDraft((d) => moveChapter(d, c, c + 1))}
                     />
-                    <IconButton icon={Trash} label={`Remove chapter ${c + 1}`} size="sm" onClick={() => askRemove(c)} />
+                    <IconButton
+                      icon={<Icon glyph={glyph.trash} />}
+                      label={`Remove chapter ${c + 1}`}
+                      size="sm"
+                      onClick={() => askRemove(c)}
+                    />
                   </span>
                 </div>
 
                 <Button
                   variant="ghost"
                   size="sm"
-                  leadingIcon={open ? CaretDown : CaretRight}
+                  leadingIcon={open ? <Icon glyph={glyph.chevronDown} /> : <Icon glyph={glyph.chevronRight} />}
                   aria-expanded={open}
                   onClick={() => toggle(ch.key)}
                 >
@@ -230,7 +224,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                               onDragEnd={endDrag}
                               title="Drag to move the lesson"
                             >
-                              <DotsSixVertical aria-hidden="true" />
+                              <Icon glyph={glyph.drag} />
                             </span>
                             <span className="medit-lesson__num u-tabular" aria-hidden="true">
                               {v + 1}
@@ -273,12 +267,12 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                             </div>
                             <span className="medit__tools">
                               {l.hidden ? (
-                                <Badge tone="neutral" icon={EyeSlash} size="sm">
+                                <Badge tone="neutral" icon={<Icon glyph={glyph.eyeOff} />} size="sm">
                                   Hidden
                                 </Badge>
                               ) : null}
                               <IconButton
-                                icon={l.hidden ? Eye : EyeSlash}
+                                icon={l.hidden ? <Icon glyph={glyph.eye} /> : <Icon glyph={glyph.eyeOff} />}
                                 label={
                                   l.hidden ? `Show lesson ${v + 1} to students` : `Hide lesson ${v + 1} from students`
                                 }
@@ -286,21 +280,21 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                                 onClick={() => setDraft((d) => updateLesson(d, at, { hidden: !l.hidden }))}
                               />
                               <IconButton
-                                icon={ArrowUp}
+                                icon={<Icon glyph={glyph.arrowUp} />}
                                 label={`Move lesson ${v + 1} up`}
                                 size="sm"
                                 disabled={!canStepLesson(draft, at, -1)}
                                 onClick={() => setDraft((d) => stepLesson(d, at, -1))}
                               />
                               <IconButton
-                                icon={ArrowDown}
+                                icon={<Icon glyph={glyph.arrowDown} />}
                                 label={`Move lesson ${v + 1} down`}
                                 size="sm"
                                 disabled={!canStepLesson(draft, at, 1)}
                                 onClick={() => setDraft((d) => stepLesson(d, at, 1))}
                               />
                               <IconButton
-                                icon={Trash}
+                                icon={<Icon glyph={glyph.trash} />}
                                 label={`Remove lesson ${v + 1}`}
                                 size="sm"
                                 onClick={() => setDraft((d) => removeLesson(d, at))}
@@ -319,7 +313,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      leadingIcon={Plus}
+                      leadingIcon={<Icon glyph={glyph.plus} />}
                       onClick={() => setDraft((d) => addLesson(d, c))}
                     >
                       Add a lesson
@@ -333,7 +327,7 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
       </ol>
       <Button
         variant="secondary"
-        leadingIcon={Plus}
+        leadingIcon={<Icon glyph={glyph.plus} />}
         onClick={() => {
           const d = addChapter(draft);
           const made = d.chapters.at(-1);

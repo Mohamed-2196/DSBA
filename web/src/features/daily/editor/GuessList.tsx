@@ -1,12 +1,14 @@
 // The word game's guess list: every five-letter word a guess may be. Find words by how they start, add words in bulk,
 // or take one off (unless it's an answer word, or a kept play guessed it: that play would no longer replay).
-import { Plus, X } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { errorMessage } from '../../../api/errors';
 import type { GuessAddReport } from '../../../api/types';
 import { useDebouncedValue, useToast, useUnsavedChanges } from '../../../state';
 import {
   Button,
+  formatCount,
+  glyph,
+  Icon,
   IconButton,
   Modal,
   Panel,
@@ -14,7 +16,6 @@ import {
   SearchField,
   Skeleton,
   TextArea,
-  formatCount,
 } from '../../../ui';
 import { useAddGuesses, useGuessList, useRemoveGuess } from './api';
 
@@ -58,7 +59,7 @@ export function GuessList() {
             Every answer word must be in it.
           </p>
         </div>
-        <Button leadingIcon={Plus} onClick={() => setAdding(true)}>
+        <Button leadingIcon={<Icon glyph={glyph.plus} />} onClick={() => setAdding(true)}>
           Add words
         </Button>
       </div>
@@ -92,7 +93,7 @@ export function GuessList() {
                 <span className="dcms-word__text">{word}</span>
                 <IconButton
                   size="sm"
-                  icon={X}
+                  icon={<Icon glyph={glyph.close} />}
                   label={`Take ${word} off the guess list`}
                   disabled={remove.isPending && remove.variables === word}
                   onClick={() => takeOff(word)}

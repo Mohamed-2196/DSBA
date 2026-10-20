@@ -1,11 +1,10 @@
 // /requests/:requestId: one request, its me-toos and the reps' answer. People who handle requests answer or remove it
 // here; others can report it.
-import { ArrowLeft, HandWaving } from '@phosphor-icons/react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { useDocumentTitle } from '../../state';
-import { Badge, Button, EmptyState, Page, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
+import { Badge, Button, glyph, Icon, Page, PageHeader, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
 import { ReportButton } from '../forum/public';
 import { useRequest } from './api';
 import { formatShort, parseDay } from '../../lib/dates';
@@ -16,7 +15,7 @@ import { kindLabel, meTooLine, statusOf, wantsLine } from './labels';
 import './requests.css';
 
 const back = (
-  <Button variant="ghost" size="sm" to="/requests" leadingIcon={ArrowLeft}>
+  <Button variant="ghost" size="sm" to="/requests" leadingIcon={<Icon glyph={glyph.back} />}>
     All requests
   </Button>
 );
@@ -34,14 +33,12 @@ export default function RequestPage() {
       <Page width="narrow" className="req-page">
         {back}
         {gone ? (
-          <Panel padding="none">
-            <EmptyState
-              icon={HandWaving}
-              title="This request doesn’t exist"
-              body="It may have been removed by the reps."
-              action={<Button to="/requests">See all requests</Button>}
-            />
-          </Panel>
+          <PageHeader
+            section="tools"
+            title="This request doesn’t exist"
+            description="It may have been removed by the reps."
+            actions={<Button to="/requests">See all requests</Button>}
+          />
         ) : (
           <QueryError
             error={req.error}
@@ -69,27 +66,30 @@ export default function RequestPage() {
     <Page width="narrow" className="req-page">
       {back}
       <article className="req-detail" data-hub="request-page">
-        <p className="req-card__kind">
-          {kindLabel(r.kind)}
-          {r.moduleTitle ? (
-            <>
-              <span aria-hidden="true"> · </span>
-              {r.moduleTitle}
-            </>
-          ) : null}
-        </p>
-        <h1 className="req-detail__title" dir="auto">
-          {r.title}
-        </h1>
-        <div className="req-card__meta">
-          <Badge tone={status.tone} size="sm">
-            {status.label}
-          </Badge>
-          <span>
-            Asked by {r.author?.displayName ?? 'a deleted account'} ·{' '}
-            <time dateTime={r.createdAt}>{timeAgo(r.createdAt)}</time>
-          </span>
-        </div>
+        {/* the tools band, slim: what kind of request, its title, where it stands and who asked */}
+        <header className="req-detail__head" data-section="tools">
+          <p className="req-card__kind">
+            {kindLabel(r.kind)}
+            {r.moduleTitle ? (
+              <>
+                <span aria-hidden="true"> · </span>
+                {r.moduleTitle}
+              </>
+            ) : null}
+          </p>
+          <h1 className="req-detail__title" dir="auto">
+            {r.title}
+          </h1>
+          <div className="req-card__meta">
+            <Badge tone={status.tone} size="sm">
+              {status.label}
+            </Badge>
+            <span>
+              Asked by {r.author?.displayName ?? 'a deleted account'} ·{' '}
+              <time dateTime={r.createdAt}>{timeAgo(r.createdAt)}</time>
+            </span>
+          </div>
+        </header>
         {wants ? <p className="req-detail__wants">Wants: {wants}</p> : null}
         {r.event ? (
           <p className="req-detail__wants">

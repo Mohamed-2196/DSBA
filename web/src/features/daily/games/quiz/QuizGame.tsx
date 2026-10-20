@@ -1,8 +1,7 @@
 // The Daily Query: five questions, one at a time. An answer shows straight away whether it was right, with a short
 // explanation, before the next question. Once it's over, every question can be gone back over.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react';
-import { Button, cx } from '../../../../ui';
+import { Button, cx, glyph, Icon } from '../../../../ui';
 import type { QuizAnswered } from '../../types';
 import type { GameProps } from '../registry';
 import './QuizGame.css';
@@ -124,7 +123,13 @@ export function QuizGame({ out, busy, play, flash, paused, showResult }: GamePro
                 aria-pressed={chosen}
               >
                 <span className="dq-option__key" aria-hidden="true">
-                  {right ? <Check weight="bold" /> : chosen && !answer?.correct ? <X weight="bold" /> : LETTERS[i]}
+                  {right ? (
+                    <Icon glyph={glyph.check} />
+                  ) : chosen && !answer?.correct ? (
+                    <Icon glyph={glyph.close} />
+                  ) : (
+                    LETTERS[i]
+                  )}
                 </span>
                 <span className="dq-option__text">{option}</span>
                 {answer ? (
@@ -150,7 +155,7 @@ export function QuizGame({ out, busy, play, flash, paused, showResult }: GamePro
 
       <div className="dq-nav">
         {over && index > 0 ? (
-          <Button variant="ghost" leadingIcon={ArrowLeft} onClick={() => setIndex((i) => i - 1)}>
+          <Button variant="ghost" leadingIcon={<Icon glyph={glyph.back} />} onClick={() => setIndex((i) => i - 1)}>
             Previous
           </Button>
         ) : (
@@ -164,7 +169,12 @@ export function QuizGame({ out, busy, play, flash, paused, showResult }: GamePro
               </Button>
             ) : null
           ) : (
-            <Button ref={nextRef} variant={over ? 'secondary' : 'primary'} trailingIcon={ArrowRight} onClick={next}>
+            <Button
+              ref={nextRef}
+              variant={over ? 'secondary' : 'primary'}
+              trailingIcon={<Icon glyph={glyph.forward} />}
+              onClick={next}
+            >
               {over ? 'Next' : 'Next question'}
             </Button>
           )
@@ -185,7 +195,7 @@ export function QuizExample() {
         </span>
         <span className="dq-option is-right is-chosen">
           <span className="dq-option__key">
-            <Check weight="bold" />
+            <Icon glyph={glyph.check} />
           </span>
           <span className="dq-option__text">Mean</span>
         </span>

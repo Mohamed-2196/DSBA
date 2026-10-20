@@ -2,7 +2,6 @@
 // editor offers to choose for a cover or beside a section. A picture is uploaded here once and offered to every issue;
 // an uploaded one is kept while it's offered. Saved together from the version loaded (newsletter_settings_changed when
 // someone else saved first). Every save goes to the activity log with what changed, before and after.
-import { UploadSimple } from '@phosphor-icons/react';
 import { useMemo, useRef, useState } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import { pictureSrc } from '../../../api/pictures';
@@ -16,7 +15,21 @@ import {
 } from '../../../api/uploads';
 import type { NewsletterPicture, NewsletterSettings, NewsletterSettingsEditable } from '../../../api/types';
 import { useToast } from '../../../state';
-import { Badge, Button, Chip, Drawer, Panel, QueryError, Skeleton, Switch, TextArea, TextField, cx } from '../../../ui';
+import {
+  Badge,
+  Button,
+  Chip,
+  cx,
+  Drawer,
+  glyph,
+  Icon,
+  Panel,
+  QueryError,
+  Skeleton,
+  Switch,
+  TextArea,
+  TextField,
+} from '../../../ui';
 import { DocFrame, ListEditor, docErrors, hasErrorUnder, newItemId, type DocProblem } from '../../../ui/docEditor';
 import { useNewsletterSettingsForEditing, useReloadNewsletterSettings, useSaveNewsletterSettings } from '../api';
 import { Nameplate } from '../components/Nameplate';
@@ -328,7 +341,7 @@ function AddPicture({ taken, onAdd }: { taken: string[]; onAdd: (picture: Newsle
       />
       <Button
         variant="secondary"
-        leadingIcon={UploadSimple}
+        leadingIcon={<Icon glyph={glyph.upload} />}
         onClick={() => fileRef.current?.click()}
         loading={uploading}
       >

@@ -10,7 +10,7 @@
   padding: var(--sp-12) var(--sp-16);
 }
 .activity-log__item + .activity-log__item {
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .activity-log__text {
   color: var(--ink-2);
@@ -37,7 +37,7 @@
   padding: var(--sp-16);
 }
 .activity-loading__row + .activity-loading__row {
-  border-top: 1px solid var(--line);
+  border-top: 1.5px solid var(--line);
 }
 .activity-loading__row .ui-skeleton-lines {
   flex: 1 1 auto;

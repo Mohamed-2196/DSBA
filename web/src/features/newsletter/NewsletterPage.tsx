@@ -1,15 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Eye, NotePencil, PencilSimple, Plus } from '@phosphor-icons/react';
 import type { IssueSummary } from '../../api/types';
 import { useAuth } from '../../auth';
 import { formatDay, formatMonthYear, parseDay } from '../../lib/dates';
 import { useDocumentTitle } from '../../state';
-import { Badge, Button, IconButton, Page, Panel, QueryError, Skeleton } from '../../ui';
+import { Badge, Button, glyph, Icon, IconButton, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
 import { toCard, useIssueDetails, useIssues, useNewsletterMasthead } from './api';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
 import { IssueCover } from './components/IssueCover';
-import { Nameplate } from './components/Nameplate';
 import { SubscribeBox } from './components/SubscribeBox';
 import { issueNo, plainText, sectionLabel } from './lib/text';
 import { NewIssueDialog } from './NewIssueDialog';
@@ -19,32 +17,34 @@ import './NewsletterPage.css';
 const issueHref = (issue: { slug: string }, section?: string): string =>
   `/newsletter/${issue.slug}${section ? `?section=${section}` : ''}`;
 
+/** The tools band: the newsletter's name, its line, and since when and the latest issue. The nameplate is on the covers. */
 function Masthead({ first, latest }: { first: IssueCard | undefined; latest: IssueCard | undefined }) {
   const line = useNewsletterMasthead().data?.masthead;
   return (
-    <header className="nl-masthead" data-hub="nl-masthead">
-      <h1 className="nl-masthead__title">
-        <Nameplate />
-      </h1>
-      <div className="nl-masthead__rules" aria-hidden="true" />
-      <div className="nl-masthead__folio">
-        <p className="nl-masthead__tagline">{line ?? <Skeleton width="90%" height="1em" />}</p>
-        <dl className="nl-masthead__facts">
-          {first ? (
-            <div className="nl-masthead__fact">
-              <dt>Since</dt>
-              <dd>{formatMonthYear(parseDay(first.date))}</dd>
-            </div>
-          ) : null}
-          {latest ? (
-            <div className="nl-masthead__fact">
-              <dt>Latest issue</dt>
-              <dd className="u-tabular">{formatDay(latest.date)}</dd>
-            </div>
-          ) : null}
-        </dl>
-      </div>
-    </header>
+    <PageHeader
+      section="tools"
+      className="nl-index__head"
+      title="The DSBA Newsletter"
+      description={line ?? <Skeleton width="20em" height="1em" />}
+      meta={
+        first || latest ? (
+          <dl className="nl-index__facts" data-hub="nl-masthead">
+            {first ? (
+              <div className="nl-index__fact">
+                <dt>Since</dt>
+                <dd>{formatMonthYear(parseDay(first.date))}</dd>
+              </div>
+            ) : null}
+            {latest ? (
+              <div className="nl-index__fact">
+                <dt>Latest issue</dt>
+                <dd className="u-tabular">{formatDay(latest.date)}</dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null
+      }
+    />
   );
 }
 
@@ -85,7 +85,7 @@ function LatestFeature({ issue }: { issue: IssueCard }) {
           </Button>
           {issue.readMinutes ? (
             <span className="nl-feature__time">
-              <Clock aria-hidden="true" />
+              <Icon glyph={glyph.clock} />
               {issue.readMinutes} min read
             </span>
           ) : null}
@@ -159,7 +159,7 @@ function ShelfItem({ issue }: { issue: IssueCard }) {
           <span className="u-tabular">{formatDay(issue.date, { month: 'short' })}</span>
           {issue.readMinutes ? (
             <span className="nl-shelf__time">
-              <Clock aria-hidden="true" />
+              <Icon glyph={glyph.clock} />
               {issue.readMinutes} min read
             </span>
           ) : null}
@@ -176,7 +176,7 @@ function Drafts({ drafts, onNew }: { drafts: IssueSummary[]; onNew: () => void }
       <div className="nl-drafts__head">
         <div>
           <h2 id="nl-drafts-title" className="nl-drafts__title">
-            <NotePencil weight="duotone" aria-hidden="true" />
+            <Icon glyph={glyph.edit} />
             Drafts
             <span className="nl-drafts__count u-tabular">{drafts.length}</span>
           </h2>
@@ -184,7 +184,7 @@ function Drafts({ drafts, onNew }: { drafts: IssueSummary[]; onNew: () => void }
             Only people who manage the newsletter see these. Publishing an issue tells everyone it’s out.
           </p>
         </div>
-        <Button variant="primary" leadingIcon={Plus} onClick={onNew} data-hub="issue-new">
+        <Button variant="primary" leadingIcon={<Icon glyph={glyph.plus} />} onClick={onNew} data-hub="issue-new">
           New issue
         </Button>
       </div>
@@ -207,7 +207,7 @@ function Drafts({ drafts, onNew }: { drafts: IssueSummary[]; onNew: () => void }
               <span className="nl-drafts__actions">
                 <IconButton
                   label={`Preview issue ${issueNo(d.number)}`}
-                  icon={Eye}
+                  icon={<Icon glyph={glyph.eye} />}
                   variant="secondary"
                   size="sm"
                   tooltip
@@ -215,7 +215,7 @@ function Drafts({ drafts, onNew }: { drafts: IssueSummary[]; onNew: () => void }
                 />
                 <IconButton
                   label={`Edit issue ${issueNo(d.number)}`}
-                  icon={PencilSimple}
+                  icon={<Icon glyph={glyph.edit} />}
                   variant="secondary"
                   size="sm"
                   tooltip

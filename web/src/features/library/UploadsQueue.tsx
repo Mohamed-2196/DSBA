@@ -1,12 +1,23 @@
 // Moderators: uploads waiting for review (GET /library/items?status=pending), oldest first, each with a
 // preview, a download, Edit details, Publish and Reject (with a note the uploader sees).
 // Rendered in the Uploads section of features/manage/ManagePage.
-import { ArrowSquareOut, CheckCircle, DownloadSimple, Eye, PencilSimple } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatSize } from '../../api/uploads';
 import { useModules } from '../../state/modules';
-import { Badge, Button, CohortBadge, EmptyState, Panel, QueryError, Skeleton, formatCount, timeAgo } from '../../ui';
+import {
+  Badge,
+  Button,
+  CohortBadge,
+  EmptyState,
+  formatCount,
+  glyph,
+  Icon,
+  Panel,
+  QueryError,
+  Skeleton,
+  timeAgo,
+} from '../../ui';
 import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, openLinkHref, useFileLink, useLibraryList } from './api';
 import { EditItemDialog } from './components/EditItemDialog';
@@ -77,19 +88,19 @@ function QueueRow({ item }: { item: LibraryItem }) {
         </p>
         {item.description ? <p className="lib-queue__desc">{item.description}</p> : null}
         <div className="lib-queue__links">
-          <Button size="sm" variant="ghost" leadingIcon={Eye} to={itemPath(item)}>
+          <Button size="sm" variant="ghost" leadingIcon={<Icon glyph={glyph.eye} />} to={itemPath(item)}>
             Preview
           </Button>
           {item.source === 'file' ? (
-            <Button size="sm" variant="ghost" leadingIcon={DownloadSimple} href={downloadHref(item)}>
+            <Button size="sm" variant="ghost" leadingIcon={<Icon glyph={glyph.download} />} href={downloadHref(item)}>
               Download
             </Button>
           ) : (
-            <Button size="sm" variant="ghost" trailingIcon={ArrowSquareOut} href={openLinkHref(item)}>
+            <Button size="sm" variant="ghost" trailingIcon={<Icon glyph={glyph.external} />} href={openLinkHref(item)}>
               Open link
             </Button>
           )}
-          <Button size="sm" variant="ghost" leadingIcon={PencilSimple} onClick={() => setEditing(true)}>
+          <Button size="sm" variant="ghost" leadingIcon={<Icon glyph={glyph.edit} />} onClick={() => setEditing(true)}>
             Edit details
           </Button>
         </div>
@@ -139,7 +150,7 @@ export function UploadsQueue() {
   } else if (!items.length) {
     body = (
       <EmptyState
-        icon={CheckCircle}
+        icon={<Icon glyph={glyph.success} />}
         title="No uploads waiting"
         body="When a student uploads a file, it waits here until a rep publishes it."
       />
