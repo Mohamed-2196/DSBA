@@ -1,7 +1,7 @@
 # Status
 
 This is the handoff between sessions: where the work stands, what's next and what Mohamed still has to decide.
-Update it whenever you finish or start something. Last updated 2026-10-20, during round 15 (the Deskmates look).
+Update it whenever you finish or start something. Last updated 2026-10-21, after round 17 (Mohamed's dev review).
 
 ## Where things stand
 
@@ -185,6 +185,31 @@ account device icons).
   docs/reviews/security.md lists what he does (secrets, domain, mail with SPF/DKIM/DMARC, Twilio and Anthropic caps,
   monitoring) and what the lead does once he says go. The bucket is still in Amsterdam.
 
+## Round 17 (Mohamed's dev review): merged 2026-10-21
+
+- Resits (Mohamed: "Main sitting, resits apart"): every exam is Main or Resit (0054; Sep-Dec dates default to
+  resit, reps can switch). A module's year counts down to its main sitting only; a resit counts down for the next
+  year and for students who tick "I'm resitting this"; final-year resits only for those who tick. All Oct/Nov 2026
+  exams, Year 2's too, are resits.
+- Tagging grounded in the study guides: chapter outlines with topics (0055, 0057; `chapter_outlines.json`, 94 of 99
+  chapters; MN1178 from the BMGC notes as it has no guide). Haiku subagents retagged every paper from the outlines:
+  1,545 questions on 227 papers, 1,535 with topics, 1,536 with an anchor the viewer highlights. Questions group,
+  filter and practise by topic. New past papers are tagged by Claude (`claude-haiku-5-5`) on publish
+  (`library.autotag`; Manage → Uploads → Tagging new past papers).
+- Sign-in (Mohamed: Google, plus email and password with no check; no texts): one-time codes, texts, Twilio and
+  phones removed (0056 deletes phone-only accounts). Staff roles and the admin bootstrap need a Google-confirmed
+  address; Google takes over an unconfirmed account with its address; notification emails wait for a confirmed
+  address; admins issue one-time reset links. Google stays off until `DSBA_GOOGLE_CLIENT_ID`/`_SECRET` are set
+  (DEPLOYMENT.md section 14 has the console steps).
+- UI: Start here removed; /modules rows and module-page icons aligned (one class styled in two sheets; a test now
+  refuses that); Quick Look on Space; real first-page covers on every file card; the 32 MT1186 workbooks retired;
+  a duplicate ST2187 paper removed, the ST2195 2023 prelim with solutions refiled. Solutions and examiners' reports
+  are different documents (kept).
+- Migrations: ... 0052 -> 0055 -> 0054 -> 0057 -> 0056 (one head).
+- Outline gaps the retag found (questions went to the nearest chapter): MN1178 organisation structure; ST1215
+  descriptive statistics and sampling (guide chapter 1), chi-squared and two-proportion tests; EC2020 binary
+  response (probit/logit/LPM), maximum likelihood, panel data; EC1002 exchange economies.
+
 ## Operating notes
 
 - **Railway dev region (2026-10-20):** Postgres, api and web run in `southeast-asia` (moved from Amsterdam with
@@ -236,8 +261,11 @@ account device icons).
 
 ## Waiting on Mohamed
 
-- **Anthropic key:** `DSBA_ANTHROPIC_API_KEY` in the local `.env` and on Railway dev's api service, for Mini Noora's
-  AI answers (tagging no longer needs it).
+- **Anthropic key:** on Railway dev since 2026-10-21; not in the local `.env` yet.
+- **Google sign-in:** an OAuth client in Google Cloud Console and `DSBA_GOOGLE_CLIENT_ID`/`_SECRET` on Railway dev
+  (DEPLOYMENT.md section 14). Until then dev signs in with email and password.
+- **Chapters for the outline gaps** listed in round 17, and ST2195 2022 PrelimExam comm (a commentary filed as a
+  past paper).
 - **Year 3 chapters:** 44 Year 3 papers can't be tagged until those modules have chapters.
 - **Content gaps** (round 14 test, ST-45/48/49): tagged past questions exist only for EC1002 and EC2020; solutions
   for 0-2 sittings per module; an exam's "What to bring" opens an empty forum tag; the six Year 3 modules have no
@@ -258,7 +286,7 @@ account device icons).
   - Should an "I'm not a student" mode show all years?
   - Students' notes now show "Shared by <display name> · Year N" (UX-71, as the forum shows names). The other option
     was "Shared by a Year 3 student" without the name.
-- **To deploy:** a server, a domain, an S3 bucket with its keys (plus a second key for the text worker), an SMTP account, Twilio for texts, and an Anthropic
+- **To deploy:** a server, a domain, an S3 bucket with its keys (plus a second key for the text worker), an SMTP account, a Google OAuth client, and an Anthropic
   API key for Noora. `docs/backend/DEPLOYMENT.md` has the full list.
 
 ## How the team works
