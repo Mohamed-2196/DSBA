@@ -486,11 +486,10 @@ function NewestThreads({ moduleId, name, onTab }: { moduleId: string; name: stri
   );
 }
 
-/** "Asked before" (IDEA-49): the module's answered threads, most voted first, and "Ask a question" with the module
- *  filled in. Left out while nothing is answered yet. */
+/** "Asked before" (IDEA-49): the module's answered threads, most voted first. Left out while nothing is answered
+ *  yet; "Ask a question" (the module filled in) is on Discussion beside it, which always shows when this does. */
 function AskedBefore({ moduleId, name }: { moduleId: string; name: string }) {
   const q = useModuleAnsweredThreads(moduleId, { n: ROWS });
-  const starts = useStartsThreads();
   const title = 'Asked before';
   if (q.isPending) return <BlockLoading title={title} />;
   if (q.isError) {
@@ -509,22 +508,7 @@ function AskedBefore({ moduleId, name }: { moduleId: string; name: string }) {
   }
   if (!q.threads.length) return null;
   return (
-    <Block
-      title={title}
-      hub="module-asked-before"
-      footer={
-        starts ? (
-          <Button
-            variant="secondary"
-            size="sm"
-            leadingIcon={<Icon glyph={glyph.plus} />}
-            to={`/forum/new?module=${encodeURIComponent(moduleId)}`}
-          >
-            Ask a question
-          </Button>
-        ) : null
-      }
-    >
+    <Block title={title} hub="module-asked-before">
       <ul className="mod-rows" role="list">
         {q.threads.map((t) => (
           <li key={t.id}>
