@@ -141,8 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (me) endedRef.current = null;
   }, [me]);
 
-  // A signed-in student's cohort is the year the Hub shows by default.
-  useAccountYearSync(me?.year ?? null);
+  // A signed-in student's cohort is the year the Hub shows by default; the status stays 'loading' until it shows.
+  const yearShown = useAccountYearSync(me?.year ?? null);
 
   // Every API call goes through the session guard: a 401 on an action asks the person to sign in again and then
   // sends it again (UX-1); a 403 step_up_required asks for a code first (D2).
@@ -201,7 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const ready = !!me && !me.needsProfile;
     return {
       me,
-      status: sessionQuery.isPending || guestFeatures.loading ? 'loading' : me ? 'signed-in' : 'guest',
+      status: sessionQuery.isPending || guestFeatures.loading || !yearShown ? 'loading' : me ? 'signed-in' : 'guest',
       can: (box) => canDo(me, box),
       offer: (box) => offerOf(me, box),
       mayTry: (box) => offered(offerOf(me, box)),
@@ -224,6 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     guestFeatures.list,
     guestFeatures.loading,
     sessionQuery.isPending,
+    yearShown,
     refresh,
     signOut,
     openSignIn,

@@ -1,4 +1,4 @@
-import { Suspense, useLayoutEffect, type ReactNode } from 'react';
+import { Suspense, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { SwitchedOff, useAuth, type Feature } from '../auth';
 import { ModulesGate } from '../state/ModulesProvider';
@@ -38,6 +38,7 @@ export function RouteFrame({ route }: { route: AppRoute }) {
   const { pathname } = useLocation();
   const { id, title, Page, modules, gate, feature } = route;
   const { status, featureOn, offForOthers } = useAuth();
+  const sessionKnown = useRef(false);
   // Default tab title. A layout effect, so a page's own useDocumentTitle() (a passive effect) wins.
   useLayoutEffect(() => {
     document.title = title ? `${title} – DSBA Hub` : 'DSBA Hub';
@@ -54,6 +55,11 @@ export function RouteFrame({ route }: { route: AppRoute }) {
         </Badge>
       </p>
     ) : null;
+  // On the first load the page waits until the session is known (its code is already downloading, routes.tsx
+  // preloadPage): a page that drew at once would read a guest's year and then, a moment later, the student's own.
+  // Once drawn it stays, so signing in on a page keeps what is on it.
+  if (status !== 'loading') sessionKnown.current = true;
+  if (!sessionKnown.current) return <PageLoader />;
   const page =
     modules === false ? (
       <Page />
