@@ -60,6 +60,7 @@ const programme = (id: string, over: Partial<CalendarEvent> = {}): CalendarEvent
   checkedOn: null,
   employerId: null,
   sample: false,
+  resit: false,
   ...over,
 });
 const prefs = (over: Partial<CalendarPrefs> = {}): CalendarPrefs => ({

@@ -192,6 +192,53 @@ def test_a_guests_picks_choose_their_papers(client_for: Clients, events: dict[st
     assert "y1-maths" in ids(get_home(client_for(), 2, picks="mathematics"))
 
 
+@pytest.fixture
+def resit(db: Session, events: dict[str, CalendarEvent]) -> CalendarEvent:
+    """MT1186's resit tomorrow, before the main sitting the fixture has in two days."""
+    e = CalendarEvent(
+        id="y1-maths-resit", date=day(1), title="MT1186 resit", type="exam", year=1, module_id="mathematics", resit=True
+    )
+    db.add(e)
+    db.commit()
+    return e
+
+
+def test_a_resit_counts_down_for_the_next_year_never_the_modules_own(
+    client_for: Clients, resit: CalendarEvent, make_user: Callable[..., User], db: Session
+) -> None:
+    year1 = get_home(client_for(), 1)
+    assert "y1-maths-resit" not in ids(year1)
+    assert year1["nextExam"]["id"] == "y1-maths"  # the main sitting, though the resit comes first
+    year2 = get_home(client_for(), 2)
+    assert ids(year2)[0] == "y1-maths-resit"
+    assert (year2["nextExam"]["id"], year2["nextExam"]["resit"]) == ("y1-maths-resit", True)
+    # Year 2 papers don't hide Year 1's resits
+    assert "y1-maths-resit" in ids(get_home(client_for(), 2, picks="information-systems"))
+    # a Year 1 student resitting MT1186 has it, and counts down to it first
+    retaking = make_user(name="Retaking", year=1)
+    retaking.resits = ["mathematics"]
+    db.commit()
+    home = get_home(client_for(retaking), 1)
+    assert ids(home)[:2] == ["y1-maths-resit", "y1-maths"]
+    assert home["nextExam"]["id"] == "y1-maths-resit"
+
+
+def test_a_final_year_resit_is_only_for_those_resitting(
+    client_for: Clients, events: dict[str, CalendarEvent], make_user: Callable[..., User], db: Session
+) -> None:
+    db.add(
+        CalendarEvent(
+            id="y3-resit", date=day(1), title="ML resit", type="exam", year=3, module_id="machine-learning", resit=True
+        )
+    )
+    retaking = make_user(name="Retaking", year=3)
+    retaking.resits = ["machine-learning"]
+    db.commit()
+    assert all("y3-resit" not in ids(get_home(client_for(), y)) for y in (1, 2, 3))
+    assert "y3-resit" not in ids(get_home(client_for(make_user(year=3)), 3))
+    assert get_home(client_for(retaking), 3)["nextExam"]["id"] == "y3-resit"
+
+
 def test_the_notes_count_is_the_students_own(
     client_for: Clients, make_user: Callable[..., User], set_feature: SetFeature, modules: dict[str, Module]
 ) -> None:

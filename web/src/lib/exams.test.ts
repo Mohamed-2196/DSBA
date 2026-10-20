@@ -4,12 +4,13 @@ import {
   isExamSession,
   isZone,
   paperLabel,
-  SESSIONS,
+  resitSitting,
   sessionLabel,
+  SESSIONS,
   sittingKey,
   sittingLabel,
-  ZONES,
   zoneLabel,
+  ZONES,
 } from './exams';
 
 describe('zones', () => {
@@ -58,5 +59,12 @@ describe('sittings', () => {
     const paper = { title: 'Mock exam', examYear: 2024, examSession: 'may', zone: 'B' } as const;
     expect(paperLabel(paper)).toBe('May 2024, Zone B');
     expect(paperLabel({ ...paper, examYear: null })).toBe('Mock exam');
+  });
+});
+
+describe('resitSitting', () => {
+  it('reads September to December as the October resits', () => {
+    expect(['2026-05-12', '2026-06-10', '2026-08-31'].map(resitSitting)).toEqual([false, false, false]);
+    expect(['2026-09-01', '2026-10-22', '2026-12-31'].map(resitSitting)).toEqual([true, true, true]);
   });
 });

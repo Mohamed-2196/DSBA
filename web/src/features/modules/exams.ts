@@ -2,9 +2,9 @@
 // from today in Bahrain, as the API counts them (src/lib/dates.ts).
 import { useMemo } from 'react';
 import { daysUntil, formatDay, inDays, parseDay, today, todayKey, weekdayOf, type DayInput } from '../../lib/dates';
-import type { CohortYear } from '../../state';
 import { useAuth } from '../../auth';
-import { useCalendarEvents, useNextExamForModule, type CalendarEvent } from '../calendar/public';
+import { useCalendarEvents, type CalendarEvent } from '../calendar/public';
+import { resitFor, usePapers } from '../papers/public';
 
 export interface ExamInfo {
   event: CalendarEvent;
@@ -36,26 +36,66 @@ export function examInfo(event: CalendarEvent | null | undefined, from: DayInput
   };
 }
 
-/** The module's next exam (null while loading, on errors and when none is on the calendar). */
-export function useModuleExam(moduleId: string): ExamInfo | null {
-  const q = useNextExamForModule(moduleId, { enabled: useAuth().featureOn('calendar') });
-  return useMemo(() => examInfo(q.data), [q.data]);
+/**
+ * What a module's page and its row say about its exams, for a student of `viewer` (their year; null: the module's
+ * own) resitting the modules in `resits`: the sitting that counts down for them (`next`: the module's next main
+ * sitting, or a resit that is theirs, whichever comes first; never the resit of the module's own year), and a resit
+ * ahead that isn't theirs (`otherResit`, said quietly on the module's page). `exams`: the module's exams from today,
+ * oldest first.
+ */
+export interface ModuleSittings {
+  next: ExamInfo | null;
+  otherResit: ExamInfo | null;
 }
 
-/** The next exam of every module of a cohort, in one request: moduleId → exam. */
-export function useExamsByModule(year: CohortYear | null): Map<string, ExamInfo> {
+export function moduleSittings(
+  exams: readonly CalendarEvent[],
+  viewer: number | null,
+  resits: ReadonlySet<string>,
+  from: DayInput = today(),
+): ModuleSittings {
+  let next: CalendarEvent | null = null;
+  let otherResit: CalendarEvent | null = null;
+  for (const e of exams) {
+    if (e.type !== 'exam') continue;
+    const theirs = !e.resit || resitFor(e, viewer ?? e.year, resits);
+    if (theirs) next ??= e;
+    else otherResit ??= e;
+  }
+  return { next: examInfo(next, from), otherResit: examInfo(otherResit, from) };
+}
+
+/**
+ * The module's sittings for the student (moduleSittings: their own year, or the one a guest chose), with `loaded`
+ * once the calendar has answered. Nothing while loading, on errors and with no exam ahead.
+ */
+export function useModuleExam(moduleId: string): ModuleSittings & { loaded: boolean } {
   const from = todayKey();
-  const q = useCalendarEvents({ from, type: 'exam', year }, { enabled: useAuth().featureOn('calendar') });
+  const q = useCalendarEvents({ from, moduleId, type: 'exam' }, { enabled: useAuth().featureOn('calendar') });
+  const { home, resits } = usePapers();
+  return useMemo(
+    () => ({ ...moduleSittings(q.data ?? [], home, resits), loaded: q.isSuccess }),
+    [q.data, q.isSuccess, home, resits],
+  );
+}
+
+/** Every module's sittings for the student, in one request: moduleId → its sittings (moduleSittings). */
+export function useExamsByModule(): Map<string, ModuleSittings> {
+  const from = todayKey();
+  const q = useCalendarEvents({ from, type: 'exam' }, { enabled: useAuth().featureOn('calendar') });
+  const { home, resits } = usePapers();
   return useMemo(() => {
-    const out = new Map<string, ExamInfo>();
+    const byModule = new Map<string, CalendarEvent[]>();
     for (const e of q.data ?? []) {
-      if (e.moduleId && !out.has(e.moduleId)) {
-        const info = examInfo(e);
-        if (info) out.set(e.moduleId, info);
-      }
+      if (!e.moduleId) continue;
+      const list = byModule.get(e.moduleId) ?? [];
+      list.push(e);
+      byModule.set(e.moduleId, list);
     }
+    const out = new Map<string, ModuleSittings>();
+    for (const [id, exams] of byModule) out.set(id, moduleSittings(exams, home, resits));
     return out;
-  }, [q.data]);
+  }, [q.data, home, resits]);
 }
 
 /** The module's dates from today on, and those still running today (exams, mocks, revision sessions, deadlines,

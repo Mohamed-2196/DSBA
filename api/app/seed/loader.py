@@ -182,6 +182,7 @@ def load_calendar(db: Session) -> int:
                 checked_on=dt.date.fromisoformat(e["checkedOn"]) if e.get("checkedOn") else None,
                 employer_id=e.get("employerId"),
                 sample=bool(e.get("sample")),
+                resit=bool(e.get("resit")),
             )
         )
         skip.add(e["id"])

@@ -12,6 +12,7 @@ import { daysBetween, formatDayMonth, formatLongDay, inDays, parseDay } from '..
 interface NextExam {
   date: Date;
   days: number;
+  resit: boolean;
 }
 
 function metaFor(m: ModuleSummary, watched: number): string {
@@ -36,12 +37,12 @@ function ModuleCard({ m, exam, index }: { m: ModuleSummary; exam: NextExam | nul
         to={`/modules/${m.id}`}
         className="home-mod"
         style={{ '--mod-c': binder } as CSSProperties}
-        aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, exam ${formatLongDay(exam.date)}` : ''}`}
+        aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, ${exam.resit ? 'resit' : 'exam'} ${formatLongDay(exam.date)}` : ''}`}
       >
         <span className="home-mod__top" aria-hidden="true">
           <span className="home-mod__binder" />
           {exam ? (
-            <span className="home-mod__exam" title={`Exam ${inDays(exam.days)}`}>
+            <span className="home-mod__exam" title={`${exam.resit ? 'Resit' : 'Exam'} ${inDays(exam.days)}`}>
               <span className="home-mod__examdot" />
               <span className="u-tabular">{formatDayMonth(exam.date)}</span>
             </span>
@@ -95,11 +96,12 @@ export function YourModules({
 }) {
   const { modules: catalogue } = useModules();
   const { papers } = usePapers();
+  // Home's dates hold only the sittings that are the student's: a module's own year never has its resit.
   const nextExam = (moduleId: string): NextExam | null => {
     const e = dates.find((ev) => ev.type === 'exam' && ev.moduleId === moduleId && !ev.sample);
     if (!e) return null;
     const date = parseDay(e.date);
-    return { date, days: daysBetween(today, date) };
+    return { date, days: daysBetween(today, date), resit: e.resit };
   };
   // In exam season the list reads in exam order.
   const modules = modulesFor(year, papers, catalogue)

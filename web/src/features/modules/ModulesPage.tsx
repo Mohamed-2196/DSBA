@@ -133,7 +133,7 @@ function ModuleRow({
               <>
                 <span className="mod-row__exam-when">
                   <span className="mod-row__exam-dot" aria-hidden="true" />
-                  Exam {exam.relative}
+                  {exam.event.resit ? 'Resit' : 'Exam'} {exam.relative}
                 </span>
                 <span className="mod-row__exam-date">{exam.weekdayDate}</span>
               </>
@@ -185,7 +185,7 @@ export default function ModulesPage() {
   const { getModulesForYear } = useModules();
   const { featureOn } = useAuth();
   const { state, ready, tracking } = useProgress();
-  const exams = useExamsByModule(viewYear);
+  const exams = useExamsByModule();
   useDocumentTitle(`${COHORTS[viewYear].label} modules`);
 
   // Follow the global year: when it changes in the rail, drop any local peek.
@@ -201,7 +201,8 @@ export default function ModulesPage() {
       getModulesForYear(viewYear).map((m) => ({
         module: m,
         progress: summaryProgress(state, m.id, m.lessonCount),
-        exam: exams.get(m.id) ?? null,
+        exam: exams.get(m.id)?.next ?? null,
+        anyExam: exams.has(m.id),
       })),
     [getModulesForYear, viewYear, state, exams],
   );
@@ -213,8 +214,9 @@ export default function ModulesPage() {
   const nextExam = rows
     .filter((r): r is typeof r & { exam: ExamInfo } => !!r.exam)
     .sort((a, b) => a.exam.days - b.exam.days)[0];
-  // Columns that would say "none" on every row are left out (Year 3 has no exam dates or videos yet).
-  const showExam = rows.some((r) => r.exam);
+  // Columns that would say "none" on every row are left out (Year 3 has no exam dates or videos yet). A module whose
+  // only date ahead is a resit for another year says it has no exam date yet.
+  const showExam = rows.some((r) => r.anyExam);
   const hasVideos = totals.videos > 0;
   const showProgress = hasVideos && tracking;
 
@@ -263,7 +265,8 @@ export default function ModulesPage() {
             {nextExam ? (
               <span className="mod-index__fact mod-index__fact--exam">
                 <Icon glyph={glyph.calendar} />
-                Next exam {nextExam.module.unitCode || nextExam.module.shortName}, {nextExam.exam.weekdayDate}
+                Next {nextExam.exam.event.resit ? 'resit' : 'exam'}{' '}
+                {nextExam.module.unitCode || nextExam.module.shortName}, {nextExam.exam.weekdayDate}
               </span>
             ) : null}
           </>

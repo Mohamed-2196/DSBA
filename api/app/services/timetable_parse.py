@@ -3,8 +3,9 @@ spreadsheet, each with a module code, a date, a time and a venue, in whatever or
 
 Pure: no database. `parse_timetable` turns the text into rows; services/timetable.py matches them to modules and
 exams. A line is a row when it holds a module code ('ST2134', 'EC 1002'); a line without one that holds a date is
-kept as a row too, so the preview can say it found no code. Other lines (headings, blank lines, a column header) are
-left out, though a column header names the columns of the lines under it.
+kept as a row too, so the preview can say it found no code. A line that says "resit" is a resit. Other lines
+(headings, blank lines, a column header) are left out, though a column header names the columns of the lines under
+it.
 
 Dates are read day first, as Bahrain writes them ('13/10/2026'); month names can lead ('October 13, 2026'). A date
 without a year takes the year that puts it nearest after today, less a few weeks (a timetable lists the coming
@@ -66,6 +67,9 @@ TIME_ONE = re.compile(r"\b(\d{1,2})[:.](\d{2})(?:\s*([ap]\.?m\.?))?(?![\w:])|\b(
 SESSION = re.compile(r"\b(morning|afternoon|evening|am|pm)\b(?:\s+session)?", _I)
 SESSIONS = {"am": "Morning", "morning": "Morning", "pm": "Afternoon", "afternoon": "Afternoon", "evening": "Evening"}
 
+# A row that says it is a resit: the October sitting for students retaking a module.
+RESIT = re.compile(r"[(\[]?\b(?:re-?sits?|retakes?|referrals?)\b[)\]]?", _I)
+
 CELL_SPLIT = re.compile(r"\t|\s*\|\s*|\s*;\s*|\s{2,}")
 LABEL = re.compile(r"^(?:venue|location|place|room no\.?|hall|date|time|session|module|code|unit|paper)\s*[:\-]\s*", _I)
 WEEKDAY_ONLY = re.compile(r"^(?:mon|tues?|wed(?:nes)?|thu(?:rs?)?|fri|sat(?:ur)?|sun)(?:day)?\.?$", _I)
@@ -91,6 +95,7 @@ class ParsedRow:
     date: dt.date | None = None
     time: str | None = None
     place: str | None = None
+    resit: bool | None = None  # True when the line says "resit"; None: it doesn't say
     problems: list[str] = field(default_factory=list)
 
 
@@ -264,6 +269,10 @@ def parse_line(
         return []
     row = ParsedRow(line=number, text=line.strip())
     spans = list(code_spans)
+    resit_spans = [m.span() for m in RESIT.finditer(line)]
+    if resit_spans:
+        row.resit = True
+        spans += resit_spans
     if date_found is not None:
         row.date, span = date_found
         spans.append(span)
@@ -295,6 +304,7 @@ def parse_line(
             date=row.date,
             time=row.time,
             place=row.place,
+            resit=row.resit,
             problems=list(row.problems),
         )
         for c in dict.fromkeys(codes)
@@ -335,8 +345,8 @@ def _place(
 
 
 def _cut_cell(cell: str) -> list[str]:
-    """What is left of one cell once codes, a date and a time are out of it."""
-    spans = [m.span() for m in CODE.finditer(cell)]
+    """What is left of one cell once codes, the word "resit", a date and a time are out of it."""
+    spans = [m.span() for m in CODE.finditer(cell)] + [m.span() for m in RESIT.finditer(cell)]
     found = find_date(cell, dt.date(2000, 1, 1))
     if found:
         spans.append(found[1])

@@ -44,7 +44,7 @@ function NextDate({ next, session }: { next: SessionEvent; session: ExamSession 
       {/* Blink holds up the count: the days left on its card. */}
       <Deskmate mate="blink" state="countdown" count={Math.max(0, next.days)} size={80} className="home-next__mate" />
       <div className="home-next__text">
-        <p className="home-next__label">{LABEL[next.type] ?? typeLabel(next.type)}</p>
+        <p className="home-next__label">{next.resit ? 'Next resit' : (LABEL[next.type] ?? typeLabel(next.type))}</p>
         <Link to={to} className="home-next__name">
           {code ? <span className="home-next__code u-code">{code}</span> : null}
           {name}

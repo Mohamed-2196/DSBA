@@ -82,7 +82,7 @@ export function useCalendarView(
   defaultMode: CalendarMode = 'list',
   showsPlan = false,
 ): CalendarView {
-  const { year, papers } = usePapers();
+  const { year, papers, resits } = usePapers();
   const [monthParam, setMonthParam] = useQueryParam('month');
   const [cohortParam, setCohortParam] = useQueryParam('cohort', 'mine');
   const [typesParam, setTypesParam] = useQueryParam('types', '');
@@ -95,17 +95,20 @@ export function useCalendarView(
   const types = useMemo(() => new Set<EventFilter>((typesParam || '').split(',').filter(isFilter)), [typesParam]);
   const shownPapers = cohortYear ? papers : null;
   const visible = useMemo(
-    () => filterEvents(events, { year: cohortYear, types, papers: shownPapers }),
-    [events, cohortYear, types, shownPapers],
+    () => filterEvents(events, { year: cohortYear, types, papers: shownPapers, resits }),
+    [events, cohortYear, types, shownPapers, resits],
   );
   const findEvent = useCallback((id: string | null) => findIn(events, id, todayKey), [events, todayKey]);
   const openEvent = findEvent(eventId);
 
   const nextExam = useMemo(
-    () => nextExamFor(events, { year, today: todayKey, papers }),
-    [events, year, todayKey, papers],
+    () => nextExamFor(events, { year, today: todayKey, papers, resits }),
+    [events, year, todayKey, papers, resits],
   );
-  const week = useMemo(() => weekAhead(events, { year, today: todayKey, papers }), [events, year, todayKey, papers]);
+  const week = useMemo(
+    () => weekAhead(events, { year, today: todayKey, papers, resits }),
+    [events, year, todayKey, papers, resits],
+  );
   // The top of the page lists the student's week, every type. When the list shows the same cohort and every type,
   // it starts after that week and leaves out the week's events, so nothing is listed twice.
   const afterWeek = cohortYear === year && types.size === 0;

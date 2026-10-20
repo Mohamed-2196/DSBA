@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { TimetableRow } from '../../../api/types';
-import { defaultSource, draftsOf, noticeLine, refusedRows, rowIn, savedLine, summaryLine, wasLine } from './timetable';
+import {
+  defaultSource,
+  draftsOf,
+  noticeLine,
+  refusedRows,
+  rowIn,
+  rowWhose,
+  savedLine,
+  summaryLine,
+  wasLine,
+} from './timetable';
 
 const row = (over: Partial<TimetableRow> = {}): TimetableRow => ({
   line: 2,
@@ -12,6 +22,7 @@ const row = (over: Partial<TimetableRow> = {}): TimetableRow => ({
   moduleId: 'advanced-stats-inferential',
   moduleName: 'Advanced Statistics: Statistical Inference',
   year: 2,
+  resit: false,
   eventId: 'st2134-exam',
   action: 'update',
   was: null,
@@ -22,19 +33,29 @@ const row = (over: Partial<TimetableRow> = {}): TimetableRow => ({
 describe('the timetable', () => {
   it('turns rows into drafts and back, leaving empty fields out', () => {
     const [d] = draftsOf([row({ time: null, place: null })]);
-    expect(d).toEqual({ key: '2-0', unitCode: 'ST2134', date: '2026-10-13', time: '', place: '' });
+    expect(d).toEqual({
+      key: '2-0',
+      unitCode: 'ST2134',
+      date: '2026-10-13',
+      time: '',
+      place: '',
+      sitting: 'main',
+    });
     expect(rowIn({ ...d, place: '  Hall B ' })).toEqual({
       unitCode: 'ST2134',
       date: '2026-10-13',
       time: null,
       place: 'Hall B',
+      resit: false,
     });
-    expect(rowIn({ key: 'x', unitCode: ' ', date: '', time: '', place: '' })).toEqual({
+    expect(rowIn({ key: 'x', unitCode: ' ', date: '', time: '', place: '', sitting: 'resit' })).toEqual({
       unitCode: null,
       date: null,
       time: null,
       place: null,
+      resit: true,
     });
+    expect(draftsOf([row({ resit: true })])[0]?.sitting).toBe('resit');
   });
 
   it('sums up what saving will do', () => {
@@ -46,11 +67,14 @@ describe('the timetable', () => {
 
   it('says what the calendar has now', () => {
     expect(wasLine(row())).toBeNull();
-    expect(wasLine(row({ was: { date: '2026-10-12', time: null, place: null, sample: true } }))).toBe(
+    expect(wasLine(row({ was: { date: '2026-10-12', time: null, place: null, sample: true, resit: false } }))).toBe(
       'On the calendar: Mon 12 Oct, time not set, no venue. Not confirmed.',
     );
-    expect(wasLine(row({ was: { date: '2026-10-12', time: '9:00 AM', place: 'Hall B', sample: false } }))).toBe(
-      'On the calendar: Mon 12 Oct, 9:00 AM, Hall B.',
+    expect(
+      wasLine(row({ was: { date: '2026-10-12', time: '9:00 AM', place: 'Hall B', sample: false, resit: false } })),
+    ).toBe('On the calendar: Mon 12 Oct, 9:00 AM, Hall B.');
+    expect(wasLine(row({ was: { date: '2026-10-22', time: null, place: null, sample: false, resit: true } }))).toBe(
+      'On the calendar (resit): Thu 22 Oct, time not set, no venue.',
     );
   });
 
@@ -64,11 +88,18 @@ describe('the timetable', () => {
   });
 
   it('says what each year was told, and what was saved', () => {
-    expect(noticeLine({ year: 2, exams: 3, notice: 'sent', told: 41 })).toBe('Year 2: 3 exams, 41 people told.');
-    expect(noticeLine({ year: 1, exams: 1, notice: 'limit', told: 0 })).toBe(
+    expect(noticeLine({ year: 2, resitters: false, exams: 3, notice: 'sent', told: 41 })).toBe(
+      'Year 2: 3 exams, 41 people told.',
+    );
+    expect(noticeLine({ year: 1, resitters: false, exams: 1, notice: 'limit', told: 0 })).toBe(
       'Year 1: 1 exam. They had a timetable notice today already, so not again.',
     );
-    expect(noticeLine({ year: null, exams: 2, notice: 'none', told: 0 })).toBe('All years: 2 exams. Nobody was told.');
+    expect(noticeLine({ year: null, resitters: false, exams: 2, notice: 'none', told: 0 })).toBe(
+      'All years: 2 exams. Nobody was told.',
+    );
+    expect(noticeLine({ year: null, resitters: true, exams: 1, notice: 'sent', told: 2 })).toBe(
+      'Those resitting: 1 resit, 2 people told.',
+    );
     expect(savedLine({ created: 3, updated: 9, unchanged: 1 })).toBe('Saved: 3 new exams and 9 changed.');
     expect(savedLine({ created: 0, updated: 1, unchanged: 0 })).toBe('Saved: 1 changed.');
     expect(savedLine({ created: 0, updated: 0, unchanged: 4 })).toBe(
@@ -78,5 +109,14 @@ describe('the timetable', () => {
 
   it('names the source by the day', () => {
     expect(defaultSource(new Date(2026, 9, 20))).toBe('Exam timetable, 20 October 2026');
+  });
+});
+
+describe('whose a row is', () => {
+  it('names the module’s year, and the year after for a resit', () => {
+    expect(rowWhose(row())).toBe('Year 2');
+    expect(rowWhose(row({ year: 1, resit: true }))).toBe('Year 1 resit, for Year 2');
+    expect(rowWhose(row({ year: 3, resit: true }))).toBe('Year 3 resit');
+    expect(rowWhose(row({ year: null }))).toBeNull();
   });
 });

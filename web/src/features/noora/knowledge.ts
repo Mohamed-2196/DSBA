@@ -8,6 +8,7 @@ import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { dayKeyFromToday, useCalendarEvents } from '../calendar/public';
 import { moduleDetailQuery } from '../modules/public';
+import { usePapers } from '../papers/public';
 import { buildKnowledge, type Knowledge } from './brain';
 
 interface Details {
@@ -41,9 +42,10 @@ export function useKnowledge(script: NooraScript): KnowledgeState {
   const events = useCalendarEvents({ from: dayKeyFromToday() }, { enabled: calendarOn });
   const name = status === 'signed-in' ? firstNameOf(me?.displayName) : null;
   const eventList = events.data ?? null;
+  const { resits } = usePapers();
   const knowledge = useMemo(
-    () => buildKnowledge(modules, details.byId, eventList, name, featureOn, script),
-    [modules, details.byId, eventList, name, featureOn, script],
+    () => buildKnowledge(modules, details.byId, eventList, name, featureOn, script, resits),
+    [modules, details.byId, eventList, name, featureOn, script, resits],
   );
   return { knowledge, ready: details.settled && (!calendarOn || !events.isPending) };
 }

@@ -31,11 +31,12 @@ import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
 import { eventPageUrl, myEventIcsUrl } from './api';
 import { countdownLabel } from './dates';
 import {
+  dateLabel,
   dotClass,
+  resitNote,
   sourceLine,
   splitTitle,
   TYPE_BADGE_TONE,
-  typeLabel,
   typePlural,
   whenAndWhere,
   windowLeft,
@@ -238,9 +239,9 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
     <div className="cal-drawer__content">
       <div className="cal-drawer__badges">
         <Badge tone={TYPE_BADGE_TONE[event.type]} className={event.type === 'event' ? 'cal-badge--event' : undefined}>
-          {typeLabel(event.type)}
+          {dateLabel(event)}
         </Badge>
-        <CohortBadge year={event.year} />
+        {event.resit ? null : <CohortBadge year={event.year} />}
       </div>
 
       <div className="cal-drawer__when">
@@ -264,6 +265,7 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
       </div>
 
       {end ? <p className="cal-drawer__where">Until {formatLong(end)}</p> : null}
+      {event.resit ? <p className="cal-drawer__note">{resitNote(event)}</p> : null}
 
       {where ? (
         <p className={cx('cal-drawer__where', event.type === 'exam' && !event.time && 'is-unset')}>
@@ -580,6 +582,7 @@ function MineContent({
       </div>
 
       {end ? <p className="cal-drawer__where">Until {formatLong(end)}</p> : null}
+      {event.resit ? <p className="cal-drawer__note">{resitNote(event)}</p> : null}
       <p className="cal-drawer__where">
         <span className="visually-hidden">Time and place: </span>
         {where}

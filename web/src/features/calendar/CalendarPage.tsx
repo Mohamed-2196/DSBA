@@ -50,7 +50,7 @@ interface MineEditing {
 export default function CalendarPage() {
   const query = useCalendarEvents();
   const { year } = useYear();
-  const { papers } = usePapers();
+  const { papers, resits } = usePapers();
   const { can, featureOn, requireAuth } = useAuth();
   const manages = can('calendar.manage');
   const employers = useEmployers(featureOn('career'));
@@ -87,7 +87,7 @@ export default function CalendarPage() {
   };
   const phone = useMediaQuery(PHONE);
   // The band's one stat line: "Year 2 · 7 dates ahead this month".
-  const ahead = query.data ? datesAheadThisMonth(events, { year, today: todayKey(), papers }) : null;
+  const ahead = query.data ? datesAheadThisMonth(events, { year, today: todayKey(), papers, resits }) : null;
   const stat =
     ahead == null ? null : (
       <span className="cal-stat">

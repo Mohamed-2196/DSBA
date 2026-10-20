@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { applicationLine, sourceLine, TYPE_ORDER, typePlural, windowLeft } from './eventMeta';
+import {
+  applicationLine,
+  dateLabel,
+  eventSummary,
+  kindLabel,
+  resitNote,
+  sourceLine,
+  TYPE_ORDER,
+  typePlural,
+  windowLeft,
+} from './eventMeta';
+import type { CalendarEvent } from './types';
 
 describe('windowLeft', () => {
   const mcq = { date: '2026-10-18', endDate: '2026-11-12' };
@@ -49,5 +60,24 @@ describe('typePlural', () => {
       'term dates',
     ]);
     expect(typePlural('party')).toBe('dates');
+  });
+});
+
+describe('resits', () => {
+  it('are called resits wherever a date’s type shows', () => {
+    expect(dateLabel({ type: 'exam', resit: true })).toBe('Resit');
+    expect(dateLabel({ type: 'exam', resit: false })).toBe('Exam');
+    expect(kindLabel({ type: 'exam', resit: true })).toBe('Resit');
+    const e = { title: 'MT1186 resit', type: 'exam', year: 1, resit: true } as CalendarEvent;
+    expect(eventSummary(e)).toBe('MT1186 resit, resit, for students retaking it');
+  });
+  it('say whom they are for', () => {
+    expect(resitNote({ resit: true, year: 1 })).toBe(
+      'For students retaking the module: Year 2 and anyone who ticks “I’m resitting this” on its page.',
+    );
+    expect(resitNote({ resit: true, year: 3 })).toBe(
+      'For students retaking the module: anyone who ticks “I’m resitting this” on its page.',
+    );
+    expect(resitNote({ resit: false, year: 1 })).toBeNull();
   });
 });

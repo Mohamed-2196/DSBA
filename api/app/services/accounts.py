@@ -190,6 +190,8 @@ def update_profile(user: User, body: MeUpdate) -> None:
         user.papers = list(dict.fromkeys(body.papers))
     if "zone" in sent:
         user.zone = body.zone
+    if "resits" in sent and body.resits is not None:
+        user.resits = list(dict.fromkeys(body.resits))
     if "preferences" in sent and body.preferences is not None:
         update_preferences(user, body.preferences)
 
@@ -226,6 +228,7 @@ def me_out(user: User) -> Me:
             "preferences": preferences_of(user),
             "papers": list(user.papers or []),
             "zone": user.zone,
+            "resits": list(user.resits or []),
         }
     )
 

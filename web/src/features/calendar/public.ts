@@ -5,9 +5,9 @@ import { lazy } from 'react';
 //                                            less the dates they hid, with their own events;
 //                                            each row links to /calendar?event=<id>. Has its own loading/empty/error states.
 //                                            `year` overrides the browsed cohort (Home passes the year its other panels show).
-//   useNextExamForModule(moduleId, { enabled }) UseQueryResult<CalendarEvent | null>: the module's next exam, null when none.
-//   useCalendarEvents({ from, to, year, moduleId, type })   UseQueryResult<CalendarEvent[]>, oldest first.
+//   useCalendarEvents({ from, to, year, moduleId, type, resits })   UseQueryResult<CalendarEvent[]>, oldest first.
 //
+//   dateLabel(e)                             a date's type as lists show it: 'Exam', 'Resit', 'Mock exam'.
 //   applicationLine(e, today)                a careers date on an employer's card: 'Opens in January', 'Closes 30 November'.
 //   aheadRows(events, today, skip?)          a short "coming up" list: nothing over, windows already open by their closing
 //                                            day ({ event, day, closes }).
@@ -25,7 +25,7 @@ export const TimetablePaste = lazy(() =>
 //   <EventFormDialog open event preset? onClose onSaved />   add or edit a date (holders of calendar.manage);
 //                                            `preset` fills a new one (Career Navigator's editor: a careers date).
 export { EventFormDialog } from './EventFormDialog';
-export { useCalendarEvents, useNextExamForModule } from './api';
-export { applicationLine, EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
+export { useCalendarEvents } from './api';
+export { applicationLine, dateLabel, EVENT_TYPES, RESIT_LABEL, TYPE_ORDER, typeLabel } from './eventMeta';
 export { aheadRows, dayKeyFromToday, eventDate, type AheadRow } from './queries';
 export type { CalendarEvent, EventType } from './types';

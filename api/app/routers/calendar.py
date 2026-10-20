@@ -45,6 +45,14 @@ PAPERS_PATTERN = r"^[a-z0-9][a-z0-9-]{0,63}(,[a-z0-9][a-z0-9-]{0,63})*$"
 PRIVATE_FEED_CACHE = "private, no-store"
 
 
+# The modules a student is resitting, comma-separated (at most 20): their resits count for them whatever their year.
+Resits = Annotated[str | None, Query(max_length=1400, pattern=PAPERS_PATTERN)]
+
+
+def resit_ids(resits: str | None) -> list[str]:
+    return sorted(set(resits.split(",")))[:MAX_PAPERS] if resits else []
+
+
 def feed_cache(db: DB) -> str:
     """A shared cache may keep a feed only while the calendar is on for everyone."""
     return FEED_CACHE if access.on_for_everyone(db, Feature.calendar) else PRIVATE_FEED_CACHE
@@ -58,18 +66,23 @@ def list_events(
     year: YearParam | None = None,
     module_id: str | None = None,
     type_: EventType | None = Query(default=None, alias="type"),
+    resits: Resits = None,
 ) -> list[CalendarEventOut]:
     """Events between `from` and `to` (inclusive; an event spanning several days counts if it overlaps), for a
-    cohort plus everyone-events, oldest first."""
-    return svc.list_events(db, start=from_, end=to, year=year, module_id=module_id, type_=type_)
+    cohort plus everyone-events, oldest first. A cohort has its own main sittings and the year before's resits, never
+    its own modules' resits; `resits` (module ids) adds those modules' resits."""
+    return svc.list_events(
+        db, start=from_, end=to, year=year, module_id=module_id, type_=type_, resits=resit_ids(resits)
+    )
 
 
 @router.get("/calendar/upcoming", response_model=list[CalendarEventOut])
 def upcoming(
-    db: DB, limit: int = Query(default=5, ge=1, le=60), year: YearParam | None = None
+    db: DB, limit: int = Query(default=5, ge=1, le=60), year: YearParam | None = None, resits: Resits = None
 ) -> list[CalendarEventOut]:
-    """The next `limit` events from today (Bahrain time), including any still running today."""
-    return svc.upcoming(db, limit, year)
+    """The next `limit` events from today (Bahrain time), including any still running today. A cohort's resits as
+    for /calendar/events."""
+    return svc.upcoming(db, limit, year, resit_ids(resits))
 
 
 @router.get(
@@ -82,18 +95,20 @@ def ics_feed(
     year: YearParam | None = None,
     type_: EventType | None = Query(default=None, alias="type"),
     modules: Annotated[str | None, Query(max_length=1400, pattern=PAPERS_PATTERN)] = None,
+    resits: Resits = None,
 ) -> Response:
     """An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).
     `type=exam` gives only the exams (the web app's "Download the exams"). `modules` (comma-separated module ids,
     up to 20) keeps a module's events to those papers, from any year: the feed of someone's own papers, with
-    nothing in the address that says who they are."""
+    nothing in the address that says who they are. `resits` (module ids) adds those modules' resits, as for
+    /calendar/events."""
     papers = sorted(set(modules.split(",")))[:MAX_PAPERS] if modules else None
     name = f"dsba-hub-year-{year}" if year else "dsba-hub"
     if papers is not None:
         name = f"{name}-papers"
     file_name = f"{name}-{type_}s.ics" if type_ else f"{name}.ics"
     return Response(
-        content=svc.feed(db, year, type_, papers).encode("utf-8"),
+        content=svc.feed(db, year, type_, papers, resit_ids(resits)).encode("utf-8"),
         media_type="text/calendar; charset=utf-8",
         headers={"Content-Disposition": f'inline; filename="{file_name}"', "Cache-Control": feed_cache(db)},
     )

@@ -30,7 +30,8 @@ export type PlanCard = AgendaCard;
 /**
  * One date on the calendar: { id, date: 'YYYY-MM-DD', endDate, title, type, year (null = everyone),
  * moduleId, unitCode, time, place (free text, only when the organiser published them),
- * sample (true: not confirmed yet; students see it marked so) }.
+ * sample (true: not confirmed yet; students see it marked so), resit (an exam's resit sitting: for the year after
+ * the module's and those resitting it, never the module's own year) }.
  * `mine`: one occurrence of the student's own event (its id is 'mine-<event id>', with '-<date>' for a repeat);
  * every other field is filled from it, so lists, the grid and the drawer take both.
  * `plan`: a card of the student's plan on its day (its id is 'plan-<card id>'), filled the same way.
@@ -52,6 +53,8 @@ export interface EventFilters {
   year?: CohortYear | null;
   moduleId?: string | null;
   type?: EventType | null;
+  /** The modules the student is resitting: with `year`, their resits come too (module ids). */
+  resits?: readonly string[];
 }
 
 export interface EventTypeMeta {

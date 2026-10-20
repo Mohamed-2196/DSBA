@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { cohortLabel, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, cx, EmptyState, QueryError, Skeleton } from '../../ui';
-import { isMine, usePapers } from '../papers/public';
+import { isMine, NO_RESITS, usePapers } from '../papers/public';
 import { useUpcomingEvents } from './api';
 import { DateLeaf } from './DateLeaf';
 import { dayKey, daysUntil, formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
@@ -39,8 +39,9 @@ export function UpcomingEvents({ n = 5, year: forYear, skip = null }: UpcomingEv
   const year = forYear === undefined ? browsed : forYear;
   const { getModule } = useModules();
   const [today] = useState(() => bahrainToday());
-  const { year: ownYear, papers: ownPapers } = usePapers();
+  const { year: ownYear, papers: ownPapers, resits: ownResits } = usePapers();
   const papers = year === ownYear ? ownPapers : null;
+  const resits = year === ownYear ? ownResits : NO_RESITS;
   const my = useMyCalendar();
   const prefs = my.prefs;
   const hides = !!prefs && prefs.hiddenEvents.length + prefs.hiddenModules.length + prefs.hiddenTypes.length > 0;
@@ -48,7 +49,7 @@ export function UpcomingEvents({ n = 5, year: forYear, skip = null }: UpcomingEv
   // as the API gives, so a hidden type of date never empties the list.
   // One spare for the date a host skips, asked for from the start, so the list isn't read again once the host knows it.
   const ask = n + 1;
-  const query = useUpcomingEvents({ n: hides ? 60 : papers ? ask * 4 : ask, year });
+  const query = useUpcomingEvents({ n: hides ? 60 : papers ? ask * 4 : ask, year, resits });
   const showOwn = my.signedIn && (year == null || year === ownYear);
   const own = useMemo(() => {
     if (!showOwn || !my.events.length) return [];
@@ -92,7 +93,9 @@ export function UpcomingEvents({ n = 5, year: forYear, skip = null }: UpcomingEv
     );
   }
 
-  const programme = query.data.filter((e) => (!papers || isMine(e, year ?? null, papers)) && !isHidden(e, prefs));
+  const programme = query.data.filter(
+    (e) => (!papers || isMine(e, year ?? null, papers, resits)) && !isHidden(e, prefs),
+  );
   const rows = aheadRows<CalendarEvent>(
     oneRowPerRepeat([...programme, ...own]),
     dayKey(today),

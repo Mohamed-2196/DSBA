@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useState, type FormEvent } from 'react';
 import type { CalendarEventSaved, ModuleSummary } from '../../api/types';
 import { errorMessage, isApiError, placeFieldErrors, unplacedMessage } from '../../api/errors';
+import { resitSitting } from '../../lib/exams';
 import { moduleLabel } from '../../lib/modules';
 import { cohortLabel, normalizeYear, YEARS, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
@@ -51,6 +52,11 @@ interface FormState {
   /** a careers date's employer ('' = none) */
   employerId: string;
   sample: boolean;
+  /** an exam's resit sitting: for the year after the module's and those resitting it */
+  resit: boolean;
+  /** The sitting was picked in this form (or the event is being edited): a new date then leaves it alone. Until
+   *  then it follows the date (the October sitting is the resits). */
+  resitPicked: boolean;
   /** Tell the cohort about a new date, time or place, or a confirmation (editing an exam, mock or deadline). */
   tell: boolean;
 }
@@ -81,10 +87,19 @@ const fromEvent = (e: CalendarEvent | null, getModule: ModuleLookup, defaultDate
   checkedOn: e?.checkedOn ?? '',
   employerId: e?.employerId ?? '',
   sample: e?.sample ?? false,
+  resit: e ? e.resit : resitSitting(defaultDate),
+  resitPicked: !!e,
   tell: true,
 });
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Whom an exam's sitting counts down for, under the choice. */
+function sittingHint(resit: boolean, year: CohortYear | null): string {
+  if (!resit) return year ? `Counts down for ${cohortLabel(year)}.` : 'Counts down for every cohort.';
+  const next = year && year < 3 ? `${cohortLabel(normalizeYear(year + 1))} and ` : '';
+  return `For students retaking it: ${next}anyone who says they’re resitting the module. ${year ? `${cohortLabel(year)} doesn’t count down to it.` : ''}`.trim();
+}
 const toYear = (v: string): CohortYear | null => (v ? normalizeYear(Number(v)) : null);
 
 function validate(f: FormState): FieldErrors {
@@ -215,6 +230,7 @@ export function EventFormDialog({
       checkedOn: form.checkedOn || null,
       employerId: (form.type === 'careers' && form.employerId) || null,
       sample: form.sample,
+      resit: form.type === 'exam' && form.resit,
     };
     const fail = (err: unknown) => {
       if (isApiError(err) && Object.keys(err.fields).length) {
@@ -299,7 +315,11 @@ export function EventFormDialog({
           type="date"
           required
           value={form.date}
-          onChange={(e) => set('date', e.target.value)}
+          onChange={(e) => {
+            const date = e.target.value;
+            setForm((f) => ({ ...f, date, resit: f.resitPicked ? f.resit : resitSitting(date) }));
+            if (errors.date) setErrors((x) => ({ ...x, date: undefined }));
+          }}
           error={errors.date}
         />
         <TextField
@@ -334,6 +354,19 @@ export function EventFormDialog({
           error={errors.place}
           placeholder="Auditorium"
         />
+        {form.type === 'exam' ? (
+          <Select
+            label="Sitting"
+            value={form.resit ? 'resit' : 'main'}
+            onChange={(e) => setForm((f) => ({ ...f, resit: e.target.value === 'resit', resitPicked: true }))}
+            options={[
+              { value: 'main', label: 'Main sitting' },
+              { value: 'resit', label: 'Resit' },
+            ]}
+            hint={sittingHint(form.resit, module?.year ?? year)}
+            data-hub="calendar-sitting"
+          />
+        ) : null}
         {EXAM_TYPES.has(form.type) ? (
           <>
             <TextField
@@ -399,7 +432,9 @@ export function EventFormDialog({
               data-hub="calendar-tell"
             />
             <span>
-              <span className="cal-form__check-title">Tell {year ? cohortLabel(year) : 'every cohort'}</span>
+              <span className="cal-form__check-title">
+                Tell {form.type === 'exam' && form.resit ? 'those it’s for' : year ? cohortLabel(year) : 'every cohort'}
+              </span>
               <span className="cal-form__check-hint">
                 If the date, time or place changes, or you confirm it, they get a notification. At most once a day for
                 each event.

@@ -56,12 +56,35 @@ export function papersFor(
   return new Set([...own, ...others].map((m) => m.id));
 }
 
-/** A module's events count for a student when it's one of their papers; other events follow their year. */
-export function isMine(
+/** No modules being resat. */
+export const NO_RESITS: ReadonlySet<string> = new Set();
+
+/**
+ * Whether a resit is for a student of `year` (null: any year) resitting the modules in `resits`: the year after the
+ * module's, and anyone resitting it. A final-year module's resit is only for those resitting it. The API's
+ * calendar.resit_for.
+ */
+export function resitFor(
   e: { moduleId: string | null; year: number | null },
   year: number | null,
-  papers: ReadonlySet<string> | null,
+  resits: ReadonlySet<string> = NO_RESITS,
 ): boolean {
+  if (e.moduleId && resits.has(e.moduleId)) return true;
+  return year == null || e.year == null || year === e.year + 1;
+}
+
+/**
+ * Whether a calendar event counts for a student: a module's main sitting and other dates when it's one of their
+ * papers, other dates by their year, and the resits for them (resitFor). A module's own year never has its resit.
+ * The API's my_calendar.counts_for.
+ */
+export function isMine(
+  e: { moduleId: string | null; year: number | null; resit?: boolean },
+  year: number | null,
+  papers: ReadonlySet<string> | null,
+  resits: ReadonlySet<string> = NO_RESITS,
+): boolean {
+  if (e.resit) return resitFor(e, year, resits);
   if (papers && e.moduleId) return papers.has(e.moduleId);
   return year == null || e.year == null || e.year === year;
 }

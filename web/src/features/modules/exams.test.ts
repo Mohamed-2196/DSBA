@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { CalendarEvent } from '../calendar/public';
-import { examInfo } from './exams';
+import { examInfo, moduleSittings } from './exams';
 
-const exam = (date: string): CalendarEvent => ({
+const exam = (date: string, over: Partial<CalendarEvent> = {}): CalendarEvent => ({
   id: `${date}-st2133-exam`,
   date,
   endDate: null,
@@ -19,6 +19,8 @@ const exam = (date: string): CalendarEvent => ({
   moduleId: 'advanced-stats-distribution',
   unitCode: 'ST2133',
   sample: false,
+  resit: false,
+  ...over,
 });
 
 describe('examInfo', () => {
@@ -46,5 +48,30 @@ describe('examInfo', () => {
   it('has nothing to say without an exam', () => {
     expect(examInfo(null)).toBeNull();
     expect(examInfo(undefined)).toBeNull();
+  });
+});
+
+describe('moduleSittings', () => {
+  const resit = exam('2026-10-30', { id: 'resit', resit: true });
+  const main = exam('2027-05-14', { id: 'main' });
+  const none = new Set<string>();
+  it('counts down to the main sitting for the module’s own year, and says the resit quietly', () => {
+    const s = moduleSittings([resit, main], 2, none, '2026-10-20');
+    expect(s.next?.event.id).toBe('main');
+    expect(s.otherResit?.weekdayDate).toBe('Fri 30 Oct');
+  });
+  it('never falls back to the resit when the main sitting has no date yet', () => {
+    const s = moduleSittings([resit], 2, none, '2026-10-20');
+    expect(s.next).toBeNull();
+    expect(s.otherResit?.event.id).toBe('resit');
+    expect(moduleSittings([resit], null, none, '2026-10-20').next).toBeNull(); // no year: the module's own
+  });
+  it('counts down to the resit for the next year and for those resitting', () => {
+    expect(moduleSittings([resit, main], 3, none, '2026-10-20')).toMatchObject({
+      next: { event: { id: 'resit' } },
+      otherResit: null,
+    });
+    const resitting = new Set(['advanced-stats-distribution']);
+    expect(moduleSittings([resit, main], 2, resitting, '2026-10-20').next?.event.id).toBe('resit');
   });
 });

@@ -138,6 +138,7 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
         },
         "papers": [],
         "zone": None,
+        "resits": [],
     }
 
 
@@ -159,6 +160,20 @@ def test_your_papers(client_for: ClientFor, make_user: MakeUser) -> None:
     assert c.patch(f"{API}/me", json={"zone": "C"}).status_code == 422
     assert c.patch(f"{API}/me", json={"papers": ["Bad Id"]}).status_code == 422
     assert c.patch(f"{API}/me", json={"papers": [f"m{i}" for i in range(21)]}).status_code == 422
+
+
+def test_your_resits(client_for: ClientFor, make_user: MakeUser) -> None:
+    """The modules someone is resitting, kept on the account; a new year keeps them (a resit follows the student)."""
+    c = client_for(make_user(year=1))
+    r = c.patch(f"{API}/me", json={"resits": ["mathematics", "statistics", "mathematics"]})
+    assert r.status_code == 200, r.text
+    assert r.json()["resits"] == ["mathematics", "statistics"]
+    assert c.patch(f"{API}/me", json={"year": 2}).json()["resits"] == ["mathematics", "statistics"]
+    assert c.patch(f"{API}/me", json={"papers": ["econometrics"]}).json()["resits"] == ["mathematics", "statistics"]
+    assert c.patch(f"{API}/me", json={"resits": []}).json()["resits"] == []
+    assert c.patch(f"{API}/me", json={"resits": ["Bad Id"]}).status_code == 422
+    assert c.patch(f"{API}/me", json={"resits": [f"m{i}" for i in range(21)]}).status_code == 422
+    assert client_for().patch(f"{API}/me", json={"resits": ["mathematics"]}).status_code == 401
 
 
 def test_the_profile_step(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
@@ -702,6 +717,7 @@ STROKE = {"id": "s1", "tool": "pen", "color": "#1f2933", "width": 2.0, "points":
 
 def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module: Module) -> None:
     user = make_user(email="export@example.com", phone="+97333123470")
+    user.resits = ["mathematics"]
     other = make_user(email="someone-else@example.com", phone="+97333123471", name="Other Person")
     mine = _thread(db, user)
     theirs = _thread(db, other)
@@ -746,6 +762,7 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
     assert r.status_code == 200, r.text
     data = r.json()
     assert data["user"]["email"] == "export@example.com"
+    assert data["user"]["resits"] == ["mathematics"]
     assert [s["current"] for s in data["sessions"]] == [True]
     assert [t["id"] for t in data["threads"]] == [str(mine.id)]
     assert data["threads"][0]["title"] == "A question about MGFs"

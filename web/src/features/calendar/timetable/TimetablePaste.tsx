@@ -1,12 +1,13 @@
 // Manage → Calendar: the exam timetable in one paste (IDEA-54). The rep pastes the rows as they came (the email, a web
 // page, a spreadsheet), checks what each will do (a change to an exam, a new exam, nothing, or something to fix
-// first), fixes rows in place, and saves them all at once; each year whose exams changed gets one notice.
+// first), marks each row's sitting (main or resit; the API reads "resit" on the line, or the date), fixes rows in place,
+// and saves them all at once; each year whose exams changed gets one notice.
 import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import type { TimetableRow, TimetableSaved } from '../../../api/types';
 import { errorMessage, isApiError } from '../../../api/errors';
 import { today as bahrainToday } from '../../../lib/dates';
-import { cohortLabel, useToast, useUnsavedChanges } from '../../../state';
-import { Badge, Button, cx, glyph, Icon, IconButton, Panel, Switch, TextArea, TextField } from '../../../ui';
+import { useToast, useUnsavedChanges } from '../../../state';
+import { Badge, Button, cx, glyph, Icon, IconButton, Panel, Select, Switch, TextArea, TextField } from '../../../ui';
 import { useSaveTimetable, useTimetablePreview } from '../api';
 import {
   ACTION_LABEL,
@@ -15,7 +16,9 @@ import {
   noticeLine,
   refusedRows,
   rowIn,
+  rowWhose,
   savedLine,
+  SITTING_OPTIONS,
   summaryLine,
   wasLine,
   type DraftRow,
@@ -174,7 +177,7 @@ export function TimetablePaste() {
                 checked={notify}
                 onChange={setNotify}
                 label="Tell students"
-                description="One notice for each year whose exams change, listing them, and an email to those who want date changes."
+                description="One notice for each year whose exams change, listing them, and an email to those who want date changes. A resit goes to the year after the module’s and those resitting it."
               />
             </div>
           ) : null}
@@ -219,7 +222,7 @@ export function TimetablePaste() {
           {stage.saved.notices.length ? (
             <ul role="list" className="tt__notices">
               {stage.saved.notices.map((n) => (
-                <li key={n.year ?? 'all'}>{noticeLine(n)}</li>
+                <li key={n.resitters ? 'resitters' : (n.year ?? 'all')}>{noticeLine(n)}</li>
               ))}
             </ul>
           ) : null}
@@ -259,7 +262,7 @@ function RowEditor({
         <span className="tt-row__what">
           <span className="tt-row__name">{name}</span>
           <span className="tt-row__meta">
-            {row.year ? cohortLabel(row.year) : null}
+            {rowWhose(row)}
             {row.line ? `${row.year ? ' · ' : ''}Line ${row.line}` : null}
           </span>
         </span>
@@ -291,6 +294,14 @@ function RowEditor({
           value={draft.date}
           onChange={(e) => onEdit('date', e.target.value)}
           className="tt-row__date"
+        />
+        <Select
+          label="Sitting"
+          value={draft.sitting}
+          onChange={(e) => onEdit('sitting', e.target.value)}
+          options={SITTING_OPTIONS}
+          className="tt-row__sitting"
+          data-hub="timetable-sitting"
         />
         <TextField
           label="Time"

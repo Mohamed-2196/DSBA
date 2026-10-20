@@ -17,7 +17,7 @@ import {
 import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { daysUntil } from '../../../lib/dates';
-import { useNextExamForModule } from '../../calendar/public';
+import { useModuleExam } from '../../modules/public';
 import { useRelatedThreads } from '../api';
 import { authorName } from '../lib/authors';
 import { participants, takesReplies } from '../lib/replies';
@@ -28,8 +28,8 @@ import { FORUM_ICONS } from './forumIcons';
 import { ReplyCount } from './ThreadBits';
 
 function ModuleCard({ module }: { module: ModuleSummary }) {
-  const { featureOn, mayTry } = useAuth();
-  const exam = useNextExamForModule(module.id, { enabled: featureOn('calendar') }).data ?? null;
+  const { mayTry } = useAuth();
+  const exam = useModuleExam(module.id).next?.event ?? null;
   const posts = mayTry('forum.post');
   const days = exam ? daysUntil(exam.date) : null;
   const hasArt = moduleArtSrc(module.art) != null;
@@ -61,7 +61,7 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
         {exam && days !== null && days >= 0 ? (
           <span className="forum-tside__exam">
             <Icon glyph={glyph.calendar} />
-            Exam {formatDate(exam.date, { day: 'numeric', month: 'short' })}
+            {exam.resit ? 'Resit' : 'Exam'} {formatDate(exam.date, { day: 'numeric', month: 'short' })}
             <span className="forum-tside__days">
               {days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`}
             </span>

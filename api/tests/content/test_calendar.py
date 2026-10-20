@@ -103,6 +103,7 @@ def test_filters(client_for: Clients, events: dict[str, CalendarEvent], today: d
         "checkedOn": None,
         "employerId": None,
         "sample": True,
+        "resit": False,
     }
 
 
@@ -416,3 +417,148 @@ def test_careers_dates_need_their_source(client_for: Clients, moderator: User) -
     assert rep.patch(f"{EVENTS}/{made['id']}", json={"source": None}).status_code == 422
     assert rep.post(EVENTS, json={**body, "source": "x", "employerId": "NBB!"}).status_code == 422
     assert "CATEGORIES:Careers" in client_for().get(f"{API}/calendar/feed.ics").text
+
+
+# ── resits ───────────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def sittings(db: Session, modules: dict[str, Module], today: dt.date) -> dict[str, CalendarEvent]:
+    """MT1186 (Year 1) with its resit in two days and its main sitting later; a final-year module's resit."""
+
+    def day(n: int) -> dt.date:
+        return today + dt.timedelta(days=n)
+
+    rows = [
+        CalendarEvent(
+            id="mt1186-resit",
+            date=day(2),
+            title="MT1186 Mathematical Methods (October resit)",
+            type="exam",
+            year=1,
+            module_id="mathematics",
+            unit_code="MT1186",
+            resit=True,
+        ),
+        CalendarEvent(
+            id="mt1186-main",
+            date=day(50),
+            title="MT1186 Mathematical Methods exam",
+            type="exam",
+            year=1,
+            module_id="mathematics",
+            unit_code="MT1186",
+        ),
+        CalendarEvent(
+            id="ml-resit",
+            date=day(3),
+            title="Machine Learning exam",
+            type="exam",
+            year=3,
+            module_id="machine-learning",
+            resit=True,
+        ),
+    ]
+    db.add_all(rows)
+    db.commit()
+    return {e.id: e for e in rows}
+
+
+def test_a_resit_is_for_the_next_year_and_those_resitting(
+    client_for: Clients, sittings: dict[str, CalendarEvent]
+) -> None:
+    guest = client_for()
+    assert ids(guest, EVENTS) == ["mt1186-resit", "ml-resit", "mt1186-main"]  # every year: every sitting
+    assert ids(guest, EVENTS, year=1) == ["mt1186-main"]  # the module's own year: its main sitting only
+    assert ids(guest, EVENTS, year=2) == ["mt1186-resit"]  # the year after: the resit
+    assert ids(guest, EVENTS, year=3) == []  # a final-year resit is for nobody by default
+    assert ids(guest, EVENTS, year=3, resits="machine-learning,mathematics") == ["mt1186-resit", "ml-resit"]
+    assert ids(guest, EVENTS, year=1, resits="mathematics") == ["mt1186-resit", "mt1186-main"]
+    assert guest.get(EVENTS, params={"year": 1, "resits": "Not An Id"}).status_code == 422
+    upcoming = guest.get(f"{API}/calendar/upcoming", params={"year": 1, "limit": 5}).json()
+    assert [e["id"] for e in upcoming] == ["mt1186-main"]
+    upcoming = guest.get(f"{API}/calendar/upcoming", params={"year": 3, "resits": "machine-learning"}).json()
+    assert [(e["id"], e["resit"]) for e in upcoming] == [("ml-resit", True)]
+    feed = guest.get(f"{API}/calendar/feed.ics", params={"year": 1}).text
+    assert "October resit" not in feed
+    feed = guest.get(f"{API}/calendar/feed.ics", params={"year": 2}).text
+    assert "SUMMARY:MT1186 Mathematical Methods (October resit)" in feed
+    assert "Resit for Year 2 and anyone resitting" in feed.replace("\r\n ", "")
+    feed = guest.get(f"{API}/calendar/feed.ics", params={"year": 3, "resits": "machine-learning"}).text
+    assert "SUMMARY:Machine Learning exam (resit)" in feed
+
+
+def test_a_feed_of_your_papers_has_the_resits_for_your_year(
+    client_for: Clients, sittings: dict[str, CalendarEvent]
+) -> None:
+    feed = client_for().get(f"{API}/calendar/feed.ics", params={"year": 1, "modules": "mathematics"}).text
+    assert "MT1186 Mathematical Methods exam" in feed
+    assert "October resit" not in feed
+    feed = client_for().get(f"{API}/calendar/feed.ics", params={"year": 2, "modules": "econometrics"}).text
+    assert "October resit" in feed  # Year 1's resit, whatever papers Year 2 sits
+    assert "MT1186 Mathematical Methods exam" not in feed
+
+
+def test_an_exam_is_a_resit_as_marked_or_as_its_month_says(
+    client_for: Clients, moderator: User, modules: dict[str, Module]
+) -> None:
+    rep = client_for(moderator)
+    body = {"title": "Mathematical Methods exam", "type": "exam", "moduleId": "mathematics"}
+    assert rep.post(EVENTS, json={**body, "date": "2027-10-21"}).json()["resit"] is True  # the October sitting
+    assert rep.post(EVENTS, json={**body, "date": "2027-05-12"}).json()["resit"] is False  # the May sitting
+    assert rep.post(EVENTS, json={**body, "date": "2027-10-22", "resit": False}).json()["resit"] is False
+    assert rep.post(EVENTS, json={**body, "date": "2027-05-13", "resit": True}).json()["resit"] is True
+    mock = {"title": "Maths mock", "type": "mock", "date": "2027-10-23"}
+    assert rep.post(EVENTS, json=mock).json()["resit"] is False  # only exams are resits
+    r = rep.post(EVENTS, json={**mock, "resit": True})
+    assert r.status_code == 422
+    assert r.json()["error"]["fields"] == {
+        "resit": "Only an exam can be a resit. Change the type to exam, or untick Resit."
+    }
+
+
+def test_reps_mark_an_exam_main_or_resit(
+    client_for: Clients, moderator: User, sittings: dict[str, CalendarEvent], db: Session
+) -> None:
+    rep = client_for(moderator)
+    url = f"{EVENTS}/mt1186-main"
+    r = rep.patch(url, json={"resit": True})
+    assert (r.status_code, r.json()["resit"]) == (200, True)
+    assert rep.patch(url, json={"type": "mock"}).json()["resit"] is False  # no longer an exam: no longer a resit
+    assert rep.patch(url, json={"type": "exam", "resit": True}).json()["resit"] is True
+    assert rep.patch(url, json={"type": "mock", "resit": True}).status_code == 422
+    db.expire_all()
+    assert db.get(CalendarEvent, "mt1186-main").type == "exam"  # type: ignore[union-attr]
+    entry = db.scalars(
+        select(AuditEntry).where(AuditEntry.target_id == "mt1186-main").order_by(AuditEntry.id.desc())
+    ).first()
+    assert entry is not None
+    assert entry.data["fields"] == ["type", "resit"]
+
+
+def test_a_resits_change_is_told_to_those_it_is_for(
+    client_for: Clients,
+    moderator: User,
+    make_user: Callable[..., User],
+    sittings: dict[str, CalendarEvent],
+    db: Session,
+) -> None:
+    from app.models import Notification
+
+    year1 = make_user(name="Year One", year=1)
+    year2 = make_user(name="Year Two", year=2)
+    year3 = make_user(name="Year Three", year=3)
+    resitting = make_user(name="Resitting", year=3)
+    resitting.resits = ["mathematics", "machine-learning"]
+    db.commit()
+    rep = client_for(moderator)
+    r = rep.patch(f"{EVENTS}/mt1186-resit", json={"place": "Hall B", "notify": True})
+    assert (r.json()["notice"], r.json()["told"]) == ("sent", 2)
+    r = rep.patch(f"{EVENTS}/ml-resit", json={"place": "Hall C", "notify": True})
+    assert (r.json()["notice"], r.json()["told"]) == ("sent", 1)
+
+    def told(u: User) -> int:
+        q = select(Notification).where(Notification.user_id == u.id, Notification.kind == "date_changed")
+        return len(list(db.scalars(q)))
+
+    assert [told(u) for u in (year1, year2, year3, resitting)] == [0, 1, 0, 2]

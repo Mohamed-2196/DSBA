@@ -195,6 +195,31 @@ def test_a_year_s_questions_come_from_every_category_for_that_year(
     assert "Who has the project brief?" not in first_years.text
 
 
+def test_a_resit_is_in_the_next_years_summary_not_the_modules_own(db: Session) -> None:
+    from app.core.access import Feature
+
+    db.add(
+        CalendarEvent(
+            id=f"resit-{uuid.uuid4().hex[:6]}",
+            title="Mathematical Methods exam",
+            type="exam",
+            date=NEXT_SUNDAY + dt.timedelta(days=3),
+            year=1,
+            unit_code="MT1186",
+            resit=True,
+        )
+    )
+    db.commit()
+
+    def lines(year: int) -> str:
+        built = summary.build(db, year, NEXT_SUNDAY, frozenset({Feature.calendar}))
+        return "\n".join(line for section in built.sections for line in section.lines)
+
+    assert "MT1186 Mathematical Methods exam (resit)" in lines(2)
+    assert "MT1186" not in lines(1)
+    assert "MT1186" not in lines(3)
+
+
 def test_an_empty_week_sends_nothing(make_user: MakeUser, db: Session) -> None:
     _opted_in(make_user, db, "sara@example.com", 3)
     assert summary.send_week(db, NEXT_SUNDAY + dt.timedelta(days=70)) == 0

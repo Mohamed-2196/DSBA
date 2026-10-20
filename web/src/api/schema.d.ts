@@ -162,7 +162,8 @@ export interface paths {
         head?: never;
         /**
          * Update Me
-         * @description Display name, cohort year, email switches, papers and zone. Only the fields sent change; `year: null` clears it.
+         * @description Display name, cohort year, email switches, papers, zone and resits. Only the fields sent change; `year: null`
+         *     clears it.
          *
          *     Errors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).
          */
@@ -2624,7 +2625,8 @@ export interface paths {
         /**
          * List Events
          * @description Events between `from` and `to` (inclusive; an event spanning several days counts if it overlaps), for a
-         *     cohort plus everyone-events, oldest first.
+         *     cohort plus everyone-events, oldest first. A cohort has its own main sittings and the year before's resits, never
+         *     its own modules' resits; `resits` (module ids) adds those modules' resits.
          */
         get: operations["list_events_api_v1_calendar_events_get"];
         put?: never;
@@ -2649,7 +2651,8 @@ export interface paths {
         };
         /**
          * Upcoming
-         * @description The next `limit` events from today (Bahrain time), including any still running today.
+         * @description The next `limit` events from today (Bahrain time), including any still running today. A cohort's resits as
+         *     for /calendar/events.
          */
         get: operations["upcoming_api_v1_calendar_upcoming_get"];
         put?: never;
@@ -2672,7 +2675,8 @@ export interface paths {
          * @description An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).
          *     `type=exam` gives only the exams (the web app's "Download the exams"). `modules` (comma-separated module ids,
          *     up to 20) keeps a module's events to those papers, from any year: the feed of someone's own papers, with
-         *     nothing in the address that says who they are.
+         *     nothing in the address that says who they are. `resits` (module ids) adds those modules' resits, as for
+         *     /calendar/events.
          */
         get: operations["ics_feed_api_v1_calendar_feed_ics_get"];
         put?: never;
@@ -5850,6 +5854,8 @@ export interface components {
              * @default false
              */
             sample: boolean;
+            /** Resit */
+            resit?: boolean | null;
         };
         /** CalendarEventOut */
         CalendarEventOut: {
@@ -5891,6 +5897,8 @@ export interface components {
             employerId: string | null;
             /** Sample */
             sample: boolean;
+            /** Resit */
+            resit: boolean;
         };
         /**
          * CalendarEventSaved
@@ -5935,6 +5943,8 @@ export interface components {
             employerId: string | null;
             /** Sample */
             sample: boolean;
+            /** Resit */
+            resit: boolean;
             /**
              * Notice
              * @enum {string}
@@ -5973,6 +5983,8 @@ export interface components {
             employerId?: string | null;
             /** Sample */
             sample?: boolean | null;
+            /** Resit */
+            resit?: boolean | null;
             /**
              * Notify
              * @default false
@@ -9080,6 +9092,8 @@ export interface components {
             papers: string[];
             /** Zone */
             zone: ("A" | "B" | "RTC") | null;
+            /** Resits */
+            resits: string[];
         };
         /**
          * MeUpdate
@@ -9097,6 +9111,8 @@ export interface components {
             papers?: string[] | null;
             /** Zone */
             zone?: ("A" | "B" | "RTC") | null;
+            /** Resits */
+            resits?: string[] | null;
         };
         /**
          * ModuleCreate
@@ -12565,11 +12581,13 @@ export interface components {
         };
         /**
          * TimetableNotice
-         * @description What one year was told.
+         * @description What one year was told: about its main sittings, and the year before's resits.
          */
         TimetableNotice: {
             /** Year */
             year: (1 | 2 | 3) | null;
+            /** Resitters */
+            resitters: boolean;
             /** Exams */
             exams: number;
             /**
@@ -12618,6 +12636,8 @@ export interface components {
             moduleName: string | null;
             /** Year */
             year: (1 | 2 | 3) | null;
+            /** Resit */
+            resit: boolean;
             /** Eventid */
             eventId: string | null;
             /**
@@ -12631,7 +12651,8 @@ export interface components {
         };
         /**
          * TimetableRowIn
-         * @description One exam of the timetable as the rep checked it. A row without a time or a place keeps the exam's own.
+         * @description One exam of the timetable as the rep checked it. A row without a time or a place keeps the exam's own. Without
+         *     `resit`, the row says (the word "resit") or its date does (exam_names.resit_sitting).
          */
         TimetableRowIn: {
             /** Unitcode */
@@ -12642,6 +12663,8 @@ export interface components {
             time?: string | null;
             /** Place */
             place?: string | null;
+            /** Resit */
+            resit?: boolean | null;
         };
         /**
          * TimetableSave
@@ -12686,6 +12709,8 @@ export interface components {
             place: string | null;
             /** Sample */
             sample: boolean;
+            /** Resit */
+            resit: boolean;
         };
         /**
          * TodayFixIn
@@ -26553,6 +26578,7 @@ export interface operations {
                 year?: number | null;
                 module_id?: string | null;
                 type?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term") | null;
+                resits?: string | null;
             };
             header?: never;
             path?: never;
@@ -26726,6 +26752,7 @@ export interface operations {
             query?: {
                 limit?: number;
                 year?: number | null;
+                resits?: string | null;
             };
             header?: never;
             path?: never;
@@ -26813,6 +26840,7 @@ export interface operations {
                 year?: number | null;
                 type?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term") | null;
                 modules?: string | null;
+                resits?: string | null;
             };
             header?: never;
             path?: never;

@@ -446,15 +446,24 @@ def papers_for(
     return {m.id for m in [*own, *others]}
 
 
-def counts_for(e: CalendarEvent, year: int | None, papers: Collection[str] | None, prefs: CalendarPrefs | None) -> bool:
-    """Whether a programme date is on a student's own calendar: their year's and their papers' (the web app's
-    isMine), less what they hid."""
+def counts_for(
+    e: CalendarEvent,
+    year: int | None,
+    papers: Collection[str] | None,
+    prefs: CalendarPrefs | None,
+    resits: Collection[str] = (),
+) -> bool:
+    """Whether a programme date is on a student's own calendar: their year's and their papers' main sittings and
+    dates, and the resits for them (programme.resit_for: `resits` are the modules they are resitting), less what they
+    hid. The web app's isMine."""
     if prefs is not None and (
         e.id in prefs.hidden_events
         or e.type in prefs.hidden_types
         or (e.module_id is not None and e.module_id in prefs.hidden_modules)
     ):
         return False
+    if e.resit:
+        return programme.resit_for(e, year, resits)
     if papers is not None and e.module_id:
         return e.module_id in papers
     return year is None or e.year is None or e.year == year
@@ -590,13 +599,13 @@ def plan_of(db: Session, user: User) -> list[AgendaCard]:
 
 
 def private_feed(db: Session, token: str) -> str:
-    """The private feed: the student's programme dates (their year and papers, less what they hid), their own
+    """The private feed: the student's programme dates (their year, papers and resits, less what they hid), their own
     events, and their plan when they show it on their calendar. 404 not_found for an address that doesn't work."""
     user, prefs = _owner_of_feed(db, token)
     catalogue = db.scalars(select(Module)).all()
     papers = papers_of(user, catalogue, grades.choice_ids(db))
     modules = {m.id: m for m in catalogue}
-    dates = [e for e in db.scalars(programme.events_query()) if counts_for(e, user.year, papers, prefs)]
+    dates = [e for e in db.scalars(programme.events_query()) if counts_for(e, user.year, papers, prefs, user.resits)]
     now, base = utcnow(), get_settings().web_base_url
     vevents = [programme.vevent(e, modules.get(e.module_id) if e.module_id else None, now, base) for e in dates]
     vevents += [personal_vevent(e, now, base) for e in list_events(db, user)]

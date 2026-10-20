@@ -3,6 +3,7 @@ import { errorMessage } from '../../api/errors';
 import { cohortLabel, normalizeYear, useToast, YEARS, type CohortYear } from '../../state';
 import { Button, ConfirmDialog, Modal, SegmentedControl, TextField, Icon, glyph } from '../../ui';
 import { useCopyLink } from '../../lib/useCopyLink';
+import { usePapers } from '../papers/public';
 import { feedUrl, privateFeedUrl, usePrivateFeed } from './api';
 import type { MyCalendar } from './useMyCalendar';
 
@@ -26,6 +27,7 @@ type Choice = 'mine' | 'all' | `${CohortYear}`;
  * hold programme dates only. A copy button, a webcal link for calendar apps and a one-off download.
  */
 export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDialogProps) {
+  const { resits } = usePapers();
   const copyLink = useCopyLink();
   const { push } = useToast();
   const feed = usePrivateFeed();
@@ -67,7 +69,8 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
   const isMine = choice === 'mine';
   const chosen: CohortYear | null = isMine || choice === 'all' ? null : normalizeYear(Number(choice));
   const papersHere = chosen && chosen === year && papers ? papers : null;
-  const url = isMine ? (path ? privateFeedUrl(path) : null) : feedUrl(chosen, papersHere);
+  const resitsHere = chosen && chosen === year ? resits : undefined;
+  const url = isMine ? (path ? privateFeedUrl(path) : null) : feedUrl(chosen, papersHere, resitsHere);
   const webcal = url ? url.replace(/^https?:/, 'webcal:') : null;
   const fileName = isMine
     ? 'dsba-hub-my-calendar.ics'

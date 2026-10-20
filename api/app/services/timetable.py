@@ -2,8 +2,9 @@
 modules by unit code and to the exam the calendar has for that module near the row's date. The preview says what each
 row will do; saving does it all in one transaction, and each year whose exams changed hears about them in one notice.
 
-A row matches the module's exam nearest its date within MATCH_DAYS; without one it is a new exam. Unit codes are
-compared without spaces or case ('st 2134' is ST2134)."""
+A row is the module's main sitting or a resit: what the rep marks, else what the line says ("resit"), else what its
+date says (exam_names.resit_sitting). It matches the module's exam of that sitting nearest its date within
+MATCH_DAYS; without one it is a new exam. Unit codes are compared without spaces or case ('st 2134' is ST2134)."""
 
 from __future__ import annotations
 
@@ -37,6 +38,7 @@ from app.schemas.calendar import (
 from app.services import access, ratelimit
 from app.services import calendar as programme
 from app.services.content import record
+from app.services.exam_names import resit_sitting
 from app.services.notify import notify_all
 from app.services.timetable_parse import MAX_LINE, parse_timetable
 
@@ -74,16 +76,17 @@ def catalogue(db: Session) -> Catalogue:
     return Catalogue(modules, exams)
 
 
-def nearest_exam(exams: Sequence[CalendarEvent], day: dt.date) -> CalendarEvent | None:
-    """The exam nearest `day` within MATCH_DAYS either side (the earlier on a tie), or None."""
-    near = [e for e in exams if abs((e.date - day).days) <= MATCH_DAYS]
+def nearest_exam(exams: Sequence[CalendarEvent], day: dt.date, resit: bool) -> CalendarEvent | None:
+    """The exam of the sitting (`resit` or the main one) nearest `day` within MATCH_DAYS either side (the earlier on a
+    tie), or None."""
+    near = [e for e in exams if e.resit == resit and abs((e.date - day).days) <= MATCH_DAYS]
     return min(near, key=lambda e: (abs((e.date - day).days), e.date), default=None)
 
 
 def _was(exam: CalendarEvent | None) -> TimetableWas | None:
     if exam is None:
         return None
-    return TimetableWas(date=exam.date, time=exam.time, place=exam.place, sample=exam.sample)
+    return TimetableWas(date=exam.date, time=exam.time, place=exam.place, sample=exam.sample, resit=exam.resit)
 
 
 def _action(row: TimetableRowIn, exam: CalendarEvent | None) -> TimetableAction:
@@ -98,13 +101,20 @@ def _action(row: TimetableRowIn, exam: CalendarEvent | None) -> TimetableAction:
     return "same" if same else "update"
 
 
+def sitting_of(row: TimetableRowIn) -> bool:
+    """Whether a row is a resit: as marked, else as its date says."""
+    if row.resit is not None:
+        return row.resit
+    return row.date is not None and resit_sitting(row.date)
+
+
 def check_rows(
     db: Session, rows: Sequence[TimetableRowIn], lines: Sequence[tuple[int, str]] | None = None
 ) -> list[TimetableRow]:
     """Each row matched to its module and exam, with what saving it will do and anything to fix first. `lines`: the
     pasted line and its text for each row, when it came from text."""
     cat = catalogue(db)
-    codes = Counter(c for r in rows if (c := normal_code(r.unit_code)))
+    codes = Counter((c, sitting_of(r)) for r in rows if (c := normal_code(r.unit_code)))
     out: list[TimetableRow] = []
     for i, row in enumerate(rows):
         line, text = lines[i] if lines is not None else (None, None)
@@ -117,12 +127,14 @@ def check_rows(
             problems.append(f"{row.unit_code} isn't a module code. Codes look like ST2134.")
         elif module is None:
             problems.append(f"No module has the code {code}. Check it, or add the code to the module in Manage.")
-        if code and codes[code] > 1:
-            problems.append(f"{code} is in the timetable more than once. Keep one row.")
+        resit = sitting_of(row)
+        if code and codes[(code, resit)] > 1:
+            what = "resit" if resit else "main sitting"
+            problems.append(f"{code}'s {what} is in the timetable more than once. Keep one row.")
         if row.date is None:
             problems.append("No date. Add it.")
-        exam = nearest_exam(cat.exams.get(module.id, []), row.date) if module and row.date else None
-        fixed = TimetableRowIn(unit_code=code, date=row.date, time=row.time, place=row.place)
+        exam = nearest_exam(cat.exams.get(module.id, []), row.date, resit) if module and row.date else None
+        fixed = TimetableRowIn(unit_code=code, date=row.date, time=row.time, place=row.place, resit=resit)
         out.append(
             TimetableRow(
                 line=line,
@@ -134,6 +146,7 @@ def check_rows(
                 module_id=module.id if module else None,
                 module_name=module.name if module else None,
                 year=module.year if module else None,
+                resit=resit,
                 event_id=exam.id if exam else None,
                 action="fix" if problems else _action(fixed, exam),
                 was=_was(exam),
@@ -159,7 +172,9 @@ def preview(db: Session, body: TimetablePreviewIn) -> TimetablePreview:
     if not parsed:
         message = "No exams found. Paste rows with a module code and a date, such as “ST2134 13/10/2026 10:00 Hall A”."
         raise ApiError(422, "invalid_input", message, fields={"text": message})
-    rows = [TimetableRowIn(unit_code=p.unit_code, date=p.date, time=p.time, place=p.place) for p in parsed]
+    rows = [
+        TimetableRowIn(unit_code=p.unit_code, date=p.date, time=p.time, place=p.place, resit=p.resit) for p in parsed
+    ]
     return TimetablePreview(rows=check_rows(db, rows, [(p.line, p.text) for p in parsed]))
 
 
@@ -202,9 +217,10 @@ def save(db: Session, user: User, body: TimetableSave, ip: str | None) -> Timeta
                     date=row.date,
                     time=row.time,
                     place=row.place,
-                    title=f"{row.module_name} exam",
+                    title=f"{row.module_name} {'resit' if row.resit else 'exam'}",
                     type="exam",
                     module_id=row.module_id,
+                    resit=row.resit,
                     source=body.source,
                     checked_on=today,
                 ),
@@ -251,40 +267,64 @@ def notice_body(events: Sequence[CalendarEvent]) -> str:
     return " ".join(lines)
 
 
+RESITTERS = 0  # the group of final-year resits: for those resitting the module only
+
+
+def audience_year(e: CalendarEvent) -> int | None:
+    """The year an exam is told to: its own for a main sitting, the next for a resit (RESITTERS after the final
+    year); None: every year."""
+    if e.year is None or not e.resit:
+        return e.year
+    return e.year + 1 if e.year < programme.FINAL_YEAR else RESITTERS
+
+
 def _by_year(events: Iterable[CalendarEvent]) -> dict[int | None, list[CalendarEvent]]:
     out: dict[int | None, list[CalendarEvent]] = {}
     for e in sorted(events, key=lambda e: (e.date, e.time or "", e.id)):
-        out.setdefault(e.year, []).append(e)
+        out.setdefault(audience_year(e), []).append(e)
     return out
 
 
 def tell_years(db: Session, user: User, events: Sequence[CalendarEvent]) -> list[TimetableNotice]:
-    """One notice for each year whose exams changed, listing them: to its students, and to anyone with one of those
-    exams on their board, among those the calendar is on for. At most one a year a day (Bahrain): a second save that
-    day tells nobody ("limit")."""
+    """One notice for each year whose exams changed, listing them: its main sittings and the year before's resits.
+    It goes to the year's students, to those resitting one of its resits' modules, and to anyone with one of those
+    exams on their board, among those the calendar is on for. Final-year resits make a notice of their own, for those
+    resitting and those with them on their board (`resitters`). At most one notice a group a day (Bahrain): a second
+    save that day tells nobody ("limit")."""
     groups = _by_year(events)
     readers = access.audience(db, Feature.calendar)
+
+    def out_year(year: int | None) -> int | None:
+        return None if year == RESITTERS else year
+
     if readers is None:
-        return [TimetableNotice(year=y, exams=len(evs), notice="none", told=0) for y, evs in groups.items()]
+        return [
+            TimetableNotice(year=out_year(y), resitters=y == RESITTERS, exams=len(evs), notice="none", told=0)
+            for y, evs in groups.items()
+        ]
     midnight = dt.datetime.combine(bahrain_today(), dt.time(), tzinfo=BAHRAIN)
     out = []
     for year, evs in sorted(groups.items(), key=lambda g: g[0] or 0):
-        key = str(year) if year is not None else "all"
+        key = "resits" if year == RESITTERS else str(year) if year is not None else "all"
+        resitters = year == RESITTERS
         ratelimit.lock(db, f"calendar:timetable:{key}")
         told_today = select(Notification.id).where(
             Notification.kind == "date_changed",
             Notification.data.contains({"timetable": key}),
             Notification.created_at >= midnight,
         )
+        n = len(evs)
         if db.scalar(told_today.limit(1)) is not None:
-            out.append(TimetableNotice(year=year, exams=len(evs), notice="limit", told=0))
+            out.append(TimetableNotice(year=out_year(year), resitters=resitters, exams=n, notice="limit", told=0))
             continue
-        cohort = User.year == year if year is not None else User.year.is_not(None)
+        whose = [programme.cohort(e) for e in evs]
         on_board = select(BoardCard.user_id).where(
             BoardCard.link_type == "event", BoardCard.link_id.in_([e.id for e in evs])
         )
-        n = len(evs)
-        title = f"Exam timetable for {programme.cohort_label(year)}: {n} exam{'s' if n != 1 else ''}"
+        if resitters:
+            title = f"Exam timetable: {n} resit{'s' if n != 1 else ''}"
+        else:
+            title = f"Exam timetable for {programme.cohort_label(year)}: {n} exam{'s' if n != 1 else ''}"
         told = notify_all(
             db,
             "date_changed",
@@ -293,7 +333,7 @@ def tell_years(db: Session, user: User, events: Sequence[CalendarEvent]) -> list
             url="/calendar?types=exam",
             actor=user,
             data={"timetable": key},
-            only=and_(readers, or_(cohort, User.id.in_(on_board))),
+            only=and_(readers, or_(*whose, User.id.in_(on_board))),
         )
-        out.append(TimetableNotice(year=year, exams=n, notice="sent", told=told))
+        out.append(TimetableNotice(year=out_year(year), resitters=resitters, exams=n, notice="sent", told=told))
     return out

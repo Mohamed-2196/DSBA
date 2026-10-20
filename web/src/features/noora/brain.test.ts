@@ -136,6 +136,29 @@ describe('exam dates', () => {
     );
   });
 
+  it('counts down to a resit only for those it is for', () => {
+    const now = Date.UTC(2026, 9, 11, 9, 0);
+    const resit = { ...exam('2026-10-23'), resit: true, year: 1 } as CalendarEvent;
+    const year = (y: number, text = 'when is my next exam') =>
+      answer({ text, attachments: [], year: y }, knowledge([resit]), now).text;
+    expect(year(1)).toMatch(/^There are no upcoming exam dates for Year 1 yet/);
+    expect(year(2)).toBe(
+      'Your next exam is ST2133 Advanced Statistics: Distribution Theory (resit) on Friday 23 October, in 12 days.',
+    );
+    const resitting = buildKnowledge(
+      [ST2133],
+      new Map([[ST2133.id, detail]]),
+      [resit],
+      'Sara',
+      () => true,
+      SCRIPT,
+      new Set([ST2133.id]),
+    );
+    expect(answer({ text: 'when is my next exam', attachments: [], year: 1 }, resitting, now).text).toMatch(
+      /\(resit\) on Friday/,
+    );
+  });
+
   it('says so when the calendar is out of reach', () => {
     expect(ask('when is my next exam', [], null).text).toMatch(/^I can’t reach the calendar right now/);
   });

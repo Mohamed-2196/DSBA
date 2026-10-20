@@ -66,12 +66,14 @@ def home(db: Session, user: User | None, year: int, picks: Collection[str]) -> H
 def _dates(
     db: Session, user: User | None, year: int, picks: Collection[str], catalogue: Sequence[Module], today: dt.date
 ) -> list[CalendarEventOut]:
-    """The dates from today to DATES_AHEAD that count for the student (my_calendar.counts_for), less the hidden
-    modules'."""
+    """The dates from today to DATES_AHEAD that count for the student (my_calendar.counts_for: a module's own year
+    never has its resit; the next year and those resitting it do), less the hidden modules'."""
     choices = grades.choice_ids(db)
+    resits: list[str] = []
     if user is not None:
         papers = my_calendar.papers_for(year, user.year, user.papers or [], catalogue, choices)
         prefs = my_calendar.get_prefs(db, user)
+        resits = user.resits or []
     else:
         papers = my_calendar.papers_for(year, year, picks, catalogue, choices)
         prefs = None
@@ -80,7 +82,7 @@ def _dates(
     return [
         CalendarEventOut.model_validate(e)
         for e in events
-        if (e.module_id is None or e.module_id in visible) and my_calendar.counts_for(e, year, papers, prefs)
+        if (e.module_id is None or e.module_id in visible) and my_calendar.counts_for(e, year, papers, prefs, resits)
     ]
 
 

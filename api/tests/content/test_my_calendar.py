@@ -436,6 +436,44 @@ def test_hiding_a_module_or_a_type_and_following_papers(
     assert "Statistics mock" in client.get(path).text
 
 
+def test_the_private_feed_has_the_resits_for_you(
+    client_for: Clients, make_user: MakeUser, programme: dict[str, CalendarEvent], client: TestClient, db: Session
+) -> None:
+    today = bahrain_today()
+    db.add_all(
+        [
+            CalendarEvent(
+                id="y1-resit", date=today + dt.timedelta(days=9), title="Year 1 resit", type="exam", year=1, resit=True
+            ),
+            CalendarEvent(
+                id="y3-resit",
+                date=today + dt.timedelta(days=9),
+                title="Year 3 resit",
+                type="exam",
+                year=3,
+                module_id="machine-learning",
+                resit=True,
+            ),
+        ]
+    )
+    db.commit()
+    year1 = make_user(year=1)
+    assert "Year 1 resit" not in client.get(feed_of(client_for(year1))).text  # a module's own year: not its resit
+    year2 = make_user(year=2)
+    user = client_for(year2)
+    path = feed_of(user)
+    assert "Year 1 resit" in unfolded(client.get(path).text)
+    year2.papers = ["econometrics"]  # papers keep to a year's own main sittings; the year before's resits stay
+    db.commit()
+    assert "Year 1 resit" in unfolded(client.get(path).text)
+    year3 = make_user(year=3)
+    path = feed_of(client_for(year3))
+    assert "Year 3 resit" not in client.get(path).text  # the final year's resits: only for those resitting
+    year3.resits = ["machine-learning"]
+    db.commit()
+    assert "SUMMARY:Year 3 resit" in unfolded(client.get(path).text)
+
+
 def test_a_choice_not_picked_leaves_the_feed_as_the_grade_rules_have_it(
     client_for: Clients,
     make_user: MakeUser,

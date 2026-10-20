@@ -43,7 +43,7 @@ from app.schemas.library import EXAM_KINDS
 from app.schemas.misc import SearchHit, SearchResults, SearchType
 from app.services import access, paper_text, search_spelling, site
 from app.services import library as lib
-from app.services.calendar import TYPE_LABELS, cohort_label
+from app.services.calendar import TYPE_LABELS, cohort_label, year_clause
 from app.services.forum.text import to_plain_text  # a post reads the same in search as in the forum (CQ-6)
 from app.services.newsletter import issue_text
 
@@ -107,17 +107,16 @@ def _whole_words_first(*columns: Any, terms: list[str]) -> ColumnElement[Any]:
     return and_(*(or_(*(_has_word(c, t) for c in columns)) for t in terms)).desc()
 
 
-def mine_first(viewer: User | None, module_id: Any, year: Any, *, every_year: bool = False) -> list[Any]:
-    """Ordering for a signed-in student: rows of the papers they sit, then of their year (with `every_year`, rows
-    without a year count as theirs: a date for every cohort), then the rest. Nothing for guests and people without
-    a year or papers, so their order stays the same for everyone."""
+def mine_first(viewer: User | None, module_id: Any, year: Any) -> list[Any]:
+    """Ordering for a signed-in student: rows of the papers they sit, then of their year, then the rest. Nothing for
+    guests and people without a year or papers, so their order stays the same for everyone."""
     if viewer is None or (viewer.year is None and not viewer.papers):
         return []
     whens: list[tuple[ColumnElement[bool], int]] = []
     if viewer.papers:
         whens.append((module_id.in_(viewer.papers), 0))
     if viewer.year is not None:
-        whens.append((or_(year == viewer.year, year.is_(None)) if every_year else (year == viewer.year), 1))
+        whens.append((year == viewer.year, 1))
     return [case(*whens, else_=2)]
 
 
@@ -429,6 +428,8 @@ DATE_TYPES: dict[str, tuple[str, ...]] = {
     "holiday": ("break",),
     "holidays": ("break",),
 }
+# Words that ask for the resits ("resit" finds every resit, whatever its title).
+RESIT_WORDS = frozenset(["resit", "resits", "retake", "retakes"])
 # A question about a date ("when is my exam", "what date is the ST2134 exam"): words that say nothing about which.
 DATE_FILLER = frozenset(
     [
@@ -463,7 +464,7 @@ DATE_FILLER = frozenset(
 def date_terms(terms: list[str]) -> list[str] | None:
     """The words that pick dates out of a query that asks for one (a word naming a type of date, or "when"/"date"):
     the query less its filler ("when is my exam" → ["exam"]). None when the query doesn't ask for a date."""
-    if not any(t in DATE_TYPES or t in {"when", "whens", "date", "dates"} for t in terms):
+    if not any(t in DATE_TYPES or t in RESIT_WORDS or t in {"when", "whens", "date", "dates"} for t in terms):
         return None
     return [t for t in terms if t not in DATE_FILLER]
 
@@ -475,8 +476,25 @@ def _event_word(word: str) -> ColumnElement[bool]:
         _starts_word(Module.name, word),
         _starts_word(Module.short_name, word),
     )
+    if word in RESIT_WORDS:
+        return or_(found, CalendarEvent.resit)
     types = DATE_TYPES.get(word)
     return or_(found, CalendarEvent.type.in_(types)) if types else found
+
+
+def _dates_mine_first(viewer: User | None) -> list[Any]:
+    """mine_first for dates: the main sittings and dates of the papers they sit and the resits of the modules they
+    are resitting, then their year's (calendar.for_year), then the rest."""
+    if viewer is None or (viewer.year is None and not viewer.papers and not viewer.resits):
+        return []
+    whens: list[tuple[ColumnElement[bool], int]] = []
+    if viewer.papers:
+        whens.append((and_(~CalendarEvent.resit, CalendarEvent.module_id.in_(viewer.papers)), 0))
+    if viewer.resits:
+        whens.append((and_(CalendarEvent.resit, CalendarEvent.module_id.in_(viewer.resits)), 0))
+    if viewer.year is not None:
+        whens.append((year_clause(viewer.year), 1))
+    return [case(*whens, else_=2)]
 
 
 def _events(db: Session, terms: list[str], limit: int, viewer: User | None) -> list[SearchHit]:
@@ -494,7 +512,7 @@ def _events(db: Session, terms: list[str], limit: int, viewer: User | None) -> l
         .where(and_(*(_event_word(t) for t in terms)))
         # the viewer's dates first; then what is still ahead (soonest first), then the past (latest first)
         .order_by(
-            *mine_first(viewer, CalendarEvent.module_id, CalendarEvent.year, every_year=True),
+            *_dates_mine_first(viewer),
             upcoming.desc(),
             case((upcoming, CalendarEvent.date), else_=None).asc(),
             CalendarEvent.date.desc(),
@@ -515,7 +533,9 @@ def _events(db: Session, terms: list[str], limit: int, viewer: User | None) -> l
                 title=e.title,
                 snippet=details,
                 url=f"/calendar?date={e.date.isoformat()}&event={e.id}",
-                meta=f"{TYPE_LABELS.get(e.type, 'Event')} · {cohort_label(e.year)}",
+                meta=f"Resit · {cohort_label(e.year)} module"
+                if e.resit
+                else f"{TYPE_LABELS.get(e.type, 'Event')} · {cohort_label(e.year)}",
                 date=datetime.combine(e.date, time(0), tzinfo=BAHRAIN),
                 page=None,
             )

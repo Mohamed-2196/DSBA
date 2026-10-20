@@ -46,7 +46,8 @@ def get_me(user: CurrentUser) -> Me:
 
 @router.patch("/me", response_model=Me)
 def update_me(body: MeUpdate, user: CurrentUser, db: DB) -> Me:
-    """Display name, cohort year, email switches, papers and zone. Only the fields sent change; `year: null` clears it.
+    """Display name, cohort year, email switches, papers, zone and resits. Only the fields sent change; `year: null`
+    clears it.
 
     Errors: invalid_display_name (422), forbidden (403: a suspended account can't change its name)."""
     accounts.update_profile(user, body)

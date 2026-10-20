@@ -26,7 +26,8 @@ import {
   glyph,
   timeAgo,
 } from '../../ui';
-import { aheadRows, typeLabel } from '../calendar/public';
+import { aheadRows, dateLabel } from '../calendar/public';
+import { resitFor, usePapers } from '../papers/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
 import { useModuleAnsweredThreads, useModuleLatestThreads, useStartsThreads } from '../forum/public';
 import {
@@ -116,11 +117,22 @@ function BlockLoading({ title }: { title: string }) {
   );
 }
 
-/** The module's next dates on the calendar: exams, mocks, deadlines and VLE windows (an open one by its last day). */
+/**
+ * The module's next dates on the calendar: exams, mocks, deadlines and VLE windows (an open one by its last day). A
+ * resit that isn't the student's is left to the header's quiet line: it never counts down here.
+ */
 function NextDates({ module: m }: { module: ModuleDetail }) {
   const { events, isPending, isError, error, isFetching, refetch } = useModuleDates(m.id, 12);
+  const { home, resits } = usePapers();
   const today = todayKey();
-  const rows = useMemo(() => aheadRows(events, today).slice(0, ROWS), [events, today]);
+  const rows = useMemo(
+    () =>
+      aheadRows(
+        events.filter((e) => !e.resit || resitFor(e, home ?? m.year, resits)),
+        today,
+      ).slice(0, ROWS),
+    [events, today, home, m.year, resits],
+  );
   const title = 'Next dates';
   if (isPending) return <BlockLoading title={title} />;
   if (isError) {
@@ -168,7 +180,7 @@ function NextDates({ module: m }: { module: ModuleDetail }) {
                 <span className="mod-row__text">
                   <span className="mod-row__title">{e.title}</span>
                   <span className="mod-row__meta">
-                    {closes ? `Closes ${date}` : `${typeLabel(e.type)}, ${date}`}
+                    {closes ? `Closes ${date}` : `${dateLabel(e)}, ${date}`}
                     {e.sample ? ', to be confirmed' : ''}
                   </span>
                 </span>

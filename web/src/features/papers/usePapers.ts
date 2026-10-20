@@ -9,7 +9,7 @@ import { useModules } from '../../state/modules';
 import { isZone, type Zone } from '../../lib/exams';
 import { cleanPicks, GUEST_PAPERS_KEY } from '../../lib/guestPapers';
 import { usePaperChoices } from './api';
-import { choicesFrom, papersFor, type Choices } from './papers';
+import { choicesFrom, NO_RESITS, papersFor, type Choices } from './papers';
 
 interface Stored {
   papers: string[];
@@ -32,6 +32,10 @@ export interface PapersValue {
   choices: Choices;
   save: (next: Stored) => Promise<void>;
   saving: boolean;
+  /** the modules the student is resitting ("I'm resitting this"; a guest: none) */
+  resits: ReadonlySet<string>;
+  /** tick or untick "I'm resitting this" for a module (signed in only) */
+  setResit: (moduleId: string, on: boolean) => Promise<void>;
 }
 
 export function usePapers(): PapersValue {
@@ -43,7 +47,7 @@ export function usePapers(): PapersValue {
   const qc = useQueryClient();
   const [stored, setStored] = useLocalStorage<unknown>(GUEST_PAPERS_KEY, null);
   const update = useMutation({
-    mutationFn: (body: Stored) => call(api.PATCH('/api/v1/me', { body })),
+    mutationFn: (body: Partial<Stored> & { resits?: string[] }) => call(api.PATCH('/api/v1/me', { body })),
     onSuccess: (next) => {
       qc.setQueryData(ME_KEY, next);
       void qc.invalidateQueries({ queryKey: HOME_KEY }); // Home's dates follow the student's papers
@@ -65,5 +69,16 @@ export function usePapers(): PapersValue {
     [me, mutateAsync, setStored],
   );
 
-  return { picks, zone, home, year, papers, choices, save, saving: update.isPending };
+  const resitList = me?.resits;
+  const resits = useMemo<ReadonlySet<string>>(() => (resitList ? new Set(resitList) : NO_RESITS), [resitList]);
+  const setResit = useCallback(
+    async (moduleId: string, on: boolean) => {
+      if (!me) return;
+      const rest = me.resits.filter((id) => id !== moduleId);
+      await mutateAsync({ resits: on ? [...rest, moduleId] : rest });
+    },
+    [me, mutateAsync],
+  );
+
+  return { picks, zone, home, year, papers, choices, save, saving: update.isPending, resits, setResit };
 }

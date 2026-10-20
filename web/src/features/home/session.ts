@@ -21,7 +21,8 @@ export interface ExamSession {
 }
 
 /**
- * The next exam (or mock) for a year (and the student's `papers` in it, when picked) within `horizon` days of `today` (Bahrain's, at local midnight), plus the exams that follow it with gaps ≤ `maxGap`
+ * The next exam (or mock) for a year (and the student's `papers` in it, when picked, and the resits for them: the year
+ * before's, and those of the modules in `resits`; never a module's own year's) within `horizon` days of `today` (Bahrain's, at local midnight), plus the exams that follow it with gaps ≤ `maxGap`
  * days (one "session"). Falls back to the next other date (break, deadline…) within 60 days. null when the calendar has nothing ahead.
  * Home counts down to confirmed dates only: sample dates (placeholders, `sample: true`) and programme events
  * stay on the Calendar page.
@@ -35,10 +36,16 @@ export function getExamSession(
     horizon = 120,
     maxGap = 21,
     papers = null,
-  }: { horizon?: number; maxGap?: number; papers?: ReadonlySet<string> | null } = {},
+    resits,
+  }: {
+    horizon?: number;
+    maxGap?: number;
+    papers?: ReadonlySet<string> | null;
+    resits?: ReadonlySet<string>;
+  } = {},
 ): ExamSession | null {
   const upcoming: SessionEvent[] = events
-    .filter((e) => isMine(e, year, papers) && !e.sample && e.type !== 'event' && e.type !== 'careers')
+    .filter((e) => isMine(e, year, papers, resits) && !e.sample && e.type !== 'event' && e.type !== 'careers')
     .map((e) => {
       const when = parseDay(e.date);
       return { ...e, days: daysBetween(today, when), module: getModule(e.moduleId), when };

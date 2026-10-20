@@ -36,6 +36,9 @@ class CalendarEventOut(ApiModel):
     checked_on: dt.date | None  # when it was last checked against the source
     employer_id: str | None  # a careers date: the Career Navigator employer it belongs to
     sample: bool  # a placeholder date, not confirmed yet
+    # An exam's resit sitting: for the year after the module's (`year` + 1) and those resitting the module, not for
+    # `year` itself. False: the main sitting, or not an exam.
+    resit: bool
 
 
 class CalendarEventCreate(ApiModel):
@@ -53,6 +56,8 @@ class CalendarEventCreate(ApiModel):
     checked_on: dt.date | None = None
     employer_id: EmployerId | None = None
     sample: bool = False
+    # An exam's resit sitting. Not sent: an exam from September to December is a resit (the October sitting).
+    resit: bool | None = None
 
 
 class CalendarEventUpdate(ApiModel):
@@ -70,6 +75,7 @@ class CalendarEventUpdate(ApiModel):
     checked_on: dt.date | None = None
     employer_id: EmployerId | None = None
     sample: bool | None = None
+    resit: bool | None = None  # only an exam can be a resit
     # Tell the event's cohort when its date, time or place changes or it is confirmed (exams, mocks and deadlines).
     notify: bool = False
 
@@ -184,12 +190,14 @@ UnitCode = Annotated[str, StringConstraints(strip_whitespace=True, max_length=16
 
 
 class TimetableRowIn(ApiModel):
-    """One exam of the timetable as the rep checked it. A row without a time or a place keeps the exam's own."""
+    """One exam of the timetable as the rep checked it. A row without a time or a place keeps the exam's own. Without
+    `resit`, the row says (the word "resit") or its date does (exam_names.resit_sitting)."""
 
     unit_code: UnitCode | None = None
     date: dt.date | None = None
     time: Time | None = None
     place: Short | None = None
+    resit: bool | None = None
 
 
 class TimetableWas(ApiModel):
@@ -199,6 +207,7 @@ class TimetableWas(ApiModel):
     time: str | None
     place: str | None
     sample: bool
+    resit: bool
 
 
 class TimetableRow(ApiModel):
@@ -212,8 +221,9 @@ class TimetableRow(ApiModel):
     place: str | None
     module_id: str | None
     module_name: str | None
-    year: Year | None  # the module's year: whose students hear about it
-    event_id: str | None  # the exam it changes; None: a new exam
+    year: Year | None  # the module's year
+    resit: bool  # the resit sitting (for the year after the module's), not the main one
+    event_id: str | None  # the exam of the same sitting it changes; None: a new exam
     action: TimetableAction
     was: TimetableWas | None
     problems: list[str]  # what to fix before it can be saved
@@ -240,9 +250,10 @@ class TimetableSave(ApiModel):
 
 
 class TimetableNotice(ApiModel):
-    """What one year was told."""
+    """What one year was told: about its main sittings, and the year before's resits."""
 
-    year: Year | None  # None: every year
+    year: Year | None  # None: every year, or `resitters`
+    resitters: bool  # final-year resits: told only to those resitting them
     exams: int
     notice: NoticeStatus
     told: int

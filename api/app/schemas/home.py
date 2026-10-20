@@ -25,7 +25,8 @@ class HomeOut(ApiModel):
     guides: GuidesDoc | None  # GET /guides, only while a guide's card is due (Start here, Results day); else None
     results_day: str | None  # the results date Results day's card is for (the calendar's id); None: no card
     # The calendar's dates from today for the next six months that count for the student: the year's and their
-    # papers', less what they hid from their calendar and the hidden modules' (empty while the calendar is off).
+    # papers', and the resits for them (the year before's, and the modules they are resitting), less what they hid
+    # from their calendar and the hidden modules' (empty while the calendar is off).
     dates: list[CalendarEventOut]
     next_exam: CalendarEventOut | None  # their next exam within 120 days, unless a mock comes first
     daily_question: PaperQuestion | None  # the day's past question for next_exam's module, in the six weeks before it
