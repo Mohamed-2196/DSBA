@@ -502,6 +502,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_BACKUP_S3_ENDPOINT_URL`, `DSBA_BACKUP_S3_REGION` | the main store's | the backup bucket's store, when it is another one |
 | `DSBA_BACKUP_ACCESS_KEY_ID`, `DSBA_BACKUP_SECRET_ACCESS_KEY` | none | the backup key, set together or not at all |
 | `DSBA_BACKUP_SSE`, `DSBA_BACKUP_KMS_KEY_ID`, `DSBA_BACKUP_KEEP` | `AES256`, none, `14` | encryption at rest, and how many dumps to keep (0: all) |
+| `DSBA_PORTAL_HOSTS` | `bibf.edu.bh,bibf.com,london.ac.uk` | the hosts Site settings' links to BIBF and the University (MyClass, the UoL portal, the regulations, exam entry and results) may point at, each with its subdomains; anything else is refused (SEC-64) |
 | `DSBA_ADMIN_IDENTIFIERS` | none | emails or phone numbers that get Admin at sign-in while the hub has no active admin |
 | `DSBA_GOOGLE_API_KEY`, `DSBA_GOOGLE_SERVICE_ACCOUNT_FILE` | none | the Drive import only (section 10) |
 | `DSBA_ANTHROPIC_API_KEY`, `DSBA_NOORA_MODEL` | none, `claude-haiku-5-5` | Mini Noora's AI answers (section 11) |

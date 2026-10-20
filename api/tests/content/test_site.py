@@ -154,6 +154,8 @@ def test_of_two_first_saves_the_second_is_refused(db: Session, admin: User, monk
             "data.links.regulations.url",
         ),
         (lambda d: d["contributors"][0].update(url="javascript:alert(1)"), "data.contributors.0.url"),
+        (lambda d: d["links"]["myclass"].update(url="https://myclass.bibf.com.evil.com"), "data.links.myclass.url"),
+        (lambda d: d["links"]["uolPortal"].update(url="https://london.ac.uk@evil.com"), "data.links.uolPortal.url"),
         (lambda d: d["contributors"].append(dict(d["contributors"][0])), "data"),
         (lambda d: d["noteCredits"][0].update(modules=[]), "data.noteCredits.0.modules"),
         (lambda d: d["noteCredits"][0].update(modules=["economics", "economics"]), "data"),
@@ -181,6 +183,27 @@ def test_the_site_is_checked(
     data = seed("site")
     change(data)
     assert field in fields(client_for(admin).put(SITE, json={"version": 0, "data": data}))
+
+
+@pytest.mark.parametrize(
+    "url", ["https://myclass.bibf.com.evil.com/login", "https://evilbibf.edu.bh", "https://bibf.edu.bh@evil.com"]
+)
+def test_the_portal_links_go_only_to_bibf_and_the_university(
+    client_for: Clients, admin: User, modules: dict[str, Module], url: str
+) -> None:
+    data = seed("site")
+    data["links"]["myclass"]["url"] = url
+    r = client_for(admin).put(SITE, json={"version": 0, "data": data})
+    assert fields(r) == {"data.links.myclass.url": "Links here must go to BIBF or University of London sites."}
+    data["links"]["myclass"]["url"] = "https://myclass.bibf.edu.bh"
+    data["links"]["uolPortal"]["url"] = "https://london.ac.uk/students"
+    assert client_for(admin).put(SITE, json={"version": 0, "data": data}).status_code == 200
+
+
+def test_a_contributor_may_link_anywhere_on_https(client_for: Clients, admin: User, modules: dict[str, Module]) -> None:
+    data = seed("site")
+    data["contributors"][0]["url"] = "https://example.com/me"
+    assert client_for(admin).put(SITE, json={"version": 0, "data": data}).status_code == 200
 
 
 def test_notes_are_credited_to_real_modules(client_for: Clients, admin: User, modules: dict[str, Module]) -> None:

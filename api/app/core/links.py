@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
+from collections.abc import Iterable
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -26,8 +27,12 @@ DRIVE_RULE = (
 )
 # Never linked: the Drive import copies their files into the library.
 GOOGLE_FILE_HOSTS = frozenset({"drive.google.com", "docs.google.com"})
+PORTAL_RULE = "Links here must go to BIBF or University of London sites."
 PICTURE_RULE = "Use a picture of the Hub (like brand/newsletter-cover.jpg) or an uploaded image (/api/v1/media/…)."
 
+# A host as the portal rule accepts it: ASCII letters, digits and hyphens in dot-separated labels (punycode for an
+# internationalised name), lower case, no trailing dot, no port.
+_ASCII_HOST = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+")
 _UNSAFE_IN_LINK = re.compile(r"[\x00-\x20\x7f\x85\u2028\u2029\\]")
 _MARKUP_LINK = re.compile(r"\[([^\]]*)\]\(([^)\s]*)\)")
 # A forum image as the web app links it: /api/v1/media/<upload id> (group 1: the id), nothing glued after it.
@@ -47,6 +52,25 @@ def is_https(value: str) -> bool:
     except ValueError:
         return False
     return bool(parts.hostname) and parts.username is None and parts.password is None
+
+
+def is_portal_url(value: str, hosts: Iterable[str]) -> bool:
+    """An https:// address on one of `hosts` or a subdomain of one (SEC-64): 'https://myclass.bibf.com' for
+    'bibf.com', never 'https://bibf.com.evil.com', 'https://evilbibf.com' or 'https://bibf.com@evil.com'. The host
+    must be plain ASCII as typed, so a look-alike Unicode name (or one a browser would rewrite, like a full-width dot)
+    is refused rather than guessed at."""
+    if not is_https(value):
+        return False
+    try:
+        parts = urlsplit(value)
+        host = parts.hostname or ""
+        parts.port  # noqa: B018 - a port that isn't a number raises here
+    except ValueError:
+        return False
+    # hostname lower-cases; the host as typed must already be plain ASCII.
+    if not host.isascii() or not _ASCII_HOST.fullmatch(host):
+        return False
+    return any(host == h or host.endswith("." + h) for h in hosts)
 
 
 def is_google_file(value: str) -> bool:

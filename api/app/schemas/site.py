@@ -4,7 +4,8 @@ their notes, Home's blocks for a student who hasn't arranged their own, what lea
 a student's exam, the steps of the tour, and search's nicknames for modules and its suggested searches. Its starting
 content is app/seed/data/site.json.
 
-Links to other sites are https://. The modules a student shared notes for are module ids, and must exist."""
+Links to other sites are https://; the links to BIBF and the University go to a host of DSBA_PORTAL_HOSTS or a
+subdomain of one. The modules a student shared notes for are module ids, and must exist."""
 
 from __future__ import annotations
 
@@ -17,7 +18,7 @@ from pydantic_core import PydanticCustomError
 
 from app.schemas.auth import MAX_HOME_BLOCKS, HomeBlock
 from app.schemas.common import ApiModel, UserPublic
-from app.schemas.links import MARKUP, SiteUrl
+from app.schemas.links import MARKUP, PortalUrl, SiteUrl
 
 ItemId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=64)]
 ModuleId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=64)]
@@ -33,7 +34,7 @@ class SiteLink(ApiModel):
 
     label: Label  # 'BIBF MyClass'
     note: Line  # what it's for, under the label on About: 'Lecture slides, announcements and coursework'
-    url: SiteUrl
+    url: PortalUrl  # BIBF's or the University's own site (DSBA_PORTAL_HOSTS)
 
 
 class SiteLinks(ApiModel):
