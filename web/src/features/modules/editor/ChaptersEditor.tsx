@@ -7,6 +7,7 @@ import {
   addChapter,
   addLesson,
   canStepLesson,
+  keywordError,
   moveChapter,
   moveLesson,
   removeChapter,
@@ -177,6 +178,15 @@ export function ChaptersEditor({ draft, setDraft, errors }: Props) {
                     />
                   </span>
                 </div>
+                <TextField
+                  className="medit-chapter__words"
+                  label="Words for search"
+                  hint="Other words students search for this chapter by, with commas between: MLE, Cramér-Rao."
+                  value={ch.keywords}
+                  onChange={(e) => setDraft((d) => updateChapter(d, c, { keywords: e.target.value }))}
+                  error={keywordError(errors, c)}
+                  maxLength={500}
+                />
 
                 <Button
                   variant="ghost"

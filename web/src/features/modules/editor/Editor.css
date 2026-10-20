@@ -308,6 +308,9 @@
   flex: 1 1 18rem;
   min-width: 0;
 }
+.medit-chapter__words {
+  width: 100%;
+}
 .medit-chapter.is-hidden .medit-chapter__panel {
   background: var(--surface-2);
 }

@@ -17,6 +17,8 @@ export interface DraftChapter {
   id: string | null;
   title: string;
   hidden: boolean;
+  /** its words for search as typed, comma separated ('MLE, Cramér-Rao') */
+  keywords: string;
   lessons: DraftLesson[];
 }
 
@@ -72,6 +74,7 @@ export function toDraft(m: ModuleEdit): Draft {
       id: ch.id,
       title: ch.title,
       hidden: ch.hidden,
+      keywords: ch.keywords.join(', '),
       lessons: ch.lessons.map((l) => ({
         key: `l-${l.id}`,
         id: l.id,
@@ -89,6 +92,21 @@ const isIcon = (s: string): s is IconName => (MODULE_ICONS as readonly string[])
 /** The icon as the API takes it: one of MODULE_ICONS, or null for the default book. */
 export const iconName = (s: string): IconName | null => (isIcon(s) ? s : null);
 
+/** A chapter's words for search as the API takes them: split at commas, trimmed, empty ones left out. */
+export function keywordList(text: string): string[] {
+  return text
+    .split(',')
+    .map((w) => w.trim())
+    .filter(Boolean);
+}
+
+/** The API's problem with a chapter's words for search: the list's own, or one word's ('chapters.0.keywords.3'). */
+export function keywordError(errors: Record<string, string>, chapter: number): string | undefined {
+  const at = `chapters.${chapter}.keywords`;
+  const key = Object.keys(errors).find((k) => k === at || k.startsWith(`${at}.`));
+  return key ? errors[key] : undefined;
+}
+
 export function toSave(d: Draft, version: number): ModuleSave {
   return {
     version,
@@ -103,6 +121,7 @@ export function toSave(d: Draft, version: number): ModuleSave {
     chapters: d.chapters.map((ch) => ({
       title: ch.title.trim(),
       hidden: ch.hidden,
+      keywords: keywordList(ch.keywords),
       id: ch.id,
       lessons: ch.lessons.map((l) => ({
         url: l.url.trim(),
@@ -184,7 +203,10 @@ export function updateLesson(d: Draft, at: LessonPlace, patch: Partial<Omit<Draf
 }
 
 export function addChapter(d: Draft): Draft {
-  return { ...d, chapters: [...d.chapters, { key: newKey('c'), id: null, title: '', hidden: false, lessons: [] }] };
+  return {
+    ...d,
+    chapters: [...d.chapters, { key: newKey('c'), id: null, title: '', hidden: false, keywords: '', lessons: [] }],
+  };
 }
 
 export function addLesson(d: Draft, chapter: number): Draft {
