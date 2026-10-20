@@ -67,10 +67,18 @@ def ask_about(c: TestClient, item: LibraryItem, page: int = 2, question: str = "
 
 
 def paper_block(claude: FakeClient) -> str:
-    system = claude.messages.calls[-1]["system"]
+    """The paper's part of the prompt: its instructions in the system prompt, then the PDFs' words, which go first in
+    the student's turn (SEC-34)."""
+    call = claude.messages.calls[-1]
+    system = call["system"]
     assert len(system) == 3
     assert "cache_control" not in system[2]
-    return str(system[2]["text"])
+    content = call["messages"][-1]["content"]
+    if isinstance(content, str):
+        return str(system[2]["text"])
+    assert "<past_paper title" not in system[2]["text"]  # the words themselves never sit among the instructions
+    assert "<examiners_report title" not in system[2]["text"]
+    return f"{system[2]['text']}\n\n{content[0]['text']}"
 
 
 def no_gap(db: Session) -> None:

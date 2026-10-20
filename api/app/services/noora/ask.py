@@ -323,9 +323,14 @@ def prepare(db: Session, user: User, body: NooraQuestion) -> Prepared:
     modules = list(db.scalars(select(Module).where(Module.hidden.is_(False))))
     stable = prompt.stable_block(modules, access.features_on(db, user), settings.words(db))
     system = prompt.system(stable, _screen(db, user, body, today))
-    if asked is not None:
-        system.append({"type": "text", "text": paper.block(asked)})
     messages = prompt.messages(body.question, body.history, body.note)
+    if asked is not None:
+        instructions, material = paper.block(asked)
+        system.append({"type": "text", "text": instructions})
+        if material is not None:  # the PDFs' words go in the student's turn, not among the instructions
+            last = messages[-1]
+            question = last["content"] if isinstance(last["content"], str) else ""
+            last["content"] = [{"type": "text", "text": material}, {"type": "text", "text": question}]
     reserved = estimate_microusd(system, messages, s.noora_max_answer_tokens, s)
     ratelimit.lock(db, LOCK)
     if month_cost_microusd(db, today) + reserved > lim.monthly_budget_cents * MICRO_PER_CENT:
