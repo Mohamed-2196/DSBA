@@ -209,3 +209,22 @@ export function placeChat(
 export function perchOnSheet(place: ChatPlace, view: View, box: Box): Point {
   return { x: Math.round(view.w - box.w - 16), y: Math.round(place.top - box.h + 4) };
 }
+
+/**
+ * Her sprite's canvas is wider than her box (room for a wave), so in a lane by the window's edge its empty margin
+ * would run past the edge. A clip-path for the figure that trims the canvas at the window's sides, or null when it
+ * fits. `canvas` is placed around the box as in sprites.figure().
+ */
+export function edgeClip(
+  point: Point,
+  box: Box,
+  canvas: { left: number; width: number },
+  windowWidth: number,
+): string | null {
+  const overLeft = Math.max(0, -canvas.left - point.x);
+  const overRight = Math.max(0, point.x + canvas.left + canvas.width - windowWidth);
+  if (!overLeft && !overRight) return null;
+  const left = -Math.max(0, Math.min(-canvas.left, point.x));
+  const right = -Math.max(0, Math.min(canvas.left + canvas.width - box.w, windowWidth - point.x - box.w));
+  return `inset(-100% ${Math.round(right)}px -100% ${Math.round(left)}px)`;
+}
