@@ -233,3 +233,11 @@ def test_real_endpoints_answer_in_plain_words(client_for: Clients, student: User
     broken = c.post(f"{API}/forum/threads", content=b"{not json", headers={"Content-Type": "application/json"})
     assert broken.status_code == 422
     assert broken.json()["error"]["message"] == "The request isn't valid JSON. Reload the page and try again."
+
+
+def test_an_address_whose_id_cant_be_one_is_not_found() -> None:
+    """Student test ST-77: /requests/nope said "Request isn't a valid id. Reload the page"; nothing is there."""
+    e = validation_error([{"type": "uuid_parsing", "loc": ("path", "request_id"), "msg": "x"}])
+    assert (e.status, e.code, e.message) == (404, "not_found", "We couldn't find that. Check the link.")
+    body = validation_error([{"type": "uuid_parsing", "loc": ("body", "moduleId"), "msg": "x"}])
+    assert (body.status, body.code) == (422, "invalid_input")

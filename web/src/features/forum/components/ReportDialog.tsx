@@ -60,7 +60,7 @@ export function ReportDialog({ open, onClose, targetType, targetId, already = fa
             close();
             onReported?.();
             push({
-              title: `You've already reported this ${noun}`,
+              title: `You’ve already reported this ${noun}`,
               body: 'A student rep will look at it soon. No need to report it again.',
               tone: 'info',
             });
@@ -71,7 +71,7 @@ export function ReportDialog({ open, onClose, targetType, targetId, already = fa
             push({ title: `This ${noun} is gone`, body: 'It was removed before your report was sent.', tone: 'info' });
             return;
           }
-          setError(errorMessage(e, "Your report wasn't sent. Try again."));
+          setError(errorMessage(e, 'Your report wasn’t sent. Try again.'));
         },
       },
     );

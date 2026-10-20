@@ -270,7 +270,12 @@ def plain_message(error: Mapping[str, Any]) -> str:
 
 def validation_error(errors: Sequence[Mapping[str, Any]]) -> ApiError:
     """422 invalid_input with a plain message per field (the first error on a field wins). One field: its message
-    is the whole message too, for screens that show only that."""
+    is the whole message too, for screens that show only that. An address whose id can't be one (/requests/nope) is
+    404 not_found: nothing is there, which the page says in its own words (student test ST-77)."""
+    if errors and all(
+        str(e.get("type", "")).startswith("uuid_") and tuple(e.get("loc", ()))[:1] == ("path",) for e in errors
+    ):
+        return not_found("We couldn't find that. Check the link.")
     fields: dict[str, str] = {}
     for e in errors:
         fields.setdefault(field_name(e.get("loc", ())), plain_message(e))

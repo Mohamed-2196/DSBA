@@ -175,7 +175,9 @@ describe('uploadErrorMessage', () => {
     expect(uploadErrorMessage(err('too_many_pending', pending), 'library')).toBe(pending);
     const mismatch =
       "This isn't a real .pdf file: what's inside doesn't match its name. Save or export it again, or choose another file.";
-    expect(uploadErrorMessage(err('mismatch', mismatch, { status: 422 }), 'library')).toBe(mismatch);
+    expect(uploadErrorMessage(err('mismatch', mismatch, { status: 422 }), 'library')).toBe(
+      'This isn’t a real .pdf file: what’s inside doesn’t match its name. Save or export it again, or choose another file.',
+    );
     expect(
       uploadErrorMessage(
         err('forbidden', 'Your account is suspended. Contact a student rep.', { status: 403 }),

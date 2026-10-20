@@ -237,7 +237,7 @@ function MissingNote() {
         icon={<Icon glyph={glyph.edit} />}
         title="This note doesn’t exist"
         body="It may have been deleted."
-        action={<Button to="/notes">See all notes</Button>}
+        action={<Button to="/notes">Open your notebook</Button>}
       />
     </div>
   );

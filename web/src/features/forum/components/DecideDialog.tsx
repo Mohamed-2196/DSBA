@@ -52,7 +52,7 @@ export function DecideDialog({
             onClose();
             return;
           }
-          setError(errorMessage(e, "That didn't work. Try again."));
+          setError(errorMessage(e, 'That didn’t work. Try again.'));
         },
       },
     );

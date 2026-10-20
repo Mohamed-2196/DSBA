@@ -454,7 +454,7 @@ export default function StyleGuidePage() {
     <Page className="sg">
       <PageHeader
         title="Style guide"
-        description="The tokens and shared primitives DSBA Hub is built from. Build pages from these and copy the code under each specimen. Don't invent new colours, radii or shadows."
+        description="The tokens and shared primitives DSBA Hub is built from. Build pages from these and copy the code under each specimen. Don’t invent new colours, radii or shadows."
         meta={
           <>
             <Badge tone="outline">{modules.length} modules from the API</Badge>
@@ -806,7 +806,7 @@ export default function StyleGuidePage() {
           <Section
             id="deskmates"
             title="Deskmates"
-            description="Each core section's study object come to life: idle in its section header, asleep in an empty list, happy on a success that matters. One per view, never below 32 px, never on a failure."
+            description="Each core section’s study object come to life: idle in its section header, asleep in an empty list, happy on a success that matters. One per view, never below 32 px, never on a failure."
           >
             <Specimen
               title="Deskmate"
@@ -900,7 +900,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
             </div>
             <Specimen
               title="Motion"
-              note="140–320ms, one easing, only in answer to an action (plus Home's first load)"
+              note="140–320ms, one easing, only in answer to an action (plus Home’s first load)"
               stageClassName="sg-stage--motion"
             >
               <MotionDemo />
@@ -1587,7 +1587,7 @@ export default function ForumPage() {
         open={modal}
         onClose={() => setModal(false)}
         title="Delete this draft?"
-        description="Your thread draft for ST2133 will be removed. This can't be undone."
+        description="Your thread draft for ST2133 will be removed. This can’t be undone."
         size="sm"
         footer={
           <>

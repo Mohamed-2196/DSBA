@@ -47,7 +47,7 @@ export default function ThreadPage() {
         <Panel padding="none">
           <EmptyState
             icon={<Icon glyph={glyph.forum} />}
-            title="We couldn't find that thread"
+            title="We couldn’t find that thread"
             body="The link may be wrong, or the thread was removed. Browse the forum or start a new thread."
             action={
               <>

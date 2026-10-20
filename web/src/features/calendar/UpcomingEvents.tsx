@@ -116,7 +116,7 @@ export function UpcomingEvents({ n = 5, year: forYear, skip = null }: UpcomingEv
           size="sm"
           mate="blink"
           title="Nothing coming up"
-          body={`Exams, deadlines and events${year ? ` for ${cohortLabel(year)}` : ''} show up here as soon as they're announced.`}
+          body={`Exams, deadlines and events${year ? ` for ${cohortLabel(year)}` : ''} show up here as soon as they’re announced.`}
           action={
             <Button size="sm" to="/calendar">
               Open calendar

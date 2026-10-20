@@ -68,7 +68,7 @@ export function ThreadEditForm({
         },
         // A field the API turned down (an unknown module, too many tags) says so under that field.
         onError: (e) =>
-          setErrors(threadFieldErrors(e) ?? { form: errorMessage(e, "Your changes weren't saved. Try again.") }),
+          setErrors(threadFieldErrors(e) ?? { form: errorMessage(e, 'Your changes weren’t saved. Try again.') }),
       },
     );
   };

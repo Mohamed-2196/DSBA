@@ -228,7 +228,7 @@ function Composer() {
           }
           // Anything else (too many threads in an hour, the server down): the API's words, and the draft is kept.
           push({
-            title: "Your thread wasn't posted",
+            title: 'Your thread wasn’t posted',
             body: errorMessage(e, 'Try again in a moment. Your draft is saved.'),
             tone: 'alert',
           });
