@@ -91,6 +91,7 @@ function tag(patch: Partial<PaperQuestion>): PaperQuestion {
     },
     chapterId: 'c1',
     chapterTitle: 'Elasticity',
+    topics: [],
     section: null,
     question: 3,
     page: null,

@@ -1,5 +1,5 @@
-// Practise a chapter (/modules/<module>/practise/<chapter>): the chapter's tagged past questions one at a time, the
-// newest sitting first, each opening its paper at the question's page. Done, Stuck or Skip saves a mark to the account
+// Practise a chapter (/modules/<module>/practise/<chapter>), or one of its study-guide topics (?topic=<id>; chips
+// switch it): the chapter's tagged past questions one at a time, the newest sitting first, each opening its paper at the question's page. Done, Stuck or Skip saves a mark to the account
 // and moves on to the next question without one; Stuck offers the worked answer in the report and the forum.
 import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
@@ -8,7 +8,7 @@ import type { PaperQuestion } from '../../api/types';
 import { useAuth } from '../../auth';
 import { paperLabel } from '../../lib/exams';
 import { appUrl } from '../../lib/share';
-import { useDocumentTitle, useToast } from '../../state';
+import { useDocumentTitle, useQueryParam, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Button,
@@ -27,6 +27,7 @@ import {
 import { useQuestionThreads, useStartsThreads } from '../forum/public';
 import { askAboutPaper, useNooraAiReady } from '../noora/public';
 import { MarkBadge } from './components/MarkBadge';
+import { TopicChips } from './components/TopicChips';
 import { ThreadCount, WorkedAnswerLink } from './components/QuestionExtras';
 import { askAboutHref, moduleTag } from './display';
 import { answerHref, questionHref, questionName, questionNumber, useModuleQuestions } from './papers';
@@ -48,6 +49,8 @@ import {
   type Progress,
 } from './practice';
 import { threadCounts, threadKey } from './questionThreads';
+import { hasTopics, inTopic, questionAbout, topicGroups, topicParam, topicTitle } from './topics';
+import { useChapterTopics } from './useChapterTopics';
 import './PractisePage.css';
 
 function Bar({ progress }: { progress: Progress }) {
@@ -83,10 +86,21 @@ export default function PractisePage() {
   const noora = useNooraAiReady();
   const [filter, setFilter] = useState<PractiseFilter>('all');
   const [current, setCurrent] = useState<string | null>(null);
+  const [rawTopic, setTopicParam] = useQueryParam('topic');
+  const guide = useChapterTopics(moduleId, chapterId);
 
-  const list = questions.data ? practiseList(questions.data, chapterId) : [];
-  const chapterTitle = list[0]?.chapterTitle ?? 'Chapter';
-  useDocumentTitle(`Practise: ${chapterTitle}`);
+  const chapterList = questions.data ? practiseList(questions.data, chapterId) : [];
+  const groups = hasTopics(chapterList) ? topicGroups(chapterList, guide) : [];
+  const topic = topicParam(rawTopic);
+  const topicName = topicTitle(topic, groups, guide);
+  const list = topicName ? inTopic(chapterList, topic) : chapterList;
+  const chapterTitle = chapterList[0]?.chapterTitle ?? 'Chapter';
+  const title = topicName ? `${chapterTitle} › ${topicName}` : chapterTitle;
+  useDocumentTitle(`Practise: ${title}`);
+  const pickTopic = (next: string | null) => {
+    setTopicParam(next, { replace: true });
+    setCurrent(null);
+  };
   const byKey = marksByKey(marks.data);
   const progress = progressOf(list, byKey);
   const shown = filtered(list, byKey, filter);
@@ -126,7 +140,7 @@ export default function PractisePage() {
   const header = (
     <PageHeader
       section="modules"
-      title={`Practise: ${chapterTitle}`}
+      title={`Practise: ${title}`}
       description={
         list.length
           ? `${code ? `${code} · ` : ''}${list.length} past ${list.length === 1 ? 'question' : 'questions'}, the newest sitting first.`
@@ -165,12 +179,21 @@ export default function PractisePage() {
     return (
       <Page width="narrow" className="lib-prac" data-section="modules">
         {header}
-        <EmptyState
-          mate="binder"
-          title="No past questions on this chapter yet"
-          body="Tag a question on a past paper and it shows up here to practise."
-          action={<Button to={`/modules/${encodeURIComponent(moduleId)}?tab=files`}>Open the past papers</Button>}
-        />
+        {topicName && chapterList.length ? (
+          <EmptyState
+            mate="binder"
+            title="No past questions on this topic yet"
+            body="Practise the whole chapter, or tag a question with this topic on a past paper."
+            action={<Button onClick={() => pickTopic(null)}>Practise the whole chapter</Button>}
+          />
+        ) : (
+          <EmptyState
+            mate="binder"
+            title="No past questions on this chapter yet"
+            body="Tag a question on a past paper and it shows up here to practise."
+            action={<Button to={`/modules/${encodeURIComponent(moduleId)}?tab=files`}>Open the past papers</Button>}
+          />
+        )}
       </Page>
     );
   }
@@ -189,6 +212,17 @@ export default function PractisePage() {
   return (
     <Page width="narrow" className="lib-prac" data-section="modules" data-hub="practise-page">
       {header}
+
+      {groups.length > 1 ? (
+        <TopicChips
+          groups={groups}
+          total={chapterList.length}
+          value={topicName ? topic : null}
+          onChange={pickTopic}
+          label="Practise a topic"
+          className="lib-prac__topics"
+        />
+      ) : null}
 
       <section className="lib-prac__progress" aria-label="Your progress">
         <div className="lib-prac__progress-line">
@@ -221,7 +255,7 @@ export default function PractisePage() {
           body={
             filter === 'stuck'
               ? 'Questions you mark Stuck wait here, with their worked answers.'
-              : 'You’ve done every past question on this chapter. Go over them again, or practise another chapter.'
+              : `You’ve done every past question on this ${topicName ? 'topic' : 'chapter'}. Go over them again, or practise another ${topicName ? 'topic' : 'chapter'}.`
           }
           action={
             <Button
@@ -250,6 +284,11 @@ export default function PractisePage() {
                 {q.page ? <span className="lib-prac__page"> p. {q.page}</span> : null}
               </h2>
               <p className="lib-prac__paper">{paperLabel(q.paper)}</p>
+              {q.topics.length ? (
+                <p className="lib-prac__about" data-hub="practise-about">
+                  {questionAbout(q)}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="lib-prac__open">

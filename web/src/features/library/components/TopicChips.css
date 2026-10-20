@@ -1,0 +1,28 @@
+/* A chapter's topics as chips: they wrap where there is room, and scroll sideways in one row on phones. */
+.lib-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+  min-width: 0;
+  padding-block: 3px; /* room for the focus ring inside the scroller */
+  margin-block: -3px;
+}
+.lib-topics .ui-chip {
+  max-width: 100%;
+}
+.lib-topics .ui-chip > span:not(.ui-chip__count) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 699px) {
+  .lib-topics {
+    flex-wrap: nowrap;
+    scroll-snap-type: x proximity;
+  }
+  .lib-topics .ui-chip {
+    flex: none;
+    max-width: 80vw;
+    scroll-snap-align: start;
+  }
+}

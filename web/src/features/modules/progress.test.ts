@@ -20,6 +20,7 @@ const video = (id: string): Video => ({ id, kind: 'youtube', videoId: `yt${id}`,
 const chapter = (title: string, n: number): Chapter => ({
   id: title.toLowerCase(),
   title,
+  topics: [],
   videos: Array.from({ length: n }, (_, i) => video(`${title.toLowerCase()}${i}`)),
 });
 // 2 chapters: 2 videos, then 1.

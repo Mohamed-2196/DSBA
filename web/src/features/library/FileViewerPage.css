@@ -799,6 +799,49 @@ button.lib-qtags__q {
   grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
   gap: var(--sp-12);
 }
+/* The chapter's study-guide topics, picked as chips (up to three). */
+.lib-qtags__topics {
+  display: grid;
+  gap: var(--sp-6);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.lib-qtags__topics-h {
+  padding: 0;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.lib-qtags__topics-hint {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+}
+.lib-qtags__topics-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+  min-width: 0;
+}
+.lib-qtags__topics-list .ui-chip {
+  max-width: 100%;
+  height: auto;
+  min-height: 36px;
+  padding-block: 6px;
+  white-space: normal;
+  text-align: left;
+}
+.lib-qtags__topics-list .ui-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (pointer: coarse) {
+  .lib-qtags__topics-list .ui-chip {
+    min-height: 44px;
+  }
+}
 
 @media (pointer: coarse) {
   .lib-meta__sitting-link,

@@ -11,7 +11,7 @@ A job, in order:
 4. waits for next month while the hub's monthly budget for Claude (Manage → Numbers, shared with Mini Noora's answers)
    can't take this request's worst case;
 5. asks Claude (question_tagging.build_request(): the paper's pages and the chapters with their study-guide outlines;
-   structured output: each question's section, number, page, first words and chapters), counts what it cost in
+   structured output: each question's section, number, page, first words, chapters and topics), counts what it cost in
    noora_usage (a row without a person or questions: the budget sees it, Noora's numbers don't), and saves the tags
    with question_tagging.replace_tags(): Claude's earlier tags of the paper that the new ones don't repeat go, a
    student's never, and a tag a moderator removed stays removed.

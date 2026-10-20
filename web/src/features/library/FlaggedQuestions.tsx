@@ -7,6 +7,7 @@ import { useToast } from '../../state';
 import { Button, glyph, Icon, Panel } from '../../ui';
 import { useLibraryAccess } from './access';
 import { questionHref, questionLabel, useFlaggedQuestions, useKeepQuestion, useRemoveQuestion } from './papers';
+import { questionAbout } from './topics';
 import './FlaggedQuestions.css';
 
 export function FlaggedQuestions() {
@@ -32,7 +33,7 @@ export function FlaggedQuestions() {
                 <Link to={questionHref(t)}>
                   {t.paper.title}, {questionLabel(t)}
                 </Link>{' '}
-                tagged <strong>{t.chapterTitle}</strong>. Flagged by {t.flagCount ?? 0}.
+                tagged <strong>{questionAbout(t)}</strong>. Flagged by {t.flagCount ?? 0}.
               </p>
               <span className="lib-flagged__acts">
                 <Button

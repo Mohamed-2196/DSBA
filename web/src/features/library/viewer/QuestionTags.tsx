@@ -1,19 +1,21 @@
-// The paper page's "Questions by topic": tag a question with one of the module's chapters, see the tags, flag a
-// wrong one, remove your own (people who manage the library remove any).
+// The paper page's "Questions by topic": tag a question with one of the module's chapters and up to three of its
+// study-guide topics, see the tags ("Chapter › Topic, Topic"), flag a wrong one, remove your own (people who manage
+// the library remove any).
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState, type FormEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
-import type { LibraryItem, PaperQuestion } from '../../../api/types';
+import type { LibraryItem, PaperQuestion, StudyTopic } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
 import { Link, useLocation } from 'react-router-dom';
 import { appUrl } from '../../../lib/share';
 import { useModules } from '../../../state/modules';
-import { Button, Icon, IconButton, Modal, Select, Skeleton, TextField, cx, glyph } from '../../../ui';
+import { Button, Chip, Icon, IconButton, Modal, Select, Skeleton, TextField, cx, glyph } from '../../../ui';
 import { PaperThreads, useQuestionThreads, useStartsThreads } from '../../forum/public';
 import { WorkedAnswerLink } from '../components/QuestionExtras';
 import { askAboutHref, examTitle, moduleTag } from '../display';
 import { threadCounts, threadKey } from '../questionThreads';
+import { questionAbout } from '../topics';
 import { moduleDetailQuery } from '../../modules/public';
 import {
   questionAnchor,
@@ -27,6 +29,8 @@ import {
   useTagQuestion,
 } from '../papers';
 
+/** A tag's study-guide topics at most (the API's TOPICS_MAX). */
+const TOPICS_MAX = 3;
 const QUESTIONS = Array.from({ length: 20 }, (_, i) => i + 1);
 /** Sections a paper numbers from 1 each (Section A: 1 to 4, Section B: 1 to 3). */
 const SECTIONS = ['A', 'B', 'C', 'D'] as const;
@@ -84,7 +88,7 @@ function TagRow({
       ) : (
         <span className="lib-qtags__q">{questionLabel(tag)}</span>
       )}
-      <span className="lib-qtags__chapter">{tag.chapterTitle}</span>
+      <span className="lib-qtags__chapter">{questionAbout(tag)}</span>
       {tag.flagCount ? <span className="lib-qtags__flags">Flagged by {tag.flagCount}</span> : null}
       <span className="lib-qtags__acts">
         {!tag.isMine && me?.status !== 'suspended' ? (
@@ -145,7 +149,7 @@ function TagRow({
   );
 }
 
-/** Dialog to tag a question number, page, and chapter in one place. */
+/** Dialog to tag a question number, page, chapter and the chapter's topics in one place. */
 export function TagQuestionDialog({
   open,
   onClose,
@@ -155,7 +159,7 @@ export function TagQuestionDialog({
   open: boolean;
   onClose: () => void;
   item: LibraryItem;
-  chapters: Array<{ id: string; title: string }>;
+  chapters: Array<{ id: string; title: string; topics: StudyTopic[] }>;
 }) {
   const { push } = useToast();
   const tag = useTagQuestion(item.id);
@@ -163,15 +167,21 @@ export function TagQuestionDialog({
   const [question, setQuestion] = useState('');
   const [chapter, setChapter] = useState('');
   const [page, setPage] = useState('');
+  const [topics, setTopics] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const chapterTopics = chapters.find((c) => c.id === chapter)?.topics ?? [];
 
   const reset = () => {
     setSection('');
     setQuestion('');
     setChapter('');
     setPage('');
+    setTopics([]);
     setError(null);
   };
+
+  const toggleTopic = (id: string, on: boolean) =>
+    setTopics((now) => (on ? [...now, id].slice(0, TOPICS_MAX) : now.filter((t) => t !== id)));
 
   const handleClose = () => {
     reset();
@@ -186,10 +196,16 @@ export function TagQuestionDialog({
       return;
     }
     tag.mutate(
-      { section: section || null, question: Number(question), chapterId: chapter, page: page ? Number(page) : null },
+      {
+        section: section || null,
+        question: Number(question),
+        chapterId: chapter,
+        page: page ? Number(page) : null,
+        topicIds: topics,
+      },
       {
         onSuccess: (t) => {
-          push({ title: `Tagged ${questionLabel(t)}: ${t.chapterTitle}`, tone: 'success' });
+          push({ title: `Tagged ${questionLabel(t)}: ${questionAbout(t)}`, tone: 'success' });
           handleClose();
         },
         onError: (err) => setError(isApiError(err) && err.code === 'already_tagged' ? err.message : errorMessage(err)),
@@ -252,7 +268,15 @@ export function TagQuestionDialog({
             hint="Optional"
           />
         </div>
-        <Select label="Chapter" value={chapter} onChange={(e) => setChapter(e.target.value)} error={error ?? undefined}>
+        <Select
+          label="Chapter"
+          value={chapter}
+          onChange={(e) => {
+            setChapter(e.target.value);
+            setTopics([]);
+          }}
+          error={error ?? undefined}
+        >
           <option value="">Pick a chapter</option>
           {chapters.map((c, i) => (
             <option key={c.id} value={c.id}>
@@ -260,6 +284,28 @@ export function TagQuestionDialog({
             </option>
           ))}
         </Select>
+        {chapterTopics.length ? (
+          <fieldset className="lib-qtags__topics" data-hub="tag-question-topics">
+            <legend className="lib-qtags__topics-h">Topics</legend>
+            <p className="lib-qtags__topics-hint">Optional. Pick up to {TOPICS_MAX} from the study guide.</p>
+            <div className="lib-qtags__topics-list">
+              {chapterTopics.map((t) => {
+                const on = topics.includes(t.id);
+                return (
+                  <Chip
+                    key={t.id}
+                    size="sm"
+                    selected={on}
+                    disabled={!on && topics.length >= TOPICS_MAX}
+                    onChange={(next) => toggleTopic(t.id, next)}
+                  >
+                    {t.title}
+                  </Chip>
+                );
+              })}
+            </div>
+          </fieldset>
+        ) : null}
       </form>
     </Modal>
   );

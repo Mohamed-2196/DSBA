@@ -26,6 +26,7 @@ describe('lessonName', () => {
   const chapter: Chapter = {
     id: 'c1',
     title: 'Point estimation',
+    topics: [],
     videos: [
       { id: 'a', kind: 'youtube', videoId: 'x', title: 'The method of moments', unavailable: false, topics: [] },
       { id: 'b', kind: 'youtube', videoId: 'y', unavailable: false, topics: [] },

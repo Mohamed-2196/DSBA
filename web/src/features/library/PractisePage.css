@@ -85,6 +85,14 @@
   font-size: var(--fs-15);
   overflow-wrap: anywhere;
 }
+/* "Chapter › Topic, Topic": what the question tests. */
+.lib-prac__about {
+  margin: var(--sp-4) 0 0;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
 .lib-prac__open {
   display: flex;
   flex-wrap: wrap;
