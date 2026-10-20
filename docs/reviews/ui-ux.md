@@ -28,22 +28,32 @@ cell, a pill list), or they are a colour that is legible but wrong (dark mode).
 
 ### Ranked by how visible they are
 
-| # | Where | Size | Theme | Severity |
-|---|---|---|---|---|
-| UX-92 | Forum list, sidebar and thread: one long word breaks the layout | all | both | major |
-| UX-93 | Past-paper sittings: file names spill into the next column or off the screen | 360, 768, 844 | both | major |
-| UX-94 | Compact toasts wrap ("Saved" with the dot on its own line): `p { text-wrap }` beats `nowrap` | phones | both | minor |
-| UX-95 | Dark mode: the selected segment is nearly invisible | all | dark | minor |
-| UX-96 | Daily tiles: the Sudoku blurb shows a line after its ellipsis | phones | both | minor |
-| UX-97 | Dark mode: The Word's "not in the word" tile is the brightest tile | all | dark | minor |
-| UX-98 | Modules band at 768: the year switch floats mid-band and crowds the text | 768 | both | minor |
-| UX-99 | Newsletter issue on phones: a long section is a pill wider than the screen | phones | both | nit |
-| UX-100 | Home hero (guest, no year): "Pick your year" is out of line with the date | 1440 | both | nit |
-| UX-101 | Tab strips and tool rows cut the last item mid-word with no fade | 360, 768 | both | nit |
+| # | Where | Size | Theme | Severity | Status |
+|---|---|---|---|---|---|
+| UX-92 | Forum list, sidebar and thread: one long word breaks the layout | all | both | major | Fixed |
+| UX-93 | Past-paper sittings: file names spill into the next column or off the screen | 360, 768, 844 | both | major | Fixed |
+| UX-94 | Compact toasts wrap ("Saved" with the dot on its own line): `p { text-wrap }` beats `nowrap` | phones | both | minor | Fixed |
+| UX-95 | Dark mode: the selected segment is nearly invisible | all | dark | minor | Fixed |
+| UX-96 | Daily tiles: the Sudoku blurb shows a line after its ellipsis | phones | both | minor | Fixed |
+| UX-97 | Dark mode: The Word's "not in the word" tile is the brightest tile | all | dark | minor | Fixed |
+| UX-98 | Modules band at 768: the year switch floats mid-band and crowds the text | 768 | both | minor | Fixed |
+| UX-99 | Newsletter issue on phones: a long section is a pill wider than the screen | phones | both | nit | Fixed |
+| UX-100 | Home hero (guest, no year): "Pick your year" is out of line with the date | 1440 | both | nit | Fixed |
+| UX-101 | Tab strips and tool rows cut the last item mid-word with no fade | 360, 768 | both | nit | Fixed |
 
 ### New findings
 
 #### UX-92 Forum: one long word breaks the list, the sidebar and the thread page (major)
+
+**Fixed** (`round16/uxfix16`). Headings and paragraphs break a long word anywhere (`styles/base.css`), and the body
+breaks any word longer than its line; user-text spans and links that sit in flex or grid rows (`.forum-waiting__link`,
+module, calendar, Home, footer, newsletter shelf and Career names) get `overflow-wrap: anywhere; min-width: 0`;
+`.forum-waiting` and its items are `minmax(0, 1fr)` columns, and a tooltip anchor is never wider than its column.
+`web/scripts/layout-check.mjs` now loads 18 pages at 360, 768 and 1440 in both themes with every title, name and
+summary swapped for a 200-character word, a 200-character URL, a long Arabic title and a long sentence, and fails on
+sideways scroll or text wider than its box: it found 176 problems before this branch and none after. After:
+`screens/ux16-forum-long-title-1440-fixed.png`, `ux16-forum-long-title-360-fixed.png`,
+`ux16-forum-waiting-1440-fixed.png`, `ux16-thread-title-1440-fixed.png`.
 
 **Where:** `/forum` (All and Yours), `/forum/:slug`. Every size, both themes.
 
@@ -70,6 +80,11 @@ or an e2e fixture so the responsive check sees it.
 
 #### UX-93 Past-paper sittings: names spill into the next column or off the screen (major)
 
+**Fixed** (`round16/uxfix16`). `.pp-link` wraps between words inside its column (`max-width: 100%`), and its name
+keeps the zone and a trailing number together with no-break spaces (`keepTogether` in `features/library/papers.ts`),
+so "Zone A report 2" wraps as "Zone A / report 2". After: `screens/ux16-sittings-overlap-768-fixed.png`,
+`ux16-sittings-cut-390-dark-fixed.png`; no sideways scroll at 360, 390, 768 or 844×390.
+
 **Where:** a module's Files tab and the library's sittings view (`/modules/business?tab=files`,
 `/library?module=…&type=past-paper`), Home's Exam week sittings. 360, 768 and 844×390; both themes.
 
@@ -87,6 +102,10 @@ name with a non-breaking space, or give the cell `min-width: 0; overflow: hidden
 in the accessible name. Check May 2024 in MN1178, which has three reports.
 
 #### UX-94 Compact toasts wrap: the global `p { text-wrap: pretty }` overrides `nowrap` (minor)
+
+**Fixed** (`round16/uxfix16`). Every `text-wrap: pretty | balance` in the app is now `text-wrap-style`, which leaves
+the wrap mode inherited, so `nowrap` containers stay on one line; the compact toast's title doesn't shrink. After:
+`screens/ux16-toast-saved-360-fixed.png`.
 
 **Where:** the "Saved · Your note saves as you write." toast on a note's first save; any compact toast. Phones; both
 themes.
@@ -106,6 +125,10 @@ and leave the wrap mode inherited. The second fixes every such case at once.
 
 #### UX-95 Dark mode: the selected segment is nearly invisible (minor)
 
+**Fixed** (`round16/uxfix16`). Dark `--thumb-bg` is `#34497f` (7.6:1 under the label) with a 1px `#6a84bd` ring
+(3.7:1 on the `--surface-2` track) as `--thumb-shadow`; the switch knob uses `--surface`, so it keeps its contrast.
+After: `screens/ux16-seg-thumb-dark-fixed.png`.
+
 **Where:** every `SegmentedControl` and pill tab without a colour: library Filters sheet (Covers | List), a thread's
 Top | Oldest, forum Hot | New | Top, notebook Text | Pages, calendar List | Month, Daily's tabs. Dark, all sizes.
 
@@ -118,6 +141,9 @@ track (`screens/ux16-seg-thumb-dark.png`, right: List is selected). Year segment
 `--line-strong` ring on `.ui-seg__thumb` in dark.
 
 #### UX-96 Daily tiles: the Sudoku blurb shows a line after its ellipsis (minor)
+
+**Fixed** (`round16/uxfix16`). The clamp also has `max-height: calc(2 * 1.35em)`. After:
+`screens/ux16-daily-clamp-360-fixed.png` (Sudoku is two lines, as tall as Nearest Neighbour).
 
 **Where:** `/daily`, Today, at 360 and 390; both themes.
 
@@ -133,6 +159,9 @@ longest tagline.
 
 #### UX-97 Dark mode: The Word's "not in the word" tile is the brightest tile (minor)
 
+**Fixed** (`round16/uxfix16`). In dark, `--dy-miss` is `--key-spent` with `--ink-2` letters (8.9:1), like the
+spent keys, so it sits below the empty tiles. After: `screens/ux16-word-miss-dark-fixed.png`.
+
 **Where:** The Word, "How to play" and the board. Dark, all sizes.
 
 **What a student runs into.** In SLOPE, the P that "isn't in the word" is a pale blue-grey tile with dark text: the
@@ -145,6 +174,9 @@ lightest thing in the row, so it reads as highlighted rather than ruled out (`sc
 `--dy-on-miss` kept at 4.5:1.
 
 #### UX-98 Modules band at 768: the year switch floats mid-band and crowds the text (minor)
+
+**Fixed** (`round16/uxfix16`). From 700 to 959 px wide (and taller than 500 px), a band's actions sit under its words,
+inside the band, beside the deskmate (`ui/Page.css`). After: `screens/ux16-modules-band-768-fixed.png`.
 
 **Where:** `/modules` at 768×1024 (and 820 wide); both themes.
 
@@ -159,6 +191,9 @@ widths, between the text and the deskmate.
 
 #### UX-99 Newsletter issue on phones: a long section is a pill wider than the screen (nit)
 
+**Fixed** (`round16/uxfix16`). Pills are at most `min(80vw, 18rem)` with an ellipsis on the label (the button
+keeps the whole title), and the strip has the shared fading edge. After: `screens/ux16-newsletter-toc-360-fixed.png`.
+
 **Where:** `/newsletter/:slug`, "In this issue", at 360 and 390.
 
 **What a student runs into.** A section titled "What changed in the assessment regulations this year and why it
@@ -172,6 +207,9 @@ pill wrap to two lines.
 
 #### UX-100 Home hero (guest, no year yet): "Pick your year" is out of line (nit)
 
+**Fixed** (`round16/uxfix16`). Ghost buttons in `.home-head__meta` take back their inline padding with a negative
+start margin, so "Pick your year" lines up with the date. After: `screens/ux16-home-pick-year-1440-fixed.png`.
+
 **Where:** Home as a guest who hasn't picked a year, 1440×900; both themes.
 
 **What a student runs into.** The meta row wraps: "Pick your year" lands on the second line, indented by the ghost
@@ -184,6 +222,11 @@ when they start a line.
 row of their own.
 
 #### UX-101 Tab strips and tool rows cut the last item mid-word with no fade (nit)
+
+**Fixed** (`round16/uxfix16`). The fade now follows `useScrollFade`'s attributes on any element, not only
+`.u-scroll-row`, and the notebook toolbar's rows, the calendar's type chips, Home's shelf and the newsletter contents
+use the hook (module and forum tabs already did, through `Tabs`). History and zoom are one group at the toolbar's end,
+so at 768 they wrap together. After: `screens/ux16-notebook-tools-768-fixed.png`, `ux16-notebook-tools-360-fixed.png`.
 
 **Where:** module tabs at 360 ("Disc…"), forum cohort tabs ("Year 3" cut), the notebook's pages tools at 360 (the
 lasso is half off), the calendar's type chips. At 768 the notebook toolbar leaves the zoom control alone on its own line.
