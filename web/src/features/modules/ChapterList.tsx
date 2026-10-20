@@ -1,23 +1,13 @@
 // Chapter list beside the player: chapters with per-chapter progress, expanding to their videos.
 // Each video is a link to the lesson's address (/modules/<id>/lessons/<lesson id>), so lessons can be opened in a new
 // tab.
-import {
-  ArrowCounterClockwise,
-  CaretDown,
-  Check,
-  CheckCircle,
-  DotsThree,
-  EyeSlash,
-  ListChecks,
-  Play,
-  Warning,
-} from '@phosphor-icons/react';
+import { CheckCircle, Play } from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Chapter, ModuleDetail, Video } from '../../api/types';
 import { videoThumbnailUrl } from '../../lib/modules';
 import { cohortColor } from '../../state';
-import { IconButton, Menu, ProgressRing, cx } from '../../ui';
+import { Icon, IconButton, Menu, ProgressRing, cx, glyph } from '../../ui';
 import { KIND_ICON, chapterLessons, lessonHref } from './lessons';
 import { computeChapterProgress, computeModuleProgress, type ProgressState } from './progress';
 import { useThumbnail } from './thumbs';
@@ -147,14 +137,14 @@ export function ChapterList({
         <Menu
           align="end"
           label="Lesson options"
-          trigger={<IconButton label="Lesson options" icon={DotsThree} size="sm" />}
+          trigger={<IconButton label="Lesson options" icon={<Icon glyph={glyph.more} />} size="sm" />}
           items={
             tracking
               ? [
                   {
                     id: 'reset',
                     label: 'Clear my progress in this module',
-                    icon: ArrowCounterClockwise,
+                    icon: <Icon glyph={glyph.undo} />,
                     danger: true,
                     onSelect: onReset,
                     disabled: p.watched === 0 && !state.last[m.id],
@@ -162,7 +152,7 @@ export function ChapterList({
                   {
                     id: 'tracking',
                     label: 'Stop tracking my progress',
-                    icon: EyeSlash,
+                    icon: <Icon glyph={glyph.eyeOff} />,
                     onSelect: () => onTracking(false),
                   },
                 ]
@@ -170,7 +160,7 @@ export function ChapterList({
                   {
                     id: 'tracking',
                     label: 'Track my lesson progress',
-                    icon: ListChecks,
+                    icon: <Icon glyph={glyph.success} />,
                     onSelect: () => onTracking(true),
                   },
                 ]
@@ -206,7 +196,7 @@ export function ChapterList({
                     showValue={false}
                   >
                     {done ? (
-                      <Check weight="bold" className="mod-ch__check" />
+                      <Icon glyph={glyph.check} className="mod-ch__check" />
                     ) : (
                       <span className="mod-ch__num u-tabular">{ci + 1}</span>
                     )}
@@ -221,7 +211,7 @@ export function ChapterList({
                     {cp.watched ? `${cp.watched} of ${cp.total} watched` : chapterContents(ch)}
                   </span>
                 </span>
-                <CaretDown className="mod-ch__caret" aria-hidden="true" weight="bold" />
+                <Icon glyph={glyph.chevronDown} className="mod-ch__caret" />
               </button>
 
               {isOpen ? (
@@ -257,7 +247,7 @@ export function ChapterList({
                               {current ? <span className="mod-vid__now">{nowLabel}</span> : null}
                               {info.by ? (
                                 <span className={cx('mod-vid__who', info.byKind === 'unavailable' && 'is-note')}>
-                                  {info.byKind === 'unavailable' ? <Warning aria-hidden="true" /> : null}
+                                  {info.byKind === 'unavailable' ? <Icon glyph={glyph.warning} /> : null}
                                   {info.by}
                                 </span>
                               ) : null}
