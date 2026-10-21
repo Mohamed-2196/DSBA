@@ -212,6 +212,12 @@ account device icons).
 
 ### Follow-up, 2026-10-21
 
+Release `a22066f2` is pushed and both GitHub CI jobs are green. Deployment is blocked by Railway's current
+[platform incident](https://status.railway.com/incident/QH8L8B3E): new builds are paused in every region. The dev
+site remains healthy on `72532d7b`; the password and cover changes are not live yet. After Railway resumes builds,
+deploy the latest `feature/backend` commit and run `scripts/check-deploy.sh` against both services before marking
+this release deployed. The owner-account role assignment below is already saved in the dev database.
+
 - Passwords need eight characters throughout sign-up, changes and resets; the form hints, generated API contract
   and tests agree. Eight- and nine-character passwords work; seven is refused. API checks: 2,114 passed, one skipped.
 - Real first-page covers now appear in Home's grouped New files rows and Carry on (including timed papers), module
