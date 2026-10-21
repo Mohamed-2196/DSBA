@@ -210,6 +210,22 @@ account device icons).
   descriptive statistics and sampling (guide chapter 1), chi-squared and two-proportion tests; EC2020 binary
   response (probit/logit/LPM), maximum likelihood, panel data; EC1002 exchange economies.
 
+### Follow-up, 2026-10-21
+
+- Passwords need eight characters throughout sign-up, changes and resets; the form hints, generated API contract
+  and tests agree. Eight- and nine-character passwords work; seven is refused. API checks: 2,114 passed, one skipped.
+- Real first-page covers now appear in Home's grouped New files rows and Carry on (including timed papers), module
+  library notes, sitting links, the file-viewer heading and practice previews. Missing/broken images and the styled
+  cover preference keep their fallback. Web checks: 1,305 passed; browser checks covered light/dark Home across
+  nine sizes, plus module, viewer and practice screens.
+- The requested owner account has Admin and Student on Railway dev, created through the development bootstrap
+  and audited role CLI. It has neither a password nor a Google link yet; Google can sign in to it once configured.
+  The maintenance database proxy was removed after the role was verified.
+- Google sign-in is implemented but off: both `DSBA_GOOGLE_CLIENT_ID` and `DSBA_GOOGLE_CLIENT_SECRET` are absent
+  locally and on Railway's API service. `DSBA_WEB_BASE_URL` already matches the dev site. The OAuth Web client must
+  register `https://web-dev-254f.up.railway.app/api/v1/auth/google/callback`. DEPLOYMENT section 14 now follows
+  Google's basic-scope Testing exception and separate branding requirements.
+
 ## Operating notes
 
 - **Railway dev region (2026-10-20):** Postgres, api and web run in `southeast-asia` (moved from Amsterdam with
