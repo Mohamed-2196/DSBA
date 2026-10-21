@@ -280,7 +280,7 @@
           "auth"
         ],
         "summary": "Sign Up",
-        "description": "A new account with an email address and a password (10 characters or more, not a common one); this browser is\nsigned in to it (with a CSRF cookie bound to the new session: read it again before the next request). The address\nisn't checked by email.\n\nErrors: invalid_email, weak_password (422), email_taken (409), rate_limited (429: new accounts from this\nnetwork).",
+        "description": "A new account with an email address and a password (8 characters or more, not a common one); this browser is\nsigned in to it (with a CSRF cookie bound to the new session: read it again before the next request). The address\nisn't checked by email.\n\nErrors: invalid_email, weak_password (422), email_taken (409), rate_limited (429: new accounts from this\nnetwork).",
         "operationId": "sign_up_api_v1_auth_sign_up_post",
         "requestBody": {
           "content": {

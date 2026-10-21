@@ -38,7 +38,7 @@ setup(
     await dialog.getByLabel('Email address').fill(run.sara.email);
     await dialog.getByLabel('Password', { exact: true }).fill('short');
     await dialog.getByRole('button', { name: 'Create account' }).click();
-    await expect(dialog).toContainText('Use at least 10 characters.');
+    await expect(dialog).toContainText('Use at least 8 characters.');
     await dialog.getByLabel('Password', { exact: true }).fill('password123');
     await dialog.getByRole('button', { name: 'Create account' }).click();
     await expect(dialog).toContainText('This is one of the most common passwords.');

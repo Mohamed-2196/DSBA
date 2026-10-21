@@ -294,7 +294,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
                 if (formError) setFormError(null);
               }}
               error={passwordError}
-              hint={step === 'sign-up' ? 'At least 10 characters. A few words together are easy to remember.' : null}
+              hint={step === 'sign-up' ? 'At least 8 characters. A few words together are easy to remember.' : null}
               autoComplete={step === 'sign-up' ? 'new-password' : 'current-password'}
             />
             {alert}

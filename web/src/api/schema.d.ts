@@ -77,7 +77,7 @@ export interface paths {
         put?: never;
         /**
          * Sign Up
-         * @description A new account with an email address and a password (10 characters or more, not a common one); this browser is
+         * @description A new account with an email address and a password (8 characters or more, not a common one); this browser is
          *     signed in to it (with a CSRF cookie bound to the new session: read it again before the next request). The address
          *     isn't checked by email.
          *

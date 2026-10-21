@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
                 if (error) setError(null);
               }}
               error={error}
-              hint="At least 10 characters. A few words together are easy to remember."
+              hint="At least 8 characters. A few words together are easy to remember."
               autoComplete="new-password"
               data-autofocus
             />

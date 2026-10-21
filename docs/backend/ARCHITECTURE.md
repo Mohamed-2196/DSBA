@@ -365,7 +365,7 @@ every feature added since arrives off (`python -m app.cli enable-features` turns
 ## Security baseline (builders apply it from the start; the security reviewer checks it)
 
 - Passwords (`services/passwords.py`): argon2id (argon2-cffi's RFC 9106 low-memory defaults), NFKC first; at least
-  10 characters, not one of the 1,000 most common (`services/common_passwords.txt`), not the address, more than two
+  8 characters, not one of the 1,000 most common (`services/common_passwords.txt`), not the address, more than two
   different characters. Sign-in answers the same `invalid_credentials` for an unknown address, an account without a
   password and a wrong password, after the same work (a stand-in hash). Limits (decision D4): wrong passwords per
   address and network (an IPv4 address or an IPv6 /64) lock that pair for the hour; per address from everywhere they

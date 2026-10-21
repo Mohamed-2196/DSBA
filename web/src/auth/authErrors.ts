@@ -72,7 +72,7 @@ export function checkEmail(raw: string): string | null {
 }
 
 /** The API's minimum, checked before sending so the person sees it at once. */
-export const PASSWORD_MIN = 10;
+export const PASSWORD_MIN = 8;
 
 export function checkNewPassword(raw: string): string | null {
   if (!raw) return 'Choose a password.';

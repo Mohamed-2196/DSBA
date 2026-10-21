@@ -563,9 +563,11 @@ that should own it):
 2. Open **Google Auth Platform** (APIs & Services → OAuth consent screen). On **Branding**: app name `DSBA Hub`, a
    user support email, the developer contact email, and once there is a production domain, its home page and
    privacy policy, and the domain under **Authorized domains**.
-3. On **Audience**: user type **External**. While it is in **Testing**, only the Google accounts listed under
-   **Test users** can sign in: add your own and any testers. Choose **Publish app** before students use it; the two
-   scopes below are not sensitive, so no Google review is needed.
+3. On **Audience**: user type **External**. This flow requests only `openid` and `email`, so Google's exception for
+   basic sign-in scopes allows sign-in without adding each person as a Test user while in **Testing**; see
+   [Google's audience rules](https://support.google.com/cloud/answer/15549945?hl=en). These scopes need no
+   sensitive-scope review. Showing a custom app name or logo has separate
+   [branding verification requirements](https://support.google.com/cloud/answer/15549049?hl=en).
 4. On **Data Access**: add the scopes `openid` and `.../auth/userinfo.email`. The hub asks for nothing else.
 5. On **Clients**: **Create client**, application type **Web application**, a name such as `DSBA Hub (dev)`. Under
    **Authorized redirect URIs** add, exactly (no trailing slash):
@@ -590,6 +592,7 @@ that should own it):
 8. Check: `GET /api/v1/auth/session` answers `"googleSignIn": true`, and the sign-in dialog shows Continue with
    Google. Sign in once with the address in `DSBA_ADMIN_IDENTIFIERS` to become the first admin.
 
-If Google refuses `web-dev-254f.up.railway.app` (Railway's shared domains can't always be authorized domains), keep
-that client in Testing, where Google is less strict about redirect domains, or give the dev site a domain of your
-own. A secret that leaked: reset it on the client's page (**Reset secret**), put the new one in place, restart.
+The redirect URI must pass Google's [client configuration rules](https://support.google.com/cloud/answer/15549257?hl=en).
+If the console refuses the Railway callback domain, give the dev site a domain you control and update both the
+registered callback and `DSBA_WEB_BASE_URL`. A secret that leaked: reset it on the client's page (**Reset secret**),
+put the new one in place, restart.

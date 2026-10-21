@@ -13,8 +13,8 @@ function apiError(
 
 describe('authErrorMessage', () => {
   it('prefers the server’s own sentence', () => {
-    expect(authErrorMessage(apiError('weak_password', 'Use at least 10 characters.'))).toBe(
-      'Use at least 10 characters.',
+    expect(authErrorMessage(apiError('weak_password', 'Use at least 8 characters.'))).toBe(
+      'Use at least 8 characters.',
     );
   });
   it('falls back on a sentence of its own', () => {
@@ -45,8 +45,10 @@ describe('checks before sending', () => {
     expect(checkEmail('nobody')).toMatch(/doesn’t look right/);
     expect(checkEmail(' sara@example.com ')).toBeNull();
   });
-  it('asks for 10 characters or more', () => {
-    expect(checkNewPassword('short')).toMatch(/at least 10/);
+  it('asks for 8 characters or more', () => {
+    expect(checkNewPassword('seven82')).toMatch(/at least 8/);
+    expect(checkNewPassword('newday82')).toBeNull();
+    expect(checkNewPassword('newday823')).toBeNull();
     expect(checkNewPassword('long enough now')).toBeNull();
   });
   it('writes waits for people', () => {

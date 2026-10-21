@@ -22,7 +22,7 @@ from tests.accounts.conftest import API, PASSWORD, Deliver, Outbox, sign_in_with
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
 Older = Callable[..., None]
-NEW_PASSWORD = "a brand new passphrase"
+NEW_PASSWORD = "newday82"
 
 
 def _code(r: Any) -> str:
@@ -44,7 +44,9 @@ def test_the_common_list_is_bundled() -> None:
     assert {"password", "123456", "qwerty", "1234567890"} <= common
 
 
-@pytest.mark.parametrize("good", [PASSWORD, "Manama-Bahrain-2026", "ünïcödé passphrase", "x" * 9 + "yz"])
+@pytest.mark.parametrize(
+    "good", [PASSWORD, "newday82", "newday823", "Manama-Bahrain-2026", "ünïcödé passphrase", "x" * 9 + "yz"]
+)
 def test_good_passwords_pass(good: str) -> None:
     passwords.check_new(good, "someone@example.com")
 

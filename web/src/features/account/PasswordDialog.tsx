@@ -113,7 +113,7 @@ export function PasswordDialog({ me, open, onClose }: { me: Me; open: boolean; o
             if (nextError) setNextError(null);
           }}
           error={nextError}
-          hint="At least 10 characters. A few words together are easy to remember."
+          hint="At least 8 characters. A few words together are easy to remember."
           autoComplete="new-password"
           data-autofocus={changing ? undefined : true}
         />

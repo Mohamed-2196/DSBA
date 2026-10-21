@@ -46,7 +46,7 @@ def session_state(user: OptionalUser) -> SessionState:
 
 @router.post("/auth/sign-up", response_model=SignInResult, status_code=status.HTTP_201_CREATED)
 def sign_up(body: SignUpRequest, request: Request, response: Response, sess: CurrentSession, db: DB) -> SignInResult:
-    """A new account with an email address and a password (10 characters or more, not a common one); this browser is
+    """A new account with an email address and a password (8 characters or more, not a common one); this browser is
     signed in to it (with a CSRF cookie bound to the new session: read it again before the next request). The address
     isn't checked by email.
 

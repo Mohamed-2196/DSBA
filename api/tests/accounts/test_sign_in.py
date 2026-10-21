@@ -68,6 +68,14 @@ def test_sign_up_creates_an_account_and_signs_in(client_for: ClientFor, db: Sess
     assert PASSWORD not in user.password_hash
 
 
+@pytest.mark.parametrize("password", ["newday82", "newday823"])
+def test_sign_up_accepts_eight_and_nine_character_passwords(client_for: ClientFor, password: str) -> None:
+    c = client_for()
+    r = sign_up(c, "minimum@example.com", password)
+    assert r.status_code == 201, r.text
+    assert sign_in_with(client_for(), "minimum@example.com", password).status_code == 200
+
+
 def test_sign_up_with_a_taken_address(client_for: ClientFor, make_user: Callable[..., User]) -> None:
     make_user(email="taken@example.com")
     r = sign_up(client_for(), "Taken@Example.com")
@@ -78,7 +86,7 @@ def test_sign_up_with_a_taken_address(client_for: ClientFor, make_user: Callable
 @pytest.mark.parametrize(
     ("password", "says"),
     [
-        ("short1", "at least 10"),
+        ("seven82", "at least 8"),
         ("password123", "most common"),
         ("1234567890", "most common"),
         ("QWERTYUIOP", "most common"),  # any case

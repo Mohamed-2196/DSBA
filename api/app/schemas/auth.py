@@ -21,7 +21,7 @@ from app.schemas.seniors import SeniorTopic
 from app.schemas.suggestions import SuggestionStatus
 
 Email = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
-PASSWORD_MIN, PASSWORD_MAX = 10, 256
+PASSWORD_MIN, PASSWORD_MAX = 8, 256
 # A password as sent. Its rules (PASSWORD_MIN characters or more, not one of the most common passwords, not the email
 # address) are checked by services/passwords.py, so a weak one answers 422 weak_password with a sentence saying why.
 Password = Annotated[str, StringConstraints(min_length=1, max_length=PASSWORD_MAX)]
