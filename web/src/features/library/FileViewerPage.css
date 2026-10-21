@@ -71,9 +71,6 @@
   gap: var(--sp-8) var(--sp-12);
   min-width: 0;
 }
-.lib-viewer__doc {
-  --doc-w: 32px;
-}
 .lib-viewer__title {
   margin: 0;
   min-width: 0;

@@ -1,18 +1,18 @@
 // The past papers table: one row per sitting with each zone's paper (the student's zone first and filled), the
-// examiners' report, the solutions and Time me, each file drawn as a small document. Where the table is under 540 px
+// examiners' report, the solutions and Time me, each file showing its first page. Where the table is under 540 px
 // wide (a phone, a card on the module's Overview) a row is the sitting, then its files on one wrapping line. PaperSittings shows every sitting; the module Overview the
 // latest few.
 import { Link } from 'react-router-dom';
 import type { Sitting, SittingZone } from '../../../api/types';
 import { sittingLabel } from '../../../lib/exams';
-import { Badge, DocThumb, Icon, cx, glyph } from '../../../ui';
+import { Badge, Icon, cx, glyph } from '../../../ui';
 import { PaperDone } from '../../board/public';
 import { usePapers } from '../../papers/public';
 import { itemPath, timeMeHref } from '../api';
 import { isNew } from '../display';
-import { docTone } from '../kinds';
 import { keepTogether, sittingRow, type SittingLink } from '../papers';
 import type { LinkState } from './FileCard';
+import { CoverThumb } from './CoverThumb';
 import './PaperSittings.css';
 
 function FileLink({
@@ -43,7 +43,7 @@ function FileLink({
       title={link.item.title}
       data-hub={worked ? 'worked-answers' : undefined}
     >
-      <DocThumb tone={docTone(link.item)} size="sm" />
+      <CoverThumb item={link.item} size="sm" />
       <span>
         <span className="visually-hidden">{when} </span>
         {keepTogether(link.label)}

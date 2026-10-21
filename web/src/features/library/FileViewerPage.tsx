@@ -12,7 +12,6 @@ import { useModules } from '../../state/modules';
 import {
   Badge,
   Button,
-  DocThumb,
   EmptyState,
   Icon,
   IconButton,
@@ -34,11 +33,12 @@ import { useRecordVisit } from '../carryon/public';
 import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, libraryKeys, openLinkHref, useLibraryItem } from './api';
 import { DeleteItemDialog, EditItemDialog } from './components/EditItemDialog';
+import { CoverThumb } from './components/CoverThumb';
 import type { LinkState } from './components/FileCard';
 import { ReviewActions } from './components/ReviewActions';
 import { StarButton } from './components/StarButton';
 import { examTitle, isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
-import { KIND_BY_ID, docTone, formatOf } from './kinds';
+import { KIND_BY_ID, formatOf } from './kinds';
 import type { PaperQuestion } from '../../api/types';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
@@ -398,7 +398,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           </ol>
         </nav>
         <div className="lib-viewer__titlerow">
-          <DocThumb tone={docTone(item)} size="lg" className="lib-viewer__doc" />
+          <CoverThumb item={item} size="md" />
           <h1 className="lib-viewer__title" title={name === item.title ? undefined : item.title}>
             {name}
           </h1>

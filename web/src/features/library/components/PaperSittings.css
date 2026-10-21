@@ -119,7 +119,7 @@
   font-size: var(--fs-13);
 }
 
-/* A file in the row: its drawn document and a short name. The student's own zone's paper sits on accent-soft. A long
+/* A file in the row: its first page and a short name. The student's own zone's paper sits on accent-soft. A long
    name wraps between words inside its column (the zone and the last word each stay in one piece). */
 .pp-link {
   display: inline-flex;

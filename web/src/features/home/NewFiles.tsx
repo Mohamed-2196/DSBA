@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, DocThumb, EmptyState, Icon, Panel, QueryError, glyph } from '../../ui';
+import { Button, EmptyState, Icon, Panel, QueryError, glyph } from '../../ui';
 import { LibraryCover, libraryItemPath, libraryItemTitle, libraryKindLabel, useRecentFiles } from '../library/public';
 import { modulesFor, usePapers } from '../papers/public';
 import { HomeList, HomeListLoading, type HomeListRow } from './HomeList';
@@ -25,7 +25,7 @@ export function NewFiles({ year, n = 5 }: { year: CohortYear; n?: number }) {
         const code = codeOf(r.moduleId) ?? 'a module';
         return {
           id: r.id,
-          icon: <DocThumb tone="guide" size="md" />,
+          icon: <LibraryCover item={r.item} size="md" />,
           title: `${r.count} files added to ${code}`,
           to: `/library?module=${encodeURIComponent(r.moduleId)}`,
           code: null,

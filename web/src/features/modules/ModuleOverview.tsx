@@ -8,7 +8,7 @@
 // instead (or, with neither, a one-line Your notes block).
 import { useId, useMemo, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import type { ModuleDetail } from '../../api/types';
+import type { LibraryItem, ModuleDetail } from '../../api/types';
 import { useAuth } from '../../auth';
 import { daysUntil, formatDay, todayKey } from '../../lib/dates';
 import { cohortColor } from '../../state';
@@ -31,6 +31,7 @@ import { resitFor, usePapers } from '../papers/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
 import { useModuleAnsweredThreads, useModuleLatestThreads, useStartsThreads } from '../forum/public';
 import {
+  LibraryCover,
   SittingsTable,
   libraryItemPath,
   practisePath,
@@ -459,6 +460,7 @@ interface NoteRow {
   title: string;
   meta: string;
   at: string;
+  file: LibraryItem | null;
 }
 
 function NewestNotes({
@@ -499,6 +501,7 @@ function NewestNotes({
       title: n.title || 'Untitled note',
       meta: `${sharedByLine(n)}, ${timeAgo(n.sharedAt)}`,
       at: n.sharedAt,
+      file: null,
     })),
     ...(library ? (files.data ?? []) : []).map((n) => {
       const who = sharedBy(n);
@@ -509,6 +512,7 @@ function NewestNotes({
         title: n.title,
         meta: who ? `Shared by ${who}, ${when}` : `Shared ${when}`,
         at: n.publishedAt ?? n.createdAt,
+        file: n,
       };
     }),
   ]
@@ -537,7 +541,7 @@ function NewestNotes({
         {rows.map((n) => (
           <li key={n.key}>
             <Link to={n.to} className="mod-line mod-line--doc">
-              <DocThumb tone="note" size="md" />
+              {n.file ? <LibraryCover item={n.file} size="md" /> : <DocThumb tone="note" size="md" />}
               <span className="mod-line__text">
                 <span className="mod-line__title" dir="auto">
                   {n.title}

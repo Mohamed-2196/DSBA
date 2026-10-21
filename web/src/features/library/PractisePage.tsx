@@ -12,7 +12,6 @@ import { useDocumentTitle, useQueryParam, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Button,
-  DocThumb,
   EmptyState,
   Icon,
   Page,
@@ -27,6 +26,7 @@ import {
 import { useQuestionThreads, useStartsThreads } from '../forum/public';
 import { askAboutPaper, useNooraAiReady } from '../noora/public';
 import { MarkBadge } from './components/MarkBadge';
+import { CoverThumb } from './components/CoverThumb';
 import { TopicChips } from './components/TopicChips';
 import { ThreadCount, WorkedAnswerLink } from './components/QuestionExtras';
 import { askAboutHref, moduleTag } from './display';
@@ -277,7 +277,7 @@ export default function PractisePage() {
             {mark ? <MarkBadge mark={mark} /> : null}
           </div>
           <div className="lib-prac__q">
-            <DocThumb tone="paper" size="lg" />
+            <CoverThumb item={{ ...q.paper, kind: 'past-paper', source: 'file' }} size="lg" />
             <div className="lib-prac__qtext">
               <h2 id="lib-prac-q" className="lib-prac__name u-tabular">
                 {questionName(q)}

@@ -7,6 +7,10 @@
   width: var(--cthumb-w);
   height: var(--cthumb-h);
 }
+.lib-cthumb--sm {
+  --cthumb-w: 20px;
+  --cthumb-h: 25px;
+}
 .lib-cthumb--md {
   --cthumb-w: 32px;
   --cthumb-h: 40px;

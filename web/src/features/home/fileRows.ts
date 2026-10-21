@@ -5,7 +5,7 @@ import type { LibraryItem } from '../../api/types';
 
 export type NewFileRow =
   | { kind: 'file'; id: string; item: LibraryItem; at: string }
-  | { kind: 'batch'; id: string; moduleId: string; count: number; at: string };
+  | { kind: 'batch'; id: string; moduleId: string; count: number; at: string; item: LibraryItem };
 
 /** Three or more files on one module and day are a batch. */
 export const BATCH_MIN = 3;
@@ -33,7 +33,14 @@ export function newFileRows(items: readonly LibraryItem[], mine: ReadonlySet<str
     if (key && f.moduleId && group.length >= BATCH_MIN) {
       if (done.has(key)) continue;
       done.add(key);
-      rows.push({ kind: 'batch', id: `b${key}`, moduleId: f.moduleId, count: group.length, at: when(f) });
+      rows.push({
+        kind: 'batch',
+        id: `b${key}`,
+        moduleId: f.moduleId,
+        count: group.length,
+        at: when(f),
+        item: group.find((i) => i.coverUrl) ?? f,
+      });
     } else rows.push({ kind: 'file', id: `f${f.id}`, item: f, at: when(f) });
     if (rows.length >= n) break;
   }

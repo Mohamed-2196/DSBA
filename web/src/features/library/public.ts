@@ -8,6 +8,7 @@
 //   <FlaggedQuestions />                question tags flagged as wrong, to keep or remove (Manage's Uploads section)
 //   <PaperTagging />                    Claude's tagging of new past papers, to run again (admins; Manage's Uploads)
 //   <LibraryCover item size />          a file's first page in a list (its drawn document while it has none)
+//   <LibraryCoverById id kind? />       the current first page of a recently opened file, through the item cache
 //   libraryItemPath(item)               '/library/<slug>', the item's page
 //   libraryTimeMeHref(item)             the paper's page with Time me started
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …
@@ -45,7 +46,7 @@ export { useRecentFiles } from './api';
 export { questionNumber, useModuleQuestions, usePaperSittings } from './papers';
 export { practisePath, progressLabel, useModulePractice } from './practice';
 export { SittingsTable } from './components/SittingsTable';
-export { CoverThumb as LibraryCover } from './components/CoverThumb';
+export { CoverThumb as LibraryCover, ItemCoverThumb as LibraryCoverById } from './components/CoverThumb';
 export { itemPath as libraryItemPath, timeMeHref as libraryTimeMeHref } from './api';
 export { examTitle as libraryItemTitle, isNew as isNewLibraryItem } from './display';
 export {

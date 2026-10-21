@@ -4,15 +4,13 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { cx, DocThumb, Icon, Panel, glyph, timeAgo } from '../../ui';
-import { ClockText, timedPaperPath } from '../library/public';
+import { ClockText, LibraryCoverById, timedPaperPath } from '../library/public';
 import type { CarryOnRow, VisitKind } from './recent';
 import { useCarryOn } from './useCarryOn';
 import './CarryOn.css';
 
-/** Papers, files and notes are drawn documents; a lesson is a play button. */
-const ICON: Record<VisitKind, ReactNode> = {
-  paper: <DocThumb tone="paper" size="md" />,
-  file: <DocThumb tone="guide" size="md" />,
+/** Notes are drawn documents; a lesson is a play button. Files use their first page. */
+const ICON: Record<'note' | 'lesson', ReactNode> = {
   note: <DocThumb tone="note" size="md" />,
   lesson: <Icon glyph={glyph.play} size={24} />,
 };
@@ -24,7 +22,11 @@ function Row({ row }: { row: CarryOnRow }) {
     <li className="carry__item">
       <Link to={visit.path} className="carry__row">
         <span className="carry__icon" aria-hidden="true">
-          {ICON[visit.kind]}
+          {visit.kind === 'paper' || visit.kind === 'file' ? (
+            <LibraryCoverById id={visit.id} kind={visit.kind === 'paper' ? 'past-paper' : 'other'} />
+          ) : (
+            ICON[visit.kind]
+          )}
         </span>
         <span className="carry__text">
           <span className="carry__title">{visit.title}</span>
@@ -63,7 +65,7 @@ export function CarryOn({
           <li className="carry__item carry__item--timed">
             <Link to={timedPaperPath(timed.paper)} className="carry__row">
               <span className="carry__icon" aria-hidden="true">
-                <DocThumb tone="paper" size="md" />
+                <LibraryCoverById id={timed.paper.id} kind="past-paper" />
               </span>
               <span className="carry__text">
                 <span className="carry__title">{timed.paper.title}</span>

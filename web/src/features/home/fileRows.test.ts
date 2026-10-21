@@ -29,6 +29,16 @@ describe('newFileRows', () => {
     expect(rows[1]).toMatchObject({ kind: 'batch', moduleId: 'st2133', count: 4 });
   });
 
+  it('keeps a real cover for a batch, even when its newest file has none', () => {
+    const files = [item({ coverUrl: null }), item({ coverUrl: '/covers/notes.webp' }), item({ coverUrl: null })];
+    expect(newFileRows(files, null, 6)[0]).toMatchObject({ kind: 'batch', item: files[1] });
+  });
+
+  it('keeps a fallback file for a batch without covers', () => {
+    const files = [item({ coverUrl: null }), item({ coverUrl: null }), item({ coverUrl: null })];
+    expect(newFileRows(files, null, 6)[0]).toMatchObject({ kind: 'batch', item: files[0] });
+  });
+
   it('leaves out links and other modules, and stops at n', () => {
     const rows = newFileRows(
       [

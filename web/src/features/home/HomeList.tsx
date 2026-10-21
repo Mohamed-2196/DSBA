@@ -6,7 +6,7 @@ import { Panel, Skeleton, timeAgo } from '../../ui';
 
 export interface HomeListRow {
   id: string;
-  /** a DocThumb or a brand Icon: decoration beside the title */
+  /** a file's first-page cover or a brand Icon: decoration beside the title */
   icon: ReactNode;
   title: string;
   to: string;
