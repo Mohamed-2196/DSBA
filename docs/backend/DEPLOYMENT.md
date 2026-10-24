@@ -524,6 +524,13 @@ environment, each from its Dockerfile, with the settings kept in Railway; produc
 app's bundle (`scripts/check-deploy.sh`). The dev site runs outside production mode, with made-up accounts only
 (Mohamed's call, security review SEC-43).
 
+**After a Railway bucket credential reset.** Redeploy every service that uses the bucket: variable references
+resolve when its container starts, so a running API keeps the old credentials until restarted. Railway's
+[October 22 reset notice](https://blog.railway.com/p/security-disclosure-recommendation-redeploy-buckets-and-reconnect-github-after-the-credential-reset)
+explains the resulting `SignatureDoesNotMatch` and `InvalidAccessKeyId` errors. Keep the bucket variable references;
+do not reset keys again or recreate the bucket. After deploying, require `storage: ok` in the deployment check
+and open an actual file and cover, keeping signed URLs and credentials out of logs.
+
 ## 13. Monitoring and limits
 
 Nothing in the hub calls you when something breaks, so set these up before students arrive (SEC-57):

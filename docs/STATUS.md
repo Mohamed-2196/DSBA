@@ -1,7 +1,7 @@
 # Status
 
 This is the handoff between sessions: where the work stands, what's next and what Mohamed still has to decide.
-Update it whenever you finish or start something. Last updated 2026-10-21, after round 17 (Mohamed's dev review).
+Update it whenever you finish or start something. Last updated 2026-10-24, after Railway recovery.
 
 ## Where things stand
 
@@ -212,11 +212,9 @@ account device icons).
 
 ### Follow-up, 2026-10-21
 
-Release `a22066f2` is pushed and both GitHub CI jobs are green. Deployment is blocked by Railway's current
-[platform incident](https://status.railway.com/incident/QH8L8B3E): new builds are paused in every region. The dev
-site remains healthy on `72532d7b`; the password and cover changes are not live yet. After Railway resumes builds,
-deploy the latest `feature/backend` commit and run `scripts/check-deploy.sh` against both services before marking
-this release deployed. The owner-account role assignment below is already saved in the dev database.
+The password and cover release passed both GitHub CI jobs. Railway's
+[platform incident](https://status.railway.com/incident/QH8L8B3E) paused new builds, leaving the dev site on
+`72532d7b` until the October 24 recovery below. The owner-account role assignment below is saved in the dev database.
 
 - Passwords need eight characters throughout sign-up, changes and resets; the form hints, generated API contract
   and tests agree. Eight- and nine-character passwords work; seven is refused. API checks: 2,114 passed, one skipped.
@@ -231,6 +229,19 @@ this release deployed. The owner-account role assignment below is already saved 
   locally and on Railway's API service. `DSBA_WEB_BASE_URL` already matches the dev site. The OAuth Web client must
   register `https://web-dev-254f.up.railway.app/api/v1/auth/google/callback`. DEPLOYMENT section 14 now follows
   Google's basic-scope Testing exception and separate branding requirements.
+
+### Railway recovery, 2026-10-24
+
+- Railway's October 22 bucket credential reset left the running API with old credentials. Fresh file links and
+  covers returned `SignatureDoesNotMatch`. Redeploying the API loaded its existing bucket variable references
+  again and restored access; no objects or keys needed replacing in the app.
+- Both services deployed `4a1a38c5`, making the eight-character passwords and cover changes live. The deployment
+  check passed for both commit versions, database, storage and web bundles. Three actual library PDFs returned
+  PDF bytes (206 range responses), and all three corresponding covers returned WebP images (200).
+- Mohamed requested no Noora API key for now. `DSBA_ANTHROPIC_API_KEY` was removed from the dev API service;
+  Noora's script mode and the rest of the app work without it. Google credentials remain absent.
+- The deployment check now fails when storage is unhealthy, so broken file access cannot pass the health check
+  as a warning. Recovery instructions are in DEPLOYMENT section 12.
 
 ## Operating notes
 
@@ -288,7 +299,8 @@ this release deployed. The owner-account role assignment below is already saved 
 
 ## Waiting on Mohamed
 
-- **Anthropic key:** on Railway dev since 2026-10-21; not in the local `.env` yet.
+- **Anthropic key:** intentionally absent on Railway dev (Mohamed, 2026-10-24); Noora stays in script mode until
+  he asks to enable AI again.
 - **Google sign-in:** an OAuth client in Google Cloud Console and `DSBA_GOOGLE_CLIENT_ID`/`_SECRET` on Railway dev
   (DEPLOYMENT.md section 14). Until then dev signs in with email and password.
 - **Chapters for the outline gaps** listed in round 17, and ST2195 2022 PrelimExam comm (a commentary filed as a

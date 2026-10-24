@@ -7,7 +7,7 @@
 #
 # - The API names its commit in GET /api/v1/health ("commit": RAILWAY_GIT_COMMIT_SHA or DSBA_COMMIT_SHA).
 # - The web app names its build in index.html (<meta name="app-version">, from the same variable when it is built).
-# - Healthy: /api/v1/health answers 200 with "database": "ok". Storage that isn't ok is a warning, not a failure.
+# - Healthy: /api/v1/health answers 200 with "database": "ok" and "storage": "ok".
 # - The bundle: the entry script and stylesheet that index.html names answer 200 with their types and some size.
 #
 # DEPLOY_TIMEOUT (seconds, default 600) and DEPLOY_POLL (seconds, default 15) set the wait. Needs curl and jq. On
@@ -22,7 +22,6 @@ want="$(tr '[:upper:]' '[:lower:]' <<<"$want")"
 timeout="${DEPLOY_TIMEOUT:-600}"
 poll="${DEPLOY_POLL:-15}"
 problems=()
-warnings=()
 
 command -v jq >/dev/null || { echo "scripts/check-deploy.sh needs jq (and curl)" >&2; exit 2; }
 if [[ ! "$want" =~ ^[0-9a-f]{7,40}$ ]]; then
@@ -35,10 +34,6 @@ summary() { [[ -n "${GITHUB_STEP_SUMMARY:-}" ]] && printf '%s\n' "$@" >>"$GITHUB
 problem() {
   problems+=("$1")
   if [[ -n "${GITHUB_ACTIONS:-}" ]]; then say "::error::$1"; else say "FAILED: $1"; fi
-}
-warning() {
-  warnings+=("$1")
-  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then say "::warning::$1"; else say "WARNING: $1"; fi
 }
 
 # get <path>: the body of a GET (empty when the request fails); the status code goes to $status.
@@ -92,7 +87,7 @@ else
   storage="$(jq -r '.storage // "missing"' <<<"$body" 2>/dev/null)"
   say "health: $body"
   [[ "$database" == ok ]] || problem "The API can't reach its database (database: ${database:-unreadable})."
-  [[ "$storage" == ok ]] || warning "The API can't reach its file storage (storage: ${storage:-unreadable}): uploads and downloads fail."
+  [[ "$storage" == ok ]] || problem "The API can't reach its file storage (storage: ${storage:-unreadable}): uploads and downloads fail."
 fi
 
 # The web app's bundle: index.html, and the entry script and stylesheet it names.
@@ -118,9 +113,8 @@ else
 fi
 
 if ((${#problems[@]})); then
-  summary "### $base does not run ${want:0:7}" "" "${problems[@]/#/- }" "${warnings[@]/#/- Warning: }"
+  summary "### $base does not run ${want:0:7}" "" "${problems[@]/#/- }"
   exit 1
 fi
-summary "### $base runs ${want:0:7}" "" "The API and the web app run it, its database answers and its bundle is served." \
-  "${warnings[@]/#/- Warning: }"
+summary "### $base runs ${want:0:7}" "" "The API and the web app run it, its database and storage answer and its bundle is served."
 say "OK: $base runs $want."
