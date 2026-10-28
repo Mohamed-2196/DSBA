@@ -252,6 +252,11 @@ The password and cover release passed both GitHub CI jobs. Railway's
 - **After merging a branch with migrations,** run `docker compose exec api alembic upgrade head` locally: the API
   container reloads code on change but does not migrate, and pages 500 until it does.
 
+- **Hidden on Railway dev (2026-10-28, Mohamed: "temporarily"):** every BigBlueButton recording (`lessons.kind =
+  'bbb'`) of ST2133 and ST2134, 47 lessons (20 and 27), set `hidden = true`. ST2134 now shows no lessons. The seed
+  never reloads modules, so they stay hidden across deploys. To bring them back, on the dev API shell:
+  `UPDATE lessons SET hidden = false WHERE kind = 'bbb' AND module_id IN ('advanced-stats-distribution',
+  'advanced-stats-inferential')` (no other bbb lesson in those modules was hidden before).
 - **New features arrive switched off.** Turn them on in Manage → Access.
 - **The Docker stack** runs from the main checkout (compose project `dsba-hub`). `scripts/e2e.sh` switches it to
   e2e mode and `--restore` switches it back. Nobody runs `docker compose down`: the API's pytest uses its Postgres.
