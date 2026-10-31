@@ -546,6 +546,69 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       ]
     },
     {
+      name: 'Programming for Data Science',
+      description: 'Learn programming languages and tools essential for data science applications',
+      code: 'programming_data_science',
+      year: 2,
+      chapters: [
+        { title: 'R for Data Science (full course)', videoIds: ["_V8eKsto3Ug"] },
+        { title: 'Python for Data Science (full course)', videoIds: ["wUSDVGivd-8"] },
+        { title: 'Git (full course)', videoIds: ["8JJ101D3knE"] },
+        { title: 'SQL (full course)', videoIds: ["7mz73uXD9DA"] },
+        { title: 'Block 1: Intro to Data Science, R, Python & Git', videoIds: [
+          "K418swtFnik",
+          "DNS7i2m4sB0",
+        ] },
+        { title: 'Block 2: Data Types, Structures & File Formats (R & Python)', videoIds: [
+          "k0zLwDAQ6Uw",
+          "lLRBYKwP8GQ",
+          "vmEHCJofslg",
+          "q5uM4VKywbA",
+        ] },
+        { title: 'Block 3: SQL and Databases (SQLite, R, Python)', videoIds: [
+          "h0nxCDiD-zg",
+          "m1KcNV-Zhmc",
+          "ZfliyOawJFk",
+          "pd-0G0MigUA",
+        ] },
+        { title: 'Block 4: Programming Concepts in R (Control Flow & Functions)', videoIds: [
+          "66AkNi2C5tw",
+          "9lP0uSRnih0",
+          "Xza0pUVHRS4",
+        ] },
+        { title: 'Block 5: Variables, Mutability, Aliasing & OOP (Python)', videoIds: [
+          "RvRKT-jXvko",
+          "5qQQ3yzbKp8",
+          "JeznW_7DlB0",
+        ] },
+        { title: 'Block 6: Data Wrangling (R & Python)', videoIds: [
+          "oXImkptBpqc",
+          "sV5lwAJ7vnQ",
+          "bDhvCp3_lYw",
+        ] },
+        { title: 'Block 7-8: Data Visualisation & Web/APIs', videoIds: [
+          "HPJn1CMvtmI",
+          "oVQBwHQXXhc",
+          "v3w24XfD5m8",
+          "XqIfWkVI3UA",
+        ] },
+        { title: 'Block 9: Machine Learning Frameworks', videoIds: [
+          "IpGxLWOIZy4",
+          "BR9h47Jtqyw",
+          "fSytzGwwBVw",
+          "gJo0uNL-5Qw",
+          "SIEaLBXr0rk",
+          "oXLxQVyvEa8",
+        ] },
+        { title: 'Block 10: Software Development & R Packages', videoIds: [
+          "Fi3_BjVzpqk",
+          "8eVXTyIZ1Hs",
+          "79s3z0gIuFU",
+          "DWkIbk_HE9o",
+        ] },
+      ]
+    },
+    {
       name: 'Business Analytics',
       description: 'Apply analytical methods to solve complex business problems and drive decision-making',
       code: 'business_analytics',
