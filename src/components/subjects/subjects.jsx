@@ -527,8 +527,10 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'advanced_stats_distribution',
       year: 2,
       chapters: [
-        { title: 'Probability Space', videoIds: ["swa1VRYms3Q","lsHr3Y9-PCA","V3pnr5gmJC8","DqGUwoz4d4M","ptVgsHPAZ-4","nPK62LCNVcQ","3lmEqp8VhAU","XJnIdRXUi7A","N_QU1BiW6sI"] },
-        { title: 'Random variables and univariate distributions', videoIds: ["mlelI1LA9o4","GDJFLfmyb20","Uks98M-dxqM","bT1p5tJwn_0","qIzC1-9PwQo","L2KMttDm3aY","zq9Oz82iHf0","jmqZG6roVqU","BPlmjp2ymxw","J3KSjZFVbis","gIsoceE4vhg","juF3r12nM5A","TwvXhX3bJJM"] },
+        { title: 'Probability Space', videoIds: ['PegyQkhbh0c','swa1VRYms3Q','lsHr3Y9-PCA','DqGUwoz4d4M','ptVgsHPAZ-4','nPK62LCNVcQ','V3pnr5gmJC8','3lmEqp8VhAU','XJnIdRXUi7A','N_QU1BiW6sI','MPRKc4UPoJk','L_pEeYLGaP0','8odFouBR2wE','kz2tvO_ZAKI','HZGCoVF3YvM','UbQcqFH33G0','aJXfyfQs2Mc'] },
+        { title: 'Random variables and univariate distributions', videoIds: ['vfqPpai_9jI','4QeL1ma_XJ0','Uks98M-dxqM','bT1p5tJwn_0','qIzC1-9PwQo','zq9Oz82iHf0','BPlmjp2ymxw','L2KMttDm3aY','jmqZG6roVqU','J3KSjZFVbis','6UMv4vb4y7c','gIsoceE4vhg','juF3r12nM5A','TwvXhX3bJJM','ISaVvSO_3Sg','vjYanZ1nsZg','mlelI1LA9o4','GDJFLfmyb20','N8O6zd6vTZ8','vp7_Tfrej00','PaI-oaOBHKU','XwrnUw6g1dA','l_YZ096WH74','ZKqzA81Nz2Y'] },
+        { title: 'Multivariate distributions', videoIds: ['J70dP_AECzQ','IujCYxtpszU','eO2-m8Gqzjk','5rF19EitOss','yXwPUAIvFyg','sktbYva958A','IaSGqQa5O-M','MF-XSJOsGqw','2xHeg6n89tU'] },
+        { title: 'Conditional distributions', videoIds: ['Kj6iEzXsFkI','2LR5JYbhyjg','PgawcWisb0I','gjBvCiRt8QA','mHonq7Gjjqg','OPfmUh06xsI','xdewLsXI_UQ','SgM16HNeC3o','I1Exxswt7d4'] },
       ]
     },
     {
@@ -537,69 +539,10 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'advanced_stats_inferential',
       year: 2,
       chapters: [
-      ]
-    },
-    {
-      name: 'Programming for Data Science',
-      description: 'Learn programming languages and tools essential for data science applications',
-      code: 'programming_data_science',
-      year: 2,
-      chapters: [
-        { title: 'R for Data Science (full course)', videoIds: ["_V8eKsto3Ug"] },
-        { title: 'Python for Data Science (full course)', videoIds: ["wUSDVGivd-8"] },
-        { title: 'Git (full course)', videoIds: ["8JJ101D3knE"] },
-        { title: 'SQL (full course)', videoIds: ["7mz73uXD9DA"] },
-        { title: 'Block 1: Intro to Data Science, R, Python & Git', videoIds: [
-          "K418swtFnik",
-          "DNS7i2m4sB0",
-        ] },
-        { title: 'Block 2: Data Types, Structures & File Formats (R & Python)', videoIds: [
-          "k0zLwDAQ6Uw",
-          "lLRBYKwP8GQ",
-          "vmEHCJofslg",
-          "q5uM4VKywbA",
-        ] },
-        { title: 'Block 3: SQL and Databases (SQLite, R, Python)', videoIds: [
-          "h0nxCDiD-zg",
-          "m1KcNV-Zhmc",
-          "ZfliyOawJFk",
-          "pd-0G0MigUA",
-        ] },
-        { title: 'Block 4: Programming Concepts in R (Control Flow & Functions)', videoIds: [
-          "66AkNi2C5tw",
-          "9lP0uSRnih0",
-          "Xza0pUVHRS4",
-        ] },
-        { title: 'Block 5: Variables, Mutability, Aliasing & OOP (Python)', videoIds: [
-          "RvRKT-jXvko",
-          "5qQQ3yzbKp8",
-          "JeznW_7DlB0",
-        ] },
-        { title: 'Block 6: Data Wrangling (R & Python)', videoIds: [
-          "oXImkptBpqc",
-          "sV5lwAJ7vnQ",
-          "bDhvCp3_lYw",
-        ] },
-        { title: 'Block 7-8: Data Visualisation & Web/APIs', videoIds: [
-          "HPJn1CMvtmI",
-          "oVQBwHQXXhc",
-          "v3w24XfD5m8",
-          "XqIfWkVI3UA",
-        ] },
-        { title: 'Block 9: Machine Learning Frameworks', videoIds: [
-          "IpGxLWOIZy4",
-          "BR9h47Jtqyw",
-          "fSytzGwwBVw",
-          "gJo0uNL-5Qw",
-          "SIEaLBXr0rk",
-          "oXLxQVyvEa8",
-        ] },
-        { title: 'Block 10: Software Development & R Packages', videoIds: [
-          "Fi3_BjVzpqk",
-          "8eVXTyIZ1Hs",
-          "79s3z0gIuFU",
-          "DWkIbk_HE9o",
-        ] },
+        { title: 'Fundamentals of statistical inference', videoIds: ['5j4E2FRR384','J-TTqCgRzbM','IsgteDaNTFk','ScduwntrMzc','pneluWj-U-o','3r5Hb3OINQc'] },
+        { title: 'Point Estimation', videoIds: ['YJRHmv6OpWQ','lET4uQLpmM0','QEdmE-aO4_M','D1hgiAla3KI','V4Rm4UQHij0','cHRdyed4-yc','OL8kf-gKcqI','T_tjvTI70lo','RZ511cB-BB8','cd-1fYpAzSg','7kLHJ-F33GI','45lb8Xwm1E4'] },
+        { title: 'Confidence Intervals', videoIds: ['EJe3jiZNwUU','p8SgfPHd5dk','-iYDu8flFXQ','bFefxSE5bmo','q-cHZyOs5DQ','DyLWP5Zx934','cxUWQCwxQgk'] },
+        { title: 'Hypothesis Testing', videoIds: ['aepZRBL1Abg','7mE-K_w1v90','UsU-O2Z1rAs','Ksk0Z0VwzrQ','zFBfs01zTnM','GnIk8NPQmYc','uNh4N3IToV4','SC10j5YZ2es','ToSSaZuWXtw','yzO80fa0_Y4'] },
       ]
     },
     {
@@ -718,42 +661,131 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       description: 'Study supervised and unsupervised learning methods, and how models are trained and evaluated',
       code: 'machine_learning',
       year: 3,
-      chapters: []
+      chapters: [
+        { title: 'Full course: Stanford Statistical Learning (ISLR)', videoIds: ['PLoROMvodv4rOzrYsAxzQyHb8n_RWNuS1e'] },
+        { title: 'Topic 1: Introduction to Machine Learning Concepts', videoIds: ['ox0cKk7h4o0','pvcEQfcO3pk','EuBBz3bI-aA','zUJbRO0Wavo','fSytzGwwBVw','AMfvd_hLssE','jgoa28FR__Y','jzKSAeJpC6s'] },
+        { title: 'Topic 2A: Frequentist Inference (Likelihood, MLE, CIs, Tests)', videoIds: ['YevSE6bRhTo','Dn6b9fCIUpM','lET4uQLpmM0','QVF0oOh7s8c','27iSnzss2wM','tTeMYuS87oU','vemZtEM63GY'] },
+        { title: 'Topic 2B: Linear Regression and Inference for Regression', videoIds: ['vCHtY6Me5FI','3GiWpRfkSjc','o9hoLdylWKo','50sv4UTjE90','dEBQmiXv9fk','TSFMepJbHa0','_-Gnu498s3o','iMdtTCX2Q70'] },
+        { title: 'Topic 3: Bayesian Inference', videoIds: ['3jP4H0kjtng','GqSX-8AQL90','mqq_pjwUp40','wMfODgwqEr0','T-kMpA4z-7k','R9NQY2Hyl14','MKnjsqYVG4Y','MgJnjo5Aayc'] },
+        { title: 'Topic 4: Shrinkage Methods and Model Selection', videoIds: ['nsv5rEV3mVI','ynXq-Gw1xfE','Q81RR3yKn30','NGf0voTMlcs','Xm2C_gTAl8c','1dKRdX9bfIo','KV1Kt6I8rYs','Z6HGJMUakmc'] },
+        { title: 'Topic 5A: Classification - Logistic Regression, Gradient Descent, Newton-Raphson', videoIds: ['yIYKR4sgzI8','kr_Be9NVXOM','1uJVE8bkabc','BfKanl1aSG0','sDv4f4s2SB8','W7S94pq5Xuo','45lb8Xwm1E4'] },
+        { title: 'Topic 5B: Classification - LDA, QDA, Naive Bayes, Evaluation, NLP', videoIds: ['oJc2r246VoQ','14JVlzWHKgk','aUlTqhDtpnw','giCZkipHEmA','O2L2Uv9pdDA','Kdsp6soqA7o','4jRBRDbJemM','Zw3L-0ZP_DA'] },
+        { title: 'Topic 6: Unsupervised Learning', videoIds: ['kpuQqOzQXfM','FgakZw6K1QQ','WV_jcaDBZ2I','lJ0cXPoEozg','4b5d3muPQmA','7xHsRkOdVwo','yktzn-Mr2Nw','qMTuMa86NzU'] },
+        { title: 'Topic 7: Regression and Classification Trees', videoIds: ['QNnayf--_yk','JaoTOfTNOVk','gLcfKSMKOb0','_L39rN6gz7Y','g9c66TUylZ4','D0efHEJsfHo'] },
+        { title: 'Topic 8: Ensemble Learning', videoIds: ['sN5ZcJLDMaE','_cKAxjnInfA','0LB1cy2sCXc','J4Wdy0Wc_xQ','cdl4C2eCOHk','LsK-xG1cLYA','3CC4N4z3GJc','xtTyEoJ31Vg'] },
+        { title: 'Topic 9: Neural Networks', videoIds: ['4Gac5I64LM4','aircAruvnKk','jJb2qytbcNg','IHZwWFHWa-w','vMh0zPT0tLI','Ilg3gGewQ5U','tIeHLnjs5U8','07zslA8BXZY'] },
+        { title: 'Topic 10: Learning Functions - Splines, Kernels, Gaussian Processes', videoIds: ['FrVaxvwCLYM','b_HSFOnrGLI','wBVSbVktLIY','J4rRXd9UL-A','UBDgSHPxVME','R-NUdqxKjos','4vGiHC35j9s','qKSK3P-UZ_g'] },
+      ]
     },
     {
       name: 'Statistical Methods for Market Research',
       description: 'Apply statistical techniques to survey data and consumer research problems',
       code: 'market_research',
       year: 3,
-      chapters: []
+      chapters: [
+        { title: 'Full course: Marketing Research and Analysis lectures (NPTEL)', videoIds: ['PLPjSqITyvDeWBBaFUbkLDJ0egyEYuNeR1'] },
+        { title: 'Week 1: Introduction and Defining the Market Research Problem', videoIds: ['U8tQnSx5fHo','b4us4bNwAsc','ABLHV5Ce6TI','CtZmWrkIsvI','93Rio-HOeWQ'] },
+        { title: 'Week 2: Research Design', videoIds: ['MYJWFBHdx2s','FlBFdEgrTBM','Ink4ehYLmqw','1Vi49F2q99o','hc6fv0uNgFI','5vIeDCcApc8'] },
+        { title: 'Week 3: Internal Secondary Data and Analytics', videoIds: ['rT0WLkOVHzA','K3UaIQN_YXI','QjRTLJuh33I','Zforx36uKWE','uRPkZXAphxw','ZCTdpgnNCzM'] },
+        { title: 'Week 4: Qualitative Research - Focus Groups and Projective Techniques', videoIds: ['XicAkp6TnNU','3TwgVQIZPsw','04ZuLhanhis','k2MEaNMmnLQ','Pb3UlqAMwKA','4pfJGtC-Ix4','Wj2wCiOi1Cc'] },
+        { title: 'Week 5: Survey and Quantitative Observation Techniques', videoIds: ['9cuOyAR-Y9I','eRK_dXay5HY','13O4B0gPC4M','zrv-PsjzPKw','QcK-XWS-f3M','Hatmm84sqm0','ErfUVt0fyK0'] },
+        { title: 'Week 6: Causal Research Design - Experimentation', videoIds: ['wxWTimkOMrM','W-Zb5xO28UE','J2584pDVBm0','eNPz6lIV7fA','E7zkaMeFQRE','DavsDxgYQo4','3N-DKY09GM4','iI4IeaaE-7A'] },
+        { title: 'Week 7: Measurement and Scaling', videoIds: ['5Yh-9xdJzAs','GVmQpGn-Zuo','Y84nA2lv378','Tf_71r1Ve5w','kIg3YRqoh5s','RmZwXXsv3M8','oE71Onl5K-s','PCztXEfNJLM'] },
+        { title: 'Week 8: Questionnaire Design', videoIds: ['hDD-VcjTgDU','Zx40lHPHopk','eFzGdQrr2K8','Iq_fhTuY1hw','FkX-t0Pgzzs','zYX8Ycm9vQE'] },
+        { title: 'Week 9: Sampling - Design and Procedures', videoIds: ['fSmedyVv-Us','15UxDwpIIig','Jd-KqGDaJ3o','hhkxRfxdX58','WakK8Wzmw6o','TtcCvy-CKLc','T9dmq6Lwh24','RKSld_j2m5U'] },
+        { title: 'Week 10: Sampling - Determining Sample Size', videoIds: ['yKr9w4e8eSw','KG921rfbTDw','7zcbVaVz_P8','mmgZI2G6ibI','QHzMPzHQgEg','5a_cf21f6N4','rk6jtkpad_E'] },
+        { title: 'Week 11: Getting Started with SPSS', videoIds: ['8VXmkB4fTmM','9hn-1fky7I8','_zFBUfZEBWQ','bapuGcjwiLQ','4DbS2NmmQyI','YCys8qbLFcA','77XQQrtgUZ8'] },
+        { title: 'Week 12A: Cross-Tabulation and Chi-Square', videoIds: ['tTeMYuS87oU','L1QPBGoDmT0','lvB0HHoihVA','LUuLGLGI650','J46LRDkXRng','ohquDY3fZqk'] },
+        { title: 'Week 12B: Hypothesis Tests - t-Tests and Non-Parametric Tests', videoIds: ['NaZBdj0nCzQ','upc4zN_-YFM','E7F5-rmQ4kM','IcLSKko2tsg','LcxB56PzylA','NZsL2eDQiDQ','ZO2RmSkXK3c'] },
+        { title: 'Week 13: Analysis of Variance and Covariance', videoIds: ['QUQ6YppWCeg','fFnOD7KBSbw','zV7OCPdIVus','lZFmFuZGQTk','PngndHgZOgY','8tV_OoG3LDo','l86wEhUzkY4','CBXYxs9pLW8'] },
+        { title: 'Week 14: Correlation and Regression', videoIds: ['Mf0NxCs5HRw','OpAf4N582bA','KsVBBJRb9TE','zITIFTsivN8','WQeAsZxsXdQ','O4jDva9B3fw','s7EyQwJahgw','AdFT17sq53s'] },
+        { title: 'Week 15: Discriminant Analysis', videoIds: ['azXCzI57Yfc','vnHkTnRFdAU','pkCgLstMxJI','vm1OLoL_VuY','70vGOdEvYaM'] },
+        { title: 'Week 16: Logit Analysis', videoIds: ['yIYKR4sgzI8','vN5cNN2-HWE','yPCQZeGWJjw','fJ53tIDbvTM','xxFYro8QuXA','Ak_t86zm_sQ','4vwg98ELS_M'] },
+        { title: 'Week 17: Factor Analysis', videoIds: ['WV_jcaDBZ2I','uvRgMnyon2Y','NHrNVEIHPBY','HoVrruVotho','pRA3Wapx7fY','g_3kaSnq-DY','b14wRuKVvzk'] },
+        { title: 'Week 18: Cluster Analysis', videoIds: ['UrqLTkDHwkY','esHdKLt4_Ks','7xHsRkOdVwo','vg1w5ZUF5lA','4b5d3muPQmA','3BzfOLnIY9w','U6a2UaaWiH4','wdVtiVx_mAk'] },
+        { title: 'Week 19: Conjoint Analysis', videoIds: ['dAucTNXEzhU','yiRNcHU2ZGU','Wum3_Y0AO4A','DOIhSW38P-Q','LZ1aMpidn0Y','_TSjdIIPeoo'] },
+        { title: 'Week 20: Multidimensional Scaling', videoIds: ['xJUrBylId7I','L9hgJ-4hLYg','GEn-_dAyYME','NPcwjc6Oh7k','o1Z_tQh043k','r-JbmRgn3ag'] },
+      ]
     },
     {
       name: 'Microeconomics',
       description: 'Analyse consumer and firm behaviour, market structures, and welfare in depth',
       code: 'microeconomics',
       year: 3,
-      chapters: []
+      chapters: [
+        { title: 'Consumer theory', videoIds: ['tCKk22kaZi4','5Af7M2xEa4A','x0scPosOsoI','lq9w2qyNk1A','ABXlkPmnjN4','aDeI5meKDjk','CrWqGe7h34E','BUnUOv_INyM'] },
+        { title: 'Choice under uncertainty', videoIds: ['a9Uz7tXETq4','zrXWSXmOVFA','aEII9Fkvk48','Bem5kR0zu0M','aqEz6kvXhc8','KUGJhiAU_7I','kKyCf50CGGo'] },
+        { title: 'Game theory', videoIds: ['O8T9spKHVWQ','stzPcqmyhI4','aa8USttcDoE','7oASpaBdDMs','hSYXkDnCpHM','D7aDIZ-KPEU','8jBouAQt9EY','a8QAcwNcJPU'] },
+        { title: 'Production, costs and profit maximisation', videoIds: ['ftmvsahQ6Wo','8SkqltGoWqw','QkXyvqq5Jns','UHvMlTZJbZo','GbBQ3i1K2DE','TSYNHb6YBEE','G7KnsA0ZF7w','mwoDOrz-4IY'] },
+        { title: 'Perfect competition in a single market', videoIds: ['_POik0fJpsY','BNy84DCRxzo','F0ulAkrfvzo','yrRysbDoyhw','dbuU8S1x0Ro','Q4FxNAacEB4','iL6N9oaF1yE','xHIKWqBj7kU'] },
+        { title: 'General equilibrium and welfare', videoIds: ['oMjhRcXl5NE','qnJRFtLt9hM','XRR-iouyOYg','Fuyshwxs1Ig','QdhUiU063jg','IrSgLJBqCSo','gyhMBqdnbDo','XazAuoyCbx0'] },
+        { title: 'Monopoly', videoIds: ['FJVOh57UxL8','ufrYzoR_4xE','wUgrFSrMWQU','mvPHvwgwHHE','mFlNxRV9OZo','VBwlyTN6vlw','MmGYldezp40','7CrlqeMwP4M'] },
+        { title: 'Oligopoly', videoIds: ['0kA91PvS3sk','An_2r6Ae_28','P0N1RteWiEQ','L-QjAluq_fo','LMCODkeeDtE','PQTN3MXTRPw','YrnqUPW96lY','CkVi3LIl74g'] },
+        { title: 'Asymmetric information: adverse selection', videoIds: ['hm5zqBPsRJM','S08DrcQ5fx0','BcEIZm5vTQw','TgpV3F1gSRY','lEVbbGxe0r0','O7RgNPbFiH0','VddaoIIIHMs','f92OLDTk74g'] },
+        { title: 'Asymmetric information: moral hazard', videoIds: ['5v7TWKlYoN0','Nm0wV0CenWY','kdXqwucFNeU','L28dEHpZ7-M','gpD19ZPoZhk','LIpEXogDHsA','5tGh7wd2zOU'] },
+        { title: 'Externalities and public goods', videoIds: ['BvwqdFWsw9A','DuUNNvlo3UU','RIugTo0ivWI','9tUb3MDrgEc','CC2wf39PmSg','sV0tI_ll8Ws','GGzSdqIkkjU','io88vTQO_g4'] },
+      ]
     },
     {
       name: 'Principles of Asset Pricing',
       description: 'Examine how financial assets are valued and how risk and return are related',
       code: 'asset_pricing',
       year: 3,
-      chapters: []
+      chapters: [
+        { title: 'Review of time value of money', videoIds: ['U03Md5enU-0','RU-osjAs6hE','rViT_ODg5Yk','bIIndFa0RCM','S27jP4XUarY','88-B0vXTTIU','Q7_eqf0Vd1Q','o5QRdHH8aeQ'] },
+        { title: 'Fixed income - Part 1: spot rates, no-arbitrage pricing and the term structure', videoIds: ['hyc8h5T76BE','b_cAxh44aNQ','mNxFjtTyXZI','CAs_aX95tVQ','aOw7_pEHVZM','8_8g3Zw3Lg0','SNehgIhigek','yrmqYNvvIzs'] },
+        { title: 'Fixed income - Part 2: yield to maturity, duration and corporate bonds', videoIds: ['I7FDx4DPapw','BqFc3iosyqQ','F7XnR7sKWiE','rdDfmlerTcI','9GOfBq5Go9U','AtT59jxU9es','rBWBUKZd4WY','tkGepWJ5b3E'] },
+        { title: 'Stock valuation', videoIds: ['QqK6H1JPjv0','TlH3_iOHX3s','Wh5vp-UkCpo','n6Kgg6e5iVw','21STUhQ-iP0','o0iNxizilow','cny-1yDbQno'] },
+        { title: 'Portfolio theory and the CAPM', videoIds: ['tCreeXzCNRc','9gpbCi1g7w4','qPu4TEGIDYI','pwyR9uAM0iU','wOaKzthMUQ0','XIXd7pUt4cg','mNZ4BqXVfjs','z2oQe6B1Qa4'] },
+        { title: 'Market efficiency', videoIds: ['AEv9AszJ4_U','yco0sC7AJ2U','NUkkRdEknjI','3EzdvkRgToY','chSHqogx2CI','bM9bYOBuKF4','NEwRY161m04','a5PF2PcElV0'] },
+        { title: 'How to beat the market and mutual fund performance', videoIds: ['pYTraS5WR3s','Iel_GRQNAxA','We17ijX-P6Y','ViTnIebSzj4','fo0Ba9-GCts','wTzciLaCksA','a41LhZE5Iec','PlrLVe3cqfg'] },
+        { title: 'Futures, forwards and swaps', videoIds: ['H9UEZdAnnt8','zPyLCUQdh7I','zSiAiF6lvGk','dmVfZ1yjw7E','Pj3R8KFLTjo','DrlKjSG1V6s','1rR4zNQjtjg','i_pLF9J3QPE'] },
+        { title: 'Options - Part 1: strategies, binomial pricing and bounds', videoIds: ['nnl3x1wo25g','-GddP-N_klw','QFSyjhqITRA','1p5wJxGNj1Q','-m5jabeJJBs','nN4tOYVqf9o','c4i0mRW1RZI'] },
+        { title: 'Options - Part 2: American and exotic options, Black-Scholes', videoIds: ['pkuQLFI13Ws','g3uUgV9xKkE','qZgunj-_1nQ','8Zu6iVmgobo','pr-u4LCFYEY','m2mLrz1PU70','VkUEWUxI6u0','Q2qjnLO3I_M'] },
+        { title: 'Full course: MIT 15.401 Finance Theory I (Andrew Lo)', videoIds: ['PLUl4u3cNGP63B2lDhyKOsImI7FjCf6eDW'] },
+      ]
     },
     {
       name: 'Marketing Management',
       description: 'Plan and evaluate marketing strategy, from segmentation through to the marketing mix',
       code: 'marketing_management',
       year: 3,
-      chapters: []
+      chapters: [
+        { title: 'General introduction', videoIds: ['CQRzEwMMeW4','fFGGqUSdzQM','Ricpkts2lVU','Bb-dX_0Oo_M','-DNWWpIGZeQ','bilOOPuAvTY'] },
+        { title: 'An overview of marketing history and theory', videoIds: ['5fdx5Laavkc','X1VRAiWn6R4','pJOTp6t-c8A','hw8FfogTUhU','Fy0KNwzyd74','iq5ucCcRYEE','sR-qL7QdVZQ'] },
+        { title: 'The marketing environment', videoIds: ['ehbb8iuYdVs','dhUYXfl4Ozg','bYn4CyL3r5w','mYF2_FBCvXw'] },
+        { title: 'Consumer behaviour', videoIds: ['ll36VLhjrbo','AjZrhWVTM3U','8fb71U8OMoc','EfRrD3we0Hg','ig_IdSVa5Ac','Sl-qgzF70IM','iueVZJVEmEs'] },
+        { title: 'Organisational buyer behaviour', videoIds: ['YDw1MocJpWE','peiwGrQMsz8','FwhPkdsRp44','Dtlycp9WELA','a4FBGWedrF8'] },
+        { title: 'Market segmentation, targeting and positioning', videoIds: ['0srjdRDh99Y','ELZyOPr3rrE','qCtL8szl-Pk','OV2zbaMr-_c','2-m9iJnUJuA','Stc0beAxavY'] },
+        { title: 'Customer relationship marketing (CRM)', videoIds: ['yWNzHBYX8Tw','3GWHhz8PeB8','5UrrfG9GG2U','eicCJ6jJxmI','ZP-q0w81E0E','vZgKmH2PCnc','J1h4JQ7bTmA'] },
+        { title: 'Branding and product development', videoIds: ['dsU9Gd-kEWM','UN6rpHQGVgc','D2f507ExIco','DA6Lfb543dA','jb3yqwfMDKc','4eIDBV4Mpek','G53MkkQ5dBo'] },
+        { title: 'Product innovation and the life-cycle approach', videoIds: ['yQfi_FDssx8','PnVhxn4aFgc','_26E6QR_hmU','9QnfWhtujPA','izP5n1SBEaI','aoeal3ljnqw','qDrMAzCHFUU'] },
+        { title: 'Promotion', videoIds: ['wpx66QV0vrM','dQNRWF1BaTc','st0aJ-Vpln8','heE8m-bReDM','4OSr-Fwp7N8','FN4eDk1pq6U','ptlweu4uCmI','4KELuMwZlwM'] },
+        { title: 'Pricing', videoIds: ['HEkjAK78b-8','J82_xd5XxXg','hJgUXoV-27c','IJ-Gj0FN5fA','g98eOPnQlkk','t4Qom0cAK1E','SZCV-Gm0Tf4','aR-xxF4-vMU'] },
+        { title: 'Distribution', videoIds: ['sz1V_1HP0Sg','1YO7qc5PgM0','5pAUy8sY8cw','bZR0ZrZzJGQ','iSKzd2XDLQc'] },
+        { title: 'Corporate social responsibility (CSR)', videoIds: ['ZoKihFLCY0s','2_1TLhe8LY8','vD9XJKZmXEs','lfx4h-ySmes','kTXCtsEhvRM','2NsBcVrPQok','0iIh5YYDR2o'] },
+        { title: 'Analytical tools in marketing', videoIds: ['x0L75CV5eSI','lytQxBNDC3Y','dHRoO4kbtug','xJUrBylId7I','rW5SOENyq5g','CMFXsJxi05U','Su2qIrTmv1c'] },
+        { title: 'Marketing research', videoIds: ['QnPxaU0yP9k','lyWf43oo87Y','b4us4bNwAsc','S_-bLwHwcoU','nY5vtYCYUfo'] },
+        { title: 'Full course: Intro to Marketing lecture series (Kotler and Armstrong based)', videoIds: ['PLM3o01n9O7-AWMI8i97_K2-0z9KXLR5li'] },
+      ]
     },
     {
       name: 'Further Mathematics for Economists',
       description: 'Build the advanced mathematical tools used in economic analysis and optimisation',
       code: 'further_maths_economists',
       year: 3,
-      chapters: []
+      chapters: [
+        { title: 'Matrices, vectors and systems of linear equations', videoIds: ['csgNflj69-Y','y6bVhgmy2rw','T2Gtt8WygiU','biyQzy2yRUA','P5GJJ02OG08','CcbyMH3Noow','gPnWm-IXoAY','kWorj5BBy9k','RdLo-9jh2EM'] },
+        { title: 'Vector spaces, basis, dimension', videoIds: ['EP2ghkO0lSk','tM4TDL9Hj8U','9kDpbZCK62Y','4C9GKyfUQkc'] },
+        { title: 'Linear transformations, change of basis', videoIds: ['is1cg5yhdds','vyYrvhbDhW4','HZa1RwFHgwU'] },
+        { title: 'Diagonalisation', videoIds: ['TQvxWaQnrqI','WTLl03D4TNA','DUuTx2nbizM'] },
+        { title: 'Applications of diagonalisation', videoIds: ['13r9QY6cmjc','IZqwi0wJovM','8e_ux_E0dJ0','UO_dgXa5szg','XXjoh8L1HkE','E-sBhLIjPaM','07V_UNLz0qs','wJxPKj5DpMc'] },
+        { title: 'Inner products and orthogonality', videoIds: ['6nqMegdbxik','zHbfZWZJTGc','wHAJzemKQW4'] },
+        { title: 'Mathematical analysis', videoIds: ['GJpezCUMOxA','QRGIhqz9vh4','cTnlHZD5ss4','4NURDmE79VU','O98eOlHyWmQ','dcUKdwHRSD8','PJIJ39zThYM','if2Xq4GVuvY'] },
+        { title: 'Functions of several variables', videoIds: ['wqtr4Udz8AY','tIpKfDc295M','N_ZRcLheNv0','-HMxX8o6zOc','bohL918kXQk','J08-L2buigM','mRNg-Q9f9W4','s0dZVmPN3Ww'] },
+        { title: 'Optimisation of functions of several variables', videoIds: ['_Ffcr98c7EE','Zly5elxZ9w8','yuqB-d5MjZA','m-G3K2GPmEQ','HIm3Z0L90Co','2syXAny8PfE','natJ8yyIvQg','FX7kcDvEsJk'] },
+        { title: 'Theory of linear programming, and applications', videoIds: ['D0IlfUDcEvs','VKXsoFoTrx8','0TD9EQcheZM','lSM_TQehx00','bPLNyYFLLT4','sx9cWFLDFmw','q6zKM13aVUI','wG-dm40Zn9s'] },
+      ]
     },
   ];
 
