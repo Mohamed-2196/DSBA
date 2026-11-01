@@ -446,6 +446,8 @@ def test_a_module_the_documents_name_is_kept(
     """The grades calculator's rules, Site settings and Career Navigator name modules by id and refuse a save that
     names one that isn't there, so deleting a module one of them names is refused like one with lessons."""
     c = client_for(manager)
+    modules["asset-pricing"].chapters.clear()  # no lessons: only the documents keep it
+    db.commit()
     gone = f"{API}/content/modules/asset-pricing"
     r = c.delete(gone, params={"version": modules["asset-pricing"].version})
     assert r.status_code == 409

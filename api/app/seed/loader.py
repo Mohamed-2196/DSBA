@@ -8,8 +8,9 @@ Something a moderator deleted stays deleted: calendar events and newsletter issu
 The seed also tidies what the hub no longer has: RETIRED_FOLDERS and their files, RETIRED_FILES and REFILED, and
 Home blocks that are gone from the saved site settings.
 Modules are starting content only: they load into an empty catalogue, and after that content managers edit them in
-the app (a module they removed stays removed). The one exception is BROKEN_CHAPTERS, which the seed removes from any
-catalogue that has them.
+the app (a module they removed stays removed). The exceptions: BROKEN_CHAPTERS, which the seed removes from any
+catalogue that has them; chapters and lessons the seed gained later ("addedIn"), which reach a catalogue loaded
+before them once (load_new_lessons); and a module's unit code, which the seed fills in where there is none.
 Newsletter issues and the career document go through the schemas the API checks writes with, and are stored in
 the same shape: a seed file that doesn't fit them fails loudly instead of loading content the app can't show.
 Owner: content agent."""
@@ -48,7 +49,7 @@ from app.schemas.auth import HomeBlock
 from app.schemas.career import CareerDoc
 from app.schemas.library import LibraryKind
 from app.schemas.newsletter import IssueCreate
-from app.services import career, chapter_outlines, newsletter, question_tagging, report_answers
+from app.services import audit, career, chapter_outlines, newsletter, question_tagging, report_answers
 
 DATA = Path(__file__).parent / "data"
 
@@ -57,36 +58,38 @@ def read(name: str) -> Any:
     return json.loads((DATA / f"{name}.json").read_text(encoding="utf-8"))
 
 
+def _lesson(module_id: str, position: int, v: dict[str, Any]) -> Lesson:
+    return Lesson(
+        id=v["id"],
+        module_id=module_id,
+        position=position,
+        kind=v["kind"],
+        video_id=v.get("videoId"),
+        url=v.get("url"),
+        title=v.get("title"),
+        channel=v.get("channel"),
+        unavailable=bool(v.get("unavailable")),
+    )
+
+
+def _chapter(module_id: str, position: int, c: dict[str, Any]) -> Chapter:
+    return Chapter(
+        id=c["id"],
+        position=position,
+        title=c["title"],
+        audio_url=c.get("audioUrl"),
+        keywords=list(c.get("keywords") or []),
+        lessons=[_lesson(module_id, vi, v) for vi, v in enumerate(c.get("videos") or [])],
+    )
+
+
 def load_modules(db: Session) -> int:
     """Once, into an empty catalogue: after that the modules are the content managers' (/content/modules)."""
     if db.scalar(select(Module.id).limit(1)) is not None:
         return 0
     n = 0
     for m in read("modules"):
-        chapters = [
-            Chapter(
-                id=c["id"],
-                position=ci,
-                title=c["title"],
-                audio_url=c.get("audioUrl"),
-                keywords=list(c.get("keywords") or []),
-                lessons=[
-                    Lesson(
-                        id=v["id"],
-                        module_id=m["id"],
-                        position=vi,
-                        kind=v["kind"],
-                        video_id=v.get("videoId"),
-                        url=v.get("url"),
-                        title=v.get("title"),
-                        channel=v.get("channel"),
-                        unavailable=bool(v.get("unavailable")),
-                    )
-                    for vi, v in enumerate(c.get("videos") or [])
-                ],
-            )
-            for ci, c in enumerate(m.get("chapters") or [])
-        ]
+        chapters = [_chapter(m["id"], ci, c) for ci, c in enumerate(m.get("chapters") or [])]
         db.add(
             Module(
                 id=m["id"],
@@ -137,6 +140,74 @@ def remove_broken_chapters(db: Session) -> int:
         module.version += 1
         db.flush()
         n += 1
+    return n
+
+
+# What the audit log calls a batch of the seed's later chapters and lessons reaching a module (load_new_lessons).
+SEED_LESSONS = "module.seed_lessons"
+
+
+def load_new_lessons(db: Session) -> int:
+    """Chapters and lessons modules.json gained after catalogues were loaded: each is marked with the batch that
+    brought it ("addedIn" on a new chapter, which brings its lessons, or on a lesson added to a chapter there was).
+    A batch reaches each module once, the audit log keeps that it did (SEED_LESSONS, the Hub via cli), and after that
+    the module is the content managers' again: a chapter or lesson they remove stays removed, and a module they
+    removed isn't brought back. New chapters go at the end of the module and new lessons at the end of their chapter,
+    where the seed file has them too, so a catalogue loaded before them ends up as a new one starts. The module's
+    version goes up, so an editor open on it reloads first. How many lessons it added."""
+    done = {
+        (target, (data or {}).get("batch"))
+        for target, data in db.execute(
+            select(AuditEntry.target_id, AuditEntry.data).where(AuditEntry.action == SEED_LESSONS)
+        )
+    }
+    n = 0
+    for spec in read("modules"):
+        chapters = spec.get("chapters") or []
+        batches = {c["addedIn"] for c in chapters if c.get("addedIn")} | {
+            v["addedIn"] for c in chapters for v in c.get("videos") or [] if v.get("addedIn")
+        }
+        module = db.get(Module, spec["id"])
+        for batch in sorted(batches):
+            if module is None or (module.id, batch) in done:
+                continue
+            added = 0
+            for c in chapters:
+                chapter = db.get(Chapter, c["id"])
+                if chapter is None:
+                    if c.get("addedIn") == batch:
+                        chapter = _chapter(module.id, len(module.chapters), c)
+                        module.chapters.append(chapter)
+                        added += len(chapter.lessons)
+                    continue
+                for v in c.get("videos") or []:
+                    if v.get("addedIn") == batch and db.get(Lesson, v["id"]) is None:
+                        chapter.lessons.append(_lesson(module.id, len(chapter.lessons), v))
+                        added += 1
+            if added:
+                module.version += 1
+            data = {"title": module.name, "batch": batch, "lessons": added, "via": "cli"}
+            audit.record(db, None, SEED_LESSONS, "module", module.id, data)
+            n += added
+    db.flush()
+    return n
+
+
+def load_unit_codes(db: Session) -> int:
+    """The seed's unit code for a module that has none (Year 3's first catalogue had none): a code a content manager
+    set stays, and a code another module already has isn't given twice. How many modules it gave one."""
+    taken = set(db.scalars(select(Module.unit_code).where(Module.unit_code.is_not(None))))
+    n = 0
+    for spec in read("modules"):
+        code = spec.get("unitCode")
+        module = db.get(Module, spec["id"])
+        if module is None or module.unit_code is not None or not code or code in taken:
+            continue
+        module.unit_code = code
+        module.version += 1
+        taken.add(code)
+        n += 1
+    db.flush()
     return n
 
 
@@ -462,6 +533,8 @@ def load_report_answers(db: Session) -> int:
 SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
     "broken-chapters": remove_broken_chapters,
+    "new-lessons": load_new_lessons,
+    "unit-codes": load_unit_codes,
     "chapter-words": load_chapter_words,
     "chapter-outlines": load_chapter_outlines,
     "calendar": load_calendar,

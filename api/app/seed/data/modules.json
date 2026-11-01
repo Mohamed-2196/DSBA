@@ -2141,6 +2141,70 @@
             "videoId": "N_QU1BiW6sI",
             "title": "[Chapter 1] #6 Multinomial coefficients",
             "channel": "Jingchen (Monika) Hu"
+          },
+          {
+            "id": "hmuampc8",
+            "kind": "youtube",
+            "videoId": "PegyQkhbh0c",
+            "title": "What are Sigma-Algebras? And Why Do We Need Them?",
+            "channel": "Probably Optimal",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "6m9xc4n5",
+            "kind": "youtube",
+            "videoId": "MPRKc4UPoJk",
+            "title": "L02.2 Conditional Probabilities",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "u6vi9h5e",
+            "kind": "youtube",
+            "videoId": "L_pEeYLGaP0",
+            "title": "L02.4 Conditional Probabilities Obey the Same Axioms",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "7uzbg9an",
+            "kind": "youtube",
+            "videoId": "8odFouBR2wE",
+            "title": "L02.7 Total Probability Theorem",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "yqfhwrfq",
+            "kind": "youtube",
+            "videoId": "kz2tvO_ZAKI",
+            "title": "L02.8 Bayes' Rule",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "aevctjcx",
+            "kind": "youtube",
+            "videoId": "HZGCoVF3YvM",
+            "title": "Bayes theorem, the geometry of changing beliefs",
+            "channel": "3Blue1Brown",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "m3kjbhzk",
+            "kind": "youtube",
+            "videoId": "UbQcqFH33G0",
+            "title": "L03.7 Independence of a Collection of Events",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "5n9bdn5j",
+            "kind": "youtube",
+            "videoId": "aJXfyfQs2Mc",
+            "title": "L03.8 Independence Versus Pairwise Independence",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
           }
         ],
         "keywords": [
@@ -2279,6 +2343,94 @@
             "id": "498zf36x",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/8061cbb90479322d62103f4b3f064c2fab667d9a-1761647247144"
+          },
+          {
+            "id": "eaq4jtvz",
+            "kind": "youtube",
+            "videoId": "vfqPpai_9jI",
+            "title": "L05.2 Definition of Random Variables",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "2rp7ce8w",
+            "kind": "youtube",
+            "videoId": "4QeL1ma_XJ0",
+            "title": "L08.7 Cumulative Distribution Functions",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "797xg4i6",
+            "kind": "youtube",
+            "videoId": "6UMv4vb4y7c",
+            "title": "L08.8 Normal Random Variables",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "65e2rx6j",
+            "kind": "youtube",
+            "videoId": "ISaVvSO_3Sg",
+            "title": "What are \"moments\" in statistics? An intuitive video!",
+            "channel": "zedstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "x8bjc9b5",
+            "kind": "youtube",
+            "videoId": "vjYanZ1nsZg",
+            "title": "L18.2 The Markov Inequality",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "vy2qsj3v",
+            "kind": "youtube",
+            "videoId": "N8O6zd6vTZ8",
+            "title": "Lecture 17: Moment Generating Functions | Statistics 110",
+            "channel": "Harvard University",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "j82efi2q",
+            "kind": "youtube",
+            "videoId": "vp7_Tfrej00",
+            "title": "Cumulant Generating Functions - Determining mean and variance",
+            "channel": "Maths Resource",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "epsapdsw",
+            "kind": "youtube",
+            "videoId": "PaI-oaOBHKU",
+            "title": "L11.6 The Monotonic Case",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "9y7pnsv7",
+            "kind": "youtube",
+            "videoId": "XwrnUw6g1dA",
+            "title": "Probability Integral Transformation",
+            "channel": "statisticsmatt",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "4miupm7e",
+            "kind": "youtube",
+            "videoId": "l_YZ096WH74",
+            "title": "Convergence in probability of a random variable",
+            "channel": "Ben Lambert",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "47tcriyk",
+            "kind": "youtube",
+            "videoId": "ZKqzA81Nz2Y",
+            "title": "Convergence in distribution of a random variable",
+            "channel": "Ben Lambert",
+            "addedIn": "2026-11"
           }
         ],
         "keywords": [
@@ -2328,6 +2480,78 @@
             "id": "343cqbdk",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0f456d30b127e87c64e74649ca14200360538049-1764498735170"
+          },
+          {
+            "id": "7xtrqqwv",
+            "kind": "youtube",
+            "videoId": "J70dP_AECzQ",
+            "title": "Lecture 19: Joint, Conditional, and Marginal Distributions | Statistics 110",
+            "channel": "Harvard University",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "bke88xv4",
+            "kind": "youtube",
+            "videoId": "IujCYxtpszU",
+            "title": "Lecture 21: Covariance and Correlation | Statistics 110",
+            "channel": "Harvard University",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "539eyqzk",
+            "kind": "youtube",
+            "videoId": "eO2-m8Gqzjk",
+            "title": "ims40 - Bivariate Moment Generating Function",
+            "channel": "statisticsmatt",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "uv32eer3",
+            "kind": "youtube",
+            "videoId": "5rF19EitOss",
+            "title": "Why Your Covariance Matrix is ALWAYS Positive Semi-Definite! (Proof Explained)",
+            "channel": "Brunei Math Club",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "yd4bmxwb",
+            "kind": "youtube",
+            "videoId": "yXwPUAIvFyg",
+            "title": "Lecture 22: Transformations and Convolutions | Statistics 110",
+            "channel": "Harvard University",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "4d6dfmk5",
+            "kind": "youtube",
+            "videoId": "sktbYva958A",
+            "title": "ims42 - Transformation of Bivariate Random Variables",
+            "channel": "statisticsmatt",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "5immhd7s",
+            "kind": "youtube",
+            "videoId": "IaSGqQa5O-M",
+            "title": "Convolutions | Why X+Y in probability is a beautiful mess",
+            "channel": "3Blue1Brown",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "yfm69nya",
+            "kind": "youtube",
+            "videoId": "MF-XSJOsGqw",
+            "title": "Lecture 30: Chi-Square, Student-t, Multivariate Normal | Statistics 110",
+            "channel": "Harvard University",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "zgwpj56a",
+            "kind": "youtube",
+            "videoId": "2xHeg6n89tU",
+            "title": "Bivariate normal distribution definition",
+            "channel": "Lawrence Leemis",
+            "addedIn": "2026-11"
           }
         ],
         "keywords": [
@@ -2371,6 +2595,78 @@
             "id": "wp9qdwpi",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/8ed57c5fb6c2242f5900c636c888db5986ee90ac-1768905017112"
+          },
+          {
+            "id": "avyamjst",
+            "kind": "youtube",
+            "videoId": "Kj6iEzXsFkI",
+            "title": "L10.2 Conditional PDFs",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "pfc2nusk",
+            "kind": "youtube",
+            "videoId": "2LR5JYbhyjg",
+            "title": "Lecture 25: Order Statistics and Conditional Expectation | Statistics 110",
+            "channel": "Harvard University",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "f88q6ykp",
+            "kind": "youtube",
+            "videoId": "PgawcWisb0I",
+            "title": "Lecture 26: Conditional Expectation Continued | Statistics 110",
+            "channel": "Harvard University",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "b8k3hmzm",
+            "kind": "youtube",
+            "videoId": "gjBvCiRt8QA",
+            "title": "Lecture 27: Conditional Expectation given an R.V. | Statistics 110",
+            "channel": "Harvard University",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "tazj59mk",
+            "kind": "youtube",
+            "videoId": "mHonq7Gjjqg",
+            "title": "L13.7 Derivation of the Law of Total Variance",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "3m3cr97b",
+            "kind": "youtube",
+            "videoId": "OPfmUh06xsI",
+            "title": "Mixture distribution",
+            "channel": "Lawrence Leemis",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "dn4nwhd8",
+            "kind": "youtube",
+            "videoId": "xdewLsXI_UQ",
+            "title": "L13.10 Mean of the Sum of a Random Number of Random Variables",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "4tmzndzh",
+            "kind": "youtube",
+            "videoId": "SgM16HNeC3o",
+            "title": "L13.11 Variance of the Sum of a Random Number of Random Variables",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "uu4ri55v",
+            "kind": "youtube",
+            "videoId": "I1Exxswt7d4",
+            "title": "Derivation of Bivariate Normal and the Conditional Distributions",
+            "channel": "statisticsmatt",
+            "addedIn": "2026-11"
           }
         ],
         "keywords": [
@@ -2441,6 +2737,54 @@
             "id": "6my34ueb",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/699b293e1c1a500fbbfdb86c91d5bf23100f063a-1759736056977"
+          },
+          {
+            "id": "dhir2s9d",
+            "kind": "youtube",
+            "videoId": "5j4E2FRR384",
+            "title": "An introduction to the concept of a sufficient statistic",
+            "channel": "Ben Lambert",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "iiushc5m",
+            "kind": "youtube",
+            "videoId": "J-TTqCgRzbM",
+            "title": "Sufficient Statistics and the Factorization Theorem",
+            "channel": "Stats with Brian",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "7ay5nc9c",
+            "kind": "youtube",
+            "videoId": "IsgteDaNTFk",
+            "title": "Minimal Sufficient Statistics Clearly Explained",
+            "channel": "Stats with Brian",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "j69smn8w",
+            "kind": "youtube",
+            "videoId": "ScduwntrMzc",
+            "title": "Likelihood | Log likelihood | Sufficiency | Multiple parameters",
+            "channel": "zedstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "nc986h3g",
+            "kind": "youtube",
+            "videoId": "pneluWj-U-o",
+            "title": "The Fisher Information",
+            "channel": "Mutual Information",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "efu44vaf",
+            "kind": "youtube",
+            "videoId": "3r5Hb3OINQc",
+            "title": "The Fisher Information: Two Formulations",
+            "channel": "Mike, the Mathematician",
+            "addedIn": "2026-11"
           }
         ],
         "keywords": [
@@ -2502,6 +2846,102 @@
             "id": "fjgmcb9w",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/79272bdd636fb2ffe16599a9785394f4ccd01d94-1763537702123"
+          },
+          {
+            "id": "xzpe52ev",
+            "kind": "youtube",
+            "videoId": "YJRHmv6OpWQ",
+            "title": "Unbiased Estimators ... Made Easy!",
+            "channel": "Stats with Brian",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "qxynsctg",
+            "kind": "youtube",
+            "videoId": "lET4uQLpmM0",
+            "title": "L20.4 On the Mean Squared Error of an Estimator",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "uumqcpbr",
+            "kind": "youtube",
+            "videoId": "QEdmE-aO4_M",
+            "title": "What is a consistent estimator in statistics?",
+            "channel": "Stats with Brian",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "f885sa46",
+            "kind": "youtube",
+            "videoId": "D1hgiAla3KI",
+            "title": "Proof that the Sample Variance is an Unbiased Estimator of the Population Variance",
+            "channel": "jbstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "g7jyy46m",
+            "kind": "youtube",
+            "videoId": "V4Rm4UQHij0",
+            "title": "The Sampling Distribution of the Sample Variance",
+            "channel": "jbstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "sf89qy5p",
+            "kind": "youtube",
+            "videoId": "cHRdyed4-yc",
+            "title": "The Rao-Blackwell Theorem Explained",
+            "channel": "Stats with Brian",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "vas5eqsk",
+            "kind": "youtube",
+            "videoId": "OL8kf-gKcqI",
+            "title": "The Method of Moments ... Made Easy!",
+            "channel": "Stats with Brian",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "2h5h8hjx",
+            "kind": "youtube",
+            "videoId": "T_tjvTI70lo",
+            "title": "ims43 - Order Statistics (1 of 2)",
+            "channel": "statisticsmatt",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "m565s2sz",
+            "kind": "youtube",
+            "videoId": "RZ511cB-BB8",
+            "title": "STAT 4520 Unit #5: Proof of the Cramer-Rao lower bound",
+            "channel": "Brian Zaharatos",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "4i2je3xn",
+            "kind": "youtube",
+            "videoId": "cd-1fYpAzSg",
+            "title": "The Cramer-Rao Lower Bound ... MADE EASY!!!",
+            "channel": "Stats with Brian",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "mbimjdju",
+            "kind": "youtube",
+            "videoId": "7kLHJ-F33GI",
+            "title": "Maximum Likelihood Estimation (MLE) | Score equation | Information | Invariance",
+            "channel": "zedstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "n2f2crgz",
+            "kind": "youtube",
+            "videoId": "45lb8Xwm1E4",
+            "title": "GLM - 10 - Numerical Solution (Newton-Raphson, Fisher Scoring, IRLS)",
+            "channel": "Meerkat Statistics",
+            "addedIn": "2026-11"
           }
         ],
         "keywords": [
@@ -2568,6 +3008,62 @@
             "id": "ep9gvt8p",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0dc6d98edeb745d624887f1cc4a77fe434fb64fa-1769585468937"
+          },
+          {
+            "id": "ry7cxvp4",
+            "kind": "youtube",
+            "videoId": "EJe3jiZNwUU",
+            "title": "What are confidence intervals? Actually.",
+            "channel": "zedstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "scfxdxiw",
+            "kind": "youtube",
+            "videoId": "p8SgfPHd5dk",
+            "title": "Lecture 7 - confidence intervals via pivoting",
+            "channel": "Michael Satz",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "8y7acgad",
+            "kind": "youtube",
+            "videoId": "-iYDu8flFXQ",
+            "title": "Deriving a Confidence Interval for the Mean (The Rationale Behind the Confidence Interval Formula)",
+            "channel": "jbstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "mqbs7avz",
+            "kind": "youtube",
+            "videoId": "bFefxSE5bmo",
+            "title": "Confidence Intervals for One Mean:  Sigma Not Known (t Method)",
+            "channel": "jbstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "2c3g3esp",
+            "kind": "youtube",
+            "videoId": "q-cHZyOs5DQ",
+            "title": "Deriving a Confidence Interval for a Variance (Assuming a Normally Distributed Population)",
+            "channel": "jbstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "px5tzrdw",
+            "kind": "youtube",
+            "videoId": "DyLWP5Zx934",
+            "title": "Asymptotic distribution of the maximum likelihood estimator(mle) - finding Fisher information",
+            "channel": "Phil Chan (philchan)",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "qwx9ynar",
+            "kind": "youtube",
+            "videoId": "cxUWQCwxQgk",
+            "title": "Confidence Interval for the Median | Jean-Yves Le Boudec",
+            "channel": "Wandida, EPFL",
+            "addedIn": "2026-11"
           }
         ],
         "keywords": [
@@ -2585,6 +3081,86 @@
             "id": "ssa56kjn",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/324829eb5f32555a0ca7aed9512ab9824b95b0a6-1767597309113"
+          },
+          {
+            "id": "7gnze6w9",
+            "kind": "youtube",
+            "videoId": "aepZRBL1Abg",
+            "title": "STAT 5520 Unit #6: Intro to general hypothesis testing",
+            "channel": "Brian Zaharatos",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "ti2gma9c",
+            "kind": "youtube",
+            "videoId": "7mE-K_w1v90",
+            "title": "Type I Errors, Type II Errors, and the Power of the Test",
+            "channel": "jbstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "ix8sh9rw",
+            "kind": "youtube",
+            "videoId": "UsU-O2Z1rAs",
+            "title": "What is a p-value?  (Updated and extended version)",
+            "channel": "jbstatistics",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "u2xcw3uh",
+            "kind": "youtube",
+            "videoId": "Ksk0Z0VwzrQ",
+            "title": "STAT 5520 Unit #6: Comparing hypothesis tests",
+            "channel": "Brian Zaharatos",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "y4imnpq5",
+            "kind": "youtube",
+            "videoId": "zFBfs01zTnM",
+            "title": "Pivotal Quantities and Hypothesis Tests",
+            "channel": "Ed Boone",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "296iscrr",
+            "kind": "youtube",
+            "videoId": "GnIk8NPQmYc",
+            "title": "STAT 5520 Unit #6: The Neyman-Pearson Lemma",
+            "channel": "Brian Zaharatos",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "xyzwxype",
+            "kind": "youtube",
+            "videoId": "uNh4N3IToV4",
+            "title": "STAT 5520 Unit #6: Neyman Pearson Lemma example",
+            "channel": "Brian Zaharatos",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "mhk6nzfi",
+            "kind": "youtube",
+            "videoId": "SC10j5YZ2es",
+            "title": "STAT 5520 Unit #6: Uniformly most powerful tests",
+            "channel": "Brian Zaharatos",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "6ddr9fy7",
+            "kind": "youtube",
+            "videoId": "ToSSaZuWXtw",
+            "title": "Likelihood Ratio Tests Clearly Explained",
+            "channel": "Stats with Brian",
+            "addedIn": "2026-11"
+          },
+          {
+            "id": "yuubfxif",
+            "kind": "youtube",
+            "videoId": "yzO80fa0_Y4",
+            "title": "Wald test | Likelihood ratio test | Score test",
+            "channel": "zedstatistics",
+            "addedIn": "2026-11"
           }
         ],
         "keywords": [
@@ -3628,7 +4204,7 @@
   },
   {
     "id": "machine-learning",
-    "unitCode": null,
+    "unitCode": "ST3189",
     "name": "Machine Learning",
     "shortName": "Machine learning",
     "year": 3,
@@ -3641,15 +4217,758 @@
       "exercises": null,
       "exercisesNote": null,
       "vle": "https://drive.google.com/drive/folders/1003IX08HxK09WOpjTV5dQC38ccR7ROt2",
-      "olderExams": null,
+      "olderExams": "https://drive.google.com/drive/folders/1jaBexBbTJJ6qpg4BWczknscTOhog9tbM",
       "cheatSheet": null
     },
     "notes": [],
-    "chapters": []
+    "chapters": [
+      {
+        "id": "2dpr5d2v",
+        "title": "Full course: Stanford Statistical Learning (ISLR)",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "fyj2bczs",
+            "kind": "youtube-playlist",
+            "videoId": "PLoROMvodv4rOzrYsAxzQyHb8n_RWNuS1e",
+            "title": "Statistical Learning with R",
+            "channel": "Stanford Online"
+          }
+        ]
+      },
+      {
+        "id": "ss398uan",
+        "title": "Topic 1: Introduction to Machine Learning Concepts",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "z64pm7x5",
+            "kind": "youtube",
+            "videoId": "ox0cKk7h4o0",
+            "title": "Statistical Learning: 2.1 Introduction to Regression Models",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "7ewi84v2",
+            "kind": "youtube",
+            "videoId": "pvcEQfcO3pk",
+            "title": "Statistical Learning: 2.3 Model Selection and Bias Variance Tradeoff",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "7zw3sv7x",
+            "kind": "youtube",
+            "videoId": "EuBBz3bI-aA",
+            "title": "Machine Learning Fundamentals: Bias and Variance",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "aj83tkgs",
+            "kind": "youtube",
+            "videoId": "zUJbRO0Wavo",
+            "title": "Machine Learning Lecture 19 \"Bias Variance Decomposition\" -Cornell CS4780 SP17",
+            "channel": "Kilian Weinberger"
+          },
+          {
+            "id": "f84r8bfw",
+            "kind": "youtube",
+            "videoId": "fSytzGwwBVw",
+            "title": "Machine Learning Fundamentals: Cross Validation",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "4z7u6nhy",
+            "kind": "youtube",
+            "videoId": "AMfvd_hLssE",
+            "title": "Statistical Learning: 5.2 K-fold Cross Validation",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "d54qakv6",
+            "kind": "youtube",
+            "videoId": "jgoa28FR__Y",
+            "title": "Statistical Learning: 5.3 Cross Validation the wrong and right way",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "apu9p9tr",
+            "kind": "youtube",
+            "videoId": "jzKSAeJpC6s",
+            "title": "Understanding Pipeline in Machine Learning with Scikit-learn (sklearn pipeline)",
+            "channel": "Dr. Data Science"
+          }
+        ]
+      },
+      {
+        "id": "age96xeg",
+        "title": "Topic 2A: Frequentist Inference (Likelihood, MLE, CIs, Tests)",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "streqwab",
+            "kind": "youtube",
+            "videoId": "YevSE6bRhTo",
+            "title": "The most important theory in statistics | Maximum Likelihood",
+            "channel": "Very Normal"
+          },
+          {
+            "id": "syt59x6t",
+            "kind": "youtube",
+            "videoId": "Dn6b9fCIUpM",
+            "title": "Maximum Likelihood For the Normal Distribution, step-by-step!!!",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "ndgsajxy",
+            "kind": "youtube",
+            "videoId": "lET4uQLpmM0",
+            "title": "L20.4 On the Mean Squared Error of an Estimator",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "umxf2brp",
+            "kind": "youtube",
+            "videoId": "QVF0oOh7s8c",
+            "title": "Properties of Maximum Likelihood Estimation",
+            "channel": "Steve Brunton"
+          },
+          {
+            "id": "avwe5h8d",
+            "kind": "youtube",
+            "videoId": "27iSnzss2wM",
+            "title": "Introduction to Confidence Intervals",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "mypzuahf",
+            "kind": "youtube",
+            "videoId": "tTeMYuS87oU",
+            "title": "An Introduction to Hypothesis Testing",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "qqvnit9d",
+            "kind": "youtube",
+            "videoId": "vemZtEM63GY",
+            "title": "p-values: What they are and how to interpret them",
+            "channel": "StatQuest with Josh Starmer"
+          }
+        ]
+      },
+      {
+        "id": "jqew8tms",
+        "title": "Topic 2B: Linear Regression and Inference for Regression",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "qzj7n5u9",
+            "kind": "youtube",
+            "videoId": "vCHtY6Me5FI",
+            "title": "Statistical Learning: 3.1 Simple linear regression",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "e4r9jkxb",
+            "kind": "youtube",
+            "videoId": "3GiWpRfkSjc",
+            "title": "Statistical Learning: 3.2 Hypothesis Testing and Confidence Intervals",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "9herysgk",
+            "kind": "youtube",
+            "videoId": "o9hoLdylWKo",
+            "title": "Statistical Learning: 3.3 Multiple Linear Regression",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "8ket6fyw",
+            "kind": "youtube",
+            "videoId": "50sv4UTjE90",
+            "title": "Statistical Learning: 3.4 Some important questions",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "kjbjapvm",
+            "kind": "youtube",
+            "videoId": "dEBQmiXv9fk",
+            "title": "Statistical Learning: 3.5 Extensions of the Linear Model",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "yprf5n9n",
+            "kind": "youtube",
+            "videoId": "TSFMepJbHa0",
+            "title": "Linear regression 3: Polynomial regression and basis functions",
+            "channel": "Herman Kamper"
+          },
+          {
+            "id": "ug525cmj",
+            "kind": "youtube",
+            "videoId": "_-Gnu498s3o",
+            "title": "Least Squares as a Maximum Likelihood estimator",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "egerqp6e",
+            "kind": "youtube",
+            "videoId": "iMdtTCX2Q70",
+            "title": "Simple Linear Regression:  Checking Assumptions with Residual Plots",
+            "channel": "jbstatistics"
+          }
+        ]
+      },
+      {
+        "id": "3vfc7tmy",
+        "title": "Topic 3: Bayesian Inference",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "njuteg4h",
+            "kind": "youtube",
+            "videoId": "3jP4H0kjtng",
+            "title": "The better way to do statistics | Bayesian #1",
+            "channel": "Very Normal"
+          },
+          {
+            "id": "ai7cibpr",
+            "kind": "youtube",
+            "videoId": "GqSX-8AQL90",
+            "title": "Bayesian Updates and Conjugate Priors",
+            "channel": "Steve Brunton"
+          },
+          {
+            "id": "jshzqvrf",
+            "kind": "youtube",
+            "videoId": "mqq_pjwUp40",
+            "title": "3. Bayes Estimation Example",
+            "channel": "Christina Knudson (Dr. Knudson)"
+          },
+          {
+            "id": "fe3kbc4h",
+            "kind": "youtube",
+            "videoId": "wMfODgwqEr0",
+            "title": "Explaining the difference between confidence and credible intervals",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "n7497nbp",
+            "kind": "youtube",
+            "videoId": "T-kMpA4z-7k",
+            "title": "Introducing Bayes factors and marginal likelihoods",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "wk7yyg8y",
+            "kind": "youtube",
+            "videoId": "R9NQY2Hyl14",
+            "title": "26 - Prior and posterior predictive distributions - an introduction",
+            "channel": "Ox educ"
+          },
+          {
+            "id": "77vjk2rc",
+            "kind": "youtube",
+            "videoId": "MKnjsqYVG4Y",
+            "title": "Monte Carlo integration",
+            "channel": "Jarad Niemi"
+          },
+          {
+            "id": "6nf335i8",
+            "kind": "youtube",
+            "videoId": "MgJnjo5Aayc",
+            "title": "The Laplace Approximation - Explained",
+            "channel": "DataMListic"
+          }
+        ]
+      },
+      {
+        "id": "urj44aju",
+        "title": "Topic 4: Shrinkage Methods and Model Selection",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "gspxxmqq",
+            "kind": "youtube",
+            "videoId": "nsv5rEV3mVI",
+            "title": "Statistical Learning: 6.1 Introduction and Best Subset Selection",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "s63462yt",
+            "kind": "youtube",
+            "videoId": "ynXq-Gw1xfE",
+            "title": "Statistical Learning: 6.2 Stepwise Selection",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "vfshuhcc",
+            "kind": "youtube",
+            "videoId": "Q81RR3yKn30",
+            "title": "Regularization Part 1: Ridge (L2) Regression",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "s598bqak",
+            "kind": "youtube",
+            "videoId": "NGf0voTMlcs",
+            "title": "Regularization Part 2: Lasso (L1) Regression",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "3j2ydtqv",
+            "kind": "youtube",
+            "videoId": "Xm2C_gTAl8c",
+            "title": "Ridge vs Lasso Regression, Visualized!!!",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "q4u4rdu6",
+            "kind": "youtube",
+            "videoId": "1dKRdX9bfIo",
+            "title": "Regularization Part 3: Elastic Net Regression",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "tw5mtbpv",
+            "kind": "youtube",
+            "videoId": "KV1Kt6I8rYs",
+            "title": "Statistical Learning: 6.8 Tuning parameter selection",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "gx74ytmh",
+            "kind": "youtube",
+            "videoId": "Z6HGJMUakmc",
+            "title": "Bayesian Linear Regression : Data Science Concepts",
+            "channel": "ritvikmath"
+          }
+        ]
+      },
+      {
+        "id": "hemswc2t",
+        "title": "Topic 5A: Classification - Logistic Regression, Gradient Descent, Newton-Raphson",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "bzrhg7wp",
+            "kind": "youtube",
+            "videoId": "yIYKR4sgzI8",
+            "title": "StatQuest: Logistic Regression",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "sddbx23w",
+            "kind": "youtube",
+            "videoId": "kr_Be9NVXOM",
+            "title": "Statistical Learning: 4.2 Logistic Regression",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "f52wu3r3",
+            "kind": "youtube",
+            "videoId": "1uJVE8bkabc",
+            "title": "Statistical Learning: 4.3 Multivariate Logistic Regression",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "hxk3wgst",
+            "kind": "youtube",
+            "videoId": "BfKanl1aSG0",
+            "title": "Logistic Regression Details Pt 2: Maximum Likelihood",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "6ymmmjds",
+            "kind": "youtube",
+            "videoId": "sDv4f4s2SB8",
+            "title": "Gradient Descent, Step-by-Step",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "jmew65aw",
+            "kind": "youtube",
+            "videoId": "W7S94pq5Xuo",
+            "title": "Visually Explained: Newton's Method in Optimization",
+            "channel": "Visually Explained"
+          },
+          {
+            "id": "5q2uq95x",
+            "kind": "youtube",
+            "videoId": "45lb8Xwm1E4",
+            "title": "GLM - 10 - Numerical Solution (Newton-Raphson, Fisher Scoring, IRLS)",
+            "channel": "Meerkat Statistics"
+          }
+        ]
+      },
+      {
+        "id": "8r63yyfd",
+        "title": "Topic 5B: Classification - LDA, QDA, Naive Bayes, Evaluation, NLP",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "mma3x9cj",
+            "kind": "youtube",
+            "videoId": "oJc2r246VoQ",
+            "title": "Statistical Learning: 4.5 Discriminant Analysis",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "cm3dcqmd",
+            "kind": "youtube",
+            "videoId": "14JVlzWHKgk",
+            "title": "Statistical Learning: 4.6 Gaussian Discriminant Analysis (One Variable)",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "ux83vh8i",
+            "kind": "youtube",
+            "videoId": "aUlTqhDtpnw",
+            "title": "Statistical Learning: 4.7 Gaussian Discriminant Analysis (Many Variables)",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "9q9tx8sc",
+            "kind": "youtube",
+            "videoId": "giCZkipHEmA",
+            "title": "Statistical Learning: 4.9 Quadratic Discriminant Analysis and Naive Bayes",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "6gpn9uqu",
+            "kind": "youtube",
+            "videoId": "O2L2Uv9pdDA",
+            "title": "Naive Bayes, Clearly Explained!!!",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "rai6jjav",
+            "kind": "youtube",
+            "videoId": "Kdsp6soqA7o",
+            "title": "Machine Learning Fundamentals: The Confusion Matrix",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "2yxk699x",
+            "kind": "youtube",
+            "videoId": "4jRBRDbJemM",
+            "title": "ROC and AUC, Clearly Explained!",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "zynxnsa6",
+            "kind": "youtube",
+            "videoId": "Zw3L-0ZP_DA",
+            "title": "Statistical Learning: 10.3 Document Classification",
+            "channel": "Stanford Online"
+          }
+        ]
+      },
+      {
+        "id": "rnck3tx9",
+        "title": "Topic 6: Unsupervised Learning",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "nd3gshgg",
+            "kind": "youtube",
+            "videoId": "kpuQqOzQXfM",
+            "title": "Statistical Learning: 12.1 Principal Components",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "mi8h7h72",
+            "kind": "youtube",
+            "videoId": "FgakZw6K1QQ",
+            "title": "StatQuest: Principal Component Analysis (PCA), Step-by-Step",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "iwf2nbza",
+            "kind": "youtube",
+            "videoId": "WV_jcaDBZ2I",
+            "title": "Factor Analysis - an introduction",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "n8n3dxwa",
+            "kind": "youtube",
+            "videoId": "lJ0cXPoEozg",
+            "title": "Factor Analysis and Probabilistic PCA",
+            "channel": "Mutual Information"
+          },
+          {
+            "id": "9n6u8aqg",
+            "kind": "youtube",
+            "videoId": "4b5d3muPQmA",
+            "title": "StatQuest: K-means clustering",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "xb9v7fyz",
+            "kind": "youtube",
+            "videoId": "7xHsRkOdVwo",
+            "title": "StatQuest: Hierarchical Clustering",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "yuhjsuwt",
+            "kind": "youtube",
+            "videoId": "yktzn-Mr2Nw",
+            "title": "Statistical Learning: 12.4 Hierarchical Clustering",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "ka67t4p9",
+            "kind": "youtube",
+            "videoId": "qMTuMa86NzU",
+            "title": "Clustering (4): Gaussian Mixture Models and EM",
+            "channel": "Alexander Ihler"
+          }
+        ]
+      },
+      {
+        "id": "we3jyezr",
+        "title": "Topic 7: Regression and Classification Trees",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "nrifntyw",
+            "kind": "youtube",
+            "videoId": "QNnayf--_yk",
+            "title": "Statistical Learning: 8.1 Tree based methods",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "7nwjsicp",
+            "kind": "youtube",
+            "videoId": "JaoTOfTNOVk",
+            "title": "Statistical Learning: 8.2 More details on Trees",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "mrn77ptw",
+            "kind": "youtube",
+            "videoId": "gLcfKSMKOb0",
+            "title": "Statistical Learning: 8.3 Classification Trees",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "ze4kwj8n",
+            "kind": "youtube",
+            "videoId": "_L39rN6gz7Y",
+            "title": "Decision and Classification Trees, Clearly Explained!!!",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "v5uugcqc",
+            "kind": "youtube",
+            "videoId": "g9c66TUylZ4",
+            "title": "Regression Trees, Clearly Explained!!!",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "fxt5n9ac",
+            "kind": "youtube",
+            "videoId": "D0efHEJsfHo",
+            "title": "How to Prune Regression Trees, Clearly Explained!!!",
+            "channel": "StatQuest with Josh Starmer"
+          }
+        ]
+      },
+      {
+        "id": "ga5qn492",
+        "title": "Topic 8: Ensemble Learning",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "cabbw642",
+            "kind": "youtube",
+            "videoId": "sN5ZcJLDMaE",
+            "title": "Ensemble (Boosting, Bagging, and Stacking) in Machine Learning: Easy Explanation for Data Scientists",
+            "channel": "Emma Ding"
+          },
+          {
+            "id": "y2m7ngif",
+            "kind": "youtube",
+            "videoId": "_cKAxjnInfA",
+            "title": "Statistical Learning: 8.4 Bagging",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "7teqx3wq",
+            "kind": "youtube",
+            "videoId": "0LB1cy2sCXc",
+            "title": "Machine Learning Lecture 30 \"Bagging\" -Cornell CS4780 SP17",
+            "channel": "Kilian Weinberger"
+          },
+          {
+            "id": "9w7naumz",
+            "kind": "youtube",
+            "videoId": "J4Wdy0Wc_xQ",
+            "title": "StatQuest: Random Forests Part 1 - Building, Using and Evaluating",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "ncvxauaf",
+            "kind": "youtube",
+            "videoId": "cdl4C2eCOHk",
+            "title": "Statistical Learning: 8.5 Boosting",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "epd6ixxx",
+            "kind": "youtube",
+            "videoId": "LsK-xG1cLYA",
+            "title": "AdaBoost, Clearly Explained",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "gxyf4hse",
+            "kind": "youtube",
+            "videoId": "3CC4N4z3GJc",
+            "title": "Gradient Boost Part 1 (of 4): Regression Main Ideas",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "gfztq426",
+            "kind": "youtube",
+            "videoId": "xtTyEoJ31Vg",
+            "title": "Stacking Ensemble Learning|Stacking and Blending in ensemble machine learning",
+            "channel": "Unfold Data Science"
+          }
+        ]
+      },
+      {
+        "id": "9arhsr7r",
+        "title": "Topic 9: Neural Networks",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "e28934tj",
+            "kind": "youtube",
+            "videoId": "4Gac5I64LM4",
+            "title": "Perceptron",
+            "channel": "ritvikmath"
+          },
+          {
+            "id": "dxe8d3yy",
+            "kind": "youtube",
+            "videoId": "aircAruvnKk",
+            "title": "But what is a neural network? | Deep learning chapter 1",
+            "channel": "3Blue1Brown"
+          },
+          {
+            "id": "yf93hxgk",
+            "kind": "youtube",
+            "videoId": "jJb2qytbcNg",
+            "title": "Statistical Learning: 10.1 Introduction to Neural Networks",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "xvcvpxai",
+            "kind": "youtube",
+            "videoId": "IHZwWFHWa-w",
+            "title": "Gradient descent, how neural networks learn | Deep Learning Chapter 2",
+            "channel": "3Blue1Brown"
+          },
+          {
+            "id": "8tf4exn9",
+            "kind": "youtube",
+            "videoId": "vMh0zPT0tLI",
+            "title": "Stochastic Gradient Descent, Clearly Explained!!!",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "rtefgnht",
+            "kind": "youtube",
+            "videoId": "Ilg3gGewQ5U",
+            "title": "Backpropagation, intuitively | Deep Learning Chapter 3",
+            "channel": "3Blue1Brown"
+          },
+          {
+            "id": "38vw8km3",
+            "kind": "youtube",
+            "videoId": "tIeHLnjs5U8",
+            "title": "Backpropagation calculus | Deep Learning Chapter 4",
+            "channel": "3Blue1Brown"
+          },
+          {
+            "id": "3qkqdraj",
+            "kind": "youtube",
+            "videoId": "07zslA8BXZY",
+            "title": "Statistical Learning: 10.6 Fitting Neural Networks",
+            "channel": "Stanford Online"
+          }
+        ]
+      },
+      {
+        "id": "wzvtw32n",
+        "title": "Topic 10: Learning Functions - Splines, Kernels, Gaussian Processes",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "x2aezwcy",
+            "kind": "youtube",
+            "videoId": "FrVaxvwCLYM",
+            "title": "Statistical Learning: 7.2 Piecewise Polynomials and Splines",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "sa63y4zw",
+            "kind": "youtube",
+            "videoId": "b_HSFOnrGLI",
+            "title": "Statistical Learning: 7.3 Smoothing Splines",
+            "channel": "Stanford Online"
+          },
+          {
+            "id": "9ij8ji36",
+            "kind": "youtube",
+            "videoId": "wBVSbVktLIY",
+            "title": "The Kernel Trick - THE MATH YOU SHOULD KNOW!",
+            "channel": "CodeEmporium"
+          },
+          {
+            "id": "tixu9s3t",
+            "kind": "youtube",
+            "videoId": "J4rRXd9UL-A",
+            "title": "Kernel Ridge Regression",
+            "channel": "Cynthia Rudin"
+          },
+          {
+            "id": "ibn7i7m2",
+            "kind": "youtube",
+            "videoId": "UBDgSHPxVME",
+            "title": "Gaussian Processes",
+            "channel": "Mutual Information"
+          },
+          {
+            "id": "tvbw3nhd",
+            "kind": "youtube",
+            "videoId": "R-NUdqxKjos",
+            "title": "Machine Learning Lecture 26 \"Gaussian Processes\" -Cornell CS4780 SP17",
+            "channel": "Kilian Weinberger"
+          },
+          {
+            "id": "7aumwjzu",
+            "kind": "youtube",
+            "videoId": "4vGiHC35j9s",
+            "title": "Machine learning - Introduction to Gaussian processes",
+            "channel": "Nando de Freitas"
+          },
+          {
+            "id": "6cypkxsd",
+            "kind": "youtube",
+            "videoId": "qKSK3P-UZ_g",
+            "title": "Probabilistic ML - Lecture 15 - Gaussian Process Classification",
+            "channel": "Tübingen Machine Learning"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "market-research",
-    "unitCode": null,
+    "unitCode": "ST3188",
     "name": "Statistical Methods for Market Research",
     "shortName": "Market research",
     "year": 3,
@@ -3662,15 +4981,1178 @@
       "exercises": null,
       "exercisesNote": null,
       "vle": "https://drive.google.com/drive/folders/13HgN5BskOB3nuB6TNDpHjkX4h7ccMRk7",
-      "olderExams": null,
+      "olderExams": "https://drive.google.com/drive/folders/1qKa9WrB07QRw_Gql24kXYx6zZNonVY4R",
       "cheatSheet": null
     },
     "notes": [],
-    "chapters": []
+    "chapters": [
+      {
+        "id": "grtcetjm",
+        "title": "Full course: Marketing Research and Analysis lectures (NPTEL)",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "pdj2yks9",
+            "kind": "youtube-playlist",
+            "videoId": "PLPjSqITyvDeWBBaFUbkLDJ0egyEYuNeR1",
+            "title": "Marketing research and analysis",
+            "channel": "Management"
+          }
+        ]
+      },
+      {
+        "id": "vy3wt9gr",
+        "title": "Week 1: Introduction and Defining the Market Research Problem",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "pjmngwez",
+            "kind": "youtube",
+            "videoId": "U8tQnSx5fHo",
+            "title": "What is Market Research? | From A Business Professor",
+            "channel": "Business School 101"
+          },
+          {
+            "id": "dycznxmv",
+            "kind": "youtube",
+            "videoId": "b4us4bNwAsc",
+            "title": "The Basics of the Marketing Research Process",
+            "channel": "Professor Wolters"
+          },
+          {
+            "id": "cps9v5c9",
+            "kind": "youtube",
+            "videoId": "ABLHV5Ce6TI",
+            "title": "Lecture 1-Introduction to Marketing Research",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "up7fxcsc",
+            "kind": "youtube",
+            "videoId": "CtZmWrkIsvI",
+            "title": "Topic 4.4 Market research process - Define the problem",
+            "channel": "Marketing Fundamentals for Professionals"
+          },
+          {
+            "id": "a9pznsns",
+            "kind": "youtube",
+            "videoId": "93Rio-HOeWQ",
+            "title": "Lecture 2-Defining Research Problem",
+            "channel": "Marketing research and analysis"
+          }
+        ]
+      },
+      {
+        "id": "pw5meqbp",
+        "title": "Week 2: Research Design",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "q5x4qwp8",
+            "kind": "youtube",
+            "videoId": "MYJWFBHdx2s",
+            "title": "The Importance of Research Design  - Introduction (Marketing Research Module 1, Video 1)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "4yf4wwkt",
+            "kind": "youtube",
+            "videoId": "FlBFdEgrTBM",
+            "title": "1.3 Exploratory, Descriptive and Explanatory Nature Of Research",
+            "channel": "MeanThat"
+          },
+          {
+            "id": "sfip9gda",
+            "kind": "youtube",
+            "videoId": "Ink4ehYLmqw",
+            "title": "Lecture 3-Developing Research Approach & Developing Research Design: Non- Conclusive",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "gct9tkts",
+            "kind": "youtube",
+            "videoId": "1Vi49F2q99o",
+            "title": "Lecture 4- Research Design: Conclusive",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "t2u2p63v",
+            "kind": "youtube",
+            "videoId": "hc6fv0uNgFI",
+            "title": "The Importance of Research Design  - Descriptive Research (Marketing Research Module 1, Video 6)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "m8ubtvkz",
+            "kind": "youtube",
+            "videoId": "5vIeDCcApc8",
+            "title": "Cross-Sectional Study vs Longitudinal Study: Pros, Cons & How To Choose (With Examples)",
+            "channel": "Grad Coach"
+          }
+        ]
+      },
+      {
+        "id": "i3ktck65",
+        "title": "Week 3: Internal Secondary Data and Analytics",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "sazgzze3",
+            "kind": "youtube",
+            "videoId": "rT0WLkOVHzA",
+            "title": "Comparing Secondary & Primary Data in Marketing Research",
+            "channel": "Wolters World"
+          },
+          {
+            "id": "w8qb287m",
+            "kind": "youtube",
+            "videoId": "K3UaIQN_YXI",
+            "title": "Secondary Market Research Explained | Internet Research, External Reports,  & Internal Sources.",
+            "channel": "Two Teachers"
+          },
+          {
+            "id": "bi26j69u",
+            "kind": "youtube",
+            "videoId": "QjRTLJuh33I",
+            "title": "The Importance of Research Design  - Secondary Research (Marketing Research Module 1, Video 2a)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "hbgpfewe",
+            "kind": "youtube",
+            "videoId": "Zforx36uKWE",
+            "title": "The Importance of Research Design  - Secondary Research (Marketing Research Module 1, Video 2b)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "dgpbzegk",
+            "kind": "youtube",
+            "videoId": "uRPkZXAphxw",
+            "title": "Lecture 9- Primary & Secondary Data, Research Error",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "f6dfz7s9",
+            "kind": "youtube",
+            "videoId": "ZCTdpgnNCzM",
+            "title": "Using data to drive customer loyalty | Dunnhumby",
+            "channel": "MarketforceLive"
+          }
+        ]
+      },
+      {
+        "id": "7aiq4jk9",
+        "title": "Week 4: Qualitative Research - Focus Groups and Projective Techniques",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "45duewk3",
+            "kind": "youtube",
+            "videoId": "XicAkp6TnNU",
+            "title": "Lecture 5- Qualitative Research: Nature and Approaches",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "duru684w",
+            "kind": "youtube",
+            "videoId": "3TwgVQIZPsw",
+            "title": "How do focus groups work? - Hector Lanz",
+            "channel": "TED-Ed"
+          },
+          {
+            "id": "ajir3sx5",
+            "kind": "youtube",
+            "videoId": "04ZuLhanhis",
+            "title": "The Importance of Research Design  - Focus Groups (Marketing Research Module 1, Video 5)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "e7yc67yq",
+            "kind": "youtube",
+            "videoId": "k2MEaNMmnLQ",
+            "title": "Lecture 6-Qualitative Research: Depth Interview, Focus Group Discussion",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "99qjdwm4",
+            "kind": "youtube",
+            "videoId": "Pb3UlqAMwKA",
+            "title": "Using In-Depth Interviews (IDIs) In Your Research: Qualitative Research Methods",
+            "channel": "Mod•U: Powerful Concepts in Social Science"
+          },
+          {
+            "id": "tkw5cqbt",
+            "kind": "youtube",
+            "videoId": "4pfJGtC-Ix4",
+            "title": "Projective Techniques / Marketing Research #10",
+            "channel": "Live Innovation"
+          },
+          {
+            "id": "a5fahb9m",
+            "kind": "youtube",
+            "videoId": "Wj2wCiOi1Cc",
+            "title": "Lecture 7- Projective Techniques, Case Study",
+            "channel": "Marketing research and analysis"
+          }
+        ]
+      },
+      {
+        "id": "wz3pq6xp",
+        "title": "Week 5: Survey and Quantitative Observation Techniques",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "cctzf9fj",
+            "kind": "youtube",
+            "videoId": "9cuOyAR-Y9I",
+            "title": "Methods of collecting survey data",
+            "channel": "Elon University Poll"
+          },
+          {
+            "id": "73jth9sv",
+            "kind": "youtube",
+            "videoId": "eRK_dXay5HY",
+            "title": "Methods 101: Mode effects",
+            "channel": "Pew Research Center"
+          },
+          {
+            "id": "m6qqhp5q",
+            "kind": "youtube",
+            "videoId": "13O4B0gPC4M",
+            "title": "4.7 Survey, questionnaire and test | Quantitative methods | Measurement | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "tkqycqn9",
+            "kind": "youtube",
+            "videoId": "zrv-PsjzPKw",
+            "title": "The Importance of Research Design  - Observational Research (Marketing Research Module 1, Video 3)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "nznvkkdb",
+            "kind": "youtube",
+            "videoId": "QcK-XWS-f3M",
+            "title": "The Importance of Research Design  - Ethnography (Marketing Research Module 1, Video 4)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "bjw36vfd",
+            "kind": "youtube",
+            "videoId": "Hatmm84sqm0",
+            "title": "Market researchers observe where we look | Made in Germany",
+            "channel": "DW News"
+          },
+          {
+            "id": "n87je3fb",
+            "kind": "youtube",
+            "videoId": "ErfUVt0fyK0",
+            "title": "Mystery Shopping: How Does It Work?",
+            "channel": "CBS Chicago"
+          }
+        ]
+      },
+      {
+        "id": "3r99gupb",
+        "title": "Week 6: Causal Research Design - Experimentation",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "mzk8z64e",
+            "kind": "youtube",
+            "videoId": "wxWTimkOMrM",
+            "title": "The Importance of Research Design  - Causal Research (Marketing Research Module 1, Video 7)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "uqaiqnrk",
+            "kind": "youtube",
+            "videoId": "W-Zb5xO28UE",
+            "title": "2.4 Causality | Quantitative methods | The Scientific Method | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "ydwffh88",
+            "kind": "youtube",
+            "videoId": "J2584pDVBm0",
+            "title": "2.5 Internal validity threats - participants | Quantitative methods | The Scientific Method | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "pg98adp6",
+            "kind": "youtube",
+            "videoId": "eNPz6lIV7fA",
+            "title": "5.1 External validity threats | Quantitative methods | Sampling | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "4rfa6qai",
+            "kind": "youtube",
+            "videoId": "E7zkaMeFQRE",
+            "title": "3.1 True experiments | Quantitative methods | Research Designs | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "mzqgmmpm",
+            "kind": "youtube",
+            "videoId": "DavsDxgYQo4",
+            "title": "3.7 Experimental designs | Quantitative methods | Research Designs | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "csv2jpyv",
+            "kind": "youtube",
+            "videoId": "3N-DKY09GM4",
+            "title": "3.9 Quasi-experimental designs | Quantitative methods | Research Designs | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "5ib8qbgw",
+            "kind": "youtube",
+            "videoId": "iI4IeaaE-7A",
+            "title": "3.5 Lab vs field research | Quantitative methods | Research Designs | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          }
+        ]
+      },
+      {
+        "id": "hhxy6vie",
+        "title": "Week 7: Measurement and Scaling",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "sftzyaxs",
+            "kind": "youtube",
+            "videoId": "5Yh-9xdJzAs",
+            "title": "Nominal, Ordinal, Interval & Ratio Data: Simple Explanation With Examples",
+            "channel": "Grad Coach"
+          },
+          {
+            "id": "mepdcucd",
+            "kind": "youtube",
+            "videoId": "GVmQpGn-Zuo",
+            "title": "Lecture 10- Measurement & Scaling: Comparative & Non-comparative Scaling",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "bz8i8whh",
+            "kind": "youtube",
+            "videoId": "Y84nA2lv378",
+            "title": "Measuring Attitudes and WTP (Marketing Research Module 2, Video 3)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "mmxs9u36",
+            "kind": "youtube",
+            "videoId": "Tf_71r1Ve5w",
+            "title": "Likert-Scale [Simply Explained]",
+            "channel": "numiqo"
+          },
+          {
+            "id": "nhr74eqp",
+            "kind": "youtube",
+            "videoId": "kIg3YRqoh5s",
+            "title": "Semantic Differential Scales: Measure User Attitudes with Nuance",
+            "channel": "NNgroup"
+          },
+          {
+            "id": "kc9jzek7",
+            "kind": "youtube",
+            "videoId": "RmZwXXsv3M8",
+            "title": "4.5 Measurement validity | Quantitative methods | Measurement | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "eywdi2tx",
+            "kind": "youtube",
+            "videoId": "oE71Onl5K-s",
+            "title": "4.6 Measurement reliability | Quantitative methods | Measurement | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "7kbtax9u",
+            "kind": "youtube",
+            "videoId": "PCztXEfNJLM",
+            "title": "What is Cronbach's Alpha? - Explained Simply",
+            "channel": "how2stats"
+          }
+        ]
+      },
+      {
+        "id": "9yuznf54",
+        "title": "Week 8: Questionnaire Design",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "4smhphan",
+            "kind": "youtube",
+            "videoId": "hDD-VcjTgDU",
+            "title": "Measurement and Questionnaire Design - Intro  (Marketing Research Module 2, Video 1)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "6pkknfde",
+            "kind": "youtube",
+            "videoId": "Zx40lHPHopk",
+            "title": "Questionnaire Construction (Marketing Research Module 2, Video 4)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "rxtr37ct",
+            "kind": "youtube",
+            "videoId": "eFzGdQrr2K8",
+            "title": "Methods 101: Question Wording",
+            "channel": "Pew Research Center"
+          },
+          {
+            "id": "w8wgvfrq",
+            "kind": "youtube",
+            "videoId": "Iq_fhTuY1hw",
+            "title": "7 tips for good survey questions",
+            "channel": "Elon University Poll"
+          },
+          {
+            "id": "kxhk7jbg",
+            "kind": "youtube",
+            "videoId": "FkX-t0Pgzzs",
+            "title": "Designing a Questionnaire or Survey - statistics help",
+            "channel": "Dr Nic's Maths and Stats"
+          },
+          {
+            "id": "725xdgsb",
+            "kind": "youtube",
+            "videoId": "zYX8Ycm9vQE",
+            "title": "Lecture 12- Questionnaire & Form Design",
+            "channel": "Marketing research and analysis"
+          }
+        ]
+      },
+      {
+        "id": "end2fmuy",
+        "title": "Week 9: Sampling - Design and Procedures",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "n3656fxh",
+            "kind": "youtube",
+            "videoId": "fSmedyVv-Us",
+            "title": "Sampling Methods 101: Probability & Non-Probability Sampling Explained Simply",
+            "channel": "Grad Coach"
+          },
+          {
+            "id": "aa2rnkf5",
+            "kind": "youtube",
+            "videoId": "15UxDwpIIig",
+            "title": "5.2 Sampling concepts | Quantitative methods | Sampling | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "vdi744wh",
+            "kind": "youtube",
+            "videoId": "Jd-KqGDaJ3o",
+            "title": "5.3 Probability sampling | Quantitative methods | Sampling | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "kb565v5c",
+            "kind": "youtube",
+            "videoId": "hhkxRfxdX58",
+            "title": "5.4 Probability sampling - simple random and systematic | Quantitative methods | Sampling | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "pj3yziun",
+            "kind": "youtube",
+            "videoId": "WakK8Wzmw6o",
+            "title": "5.5 Probability sampling - complex types | Quantitative methods | Sampling | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "qnuyka48",
+            "kind": "youtube",
+            "videoId": "TtcCvy-CKLc",
+            "title": "5.6 Non-probability sampling | Quantitative methods | Sampling | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "ejxhcdjv",
+            "kind": "youtube",
+            "videoId": "T9dmq6Lwh24",
+            "title": "Methods 101: What are nonprobability surveys?",
+            "channel": "Pew Research Center"
+          },
+          {
+            "id": "pxrur64y",
+            "kind": "youtube",
+            "videoId": "RKSld_j2m5U",
+            "title": "Lecture 15- Sampling Design & Procedure",
+            "channel": "Marketing research and analysis"
+          }
+        ]
+      },
+      {
+        "id": "dgyaekex",
+        "title": "Week 10: Sampling - Determining Sample Size",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "yfr5nht2",
+            "kind": "youtube",
+            "videoId": "yKr9w4e8eSw",
+            "title": "5.7 Sampling error | Quantitative methods | Sampling | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "f76ika9c",
+            "kind": "youtube",
+            "videoId": "KG921rfbTDw",
+            "title": "Intro to Confidence Intervals for One Mean (Sigma Known)",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "jutdi5uw",
+            "kind": "youtube",
+            "videoId": "7zcbVaVz_P8",
+            "title": "Confidence Intervals for One Mean:  Determining the Required Sample Size",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "a64zf2yy",
+            "kind": "youtube",
+            "videoId": "mmgZI2G6ibI",
+            "title": "Confidence Intervals for a Proportion:  Determining the Minimum Sample Size",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "fwv2bkcx",
+            "kind": "youtube",
+            "videoId": "QHzMPzHQgEg",
+            "title": "5.9 Sample size | Quantitative methods | Sampling | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "5cs2uq9w",
+            "kind": "youtube",
+            "videoId": "5a_cf21f6N4",
+            "title": "5.8 Non-sampling error | Quantitative methods | Sampling | UvA",
+            "channel": "Research Methods and Statistics (FMG, UvA)"
+          },
+          {
+            "id": "6tmzkv6j",
+            "kind": "youtube",
+            "videoId": "rk6jtkpad_E",
+            "title": "Lecture 16- Sampling & Sample Size Determination",
+            "channel": "Marketing research and analysis"
+          }
+        ]
+      },
+      {
+        "id": "9igw5e6g",
+        "title": "Week 11: Getting Started with SPSS",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "atx453gm",
+            "kind": "youtube",
+            "videoId": "8VXmkB4fTmM",
+            "title": "SPSS Tutorials: Introducing the SPSS User Interface",
+            "channel": "Department of Methodology LSE"
+          },
+          {
+            "id": "7epyhdvy",
+            "kind": "youtube",
+            "videoId": "9hn-1fky7I8",
+            "title": "SPSS Tutorials: Creating New Variables and Entering Data",
+            "channel": "Department of Methodology LSE"
+          },
+          {
+            "id": "tkpw65rk",
+            "kind": "youtube",
+            "videoId": "_zFBUfZEBWQ",
+            "title": "01 How to Use SPSS - An Introduction to SPSS for Beginners",
+            "channel": "Research By Design"
+          },
+          {
+            "id": "myebueev",
+            "kind": "youtube",
+            "videoId": "bapuGcjwiLQ",
+            "title": "02 Descriptive Statistics and Frequencies in SPSS – SPSS for Beginners",
+            "channel": "Research By Design"
+          },
+          {
+            "id": "jtdr7883",
+            "kind": "youtube",
+            "videoId": "4DbS2NmmQyI",
+            "title": "SPSS Tutorials: Recoding an Interval-Level/Scale Variable into a New Categorical Variable",
+            "channel": "Department of Methodology LSE"
+          },
+          {
+            "id": "cksbm5kr",
+            "kind": "youtube",
+            "videoId": "YCys8qbLFcA",
+            "title": "Exploring Data in SPSS (Marketing Research Module 3, Video 2)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "ejgtur54",
+            "kind": "youtube",
+            "videoId": "77XQQrtgUZ8",
+            "title": "Lecture 18- Data Preparation",
+            "channel": "Marketing research and analysis"
+          }
+        ]
+      },
+      {
+        "id": "x7q4pva3",
+        "title": "Week 12A: Cross-Tabulation and Chi-Square",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "avh6d82m",
+            "kind": "youtube",
+            "videoId": "tTeMYuS87oU",
+            "title": "An Introduction to Hypothesis Testing",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "4h5aj6ri",
+            "kind": "youtube",
+            "videoId": "L1QPBGoDmT0",
+            "title": "Chi-square Tests of Independence (Chi-square Tests for Two-Way Tables)",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "dspv5gbd",
+            "kind": "youtube",
+            "videoId": "lvB0HHoihVA",
+            "title": "SPSS Tutorials: Three-Way Cross-Tab and Chi-Square Statistic for Two Categorical Variables",
+            "channel": "Department of Methodology LSE"
+          },
+          {
+            "id": "unbbvc4h",
+            "kind": "youtube",
+            "videoId": "LUuLGLGI650",
+            "title": "SPSS Tutorials: Three-Way Cross-Tab and Chi-Square Statistic for Three Categorical Variables",
+            "channel": "Department of Methodology LSE"
+          },
+          {
+            "id": "3zmammps",
+            "kind": "youtube",
+            "videoId": "J46LRDkXRng",
+            "title": "Chi-Square Test of Independence with Cramer's V in SPSS",
+            "channel": "Dr. Todd Grande"
+          },
+          {
+            "id": "v9eezfj3",
+            "kind": "youtube",
+            "videoId": "ohquDY3fZqk",
+            "title": "Lecture 22- Cross Tabulation & Chi Square Test",
+            "channel": "Marketing research and analysis"
+          }
+        ]
+      },
+      {
+        "id": "ckiuk4bj",
+        "title": "Week 12B: Hypothesis Tests - t-Tests and Non-Parametric Tests",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "n4tpxcw9",
+            "kind": "youtube",
+            "videoId": "NaZBdj0nCzQ",
+            "title": "Pooled-Variance t Tests and Confidence Intervals: Introduction",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "2pgtskkx",
+            "kind": "youtube",
+            "videoId": "upc4zN_-YFM",
+            "title": "An Example of a Paired-Difference t Test and Confidence Interval",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "sgcx33md",
+            "kind": "youtube",
+            "videoId": "E7F5-rmQ4kM",
+            "title": "SPSS Tutorials: Independent Samples t-Test for the Differenence Between Group Means",
+            "channel": "Department of Methodology LSE"
+          },
+          {
+            "id": "4nhad7tc",
+            "kind": "youtube",
+            "videoId": "IcLSKko2tsg",
+            "title": "Non-parametric tests - Sign test, Wilcoxon signed rank, Mann-Whitney",
+            "channel": "zedstatistics"
+          },
+          {
+            "id": "4uhxhgu4",
+            "kind": "youtube",
+            "videoId": "LcxB56PzylA",
+            "title": "Mann-Whitney U Test [Simply explained]",
+            "channel": "numiqo"
+          },
+          {
+            "id": "4zxxqbsg",
+            "kind": "youtube",
+            "videoId": "NZsL2eDQiDQ",
+            "title": "Wilcoxon-Test (Wilcoxon Signed Rank Test)",
+            "channel": "numiqo"
+          },
+          {
+            "id": "afztyxqp",
+            "kind": "youtube",
+            "videoId": "ZO2RmSkXK3c",
+            "title": "10: Kolmogorov-Smirnov test",
+            "channel": "Matthew E. Clapham"
+          }
+        ]
+      },
+      {
+        "id": "kt85ep2u",
+        "title": "Week 13: Analysis of Variance and Covariance",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "7yxkitw8",
+            "kind": "youtube",
+            "videoId": "QUQ6YppWCeg",
+            "title": "Introduction to One-Way ANOVA",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "my3kz28p",
+            "kind": "youtube",
+            "videoId": "fFnOD7KBSbw",
+            "title": "One-Way ANOVA:  The Formulas",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "muphjnzy",
+            "kind": "youtube",
+            "videoId": "zV7OCPdIVus",
+            "title": "One Way ANOVA (Analysis of Variance) w/ GLM in SPSS  (SPSS Tutorial Video #17); General Linear Model",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "m3hp2wza",
+            "kind": "youtube",
+            "videoId": "lZFmFuZGQTk",
+            "title": "Introduction to Two Way ANOVA (Factorial Analysis)",
+            "channel": "statisticsfun"
+          },
+          {
+            "id": "u7vvs45z",
+            "kind": "youtube",
+            "videoId": "PngndHgZOgY",
+            "title": "ANCOVA (Analysis of Covariance): A Mix of ANOVA and Regression",
+            "channel": "numiqo"
+          },
+          {
+            "id": "hgt93rtd",
+            "kind": "youtube",
+            "videoId": "8tV_OoG3LDo",
+            "title": "One Way ANCOVA (Analysis of Covariance) in SPSS  (SPSS Tutorial Video #18) -  General Linear Model",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "jt5d2xiy",
+            "kind": "youtube",
+            "videoId": "l86wEhUzkY4",
+            "title": "Kruskal-Wallis-Test (Simply explained)",
+            "channel": "numiqo"
+          },
+          {
+            "id": "hjtidmwe",
+            "kind": "youtube",
+            "videoId": "CBXYxs9pLW8",
+            "title": "MANOVA - explained with a simple example",
+            "channel": "TileStats"
+          }
+        ]
+      },
+      {
+        "id": "9vabbw8f",
+        "title": "Week 14: Correlation and Regression",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "8npjptbb",
+            "kind": "youtube",
+            "videoId": "Mf0NxCs5HRw",
+            "title": "Bivariate Correlation in SPSS  (SPSS Tutorial Video #15) - Pearson, Spearman, and Kendall's Tau-B",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "wbfchjud",
+            "kind": "youtube",
+            "videoId": "OpAf4N582bA",
+            "title": "Partial and semipartial correlation",
+            "channel": "Matthew E. Clapham"
+          },
+          {
+            "id": "decguxdh",
+            "kind": "youtube",
+            "videoId": "KsVBBJRb9TE",
+            "title": "Introduction to Simple Linear Regression",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "izbmswb2",
+            "kind": "youtube",
+            "videoId": "zITIFTsivN8",
+            "title": "Multiple Regression, Clearly Explained!!!",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "6wmfy99y",
+            "kind": "youtube",
+            "videoId": "WQeAsZxsXdQ",
+            "title": "Interpreting Output for Multiple Regression in SPSS",
+            "channel": "Dr. Todd Grande"
+          },
+          {
+            "id": "9j58ggv7",
+            "kind": "youtube",
+            "videoId": "O4jDva9B3fw",
+            "title": "Multicollinearity",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "u2ri4i4m",
+            "kind": "youtube",
+            "videoId": "s7EyQwJahgw",
+            "title": "Dummy variables - an introduction",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "4ayvkq73",
+            "kind": "youtube",
+            "videoId": "AdFT17sq53s",
+            "title": "Stepwise Regression",
+            "channel": "Pat Obi"
+          }
+        ]
+      },
+      {
+        "id": "5qdhaxry",
+        "title": "Week 15: Discriminant Analysis",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "3556qrbm",
+            "kind": "youtube",
+            "videoId": "azXCzI57Yfc",
+            "title": "StatQuest: Linear Discriminant Analysis (LDA) clearly explained.",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "fpcuusz8",
+            "kind": "youtube",
+            "videoId": "vnHkTnRFdAU",
+            "title": "Lecture 32- Discriminant Analysis",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "bi8gcw6m",
+            "kind": "youtube",
+            "videoId": "pkCgLstMxJI",
+            "title": "Lecture 33- Discriminant Analysis cont.",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "na3iafn9",
+            "kind": "youtube",
+            "videoId": "vm1OLoL_VuY",
+            "title": "Conducting a Discriminant Analysis in SPSS",
+            "channel": "Dr. Todd Grande"
+          },
+          {
+            "id": "wfmde6kh",
+            "kind": "youtube",
+            "videoId": "70vGOdEvYaM",
+            "title": "A Primer on Multiple Discriminant Analysis in SPSS",
+            "channel": "James Gaskin"
+          }
+        ]
+      },
+      {
+        "id": "2y7zwb2t",
+        "title": "Week 16: Logit Analysis",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "csz7rw5q",
+            "kind": "youtube",
+            "videoId": "yIYKR4sgzI8",
+            "title": "StatQuest: Logistic Regression",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "wihfmcrw",
+            "kind": "youtube",
+            "videoId": "vN5cNN2-HWE",
+            "title": "Logistic Regression Details Pt1: Coefficients",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "x4b8u9p7",
+            "kind": "youtube",
+            "videoId": "yPCQZeGWJjw",
+            "title": "Discrete choice models - introduction to logit and probit",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "drnqyezg",
+            "kind": "youtube",
+            "videoId": "fJ53tIDbvTM",
+            "title": "Log odds interpretation of logistic regression",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "hyqhc84i",
+            "kind": "youtube",
+            "videoId": "xxFYro8QuXA",
+            "title": "Logistic Regression Details Pt 3: R-squared and p-value",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "mxqwey5s",
+            "kind": "youtube",
+            "videoId": "Ak_t86zm_sQ",
+            "title": "SPSS Tutorials: Binary Logistic Regression",
+            "channel": "Department of Methodology LSE"
+          },
+          {
+            "id": "983ubuti",
+            "kind": "youtube",
+            "videoId": "4vwg98ELS_M",
+            "title": "Interpreting the Odds Ratio in Logistic Regression using SPSS",
+            "channel": "Dr. Todd Grande"
+          }
+        ]
+      },
+      {
+        "id": "23rbi6pt",
+        "title": "Week 17: Factor Analysis",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "fd2fajk4",
+            "kind": "youtube",
+            "videoId": "WV_jcaDBZ2I",
+            "title": "Factor Analysis - an introduction",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "yetggucz",
+            "kind": "youtube",
+            "videoId": "uvRgMnyon2Y",
+            "title": "Factor Analysis Intro (Marketing Research Module 5, Video 6)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "vbfe2put",
+            "kind": "youtube",
+            "videoId": "NHrNVEIHPBY",
+            "title": "Lecture 25- Factor Analysis",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "fmibkdw3",
+            "kind": "youtube",
+            "videoId": "HoVrruVotho",
+            "title": "Principal Component Analysis vs. Exploratory Factor Analysis (PCA and EFA)",
+            "channel": "numiqo"
+          },
+          {
+            "id": "w5rjgtnr",
+            "kind": "youtube",
+            "videoId": "pRA3Wapx7fY",
+            "title": "Factor Analysis Using SPSS",
+            "channel": "Dr. Todd Grande"
+          },
+          {
+            "id": "af8pvuc4",
+            "kind": "youtube",
+            "videoId": "g_3kaSnq-DY",
+            "title": "Interpreting SPSS Output for Factor Analysis",
+            "channel": "Dr. Todd Grande"
+          },
+          {
+            "id": "gmc5944x",
+            "kind": "youtube",
+            "videoId": "b14wRuKVvzk",
+            "title": "Factor rotation after exploratory factor analysis",
+            "channel": "Mikko Rönkkö"
+          }
+        ]
+      },
+      {
+        "id": "4p83xuqq",
+        "title": "Week 18: Cluster Analysis",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "xikfnwmc",
+            "kind": "youtube",
+            "videoId": "UrqLTkDHwkY",
+            "title": "Cluster Analysis 1 (Marketing Research Module 5, Video 3)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "pi8db79x",
+            "kind": "youtube",
+            "videoId": "esHdKLt4_Ks",
+            "title": "Cluster Analysis 2 (Marketing Research Module 5, Video 4)",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "diy6gcjw",
+            "kind": "youtube",
+            "videoId": "7xHsRkOdVwo",
+            "title": "StatQuest: Hierarchical Clustering",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "ddm2y4gd",
+            "kind": "youtube",
+            "videoId": "vg1w5ZUF5lA",
+            "title": "IAML19.5 Single-link, complete-link, Ward's method",
+            "channel": "Victor Lavrenko"
+          },
+          {
+            "id": "jvkd2qkw",
+            "kind": "youtube",
+            "videoId": "4b5d3muPQmA",
+            "title": "StatQuest: K-means clustering",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "e5xh7dgw",
+            "kind": "youtube",
+            "videoId": "3BzfOLnIY9w",
+            "title": "Hierarchical Cluster Analysis in SPSS (SPSS Tutorial Video #29) - Dendrogram",
+            "channel": "Galak Breaks It Down"
+          },
+          {
+            "id": "43tu39zk",
+            "kind": "youtube",
+            "videoId": "U6a2UaaWiH4",
+            "title": "SPSS Hierarchical Clustering - Ward's Linkage and the Agglomeration Schedule",
+            "channel": "Dragonfly Statistics"
+          },
+          {
+            "id": "5q2mhj2f",
+            "kind": "youtube",
+            "videoId": "wdVtiVx_mAk",
+            "title": "K-Means Cluster Analysis in SPSS (SPSS Tutorial Video #30)",
+            "channel": "Galak Breaks It Down"
+          }
+        ]
+      },
+      {
+        "id": "txfmdzm4",
+        "title": "Week 19: Conjoint Analysis",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "mp2jxwnq",
+            "kind": "youtube",
+            "videoId": "dAucTNXEzhU",
+            "title": "Conjoint Analysis Explained (Understand in Under 5)",
+            "channel": "Choice Based Market Insights"
+          },
+          {
+            "id": "bcurs6px",
+            "kind": "youtube",
+            "videoId": "yiRNcHU2ZGU",
+            "title": "Conjoint Analysis in 10 minutes - Business Performance Management",
+            "channel": "BPMSG"
+          },
+          {
+            "id": "ehxqce42",
+            "kind": "youtube",
+            "videoId": "Wum3_Y0AO4A",
+            "title": "Lecture 40- Conjoint Analysis",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "m754f5ku",
+            "kind": "youtube",
+            "videoId": "DOIhSW38P-Q",
+            "title": "L51: Forms of conjoint analysis | types & applications in marketing",
+            "channel": "IIT Madras - B.S. Degree Programme"
+          },
+          {
+            "id": "2796svv5",
+            "kind": "youtube",
+            "videoId": "LZ1aMpidn0Y",
+            "title": "SPSS - Conjoint Analysis",
+            "channel": "Prof. Dr. Jens K. Perret"
+          },
+          {
+            "id": "aq2w3ehk",
+            "kind": "youtube",
+            "videoId": "_TSjdIIPeoo",
+            "title": "Conjoint Analysis Part 1 | SPSS | Marketing Research",
+            "channel": "My Easy Statistics"
+          }
+        ]
+      },
+      {
+        "id": "j25ejk6p",
+        "title": "Week 20: Multidimensional Scaling",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "4avp3wqg",
+            "kind": "youtube",
+            "videoId": "xJUrBylId7I",
+            "title": "Perceptual Mapping & Product Positioning Explained",
+            "channel": "Wolters World"
+          },
+          {
+            "id": "b22rh7zf",
+            "kind": "youtube",
+            "videoId": "L9hgJ-4hLYg",
+            "title": "Perceptual mapping",
+            "channel": "Choice Based Market Insights"
+          },
+          {
+            "id": "6mwguhsf",
+            "kind": "youtube",
+            "videoId": "GEn-_dAyYME",
+            "title": "StatQuest: MDS and PCoA",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "vr2f6car",
+            "kind": "youtube",
+            "videoId": "NPcwjc6Oh7k",
+            "title": "Lecture 39- Multi Dimensional Scaling",
+            "channel": "Marketing research and analysis"
+          },
+          {
+            "id": "yhu5qiiv",
+            "kind": "youtube",
+            "videoId": "o1Z_tQh043k",
+            "title": "Multidimensional Scaling Analysis using SPSS # Perceptual Maps",
+            "channel": "My Easy Statistics"
+          },
+          {
+            "id": "igamqwaq",
+            "kind": "youtube",
+            "videoId": "r-JbmRgn3ag",
+            "title": "The One-Minute Correspondence Analysis Course",
+            "channel": "CARMEnetwork"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "microeconomics",
-    "unitCode": null,
+    "unitCode": "EC2066",
     "name": "Microeconomics",
     "shortName": "Microeconomics",
     "year": 3,
@@ -3683,15 +6165,695 @@
       "exercises": null,
       "exercisesNote": null,
       "vle": "https://drive.google.com/drive/folders/1oCLFiXjm8tVq_TTatSn6zFq0EfNCOAf6",
-      "olderExams": null,
+      "olderExams": "https://drive.google.com/drive/folders/1hFW628n6-1PX8dRx9Aihh0ZkChylCyaO",
       "cheatSheet": null
     },
     "notes": [],
-    "chapters": []
+    "chapters": [
+      {
+        "id": "3aavyrih",
+        "title": "Consumer theory",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "3r9rrrzh",
+            "kind": "youtube",
+            "videoId": "tCKk22kaZi4",
+            "title": "2. Preferences and Utility Functions",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "85cfm5jy",
+            "kind": "youtube",
+            "videoId": "5Af7M2xEa4A",
+            "title": "Constrained Optimization: The Lagrangian Method of Maximizing Consumer Utility",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "r5ycquq9",
+            "kind": "youtube",
+            "videoId": "x0scPosOsoI",
+            "title": "4. Demand Curves and Income/Substitution Effects",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "6zuu95cx",
+            "kind": "youtube",
+            "videoId": "lq9w2qyNk1A",
+            "title": "Deriving Compensated (Hicksian) Demand Functions",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "73h2nvvj",
+            "kind": "youtube",
+            "videoId": "ABXlkPmnjN4",
+            "title": "Three Measures of Consumer Welfare: Compensating Variation, Equivalent Variation, Consumer Surplus",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "5tw34scg",
+            "kind": "youtube",
+            "videoId": "aDeI5meKDjk",
+            "title": "7b. The Labor-Leisure Problem",
+            "channel": "Intromediate Econ"
+          },
+          {
+            "id": "crq7ke7e",
+            "kind": "youtube",
+            "videoId": "CrWqGe7h34E",
+            "title": "Intertemporal Choice: Utility Maximization Over Two Time Periods",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "wnxi79m2",
+            "kind": "youtube",
+            "videoId": "BUnUOv_INyM",
+            "title": "17. Making Choices Over Time",
+            "channel": "MIT OpenCourseWare"
+          }
+        ]
+      },
+      {
+        "id": "jjp55chz",
+        "title": "Choice under uncertainty",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "6i5gkbje",
+            "kind": "youtube",
+            "videoId": "a9Uz7tXETq4",
+            "title": "20. Uncertainty",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "ngcg2xc9",
+            "kind": "youtube",
+            "videoId": "zrXWSXmOVFA",
+            "title": "(M5E3) [Microeconomics] Expected Utility Theory",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "agmpw5ht",
+            "kind": "youtube",
+            "videoId": "aEII9Fkvk48",
+            "title": "(M5E11) [Microeconomics] Risk Aversion and Concavity",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "ge98c9sc",
+            "kind": "youtube",
+            "videoId": "Bem5kR0zu0M",
+            "title": "(M5E12) [Microeconomics] Certainty Equivalence and Risk Premium",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "7yn5nkne",
+            "kind": "youtube",
+            "videoId": "aqEz6kvXhc8",
+            "title": "Economics of Insurance: Expected Utility, Actuarially Fair Premium",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "cpduaqwg",
+            "kind": "youtube",
+            "videoId": "KUGJhiAU_7I",
+            "title": "How to Solve for Utility-Maximizing Amount of Insurance coverage",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "bjrjmh55",
+            "kind": "youtube",
+            "videoId": "kKyCf50CGGo",
+            "title": "Arrow-Pratt Measure of Absolute and Relative Risk Aversion",
+            "channel": "Justin Eloriaga"
+          }
+        ]
+      },
+      {
+        "id": "fahecw3m",
+        "title": "Game theory",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "47szscdq",
+            "kind": "youtube",
+            "videoId": "O8T9spKHVWQ",
+            "title": "Game Theory 101 (#3): Iterated Elimination of Strictly Dominated Strategies",
+            "channel": "William Spaniel"
+          },
+          {
+            "id": "72nvfv4k",
+            "kind": "youtube",
+            "videoId": "stzPcqmyhI4",
+            "title": "Game Theory 101 (#4): Pure Strategy Nash Equilibrium and the Stag Hunt",
+            "channel": "William Spaniel"
+          },
+          {
+            "id": "2amc2jsk",
+            "kind": "youtube",
+            "videoId": "aa8USttcDoE",
+            "title": "Game Theory 101 (#8): The Mixed Strategy Algorithm",
+            "channel": "William Spaniel"
+          },
+          {
+            "id": "z95bxci6",
+            "kind": "youtube",
+            "videoId": "7oASpaBdDMs",
+            "title": "6. Nash equilibrium: dating and Cournot",
+            "channel": "YaleCourses"
+          },
+          {
+            "id": "s7ckbwg8",
+            "kind": "youtube",
+            "videoId": "hSYXkDnCpHM",
+            "title": "Game Theory 101  (#16): Subgame Perfect Equilibrium",
+            "channel": "William Spaniel"
+          },
+          {
+            "id": "a8rzpq2r",
+            "kind": "youtube",
+            "videoId": "D7aDIZ-KPEU",
+            "title": "18. Imperfect information: information sets and sub-game perfection",
+            "channel": "YaleCourses"
+          },
+          {
+            "id": "yitmfv2x",
+            "kind": "youtube",
+            "videoId": "8jBouAQt9EY",
+            "title": "Game Theory 101 (#58): Grim Trigger in the Repeated Prisoner's Dilemma",
+            "channel": "William Spaniel"
+          },
+          {
+            "id": "tdaabzyb",
+            "kind": "youtube",
+            "videoId": "a8QAcwNcJPU",
+            "title": "Game Theory 101 (#61): The Folk Theorem",
+            "channel": "William Spaniel"
+          }
+        ]
+      },
+      {
+        "id": "mk335ei4",
+        "title": "Production, costs and profit maximisation",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "trhdfnu3",
+            "kind": "youtube",
+            "videoId": "ftmvsahQ6Wo",
+            "title": "5. Production Theory",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "e9rrs7wh",
+            "kind": "youtube",
+            "videoId": "8SkqltGoWqw",
+            "title": "19. Short Run Production, Marginal and Average Product",
+            "channel": "Intromediate Econ"
+          },
+          {
+            "id": "dxs6qwmg",
+            "kind": "youtube",
+            "videoId": "QkXyvqq5Jns",
+            "title": "How to Solve for the MRTS: Five Examples",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "wg53pr4s",
+            "kind": "youtube",
+            "videoId": "UHvMlTZJbZo",
+            "title": "(M6E3) [Microeconomics] Production Functions: Returns to Scale",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "8wzymme5",
+            "kind": "youtube",
+            "videoId": "GbBQ3i1K2DE",
+            "title": "17a. Cost Minimization, Production and Lagrangians",
+            "channel": "Intromediate Econ"
+          },
+          {
+            "id": "vrp447jb",
+            "kind": "youtube",
+            "videoId": "TSYNHb6YBEE",
+            "title": "6. Costs",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "2rx2ykjz",
+            "kind": "youtube",
+            "videoId": "G7KnsA0ZF7w",
+            "title": "23. Relating short run and long run cost curves",
+            "channel": "Intromediate Econ"
+          },
+          {
+            "id": "5i85ycnv",
+            "kind": "youtube",
+            "videoId": "mwoDOrz-4IY",
+            "title": "(M6E8) [Microeconomics] Profit Maximization",
+            "channel": "selcuk ozyurt"
+          }
+        ]
+      },
+      {
+        "id": "2f8izpve",
+        "title": "Perfect competition in a single market",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "x8ufizf6",
+            "kind": "youtube",
+            "videoId": "_POik0fJpsY",
+            "title": "21. The Firm's Supply Curve from Marginal Cost",
+            "channel": "Intromediate Econ"
+          },
+          {
+            "id": "89vqfezc",
+            "kind": "youtube",
+            "videoId": "BNy84DCRxzo",
+            "title": "7. Competition I",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "hpiwcnds",
+            "kind": "youtube",
+            "videoId": "F0ulAkrfvzo",
+            "title": "8. Competition II",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "iipaisdc",
+            "kind": "youtube",
+            "videoId": "yrRysbDoyhw",
+            "title": "Tax Incidence Explained with Supply and Demand",
+            "channel": "Marginal Revolution University"
+          },
+          {
+            "id": "x8zdfe7p",
+            "kind": "youtube",
+            "videoId": "dbuU8S1x0Ro",
+            "title": "Tax Revenue and Deadweight Loss",
+            "channel": "Marginal Revolution University"
+          },
+          {
+            "id": "tcz2gzhy",
+            "kind": "youtube",
+            "videoId": "Q4FxNAacEB4",
+            "title": "38. Price Ceilings and Price Floors",
+            "channel": "Intromediate Econ"
+          },
+          {
+            "id": "94686ug3",
+            "kind": "youtube",
+            "videoId": "iL6N9oaF1yE",
+            "title": "The Effect of a Price Support",
+            "channel": "Edspira"
+          },
+          {
+            "id": "vh9c847m",
+            "kind": "youtube",
+            "videoId": "xHIKWqBj7kU",
+            "title": "Welfare effects of a tariff (a small country example)",
+            "channel": "Iris Franz"
+          }
+        ]
+      },
+      {
+        "id": "p7tsid7t",
+        "title": "General equilibrium and welfare",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "tkyhwzcr",
+            "kind": "youtube",
+            "videoId": "oMjhRcXl5NE",
+            "title": "(M8E1) [Microeconomics] General Equilibrium: Introduction to Pure Exchange Economy",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "cuzvy43s",
+            "kind": "youtube",
+            "videoId": "qnJRFtLt9hM",
+            "title": "(M8E2) [Microeconomics] Edgeworth Box and Feasible Allocations",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "hwqeqc4b",
+            "kind": "youtube",
+            "videoId": "XRR-iouyOYg",
+            "title": "(M8E5) [Microeconomics] How to Find Pareto Efficient Allocations and Contract Curve",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "2h5dp6xh",
+            "kind": "youtube",
+            "videoId": "Fuyshwxs1Ig",
+            "title": "Edgeworth Box, Contract Curve, and Solving for Equilibrium Prices",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "br843mkz",
+            "kind": "youtube",
+            "videoId": "QdhUiU063jg",
+            "title": "(M8E10) [Microeconomics] Solving Walrasian Equilibrium Allocation and prices: No Production.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "zevzprde",
+            "kind": "youtube",
+            "videoId": "IrSgLJBqCSo",
+            "title": "(M8E12) [Microeconomics] First and Second Fundamental Theorem of Welfare Economics.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "ijegaj45",
+            "kind": "youtube",
+            "videoId": "gyhMBqdnbDo",
+            "title": "(IME2) Chapter 7 - Video 1: General Equilibrium with Production - Production Possibility Frontier.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "rfymzb48",
+            "kind": "youtube",
+            "videoId": "XazAuoyCbx0",
+            "title": "General Equilibrium: Robinson Crusoe Economy Solved Problem",
+            "channel": "Economics in Many Lessons"
+          }
+        ]
+      },
+      {
+        "id": "hxmkqbf5",
+        "title": "Monopoly",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "4f74cmb3",
+            "kind": "youtube",
+            "videoId": "FJVOh57UxL8",
+            "title": "11. Monopoly I",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "mtiqbh7i",
+            "kind": "youtube",
+            "videoId": "ufrYzoR_4xE",
+            "title": "12. Monopoly II",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "ybc7t2c4",
+            "kind": "youtube",
+            "videoId": "wUgrFSrMWQU",
+            "title": "Lerner Index",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "m2q34xmu",
+            "kind": "youtube",
+            "videoId": "mvPHvwgwHHE",
+            "title": "Monopoly: Consumer Surplus, Producer Surplus, Deadweight Loss",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "mb288kdh",
+            "kind": "youtube",
+            "videoId": "mFlNxRV9OZo",
+            "title": "(IME2) Chapter 2 - Video 2: First-Degree Price Discrimination.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "w2v8jdjd",
+            "kind": "youtube",
+            "videoId": "VBwlyTN6vlw",
+            "title": "33. Second Degree Price Discrimination",
+            "channel": "Intromediate Econ"
+          },
+          {
+            "id": "hq5dh5np",
+            "kind": "youtube",
+            "videoId": "MmGYldezp40",
+            "title": "(IME2) Chapter 2 - Video 3: Third-Degree Price Discrimination.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "jznwsiic",
+            "kind": "youtube",
+            "videoId": "7CrlqeMwP4M",
+            "title": "Regulation of a Natural Monopoly",
+            "channel": "Economics in Many Lessons"
+          }
+        ]
+      },
+      {
+        "id": "rzdnpy2f",
+        "title": "Oligopoly",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "h44a8ttx",
+            "kind": "youtube",
+            "videoId": "0kA91PvS3sk",
+            "title": "13. Oligopoly",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "g4vg9vni",
+            "kind": "youtube",
+            "videoId": "An_2r6Ae_28",
+            "title": "How to Solve a Cournot Oligopoly Problem",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "jmjdnwbc",
+            "kind": "youtube",
+            "videoId": "P0N1RteWiEQ",
+            "title": "(IME2) Chapter 4 - Video 7: Collusion in Cournot Model, Monopoly Profit, and Incentive to Deviate.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "m8ry697s",
+            "kind": "youtube",
+            "videoId": "L-QjAluq_fo",
+            "title": "7-Firm Cournot Model: How to Solve any N-Firm Cournot Model",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "fu2vs8js",
+            "kind": "youtube",
+            "videoId": "LMCODkeeDtE",
+            "title": "How to Solve A Stackelberg Oligopoly Problem",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "sng33nj8",
+            "kind": "youtube",
+            "videoId": "PQTN3MXTRPw",
+            "title": "35a. Bertrand Competition",
+            "channel": "Intromediate Econ"
+          },
+          {
+            "id": "2s23b97z",
+            "kind": "youtube",
+            "videoId": "YrnqUPW96lY",
+            "title": "Oligopoly: Bertrand Competition with Differentiated Goods",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "ijun7s6k",
+            "kind": "youtube",
+            "videoId": "CkVi3LIl74g",
+            "title": "Stackelberg Part 2: Introduction to Entry Deterrence",
+            "channel": "Matt Birch"
+          }
+        ]
+      },
+      {
+        "id": "u5fz4cxt",
+        "title": "Asymmetric information: adverse selection",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "upufb3bj",
+            "kind": "youtube",
+            "videoId": "hm5zqBPsRJM",
+            "title": "24. Market Failures II: Informational Asymmetry",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "n4w5xzc9",
+            "kind": "youtube",
+            "videoId": "S08DrcQ5fx0",
+            "title": "(IME2) Chapter 11 - Video 2: Used Cars or the Lemons Problem With Two Types - Key Concepts.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "6xb39jxt",
+            "kind": "youtube",
+            "videoId": "BcEIZm5vTQw",
+            "title": "(IME2) Chapter 11 - Video 3: Solving the Used Cars or the Lemons Problem With Two Types.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "9c2hez59",
+            "kind": "youtube",
+            "videoId": "TgpV3F1gSRY",
+            "title": "4. Hidden Information (Screening Problem): Part 1 - First Best Solution (Game Theory Playlist 11)",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "xhn6ppqf",
+            "kind": "youtube",
+            "videoId": "lEVbbGxe0r0",
+            "title": "5. Hidden Information (Screening Problem): Part 2 - Second Best Solution (Game Theory Playlist 11)",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "bgqz8qjm",
+            "kind": "youtube",
+            "videoId": "O7RgNPbFiH0",
+            "title": "(IME2) Chapter 11 - Video 5: Introduction to Spence's Job Market Signaling Model - Key Concepts.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "2mkws8hi",
+            "kind": "youtube",
+            "videoId": "VddaoIIIHMs",
+            "title": "(IME2) Chapter 11-Video 6: Solving for Separating Equilibrium of Spence's Job Market Signaling Model",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "sfid9jxn",
+            "kind": "youtube",
+            "videoId": "f92OLDTk74g",
+            "title": "Signaling Model of Education: Solving for the Pooling and Separating Equilibrium",
+            "channel": "Economics in Many Lessons"
+          }
+        ]
+      },
+      {
+        "id": "7svf3cge",
+        "title": "Asymmetric information: moral hazard",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "ttm4yipa",
+            "kind": "youtube",
+            "videoId": "5v7TWKlYoN0",
+            "title": "Moral Hazard",
+            "channel": "Marginal Revolution University"
+          },
+          {
+            "id": "7d3tpabt",
+            "kind": "youtube",
+            "videoId": "Nm0wV0CenWY",
+            "title": "Adverse Selection vs. Moral Hazard",
+            "channel": "Ashley Hodgson"
+          },
+          {
+            "id": "3ft8dgzs",
+            "kind": "youtube",
+            "videoId": "kdXqwucFNeU",
+            "title": "Principal Agent Models Part 1: Moral Hazard with Observability",
+            "channel": "BurkeyAcademy"
+          },
+          {
+            "id": "grcahwvi",
+            "kind": "youtube",
+            "videoId": "L28dEHpZ7-M",
+            "title": "Principal Agent Models Part 2: Moral Hazard with Hidden Actions",
+            "channel": "BurkeyAcademy"
+          },
+          {
+            "id": "5w3rns84",
+            "kind": "youtube",
+            "videoId": "gpD19ZPoZhk",
+            "title": "Incentive compatibility & participation constraints (Separating Eqbm & Mechanism Design)",
+            "channel": "Ashley Hodgson"
+          },
+          {
+            "id": "8cakcb78",
+            "kind": "youtube",
+            "videoId": "LIpEXogDHsA",
+            "title": "Intermediate Micro: Overcoming Moral Hazard Through Incentive Contracts",
+            "channel": "Ben Zamzow"
+          },
+          {
+            "id": "brievrui",
+            "kind": "youtube",
+            "videoId": "5tGh7wd2zOU",
+            "title": "13. Sequential games: moral hazard, incentives, and hungry lions",
+            "channel": "YaleCourses"
+          }
+        ]
+      },
+      {
+        "id": "6wtf9dtz",
+        "title": "Externalities and public goods",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "6dw4yjbe",
+            "kind": "youtube",
+            "videoId": "BvwqdFWsw9A",
+            "title": "(IME2) Chapter 9 - Video 1: Key Concepts on Externalities.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "g5escys4",
+            "kind": "youtube",
+            "videoId": "DuUNNvlo3UU",
+            "title": "(IME2) Chapter 9 - Video 4: The Pigouvian Tax; a Numerical Example.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "7hdxcyz6",
+            "kind": "youtube",
+            "videoId": "RIugTo0ivWI",
+            "title": "44. Externalities and The Coase Theorem",
+            "channel": "Intromediate Econ"
+          },
+          {
+            "id": "8yqmy5wu",
+            "kind": "youtube",
+            "videoId": "9tUb3MDrgEc",
+            "title": "Trading Pollution: How Pollution Permits Paradoxically Reduce Emissions",
+            "channel": "Marginal Revolution University"
+          },
+          {
+            "id": "g8v4y7b7",
+            "kind": "youtube",
+            "videoId": "CC2wf39PmSg",
+            "title": "The Samuelson Condition for the Provision of Public Goods",
+            "channel": "Matt Birch"
+          },
+          {
+            "id": "yu8pdzd9",
+            "kind": "youtube",
+            "videoId": "sV0tI_ll8Ws",
+            "title": "Efficient Provision of a Public Good with Three Different Consumers",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "tq8hm7kq",
+            "kind": "youtube",
+            "videoId": "GGzSdqIkkjU",
+            "title": "(IME2) Chapter 10 - Video 7: Nash Equilibria of the Public Good Provision Game - An Example.",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "ceygn6sq",
+            "kind": "youtube",
+            "videoId": "io88vTQO_g4",
+            "title": "(IME2) Chapter 9 - Video 6: The Tragedy of Commons.",
+            "channel": "selcuk ozyurt"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "asset-pricing",
-    "unitCode": null,
+    "unitCode": "FN2203",
     "name": "Principles of Asset Pricing",
     "shortName": "Asset pricing",
     "year": 3,
@@ -3704,15 +6866,646 @@
       "exercises": null,
       "exercisesNote": null,
       "vle": "https://drive.google.com/drive/folders/1pyaBciV2CtsBHuPUTKa8u_TKSQgCDWwa",
-      "olderExams": null,
-      "cheatSheet": null
+      "olderExams": "https://drive.google.com/drive/folders/1X_LLB6t_oxNn0ylYuGJo-PSs6n90mFH1",
+      "cheatSheet": "https://drive.google.com/drive/folders/17C5VR-6c4gmSPf7DMwCwKYKWwe33PdIt"
     },
     "notes": [],
-    "chapters": []
+    "chapters": [
+      {
+        "id": "wvmum8as",
+        "title": "Review of time value of money",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "4xmafrr6",
+            "kind": "youtube",
+            "videoId": "U03Md5enU-0",
+            "title": "Ses 2: Present Value Relations I",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "4yw3dyva",
+            "kind": "youtube",
+            "videoId": "RU-osjAs6hE",
+            "title": "How To Calculate The Present Value of an Annuity",
+            "channel": "The Organic Chemistry Tutor"
+          },
+          {
+            "id": "bpz4qmjw",
+            "kind": "youtube",
+            "videoId": "rViT_ODg5Yk",
+            "title": "Ordinary Annuity vs  Annuity Due",
+            "channel": "Edspira"
+          },
+          {
+            "id": "6454ema3",
+            "kind": "youtube",
+            "videoId": "bIIndFa0RCM",
+            "title": "Annuities - How To Calculate The Future Value of an Annuity Due",
+            "channel": "The Organic Chemistry Tutor"
+          },
+          {
+            "id": "wmtzeu8y",
+            "kind": "youtube",
+            "videoId": "S27jP4XUarY",
+            "title": "Present Value of a Growing Annuity",
+            "channel": "Edspira"
+          },
+          {
+            "id": "dbdgnm3y",
+            "kind": "youtube",
+            "videoId": "88-B0vXTTIU",
+            "title": "Present Value of a Perpetuity",
+            "channel": "Edspira"
+          },
+          {
+            "id": "8cv7r6xs",
+            "kind": "youtube",
+            "videoId": "Q7_eqf0Vd1Q",
+            "title": "Present Value of a Growing Perpetuity",
+            "channel": "Edspira"
+          },
+          {
+            "id": "ecsrgkk7",
+            "kind": "youtube",
+            "videoId": "o5QRdHH8aeQ",
+            "title": "Formula for continuously compounding interest | Finance & Capital Markets | Khan Academy",
+            "channel": "Khan Academy"
+          }
+        ]
+      },
+      {
+        "id": "yffnx42n",
+        "title": "Fixed income - Part 1: spot rates, no-arbitrage pricing and the term structure",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "aamu4485",
+            "kind": "youtube",
+            "videoId": "hyc8h5T76BE",
+            "title": "Ses 4: Present Value Relations III & Fixed-Income Securities I",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "igkhpfbp",
+            "kind": "youtube",
+            "videoId": "b_cAxh44aNQ",
+            "title": "Introduction to the yield curve | Stocks and bonds | Finance & Capital Markets | Khan Academy",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "7ts8tghr",
+            "kind": "youtube",
+            "videoId": "mNxFjtTyXZI",
+            "title": "No Arbitrage Bond Pricing",
+            "channel": "Thomas Rietz"
+          },
+          {
+            "id": "uci85y4b",
+            "kind": "youtube",
+            "videoId": "CAs_aX95tVQ",
+            "title": "How Short Selling Works",
+            "channel": "The Plain Bagel"
+          },
+          {
+            "id": "x3vau5ne",
+            "kind": "youtube",
+            "videoId": "aOw7_pEHVZM",
+            "title": "How to Calculate Spot Rates and Forward Rates in Bonds",
+            "channel": "Ryan O'Connell, CFA, FRM"
+          },
+          {
+            "id": "jemqjhhb",
+            "kind": "youtube",
+            "videoId": "8_8g3Zw3Lg0",
+            "title": "The Spot Curve and Forward Curve Explained In 5 Minutes",
+            "channel": "Ryan O'Connell, CFA, FRM"
+          },
+          {
+            "id": "anfgzuj3",
+            "kind": "youtube",
+            "videoId": "SNehgIhigek",
+            "title": "3 Theories Explaining the Shape of the Yield Curve",
+            "channel": "Edspira"
+          },
+          {
+            "id": "5qnqy7e4",
+            "kind": "youtube",
+            "videoId": "yrmqYNvvIzs",
+            "title": "Ses 5: Fixed-Income Securities II",
+            "channel": "MIT OpenCourseWare"
+          }
+        ]
+      },
+      {
+        "id": "jgrrqpnx",
+        "title": "Fixed income - Part 2: yield to maturity, duration and corporate bonds",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "4cmx7kva",
+            "kind": "youtube",
+            "videoId": "I7FDx4DPapw",
+            "title": "Relationship between bond prices and interest rates | Finance & Capital Markets | Khan Academy",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "yrgu7xhy",
+            "kind": "youtube",
+            "videoId": "BqFc3iosyqQ",
+            "title": "Bond Prices And How They Are Related To Yield to Maturity (YTM)",
+            "channel": "Professor Ikram"
+          },
+          {
+            "id": "d5pbswd8",
+            "kind": "youtube",
+            "videoId": "F7XnR7sKWiE",
+            "title": "Macaulay Duration",
+            "channel": "Edspira"
+          },
+          {
+            "id": "ymqzqyma",
+            "kind": "youtube",
+            "videoId": "rdDfmlerTcI",
+            "title": "Modified Duration",
+            "channel": "Edspira"
+          },
+          {
+            "id": "8ckqy449",
+            "kind": "youtube",
+            "videoId": "9GOfBq5Go9U",
+            "title": "Bond Duration and Bond Convexity Explained",
+            "channel": "Ryan O'Connell, CFA, FRM"
+          },
+          {
+            "id": "rnd2df2u",
+            "kind": "youtube",
+            "videoId": "AtT59jxU9es",
+            "title": "Ses 6: Fixed-Income Securities III",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "eegagd4u",
+            "kind": "youtube",
+            "videoId": "rBWBUKZd4WY",
+            "title": "Session 7:  Valuing Bonds",
+            "channel": "Aswath Damodaran"
+          },
+          {
+            "id": "mkdz3eaz",
+            "kind": "youtube",
+            "videoId": "tkGepWJ5b3E",
+            "title": "Credit spreads - MoneyWeek Investment Tutorials",
+            "channel": "MoneyWeek"
+          }
+        ]
+      },
+      {
+        "id": "5az5u938",
+        "title": "Stock valuation",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "dmw89b5r",
+            "kind": "youtube",
+            "videoId": "QqK6H1JPjv0",
+            "title": "What are 'market makers'? - MoneyWeek Investment Tutorials",
+            "channel": "MoneyWeek"
+          },
+          {
+            "id": "syc3sci6",
+            "kind": "youtube",
+            "videoId": "TlH3_iOHX3s",
+            "title": "Dividend Discount Model (DDM)",
+            "channel": "Edspira"
+          },
+          {
+            "id": "c2zuff52",
+            "kind": "youtube",
+            "videoId": "Wh5vp-UkCpo",
+            "title": "Gordon Growth Model - Financial Markets by Yale University #22",
+            "channel": "Coursera"
+          },
+          {
+            "id": "f4vvqwv2",
+            "kind": "youtube",
+            "videoId": "n6Kgg6e5iVw",
+            "title": "How to compute a stock price for 2 stage dividend growth",
+            "channel": "Eric Kelley"
+          },
+          {
+            "id": "3aqyvi6b",
+            "kind": "youtube",
+            "videoId": "21STUhQ-iP0",
+            "title": "Stock Multiples: How to Tell When a Stock is Cheap/Expensive",
+            "channel": "The Plain Bagel"
+          },
+          {
+            "id": "8cr4qeb3",
+            "kind": "youtube",
+            "videoId": "o0iNxizilow",
+            "title": "Present Value of Growth Opportunities",
+            "channel": "Ronald Moy, Ph.D., CFA, CFP"
+          },
+          {
+            "id": "mgxrrjvh",
+            "kind": "youtube",
+            "videoId": "cny-1yDbQno",
+            "title": "Ses 8: Equities",
+            "channel": "MIT OpenCourseWare"
+          }
+        ]
+      },
+      {
+        "id": "hp8rqber",
+        "title": "Portfolio theory and the CAPM",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "rrzcmtx2",
+            "kind": "youtube",
+            "videoId": "tCreeXzCNRc",
+            "title": "Utility and Risk Preferences Part 1 - Utility Function",
+            "channel": "Ronald Moy, Ph.D., CFA, CFP"
+          },
+          {
+            "id": "7biibk4z",
+            "kind": "youtube",
+            "videoId": "9gpbCi1g7w4",
+            "title": "Diversification with Two Assets",
+            "channel": "Eric Kelley"
+          },
+          {
+            "id": "fp5qpttk",
+            "kind": "youtube",
+            "videoId": "qPu4TEGIDYI",
+            "title": "Systematic Risk vs Unsystematic Risk",
+            "channel": "Edspira"
+          },
+          {
+            "id": "fys97tc7",
+            "kind": "youtube",
+            "videoId": "pwyR9uAM0iU",
+            "title": "Efficient Frontier and Portfolio Optimization Explained | The Ultimate Guide",
+            "channel": "Ryan O'Connell, CFA, FRM"
+          },
+          {
+            "id": "7ew9e2gk",
+            "kind": "youtube",
+            "videoId": "wOaKzthMUQ0",
+            "title": "The Capital Market Line",
+            "channel": "Edspira"
+          },
+          {
+            "id": "kv2w6syb",
+            "kind": "youtube",
+            "videoId": "XIXd7pUt4cg",
+            "title": "Explaining the Capital Asset Pricing Model (CAPM) & Security Market Line (SML)",
+            "channel": "Ryan O'Connell, CFA, FRM"
+          },
+          {
+            "id": "pngyge6p",
+            "kind": "youtube",
+            "videoId": "mNZ4BqXVfjs",
+            "title": "Capital Market Line (CML) vs Security Market Line (SML)",
+            "channel": "Ronald Moy, Ph.D., CFA, CFP"
+          },
+          {
+            "id": "hd6j9faf",
+            "kind": "youtube",
+            "videoId": "z2oQe6B1Qa4",
+            "title": "Ses 15: Portfolio Theory III & The CAPM and APT I",
+            "channel": "MIT OpenCourseWare"
+          }
+        ]
+      },
+      {
+        "id": "jssbi8db",
+        "title": "Market efficiency",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "f69g2267",
+            "kind": "youtube",
+            "videoId": "AEv9AszJ4_U",
+            "title": "What Is the Efficient Market Hypothesis?",
+            "channel": "Marginal Revolution University"
+          },
+          {
+            "id": "b5w3ji79",
+            "kind": "youtube",
+            "videoId": "yco0sC7AJ2U",
+            "title": "Efficient Capital Markets Explained",
+            "channel": "Ben Felix"
+          },
+          {
+            "id": "nvfuudrs",
+            "kind": "youtube",
+            "videoId": "NUkkRdEknjI",
+            "title": "A Brief History of the Efficient Market Hypothesis",
+            "channel": "The American Finance Association"
+          },
+          {
+            "id": "ccvpkr3u",
+            "kind": "youtube",
+            "videoId": "3EzdvkRgToY",
+            "title": "7. Efficient Markets",
+            "channel": "YaleCourses"
+          },
+          {
+            "id": "mg4dq5sz",
+            "kind": "youtube",
+            "videoId": "chSHqogx2CI",
+            "title": "11. Behavioral Finance and the Role of Psychology",
+            "channel": "YaleCourses"
+          },
+          {
+            "id": "kcdmkd4d",
+            "kind": "youtube",
+            "videoId": "bM9bYOBuKF4",
+            "title": "Are markets efficient?",
+            "channel": "Chicago Booth Review"
+          },
+          {
+            "id": "j6uvrdqp",
+            "kind": "youtube",
+            "videoId": "NEwRY161m04",
+            "title": "Noise Trader Risk",
+            "channel": "Manfred Frühwirth"
+          },
+          {
+            "id": "stvsg7ve",
+            "kind": "youtube",
+            "videoId": "a5PF2PcElV0",
+            "title": "Ses 19: Efficient Markets II",
+            "channel": "MIT OpenCourseWare"
+          }
+        ]
+      },
+      {
+        "id": "bcpk8fpt",
+        "title": "How to beat the market and mutual fund performance",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "k8g3wynb",
+            "kind": "youtube",
+            "videoId": "pYTraS5WR3s",
+            "title": "Fama French Three Factor Model",
+            "channel": "Edspira"
+          },
+          {
+            "id": "uesgifyj",
+            "kind": "youtube",
+            "videoId": "Iel_GRQNAxA",
+            "title": "Fama French",
+            "channel": "Chris Hughen"
+          },
+          {
+            "id": "rdgb6n4p",
+            "kind": "youtube",
+            "videoId": "We17ijX-P6Y",
+            "title": "Fama French Carhart Model",
+            "channel": "Edspira"
+          },
+          {
+            "id": "rdujpq2k",
+            "kind": "youtube",
+            "videoId": "ViTnIebSzj4",
+            "title": "Should You Be Factor Investing?",
+            "channel": "Ben Felix"
+          },
+          {
+            "id": "nb2hv84x",
+            "kind": "youtube",
+            "videoId": "fo0Ba9-GCts",
+            "title": "Jensen's Alpha",
+            "channel": "Edspira"
+          },
+          {
+            "id": "efkys9bi",
+            "kind": "youtube",
+            "videoId": "wTzciLaCksA",
+            "title": "The Active Vs Passive Investing Debate",
+            "channel": "The Plain Bagel"
+          },
+          {
+            "id": "rrngszaw",
+            "kind": "youtube",
+            "videoId": "a41LhZE5Iec",
+            "title": "Jonathan Berk: Are Mutual Fund Managers Skilled?",
+            "channel": "Stanford Graduate School of Business"
+          },
+          {
+            "id": "zrscrn64",
+            "kind": "youtube",
+            "videoId": "PlrLVe3cqfg",
+            "title": "1.9 Berk and Green",
+            "channel": "UChicago Online"
+          }
+        ]
+      },
+      {
+        "id": "z4bhu97x",
+        "title": "Futures, forwards and swaps",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "eb66ix2b",
+            "kind": "youtube",
+            "videoId": "H9UEZdAnnt8",
+            "title": "Forward contract introduction | Finance & Capital Markets | Khan Academy",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "hemd6rs8",
+            "kind": "youtube",
+            "videoId": "zPyLCUQdh7I",
+            "title": "Understanding Futures Margin",
+            "channel": "Charles Schwab"
+          },
+          {
+            "id": "42isdr6h",
+            "kind": "youtube",
+            "videoId": "zSiAiF6lvGk",
+            "title": "Pricing Financial Futures (Part 1 of 2)",
+            "channel": "Patrick Boyle"
+          },
+          {
+            "id": "aqaw6k9w",
+            "kind": "youtube",
+            "videoId": "dmVfZ1yjw7E",
+            "title": "Pricing Financial Futures (Part 2 of 2)",
+            "channel": "Patrick Boyle"
+          },
+          {
+            "id": "3jvcha5a",
+            "kind": "youtube",
+            "videoId": "Pj3R8KFLTjo",
+            "title": "Convenience Yield",
+            "channel": "Patrick Boyle"
+          },
+          {
+            "id": "6kyy9z83",
+            "kind": "youtube",
+            "videoId": "DrlKjSG1V6s",
+            "title": "Interest Rate Swaps Explained  |  Example Calculation",
+            "channel": "Ryan O'Connell, CFA, FRM"
+          },
+          {
+            "id": "nf9c2rtv",
+            "kind": "youtube",
+            "videoId": "1rR4zNQjtjg",
+            "title": "Pricing Interest Rate Swaps",
+            "channel": "Patrick Boyle"
+          },
+          {
+            "id": "xuxmdiyz",
+            "kind": "youtube",
+            "videoId": "i_pLF9J3QPE",
+            "title": "Ses 9: Forward and Futures Contracts I",
+            "channel": "MIT OpenCourseWare"
+          }
+        ]
+      },
+      {
+        "id": "uyjwrjjp",
+        "title": "Options - Part 1: strategies, binomial pricing and bounds",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "dix66qew",
+            "kind": "youtube",
+            "videoId": "nnl3x1wo25g",
+            "title": "American call options | Finance & Capital Markets | Khan Academy",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "ftqis7b8",
+            "kind": "youtube",
+            "videoId": "-GddP-N_klw",
+            "title": "Straddle, Strangle, Collars... Options Strategies for Aspiring Quants",
+            "channel": "Socratica"
+          },
+          {
+            "id": "if6892fw",
+            "kind": "youtube",
+            "videoId": "QFSyjhqITRA",
+            "title": "Bull Call Spread Explained: Options Trading Strategies",
+            "channel": "Ryan O'Connell, CFA, FRM"
+          },
+          {
+            "id": "tksvsnrz",
+            "kind": "youtube",
+            "videoId": "1p5wJxGNj1Q",
+            "title": "One Period Binomial Option Pricing: Portfolio Replication Approach",
+            "channel": "finCampus Lecture Hall"
+          },
+          {
+            "id": "6qebgup4",
+            "kind": "youtube",
+            "videoId": "-m5jabeJJBs",
+            "title": "Pricing Options Using the Binomial Tree (Risk Neutral Valuation Approach)",
+            "channel": "Patrick Boyle"
+          },
+          {
+            "id": "qyvn5cbz",
+            "kind": "youtube",
+            "videoId": "nN4tOYVqf9o",
+            "title": "Pricing Options Using Multi Step Binomial Trees",
+            "channel": "Patrick Boyle"
+          },
+          {
+            "id": "6f7g8fw8",
+            "kind": "youtube",
+            "videoId": "c4i0mRW1RZI",
+            "title": "Lower bounds for European stock option prices (FRM T3-35)",
+            "channel": "Bionic Turtle"
+          }
+        ]
+      },
+      {
+        "id": "qj79hsbs",
+        "title": "Options - Part 2: American and exotic options, Black-Scholes",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "c5wsrpb6",
+            "kind": "youtube",
+            "videoId": "pkuQLFI13Ws",
+            "title": "Pricing American Options using the Binomial Tree Method. - Options Trading Classes",
+            "channel": "Patrick Boyle"
+          },
+          {
+            "id": "ixngccnk",
+            "kind": "youtube",
+            "videoId": "g3uUgV9xKkE",
+            "title": "Why you never exercise an American Call Option on a Non-Dividend Paying Stock",
+            "channel": "Matt Brigida"
+          },
+          {
+            "id": "mjce4gpn",
+            "kind": "youtube",
+            "videoId": "qZgunj-_1nQ",
+            "title": "Is it optimal to early exercise an option? (FRM T3-36)",
+            "channel": "Bionic Turtle"
+          },
+          {
+            "id": "7ckna69m",
+            "kind": "youtube",
+            "videoId": "8Zu6iVmgobo",
+            "title": "What Are  Exotic Options?",
+            "channel": "Patrick Boyle"
+          },
+          {
+            "id": "ut9tnd3w",
+            "kind": "youtube",
+            "videoId": "pr-u4LCFYEY",
+            "title": "Introduction to the Black-Scholes formula | Finance & Capital Markets | Khan Academy",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "mp7ujdxa",
+            "kind": "youtube",
+            "videoId": "m2mLrz1PU70",
+            "title": "An intuitive explanation the Black Scholes' formula",
+            "channel": "quantpie"
+          },
+          {
+            "id": "8bq2cgig",
+            "kind": "youtube",
+            "videoId": "VkUEWUxI6u0",
+            "title": "17. Options Markets",
+            "channel": "YaleCourses"
+          },
+          {
+            "id": "wbnznn78",
+            "kind": "youtube",
+            "videoId": "Q2qjnLO3I_M",
+            "title": "Ses 12: Options III & Risk and Return I",
+            "channel": "MIT OpenCourseWare"
+          }
+        ]
+      },
+      {
+        "id": "mirztscx",
+        "title": "Full course: MIT 15.401 Finance Theory I (Andrew Lo)",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "d2mibtbe",
+            "kind": "youtube-playlist",
+            "videoId": "PLUl4u3cNGP63B2lDhyKOsImI7FjCf6eDW",
+            "title": "MIT 15.401 Finance Theory I, Fall 2008",
+            "channel": "MIT OpenCourseWare"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "marketing-management",
-    "unitCode": null,
+    "unitCode": "MN3141",
     "name": "Marketing Management",
     "shortName": "Marketing",
     "year": 3,
@@ -3725,15 +7518,807 @@
       "exercises": null,
       "exercisesNote": null,
       "vle": "https://drive.google.com/drive/folders/1w3pG9SwQu4URKUkNU7Igf8ym56BqVbGl",
-      "olderExams": null,
+      "olderExams": "https://drive.google.com/drive/folders/1omDrsqcu-BtKJArE9xEuPuE9AyW8hvbH",
       "cheatSheet": null
     },
     "notes": [],
-    "chapters": []
+    "chapters": [
+      {
+        "id": "7fvw6qf7",
+        "title": "General introduction",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "7wrkv2br",
+            "kind": "youtube",
+            "videoId": "CQRzEwMMeW4",
+            "title": "Topic 1: What is Marketing? by Dr Yasir Rashid, Free Course Kotler and Armstrong [English]",
+            "channel": "Professor Online"
+          },
+          {
+            "id": "n6pzm3pr",
+            "kind": "youtube",
+            "videoId": "fFGGqUSdzQM",
+            "title": "Chapter 1.2: Understanding Needs, Wants, Demand,  by Dr Yasir Rashid, Free Course Kotler [English]",
+            "channel": "Professor Online"
+          },
+          {
+            "id": "um58nm2u",
+            "kind": "youtube",
+            "videoId": "Ricpkts2lVU",
+            "title": "Chapter 1 - Marketing creating and capturing customer value - 08/26/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "zv9giqyu",
+            "kind": "youtube",
+            "videoId": "Bb-dX_0Oo_M",
+            "title": "Extended Marketing Mix (7P's) | A-Level, IB & BTEC Business",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "vt5rhpk9",
+            "kind": "youtube",
+            "videoId": "-DNWWpIGZeQ",
+            "title": "Chapter 2 - Company and Marketing Strategy: Partnering to Build Customer Relationships - 08/31/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "yhuwgsvn",
+            "kind": "youtube",
+            "videoId": "bilOOPuAvTY",
+            "title": "Philip Kotler: Marketing Strategy",
+            "channel": "London Business Forum"
+          }
+        ]
+      },
+      {
+        "id": "9nxh32vz",
+        "title": "An overview of marketing history and theory",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "qfqcpsbt",
+            "kind": "youtube",
+            "videoId": "5fdx5Laavkc",
+            "title": "Philip Kotler on the evolution of marketing",
+            "channel": "LeadersIn"
+          },
+          {
+            "id": "z46h2uft",
+            "kind": "youtube",
+            "videoId": "X1VRAiWn6R4",
+            "title": "The Evolution of Marketing (A Brief History of Marketing) | From A Business Professor",
+            "channel": "Business School 101"
+          },
+          {
+            "id": "jesdxn92",
+            "kind": "youtube",
+            "videoId": "pJOTp6t-c8A",
+            "title": "Marketing Management Orientations - The 5 Marketing Concepts 🤩",
+            "channel": "questus marketing knowledge"
+          },
+          {
+            "id": "5gf7gxe8",
+            "kind": "youtube",
+            "videoId": "hw8FfogTUhU",
+            "title": "The Explainer: Don’t Just Sell Stuff — Satisfy Needs",
+            "channel": "Harvard Business Review"
+          },
+          {
+            "id": "z8trsvm5",
+            "kind": "youtube",
+            "videoId": "Fy0KNwzyd74",
+            "title": "Marketing Myopia | by Theodore Levitt | Explained & Examples 🌍👀📈👏📚",
+            "channel": "Solve It Like A Marketer"
+          },
+          {
+            "id": "5yuv2rrb",
+            "kind": "youtube",
+            "videoId": "iq5ucCcRYEE",
+            "title": "Goods-Dominant Logic vs. Service-Dominant Logic - easily explained",
+            "channel": "Andrea Prof. Dr. Raab"
+          },
+          {
+            "id": "k7jej5aa",
+            "kind": "youtube",
+            "videoId": "sR-qL7QdVZQ",
+            "title": "Philip Kotler: Marketing",
+            "channel": "Chicago Humanities"
+          }
+        ]
+      },
+      {
+        "id": "v6g7epwb",
+        "title": "The marketing environment",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "6qfetxmt",
+            "kind": "youtube",
+            "videoId": "ehbb8iuYdVs",
+            "title": "Chapter 3: Analysing Marketing Environment by Dr Yasir Rashid, Free Course Kotler  [English]",
+            "channel": "Professor Online"
+          },
+          {
+            "id": "b2e3yzqx",
+            "kind": "youtube",
+            "videoId": "dhUYXfl4Ozg",
+            "title": "Chapter 3 - Analyzing the Marketing Environment - 09/02/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "3z765ugv",
+            "kind": "youtube",
+            "videoId": "bYn4CyL3r5w",
+            "title": "PESTEL Analysis EXPLAINED | B2U | Business To You",
+            "channel": "Business To You"
+          },
+          {
+            "id": "ij2jbf7g",
+            "kind": "youtube",
+            "videoId": "mYF2_FBCvXw",
+            "title": "The Five Competitive Forces That Shape Strategy",
+            "channel": "Harvard Business Review"
+          }
+        ]
+      },
+      {
+        "id": "9k64b4e4",
+        "title": "Consumer behaviour",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "tqt4tb4v",
+            "kind": "youtube",
+            "videoId": "ll36VLhjrbo",
+            "title": "Chapter 5 - Consumer Markets and Consumer Buyer Behavior - 09/09/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "2i9k8wc9",
+            "kind": "youtube",
+            "videoId": "AjZrhWVTM3U",
+            "title": "Consumer Decision-Making Process (With Examples) | From A Business Professor",
+            "channel": "Business School 101"
+          },
+          {
+            "id": "6rcxq2wj",
+            "kind": "youtube",
+            "videoId": "8fb71U8OMoc",
+            "title": "Maslow's Hierarchy Of Needs In Consumer Behaviour 🤔🧠🔍",
+            "channel": "Solve It Like A Marketer"
+          },
+          {
+            "id": "ntmrz87h",
+            "kind": "youtube",
+            "videoId": "EfRrD3we0Hg",
+            "title": "McKinsey Consumer Decision Journey",
+            "channel": "Tim Sparke"
+          },
+          {
+            "id": "akastbzr",
+            "kind": "youtube",
+            "videoId": "ig_IdSVa5Ac",
+            "title": "Perceived Risk & How It Influences Consumer Behavior",
+            "channel": "Professor Wolters"
+          },
+          {
+            "id": "39nnsae8",
+            "kind": "youtube",
+            "videoId": "Sl-qgzF70IM",
+            "title": "Prospect Theory: An Overview",
+            "channel": "Ashley Hodgson"
+          },
+          {
+            "id": "6xkk5m8r",
+            "kind": "youtube",
+            "videoId": "iueVZJVEmEs",
+            "title": "Rory Sutherland: Perspective is everything",
+            "channel": "TED"
+          }
+        ]
+      },
+      {
+        "id": "astzvniq",
+        "title": "Organisational buyer behaviour",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "ntaf8v8y",
+            "kind": "youtube",
+            "videoId": "YDw1MocJpWE",
+            "title": "Class 8 - Business markets and business buyer behavior - Chapter 6",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "e6iiyn23",
+            "kind": "youtube",
+            "videoId": "peiwGrQMsz8",
+            "title": "The B2B Buying Process Explained",
+            "channel": "Professor Wolters"
+          },
+          {
+            "id": "jjegjriv",
+            "kind": "youtube",
+            "videoId": "FwhPkdsRp44",
+            "title": "Chapter B2B The Buying Centre",
+            "channel": "Marketing World"
+          },
+          {
+            "id": "m33ez9ji",
+            "kind": "youtube",
+            "videoId": "Dtlycp9WELA",
+            "title": "Lec 10 - Webster & Wind Model, Buying Center and Buygrid Framework",
+            "channel": "IIT Roorkee July 2018"
+          },
+          {
+            "id": "zxd62uz4",
+            "kind": "youtube",
+            "videoId": "a4FBGWedrF8",
+            "title": "The five forms of perceived risk in business sales and marketing",
+            "channel": "Tony Gattari"
+          }
+        ]
+      },
+      {
+        "id": "8fqpxstf",
+        "title": "Market segmentation, targeting and positioning",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "g2t7sjh6",
+            "kind": "youtube",
+            "videoId": "0srjdRDh99Y",
+            "title": "Marketing: Segmentation - Targeting - Positioning",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "fvhycg9n",
+            "kind": "youtube",
+            "videoId": "ELZyOPr3rrE",
+            "title": "Chapter 7 - Consumer-Driven Marketing Strategy - 09/16/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "tazrh37s",
+            "kind": "youtube",
+            "videoId": "qCtL8szl-Pk",
+            "title": "MAR101 - CH6  - Segmentation, Targeting, & Positioning",
+            "channel": "R. J. Birmingham"
+          },
+          {
+            "id": "6q5gjanz",
+            "kind": "youtube",
+            "videoId": "OV2zbaMr-_c",
+            "title": "Niche and Mass Markets | Business",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "iii8b26f",
+            "kind": "youtube",
+            "videoId": "2-m9iJnUJuA",
+            "title": "Market Mapping / Market Positioning Map | Marketing",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "2sdcxpkt",
+            "kind": "youtube",
+            "videoId": "Stc0beAxavY",
+            "title": "Clay Christensen: The Jobs to be Done Theory",
+            "channel": "HubSpot Marketing"
+          }
+        ]
+      },
+      {
+        "id": "izkabne9",
+        "title": "Customer relationship marketing (CRM)",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "vnmbx6yn",
+            "kind": "youtube",
+            "videoId": "yWNzHBYX8Tw",
+            "title": "Chapter 1-Topic 5: Building Customer Relationships, by Dr Yasir Rashid, Free Course Kotler [English]",
+            "channel": "Professor Online"
+          },
+          {
+            "id": "de2cczby",
+            "kind": "youtube",
+            "videoId": "3GWHhz8PeB8",
+            "title": "Transactional Marketing Vs. Relationship Marketing",
+            "channel": "Marianne Hickman"
+          },
+          {
+            "id": "4s5s6uuk",
+            "kind": "youtube",
+            "videoId": "5UrrfG9GG2U",
+            "title": "What is Customer Relationship Management (CRM)？| From A Business Professor",
+            "channel": "Business School 101"
+          },
+          {
+            "id": "cgajxv5x",
+            "kind": "youtube",
+            "videoId": "eicCJ6jJxmI",
+            "title": "Customer Centricity: Wharton Professor Peter Fader on Prioritizing Relationships in Business",
+            "channel": "Knowledge at Wharton"
+          },
+          {
+            "id": "99739tp7",
+            "kind": "youtube",
+            "videoId": "ZP-q0w81E0E",
+            "title": "Loyalty Expert Fred Reichheld @Rotman",
+            "channel": "Rotman School of Management"
+          },
+          {
+            "id": "ksshfn5e",
+            "kind": "youtube",
+            "videoId": "vZgKmH2PCnc",
+            "title": "Service-Dominant Logic: The difference between Value Co-Creation and Value Co-Production",
+            "channel": "Andrea Prof. Dr. Raab"
+          },
+          {
+            "id": "956qpzky",
+            "kind": "youtube",
+            "videoId": "J1h4JQ7bTmA",
+            "title": "Prof. Stephen Vargo: Service-dominant logic: Basics, Developments and State-of-the-art @UBT",
+            "channel": "ubtdlm"
+          }
+        ]
+      },
+      {
+        "id": "xtgyyfus",
+        "title": "Branding and product development",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "cnkka4y7",
+            "kind": "youtube",
+            "videoId": "dsU9Gd-kEWM",
+            "title": "Chapter 8 - Products, Services, and Brands: Building Customer Value 09/21/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "2qwdmwyc",
+            "kind": "youtube",
+            "videoId": "UN6rpHQGVgc",
+            "title": "Three Levels of a Product Explained",
+            "channel": "EPM"
+          },
+          {
+            "id": "prhztwmc",
+            "kind": "youtube",
+            "videoId": "D2f507ExIco",
+            "title": "What Are the Key Characteristics of Services?",
+            "channel": "Sabine Benoit"
+          },
+          {
+            "id": "9be2jafm",
+            "kind": "youtube",
+            "videoId": "DA6Lfb543dA",
+            "title": "Keller’s Brand Equity Model Explained (CBBE Resonance Pyramid)",
+            "channel": "Brand Master Academy"
+          },
+          {
+            "id": "dp5yk79b",
+            "kind": "youtube",
+            "videoId": "jb3yqwfMDKc",
+            "title": "Brand Extensions & Brand Dilution Explained",
+            "channel": "Professor Wolters"
+          },
+          {
+            "id": "tv58628u",
+            "kind": "youtube",
+            "videoId": "4eIDBV4Mpek",
+            "title": "How Apple and Nike have branded your brain | Your Brain on Money | Big Think",
+            "channel": "Big Think"
+          },
+          {
+            "id": "qpzmpx7c",
+            "kind": "youtube",
+            "videoId": "G53MkkQ5dBo",
+            "title": "How Brands Grow With Marketing Science (Prof. Byron Sharp)",
+            "channel": "Brand Master Academy"
+          }
+        ]
+      },
+      {
+        "id": "sphkh4yc",
+        "title": "Product innovation and the life-cycle approach",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "wqcqx78z",
+            "kind": "youtube",
+            "videoId": "yQfi_FDssx8",
+            "title": "Chapter 9 - Developing New Products - 09/24/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "b2m9wptn",
+            "kind": "youtube",
+            "videoId": "PnVhxn4aFgc",
+            "title": "New Product Development Process & Stages Explained",
+            "channel": "Cerri.com"
+          },
+          {
+            "id": "v4er2dyf",
+            "kind": "youtube",
+            "videoId": "_26E6QR_hmU",
+            "title": "Product Life Cycle",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "5jcbuaz6",
+            "kind": "youtube",
+            "videoId": "9QnfWhtujPA",
+            "title": "Diffusion of Innovation Theory: The Adoption Curve",
+            "channel": "Rare"
+          },
+          {
+            "id": "qxfppyqg",
+            "kind": "youtube",
+            "videoId": "izP5n1SBEaI",
+            "title": "Crossing the Chasm in Consumer Markets: A Visual Example",
+            "channel": "geoffreyamoore"
+          },
+          {
+            "id": "89wjw6mf",
+            "kind": "youtube",
+            "videoId": "aoeal3ljnqw",
+            "title": "What Are Network Effects? (Startup Mini-Series)",
+            "channel": "NFX"
+          },
+          {
+            "id": "biphvzqq",
+            "kind": "youtube",
+            "videoId": "qDrMAzCHFUU",
+            "title": "Disruptive Innovation Explained",
+            "channel": "Harvard Business Review"
+          }
+        ]
+      },
+      {
+        "id": "2wuk35yt",
+        "title": "Promotion",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "jg2kjxq8",
+            "kind": "youtube",
+            "videoId": "wpx66QV0vrM",
+            "title": "Class 20 - Engaging consumers & Communicating value - Ch 14",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "zyv8cwaq",
+            "kind": "youtube",
+            "videoId": "dQNRWF1BaTc",
+            "title": "Ch 14: Introduction to Integrated Marketing Communications (IMC)",
+            "channel": "Transparency Marketing"
+          },
+          {
+            "id": "n54wsibu",
+            "kind": "youtube",
+            "videoId": "st0aJ-Vpln8",
+            "title": "The AIDA Model Explained with Examples",
+            "channel": "EPM"
+          },
+          {
+            "id": "2ipi6kav",
+            "kind": "youtube",
+            "videoId": "heE8m-bReDM",
+            "title": "Elaboration Likelihood Model",
+            "channel": "EPM"
+          },
+          {
+            "id": "ve97yxc5",
+            "kind": "youtube",
+            "videoId": "4OSr-Fwp7N8",
+            "title": "The Short of It",
+            "channel": "Les Binet"
+          },
+          {
+            "id": "kv3kdn4k",
+            "kind": "youtube",
+            "videoId": "FN4eDk1pq6U",
+            "title": "Contagious: Why Things Catch On | Jonah Berger | Talks at Google",
+            "channel": "Talks at Google"
+          },
+          {
+            "id": "hbhfui44",
+            "kind": "youtube",
+            "videoId": "ptlweu4uCmI",
+            "title": "Chapter 17 - Digital marketing - 11/18/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "erprak55",
+            "kind": "youtube",
+            "videoId": "4KELuMwZlwM",
+            "title": "Paid Media vs. Earned & Owned Media | Google Career Certificates",
+            "channel": "Grow with Google"
+          }
+        ]
+      },
+      {
+        "id": "mku23vy9",
+        "title": "Pricing",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "8qw88aui",
+            "kind": "youtube",
+            "videoId": "HEkjAK78b-8",
+            "title": "Chapter 10 - Pricing Understanding and Capturing Customer Value - 09/30/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "ubgwy6cs",
+            "kind": "youtube",
+            "videoId": "J82_xd5XxXg",
+            "title": "Elasticity of Demand",
+            "channel": "Marginal Revolution University"
+          },
+          {
+            "id": "97jcuvgs",
+            "kind": "youtube",
+            "videoId": "hJgUXoV-27c",
+            "title": "Cost vs Value Based Pricing - How Should You Price?",
+            "channel": "Professor Wolters"
+          },
+          {
+            "id": "8fvdzgpb",
+            "kind": "youtube",
+            "videoId": "IJ-Gj0FN5fA",
+            "title": "Chapter 11 - Pricing Strategies: Additional considerations - 10/07/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "a8wy7a6n",
+            "kind": "youtube",
+            "videoId": "g98eOPnQlkk",
+            "title": "Price Skimming",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "9f9xjtz2",
+            "kind": "youtube",
+            "videoId": "t4Qom0cAK1E",
+            "title": "Penetration Pricing",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "7fjvcegy",
+            "kind": "youtube",
+            "videoId": "SZCV-Gm0Tf4",
+            "title": "Introduction to Price Discrimination",
+            "channel": "Marginal Revolution University"
+          },
+          {
+            "id": "yjcwttn7",
+            "kind": "youtube",
+            "videoId": "aR-xxF4-vMU",
+            "title": "Pricing Strategies for Uncertain Times | HBR IdeaCast",
+            "channel": "Harvard Business Review"
+          }
+        ]
+      },
+      {
+        "id": "jfc6uyin",
+        "title": "Distribution",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "athjdqvx",
+            "kind": "youtube",
+            "videoId": "sz1V_1HP0Sg",
+            "title": "Chapter 12 - Marketing Channels: Delivering Customer Value - 10/14/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "5sz6j5ew",
+            "kind": "youtube",
+            "videoId": "1YO7qc5PgM0",
+            "title": "Intensive selective and exclusive distribution",
+            "channel": "The Marketing Channel - MKTG 101"
+          },
+          {
+            "id": "cnrbzzne",
+            "kind": "youtube",
+            "videoId": "5pAUy8sY8cw",
+            "title": "Types of Channel Conflict - Horizontal conflict, Vertical conflict, Multichannel Conflict",
+            "channel": "The Marketing Channel - MKTG 101"
+          },
+          {
+            "id": "atwq5h32",
+            "kind": "youtube",
+            "videoId": "bZR0ZrZzJGQ",
+            "title": "Push and Pull Promotional Strategies | Introduction to Business",
+            "channel": "Alanis Business Academy"
+          },
+          {
+            "id": "b9kriug2",
+            "kind": "youtube",
+            "videoId": "iSKzd2XDLQc",
+            "title": "Chapter 13 - Retailing and Wholesaling - 10/21/21",
+            "channel": "Micheal Ahearne"
+          }
+        ]
+      },
+      {
+        "id": "kdh8aasy",
+        "title": "Corporate social responsibility (CSR)",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "s2vcmdze",
+            "kind": "youtube",
+            "videoId": "ZoKihFLCY0s",
+            "title": "What Is Corporate Social Responsibility (CSR)? | Business: Explained",
+            "channel": "HBS Online"
+          },
+          {
+            "id": "quqyd9k8",
+            "kind": "youtube",
+            "videoId": "2_1TLhe8LY8",
+            "title": "Carroll's Corporate Social Responsibility (CSR) Pyramid | A-Level & IB Business",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "5yhgawby",
+            "kind": "youtube",
+            "videoId": "vD9XJKZmXEs",
+            "title": "Social Responsibility Perspectives: The Shareholder and Stakeholder Approach",
+            "channel": "Alanis Business Academy"
+          },
+          {
+            "id": "b8gfusba",
+            "kind": "youtube",
+            "videoId": "lfx4h-ySmes",
+            "title": "MAR101 -  CH16  - Sustainable Marketing: Social Responsibility",
+            "channel": "R. J. Birmingham"
+          },
+          {
+            "id": "67hz85w3",
+            "kind": "youtube",
+            "videoId": "kTXCtsEhvRM",
+            "title": "What is Sustainable Marketing?",
+            "channel": "Network for Business Sustainability"
+          },
+          {
+            "id": "zsgqhxdx",
+            "kind": "youtube",
+            "videoId": "2NsBcVrPQok",
+            "title": "Greenwashing: When Companies Aren’t as Sustainable as They Claim | WSJ",
+            "channel": "The Wall Street Journal"
+          },
+          {
+            "id": "2t9fgbmu",
+            "kind": "youtube",
+            "videoId": "0iIh5YYDR2o",
+            "title": "Michael Porter: Why business can be good at solving social problems",
+            "channel": "TED"
+          }
+        ]
+      },
+      {
+        "id": "93pkv9vz",
+        "title": "Analytical tools in marketing",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "fbe2ad3w",
+            "kind": "youtube",
+            "videoId": "x0L75CV5eSI",
+            "title": "What is Customer Lifetime Value (CLV)? | Marketing Analytics for Beginners | Part 30",
+            "channel": "Data Science Dojo"
+          },
+          {
+            "id": "ent88uv9",
+            "kind": "youtube",
+            "videoId": "lytQxBNDC3Y",
+            "title": "Customer Lifetime Value - Concept, Calculations and Examples - Simplest Explanation Ever",
+            "channel": "Mister Simplify"
+          },
+          {
+            "id": "d6yavswn",
+            "kind": "youtube",
+            "videoId": "dHRoO4kbtug",
+            "title": "The customer isn't always right, but some customers are better than others | Peter Fader | TEDxPenn",
+            "channel": "TEDx Talks"
+          },
+          {
+            "id": "45c9mpyz",
+            "kind": "youtube",
+            "videoId": "xJUrBylId7I",
+            "title": "Perceptual Mapping & Product Positioning Explained",
+            "channel": "Wolters World"
+          },
+          {
+            "id": "bnq9prys",
+            "kind": "youtube",
+            "videoId": "rW5SOENyq5g",
+            "title": "The Boston Matrix",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "v9x73q72",
+            "kind": "youtube",
+            "videoId": "CMFXsJxi05U",
+            "title": "Ansoff's Matrix",
+            "channel": "tutor2u"
+          },
+          {
+            "id": "a9f8iimw",
+            "kind": "youtube",
+            "videoId": "Su2qIrTmv1c",
+            "title": "What Can Conjoint Analysis Do for You?",
+            "channel": "Sawtooth Software"
+          }
+        ]
+      },
+      {
+        "id": "usahfjsa",
+        "title": "Marketing research",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "9rdnbj6i",
+            "kind": "youtube",
+            "videoId": "QnPxaU0yP9k",
+            "title": "Chapter 4 - Managing Marketing Information to Gain Customer Insights - 09/07/21",
+            "channel": "Micheal Ahearne"
+          },
+          {
+            "id": "fmdp6g9y",
+            "kind": "youtube",
+            "videoId": "lyWf43oo87Y",
+            "title": "Chapter 4: Managing Marketing Information to Gain Customer Insights by Dr Yasir Rashid [English]",
+            "channel": "Professor Online"
+          },
+          {
+            "id": "x9kdf86r",
+            "kind": "youtube",
+            "videoId": "b4us4bNwAsc",
+            "title": "The Basics of the Marketing Research Process",
+            "channel": "Professor Wolters"
+          },
+          {
+            "id": "ugfg65ak",
+            "kind": "youtube",
+            "videoId": "S_-bLwHwcoU",
+            "title": "Primary & Secondary Market Research",
+            "channel": "Bizconsesh"
+          },
+          {
+            "id": "yn7xd32x",
+            "kind": "youtube",
+            "videoId": "nY5vtYCYUfo",
+            "title": "Quantitative & Qualitative Marketing Research | A-Level, IB & BTEC Business",
+            "channel": "tutor2u"
+          }
+        ]
+      },
+      {
+        "id": "6f4bdk6u",
+        "title": "Full course: Intro to Marketing lecture series (Kotler and Armstrong based)",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "k8fb3532",
+            "kind": "youtube-playlist",
+            "videoId": "PLM3o01n9O7-AWMI8i97_K2-0z9KXLR5li",
+            "title": "Lecture Series for Intro to Marketing - MAR101",
+            "channel": "R. J. Birmingham"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "further-maths-economists",
-    "unitCode": null,
+    "unitCode": "MT3095",
     "name": "Further Mathematics for Economists",
     "shortName": "Further maths",
     "year": 3,
@@ -3746,10 +8331,515 @@
       "exercises": null,
       "exercisesNote": null,
       "vle": "https://drive.google.com/drive/folders/1WwhnK5Z_lUdtWWDGo1DllnAzfPVs4hrF",
-      "olderExams": null,
+      "olderExams": "https://drive.google.com/drive/folders/1feW7jQ4Ry4zM5srvvuFsdIMch7kqY6DG",
       "cheatSheet": null
     },
     "notes": [],
-    "chapters": []
+    "chapters": [
+      {
+        "id": "haeif3ez",
+        "title": "Matrices, vectors and systems of linear equations",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "uev6ztdx",
+            "kind": "youtube",
+            "videoId": "csgNflj69-Y",
+            "title": "Introduction to Linear Algebra: Systems of Linear Equations",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "he2ib27z",
+            "kind": "youtube",
+            "videoId": "y6bVhgmy2rw",
+            "title": "Understanding Matrices and Matrix Notation",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "zcezcxmk",
+            "kind": "youtube",
+            "videoId": "T2Gtt8WygiU",
+            "title": "Manipulating Matrices: Elementary Row Operations and Gauss-Jordan Elimination",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "b9vgq6xg",
+            "kind": "youtube",
+            "videoId": "biyQzy2yRUA",
+            "title": "Types of Matrices and Matrix Addition",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "55xy7gzq",
+            "kind": "youtube",
+            "videoId": "P5GJJ02OG08",
+            "title": "Matrix Multiplication and Associated Properties",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "u34jnb4v",
+            "kind": "youtube",
+            "videoId": "CcbyMH3Noow",
+            "title": "Evaluating the Determinant of a Matrix",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "7c7ar8k9",
+            "kind": "youtube",
+            "videoId": "gPnWm-IXoAY",
+            "title": "The Vector Cross Product",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "r2hepdn3",
+            "kind": "youtube",
+            "videoId": "kWorj5BBy9k",
+            "title": "Inverse Matrices and Their Properties",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "j6atta6r",
+            "kind": "youtube",
+            "videoId": "RdLo-9jh2EM",
+            "title": "Solving Systems Using Cramer's Rule",
+            "channel": "Professor Dave Explains"
+          }
+        ]
+      },
+      {
+        "id": "8p8umkn4",
+        "title": "Vector spaces, basis, dimension",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "x3sv8k53",
+            "kind": "youtube",
+            "videoId": "EP2ghkO0lSk",
+            "title": "Understanding Vector Spaces",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "h66ejerv",
+            "kind": "youtube",
+            "videoId": "tM4TDL9Hj8U",
+            "title": "Subspaces and Span",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "dzkyfruy",
+            "kind": "youtube",
+            "videoId": "9kDpbZCK62Y",
+            "title": "Linear Independence",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "bhvgphj6",
+            "kind": "youtube",
+            "videoId": "4C9GKyfUQkc",
+            "title": "Basis and Dimension",
+            "channel": "Professor Dave Explains"
+          }
+        ]
+      },
+      {
+        "id": "uv32jvcv",
+        "title": "Linear transformations, change of basis",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "iq8c9et6",
+            "kind": "youtube",
+            "videoId": "is1cg5yhdds",
+            "title": "Linear Transformations on Vector Spaces",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "8kn3aurq",
+            "kind": "youtube",
+            "videoId": "vyYrvhbDhW4",
+            "title": "Image and Kernel",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "56dvrha2",
+            "kind": "youtube",
+            "videoId": "HZa1RwFHgwU",
+            "title": "Change of Basis",
+            "channel": "Professor Dave Explains"
+          }
+        ]
+      },
+      {
+        "id": "graa7b6k",
+        "title": "Diagonalisation",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "c8mtufhh",
+            "kind": "youtube",
+            "videoId": "TQvxWaQnrqI",
+            "title": "Finding Eigenvalues and Eigenvectors",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "4ms2v689",
+            "kind": "youtube",
+            "videoId": "WTLl03D4TNA",
+            "title": "Diagonalization",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "ncww6vwh",
+            "kind": "youtube",
+            "videoId": "DUuTx2nbizM",
+            "title": "Complex, Hermitian, and Unitary Matrices",
+            "channel": "Professor Dave Explains"
+          }
+        ]
+      },
+      {
+        "id": "4n36zrm6",
+        "title": "Applications of diagonalisation",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "xmqxfzds",
+            "kind": "youtube",
+            "videoId": "13r9QY6cmjc",
+            "title": "22. Diagonalization and Powers of A",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "x9mk4d4n",
+            "kind": "youtube",
+            "videoId": "IZqwi0wJovM",
+            "title": "23. Differential Equations and exp(At)",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "7ysuyrzv",
+            "kind": "youtube",
+            "videoId": "8e_ux_E0dJ0",
+            "title": "System of odes with distinct real eigenvalues | Lecture 40 | Differential Equations for Engineers",
+            "channel": "Jeffrey Chasnov"
+          },
+          {
+            "id": "xximz7g7",
+            "kind": "youtube",
+            "videoId": "UO_dgXa5szg",
+            "title": "Phase portraits of linear systems | Lecture 42 | Differential Equations for Engineers",
+            "channel": "Jeffrey Chasnov"
+          },
+          {
+            "id": "x5itvxby",
+            "kind": "youtube",
+            "videoId": "XXjoh8L1HkE",
+            "title": "Stability and Eigenvalues: What does it mean to be a \"stable\" eigenvalue?",
+            "channel": "Steve Brunton"
+          },
+          {
+            "id": "4bkuz2b8",
+            "kind": "youtube",
+            "videoId": "E-sBhLIjPaM",
+            "title": "Nonlinear odes: fixed points, stability, and the Jacobian matrix",
+            "channel": "Jeffrey Chasnov"
+          },
+          {
+            "id": "d6572h9q",
+            "kind": "youtube",
+            "videoId": "07V_UNLz0qs",
+            "title": "Lotka-Volterra Competition Explained: Rabbits vs. Sheep | Phase Plane Analysis",
+            "channel": "Dr. Shane Ross"
+          },
+          {
+            "id": "k4weq35h",
+            "kind": "youtube",
+            "videoId": "wJxPKj5DpMc",
+            "title": "Lecture 28: Quadratic Forms: Definite and semidefinite forms",
+            "channel": "Arizona Math Camp"
+          }
+        ]
+      },
+      {
+        "id": "y8p45wn4",
+        "title": "Inner products and orthogonality",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "xpf4rp89",
+            "kind": "youtube",
+            "videoId": "6nqMegdbxik",
+            "title": "Orthogonality and Orthonormality",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "iv8ypqm7",
+            "kind": "youtube",
+            "videoId": "zHbfZWZJTGc",
+            "title": "The Gram-Schmidt Process",
+            "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "xkqhakcc",
+            "kind": "youtube",
+            "videoId": "wHAJzemKQW4",
+            "title": "Further Matrix Decompositions: LU, Cholesky, QR, and SVD",
+            "channel": "Professor Dave Explains"
+          }
+        ]
+      },
+      {
+        "id": "mssrt47e",
+        "title": "Mathematical analysis",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "98m9ftpr",
+            "kind": "youtube",
+            "videoId": "GJpezCUMOxA",
+            "title": "Universal and Existential Quantifiers,  ∀ \"For All\" and ∃ \"There Exists\"",
+            "channel": "Dr. Trefor Bazett"
+          },
+          {
+            "id": "sismvwhy",
+            "kind": "youtube",
+            "videoId": "QRGIhqz9vh4",
+            "title": "Definition of Supremum and Infimum of a Set | Real Analysis",
+            "channel": "Wrath of Math"
+          },
+          {
+            "id": "6veu8ac6",
+            "kind": "youtube",
+            "videoId": "cTnlHZD5ss4",
+            "title": "Definition of the Limit of a Sequence | Real Analysis",
+            "channel": "Wrath of Math"
+          },
+          {
+            "id": "argui295",
+            "kind": "youtube",
+            "videoId": "4NURDmE79VU",
+            "title": "Detailed Proof of the Monotone Convergence Theorem | Real Analysis",
+            "channel": "Wrath of Math"
+          },
+          {
+            "id": "rsdgvqe9",
+            "kind": "youtube",
+            "videoId": "O98eOlHyWmQ",
+            "title": "This is the Epsilon Delta Definition of Continuity | Real Analysis",
+            "channel": "Wrath of Math"
+          },
+          {
+            "id": "bc68qy2m",
+            "kind": "youtube",
+            "videoId": "dcUKdwHRSD8",
+            "title": "Lecture 16: The Min/Max Theorem and Bolzano's Intermediate Value Theorem",
+            "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "9aij56cc",
+            "kind": "youtube",
+            "videoId": "PJIJ39zThYM",
+            "title": "Lecture 10(A): Euclidean Space: Neighborhoods, Open and Closed Sets",
+            "channel": "Arizona Math Camp"
+          },
+          {
+            "id": "gxhdpqy9",
+            "kind": "youtube",
+            "videoId": "if2Xq4GVuvY",
+            "title": "Lecture 23(A): Compact Sets and Metric Spaces; Bolzano-Weierstrass Theorem",
+            "channel": "Arizona Math Camp"
+          }
+        ]
+      },
+      {
+        "id": "ad8jd9a5",
+        "title": "Functions of several variables",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "zwajupme",
+            "kind": "youtube",
+            "videoId": "wqtr4Udz8AY",
+            "title": "How to find the TANGENT PLANE | Linear approximation of multi-variable functions",
+            "channel": "Dr. Trefor Bazett"
+          },
+          {
+            "id": "7yvjzb3e",
+            "kind": "youtube",
+            "videoId": "tIpKfDc295M",
+            "title": "Gradient",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "iui4fqf3",
+            "kind": "youtube",
+            "videoId": "N_ZRcLheNv0",
+            "title": "Directional derivative",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "ivivpejz",
+            "kind": "youtube",
+            "videoId": "-HMxX8o6zOc",
+            "title": "General Equilibrium: How to Solve for the Contract Curve",
+            "channel": "Economics in Many Lessons"
+          },
+          {
+            "id": "xrx8h9us",
+            "kind": "youtube",
+            "videoId": "bohL918kXQk",
+            "title": "The Jacobian matrix",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "uc83d3qn",
+            "kind": "youtube",
+            "videoId": "J08-L2buigM",
+            "title": "Symmetry of second partial derivatives",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "j9jzw7cv",
+            "kind": "youtube",
+            "videoId": "mRNg-Q9f9W4",
+            "title": "Lecture 16(A): Convexity",
+            "channel": "Arizona Math Camp"
+          },
+          {
+            "id": "tgrfgy2u",
+            "kind": "youtube",
+            "videoId": "s0dZVmPN3Ww",
+            "title": "Lecture 17(A): Concave and Convex Functions",
+            "channel": "Arizona Math Camp"
+          }
+        ]
+      },
+      {
+        "id": "bmi4vmdb",
+        "title": "Optimisation of functions of several variables",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "qsnzatca",
+            "kind": "youtube",
+            "videoId": "_Ffcr98c7EE",
+            "title": "Multi-variable Optimization & the Second Derivative Test",
+            "channel": "Dr. Trefor Bazett"
+          },
+          {
+            "id": "xj3hux5w",
+            "kind": "youtube",
+            "videoId": "Zly5elxZ9w8",
+            "title": "Lecture 33(C): Concave functions and global optimization",
+            "channel": "Arizona Math Camp"
+          },
+          {
+            "id": "qccxckav",
+            "kind": "youtube",
+            "videoId": "yuqB-d5MjZA",
+            "title": "Lagrange multipliers, using tangency to solve constrained optimization",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "4qbasn3i",
+            "kind": "youtube",
+            "videoId": "m-G3K2GPmEQ",
+            "title": "Meaning of Lagrange multiplier",
+            "channel": "Khan Academy"
+          },
+          {
+            "id": "3g5egszx",
+            "kind": "youtube",
+            "videoId": "HIm3Z0L90Co",
+            "title": "Lecture 40(A): Kuhn-Tucker Conditions: Conceptual and geometric insight",
+            "channel": "Arizona Math Camp"
+          },
+          {
+            "id": "5bmz9ef2",
+            "kind": "youtube",
+            "videoId": "2syXAny8PfE",
+            "title": "Lecture 40(B): The Kuhn-Tucker Conditions and Theorem",
+            "channel": "Arizona Math Camp"
+          },
+          {
+            "id": "s32hdkr9",
+            "kind": "youtube",
+            "videoId": "natJ8yyIvQg",
+            "title": "Lecture 40(C): The Kuhn-Tucker Conditions: An Example",
+            "channel": "Arizona Math Camp"
+          },
+          {
+            "id": "srzqaq7c",
+            "kind": "youtube",
+            "videoId": "FX7kcDvEsJk",
+            "title": "Lecture 38(B): The Envelope Theorem for Constrained Optimization",
+            "channel": "Arizona Math Camp"
+          }
+        ]
+      },
+      {
+        "id": "kd93u6uf",
+        "title": "Theory of linear programming, and applications",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "p7hqkd2v",
+            "kind": "youtube",
+            "videoId": "D0IlfUDcEvs",
+            "title": "The Separating Hyperplane Theorem with Some Economic Intuition",
+            "channel": "EconJohn"
+          },
+          {
+            "id": "x8wftvg5",
+            "kind": "youtube",
+            "videoId": "VKXsoFoTrx8",
+            "title": "Supporting and Separating Hyperplanes",
+            "channel": "Ketan Rajawat"
+          },
+          {
+            "id": "cf6vqs8v",
+            "kind": "youtube",
+            "videoId": "0TD9EQcheZM",
+            "title": "Linear Programming 1: Maximization -Extreme/Corner Points (LP)",
+            "channel": "Joshua Emmanuel"
+          },
+          {
+            "id": "3z5kpu7d",
+            "kind": "youtube",
+            "videoId": "lSM_TQehx00",
+            "title": "Operations Research 05B: Primal & Dual Problems",
+            "channel": "Yong Wang"
+          },
+          {
+            "id": "hh8haejc",
+            "kind": "youtube",
+            "videoId": "bPLNyYFLLT4",
+            "title": "Operations Research 05C: Weak Duality & Strong Duality",
+            "channel": "Yong Wang"
+          },
+          {
+            "id": "unwnyq7p",
+            "kind": "youtube",
+            "videoId": "sx9cWFLDFmw",
+            "title": "(AGT1E5) [Game Theory] How to Solve for Maximin and Minimax Values in Zero-Sum Games",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "xhji9qq7",
+            "kind": "youtube",
+            "videoId": "q6zKM13aVUI",
+            "title": "(AGT1E6) [Game Theory] Zero-Sum Games: The Minimax Theorem",
+            "channel": "selcuk ozyurt"
+          },
+          {
+            "id": "cyrz2cim",
+            "kind": "youtube",
+            "videoId": "wG-dm40Zn9s",
+            "title": "Graphical Method in Game Theory | 2xn and mx2 game without saddle point | Operation Research",
+            "channel": "Start Practicing"
+          }
+        ]
+      }
+    ]
   }
 ]

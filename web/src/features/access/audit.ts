@@ -1,7 +1,7 @@
 // The audit log in plain words: "hid the thread “Week 3 notes”". Every action the API records has its words here
 // (audit.test.ts checks the API's code for them).
 import type { AuditOut } from '../../api/types';
-import { formatCount } from '../../ui';
+import { countOf, formatCount } from '../../ui';
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v : null);
 const quoted = (v: unknown): string => {
@@ -190,6 +190,8 @@ const ACTIONS: Record<string, Describe> = {
   'module.update': (d) => `edited the module${quoted(d.title)}`,
   'module.delete': (d) => `removed the module${quoted(d.title)}`,
   'module.reorder': (d) => `changed the order of ${str(d.title) ?? 'a year'}’s modules`,
+  'module.seed_lessons': (d) =>
+    `added ${countOf(count(d.lessons), 'lesson')} from the Hub’s seed to the module${quoted(d.title)}`,
   'request.status': (d) => {
     const title = quoted(d.title);
     const to = str(d.to);

@@ -14,6 +14,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models import (
+    AuditEntry,
     BoardCard,
     CalendarEvent,
     Chapter,
@@ -40,6 +41,7 @@ from app.seed.loader import (
     REFILED,
     RETIRED_FILES,
     RETIRED_FOLDERS,
+    SEED_LESSONS,
     daily_guess_words,
     load_all,
     load_daily,
@@ -75,6 +77,11 @@ def test_the_seed_files_hold_together() -> None:
     module_ids = [m["id"] for m in modules]
     assert len(set(module_ids)) == len(module_ids)
     assert all(m["year"] in (1, 2, 3) for m in modules)
+    chapters = [c for m in modules for c in m.get("chapters") or []]
+    ids = [c["id"] for c in chapters] + [v["id"] for c in chapters for v in c["videos"]]
+    assert len(set(ids)) == len(ids)  # a chapter's or lesson's id is its address for good
+    # a later chapter brings its lessons with it: they aren't marked again
+    assert not any(c.get("addedIn") and any(v.get("addedIn") for v in c["videos"]) for c in chapters)
 
     events = read("calendar")
     event_ids = [e["id"] for e in events]
@@ -152,6 +159,8 @@ def test_seed_loads_everything_once(db: Session) -> None:
     assert first_load(db) == {
         **files,
         "broken-chapters": 0,
+        "new-lessons": 0,
+        "unit-codes": 0,
         "chapter-words": 0,  # the modules arrive with their words
         "chapter-outlines": outlines,
         "career": 1,
@@ -181,6 +190,8 @@ def test_seed_loads_everything_once(db: Session) -> None:
     assert again == {
         "modules": 0,
         "broken-chapters": 0,
+        "new-lessons": 0,
+        "unit-codes": 0,
         "chapter-words": 0,
         "chapter-outlines": 0,
         "calendar": 0,
@@ -292,6 +303,8 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
     assert again == {
         "modules": 0,
         "broken-chapters": 0,
+        "new-lessons": 0,
+        "unit-codes": 0,
         "chapter-words": 0,
         "chapter-outlines": 0,
         "calendar": 0,
@@ -401,6 +414,75 @@ def test_the_seeds_chapter_words_reach_a_catalogue_loaded_before_them(db: Sessio
     assert "mle" in point.keywords
     assert edited.keywords == ["estimators"]
     assert load_chapter_words(db) == 0
+
+
+def test_the_seeds_later_chapters_and_lessons_reach_a_catalogue_loaded_before_them_once(db: Session) -> None:
+    """Chapters and lessons marked "addedIn" reach a catalogue loaded before them where the seed file has them, once a
+    batch per module: what a content manager removes afterwards stays removed."""
+    files = read("modules")
+    later_chapters = {c["id"] for m in files for c in m["chapters"] if c.get("addedIn")}
+    later_lessons = {
+        v["id"] for m in files for c in m["chapters"] for v in c["videos"] if c.get("addedIn") or v.get("addedIn")
+    }
+    reached = {m["id"] for m in files if any(v["id"] in later_lessons for c in m["chapters"] for v in c["videos"])}
+    in_later_chapters = {
+        v["id"] for m in files for c in m["chapters"] if c["id"] in later_chapters for v in c["videos"]
+    }
+    assert later_chapters, "the seed has later chapters to test with"
+    assert later_lessons - in_later_chapters, "and later lessons in chapters there were"
+    first_load(db)
+    # a catalogue loaded before them: no later chapters or lessons, and no batch has reached it
+    db.execute(delete(Lesson).where(Lesson.id.in_(later_lessons)))
+    db.execute(delete(Chapter).where(Chapter.id.in_(later_chapters)))
+    db.execute(delete(AuditEntry).where(AuditEntry.action == SEED_LESSONS))
+    db.commit()
+    db.expire_all()
+    versions = {m.id: m.version for m in db.scalars(select(Module))}
+
+    assert load_all(db, only="new-lessons") == {"new-lessons": len(later_lessons)}
+    db.commit()
+    db.expire_all()
+    for spec in files:  # as a new catalogue has them
+        module = db.get(Module, spec["id"])
+        assert module is not None
+        assert [c.id for c in module.chapters] == [c["id"] for c in spec["chapters"]], spec["id"]
+        lessons = [[v.id for v in c.lessons] for c in module.chapters]
+        assert lessons == [[v["id"] for v in c["videos"]] for c in spec["chapters"]], spec["id"]
+        assert [c.position for c in module.chapters] == list(range(len(module.chapters)))
+        assert all([v.position for v in c.lessons] == list(range(len(c.lessons))) for c in module.chapters)
+        assert module.version == versions[spec["id"]] + (spec["id"] in reached)
+    entries = db.scalars(select(AuditEntry).where(AuditEntry.action == SEED_LESSONS)).all()
+    assert sorted(e.target_id or "" for e in entries) == sorted(reached)
+    assert all(e.actor_id is None and e.data["via"] == "cli" and e.data["lessons"] > 0 for e in entries)
+
+    # a content manager removes a later lesson and a later chapter: the batch has reached them, so they stay removed
+    lesson = db.get(Lesson, min(later_lessons))
+    assert lesson is not None
+    gone_lesson, gone_chapter = lesson.id, min(later_chapters - {lesson.chapter_id})
+    db.execute(delete(Lesson).where(Lesson.id == gone_lesson))
+    db.execute(delete(Chapter).where(Chapter.id == gone_chapter))
+    db.commit()
+    assert load_all(db, only="new-lessons") == {"new-lessons": 0}
+    db.commit()
+    assert db.get(Lesson, gone_lesson) is None
+    assert db.get(Chapter, gone_chapter) is None
+
+
+def test_the_seed_gives_a_module_without_a_unit_code_the_seeds_and_keeps_one_a_content_manager_set(db: Session) -> None:
+    first_load(db)
+    without, edited = [m for m in read("modules") if m.get("unitCode")][:2]
+    bare, kept = db.get(Module, without["id"]), db.get(Module, edited["id"])
+    assert bare is not None
+    assert kept is not None
+    bare.unit_code, kept.unit_code = None, "ZZ9999"
+    db.commit()
+    version = bare.version
+
+    assert load_all(db, only="unit-codes") == {"unit-codes": 1}
+    db.commit()
+    assert (bare.unit_code, bare.version) == (without["unitCode"], version + 1)
+    assert kept.unit_code == "ZZ9999"
+    assert load_all(db, only="unit-codes") == {"unit-codes": 0}
 
 
 def test_the_seed_removes_a_retired_folder_and_the_files_it_brought(db: Session, client_for: Clients) -> None:
