@@ -33,7 +33,7 @@ import { dayLabel, nextToPlay } from './lib/days';
 import { HELD, resultOf } from './lib/result';
 import { hasSeenRules, markRulesSeen } from './lib/storage';
 import { isDifficulty, isGameId, isOver, type DailyToday, type GameId, type Move, type PlayOut } from './types';
-import './daily.css';
+import './look';
 import './DailyGamePage.css';
 
 export default function DailyGamePage() {

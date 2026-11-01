@@ -1,21 +1,129 @@
-/* The Daily's shared look: its colours (from the hub's tokens, so both themes follow), the games' glyphs, and the
-   parts every screen uses. Put `dy` on a root (the hub, a game, Home's card, a dialog) to use them. */
+/* The Daily's shared look: DSBA Daily's (BIBF's colours, Outfit and Rubik, its game colours and feedback), the games'
+   glyphs, and the parts every screen uses. Put `dy` on a root (the hub, a game, Home's card, a dialog) to use them.
+   Its fonts load with it (look.ts). The look is set by giving the hub's own tokens DSBA Daily's values inside `.dy`, so every Daily screen follows
+   without its own colours, and the rest of the hub keeps its look. */
+
+/* ── DSBA Daily's look, light ─────────────────────────────────────────────────────────────────────────────────── */
+.dy {
+  --font-ui: 'Rubik Variable', 'Rubik', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit Variable', 'Outfit', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
+  --fw-display: 700;
+  --tracking-display: -0.01em;
+  --r-sm: 8px;
+  --r-control: 12px;
+  --r-card: 20px;
+  --r-panel: 20px;
+
+  --paper: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eeeeee;
+  --ink: #222222;
+  --ink-2: #666666;
+  --ink-3: #6b7080;
+  --line: #e2e4e9;
+  --line-strong: #c9ccd4;
+  --control-border: #8a8f99;
+  --accent: #1d469e;
+  --on-accent: #ffffff;
+  --accent-soft: #e6ecf8;
+  --accent-text: #1d469e;
+  --focus-color: #1560b1;
+  --success: #1e7f4f;
+  --success-fill: #1e7f4f;
+  --success-soft: #e3f3ea;
+  --error: #c62828;
+  --error-soft: #fbe9e9;
+  --key-spent: #5b6577;
+  --key-spent-ink: #ffffff;
+  --shadow-card: 0 1px 2px rgba(17, 24, 39, 0.06), 0 4px 16px rgba(17, 24, 39, 0.06);
+  --shadow-float: 0 12px 40px rgba(17, 24, 39, 0.18);
+
+  /* DSBA Daily's own: the navy header band and its icons, the tactile ledge under buttons and tiles */
+  --dd-header: #21305a;
+  --dd-on-header: #ffffff;
+  --dd-flame: #ffb547;
+  --dd-star: #9ec1ff;
+  --dd-ledge: rgba(17, 24, 39, 0.16);
+  --dd-pick: #21305a; /* a picked tile or cell */
+  --dd-on-pick: #ffffff;
+  /* Each game's colour, and its tint behind the game's picture */
+  --dd-word: #0e7c7e;
+  --dd-word-soft: #e0f2f2;
+  --dd-groups: #a15f00;
+  --dd-groups-soft: #fbefd9;
+  --dd-search: #c7443d;
+  --dd-search-soft: #fbe6e4;
+  --dd-quiz: #0b6fb8;
+  --dd-quiz-soft: #e0eefa;
+  --dd-nearest: #4f46b8;
+  --dd-nearest-soft: #e9e7f8;
+  --dd-sudoku: #a63a76;
+  --dd-sudoku-soft: #f7e4ef;
+
+  font-family: var(--font-ui);
+  color: var(--ink);
+}
+
+/* ── DSBA Daily's look, dark ──────────────────────────────────────────────────────────────────────────────────── */
+[data-theme='dark'] .dy {
+  --paper: #0e1424;
+  --surface: #161e33;
+  --surface-2: #1f2942;
+  --ink: #f2f3f7;
+  --ink-2: #a3aabb;
+  --ink-3: #8a91a3;
+  --line: #263150;
+  --line-strong: #34406a;
+  --control-border: #6b7387;
+  --accent: #7fa3ee;
+  --on-accent: #0e1424;
+  --accent-soft: #1d2a4d;
+  --accent-text: #94b3f2;
+  --focus-color: #94b3f2;
+  --success: #4cc38a;
+  --success-fill: #1e7f4f;
+  --success-soft: #16352a;
+  --error: #ef6b6b;
+  --error-soft: #3a1d22;
+  --key-spent: #3d465c;
+  --key-spent-ink: #a3aabb;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.5);
+
+  --dd-header: #17224a;
+  --dd-on-header: #f2f3f7;
+  --dd-ledge: rgba(0, 0, 0, 0.45);
+  --dd-pick: #c9d6f5;
+  --dd-on-pick: #0e1424;
+  --dd-word: #3cc2c4;
+  --dd-word-soft: #12302f;
+  --dd-groups: #f0a93a;
+  --dd-groups-soft: #33270f;
+  --dd-search: #f27a72;
+  --dd-search-soft: #3a1c1b;
+  --dd-quiz: #5db0f0;
+  --dd-quiz-soft: #132b42;
+  --dd-nearest: #9c95f5;
+  --dd-nearest-soft: #24214a;
+  --dd-sudoku: #ef8cc0;
+  --dd-sudoku-soft: #3a1a2c;
+}
 
 .dy {
-  /* The Word's marks: in the word in that spot, elsewhere, not in it. */
-  --dy-hit: var(--success);
-  --dy-on-hit: var(--on-accent);
-  --dy-near: var(--highlight);
-  --dy-on-near: var(--highlight-ink);
-  --dy-miss: color-mix(in srgb, var(--ink-3) 80%, var(--ink)); /* a key's letter on it passes 4.5:1 in both themes */
-  --dy-on-miss: var(--on-accent);
-  /* Correlations' levels, plainest to trickiest: yellow, green, blue, purple. */
-  --dy-l1: color-mix(in srgb, var(--highlight) 78%, var(--surface));
-  --dy-l2: color-mix(in srgb, var(--mine-green) 42%, var(--surface));
-  --dy-l3: color-mix(in srgb, var(--y2) 36%, var(--surface));
-  --dy-l4: color-mix(in srgb, var(--mine-violet) 38%, var(--surface));
-  --dy-on-level: var(--ink);
-  --dy-on-l1: var(--highlight-ink); /* the yellow stays light in both themes: dark text on it */
+  /* The Word's marks: in the word in that spot, elsewhere, not in it (DSBA Daily's green, amber and slate). */
+  --dy-hit: #1e7f4f;
+  --dy-on-hit: #ffffff;
+  --dy-near: #f2b33d;
+  --dy-on-near: #222222;
+  --dy-miss: #5b6577;
+  --dy-on-miss: #ffffff;
+  /* Correlations' levels, plainest to trickiest: yellow, green, blue, purple, dark text on each in both themes. */
+  --dy-l1: #f6d365;
+  --dy-l2: #8fd3a8;
+  --dy-l3: #9cc3f5;
+  --dy-l4: #c3b4f0;
+  --dy-on-level: #222222;
+  --dy-on-l1: #222222;
   /* Data Mine's finds, a colour each in turn (findTone), see-through so the letters show. The yellow takes dark
      text, the others the page's ink. */
   --dy-find-0: color-mix(in srgb, var(--highlight) 78%, transparent);
@@ -34,20 +142,20 @@
   --dy-key-edge: color-mix(in srgb, var(--line-strong) 70%, transparent);
   --dy-press: 0 2px 0 var(--dy-key-edge);
   /* Selection: a picked word, cell or letter. */
-  --dy-pick: var(--accent);
-  --dy-on-pick: var(--on-accent);
+  --dy-pick: var(--dd-pick);
+  --dy-on-pick: var(--dd-on-pick);
   /* Each game's colour on the hub. */
-  --dy-word: var(--success-fill);
-  --dy-groups: var(--mine-violet);
-  --dy-search: var(--y3);
-  --dy-quiz: var(--accent);
-  --dy-nearest: var(--mine-rose);
-  --dy-sudoku: var(--y1);
+  --dy-word: var(--dd-word);
+  --dy-groups: var(--dd-groups);
+  --dy-search: var(--dd-search);
+  --dy-quiz: var(--dd-quiz);
+  --dy-nearest: var(--dd-nearest);
+  --dy-sudoku: var(--dd-sudoku);
 }
-/* Dark: "not in the word" recedes below the empty tiles, like the keyboard's spent keys (its letter is 8.9:1). */
+/* Dark: "not in the word" recedes below the empty tiles, like the keyboard's spent keys. */
 [data-theme='dark'] .dy {
-  --dy-miss: var(--key-spent);
-  --dy-on-miss: var(--ink-2);
+  --dy-miss: #3d465c;
+  --dy-on-miss: #ffffff;
 }
 
 /* ── Glyphs: each game drawn small, in its own pieces ────────────────────────────────────────────── */

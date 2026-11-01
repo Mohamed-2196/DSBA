@@ -6,7 +6,7 @@ import { cx, glyph, Icon, Panel, QueryError, Skeleton } from '../../ui';
 import { useDailyToday } from './api';
 import { GameTile } from './components/GameGlyph';
 import { gameLink, statusOf } from './lib/status';
-import './daily.css';
+import './look';
 import './DailyCard.css';
 
 export function DailyCard() {

@@ -1,84 +1,184 @@
-/* The Daily's hub (DailyPage.tsx): the day and its theme with one line of how today stands, the six games as tiles,
-   past days, the leaderboard and your stats. */
+/* The Daily's hub (DailyPage.tsx), in DSBA Daily's look: the navy band with the day and how today stands, the six
+   games as cards, then past days, the leaderboard and your stats. */
 
-/* ── The head: the tools band, with how today stands as a row of pills ───────────────────────────── */
-.dh-status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+/* ── The band: navy, with the day, the stats and the sign-in ─────────────────────────────────────────────────── */
+.dd-band {
+  margin-bottom: var(--sp-20);
+  padding: var(--sp-24);
+  border-radius: var(--r-panel);
+  background: var(--dd-header);
+  color: var(--dd-on-header);
+}
+@media (min-width: 1000px) {
+  .dd-band {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--sp-40, 40px);
+    padding: var(--sp-32);
+  }
+  .dd-band__side {
+    width: 520px;
+    flex: none;
+  }
+}
+.dd-band__kicker {
+  margin: 0;
+  color: rgb(255 255 255 / 70%);
+  font-size: var(--fs-14);
+  font-weight: 500;
+}
+.dd-band__hi {
+  color: var(--dd-on-header);
+}
+.dd-band__title {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.875rem, 1.4rem + 2vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.dd-band__theme {
+  margin: 6px 0 0;
+  color: rgb(255 255 255 / 80%);
+  font-size: var(--fs-14);
+}
+.dd-band__side {
+  margin-top: var(--sp-20);
+}
+@media (min-width: 1000px) {
+  .dd-band__side {
+    margin-top: 0;
+  }
+}
+
+/* Three stat tiles: streak, points, the time to the next set. */
+.dd-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--sp-8);
   margin: 0;
   padding: 0;
   list-style: none;
-  color: var(--ink);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-semibold);
 }
-.dh-status > li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 30px;
-  padding: 0 12px;
-  border: 1.5px solid var(--line-strong);
-  border-radius: var(--r-pill);
-  background: var(--surface);
+@media (min-width: 600px) {
+  .dd-stats {
+    gap: var(--sp-12);
+  }
+}
+.dd-stat {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: var(--sp-12);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 8%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+}
+.dd-stat__icon {
+  width: 20px;
+  height: 20px;
+  color: rgb(255 255 255 / 70%);
+}
+.dd-stat__icon.is-flame {
+  color: var(--dd-flame);
+}
+.dd-stat__icon.is-star {
+  color: var(--dd-star);
+}
+.dd-stat__value {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: var(--fs-22, 1.5rem);
+  font-weight: 700;
+  line-height: 1.15;
   white-space: nowrap;
 }
-.dh-status > li:has(> .ui-button) {
-  padding: 0;
-  border: 0;
-  background: none;
+.dd-stat__value--time {
+  font-size: clamp(1rem, 4.2vw, 1.375rem);
 }
-.dh-status svg {
-  flex: 0 0 auto;
-  font-size: 16px;
-}
-.dh-status time {
-  font-weight: var(--fw-bold);
-}
-.dh-status > li.is-lit > svg {
-  color: var(--y3-strong);
-}
-.dh-status__freeze {
+.dd-stat__label {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-right: -8px;
-  padding: 1px 8px;
-  border-radius: var(--r-pill);
-  background: var(--accent-soft);
-  color: var(--accent-text);
+  color: rgb(255 255 255 / 70%);
   font-size: var(--fs-12);
+  font-weight: 500;
 }
-.dh-status__freeze svg {
-  font-size: 14px;
+.dd-stat__freeze svg {
+  width: 14px;
+  height: 14px;
+  color: #9fd8ff;
+}
+
+/* How many of today's games are done. */
+.dd-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  margin-top: var(--sp-12);
+}
+.dd-progress__track {
+  position: relative;
+  height: 8px;
+  flex: 1;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 15%);
+}
+.dd-progress__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #ffffff;
+  transform-origin: left;
+  transition: transform 500ms var(--ease);
+}
+.dd-progress__text {
+  color: rgb(255 255 255 / 85%);
+  font-size: var(--fs-14);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* A guest's way in. */
+.dd-signin {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--sp-12);
+  margin-top: var(--sp-16);
+  padding: var(--sp-12) var(--sp-16);
+  border: 0;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 8%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+  color: rgb(255 255 255 / 85%);
+  font: inherit;
+  font-size: var(--fs-14);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.dd-signin:hover {
+  background: rgb(255 255 255 / 12%);
+}
+.dd-signin b {
+  color: #ffffff;
+  font-weight: 600;
+}
+.dd-signin__icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--dd-star);
 }
 
 .dh-tabs {
   margin-bottom: var(--sp-16);
 }
-
 @media (max-width: 699px) {
-  .dh-status {
-    gap: 6px;
-  }
-  .dh-status > li {
-    min-height: 28px;
-    padding: 0 10px;
-  }
-  /* The snowflake alone says it on a phone; its words stay for screen readers. */
-  .dh-status__freeze {
-    padding: 2px 6px;
-  }
-  .dh-status__freeze-text {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
   /* The four tabs fit a 360 px screen without scrolling. */
   .ui-tabs.dh-tabs {
     gap: var(--sp-16);
@@ -86,152 +186,174 @@
   }
 }
 
-/* ── Today: the six games as tiles ───────────────────────────────────────────────────────────────── */
+/* ── Today: the six games as cards ────────────────────────────────────────────────────────────────────────────── */
 .dh-games {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-10);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-12);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-@media (min-width: 900px) {
+@media (min-width: 600px) {
+  .dh-games {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1000px) {
   .dh-games {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--sp-16);
   }
 }
 
-/* The art takes the top on the game's own tint: its glyph, or the finished play's picture. The state sits in its
-   corner; the name and one line follow. */
-.dh-tile {
-  --g: var(--accent);
-  --art: 96px;
-  position: relative;
-  display: grid;
-  grid-template-rows: auto auto 1fr;
+/* Phones: the picture on the left, a row. Wider: the picture across the top. */
+.dh-card {
+  display: flex;
   height: 100%;
+  align-items: center;
+  gap: var(--sp-16);
+  padding: var(--sp-12) var(--sp-16) var(--sp-12) var(--sp-12);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
-  color: inherit;
-  text-decoration: none;
-  overflow: hidden;
   box-shadow: var(--shadow-card);
+  color: var(--ink);
+  text-decoration: none;
   transition:
-    border-color var(--dur-fast) var(--ease),
-    box-shadow var(--dur-fast) var(--ease),
-    transform var(--dur-fast) var(--ease);
+    transform var(--t-fast),
+    border-color var(--t-fast);
 }
-.dh-tile:hover {
-  border-color: color-mix(in srgb, var(--g) 45%, var(--line));
-  box-shadow: var(--shadow-float);
+.dh-card:hover {
+  border-color: var(--g);
+  transform: translateY(-2px);
 }
-.dh-tile:active {
-  transform: translateY(1px);
+.dh-card:active {
+  transform: scale(0.99);
 }
-.dh-tile__art {
+.dh-card__art {
   display: grid;
-  place-items: end center;
-  height: calc(var(--art) + 52px);
-  padding: 0 var(--sp-12) var(--sp-14);
-  color: color-mix(in srgb, var(--g) 70%, var(--ink));
-  background: color-mix(in srgb, var(--g) 13%, var(--surface));
-  border-bottom: 1px solid color-mix(in srgb, var(--g) 22%, transparent);
-}
-.dh-tile__art > .dy-glyph,
-.dh-tile__img {
-  width: var(--art);
-  height: var(--art);
-}
-.dh-tile__art.has-picture {
+  width: 64px;
+  height: 64px;
+  flex: none;
   place-items: center;
-  padding-top: 34px;
+  border-radius: 12px;
+  background: var(--g-soft);
+  color: var(--g);
 }
-.dh-tile__picture {
-  max-height: var(--art);
+.dh-card__art > .dy-glyph {
+  width: 40px;
+  height: 40px;
+  transition: transform 200ms var(--ease);
 }
-.dh-tile__name {
-  padding: var(--sp-12) var(--sp-14) 0;
+.dh-card:hover .dh-card__art > .dy-glyph {
+  transform: scale(1.1);
+}
+.dh-card__body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.dh-card__name {
+  font-family: var(--font-display);
   font-size: var(--fs-18);
-  font-weight: var(--fw-heavy);
-  letter-spacing: var(--tracking-head);
-  line-height: 1.2;
+  font-weight: 700;
+  line-height: 1.3;
 }
-.dh-tile__line {
-  padding: 4px var(--sp-14) var(--sp-14);
+.dh-card__line {
+  overflow: hidden;
   color: var(--ink-2);
   font-size: var(--fs-14);
-  line-height: 1.4;
-}
-.dh-tile__state {
-  position: absolute;
-  top: var(--sp-10);
-  right: var(--sp-10);
-  max-width: calc(100% - 2 * var(--sp-10));
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--ink-2);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-semibold);
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--g) 22%, transparent);
+  white-space: nowrap;
 }
-.dh-tile.is-playing .dh-tile__state {
+.dh-card__foot {
+  display: flex;
+  margin-top: var(--sp-8);
+}
+.dh-card__chevron {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--ink-3);
+}
+@media (min-width: 600px) {
+  .dh-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+  }
+  .dh-card__art {
+    width: auto;
+    height: 112px;
+    border-radius: calc(var(--r-card) - 1px) calc(var(--r-card) - 1px) 0 0;
+  }
+  .dh-card__art > .dy-glyph {
+    width: 56px;
+    height: 56px;
+  }
+  .dh-card__body {
+    padding: var(--sp-12) var(--sp-16) var(--sp-16);
+  }
+  .dh-card__line {
+    display: -webkit-box;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .dh-card__foot {
+    margin-top: var(--sp-12);
+  }
+  .dh-card__chevron {
+    display: none;
+  }
+}
+
+/* The state: Play, In progress, Done. */
+.dh-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-text);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  white-space: nowrap;
 }
-.dh-tile.is-won .dh-tile__state {
+.dh-badge.is-new {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.dh-badge.is-playing {
+  background: color-mix(in srgb, #f2b33d 28%, var(--surface));
+  color: var(--ink);
+}
+.dh-badge.is-won,
+.dh-badge.is-lost {
   background: var(--success-soft);
   color: var(--success);
 }
+.dh-badge__icon {
+  width: 14px;
+  height: 14px;
+}
 
-/* Phones: two columns, all six on the first screen. */
-@media (max-width: 599px) {
-  .dh-tile {
-    --art: 50px;
-  }
-  .dh-tile__art {
-    height: calc(var(--art) + 36px);
-    padding: 0 var(--sp-8) var(--sp-10);
-  }
-  .dh-tile__art.has-picture {
-    padding-top: 28px;
-  }
-  .dh-tile__state {
-    top: var(--sp-8);
-    right: var(--sp-8);
-    max-width: calc(100% - 2 * var(--sp-8));
-    padding: 2px 8px;
-    font-size: var(--fs-12);
-  }
-  .dh-tile__name {
-    padding: var(--sp-10) var(--sp-10) 0;
-    font-size: var(--fs-16);
-  }
-  .dh-tile__line {
-    display: -webkit-box;
-    margin: 2px var(--sp-10) var(--sp-10);
-    padding: 0;
-    font-size: var(--fs-12);
-    line-height: 1.35;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    /* Chrome can lay a clamped span out as a block and show a third line after the ellipsis. */
-    max-height: calc(2 * 1.35em);
-  }
+.dh-foot {
+  margin: var(--sp-24) 0 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  text-align: center;
 }
-.dh-tile-skeleton {
-  height: 260px;
+.dh-card-skeleton {
+  height: 92px;
 }
-@media (max-width: 599px) {
-  .dh-tile-skeleton {
-    height: 156px;
+@media (min-width: 600px) {
+  .dh-card-skeleton {
+    height: 240px;
   }
 }
 

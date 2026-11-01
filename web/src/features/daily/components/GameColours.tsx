@@ -2,7 +2,7 @@
 // contrast the browser gives it (text needs 4.5:1). Measured live, so a change to a token shows here.
 import { useEffect, useRef, useState } from 'react';
 import { contrastRatio, over, parseColor } from '../../../lib/contrast';
-import '../daily.css';
+import '../look';
 
 const PAIRS: readonly (readonly [fill: string, text: string, use: string])[] = [
   ['--dy-hit', '--dy-on-hit', 'The Word: in the right place'],
