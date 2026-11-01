@@ -80,8 +80,11 @@ def test_the_seed_files_hold_together() -> None:
     chapters = [c for m in modules for c in m.get("chapters") or []]
     ids = [c["id"] for c in chapters] + [v["id"] for c in chapters for v in c["videos"]]
     assert len(set(ids)) == len(ids)  # a chapter's or lesson's id is its address for good
-    # a later chapter brings its lessons with it: they aren't marked again
-    assert not any(c.get("addedIn") and any(v.get("addedIn") for v in c["videos"]) for c in chapters)
+    # a later chapter brings its lessons with it: one of them is marked only when a later batch brought it
+    assert not any(
+        c.get("addedIn") and any(v.get("addedIn") and v["addedIn"] <= c["addedIn"] for v in c["videos"])
+        for c in chapters
+    )
 
     events = read("calendar")
     event_ids = [e["id"] for e in events]
@@ -423,7 +426,13 @@ def test_the_seeds_later_chapters_and_lessons_reach_a_catalogue_loaded_before_th
     later_lessons = {
         v["id"] for m in files for c in m["chapters"] for v in c["videos"] if c.get("addedIn") or v.get("addedIn")
     }
-    reached = {m["id"] for m in files if any(v["id"] in later_lessons for c in m["chapters"] for v in c["videos"])}
+    batches = {  # each batch that brings a module something, and the module
+        (m["id"], b)
+        for m in files
+        for c in m["chapters"]
+        for b in {c.get("addedIn")} | {v.get("addedIn") for v in c["videos"]}
+        if b
+    }
     in_later_chapters = {
         v["id"] for m in files for c in m["chapters"] if c["id"] in later_chapters for v in c["videos"]
     }
@@ -449,9 +458,9 @@ def test_the_seeds_later_chapters_and_lessons_reach_a_catalogue_loaded_before_th
         assert lessons == [[v["id"] for v in c["videos"]] for c in spec["chapters"]], spec["id"]
         assert [c.position for c in module.chapters] == list(range(len(module.chapters)))
         assert all([v.position for v in c.lessons] == list(range(len(c.lessons))) for c in module.chapters)
-        assert module.version == versions[spec["id"]] + (spec["id"] in reached)
+        assert module.version == versions[spec["id"]] + sum(m == spec["id"] for m, _ in batches)
     entries = db.scalars(select(AuditEntry).where(AuditEntry.action == SEED_LESSONS)).all()
-    assert sorted(e.target_id or "" for e in entries) == sorted(reached)
+    assert sorted((e.target_id or "", e.data["batch"]) for e in entries) == sorted(batches)
     assert all(e.actor_id is None and e.data["via"] == "cli" and e.data["lessons"] > 0 for e in entries)
 
     # a content manager removes a later lesson and a later chapter: the batch has reached them, so they stay removed

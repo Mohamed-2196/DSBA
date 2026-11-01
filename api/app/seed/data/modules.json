@@ -9034,6 +9034,46 @@
             "videoId": "RdLo-9jh2EM",
             "title": "Solving Systems Using Cramer's Rule",
             "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "r385pv8g",
+            "kind": "youtube",
+            "videoId": "srxexLishgY",
+            "title": "18. Properties of Determinants",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "eq2v3aw4",
+            "kind": "youtube",
+            "videoId": "uQhTuRlWMxw",
+            "title": "Inverse matrices, column space and null space | Chapter 7, Essence of linear algebra",
+            "channel": "3Blue1Brown",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "7qw2rgu6",
+            "kind": "youtube",
+            "videoId": "8o5Cmfpeo6g",
+            "title": "6. Column Space and Nullspace",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "zzxufvgp",
+            "kind": "youtube",
+            "videoId": "9Q1q7s1jTzU",
+            "title": "8. Solving Ax = b: Row Reduced Form R",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "d83t4b4v",
+            "kind": "youtube",
+            "videoId": "HPE1yPYklh0",
+            "title": "Writing solutions to Ax=b in vector form",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
           }
         ]
       },
@@ -9069,6 +9109,46 @@
             "videoId": "4C9GKyfUQkc",
             "title": "Basis and Dimension",
             "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "ntd6k5ge",
+            "kind": "youtube",
+            "videoId": "3_MxBlWQsgs",
+            "title": "Oxford Linear Algebra: Subspace Test",
+            "channel": "Tom Rocks Maths",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "ubrxhxmp",
+            "kind": "youtube",
+            "videoId": "OFALIHBY5Bw",
+            "title": "Determining Linear Independence vs Linear Dependence",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "9hwca7xt",
+            "kind": "youtube",
+            "videoId": "QN00isODmEs",
+            "title": "Coordinate Systems From Non-Standard Bases | Definitions + Visualization",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "jsd4hinr",
+            "kind": "youtube",
+            "videoId": "_CpshMm-5p0",
+            "title": "Finding a Basis for the Nullspace or Column space of a matrix A",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "5quxzcz4",
+            "kind": "youtube",
+            "videoId": "vpl8EZwrqPk",
+            "title": "The Dimension Theorem | Dim(Null(A)) + Dim(Col(A)) = n  | Also, Rank!",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
           }
         ]
       },
@@ -9097,6 +9177,46 @@
             "videoId": "HZa1RwFHgwU",
             "title": "Change of Basis",
             "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "de3rv43c",
+            "kind": "youtube",
+            "videoId": "yZ52iqxaiCc",
+            "title": "Oxford Linear Algebra: Rank Nullity Theorem",
+            "channel": "Tom Rocks Maths",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "wagi7e4k",
+            "kind": "youtube",
+            "videoId": "kYB8IZa5AuE",
+            "title": "Linear transformations and matrices | Chapter 3, Essence of linear algebra",
+            "channel": "3Blue1Brown",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "kpupnzhw",
+            "kind": "youtube",
+            "videoId": "Ts3o2I8_Mxc",
+            "title": "30. Linear Transformations and Their Matrices",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "raj8tnm8",
+            "kind": "youtube",
+            "videoId": "PiuhTj0zCf4",
+            "title": "Transformation matrix with respect to a basis | Linear Algebra | Khan Academy",
+            "channel": "Khan Academy",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "j78um6ze",
+            "kind": "youtube",
+            "videoId": "s4c5LQ5a4ek",
+            "title": "The Similarity Relationship Represents a Change of Basis",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
           }
         ]
       },
@@ -9125,6 +9245,46 @@
             "videoId": "DUuTx2nbizM",
             "title": "Complex, Hermitian, and Unitary Matrices",
             "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "zd9w2vwu",
+            "kind": "youtube",
+            "videoId": "PFDu9oVAE-g",
+            "title": "Eigenvectors and eigenvalues | Chapter 14, Essence of linear algebra",
+            "channel": "3Blue1Brown",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "g7n6s98a",
+            "kind": "youtube",
+            "videoId": "nNwZA1X-C3c",
+            "title": "How the Diagonalization Process Works",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "rcztjqwg",
+            "kind": "youtube",
+            "videoId": "ieWyx2mlZyk",
+            "title": "Full Example: Diagonalizing a Matrix",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "4b4w3hwb",
+            "kind": "youtube",
+            "videoId": "FOoi8h47Tw4",
+            "title": "COMPLEX Eigenvalues, Eigenvectors & Diagonalization **full example**",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "sa8avwv7",
+            "kind": "youtube",
+            "videoId": "UCc9q_cAhho",
+            "title": "25. Symmetric Matrices and Positive Definiteness",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11b"
           }
         ]
       },
@@ -9216,6 +9376,62 @@
             "videoId": "wHAJzemKQW4",
             "title": "Further Matrix Decompositions: LU, Cholesky, QR, and SVD",
             "channel": "Professor Dave Explains"
+          },
+          {
+            "id": "eb42k4qk",
+            "kind": "youtube",
+            "videoId": "LyGKycYT2v0",
+            "title": "Dot products and duality | Chapter 9, Essence of linear algebra",
+            "channel": "3Blue1Brown",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "asiiitgf",
+            "kind": "youtube",
+            "videoId": "ywjA25xFuew",
+            "title": "Oxford Linear Algebra: Inner Product Space",
+            "channel": "Tom Rocks Maths",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "3u9v9gfb",
+            "kind": "youtube",
+            "videoId": "MKXahTrgVso",
+            "title": "Distance, Angles, Orthogonality and Pythagoras for vectors",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "e2zm9x8b",
+            "kind": "youtube",
+            "videoId": "r2PogGDl8_U",
+            "title": "Proof of the Cauchy-Schwarz inequality | Vectors and spaces | Linear Algebra | Khan Academy",
+            "channel": "Khan Academy",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "ehu68wt8",
+            "kind": "youtube",
+            "videoId": "0MtwqhIwdrI",
+            "title": "17. Orthogonal Matrices and Gram-Schmidt",
+            "channel": "MIT OpenCourseWare",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "qw7fnqjs",
+            "kind": "youtube",
+            "videoId": "zti01DiImiQ",
+            "title": "Full example: using Gram-Schmidt",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "qq9tct68",
+            "kind": "youtube",
+            "videoId": "-i4CBed-zec",
+            "title": "Orthogonal Diagonalization Explained | Linear Algebra",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11b"
           }
         ]
       },
@@ -9279,6 +9495,38 @@
             "videoId": "if2Xq4GVuvY",
             "title": "Lecture 23(A): Compact Sets and Metric Spaces; Bolzano-Weierstrass Theorem",
             "channel": "Arizona Math Camp"
+          },
+          {
+            "id": "8rpfwi6t",
+            "kind": "youtube",
+            "videoId": "051WWg9twO0",
+            "title": "Proof: Triangle Inequality Theorem | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "gq3q2sac",
+            "kind": "youtube",
+            "videoId": "dWLhfYUb3wc",
+            "title": "Proving All the Sequence Limit Laws | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "ym7fk89z",
+            "kind": "youtube",
+            "videoId": "hYY9piVkB6g",
+            "title": "Proof: Sequence Squeeze Theorem | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "h65xyfqg",
+            "kind": "youtube",
+            "videoId": "kVQNhAIFZYc",
+            "title": "Epsilon-Delta Definition of Functional Limits | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11b"
           }
         ]
       },
@@ -9342,6 +9590,14 @@
             "videoId": "s0dZVmPN3Ww",
             "title": "Lecture 17(A): Concave and Convex Functions",
             "channel": "Arizona Math Camp"
+          },
+          {
+            "id": "iwvf4zhy",
+            "kind": "youtube",
+            "videoId": "X7Oi-fyM_aU",
+            "title": "Understanding Quasiconcave and Quasiconvex Functions",
+            "channel": "EZ Economics",
+            "addedIn": "2026-11b"
           }
         ]
       },
@@ -9468,6 +9724,14 @@
             "videoId": "wG-dm40Zn9s",
             "title": "Graphical Method in Game Theory | 2xn and mx2 game without saddle point | Operation Research",
             "channel": "Start Practicing"
+          },
+          {
+            "id": "tdgkf7rz",
+            "kind": "youtube",
+            "videoId": "XrQpLcKXvgY",
+            "title": "Finding Zero Sum Nash Equilibria with Linear Programming (AGT 13)",
+            "channel": "Professor Bryce",
+            "addedIn": "2026-11b"
           }
         ]
       }

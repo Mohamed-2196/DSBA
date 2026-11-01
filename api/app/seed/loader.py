@@ -72,14 +72,16 @@ def _lesson(module_id: str, position: int, v: dict[str, Any]) -> Lesson:
     )
 
 
-def _chapter(module_id: str, position: int, c: dict[str, Any]) -> Chapter:
+def _chapter(module_id: str, position: int, c: dict[str, Any], batch: str | None = None) -> Chapter:
+    """A chapter as the seed file has it; with `batch`, without the lessons a later batch brings to it."""
+    videos = [v for v in c.get("videos") or [] if batch is None or not v.get("addedIn") or v["addedIn"] <= batch]
     return Chapter(
         id=c["id"],
         position=position,
         title=c["title"],
         audio_url=c.get("audioUrl"),
         keywords=list(c.get("keywords") or []),
-        lessons=[_lesson(module_id, vi, v) for vi, v in enumerate(c.get("videos") or [])],
+        lessons=[_lesson(module_id, vi, v) for vi, v in enumerate(videos)],
     )
 
 
@@ -149,7 +151,8 @@ SEED_LESSONS = "module.seed_lessons"
 
 def load_new_lessons(db: Session) -> int:
     """Chapters and lessons modules.json gained after catalogues were loaded: each is marked with the batch that
-    brought it ("addedIn" on a new chapter, which brings its lessons, or on a lesson added to a chapter there was).
+    brought it ("addedIn" on a new chapter, which brings its lessons, or on a lesson added to a chapter there was,
+    including one a batch before brought; batches go in the order of their names).
     A batch reaches each module once, the audit log keeps that it did (SEED_LESSONS, the Hub via cli), and after that
     the module is the content managers' again: a chapter or lesson they remove stays removed, and a module they
     removed isn't brought back. New chapters go at the end of the module and new lessons at the end of their chapter,
@@ -176,7 +179,7 @@ def load_new_lessons(db: Session) -> int:
                 chapter = db.get(Chapter, c["id"])
                 if chapter is None:
                     if c.get("addedIn") == batch:
-                        chapter = _chapter(module.id, len(module.chapters), c)
+                        chapter = _chapter(module.id, len(module.chapters), c, batch)
                         module.chapters.append(chapter)
                         added += len(chapter.lessons)
                     continue
@@ -188,6 +191,7 @@ def load_new_lessons(db: Session) -> int:
                 module.version += 1
             data = {"title": module.name, "batch": batch, "lessons": added, "via": "cli"}
             audit.record(db, None, SEED_LESSONS, "module", module.id, data)
+            db.flush()  # a later batch finds the chapters this one brought
             n += added
     db.flush()
     return n
