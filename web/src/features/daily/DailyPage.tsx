@@ -10,6 +10,7 @@ import { newDay, useDailyToday } from './api';
 import { ArchiveView } from './components/ArchiveView';
 import { Countdown } from './components/Countdown';
 import { CountUp } from './components/CountUp';
+import { DailyReport } from './components/DailyReport';
 import { GameCard } from './components/GameCard';
 import { LeaderboardView } from './components/LeaderboardView';
 import { StatsView } from './components/StatsView';
@@ -157,6 +158,7 @@ function Head({ today }: { today: DailyToday }) {
 function TodayView({ today }: { today: DailyToday }) {
   return (
     <>
+      {today.games.length > 0 && today.done === today.games.length ? <DailyReport today={today} /> : null}
       <ul className="dh-games" aria-label="Today’s puzzles">
         {today.games.map((g) => (
           <li key={g.info.id}>

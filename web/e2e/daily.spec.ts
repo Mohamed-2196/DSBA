@@ -359,6 +359,11 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
   expect(me.body.games.every((g) => g.scored)).toBe(true);
   await page.goto('/daily');
   await expect(page.getByText('6 of 6 done')).toBeVisible();
+  // The day's finale, as DSBA Daily shows it: every game's points.
+  const report = page.getByRole('region', { name: 'All 6 done today!' });
+  await expect(report).toBeVisible();
+  await expect(report.getByRole('list', { name: 'Points per game' }).getByRole('listitem')).toHaveCount(6);
+  await page.screenshot({ path: test.info().outputPath('daily-report.png') });
   const summary = page.getByRole('list', { name: 'Today so far' });
   await expect(summary.getByRole('listitem').filter({ hasText: 'Points today' })).toContainText(`${me.body.points}`);
 

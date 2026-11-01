@@ -856,3 +856,165 @@
     animation-delay: 250ms;
   }
 }
+
+/* ── The day's finale (components/DailyReport.tsx), as DSBA Daily shows it ───────────────────────────────────── */
+.dd-report {
+  margin-bottom: var(--sp-16);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.dd-report__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  padding: var(--sp-16) var(--sp-16) var(--sp-16) var(--sp-20, 20px);
+  background: var(--accent-soft);
+}
+.dd-report__trophy {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--dd-header);
+  box-shadow: var(--shadow-card);
+  color: var(--dd-star);
+}
+.dd-report__trophy svg {
+  width: 28px;
+  height: 28px;
+}
+.dd-report__intro {
+  min-width: 0;
+  flex: 1;
+}
+.dd-report__title {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.dd-report__line {
+  margin: 2px 0 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.dd-report__body {
+  display: grid;
+  gap: var(--sp-20, 20px);
+  padding: var(--sp-20, 20px);
+}
+@media (min-width: 600px) {
+  .dd-report__body {
+    grid-template-columns: minmax(0, 220px) 1fr;
+  }
+}
+.dd-report__label {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: 600;
+}
+.dd-report__total {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.dd-report__max {
+  color: var(--ink-2);
+  font-size: var(--fs-18);
+}
+.dd-report__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-8);
+  margin: var(--sp-12) 0 0;
+}
+@media (min-width: 600px) {
+  .dd-report__facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.dd-report__facts > div {
+  min-width: 0;
+  padding: var(--sp-8) var(--sp-12);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+.dd-report__facts dt {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: 500;
+}
+.dd-report__facts dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.dd-report__bars {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dd-report__bars > li {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 8.5rem) 1fr 2.5rem;
+  align-items: center;
+  gap: var(--sp-8);
+  font-size: var(--fs-14);
+}
+.dd-report__glyph {
+  display: block;
+  width: 20px;
+  height: 20px;
+  color: var(--g);
+}
+.dd-report__name {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dd-report__track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+}
+.dd-report__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--g);
+  transform: scaleX(var(--fill));
+  transform-origin: left;
+}
+.dd-report__points {
+  font-weight: 600;
+  text-align: right;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dd-report__trophy {
+    animation: dd-trophy 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .dd-report__fill {
+    animation: dd-grow 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(150ms + var(--n) * 80ms);
+  }
+}
+@keyframes dd-trophy {
+  from {
+    transform: scale(0.6) rotate(-12deg);
+  }
+}
