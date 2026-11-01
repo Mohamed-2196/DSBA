@@ -15,7 +15,7 @@ test('a student hides and moves Home blocks, and it is saved to the account', as
   const upNext = dialog.getByRole('switch', { name: 'Up next' });
   await upNext.click(); // the account's preferences change a tick after the click (optimistic update)
   await expect(upNext).not.toBeChecked();
-  await dialog.getByRole('button', { name: 'Move My modules up' }).click();
+  await dialog.getByRole('button', { name: 'Move Carry on up' }).click();
   await dialog.getByRole('button', { name: 'Done' }).click();
   await expect(ali.locator('.home-blocks [data-block="coming_up"]')).toHaveCount(0);
 
@@ -30,7 +30,7 @@ test('a student hides and moves Home blocks, and it is saved to the account', as
   await expect(ali.locator('.home-blocks [data-block="coming_up"]')).toHaveCount(0);
   const saved = (await api<{ preferences: { homeBlocks: string[] } }>(ali, 'GET', '/api/v1/me')).body.preferences
     .homeBlocks;
-  expect(saved.indexOf('modules')).toBeLessThan(saved.indexOf('continue'));
+  expect(saved.indexOf('carry_on')).toBeLessThan(saved.indexOf('results_day'));
   await expect(blocks.first()).toBeVisible();
 
   await ali.locator('[data-hub="home-customize-open"]').click();
@@ -45,17 +45,16 @@ test('a guest’s Home layout stays in the browser', async ({ guest }) => {
   await guest.locator('[data-hub="home-customize-open"]').click();
   await guest
     .getByRole('dialog', { name: 'Customise Home' })
-    .getByRole('switch', { name: 'My modules', exact: true })
+    .getByRole('switch', { name: 'Up next', exact: true })
     .uncheck();
   await guest.getByRole('dialog', { name: 'Customise Home' }).getByRole('button', { name: 'Done' }).click();
   await guest.reload();
-  await expect(guest.locator('.home-blocks [data-block="modules"]')).toHaveCount(0);
-  expect(await guest.evaluate(() => window.localStorage.getItem('hub.homeBlocks'))).not.toContain('modules');
+  await expect(guest.locator('.home-blocks [data-block="coming_up"]')).toHaveCount(0);
+  expect(await guest.evaluate(() => window.localStorage.getItem('hub.homeBlocks'))).not.toContain('coming_up');
 });
 
 test('the desk shelf opens each section, for a student and a guest', async ({ sara, guest }) => {
   const sections: Array<[string, RegExp]> = [
-    ['Library', /\/library$/],
     ['Modules', /\/modules$/],
     ['Notebook', /\/notes$/],
     ['Forum', /\/forum$/],
@@ -65,7 +64,7 @@ test('the desk shelf opens each section, for a student and a guest', async ({ sa
     for (const [label, url] of sections) {
       await page.goto('/');
       const shelf = page.getByRole('navigation', { name: 'Your desk' });
-      // Each tile is named by its section and its live line ("Library, 12 new").
+      // Each tile is named by its section and its live line ("Calendar, Exam Thu"); the modules come first.
       const tile = shelf.getByRole('link', { name: new RegExp(`^${label}(,|$)`) });
       await expect(tile).toBeVisible();
       await tile.click();

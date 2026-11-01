@@ -83,7 +83,7 @@ SiteUrl = Annotated[HttpsUrl, AfterValidator(_not_drive)]
 PortalUrl = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000), AfterValidator(_portal)
 ]
-# A page of the Hub: '/library?type=notes'.
+# A page of the Hub: '/modules?year=2'.
 HubPath = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500), AfterValidator(_hub_path)
 ]

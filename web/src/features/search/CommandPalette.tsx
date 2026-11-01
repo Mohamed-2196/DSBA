@@ -13,6 +13,7 @@ import { Count, Deskmate, Icon, IconButton, Kbd, Spinner, Modal, cx, glyph } fro
 import { useStartsThreads } from '../forum/public';
 import { noteLabel, useNoteSearch } from '../notes/public';
 import { openBugReport } from '../bugs/public';
+import { openUpload } from '../../shell/upload';
 import { askNoora, hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
 import { httpsHref, useSite } from '../site/public';
 import { useSearch } from './api';
@@ -204,6 +205,7 @@ export function CommandPalette({ opening }: { opening: string }) {
       if (run.type === 'theme') toggleTheme();
       // After the palette has closed and handed focus back, so the dialog keeps it.
       else if (run.type === 'bug') requestAnimationFrame(() => openBugReport());
+      else if (run.type === 'upload') requestAnimationFrame(() => openUpload());
       else if (run.type === 'noora') {
         if (run.act === 'hide') hideMiniNoora();
         else if (run.act === 'show') showMiniNoora();

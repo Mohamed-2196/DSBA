@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { BrandLogo, Divider, Drawer, Icon, cx, glyph } from '../ui';
 import { openBugReport } from '../features/bugs/public';
 import { NooraFace } from '../features/noora/public';
+import { PoweredBy } from '../features/site/public';
 import { preloadOnIntent } from '../routes';
 import { MOBILE_TAB_IDS, MORE_IDS } from './nav';
 import { usePortalLinks } from './portals';
@@ -11,14 +12,13 @@ import { YearSwitcher } from './YearSwitcher';
 import { InstallSteps } from './InstallSteps';
 import { useInstallOffer } from './useInstallOffer';
 import { ThemeToggle } from './ThemeToggle';
-import { useStartUpload, useUploadShown } from './upload';
+import { openUpload, useUploadShown } from './upload';
 import './MobileNav.css';
 
-/** Bottom tab bar (< 700px): Home, Modules, Noora, Library, Forum, More (drawer with the rest). */
+/** Bottom tab bar (< 700px): Home, Modules, Forum, Calendar, Noora, More (drawer with the rest). */
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
-  const startUpload = useStartUpload();
   const uploadShown = useUploadShown();
   const portals = usePortalLinks();
   const install = useInstallOffer();
@@ -101,7 +101,7 @@ export function MobileNav() {
                   className="shell-more__item"
                   onClick={() => {
                     close();
-                    startUpload();
+                    openUpload();
                   }}
                   data-hub="more-upload"
                 >
@@ -164,6 +164,7 @@ export function MobileNav() {
           </ul>
           <Divider />
           <ThemeToggle />
+          <PoweredBy className="shell-more__powered" />
         </div>
       </Drawer>
       <InstallSteps offer={install} />

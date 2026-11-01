@@ -1,6 +1,6 @@
 // The desk shelf in Home's greeting band (home-screen.png): a tile per core section with its deskmate and a live line,
-// each opening its section. New files and the notes count come with Home's first answer (GET /home), unread replies
-// from the bell's own query.
+// each opening its section. The notes count comes with Home's first answer (GET /home), unread replies from the bell's
+// own query.
 import { useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import type { HomeShelf as ShelfCounts } from '../../api/types';
@@ -14,7 +14,6 @@ import { unreadReplies } from './replies';
 import { shelfTiles, type ShelfSection } from './shelf';
 
 const FEATURE: Record<ShelfSection, Feature | null> = {
-  library: 'library',
   modules: null,
   notebook: 'notes',
   forum: 'forum',
@@ -39,7 +38,6 @@ export function HomeShelf({
   const notified = useMemo(() => notifications.data?.pages.flatMap((p) => p.items) ?? [], [notifications.data]);
 
   const tiles = shelfTiles({
-    newFiles: counts?.newFiles ?? null,
     modules: modulesFor(year, papers, catalogue).length,
     notes: counts?.notes ?? null,
     signedIn,

@@ -32,8 +32,7 @@ const HOME = {
   resultsDay: null,
   dates: [],
   nextExam: null,
-  dailyQuestion: null,
-  shelf: { newFiles: 3, notes: null },
+  shelf: { notes: 3 },
 } as unknown as HomeOut;
 
 let local: Map<string, string>;
@@ -70,7 +69,7 @@ describe('Home’s one request', () => {
   it('asks for the year shown and a guest’s papers, and fills the others when it answers', async () => {
     const qc = client();
     const home = await qc.fetchQuery(homeQuery({ year: 2, picks: 'econometrics' }));
-    expect(home.shelf.newFiles).toBe(3);
+    expect(home.shelf.notes).toBe(3);
     expect(net.requests).toEqual(['/api/v1/home?year=2&picks=econometrics']);
     expect(qc.getQueryData(SITE_KEY)).toEqual(HOME.site);
 

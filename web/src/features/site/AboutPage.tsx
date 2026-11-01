@@ -19,10 +19,12 @@ import {
   Icon,
   type Glyph,
 } from '../../ui';
+import { openUpload } from '../../shell/upload';
 import { openBugReport } from '../bugs/public';
 import { useCalendarEvents } from '../calendar/public';
 import { Prose } from '../forum/public';
 import { useSite } from './api';
+import { PoweredBy } from './PoweredBy';
 import { contributorLine, httpsHref, notesInLibrary } from './lib/site';
 import './About.css';
 
@@ -67,6 +69,7 @@ export function AboutMain({ site, numbers = true }: { site: SiteDoc; numbers?: b
           <Prose text={site.about} />
           {numbers ? <CoverageLine /> : null}
         </div>
+        <PoweredBy className="about__powered" />
       </PageSection>
 
       {site.contributors.length ? (
@@ -105,7 +108,7 @@ export function AboutMain({ site, numbers = true }: { site: SiteDoc; numbers?: b
           <SectionHeader
             id="about-notes"
             title="Students who shared notes"
-            description="Their notes are in the library and on each module’s page."
+            description="Their notes are on each module’s page."
           />
           <ul role="list" className="about__notes">
             {site.noteCredits.map((p) => (
@@ -195,12 +198,11 @@ export default function AboutPage() {
               <Panel padding="md" className="about__contribute">
                 <h2 className="about__aside-title">Got a resource to share?</h2>
                 <p className="about__aside-body">
-                  Notes, past papers or a guide: upload it to the library, and a student rep checks it before it goes
-                  up.
+                  Notes, past papers or a guide: upload it to its module, and a student rep checks it before it goes up.
                 </p>
                 <Button
                   variant="primary"
-                  to="/library?upload=1"
+                  onClick={openUpload}
                   leadingIcon={<Icon glyph={glyph.upload} />}
                   fullWidth
                   data-hub="about-upload"

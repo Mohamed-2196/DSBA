@@ -1,15 +1,13 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../auth';
-import { contributorLine, copyrightYears, httpsHref, useSite } from '../features/site/public';
+import { PoweredBy, contributorLine, copyrightYears, httpsHref, useSite } from '../features/site/public';
 import { shortVersion } from '../lib/version';
 import { HubLogo } from '../ui';
-import { UPLOAD_PATH, useStartUpload, useUploadShown } from './upload';
+import { UPLOAD_PATH, openUpload, useUploadShown } from './upload';
 import './SiteFooter.css';
 
-/** Footer inside the content column: links, who makes the hub, contributors, disclaimer, copyright (Site settings). */
+/** Footer inside the content column: links, who makes the hub and what powers it, contributors, disclaimer, copyright
+ *  (Site settings). */
 export function SiteFooter() {
-  const { status, me } = useAuth();
-  const startUpload = useStartUpload();
   const uploadShown = useUploadShown();
   const site = useSite().data;
   return (
@@ -25,10 +23,9 @@ export function SiteFooter() {
               <Link
                 to={UPLOAD_PATH}
                 onClick={(e) => {
-                  // A guest signs in first, then carries on to the upload.
-                  if (status === 'signed-in' && me && !me.needsProfile) return;
+                  // The dialog opens over this page (a guest signs in first); the address is for a new tab.
                   e.preventDefault();
-                  startUpload();
+                  openUpload();
                 }}
               >
                 Upload a file
@@ -71,6 +68,7 @@ export function SiteFooter() {
               </ul>
             ) : null}
             <div className="shell-footer__legal">
+              <PoweredBy />
               <p>{site.disclaimer}</p>
               <p>
                 © {copyrightYears(site.launchYear)} {site.copyrightHolder}. All rights reserved.

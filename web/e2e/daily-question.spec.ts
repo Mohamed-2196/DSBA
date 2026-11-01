@@ -1,6 +1,7 @@
 // A past question a day: with an Econometrics exam tomorrow and ten more tagged questions (the seed tags others),
-// Sara (Year 2) sees the day's question on Home, keeps its paper on her board and opens it at its page. The spec switches
-// its features on and puts them back as it found them.
+// Sara (Year 2) sees the day's question on Home, keeps its paper on her board and opens it at its page; on the module's
+// page she picks its chapters and asks it on Home. The spec switches its features on and puts them back as it found
+// them.
 import { expect, test } from './fixtures';
 import { api, makeFiles, remember, switchBack, switchOn } from './support';
 
@@ -59,21 +60,44 @@ test('Sara opens the day’s past question from Home and keeps its paper on her 
     expect(exam.status).toBe(201);
     remember('events', exam.body.id);
 
-    // It's on Home by default: Home leads with studying (ST-50).
-    await api(sara, 'PATCH', '/api/v1/me', { preferences: { homeBlocks: null } });
+    // It's on Home by default, following her next exam.
+    await api(sara, 'PATCH', '/api/v1/me', { preferences: { homeBlocks: null, dailyQuestion: null } });
     await sara.goto('/');
     const card = sara.locator('[data-hub="daily-question"]');
     await expect(card.getByRole('heading', { name: 'A past question a day' })).toBeVisible();
     // The seed tags Econometrics papers too, so the day's question may come from any of them, this one included.
-    await expect(card).toContainText('Elements of Econometrics · exam tomorrow');
+    await expect(card).toContainText('EC2020 · exam tomorrow');
     await expect(card).toContainText(/Question [A-D]?\d+, /);
     await card.locator('[data-hub="board-add"]').click();
     await expect(card.locator('[data-hub="board-on"]')).toBeVisible();
     await card.locator('[data-hub="daily-open"]').click();
     await expect(sara).toHaveURL(/\/library\/[^/?]+(\?page=\d+)?$/);
     await expect(sara.locator('[data-hub="question-tags"]')).toBeVisible();
+
+    // The module's own: from the one chapter she ticks, and on Home too.
+    await sara.goto('/modules/econometrics');
+    const own = sara.locator('[data-hub="module-daily"]');
+    await expect(own).toContainText(/Question [A-D]?\d+, /);
+    await own.locator('[data-hub="module-daily-chapters"]').click();
+    const picker = sara.locator('[data-hub="daily-dialog"]');
+    const chapters = picker.locator('[data-hub="daily-chapter"] input');
+    const n = await chapters.count();
+    for (let i = 1; i < n; i++) await chapters.nth(i).uncheck();
+    await picker.getByLabel('Ask me this module’s question on Home too').check();
+    await sara.locator('[data-hub="daily-save"]').click();
+    await expect(own).toContainText('in the chapter you chose');
+    await expect(own).toContainText('Also on your Home');
+    await sara.goto('/');
+    await expect(card).toContainText('EC2020 · 1 chapter');
+    const me = await api<{ preferences: { dailyQuestion: { moduleId: string; chapters: Record<string, string[]> } } }>(
+      sara,
+      'GET',
+      '/api/v1/me',
+    );
+    expect(me.body.preferences.dailyQuestion.moduleId).toBe('econometrics');
+    expect(me.body.preferences.dailyQuestion.chapters.econometrics).toHaveLength(1);
   } finally {
     await api(rep, 'DELETE', `/api/v1/library/items/${paper.id}`);
-    await api(sara, 'PATCH', '/api/v1/me', { preferences: { homeBlocks: null } });
+    await api(sara, 'PATCH', '/api/v1/me', { preferences: { homeBlocks: null, dailyQuestion: null } });
   }
 });

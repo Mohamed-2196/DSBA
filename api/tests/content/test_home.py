@@ -4,18 +4,15 @@ year asked for, the student's papers and what they hid, and hidden modules; noth
 from __future__ import annotations
 
 import datetime as dt
-import uuid
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.time import utcnow
-from app.models import CalendarEvent, CalendarPrefs, Chapter, ItemStatus, LibraryItem, Module, PaperQuestion, User
+from app.models import CalendarEvent, CalendarPrefs, Module, User
 from app.services import home as home_service
 from tests.content.conftest import API
 
@@ -24,7 +21,6 @@ SetFeature = Callable[..., None]
 HOME = f"{API}/home"
 # A day in the October exams.
 TODAY = dt.date(2026, 10, 20)
-QUESTION_SWITCHES = ("library.questions", "library.daily-question")
 
 
 def day(n: int) -> dt.date:
@@ -79,40 +75,6 @@ def events(db: Session, modules: dict[str, Module]) -> dict[str, CalendarEvent]:
     return {e.id: e for e in rows}
 
 
-def tagged(db: Session, module_id: str, n: int) -> list[PaperQuestion]:
-    """`n` tagged questions on a module's published past papers, three to a paper."""
-    chapter = db.scalars(select(Chapter.id).where(Chapter.module_id == module_id).order_by(Chapter.position)).first()
-    assert chapter is not None
-    tags: list[PaperQuestion] = []
-    for paper in range((n + 2) // 3):
-        item = LibraryItem(
-            slug=f"{module_id}-paper-{paper}-{uuid.uuid4().hex[:6]}",
-            source="link",
-            kind="past-paper",
-            title=f"Paper {paper}",
-            module_id=module_id,
-            url="https://example.com/paper.pdf",
-            status=ItemStatus.published,
-            exam_year=2015 + paper,
-            published_at=utcnow(),
-        )
-        db.add(item)
-        db.flush()
-        tags.extend(
-            PaperQuestion(item_id=item.id, chapter_id=chapter, question=q, page=q)
-            for q in range(1, min(3, n - len(tags)) + 1)
-        )
-    db.add_all(tags)
-    db.commit()
-    return tags
-
-
-@pytest.fixture
-def questions_on(set_feature: SetFeature) -> None:
-    for f in QUESTION_SWITCHES:
-        set_feature(f, "everyone")
-
-
 def get_home(client: TestClient, year: int, **params: str) -> dict[str, Any]:
     r = client.get(HOME, params={"year": year, **params})
     assert r.status_code == 200, r.text
@@ -128,9 +90,8 @@ def ids(home: dict[str, Any]) -> list[str]:
 
 
 def test_a_guest_gets_the_years_first_screen_in_one_answer(
-    client_for: Clients, events: dict[str, CalendarEvent], db: Session, questions_on: None
+    client_for: Clients, events: dict[str, CalendarEvent]
 ) -> None:
-    tags = tagged(db, "mathematics", 12)
     home = get_home(client_for(), 1)
 
     assert home["site"]["homeBlocks"]
@@ -141,13 +102,9 @@ def test_a_guest_gets_the_years_first_screen_in_one_answer(
     assert ids(home) == ["y1-maths", "everyone-deadline"]
     assert home["nextExam"]["id"] == "y1-maths"
     assert (home["nextExam"]["time"], home["nextExam"]["place"]) == ("09:00", "Hall A")
-    # the day's question: the same pick as the web app's (ids in order, by the day's number since 1970)
-    order = sorted(str(t.id) for t in tags)
-    assert home["dailyQuestion"]["id"] == order[(TODAY - dt.date(1970, 1, 1)).days % len(order)]
-    assert home["dailyQuestion"]["paper"]["title"].startswith("Paper ")
     # no results date in the last weeks: no guides
     assert (home["resultsDay"], home["guides"]) == (None, None)
-    assert home["shelf"] == {"newFiles": 0, "notes": None}
+    assert home["shelf"] == {"notes": None}
 
 
 @pytest.mark.parametrize(
@@ -251,65 +208,15 @@ def test_the_notes_count_is_the_students_own(
     assert get_home(client_for(), 2)["shelf"]["notes"] is None
 
 
-def test_new_files_count_what_students_shared_in_the_year_this_week(
-    client_for: Clients, db: Session, make_user: Callable[..., User], modules: dict[str, Module]
-) -> None:
-    sara = make_user(year=2)
-
-    def item(*, year: int = 2, days: int = 1, uploader: User | None = sara, module: str = "econometrics") -> None:
-        db.add(
-            LibraryItem(
-                slug=f"file-{uuid.uuid4().hex[:8]}",
-                source="link",
-                kind="notes",
-                title="Notes",
-                module_id=module,
-                year=year,
-                url="https://example.com/notes",
-                status=ItemStatus.published,
-                uploaded_by=uploader.id if uploader else None,
-                published_at=utcnow() - timedelta(days=days),
-            )
-        )
-
-    item()
-    item()
-    item(days=8)  # last week's
-    item(year=1, module="mathematics")  # another year's
-    item(uploader=None)  # imported, not shared by a student
-    item(module="information-systems")
-    db.get(Module, "information-systems").hidden = True  # type: ignore[union-attr]
-    db.commit()
-
-    assert get_home(client_for(), 2)["shelf"]["newFiles"] == 2
-    assert get_home(client_for(), 1)["shelf"]["newFiles"] == 1
-
-
 # ── switches, hidden modules, no exam ────────────────────────────────────────────────────────
 
 
 def test_switched_off_features_leave_their_parts_out(
-    client_for: Clients,
-    events: dict[str, CalendarEvent],
-    db: Session,
-    set_feature: SetFeature,
-    questions_on: None,
-    make_user: Callable[..., User],
+    client_for: Clients, events: dict[str, CalendarEvent], set_feature: SetFeature, make_user: Callable[..., User]
 ) -> None:
-    tagged(db, "advanced-stats-inferential", 10)
     sara = make_user(year=2)
-    assert get_home(client_for(sara), 2)["dailyQuestion"] is not None
-
-    set_feature("library.daily-question", "off")
-    home = get_home(client_for(sara), 2)
-    assert home["dailyQuestion"] is None
-    assert home["nextExam"]["id"] == "y2-inference"
-    set_feature("library.daily-question", "everyone")
-
     set_feature("library", "off")
-    home = get_home(client_for(sara), 2)
-    assert home["dailyQuestion"] is None
-    assert home["shelf"]["newFiles"] is None
+    assert get_home(client_for(sara), 2)["nextExam"]["id"] == "y2-inference"
 
     set_feature("calendar", "off")
     home = get_home(client_for(sara), 2)
@@ -322,24 +229,17 @@ def test_switched_off_features_leave_their_parts_out(
     assert get_home(client_for(sara), 2)["shelf"]["notes"] is None
 
 
-def test_a_hidden_modules_dates_and_questions_stay_off_home(
-    client_for: Clients, events: dict[str, CalendarEvent], db: Session, questions_on: None
+def test_a_hidden_modules_dates_stay_off_home(
+    client_for: Clients, events: dict[str, CalendarEvent], db: Session
 ) -> None:
-    tagged(db, "advanced-stats-inferential", 12)
-    assert get_home(client_for(), 2)["dailyQuestion"] is not None
-
     db.get(Module, "advanced-stats-inferential").hidden = True  # type: ignore[union-attr]
     db.commit()
     home = get_home(client_for(), 2)
     assert "y2-inference" not in ids(home)
     assert home["nextExam"]["id"] == "y2-econometrics"
-    assert home["dailyQuestion"] is None  # econometrics has no tagged questions
 
 
-def test_no_exam_ahead_means_no_countdown_and_no_question(
-    client_for: Clients, db: Session, modules: dict[str, Module], questions_on: None
-) -> None:
-    tagged(db, "econometrics", 12)
+def test_no_exam_ahead_means_no_countdown(client_for: Clients, db: Session, modules: dict[str, Module]) -> None:
     db.add_all(
         [
             CalendarEvent(id="break", date=day(4), title="Mid-year break", type="break"),
@@ -350,35 +250,6 @@ def test_no_exam_ahead_means_no_countdown_and_no_question(
     home = get_home(client_for(), 2)
     assert ids(home) == ["break", "sample"]
     assert home["nextExam"] is None
-    assert home["dailyQuestion"] is None
-
-
-def test_the_daily_question_waits_for_the_six_weeks_and_enough_tags(
-    client_for: Clients, db: Session, modules: dict[str, Module], questions_on: None
-) -> None:
-    exam = CalendarEvent(id="ec", date=day(50), title="EC2020 exam", type="exam", year=2, module_id="econometrics")
-    db.add(exam)
-    db.commit()
-    tags = tagged(db, "econometrics", 9)
-    assert get_home(client_for(), 2)["nextExam"]["id"] == "ec"
-    assert get_home(client_for(), 2)["dailyQuestion"] is None  # 50 days ahead
-
-    exam.date = day(42)
-    db.commit()
-    assert get_home(client_for(), 2)["dailyQuestion"] is None  # nine tags only
-
-    tags += tagged(db, "econometrics", 1)
-    first = get_home(client_for(), 2)["dailyQuestion"]["id"]
-    assert first in {str(t.id) for t in tags}
-
-
-def test_the_daily_question_changes_with_the_day(
-    client_for: Clients, db: Session, events: dict[str, CalendarEvent], questions_on: None, monkeypatch: Any
-) -> None:
-    tagged(db, "advanced-stats-inferential", 11)
-    today = get_home(client_for(), 2)["dailyQuestion"]["id"]
-    monkeypatch.setattr(home_service, "bahrain_today", lambda: TODAY + timedelta(days=1))
-    assert get_home(client_for(), 2)["dailyQuestion"]["id"] != today
 
 
 # ── the guides ───────────────────────────────────────────────────────────────────────────────

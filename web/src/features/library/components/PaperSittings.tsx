@@ -10,7 +10,7 @@ import { Button, DocThumb, Panel, Skeleton } from '../../../ui';
 import { SittingsDone } from '../../board/public';
 import { usePapers } from '../../papers/public';
 import { sittingFiles, usePaperSittings } from '../papers';
-import type { LinkState } from './FileCard';
+import type { LinkState } from '../types';
 import { SittingsTable } from './SittingsTable';
 import '../ModuleFiles.css';
 import './PaperSittings.css';

@@ -63,11 +63,11 @@ test('every page fits a 390×844 phone screen, in dark mode too', async ({ brows
 
 test('writing asks a guest to sign in first', async ({ guest }) => {
   const signIn = guest.getByRole('dialog').filter({ has: guest.getByLabel('Email address') });
-  await guest.goto('/library');
+  await guest.goto('/modules/advanced-stats-distribution?tab=files');
   await guest.locator('[data-hub="upload-button"]').click();
   await expect(signIn).toBeVisible();
   await guest.keyboard.press('Escape');
-  // The shell's "Upload a file" leads here too: a guest signs in first.
+  // A link with ?upload=1 (the old library address too) opens the shell's upload: a guest signs in first.
   await guest.goto('/library?upload=1');
   await expect(signIn).toBeVisible();
   await guest.keyboard.press('Escape');

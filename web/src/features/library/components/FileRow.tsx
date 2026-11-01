@@ -19,7 +19,7 @@ import {
   statusInfo,
 } from '../display';
 import type { LibraryItem, LibrarySort } from '../types';
-import type { LinkState } from './FileCard';
+import type { LinkState } from '../types';
 import { CoverThumb } from './CoverThumb';
 import { QL_BUTTON, QL_FILE, QL_LINK } from '../quickLook/rules';
 import { useQuickLook } from '../quickLook/useQuickLook';

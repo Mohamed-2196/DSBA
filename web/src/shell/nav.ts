@@ -30,15 +30,6 @@ export const NAV: NavItem[] = [
   { id: 'home', label: 'Home', to: '/', icon: glyph.home, section: 'home', group: 'main', end: true },
   { id: 'modules', label: 'Modules', to: '/modules', icon: glyph.modules, section: 'modules', group: 'main' },
   {
-    id: 'library',
-    label: 'Library',
-    to: '/library',
-    icon: glyph.library,
-    section: 'library',
-    group: 'main',
-    feature: 'library',
-  },
-  {
     id: 'notes',
     label: 'Notebook',
     to: '/notes',
@@ -137,7 +128,7 @@ export const NAV: NavItem[] = [
   },
 ];
 
-/** Mobile bottom tabs (+ "More"). */
-export const MOBILE_TAB_IDS = ['home', 'modules', 'noora', 'library', 'forum'];
+/** Mobile bottom tabs (+ "More"). Each module's files are on its page: there is no Library tab. */
+export const MOBILE_TAB_IDS = ['home', 'modules', 'noora', 'forum', 'calendar'];
 /** Routes that live under "More" on mobile. */
-export const MORE_IDS = ['daily', 'newsletter', 'career', 'calendar', 'grades', 'notes', 'board', 'requests'];
+export const MORE_IDS = ['daily', 'newsletter', 'career', 'grades', 'notes', 'board', 'requests'];

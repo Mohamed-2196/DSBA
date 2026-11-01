@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import type { LibraryItem } from '../../../api/types';
 import { itemPath } from '../api';
-import type { LinkState } from '../components/FileCard';
+import type { LinkState } from '../types';
 import { sittingLabel, zoneLabel } from '../../../lib/exams';
 import { WORKED_LABEL, paperContext, usePaperSittings } from '../papers';
 

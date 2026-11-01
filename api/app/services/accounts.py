@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 from typing import Any, get_args
 
 from botocore.exceptions import BotoCoreError, ClientError
+from pydantic import ValidationError
 from sqlalchemy import delete, false, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session, object_session
@@ -63,6 +64,7 @@ from app.models import (
 from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
+    DailyQuestionChoice,
     ExportCalendarSettings,
     ExportDailyPlay,
     ExportEmail,
@@ -127,6 +129,25 @@ def home_blocks_of(user: User) -> list[HomeBlock] | None:
     return [b for b in dict.fromkeys(blocks) if b in HOME_BLOCKS]
 
 
+def daily_question_of(user: User) -> DailyQuestionChoice | None:
+    """How the person organised the past question a day; None: every chapter, and Home follows the next exam."""
+    stored = _stored(user).get("daily_question")
+    if not isinstance(stored, dict):
+        return None
+    try:
+        return DailyQuestionChoice.model_validate(stored)
+    except ValidationError:
+        return None
+
+
+def _daily_question_stored(choice: DailyQuestionChoice) -> dict[str, Any] | None:
+    """The choice as it is kept, each module's chapters once; None when it chooses nothing (the default)."""
+    chapters = {m: list(dict.fromkeys(ids)) for m, ids in choice.chapters.items()}
+    if choice.module_id is None and not chapters:
+        return None
+    return {"module_id": choice.module_id, "chapters": chapters}
+
+
 def tracks_progress(user: User) -> bool:
     """Whether the person keeps their lesson progress (opt in)."""
     return _stored(user).get("track_progress") is True
@@ -141,14 +162,16 @@ def preferences_of(user: User) -> Preferences:
             **{name: wants(user, name) for name in EMAIL_SWITCHES},
             "track_progress": tracks_progress(user),
             "home_blocks": home_blocks_of(user),
+            "daily_question": daily_question_of(user),
         }
     )
 
 
 def update_preferences(user: User, changes: PreferencesUpdate) -> None:
     """Applies what was sent: a switch sent as null stays as it is; `home_blocks` sent as null goes back to the
-    default layout, and repeated blocks are dropped. An email turned on before the question about emails was
-    answered answers it "no": that email comes, and the others stay off."""
+    default layout, and repeated blocks are dropped; `daily_question` sent as null goes back to every chapter. An
+    email turned on before the question about emails was answered answers it "no": that email comes, and the others
+    stay off."""
     sent = changes.model_dump(exclude_unset=True)
     stored = _stored(user)
     merged: dict[str, Any] = {name: stored[name] for name in SWITCHES if isinstance(stored.get(name), bool)}
@@ -158,6 +181,10 @@ def update_preferences(user: User, changes: PreferencesUpdate) -> None:
     blocks = sent["home_blocks"] if "home_blocks" in sent else home_blocks_of(user)
     if blocks is not None:
         merged["home_blocks"] = list(dict.fromkeys(blocks))
+    daily = changes.daily_question if "daily_question" in sent else daily_question_of(user)
+    kept = _daily_question_stored(daily) if daily is not None else None
+    if kept is not None:
+        merged["daily_question"] = kept
     user.preferences = merged  # a new dict: JSONB columns don't see changes made in place
 
 

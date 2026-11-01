@@ -1,9 +1,10 @@
-// Home's desk shelf: one tile per core section, each with its deskmate and a live line ("12 new", "Exam Thu"). Pure,
-// so the words are tested (shelf.test.ts); HomeShelf.tsx gathers the numbers.
+// Home's desk shelf: one tile per core section, each with its deskmate and a live line ("4 modules", "Exam Thu"). Pure,
+// so the words are tested (shelf.test.ts); HomeShelf.tsx gathers the numbers. It is Home's one way into the modules
+// besides the main navigation.
 import { formatDayMonth, weekdayOf } from '../../lib/dates';
 import type { MateSection } from '../../ui';
 
-export type ShelfSection = Extract<MateSection, 'library' | 'modules' | 'notebook' | 'forum' | 'calendar'>;
+export type ShelfSection = Extract<MateSection, 'modules' | 'notebook' | 'forum' | 'calendar'>;
 
 export interface ShelfTile {
   section: ShelfSection;
@@ -11,13 +12,11 @@ export interface ShelfTile {
   to: string;
   /** the live line under the label, or null while it loads */
   line: string | null;
-  /** the line is news (new files, unread replies, an exam this week): it takes the section's colour */
+  /** the line is news (unread replies, an exam this week): it takes the section's colour */
   news: boolean;
 }
 
 export interface ShelfFacts {
-  /** files students shared in the last 7 days; null while loading */
-  newFiles: number | null;
   /** the modules the student studies (their year's, or their papers) */
   modules: number;
   /** the student's notes; null for a guest or while loading */
@@ -41,13 +40,6 @@ export function examLine(days: number, date: Date): string {
 
 export function shelfTiles(f: ShelfFacts): ShelfTile[] {
   const tiles: ShelfTile[] = [
-    {
-      section: 'library',
-      label: 'Library',
-      to: '/library',
-      line: f.newFiles == null ? null : f.newFiles > 0 ? `${f.newFiles} new` : 'Papers and notes',
-      news: (f.newFiles ?? 0) > 0,
-    },
     {
       section: 'modules',
       label: 'Modules',

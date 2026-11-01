@@ -28,7 +28,6 @@ export type IconName =
   | 'ArrowsLeftRight'
   | 'Kanban'
   | 'Bank'
-  | 'Books'
   | 'Calculator'
   | 'CalendarDots'
   | 'ChatCircleText'
@@ -57,6 +56,7 @@ export type OfferId = 'threads' | 'upload';
 export type Run =
   | { type: 'theme' }
   | { type: 'bug' }
+  | { type: 'upload' }
   | { type: 'year'; year: 1 | 2 | 3 }
   | { type: 'noora'; act: 'ask' | 'hide' | 'show' };
 
@@ -175,14 +175,7 @@ export const PAGE_ENTRIES: Item[] = (
       path: '/modules',
       title: 'Modules',
       icon: 'SquaresFour',
-      keywords: ['subjects', 'courses', 'lessons', 'videos', 'chapters'],
-    },
-    {
-      path: '/library',
-      feature: 'library',
-      title: 'Library',
-      icon: 'Books',
-      keywords: ['files', 'notes', 'past papers', 'exams', 'study guide', 'documents'],
+      keywords: ['subjects', 'courses', 'lessons', 'videos', 'chapters', 'files', 'past papers', 'library'],
     },
     {
       path: '/notes',
@@ -330,7 +323,7 @@ export function buildActions({
       feature: 'forum',
       offer: 'threads',
     },
-    // Contributing means uploading to the library (decision D6).
+    // Contributing means uploading to the library (decision D6): the dialog opens over the page on screen.
     {
       id: 'action:upload',
       group: 'actions',
@@ -338,7 +331,7 @@ export function buildActions({
       title: 'Upload a file',
       icon: 'UploadSimple',
       keywords: ['upload', 'share notes', 'share a file', 'past paper', 'contribute', 'add a file'],
-      to: '/library?upload=1',
+      run: { type: 'upload' },
       offer: 'upload',
     },
     ...switches,
@@ -779,15 +772,6 @@ export function runSearch({
       id: 'fallback',
       items: (
         [
-          {
-            id: 'fallback:library',
-            kind: 'fallback',
-            group: 'fallback',
-            icon: 'Books',
-            title: `Search the library for “${q}”`,
-            to: `/library?q=${encodeURIComponent(q)}`,
-            feature: 'library',
-          },
           {
             id: 'fallback:forum',
             kind: 'fallback',

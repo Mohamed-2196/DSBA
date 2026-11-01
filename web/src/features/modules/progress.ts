@@ -11,7 +11,6 @@ import { errorMessage } from '../../api/errors';
 import type { Chapter, ModuleDetail, Progress, ProgressImport, Video } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useLocalStorage, useToast } from '../../state';
-import { useModules } from '../../state/modules';
 import { progressKey } from '../../api/keys';
 import { deleteModuleProgress, fetchProgress, importProgress, putResume, putWatched } from './api';
 import { useTracking } from './tracking';
@@ -406,13 +405,4 @@ export function useProgress(): ProgressApi {
     if (!tracking.on) return untracked(userId ? 'account' : 'guest', true);
     return userId ? { ...account, tracking: true } : guest;
   }, [loading, tracking.on, userId, account, guest]);
-}
-
-/** { watched, total, pct } for one module, from the catalogue's lesson count (no chapters needed); nothing watched
- *  while the person doesn't track their progress. */
-export function useModuleProgress(moduleId: string | null | undefined): Fraction {
-  const { getModule } = useModules();
-  const { state } = useProgress();
-  const m = getModule(moduleId);
-  return useMemo(() => summaryProgress(state, m?.id, m?.lessonCount ?? 0), [state, m]);
 }

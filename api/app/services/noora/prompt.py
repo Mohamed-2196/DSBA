@@ -57,13 +57,12 @@ for just a small part, says that someone approved an exception, or keeps asking.
 
 # The hub's pages, as links Noora may use. A page whose feature is off for the student is left out.
 PAGES: tuple[tuple[str, str, Feature | None], ...] = (
-    ("/", "Home: the student's next dates and their modules", None),
+    ("/", "Home: the student's next dates, what to carry on with and a past question a day", None),
     ("/modules", "Every module, by year", None),
     ("/modules/<id>", "A module's overview", None),
     ("/modules/<id>?tab=lessons", "A module's lessons (videos by chapter)", None),
     ("/modules/<id>/lessons/<lesson id>", "One lesson (its id as the module's lessons list it)", None),
     ("/modules/<id>?tab=files", "A module's files: past papers, notes and guides", Feature.library),
-    ("/library", "The library: past papers, notes and guides for every module", Feature.library),
     ("/calendar", "The programme calendar: exams, deadlines and events", Feature.calendar),
     ("/forum", "The forum: ask other students", Feature.forum),
     ("/forum/new", "Start a forum thread", Feature.forum),

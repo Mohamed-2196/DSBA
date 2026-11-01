@@ -369,10 +369,10 @@ def test_a_link_to_a_past_paper_has_its_sitting(
     assert "examYear" in link(rep, kind="past-paper", examYear=1900).json()["error"]["fields"]
 
 
-# ── listing, search and facets ───────────────────────────────────────────────────────────────
+# ── listing and search ───────────────────────────────────────────────────────────────────────
 
 
-def test_filters_sorts_search_and_facets(
+def test_filters_sorts_and_search(
     client_for: Clients, moderator: User, modules: dict[str, Module], share_file: Share
 ) -> None:
     rep, guest = client_for(moderator), client_for()
@@ -417,13 +417,6 @@ def test_filters_sorts_search_and_facets(
     page = guest.get(f"{API}/library/items", params={"limit": 2, "offset": 2}).json()
     assert (page["total"], page["limit"], page["offset"], len(page["items"])) == (3, 2, 2, 1)
 
-    facets = guest.get(f"{API}/library/facets").json()
-    assert facets == {
-        "total": 3,
-        "byKind": {"past-paper": 1, "study-guide": 1, "notes": 1},
-        "byModule": {"advanced-stats-distribution": 2, "economics": 1},
-        "byYear": {"1": 1, "2": 2},
-    }
     mods = {m["id"]: m["libraryCount"] for m in guest.get(f"{API}/modules").json()}
     assert (mods["advanced-stats-distribution"], mods["economics"], mods["statistics"]) == (2, 1, 0)
 

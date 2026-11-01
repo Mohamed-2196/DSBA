@@ -20,7 +20,7 @@ from urllib.parse import urlsplit
 
 LINK_RULE = "Links must start with https:// or point to a page of the Hub (like /calendar)."
 HTTPS_RULE = "Use an https:// link."
-HUB_PATH_RULE = "Use a page of the Hub, starting with / (like /library?type=notes)."
+HUB_PATH_RULE = "Use a page of the Hub, starting with / (like /modules?year=2)."
 DRIVE_RULE = (
     "The Hub keeps its own copy of files instead of sending students to Google Drive. Link the file in the library "
     "instead."

@@ -131,3 +131,9 @@ button.shell-more__item {
 .shell-more .shell-theme {
   padding-left: 10px;
 }
+.shell-more__powered {
+  margin: 0;
+  padding: 0 10px;
+  color: var(--ink-3);
+  font-size: var(--fs-12);
+}

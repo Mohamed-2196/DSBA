@@ -8,14 +8,12 @@ from app.schemas.calendar import CalendarEventOut
 from app.schemas.common import ApiModel
 from app.schemas.grades import PaperChoice
 from app.schemas.guides import GuidesDoc
-from app.schemas.library import PaperQuestion
 from app.schemas.site import SiteDoc
 
 
 class HomeShelf(ApiModel):
     """The desk shelf's numbers."""
 
-    new_files: int | None  # files students shared in the year's library in the last 7 days; None: library off
     notes: int | None  # the student's notes; None for a guest or while notes are off
 
 
@@ -29,5 +27,4 @@ class HomeOut(ApiModel):
     # from their calendar and the hidden modules' (empty while the calendar is off).
     dates: list[CalendarEventOut]
     next_exam: CalendarEventOut | None  # their next exam within 120 days, unless a mock comes first
-    daily_question: PaperQuestion | None  # the day's past question for next_exam's module, in the six weeks before it
     shelf: HomeShelf

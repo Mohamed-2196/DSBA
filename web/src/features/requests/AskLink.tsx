@@ -1,5 +1,5 @@
 // "Can't find it? Ask for it": a link to /requests with "New request" open on a kind, for pages where something
-// may be missing (the library). Shows only while requests are on and the person isn't suspended.
+// may be missing (a module's files). Shows only while requests are on and the person isn't suspended.
 import { useAuth } from '../../auth';
 import { Button, glyph, Icon } from '../../ui';
 import type { RequestKind } from './types';

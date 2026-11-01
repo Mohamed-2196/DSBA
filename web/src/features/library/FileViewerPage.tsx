@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { isApiError } from '../../api/errors';
+import { moduleFilesPath } from '../../lib/modules';
 import { appUrl } from '../../lib/share';
 import { useCopyLink } from '../../lib/useCopyLink';
 import { BREAKPOINTS, useDocumentTitle, useMediaQuery, useToast } from '../../state';
@@ -34,7 +35,7 @@ import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, libraryKeys, openLinkHref, useLibraryItem } from './api';
 import { DeleteItemDialog, EditItemDialog } from './components/EditItemDialog';
 import { CoverThumb } from './components/CoverThumb';
-import type { LinkState } from './components/FileCard';
+import type { LinkState } from './types';
 import { ReviewActions } from './components/ReviewActions';
 import { StarButton } from './components/StarButton';
 import { examTitle, isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
@@ -91,10 +92,10 @@ export default function FileViewerPage() {
               icon={<Icon glyph={glyph.search} />}
               titleAs="h1"
               title="We couldn’t find that file"
-              body="It may have been removed, or it isn’t published yet. Search the library for it instead."
+              body="It may have been removed, or it isn’t published yet. Look for it on its module’s page instead."
               action={
-                <Button variant="primary" to="/library">
-                  Open the library
+                <Button variant="primary" to="/modules">
+                  See all modules
                 </Button>
               }
             />
@@ -240,9 +241,10 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   };
 
   const state = location.state as Partial<LinkState> | null;
-  const backTo = typeof state?.from === 'string' ? state.from : '/library';
-  const linkState = useMemo<LinkState>(() => ({ from: backTo }), [backTo]);
   const m = getModule(item.moduleId);
+  // Back to the list that opened the file, else its module's files.
+  const backTo = typeof state?.from === 'string' ? state.from : m ? moduleFilesPath(m.id) : '/modules';
+  const linkState = useMemo<LinkState>(() => ({ from: backTo }), [backTo]);
   const name = examTitle(item, moduleTag(m));
   const kind = KIND_BY_ID[item.kind];
   const fmt = formatOf(item);
@@ -379,22 +381,24 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
             <li>
               <Link to={backTo} className="lib-crumbs__back">
                 <Icon glyph={glyph.chevronLeft} />
-                Library
+                Back
               </Link>
             </li>
             {m ? (
-              <li>
-                <Link to={`/library?module=${m.id}`}>
-                  {m.unitCode ? <strong className="u-code">{m.unitCode}</strong> : null}{' '}
-                  {m.unitCode ? m.shortName : m.name}
-                </Link>
-              </li>
-            ) : null}
-            <li>
-              <Link to={m ? `/library?module=${m.id}&type=${item.kind}` : `/library?type=${item.kind}&year=all`}>
-                {kind.plural}
-              </Link>
-            </li>
+              <>
+                <li>
+                  <Link to={moduleFilesPath(m.id)}>
+                    {m.unitCode ? <strong className="u-code">{m.unitCode}</strong> : null}{' '}
+                    {m.unitCode ? m.shortName : m.name}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={moduleFilesPath(m.id, item.kind)}>{kind.plural}</Link>
+                </li>
+              </>
+            ) : (
+              <li>{kind.plural}</li>
+            )}
           </ol>
         </nav>
         <div className="lib-viewer__titlerow">
@@ -531,8 +535,8 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           open
           onClose={() => setDialog(null)}
           onDeleted={() => {
-            push({ title: 'Deleted', body: `“${item.title}” is no longer in the library.`, tone: 'success' });
-            navigate(item.isMine ? '/library?mine=1' : backTo, { replace: true });
+            push({ title: 'Deleted', body: `“${item.title}” is no longer in the Hub.`, tone: 'success' });
+            navigate(item.isMine ? '/account#your-files' : backTo, { replace: true });
           }}
         />
       ) : null}

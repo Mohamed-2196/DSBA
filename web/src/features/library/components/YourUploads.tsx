@@ -8,7 +8,7 @@ import { moduleTag, statusInfo } from '../display';
 import { MAX_PENDING_UPLOADS, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
 import { DeleteItemDialog, EditItemDialog } from './EditItemDialog';
-import type { LinkState } from './FileCard';
+import type { LinkState } from '../types';
 import { FileThumb } from './FileThumb';
 
 function UploadRow({ item, linkState, canChange }: { item: LibraryItem; linkState?: LinkState; canChange: boolean }) {
@@ -70,7 +70,7 @@ function UploadRow({ item, linkState, canChange }: { item: LibraryItem; linkStat
  * The signed-in student's uploads that aren't public: waiting for review, or not published (with the rep's
  * note). Renders nothing when there are none.
  */
-export function YourUploads({ linkState, onShowAll }: { linkState?: LinkState; onShowAll: () => void }) {
+export function YourUploads({ linkState }: { linkState?: LinkState }) {
   const { suspended } = useLibraryAccess();
   const mine = useLibraryList({ mine: true }, { limit: 50 });
   const open = (mine.data?.items ?? []).filter((i) => i.status === 'pending' || i.status === 'rejected');
@@ -80,9 +80,9 @@ export function YourUploads({ linkState, onShowAll }: { linkState?: LinkState; o
     <PageSection className="lib-yours" aria-labelledby="lib-yours-title" data-hub="your-uploads">
       <div className="lib-yours__head">
         <div>
-          <h2 id="lib-yours-title" className="lib-yours__title">
-            Your uploads
-          </h2>
+          <h3 id="lib-yours-title" className="lib-yours__title">
+            Not public yet
+          </h3>
           <p className="lib-yours__desc">
             {pending
               ? `${pending === 1 ? 'One upload is' : `${pending} uploads are`} waiting for review. A student rep checks every upload before it’s public; until then only you and the reps can see it.${
@@ -95,9 +95,6 @@ export function YourUploads({ linkState, onShowAll }: { linkState?: LinkState; o
                 : 'A student rep didn’t publish these. Their notes say why.'}
           </p>
         </div>
-        <Button variant="ghost" size="sm" onClick={onShowAll}>
-          All your uploads
-        </Button>
       </div>
       <ul className="lib-yours__list" role="list">
         {open.map((item) => (

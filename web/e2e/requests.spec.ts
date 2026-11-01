@@ -18,7 +18,7 @@ test('a student asks, a classmate says me too, a rep answers and the student is 
   const title = `ST2133 past papers from 2019 [e2e ${run.tag}]`;
   let id = '';
   try {
-    await sara.goto('/library?q=zzzz-nothing-matches');
+    await sara.goto('/modules/advanced-stats-distribution?tab=files');
     await sara.locator('[data-hub="ask-link"]').getByRole('link', { name: 'Ask for it' }).click();
     await expect(sara).toHaveURL(/\/requests\?new=paper/);
     const dialog = sara.getByRole('dialog', { name: 'Ask for something' });

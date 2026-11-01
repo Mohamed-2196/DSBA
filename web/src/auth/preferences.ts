@@ -1,5 +1,5 @@
-// The signed-in person's preferences (PATCH /me { preferences }): email switches, lesson progress and Home's
-// layout. A change shows at once and goes back if the server says no. Writes share one scope, so a quick run of
+// The signed-in person's preferences (PATCH /me { preferences }): email switches, lesson progress, Home's layout and
+// the past question a day. A change shows at once and goes back if the server says no. Writes share one scope, so a quick run of
 // changes (Home's blocks moved one step at a time) reaches the API in the order it was made.
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../api/client';
@@ -7,7 +7,8 @@ import { PROGRESS_KEY } from '../api/keys';
 import type { Me, PreferencesUpdate } from '../api/types';
 import { ME_KEY } from './queries';
 
-/** The preferences after `patch`: a switch sent as null stays as it is; `homeBlocks: null` is the default layout. */
+/** The preferences after `patch`: a switch sent as null stays as it is; `homeBlocks: null` is the default layout, and
+ *  `dailyQuestion: null` every chapter with Home following the next exam. */
 export function applyPreferences(prefs: Me['preferences'], patch: PreferencesUpdate): Me['preferences'] {
   const next: Me['preferences'] = { ...prefs };
   for (const [key, value] of Object.entries(patch) as [
@@ -15,6 +16,7 @@ export function applyPreferences(prefs: Me['preferences'], patch: PreferencesUpd
     PreferencesUpdate[keyof PreferencesUpdate],
   ][]) {
     if (key === 'homeBlocks') next.homeBlocks = patch.homeBlocks ?? null;
+    else if (key === 'dailyQuestion') next.dailyQuestion = patch.dailyQuestion ?? null;
     else if (typeof value === 'boolean') next[key] = value;
   }
   return next;

@@ -30,24 +30,24 @@ describe('normalizeBlocks', () => {
 
 describe('layoutOf', () => {
   it('uses the defaults when nothing is saved, limited to what is available', () => {
-    const l = layoutOf(null, STUDENT_DEFAULT, all('coming_up', 'modules', 'todo', 'newsletter'));
-    expect(l.shown).toEqual(['coming_up', 'todo', 'modules']);
-    expect(l.hidden).toEqual(['newsletter']);
+    const l = layoutOf(null, STUDENT_DEFAULT, all('coming_up', 'daily_question', 'todo', 'newsletter'));
+    expect(l.shown).toEqual(['coming_up', 'daily_question']);
+    expect(l.hidden).toEqual(['todo', 'newsletter']);
   });
   it('shows the saved blocks in their order and lists the rest as hidden', () => {
-    const l = layoutOf(['modules', 'coming_up'], STUDENT_DEFAULT, all('coming_up', 'modules', 'todo', 'files'));
-    expect(l.shown).toEqual(['modules', 'coming_up']);
-    expect(l.hidden).toEqual(['todo', 'files']);
+    const l = layoutOf(['forum', 'coming_up'], STUDENT_DEFAULT, all('coming_up', 'forum', 'todo', 'noora'));
+    expect(l.shown).toEqual(['forum', 'coming_up']);
+    expect(l.hidden).toEqual(['todo', 'noora']);
   });
   it('gives guests no account-only blocks by default', () => {
     expect(guestDefault(STUDENT_DEFAULT)).not.toContain('todo');
-    expect(guestDefault(['todo', 'help_below', 'modules'])).toEqual(['modules']);
+    expect(guestDefault(['todo', 'help_below', 'forum'])).toEqual(['forum']);
   });
 });
 
 describe('moving and showing', () => {
   it('moves a block one place, and not past either end', () => {
-    expect(moveBlock(['coming_up', 'todo', 'modules'], 'todo', -1)).toEqual(['todo', 'coming_up', 'modules']);
+    expect(moveBlock(['coming_up', 'todo', 'forum'], 'todo', -1)).toEqual(['todo', 'coming_up', 'forum']);
     expect(moveBlock(['coming_up', 'todo'], 'coming_up', -1)).toEqual(['coming_up', 'todo']);
     expect(moveBlock(['coming_up', 'todo'], 'todo', 1)).toEqual(['coming_up', 'todo']);
   });
@@ -56,9 +56,9 @@ describe('moving and showing', () => {
     expect(showBlock(['coming_up', 'todo'], 'coming_up', false)).toEqual(['todo']);
   });
   it('keeps blocks that are unavailable now in their place', () => {
-    const saved: HomeBlock[] = ['coming_up', 'todo', 'modules'];
-    expect(withUnavailable(['modules', 'coming_up'], saved, STUDENT_DEFAULT, all('coming_up', 'modules'))).toEqual([
-      'modules',
+    const saved: HomeBlock[] = ['coming_up', 'todo', 'forum'];
+    expect(withUnavailable(['forum', 'coming_up'], saved, STUDENT_DEFAULT, all('coming_up', 'forum'))).toEqual([
+      'forum',
       'todo',
       'coming_up',
     ]);
@@ -74,10 +74,11 @@ describe('offeredBlocks', () => {
     const offered = offeredBlocks(on('calendar', 'library', 'forum'), { signedIn: true, tracking: false });
     expect(offered).not.toContain('daily_question');
     expect(offered).not.toContain('help_below');
-    expect(offered).toContain('files');
+    expect(offered).toContain('coming_up');
     expect(offered).toContain('forum');
+    // a past question a day needs no calendar: the student can pick its module
     expect(
-      offeredBlocks(on('calendar', 'library', 'library.questions', 'library.daily-question'), {
+      offeredBlocks(on('library', 'library.questions', 'library.daily-question'), {
         signedIn: false,
         tracking: false,
       }),
@@ -90,19 +91,13 @@ describe('offeredBlocks', () => {
     expect(guest).not.toContain('continue');
     expect(offeredBlocks(on(), { signedIn: false, tracking: true })).toContain('continue');
   });
-  it('starts with studying first, and leaves the Daily games to be turned on (ST-50)', () => {
+  it('starts clean: results, what to carry on with, the dates ahead and a past question a day', () => {
     expect(STUDENT_DEFAULT).toEqual([
       'results_day',
       'carry_on', // before Up next's countdown, so a phone reaches it (ST-81)
       'coming_up',
-      'todo',
-      'continue',
-      'modules',
-      'files',
       'daily_question',
-      'forum',
-      'noora',
     ]);
-    expect(STUDENT_DEFAULT).not.toContain('daily');
+    expect(STUDENT_DEFAULT).not.toContain('daily'); // the Daily games are there to add (ST-50)
   });
 });

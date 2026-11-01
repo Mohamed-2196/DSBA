@@ -1,12 +1,16 @@
-// The module page's Files tab: the module's library items grouped by type, with Upload and a way into the
-// library already filtered to the module.
+// The module page's Files tab: the module's files grouped by type (past papers by sitting first), a page at a time,
+// with Upload a file, and Add a link for the people who manage the library. There is no library page besides: this
+// is where a module's files are.
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { showsUpload, useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { Button, DocThumb, EmptyState, Icon, Panel, QueryError, Skeleton, formatCount, glyph } from '../../ui';
-import { useLibraryList } from './api';
-import type { LinkState } from './components/FileCard';
+import { useLibraryAccess } from './access';
+import { useLibraryPages } from './api';
+import { AddLinkDialog } from './components/AddLinkDialog';
+import { AskLink } from '../requests/public';
+import type { LinkState } from './types';
 import { FileRows } from './components/FileRow';
 import { PaperSittings } from './components/PaperSittings';
 import { UploadDialog } from './components/UploadDialog';
@@ -16,7 +20,7 @@ import type { LibraryItem } from './types';
 import { useStar } from './useStar';
 import './ModuleFiles.css';
 
-const LIMIT = 100;
+const PAGE = 100;
 
 /** Files for one module (published), grouped by type in the library's order. */
 export default function ModuleFiles({ moduleId }: { moduleId: string }) {
@@ -27,26 +31,26 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
   const board = featureOn('board');
   const toggleStar = useStar();
   const m = getModule(moduleId);
-  const files = useLibraryList({ moduleId, sort: 'title' }, { limit: LIMIT });
+  const { moderator } = useLibraryAccess();
+  const files = useLibraryPages({ moduleId, sort: 'title' }, { pageSize: PAGE });
+  const items = useMemo(() => files.data?.pages.flatMap((p) => p.items) ?? [], [files.data]);
   const [upload, setUpload] = useState({ open: false, key: 0 });
+  const [linking, setLinking] = useState({ open: false, key: 0 });
   const linkState = useMemo<LinkState>(
     () => ({ from: `${location.pathname}${location.search}` }),
     [location.pathname, location.search],
   );
   const name = moduleTag(m) ?? 'this module';
-  const libraryHref = `/library?module=${encodeURIComponent(moduleId)}`;
 
   const groups = useMemo(() => {
     const byKind = new Map<LibraryKind, LibraryItem[]>();
-    for (const f of files.data?.items ?? []) {
+    for (const f of items) {
       if (f.status !== 'published' || (f.source === 'file' && EXAM_KINDS.has(f.kind))) continue; // papers: by sitting, above
       byKind.set(f.kind, [...(byKind.get(f.kind) ?? []), f]);
     }
     return KINDS.filter((k) => byKind.has(k.id)).map((k) => ({ kind: k, items: byKind.get(k.id) ?? [] }));
-  }, [files.data]);
-  const hasPapers = (files.data?.items ?? []).some(
-    (f) => f.status === 'published' && f.source === 'file' && EXAM_KINDS.has(f.kind),
-  );
+  }, [items]);
+  const hasPapers = items.some((f) => f.status === 'published' && f.source === 'file' && EXAM_KINDS.has(f.kind));
   const fileList = (items: LibraryItem[]) => (
     <FileRows items={items} sort="title" onToggleStar={toggleStar} linkState={linkState} />
   );
@@ -70,7 +74,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
   const startUpload = () => {
     if (requireAuth('Sign in to upload a file', openUpload)) openUpload();
   };
-  const total = files.data?.total ?? 0;
+  const total = files.data?.pages[0]?.total ?? 0;
 
   let body;
   if (files.isPending) {
@@ -129,9 +133,16 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
             {fileList(items)}
           </section>
         ))}
-        {total > LIMIT ? (
+        {files.hasNextPage ? (
           <p className="lib-mf__more">
-            <Link to={libraryHref}>See all {formatCount(total)} files in the library</Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void files.fetchNextPage()}
+              loading={files.isFetchingNextPage}
+            >
+              Show the other {formatCount(total - items.length)} files
+            </Button>
           </p>
         ) : null}
       </div>
@@ -152,17 +163,31 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
           )}
         </p>
         <div className="lib-mf__tools">
-          <Button size="sm" variant="ghost" to={libraryHref}>
-            Open in the library
-          </Button>
+          {moderator ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              leadingIcon={<Icon glyph={glyph.link} />}
+              onClick={() => setLinking((l) => ({ open: true, key: l.key + 1 }))}
+              data-hub="link-button"
+            >
+              Add a link
+            </Button>
+          ) : null}
           {uploadShown ? (
-            <Button size="sm" leadingIcon={<Icon glyph={glyph.upload} />} onClick={startUpload}>
+            <Button
+              size="sm"
+              leadingIcon={<Icon glyph={glyph.upload} />}
+              onClick={startUpload}
+              data-hub="upload-button"
+            >
               Upload a file
             </Button>
           ) : null}
         </div>
       </div>
       {body}
+      {files.data ? <AskLink lead={`Can’t find a file for ${name}?`} /> : null}
       {uploadShown ? (
         <UploadDialog
           key={upload.key}
@@ -170,6 +195,15 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
           onClose={() => setUpload((u) => ({ ...u, open: false }))}
           defaultModuleId={moduleId}
           defaultYear={m?.year ?? null}
+        />
+      ) : null}
+      {moderator && linking.key > 0 ? (
+        <AddLinkDialog
+          key={linking.key}
+          open={linking.open}
+          onClose={() => setLinking((l) => ({ ...l, open: false }))}
+          moduleId={moduleId}
+          year={m?.year ?? null}
         />
       ) : null}
     </div>

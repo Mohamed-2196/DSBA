@@ -7,7 +7,6 @@ import type { IconName, Item } from './search';
 
 /** Each entry's picture: a brand icon where the family has one. */
 const BRAND: Partial<Record<IconName, Glyph>> = {
-  Books: glyph.library,
   Calculator: glyph.grades,
   CalendarDots: glyph.calendar,
   ChatCircleText: glyph.forum,

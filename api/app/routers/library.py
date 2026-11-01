@@ -20,14 +20,16 @@ from app.core.security import (
     requires,
     requires_admin,
 )
+from app.core.time import bahrain_today
 from app.models import TaggingStatus, User
 from app.routers._base import router_for
+from app.schemas.auth import MAX_DAILY_CHAPTERS
 from app.schemas.library import (
     EXAM_YEAR_MAX,
     EXAM_YEAR_MIN,
+    DailyQuestion,
     FileLink,
     ItemStatus,
-    LibraryFacets,
     LibraryItem,
     LibraryItemCreate,
     LibraryItemUpdate,
@@ -59,6 +61,9 @@ LibraryManager = Annotated[User, requires(Box.library_manage)]
 Admin = Annotated[User, requires_admin()]
 QUESTIONS = [needs_feature(Feature.library_questions)]
 PRACTICE = [*QUESTIONS, needs_feature(Feature.library_practice)]
+DAILY = [*QUESTIONS, needs_feature(Feature.library_daily_question)]
+# The chapters a past question a day comes from: chapter ids, comma-separated (schemas.modules.ChapterId).
+CHAPTERS_PATTERN = rf"^[a-z0-9]{{1,16}}(,[a-z0-9]{{1,16}}){{0,{MAX_DAILY_CHAPTERS - 1}}}$"
 
 
 @router.get("/library/items", response_model=LibraryPage)
@@ -105,11 +110,6 @@ def list_items(
         db, user, filters, tsquery=tsq, terms=words(q or ""), sort=sort, limit=limit, offset=offset
     )
     return LibraryPage(items=items, total=total, limit=limit, offset=offset)
-
-
-@router.get("/library/facets", response_model=LibraryFacets)
-def facets(db: DB) -> LibraryFacets:
-    return svc.facets(db)
 
 
 @router.get("/library/papers", response_model=PaperSittings)
@@ -244,6 +244,20 @@ def module_questions(
     of every module (library managers; 403 for others). Errors: invalid_input (422: an unknown module, or none without
     `flagged`; a chapter not of the module; a topic not of the chapter, or without `chapter_id`)."""
     return past_questions.for_module(db, module_id, user, flagged=flagged, chapter_id=chapter_id, topic_id=topic_id)
+
+
+@router.get("/library/daily-question", response_model=DailyQuestion, dependencies=DAILY)
+def daily_question(
+    db: DB,
+    user: OptionalUser,
+    module_id: str,
+    chapters: Annotated[str | None, Query(pattern=CHAPTERS_PATTERN)] = None,
+) -> DailyQuestion:
+    """A module's past question for the day, from `chapters` (chapter ids, comma-separated; none: every chapter): the
+    same for everyone who asks for those chapters that day, a different one the next. `question` is null while the
+    module has too few tagged questions (`offered` false) or the chapters none; a chapter not of the module is passed
+    over. Errors: invalid_input (422: an unknown module, or chapters that aren't chapter ids)."""
+    return past_questions.daily(db, module_id, user, bahrain_today(), chapters.split(",") if chapters else ())
 
 
 @router.get("/library/items/{item_id}/questions", response_model=list[PaperQuestion], dependencies=QUESTIONS)

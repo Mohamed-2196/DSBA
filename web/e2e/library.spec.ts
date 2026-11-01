@@ -16,12 +16,13 @@ interface Item {
   reviewNote: string | null;
 }
 
-/** The shell's "Upload a file" leads to /library?upload=1: the library opens its dialog and takes the param out. */
+/** A link with ?upload=1 (the old library address goes to Modules): the shell opens its upload dialog and takes the
+ *  param out. */
 async function openUpload(page: Page) {
   await page.goto('/library?upload=1');
   const dialog = page.getByRole('dialog');
   await expect(dialog).toContainText('Upload a file');
-  await expect(page).toHaveURL(/\/library$/);
+  await expect(page).toHaveURL(/\/modules$/);
   return dialog;
 }
 
@@ -66,8 +67,8 @@ test('Ali uploads a PDF, a Word file, a notebook and a CSV; each waits for revie
   await upload(ali, files.ipynb, { title: t.ipynb, module: 'programming-data-science', kind: 'exercises' });
   await upload(ali, files.csv, { title: t.csv, module: 'business-analytics', kind: 'exercises' });
 
-  await ali.goto('/library?mine=1&year=all');
-  for (const title of Object.values(t)) await expect(ali.locator('main')).toContainText(title);
+  await ali.goto('/account#your-files');
+  for (const title of Object.values(t)) await expect(ali.locator('[data-hub="your-files"]')).toContainText(title);
   await expect(ali.locator('main')).toContainText('Waiting for review');
   // Nobody else sees a pending upload.
   const mine = await api<{ items: Item[] }>(ali, 'GET', `/api/v1/library/items?q=${run.tag}`);
@@ -185,7 +186,7 @@ test('anyone can preview the PDF and download the files unchanged', async ({ gue
   expect(fs.readFileSync(await d2.path()).equals(fs.readFileSync(files.docx))).toBe(true);
 });
 
-test('Sara stars a file and finds it under Starred; search and filters find it', async ({ sara, guest, run }) => {
+test('Sara stars a file and finds it under Starred; its module’s Files tab lists it', async ({ sara, guest, run }) => {
   const t = titles(run.tag);
   const pdf = (await api<{ items: Item[] }>(sara, 'GET', `/api/v1/library/items?q=${run.tag}`)).body.items.find(
     (i) => i.title === t.pdf,
@@ -198,37 +199,23 @@ test('Sara stars a file and finds it under Starred; search and filters find it',
   await expect(star).toHaveAttribute('aria-pressed', 'true');
   await sara.reload();
   await expect(star).toHaveAttribute('aria-pressed', 'true');
-  await sara.goto('/library?starred=1');
-  await expect(sara.locator('main')).toContainText(t.pdf); // Sara is Year 2, like the file
+  await sara.goto('/account#your-files');
+  await expect(sara.locator('[data-hub="your-files-starred"]')).toContainText(t.pdf);
 
-  await guest.goto('/library?year=all');
-  await guest.getByPlaceholder('Search files').fill(run.tag);
-  await expect(guest.locator('main')).toContainText(t.pdf);
-  await expect(guest.locator('main')).toContainText(t.ipynb);
-  await guest.goto(`/library?year=all&module=advanced-stats-distribution&type=notes&q=${run.tag}`);
-  const results = guest.locator('main article[data-hub="file-card"]'); // not "New this week"
+  await guest.goto('/modules/advanced-stats-distribution?tab=files#files-notes');
+  const results = guest.locator('[data-hub="module-files"] article[data-hub="file-card"]');
   await expect(results.filter({ hasText: t.pdf })).toHaveCount(1);
-  await expect(results.filter({ hasText: t.ipynb })).toHaveCount(0);
+  await expect(results.filter({ hasText: t.ipynb })).toHaveCount(0); // another module's
 });
 
 test('a starred file from another year shows under Starred', async ({ ali }) => {
   // A Year 2 file someone else shared (Ali is Year 1, and his own uploads show under "Your uploads" anyway).
   const other = (await api<{ items: Item[] }>(ali, 'GET', '/api/v1/library/items?year=2&limit=1')).body.items[0];
   expect((await api(ali, 'PUT', `/api/v1/library/items/${other.id}/star`)).status).toBe(200);
-  await ali.goto('/library?starred=1');
-  // Starred is Ali's own list: it covers every year unless he picks one.
-  await expect(ali.locator('[data-hub="library-filters"]').getByRole('radio', { name: 'All years' })).toHaveAttribute(
-    'aria-checked',
-    'true',
-  );
-  const results = ali.locator('main article[data-hub="file-card"]');
+  await ali.goto('/account#your-files');
+  // Starred is Ali's own list: it covers every year.
+  const results = ali.locator('[data-hub="your-files-starred"] article[data-hub="file-card"]');
   await expect(results.locator(`a[href$="/library/${other.slug}"]`).first()).toBeVisible({ timeout: 5_000 });
-  // Leaving Starred brings his own year back.
-  await ali.goto('/library');
-  await expect(ali.locator('[data-hub="library-filters"]').getByRole('radio', { name: 'Year 1' })).toHaveAttribute(
-    'aria-checked',
-    'true',
-  );
   await api(ali, 'DELETE', `/api/v1/library/items/${other.id}/star`);
 });
 
@@ -285,14 +272,14 @@ test('two publishes at once tell the uploader once', async ({ rep, ali, run }) =
 });
 
 test('Quick Look: Space on a file shows its first pages, the arrows move on, Space closes', async ({ guest }) => {
-  await guest.goto('/library?year=all&type=past-paper&sort=new&view=list');
+  await guest.goto('/modules/advanced-stats-distribution?tab=files');
   const links = guest.locator('main [data-ql-link]');
   await expect(links.nth(1)).toBeVisible();
   await links.first().focus();
   await guest.keyboard.press('Space');
   const look = guest.locator('[data-hub="quick-look"]');
   await expect(look).toBeVisible();
-  await expect(guest).toHaveURL(/\/library\?/); // still on the list
+  await expect(guest).toHaveURL(/\/modules\/advanced-stats-distribution\?tab=files/); // still on the list
   const first = await look.locator('h2').textContent();
   await expect(look.locator('.lib-ql__page').first()).toBeVisible();
   await guest.keyboard.press('ArrowRight');

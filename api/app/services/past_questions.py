@@ -9,7 +9,7 @@ moderation only: nobody else sees it."""
 from __future__ import annotations
 
 import uuid
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from datetime import date, timedelta
 from typing import TypeVar
 
@@ -31,7 +31,7 @@ from app.models import (
     TextStatus,
     User,
 )
-from app.schemas.library import PAST_PAPER, PaperQuestionCreate, PaperRef
+from app.schemas.library import PAST_PAPER, DailyQuestion, PaperQuestionCreate, PaperRef
 from app.schemas.library import PaperQuestion as PaperQuestionOut
 from app.schemas.modules import StudyTopic
 from app.services import question_anchors, report_answers
@@ -360,15 +360,26 @@ def set_flag(db: Session, user: User, row: PaperQuestion, on: bool) -> None:
 
 # ── a past question a day ────────────────────────────────────────────────────────────────────
 
-# Fewer tags than this and Home shows no daily question: the same handful would come round too often.
+# Fewer tags than this and a module has no question a day: the same handful would come round too often.
 DAILY_MIN_TAGS = 10
 
 
-def daily(db: Session, module_id: str, user: User | None, day: date) -> PaperQuestionOut | None:
-    """The module's past question for `day`: the same for everyone that day and a different one the next, going
-    round the module's tags in the order of their ids. None below DAILY_MIN_TAGS tags."""
-    ids = sorted(db.scalars(_tags(select(PaperQuestion.id), module_id, staff=sees_hidden_modules(user))).all(), key=str)
+def daily(
+    db: Session, module_id: str, user: User | None, day: date, chapter_ids: Collection[str] = ()
+) -> DailyQuestion:
+    """The module's past question for `day` from `chapter_ids` (none: every chapter): the same for everyone who asks
+    for those chapters that day and a different one the next, going round their tags in the order of their ids. None
+    while the module has fewer than DAILY_MIN_TAGS tags, or the chapters none; a chapter not of the module (or hidden)
+    is passed over. Errors: invalid_input (422: an unknown module)."""
+    staff = sees_hidden_modules(user)
+    require_module(db, module_id, visible=not staff)
+    q = _tags(select(PaperQuestion.id), module_id, staff=staff)
+    ids = db.scalars(q).all()
     if len(ids) < DAILY_MIN_TAGS:
-        return None
-    picked = db.get(PaperQuestion, ids[(day - EPOCH).days % len(ids)])
-    return to_out(db, [picked], user)[0] if picked is not None else None
+        return DailyQuestion(question=None, offered=False, pool=0)
+    if chapter_ids:
+        ids = db.scalars(q.where(PaperQuestion.chapter_id.in_(chapter_ids))).all()
+    ids = sorted(ids, key=str)
+    picked = db.get(PaperQuestion, ids[(day - EPOCH).days % len(ids)]) if ids else None
+    question = to_out(db, [picked], user)[0] if picked is not None else None
+    return DailyQuestion(question=question, offered=True, pool=len(ids))

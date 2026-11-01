@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { BREAKPOINTS, useMediaQuery } from '../state';
 import { Badge, BrandLogo, HubLogo, Icon, Tooltip, cx, glyph } from '../ui';
 import { NooraFace } from '../features/noora/public';
+import { PoweredBy } from '../features/site/public';
 import { preloadOnIntent } from '../routes';
 import { type NavItem as NavConfig } from './nav';
 import { usePortalLinks, type PortalLink } from './portals';
@@ -85,9 +86,9 @@ function ExternalItem({ item, collapsed }: { item: PortalLink; collapsed: boolea
 }
 
 /**
- * Left rail: the brand and year switcher at the top and the theme and account at the bottom stay put; only the nav
- * (with the outside links after it) scrolls between them, so the account is always in reach at any zoom. Icon-only
- * at 700–1099px.
+ * Left rail: the brand and year switcher at the top and the theme and account at the bottom stay put (with "Powered by
+ * BIBF Innovation Hub" under them); only the nav (with the outside links after it) scrolls between them, so the
+ * account is always in reach at any zoom. Icon-only at 700–1099px.
  */
 export function Sidebar() {
   const collapsed = useMediaQuery(BREAKPOINTS.tablet);
@@ -148,6 +149,8 @@ export function Sidebar() {
         <div className="shell-rail__foot">
           <ThemeToggle compact={collapsed} />
           <ProfileMenu compact={collapsed} />
+          {/* The icon rail has no room for words: the page's footer carries it there. */}
+          {collapsed ? null : <PoweredBy className="shell-rail__powered" />}
         </div>
       </aside>
     </div>

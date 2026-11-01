@@ -83,6 +83,13 @@ a.about__name:hover {
   }
 }
 
+/* The acknowledgement under What it is: quiet, one line. */
+.about__powered {
+  margin: var(--sp-16) 0 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+}
 .about__disclaimer {
   max-width: var(--measure);
   color: var(--ink-2);

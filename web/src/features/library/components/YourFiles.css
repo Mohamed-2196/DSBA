@@ -1,0 +1,154 @@
+/* Your files (Account): your uploads that aren't public yet, with the rep's note; then what you shared and what you
+   starred. */
+.lib-files {
+  display: grid;
+  gap: var(--sp-24);
+}
+.lib-files__part {
+  display: grid;
+  gap: var(--sp-12);
+  min-width: 0;
+}
+.lib-files__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-8) var(--sp-16);
+}
+.lib-files__title {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-bold);
+}
+.lib-files__count {
+  color: var(--ink-2);
+  font-weight: var(--fw-regular);
+}
+.lib-files__empty {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+.lib-files__more {
+  justify-self: start;
+}
+
+.lib-yours {
+  padding: var(--sp-16) var(--sp-24) var(--sp-8);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+.lib-yours__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-8) var(--sp-16);
+  margin-bottom: var(--sp-12);
+}
+.lib-yours__title {
+  font-size: var(--fs-16);
+  font-weight: var(--fw-bold);
+}
+.lib-yours__desc {
+  max-width: var(--measure);
+  margin-top: 2px;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+.lib-yours__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lib-yours__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-8) var(--sp-16);
+  padding: var(--sp-12) 0;
+  border-top: 1px solid var(--line);
+}
+.lib-yours__link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+}
+.lib-yours__link:hover .lib-yours__name {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+.lib-yours__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.lib-yours__name {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lib-yours__meta {
+  display: flex;
+  gap: var(--sp-8);
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  white-space: nowrap;
+}
+.lib-yours__code {
+  color: var(--ink);
+  font-weight: var(--fw-heavy);
+}
+.lib-yours__side {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+}
+.lib-yours__actions {
+  display: flex;
+  gap: 2px;
+}
+.lib-yours__note {
+  grid-column: 1 / -1;
+  margin: 0 0 0 58px;
+  padding: var(--sp-8) var(--sp-12);
+  border-radius: var(--r-control);
+  background: var(--error-soft);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+.lib-yours__note-label {
+  font-weight: var(--fw-semibold);
+}
+
+@media (max-width: 699px) {
+  .lib-yours {
+    padding: var(--sp-16);
+  }
+  .lib-yours__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lib-yours__side {
+    justify-content: space-between;
+    padding-left: 58px;
+  }
+  .lib-yours__note {
+    margin-left: 0;
+  }
+}
