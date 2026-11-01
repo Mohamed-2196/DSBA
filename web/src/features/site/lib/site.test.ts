@@ -26,9 +26,9 @@ describe('copyrightYears', () => {
 });
 
 describe('notesInLibrary', () => {
-  it('opens the module’s notes in the library', () => {
+  it('opens the module’s notes on its page', () => {
     expect(notesInLibrary('advanced-stats-distribution')).toBe(
-      '/library?module=advanced-stats-distribution&type=notes',
+      '/modules/advanced-stats-distribution?tab=files#files-notes',
     );
   });
 });

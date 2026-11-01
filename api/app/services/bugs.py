@@ -55,7 +55,7 @@ KEEP_IP = timedelta(days=1)  # a guest's address counts for the limit only withi
 KEEP_SCREENSHOTS = timedelta(days=90)  # after the report is closed (fixed or won't fix): then the sweep deletes them
 TOO_MANY = "You've sent a lot of reports. Try again in {}."
 GUESTS_FULL = "A lot of reports came in from people who aren't signed in. Sign in to send yours, or try again in {}."
-PAGE_RULE = "Give the address of a page of the hub, like /library."
+PAGE_RULE = "Give the address of a page of the hub, like /modules."
 SCREENSHOT_RULE = "Attach a screenshot you uploaded for this report."
 EXCERPT = 120
 

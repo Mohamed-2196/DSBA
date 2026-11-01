@@ -476,7 +476,7 @@ function LinkFields({
         <>
           <TextField
             label="Page of the hub"
-            hint="Starts with /, like /library?type=notes."
+            hint="Starts with /, like /modules or /calendar."
             value={link.to}
             onChange={(e) => onChange({ ...link, to: e.target.value.trim() })}
             error={err(`${path}.to`)}

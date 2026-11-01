@@ -15,7 +15,6 @@ import { ADMIN_STATS_KEY } from '../../api/keys';
 import { nextOffset } from '../../api/paging';
 import type {
   FileLink,
-  LibraryFacets,
   LibraryItem,
   LibraryItemCreate,
   LibraryItemUpdate,
@@ -54,7 +53,6 @@ export const libraryKeys = {
   lists: LISTS_KEY,
   list: (shape: 'page' | 'pages', query: LibraryQuery, limit: number) =>
     [...LISTS_KEY, shape, normalizeQuery(query), limit] as const,
-  facets: ['library', 'facets'] as const,
   items: ITEMS_KEY,
   item: (idOrSlug: string) => [...ITEMS_KEY, idOrSlug] as const,
   file: (id: string) => ['library', 'file', id] as const,
@@ -136,15 +134,6 @@ export function useRecentFiles({
     queryKey: libraryKeys.list('page', query, n),
     queryFn: ({ signal }) => fetchPage(query, n, 0, signal),
     select: (page: LibraryPage) => page.items,
-  });
-}
-
-/** Counts of published items by kind, module and year. */
-export function useLibraryFacets() {
-  return useQuery({
-    queryKey: libraryKeys.facets,
-    queryFn: ({ signal }): Promise<LibraryFacets> => call(api.GET('/api/v1/library/facets', { signal })),
-    staleTime: 5 * 60_000,
   });
 }
 
@@ -258,12 +247,11 @@ async function cancelLibraryRefetches(qc: QueryClient) {
 }
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
-// After a change, what counts published files follows too: the facets, Manage's counts
+// After a change, what counts published files follows too: the sittings, Manage's counts
 // (ADMIN_STATS_KEY) and each module's file count in the catalogue (MODULES_KEY, exact: not every module's
 // lessons), which the module pages and Home show (code quality review CQ-11).
 
 function refreshCounts(qc: QueryClient) {
-  void qc.invalidateQueries({ queryKey: libraryKeys.facets });
   void qc.invalidateQueries({ queryKey: PAPERS_KEY });
   void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
   void qc.invalidateQueries({ queryKey: MODULES_KEY, exact: true });

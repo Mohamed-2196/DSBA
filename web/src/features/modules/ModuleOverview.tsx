@@ -2,8 +2,9 @@
 // with a link to the whole of it at its top right. The next dates and the latest sittings of past papers lead, then
 // the student's own notes about the module, lesson progress (for a student who keeps it and has started), the
 // answered threads ("Asked before", most voted first), the newest threads with "Ask a question", what to carry on
-// with (the papers, notes and lessons opened last), chapter practice progress, the newest students' notes and the
-// rest of the library (decision D6: contributing means uploading). A block with nothing to show is left out, not
+// with (the papers, notes and lessons opened last), revision (a past question a day from the chapters the student
+// picks, and chapter practice progress), the newest students' notes and the rest of the module's files (decision D6:
+// contributing means uploading). A block with nothing to show is left out, not
 // shown empty: a student with no notes about the module gets "New note" on the lesson progress or Carry on block
 // instead (or, with neither, a one-line Your notes block).
 import { useId, useMemo, useState, type ReactNode } from 'react';
@@ -31,13 +32,21 @@ import { resitFor, usePapers } from '../papers/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
 import { useModuleAnsweredThreads, useModuleLatestThreads, useStartsThreads } from '../forum/public';
 import {
+  DailyQuestionBody,
+  DailyQuestionDialog,
   LibraryCover,
   SittingsTable,
+  dailyChaptersFor,
+  dailyPoolLine,
   libraryItemPath,
   practisePath,
   progressLabel,
+  useDailyChoice,
+  useDailyOn,
+  useDailyQuestion,
   useModulePractice,
   usePaperSittings,
+  withDailyHomeModule,
 } from '../library/public';
 import {
   NoteName,
@@ -322,6 +331,69 @@ function LatestPapers({ moduleId, onTab }: { moduleId: string; onTab: (tab: stri
         board={featureOn('board')}
         className="mod-papers"
       />
+    </Block>
+  );
+}
+
+/**
+ * A past question a day from this module (revision): the day's question from the chapters the student picked (all by
+ * default), a way to pick them, and to have Home ask this module's question. Shown once the module has enough tagged
+ * questions for it.
+ */
+function QuestionADay({ module: m }: { module: ModuleDetail }) {
+  const on = useDailyOn();
+  const { choice, save } = useDailyChoice();
+  const chapters = dailyChaptersFor(choice, m.id);
+  const daily = useDailyQuestion(m.id, chapters, { enabled: on });
+  const [picking, setPicking] = useState(false);
+  const title = 'A past question a day';
+  if (!on) return null;
+  if (daily.isPending) return <BlockLoading title={title} />;
+  if (daily.isError || !daily.data.offered) return null;
+  const name = m.unitCode || m.name;
+  const onHome = choice.moduleId === m.id;
+  return (
+    <Block
+      title={title}
+      hub="module-daily"
+      className="mod-blk--daily"
+      link={
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mod-blk__link"
+          onClick={() => setPicking(true)}
+          aria-haspopup="dialog"
+          data-hub="module-daily-chapters"
+        >
+          Choose chapters
+        </Button>
+      }
+      footer={
+        <>
+          <span className="mod-blk__note u-tabular">{dailyPoolLine(daily.data.pool, chapters.length, name)}</span>
+          {onHome ? (
+            <span className="mod-blk__note mod-daily__home">Also on your Home</span>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mod-blk__quiet"
+              onClick={() => save(withDailyHomeModule(choice, m.id))}
+              data-hub="module-daily-home"
+            >
+              Ask it on Home too
+            </Button>
+          )}
+        </>
+      }
+    >
+      {daily.data.question ? (
+        <DailyQuestionBody question={daily.data.question} />
+      ) : (
+        <p className="mod-blk__note">None of the chapters you ticked has a tagged past question yet. Choose others.</p>
+      )}
+      {picking ? <DailyQuestionDialog onClose={() => setPicking(false)} moduleId={m.id} /> : null}
     </Block>
   );
 }
@@ -816,6 +888,7 @@ export function ModuleOverview({
     <div className="mod-ov" data-hub="module-overview">
       {featureOn('calendar') ? <NextDates module={m} /> : null}
       {libraryOn ? <LatestPapers moduleId={m.id} onTab={onTab} /> : null}
+      {libraryOn ? <QuestionADay module={m} /> : null}
       {libraryOn ? <YourPractice moduleId={m.id} /> : null}
       {hasNotes ? <YourNotes moduleId={m.id} notes={notes} newNote={newNote} /> : null}
       {noteAlone ? <NoNotes name={name} newNote={noteAlone} /> : null}

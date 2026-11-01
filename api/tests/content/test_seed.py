@@ -338,7 +338,6 @@ def test_the_seeded_library_is_empty_until_the_import(db: Session, client_for: C
     first_load(db)
     guest = client_for()
     assert guest.get(f"{API}/library/items", params={"limit": 100}).json()["items"] == []
-    assert guest.get(f"{API}/library/facets").json()["total"] == 0
     assert guest.get(f"{API}/newsletter/issues").json() == []  # drafts until a moderator publishes them
 
 

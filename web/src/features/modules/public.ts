@@ -1,6 +1,5 @@
 // Public API of the modules feature: other features import from here only.
 //   <ContinueLearning />            Home: the 1–3 lessons to pick up, with each module's progress
-//   useModuleProgress(moduleId)     { watched, total, pct } for one module (pct 0–100); nothing watched while untracked
 //   useTracking()                   { on, ready, mode, set(on) }: whether lesson progress is kept (opt in; the
 //                                   account's trackProgress, or this browser's choice for a guest)
 //   lessonHref(moduleId, lessonId)  a lesson's address
@@ -16,7 +15,7 @@
 //                                   lessons, or decline them
 import { lazy } from 'react';
 export { ContinueLearning } from './ContinueLearning';
-export { findLesson, useModuleProgress } from './progress';
+export { findLesson } from './progress';
 export { useTracking } from './tracking';
 export { lessonHref, lessonName } from './lessons';
 export { moduleDetailQuery } from './api';

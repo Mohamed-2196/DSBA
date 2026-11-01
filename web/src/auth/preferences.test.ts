@@ -32,9 +32,15 @@ describe('applyPreferences', () => {
     expect(applyPreferences(prefs, { notificationEmails: null }).notificationEmails).toBe(true);
   });
   it('sets Home’s blocks, and null goes back to the default', () => {
-    expect(applyPreferences(prefs, { homeBlocks: ['modules', 'todo'] }).homeBlocks).toEqual(['modules', 'todo']);
+    expect(applyPreferences(prefs, { homeBlocks: ['forum', 'todo'] }).homeBlocks).toEqual(['forum', 'todo']);
     expect(applyPreferences(prefs, { homeBlocks: null }).homeBlocks).toBeNull();
     expect(applyPreferences(prefs, {}).homeBlocks).toEqual(['todo']);
+  });
+  it('sets the past question a day, and null goes back to every chapter', () => {
+    const dailyQuestion = { moduleId: 'econometrics', chapters: { econometrics: ['c1'] } };
+    expect(applyPreferences(prefs, { dailyQuestion }).dailyQuestion).toEqual(dailyQuestion);
+    expect(applyPreferences({ ...prefs, dailyQuestion }, { dailyQuestion: null }).dailyQuestion).toBeNull();
+    expect(applyPreferences({ ...prefs, dailyQuestion }, {}).dailyQuestion).toEqual(dailyQuestion);
   });
 });
 

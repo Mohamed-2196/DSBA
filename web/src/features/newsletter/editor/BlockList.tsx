@@ -241,7 +241,7 @@ function BlockForm({ sectionKey, block, errors, onChange }: BlockFormProps) {
             inputMode="url"
             autoComplete="off"
             placeholder="/calendar"
-            hint="A page of the Hub (like /library?upload=1), an https:// address or a mailto: link."
+            hint="A page of the Hub (like /modules?upload=1), an https:// address or a mailto: link."
             value={block.to}
             onValue={(to) => onChange((b) => (b.type === 'cta' ? { ...b, to } : b))}
           />

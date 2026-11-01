@@ -21,6 +21,8 @@ import './AppShell.css';
 // on a note or a lesson.
 const TimerPill = lazy(() => import('../features/library/public').then((m) => ({ default: m.TimerPill })));
 const VisitRecorder = lazy(() => import('../features/carryon/public').then((m) => ({ default: m.VisitRecorder })));
+// "Upload a file" from the shell (upload.ts): the dialog comes with the library's code.
+const UploadHost = lazy(() => import('./UploadHost'));
 const RECORDED = ['/notes/:noteId', '/modules/:moduleId/lessons/:lessonId'];
 
 /** App frame: rail + sticky top bar + content (+ footer), mobile tab bar, and global overlays. */
@@ -57,6 +59,13 @@ export function AppShell({ children }: { children?: ReactNode }) {
         <ErrorBoundary name="CommandPalette" fallback={null}>
           <PaletteHost />
         </ErrorBoundary>
+        {featureOn('library') ? (
+          <ErrorBoundary name="UploadHost" fallback={null}>
+            <Suspense fallback={null}>
+              <UploadHost />
+            </Suspense>
+          </ErrorBoundary>
+        ) : null}
         {/* Onboarding asks for a year when none is chosen: wait until we know whether a signed-in cohort sets it. */}
         {status !== 'loading' ? (
           <ErrorBoundary name="Onboarding" fallback={null}>

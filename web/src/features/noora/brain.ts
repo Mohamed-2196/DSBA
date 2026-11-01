@@ -8,6 +8,7 @@
 //   answer(question, knowledge, now) → Reply { mood, text, formula?, steps?, refs, suggestions? }
 import type { ModuleDetail, ModuleSummary, NooraScript } from '../../api/types';
 import { daysBetween, formatLongDay, formatShort, today as bahrainToday } from '../../lib/dates';
+import { moduleFilesPath } from '../../lib/modules';
 import type { Feature } from '../../auth';
 import { eventDate, type CalendarEvent } from '../calendar/public';
 import { isMine, NO_RESITS, resitFor } from '../papers/public';
@@ -382,9 +383,9 @@ function aboutTheMgf(k: Knowledge, said: string, photo: boolean): Reply {
     d && lessonOn(k, d, m),
     m &&
       k.isOn('library') && {
-        code: 'Library',
+        code: 'Files',
         label: `${m.code ?? m.name} notes and past papers`,
-        to: `/library?module=${encodeURIComponent(m.id)}`,
+        to: moduleFilesPath(m.id),
       },
   ].filter(isRef);
   // She can't see pictures: she says so before anything else.
@@ -567,8 +568,8 @@ function aboutFiles(k: Knowledge, named: IndexedModule | null): Reply {
   }
   return {
     mood: 'happy',
-    text: 'Past papers, notes and guides are in the library, and on each module’s page under Files. Tell me the module and I’ll take you there.',
-    refs: [{ code: 'Library', label: 'Every file in the Hub', to: '/library' }],
+    text: 'Past papers, notes and guides are on each module’s page, under Files. Tell me the module and I’ll take you there.',
+    refs: [{ code: 'Modules', label: 'Every module, with its files', to: '/modules' }],
   };
 }
 

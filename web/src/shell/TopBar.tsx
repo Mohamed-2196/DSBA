@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button, ErrorBoundary, Icon, IconButton, HubLogo, SearchField, cx, glyph } from '../ui';
 import { openCommandPalette } from '../features/search/public';
 import { NotificationsMenu } from '../features/notifications/public';
 import { YearSwitcher } from './YearSwitcher';
 import { ProfileMenu } from './ProfileMenu';
-import { useStartUpload, useUploadShown } from './upload';
+import { openUpload, useUploadShown } from './upload';
 import './TopBar.css';
 
 function useScrolled(threshold = 4): boolean {
@@ -22,11 +22,7 @@ function useScrolled(threshold = 4): boolean {
 /** Sticky top bar: search (opens ⌘K palette), notifications, Upload a file. Mobile: brand + year + icons + account. */
 export function TopBar() {
   const scrolled = useScrolled();
-  const startUpload = useStartUpload();
   const uploadShown = useUploadShown();
-  // The library has its own Upload button: one is enough.
-  const { pathname } = useLocation();
-  const onLibrary = pathname === '/library';
   return (
     <header className={cx('shell-topbar', scrolled && 'is-scrolled')} data-hub="topbar">
       <div className="shell-topbar__inner">
@@ -53,16 +49,16 @@ export function TopBar() {
           <ErrorBoundary name="NotificationsMenu" fallback={null}>
             <NotificationsMenu />
           </ErrorBoundary>
-          {onLibrary || !uploadShown ? null : (
+          {uploadShown ? (
             <Button
               className="shell-topbar__contribute"
               leadingIcon={<Icon glyph={glyph.upload} />}
-              onClick={() => startUpload()}
+              onClick={openUpload}
               data-hub="contribute"
             >
               Upload a file
             </Button>
-          )}
+          ) : null}
           <span className="shell-topbar__profile">
             <ProfileMenu placement="topbar" />
           </span>

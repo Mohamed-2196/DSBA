@@ -1,5 +1,6 @@
 // Site settings, read: the lines the footer and About print from them. Plain functions, tested in site.test.ts.
 import type { SiteContributor, SiteDoc } from '../../../api/types';
+import { moduleFilesPath } from '../../../lib/modules';
 import { safeHref } from '../../../ui/safeHref';
 
 /** One of the hub's saved links, by its name in the settings (the guides point at them by this name). */
@@ -17,9 +18,8 @@ export function copyrightYears(launchYear: number, now: Date = new Date()): stri
   return year > launchYear ? `${launchYear}–${year}` : `${year}`;
 }
 
-/** Where a student's shared notes for a module are: the module's notes in the library. */
-export const notesInLibrary = (moduleId: string): string =>
-  `/library?module=${encodeURIComponent(moduleId)}&type=notes`;
+/** Where a student's shared notes for a module are: the notes on the module page's Files tab. */
+export const notesInLibrary = (moduleId: string): string => moduleFilesPath(moduleId, 'notes');
 
 /** An https:// address from the settings, for an `href`; null for anything else (the API allows https:// only). */
 export function httpsHref(url: string | null | undefined): string | null {

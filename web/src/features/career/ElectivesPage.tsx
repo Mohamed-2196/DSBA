@@ -29,6 +29,7 @@ import { useCareer } from './api';
 import { askLink } from './lib/links';
 import { electives, type Elective } from './lib/electives';
 import './Electives.css';
+import { moduleFilesPath } from '../../lib/modules';
 
 const FORUM_TAG = 'module-choice';
 
@@ -128,7 +129,7 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
           </Link>
         ) : null}
         {featureOn('library') ? (
-          <Link to={`/library?module=${encodeURIComponent(m.id)}`} className="elective__link">
+          <Link to={moduleFilesPath(m.id)} className="elective__link">
             <Icon glyph={glyph.page} size={16} />
             Files
           </Link>

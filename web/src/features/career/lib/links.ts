@@ -1,8 +1,9 @@
 // Career Navigator: turn the document's links and "close this gap" steps into real destinations. A lesson link is
 // looked up in the module's chapters (from the API) by the chapter's title, so a renamed chapter degrades to the
-// module's lessons instead of a dead link. Library files are found through the library itself, filtered by module.
+// module's lessons instead of a dead link. A module's files are on its page's Files tab.
 import type { CareerDoc, CareerSkill, ModuleDetail } from '../../../api/types';
 import { safeHref, safeInternalPath } from '../../../ui/safeHref';
+import { moduleFilesPath } from '../../../lib/modules';
 
 /** What to do about a skill DSBA never takes past an intro. */
 export type CloseStep = NonNullable<CareerSkill['close']>;
@@ -29,9 +30,9 @@ export function lessonPath(moduleId: string, prefix: string, module: ModuleDetai
   return first ? `/modules/${id}/lessons/${encodeURIComponent(first.id)}` : base;
 }
 
-/** The library, showing one module's files. */
+/** One module's files: its page's Files tab. */
 export function libraryLink(moduleId: string): string {
-  return `/library?module=${encodeURIComponent(moduleId)}`;
+  return moduleFilesPath(moduleId);
 }
 
 /** /forum/new with the title filled in. */

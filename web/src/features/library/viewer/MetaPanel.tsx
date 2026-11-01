@@ -7,7 +7,7 @@ import { useModules } from '../../../state/modules';
 import { useAuth } from '../../../auth';
 import { Button, CohortBadge, Count, Icon, Kbd, Skeleton, cx, formatDate, glyph, timeAgo } from '../../../ui';
 import { itemPath, openLinkHref, useLibraryList } from '../api';
-import type { LinkState } from '../components/FileCard';
+import type { LinkState } from '../types';
 import { FileThumb } from '../components/FileThumb';
 import { addedAt, askAboutHref, examTitle, hasExamTitle, linkPlace, moduleTag, sizeLabel } from '../display';
 import { appUrl } from '../../../lib/share';

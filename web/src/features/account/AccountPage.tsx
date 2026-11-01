@@ -34,6 +34,7 @@ import { describeDevice } from './device';
 import { PasswordDialog } from './PasswordDialog';
 import { useTracking } from '../modules/public';
 import { PapersButton } from '../papers/public';
+import { YourFiles, useLibraryUpload } from '../library/public';
 import './AccountPage.css';
 
 // ── Profile ──────────────────────────────────────────────────────────────────────────────────
@@ -465,6 +466,22 @@ function YourData() {
 
 // ── Page ─────────────────────────────────────────────────────────────────────────────────────
 
+/** The student's own files: uploads not public yet, what they shared and what they starred (the library's lists). */
+function YourFilesSection() {
+  const upload = useLibraryUpload();
+  return (
+    <PageSection aria-labelledby="acct-files" id="your-files" className="acct-files">
+      <SectionHeader
+        id="acct-files"
+        title="Your files"
+        description="Files you uploaded, and files you starred. Each module’s page lists all of its files."
+      />
+      <YourFiles onUpload={upload.start} />
+      {upload.dialog}
+    </PageSection>
+  );
+}
+
 export default function AccountPage() {
   const { me, status, openSignIn, featureOn } = useAuth();
 
@@ -527,6 +544,8 @@ export default function AccountPage() {
           <SeniorListing />
         </PageSection>
       ) : null}
+
+      {featureOn('library') ? <YourFilesSection /> : null}
 
       <PageSection aria-labelledby="acct-papers">
         <SectionHeader

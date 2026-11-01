@@ -11,7 +11,7 @@ import { usePapers } from '../../papers/public';
 import { itemPath, timeMeHref } from '../api';
 import { isNew } from '../display';
 import { keepTogether, sittingRow, type SittingLink } from '../papers';
-import type { LinkState } from './FileCard';
+import type { LinkState } from '../types';
 import { CoverThumb } from './CoverThumb';
 import './PaperSittings.css';
 

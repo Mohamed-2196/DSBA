@@ -1,7 +1,7 @@
 // Home's first screen in one request (GET /home): the site settings, the papers' choices, a guide while its card is
-// due, the student's dates from today and their next exam, the day's past question for it, and the desk shelf's
-// numbers. Its answer fills the queries of the endpoints it stands in for (same keys, same shapes), so the shell and
-// Home's blocks read them without asking again.
+// due, the student's dates from today and their next exam, and the desk shelf's numbers. Its answer fills the
+// queries of the endpoints it stands in for (same keys, same shapes), so the shell and Home's blocks read them without
+// asking again.
 //
 //   useHome(year)        Home's query, for the year shown (a guest's papers come from this browser)
 //   prefetchHome(qc)     starts it before the first render on Home's address (routes.tsx), and hands the site settings

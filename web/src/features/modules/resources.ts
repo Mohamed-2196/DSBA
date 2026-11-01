@@ -2,6 +2,7 @@
 // each opening the Files tab at its part. Every file is served by the Hub; a shelf whose files are still being
 // copied in says so.
 import type { ModuleDetail, ModuleShelf } from '../../api/types';
+import { filesHash } from '../../lib/modules';
 
 type ShelfKind = ModuleShelf['kind'];
 
@@ -69,7 +70,7 @@ export interface Shelf extends ShelfInfo {
 
 /** Where a shelf starts on the Files tab: '#papers' for past papers, '#files-<kind>' for the rest. */
 export function shelfHash(kind: ShelfKind): string {
-  return kind === 'past-paper' ? 'papers' : `files-${kind}`;
+  return filesHash(kind);
 }
 
 /** The module's shelves in the API's order, and `missing`: plain names of what nobody has shared yet. */

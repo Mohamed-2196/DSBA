@@ -47,7 +47,7 @@ from app.models import (
     UserSession,
     UserStatus,
 )
-from app.schemas.auth import MAX_HOME_BLOCKS
+from app.schemas.auth import MAX_DAILY_CHAPTERS, MAX_HOME_BLOCKS, MAX_PAPERS
 from app.services.identifiers import account_key
 from app.services.storage import Storage
 from tests.accounts.conftest import API
@@ -140,6 +140,7 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
             "emailWeeklySummary": False,
             "trackProgress": False,
             "homeBlocks": None,
+            "dailyQuestion": None,
         },
         "papers": [],
         "zone": None,
@@ -427,6 +428,7 @@ def _switches(**changed: bool) -> dict[str, object]:
         "emailWeeklySummary": False,
         "trackProgress": False,
         "homeBlocks": None,
+        "dailyQuestion": None,
     }
     return defaults | changed
 
@@ -487,10 +489,57 @@ def test_home_blocks(client_for: ClientFor, make_user: MakeUser, db: Session) ->
     assert r.status_code == 422
     r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["todo"] * (MAX_HOME_BLOCKS + 1)}})
     assert r.status_code == 422
-    for gone in (["new"], ["files", "new", "forum", "noora"]):  # a block the hub no longer has: dropped on read
+    # a block the hub no longer has (New files and My modules left Home): dropped on read, the rest kept in order
+    for gone, kept in ((["new"], []), (["files", "modules", "forum", "noora"], ["forum", "noora"])):
         user.preferences = {"home_blocks": gone}
         db.commit()
-        assert c.get(f"{API}/me").json()["preferences"]["homeBlocks"] == [b for b in gone if b != "new"]
+        assert c.get(f"{API}/me").json()["preferences"]["homeBlocks"] == kept
+
+
+def test_the_past_question_a_day_is_organised_by_module(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    """The module Home's question comes from, and each module's chapters (repeats dropped); null goes back to every
+    chapter with Home following the next exam."""
+    user = make_user()
+    c = client_for(user)
+    choice = {"moduleId": "econometrics", "chapters": {"econometrics": ["c1", "c2", "c1"], "mathematics": ["m4"]}}
+    r = c.patch(f"{API}/me", json={"preferences": {"dailyQuestion": choice}})
+    assert r.status_code == 200, r.text
+    want = {"moduleId": "econometrics", "chapters": {"econometrics": ["c1", "c2"], "mathematics": ["m4"]}}
+    assert r.json()["preferences"]["dailyQuestion"] == want
+    assert _fresh(db, User, user.id).preferences["daily_question"] == {
+        "module_id": "econometrics",
+        "chapters": {"econometrics": ["c1", "c2"], "mathematics": ["m4"]},
+    }
+    r = c.patch(f"{API}/me", json={"preferences": {"emailNewIssues": False}})
+    assert r.json()["preferences"]["dailyQuestion"] == want  # not sent: unchanged
+    # Home back on the next exam, one module's chapters kept
+    home_on_next_exam = {"moduleId": None, "chapters": {"mathematics": ["m4"]}}
+    r = c.patch(f"{API}/me", json={"preferences": {"dailyQuestion": home_on_next_exam}})
+    assert r.json()["preferences"]["dailyQuestion"] == home_on_next_exam
+    # a choice that chooses nothing is the default
+    r = c.patch(f"{API}/me", json={"preferences": {"dailyQuestion": {"moduleId": None, "chapters": {}}}})
+    assert r.json()["preferences"] == _switches(emailNewIssues=False)
+    assert "daily_question" not in _fresh(db, User, user.id).preferences
+    r = c.patch(f"{API}/me", json={"preferences": {"dailyQuestion": choice}})
+    r = c.patch(f"{API}/me", json={"preferences": {"dailyQuestion": None}})
+    assert r.json()["preferences"]["dailyQuestion"] is None
+    bad: dict[str, Any]
+    for bad in (
+        {"moduleId": "Not a module!", "chapters": {}},
+        {"moduleId": None},  # the whole choice
+        {"moduleId": None, "chapters": {"econometrics": []}},  # no chapters: leave the module out instead
+        {"moduleId": None, "chapters": {"econometrics": ["../etc"]}},
+        {"moduleId": None, "chapters": {"econometrics": [f"c{i}" for i in range(MAX_DAILY_CHAPTERS + 1)]}},
+        {"moduleId": None, "chapters": {f"m{i}": ["c1"] for i in range(MAX_PAPERS + 1)}},
+    ):
+        r = c.patch(f"{API}/me", json={"preferences": {"dailyQuestion": bad}})
+        assert r.status_code == 422, bad
+    # something stored that no longer fits is no choice, not an error
+    user.preferences = {"daily_question": {"module_id": 7}}
+    db.commit()
+    assert c.get(f"{API}/me").json()["preferences"]["dailyQuestion"] is None
 
 
 def test_a_suspended_account_keeps_its_name(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:

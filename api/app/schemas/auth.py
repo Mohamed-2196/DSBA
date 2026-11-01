@@ -14,7 +14,7 @@ from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
 from app.schemas.forum import FollowLevel
 from app.schemas.library import ItemStatus, LibraryKind, QuestionMark, Zone
 from app.schemas.moderation import ReportReason, ReportTarget
-from app.schemas.modules import Progress
+from app.schemas.modules import ChapterId, Progress
 from app.schemas.notifications import NotificationKind
 from app.schemas.requests import RequestKind, RequestStatus
 from app.schemas.seniors import SeniorTopic
@@ -105,23 +105,35 @@ HomeBlock = Literal[
     "carry_on",  # pick up where you left off: the papers, notes and lessons last opened in this browser, the timer
     "todo",  # the cards due soon on the student's boards
     "continue",  # the lessons to pick up (lesson progress on)
-    "modules",  # my modules
-    "files",  # new files in my modules
     "forum",  # active threads in my modules
     "noora",  # the Ask Noora prompt
-    "daily_question",  # a past exam question before the next exam
+    "daily_question",  # a past exam question a day, from the module and chapters the student chose
     "help_below",  # unanswered questions from the years below (Years 2 and 3)
     "newsletter",  # the latest issue of The DSBA Newsletter
     "daily",  # Today's Daily puzzles
 ]
 MAX_HOME_BLOCKS = len(get_args(HomeBlock))
+MAX_DAILY_CHAPTERS = 40  # more than any module has
+
+
+class DailyQuestionChoice(ApiModel):
+    """A past question a day, as the student organised it: the module Home's question comes from (None: their next
+    exam's, in the six weeks before it), and the chapters each module's question comes from (a module left out: all
+    of its chapters). Chapters that are no longer the module's are passed over when the question is picked."""
+
+    module_id: PaperId | None
+    chapters: Annotated[
+        dict[PaperId, Annotated[list[ChapterId], Field(min_length=1, max_length=MAX_DAILY_CHAPTERS)]],
+        Field(max_length=MAX_PAPERS),
+    ]
 
 
 class Preferences(ApiModel):
     """Which notifications also come by email (to the account's email address; account security notices always do),
-    whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Nothing is emailed until the
-    person answers the question about emails when they sign up (`notificationEmails`); then each notification email
-    they never switched follows that answer, and the Sunday summary is off until they turn it on."""
+    whether the Sunday summary does, whether lesson progress is kept, Home's blocks and the past question a day.
+    Nothing is emailed until the person answers the question about emails when they sign up (`notificationEmails`);
+    then each notification email they never switched follows that answer, and the Sunday summary is off until they
+    turn it on."""
 
     notification_emails: bool | None  # their answer to "Email me about replies, …" at sign-up; None: not yet
     email_replies: bool  # someone replied to your thread or to your reply
@@ -133,13 +145,14 @@ class Preferences(ApiModel):
     track_progress: bool = False  # keep the lessons watched and the lesson to resume: opt in
     # Home's blocks that show, in order; a block left out is hidden. null: the default layout.
     home_blocks: list[HomeBlock] | None = None
+    daily_question: DailyQuestionChoice | None = None  # null: every chapter, and Home follows the next exam
 
 
 class PreferencesUpdate(ApiModel):
     """Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default
-    layout. The answer about emails is asked when the profile is first saved (MeUpdate); a later one changes every
-    notification email not switched on its own. Turning an email on before there is an answer answers "no" for the
-    others."""
+    layout, and `dailyQuestion: null` to every chapter with Home following the next exam. The answer about emails is
+    asked when the profile is first saved (MeUpdate); a later one changes every notification email not switched on its
+    own. Turning an email on before there is an answer answers "no" for the others."""
 
     notification_emails: bool | None = None
     email_replies: bool | None = None
@@ -150,6 +163,7 @@ class PreferencesUpdate(ApiModel):
     email_weekly_summary: bool | None = None
     track_progress: bool | None = None
     home_blocks: Annotated[list[HomeBlock], Field(max_length=MAX_HOME_BLOCKS)] | None = None
+    daily_question: DailyQuestionChoice | None = None  # the whole choice
 
 
 class Me(ApiModel):

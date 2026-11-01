@@ -40,7 +40,6 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("forum", "POST", "/forum/threads"),
     ("forum.follow", "PUT", f"/forum/threads/{NOTHING}/follow"),
     ("library", "GET", "/library/items"),
-    ("library", "GET", "/library/facets"),
     ("library", "GET", f"/library/items/{NOTHING}/download"),
     ("library", "GET", f"/library/items/{NOTHING}/file"),
     ("newsletter", "GET", "/newsletter/issues"),

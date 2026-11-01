@@ -5399,97 +5399,6 @@
         }
       }
     },
-    "/api/v1/library/facets": {
-      "get": {
-        "tags": [
-          "library"
-        ],
-        "summary": "Facets",
-        "operationId": "facets_api_v1_library_facets_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LibraryFacets"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too Many Requests",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/library/papers": {
       "get": {
         "tags": [
@@ -6707,6 +6616,126 @@
                     "$ref": "#/components/schemas/PaperQuestion"
                   },
                   "title": "Response Module Questions Api V1 Library Questions Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/library/daily-question": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Daily Question",
+        "description": "A module's past question for the day, from `chapters` (chapter ids, comma-separated; none: every chapter): the\nsame for everyone who asks for those chapters that day, a different one the next. `question` is null while the\nmodule has too few tagged questions (`offered` false) or the chapters none; a chapter not of the module is passed\nover. Errors: invalid_input (422: an unknown module, or chapters that aren't chapter ids).",
+        "operationId": "daily_question_api_v1_library_daily_question_get",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          },
+          {
+            "name": "chapters",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]{1,16}(,[a-z0-9]{1,16}){0,39}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Chapters"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyQuestion"
                 }
               }
             }
@@ -30542,7 +30571,7 @@
           "home"
         ],
         "summary": "Home",
-        "description": "Home's first screen for the year shown: the site settings, the papers' choices, a guide while its card is due,\nthe student's dates and next exam with the day's past question for it, and the desk shelf's numbers. Each part\nfollows its feature's switch. `picks`: a guest's papers, as their browser keeps them (an account's own count\ninstead). Errors: invalid_input (422: a year other than 1 to 3, or picks that aren't module ids).",
+        "description": "Home's first screen for the year shown: the site settings, the papers' choices, a guide while its card is due,\nthe student's dates and next exam, and the desk shelf's numbers. Each part follows its feature's switch. `picks`:\na guest's papers, as their browser keeps them (an account's own count instead). Errors: invalid_input (422: a year\nother than 1 to 3, or picks that aren't module ids).",
         "operationId": "home_api_v1_home_get",
         "parameters": [
           {
@@ -36260,6 +36289,75 @@
         ],
         "title": "DailyMeIn"
       },
+      "DailyQuestion": {
+        "properties": {
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaperQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "offered": {
+            "type": "boolean",
+            "title": "Offered"
+          },
+          "pool": {
+            "type": "integer",
+            "title": "Pool"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question",
+          "offered",
+          "pool"
+        ],
+        "title": "DailyQuestion",
+        "description": "A module's past question for the day (GET /library/daily-question), from the chapters asked for."
+      },
+      "DailyQuestionChoice": {
+        "properties": {
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "chapters": {
+            "patternProperties": {
+              "^[a-z0-9][a-z0-9-]{0,63}$": {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]{1,16}$"
+                },
+                "type": "array",
+                "maxItems": 40,
+                "minItems": 1
+              }
+            },
+            "type": "object",
+            "maxProperties": 20,
+            "title": "Chapters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "chapters"
+        ],
+        "title": "DailyQuestionChoice",
+        "description": "A past question a day, as the student organised it: the module Home's question comes from (None: their next\nexam's, in the six weeks before it), and the chapters each module's question comes from (a module left out: all\nof its chapters). Chapters that are no longer the module's are passed over when the question is picked."
+      },
       "DailyStats": {
         "properties": {
           "played": {
@@ -40791,16 +40889,6 @@
               }
             ]
           },
-          "dailyQuestion": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/PaperQuestion"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "shelf": {
             "$ref": "#/components/schemas/HomeShelf"
           }
@@ -40813,24 +40901,12 @@
           "resultsDay",
           "dates",
           "nextExam",
-          "dailyQuestion",
           "shelf"
         ],
         "title": "HomeOut"
       },
       "HomeShelf": {
         "properties": {
-          "newFiles": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Newfiles"
-          },
           "notes": {
             "anyOf": [
               {
@@ -40845,7 +40921,6 @@
         },
         "type": "object",
         "required": [
-          "newFiles",
           "notes"
         ],
         "title": "HomeShelf",
@@ -42364,44 +42439,6 @@
           "watched"
         ],
         "title": "LessonWatchedUpdate"
-      },
-      "LibraryFacets": {
-        "properties": {
-          "total": {
-            "type": "integer",
-            "title": "Total"
-          },
-          "byKind": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "type": "object",
-            "title": "Bykind"
-          },
-          "byModule": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "type": "object",
-            "title": "Bymodule"
-          },
-          "byYear": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "type": "object",
-            "title": "Byyear"
-          }
-        },
-        "type": "object",
-        "required": [
-          "total",
-          "byKind",
-          "byModule",
-          "byYear"
-        ],
-        "title": "LibraryFacets",
-        "description": "Counts of published items, for the filter bar."
       },
       "LibraryGaps": {
         "properties": {
@@ -48011,8 +48048,6 @@
                     "carry_on",
                     "todo",
                     "continue",
-                    "modules",
-                    "files",
                     "forum",
                     "noora",
                     "daily_question",
@@ -48028,6 +48063,16 @@
               }
             ],
             "title": "Homeblocks"
+          },
+          "dailyQuestion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DailyQuestionChoice"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -48041,7 +48086,7 @@
           "emailWeeklySummary"
         ],
         "title": "Preferences",
-        "description": "Which notifications also come by email (to the account's email address; account security notices always do),\nwhether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Nothing is emailed until the\nperson answers the question about emails when they sign up (`notificationEmails`); then each notification email\nthey never switched follows that answer, and the Sunday summary is off until they turn it on."
+        "description": "Which notifications also come by email (to the account's email address; account security notices always do),\nwhether the Sunday summary does, whether lesson progress is kept, Home's blocks and the past question a day.\nNothing is emailed until the person answers the question about emails when they sign up (`notificationEmails`);\nthen each notification email they never switched follows that answer, and the Sunday summary is off until they\nturn it on."
       },
       "PreferencesUpdate": {
         "properties": {
@@ -48144,8 +48189,6 @@
                     "carry_on",
                     "todo",
                     "continue",
-                    "modules",
-                    "files",
                     "forum",
                     "noora",
                     "daily_question",
@@ -48155,18 +48198,28 @@
                   ]
                 },
                 "type": "array",
-                "maxItems": 13
+                "maxItems": 11
               },
               {
                 "type": "null"
               }
             ],
             "title": "Homeblocks"
+          },
+          "dailyQuestion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DailyQuestionChoice"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
         "title": "PreferencesUpdate",
-        "description": "Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default\nlayout. The answer about emails is asked when the profile is first saved (MeUpdate); a later one changes every\nnotification email not switched on its own. Turning an email on before there is an answer answers \"no\" for the\nothers."
+        "description": "Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default\nlayout, and `dailyQuestion: null` to every chapter with Home following the next exam. The answer about emails is\nasked when the profile is first saved (MeUpdate); a later one changes every notification email not switched on its\nown. Turning an email on before there is an answer answers \"no\" for the others."
       },
       "PresignedUpload": {
         "properties": {
@@ -51351,8 +51404,6 @@
                 "carry_on",
                 "todo",
                 "continue",
-                "modules",
-                "files",
                 "forum",
                 "noora",
                 "daily_question",
@@ -51362,7 +51413,7 @@
               ]
             },
             "type": "array",
-            "maxItems": 13,
+            "maxItems": 11,
             "minItems": 1,
             "title": "Homeblocks"
           },

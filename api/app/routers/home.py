@@ -26,7 +26,7 @@ def home(
     picks: Annotated[str | None, Query(pattern=PICKS_PATTERN)] = None,
 ) -> HomeOut:
     """Home's first screen for the year shown: the site settings, the papers' choices, a guide while its card is due,
-    the student's dates and next exam with the day's past question for it, and the desk shelf's numbers. Each part
-    follows its feature's switch. `picks`: a guest's papers, as their browser keeps them (an account's own count
-    instead). Errors: invalid_input (422: a year other than 1 to 3, or picks that aren't module ids)."""
+    the student's dates and next exam, and the desk shelf's numbers. Each part follows its feature's switch. `picks`:
+    a guest's papers, as their browser keeps them (an account's own count instead). Errors: invalid_input (422: a year
+    other than 1 to 3, or picks that aren't module ids)."""
     return svc.home(db, user, year, picks.split(",") if picks else [])

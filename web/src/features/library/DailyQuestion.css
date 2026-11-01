@@ -1,4 +1,4 @@
-/* Home: a past question a day. */
+/* A past question a day: the question (Home and the module page), and the dialog that picks its chapters. */
 .lib-daily {
   display: grid;
   gap: var(--sp-8);
@@ -34,4 +34,92 @@
   flex-wrap: wrap;
   gap: var(--sp-8);
   margin-top: var(--sp-4);
+}
+.lib-daily__lead {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: var(--fs-16);
+  line-height: 1.5;
+}
+
+/* The dialog: the module (on Home), then a row per chapter with how many questions it has. */
+.lib-daily-dlg {
+  display: grid;
+  gap: var(--sp-16);
+}
+.lib-daily-dlg__note {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+.lib-daily-dlg__group {
+  display: grid;
+  gap: var(--sp-8);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.lib-daily-dlg__group legend {
+  margin-bottom: var(--sp-8);
+  padding: 0;
+  color: var(--ink);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+}
+.lib-daily-dlg__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8) var(--sp-12);
+}
+.lib-daily-dlg__row > .ui-button--ghost:first-child {
+  margin-left: -12px;
+}
+.lib-daily-dlg__problem {
+  margin: 0;
+  color: var(--error);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+}
+.lib-daily-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-12);
+  min-height: 44px;
+  padding: var(--sp-8) var(--sp-12);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  cursor: pointer;
+}
+.lib-daily-check:has(input:checked) {
+  border-color: var(--accent);
+}
+.lib-daily-check input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+.lib-daily-check__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.lib-daily-check__count {
+  flex: 0 0 auto;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  line-height: 1.6;
+}
+.lib-daily-check--home {
+  border-style: dashed;
 }

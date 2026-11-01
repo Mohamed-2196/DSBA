@@ -23,4 +23,7 @@ export interface LibraryQuery {
   status?: ItemStatus | null;
 }
 
-export type LibraryView = 'grid' | 'list';
+/** What a file's page gets from the list that opened it: where its Back goes. */
+export interface LinkState {
+  from: string;
+}

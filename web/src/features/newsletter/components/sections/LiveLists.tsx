@@ -106,7 +106,7 @@ const FORMAT_LABEL: Record<string, string> = {
 const isRecent = (iso: string | null, now = Date.now()): boolean =>
   !!iso && now - new Date(iso).getTime() < NEW_DAYS * 86400000;
 
-/** New in the library: the newest files, or an invitation to the library when there are none. */
+/** New in the library: the newest files, or an invitation to the modules' files when there are none. */
 export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallback?: LiveFallback | null }) {
   const { getModule } = useModules();
   if (!files.length) {
@@ -118,8 +118,8 @@ export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallbac
           </p>
         ) : null}
         <p className="nl-cta">
-          <Button leadingIcon={<Icon glyph={glyph.library} />} to="/library">
-            Open the library
+          <Button leadingIcon={<Icon glyph={glyph.modules} />} to="/modules">
+            Find files by module
           </Button>
         </p>
       </div>
@@ -161,8 +161,8 @@ export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallbac
         })}
       </ol>
       <p className="nl-cta">
-        <Button leadingIcon={<Icon glyph={glyph.library} />} to="/library">
-          Open the library
+        <Button leadingIcon={<Icon glyph={glyph.modules} />} to="/modules">
+          Find files by module
         </Button>
       </p>
     </div>

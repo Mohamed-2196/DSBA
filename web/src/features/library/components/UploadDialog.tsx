@@ -149,7 +149,7 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
 
   const showYourUploads = () => {
     onClose();
-    navigate('/library?mine=1');
+    navigate('/account#your-files');
   };
 
   const reset = () => {

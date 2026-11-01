@@ -88,7 +88,7 @@ describe('runSearch', () => {
     expect(r).not.toContain('page:/calendar');
     expect(r).not.toContain('page:/forum');
     expect(r).not.toContain('action:new-thread');
-    expect(r).toContain('page:/library');
+    expect(r).not.toContain('page:/library'); // each module's files are on its page
   });
 
   it('offers Start a thread and Upload a file only when the person may do them', () => {
@@ -96,11 +96,11 @@ describe('runSearch', () => {
     expect(r).not.toContain('action:new-thread');
     expect(r).not.toContain('action:upload');
     expect(r).toContain('page:/forum');
-    expect(r).toContain('page:/library');
+    expect(r).toContain('page:/modules');
     const asks = ids(
       runSearch({ ...base, query: 'zzzz', offers: { threads: false, upload: true }, results: results() }),
     );
-    expect(asks).toEqual(['fallback:library', 'fallback:forum']);
+    expect(asks).toEqual(['fallback:forum']);
   });
 
   it('leaves out matching actions of switched-off features', () => {
@@ -184,8 +184,9 @@ describe('runSearch', () => {
   });
 
   it('offers only the fallbacks of features that are on', () => {
+    expect(ids(runSearch({ ...base, query: 'zzzz', results: results() }))).toEqual(['fallback:forum', 'fallback:ask']);
     const r = ids(runSearch({ ...base, query: 'zzzz', isOn: (f) => f !== 'forum', results: results() }));
-    expect(r).toEqual(['fallback:library']);
+    expect(r).toEqual([]);
   });
 
   it('puts the calendar first when the query asks "when"', () => {

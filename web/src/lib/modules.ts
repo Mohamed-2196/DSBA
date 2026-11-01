@@ -9,6 +9,17 @@ export function moduleLabel(m: Pick<ModuleSummary, 'unitCode' | 'name'> | null |
   return m ? (m.unitCode ? `${m.unitCode} ${m.name}` : m.name) : '';
 }
 
+/** Where a kind of file starts on a module's Files tab: 'papers' for past papers, 'files-<kind>' for the rest. */
+export function filesHash(kind: string): string {
+  return kind === 'past-paper' ? 'papers' : `files-${kind}`;
+}
+
+/** A module's files on its page (the Files tab), at one kind's shelf: the library has no page of its own. */
+export function moduleFilesPath(moduleId: string, kind: string | null = null): string {
+  const path = `/modules/${encodeURIComponent(moduleId)}?tab=files`;
+  return kind ? `${path}#${filesHash(kind)}` : path;
+}
+
 const isYoutubeUrl = (s: string) => s.includes('youtube.com') || s.includes('youtu.be');
 
 /** iframe src for a video: a YouTube embed, or the recording's own URL. */

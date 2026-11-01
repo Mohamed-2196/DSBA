@@ -47,13 +47,6 @@ export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
     span: 'card',
   },
   continue: { title: 'Continue', description: 'The lessons to pick up.', features: [], tracking: true, span: 'card' },
-  modules: { title: 'My modules', description: 'Your modules, with their next exams.', features: [], span: 'card' },
-  files: {
-    title: 'New files',
-    description: 'Files added to your modules in the library.',
-    features: ['library'],
-    span: 'card',
-  },
   forum: { title: 'Forum', description: 'Active threads in your modules.', features: ['forum'], span: 'card' },
   noora: {
     title: 'Ask Noora',
@@ -62,9 +55,9 @@ export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
     span: 'wide',
   },
   daily_question: {
-    title: 'Daily question',
-    description: 'A past exam question before your next exam.',
-    features: ['calendar', 'library', 'library.questions', 'library.daily-question'],
+    title: 'A past question a day',
+    description: 'One past exam question a day, from the module and chapters you choose.',
+    features: ['library', 'library.questions', 'library.daily-question'],
     span: 'wide',
   },
   help_below: {

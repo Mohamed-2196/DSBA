@@ -1,6 +1,7 @@
 """Home's first screen in one answer: the site settings, the papers' choices, the guides while Results day's card is
-due, the student's dates and next exam, the day's past question for it, and the desk shelf's numbers. Each part follows
-the same rules as the endpoint it stands in for (switches, hidden modules, years); what is personal is the asker's own.
+due, the student's dates and next exam, and the desk shelf's numbers. Each part follows the same rules as the endpoint
+it stands in for (switches, hidden modules, years); what is personal is the asker's own. The past question a day comes
+on its own (GET /library/daily-question): the web app knows which module and chapters the student chose.
 
 The web app works some of them out too, for its own pages (getExamSession and papersFor in
 web/src/features): keep the two in step."""
@@ -11,30 +12,24 @@ import datetime as dt
 from collections.abc import Collection, Sequence
 from datetime import timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.access import Feature
-from app.core.time import bahrain_today, utcnow
-from app.models import ItemStatus, LibraryItem, Module, User
+from app.core.time import bahrain_today
+from app.models import Module, User
 from app.schemas.calendar import CalendarEventOut
 from app.schemas.guides import GuidesDoc
 from app.schemas.home import HomeOut, HomeShelf
-from app.schemas.library import PaperQuestion
-from app.services import access, grades, my_calendar, notes, past_questions, site
+from app.services import access, grades, my_calendar, notes, site
 from app.services import calendar as programme
-from app.services.library import duplicate, in_hidden_module, sees_hidden_modules
 
-# How far ahead Home reads the calendar: Up next counts down to exams within EXAM_HORIZON, and My modules shows each
-# module's next exam within DATES_AHEAD.
+# How far ahead Home reads the calendar (DATES_AHEAD); Up next counts down to exams within EXAM_HORIZON.
 DATES_AHEAD = timedelta(days=183)
 EXAM_HORIZON = 120
 EXAM_TYPES = frozenset({"exam", "mock"})
 # Up next leaves these to the calendar page: programme events and careers dates are no countdown.
 NOT_COUNTED = frozenset({"event", "careers"})
-# The six weeks before an exam the daily question shows for.
-DAILY_WINDOW = 42
-NEW_FILE_DAYS = 7
 
 
 def home(db: Session, user: User | None, year: int, picks: Collection[str]) -> HomeOut:
@@ -54,11 +49,7 @@ def home(db: Session, user: User | None, year: int, picks: Collection[str]) -> H
         results_day=results,
         dates=dates,
         next_exam=exam,
-        daily_question=_daily_question(db, user, exam, today, on),
-        shelf=HomeShelf(
-            new_files=new_files(db, user, year) if Feature.library in on else None,
-            notes=notes.count_notes(db, user) if user is not None and Feature.notes in on else None,
-        ),
+        shelf=HomeShelf(notes=notes.count_notes(db, user) if user is not None and Feature.notes in on else None),
     )
 
 
@@ -95,18 +86,6 @@ def next_exam(dates: Sequence[CalendarEventOut], today: dt.date) -> CalendarEven
     return None
 
 
-def _daily_question(
-    db: Session, user: User | None, exam: CalendarEventOut | None, today: dt.date, on: set[Feature]
-) -> PaperQuestion | None:
-    wanted = {Feature.library, Feature.library_questions, Feature.library_daily_question}
-    if exam is None or exam.module_id is None or not wanted <= on or (exam.date - today).days > DAILY_WINDOW:
-        return None
-    module = db.get(Module, exam.module_id)
-    if module is None or module.hidden:
-        return None
-    return past_questions.daily(db, module.id, user, today)
-
-
 def results_event(db: Session, today: dt.date, guides: GuidesDoc) -> str | None:
     """The latest results date (an event whose title holds the guide's words) in the guide's weeks up to today: the
     one Results day's card is for."""
@@ -121,22 +100,3 @@ def results_event(db: Session, today: dt.date, guides: GuidesDoc) -> str | None:
         if since <= e.date <= today and want in e.title.lower()
     ]
     return max(found, key=lambda e: e.date).id if found else None
-
-
-def new_files(db: Session, user: User | None, year: int) -> int:
-    """Files students shared in the year's library in the last NEW_FILE_DAYS days, as the library lists them."""
-    since = utcnow() - timedelta(days=NEW_FILE_DAYS)
-    q = (
-        select(func.count())
-        .select_from(LibraryItem)
-        .where(
-            LibraryItem.status == ItemStatus.published,
-            ~duplicate(),
-            LibraryItem.year == year,
-            LibraryItem.uploaded_by.is_not(None),
-            LibraryItem.published_at > since,
-        )
-    )
-    if not sees_hidden_modules(user):
-        q = q.where(~in_hidden_module())
-    return db.scalar(q) or 0

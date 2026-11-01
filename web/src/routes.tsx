@@ -6,6 +6,7 @@ import { matchRoutes, type RouteObject } from 'react-router-dom';
 import { queryClient } from './api/queryClient';
 import { Gate, MANAGER_BOXES } from './auth';
 import { prefetchHome } from './features/home/public';
+import { LibraryToModules } from './shell/LibraryToModules';
 import { lazyPage } from './shell/lazyPage';
 import { RouteFrame, type AppRoute } from './shell/RouteFrame';
 
@@ -37,13 +38,6 @@ const pages: AppRoute[] = [
     title: 'Noora',
     Page: lazyPage(() => import('./features/noora/page/NooraPage')),
     feature: 'noora',
-  },
-  {
-    id: 'library',
-    path: '/library',
-    title: 'Library',
-    Page: lazyPage(() => import('./features/library/LibraryPage')),
-    feature: 'library',
   },
   {
     id: 'file',
@@ -245,11 +239,14 @@ const pages: AppRoute[] = [
 ];
 
 /** The pages as routes of the data router (ids are the pages' ids). */
-export const pageRoutes: RouteObject[] = pages.map((route) => ({
-  id: route.id,
-  path: route.path,
-  element: <RouteFrame route={route} />,
-}));
+export const pageRoutes: RouteObject[] = [
+  ...pages.map((route) => ({
+    id: route.id,
+    path: route.path,
+    element: <RouteFrame route={route} />,
+  })),
+  { id: 'library', path: '/library', element: <LibraryToModules /> },
+];
 
 /** What a page's first screen reads, asked for with its code: Home's one request. */
 const pageData: Partial<Record<string, (qc: QueryClient) => void>> = { home: prefetchHome };

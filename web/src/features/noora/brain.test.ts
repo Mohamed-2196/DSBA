@@ -181,8 +181,8 @@ describe('switched-off features', () => {
     expect(links(mgf).some((to) => to.startsWith('/library'))).toBe(false);
   });
 
-  it('points at the library while it is on', () => {
-    expect(links(ask('past papers'))).toEqual(['/library']);
+  it('points at the modules’ files while the library is on', () => {
+    expect(links(ask('past papers'))).toEqual(['/modules']);
   });
 });
 

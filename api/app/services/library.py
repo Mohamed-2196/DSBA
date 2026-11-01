@@ -44,7 +44,6 @@ from app.schemas.library import (
     ZONES,
     ExamSession,
     FileLink,
-    LibraryFacets,
     LibraryItemCreate,
     LibraryItemUpdate,
     LibraryKind,
@@ -446,7 +445,7 @@ def _exam_kind_order() -> ColumnElement[int]:
 
 def listed() -> ColumnElement[bool]:
     """What the library lists and counts: published, not a second copy of a file (duplicate()) and not in a hidden
-    module. The module counts, the module's shelves, the facets and the lists all use it, so their numbers agree."""
+    module. The module counts, the module's shelves and the lists all use it, so their numbers agree."""
     return and_(LibraryItem.status == ItemStatus.published, ~duplicate(), ~in_hidden_module())
 
 
@@ -488,22 +487,6 @@ def exam_title(item: LibraryItem, module: str | None) -> str:
     if item.kind != "past-paper":
         parts.append(kind_label(item.kind))
     return " · ".join(p for p in parts if p)
-
-
-def facets(db: Session) -> LibraryFacets:
-    published = listed()
-
-    def counts(col: Any) -> dict[str, int]:
-        rows = db.execute(select(col, func.count()).where(published, col.is_not(None)).group_by(col)).all()
-        return {str(k): int(n) for k, n in rows}
-
-    total = db.scalar(select(func.count()).select_from(LibraryItem).where(published)) or 0
-    return LibraryFacets(
-        total=total,
-        by_kind=counts(LibraryItem.kind),
-        by_module=counts(LibraryItem.module_id),
-        by_year=counts(LibraryItem.year),
-    )
 
 
 # ── a module's shelves ───────────────────────────────────────────────────────────────────────

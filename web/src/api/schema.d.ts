@@ -950,23 +950,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/library/facets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Facets */
-        get: operations["facets_api_v1_library_facets_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/library/papers": {
         parameters: {
             query?: never;
@@ -1174,6 +1157,29 @@ export interface paths {
          *     `flagged`; a chapter not of the module; a topic not of the chapter, or without `chapter_id`).
          */
         get: operations["module_questions_api_v1_library_questions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/daily-question": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daily Question
+         * @description A module's past question for the day, from `chapters` (chapter ids, comma-separated; none: every chapter): the
+         *     same for everyone who asks for those chapters that day, a different one the next. `question` is null while the
+         *     module has too few tagged questions (`offered` false) or the chapters none; a chapter not of the module is passed
+         *     over. Errors: invalid_input (422: an unknown module, or chapters that aren't chapter ids).
+         */
+        get: operations["daily_question_api_v1_library_daily_question_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4898,9 +4904,9 @@ export interface paths {
         /**
          * Home
          * @description Home's first screen for the year shown: the site settings, the papers' choices, a guide while its card is due,
-         *     the student's dates and next exam with the day's past question for it, and the desk shelf's numbers. Each part
-         *     follows its feature's switch. `picks`: a guest's papers, as their browser keeps them (an account's own count
-         *     instead). Errors: invalid_input (422: a year other than 1 to 3, or picks that aren't module ids).
+         *     the student's dates and next exam, and the desk shelf's numbers. Each part follows its feature's switch. `picks`:
+         *     a guest's papers, as their browser keeps them (an account's own count instead). Errors: invalid_input (422: a year
+         *     other than 1 to 3, or picks that aren't module ids).
          */
         get: operations["home_api_v1_home_get"];
         put?: never;
@@ -6724,6 +6730,31 @@ export interface components {
             /** Showonboard */
             showOnBoard: boolean;
         };
+        /**
+         * DailyQuestion
+         * @description A module's past question for the day (GET /library/daily-question), from the chapters asked for.
+         */
+        DailyQuestion: {
+            question: components["schemas"]["PaperQuestion"] | null;
+            /** Offered */
+            offered: boolean;
+            /** Pool */
+            pool: number;
+        };
+        /**
+         * DailyQuestionChoice
+         * @description A past question a day, as the student organised it: the module Home's question comes from (None: their next
+         *     exam's, in the six weeks before it), and the chapters each module's question comes from (a module left out: all
+         *     of its chapters). Chapters that are no longer the module's are passed over when the question is picked.
+         */
+        DailyQuestionChoice: {
+            /** Moduleid */
+            moduleId: string | null;
+            /** Chapters */
+            chapters: {
+                [key: string]: string[];
+            };
+        };
         /** DailyStats */
         DailyStats: {
             /** Played */
@@ -8371,7 +8402,6 @@ export interface components {
             /** Dates */
             dates: components["schemas"]["CalendarEventOut"][];
             nextExam: components["schemas"]["CalendarEventOut"] | null;
-            dailyQuestion: components["schemas"]["PaperQuestion"] | null;
             shelf: components["schemas"]["HomeShelf"];
         };
         /**
@@ -8379,8 +8409,6 @@ export interface components {
          * @description The desk shelf's numbers.
          */
         HomeShelf: {
-            /** Newfiles */
-            newFiles: number | null;
             /** Notes */
             notes: number | null;
         };
@@ -8860,26 +8888,6 @@ export interface components {
         LessonWatchedUpdate: {
             /** Watched */
             watched: boolean;
-        };
-        /**
-         * LibraryFacets
-         * @description Counts of published items, for the filter bar.
-         */
-        LibraryFacets: {
-            /** Total */
-            total: number;
-            /** Bykind */
-            byKind: {
-                [key: string]: number;
-            };
-            /** Bymodule */
-            byModule: {
-                [key: string]: number;
-            };
-            /** Byyear */
-            byYear: {
-                [key: string]: number;
-            };
         };
         /** LibraryGaps */
         LibraryGaps: {
@@ -10711,9 +10719,10 @@ export interface components {
         /**
          * Preferences
          * @description Which notifications also come by email (to the account's email address; account security notices always do),
-         *     whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Nothing is emailed until the
-         *     person answers the question about emails when they sign up (`notificationEmails`); then each notification email
-         *     they never switched follows that answer, and the Sunday summary is off until they turn it on.
+         *     whether the Sunday summary does, whether lesson progress is kept, Home's blocks and the past question a day.
+         *     Nothing is emailed until the person answers the question about emails when they sign up (`notificationEmails`);
+         *     then each notification email they never switched follows that answer, and the Sunday summary is off until they
+         *     turn it on.
          */
         Preferences: {
             /** Notificationemails */
@@ -10736,14 +10745,15 @@ export interface components {
              */
             trackProgress: boolean;
             /** Homeblocks */
-            homeBlocks?: ("results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
+            homeBlocks?: ("results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
+            dailyQuestion?: components["schemas"]["DailyQuestionChoice"] | null;
         };
         /**
          * PreferencesUpdate
          * @description Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default
-         *     layout. The answer about emails is asked when the profile is first saved (MeUpdate); a later one changes every
-         *     notification email not switched on its own. Turning an email on before there is an answer answers "no" for the
-         *     others.
+         *     layout, and `dailyQuestion: null` to every chapter with Home following the next exam. The answer about emails is
+         *     asked when the profile is first saved (MeUpdate); a later one changes every notification email not switched on its
+         *     own. Turning an email on before there is an answer answers "no" for the others.
          */
         PreferencesUpdate: {
             /** Notificationemails */
@@ -10763,7 +10773,8 @@ export interface components {
             /** Trackprogress */
             trackProgress?: boolean | null;
             /** Homeblocks */
-            homeBlocks?: ("results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
+            homeBlocks?: ("results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
+            dailyQuestion?: components["schemas"]["DailyQuestionChoice"] | null;
         };
         /**
          * PresignedUpload
@@ -11914,7 +11925,7 @@ export interface components {
             /** Launchyear */
             launchYear: number;
             /** Homeblocks */
-            homeBlocks: ("results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[];
+            homeBlocks: ("results_day" | "coming_up" | "carry_on" | "todo" | "continue" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[];
             examWeek: components["schemas"]["ExamWeek"];
             /** Tour */
             tour: components["schemas"]["TourStep"][];
@@ -13263,6 +13274,8 @@ export type DailyCalendar = components['schemas']['DailyCalendar'];
 export type DailyContentOverview = components['schemas']['DailyContentOverview'];
 export type DailyMe = components['schemas']['DailyMe'];
 export type DailyMeIn = components['schemas']['DailyMeIn'];
+export type DailyQuestion = components['schemas']['DailyQuestion'];
+export type DailyQuestionChoice = components['schemas']['DailyQuestionChoice'];
 export type DailyStats = components['schemas']['DailyStats'];
 export type DailyToday = components['schemas']['DailyToday'];
 export type DateLink = components['schemas']['DateLink'];
@@ -13385,7 +13398,6 @@ export type LessonIn = components['schemas']['LessonIn'];
 export type LessonOut = components['schemas']['LessonOut'];
 export type LessonTopic = components['schemas']['LessonTopic'];
 export type LessonWatchedUpdate = components['schemas']['LessonWatchedUpdate'];
-export type LibraryFacets = components['schemas']['LibraryFacets'];
 export type LibraryGaps = components['schemas']['LibraryGaps'];
 export type LibraryItem = components['schemas']['LibraryItem'];
 export type LibraryItemCreate = components['schemas']['LibraryItemCreate'];
@@ -17929,89 +17941,6 @@ export interface operations {
             };
         };
     };
-    facets_api_v1_library_facets_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LibraryFacets"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Too Many Requests */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     papers_api_v1_library_papers_get: {
         parameters: {
             query: {
@@ -18973,6 +18902,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaperQuestion"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    daily_question_api_v1_library_daily_question_get: {
+        parameters: {
+            query: {
+                module_id: string;
+                chapters?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyQuestion"];
                 };
             };
             /** @description Bad Request */

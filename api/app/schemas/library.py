@@ -86,15 +86,6 @@ class LibraryPage(Page[LibraryItem]):
     pass
 
 
-class LibraryFacets(ApiModel):
-    """Counts of published items, for the filter bar."""
-
-    total: int
-    by_kind: dict[str, int]
-    by_module: dict[str, int]
-    by_year: dict[str, int]
-
-
 class LibraryItemCreate(ApiModel):
     """A file a student uploaded (POST /uploads first). It waits for a moderator unless a moderator uploads it."""
 
@@ -236,6 +227,16 @@ class PaperQuestion(ApiModel):
     # The examiners' report of the paper's sitting at this question's commentary ("Question 3", or Section B's
     # "Question 1"), found when the report's text was read; None when the report has no such heading.
     answer: WorkedAnswer | None
+
+
+class DailyQuestion(ApiModel):
+    """A module's past question for the day (GET /library/daily-question), from the chapters asked for."""
+
+    # None: the module has too few tagged questions for a question a day (`offered` false), or the chapters asked for
+    # have none
+    question: PaperQuestion | None
+    offered: bool  # the module has enough tagged questions for a question a day
+    pool: int  # the tagged questions it goes round (the chapters asked for, or the whole module's); 0 when not offered
 
 
 # ── practising a chapter ─────────────────────────────────────────────────────────────────────

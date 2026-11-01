@@ -1,9 +1,11 @@
-// Home: a greeting, then a grid of equal cards the student can show, hide and reorder (Customise Home): Up next,
-// Carry on, To-do, Continue, My modules, New files and Forum, with notices and the Ask Noora prompt across the whole
-// width. What the first screen reads before it can draw comes in one request (GET /home, api.ts): the student's dates
-// and next exam, the day's past question, whether a guide's card is due, and the shelf's numbers.
-// In exam week, on a phone, the student's next exam leads instead of the desk shelf (ExamWeekLead.tsx; Site settings say
-// whether, from how many days before, and what leads).
+// Home: a clean landing page. A greeting with the desk shelf (one tile per section, the way into the modules), then a
+// grid of cards the student can show, hide and reorder (Customise Home). By default (Site settings) they are Results
+// day around results, Up next (the calendar and the dates ahead), Carry on and a past question a day; To-do,
+// Continue, Forum, Ask Noora, Help the year below, the newsletter and Daily are there to add. What the first screen
+// reads before it can draw comes in one request (GET /home, api.ts): the student's dates and next exam, whether a
+// guide's card is due, and the shelf's numbers; the past question a day asks for itself, from the module and chapters
+// the student chose. In exam week, on a phone, the student's next exam leads instead of the desk shelf
+// (ExamWeekLead.tsx; Site settings say whether, from how many days before, and what leads).
 // Blocks from other features come from their public.ts, each in its own ErrorBoundary with its own loading, empty and
 // error states; a notice with nothing to say renders nothing.
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -29,15 +31,15 @@ import {
 } from '../../ui';
 import { BoardTodo, useTodayAgenda } from '../board/public';
 import { HelpBelow } from '../forum/public';
-import { DailyQuestion, useTimeMe } from '../library/public';
+import { HomeDailyQuestion, useTimeMe } from '../library/public';
 import { ContinueLearning, useTracking } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
-import { usePapers } from '../papers/public';
+import { modulesFor, usePapers } from '../papers/public';
 import { ResultsDayCard } from '../guides/public';
 import { DailyCard } from '../daily/public';
 import { useSite } from '../site/public';
 import { CarryOn, useCarryOn } from '../carryon/public';
-import { daysBetween, formatLongDay, parseDay, todayKey } from '../../lib/dates';
+import { formatLongDay, parseDay, todayKey } from '../../lib/dates';
 import { useHome } from './api';
 import { AskNoora } from './AskNoora';
 import { ALL_BLOCKS, BLOCKS, offeredBlocks, type HomeBlock } from './blocks';
@@ -45,13 +47,11 @@ import { ComingUp } from './ComingUp';
 import { CustomizeHome } from './CustomizeHome';
 import { useHomeLayout } from './layout';
 import { HomeForum } from './HomeForum';
-import { NewFiles } from './NewFiles';
 import { ExamWeekLead } from './ExamWeekLead';
 import { examWeekExam } from './examWeek';
 import { getExamSession } from './session';
 import { greetingFor, greetingLede, lumenPose } from './time';
 import { HomeShelf } from './HomeShelf';
-import { YourModules } from './YourModules';
 import './HomePage.css';
 
 /** "Mohamed" from "Mohamed Alnooh". */
@@ -91,7 +91,7 @@ export default function HomePage() {
   const { year, setYear, activeYear } = useYear();
   const { me, status, openSignIn, featureOn } = useAuth();
   const tracking = useTracking();
-  const { getModule } = useModules();
+  const { modules: catalogue, getModule } = useModules();
   const { papers, resits } = usePapers();
   const [customizing, setCustomizing] = useState(false);
   const online = useOnline();
@@ -118,13 +118,15 @@ export default function HomePage() {
   const todayIs = todayKey(now);
   const today = useMemo(() => parseDay(todayIs), [todayIs]);
   const home = useHome(activeYear);
-  // The student's dates from today: Up next reads its exam session from them, and My modules each module's next exam.
+  // The student's dates from today: Up next reads its exam session from them.
   const dates = home.data?.dates;
   const session = useMemo(
     () => getExamSession(dates ?? [], activeYear, getModule, today, { papers, resits }),
     [dates, activeYear, getModule, today, papers, resits],
   );
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
+  // The modules a student can ask a past question a day from: their papers, else their year's.
+  const myModules = useMemo(() => modulesFor(activeYear, papers, catalogue), [activeYear, papers, catalogue]);
   const phone = useMediaQuery(PHONE);
   const examWeek = useSite().data?.examWeek;
   const examWeekLeads = phone ? examWeekExam(session, examWeek) : null;
@@ -145,19 +147,15 @@ export default function HomePage() {
             <ResultsDayCard eventId={home.data.resultsDay} />
           </Notice>
         ) : null;
-      case 'daily_question': {
-        const exam = home.data?.nextExam;
-        const question = home.data?.dailyQuestion;
-        return exam && question ? (
+      case 'daily_question':
+        return (
           <Notice key={b} id={b}>
-            <DailyQuestion
-              question={question}
-              moduleName={getModule(exam.moduleId)?.name ?? exam.title}
-              examDays={daysBetween(today, parseDay(exam.date))}
+            <HomeDailyQuestion
+              exam={nextExam ? { moduleId: nextExam.moduleId, days: nextExam.days } : null}
+              modules={myModules}
             />
           </Notice>
-        ) : null;
-      }
+        );
       case 'help_below':
         return (
           <Notice key={b} id={b}>
@@ -211,34 +209,6 @@ export default function HomePage() {
         return (
           <Block key={b} id={b}>
             <ContinueLearning />
-          </Block>
-        );
-      case 'modules':
-        return (
-          <Block
-            key={b}
-            id={b}
-            action={
-              <Button variant="ghost" size="sm" to="/modules">
-                All modules
-              </Button>
-            }
-          >
-            <YourModules year={activeYear} today={today} mine={year !== null} dates={dates ?? []} />
-          </Block>
-        );
-      case 'files':
-        return (
-          <Block
-            key={b}
-            id={b}
-            action={
-              <Button variant="ghost" size="sm" to="/library">
-                Open the library
-              </Button>
-            }
-          >
-            <NewFiles year={activeYear} />
           </Block>
         );
       case 'forum':
@@ -411,7 +381,7 @@ export default function HomePage() {
           <EmptyState
             icon={<Icon glyph={glyph.home} />}
             title="Your Home is empty"
-            body="Choose what to show here: your next exam, your to-do, your modules and more."
+            body="Choose what to show here: your next exam, what to carry on with, a past question a day and more."
             action={
               <Button variant="primary" onClick={() => setCustomizing(true)}>
                 Customise Home

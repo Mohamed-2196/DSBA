@@ -1398,7 +1398,7 @@ push({ title: 'Thread posted', tone: 'success', mate: 'pip-pod' })  // happy`}
                     hint: 'N',
                     onSelect: () => push({ title: 'Sorted by newest' }),
                   },
-                  { id: 'open', label: 'Open the library', icon: glyph.library, to: '/library' },
+                  { id: 'open', label: 'Open the modules', icon: glyph.modules, to: '/modules' },
                   { divider: true },
                   {
                     id: 'delete',

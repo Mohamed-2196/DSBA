@@ -59,7 +59,7 @@ class Feature(enum.StrEnum):
     library = "library"
     library_uploads = "library.uploads"  # uploads only: the library stays readable
     library_questions = "library.questions"  # past papers' questions tagged with chapters
-    library_daily_question = "library.daily-question"  # Home's past question a day (GET /home)
+    library_daily_question = "library.daily-question"  # a past question a day, by module (GET /library/daily-question)
     library_practice = "library.practice"  # practising a chapter's past questions, with marks kept per student
     library_autotag = "library.autotag"  # Claude tags each new past paper's questions (services/paper_tagging.py)
     newsletter = "newsletter"
@@ -182,7 +182,8 @@ FEATURES: dict[Feature, FeatureInfo] = {
     ),
     Feature.library_daily_question: FeatureInfo(
         "A past question a day",
-        "Home's card with one tagged past question a day before your next exam. Needs past questions by topic.",
+        "One tagged past question a day from a module's chapters the student picks, on the module's page and Home. "
+        "Needs past questions by topic.",
     ),
     Feature.library_practice: FeatureInfo(
         "Practise a chapter",

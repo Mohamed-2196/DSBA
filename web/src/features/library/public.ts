@@ -1,5 +1,7 @@
 // Public API of the library feature: other features import from here only.
 //   <ModuleFiles moduleId />            the module page's Files tab (loaded on demand)
+//   <YourFiles onUpload />              the Account page's lists of the student's own files: uploads not public yet,
+//                                        what they shared, what they starred (loaded on demand)
 //   useLibraryUpload({ moduleId, year }) "Upload a file" anywhere: { start, dialog } (render `dialog`; guests sign in
 //                                        first; `start` is null while uploading isn't offered). Decision D6:
 //                                        contributing means uploading to the library.
@@ -16,8 +18,14 @@
 //                                        or without the code when moduleTag is null), anything else by its title
 //   <ChapterQuestions moduleId chapterId />  the Lessons tab's past exam questions tagged with a chapter, grouped by
 //                                        its study guide's topics (render it only while library.questions is on)
-//   <DailyQuestion question moduleName examDays className />
-//                                        Home's past question a day before the next exam (GET /home picks it)
+//   <HomeDailyQuestion exam modules />  Home's past question a day: from the module the student put on Home, else
+//                                        the next exam's in the six weeks before it
+//   useDailyOn(), useDailyChoice()      whether a past question a day is on; the student's modules and chapters for
+//                                        it ({ choice, save }), on the account or in this browser
+//   useDailyQuestion(moduleId, chapters) a module's question for the day (GET /library/daily-question)
+//   <DailyQuestionBody question meta? />, <DailyQuestionDialog onClose moduleId modules? />
+//                                        the question, and the dialog that picks a module's chapters (a module page)
+//   dailyChaptersFor(choice, moduleId), dailyPoolLine(pool, chosen, name), withDailyHomeModule(choice, moduleId)
 //   usePaperSittings(moduleId)          a module's past papers, reports and solutions by sitting, newest first
 //                                        ({ sittings, other })
 //   <SittingsTable sittings linkState board className? />
@@ -59,11 +67,18 @@ export { UploadsQueue } from './UploadsQueue';
 export { ChapterQuestions } from './ChapterQuestions';
 export { FlaggedQuestions } from './FlaggedQuestions';
 export { PaperTagging } from './PaperTagging';
-export { DailyQuestion } from './DailyQuestion';
+export { DailyQuestionBody, DailyQuestionDialog, HomeDailyQuestion } from './DailyQuestion';
+export { useDailyChoice, useDailyOn, useDailyQuestion } from './useDaily';
+export {
+  chaptersFor as dailyChaptersFor,
+  poolLine as dailyPoolLine,
+  withHomeModule as withDailyHomeModule,
+} from './daily';
 export { ClockText, TimerPill, useTimeMe } from './viewer/ExamTimer';
 export { timedPaperPath, type RunningTimer, type TimedPaper } from './timeMe';
 
 const LazyModuleFiles = lazy(() => import('./ModuleFiles'));
+const LazyYourFiles = lazy(() => import('./components/YourFiles'));
 const LazyUploadDialog = lazy(() => import('./components/UploadDialog').then((m) => ({ default: m.UploadDialog })));
 
 /** The module page's Files tab: the module's files grouped by type, with Upload. */
@@ -79,6 +94,15 @@ export function ModuleFiles({ moduleId }: { moduleId: string }) {
       ),
     },
     createElement(LazyModuleFiles, { moduleId }),
+  );
+}
+
+/** The Account page's Your files: uploads not public yet, what the student shared, and what they starred. */
+export function YourFiles({ onUpload }: { onUpload: (() => void) | null }) {
+  return createElement(
+    Suspense,
+    { fallback: createElement(Skeleton, { lines: 4 }) },
+    createElement(LazyYourFiles, { onUpload }),
   );
 }
 
