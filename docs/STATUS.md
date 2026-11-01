@@ -279,7 +279,8 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
   kept on scans (no text), so those questions open at their page.
 - **On dev, still to do (Mohamed, on the dev API shell):** the older papers aren't in the bucket yet. Run the Drive
   import with the key in the environment, then the exam details and the seed again so the tags attach:
-  `DSBA_GOOGLE_API_KEY=… python -m app.cli import-drive --yes` (or `--module <id>` per module), then
+  `read -rs DSBA_GOOGLE_API_KEY && export DSBA_GOOGLE_API_KEY` (pasted, never on a command line), then
+  `python -m app.cli import-drive --yes` (or `--module <id>` per module), then
   `python -m app.cli exam-meta` and `python -m app.cli seed --only paper-questions`. Papers already on dev (the
   Year 3 VLE folders, IS2184) get their tags on the next deploy.
 
