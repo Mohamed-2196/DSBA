@@ -3098,6 +3098,20 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "question": 1,
+    "page": 2,
+    "anchor": "Question 1 [Total: 34 marks] Answer the following unrelated items. (a) A stock",
+    "chapters": [
+     "hp8rqber",
+     "5az5u938"
+    ],
+    "topics": [
+     "hp8rqber:expected-return-and-variance-of-a-portfolio-cova",
+     "hp8rqber:the-tangency-portfolio-and-the-sharpe-ratio",
+     "5az5u938:dividend-discount-model-and-the-constant-growth"
+    ]
+   },
+   {
     "question": 2,
     "page": 4,
     "anchor": "Question 2 [Total: 33 marks] Answer the following unrelated items. (a) The",
@@ -3316,6 +3330,20 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "question": 1,
+    "page": 3,
+    "anchor": "Question 1 Answer the following unrelated items. (a) Leasing a machine requires",
+    "chapters": [
+     "wvmum8as",
+     "uyjwrjjp"
+    ],
+    "topics": [
+     "wvmum8as:present-and-future-value-of-an-ordinary-annuity",
+     "wvmum8as:present-value-of-a-perpetuity-and-of-a-perpetuit",
+     "uyjwrjjp:risk-neutral-method"
+    ]
+   },
+   {
     "question": 2,
     "page": 4,
     "anchor": "Question 2 Answer the following unrelated items. (a) In a single sentence,",
@@ -3380,6 +3408,20 @@
     ]
    },
    {
+    "question": 2,
+    "page": 6,
+    "anchor": "Question 2 (a) Consider a two-period consumption model consisting of now, t = 0, and next year, t =",
+    "chapters": [
+     "wvmum8as",
+     "jgrrqpnx"
+    ],
+    "topics": [
+     "wvmum8as:time-value-of-money",
+     "wvmum8as:present-and-future-value-of-an-ordinary-annuity",
+     "jgrrqpnx:modified-duration-and-the-sensitivity-of-bond-pr"
+    ]
+   },
+   {
     "question": 3,
     "page": 8,
     "anchor": "3 Consider the following information in Table 2, on three default-risk free bonds with",
@@ -3416,6 +3458,20 @@
   "contentHash": "9d700dfc9cfb205e52881788517d5fc9aeab67da7bd5184010d81dd07123b76c",
   "model": "claude-haiku-5-5",
   "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "Question 1 [Total: 33 marks] Answer the following unrelated items. (a) A stock",
+    "chapters": [
+     "hp8rqber",
+     "5az5u938"
+    ],
+    "topics": [
+     "hp8rqber:capm",
+     "hp8rqber:expected-return-and-variance-of-a-portfolio-cova",
+     "5az5u938:dividend-discount-model-and-the-constant-growth"
+    ]
+   },
    {
     "question": 2,
     "page": 4,
@@ -3645,6 +3701,20 @@
      "qj79hsbs:american-versus-european-options",
      "qj79hsbs:pricing-american-calls-and-puts-in-a-binomial-tr",
      "uyjwrjjp:call-and-put-options"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 6,
+    "anchor": "Question 4 Answer the following unrelated items. (a) Leasing a machine requires",
+    "chapters": [
+     "wvmum8as",
+     "uyjwrjjp"
+    ],
+    "topics": [
+     "wvmum8as:present-and-future-value-of-an-ordinary-annuity",
+     "wvmum8as:present-value-of-a-perpetuity-and-of-a-perpetuit",
+     "uyjwrjjp:risk-neutral-method"
     ]
    }
   ]
@@ -18289,6 +18359,19 @@
     ]
    },
    {
+    "question": 8,
+    "page": 5,
+    "anchor": "8. (a) Two consumers, R and M, engaged in a barter arrangement have utility functions, uR",
+    "chapters": [
+     "ad8jd9a5",
+     "kd93u6uf"
+    ],
+    "topics": [
+     "ad8jd9a5:edgeworth-box-and-contract-curves",
+     "kd93u6uf:linear-programming-duality"
+    ]
+   },
+   {
     "question": 9,
     "page": 6,
     "anchor": "9. (a) Write the quadratic form f (x, y) = 3x 2 + 2xy + 3y2,",
@@ -18910,6 +18993,20 @@
     ]
    },
    {
+    "question": 9,
+    "page": 5,
+    "anchor": "9. (a) The function f : R3→ R is given by",
+    "chapters": [
+     "bmi4vmdb",
+     "kd93u6uf"
+    ],
+    "topics": [
+     "bmi4vmdb:global-optimisation-of-concave-and-convex-functi",
+     "bmi4vmdb:second-order-conditions-using-the-hessian-defini",
+     "kd93u6uf:linear-programming-duality"
+    ]
+   },
+   {
     "question": 10,
     "page": 5,
     "anchor": "10. (a) Let (x n) be the sequence of real numbers deﬁned by",
@@ -19263,6 +19360,19 @@
      "graa7b6k:finding-eigenvalues-and-eigenvectors",
      "graa7b6k:diagonalisation-of-a-square-matrix",
      "4n36zrm6:systems-of-difference-equations-solving-using-ma"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 5,
+    "anchor": "8. (a) Two consumers, R and M, engaged in a barter arrangement have utility functions, uR",
+    "chapters": [
+     "ad8jd9a5",
+     "kd93u6uf"
+    ],
+    "topics": [
+     "ad8jd9a5:edgeworth-box-and-contract-curves",
+     "kd93u6uf:linear-programming-duality"
     ]
    },
    {
@@ -19736,6 +19846,19 @@
     ]
    },
    {
+    "question": 7,
+    "page": 4,
+    "chapters": [
+     "haeif3ez",
+     "4n36zrm6"
+    ],
+    "topics": [
+     "haeif3ez:general-solution-of-a-linear-system-in-vector-no",
+     "haeif3ez:null-space-of-a-matrix",
+     "4n36zrm6:quadratic-forms"
+    ]
+   },
+   {
     "question": 8,
     "page": 5,
     "chapters": [
@@ -19757,6 +19880,19 @@
     "topics": [
      "mssrt47e:continuity-of-real-functions",
      "mssrt47e:open-and-closed-sets-of-real-numbers"
+    ]
+   },
+   {
+    "question": 10,
+    "page": 6,
+    "chapters": [
+     "bmi4vmdb",
+     "kd93u6uf"
+    ],
+    "topics": [
+     "bmi4vmdb:finding-optima",
+     "bmi4vmdb:second-order-conditions-using-the-hessian-defini",
+     "kd93u6uf:linear-programming-duality"
     ]
    }
   ]
@@ -20483,6 +20619,19 @@
      "mssrt47e:continuity-of-real-functions",
      "mssrt47e:open-and-closed-sets-of-real-numbers"
     ]
+   },
+   {
+    "question": 10,
+    "page": 7,
+    "chapters": [
+     "bmi4vmdb",
+     "kd93u6uf"
+    ],
+    "topics": [
+     "bmi4vmdb:finding-optima",
+     "bmi4vmdb:second-order-conditions-using-the-hessian-defini",
+     "kd93u6uf:linear-programming-duality"
+    ]
    }
   ]
  },
@@ -20990,6 +21139,20 @@
     "topics": [
      "mssrt47e:continuity-of-real-functions"
     ]
+   },
+   {
+    "question": 10,
+    "page": 7,
+    "anchor": "10. (a) Suppose F : R → R is a diﬀerentiable function. Let S be the surface",
+    "chapters": [
+     "ad8jd9a5",
+     "kd93u6uf"
+    ],
+    "topics": [
+     "ad8jd9a5:tangent-planes-to-surfaces-and-level-surfaces-th",
+     "kd93u6uf:zero-sum-games-and-matrix-games",
+     "kd93u6uf:finding-the-optimal-mixed-strategies-geometrical"
+    ]
    }
   ]
  },
@@ -21108,6 +21271,19 @@
     ],
     "topics": [
      "mssrt47e:continuity-of-real-functions"
+    ]
+   },
+   {
+    "question": 10,
+    "page": 7,
+    "anchor": "10. (a) Let S be the surface with equation z = f (x, y) = −xy/(x + y), for x + y ⁄= 0.",
+    "chapters": [
+     "kd93u6uf",
+     "ad8jd9a5"
+    ],
+    "topics": [
+     "kd93u6uf:linear-programming-duality",
+     "ad8jd9a5:tangent-planes-to-surfaces-and-level-surfaces-th"
     ]
    }
   ]
@@ -21712,6 +21888,19 @@
      "mssrt47e:sequences-and-limits",
      "mssrt47e:open-and-closed-sets-of-real-numbers",
      "mssrt47e:analysis-on-r-m"
+    ]
+   },
+   {
+    "question": 10,
+    "page": 6,
+    "anchor": "10. (a) Suppose F : R→ R is a diﬀerentiable function. Let S be the surface",
+    "chapters": [
+     "ad8jd9a5",
+     "bmi4vmdb"
+    ],
+    "topics": [
+     "ad8jd9a5:tangent-planes-to-surfaces-and-level-surfaces-th",
+     "bmi4vmdb:inequality-constraints-mixtures-of-equality-and"
     ]
    }
   ]
@@ -22511,6 +22700,1180 @@
   ]
  },
  {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2023 Exam",
+  "importKey": "drive/information-systems/10r0YRNNCv_IGDVW--UYgoUlr4CQ78awx",
+  "contentHash": "e364c82fa1af9a64e4b134285920e9fb3d299a3ebfd6ef1c19554380277d711e",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1) Discuss two of the major challenges that managers face when they deploy a new",
+    "chapters": [
+     "czacvht6"
+    ],
+    "topics": [
+     "czacvht6:icts-and-information-infrastructure-vs-informati",
+     "czacvht6:change-management-and-strategic-alignment-in-ict"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2) What are the major challenges managers must deal with when implementing e-business",
+    "chapters": [
+     "htuw2xad",
+     "dtjtecub"
+    ],
+    "topics": [
+     "htuw2xad:e-business-critical-success-factors",
+     "dtjtecub:right-to-privacy"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3) Discuss the major organizational and technological challenges managers face when they",
+    "chapters": [
+     "q4qnvjzi",
+     "ra9dbmxr"
+    ],
+    "topics": [
+     "q4qnvjzi:managing-outsourcing",
+     "ra9dbmxr:km-systems"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4) Why must managers in charge of corporate governance understand the impact of technology",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:corporate-governance",
+     "ujj8xtah:ict-governance-vs-ict-management-ict-governance"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5) Discuss what managers must consider when taking decisions on investments in ICTs that",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:ict-support-for-project-management",
+     "kxzwbsfh:limits-of-project-management-techniques-dynamic"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6) Discuss how managers can ensure that a company’s privacy policy is, at the same time, legal,",
+    "chapters": [
+     "dtjtecub"
+    ],
+    "topics": [
+     "dtjtecub:right-to-privacy",
+     "dtjtecub:balancing-moral-beliefs-professional-ethics-and"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2022 Exam",
+  "importKey": "drive/information-systems/11CQcexoaeTNquMZLEW6j_Zn7sqdmRpTG",
+  "contentHash": "c4440b93bb7ce3ac3e036d4674902b9b7999d1c279bb319a06b265fa2740634f",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 5,
+    "anchor": "1) Discuss how managers of a social network company can deploy a global information policy",
+    "chapters": [
+     "dtjtecub"
+    ],
+    "topics": [
+     "dtjtecub:global-information-policies-across-different-mar",
+     "dtjtecub:balancing-moral-beliefs-professional-ethics-and"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 5,
+    "anchor": "2) Discuss how managers can balance benefits and risks associated with the use of ICT",
+    "chapters": [
+     "q4qnvjzi"
+    ],
+    "topics": [
+     "q4qnvjzi:outsourcing-risks",
+     "q4qnvjzi:why-outsource"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 5,
+    "anchor": "3) Discuss what managers need to consider when taking decisions on investments in B2B",
+    "chapters": [
+     "htuw2xad"
+    ],
+    "topics": [
+     "htuw2xad:b2b-open-virtual-stores-vs-private-virtual-store",
+     "htuw2xad:e-procurement-platforms-and-consortia-sponsored",
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "anchor": "4) How can ICT systems support managers in enhancing the efficacy of project management?",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:ict-support-for-project-management",
+     "kxzwbsfh:projects-and-project-management"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 5,
+    "anchor": "5) Discuss two of the major risks that managers must deal with when using big data",
+    "chapters": [
+     "48qu7x6x"
+    ],
+    "topics": [
+     "48qu7x6x:big-data",
+     "48qu7x6x:data-governance-and-data-security"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 5,
+    "anchor": "6) How does ICT governance influence ICT strategic decisions? Build your argument",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:ict-governance-as-alignment-of-technology-choice",
+     "ujj8xtah:ict-governance-vs-ict-management-ict-governance"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 Exam paper – May 2026",
+  "importKey": "drive/information-systems/18s3eapctcZ4-Ovfc3-HhAiB6EavmFWoi",
+  "contentHash": "6c6047f78e00c47860dd663d662d52017fc43cfa64c55ea515ef773df8c91785",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. Business intelligence systems provide competitive advantage through customer insights, yet",
+    "chapters": [
+     "48qu7x6x",
+     "dtjtecub"
+    ],
+    "topics": [
+     "48qu7x6x:big-data-and-business-intelligence",
+     "dtjtecub:global-information-policies-across-different-mar"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. Large projects often involve multiple organisations, subcontractors, and stakeholders who must",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:project-integration-management",
+     "kxzwbsfh:ict-support-for-project-management"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. Critically evaluate the use of PERT (Program Evaluation and Review Technique) for managing",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:pert-charts",
+     "kxzwbsfh:limits-of-project-management-techniques-dynamic"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. Companies in regulated industries (such as banking, healthcare, or telecommunications) face",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:corporate-governance",
+     "ujj8xtah:ict-governance-as-alignment-of-technology-choice"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. Information systems implementation often fails not due to technical issues but because of",
+    "chapters": [
+     "kxzwbsfh",
+     "czacvht6"
+    ],
+    "topics": [
+     "kxzwbsfh:projects-and-project-management",
+     "czacvht6:change-management-and-strategic-alignment-in-ict"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6. Social media platforms face conflicting demands when moderating content globally: legal",
+    "chapters": [
+     "dtjtecub"
+    ],
+    "topics": [
+     "dtjtecub:global-information-policies-across-different-mar",
+     "dtjtecub:balancing-moral-beliefs-professional-ethics-and"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2021 Exam - Zone-A",
+  "importKey": "drive/information-systems/1EGuoT3pzCF6cU4W8Yur7eWWmhXVg9yWO",
+  "contentHash": "ee717e6495b0b3e5920d70435520df3c41a84d59ce81a6781f1b5047816d0a8e",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "anchor": "1) Discuss two of the major challenges that managers have to face when big data analytics",
+    "chapters": [
+     "48qu7x6x"
+    ],
+    "topics": [
+     "48qu7x6x:big-data-and-business-intelligence",
+     "48qu7x6x:big-data",
+     "48qu7x6x:data-governance-and-data-security"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "anchor": "2) The COVID-19 pandemic has increased the pressure that managers face handling e-business",
+    "chapters": [
+     "htuw2xad"
+    ],
+    "topics": [
+     "htuw2xad:e-business-critical-success-factors",
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 3,
+    "anchor": "3) Discuss the major organisational and technological benefits and challenges managers face",
+    "chapters": [
+     "frkjcp99"
+    ],
+    "topics": [
+     "frkjcp99:erp-benefits",
+     "frkjcp99:implementing-erp",
+     "frkjcp99:why-erp-implementations-fail"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 3,
+    "anchor": "4) Discuss how knowledge management systems can support managers in taking ICT governance",
+    "chapters": [
+     "ra9dbmxr",
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ra9dbmxr:km-systems",
+     "ujj8xtah:ict-governance-vs-ict-management-ict-governance",
+     "ujj8xtah:itil"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 3,
+    "anchor": "5) Discuss how managers involved in strategic decision making can identify the technological",
+    "chapters": [
+     "9mydiipv"
+    ],
+    "topics": [
+     "9mydiipv:industry-level-strategy",
+     "9mydiipv:three-levels-of-information-systems-strategy",
+     "9mydiipv:defining-the-ict-strategy"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 3,
+    "anchor": "6) Discuss how strategic planning can help managers align technology and business needs.",
+    "chapters": [
+     "9mydiipv"
+    ],
+    "topics": [
+     "9mydiipv:strategic-planning-pyramid",
+     "9mydiipv:strategic-planning-tools",
+     "9mydiipv:defining-the-ict-strategy"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2018 Exam - Zone-A",
+  "importKey": "drive/information-systems/1G8uPsUx1W8Bf5uBOzboyTuS6yT6uS8LV",
+  "contentHash": "6452bc4f6b4dbd7ca99633f92af6b8da354c282789bd5f291bce0091ee350c74",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. Discuss three e-business critical success factor s and briefly discuss the best",
+    "chapters": [
+     "htuw2xad"
+    ],
+    "topics": [
+     "htuw2xad:e-business-critical-success-factors",
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. Explain why project integration is so important for effective project management.",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:project-integration-management"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. Explain the differences between business-level a nd industry-level strategy. Are there",
+    "chapters": [
+     "9mydiipv"
+    ],
+    "topics": [
+     "9mydiipv:business-level-strategy-and-the-value-chain-inte",
+     "9mydiipv:industry-level-strategy"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. Explain two reasons why data governance has beco me increasingly important and discuss",
+    "chapters": [
+     "48qu7x6x",
+     "9mydiipv"
+    ],
+    "topics": [
+     "48qu7x6x:data-governance-and-data-security",
+     "9mydiipv:defining-the-ict-strategy"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. Discuss the main reasons why companies decide to outsource ICT related activities. What",
+    "chapters": [
+     "q4qnvjzi"
+    ],
+    "topics": [
+     "q4qnvjzi:why-outsource",
+     "q4qnvjzi:outsourcing-risks"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6. Discuss the major characteristics of enterprise resource planning (ERP) systems.",
+    "chapters": [
+     "frkjcp99"
+    ],
+    "topics": [
+     "frkjcp99:what-erp-is",
+     "frkjcp99:why-erp-implementations-fail"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2019 Exam - Zone-A",
+  "importKey": "drive/information-systems/1KmFgtokJTXjV-oZLaEwvFy6OAcEITrk-",
+  "contentHash": "9f548d8a454dcea618441a5b057fd772e0bc0c78c581bab300fff21bbdef2206",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. What are the main characteristics of PERT and CRM project management techniques?",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:pert-charts",
+     "kxzwbsfh:cpm",
+     "kxzwbsfh:choosing-a-technique"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. Discuss the five key activities for effective ICT governance and explain how they help",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:ict-governance-vs-ict-management-ict-governance",
+     "ujj8xtah:ict-governance-as-alignment-of-technology-choice",
+     "ujj8xtah:ict-business-continuity-planning"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. How can managers properly design, organise and maintain efficient and effective",
+    "chapters": [
+     "czacvht6"
+    ],
+    "topics": [
+     "czacvht6:icts-and-information-infrastructure-vs-informati",
+     "czacvht6:managers-and-icts"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. What are the key aspects that define the business environment that managers must",
+    "chapters": [
+     "htuw2xad"
+    ],
+    "topics": [
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin",
+     "htuw2xad:e-business-critical-success-factors",
+     "htuw2xad:e-business-configurations"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. How can project management help managers coordinate their actions in the definition",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:project-integration-management",
+     "kxzwbsfh:projects-and-project-management",
+     "kxzwbsfh:project-management-life-cycle"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6. The exploitation of network-based technologies to design innovative business propositions",
+    "chapters": [
+     "dtjtecub"
+    ],
+    "topics": [
+     "dtjtecub:legal-grey-areas",
+     "dtjtecub:right-to-privacy",
+     "dtjtecub:using-data-about-third-parties"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 Exam paper - October 2025",
+  "importKey": "drive/information-systems/1KzDnnMPq3PC65PkNNJ63-td35Pv4Q2Et",
+  "contentHash": "918104e01324feac1e5ec3abaeeb1a2e145124be1267c3395a96a368027d8b33",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. Discuss the key challenges managers must consider when implementing knowledge management",
+    "chapters": [
+     "ra9dbmxr"
+    ],
+    "topics": [
+     "ra9dbmxr:km-systems",
+     "ra9dbmxr:aligning-km-strategy-and-systems-with-business-s"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. How can managers balance the need for effective data analytics systems with concerns",
+    "chapters": [
+     "48qu7x6x",
+     "dtjtecub"
+    ],
+    "topics": [
+     "48qu7x6x:data-governance-and-data-security",
+     "dtjtecub:right-to-privacy"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. Discuss the major risks and benefits associated with adopting Enterprise Resource Planning",
+    "chapters": [
+     "frkjcp99"
+    ],
+    "topics": [
+     "frkjcp99:erp-benefits",
+     "frkjcp99:why-erp-implementations-fail"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. Analyse how managers can formulate, implement, and monitor e -business strategies",
+    "chapters": [
+     "htuw2xad"
+    ],
+    "topics": [
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin",
+     "htuw2xad:e-business-critical-success-factors"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. Discuss the ways in which ICT strategy drives and influences strategic organisational",
+    "chapters": [
+     "9mydiipv"
+    ],
+    "topics": [
+     "9mydiipv:defining-the-ict-strategy",
+     "9mydiipv:firm-level-strategy"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6. Discuss when and how managers should address ethical and moral considerations in",
+    "chapters": [
+     "q4qnvjzi",
+     "dtjtecub"
+    ],
+    "topics": [
+     "q4qnvjzi:managing-outsourcing",
+     "dtjtecub:upholding-ethical-and-legal-standards-with-partn"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2018 Exam - Zone-B",
+  "importKey": "drive/information-systems/1PwQ6rwdkmDDhUinJJQGMWBmgzV-G3Z4b",
+  "contentHash": "a07613013aca6080b59229683a74b1aec6afc7e8043774d013f75675e2dbc24b",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. Discuss three e-business critical success factor s and briefly discuss how project",
+    "chapters": [
+     "htuw2xad",
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "htuw2xad:e-business-critical-success-factors",
+     "kxzwbsfh:the-nine-project-management-knowledge-areas",
+     "kxzwbsfh:projects-and-project-management"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. Explain why project integration is so important for effective project management.",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:project-integration-management",
+     "kxzwbsfh:the-nine-project-management-knowledge-areas"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. “Business intelligence is what makes big data va luable”. Discuss this statement.",
+    "chapters": [
+     "48qu7x6x"
+    ],
+    "topics": [
+     "48qu7x6x:big-data-and-business-intelligence",
+     "48qu7x6x:dashboards-kpis-balanced-scorecards-and-business",
+     "48qu7x6x:big-data"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. Discuss with examples why business managers shou ld be involved in IT governance.",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:corporate-governance",
+     "ujj8xtah:ict-governance-vs-ict-management-ict-governance",
+     "ujj8xtah:ict-governance-as-alignment-of-technology-choice"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. Discuss the main reasons why companies decide to outsource IT related activities.",
+    "chapters": [
+     "q4qnvjzi"
+    ],
+    "topics": [
+     "q4qnvjzi:why-outsource",
+     "q4qnvjzi:outsourcing-risks"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6. Discuss the major characteristics of enterprise resource planning (ERP) systems.",
+    "chapters": [
+     "frkjcp99"
+    ],
+    "topics": [
+     "frkjcp99:what-erp-is",
+     "frkjcp99:erp-benefits",
+     "frkjcp99:why-erp-implementations-fail"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2020 Exam",
+  "importKey": "drive/information-systems/1QGUbyqbYOfY-vGeqLbc3yTZnLGKIGTxr",
+  "contentHash": "35ef65f8146cec4c9839815b7812ba4025f418ef65558aa6e43feeadf96f9bd0",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "anchor": "1. Explain why and how ERP systems have changed the approach to ICT planning.",
+    "chapters": [
+     "frkjcp99"
+    ],
+    "topics": [
+     "frkjcp99:erp-needs-centralised-ict-planning",
+     "frkjcp99:what-erp-is"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "anchor": "2. Critically analyse how managers can exploit the value generated by the information",
+    "chapters": [
+     "czacvht6"
+    ],
+    "topics": [
+     "czacvht6:icts-and-information-infrastructure-vs-informati",
+     "czacvht6:managers-and-icts"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 3,
+    "anchor": "3. How are business intelligence and big data connec ted? Critically explain under what",
+    "chapters": [
+     "48qu7x6x"
+    ],
+    "topics": [
+     "48qu7x6x:big-data-and-business-intelligence",
+     "48qu7x6x:big-data"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 3,
+    "anchor": "4. The exploitation of network-based technologies to design innovative business models",
+    "chapters": [
+     "dtjtecub"
+    ],
+    "topics": [
+     "dtjtecub:legal-grey-areas",
+     "dtjtecub:balancing-moral-beliefs-professional-ethics-and"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 3,
+    "anchor": "5. Why and how can project management techniques help managers to optimally coordinate",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:projects-and-project-management",
+     "kxzwbsfh:project-integration-management"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 3,
+    "anchor": "6. Critically discuss how IT governance can help managers to deploy successful e-",
+    "chapters": [
+     "ujj8xtah",
+     "htuw2xad"
+    ],
+    "topics": [
+     "ujj8xtah:ict-governance-as-alignment-of-technology-choice",
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 Exam paper - May 2024",
+  "importKey": "drive/information-systems/1YFkvrmna1AXwpcxbBRgcuRxmvu_cNVGT",
+  "contentHash": "fb89dea1ffc007380b455f93f35bc0cfecb225477a83558c7d4adc4e523c0580",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. How do PERT and CPM projec t management techniques differ , and in what ways",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:pert-charts",
+     "kxzwbsfh:cpm",
+     "kxzwbsfh:choosing-a-technique"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. Why is it essential for an e-b usiness strategy to be \" SMART,\" and how do managers",
+    "chapters": [
+     "htuw2xad",
+     "9mydiipv"
+    ],
+    "topics": [
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin",
+     "9mydiipv:strategic-planning-pyramid"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. How can managers harness the value created by information infrastructure, and what",
+    "chapters": [
+     "czacvht6"
+    ],
+    "topics": [
+     "czacvht6:icts-and-information-infrastructure-vs-informati",
+     "czacvht6:managers-and-icts"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. How does the diagram below serve as a valuable tool in guiding the strategic",
+    "chapters": [
+     "dtjtecub"
+    ],
+    "topics": [
+     "dtjtecub:the-legal-ethical-decision-matrix-reynolds-figur",
+     "dtjtecub:global-information-policies-across-different-mar"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. H ow does ICT governance complement corporate governance in an organisation?",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:ict-governance-vs-ict-management-ict-governance",
+     "ujj8xtah:corporate-governance"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6. H ow can managers integrate knowledge management practices with project management to",
+    "chapters": [
+     "ra9dbmxr",
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "ra9dbmxr:how-km-supports-strategic-planning-project-manag",
+     "ra9dbmxr:aligning-km-strategy-and-systems-with-business-s",
+     "kxzwbsfh:projects-and-project-management"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2022 October Resit Exam",
+  "importKey": "drive/information-systems/1_ZrXclcrM1jit-ZHm7eQr61nsueKdGMy",
+  "contentHash": "939d8a7b7d1b955e9219e2df0585943526cd08f031856fe15dd837bdedaf5e7d",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1) Discuss two of the major challenges that managers face when business intelligence is",
+    "chapters": [
+     "48qu7x6x"
+    ],
+    "topics": [
+     "48qu7x6x:big-data-and-business-intelligence",
+     "48qu7x6x:dashboards-kpis-balanced-scorecards-and-business"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2) What are the major challenges managers must deal with when implementing e-",
+    "chapters": [
+     "htuw2xad"
+    ],
+    "topics": [
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin",
+     "htuw2xad:e-business-critical-success-factors"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3) Discuss the major organisational and technological challenges managers face while",
+    "chapters": [
+     "czacvht6"
+    ],
+    "topics": [
+     "czacvht6:icts-and-information-infrastructure-vs-informati",
+     "czacvht6:change-management-and-strategic-alignment-in-ict"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4) How does corporate governance influence ICT strategic decisions? Build your argument",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:corporate-governance",
+     "ujj8xtah:ict-governance-as-alignment-of-technology-choice"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5) Discuss what managers need to consider when taking decisions on investments in B2C",
+    "chapters": [
+     "htuw2xad"
+    ],
+    "topics": [
+     "htuw2xad:b2c-virtual-shops",
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6) Discuss how managers can ensure that a company’s use of data analytics is, at the same time,",
+    "chapters": [
+     "dtjtecub"
+    ],
+    "topics": [
+     "dtjtecub:morality-ethics-and-law",
+     "dtjtecub:balancing-moral-beliefs-professional-ethics-and"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 exam paper - October 2024",
+  "importKey": "drive/information-systems/1r6e3Vr5_FWBc_0lhiOtWh-C5IbLeyJpc",
+  "contentHash": "68d79c4cd1ddfe53e0779fc75a7e6ea5782a051e2b1330a809a97d1f8393ef0d",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. Critically discuss how project m anagement techniques can improve the planning and",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:project-integration-management",
+     "kxzwbsfh:ict-support-for-project-management",
+     "kxzwbsfh:choosing-a-technique"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. Why is it crucial for an e-business st rategy to consider both technological and",
+    "chapters": [
+     "htuw2xad"
+    ],
+    "topics": [
+     "htuw2xad:e-business-critical-success-factors",
+     "htuw2xad:fitting-e-business-to-strategy-building-acquirin"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. How can managers harness the value created by ERP systems, and what challenges might they",
+    "chapters": [
+     "frkjcp99"
+    ],
+    "topics": [
+     "frkjcp99:erp-benefits",
+     "frkjcp99:implementing-erp",
+     "frkjcp99:why-erp-implementations-fail"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. How does ICT governance influe nce corporate governance decisions? Support your",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:ict-governance-vs-ict-management-ict-governance",
+     "ujj8xtah:corporate-governance"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. How can managers integrate knowle dge management practices with business intelligence",
+    "chapters": [
+     "ra9dbmxr",
+     "48qu7x6x"
+    ],
+    "topics": [
+     "ra9dbmxr:km-systems",
+     "48qu7x6x:big-data-and-business-intelligence",
+     "ra9dbmxr:aligning-km-strategy-and-systems-with-business-s"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6. Discuss the major organisational and technological challenges managers face when",
+    "chapters": [
+     "q4qnvjzi",
+     "ra9dbmxr"
+    ],
+    "topics": [
+     "q4qnvjzi:outsourcing-risks",
+     "q4qnvjzi:managing-outsourcing",
+     "ra9dbmxr:km-systems"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2021 Exam - Zone-B",
+  "importKey": "drive/information-systems/1sqt_SXMwJiPRbuQKWUwcd26i8ZwcWwBj",
+  "contentHash": "5e0454e8ac1148e6947c7979af5943c11fb2de8eb10036df1451dd47aa9127b2",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "anchor": "1) The COVID-19 pandemic has increased the pressure that managers face handling e-business",
+    "chapters": [
+     "htuw2xad"
+    ],
+    "topics": [
+     "htuw2xad:e-business-critical-success-factors",
+     "htuw2xad:why-e-business-matters"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "anchor": "2) Discuss how managers can balance the benefits and privacy risks associated with the use",
+    "chapters": [
+     "48qu7x6x",
+     "dtjtecub"
+    ],
+    "topics": [
+     "48qu7x6x:big-data",
+     "dtjtecub:right-to-privacy"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 3,
+    "anchor": "3) Discuss how strategic planning can help managers define the scope of the ICT strategy",
+    "chapters": [
+     "9mydiipv"
+    ],
+    "topics": [
+     "9mydiipv:strategic-planning-pyramid",
+     "9mydiipv:defining-the-ict-strategy"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 3,
+    "anchor": "4) How can knowledge management systems support managers in enhancing the efficacy of project",
+    "chapters": [
+     "ra9dbmxr",
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "ra9dbmxr:how-km-supports-strategic-planning-project-manag",
+     "kxzwbsfh:ict-support-for-project-management"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 3,
+    "anchor": "5) Discuss two of the major risks that managers have to deal with when using cloud services.",
+    "chapters": [
+     "q4qnvjzi"
+    ],
+    "topics": [
+     "q4qnvjzi:ict-outsourcing-to-public-cloud-providers",
+     "q4qnvjzi:outsourcing-risks"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 3,
+    "anchor": "6) Discuss how ICT governance can help managers align technology and business needs.",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:ict-governance-as-alignment-of-technology-choice",
+     "ujj8xtah:ict-governance-vs-ict-management-ict-governance"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "information-systems",
+  "title": "IS2184 - Information Systems Management - 2019 Exam - Zone-B",
+  "importKey": "drive/information-systems/1ucMf6o15Z-rozcRwpaqLxRnud1U2JZzh",
+  "contentHash": "910869d7e480ca1f6fa457748b1ffaabce06cb5a263216bee512cc0d764a3e34",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. The development of a strategic plan to guide the adoption of corporate ICTs is of",
+    "chapters": [
+     "9mydiipv"
+    ],
+    "topics": [
+     "9mydiipv:defining-the-ict-strategy",
+     "9mydiipv:strategic-planning-pyramid",
+     "9mydiipv:it-business-value"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. Why is ICT governance needed to manage the complexity and multidimensional factors that",
+    "chapters": [
+     "ujj8xtah"
+    ],
+    "topics": [
+     "ujj8xtah:ict-governance-vs-ict-management-ict-governance",
+     "ujj8xtah:ict-governance-as-alignment-of-technology-choice"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. Why is the definition of the business goals that the organisation wants to achieve of",
+    "chapters": [
+     "czacvht6"
+    ],
+    "topics": [
+     "czacvht6:change-management-and-strategic-alignment-in-ict",
+     "czacvht6:managers-and-icts"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. What is the best management strategy to fully exploit all of the potential of ICT",
+    "chapters": [
+     "q4qnvjzi"
+    ],
+    "topics": [
+     "q4qnvjzi:managing-outsourcing",
+     "q4qnvjzi:coordinating-outsourcer-and-provider-transferred",
+     "q4qnvjzi:why-outsource"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. What are the main characteristics of PERT and CPM project management techniques?",
+    "chapters": [
+     "kxzwbsfh"
+    ],
+    "topics": [
+     "kxzwbsfh:pert-charts",
+     "kxzwbsfh:cpm",
+     "kxzwbsfh:choosing-a-technique"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 2,
+    "anchor": "6. The exploitation of network-based technologies to design innovative business propositions",
+    "chapters": [
+     "dtjtecub"
+    ],
+    "topics": [
+     "dtjtecub:legal-grey-areas",
+     "dtjtecub:right-to-privacy",
+     "dtjtecub:using-data-about-third-parties"
+    ]
+   }
+  ]
+ },
+ {
   "module": "machine-learning",
   "title": "ST3189 - Machine Learning - 2022 Exam",
   "importKey": "drive/machine-learning/128xHzbjFTOIpQTGIAodRzymedvdCRvTO",
@@ -23080,6 +24443,20 @@
   "model": "claude-haiku-5-5",
   "questions": [
    {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. (a) Indicate whether the following statements are true or false. Briefly justify",
+    "chapters": [
+     "ss398uan",
+     "ga5qn492"
+    ],
+    "topics": [
+     "ss398uan:k-nearest-neighbours-classification-wine-data",
+     "ga5qn492:majority-voting",
+     "ga5qn492:bagging-trees-and-random-forests"
+    ]
+   },
+   {
     "question": 2,
     "page": 3,
     "anchor": "2. Let x = (x1, . . . , xn) be a random sample from the Gamma(4, θ) distribution.",
@@ -23253,6 +24630,20 @@
   "contentHash": "2584d66ec24c89f9eb1c5853182b2deba5a1b68f4b7301c2dc7be88988d3cc92",
   "model": "claude-haiku-5-5",
   "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "anchor": "1. (a) Indicate whether the following statements are true or false. Brieﬂy",
+    "chapters": [
+     "ss398uan",
+     "we3jyezr"
+    ],
+    "topics": [
+     "ss398uan:k-nearest-neighbours-classification-wine-data",
+     "ss398uan:cross-validation",
+     "we3jyezr:recursive-binary-splitting"
+    ]
+   },
    {
     "question": 2,
     "page": 3,
@@ -24147,6 +25538,20 @@
     ]
    },
    {
+    "question": 6,
+    "page": 5,
+    "anchor": "6. (a) Joules is a clothing brand that espouses the English countryside lifestyle, and it",
+    "chapters": [
+     "mku23vy9",
+     "xtgyyfus"
+    ],
+    "topics": [
+     "mku23vy9:behavioural-pricing",
+     "mku23vy9:price-discrimination-segmented-pricing",
+     "xtgyyfus:brand-equity-brand-personality-and-brand-associa"
+    ]
+   },
+   {
     "question": 7,
     "page": 6,
     "anchor": "7. (a) In its 2023 accounts Meta (the parent company of social media networks Facebook",
@@ -24157,6 +25562,20 @@
      "v6g7epwb:competitors",
      "v6g7epwb:the-micro-environment",
      "v6g7epwb:the-macro-environment"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "anchor": "8. A shop has a window display that just contains grey-coloured metal cylinders stacked",
+    "chapters": [
+     "xtgyyfus",
+     "9k64b4e4"
+    ],
+    "topics": [
+     "xtgyyfus:quality-cues",
+     "xtgyyfus:brand-equity-brand-personality-and-brand-associa",
+     "9k64b4e4:information-search-search-experience-credence-at"
     ]
    }
   ]
@@ -24326,6 +25745,18 @@
      "2wuk35yt:response-hierarchies",
      "2wuk35yt:word-of-mouth-viral-marketing-and-earned-media",
      "2wuk35yt:developing-effective-communications"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 4,
+    "anchor": "5. Airbnb is a platform that enables owners of properties to connect with people looking for",
+    "chapters": [
+     "9k64b4e4"
+    ],
+    "topics": [
+     "9k64b4e4:the-five-stage-buyer-decision-process",
+     "9k64b4e4:information-search-search-experience-credence-at"
     ]
    },
    {
@@ -24824,6 +26255,19 @@
     "topics": [
      "2wuk35yt:the-promotion-mix-and-integrated-marketing-commu",
      "2wuk35yt:word-of-mouth-viral-marketing-and-earned-media"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "anchor": "Question 4 a) Penny is a German discount supermarket chain that now prints its prices",
+    "chapters": [
+     "mku23vy9",
+     "2wuk35yt"
+    ],
+    "topics": [
+     "mku23vy9:price-and-positioning",
+     "2wuk35yt:source-credibility-and-persuasion"
     ]
    },
    {
@@ -25439,6 +26883,20 @@
     ],
     "topics": [
      "7fvw6qf7:the-marketing-mix"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 4,
+    "anchor": "4. Design and describe a behaviour modification programme in a university setting",
+    "chapters": [
+     "9k64b4e4",
+     "2wuk35yt"
+    ],
+    "topics": [
+     "9k64b4e4:social-influence-section-4-5",
+     "9k64b4e4:motivation-and-needs",
+     "2wuk35yt:developing-effective-communications"
     ]
    },
    {
@@ -26523,6 +27981,20 @@
      "9nxh32vz:marketing-orientation-versus-societal-marketing",
      "9nxh32vz:business-orientations-section-2-5"
     ]
+   },
+   {
+    "question": 8,
+    "page": 5,
+    "anchor": "8. Using examples to illustrate your answer, explain the value of these concepts to",
+    "chapters": [
+     "xtgyyfus",
+     "2wuk35yt"
+    ],
+    "topics": [
+     "xtgyyfus:products-and-services",
+     "xtgyyfus:co-creation-of-value-with-customers-section-8-3",
+     "2wuk35yt:the-communication-process-shannon-and-weaver-mod"
+    ]
    }
   ]
  },
@@ -26618,6 +28090,20 @@
     "topics": [
      "8fqpxstf:targeting-strategies",
      "8fqpxstf:evaluating-segments"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 4,
+    "anchor": "8. Using examples to illustrate your answer explain the value of these concepts to marketers:",
+    "chapters": [
+     "xtgyyfus",
+     "2wuk35yt"
+    ],
+    "topics": [
+     "xtgyyfus:products-and-services",
+     "xtgyyfus:co-creation-of-value-with-customers-section-8-3",
+     "2wuk35yt:the-communication-process-shannon-and-weaver-mod"
     ]
    }
   ]
@@ -28259,6 +29745,20 @@
     "topics": [
      "9nxh32vz:marketing-orientation-versus-societal-marketing",
      "7fvw6qf7:definition-of-marketing-and-the-marketing-proces"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. (a) Explain what is meant by the concept of ‘control’ in marketing. (4 marks)",
+    "chapters": [
+     "jfc6uyin",
+     "2wuk35yt"
+    ],
+    "topics": [
+     "jfc6uyin:distribution-intensity-intensive-selective-exclu",
+     "jfc6uyin:disintermediation-vertical-integration-e-commerc",
+     "2wuk35yt:the-promotion-mix-and-integrated-marketing-commu"
     ]
    },
    {
@@ -30224,6 +31724,18 @@
     ]
    },
    {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. Growth in the economy leads to a rise in the demand for labour. It follows that",
+    "chapters": [
+     "3aavyrih"
+    ],
+    "topics": [
+     "3aavyrih:labour-supply",
+     "3aavyrih:impact-of-income-and-price-changes"
+    ]
+   },
+   {
     "question": 5,
     "page": 2,
     "anchor": "5. Suppose there are two factories that generate pollution. Each factory currently",
@@ -30484,16 +31996,6 @@
     ]
    },
    {
-    "question": 2,
-    "page": 3,
-    "chapters": [
-     "2f8izpve"
-    ],
-    "topics": [
-     "2f8izpve:zero-economic-profit-in-competitive-markets"
-    ]
-   },
-   {
     "question": 3,
     "page": 3,
     "chapters": [
@@ -30557,18 +32059,6 @@
     "topics": [
      "jjp55chz:reducing-risk",
      "jjp55chz:risk-neutral-and-risk-loving-preferences"
-    ]
-   },
-   {
-    "question": 10,
-    "page": 4,
-    "chapters": [
-     "6wtf9dtz",
-     "hxmkqbf5"
-    ],
-    "topics": [
-     "6wtf9dtz:a-simple-model-of-resource-extraction",
-     "hxmkqbf5:monopoly-profit-maximisation-mr-mc-and-deadweigh"
     ]
    },
    {
@@ -30899,6 +32389,18 @@
     ],
     "topics": [
      "3aavyrih:impact-of-income-and-price-changes"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. In the long-run equilibrium under monopolistic competition, ﬁrms earn a zero",
+    "chapters": [
+     "hxmkqbf5"
+    ],
+    "topics": [
+     "hxmkqbf5:monopoly-profit-maximisation-mr-mc-and-deadweigh",
+     "hxmkqbf5:the-lerner-index-as-a-measure-of-monopoly-power"
     ]
    },
    {
@@ -31859,6 +33361,18 @@
     ]
    },
    {
+    "question": 15,
+    "page": 5,
+    "anchor": "15. (a) Discuss the effect of a labour union on wages and emplo yment.",
+    "chapters": [
+     "mk335ei4"
+    ],
+    "topics": [
+     "mk335ei4:short-run-with-one-variable-factor",
+     "mk335ei4:production-function-and-factor-demand"
+    ]
+   },
+   {
     "question": 16,
     "page": 6,
     "anchor": "16. (a) Two ﬁrms (1 and 2) in an industry can either produce a hi gh quality prod-",
@@ -32754,6 +34268,18 @@
     ]
    },
    {
+    "question": 5,
+    "page": 2,
+    "anchor": "5. In the long-run equilibrium under monop olistic competition, ﬁrms earn a zero",
+    "chapters": [
+     "hxmkqbf5"
+    ],
+    "topics": [
+     "hxmkqbf5:monopoly-profit-maximisation-mr-mc-and-deadweigh",
+     "hxmkqbf5:the-lerner-index-as-a-measure-of-monopoly-power"
+    ]
+   },
+   {
     "question": 6,
     "page": 3,
     "anchor": "6. For each of the following statements, state whether the statement is true or false,",
@@ -32939,17 +34465,6 @@
     "topics": [
      "p7tsid7t:exchange-economy-and-the-edgeworth-box",
      "p7tsid7t:the-first-welfare-theorem"
-    ]
-   },
-   {
-    "question": 6,
-    "page": 3,
-    "anchor": "6. Indicate the alternative (i. or ii.) that best completes the following statement and",
-    "chapters": [
-     "2f8izpve"
-    ],
-    "topics": [
-     "2f8izpve:zero-economic-profit-in-competitive-markets"
     ]
    },
    {
@@ -33737,18 +35252,6 @@
     ]
    },
    {
-    "question": 10,
-    "page": 4,
-    "chapters": [
-     "hxmkqbf5",
-     "mk335ei4"
-    ],
-    "topics": [
-     "hxmkqbf5:regulating-a-monopoly",
-     "mk335ei4:production-function-and-factor-demand"
-    ]
-   },
-   {
     "question": 11,
     "page": 5,
     "chapters": [
@@ -33791,6 +35294,19 @@
   "contentHash": "dd38fec5c31905e3ec960d48d9193f6d5af4145ee2f1e385b2fb01cf9de76909",
   "model": "claude-haiku-5-5",
   "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. Two markets, A and B , are monopolistically competitive. Assume that, in both",
+    "chapters": [
+     "hxmkqbf5",
+     "2f8izpve"
+    ],
+    "topics": [
+     "hxmkqbf5:the-lerner-index-as-a-measure-of-monopoly-power",
+     "2f8izpve:zero-economic-profit-in-competitive-markets"
+    ]
+   },
    {
     "question": 2,
     "page": 2,
@@ -34427,30 +35943,6 @@
      "hxmkqbf5:monopoly-profit-maximisation-mr-mc-and-deadweigh",
      "rzdnpy2f:cournot-duopoly",
      "rzdnpy2f:bertrand-price-competition-with-identical-firms"
-    ]
-   },
-   {
-    "question": 11,
-    "page": 4,
-    "chapters": [
-     "hxmkqbf5",
-     "mk335ei4"
-    ],
-    "topics": [
-     "hxmkqbf5:monopoly-profit-maximisation-mr-mc-and-deadweigh",
-     "mk335ei4:production-function-and-factor-demand"
-    ]
-   },
-   {
-    "question": 12,
-    "page": 5,
-    "chapters": [
-     "6wtf9dtz",
-     "hxmkqbf5"
-    ],
-    "topics": [
-     "6wtf9dtz:a-simple-model-of-resource-extraction",
-     "hxmkqbf5:monopoly-profit-maximisation-mr-mc-and-deadweigh"
     ]
    },
    {
