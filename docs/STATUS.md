@@ -1,7 +1,7 @@
 # Status
 
 This is the handoff between sessions: where the work stands, what's next and what Mohamed still has to decide.
-Update it whenever you finish or start something. Last updated 2026-10-24, after Railway recovery.
+Update it whenever you finish or start something. Last updated 2026-11-01, after the Year 3 and IS2184 content.
 
 ## Where things stand
 
@@ -243,6 +243,32 @@ The password and cover release passed both GitHub CI jobs. Railway's
 - The deployment check now fails when storage is unhealthy, so broken file access cannot pass the health check
   as a warning. Recovery instructions are in DEPLOYMENT section 12.
 
+### Year 3 and IS2184 content, 2026-11-01
+
+- **Lessons.** YouTube chapters from the GitHub Pages site, checked embeddable: ST2133 +37 lessons, ST2134 +35,
+  chapters for the six Year 3 modules (ML 13, market research 22, micro 11, asset pricing 11, marketing 16, further
+  maths 10; MT3095's linear algebra is Professor Dave Explains) and IS2184 (11 chapters, 79 lessons, the 2017 guide).
+  They are marked `"addedIn": "2026-11"` in `modules.json`; the seed's `new-lessons` step adds a batch's missing
+  chapters and lessons to a catalogue loaded before them, once per module (audit `module.seed_lessons`), so every
+  deploy brings them to dev without reloading modules (hidden lessons stay hidden).
+- **Unit codes** for the Year 3 modules (ST3189, ST3188, EC2066, FN2203, MN3141, MT3095): the seed's `unit-codes`
+  step fills an empty code only.
+- **Drive folders.** Each Year 3 module's older past papers folder (`resources.olderExams`) and FN2203's formula
+  sheets (`cheatSheet`, one per chapter), from the shared library Mohamed linked.
+- **Outlines.** `chapter_outlines.json` now covers Year 3 and IS2184 from their subject guides (MN3141's guide
+  isn't public: its course information sheets and examiners' commentaries instead). Topic titles are chip-sized.
+- **Tags.** `paper_questions.json` gains 1,595 questions on 190 papers (176 Year 3, 14 IS2184): Haiku agents given the
+  tagger's own request (the 30 scanned papers read as images), every reply through `parse_reply`. The 55 Year 3
+  questions below 0.6 had a second look: 29 are tagged (one by Mohamed's call). Mohamed's call: questions on material
+  the current guides don't teach stay untagged (26 from 2003-2011 papers, international marketing, game theory,
+  voting, Laffer curve, rent seeking, monopsony, unions, Hotelling; and 6 more on the same material). Anchors can't be
+  kept on scans (no text), so those questions open at their page.
+- **On dev, still to do (Mohamed, on the dev API shell):** the older papers aren't in the bucket yet. Run the Drive
+  import with the key in the environment, then the exam details and the seed again so the tags attach:
+  `DSBA_GOOGLE_API_KEY=… python -m app.cli import-drive --yes` (or `--module <id>` per module), then
+  `python -m app.cli exam-meta` and `python -m app.cli seed --only paper-questions`. Papers already on dev (the
+  Year 3 VLE folders, IS2184) get their tags on the next deploy.
+
 ## Operating notes
 
 - **Railway dev region (2026-10-20):** Postgres, api and web run in `southeast-asia` (moved from Amsterdam with
@@ -299,7 +325,7 @@ The password and cover release passed both GitHub CI jobs. Railway's
    chapter has no hub chapter; add their outlines and topics, then have Haiku subagents move the affected
    questions (the notes in the retag say which) and ship `paper_questions.json` again.
 2. Then, when Mohamed says go: a student test of round 17 (resits, topics, Quick Look, the new sign-in), a security
-   review of the new sign-in, Year 3 chapters and tagging, Quick Look in the sittings table and Cmd-K.
+   review of the new sign-in, Quick Look in the sittings table and Cmd-K.
 3. Still open from earlier reviews: CQ-20; SEC-14; the standards review's S-1, S-3, S-4 and S-5 to S-7.
 
 ## Waiting on Mohamed
@@ -310,10 +336,10 @@ The password and cover release passed both GitHub CI jobs. Railway's
   (DEPLOYMENT.md section 14). Until then dev signs in with email and password.
 - **Chapters for the outline gaps** listed in round 17, and ST2195 2022 PrelimExam comm (a commentary filed as a
   past paper).
-- **Year 3 chapters:** 44 Year 3 papers can't be tagged until those modules have chapters.
+- **Drive import on dev** for the Year 3 older papers (see "Year 3 and IS2184 content" above).
 - **Content gaps** (round 14 test, ST-45/48/49): tagged past questions exist only for EC1002 and EC2020; solutions
-  for 0-2 sittings per module; an exam's "What to bring" opens an empty forum tag; the six Year 3 modules have no
-  unit codes; none of the 10 October exams has a time or place; each VLE MCQ window is two one-day events; IS2184 and every Year 3 module have no lessons.
+  for 0-2 sittings per module; an exam's "What to bring" opens an empty forum tag; none of the 10 October
+  exams has a time or place; each VLE MCQ window is two one-day events.
 - **`exam_meta_from_name()`:** the real past-paper name patterns, in `api/app/services/exam_names.py`.
 - **Roadmap questions:** each feature in `docs/ROADMAP.md` lists what he needs to decide. R-1 (roles) comes first.
 - **Ideas to approve:** 24 proposals in `docs/ideas.md` (IDEA-1 to IDEA-24), merged 2026-10-13.
