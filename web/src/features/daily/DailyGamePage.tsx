@@ -235,6 +235,12 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
         </div>
       </header>
 
+      {out ? (
+        <p className="dg-theme">
+          Theme: <b>{themeName(out.theme.title)}</b>
+        </p>
+      ) : null}
+
       {out && !over ? (
         <Notice
           out={out}
@@ -427,4 +433,9 @@ function ScreenSkeleton({ game }: { game: GameId }) {
       </section>
     </div>
   );
+}
+
+/** The week's theme as DSBA Daily names it over the board: "Statistics week" is "Statistics". */
+function themeName(title: string): string {
+  return title.replace(/\s+week$/i, '');
 }

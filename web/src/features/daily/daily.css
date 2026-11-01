@@ -136,7 +136,7 @@
   --dy-find-7: color-mix(in srgb, var(--y1) 46%, transparent);
   --dy-on-find-0: var(--highlight-ink);
   /* A tile or key: raised a little off the page. */
-  --dy-tile: var(--surface);
+  --dy-tile: transparent; /* DSBA Daily's empty tiles: an outline only */
   --dy-tile-edge: var(--line-strong);
   --dy-key: var(--surface-2);
   --dy-key-edge: color-mix(in srgb, var(--line-strong) 70%, transparent);

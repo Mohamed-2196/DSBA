@@ -25,9 +25,9 @@ export function GameCard({ game }: { game: GameDay }) {
         <span className="dh-card__name">{game.info.title}</span>
         <span className="dh-card__line">{typeset(game.info.tagline)}</span>
         <span className="dh-card__foot">
-          <span className={cx('dh-badge', `is-${status.tone}`)} data-noora-avoid="">
+          <span className={cx('dh-state', `is-${status.tone}`)} data-noora-avoid="">
             {status.tone === 'won' || status.tone === 'lost' ? (
-              <Icon glyph={glyph.check} className="dh-badge__icon" aria-hidden="true" />
+              <Icon glyph={glyph.check} className="dh-state__icon" aria-hidden="true" />
             ) : null}
             {badgeText(game)}
           </span>

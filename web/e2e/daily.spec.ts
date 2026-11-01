@@ -214,8 +214,12 @@ test('a guest’s hub counts the puzzles they finished', async ({ guest }) => {
   await guest.keyboard.press('Enter');
   await expect(result(guest)).toContainText('Solved in 1 guess');
   await guest.goto('/daily');
-  await expect(guest.getByRole('list', { name: 'Today so far' })).toContainText('1 of 6 done');
-  await expect(guest.locator('a[data-game="word"]')).toContainText('Solved');
+  await expect(guest.getByRole('progressbar', { name: 'Today’s games finished' })).toHaveAttribute(
+    'aria-valuenow',
+    '1',
+  );
+  await expect(guest.getByText('1 of 6 done')).toBeVisible();
+  await expect(guest.locator('a[data-game="word"]')).toContainText('Done');
 });
 
 test('a guest who wins and signs up from the result card keeps the win and its points', async ({ guest, run }) => {
@@ -251,7 +255,7 @@ test('a guest who wins and signs up from the result card keeps the win and its p
   const me = await api<{ stats: { points: number; won: number } }>(page, 'GET', '/api/v1/daily/me');
   expect(me.body.stats).toMatchObject({ points: 100, won: 1 });
   await page.goto('/daily');
-  await expect(page.locator('a[data-game="word"]')).toContainText('Solved · +100');
+  await expect(page.locator('a[data-game="word"]')).toContainText('Done · 100 pts');
 
   // The account goes again (made a minute ago: nothing to confirm).
   await gotoAccount(page);
@@ -354,9 +358,9 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
   expect(me.body.done).toBe(6);
   expect(me.body.games.every((g) => g.scored)).toBe(true);
   await page.goto('/daily');
+  await expect(page.getByText('6 of 6 done')).toBeVisible();
   const summary = page.getByRole('list', { name: 'Today so far' });
-  await expect(summary).toContainText('6 of 6 done');
-  await expect(summary).toContainText(`${me.body.points} points`);
+  await expect(summary.getByRole('listitem').filter({ hasText: 'Points today' })).toContainText(`${me.body.points}`);
 
   // His name shows on the leaderboard only once he chooses it.
   await page.getByRole('tab', { name: 'Leaderboard' }).tap();

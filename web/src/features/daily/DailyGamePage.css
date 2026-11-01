@@ -63,10 +63,9 @@
   align-items: center;
   gap: var(--sp-8);
   height: var(--dg-bar-h);
-  margin-top: var(--sp-16);
   padding: 0 var(--sp-12);
-  border-radius: var(--r-panel);
-  background: var(--sec-pill);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
 }
 .dg-bar__start {
   justify-self: start;
@@ -109,15 +108,7 @@
 
 @media (max-width: 699px), (max-height: 500px) and (pointer: coarse) {
   .dg-bar {
-    margin-top: 0;
     padding: 0 var(--sp-4);
-    border-radius: 0;
-  }
-  .dg-bar__tile {
-    display: none;
-  }
-  .dg-bar__names {
-    text-align: center;
   }
   .dg-bar__name {
     font-size: var(--fs-17);
@@ -127,6 +118,19 @@
   .dg-bar__meta {
     font-size: var(--fs-11);
   }
+}
+
+/* ── The week's theme, over the board (DSBA Daily's "Theme:" line) ─────────────────────────────────────────────── */
+.dg-theme {
+  flex: 0 0 auto;
+  margin: var(--sp-8) 0 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  text-align: center;
+}
+.dg-theme b {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 /* ── The note: why a play won't count ─────────────────────────────────────────────────────────────── */

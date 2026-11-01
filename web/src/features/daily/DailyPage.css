@@ -312,7 +312,7 @@
 }
 
 /* The state: Play, In progress, Done. */
-.dh-badge {
+.dh-state {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -324,20 +324,20 @@
   font-weight: 600;
   white-space: nowrap;
 }
-.dh-badge.is-new {
+.dh-state.is-new {
   background: var(--accent);
   color: var(--on-accent);
 }
-.dh-badge.is-playing {
+.dh-state.is-playing {
   background: color-mix(in srgb, #f2b33d 28%, var(--surface));
   color: var(--ink);
 }
-.dh-badge.is-won,
-.dh-badge.is-lost {
+.dh-state.is-won,
+.dh-state.is-lost {
   background: var(--success-soft);
   color: var(--success);
 }
-.dh-badge__icon {
+.dh-state__icon {
   width: 14px;
   height: 14px;
 }
